@@ -1,10 +1,11 @@
 const path = require('path');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
   mode: 'development',
   entry: {
-    app: './js/App.js',
+    app: './src/index.js',
   },
   output: {
     filename: '[name]-[hash].bundle.js',
@@ -15,7 +16,14 @@ module.exports = {
     contentBase: path.join(__dirname, 'dist'),
     hot: true,
   },
-  plugins: [new CleanWebpackPlugin()],
+  plugins: [
+    new CleanWebpackPlugin(),
+    new HtmlWebpackPlugin({
+      template: 'src/index.html',
+      // With the dev server, we need to put this file in the dist folder
+      filename: 'index.html',
+    }),
+  ],
   module: {
     rules: [
       // Transpiles ES6 and JSX
