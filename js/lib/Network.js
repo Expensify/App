@@ -88,7 +88,8 @@ function processWriteQueue() {
   }
 }
 
+// TODO: Figure out setInterval
 // Process our write queue very often
-setInterval(processWriteQueue, 1000);
+// setInterval(processWriteQueue, 1000);
 
 export {request, delayedWrite};
