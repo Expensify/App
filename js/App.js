@@ -4,8 +4,7 @@
  */
 
 import React, {Component} from 'react';
-import {SafeAreaView, Text, StatusBar} from 'react-native';
-import {Button, TextInput, View} from 'react-native-web';
+import {SafeAreaView, Text, StatusBar, Button, TextInput, View} from 'react-native';
 import * as Store from './store/Store.js';
 import {signIn} from './store/actions/SessionActions.js';
 import STOREKEYS from './store/STOREKEYS.js';
@@ -69,7 +68,7 @@ export default class App extends Component {
             />
           </View>
           <View>
-            <Button onPress={this.submit}>Log In</Button>
+            <Button onPress={this.submit} title={'Log In'} />
           </View>
         </SafeAreaView>
       </>
