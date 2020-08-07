@@ -5,8 +5,8 @@ import * as Store from './store/Store.js';
 import * as ActiveClientManager from './lib/ActiveClientManager.js';
 import {verifyAuthToken} from './store/actions/SessionActions.js';
 import STOREKEYS from './store/STOREKEYS.js';
-import {NativeRouter, Route, Redirect, Switch} from 'react-router-native';
 import React, {Component} from 'react';
+import {Route, Router, Redirect, Switch} from './lib/Router';
 
 // Initialize the store when the app loads for the first time
 StoreInit();
@@ -50,7 +50,7 @@ export default class Expensify extends Component {
 
   render() {
     return (
-      <NativeRouter>
+      <Router>
         {/* If there is ever a property for redirecting, we do the redirect here */}
         {this.state.redirectTo && <Redirect to={this.state.redirectTo} />}
 
@@ -58,7 +58,7 @@ export default class Expensify extends Component {
           <Route path="/signin" component={SignInPage} />
           <Route path="/" component={HomePage} />
         </Switch>
-      </NativeRouter>
+      </Router>
     );
   }
 }

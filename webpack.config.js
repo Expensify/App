@@ -29,7 +29,7 @@ module.exports = {
       // Transpiles ES6 and JSX
       {
         test: /\.js$/,
-        exclude: /node_modules/,
+        exclude: /node_modules|\.native.js$/,
         use: {
           loader: 'babel-loader',
         },
