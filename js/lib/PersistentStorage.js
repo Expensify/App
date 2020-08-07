@@ -3,18 +3,21 @@
  * persistent storage method is desired.
  */
 
+import AsyncStorage from '@react-native-community/async-storage';
+
 /**
  * Get a key from storage
  *
  * @param {string} key
  */
-function get(key) {
+const get = async (key) => {
   try {
-    return JSON.parse(localStorage.getItem(key));
+    const jsonValue = await AsyncStorage.getItem(key);
+    return jsonValue != null ? JSON.parse(jsonValue) : null;
   } catch (e) {
     console.error(`Could not parse value from local storage. Key: ${key}`);
   }
-}
+};
 
 /**
  * Write a key to storage
@@ -22,15 +25,15 @@ function get(key) {
  * @param {string} key
  * @param {mixed} val
  */
-function set(key, val) {
-  localStorage.setItem(key, JSON.stringify(val));
-}
+const set = async (key, val) => {
+  await AsyncStorage.setItem(key, JSON.stringify(val));
+};
 
 /**
  * Empty out the storage (like when the user signs out)
  */
-function clear() {
-  localStorage.clear();
-}
+const clear = async () => {
+  await AsyncStorage.clear();
+};
 
 export {get, set, clear};

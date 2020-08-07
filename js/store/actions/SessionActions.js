@@ -14,16 +14,18 @@ function signIn(login, password) {
   Store.set(STOREKEYS.SESSION, {});
 
   request('Authenticate', {
+    useExpensifyLogin: true,
     partnerName: 'expensify.com',
     partnerPassword: 'MkgLvVAyaTlmw',
     partnerUserID: login,
     partnerUserSecret: password,
   })
-    .done((data) => {
+    .then((data) => {
       Store.set(STOREKEYS.SESSION, data);
       Store.set(STOREKEYS.APP_REDIRECT_TO, ROUTES.HOME);
     })
-    .fail((err) => {
+    .catch((err) => {
+      console.warn(err);
       Store.set(STOREKEYS.SESSION, {error: err});
     });
 }
@@ -31,9 +33,9 @@ function signIn(login, password) {
 /**
  * Sign out of our application
  */
-function signOut() {
+async function signOut() {
   Store.set(STOREKEYS.APP_REDIRECT_TO, ROUTES.SIGNIN);
-  PersistentStorage.clear();
+  await PersistentStorage.clear();
 }
 
 /**
@@ -41,10 +43,11 @@ function signOut() {
  */
 function verifyAuthToken() {
   request('Get', {returnValueList: 'account'})
-    .done((data) => {
+    .then((data) => {
+      console.debug(`Have valid auth token`);
       Store.set(STOREKEYS.SESSION, data);
     })
-    .fail(() => {
+    .catch(() => {
       // If the auth token is bad, we want them to go to the sign in page
       Store.set(STOREKEYS.APP_REDIRECT_TO, ROUTES.SIGNIN);
     });
