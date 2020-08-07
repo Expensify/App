@@ -13,7 +13,7 @@ let isAppOffline = false;
  */
 async function request(command, data, type) {
   const formData = new FormData();
-  formData.append(await Store.get('session', 'authToken'));
+  formData.append('authToken', await Store.get('session', 'authToken'));
   for (const property in data) {
     formData.append(property, data[property]);
   }
