@@ -7,11 +7,11 @@ const clientID = Guid();
 /**
  * Add our client ID to the list of active IDs
  */
-function init() {
-  const activeClientIDs = Store.get(STOREKEYS.ACTIVE_CLIENT_IDS) || [];
+const init = async () => {
+  const activeClientIDs = (await Store.get(STOREKEYS.ACTIVE_CLIENT_IDS)) || [];
   activeClientIDs.push(clientID);
   Store.set(STOREKEYS.ACTIVE_CLIENT_IDS, activeClientIDs);
-}
+};
 
 /**
  * Remove this client ID from the array of active client IDs when this client is exited

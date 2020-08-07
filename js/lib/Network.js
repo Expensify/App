@@ -11,29 +11,31 @@ let isAppOffline = false;
  * @param {string} [type]
  * @returns {$.Deferred}
  */
-function request(command, data, type) {
-  const promise = new $.Deferred();
-  $.ajax({
-    url: `https://www.expensify.com.dev/api?command=${command}`,
-    type: type || 'post',
-    data: {
-      authToken: Store.get('session', 'authToken'),
-      ...data,
+async function request(command, data, type) {
+  const formData = new FormData();
+  formData.append(await Store.get('session', 'authToken'));
+  for (const property in data) {
+    formData.append(property, data[property]);
+  }
+  let response = await fetch(
+    `https://3e9e0f9d0d05.ngrok.io/api?command=${command}`,
+    {
+      method: 'post',
+      body: formData,
     },
-  })
-    .done((responseData) => {
-      if (responseData.jsonCode === 200) {
-        return promise.resolve(responseData);
-      }
-      console.error('API Error:', responseData);
-      promise.reject(responseData.message);
-    })
-    .fail((xhr) => {
-      isAppOffline = true;
-      promise.reject();
-    });
-
-  return promise;
+  );
+  let json = await response.json();
+  if (json.jsonCode === 200) {
+    console.debug(`jsonCode 200: ${JSON.stringify(json)}`);
+    return json;
+  }
+  console.warn('API:', JSON.stringify(json));
+  throw new Error();
+  // TODO: Figure out how to handle offline mode
+  // .catch((error) => {
+  //   isAppOffline = true;
+  //   Promise.reject();
+  // });
 }
 
 // Holds a queue of all the write requests that need to happen

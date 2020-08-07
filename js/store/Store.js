@@ -9,13 +9,14 @@ const callbackMapping = {};
  */
 function init() {
   // Subscribe to the storage event so changes to local storage can be captured
-  window.addEventListener('storage', (e) => {
-    try {
-      keyChanged(e.key, JSON.parse(e.newValue));
-    } catch (e) {
-      console.error(`Could not parse value from local storage. Key: ${e.key}`);
-    }
-  });
+  //TODO: Refactor window events
+  // window.addEventListener('storage', (e) => {
+  //   try {
+  //     keyChanged(e.key, JSON.parse(e.newValue));
+  //   } catch (e) {
+  //     console.error(`Could not parse value from local storage. Key: ${e.key}`);
+  //   }
+  // });
 }
 
 /**
@@ -91,12 +92,12 @@ function set(key, val) {
  *      we are looking for doesn't exist in the object yet
  * @returns {*}
  */
-function get(key, extraPath, defaultValue) {
-  const val = PersistentStorage.get(key);
+const get = async (key, extraPath, defaultValue) => {
+  const val = await PersistentStorage.get(key);
   if (extraPath) {
     return _.get(val, extraPath, defaultValue);
   }
   return val;
-}
+};
 
 export {subscribe, unsubscribe, set, get, init};
