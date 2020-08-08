@@ -26,6 +26,7 @@ export default class App extends Component {
         this.state = {
             login: '',
             password: '',
+            // eslint-disable-next-line react/no-unused-state
             error: Store.get(STOREKEYS.SESSION, 'error'),
         };
     }
@@ -45,6 +46,7 @@ export default class App extends Component {
      * @param {object} newSession
      */
     sessionChanged(newSession) {
+        // eslint-disable-next-line react/no-unused-state
         this.setState({error: newSession && newSession.error});
     }
 
