@@ -19,7 +19,7 @@ async function request(command, data, type) {
   }
   try {
     let response = await fetch(
-      `https://3e9e0f9d0d05.ngrok.io/api?command=${command}`,
+      `https://expensify.com.dev/api?command=${command}`,
       {
         method: 'post',
         body: formData,
