@@ -33,7 +33,7 @@ function multiGet(keys) {
             ...finalData,
             [keyValuePair[0]]: JSON.parse(keyValuePair[1]),
         }), {}))
-        .catch(err => console.error(`Unable to get item from persistent storage. Keys: ${JSON.stringify(keys)} Error: ${err}`));
+        .catch(err => console.error(`Unable to get item from persistent storage. Error: ${err}`, keys));
 }
 
 /**

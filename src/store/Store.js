@@ -135,6 +135,17 @@ function clear() {
     return PersistentStorage.clear();
 }
 
+/**
+ * Merge a new value into an existing value at a key
+ *
+ * @param {string} key
+ * @param {string} val
+ * @returns {Promise}
+ */
+function merge(key, val) {
+    return PersistentStorage.merge(key, val);
+}
+
 export {
     subscribe,
     unsubscribe,
@@ -142,6 +153,7 @@ export {
     multiSet,
     get,
     multiGet,
+    merge,
     clear,
     init
 };
