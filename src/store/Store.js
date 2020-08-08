@@ -1,5 +1,5 @@
-import * as _ from 'lodash';
-import * as PersistentStorage from '../lib/PersistentStorage.js';
+import {get as lodashGet} from 'lodash';
+import * as PersistentStorage from '../lib/PersistentStorage';
 
 // Holds all of the callbacks that have registered for a specific key pattern
 const callbackMapping = {};
@@ -54,7 +54,7 @@ function unsubscribe(keyPattern, cb) {
  * @param {mixed} data
  */
 function keyChanged(key, data) {
-    for (const [keyPattern, callbacks] of Object.entries(callbackMapping)) {
+    _.each(callbackMapping, (callbacks, keyPattern) => {
         const regex = RegExp(keyPattern);
 
         // If there is a callback whose regex matches the key that was changed, then the callback for that regex
@@ -65,7 +65,7 @@ function keyChanged(key, data) {
                 callback(data);
             }
         }
-    }
+    });
 }
 
 /**
@@ -73,14 +73,15 @@ function keyChanged(key, data) {
  *
  * @param {string} key
  * @param {mixed} val
+ * @returns {Promise}
  */
 function set(key, val) {
-    // Write the thing to local storage, which will trigger a storage event for any other tabs open on this domain
-    PersistentStorage.set(key, val);
-
     // The storage event doesn't trigger for the current window, so just call keyChanged() manually to mimic
     // the storage event
     keyChanged(key, val);
+
+    // Write the thing to persistent storage, which will trigger a storage event for any other tabs open on this domain
+    return PersistentStorage.set(key, val);
 }
 
 /**
@@ -92,12 +93,56 @@ function set(key, val) {
  *      we are looking for doesn't exist in the object yet
  * @returns {*}
  */
-const get = async (key, extraPath, defaultValue) => {
-    const val = await PersistentStorage.get(key);
-    if (extraPath) {
-        return _.get(val, extraPath, defaultValue);
-    }
-    return val;
+function get(key, extraPath, defaultValue) {
+    return PersistentStorage.get(key)
+        .then((val) => {
+            if (extraPath) {
+                return lodashGet(val, extraPath, defaultValue);
+            }
+            return val;
+        });
 };
 
-export {subscribe, unsubscribe, set, get, init};
+/**
+ * Get multiple keys of data
+ *
+ * @param {string[]} keys
+ * @returns {Promise}
+ */
+function multiGet(keys) {
+    return PersistentStorage.multiGet(keys);
+}
+
+/**
+ * Sets multiple keys and values. Example
+ * Store.multiSet({'key1': 'a', 'key2': 'b'});
+ *
+ * @param {object} data
+ * @returns {Promise}
+ */
+function multiSet(data) {
+    return PersistentStorage.multiSet(data)
+        .then(() => {
+            _.each(data, (val, key) => keyChanged(key, val));
+        });
+}
+
+/**
+ * Clear out all the data in the store
+ *
+ * @returns {Promise}
+ */
+function clear() {
+    return PersistentStorage.clear();
+}
+
+export {
+    subscribe,
+    unsubscribe,
+    set,
+    multiSet,
+    get,
+    multiGet,
+    clear,
+    init
+};

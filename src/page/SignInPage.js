@@ -12,9 +12,9 @@ import {
     TextInput,
     View,
 } from 'react-native';
-import * as Store from '../store/Store.js';
-import {signIn} from '../store/actions/SessionActions.js';
-import STOREKEYS from '../store/STOREKEYS.js';
+import * as Store from '../store/Store';
+import {signIn} from '../store/actions/SessionActions';
+import STOREKEYS from '../store/STOREKEYS';
 
 export default class App extends Component {
     constructor(props) {

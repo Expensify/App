@@ -1,6 +1,6 @@
-import Guid from './Guid.js';
-import * as Store from '../store/Store.js';
-import STOREKEYS from '../store/STOREKEYS.js';
+import Guid from './Guid';
+import * as Store from '../store/Store';
+import STOREKEYS from '../store/STOREKEYS';
 
 const clientID = Guid();
 
