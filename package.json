@@ -14,7 +14,7 @@
   "dependencies": {
     "@react-native-community/async-storage": "^1.11.0",
     "jquery": "^3.5.1",
-    "lodash": "^4.17.19",
+    "lodash.get": "^4.4.2",
     "moment": "^2.27.0",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
