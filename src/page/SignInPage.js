@@ -26,13 +26,14 @@ export default class App extends Component {
         this.state = {
             login: '',
             password: '',
-            error: Store.get(STOREKEYS.SESSION, 'error'),
+            error: '',
         };
     }
 
     componentDidMount() {
         // Listen for changes to our session
         Store.subscribe(STOREKEYS.SESSION, this.sessionChanged);
+        Store.get(STOREKEYS.SESSION, 'error').then(error => this.state.error = error);
     }
 
     componentWillUnmount() {
@@ -52,7 +53,7 @@ export default class App extends Component {
      * When the form is submitted, then we trigger our prop callback
      */
     submit() {
-        signIn(this.state.login, this.state.password);
+        signIn(this.state.login, this.state.password, true);
     }
 
     render() {
@@ -79,6 +80,9 @@ export default class App extends Component {
                     </View>
                     <View>
                         <Button onPress={this.submit} title={'Log In'} />
+                    {this.state.error ? <Text style={{color: 'red'}}>
+                        {this.state.error}
+                    </Text> : null}
                     </View>
                 </SafeAreaView>
             </>
