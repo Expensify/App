@@ -8,15 +8,15 @@ const callbackMapping = {};
  * Initialize the store with actions and listening for storage events
  */
 function init() {
-  // Subscribe to the storage event so changes to local storage can be captured
-  //TODO: Refactor window events
-  // window.addEventListener('storage', (e) => {
-  //   try {
-  //     keyChanged(e.key, JSON.parse(e.newValue));
-  //   } catch (e) {
-  //     console.error(`Could not parse value from local storage. Key: ${e.key}`);
-  //   }
-  // });
+    // Subscribe to the storage event so changes to local storage can be captured
+    //TODO: Refactor window events
+    // window.addEventListener('storage', (e) => {
+    //   try {
+    //     keyChanged(e.key, JSON.parse(e.newValue));
+    //   } catch (e) {
+    //     console.error(`Could not parse value from local storage. Key: ${e.key}`);
+    //   }
+    // });
 }
 
 /**
@@ -26,10 +26,10 @@ function init() {
  * @param {function} cb
  */
 function subscribe(keyPattern, cb) {
-  if (!callbackMapping[keyPattern]) {
-    callbackMapping[keyPattern] = [];
-  }
-  callbackMapping[keyPattern].push(cb);
+    if (!callbackMapping[keyPattern]) {
+        callbackMapping[keyPattern] = [];
+    }
+    callbackMapping[keyPattern].push(cb);
 }
 
 /**
@@ -39,12 +39,12 @@ function subscribe(keyPattern, cb) {
  * @param {function} cb
  */
 function unsubscribe(keyPattern, cb) {
-  if (!callbackMapping[keyPattern] || !callbackMapping[keyPattern].length) {
-    return;
-  }
-  callbackMapping[keyPattern] = callbackMapping[keyPattern].filter(
-    (existingCallback) => existingCallback !== cb,
-  );
+    if (!callbackMapping[keyPattern] || !callbackMapping[keyPattern].length) {
+        return;
+    }
+    callbackMapping[keyPattern] = callbackMapping[keyPattern].filter(
+        (existingCallback) => existingCallback !== cb,
+    );
 }
 
 /**
@@ -54,18 +54,18 @@ function unsubscribe(keyPattern, cb) {
  * @param {mixed} data
  */
 function keyChanged(key, data) {
-  for (const [keyPattern, callbacks] of Object.entries(callbackMapping)) {
-    const regex = RegExp(keyPattern);
+    for (const [keyPattern, callbacks] of Object.entries(callbackMapping)) {
+        const regex = RegExp(keyPattern);
 
-    // If there is a callback whose regex matches the key that was changed, then the callback for that regex
-    // is called and passed the data that changed
-    if (regex.test(key)) {
-      for (let i = 0; i < callbacks.length; i++) {
-        const callback = callbacks[i];
-        callback(data);
-      }
+        // If there is a callback whose regex matches the key that was changed, then the callback for that regex
+        // is called and passed the data that changed
+        if (regex.test(key)) {
+            for (let i = 0; i < callbacks.length; i++) {
+                const callback = callbacks[i];
+                callback(data);
+            }
+        }
     }
-  }
 }
 
 /**
@@ -75,12 +75,12 @@ function keyChanged(key, data) {
  * @param {mixed} val
  */
 function set(key, val) {
-  // Write the thing to local storage, which will trigger a storage event for any other tabs open on this domain
-  PersistentStorage.set(key, val);
+    // Write the thing to local storage, which will trigger a storage event for any other tabs open on this domain
+    PersistentStorage.set(key, val);
 
-  // The storage event doesn't trigger for the current window, so just call keyChanged() manually to mimic
-  // the storage event
-  keyChanged(key, val);
+    // The storage event doesn't trigger for the current window, so just call keyChanged() manually to mimic
+    // the storage event
+    keyChanged(key, val);
 }
 
 /**
@@ -93,11 +93,11 @@ function set(key, val) {
  * @returns {*}
  */
 const get = async (key, extraPath, defaultValue) => {
-  const val = await PersistentStorage.get(key);
-  if (extraPath) {
-    return _.get(val, extraPath, defaultValue);
-  }
-  return val;
+    const val = await PersistentStorage.get(key);
+    if (extraPath) {
+        return _.get(val, extraPath, defaultValue);
+    }
+    return val;
 };
 
-export {subscribe, unsubscribe, set, get, init};
+export { subscribe, unsubscribe, set, get, init };
