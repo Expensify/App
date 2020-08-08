@@ -1,6 +1,6 @@
 const webpack = {
     presets: ['@babel/preset-react', '@babel/preset-env'],
-    plugins: [['react-native-web', {commonjs: true}]],
+    plugins: [['react-native-web', {commonjs: true}], '@babel/transform-runtime'],
 };
 
 const metro = {
