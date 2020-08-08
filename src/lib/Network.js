@@ -2,7 +2,6 @@ import _ from 'underscore';
 import * as Store from '../store/Store';
 import CONFIG from '../CONFIG';
 import STOREKEYS from '../store/STOREKEYS';
-import _ from 'underscore';
 
 let isAppOffline = false;
 
