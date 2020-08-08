@@ -2,9 +2,14 @@
  * @format
  * @flow strict-local
  */
-
 import React, {Component} from 'react';
-import {SafeAreaView, Text, StatusBar, View, Button} from 'react-native';
+import {
+    SafeAreaView,
+    Text,
+    StatusBar,
+    View,
+    Button
+} from 'react-native';
 import {signOut} from '../../store/actions/SessionActions';
 
 export default class App extends Component {
@@ -30,10 +35,11 @@ export default class App extends Component {
                                 margin: 20,
                                 textAlign: 'center',
                                 fontWeight: 'bold',
-                            }}>
-                            {'React Native Chat Homepage!'}
+                            }}
+                        >
+                            React Native Chat Homepage!
                         </Text>
-                        <Button onPress={this.signOut} title={'Sign Out'} />
+                        <Button onPress={this.signOut} title="Sign Out" />
                     </View>
                 </SafeAreaView>
             </>

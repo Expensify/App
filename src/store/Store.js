@@ -10,7 +10,7 @@ const callbackMapping = {};
  */
 function init() {
     // Subscribe to the storage event so changes to local storage can be captured
-    //TODO: Refactor window events
+    // TODO: Refactor window events
     // window.addEventListener('storage', (e) => {
     //   try {
     //     keyChanged(e.key, JSON.parse(e.newValue));
@@ -43,9 +43,7 @@ function unsubscribe(keyPattern, cb) {
     if (!callbackMapping[keyPattern] || !callbackMapping[keyPattern].length) {
         return;
     }
-    callbackMapping[keyPattern] = callbackMapping[keyPattern].filter(
-        (existingCallback) => existingCallback !== cb,
-    );
+    callbackMapping[keyPattern] = callbackMapping[keyPattern].filter(existingCallback => existingCallback !== cb);
 }
 
 /**
@@ -102,7 +100,7 @@ function get(key, extraPath, defaultValue) {
             }
             return val;
         });
-};
+}
 
 /**
  * Get multiple keys of data
