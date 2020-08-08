@@ -82,7 +82,7 @@ function clear() {
  * @returns {Promise}
  */
 function merge(key, val) {
-    return AsyncStorage.mergeItem(key, val);
+    return AsyncStorage.mergeItem(key, JSON.stringify(val));
 }
 
 export {
