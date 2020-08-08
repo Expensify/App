@@ -12,23 +12,23 @@ let isAppOffline = false;
  * @returns {$.Deferred}
  */
 async function request(command, data, type) {
-  const formData = new FormData();
-  formData.append('authToken', await Store.get('session', 'authToken'));
-  for (const property in data) {
-    formData.append(property, data[property]);
-  }
-  try {
-    let response = await fetch(
-      `https://www.expensify.com.dev/api?command=${command}`,
-      {
-        method: 'post',
-        body: formData,
-      },
-    );
-    return await response.json();
-  } catch (error) {
-    isAppOffline = true;
-  }
+    const formData = new FormData();
+    formData.append('authToken', await Store.get('session', 'authToken'));
+    for (const property in data) {
+        formData.append(property, data[property]);
+    }
+    try {
+        let response = await fetch(
+            `https://www.expensify.com.dev/api?command=${command}`,
+            {
+                method: 'post',
+                body: formData,
+            },
+        );
+        return await response.json();
+    } catch (error) {
+        isAppOffline = true;
+    }
 }
 
 // Holds a queue of all the write requests that need to happen
@@ -42,49 +42,49 @@ const delayedWriteQueue = [];
  * @returns {$.Deferred}
  */
 function delayedWrite(command, data, cb) {
-  const promise = $.Deferred();
+    const promise = $.Deferred();
 
-  // Add the write request to a queue of actions to perform
-  delayedWriteQueue.push({
-    command,
-    data,
-    promise,
-  });
+    // Add the write request to a queue of actions to perform
+    delayedWriteQueue.push({
+        command,
+        data,
+        promise,
+    });
 
-  return promise;
+    return promise;
 }
 
 /**
  * Process the write queue by looping through the queue and attempting to make the requests
  */
 function processWriteQueue() {
-  if (isAppOffline) {
-    // Make a simple request to see if we're online again
-    request('Get', null, 'get').done(() => {
-      isAppOffline = false;
-    });
-    return;
-  }
+    if (isAppOffline) {
+        // Make a simple request to see if we're online again
+        request('Get', null, 'get').done(() => {
+            isAppOffline = false;
+        });
+        return;
+    }
 
-  if (delayedWriteQueue.length === 0) {
-    return;
-  }
+    if (delayedWriteQueue.length === 0) {
+        return;
+    }
 
-  for (let i = 0; i < delayedWriteQueue.length; i++) {
-    // Take the request object out of the queue and make the request
-    const delayedWriteRequest = delayedWriteQueue.shift();
+    for (let i = 0; i < delayedWriteQueue.length; i++) {
+        // Take the request object out of the queue and make the request
+        const delayedWriteRequest = delayedWriteQueue.shift();
 
-    request(delayedWriteRequest.command, delayedWriteRequest.data)
-      .done(delayedWriteRequest.promise.resolve)
-      .fail(() => {
-        // If the request failed, we need to put the request object back into the queue
-        delayedWriteQueue.push(delayedWriteRequest);
-      });
-  }
+        request(delayedWriteRequest.command, delayedWriteRequest.data)
+            .done(delayedWriteRequest.promise.resolve)
+            .fail(() => {
+                // If the request failed, we need to put the request object back into the queue
+                delayedWriteQueue.push(delayedWriteRequest);
+            });
+    }
 }
 
 // TODO: Figure out setInterval
 // Process our write queue very often
 // setInterval(processWriteQueue, 1000);
 
-export {request, delayedWrite};
+export { request, delayedWrite };
