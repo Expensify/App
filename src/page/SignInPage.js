@@ -33,7 +33,7 @@ export default class App extends Component {
     componentDidMount() {
         // Listen for changes to our session
         Store.subscribe(STOREKEYS.SESSION, this.sessionChanged);
-        Store.get(STOREKEYS.SESSION, 'error').then(error => this.state.error = error);
+        Store.get(STOREKEYS.SESSION, 'error').then(error => this.setState({error}));
     }
 
     componentWillUnmount() {
@@ -80,9 +80,9 @@ export default class App extends Component {
                     </View>
                     <View>
                         <Button onPress={this.submit} title={'Log In'} />
-                    {this.state.error ? <Text style={{color: 'red'}}>
+                    {this.state.error && <Text style={{color: 'red'}}>
                         {this.state.error}
-                    </Text> : null}
+                    </Text>}
                     </View>
                 </SafeAreaView>
             </>

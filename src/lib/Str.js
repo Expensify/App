@@ -52,6 +52,11 @@ const Str = {
         return str.replace(/\n/g, '<br />');
     },
 
+    /**
+     * Generates a random device login using Guid
+     *
+     * @returns {string}
+     */
     generateDeviceLoginID() {
         return `React-Native-Chat-${Guid()}`;
     },
