@@ -9,4 +9,5 @@ export default {
   ACTIVE_REPORT: 'active_report',
   REPORTS: 'reports',
   SESSION: 'session',
+  LAST_AUTHENTICATED: 'last_authenticated',
 };

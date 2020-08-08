@@ -1,4 +1,4 @@
-/* globals moment */
+import moment from 'moment';
 import Str from './Str.js';
 
 // Non-Deprecated Methods
