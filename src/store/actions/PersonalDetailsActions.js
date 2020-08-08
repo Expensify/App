@@ -26,33 +26,45 @@ function getAvatar(personalDetails, login) {
 /**
  * Get the personal details for our organization
  *
- * return {Promise}
+ * @returns {Promise}
  */
 function fetch() {
-    const requestPromise = request('Get', {
-        returnValueList: 'personalDetailsList',
-    })
-        .then(data => Store.set(STOREKEYS.PERSONAL_DETAILS, _.reduce(data.personalDetailsList, (finalPersonalDetailObject, personalDetails, login) => {
-            // Form the details into something that has all the data in an easy to use format.
-            const avatarURL = getAvatar(personalDetails, login);
-            const firstName = personalDetails.firstName || '';
-            const lastName = personalDetails.lastName || '';
-            const fullName = `${firstName} ${lastName}`.trim();
-            const displayName = fullName === '' ? login : fullName;
-            const displayNameWithEmail = fullName === '' ? login : `${fullName} (${login})`;
-            return {
-                ...finalPersonalDetailObject,
-                [login]: {
-                    login,
-                    avatarURL,
-                    firstName,
-                    lastName,
-                    fullName,
-                    displayName,
-                    displayNameWithEmail,
-                }
-            };
-        }, {})));
+    let currentLogin;
+    const requestPromise = Store.get(STOREKEYS.SESSION, 'email')
+        .then((login) => {
+            currentLogin = login;
+            return request('Get', {
+                returnValueList: 'personalDetailsList',
+            });
+        })
+        .then((data) => {
+            const allPersonaDetails = _.reduce(data.personalDetailsList, (finalPersonalDetailObject, personalDetails, login) => {
+                // Form the details into something that has all the data in an easy to use format.
+                const avatarURL = getAvatar(personalDetails, login);
+                const firstName = personalDetails.firstName || '';
+                const lastName = personalDetails.lastName || '';
+                const fullName = `${firstName} ${lastName}`.trim();
+                const displayName = fullName === '' ? login : fullName;
+                const displayNameWithEmail = fullName === '' ? login : `${fullName} (${login})`;
+                return {
+                    ...finalPersonalDetailObject,
+                    [login]: {
+                        login,
+                        avatarURL,
+                        firstName,
+                        lastName,
+                        fullName,
+                        displayName,
+                        displayNameWithEmail,
+                    }
+                };
+            }, {});
+            const myPersonalDetails = allPersonaDetails[currentLogin];
+            return Store.multiSet({
+                [STOREKEYS.PERSONAL_DETAILS]: allPersonaDetails,
+                [STOREKEYS.MY_PERSONAL_DETAILS]: myPersonalDetails,
+            });
+        });
 
     // Refresh the personal details every 30 minutes
     setTimeout(fetch, 1000 * 60 * 30);
