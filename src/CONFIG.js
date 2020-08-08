@@ -3,8 +3,9 @@ const IS_IN_PRODUCTION = false;
 
 export default {
     PUSHER: {
-        APP_KEY: '829fd8fd2a6036568469',
-        CLUSTER: 'us3',
+        APP_KEY: IS_IN_PRODUCTION ? '268df511a204fbb60884' : 'ac6d22b891daae55283a',
+        AUTH_URL: IS_IN_PRODUCTION ? 'https://www.expensify.com' : 'https://www.expensify.com.dev',
+        CLUSTER: 'mt1',
     },
     EXPENSIFY: {
         PARTNER_NAME: IS_IN_PRODUCTION ? 'chat-expensify-com' : 'android',
