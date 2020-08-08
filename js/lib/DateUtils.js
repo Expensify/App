@@ -11,7 +11,7 @@ import Str from './Str.js';
  * @private
  */
 function getTimezone() {
-  return 'America/Los_Angeles';
+    return 'America/Los_Angeles';
 }
 
 /**
@@ -25,9 +25,9 @@ function getTimezone() {
  * @private
  */
 function getLocalMomentFromTimestamp(timestamp) {
-  // We need a default here for flows where we may not have initialized the TIME_ZONE NVP like generatng PDFs in printablereport.php
-  const timezone = getTimezone();
-  return moment.unix(timestamp).tz(timezone);
+    // We need a default here for flows where we may not have initialized the TIME_ZONE NVP like generatng PDFs in printablereport.php
+    const timezone = getTimezone();
+    return moment.unix(timestamp).tz(timezone);
 }
 
 /**
@@ -44,15 +44,15 @@ function getLocalMomentFromTimestamp(timestamp) {
  * @returns {String}
  */
 function timestampToDateTime(timestamp, includeTimeZone = false) {
-  const date = getLocalMomentFromTimestamp(timestamp);
-  let format =
-    moment().year() !== date.get('year')
-      ? 'MMM D, YYYY [at] LT'
-      : 'MMM D [at] LT';
-  if (includeTimeZone) {
-    format = `${format} [UTC]Z`;
-  }
-  return date.format(format);
+    const date = getLocalMomentFromTimestamp(timestamp);
+    let format =
+        moment().year() !== date.get('year')
+            ? 'MMM D, YYYY [at] LT'
+            : 'MMM D [at] LT';
+    if (includeTimeZone) {
+        format = `${format} [UTC]Z`;
+    }
+    return date.format(format);
 }
 
 /**
@@ -73,44 +73,44 @@ function timestampToDateTime(timestamp, includeTimeZone = false) {
  * @returns {String}
  */
 function timestampToRelative(timestamp) {
-  const date = getLocalMomentFromTimestamp(timestamp);
-  const durationFromLocalNow = moment.duration(
-    date.diff(getLocalMomentFromTimestamp(moment().unix())),
-  );
-  const round = (num) => Math.floor(Math.abs(num));
+    const date = getLocalMomentFromTimestamp(timestamp);
+    const durationFromLocalNow = moment.duration(
+        date.diff(getLocalMomentFromTimestamp(moment().unix())),
+    );
+    const round = (num) => Math.floor(Math.abs(num));
 
-  if (date.isAfter(moment().subtract(60, 'seconds'))) {
-    return '< 1 minute ago';
-  }
+    if (date.isAfter(moment().subtract(60, 'seconds'))) {
+        return '< 1 minute ago';
+    }
 
-  if (date.isAfter(moment().subtract(60, 'minutes'))) {
-    const minutes = round(durationFromLocalNow.asMinutes());
-    return `${minutes} ${Str.pluralize('minute', 'minutes', minutes)} ago`;
-  }
+    if (date.isAfter(moment().subtract(60, 'minutes'))) {
+        const minutes = round(durationFromLocalNow.asMinutes());
+        return `${minutes} ${Str.pluralize('minute', 'minutes', minutes)} ago`;
+    }
 
-  if (date.isAfter(moment().subtract(24, 'hours'))) {
-    const hours = round(durationFromLocalNow.asHours());
-    return `${hours} ${Str.pluralize('hour', 'hours', hours)} ago`;
-  }
+    if (date.isAfter(moment().subtract(24, 'hours'))) {
+        const hours = round(durationFromLocalNow.asHours());
+        return `${hours} ${Str.pluralize('hour', 'hours', hours)} ago`;
+    }
 
-  if (date.isAfter(moment().subtract(30, 'days'))) {
-    const days = round(durationFromLocalNow.asDays());
-    return `${days} ${Str.pluralize('day', 'days', days)} ago`;
-  }
+    if (date.isAfter(moment().subtract(30, 'days'))) {
+        const days = round(durationFromLocalNow.asDays());
+        return `${days} ${Str.pluralize('day', 'days', days)} ago`;
+    }
 
-  if (date.isAfter(moment().subtract(1, 'year'))) {
-    return date.format('MMM D');
-  }
+    if (date.isAfter(moment().subtract(1, 'year'))) {
+        return date.format('MMM D');
+    }
 
-  return date.format('MMM D, YYYY');
+    return date.format('MMM D, YYYY');
 }
 
 /**
  * @namespace DateUtils
  */
 const DateUtils = {
-  timestampToRelative,
-  timestampToDateTime,
+    timestampToRelative,
+    timestampToDateTime,
 };
 
 export default DateUtils;
