@@ -11,7 +11,8 @@ let isAppOffline = false;
  * @param {string} [type]
  * @returns {$.Deferred}
  */
-async function request(command, data, type) {
+async function request(command, data, type = 'post') {
+  console.debug(`Making "${command}" ${type} request`);
   const formData = new FormData();
   formData.append('authToken', await Store.get('session', 'authToken'));
   for (const property in data) {
@@ -21,7 +22,7 @@ async function request(command, data, type) {
     let response = await fetch(
       `https://expensify.com.dev/api?command=${command}`,
       {
-        method: 'post',
+        method: type,
         body: formData,
       },
     );
