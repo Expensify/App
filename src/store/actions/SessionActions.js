@@ -1,16 +1,10 @@
+import * as _ from 'lodash';
 import * as Store from '../Store';
 import {request} from '../../lib/Network';
 import ROUTES from '../../ROUTES';
 import STOREKEYS from '../STOREKEYS';
 import * as PersistentStorage from '../../lib/PersistentStorage';
-import * as _ from 'lodash';
-
-// TODO: Figure out how to determine prod/dev on mobile, etc.
-const IS_IN_PRODUCTION = false;
-const partnerName = IS_IN_PRODUCTION ? 'chat-expensify-com' : 'android';
-const partnerPassword = IS_IN_PRODUCTION
-    ? 'e21965746fd75f82bb66'
-    : 'c3a9ac418ea3f152aae2';
+import CONFIG from '../../CONFIG';
 
 /**
  * Amount of time (in ms) after which an authToken is considered expired.
@@ -30,8 +24,8 @@ const AUTH_TOKEN_EXPIRATION_TIME = 1000 * 60;
 function createLogin(authToken, login, password) {
     request('CreateLogin', {
         authToken,
-        partnerName,
-        partnerPassword,
+        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         partnerUserID: login,
         partnerUserSecret: password,
     }).catch((err) => {
@@ -50,9 +44,9 @@ function signIn(login, password, useExpensifyLogin = false) {
     Store.set(STOREKEYS.SESSION, {})
         .then(() => {
             return request('Authenticate', {
-                useExpensifyLogin: useExpensifyLogin,
-                partnerName: partnerName,
-                partnerPassword: partnerPassword,
+                useExpensifyLogin,
+                partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+                partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
                 partnerUserID: login,
                 partnerUserSecret: password,
             })

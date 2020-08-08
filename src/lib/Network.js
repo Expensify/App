@@ -1,5 +1,6 @@
 import * as $ from 'jquery';
 import * as Store from '../store/Store';
+import CONFIG from '../CONFIG';
 
 let isAppOffline = false;
 
@@ -20,7 +21,7 @@ async function request(command, data, type = 'post') {
     }
     try {
         let response = await fetch(
-            `https://www.expensify.com.dev/api?command=${command}`,
+            `${CONFIG.EXPENSIFY.API_ROOT}command=${command}`,
             {
                 method: type,
                 body: formData,
