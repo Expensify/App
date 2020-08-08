@@ -18,9 +18,7 @@ function request(command, data, type = 'post') {
         .then((authToken) => {
             const formData = new FormData();
             formData.append('authToken', authToken);
-            _.each(data, (val, key) => {
-                formData.append(key, val);
-            });
+            _.each(data, (val, key) => formData.append(key, val));
             return formData;
         })
         .then(formData => fetch(`${CONFIG.EXPENSIFY.API_ROOT}command=${command}`, {
