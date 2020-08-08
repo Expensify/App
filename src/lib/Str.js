@@ -1,6 +1,7 @@
-/* globals $, _ */
-
+import _ from 'underscore';
+import {AllHtmlEntities} from 'html-entities';
 import Guid from './Guid';
+
 
 const Str = {
     /**
@@ -39,7 +40,7 @@ const Str = {
      * @return {String} The decoded string.
      */
     htmlDecode(s) {
-        return $('<textarea/>').html(s).text();
+        return AllHtmlEntities.decode(s);
     },
 
     /**

@@ -28,9 +28,18 @@ module.exports = {
             // Transpiles and lints all the JS
             {
                 test: /\.js$/,
+                enforce: 'pre',
+                loader: 'eslint-loader',
                 exclude: /node_modules|\.native.js$/,
-                use: ['babel-loader', 'eslint-loader'],
+                options: {
+                    cache: true,
+                },
             },
+            {
+                test: /\.js$/,
+                loader: 'babel-loader',
+                exclude: /node_modules|\.native.js$/,
+            }
         ],
     },
     resolve: {

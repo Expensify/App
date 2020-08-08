@@ -1,8 +1,3 @@
-/**
- * @format
- * @flow strict-local
- */
-
 import React, {Component} from 'react';
 import {
     SafeAreaView,
@@ -20,13 +15,11 @@ export default class App extends Component {
     constructor(props) {
         super(props);
 
-        this.submit = this.submit.bind(this);
         this.sessionChanged = this.sessionChanged.bind(this);
 
         this.state = {
             login: '',
             password: '',
-            // eslint-disable-next-line react/no-unused-state
             error: null,
         };
     }
@@ -47,22 +40,14 @@ export default class App extends Component {
      * @param {object} newSession
      */
     sessionChanged(newSession) {
-        // eslint-disable-next-line react/no-unused-state
         this.setState({error: newSession && newSession.error});
-    }
-
-    /**
-     * When the form is submitted, then we trigger our prop callback
-     */
-    submit() {
-        signIn(this.state.login, this.state.password, true);
     }
 
     render() {
         return (
             <>
                 <StatusBar barStyle="dark-content" />
-                <SafeAreaView>
+                <SafeAreaView style={{padding: 20}}>
                     <View>
                         <Text>Login:</Text>
                         <TextInput
@@ -81,10 +66,15 @@ export default class App extends Component {
                         />
                     </View>
                     <View>
-                        <Button onPress={this.submit} title="Log In" />
-                    {this.state.error && <Text style={{color: 'red'}}>
-                        {this.state.error}
-                    </Text>}
+                        <Button
+                            title="Log In"
+                            onPress={signIn(this.state.login, this.state.password, true)}
+                        />
+                        {this.state.error && (
+                            <Text style={{color: 'red'}}>
+                                {this.state.error}
+                            </Text>
+                        )}
                     </View>
                 </SafeAreaView>
             </>
