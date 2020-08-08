@@ -1,4 +1,4 @@
-import {lodashGet} from 'lodash';
+import {get as lodashGet} from 'lodash';
 import * as PersistentStorage from '../lib/PersistentStorage';
 
 // Holds all of the callbacks that have registered for a specific key pattern

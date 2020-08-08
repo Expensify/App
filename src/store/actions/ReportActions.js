@@ -258,4 +258,4 @@ export {
     addHistoryItem,
     updateLastReadActionID,
     initPusher,
-}
+};

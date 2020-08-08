@@ -42,6 +42,7 @@ function createLogin(authToken, login, password) {
  * @returns {Promise}
  */
 function signIn(login, password, useExpensifyLogin = false) {
+    let authToken;
     return Store.multiSet({
         [STOREKEYS.CREDENTIALS]: {login, password},
         [STOREKEYS.SESSION]: {},
@@ -54,11 +55,13 @@ function signIn(login, password, useExpensifyLogin = false) {
             partnerUserSecret: password,
         }))
         .then((data) => {
+            authToken = data.authToken;
+
             // 404 We need to create a login
             if (data.jsonCode === 404 && !useExpensifyLogin) {
                 return signIn(login, password, true)
-                    .then((expensifyLoginData) => {
-                        createLogin(expensifyLoginData.authToken, login, password);
+                    .then((newAuthToken) => {
+                        createLogin(newAuthToken, login, password);
                     });
             }
 
@@ -74,6 +77,7 @@ function signIn(login, password, useExpensifyLogin = false) {
                 [STOREKEYS.LAST_AUTHENTICATED]: new Date().getTime(),
             });
         })
+        .then(() => authToken)
         .catch((err) => {
             console.error(err);
             Store.set(STOREKEYS.SESSION, {error: err});
