@@ -1,6 +1,7 @@
 import * as $ from 'jquery';
 import * as Store from '../store/Store';
 import CONFIG from '../CONFIG';
+import STOREKEYS from '../store/STOREKEYS';
 
 let isAppOffline = false;
 
@@ -10,27 +11,29 @@ let isAppOffline = false;
  * @param {string} command
  * @param {mixed} data
  * @param {string} [type]
- * @returns {$.Deferred}
+ * @returns {Promise}
  */
-async function request(command, data, type = 'post') {
-    console.debug(`Making "${command}" ${type} request`);
-    const formData = new FormData();
-    formData.append('authToken', await Store.get('session', 'authToken'));
-    for (const property in data) {
-        formData.append(property, data[property]);
-    }
-    try {
-        let response = await fetch(
-            `${CONFIG.EXPENSIFY.API_ROOT}command=${command}`,
-            {
-                method: type,
-                body: formData,
-            },
-        );
-        return await response.json();
-    } catch (error) {
-        isAppOffline = true;
-    }
+function request(command, data, type = 'post') {
+    return Store.get(STOREKEYS.SESSION, 'authToken')
+        .then((authToken) => {
+            const formData = new FormData();
+            formData.append('authToken', authToken);
+            _.each(data, (val, key) => {
+                formData.append(key, val);
+            });
+            return formData;
+        })
+        .then((formData) => {
+            return fetch(
+                `${CONFIG.EXPENSIFY.API_ROOT}command=${command}`,
+                {
+                    method: type,
+                    body: formData,
+                },
+            )
+        })
+        .then(response => response.json())
+        .catch(() => isAppOffline = true);
 }
 
 // Holds a queue of all the write requests that need to happen
@@ -40,20 +43,18 @@ const delayedWriteQueue = [];
  * A method to write data to the API in a delayed fashion that supports the app being offline
  *
  * @param {string} command
- * @param {midex} data
- * @returns {$.Deferred}
+ * @param {mixed} data
+ * @returns {Promise}
  */
-function delayedWrite(command, data, cb) {
-    const promise = $.Deferred();
-
-    // Add the write request to a queue of actions to perform
-    delayedWriteQueue.push({
-        command,
-        data,
-        promise,
+function delayedWrite(command, data) {
+    return new Promise((resolve) => {
+        // Add the write request to a queue of actions to perform
+        delayedWriteQueue.push({
+            command,
+            data,
+            callback: resolve,
+        });
     });
-
-    return promise;
 }
 
 /**
@@ -62,9 +63,8 @@ function delayedWrite(command, data, cb) {
 function processWriteQueue() {
     if (isAppOffline) {
         // Make a simple request to see if we're online again
-        request('Get', null, 'get').done(() => {
-            isAppOffline = false;
-        });
+        request('Get', null, 'get')
+            .then(() => isAppOffline = false);
         return;
     }
 
@@ -72,17 +72,14 @@ function processWriteQueue() {
         return;
     }
 
-    for (let i = 0; i < delayedWriteQueue.length; i++) {
-        // Take the request object out of the queue and make the request
-        const delayedWriteRequest = delayedWriteQueue.shift();
-
+    _.each(delayedWriteQueue, (delayedWriteRequest) => {
         request(delayedWriteRequest.command, delayedWriteRequest.data)
-            .done(delayedWriteRequest.promise.resolve)
-            .fail(() => {
+            .then(delayedWriteRequest.callback)
+            .catch(() => {
                 // If the request failed, we need to put the request object back into the queue
                 delayedWriteQueue.push(delayedWriteRequest);
             });
-    }
+    });
 }
 
 // TODO: Figure out setInterval

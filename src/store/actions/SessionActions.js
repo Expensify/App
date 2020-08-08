@@ -55,7 +55,7 @@ function signIn(login, password, useExpensifyLogin = false) {
             partnerUserSecret: password,
         }))
         .then((data) => {
-            authToken = data.authToken;
+            authToken = data && data.authToken;
 
             // 404 We need to create a login
             if (data.jsonCode === 404 && !useExpensifyLogin) {
