@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import * as PersistentStorage from '../lib/PersistentStorage.js';
+import * as PersistentStorage from '../lib/PersistentStorage';
 
 // Holds all of the callbacks that have registered for a specific key pattern
 const callbackMapping = {};
@@ -54,7 +54,7 @@ function unsubscribe(keyPattern, cb) {
  * @param {mixed} data
  */
 function keyChanged(key, data) {
-    for (const [keyPattern, callbacks] of Object.entries(callbackMapping)) {
+    _.each(callbackMapping, (callbacks, keyPattern) => {
         const regex = RegExp(keyPattern);
 
         // If there is a callback whose regex matches the key that was changed, then the callback for that regex
@@ -65,7 +65,7 @@ function keyChanged(key, data) {
                 callback(data);
             }
         }
-    }
+    });
 }
 
 /**
@@ -73,14 +73,15 @@ function keyChanged(key, data) {
  *
  * @param {string} key
  * @param {mixed} val
+ * @returns {Promise}
  */
 function set(key, val) {
-    // Write the thing to local storage, which will trigger a storage event for any other tabs open on this domain
-    PersistentStorage.set(key, val);
-
     // The storage event doesn't trigger for the current window, so just call keyChanged() manually to mimic
     // the storage event
     keyChanged(key, val);
+
+    // Write the thing to persistent storage, which will trigger a storage event for any other tabs open on this domain
+    return PersistentStorage.set(key, val);
 }
 
 /**
@@ -92,12 +93,23 @@ function set(key, val) {
  *      we are looking for doesn't exist in the object yet
  * @returns {*}
  */
-const get = async (key, extraPath, defaultValue) => {
-    const val = await PersistentStorage.get(key);
+const get = (key, extraPath, defaultValue) => {
+    return PersistentStorage.get(key)
+        .then(val => {
+            if (extraPath) {
+                return _.get(val, extraPath, defaultValue);
+            }
+            return val;
+        });
     if (extraPath) {
         return _.get(val, extraPath, defaultValue);
     }
-    return val;
 };
 
-export {subscribe, unsubscribe, set, get, init};
+export {
+    subscribe,
+    unsubscribe,
+    set,
+    get,
+    init
+};
