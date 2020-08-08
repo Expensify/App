@@ -19,7 +19,7 @@ async function request(command, data, type) {
   }
   try {
     let response = await fetch(
-      `https://expensify.com.dev/api?command=${command}`,
+      `https://www.expensify.com.dev/api?command=${command}`,
       {
         method: 'post',
         body: formData,
