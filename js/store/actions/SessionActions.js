@@ -42,15 +42,19 @@ async function signOut() {
  * Make sure the authToken we have is OK to use
  */
 function verifyAuthToken() {
-  request('Get', {returnValueList: 'account'})
-    .then((data) => {
-      console.debug(`Have valid auth token`);
+  request('Get', {returnValueList: 'account'}).then((data) => {
+    if (data.jsonCode === 200) {
+      console.debug('We have valid auth token');
       Store.set(STOREKEYS.SESSION, data);
-    })
-    .catch(() => {
-      // If the auth token is bad, we want them to go to the sign in page
-      Store.set(STOREKEYS.APP_REDIRECT_TO, ROUTES.SIGNIN);
-    });
+      return;
+    } else if (data.jsonCode === 407) {
+      console.warn('We need to re-auth');
+      return;
+    }
+
+    // If the auth token is bad, we want them to go to the sign in page
+    Store.set(STOREKEYS.APP_REDIRECT_TO, ROUTES.SIGNIN);
+  });
 }
 
 export {signIn, signOut, verifyAuthToken};

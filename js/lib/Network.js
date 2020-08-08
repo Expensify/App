@@ -17,25 +17,18 @@ async function request(command, data, type) {
   for (const property in data) {
     formData.append(property, data[property]);
   }
-  let response = await fetch(
-    `https://3e9e0f9d0d05.ngrok.io/api?command=${command}`,
-    {
-      method: 'post',
-      body: formData,
-    },
-  );
-  let json = await response.json();
-  if (json.jsonCode === 200) {
-    console.debug(`jsonCode 200: ${JSON.stringify(json)}`);
-    return json;
+  try {
+    let response = await fetch(
+      `https://3e9e0f9d0d05.ngrok.io/api?command=${command}`,
+      {
+        method: 'post',
+        body: formData,
+      },
+    );
+    return await response.json();
+  } catch (error) {
+    isAppOffline = true;
   }
-  console.warn('API:', JSON.stringify(json));
-  throw new Error();
-  // TODO: Figure out how to handle offline mode
-  // .catch((error) => {
-  //   isAppOffline = true;
-  //   Promise.reject();
-  // });
 }
 
 // Holds a queue of all the write requests that need to happen
