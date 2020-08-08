@@ -2,21 +2,23 @@
  * This module is an abstraction around a persistent storage system. This file can be modified to use whatever
  * persistent storage method is desired.
  */
-
 import AsyncStorage from '@react-native-community/async-storage';
 
 /**
  * Get a key from storage
  *
  * @param {string} key
+ * @returns {Promise}
  */
-const get = async (key) => {
-    try {
-        const jsonValue = await AsyncStorage.getItem(key);
-        return jsonValue != null ? JSON.parse(jsonValue) : null;
-    } catch (e) {
-        console.error(`Could not parse value from local storage. Key: ${key}`);
-    }
+function get(key) {
+    return AsyncStorage.getItem(key)
+        .then(val => {
+            const jsonValue = JSON.parse(val);
+            return jsonValue;
+        })
+        .catch(err => {
+            console.error(`Unable to get item from persistent storage. Key: ${key} Error: ${err}`);
+        });
 };
 
 /**
@@ -24,16 +26,23 @@ const get = async (key) => {
  *
  * @param {string} key
  * @param {mixed} val
+ * @returns {Promise}
  */
-const set = async (key, val) => {
-    await AsyncStorage.setItem(key, JSON.stringify(val));
+function set(key, val) {
+    return AsyncStorage.setItem(key, JSON.stringify(val));
 };
 
 /**
  * Empty out the storage (like when the user signs out)
+ *
+ * @returns {Promise}
  */
-const clear = async () => {
-    await AsyncStorage.clear();
+function clear() {
+    return AsyncStorage.clear();
 };
 
-export {get, set, clear};
+export {
+    get,
+    set,
+    clear,
+};
