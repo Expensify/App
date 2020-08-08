@@ -1,10 +1,10 @@
-import {init as StoreInit} from './store/Store.js';
-import SignInPage from './page/SignInPage.js';
-import HomePage from './page/HomePage/HomePage.js';
-import * as Store from './store/Store.js';
-import * as ActiveClientManager from './lib/ActiveClientManager.js';
-import {verifyAuthToken} from './store/actions/SessionActions.js';
-import STOREKEYS from './store/STOREKEYS.js';
+import {init as StoreInit} from './store/Store';
+import SignInPage from './page/SignInPage';
+import HomePage from './page/HomePage/HomePage';
+import * as Store from './store/Store';
+import * as ActiveClientManager from './lib/ActiveClientManager';
+import {verifyAuthToken} from './store/actions/SessionActions';
+import STOREKEYS from './store/STOREKEYS';
 import React, {Component} from 'react';
 import {Route, Router, Redirect, Switch} from './lib/Router';
 

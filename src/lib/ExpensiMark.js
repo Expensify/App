@@ -1,4 +1,4 @@
-import Str from './Str.js';
+import Str from './Str';
 
 export default class ExpensiMark {
     constructor() {
