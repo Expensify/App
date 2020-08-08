@@ -26,6 +26,7 @@ export default class App extends Component {
         this.state = {
             login: '',
             password: '',
+            // eslint-disable-next-line react/no-unused-state
             error: null,
         };
     }
@@ -46,6 +47,7 @@ export default class App extends Component {
      * @param {object} newSession
      */
     sessionChanged(newSession) {
+        // eslint-disable-next-line react/no-unused-state
         this.setState({error: newSession && newSession.error});
     }
 
@@ -66,20 +68,20 @@ export default class App extends Component {
                         <TextInput
                             style={{height: 40, borderColor: 'black', borderWidth: 2}}
                             value={this.state.login}
-                            onChangeText={(text) => this.setState({login: text})}
+                            onChangeText={text => this.setState({login: text})}
                         />
                     </View>
                     <View>
                         <Text>Password:</Text>
                         <TextInput
                             style={{height: 40, borderColor: 'black', borderWidth: 2}}
-                            secureTextEntry={true}
+                            secureTextEntry
                             value={this.state.password}
-                            onChangeText={(text) => this.setState({password: text})}
+                            onChangeText={text => this.setState({password: text})}
                         />
                     </View>
                     <View>
-                        <Button onPress={this.submit} title={'Log In'} />
+                        <Button onPress={this.submit} title="Log In" />
                     {this.state.error && <Text style={{color: 'red'}}>
                         {this.state.error}
                     </Text>}

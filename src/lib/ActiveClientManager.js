@@ -18,9 +18,7 @@ const init = async () => {
  */
 function removeClient() {
     const activeClientIDs = Store.get(STOREKEYS.ACTIVE_CLIENT_IDS) || [];
-    const newActiveClientIDs = activeClientIDs.filter(
-        (activeClientID) => activeClientID !== clientID,
-    );
+    const newActiveClientIDs = activeClientIDs.filter(activeClientID => activeClientID !== clientID);
     Store.set(STOREKEYS.ACTIVE_CLIENT_IDS, newActiveClientIDs);
 }
 
