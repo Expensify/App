@@ -1,16 +1,10 @@
-import * as Store from '../Store.js';
-import {request} from '../../lib/Network.js';
-import ROUTES from '../../ROUTES.js';
-import STOREKEYS from '../STOREKEYS.js';
-import * as PersistentStorage from '../../lib/PersistentStorage.js';
 import * as _ from 'lodash';
-
-// TODO: Figure out how to determine prod/dev on mobile, etc.
-const IS_IN_PRODUCTION = false;
-const partnerName = IS_IN_PRODUCTION ? 'chat-expensify-com' : 'android';
-const partnerPassword = IS_IN_PRODUCTION
-    ? 'e21965746fd75f82bb66'
-    : 'c3a9ac418ea3f152aae2';
+import * as Store from '../Store';
+import {request} from '../../lib/Network';
+import ROUTES from '../../ROUTES';
+import STOREKEYS from '../STOREKEYS';
+import * as PersistentStorage from '../../lib/PersistentStorage';
+import CONFIG from '../../CONFIG';
 
 /**
  * Amount of time (in ms) after which an authToken is considered expired.
@@ -22,56 +16,6 @@ const partnerPassword = IS_IN_PRODUCTION
 const AUTH_TOKEN_EXPIRATION_TIME = 1000 * 60;
 
 /**
- * Sign in with the API
- * @param {string} login
- * @param {string} password
- * @param {boolean} useExpensifyLogin
- */
-function signIn(login, password, useExpensifyLogin = false) {
-    Store.set(STOREKEYS.CREDENTIALS, {login, password});
-    Store.set(STOREKEYS.SESSION, {});
-    return request('Authenticate', {
-        useExpensifyLogin: useExpensifyLogin,
-        partnerName: partnerName,
-        partnerPassword: partnerPassword,
-        partnerUserID: login,
-        partnerUserSecret: password,
-    })
-        .then((data) => {
-            // 404 We need to create a login
-            if (data.jsonCode === 404 && !useExpensifyLogin) {
-                signIn(login, password, true).then((expensifyLoginData) => {
-                    createLogin(expensifyLoginData.authToken, login, password);
-                });
-                return;
-            }
-
-            // If we didn't get a 200 response from authenticate, the user needs to sign in again
-            if (data.jsonCode !== 200) {
-                console.warn(
-                    'Did not get a 200 from authenticate, going back to sign in page',
-                );
-                Store.set(STOREKEYS.APP_REDIRECT_TO, ROUTES.SIGNIN);
-                return;
-            }
-
-            Store.set(STOREKEYS.SESSION, data);
-            Store.set(STOREKEYS.APP_REDIRECT_TO, ROUTES.HOME);
-            Store.set(STOREKEYS.LAST_AUTHENTICATED, new Date().getTime());
-
-            return data;
-        })
-        .then((data) => {
-            Store.set(STOREKEYS.SESSION, data);
-            Store.set(STOREKEYS.APP_REDIRECT_TO, ROUTES.HOME);
-        })
-        .catch((err) => {
-            console.warn(err);
-            Store.set(STOREKEYS.SESSION, {error: err});
-        });
-}
-
-/**
  * Create login
  * @param {string} authToken
  * @param {string} login
@@ -79,9 +23,9 @@ function signIn(login, password, useExpensifyLogin = false) {
  */
 function createLogin(authToken, login, password) {
     request('CreateLogin', {
-        authToken: authToken,
-        partnerName,
-        partnerPassword,
+        authToken,
+        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         partnerUserID: login,
         partnerUserSecret: password,
     }).catch((err) => {
@@ -90,39 +34,96 @@ function createLogin(authToken, login, password) {
 }
 
 /**
+ * Sign in with the API
+ *
+ * @param {string} login
+ * @param {string} password
+ * @param {boolean} useExpensifyLogin
+ * @returns {Promise}
+ */
+function signIn(login, password, useExpensifyLogin = false) {
+    let authToken;
+    return Store.multiSet({
+        [STOREKEYS.CREDENTIALS]: {login, password},
+        [STOREKEYS.SESSION]: {},
+    })
+        .then(() => request('Authenticate', {
+            useExpensifyLogin,
+            partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+            partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+            partnerUserID: login,
+            partnerUserSecret: password,
+        }))
+        .then((data) => {
+            authToken = data && data.authToken;
+
+            // 404 We need to create a login
+            if (data.jsonCode === 404 && !useExpensifyLogin) {
+                return signIn(login, password, true)
+                    .then((newAuthToken) => {
+                        createLogin(newAuthToken, login, password);
+                    });
+            }
+
+            // If we didn't get a 200 response from authenticate, the user needs to sign in again
+            if (data.jsonCode !== 200) {
+                console.warn('Did not get a 200 from authenticate, going back to sign in page');
+                return Store.set(STOREKEYS.APP_REDIRECT_TO, ROUTES.SIGNIN);
+            }
+
+            return Store.multiSet({
+                [STOREKEYS.SESSION]: data,
+                [STOREKEYS.APP_REDIRECT_TO]: ROUTES.HOME,
+                [STOREKEYS.LAST_AUTHENTICATED]: new Date().getTime(),
+            });
+        })
+        .then(() => authToken)
+        .catch((err) => {
+            console.error(err);
+            Store.set(STOREKEYS.SESSION, {error: err});
+        });
+}
+
+/**
  * Sign out of our application
+ *
+ * @returns {Promise}
  */
 async function signOut() {
-    Store.set(STOREKEYS.APP_REDIRECT_TO, ROUTES.SIGNIN);
-    await PersistentStorage.clear();
+    return Store.set(STOREKEYS.APP_REDIRECT_TO, ROUTES.SIGNIN)
+        .then(Store.clear);
 }
 
 /**
  * Make sure the authToken we have is OK to use
+ *
+ * @returns {Promise}
  */
 async function verifyAuthToken() {
-    const lastAuthenticated = await Store.get(STOREKEYS.LAST_AUTHENTICATED);
-    const credentials = await Store.get(STOREKEYS.CREDENTIALS);
-    const haveCredentials = !_.isNull(credentials);
-    const haveExpiredAuthToken =
-        lastAuthenticated < new Date().getTime() - AUTH_TOKEN_EXPIRATION_TIME;
+    return Store.multiGet([STOREKEYS.LAST_AUTHENTICATED, STOREKEYS.CREDENTIALS])
+        .then(({last_authenticated, credentials}) => {
+            const haveCredentials = !_.isNull(credentials);
+            const haveExpiredAuthToken = last_authenticated < new Date().getTime() - AUTH_TOKEN_EXPIRATION_TIME;
 
-    if (haveExpiredAuthToken && haveCredentials) {
-        console.debug('Invalid auth token: Token has expired.');
-        signIn(credentials.login, credentials.password);
-        return;
-    }
+            if (haveExpiredAuthToken && haveCredentials) {
+                console.debug('Invalid auth token: Token has expired.');
+                return signIn(credentials.login, credentials.password);
+            }
 
-    request('Get', {returnValueList: 'account'}).then((data) => {
-        if (data.jsonCode === 200) {
-            console.debug('We have valid auth token');
-            Store.set(STOREKEYS.SESSION, data);
-            return;
-        }
+            return request('Get', {returnValueList: 'account'}).then((data) => {
+                if (data.jsonCode === 200) {
+                    console.debug('We have valid auth token');
+                    return Store.set(STOREKEYS.SESSION, data);
+                }
 
-        // If the auth token is bad and we didn't have credentials saved, we want them to go to the sign in page
-        Store.set(STOREKEYS.APP_REDIRECT_TO, ROUTES.SIGNIN);
-    });
+                // If the auth token is bad and we didn't have credentials saved, we want them to go to the sign in page
+                return Store.set(STOREKEYS.APP_REDIRECT_TO, ROUTES.SIGNIN);
+            });
+        });
 }
 
-export {signIn, signOut, verifyAuthToken};
+export {
+    signIn,
+    signOut,
+    verifyAuthToken
+};

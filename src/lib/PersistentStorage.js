@@ -22,6 +22,27 @@ function get(key) {
 };
 
 /**
+ * Get the data for multiple keys
+ *
+ * @param {string[]} keys
+ * @returns {Promise}
+ */
+function multiGet(keys) {
+    // AsyncStorage returns the data in an array format like:
+    // [ ['@MyApp_user', 'myUserValue'], ['@MyApp_key', 'myKeyValue'] ]
+    // This method will transform the data into a better JSON format like:
+    // {'@MyApp_user': 'myUserValue', '@MyApp_key': 'myKeyValue'}
+    return AsyncStorage.multiGet(keys)
+        .then(arrayOfData => _.reduce(arrayOfData, (finalData, keyValuePair) => ({
+            ...finalData,
+            [keyValuePair[0]]: JSON.parse(keyValuePair[1]),
+        }), {}))
+        .catch((err) => {
+            console.error(`Unable to get item from persistent storage. Keys: ${JSON.stringify(keys)} Error: ${err}`);
+        });
+}
+
+/**
  * Write a key to storage
  *
  * @param {string} key
@@ -33,6 +54,24 @@ function set(key, val) {
 };
 
 /**
+ * Set multiple keys at once
+ *
+ * @param {object} data where the keys and values will be stored
+ * @returns {Promise|Promise<void>|*}
+ */
+function multiSet(data) {
+    // AsyncStorage expenses the data in an array like:
+    // [["@MyApp_user", "value_1"], ["@MyApp_key", "value_2"]]
+    // This method will transform the params from a better JSON format like:
+    // {'@MyApp_user': 'myUserValue', '@MyApp_key': 'myKeyValue'}
+    const keyValuePairs = _.reduce(data, (finalArray, val, key) => ([
+        ...finalArray,
+        [key, JSON.stringify(val)],
+    ]), []);
+    return AsyncStorage.multiSet(keyValuePairs);
+}
+
+/**
  * Empty out the storage (like when the user signs out)
  *
  * @returns {Promise}
@@ -41,8 +80,22 @@ function clear() {
     return AsyncStorage.clear();
 };
 
+/**
+ * Merges `val` into an existing key. Best used when updating an existing object
+ *
+ * @param {string} key
+ * @param {mixed} val
+ * @returns {Promise}
+ */
+function merge(key, val) {
+    return AsyncStorage.mergeItem(key, val);
+}
+
 export {
     get,
+    multiGet,
     set,
+    multiSet,
+    merge,
     clear,
 };
