@@ -24,8 +24,8 @@ export default class App extends Component {
     this.sessionChanged = this.sessionChanged.bind(this);
 
     this.state = {
-      login: 'andrew@expensify.com',
-      password: 'Password1',
+      login: '',
+      password: '',
       error: Store.get(STOREKEYS.SESSION, 'error'),
     };
   }
