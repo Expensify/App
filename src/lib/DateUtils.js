@@ -1,5 +1,5 @@
 import moment from 'moment';
-import Str from './Str.js';
+import Str from './Str';
 
 // Non-Deprecated Methods
 

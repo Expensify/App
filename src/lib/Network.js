@@ -1,5 +1,5 @@
 import * as $ from 'jquery';
-import * as Store from '../store/Store.js';
+import * as Store from '../store/Store';
 
 let isAppOffline = false;
 

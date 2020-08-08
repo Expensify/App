@@ -1,8 +1,8 @@
-import * as Store from '../Store.js';
-import {request} from '../../lib/Network.js';
-import ROUTES from '../../ROUTES.js';
-import STOREKEYS from '../STOREKEYS.js';
-import * as PersistentStorage from '../../lib/PersistentStorage.js';
+import * as Store from '../Store';
+import {request} from '../../lib/Network';
+import ROUTES from '../../ROUTES';
+import STOREKEYS from '../STOREKEYS';
+import * as PersistentStorage from '../../lib/PersistentStorage';
 import * as _ from 'lodash';
 
 // TODO: Figure out how to determine prod/dev on mobile, etc.
