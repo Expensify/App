@@ -93,23 +93,53 @@ function set(key, val) {
  *      we are looking for doesn't exist in the object yet
  * @returns {*}
  */
-const get = (key, extraPath, defaultValue) => {
+function get(key, extraPath, defaultValue) {
     return PersistentStorage.get(key)
-        .then(val => {
+        .then((val) => {
             if (extraPath) {
                 return _.get(val, extraPath, defaultValue);
             }
             return val;
         });
-    if (extraPath) {
-        return _.get(val, extraPath, defaultValue);
-    }
 };
+
+/**
+ * Get multiple keys of data
+ *
+ * @param {string[]} keys
+ * @returns {Promise}
+ */
+function multiGet(keys) {
+    return PersistentStorage.multiGet(keys);
+}
+
+/**
+ * Sets multiple keys and values. Example
+ * Store.multiSet({'key1': 'a', 'key2': 'b'});
+ *
+ * @param {object} data
+ * @returns {Promise}
+ */
+function multiSet(data) {
+    return PersistentStorage.multiSet(data);
+}
+
+/**
+ * Clear out all the data in the store
+ *
+ * @returns {Promise}
+ */
+function clear() {
+    return PersistentStorage.clear();
+}
 
 export {
     subscribe,
     unsubscribe,
     set,
+    multiSet,
     get,
+    multiGet,
+    clear,
     init
 };
