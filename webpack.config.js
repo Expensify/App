@@ -5,7 +5,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 module.exports = {
     mode: 'development',
     entry: {
-        app: './src/index.js',
+        app: './web/index.js',
     },
     output: {
         filename: '[name]-[hash].bundle.js',
@@ -19,7 +19,7 @@ module.exports = {
     plugins: [
         new CleanWebpackPlugin(),
         new HtmlWebpackPlugin({
-            template: 'src/index.html',
+            template: 'web/index.html',
             // With the dev server, we need to put this file in the dist folder
             filename: 'index.html',
         }),
