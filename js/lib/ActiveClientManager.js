@@ -37,4 +37,4 @@ function isClientTheLeader() {
     return activeClientIDs[0] === clientID;
 }
 
-export { init, removeClient, isClientTheLeader };
+export {init, removeClient, isClientTheLeader};

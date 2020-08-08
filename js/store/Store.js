@@ -100,4 +100,4 @@ const get = async (key, extraPath, defaultValue) => {
     return val;
 };
 
-export { subscribe, unsubscribe, set, get, init };
+export {subscribe, unsubscribe, set, get, init};

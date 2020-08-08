@@ -3,7 +3,7 @@
  * @flow strict-local
  */
 
-import React, { Component } from 'react';
+import React, {Component} from 'react';
 import {
     SafeAreaView,
     Text,
@@ -13,7 +13,7 @@ import {
     View,
 } from 'react-native';
 import * as Store from '../store/Store.js';
-import { signIn } from '../store/actions/SessionActions.js';
+import {signIn} from '../store/actions/SessionActions.js';
 import STOREKEYS from '../store/STOREKEYS.js';
 
 export default class App extends Component {
@@ -45,7 +45,7 @@ export default class App extends Component {
      * @param {object} newSession
      */
     sessionChanged(newSession) {
-        this.setState({ error: newSession && newSession.error });
+        this.setState({error: newSession && newSession.error});
     }
 
     /**
@@ -63,18 +63,18 @@ export default class App extends Component {
                     <View>
                         <Text>Login:</Text>
                         <TextInput
-                            style={{ height: 40, borderColor: 'black', borderWidth: 2 }}
+                            style={{height: 40, borderColor: 'black', borderWidth: 2}}
                             value={this.state.login}
-                            onChangeText={(text) => this.setState({ login: text })}
+                            onChangeText={(text) => this.setState({login: text})}
                         />
                     </View>
                     <View>
                         <Text>Password:</Text>
                         <TextInput
-                            style={{ height: 40, borderColor: 'black', borderWidth: 2 }}
+                            style={{height: 40, borderColor: 'black', borderWidth: 2}}
                             secureTextEntry={true}
                             value={this.state.password}
-                            onChangeText={(text) => this.setState({ password: text })}
+                            onChangeText={(text) => this.setState({password: text})}
                         />
                     </View>
                     <View>

@@ -1,5 +1,5 @@
 import * as Store from '../Store.js';
-import { request } from '../../lib/Network.js';
+import {request} from '../../lib/Network.js';
 import ROUTES from '../../ROUTES.js';
 import STOREKEYS from '../STOREKEYS.js';
 import * as PersistentStorage from '../../lib/PersistentStorage.js';
@@ -28,7 +28,7 @@ const AUTH_TOKEN_EXPIRATION_TIME = 1000 * 60;
  * @param {boolean} useExpensifyLogin
  */
 function signIn(login, password, useExpensifyLogin = false) {
-    Store.set(STOREKEYS.CREDENTIALS, { login, password });
+    Store.set(STOREKEYS.CREDENTIALS, {login, password});
     Store.set(STOREKEYS.SESSION, {});
     return request('Authenticate', {
         useExpensifyLogin: useExpensifyLogin,
@@ -67,7 +67,7 @@ function signIn(login, password, useExpensifyLogin = false) {
         })
         .catch((err) => {
             console.warn(err);
-            Store.set(STOREKEYS.SESSION, { error: err });
+            Store.set(STOREKEYS.SESSION, {error: err});
         });
 }
 
@@ -85,7 +85,7 @@ function createLogin(authToken, login, password) {
         partnerUserID: login,
         partnerUserSecret: password,
     }).catch((err) => {
-        Store.set(STOREKEYS.SESSION, { error: err });
+        Store.set(STOREKEYS.SESSION, {error: err});
     });
 }
 
@@ -113,7 +113,7 @@ async function verifyAuthToken() {
         return;
     }
 
-    request('Get', { returnValueList: 'account' }).then((data) => {
+    request('Get', {returnValueList: 'account'}).then((data) => {
         if (data.jsonCode === 200) {
             console.debug('We have valid auth token');
             Store.set(STOREKEYS.SESSION, data);
@@ -125,4 +125,4 @@ async function verifyAuthToken() {
     });
 }
 
-export { signIn, signOut, verifyAuthToken };
+export {signIn, signOut, verifyAuthToken};

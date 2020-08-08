@@ -1,6 +1,6 @@
 /* globals moment */
 import * as Store from '../Store.js';
-import { request, delayedWrite } from '../../lib/Network.js';
+import {request, delayedWrite} from '../../lib/Network.js';
 import STOREKEYS from '../STOREKEYS.js';
 import ExpensiMark from '../../lib/ExpensiMark.js';
 import Guid from '../../lib/Guid.js';
@@ -116,4 +116,4 @@ function addComment(reportID, commentText) {
     });
 }
 
-export { fetchAll, fetch, fetchComments, addComment };
+export {fetchAll, fetch, fetchComments, addComment};
