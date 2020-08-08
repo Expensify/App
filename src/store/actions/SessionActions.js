@@ -3,7 +3,6 @@ import * as Store from '../Store';
 import {request} from '../../lib/Network';
 import ROUTES from '../../ROUTES';
 import STOREKEYS from '../STOREKEYS';
-import * as PersistentStorage from '../../lib/PersistentStorage';
 import CONFIG from '../../CONFIG';
 
 /**
@@ -67,6 +66,7 @@ function signIn(login, password, useExpensifyLogin = false) {
 
             // If we didn't get a 200 response from authenticate, the user needs to sign in again
             if (data.jsonCode !== 200) {
+                // eslint-disable-next-line no-console
                 console.warn('Did not get a 200 from authenticate, going back to sign in page');
                 return Store.set(STOREKEYS.APP_REDIRECT_TO, ROUTES.SIGNIN);
             }
