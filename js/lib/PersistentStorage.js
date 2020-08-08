@@ -36,4 +36,4 @@ const clear = async () => {
     await AsyncStorage.clear();
 };
 
-export { get, set, clear };
+export {get, set, clear};

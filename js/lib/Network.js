@@ -88,4 +88,4 @@ function processWriteQueue() {
 // Process our write queue very often
 // setInterval(processWriteQueue, 1000);
 
-export { request, delayedWrite };
+export {request, delayedWrite};

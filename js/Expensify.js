@@ -1,12 +1,12 @@
-import { init as StoreInit } from './store/Store.js';
+import {init as StoreInit} from './store/Store.js';
 import SignInPage from './page/SignInPage.js';
 import HomePage from './page/HomePage/HomePage.js';
 import * as Store from './store/Store.js';
 import * as ActiveClientManager from './lib/ActiveClientManager.js';
-import { verifyAuthToken } from './store/actions/SessionActions.js';
+import {verifyAuthToken} from './store/actions/SessionActions.js';
 import STOREKEYS from './store/STOREKEYS.js';
-import React, { Component } from 'react';
-import { Route, Router, Redirect, Switch } from './lib/Router';
+import React, {Component} from 'react';
+import {Route, Router, Redirect, Switch} from './lib/Router';
 
 // Initialize the store when the app loads for the first time
 StoreInit();
@@ -25,7 +25,7 @@ export default class Expensify extends Component {
     async componentDidMount() {
         // Listen for when the app wants to redirect to a specific URL
         Store.subscribe(STOREKEYS.APP_REDIRECT_TO, (redirectTo) => {
-            this.setState({ redirectTo });
+            this.setState({redirectTo});
         });
 
         // Verify that our authToken is OK to use
@@ -45,7 +45,7 @@ export default class Expensify extends Component {
      * @param {object} newSession
      */
     sessionChanged(newSession) {
-        this.setState({ isAuthTokenValid: newSession && newSession.authToken });
+        this.setState({isAuthTokenValid: newSession && newSession.authToken});
     }
 
     render() {
