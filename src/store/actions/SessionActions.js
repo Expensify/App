@@ -4,6 +4,8 @@ import {request} from '../../lib/Network';
 import ROUTES from '../../ROUTES';
 import STOREKEYS from '../STOREKEYS';
 import CONFIG from '../../CONFIG';
+import Str from '../../lib/Str';
+import Guid from '../../lib/Guid';
 
 /**
  * Amount of time (in ms) after which an authToken is considered expired.
@@ -12,23 +14,36 @@ import CONFIG from '../../CONFIG';
  * @private
  * @type {Number}
  */
-const AUTH_TOKEN_EXPIRATION_TIME = 1000 * 60;
+const AUTH_TOKEN_EXPIRATION_TIME = 1000 * 60 * 90;
 
 /**
  * Create login
  * @param {string} authToken
  * @param {string} login
  * @param {string} password
+ * @returns {Promise}
  */
 function createLogin(authToken, login, password) {
-    request('CreateLogin', {
+    return request('CreateLogin', {
         authToken,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         partnerUserID: login,
         partnerUserSecret: password,
-    }).catch((err) => {
-        Store.set(STOREKEYS.SESSION, {error: err});
+    }).then(() => Store.set(STOREKEYS.CREDENTIALS, {login, password}))
+        .catch(err => Store.set(STOREKEYS.SESSION, {error: err}));
+}
+
+/**
+ * Sets API data in the store when we make a successful "Authenticate"/"CreateLogin" request
+ * @param {object} data
+ * @returns {Promise}
+ */
+function setSuccessfulSignInData(data) {
+    return Store.multiSet({
+        [STOREKEYS.SESSION]: data,
+        [STOREKEYS.APP_REDIRECT_TO]: ROUTES.HOME,
+        [STOREKEYS.LAST_AUTHENTICATED]: new Date().getTime(),
     });
 }
 
@@ -42,46 +57,55 @@ function createLogin(authToken, login, password) {
  */
 function signIn(login, password, useExpensifyLogin = false) {
     let authToken;
-    return Store.multiSet({
-        [STOREKEYS.CREDENTIALS]: {login, password},
-        [STOREKEYS.SESSION]: {},
+    return request('Authenticate', {
+        useExpensifyLogin,
+        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+        partnerUserID: login,
+        partnerUserSecret: password,
     })
-        .then(() => request('Authenticate', {
-            useExpensifyLogin,
-            partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-            partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-            partnerUserID: login,
-            partnerUserSecret: password,
-        }))
         .then((data) => {
             authToken = data && data.authToken;
-
-            // 404 We need to create a login
-            if (data.jsonCode === 404 && !useExpensifyLogin) {
-                return signIn(login, password, true)
-                    .then((newAuthToken) => {
-                        createLogin(newAuthToken, login, password);
-                    });
-            }
 
             // If we didn't get a 200 response from authenticate, the user needs to sign in again
             if (data.jsonCode !== 200) {
                 // eslint-disable-next-line no-console
-                console.warn('Did not get a 200 from authenticate, going back to sign in page');
-                return Store.set(STOREKEYS.APP_REDIRECT_TO, ROUTES.SIGNIN);
+                console.debug('Non-200 from authenticate, going back to sign in page');
+                return Store.multiSet({
+                    [STOREKEYS.CREDENTIALS]: {},
+                    [STOREKEYS.SESSION]: {error: data.message},
+                    [STOREKEYS.APP_REDIRECT_TO]: ROUTES.SIGNIN,
+                });
             }
 
-            return Store.multiSet({
-                [STOREKEYS.SESSION]: data,
-                [STOREKEYS.APP_REDIRECT_TO]: ROUTES.HOME,
-                [STOREKEYS.LAST_AUTHENTICATED]: new Date().getTime(),
-            });
+            // If Expensify login, it's the users first time logging in and we need to create a login for the user
+            if (useExpensifyLogin) {
+                return createLogin(data.authToken, Str.generateDeviceLoginID(), Guid())
+                    .then(() => setSuccessfulSignInData(data));
+            }
+
+            return setSuccessfulSignInData();
         })
         .then(() => authToken)
         .catch((err) => {
             console.error(err);
-            Store.set(STOREKEYS.SESSION, {error: err});
+            return Store.set(STOREKEYS.SESSION, {error: err.message});
         });
+}
+
+/**
+ * Delete login
+ * @param {string} authToken
+ * @param {string} login
+ * @returns {Promise}
+ */
+function deleteLogin(authToken, login) {
+    return request('DeleteLogin', {
+        authToken,
+        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+        partnerUserID: login,
+    }).catch(err => Store.set(STOREKEYS.SESSION, {error: err.message}));
 }
 
 /**
@@ -89,9 +113,12 @@ function signIn(login, password, useExpensifyLogin = false) {
  *
  * @returns {Promise}
  */
-async function signOut() {
+function signOut() {
     return Store.set(STOREKEYS.APP_REDIRECT_TO, ROUTES.SIGNIN)
-        .then(Store.clear);
+        .then(() => Store.multiGet([STOREKEYS.SESSION, STOREKEYS.CREDENTIALS]))
+        .then(data => deleteLogin(data.session.authToken, data.credentials.login))
+        .then(Store.clear)
+        .catch(err => Store.set(STOREKEYS.SESSION, {error: err.message}));
 }
 
 /**
@@ -99,7 +126,7 @@ async function signOut() {
  *
  * @returns {Promise}
  */
-async function verifyAuthToken() {
+function verifyAuthToken() {
     return Store.multiGet([STOREKEYS.LAST_AUTHENTICATED, STOREKEYS.CREDENTIALS])
         .then(({last_authenticated, credentials}) => {
             const haveCredentials = !_.isNull(credentials);

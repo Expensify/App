@@ -27,13 +27,14 @@ export default class App extends Component {
             login: '',
             password: '',
             // eslint-disable-next-line react/no-unused-state
-            error: Store.get(STOREKEYS.SESSION, 'error'),
+            error: null,
         };
     }
 
     componentDidMount() {
         // Listen for changes to our session
         Store.subscribe(STOREKEYS.SESSION, this.sessionChanged);
+        Store.get(STOREKEYS.SESSION, 'error').then(error => this.setState({error}));
     }
 
     componentWillUnmount() {
@@ -54,7 +55,7 @@ export default class App extends Component {
      * When the form is submitted, then we trigger our prop callback
      */
     submit() {
-        signIn(this.state.login, this.state.password);
+        signIn(this.state.login, this.state.password, true);
     }
 
     render() {
@@ -81,6 +82,9 @@ export default class App extends Component {
                     </View>
                     <View>
                         <Button onPress={this.submit} title="Log In" />
+                    {this.state.error && <Text style={{color: 'red'}}>
+                        {this.state.error}
+                    </Text>}
                     </View>
                 </SafeAreaView>
             </>
