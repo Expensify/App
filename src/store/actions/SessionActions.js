@@ -1,16 +1,16 @@
+import { Platform } from 'react-native';
+import * as _ from 'lodash';
 import * as Store from '../Store.js';
 import {request} from '../../lib/Network.js';
 import ROUTES from '../../ROUTES.js';
 import STOREKEYS from '../STOREKEYS.js';
 import * as PersistentStorage from '../../lib/PersistentStorage.js';
-import * as _ from 'lodash';
+import Str from '../../lib/Str';
+import Guid from '../../lib/Guid';
 
-// TODO: Figure out how to determine prod/dev on mobile, etc.
-const IS_IN_PRODUCTION = false;
-const partnerName = IS_IN_PRODUCTION ? 'chat-expensify-com' : 'android';
-const partnerPassword = IS_IN_PRODUCTION
-    ? 'e21965746fd75f82bb66'
-    : 'c3a9ac418ea3f152aae2';
+const IS_IN_PRODUCTION = Platform.OS === 'web' ? process.env.NODE_ENV === 'production' : !__DEV__;
+const partnerName = IS_IN_PRODUCTION ? 'chat-expensify-com' : 'expensify.com';
+const partnerPassword = IS_IN_PRODUCTION ? 'e21965746fd75f82bb66' : 'MkgLvVAyaTlmw';
 
 /**
  * Amount of time (in ms) after which an authToken is considered expired.
@@ -19,7 +19,7 @@ const partnerPassword = IS_IN_PRODUCTION
  * @private
  * @type {Number}
  */
-const AUTH_TOKEN_EXPIRATION_TIME = 1000 * 60;
+const AUTH_TOKEN_EXPIRATION_TIME = 1000 * 60 * 90;
 
 /**
  * Sign in with the API
@@ -28,47 +28,49 @@ const AUTH_TOKEN_EXPIRATION_TIME = 1000 * 60;
  * @param {boolean} useExpensifyLogin
  */
 function signIn(login, password, useExpensifyLogin = false) {
-    Store.set(STOREKEYS.CREDENTIALS, {login, password});
-    Store.set(STOREKEYS.SESSION, {});
     return request('Authenticate', {
-        useExpensifyLogin: useExpensifyLogin,
-        partnerName: partnerName,
-        partnerPassword: partnerPassword,
+        useExpensifyLogin,
+        partnerName,
+        partnerPassword,
         partnerUserID: login,
         partnerUserSecret: password,
     })
         .then((data) => {
-            // 404 We need to create a login
-            if (data.jsonCode === 404 && !useExpensifyLogin) {
-                signIn(login, password, true).then((expensifyLoginData) => {
-                    createLogin(expensifyLoginData.authToken, login, password);
-                });
-                return;
-            }
-
             // If we didn't get a 200 response from authenticate, the user needs to sign in again
             if (data.jsonCode !== 200) {
-                console.warn(
-                    'Did not get a 200 from authenticate, going back to sign in page',
-                );
+                console.debug('Non-200 from authenticate, going back to sign in page');
+                Store.set(STOREKEYS.CREDENTIALS, {});
+                Store.set(STOREKEYS.SESSION, {error: data.message});
                 Store.set(STOREKEYS.APP_REDIRECT_TO, ROUTES.SIGNIN);
                 return;
             }
 
-            Store.set(STOREKEYS.SESSION, data);
-            Store.set(STOREKEYS.APP_REDIRECT_TO, ROUTES.HOME);
-            Store.set(STOREKEYS.LAST_AUTHENTICATED, new Date().getTime());
+            // If we used the Expensify login, it's the users first time logging in and we need to create a login for the user
+            if (useExpensifyLogin) {
+                createLogin(data.authToken, Str.generateDeviceLoginID(), Guid()).then(() => {
+                    setSuccessfulData(data);
+                });
+                return;
+            }
 
+
+            setSuccessfulData(data);
             return data;
-        })
-        .then((data) => {
-            Store.set(STOREKEYS.SESSION, data);
-            Store.set(STOREKEYS.APP_REDIRECT_TO, ROUTES.HOME);
         })
         .catch((err) => {
             console.warn(err);
-            Store.set(STOREKEYS.SESSION, {error: err});
+            Store.set(STOREKEYS.SESSION, {error: err.message});
         });
+}
+
+/**
+ * Sets API data in the store when we make a successful "Authenticate"/"CreateLogin" request
+ * @param {object} data
+ */
+function setSuccessfulData(data) {
+    Store.set(STOREKEYS.SESSION, data);
+    Store.set(STOREKEYS.APP_REDIRECT_TO, ROUTES.HOME);
+    Store.set(STOREKEYS.LAST_AUTHENTICATED, new Date().getTime());
 }
 
 /**
@@ -78,15 +80,35 @@ function signIn(login, password, useExpensifyLogin = false) {
  * @param {string} password
  */
 function createLogin(authToken, login, password) {
-    request('CreateLogin', {
-        authToken: authToken,
+    return request('CreateLogin', {
+        authToken,
         partnerName,
         partnerPassword,
         partnerUserID: login,
         partnerUserSecret: password,
-    }).catch((err) => {
-        Store.set(STOREKEYS.SESSION, {error: err});
-    });
+    }).then(() => {
+        Store.set(STOREKEYS.CREDENTIALS, {login, password});
+    })
+        .catch((err) => {
+            Store.set(STOREKEYS.SESSION, {error: err.message});
+        });
+}
+
+/**
+ * Delete login
+ * @param {string} authToken
+ * @param {string} login
+ */
+function deleteLogin(authToken, login) {
+    return request('DeleteLogin', {
+        authToken,
+        partnerName,
+        partnerPassword,
+        partnerUserID: login,
+    })
+        .catch((err) => {
+            Store.set(STOREKEYS.SESSION, {error: err.message});
+        });
 }
 
 /**
@@ -95,6 +117,7 @@ function createLogin(authToken, login, password) {
 async function signOut() {
     Store.set(STOREKEYS.APP_REDIRECT_TO, ROUTES.SIGNIN);
     await PersistentStorage.clear();
+    await deleteLogin();
 }
 
 /**
@@ -104,8 +127,7 @@ async function verifyAuthToken() {
     const lastAuthenticated = await Store.get(STOREKEYS.LAST_AUTHENTICATED);
     const credentials = await Store.get(STOREKEYS.CREDENTIALS);
     const haveCredentials = !_.isNull(credentials);
-    const haveExpiredAuthToken =
-        lastAuthenticated < new Date().getTime() - AUTH_TOKEN_EXPIRATION_TIME;
+    const haveExpiredAuthToken = lastAuthenticated < new Date().getTime() - AUTH_TOKEN_EXPIRATION_TIME;
 
     if (haveExpiredAuthToken && haveCredentials) {
         console.debug('Invalid auth token: Token has expired.');

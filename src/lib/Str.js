@@ -1,5 +1,7 @@
 /* globals $, _ */
 
+import Guid from './Guid';
+
 const Str = {
     /**
      * Returns the proper phrase depending on the count that is passed.
@@ -48,6 +50,10 @@ const Str = {
      */
     nl2br(str) {
         return str.replace(/\n/g, '<br />');
+    },
+
+    generateDeviceLoginID() {
+        return `React-Native-Chat-${Guid()}`;
     },
 };
 
