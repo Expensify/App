@@ -21,6 +21,7 @@ const AUTH_TOKEN_EXPIRATION_TIME = 1000 * 60 * 90;
  * @param {string} authToken
  * @param {string} login
  * @param {string} password
+ * @returns {Promise}
  */
 function createLogin(authToken, login, password) {
     return request('CreateLogin', {
@@ -29,11 +30,8 @@ function createLogin(authToken, login, password) {
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         partnerUserID: login,
         partnerUserSecret: password,
-    }).then(() => {
-        Store.set(STOREKEYS.CREDENTIALS, {login, password});
-    }).catch((err) => {
-        Store.set(STOREKEYS.SESSION, {error: err});
-    });
+    }).then(() => Store.set(STOREKEYS.CREDENTIALS, {login, password}))
+        .catch(err => Store.set(STOREKEYS.SESSION, {error: err}));
 }
 
 /**
@@ -41,7 +39,7 @@ function createLogin(authToken, login, password) {
  * @param {object} data
  * @returns {Promise}
  */
-function setSuccessfulData(data) {
+function setSuccessfulSignInData(data) {
     return Store.multiSet({
         [STOREKEYS.SESSION]: data,
         [STOREKEYS.APP_REDIRECT_TO]: ROUTES.HOME,
@@ -82,15 +80,15 @@ function signIn(login, password, useExpensifyLogin = false) {
             // If Expensify login, it's the users first time logging in and we need to create a login for the user
             if (useExpensifyLogin) {
                 return createLogin(data.authToken, Str.generateDeviceLoginID(), Guid())
-                    .then(() => setSuccessfulData(data));
+                    .then(() => setSuccessfulSignInData(data));
             }
 
-            return setSuccessfulData();
+            return setSuccessfulSignInData();
         })
         .then(() => authToken)
         .catch((err) => {
             console.error(err);
-            Store.set(STOREKEYS.SESSION, {error: err.message});
+            return Store.set(STOREKEYS.SESSION, {error: err.message});
         });
 }
 
@@ -106,9 +104,7 @@ function deleteLogin(authToken, login) {
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         partnerUserID: login,
-    }).catch((err) => {
-        Store.set(STOREKEYS.SESSION, {error: err.message});
-    });
+    }).catch(err => Store.set(STOREKEYS.SESSION, {error: err.message}));
 }
 
 /**
@@ -120,7 +116,8 @@ function signOut() {
     return Store.set(STOREKEYS.APP_REDIRECT_TO, ROUTES.SIGNIN)
         .then(() => Store.multiGet([STOREKEYS.SESSION, STOREKEYS.CREDENTIALS]))
         .then(data => deleteLogin(data.session.authToken, data.credentials.login))
-        .then(Store.clear);
+        .then(Store.clear)
+        .catch(err => Store.set(STOREKEYS.SESSION, {error: err.message}));
 }
 
 /**
@@ -128,7 +125,7 @@ function signOut() {
  *
  * @returns {Promise}
  */
-async function verifyAuthToken() {
+function verifyAuthToken() {
     return Store.multiGet([STOREKEYS.LAST_AUTHENTICATED, STOREKEYS.CREDENTIALS])
         .then(({last_authenticated, credentials}) => {
             const haveCredentials = !_.isNull(credentials);
