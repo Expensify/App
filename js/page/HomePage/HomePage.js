@@ -3,9 +3,9 @@
  * @flow strict-local
  */
 
-import React, { Component } from 'react';
-import { SafeAreaView, Text, StatusBar, View, Button } from 'react-native';
-import { signOut } from '../../store/actions/SessionActions';
+import React, {Component} from 'react';
+import {SafeAreaView, Text, StatusBar, View, Button} from 'react-native';
+import {signOut} from '../../store/actions/SessionActions';
 
 export default class App extends Component {
     constructor(props) {
