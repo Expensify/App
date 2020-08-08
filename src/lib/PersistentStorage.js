@@ -33,10 +33,13 @@ function multiGet(keys) {
     // This method will transform the data into a better JSON format like:
     // {'@MyApp_user': 'myUserValue', '@MyApp_key': 'myKeyValue'}
     return AsyncStorage.multiGet(keys)
-        .then(arrayOfData => _.reduce(arrayOfData, (finalData, val, key) => ({
+        .then(arrayOfData => _.reduce(arrayOfData, (finalData, keyValuePair) => ({
             ...finalData,
-            [key]: val,
-        }), {}));
+            [keyValuePair[0]]: JSON.parse(keyValuePair[1]),
+        }), {}))
+        .catch((err) => {
+            console.error(`Unable to get item from persistent storage. Keys: ${JSON.stringify(keys)} Error: ${err}`);
+        });
 }
 
 /**
@@ -63,7 +66,7 @@ function multiSet(data) {
     // {'@MyApp_user': 'myUserValue', '@MyApp_key': 'myKeyValue'}
     const keyValuePairs = _.reduce(data, (finalArray, val, key) => ([
         ...finalArray,
-        [key, val],
+        [key, JSON.stringify(val)],
     ]), []);
     return AsyncStorage.multiSet(keyValuePairs);
 }
