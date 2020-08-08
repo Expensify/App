@@ -1,9 +1,9 @@
 /* globals moment */
-import * as Store from '../Store.js';
-import {request, delayedWrite} from '../../lib/Network.js';
-import STOREKEYS from '../STOREKEYS.js';
-import ExpensiMark from '../../lib/ExpensiMark.js';
-import Guid from '../../lib/Guid.js';
+import * as Store from '../Store';
+import {request, delayedWrite} from '../../lib/Network';
+import STOREKEYS from '../STOREKEYS';
+import ExpensiMark from '../../lib/ExpensiMark';
+import Guid from '../../lib/Guid';
 
 /**
  * Get all of our reports
