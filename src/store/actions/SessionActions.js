@@ -1,9 +1,8 @@
-import * as _ from 'lodash';
+import _ from 'underscore';
 import * as Store from '../Store';
 import {request} from '../../lib/Network';
 import ROUTES from '../../ROUTES';
 import STOREKEYS from '../STOREKEYS';
-import * as PersistentStorage from '../../lib/PersistentStorage';
 import CONFIG from '../../CONFIG';
 
 /**
