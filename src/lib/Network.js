@@ -2,6 +2,7 @@ import * as $ from 'jquery';
 import * as Store from '../store/Store';
 import CONFIG from '../CONFIG';
 import STOREKEYS from '../store/STOREKEYS';
+import _ from 'underscore';
 
 let isAppOffline = false;
 
@@ -30,7 +31,7 @@ function request(command, data, type = 'post') {
                     method: type,
                     body: formData,
                 },
-            )
+            );
         })
         .then(response => response.json())
         .catch(() => isAppOffline = true);

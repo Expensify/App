@@ -1,5 +1,6 @@
-// TODO: Figure out how to determine prod/dev on mobile, etc.
-const IS_IN_PRODUCTION = false;
+import {Platform} from 'react-native';
+
+const IS_IN_PRODUCTION = Platform.OS === 'web' ? process.env.NODE_ENV === 'production' : !__DEV__;
 
 export default {
     PUSHER: {
