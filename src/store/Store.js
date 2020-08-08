@@ -21,19 +21,6 @@ function init() {
 }
 
 /**
- * Subscribe a regex pattern to trigger a callback when a storage event happens for a key matching that regex
- *
- * @param {string} keyPattern
- * @param {function} cb
- */
-function subscribe(keyPattern, cb) {
-    if (!callbackMapping[keyPattern]) {
-        callbackMapping[keyPattern] = [];
-    }
-    callbackMapping[keyPattern].push(cb);
-}
-
-/**
  * Remove a callback from a regex pattern
  *
  * @param {string} keyPattern
@@ -47,22 +34,92 @@ function unsubscribe(keyPattern, cb) {
 }
 
 /**
+ * Subscribe a regex pattern to trigger a callback when a storage event happens for a key matching that regex
+ *
+ * @param {string} keyPattern
+ * @param {function} cb
+ */
+function subscribe(keyPattern, cb) {
+    if (!callbackMapping[keyPattern]) {
+        callbackMapping[keyPattern] = [];
+    }
+    callbackMapping[keyPattern].push(cb);
+}
+
+/**
+ * Holds a mapping of all the react components that want their state subscribed to a store key
+ */
+const callbackToStateMapping = {};
+
+/**
+ * Subscribes a react component's state directly to a store key
+ *
+ * @param {string} keyPattern
+ * @param {string} statePropertyName the name of the property in the state to bind the data to
+ * @param {string} path a specific path of the store object to map to the state
+ * @param {mixed} defaultValue to return if the there is nothing from the store
+ * @param {object} reactComponent whose setState() method will be called with any changed data
+ */
+function subscribeToState(keyPattern, statePropertyName, path, defaultValue, reactComponent) {
+    if (!callbackToStateMapping[keyPattern]) {
+        callbackToStateMapping[keyPattern] = [];
+    }
+    callbackToStateMapping[keyPattern].push({
+        statePropertyName,
+        path,
+        reactComponent,
+        defaultValue,
+    });
+}
+
+/**
+ * Remove the listener for a react component
+ *
+ * @param {string} keyPattern
+ * @param {object} reactComponent
+ */
+function unsubscribeFromState(keyPattern, reactComponent) {
+    if (!callbackToStateMapping[keyPattern] || !callbackToStateMapping[keyPattern].length) {
+        return;
+    }
+    callbackToStateMapping[keyPattern] = _.without(callbackToStateMapping[keyPattern],
+        mappedComponent => mappedComponent.reactComponent === reactComponent);
+}
+
+/**
  * When a key change happens, search for any callbacks matching the regex pattern and trigger those callbacks
  *
  * @param {string} key
  * @param {mixed} data
  */
 function keyChanged(key, data) {
+    console.log('key changed', key, data);
+    // Trigger any callbacks that were added with subscribe()
     _.each(callbackMapping, (callbacks, keyPattern) => {
         const regex = RegExp(keyPattern);
 
         // If there is a callback whose regex matches the key that was changed, then the callback for that regex
         // is called and passed the data that changed
         if (regex.test(key)) {
-            for (let i = 0; i < callbacks.length; i++) {
-                const callback = callbacks[i];
-                callback(data);
-            }
+            _.each(callbacks, cb => cb(data));
+        }
+    });
+
+    // Find components that were added with subscribeToState() and trigger their setState() method with the new data
+    _.each(callbackToStateMapping, (mappedComponents, keyPattern) => {
+        const regex = RegExp(keyPattern);
+
+        // If there is a callback whose regex matches the key that was changed, then the callback for that regex
+        // is called and passed the data that changed
+        if (regex.test(key)) {
+            _.each(mappedComponents, (mappedComponent) => {
+                // Set the state of the react component with either the pathed data, or the data
+                mappedComponent.reactComponent.setState({
+                    [mappedComponent.statePropertyName]: mappedComponent.path
+                        ? lodashGet(data, mappedComponent.path, mappedComponent.defaultValue)
+                        : data || mappedComponent.defaultValue || null,
+                });
+            });
         }
     });
 }
@@ -149,6 +206,8 @@ function merge(key, val) {
 export {
     subscribe,
     unsubscribe,
+    subscribeToState,
+    unsubscribeFromState,
     set,
     multiSet,
     get,

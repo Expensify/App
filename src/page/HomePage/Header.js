@@ -19,10 +19,14 @@ export default class Header extends React.Component {
     }
 
     componentDidMount() {
-        Store.subscribe(STOREKEYS.MY_PERSONAL_DETAILS, this.updatePersonalDetails);
+        Store.subscribeToState(STOREKEYS.MY_PERSONAL_DETAILS, 'personalDetails', 'displayName', '', this);
 
         // Get our personal details
         getPersonalDetails();
+    }
+
+    componentWillUnmount() {
+        Store.unsubscribeFromState(STOREKEYS.MY_PERSONAL_DETAILS, this);
     }
 
     /**
@@ -40,7 +44,9 @@ export default class Header extends React.Component {
                 <Text style={styles.brand}>Expensify Chat</Text>
                 <Text style={styles.flex1} />
                 {this.state.personalDetails && (
-                    <Text style={[styles.navText, styles.mr1]}>Welcome {this.state.personalDetails.displayName}!</Text>
+                    <Text style={[styles.navText, styles.mr1]}>
+                        {`Welcome ${this.state.personalDetails.displayName}!`}
+                    </Text>
                 )}
                 <Button onPress={signOut} title="Sign Out" />
             </View>
