@@ -22,56 +22,6 @@ const partnerPassword = IS_IN_PRODUCTION
 const AUTH_TOKEN_EXPIRATION_TIME = 1000 * 60;
 
 /**
- * Sign in with the API
- * @param {string} login
- * @param {string} password
- * @param {boolean} useExpensifyLogin
- */
-function signIn(login, password, useExpensifyLogin = false) {
-    Store.set(STOREKEYS.CREDENTIALS, {login, password});
-    Store.set(STOREKEYS.SESSION, {});
-    return request('Authenticate', {
-        useExpensifyLogin: useExpensifyLogin,
-        partnerName: partnerName,
-        partnerPassword: partnerPassword,
-        partnerUserID: login,
-        partnerUserSecret: password,
-    })
-        .then((data) => {
-            // 404 We need to create a login
-            if (data.jsonCode === 404 && !useExpensifyLogin) {
-                signIn(login, password, true).then((expensifyLoginData) => {
-                    createLogin(expensifyLoginData.authToken, login, password);
-                });
-                return;
-            }
-
-            // If we didn't get a 200 response from authenticate, the user needs to sign in again
-            if (data.jsonCode !== 200) {
-                console.warn(
-                    'Did not get a 200 from authenticate, going back to sign in page',
-                );
-                Store.set(STOREKEYS.APP_REDIRECT_TO, ROUTES.SIGNIN);
-                return;
-            }
-
-            Store.set(STOREKEYS.SESSION, data);
-            Store.set(STOREKEYS.APP_REDIRECT_TO, ROUTES.HOME);
-            Store.set(STOREKEYS.LAST_AUTHENTICATED, new Date().getTime());
-
-            return data;
-        })
-        .then((data) => {
-            Store.set(STOREKEYS.SESSION, data);
-            Store.set(STOREKEYS.APP_REDIRECT_TO, ROUTES.HOME);
-        })
-        .catch((err) => {
-            console.warn(err);
-            Store.set(STOREKEYS.SESSION, {error: err});
-        });
-}
-
-/**
  * Create login
  * @param {string} authToken
  * @param {string} login
@@ -79,7 +29,7 @@ function signIn(login, password, useExpensifyLogin = false) {
  */
 function createLogin(authToken, login, password) {
     request('CreateLogin', {
-        authToken: authToken,
+        authToken,
         partnerName,
         partnerPassword,
         partnerUserID: login,
@@ -87,6 +37,58 @@ function createLogin(authToken, login, password) {
     }).catch((err) => {
         Store.set(STOREKEYS.SESSION, {error: err});
     });
+}
+
+/**
+ * Sign in with the API
+ * @param {string} login
+ * @param {string} password
+ * @param {boolean} useExpensifyLogin
+ */
+function signIn(login, password, useExpensifyLogin = false) {
+    Store.set(STOREKEYS.CREDENTIALS, {login, password});
+    Store.set(STOREKEYS.SESSION, {})
+        .then(() => {
+            return request('Authenticate', {
+                useExpensifyLogin: useExpensifyLogin,
+                partnerName: partnerName,
+                partnerPassword: partnerPassword,
+                partnerUserID: login,
+                partnerUserSecret: password,
+            })
+                .then((data) => {
+                    // 404 We need to create a login
+                    if (data.jsonCode === 404 && !useExpensifyLogin) {
+                        signIn(login, password, true).then((expensifyLoginData) => {
+                            createLogin(expensifyLoginData.authToken, login, password);
+                        });
+                        return;
+                    }
+
+                    // If we didn't get a 200 response from authenticate, the user needs to sign in again
+                    if (data.jsonCode !== 200) {
+                        console.warn(
+                            'Did not get a 200 from authenticate, going back to sign in page',
+                        );
+                        Store.set(STOREKEYS.APP_REDIRECT_TO, ROUTES.SIGNIN);
+                        return;
+                    }
+
+                    Store.set(STOREKEYS.SESSION, data);
+                    Store.set(STOREKEYS.APP_REDIRECT_TO, ROUTES.HOME);
+                    Store.set(STOREKEYS.LAST_AUTHENTICATED, new Date().getTime());
+
+                    return data;
+                })
+                .then((data) => {
+                    Store.set(STOREKEYS.SESSION, data);
+                    Store.set(STOREKEYS.APP_REDIRECT_TO, ROUTES.HOME);
+                })
+                .catch((err) => {
+                    console.warn(err);
+                    Store.set(STOREKEYS.SESSION, {error: err});
+                });
+        });
 }
 
 /**
