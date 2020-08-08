@@ -24,8 +24,8 @@ export default class App extends Component {
         this.sessionChanged = this.sessionChanged.bind(this);
 
         this.state = {
-            login: null,
-            password: null,
+            login: '',
+            password: '',
             error: null,
         };
     }
