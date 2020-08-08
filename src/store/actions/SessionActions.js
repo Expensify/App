@@ -69,6 +69,7 @@ function signIn(login, password, useExpensifyLogin = false) {
 
             // If we didn't get a 200 response from authenticate, the user needs to sign in again
             if (data.jsonCode !== 200) {
+                // eslint-disable-next-line no-console
                 console.debug('Non-200 from authenticate, going back to sign in page');
                 return Store.multiSet({
                     [STOREKEYS.CREDENTIALS]: {},
