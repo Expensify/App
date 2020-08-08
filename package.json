@@ -40,6 +40,7 @@
     "clean-webpack-plugin": "^3.0.0",
     "eslint": "^7.6.0",
     "eslint-config-expensify": "^2.0.11",
+    "eslint-loader": "^4.0.2",
     "html-webpack-plugin": "^4.3.0",
     "jest": "^26.2.2",
     "metro-react-native-babel-preset": "^0.61.0",
