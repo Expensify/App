@@ -41,7 +41,14 @@ async function signOut() {
 /**
  * Make sure the authToken we have is OK to use
  */
-function verifyAuthToken() {
+async function verifyAuthToken() {
+  const currentAuthToken = await Store.get(STOREKEYS.SESSION, 'authToken');
+  // If there is no authToken, then there is nothing to verify and they should sign in
+  if (!currentAuthToken) {
+    Store.set(STOREKEYS.APP_REDIRECT_TO, ROUTES.SIGNIN);
+    return;
+  }
+
   request('Get', {returnValueList: 'account'}).then((data) => {
     if (data.jsonCode === 200) {
       console.debug('We have valid auth token');
