@@ -11,15 +11,13 @@ export default class Header extends React.Component {
     constructor(props) {
         super(props);
 
-        this.updatePersonalDetails = this.updatePersonalDetails.bind(this);
-
         this.state = {
             personalDetails: null,
         };
     }
 
     componentDidMount() {
-        Store.subscribeToState(STOREKEYS.MY_PERSONAL_DETAILS, 'personalDetails', 'displayName', '', this);
+        Store.subscribeToState(STOREKEYS.MY_PERSONAL_DETAILS, 'name', 'displayName', '', this);
 
         // Get our personal details
         getPersonalDetails();
@@ -29,23 +27,14 @@ export default class Header extends React.Component {
         Store.unsubscribeFromState(STOREKEYS.MY_PERSONAL_DETAILS, this);
     }
 
-    /**
-     * When there are new personal details, update our state with them
-     *
-     * @param {Object} newPersonalDetails
-     */
-    updatePersonalDetails(newPersonalDetails) {
-        this.setState({personalDetails: newPersonalDetails});
-    }
-
     render() {
         return (
             <View style={styles.nav}>
                 <Text style={styles.brand}>Expensify Chat</Text>
                 <Text style={styles.flex1} />
-                {this.state.personalDetails && (
+                {this.state.name && (
                     <Text style={[styles.navText, styles.mr1]}>
-                        {`Welcome ${this.state.personalDetails.displayName}!`}
+                        {`Welcome ${this.state.name}!`}
                     </Text>
                 )}
                 <Button onPress={signOut} title="Sign Out" />
