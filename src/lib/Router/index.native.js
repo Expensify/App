@@ -7,4 +7,11 @@ import {
     withRouter,
 } from 'react-router-native';
 
-export {Link, Route, Redirect, Router, Switch, withRouter};
+export {
+    Link,
+    Route,
+    Redirect,
+    Router,
+    Switch,
+    withRouter
+};

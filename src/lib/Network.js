@@ -21,14 +21,12 @@ function request(command, data, type = 'post') {
             _.each(data, (val, key) => formData.append(key, val));
             return formData;
         })
-        .then(formData => fetch(
-            `${CONFIG.EXPENSIFY.API_ROOT}command=${command}`,
-            {
-                method: type,
-                body: formData,
-            },
-        ))
+        .then(formData => fetch(`${CONFIG.EXPENSIFY.API_ROOT}command=${command}`, {
+            method: type,
+            body: formData,
+        }))
         .then(response => response.json())
+        // eslint-disable-next-line no-unused-vars
         .catch(() => isAppOffline = true);
 }
 
@@ -56,27 +54,27 @@ function delayedWrite(command, data) {
 /**
  * Process the write queue by looping through the queue and attempting to make the requests
  */
-function processWriteQueue() {
-    if (isAppOffline) {
-        // Make a simple request to see if we're online again
-        request('Get', null, 'get')
-            .then(() => isAppOffline = false);
-        return;
-    }
-
-    if (delayedWriteQueue.length === 0) {
-        return;
-    }
-
-    _.each(delayedWriteQueue, (delayedWriteRequest) => {
-        request(delayedWriteRequest.command, delayedWriteRequest.data)
-            .then(delayedWriteRequest.callback)
-            .catch(() => {
-                // If the request failed, we need to put the request object back into the queue
-                delayedWriteQueue.push(delayedWriteRequest);
-            });
-    });
-}
+// function processWriteQueue() {
+//     if (isAppOffline) {
+//         // Make a simple request to see if we're online again
+//         request('Get', null, 'get')
+//             .then(() => isAppOffline = false);
+//         return;
+//     }
+//
+//     if (delayedWriteQueue.length === 0) {
+//         return;
+//     }
+//
+//     _.each(delayedWriteQueue, (delayedWriteRequest) => {
+//         request(delayedWriteRequest.command, delayedWriteRequest.data)
+//             .then(delayedWriteRequest.callback)
+//             .catch(() => {
+//                 // If the request failed, we need to put the request object back into the queue
+//                 delayedWriteQueue.push(delayedWriteRequest);
+//             });
+//     });
+// }
 
 // TODO: Figure out setInterval
 // Process our write queue very often

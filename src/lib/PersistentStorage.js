@@ -13,14 +13,9 @@ import _ from 'underscore';
  */
 function get(key) {
     return AsyncStorage.getItem(key)
-        .then(val => {
-            const jsonValue = JSON.parse(val);
-            return jsonValue;
-        })
-        .catch(err => {
-            console.error(`Unable to get item from persistent storage. Key: ${key} Error: ${err}`);
-        });
-};
+        .then(val => JSON.parse(val))
+        .catch(err => console.error(`Unable to get item from persistent storage. Key: ${key} Error: ${err}`));
+}
 
 /**
  * Get the data for multiple keys
@@ -38,9 +33,7 @@ function multiGet(keys) {
             ...finalData,
             [keyValuePair[0]]: JSON.parse(keyValuePair[1]),
         }), {}))
-        .catch((err) => {
-            console.error(`Unable to get item from persistent storage. Keys: ${JSON.stringify(keys)} Error: ${err}`);
-        });
+        .catch(err => console.error(`Unable to get item from persistent storage. Keys: ${JSON.stringify(keys)} Error: ${err}`));
 }
 
 /**
@@ -52,7 +45,7 @@ function multiGet(keys) {
  */
 function set(key, val) {
     return AsyncStorage.setItem(key, JSON.stringify(val));
-};
+}
 
 /**
  * Set multiple keys at once
@@ -79,7 +72,7 @@ function multiSet(data) {
  */
 function clear() {
     return AsyncStorage.clear();
-};
+}
 
 /**
  * Merges `val` into an existing key. Best used when updating an existing object

@@ -7,4 +7,11 @@ import {
     withRouter,
 } from 'react-router-dom';
 
-export {Link, Route, Redirect, Router, Switch, withRouter};
+export {
+    Link,
+    Route,
+    Redirect,
+    Router,
+    Switch,
+    withRouter
+};

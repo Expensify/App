@@ -20,19 +20,16 @@ module.exports = {
         new CleanWebpackPlugin(),
         new HtmlWebpackPlugin({
             template: 'web/index.html',
-            // With the dev server, we need to put this file in the dist folder
             filename: 'index.html',
         }),
     ],
     module: {
         rules: [
-            // Transpiles ES6 and JSX
+            // Transpiles and lints all the JS
             {
                 test: /\.js$/,
                 exclude: /node_modules|\.native.js$/,
-                use: {
-                    loader: 'babel-loader',
-                },
+                use: ['babel-loader', 'eslint-loader'],
             },
         ],
     },
