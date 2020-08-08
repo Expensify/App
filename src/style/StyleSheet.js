@@ -1,6 +1,10 @@
 import {StyleSheet} from 'react-native-web';
 
 const styles = StyleSheet.create({
+    // Utility classes
+    mr1: {
+        marginRight: 10,
+    },
     nav: {
         flexDirection: 'row',
         backgroundColor: '#efefef',
@@ -9,6 +13,9 @@ const styles = StyleSheet.create({
     brand: {
         fontSize: 25,
         fontWeight: 'bold',
+    },
+    navText: {
+        padding: 8,
     },
     flex1: {
         flex: 1,

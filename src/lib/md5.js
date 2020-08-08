@@ -6,6 +6,7 @@
  * namespace pollution
  *
  */
+/* eslint-disable */
 function md5cycle(x, k) {
     var a = x[0],
         b = x[1],
