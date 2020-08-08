@@ -121,7 +121,10 @@ function multiGet(keys) {
  * @returns {Promise}
  */
 function multiSet(data) {
-    return PersistentStorage.multiSet(data);
+    return PersistentStorage.multiSet(data)
+        .then(() => {
+            _.each(data, (val, key) => keyChanged(key, val));
+        });
 }
 
 /**
