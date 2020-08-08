@@ -1,4 +1,4 @@
-import * as $ from 'jquery';
+import _ from 'underscore';
 import * as Store from '../store/Store';
 import CONFIG from '../CONFIG';
 import STOREKEYS from '../store/STOREKEYS';
@@ -23,15 +23,10 @@ function request(command, data, type = 'post') {
             });
             return formData;
         })
-        .then((formData) => {
-            return fetch(
-                `${CONFIG.EXPENSIFY.API_ROOT}command=${command}`,
-                {
-                    method: type,
-                    body: formData,
-                },
-            )
-        })
+        .then(formData => fetch(`${CONFIG.EXPENSIFY.API_ROOT}command=${command}`, {
+            method: type,
+            body: formData,
+        }))
         .then(response => response.json())
         .catch(() => isAppOffline = true);
 }
