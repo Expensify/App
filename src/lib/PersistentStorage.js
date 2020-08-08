@@ -3,6 +3,7 @@
  * persistent storage method is desired.
  */
 import AsyncStorage from '@react-native-community/async-storage';
+import _ from 'underscore';
 
 /**
  * Get a key from storage

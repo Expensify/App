@@ -1,4 +1,4 @@
-import * as _ from 'lodash';
+import _ from 'underscore';
 import * as Store from '../Store';
 import {request} from '../../lib/Network';
 import ROUTES from '../../ROUTES';
