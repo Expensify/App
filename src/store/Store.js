@@ -1,4 +1,4 @@
-import * as _ from 'lodash';
+import {lodashGet} from 'lodash';
 import * as PersistentStorage from '../lib/PersistentStorage';
 
 // Holds all of the callbacks that have registered for a specific key pattern
@@ -97,7 +97,7 @@ function get(key, extraPath, defaultValue) {
     return PersistentStorage.get(key)
         .then((val) => {
             if (extraPath) {
-                return _.get(val, extraPath, defaultValue);
+                return lodashGet(val, extraPath, defaultValue);
             }
             return val;
         });
