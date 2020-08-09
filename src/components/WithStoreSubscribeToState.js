@@ -25,7 +25,7 @@ export default function (mapStoreToStates) {
             // Subscribe each of the state properties to the proper store key
             _.each(mapStoreToStates, (mapStoreToState, propertyName) => {
                 const {key, path} = mapStoreToState;
-                this.bind(key, propertyName, path, null, this.wrappedComponent);
+                this.bind(key, path, null, propertyName, this.wrappedComponent);
             });
 
             // Call any loaders that will fill the store with their initial data
@@ -45,12 +45,12 @@ export default function (mapStoreToStates) {
          * mapStoreToStates to this HOC. All subscriptions will automatically be unbound when unmounted
          *
          * @param {string} key
-         * @param {string} propertyName
          * @param {string} path
+         * @param {string} propertyName
          * @param {object} component
          */
-        bind(key, propertyName, path, defaultValue, component) {
-            this.subscriptionIDs.push(Store.bind(key, propertyName, path, defaultValue, component));
+        bind(key, path, defaultValue, propertyName, component) {
+            this.subscriptionIDs.push(Store.bind(key, path, defaultValue, propertyName, component));
         }
 
         render() {
