@@ -1,6 +1,5 @@
 import React from 'react';
-import {Text} from 'react-native-web';
-import {Button, View} from 'react-native';
+import {Button, View, Text} from 'react-native';
 import {signOut} from '../../store/actions/SessionActions';
 import {fetch as getPersonalDetails} from '../../store/actions/PersonalDetailsActions';
 import styles from '../../style/StyleSheet';
