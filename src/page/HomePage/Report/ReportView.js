@@ -41,14 +41,14 @@ class ReportView extends React.Component {
                 // Bind to only the data for the report (which is why there is a $ at the end)
                 key: `${key}$`,
 
-                // Prefill it with the key of the report exactly (because prefilling doesn't work with the regex patterns)
+                // Prefill it with the key of the report exactly
+                // (because prefilling doesn't work with the regex patterns)
                 prefillWithKey: key,
             }
         }, this);
     }
 
     render() {
-        console.log(this.state);
         // Update the current report in the store so any other components can update
         if (this.state && this.state.report) {
             Store.set(STOREKEYS.CURRENT_REPORT, this.state.report);

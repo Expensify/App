@@ -1,7 +1,8 @@
 import React from 'react';
-import {View, Text} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ReportHistoryPropsTypes from './ReportHistoryPropsTypes';
+import ReportHistoryItemMessage from './ReportHistoryItemMessage';
 
 const propTypes = {
     // All the data of the history item
@@ -12,7 +13,7 @@ class ReportHistoryItemSingle extends React.Component {
     render() {
         return (
             <View>
-                <Text>Single history item</Text>
+                <ReportHistoryItemMessage historyItem={this.props.historyItem} />
             </View>
         );
     }
