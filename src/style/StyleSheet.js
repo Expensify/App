@@ -1,4 +1,4 @@
-import {StyleSheet} from 'react-native-web';
+import {StyleSheet} from 'react-native';
 
 const styles = StyleSheet.create({
     // Utility classes
