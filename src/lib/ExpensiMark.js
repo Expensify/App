@@ -17,16 +17,19 @@ export default class ExpensiMark {
             },
             {
                 /**
-                 * Use \b in this case because it will match on words, letters, and _: https://www.rexegg.com/regex-boundaries.html#wordboundary
+                 * Use \b in this case because it will match on words, letters, and _:
+                 * https://www.rexegg.com/regex-boundaries.html#wordboundary
                  * The !_blank is to prevent the `target="_blank">` section of the link replacement from being captured
-                 * Additionally, something like `\b\_([^<>]*?)\_\b` doesn't work because it won't replace `_https://www.test.com_`
+                 * Additionally, something like `\b\_([^<>]*?)\_\b` doesn't work because it won't replace
+                 * `_https://www.test.com_`
                  */
                 name: 'italic',
                 regex: '(?!_blank">)\\b\\_(.*?)\\_\\b',
                 replacement: '<em>$1</em>',
             },
             {
-                // Use \B in this case because \b doesn't match * or ~. \B will match everything that \b doesn't, so it works for * and ~: https://www.rexegg.com/regex-boundaries.html#notb
+                // Use \B in this case because \b doesn't match * or ~. \B will match everything that \b doesn't, so it
+                // works for * and ~: https://www.rexegg.com/regex-boundaries.html#notb
                 name: 'bold',
                 regex: '\\B\\*(.*?)\\*\\B',
                 replacement: '<strong>$1</strong>',
@@ -52,12 +55,12 @@ export default class ExpensiMark {
      */
     replace(text) {
         // This ensures that any html the user puts into the comment field shows as raw html
-        text = Str.safeEscape(text);
+        let safeText = Str.safeEscape(text);
 
         this.rules.forEach((rule) => {
-            text = text.replace(new RegExp(rule.regex, 'g'), rule.replacement);
+            safeText = safeText.replace(new RegExp(rule.regex, 'g'), rule.replacement);
         });
 
-        return text;
+        return safeText;
     }
 }

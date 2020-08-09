@@ -9,9 +9,10 @@ import SidebarLink from './SidebarLink';
 
 class SidebarView extends React.Component {
     render() {
+        const reports = this.state && this.state.reports;
         return (
             <View style={[styles.flexGrow1, styles.p1]}>
-                {this.state && this.state.reports && this.state.reports.length > 0 && _.map(this.state.reports, (report) => (
+                {_.map(reports, report => (
                     <SidebarLink key={report.reportID} reportID={report.reportID} reportName={report.reportName} />
                 ))}
             </View>

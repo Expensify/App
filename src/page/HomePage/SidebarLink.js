@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {Text, View} from 'react-native';
-import _ from 'underscore';
 import {Link, withRouter} from '../../lib/Router';
 import STOREKEYS from '../../store/STOREKEYS';
 import styles from '../../style/StyleSheet';
@@ -13,6 +12,13 @@ const propTypes = {
 
     // The name of the report to use as the text for this link
     reportName: PropTypes.string.isRequired,
+
+    // These are from WithStoreSubscribeToState
+    bind: PropTypes.func.isRequired,
+
+    // These are from withRouter
+    // eslint-disable-next-line react/forbid-prop-types
+    match: PropTypes.object.isRequired,
 };
 
 class SidebarLink extends React.Component {
@@ -32,8 +38,8 @@ class SidebarLink extends React.Component {
         const paramsReportID = parseInt(this.props.match.params.reportID, 10);
         const isReportActive = paramsReportID === this.props.reportID;
         const linkWrapperActiveStyle = isReportActive && styles.sidebarLinkActive;
-        const linkActiveStyle = isReportActive && styles.sidebarLinkActiveAnchor || styles.sidebarLink;
-        const textActiveStyle = isReportActive && styles.sidebarLinkActiveText || styles.sidebarLinkText;
+        const linkActiveStyle = isReportActive ? styles.sidebarLinkActiveAnchor : styles.sidebarLink;
+        const textActiveStyle = isReportActive ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
         return (
             <View style={linkWrapperActiveStyle}>
                 <Link to={`/${this.props.reportID}`} style={linkActiveStyle}>
