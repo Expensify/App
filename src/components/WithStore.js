@@ -33,7 +33,11 @@ export default function (mapStoreToStates) {
 
         /**
          * A method that is convenient to bind the state to the store. Typically used when you can't pass
-         * mapStoreToStates to this HOC. All subscriptions will automatically be unbound when unmounted
+         * mapStoreToStates to this HOC. For example: if the key that you want to subscribe to has a piece of
+         * information that can only come from the component's props, then you want to use bind() directly from inside
+         * componentDidMount(). All subscriptions will automatically be unbound when unmounted.
+         *
+         * The options passed to bind are the exact same that you would pass to the HOC.
          *
          * @param {object} mapping
          * @param {object} component
