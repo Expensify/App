@@ -30,16 +30,13 @@ class ReportHistoryView extends React.Component {
     bindToStore() {
         // Bind this.state.reportHistory to the history in the store
         // and call fetchHistory to load it with data
-        this.props.bind(
-            `${STOREKEYS.REPORT}_${this.props.reportID}_history`,
-            null,
-            null,
-            'reportHistory',
-            this,
-            null,
-            fetchHistory,
-            [this.props.reportID]
-        );
+        this.props.bind({
+            reportHistory: {
+                key: `${STOREKEYS.REPORT}_${this.props.reportID}_history`,
+                loader: fetchHistory,
+                loaderParams: [this.props.reportID],
+            }
+        }, this);
     }
 
     render() {
