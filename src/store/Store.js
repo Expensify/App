@@ -1,6 +1,6 @@
 import lodashGet from 'lodash.get';
 import _ from 'underscore';
-import * as PersistentStorage from '../lib/PersistentStorage';
+import AsyncStorage from '@react-native-community/async-storage';
 
 // Keeps track of the last subscription ID that was used
 let lastSubscriptionID = 0;
@@ -68,7 +68,7 @@ function keyChanged(key, data) {
 
     // Find components that were added with bind() and trigger their setState() method with the new data
     _.each(callbackToStateMapping, (mappedComponent) => {
-        if (mappedComponent.regex.test(key)) {
+        if (mappedComponent && mappedComponent.regex.test(key)) {
             const newValue = mappedComponent.path
                 ? lodashGet(data, mappedComponent.path, mappedComponent.defaultValue)
                 : data || mappedComponent.defaultValue || null;
@@ -90,7 +90,7 @@ function keyChanged(key, data) {
  */
 function set(key, val) {
     // Write the thing to persistent storage, which will trigger a storage event for any other tabs open on this domain
-    return PersistentStorage.set(key, val)
+    return AsyncStorage.setItem(key, JSON.stringify(val))
         .then(() => {
             keyChanged(key, val);
         });
@@ -106,13 +106,15 @@ function set(key, val) {
  * @returns {*}
  */
 function get(key, extraPath, defaultValue) {
-    return PersistentStorage.get(key)
+    return AsyncStorage.getItem(key)
+        .then(val => JSON.parse(val))
         .then((val) => {
             if (extraPath) {
                 return lodashGet(val, extraPath, defaultValue);
             }
             return val;
-        });
+        })
+        .catch(err => console.error(`Unable to get item from persistent storage. Key: ${key} Error: ${err}`));
 }
 
 /**
@@ -122,7 +124,16 @@ function get(key, extraPath, defaultValue) {
  * @returns {Promise}
  */
 function multiGet(keys) {
-    return PersistentStorage.multiGet(keys);
+    // AsyncStorage returns the data in an array format like:
+    // [ ['@MyApp_user', 'myUserValue'], ['@MyApp_key', 'myKeyValue'] ]
+    // This method will transform the data into a better JSON format like:
+    // {'@MyApp_user': 'myUserValue', '@MyApp_key': 'myKeyValue'}
+    return AsyncStorage.multiGet(keys)
+        .then(arrayOfData => _.reduce(arrayOfData, (finalData, keyValuePair) => ({
+            ...finalData,
+            [keyValuePair[0]]: JSON.parse(keyValuePair[1]),
+        }), {}))
+        .catch(err => console.error(`Unable to get item from persistent storage. Error: ${err}`, keys));
 }
 
 /**
@@ -133,7 +144,15 @@ function multiGet(keys) {
  * @returns {Promise}
  */
 function multiSet(data) {
-    return PersistentStorage.multiSet(data)
+    // AsyncStorage expenses the data in an array like:
+    // [["@MyApp_user", "value_1"], ["@MyApp_key", "value_2"]]
+    // This method will transform the params from a better JSON format like:
+    // {'@MyApp_user': 'myUserValue', '@MyApp_key': 'myKeyValue'}
+    const keyValuePairs = _.reduce(data, (finalArray, val, key) => ([
+        ...finalArray,
+        [key, JSON.stringify(val)],
+    ]), []);
+    return AsyncStorage.multiSet(keyValuePairs)
         .then(() => {
             _.each(data, (val, key) => keyChanged(key, val));
         });
@@ -145,7 +164,7 @@ function multiSet(data) {
  * @returns {Promise}
  */
 function clear() {
-    return PersistentStorage.clear();
+    return AsyncStorage.clear();
 }
 
 /**
@@ -156,7 +175,7 @@ function clear() {
  * @returns {Promise}
  */
 function merge(key, val) {
-    return PersistentStorage.merge(key, val);
+    return AsyncStorage.mergeItem(key, JSON.stringify(val));
 }
 
 export {

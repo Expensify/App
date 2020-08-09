@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {Text, View} from 'react-native';
 import {Link} from '../../lib/Router';
-import * as Store from '../../store/Store';
 import STOREKEYS from '../../store/STOREKEYS';
 import WithStoreSubscribeToState from '../../components/WithStoreSubscribeToState';
 
