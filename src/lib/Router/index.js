@@ -1,6 +1,7 @@
 import {
-    BrowserRouter as Router,
+    HashRouter as Router,
     Link,
+    NavLink,
     Route,
     Redirect,
     Switch,
@@ -9,6 +10,7 @@ import {
 
 export {
     Link,
+    NavLink,
     Route,
     Redirect,
     Router,
