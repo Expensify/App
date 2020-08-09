@@ -26,8 +26,14 @@ export default function (mapStoreToStates) {
         componentDidMount() {
             // Subscribe each of the state properties to the proper store key
             _.each(mapStoreToStates, (mapStoreToState, propertyName) => {
-                const {key, path, preventPrefillOfData, loader, loaderParams} = mapStoreToState;
-                this.bind(key, path, null, propertyName, this.wrappedComponent, preventPrefillOfData, loader, loaderParams);
+                const {
+                    key,
+                    path,
+                    prefillWithKey,
+                    loader,
+                    loaderParams
+                } = mapStoreToState;
+                this.bind(key, path, null, propertyName, this.wrappedComponent, prefillWithKey, loader, loaderParams);
             });
         }
 
@@ -44,16 +50,16 @@ export default function (mapStoreToStates) {
          * @param {mixed} defaultValue
          * @param {string} propertyName
          * @param {object} component
-         * @param {boolean} preventPrefillOfData whether or not we want to fill the state with existing data from the
+         * @param {boolean} prefillWithKey whether or not we want to fill the state with existing data from the
          *                  store
          * @param {function} [loader] a function to call to load data from the API
          * @param {mixed[]} [loaderParams] any parameters to pass to the loader function
          */
-        bind(key, path, defaultValue, propertyName, component, preventPrefillOfData, loader, loaderParams) {
+        bind(key, path, defaultValue, propertyName, component, prefillWithKey, loader, loaderParams) {
             this.subscriptionIDs.push(Store.bind(key, path, defaultValue, propertyName, component));
-            if (!preventPrefillOfData) {
-                Store.get(key, path, defaultValue)
-                    .then(data => this.wrappedComponent.setState({[propertyName]: data}));
+            if (prefillWithKey) {
+                Store.get(prefillWithKey, path, defaultValue)
+                    .then(data => component.setState({[propertyName]: data}));
             }
             if (loader) {
                 loader(...loaderParams || []);

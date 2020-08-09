@@ -20,7 +20,8 @@ const propTypes = {
 
 class ReportView extends React.Component {
     componentDidMount() {
-        this.props.bind(`${STOREKEYS.REPORT}_${this.props.match.params.reportID}`, null, null, 'report', this);
+        const key = `${STOREKEYS.REPORT}_${this.props.match.params.reportID}`;
+        this.props.bind(`${key}$`, null, null, 'report', this, key);
     }
 
     componentDidUpdate(prevProps) {
@@ -28,7 +29,7 @@ class ReportView extends React.Component {
         if (prevProps.match.params.reportID !== this.props.match.params.reportID) {
             this.props.unbind();
             const key = `${STOREKEYS.REPORT}_${this.props.match.params.reportID}`;
-            this.props.bind(key, null, null, 'report', this);
+            this.props.bind(`${key}$`, null, null, 'report', this, key);
         }
     }
 
