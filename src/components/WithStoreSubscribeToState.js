@@ -27,7 +27,7 @@ export default function (mapStoreToStates) {
                 const {key, path} = mapStoreToState;
                 return [
                     ...finalResult,
-                    Store.subscribeToState(key, propertyName, path, null, this.wrappedComponent),
+                    Store.bind(key, propertyName, path, null, this.wrappedComponent),
                 ];
             }, []);
 
