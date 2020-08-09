@@ -6,7 +6,7 @@ export default {
     APP_REDIRECT_TO: 'app_redirectTo',
     CREDENTIALS: 'credentials',
     REPORT: 'report',
-    ACTIVE_REPORT: 'active_report',
+    CURRENT_REPORT: 'current_report',
     REPORTS: 'reports',
     SESSION: 'session',
     LAST_AUTHENTICATED: 'last_authenticated',

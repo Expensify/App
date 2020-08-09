@@ -3,6 +3,9 @@ const styles = {
     mr1: {
         marginRight: 10,
     },
+    ml1: {
+        marginLeft: 10,
+    },
     p1: {
         padding: 10,
     },
@@ -11,6 +14,9 @@ const styles = {
     },
     flex1: {
         flex: 1,
+    },
+    flex4: {
+        flex: 4,
     },
     flexRow: {
         flexDirection: 'row',

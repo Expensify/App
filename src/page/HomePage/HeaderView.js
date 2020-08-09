@@ -11,10 +11,9 @@ class HeaderView extends React.Component {
         return (
             <View style={[styles.nav, styles.flexRow]}>
                 <Text style={styles.brand}>Expensify Chat</Text>
-                <Text style={styles.flex1} />
-                {this.state && this.state.activeReportName && (
-                    <Text style={[styles.navText]}>
-                        {this.state.activeReportName}
+                {this.state && this.state.currentReportName && (
+                    <Text style={[styles.navText, styles.ml1]}>
+                        {this.state.currentReportName}
                     </Text>
                 )}
                 <Text style={styles.flex1} />
@@ -33,5 +32,5 @@ export default WithStoreSubscribeToState({
     // Map this.state.name to the personal details key in the store and bind it to the displayName property
     // and load it with data from getPersonalDetails()
     userDisplayName: {key: STOREKEYS.MY_PERSONAL_DETAILS, path: 'displayName', loader: getPersonalDetails},
-    activeReportName: {key: STOREKEYS.ACTIVE_REPORT, path: 'reportName'},
+    currentReportName: {key: STOREKEYS.CURRENT_REPORT, path: 'reportName'},
 })(HeaderView);

@@ -11,7 +11,7 @@ class SidebarView extends React.Component {
     render() {
         const reports = this.state && this.state.reports;
         return (
-            <View style={[styles.flexGrow1, styles.p1]}>
+            <View style={[styles.flex1, styles.p1]}>
                 {_.map(reports, report => (
                     <SidebarLink key={report.reportID} reportID={report.reportID} reportName={report.reportName} />
                 ))}
