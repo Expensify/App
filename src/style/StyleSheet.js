@@ -1,6 +1,4 @@
-import {StyleSheet} from 'react-native';
-
-const styles = StyleSheet.create({
+const styles = {
     // Utility classes
     mr1: {
         marginRight: 10,
@@ -37,12 +35,24 @@ const styles = StyleSheet.create({
     navText: {
         padding: 8,
     },
-
-    // @TODO I can't get this style to work in `SidebarLink.js`
     sidebarLink: {
-        padding: 8,
+        padding: '.5rem 1rem',
         textDecorationLine: 'none',
     },
-});
+    sidebarLinkActive: {
+        backgroundColor: '#007bff',
+        borderRadius: '.25rem',
+    },
+    sidebarLinkActiveAnchor: {
+        padding: '.5rem 1rem',
+        textDecorationLine: 'none',
+    },
+    sidebarLinkText: {
+        color: '#007bff',
+    },
+    sidebarLinkActiveText: {
+        color: '#ffffff',
+    },
+};
 
 export default styles;

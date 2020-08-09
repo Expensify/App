@@ -1,8 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {Text, View} from 'react-native';
-import {Link} from '../../lib/Router';
+import _ from 'underscore';
+import {Link, withRouter} from '../../lib/Router';
 import STOREKEYS from '../../store/STOREKEYS';
+import styles from '../../style/StyleSheet';
 import WithStoreSubscribeToState from '../../components/WithStoreSubscribeToState';
 
 const propTypes = {
@@ -27,12 +29,17 @@ class SidebarLink extends React.Component {
     }
 
     render() {
+        const paramsReportID = parseInt(this.props.match.params.reportID, 10);
+        const isReportActive = paramsReportID === this.props.reportID;
+        const linkWrapperActiveStyle = isReportActive && styles.sidebarLinkActive;
+        const linkActiveStyle = isReportActive && styles.sidebarLinkActiveAnchor || styles.sidebarLink;
+        const textActiveStyle = isReportActive && styles.sidebarLinkActiveText || styles.sidebarLinkText;
         return (
-            <View>
-                <Link to={`/${this.props.reportID}`} style={{padding: 10, textDecorationLine: 'none'}}>
-                    <Text>{this.props.reportName}</Text>
+            <View style={linkWrapperActiveStyle}>
+                <Link to={`/${this.props.reportID}`} style={linkActiveStyle}>
+                    <Text style={textActiveStyle}>{this.props.reportName}</Text>
                     {this.state.isUnread && (
-                        <Text>- Unread</Text>
+                        <Text style={textActiveStyle}>- Unread</Text>
                     )}
                 </Link>
             </View>
@@ -41,4 +48,4 @@ class SidebarLink extends React.Component {
 }
 SidebarLink.propTypes = propTypes;
 
-export default WithStoreSubscribeToState()(SidebarLink);
+export default withRouter(WithStoreSubscribeToState()(SidebarLink));
