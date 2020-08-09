@@ -12,5 +12,5 @@ export default {
     LAST_AUTHENTICATED: 'last_authenticated',
     PERSONAL_DETAILS: 'personal_details',
     MY_PERSONAL_DETAILS: 'my_personal_details',
-    TIMEZONE: 'timezone',
 };
+.set

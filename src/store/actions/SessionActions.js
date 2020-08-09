@@ -31,7 +31,7 @@ function createLogin(authToken, login, password) {
         partnerUserID: login,
         partnerUserSecret: password,
     }).then(() => Store.set(STOREKEYS.CREDENTIALS, {login, password}))
-        .catch(err => Store.set(STOREKEYS.SESSION, {error: err}));
+        .catch(err => Store.merge(STOREKEYS.SESSION, {error: err}));
 }
 
 /**
@@ -97,7 +97,7 @@ function signIn(login, password, useExpensifyLogin = false) {
         .catch((err) => {
             console.error(err);
             console.debug('[SIGNIN] Request error');
-            return Store.set(STOREKEYS.SESSION, {error: err.message});
+            return Store.merge(STOREKEYS.SESSION, {error: err.message});
         });
 }
 
@@ -113,7 +113,7 @@ function deleteLogin(authToken, login) {
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         partnerUserID: login,
-    }).catch(err => Store.set(STOREKEYS.SESSION, {error: err.message}));
+    }).catch(err => Store.merge(STOREKEYS.SESSION, {error: err.message}));
 }
 
 /**
@@ -126,7 +126,7 @@ function signOut() {
         .then(() => Store.multiGet([STOREKEYS.SESSION, STOREKEYS.CREDENTIALS]))
         .then(data => deleteLogin(data.session.authToken, data.credentials.login))
         .then(Store.clear)
-        .catch(err => Store.set(STOREKEYS.SESSION, {error: err.message}));
+        .catch(err => Store.merge(STOREKEYS.SESSION, {error: err.message}));
 }
 
 /**
@@ -147,7 +147,7 @@ function verifyAuthToken() {
 
             return request('Get', {returnValueList: 'account'}).then((data) => {
                 if (data.jsonCode === 200) {
-                    return Store.set(STOREKEYS.SESSION, data);
+                    return Store.merge(STOREKEYS.SESSION, data);
                 }
 
                 // If the auth token is bad and we didn't have credentials saved, we want them to go to the sign in page

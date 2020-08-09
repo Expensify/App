@@ -10,7 +10,7 @@ const clientID = Guid();
  *
  * @returns {Promise}
  */
-const init = () => Store.merge(STOREKEYS.ACTIVE_CLIENT_IDS, clientID);
+const init = () => Store.merge(STOREKEYS.ACTIVE_CLIENT_IDS, {clientID});
 
 /**
  * Remove this client ID from the array of active client IDs when this client is exited
@@ -19,7 +19,7 @@ const init = () => Store.merge(STOREKEYS.ACTIVE_CLIENT_IDS, clientID);
  */
 function removeClient() {
     return Store.get(STOREKEYS.ACTIVE_CLIENT_IDS)
-        .then(activeClientIDs => _.without(activeClientIDs, clientID))
+        .then(activeClientIDs => _.omit(activeClientIDs, clientID))
         .then(newActiveClientIDs => Store.set(STOREKEYS.ACTIVE_CLIENT_IDS, newActiveClientIDs));
 }
 
