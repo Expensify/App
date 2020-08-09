@@ -12,10 +12,10 @@ import Main from './MainView';
 const App = () => (
     <>
         <StatusBar barStyle="dark-content" />
-        <SafeAreaView>
-            <View>
+        <SafeAreaView style={[styles.flex1, styles.h100p]}>
+            <View style={[styles.flexColumn, styles.h100p]}>
                 <Header />
-                <View style={[styles.flexRow, styles.mainContentWrapper]}>
+                <View style={[styles.flex1, styles.flexRow]}>
                     <Sidebar />
                     <Main />
                 </View>

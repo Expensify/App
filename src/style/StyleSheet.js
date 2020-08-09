@@ -8,11 +8,17 @@ const styles = StyleSheet.create({
     p1: {
         padding: 10,
     },
+    h100p: {
+        height: '100%',
+    },
     flex1: {
         flex: 1,
     },
     flexRow: {
         flexDirection: 'row',
+    },
+    flexColumn: {
+        flexDirection: 'column',
     },
     flexGrow1: {
         flexGrow: 1,
@@ -30,9 +36,6 @@ const styles = StyleSheet.create({
     },
     navText: {
         padding: 8,
-    },
-    mainContentWrapper: {
-        height: 'calc(100vh - 73px)',
     },
 });
 
