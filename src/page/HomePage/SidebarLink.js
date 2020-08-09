@@ -31,7 +31,14 @@ class SidebarLink extends React.Component {
     }
 
     componentDidMount() {
-        this.props.bind(`${STOREKEYS.REPORT}_${this.props.reportID}$`, 'hasUnread', false, 'isUnread', this);
+        this.props.bind({
+            isUnread: {
+                // Bind to ONLY the report object, not the comments (that's why a $ is added at the end of the key name)
+                key: `${STOREKEYS.REPORT}_${this.props.reportID}$`,
+                path: 'hasUnread',
+                defaultValue: false,
+            },
+        }, this);
     }
 
     render() {

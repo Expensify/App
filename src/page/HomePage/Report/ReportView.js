@@ -20,20 +20,35 @@ const propTypes = {
 
 class ReportView extends React.Component {
     componentDidMount() {
-        const key = `${STOREKEYS.REPORT}_${this.props.match.params.reportID}`;
-        this.props.bind(`${key}$`, null, null, 'report', this, key);
+        this.bindToStore();
     }
 
     componentDidUpdate(prevProps) {
         // If the report changed, then we need to re-bind to the store
         if (prevProps.match.params.reportID !== this.props.match.params.reportID) {
             this.props.unbind();
-            const key = `${STOREKEYS.REPORT}_${this.props.match.params.reportID}`;
-            this.props.bind(`${key}$`, null, null, 'report', this, key);
+            this.bindToStore();
         }
     }
 
+    /**
+     * Bind our state to our store. This can't be done with an HOC because props can't be accessed to make the key
+     */
+    bindToStore() {
+        const key = `${STOREKEYS.REPORT}_${this.props.match.params.reportID}`;
+        this.props.bind({
+            report: {
+                // Bind to only the data for the report (which is why there is a $ at the end)
+                key: `${key}$`,
+
+                // Prefill it with the key of the report exactly (because prefilling doesn't work with the regex patterns)
+                prefillWithKey: key,
+            }
+        }, this);
+    }
+
     render() {
+        console.log(this.state);
         // Update the current report in the store so any other components can update
         if (this.state && this.state.report) {
             Store.set(STOREKEYS.CURRENT_REPORT, this.state.report);

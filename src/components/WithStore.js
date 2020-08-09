@@ -24,17 +24,7 @@ export default function (mapStoreToStates) {
         }
 
         componentDidMount() {
-            // Subscribe each of the state properties to the proper store key
-            _.each(mapStoreToStates, (mapStoreToState, propertyName) => {
-                const {
-                    key,
-                    path,
-                    prefillWithKey,
-                    loader,
-                    loaderParams
-                } = mapStoreToState;
-                this.bind(key, path, null, propertyName, this.wrappedComponent, prefillWithKey, loader, loaderParams);
-            });
+            this.bindStoreToStates(mapStoreToStates, this.wrappedComponent);
         }
 
         componentWillUnmount() {
@@ -45,25 +35,34 @@ export default function (mapStoreToStates) {
          * A method that is convenient to bind the state to the store. Typically used when you can't pass
          * mapStoreToStates to this HOC. All subscriptions will automatically be unbound when unmounted
          *
-         * @param {string} key
-         * @param {string} path
-         * @param {mixed} defaultValue
-         * @param {string} propertyName
+         * @param {object} mapping
          * @param {object} component
-         * @param {boolean} prefillWithKey whether or not we want to fill the state with existing data from the
-         *                  store
-         * @param {function} [loader] a function to call to load data from the API
-         * @param {mixed[]} [loaderParams] any parameters to pass to the loader function
          */
-        bind(key, path, defaultValue, propertyName, component, prefillWithKey, loader, loaderParams) {
-            this.subscriptionIDs.push(Store.bind(key, path, defaultValue, propertyName, component));
-            if (prefillWithKey) {
-                Store.get(prefillWithKey, path, defaultValue)
-                    .then(data => component.setState({[propertyName]: data}));
-            }
-            if (loader) {
-                loader(...loaderParams || []);
-            }
+        bind(mapping, component) {
+            this.bindStoreToStates(mapping, component);
+        }
+
+        bindStoreToStates(statesToStoreMap, component) {
+            // Subscribe each of the state properties to the proper store key
+            _.each(statesToStoreMap, (stateToStoreMap, propertyName) => {
+                const {
+                    key,
+                    path,
+                    prefillWithKey,
+                    loader,
+                    loaderParams,
+                    defaultValue,
+                } = stateToStoreMap;
+
+                this.subscriptionIDs.push(Store.bind(key, path, defaultValue, propertyName, component));
+                if (prefillWithKey) {
+                    Store.get(prefillWithKey, path, defaultValue)
+                        .then(data => component.setState({[propertyName]: data}));
+                }
+                if (loader) {
+                    loader(...loaderParams || []);
+                }
+            });
         }
 
         /**
