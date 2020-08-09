@@ -81,7 +81,7 @@ function fetchTimezone() {
         returnValueList: 'nameValuePairs',
         name: 'timeZone',
     })
-        .then(data => Store.set(STOREKEYS.TIMEZONE, data.nameValuePairs.timeZone.selected || 'America/Los_Angeles'));
+        .then(data => Store.merge(STOREKEYS.MY_PERSONAL_DETAILS, {timezone: data.nameValuePairs.timeZone.selected || 'America/Los_Angeles'}));
 
     // Refresh the timezone every 30 minutes
     setTimeout(fetchTimezone, 1000 * 60 * 30);
