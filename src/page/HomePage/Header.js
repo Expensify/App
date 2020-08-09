@@ -26,5 +26,6 @@ class Header extends React.Component {
 
 export default WithStoreSubscribeToState({
     // Map this.state.name to the personal details key in the store and bind it to the displayName property
+    // and load it with data from getPersonalDetails()
     name: {key: STOREKEYS.MY_PERSONAL_DETAILS, path: 'displayName', loader: getPersonalDetails},
 })(Header);
