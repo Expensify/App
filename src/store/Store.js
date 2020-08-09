@@ -6,6 +6,9 @@ import Guid from '../lib/Guid';
 // Holds all of the callbacks that have registered for a specific key pattern
 const callbackMapping = {};
 
+// Keeps track of the last subscription ID that was used
+let lastSubscriptionID = 0;
+
 /**
  * Initialize the store with actions and listening for storage events
  */
@@ -47,9 +50,7 @@ function subscribe(keyPattern, cb) {
     callbackMapping[keyPattern].push(cb);
 }
 
-/**
- * Holds a mapping of all the react components that want their state subscribed to a store key
- */
+// Holds a mapping of all the react components that want their state subscribed to a store key
 const callbackToStateMapping = {};
 
 /**
@@ -63,27 +64,27 @@ const callbackToStateMapping = {};
  * @returns {string} a guid to use when unsubscribing
  */
 function subscribeToState(keyPattern, statePropertyName, path, defaultValue, reactComponent) {
-    const guid = Guid();
-    callbackToStateMapping[guid] = {
+    const subscriptionID = lastSubscriptionID++;
+    callbackToStateMapping[subscriptionID] = {
         keyPattern,
         statePropertyName,
         path,
         reactComponent,
         defaultValue,
     };
-    return guid;
+    return subscriptionID;
 }
 
 /**
  * Remove the listener for a react component
  *
- * @param {string} guid
+ * @param {string} subscriptionID
  */
-function unsubscribeFromState(guid) {
-    if (!callbackToStateMapping[guid]) {
+function unsubscribeFromState(subscriptionID) {
+    if (!callbackToStateMapping[subscriptionID]) {
         return;
     }
-    delete callbackToStateMapping[guid];
+    delete callbackToStateMapping[subscriptionID];
 }
 
 /**
