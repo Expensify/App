@@ -38,7 +38,7 @@ function fetch() {
             });
         })
         .then((data) => {
-            const allPersonaDetails = _.reduce(data.personalDetailsList, (finalPersonalDetailObject, personalDetails, login) => {
+            const allPersonalDetails = _.reduce(data.personalDetailsList, (finalPersonalDetailObject, personalDetails, login) => {
                 // Form the details into something that has all the data in an easy to use format.
                 const avatarURL = getAvatar(personalDetails, login);
                 const firstName = personalDetails.firstName || '';
@@ -59,9 +59,9 @@ function fetch() {
                     }
                 };
             }, {});
-            const myPersonalDetails = allPersonaDetails[currentLogin];
+            const myPersonalDetails = allPersonalDetails[currentLogin];
             return Store.multiSet({
-                [STOREKEYS.PERSONAL_DETAILS]: allPersonaDetails,
+                [STOREKEYS.PERSONAL_DETAILS]: allPersonalDetails,
                 [STOREKEYS.MY_PERSONAL_DETAILS]: myPersonalDetails,
             });
         });
