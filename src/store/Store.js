@@ -63,7 +63,7 @@ const callbackToStateMapping = {};
  * @param {object} reactComponent whose setState() method will be called with any changed data
  * @returns {string} a guid to use when unsubscribing
  */
-function subscribeToState(keyPattern, statePropertyName, path, defaultValue, reactComponent) {
+function bind(keyPattern, statePropertyName, path, defaultValue, reactComponent) {
     const subscriptionID = lastSubscriptionID++;
     callbackToStateMapping[subscriptionID] = {
         keyPattern,
@@ -107,7 +107,7 @@ function keyChanged(key, data) {
         }
     });
 
-    // Find components that were added with subscribeToState() and trigger their setState() method with the new data
+    // Find components that were added with bind() and trigger their setState() method with the new data
     _.each(callbackToStateMapping, (mappedComponent) => {
         const regex = RegExp(mappedComponent.keyPattern);
 
@@ -208,7 +208,7 @@ function merge(key, val) {
 export {
     subscribe,
     unsubscribe,
-    subscribeToState,
+    bind,
     unsubscribeFromState,
     set,
     multiSet,
