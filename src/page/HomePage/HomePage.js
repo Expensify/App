@@ -4,6 +4,7 @@ import {
     StatusBar,
     View,
 } from 'react-native';
+import {Route} from '../../lib/Router';
 import styles from '../../style/StyleSheet';
 import Header from './HeaderView';
 import Sidebar from './SidebarView';
@@ -16,8 +17,10 @@ const App = () => (
             <View style={[styles.flexColumn, styles.h100p]}>
                 <Header />
                 <View style={[styles.flex1, styles.flexRow]}>
-                    <Sidebar />
-                    <Main />
+                    <Route path="/:reportID?">
+                        <Sidebar />
+                        <Main />
+                    </Route>
                 </View>
             </View>
         </SafeAreaView>
