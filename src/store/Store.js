@@ -36,7 +36,7 @@ const callbackToStateMapping = {};
 function bind(keyPattern, statePropertyName, path, defaultValue, reactComponent) {
     const subscriptionID = lastSubscriptionID++;
     callbackToStateMapping[subscriptionID] = {
-        keyPattern,
+        regex: RegExp(keyPattern),
         statePropertyName,
         path,
         reactComponent,
@@ -68,11 +68,7 @@ function keyChanged(key, data) {
 
     // Find components that were added with bind() and trigger their setState() method with the new data
     _.each(callbackToStateMapping, (mappedComponent) => {
-        const regex = RegExp(mappedComponent.keyPattern);
-
-        // If there is a callback whose regex matches the key that was changed, then the callback for that regex
-        // is called and passed the data that changed
-        if (regex.test(key)) {
+        if (mappedComponent.regex.test(key)) {
             const newValue = mappedComponent.path
                 ? lodashGet(data, mappedComponent.path, mappedComponent.defaultValue)
                 : data || mappedComponent.defaultValue || null;
