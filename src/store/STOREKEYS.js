@@ -13,4 +13,3 @@ export default {
     PERSONAL_DETAILS: 'personal_details',
     MY_PERSONAL_DETAILS: 'my_personal_details',
 };
-.set
