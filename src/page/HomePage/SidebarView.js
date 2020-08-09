@@ -21,5 +21,9 @@ class SidebarView extends React.Component {
 }
 
 export default WithStore({
-    reports: {key: STOREKEYS.REPORTS, loader: fetchAll},
+    reports: {
+        key: STOREKEYS.REPORTS,
+        loader: fetchAll,
+        prefillWithKey: STOREKEYS.REPORTS,
+    },
 })(SidebarView);

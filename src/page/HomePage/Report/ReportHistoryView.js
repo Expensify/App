@@ -12,10 +12,22 @@ const propTypes = {
 
     // These are from WithStore
     bind: PropTypes.func.isRequired,
+    unbind: PropTypes.func.isRequired,
 };
 
 class ReportHistoryView extends React.Component {
     componentDidMount() {
+        this.bindToStore();
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.reportID !== this.props.reportID) {
+            this.props.unbind();
+            this.bindToStore();
+        }
+    }
+
+    bindToStore() {
         // Bind this.state.reportHistory to the history in the store
         // and call fetchHistory to load it with data
         this.props.bind(

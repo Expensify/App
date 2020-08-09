@@ -31,6 +31,15 @@ class HeaderView extends React.Component {
 export default WithStore({
     // Map this.state.name to the personal details key in the store and bind it to the displayName property
     // and load it with data from getPersonalDetails()
-    userDisplayName: {key: STOREKEYS.MY_PERSONAL_DETAILS, path: 'displayName', loader: getPersonalDetails},
-    currentReportName: {key: STOREKEYS.CURRENT_REPORT, path: 'reportName'},
+    userDisplayName: {
+        key: STOREKEYS.MY_PERSONAL_DETAILS,
+        path: 'displayName',
+        loader: getPersonalDetails,
+        prefillWithKey: STOREKEYS.MY_PERSONAL_DETAILS,
+    },
+    currentReportName: {
+        key: STOREKEYS.CURRENT_REPORT,
+        path: 'reportName',
+        prefillWithKey: STOREKEYS.CURRENT_REPORT,
+    },
 })(HeaderView);

@@ -45,8 +45,5 @@ export default WithStore({
             // Initialize this client as being an active client
             ActiveClientManager.init();
         },
-
-        // This must be set to false or else the app will always redirect the path in the Store on refresh
-        preventPrefillOfData: true,
     },
 })(Expensify);

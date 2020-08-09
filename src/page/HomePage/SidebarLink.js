@@ -31,7 +31,7 @@ class SidebarLink extends React.Component {
     }
 
     componentDidMount() {
-        this.props.bind(`${STOREKEYS.REPORT}_${this.props.reportID}`, 'hasUnread', false, 'isUnread', this);
+        this.props.bind(`${STOREKEYS.REPORT}_${this.props.reportID}$`, 'hasUnread', false, 'isUnread', this);
     }
 
     render() {
