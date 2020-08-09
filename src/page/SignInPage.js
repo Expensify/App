@@ -68,7 +68,7 @@ export default class App extends Component {
                     <View>
                         <Button
                             title="Log In"
-                            onPress={signIn(this.state.login, this.state.password, true)}
+                            onPress={() => signIn(this.state.login, this.state.password, true)}
                         />
                         {this.state.error && (
                             <Text style={{color: 'red'}}>
