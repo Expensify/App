@@ -26,8 +26,8 @@ export default function (mapStoreToStates) {
         componentDidMount() {
             // Subscribe each of the state properties to the proper store key
             _.each(mapStoreToStates, (mapStoreToState, propertyName) => {
-                const {key, path} = mapStoreToState;
-                this.bind(key, path, null, propertyName, this.wrappedComponent);
+                const {key, path, preventPrefillOfData} = mapStoreToState;
+                this.bind(key, path, null, propertyName, this.wrappedComponent, preventPrefillOfData);
             });
 
             // Call any loaders that will fill the store with their initial data
@@ -51,12 +51,12 @@ export default function (mapStoreToStates) {
          * @param {mixed} defaultValue
          * @param {string} propertyName
          * @param {object} component
-         * @param {boolean} fillWithData whether or not we want to fill the state with existing data from the
+         * @param {boolean} preventPrefillOfData whether or not we want to fill the state with existing data from the
          *                  store
          */
-        bind(key, path, defaultValue, propertyName, component, fillWithData) {
+        bind(key, path, defaultValue, propertyName, component, preventPrefillOfData) {
             this.subscriptionIDs.push(Store.bind(key, path, defaultValue, propertyName, component));
-            if (fillWithData) {
+            if (!preventPrefillOfData) {
                 Store.get(key, path, defaultValue)
                     .then(data => this.wrappedComponent.setState({[propertyName]: data}));
             }

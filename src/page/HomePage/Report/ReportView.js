@@ -1,6 +1,7 @@
 import React from 'react';
 import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
+import * as Store from '../../../store/Store';
 import {withRouter} from '../../../lib/Router';
 import WithStoreSubscribeToState from '../../../components/WithStoreSubscribeToState';
 import STOREKEYS from '../../../store/STOREKEYS';
@@ -17,7 +18,7 @@ const propTypes = {
 
 class ReportView extends React.Component {
     componentDidMount() {
-        this.props.bind(`${STOREKEYS.REPORT}_${this.props.match.params.reportID}`, null, null, 'report', this, true);
+        this.props.bind(`${STOREKEYS.REPORT}_${this.props.match.params.reportID}`, null, null, 'report', this);
     }
 
     componentDidUpdate(prevProps) {
@@ -25,11 +26,15 @@ class ReportView extends React.Component {
         if (prevProps.match.params.reportID !== this.props.match.params.reportID) {
             this.props.unbind();
             const key = `${STOREKEYS.REPORT}_${this.props.match.params.reportID}`;
-            this.props.bind(key, null, null, 'report', this, true);
+            this.props.bind(key, null, null, 'report', this);
         }
     }
 
     render() {
+        // Update the current report in the store so any other components can update
+        if (this.state && this.state.report) {
+            Store.set(STOREKEYS.CURRENT_REPORT, this.state.report);
+        }
         return (
             <View>
                 <Text>
