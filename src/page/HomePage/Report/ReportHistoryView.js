@@ -2,6 +2,7 @@ import React from 'react';
 import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import lodashGet from 'lodash.get';
 import styles from '../../../style/StyleSheet';
 import {fetchHistory} from '../../../store/actions/ReportActions';
 import WithStore from '../../../components/WithStore';
@@ -42,12 +43,18 @@ class ReportHistoryView extends React.Component {
     }
 
     render() {
+        const reportHistory = lodashGet(this.state, 'reportHistory');
+
+        // Only display the history items that are comments
+        const filteredHistory = _.filter(reportHistory, historyItem => historyItem.actionName === 'ADDCOMMENT');
+
         return (
             <View style={styles.flexColumn}>
-                {this.state && this.state.reportHistory && this.state.reportHistory.length === 0 && (
+                {filteredHistory.length === 0 && (
                     <Text>Be the first person to comment!</Text>
                 )}
-                {this.state && this.state.reportHistory && this.state.reportHistory.length > 0 && _.map(this.state.reportHistory, reportHistoryItem => (
+                {filteredHistory.length > 0
+                && _.map(filteredHistory, reportHistoryItem => (
                     <ReportHistoryItem
                         key={reportHistoryItem.sequenceNumber}
                         historyItem={reportHistoryItem}
