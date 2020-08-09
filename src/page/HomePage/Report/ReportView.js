@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import * as Store from '../../../store/Store';
-import {withRouter} from '../../../lib/Router';
+import {withRouter, Route} from '../../../lib/Router';
 import WithStore from '../../../components/WithStore';
 import STOREKEYS from '../../../store/STOREKEYS';
 import styles from '../../../style/StyleSheet';
@@ -57,7 +57,9 @@ class ReportView extends React.Component {
         return (
             <View>
                 <View style={styles.flexGrow1}>
-                    <ReportHistoryView reportID={this.props.match.params.reportID} />
+                    <Route path="/:reportID" exact>
+                        <ReportHistoryView reportID={this.props.match.params.reportID} />
+                    </Route>
                 </View>
             </View>
         );
