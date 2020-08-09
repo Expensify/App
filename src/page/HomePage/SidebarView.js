@@ -1,6 +1,6 @@
 import React from 'react';
-import {View, Text} from 'react-native';
-import {NavLink} from '../../lib/Router';
+import {View} from 'react-native';
+import {Link} from '../../lib/Router';
 import _ from 'underscore';
 import styles from '../../style/StyleSheet';
 import WithStoreSubscribeToState from '../../components/WithStoreSubscribeToState';
@@ -13,7 +13,7 @@ class SidebarView extends React.Component {
             <View style={[styles.flexGrow1, styles.p1]}>
                 {this.state && this.state.reports && this.state.reports.length > 0 && _.map(this.state.reports, (report) => (
                     <View key={report.reportID}>
-                        <NavLink to={`/${report.reportID}`}>{report.reportName}</NavLink>
+                        <Link to={`/${report.reportID}`}>{report.reportName}</Link>
                     </View>
                 ))}
             </View>
