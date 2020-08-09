@@ -4,7 +4,10 @@ import {
     StatusBar,
     View,
 } from 'react-native';
-import Header from './Header';
+import styles from '../../style/StyleSheet';
+import Header from './HeaderView';
+import Sidebar from './SidebarView';
+import Main from './MainView';
 
 const App = () => (
     <>
@@ -12,6 +15,10 @@ const App = () => (
         <SafeAreaView>
             <View>
                 <Header />
+                <View style={[styles.flexRow, styles.mainContentWrapper]}>
+                    <Sidebar />
+                    <Main />
+                </View>
             </View>
         </SafeAreaView>
     </>

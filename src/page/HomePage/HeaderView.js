@@ -7,10 +7,10 @@ import styles from '../../style/StyleSheet';
 import STOREKEYS from '../../store/STOREKEYS';
 import WithStoreSubscribeToState from '../../components/WithStoreSubscribeToState';
 
-class Header extends React.Component {
+class HeaderView extends React.Component {
     render() {
         return (
-            <View style={styles.nav}>
+            <View style={[styles.nav, styles.flexRow]}>
                 <Text style={styles.brand}>Expensify Chat</Text>
                 <Text style={styles.flex1} />
                 {this.state && this.state.name && (
@@ -28,4 +28,4 @@ export default WithStoreSubscribeToState({
     // Map this.state.name to the personal details key in the store and bind it to the displayName property
     // and load it with data from getPersonalDetails()
     name: {key: STOREKEYS.MY_PERSONAL_DETAILS, path: 'displayName', loader: getPersonalDetails},
-})(Header);
+})(HeaderView);
