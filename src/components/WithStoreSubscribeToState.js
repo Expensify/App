@@ -23,13 +23,10 @@ export default function (mapStoreToStates) {
 
         componentDidMount() {
             // Subscribe each of the state properties to the proper store key
-            this.subscriptionIDs = _.reduce(mapStoreToStates, (finalResult, mapStoreToState, propertyName) => {
+            _.each(mapStoreToStates, (mapStoreToState, propertyName) => {
                 const {key, path} = mapStoreToState;
-                return [
-                    ...finalResult,
-                    Store.bind(key, propertyName, path, null, this.wrappedComponent),
-                ];
-            }, []);
+                this.bind(key, propertyName, path, this.wrappedComponent);
+            });
 
             // Call any loaders that will fill the store with their initial data
             _.each(mapStoreToStates, (mapStoreToState) => {
@@ -43,10 +40,29 @@ export default function (mapStoreToStates) {
             _.each(this.subscriptionIDs, Store.unsubscribeFromState);
         }
 
+        /**
+         * A method that is convenient to bind the state to the store. Typically used when you can't pass
+         * mapStoreToStates to this HOC. All subscriptions will automatically be unbound when unmounted
+         *
+         * @param {string} key
+         * @param {string} propertyName
+         * @param {string} path
+         * @param {object} component
+         */
+        bind(key, propertyName, path, component) {
+            this.subscriptionIDs.push(Store.bind(key, propertyName, path, null, component));
+        }
+
         render() {
             // Spreading props and state is necessary in an HOC where the data cannot be predicted
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            return <WrappedComponent {...this.props} {...this.state} ref={el => this.wrappedComponent = el} />;
+            return <WrappedComponent
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...this.props}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...this.state}
+                ref={el => this.wrappedComponent = el}
+                bind={this.bind}
+            />;
         }
     };
 }
