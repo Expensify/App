@@ -1,6 +1,7 @@
 import lodashGet from 'lodash.get';
 import _ from 'underscore';
 import * as PersistentStorage from '../lib/PersistentStorage';
+import Guid from '../lib/Guid';
 
 // Holds all of the callbacks that have registered for a specific key pattern
 const callbackMapping = {};
@@ -59,31 +60,30 @@ const callbackToStateMapping = {};
  * @param {string} path a specific path of the store object to map to the state
  * @param {mixed} defaultValue to return if the there is nothing from the store
  * @param {object} reactComponent whose setState() method will be called with any changed data
+ * @returns {string} a guid to use when unsubscribing
  */
 function subscribeToState(keyPattern, statePropertyName, path, defaultValue, reactComponent) {
-    if (!callbackToStateMapping[keyPattern]) {
-        callbackToStateMapping[keyPattern] = [];
-    }
-    callbackToStateMapping[keyPattern].push({
+    const guid = Guid();
+    callbackToStateMapping[guid] = {
+        keyPattern,
         statePropertyName,
         path,
         reactComponent,
         defaultValue,
-    });
+    };
+    return guid;
 }
 
 /**
  * Remove the listener for a react component
  *
- * @param {string} keyPattern
- * @param {object} reactComponent
+ * @param {string} guid
  */
-function unsubscribeFromState(keyPattern, reactComponent) {
-    if (!callbackToStateMapping[keyPattern] || !callbackToStateMapping[keyPattern].length) {
+function unsubscribeFromState(guid) {
+    if (!callbackToStateMapping[guid]) {
         return;
     }
-    callbackToStateMapping[keyPattern] = _.without(callbackToStateMapping[keyPattern],
-        mappedComponent => mappedComponent.reactComponent === reactComponent);
+    delete callbackToStateMapping[guid];
 }
 
 /**
@@ -93,7 +93,7 @@ function unsubscribeFromState(keyPattern, reactComponent) {
  * @param {mixed} data
  */
 function keyChanged(key, data) {
-    console.log('key changed', key, data);
+    console.debug('key changed', key, data);
     // Trigger any callbacks that were added with subscribe()
     _.each(callbackMapping, (callbacks, keyPattern) => {
         const regex = RegExp(keyPattern);
@@ -106,19 +106,19 @@ function keyChanged(key, data) {
     });
 
     // Find components that were added with subscribeToState() and trigger their setState() method with the new data
-    _.each(callbackToStateMapping, (mappedComponents, keyPattern) => {
-        const regex = RegExp(keyPattern);
+    _.each(callbackToStateMapping, (mappedComponent) => {
+        const regex = RegExp(mappedComponent.keyPattern);
 
         // If there is a callback whose regex matches the key that was changed, then the callback for that regex
         // is called and passed the data that changed
         if (regex.test(key)) {
-            _.each(mappedComponents, (mappedComponent) => {
-                // Set the state of the react component with either the pathed data, or the data
-                mappedComponent.reactComponent.setState({
-                    [mappedComponent.statePropertyName]: mappedComponent.path
-                        ? lodashGet(data, mappedComponent.path, mappedComponent.defaultValue)
-                        : data || mappedComponent.defaultValue || null,
-                });
+            const newValue = mappedComponent.path
+                ? lodashGet(data, mappedComponent.path, mappedComponent.defaultValue)
+                : data || mappedComponent.defaultValue || null;
+
+            // Set the state of the react component with either the pathed data, or the data
+            mappedComponent.reactComponent.setState({
+                [mappedComponent.statePropertyName]: newValue,
             });
         }
     });
