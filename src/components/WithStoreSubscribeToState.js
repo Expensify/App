@@ -12,7 +12,7 @@ export default function (mapStoreToStates) {
         constructor(props) {
             super(props);
 
-            this.subscribedEventGuids = [];
+            this.subscriptionIDs = [];
 
             // Initialize the state with each of our property names
             this.state = _.reduce(_.keys(mapStoreToStates), (finalResult, propertyName) => ({
@@ -22,7 +22,8 @@ export default function (mapStoreToStates) {
         }
 
         componentDidMount() {
-            this.subscribedEventGuids = _.reduce(mapStoreToStates, (finalResult, mapStoreToState, propertyName) => {
+            // Subscribe each of the state properties to the proper store key
+            this.subscriptionIDs = _.reduce(mapStoreToStates, (finalResult, mapStoreToState, propertyName) => {
                 const {key, path} = mapStoreToState;
                 return [
                     ...finalResult,
@@ -30,6 +31,7 @@ export default function (mapStoreToStates) {
                 ];
             }, []);
 
+            // Call any loaders that will fill the store with their initial data
             _.each(mapStoreToStates, (mapStoreToState) => {
                 if (mapStoreToState.loader) {
                     mapStoreToState.loader(...mapStoreToState.loaderParams || []);
@@ -38,10 +40,11 @@ export default function (mapStoreToStates) {
         }
 
         componentWillUnmount() {
-            _.each(this.subscribedEventGuids, Store.unsubscribeFromState);
+            _.each(this.subscriptionIDs, Store.unsubscribeFromState);
         }
 
         render() {
+            // Spreading props and state is necessary in an HOC where the data cannot be predicted
             // eslint-disable-next-line react/jsx-props-no-spreading
             return <WrappedComponent {...this.props} {...this.state} ref={el => this.wrappedComponent = el} />;
         }
