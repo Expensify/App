@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import styles from '../../style/StyleSheet';
-import WithStoreSubscribeToState from '../../components/WithStoreSubscribeToState';
+import WithStore from '../../components/WithStore';
 import STOREKEYS from '../../store/STOREKEYS';
 import {fetchAll} from '../../store/actions/ReportActions';
 import SidebarLink from './SidebarLink';
@@ -20,6 +20,6 @@ class SidebarView extends React.Component {
     }
 }
 
-export default WithStoreSubscribeToState({
+export default WithStore({
     reports: {key: STOREKEYS.REPORTS, loader: fetchAll},
 })(SidebarView);

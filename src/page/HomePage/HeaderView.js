@@ -4,7 +4,7 @@ import {signOut} from '../../store/actions/SessionActions';
 import {fetch as getPersonalDetails} from '../../store/actions/PersonalDetailsActions';
 import styles from '../../style/StyleSheet';
 import STOREKEYS from '../../store/STOREKEYS';
-import WithStoreSubscribeToState from '../../components/WithStoreSubscribeToState';
+import WithStore from '../../components/WithStore';
 
 class HeaderView extends React.Component {
     render() {
@@ -28,7 +28,7 @@ class HeaderView extends React.Component {
     }
 }
 
-export default WithStoreSubscribeToState({
+export default WithStore({
     // Map this.state.name to the personal details key in the store and bind it to the displayName property
     // and load it with data from getPersonalDetails()
     userDisplayName: {key: STOREKEYS.MY_PERSONAL_DETAILS, path: 'displayName', loader: getPersonalDetails},

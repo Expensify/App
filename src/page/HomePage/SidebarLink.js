@@ -4,7 +4,7 @@ import {Text, View} from 'react-native';
 import {Link, withRouter} from '../../lib/Router';
 import STOREKEYS from '../../store/STOREKEYS';
 import styles from '../../style/StyleSheet';
-import WithStoreSubscribeToState from '../../components/WithStoreSubscribeToState';
+import WithStore from '../../components/WithStore';
 
 const propTypes = {
     // The ID of the report for this link
@@ -13,7 +13,7 @@ const propTypes = {
     // The name of the report to use as the text for this link
     reportName: PropTypes.string.isRequired,
 
-    // These are from WithStoreSubscribeToState
+    // These are from WithStore
     bind: PropTypes.func.isRequired,
 
     // These are from withRouter
@@ -54,4 +54,4 @@ class SidebarLink extends React.Component {
 }
 SidebarLink.propTypes = propTypes;
 
-export default withRouter(WithStoreSubscribeToState()(SidebarLink));
+export default withRouter(WithStore()(SidebarLink));
