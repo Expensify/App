@@ -37,6 +37,7 @@ const styles = StyleSheet.create({
     navText: {
         padding: 8,
     },
+
     // @TODO I can't get this style to work in `SidebarLink.js`
     sidebarLink: {
         padding: 8,

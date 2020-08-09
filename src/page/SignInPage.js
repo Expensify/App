@@ -10,37 +10,16 @@ import {
 import * as Store from '../store/Store';
 import {signIn} from '../store/actions/SessionActions';
 import STOREKEYS from '../store/STOREKEYS';
+import WithStoreSubscribeToState from '../components/WithStoreSubscribeToState';
 
-export default class App extends Component {
+class App extends Component {
     constructor(props) {
         super(props);
-
-        this.sessionChanged = this.sessionChanged.bind(this);
 
         this.state = {
             login: '',
             password: '',
-            error: null,
         };
-    }
-
-    componentDidMount() {
-        // Listen for changes to our session
-        Store.subscribe(STOREKEYS.SESSION, this.sessionChanged);
-        Store.get(STOREKEYS.SESSION, 'error').then(error => this.setState({error}));
-    }
-
-    componentWillUnmount() {
-        Store.unsubscribe(STOREKEYS.SESSION, this.sessionChanged);
-    }
-
-    /**
-     * When the session changes, change which page the user sees
-     *
-     * @param {object} newSession
-     */
-    sessionChanged(newSession) {
-        this.setState({error: newSession && newSession.error});
     }
 
     render() {
@@ -81,3 +60,8 @@ export default class App extends Component {
         );
     }
 }
+
+export default WithStoreSubscribeToState({
+    // Bind this.state.error to the error in the session object
+    error: {key: STOREKEYS.SESSION, path: 'error', defaultValue: null},
+})(App);
