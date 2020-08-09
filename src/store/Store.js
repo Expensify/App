@@ -93,7 +93,8 @@ function unsubscribeFromState(guid) {
  * @param {mixed} data
  */
 function keyChanged(key, data) {
-    console.debug('key changed', key, data);
+    console.debug('[STORE] key changed', key, data);
+
     // Trigger any callbacks that were added with subscribe()
     _.each(callbackMapping, (callbacks, keyPattern) => {
         const regex = RegExp(keyPattern);
