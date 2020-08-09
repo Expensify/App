@@ -56,6 +56,7 @@ function setSuccessfulSignInData(data) {
  * @returns {Promise}
  */
 function signIn(login, password, useExpensifyLogin = false) {
+    console.debug('[SIGNIN] Authenticating with expensify login?', useExpensifyLogin ? 'yes' : 'no');
     let authToken;
     return request('Authenticate', {
         useExpensifyLogin,
@@ -65,12 +66,13 @@ function signIn(login, password, useExpensifyLogin = false) {
         partnerUserSecret: password,
     })
         .then((data) => {
+            console.debug('[SIGNIN] Authentication result. Code:', data.jsonCode);
             authToken = data && data.authToken;
 
             // If we didn't get a 200 response from authenticate, the user needs to sign in again
             if (!useExpensifyLogin && data.jsonCode !== 200) {
                 // eslint-disable-next-line no-console
-                console.debug('Non-200 from authenticate, going back to sign in page', data.jsonCode);
+                console.debug('[SIGNIN] Non-200 from authenticate, going back to sign in page');
                 return Store.multiSet({
                     [STOREKEYS.CREDENTIALS]: {},
                     [STOREKEYS.SESSION]: {error: data.message},
@@ -80,15 +82,21 @@ function signIn(login, password, useExpensifyLogin = false) {
 
             // If Expensify login, it's the users first time logging in and we need to create a login for the user
             if (useExpensifyLogin) {
+                console.debug('[SIGNIN] Creating a login');
                 return createLogin(data.authToken, Str.generateDeviceLoginID(), Guid())
-                    .then(() => setSuccessfulSignInData(data));
+                    .then(() => {
+                        console.debug('[SIGNIN] Successful sign in', 2);
+                        return setSuccessfulSignInData(data);
+                    });
             }
 
+            console.debug('[SIGNIN] Successful sign in', 1);
             return setSuccessfulSignInData();
         })
         .then(() => authToken)
         .catch((err) => {
             console.error(err);
+            console.debug('[SIGNIN] Request error');
             return Store.set(STOREKEYS.SESSION, {error: err.message});
         });
 }
