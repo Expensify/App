@@ -8,7 +8,7 @@ import _ from 'underscore';
 import * as Store from '../store/Store';
 
 export default function (mapStoreToStates) {
-    return WrappedComponent => class WithStoreSubscribeToState extends React.Component {
+    return WrappedComponent => class WithStore extends React.Component {
         constructor(props) {
             super(props);
 

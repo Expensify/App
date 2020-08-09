@@ -3,13 +3,13 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import * as Store from '../../../store/Store';
 import {withRouter} from '../../../lib/Router';
-import WithStoreSubscribeToState from '../../../components/WithStoreSubscribeToState';
+import WithStore from '../../../components/WithStore';
 import STOREKEYS from '../../../store/STOREKEYS';
 import styles from '../../../style/StyleSheet';
 import ReportHistoryView from './ReportHistoryView';
 
 const propTypes = {
-    // These are from WithStoreSubscribeToState
+    // These are from WithStore
     bind: PropTypes.func.isRequired,
     unbind: PropTypes.func.isRequired,
 
@@ -49,4 +49,4 @@ class ReportView extends React.Component {
 }
 ReportView.propTypes = propTypes;
 
-export default withRouter(WithStoreSubscribeToState()(ReportView));
+export default withRouter(WithStore()(ReportView));

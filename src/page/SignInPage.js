@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import {signIn} from '../store/actions/SessionActions';
 import STOREKEYS from '../store/STOREKEYS';
-import WithStoreSubscribeToState from '../components/WithStoreSubscribeToState';
+import WithStore from '../components/WithStore';
 
 class App extends Component {
     constructor(props) {
@@ -60,7 +60,7 @@ class App extends Component {
     }
 }
 
-export default WithStoreSubscribeToState({
+export default WithStore({
     // Bind this.state.error to the error in the session object
     error: {key: STOREKEYS.SESSION, path: 'error', defaultValue: null},
 })(App);

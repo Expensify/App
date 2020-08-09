@@ -3,14 +3,14 @@ import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../../style/StyleSheet';
 import {fetchHistory} from '../../../store/actions/ReportActions';
-import WithStoreSubscribeToState from '../../../components/WithStoreSubscribeToState';
+import WithStore from '../../../components/WithStore';
 import STOREKEYS from '../../../store/STOREKEYS';
 
 const propTypes = {
     // The ID of the report being looked at
     reportID: PropTypes.string.isRequired,
 
-    // These are from WithStoreSubscribeToState
+    // These are from WithStore
     bind: PropTypes.func.isRequired,
 };
 
@@ -40,4 +40,4 @@ class ReportHistoryView extends React.Component {
 }
 ReportHistoryView.propTypes = propTypes;
 
-export default WithStoreSubscribeToState()(ReportHistoryView);
+export default WithStore()(ReportHistoryView);

@@ -6,7 +6,7 @@ import * as Store from './store/Store';
 import * as ActiveClientManager from './lib/ActiveClientManager';
 import {verifyAuthToken} from './store/actions/SessionActions';
 import STOREKEYS from './store/STOREKEYS';
-import WithStoreSubscribeToState from './components/WithStoreSubscribeToState';
+import WithStore from './components/WithStore';
 import {
     Route,
     Router,
@@ -35,7 +35,7 @@ class Expensify extends Component {
     }
 }
 
-export default WithStoreSubscribeToState({
+export default WithStore({
     redirectTo: {
         key: STOREKEYS.APP_REDIRECT_TO,
         loader: () => {
