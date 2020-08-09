@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {Text, View} from 'react-native';
-import _ from 'underscore';
 import {Link} from '../../lib/Router';
 import * as Store from '../../store/Store';
 import STOREKEYS from '../../store/STOREKEYS';
@@ -19,19 +18,13 @@ class SidebarLink extends React.Component {
     constructor(props) {
         super(props);
 
-        this.subscriptionIDS = [];
-
         this.state = {
-            hasUnread: false,
+            isUnread: false,
         };
     }
 
     componentDidMount() {
-        this.subscriptionIDS.push(Store.bind(`${STOREKEYS.REPORT}_${this.props.reportID}`, 'hasUnread', 'hasUnread', false, this));
-    }
-
-    componentWillUnmount() {
-        _.each(this.subscriptionIDS, Store.unsubscribeFromState);
+        this.props.bind(`${STOREKEYS.REPORT}_${this.props.reportID}`, 'isUnread', 'hasUnread', false, this);
     }
 
     render() {
@@ -39,7 +32,7 @@ class SidebarLink extends React.Component {
             <View>
                 <Link to={`/${this.props.reportID}`} style={{padding: 10, textDecorationLine: 'none'}}>
                     <Text>{this.props.reportName}</Text>
-                    {this.state.hasUnread && (
+                    {this.state.isUnread && (
                         <Text>- Unread</Text>
                     )}
                 </Link>

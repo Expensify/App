@@ -31,7 +31,7 @@ const callbackToStateMapping = {};
  * @param {string} path a specific path of the store object to map to the state
  * @param {mixed} defaultValue to return if the there is nothing from the store
  * @param {object} reactComponent whose setState() method will be called with any changed data
- * @returns {number} an ID to use when calling unsubscribeFromState
+ * @returns {number} an ID to use when calling unbind
  */
 function bind(keyPattern, statePropertyName, path, defaultValue, reactComponent) {
     const subscriptionID = lastSubscriptionID++;
@@ -50,7 +50,7 @@ function bind(keyPattern, statePropertyName, path, defaultValue, reactComponent)
  *
  * @param {string} subscriptionID
  */
-function unsubscribeFromState(subscriptionID) {
+function unbind(subscriptionID) {
     if (!callbackToStateMapping[subscriptionID]) {
         return;
     }
@@ -161,7 +161,7 @@ function merge(key, val) {
 
 export {
     bind,
-    unsubscribeFromState,
+    unbind,
     set,
     multiSet,
     get,

@@ -25,7 +25,7 @@ export default function (mapStoreToStates) {
             // Subscribe each of the state properties to the proper store key
             _.each(mapStoreToStates, (mapStoreToState, propertyName) => {
                 const {key, path} = mapStoreToState;
-                this.bind(key, propertyName, path, this.wrappedComponent);
+                this.bind(key, propertyName, path, null, this.wrappedComponent);
             });
 
             // Call any loaders that will fill the store with their initial data
@@ -37,7 +37,7 @@ export default function (mapStoreToStates) {
         }
 
         componentWillUnmount() {
-            _.each(this.subscriptionIDs, Store.unsubscribeFromState);
+            _.each(this.subscriptionIDs, Store.unbind);
         }
 
         /**
@@ -49,20 +49,22 @@ export default function (mapStoreToStates) {
          * @param {string} path
          * @param {object} component
          */
-        bind(key, propertyName, path, component) {
-            this.subscriptionIDs.push(Store.bind(key, propertyName, path, null, component));
+        bind(key, propertyName, path, defaultValue, component) {
+            this.subscriptionIDs.push(Store.bind(key, propertyName, path, defaultValue, component));
         }
 
         render() {
             // Spreading props and state is necessary in an HOC where the data cannot be predicted
-            return <WrappedComponent
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...this.props}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...this.state}
-                ref={el => this.wrappedComponent = el}
-                bind={this.bind}
-            />;
+            return (
+                <WrappedComponent
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...this.props}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...this.state}
+                    ref={el => this.wrappedComponent = el}
+                    bind={this.bind.bind(this)}
+                />
+            );
         }
     };
 }
