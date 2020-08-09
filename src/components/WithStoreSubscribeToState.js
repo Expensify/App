@@ -26,15 +26,8 @@ export default function (mapStoreToStates) {
         componentDidMount() {
             // Subscribe each of the state properties to the proper store key
             _.each(mapStoreToStates, (mapStoreToState, propertyName) => {
-                const {key, path, preventPrefillOfData} = mapStoreToState;
-                this.bind(key, path, null, propertyName, this.wrappedComponent, preventPrefillOfData);
-            });
-
-            // Call any loaders that will fill the store with their initial data
-            _.each(mapStoreToStates, (mapStoreToState) => {
-                if (mapStoreToState.loader) {
-                    mapStoreToState.loader(...mapStoreToState.loaderParams || []);
-                }
+                const {key, path, preventPrefillOfData, loader, loaderParams} = mapStoreToState;
+                this.bind(key, path, null, propertyName, this.wrappedComponent, preventPrefillOfData, loader, loaderParams);
             });
         }
 
@@ -53,12 +46,17 @@ export default function (mapStoreToStates) {
          * @param {object} component
          * @param {boolean} preventPrefillOfData whether or not we want to fill the state with existing data from the
          *                  store
+         * @param {function} [loader] a function to call to load data from the API
+         * @param {mixed[]} [loaderParams] any parameters to pass to the loader function
          */
-        bind(key, path, defaultValue, propertyName, component, preventPrefillOfData) {
+        bind(key, path, defaultValue, propertyName, component, preventPrefillOfData, loader, loaderParams) {
             this.subscriptionIDs.push(Store.bind(key, path, defaultValue, propertyName, component));
             if (!preventPrefillOfData) {
                 Store.get(key, path, defaultValue)
                     .then(data => this.wrappedComponent.setState({[propertyName]: data}));
+            }
+            if (loader) {
+                loader(...loaderParams || []);
             }
         }
 
