@@ -50,7 +50,7 @@ class ReportHistoryView extends React.Component {
                 {this.state && this.state.reportHistory && this.state.reportHistory.length > 0 && _.map(this.state.reportHistory, reportHistoryItem => (
                     <ReportHistoryItem
                         key={reportHistoryItem.sequenceNumber}
-                        data={reportHistoryItem}
+                        historyItem={reportHistoryItem}
                     />
                 ))}
             </View>
