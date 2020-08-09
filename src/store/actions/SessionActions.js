@@ -147,7 +147,6 @@ function verifyAuthToken() {
 
             return request('Get', {returnValueList: 'account'}).then((data) => {
                 if (data.jsonCode === 200) {
-                    console.debug('We have valid auth token');
                     return Store.set(STOREKEYS.SESSION, data);
                 }
 
