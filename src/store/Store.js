@@ -134,12 +134,11 @@ function keyChanged(key, data) {
  * @returns {Promise}
  */
 function set(key, val) {
-    // The storage event doesn't trigger for the current window, so just call keyChanged() manually to mimic
-    // the storage event
-    keyChanged(key, val);
-
     // Write the thing to persistent storage, which will trigger a storage event for any other tabs open on this domain
-    return PersistentStorage.set(key, val);
+    return PersistentStorage.set(key, val)
+        .then(() => {
+            keyChanged(key, val);
+        });
 }
 
 /**
