@@ -15,13 +15,13 @@ const App = () => (
         <StatusBar barStyle="dark-content" />
         <SafeAreaView style={[styles.flex1, styles.h100p]}>
             <View style={[styles.flexColumn, styles.h100p]}>
-                <Header />
-                <View style={[styles.flex1, styles.flexRow]}>
-                    <Route path="/:reportID?">
+                <Route path="/:reportID?">
+                    <Header />
+                    <View style={[styles.flex1, styles.flexRow]}>
                         <Sidebar />
                         <Main />
-                    </Route>
-                </View>
+                    </View>
+                </Route>
             </View>
         </SafeAreaView>
     </>

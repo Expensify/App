@@ -1,13 +1,12 @@
 import React from 'react';
-import {View, Text} from 'react-native';
+import {View} from 'react-native';
 import styles from '../../style/StyleSheet';
+import ReportView from './Report/ReportView';
 
-function MainView() {
-    return (
-        <View style={[styles.flexGrow4, styles.p1]}>
-            <Text>Main View</Text>
-        </View>
-    );
-}
+const MainView = () => (
+    <View style={[styles.flexGrow4, styles.p1]}>
+        <ReportView />
+    </View>
+);
 
 export default MainView;

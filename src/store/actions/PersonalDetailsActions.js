@@ -38,7 +38,7 @@ function fetch() {
             });
         })
         .then((data) => {
-            const allPersonalDetails = _.reduce(data.personalDetailsList, (finalPersonalDetailObject, personalDetails, login) => {
+            const allPersonalDetails = _.reduce(data.personalDetailsList, (finalObject, personalDetails, login) => {
                 // Form the details into something that has all the data in an easy to use format.
                 const avatarURL = getAvatar(personalDetails, login);
                 const firstName = personalDetails.firstName || '';
@@ -47,7 +47,7 @@ function fetch() {
                 const displayName = fullName === '' ? login : fullName;
                 const displayNameWithEmail = fullName === '' ? login : `${fullName} (${login})`;
                 return {
-                    ...finalPersonalDetailObject,
+                    ...finalObject,
                     [login]: {
                         login,
                         avatarURL,
@@ -81,7 +81,10 @@ function fetchTimezone() {
         returnValueList: 'nameValuePairs',
         name: 'timeZone',
     })
-        .then(data => Store.merge(STOREKEYS.MY_PERSONAL_DETAILS, {timezone: data.nameValuePairs.timeZone.selected || 'America/Los_Angeles'}));
+        .then((data) => {
+            const timezone = data.nameValuePairs.timeZone.selected || 'America/Los_Angeles';
+            Store.merge(STOREKEYS.MY_PERSONAL_DETAILS, {timezone});
+        });
 
     // Refresh the timezone every 30 minutes
     setTimeout(fetchTimezone, 1000 * 60 * 30);

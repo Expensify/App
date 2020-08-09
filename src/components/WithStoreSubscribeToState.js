@@ -13,6 +13,8 @@ export default function (mapStoreToStates) {
             super(props);
 
             this.subscriptionIDs = [];
+            this.bind = this.bind.bind(this);
+            this.unbind = this.unbind.bind(this);
 
             // Initialize the state with each of our property names
             this.state = _.reduce(_.keys(mapStoreToStates), (finalResult, propertyName) => ({
@@ -37,7 +39,7 @@ export default function (mapStoreToStates) {
         }
 
         componentWillUnmount() {
-            _.each(this.subscriptionIDs, Store.unbind);
+            this.unbind();
         }
 
         /**
@@ -46,11 +48,25 @@ export default function (mapStoreToStates) {
          *
          * @param {string} key
          * @param {string} path
+         * @param {mixed} defaultValue
          * @param {string} propertyName
          * @param {object} component
+         * @param {boolean} fillWithData whether or not we want to fill the state with existing data from the
+         *                  store
          */
-        bind(key, path, defaultValue, propertyName, component) {
+        bind(key, path, defaultValue, propertyName, component, fillWithData) {
             this.subscriptionIDs.push(Store.bind(key, path, defaultValue, propertyName, component));
+            if (fillWithData) {
+                Store.get(key, path, defaultValue)
+                    .then(data => this.wrappedComponent.setState({[propertyName]: data}));
+            }
+        }
+
+        /**
+         * Unsubscribe from any subscriptions
+         */
+        unbind() {
+            _.each(this.subscriptionIDs, Store.unbind);
         }
 
         render() {
@@ -62,7 +78,8 @@ export default function (mapStoreToStates) {
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...this.state}
                     ref={el => this.wrappedComponent = el}
-                    bind={this.bind.bind(this)}
+                    bind={this.bind}
+                    unbind={this.unbind}
                 />
             );
         }
