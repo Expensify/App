@@ -1,6 +1,7 @@
 import React from 'react';
 import {Text} from 'react-native-web';
 import {Button, View} from 'react-native';
+import _ from 'underscore';
 import * as Store from '../../store/Store';
 import {signOut} from '../../store/actions/SessionActions';
 import {fetch as getPersonalDetails} from '../../store/actions/PersonalDetailsActions';
@@ -11,20 +12,21 @@ export default class Header extends React.Component {
     constructor(props) {
         super(props);
 
+        this.subscribedGuids = [];
         this.state = {
-            personalDetails: null,
+            name: null,
         };
     }
 
     componentDidMount() {
-        Store.subscribeToState(STOREKEYS.MY_PERSONAL_DETAILS, 'name', 'displayName', '', this);
+        this.subscribedGuids.push(Store.subscribeToState(STOREKEYS.MY_PERSONAL_DETAILS, 'name', 'displayName', null, this));
 
         // Get our personal details
         getPersonalDetails();
     }
 
     componentWillUnmount() {
-        Store.unsubscribeFromState(STOREKEYS.MY_PERSONAL_DETAILS, this);
+        _.each(this.subscribedGuids, guid => Store.unsubscribeFromState(guid));
     }
 
     render() {
