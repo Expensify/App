@@ -13,6 +13,8 @@ const propTypes = {
     displayAsGroup: PropTypes.bool.isRequired,
 };
 
+// TODO: Fix eslint error here
+// eslint-disable-next-line react/prefer-stateless-function
 class ReportHistoryItem extends React.Component {
     render() {
         return (
