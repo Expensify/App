@@ -1,0 +1,56 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Build and Deploy
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-16.04
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - uses: actions/checkout@v2
+
+    # Installs node
+    - name: Setup Node
+      uses: actions/setup-node@v1
+      with:
+        node-version: '14.x'
+
+    # Installs Cloudflare CLI, requires sudo because it writes to a root owned
+    # folder
+    - name: Setup Cloudflare CLI
+      run: sudo pip3 install cloudflare
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+
+    # Install node modules 
+    - name: Install dependenices
+      run: npm install
+    
+    - name: Build web
+      run: npm run build
+    
+    - name: Deploy to S3
+      run: aws s3 --recursive --acl public-read $GITHUB_WORKSPACE/dist s3://chat-test-expensify-com/
+
+    - name: Purge Cloudflare cache
+      run: cli4 --delete hosts=["chat.expensify.com"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
+      env:
+        CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_TOKEN }}
