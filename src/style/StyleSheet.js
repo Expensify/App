@@ -6,6 +6,9 @@ const styles = {
     ml1: {
         marginLeft: 10,
     },
+    mt2: {
+        marginTop: 20,
+    },
     p1: {
         padding: 10,
     },
@@ -24,6 +27,9 @@ const styles = {
     flexColumn: {
         flexDirection: 'column',
     },
+    flexJustifyEnd: {
+        justifyContent: 'flex-end',
+    },
     flexWrap: {
         flexWrap: 'wrap'
     },
@@ -32,6 +38,9 @@ const styles = {
     },
     flexGrow4: {
         flexGrow: 4,
+    },
+    textLightGray: {
+        color: '#7d8b8f',
     },
     nav: {
         backgroundColor: '#efefef',
@@ -67,6 +76,31 @@ const styles = {
     },
     sidebarLinkActiveText: {
         color: '#ffffff',
+    },
+
+    // History Items
+    historyItemAvatarWrapper: {
+        width: 40,
+    },
+    historyItemAvatarWrapperGrouped: {
+        width: 40,
+    },
+    historyItemMessageWrapper: {
+        flexGrow: 1,
+    },
+    historyItemAvatar: {
+        borderRadius: '50%',
+        height: 40,
+        width: 40,
+        lineHeight: 40,
+    },
+    historyItemHeaderTimestamp: {
+        color: '#7d8b8f',
+        fontSize: 10,
+        lineHeight: 15,
+    },
+    reportHistoryItemUserName: {
+        fontWeight: 'bold',
     },
 };
 
