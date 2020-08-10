@@ -64,7 +64,9 @@ class ReportHistoryView extends React.Component {
 
     scrollToBottom() {
         if (this.reportHistoryList) {
-            this.reportHistoryList.scrollToEnd();
+            this.reportHistoryList.scrollToEnd({
+                animated: false,
+            });
 
             // Scroll to the bottom again because sometimes it doesn't scroll all the way to the bottom the first time
             setTimeout(this.scrollToBottom, 250);
