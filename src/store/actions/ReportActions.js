@@ -131,6 +131,7 @@ function fetchAll() {
                 return data;
             })
             .then(data => Store.set(STOREKEYS.REPORTS, _.values(data.reports)))
+            // eslint-disable-next-line no-console
             .catch((error) => { console.log('Error fetching report actions', error); });
     }
 
@@ -146,6 +147,7 @@ function fetchAll() {
             return data;
         })
         .then(data => Store.set(STOREKEYS.REPORTS, _.values(data.reportListBeta)))
+        // eslint-disable-next-line no-console
         .catch((error) => { console.log('Error fetching report actions', error); });
 }
 
