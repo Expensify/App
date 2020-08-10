@@ -70,7 +70,7 @@ class ReportHistoryCompose extends React.Component {
 
     render() {
         return (
-            <View>
+            <View style={[styles.mt2]}>
                 <TextInput
                     ref={el => this.textInput = el}
                     multiline

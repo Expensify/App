@@ -60,30 +60,35 @@ function delayedWrite(command, data) {
 /**
  * Process the write queue by looping through the queue and attempting to make the requests
  */
-// function processWriteQueue() {
-//     if (isAppOffline) {
-//         // Make a simple request to see if we're online again
-//         request('Get', null, 'get')
-//             .then(() => isAppOffline = false);
-//         return;
-//     }
-//
-//     if (delayedWriteQueue.length === 0) {
-//         return;
-//     }
-//
-//     _.each(delayedWriteQueue, (delayedWriteRequest) => {
-//         request(delayedWriteRequest.command, delayedWriteRequest.data)
-//             .then(delayedWriteRequest.callback)
-//             .catch(() => {
-//                 // If the request failed, we need to put the request object back into the queue
-//                 delayedWriteQueue.push(delayedWriteRequest);
-//             });
-//     });
-// }
+function processWriteQueue() {
+    if (isAppOffline) {
+        // Make a simple request to see if we're online again
+        request('Get', null, 'get')
+            .then(() => isAppOffline = false);
+        return;
+    }
 
-// TODO: Figure out setInterval
+    if (delayedWriteQueue.length === 0) {
+        return;
+    }
+
+    for (let i = 0; i < delayedWriteQueue.length; i++) {
+        // Take the request object out of the queue and make the request
+        const delayedWriteRequest = delayedWriteQueue.shift();
+
+        request(delayedWriteRequest.command, delayedWriteRequest.data)
+            .then(delayedWriteRequest.callback)
+            .catch(() => {
+                // If the request failed, we need to put the request object back into the queue
+                delayedWriteQueue.push(delayedWriteRequest);
+            });
+    }
+}
+
 // Process our write queue very often
-// setInterval(processWriteQueue, 1000);
+setInterval(processWriteQueue, 1000);
 
-export {request, delayedWrite};
+export {
+    request,
+    delayedWrite,
+};
