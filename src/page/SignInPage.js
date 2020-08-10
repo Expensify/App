@@ -18,6 +18,7 @@ class App extends Component {
         this.state = {
             login: '',
             password: '',
+            twoFactorAuthCode: '',
         };
     }
 
@@ -44,9 +45,18 @@ class App extends Component {
                         />
                     </View>
                     <View>
+                        <Text>Two Factor Code:</Text>
+                        <TextInput
+                            style={{height: 40, borderColor: 'black', borderWidth: 2}}
+                            value={this.state.twoFactorAuthCode}
+                            placeholder="Required when 2FA is enabled"
+                            onChangeText={text => this.setState({twoFactorAuthCode: text})}
+                        />
+                    </View>
+                    <View>
                         <Button
                             title="Log In"
-                            onPress={() => signIn(this.state.login, this.state.password, true)}
+                            onPress={() => signIn(this.state.login, this.state.password, this.state.twoFactorAuthCode, true)}
                         />
                         {this.state.error && (
                             <Text style={{color: 'red'}}>
