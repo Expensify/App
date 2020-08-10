@@ -62,7 +62,6 @@ function updateReportWithNewAction(reportID, reportAction) {
  * @returns {boolean}
  */
 function hasUnreadHistoryItems(accountID, report) {
-    console.log('hasUnreadHistoryItems', accountID, report);
     const usersLastReadActionID = report.reportNameValuePairs[`lastReadActionID_${accountID}`];
     if (!usersLastReadActionID || report.reportActionList.length === 0) {
         return false;
