@@ -33,7 +33,13 @@ function request(command, data, type = 'post') {
             console.info('[API] Error', responseData);
         })
         // eslint-disable-next-line no-unused-vars
-        .catch(() => isAppOffline = true);
+        .catch(() => {
+            isAppOffline = true;
+
+            // Throw a new error to prevent any other `then()` in the promise chain from being triggered (until another
+            // catch() happens
+            throw new Error('API is offline');
+        });
 }
 
 // Holds a queue of all the write requests that need to happen
@@ -63,7 +69,7 @@ function delayedWrite(command, data) {
 function processWriteQueue() {
     if (isAppOffline) {
         // Make a simple request to see if we're online again
-        request('Get', null, 'get')
+        request('Get', null)
             .then(() => isAppOffline = false);
         return;
     }
