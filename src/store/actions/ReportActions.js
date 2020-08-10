@@ -49,7 +49,9 @@ function updateReportWithNewAction(reportID, reportAction) {
             }
             return reportHistory;
         })
-        .then(reportHistory => Store.set(`${STOREKEYS.REPORT}_${reportID}_history`, reportHistory.sort(sortReportActions)));
+        .then((reportHistory) => {
+            Store.set(`${STOREKEYS.REPORT}_${reportID}_history`, reportHistory.sort(sortReportActions));
+        });
 }
 
 /**
@@ -83,9 +85,12 @@ function hasUnreadHistoryItems(accountID, report) {
  */
 function initPusher() {
     return Store.get(STOREKEYS.SESSION, 'accountID')
-        .then(accountID => pusher.subscribe(`private-user-accountID-${accountID}`, 'reportComment', (pushJSON) => {
-            updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
-        }));
+        .then((accountID) => {
+            const pusherChannelName = `private-user-accountID-${accountID}`;
+            pusher.subscribe(pusherChannelName, 'reportComment', (pushJSON) => {
+                updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
+            });
+        });
 }
 
 /**
