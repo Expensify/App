@@ -62,20 +62,24 @@ function updateReportWithNewAction(reportID, reportAction) {
  * @returns {boolean}
  */
 function hasUnreadHistoryItems(accountID, report) {
+    console.log('hasUnreadHistoryItems', accountID, report);
     const usersLastReadActionID = report.reportNameValuePairs[`lastReadActionID_${accountID}`];
     if (!usersLastReadActionID || report.reportActionList.length === 0) {
         return false;
     }
 
     // Find the most recent sequence number from the report history
-    const highestSequenceNumber = _.chain(report.reportActionList)
-        .sort(sortReportActions)
+    const lastReportAction = _.chain(report.reportActionList)
+        .sortBy(sortReportActions)
         .last()
-        .property('sequenceNumber')
         .value();
 
+    if (!lastReportAction) {
+        return false;
+    }
+
     // There are unread items if the last one the user has read is less than the highest sequence number we have
-    return usersLastReadActionID < highestSequenceNumber;
+    return usersLastReadActionID < lastReportAction.sequenceNumber;
 }
 
 /**
