@@ -50,10 +50,10 @@ class SidebarLink extends React.Component {
         return (
             <View style={linkWrapperActiveStyle}>
                 <Link to={`/${this.props.reportID}`} style={linkActiveStyle}>
-                    <View>
-                        <Text style={textActiveStyle}>{this.props.reportName}</Text>
+                    <View style={[styles.flexRow]}>
+                        <Text style={[textActiveStyle, styles.flex1]}>{this.props.reportName}</Text>
                         {this.state.isUnread && (
-                            <Text style={textActiveStyle}>- Unread</Text>
+                            <View style={styles.unreadBadge} />
                         )}
                     </View>
                 </Link>

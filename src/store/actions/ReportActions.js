@@ -68,14 +68,17 @@ function hasUnreadHistoryItems(accountID, report) {
     }
 
     // Find the most recent sequence number from the report history
-    const highestSequenceNumber = _.chain(report.reportActionList)
-        .sort(sortReportActions)
+    const lastReportAction = _.chain(report.reportActionList)
+        .sortBy(sortReportActions)
         .last()
-        .property('sequenceNumber')
         .value();
 
+    if (!lastReportAction) {
+        return false;
+    }
+
     // There are unread items if the last one the user has read is less than the highest sequence number we have
-    return usersLastReadActionID < highestSequenceNumber;
+    return usersLastReadActionID < lastReportAction.sequenceNumber;
 }
 
 /**
@@ -127,7 +130,7 @@ function fetchAll() {
     if (CONFIG.IS_IN_PRODUCTION) {
         return request('Get', {
             returnValueList: 'reportStuff',
-            reportIDList: '63212778,63212795,63212764,63212607',
+            reportIDList: '63212778,63212795,63212764,63212607,63699490',
             shouldLoadOptionalKeys: true,
         })
             .then((data) => {

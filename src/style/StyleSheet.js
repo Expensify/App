@@ -110,6 +110,13 @@ const styles = {
         borderWidth: 1,
         padding: 10,
     },
+    unreadBadge: {
+        backgroundColor: '#dc3545',
+        borderRadius: 15,
+        height: 10,
+        marginTop: 3,
+        width: 10,
+    },
 };
 
 export default styles;
