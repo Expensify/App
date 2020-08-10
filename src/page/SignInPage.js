@@ -56,7 +56,8 @@ class App extends Component {
                     <View>
                         <Button
                             title="Log In"
-                            onPress={() => signIn(this.state.login, this.state.password, this.state.twoFactorAuthCode, true)}
+                            onPress={() => signIn(this.state.login, this.state.password,
+                                this.state.twoFactorAuthCode, true)}
                         />
                         {this.state.error && (
                             <Text style={{color: 'red'}}>
