@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text, Image} from 'react-native';
+import {View, Image} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ReportHistoryPropsTypes from './ReportHistoryPropsTypes';
@@ -14,42 +14,40 @@ const propTypes = {
     historyItem: PropTypes.shape(ReportHistoryPropsTypes).isRequired,
 };
 
-class ReportHistoryItemSingle extends React.Component {
-    render() {
-        const {historyItem} = this.props;
-        const avatarUrl = historyItem.automatic
-            ? `${CONST.CLOUDFRONT_URL}/images/icons/concierge_2019.svg`
-            : historyItem.avatar;
-        return (
-            <View style={[styles.flexRow, styles.mt2]}>
-                <View style={[styles.historyItemAvatarWrapper]}>
-                    <Image
-                        source={{uri: avatarUrl}}
-                        style={[styles.historyItemAvatar]}
-                    />
-                </View>
-                <View style={[styles.historyItemMessageWrapper]}>
-                    <View style={[styles.flexRow]}>
-                        <View style={[styles.p1]}>
-                            {historyItem.person.map(fragment => (
-                                <ReportHistoryItemFragment
-                                    key={_.uniqueId('person-', historyItem.sequenceNumber)}
-                                    fragment={fragment}
-                                />
-                            ))}
-                        </View>
-                        <View style={[styles.p1]}>
-                            <ReportHistoryItemDate timestamp={historyItem.timestamp} />
-                        </View>
+const ReportHistoryItemSingle = ({historyItem}) => {
+    const avatarUrl = historyItem.automatic
+        ? `${CONST.CLOUDFRONT_URL}/images/icons/concierge_2019.svg`
+        : historyItem.avatar;
+    return (
+        <View style={[styles.flexRow, styles.mt2]}>
+            <View style={[styles.historyItemAvatarWrapper]}>
+                <Image
+                    source={{uri: avatarUrl}}
+                    style={[styles.historyItemAvatar]}
+                />
+            </View>
+            <View style={[styles.historyItemMessageWrapper]}>
+                <View style={[styles.flexRow]}>
+                    <View style={[styles.p1]}>
+                        {historyItem.person.map(fragment => (
+                            <ReportHistoryItemFragment
+                                key={_.uniqueId('person-', historyItem.sequenceNumber)}
+                                fragment={fragment}
+                            />
+                        ))}
                     </View>
                     <View style={[styles.p1]}>
-                        <ReportHistoryItemMessage historyItem={historyItem} />
+                        <ReportHistoryItemDate timestamp={historyItem.timestamp} />
                     </View>
                 </View>
+                <View style={[styles.p1]}>
+                    <ReportHistoryItemMessage historyItem={historyItem} />
+                </View>
             </View>
-        );
-    }
-}
+        </View>
+    );
+};
+
 ReportHistoryItemSingle.propTypes = propTypes;
 
 export default ReportHistoryItemSingle;

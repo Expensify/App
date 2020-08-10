@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
-import {Beforeunload} from 'react-beforeunload';
+
+// import {Beforeunload} from 'react-beforeunload';
 import SignInPage from './page/SignInPage';
 import HomePage from './page/HomePage/HomePage';
 import * as Store from './store/Store';
@@ -20,18 +21,20 @@ Store.init();
 class Expensify extends Component {
     render() {
         return (
+
             // TODO: Mobile does not support Beforeunload
             // <Beforeunload onBeforeunload={ActiveClientManager.removeClient}>
-                <Router>
-                    {/* If there is ever a property for redirecting, we do the redirect here */}
-                    {this.state && this.state.redirectTo && <Redirect to={this.state.redirectTo} />}
+            <Router>
+                {/* If there is ever a property for redirecting, we do the redirect here */}
+                {this.state && this.state.redirectTo && <Redirect to={this.state.redirectTo} />}
 
-                    <Switch>
-                        <Route path="/signin" component={SignInPage} />
-                        <Route path="/" component={HomePage} />
-                    </Switch>
-                </Router>
-            // </Beforeunload>
+                <Switch>
+                    <Route path="/signin" component={SignInPage} />
+                    <Route path="/" component={HomePage} />
+                </Switch>
+            </Router>
+
+        // </Beforeunload>
         );
     }
 }
