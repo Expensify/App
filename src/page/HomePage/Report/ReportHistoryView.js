@@ -22,7 +22,7 @@ class ReportHistoryView extends React.Component {
     constructor(props) {
         super(props);
 
-        this.recordMaxVisibleAction = _.debounce(this.recordMaxVisibleAction.bind(this), 1000, true);
+        this.recordlastReadActionID = _.debounce(this.recordlastReadActionID.bind(this), 1000, true);
     }
 
     componentDidMount() {
@@ -93,9 +93,37 @@ class ReportHistoryView extends React.Component {
         return currentAction.actorEmail === previousAction.actorEmail;
     }
 
-    recordMaxVisibleAction(maxVisibleSequenceNumber) {
+    /**
+     * When the bottom of the list is reached, this is triggered, so it's a little different than recording the max
+     * action when scrolled
+     */
+    recordMaxAction() {
+        const reportHistory = lodashGet(this.state, 'reportHistory', []);
+        const maxVisibleSequenceNumber = _.chain(reportHistory)
+            .pluck('sequenceNumber')
+            .max()
+            .value();
+        this.recordlastReadActionID(maxVisibleSequenceNumber);
+    }
+
+    /**
+     * Takes a max seqNum and if it's greater than the last read action, then make a request to the API to
+     * update the report
+     *
+     * @param {number} maxVisibleSequenceNumber
+     */
+    recordlastReadActionID(maxSequenceNumber) {
+        let myAccountID;
         Store.get(STOREKEYS.SESSION, 'accountID')
-            .then(accountID => updateLastReadActionID(accountID, this.props.reportID, maxVisibleSequenceNumber));
+            .then((accountID) => {
+                myAccountID = accountID;
+                return Store.get(`${STOREKEYS.REPORT}_${this.props.reportID}`, `reportNameValuePairs.lastReadActionID_${accountID}`, 0)
+            })
+            .then((lastReadActionID) => {
+                if (maxSequenceNumber > lastReadActionID) {
+                    updateLastReadActionID(myAccountID, this.props.reportID, maxSequenceNumber);
+                }
+            });
     }
 
     render() {
@@ -107,7 +135,6 @@ class ReportHistoryView extends React.Component {
 
         return (
             <VirtualizedList
-                ref={el => this.reportHistoryList = el}
                 data={filteredHistory.reverse()}
                 getItemCount={() => filteredHistory.length}
                 getItem={(data, index) => filteredHistory[index]}
@@ -128,8 +155,9 @@ class ReportHistoryView extends React.Component {
                         .pluck('sequenceNumber')
                         .max()
                         .value();
-                    this.recordMaxVisibleAction(maxVisibleSequenceNumber);
+                    this.recordlastReadActionID(maxVisibleSequenceNumber);
                 }}
+                onEndReached={() => this.recordMaxAction()}
 
                 // We have to return a string for the key or else FlatList throws an error
                 keyExtractor={reportHistoryItem => `${reportHistoryItem.sequenceNumber}`}
