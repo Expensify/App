@@ -111,7 +111,7 @@ const styles = {
         padding: 10,
     },
     unreadBadge: {
-        background: '#dc3545',
+        backgroundColor: '#dc3545',
         borderRadius: 15,
         height: 10,
         marginTop: 3,
