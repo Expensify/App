@@ -32,6 +32,10 @@ function fetch() {
     let currentLogin;
     const requestPromise = Store.get(STOREKEYS.SESSION, 'email')
         .then((login) => {
+            if (!login) {
+                throw Error('No login');
+            }
+
             currentLogin = login;
             return request('Get', {
                 returnValueList: 'personalDetailsList',
@@ -59,11 +63,19 @@ function fetch() {
                     }
                 };
             }, {});
-            const myPersonalDetails = allPersonalDetails[currentLogin];
+            const myPersonalDetails = allPersonalDetails[currentLogin] || {};
             return Store.multiSet({
                 [STOREKEYS.PERSONAL_DETAILS]: allPersonalDetails,
                 [STOREKEYS.MY_PERSONAL_DETAILS]: myPersonalDetails,
             });
+        })
+        .catch((error) => {
+            if (error.message === 'No login') {
+                console.info('No email in store, not fetching personal details.');
+                return;
+            }
+
+            console.error('Error fetching personal details', error);
         });
 
     // Refresh the personal details every 30 minutes
