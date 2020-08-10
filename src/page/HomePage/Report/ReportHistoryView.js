@@ -3,7 +3,8 @@ import {Text, VirtualizedList} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
-import {fetchHistory} from '../../../store/actions/ReportActions';
+import * as Store from '../../../store/Store';
+import {fetchHistory, updateLastReadActionID} from '../../../store/actions/ReportActions';
 import WithStore from '../../../components/WithStore';
 import STOREKEYS from '../../../store/STOREKEYS';
 import ReportHistoryItem from './ReportHistoryItem';
@@ -20,6 +21,8 @@ const propTypes = {
 class ReportHistoryView extends React.Component {
     constructor(props) {
         super(props);
+
+        this.recordlastReadActionID = _.debounce(this.recordlastReadActionID.bind(this), 1000, true);
     }
 
     componentDidMount() {
@@ -56,6 +59,7 @@ class ReportHistoryView extends React.Component {
                 key: `${STOREKEYS.REPORT}_${this.props.reportID}_history`,
                 loader: fetchHistory,
                 loaderParams: [this.props.reportID],
+                prefillWithKey: `${STOREKEYS.REPORT}_${this.props.reportID}_history`,
             }
         }, this);
     }
@@ -89,6 +93,40 @@ class ReportHistoryView extends React.Component {
         return currentAction.actorEmail === previousAction.actorEmail;
     }
 
+    /**
+     * When the bottom of the list is reached, this is triggered, so it's a little different than recording the max
+     * action when scrolled
+     */
+    recordMaxAction() {
+        const reportHistory = lodashGet(this.state, 'reportHistory', []);
+        const maxVisibleSequenceNumber = _.chain(reportHistory)
+            .pluck('sequenceNumber')
+            .max()
+            .value();
+        this.recordlastReadActionID(maxVisibleSequenceNumber);
+    }
+
+    /**
+     * Takes a max seqNum and if it's greater than the last read action, then make a request to the API to
+     * update the report
+     *
+     * @param {number} maxSequenceNumber
+     */
+    recordlastReadActionID(maxSequenceNumber) {
+        let myAccountID;
+        Store.get(STOREKEYS.SESSION, 'accountID')
+            .then((accountID) => {
+                myAccountID = accountID;
+                const path = `reportNameValuePairs.lastReadActionID_${accountID}`;
+                return Store.get(`${STOREKEYS.REPORT}_${this.props.reportID}`, path, 0);
+            })
+            .then((lastReadActionID) => {
+                if (maxSequenceNumber > lastReadActionID) {
+                    updateLastReadActionID(myAccountID, this.props.reportID, maxSequenceNumber);
+                }
+            });
+    }
+
     render() {
         const filteredHistory = this.getFilteredReportHistory();
 
@@ -98,7 +136,6 @@ class ReportHistoryView extends React.Component {
 
         return (
             <VirtualizedList
-                ref={el => this.reportHistoryList = el}
                 data={filteredHistory.reverse()}
                 getItemCount={() => filteredHistory.length}
                 getItem={(data, index) => filteredHistory[index]}
@@ -110,6 +147,18 @@ class ReportHistoryView extends React.Component {
                         displayAsGroup={this.isConsecutiveHistoryItemMadeByPreviousActor(index)}
                     />
                 )}
+                viewabilityConfig={{
+                    itemVisiblePercentThreshold: 100,
+                }}
+                onViewableItemsChanged={({viewableItems}) => {
+                    const maxVisibleSequenceNumber = _.chain(viewableItems)
+                        .pluck('item')
+                        .pluck('sequenceNumber')
+                        .max()
+                        .value();
+                    this.recordlastReadActionID(maxVisibleSequenceNumber);
+                }}
+                onEndReached={() => this.recordMaxAction()}
 
                 // We have to return a string for the key or else FlatList throws an error
                 keyExtractor={reportHistoryItem => `${reportHistoryItem.sequenceNumber}`}
