@@ -24,6 +24,9 @@ const styles = {
     flexColumn: {
         flexDirection: 'column',
     },
+    flexWrap: {
+        flexWrap: 'wrap'
+    },
     flexGrow1: {
         flexGrow: 1,
     },
@@ -42,18 +45,21 @@ const styles = {
         padding: 8,
     },
     sidebarLink: {
-        // TODO: Mobile does not support rem values
-        // padding: '.5rem 1rem',
+        paddingTop: 4,
+        paddingRight: 8,
+        paddingBottom: 4,
+        paddingLeft: 8,
         textDecorationLine: 'none',
     },
     sidebarLinkActive: {
         backgroundColor: '#007bff',
-        // TODO: Mobile does not support rem values
-        // borderRadius: '.25rem',
+        borderRadius: 4,
     },
     sidebarLinkActiveAnchor: {
-        // TODO: Mobile does not support rem values
-        // padding: '.5rem 1rem',
+        paddingTop: 4,
+        paddingRight: 8,
+        paddingBottom: 4,
+        paddingLeft: 8,
         textDecorationLine: 'none',
     },
     sidebarLinkText: {
