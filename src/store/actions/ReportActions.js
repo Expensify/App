@@ -1,4 +1,4 @@
-/* globals moment */
+import moment from 'moment';
 import _ from 'underscore';
 import * as Store from '../Store';
 import {request, delayedWrite} from '../../lib/Network';
@@ -6,9 +6,7 @@ import STOREKEYS from '../STOREKEYS';
 import ExpensiMark from '../../lib/ExpensiMark';
 import Guid from '../../lib/Guid';
 import CONFIG from '../../CONFIG';
-
-// @TODO implement pusher
-// import * as pusher from '../../lib/pusher';
+import * as pusher from '../../lib/Pusher/pusher';
 
 /**
  * Sorts the report actions so that the newest actions are at the bottom
@@ -85,12 +83,9 @@ function hasUnreadHistoryItems(accountID, report) {
  */
 function initPusher() {
     return Store.get(STOREKEYS.SESSION, 'accountID')
-        .then((accountID) => {
-            // @TODO: need to implement pusher
-            // return pusher.subscribe(`private-user-accountID-${accountID}`, 'reportComment', (pushJSON) => {
-            //     updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
-            // });
-        });
+        .then(accountID => pusher.subscribe(`private-user-accountID-${accountID}`, 'reportComment', (pushJSON) => {
+            updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
+        }));
 }
 
 /**
