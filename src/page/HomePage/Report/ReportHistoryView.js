@@ -56,6 +56,7 @@ class ReportHistoryView extends React.Component {
                 key: `${STOREKEYS.REPORT}_${this.props.reportID}_history`,
                 loader: fetchHistory,
                 loaderParams: [this.props.reportID],
+                prefillWithKey: `${STOREKEYS.REPORT}_${this.props.reportID}_history`,
             }
         }, this);
     }
