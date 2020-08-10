@@ -149,7 +149,8 @@ function subscribe(channelName, eventName, eventCallback = () => {}, isChunked =
     return new Promise((resolve, reject) => {
     // We cannot call subscribe() before init(). Prevent any attempt to do this on dev.
         if (!socket) {
-            throw new Error('[Pusher] instance not found. Pusher.subscribe() most likely has been called before Pusher.init()');
+            throw new Error(`[Pusher] instance not found. Pusher.subscribe() 
+            most likely has been called before Pusher.init()`);
         }
 
         console.debug('[Pusher] Attempting to subscribe to channel', true, {channelName, eventName});
@@ -210,7 +211,8 @@ function unsubscribe(channelName, eventName = '') {
     const channel = getChannel(channelName);
 
     if (!channel) {
-        console.debug('[Pusher] Attempted to unsubscribe or unbind from a channel, but Pusher-JS has no knowledge of it', 0, {channelName, eventName});
+        console.debug(`[Pusher] Attempted to unsubscribe or unbind from a channel, 
+        but Pusher-JS has no knowledge of it`, 0, {channelName, eventName});
         return;
     }
 
@@ -220,7 +222,8 @@ function unsubscribe(channelName, eventName = '') {
     } else {
         if (!channel.subscribed) {
             // eslint-disable-next-line no-console
-            console.warn('[Pusher] Attempted to unsubscribe from channel, but we are not subscribed to begin with', 0, {channelName});
+            console.warn(`[Pusher] Attempted to unsubscribe from channel, 
+            but we are not subscribed to begin with`, 0, {channelName});
             return;
         }
 
