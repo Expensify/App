@@ -89,11 +89,6 @@ function keyChanged(key, data) {
  * @returns {Promise}
  */
 function set(key, val) {
-    if (val === undefined) {
-        console.warn(`Value for key ${key} is undefined, returning early.`);
-        return;
-    }
-
     // Write the thing to persistent storage, which will trigger a storage event for any other tabs open on this domain
     return AsyncStorage.setItem(key, JSON.stringify(val))
         .then(() => {
