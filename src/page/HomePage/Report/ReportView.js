@@ -7,6 +7,8 @@ import WithStore from '../../../components/WithStore';
 import STOREKEYS from '../../../store/STOREKEYS';
 import styles from '../../../style/StyleSheet';
 import ReportHistoryView from './ReportHistoryView';
+import ReportHistoryCompose from './ReportHistoryCompose';
+import {addHistoryItem} from '../../../store/actions/ReportActions';
 
 const propTypes = {
     // These are from WithStore
@@ -58,6 +60,7 @@ class ReportView extends React.Component {
             <View style={styles.flex1}>
                 <Route path="/:reportID" exact>
                     <ReportHistoryView reportID={this.props.match.params.reportID} />
+                    <ReportHistoryCompose onSubmit={text => addHistoryItem(this.props.match.params.reportID, text)} />
                 </Route>
             </View>
         );

@@ -1,5 +1,5 @@
 import React from 'react';
-import {Text, View} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import PropTypes from 'prop-types';
 import ReportHistoryItemSingle from './ReportHistoryItemSingle';
 import ReportHistoryPropsTypes from './ReportHistoryPropsTypes';
@@ -21,7 +21,7 @@ class ReportHistoryItem extends React.Component {
             <View>
                 {!this.props.displayAsGroup && <ReportHistoryItemSingle historyItem={this.props.historyItem} />}
                 {this.props.displayAsGroup && <ReportHistoryItemGrouped historyItem={this.props.historyItem} />}
-                {this.props.historyItem.tempGuid && <Text>pending...</Text>}
+                {this.props.historyItem.tempGuid && <ActivityIndicator type="small" color="#7d8b8f" />}
             </View>
         );
     }
