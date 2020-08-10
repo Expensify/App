@@ -82,7 +82,7 @@ class ReportHistoryCompose extends React.Component {
                     ref={el => this.textInput = el}
                     multiline
                     textAlignVertical
-                    numberOfLines="3"
+                    numberOfLines={3}
                     onChange={this.updateComment}
                     onKeyPress={this.triggerSubmitShortcut}
                     style={[styles.textInput]}
