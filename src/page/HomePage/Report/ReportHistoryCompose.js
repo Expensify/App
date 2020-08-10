@@ -32,11 +32,11 @@ class ReportHistoryCompose extends React.Component {
     /**
      * Update the value of the comment input in the state
      *
-     * @param {SyntheticEvent} e
+     * @param {string} newComment
      */
-    updateComment(e) {
+    updateComment(newComment) {
         this.setState({
-            comment: e.target.value,
+            comment: newComment,
         });
     }
 
@@ -85,7 +85,7 @@ class ReportHistoryCompose extends React.Component {
                     numberOfLines={3}
                     minHeight={60}
                     maxHeight={60}
-                    onChange={this.updateComment}
+                    onChangeText={this.updateComment}
                     onKeyPress={this.triggerSubmitShortcut}
                     style={[styles.textInput]}
                     value={this.state.comment}
