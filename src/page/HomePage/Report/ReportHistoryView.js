@@ -22,7 +22,7 @@ class ReportHistoryView extends React.Component {
     constructor(props) {
         super(props);
 
-        this.recordMaxVisibleAction = _.debounce(this.recordMaxVisibleAction.bind(this), 1000);
+        this.recordMaxVisibleAction = _.debounce(this.recordMaxVisibleAction.bind(this), 1000, true);
     }
 
     componentDidMount() {
