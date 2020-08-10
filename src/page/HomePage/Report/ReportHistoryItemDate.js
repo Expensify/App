@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {Text} from 'react-native';
 import DateUtils from '../../../lib/DateUtils';
+import styles from '../../../style/StyleSheet';
 
 const propTypes = {
     // UTC timestamp for when the action was created
@@ -11,7 +12,7 @@ const propTypes = {
 class ReportHistoryItemDate extends React.Component {
     render() {
         return (
-            <Text className="chat-item__date">
+            <Text style={[styles.historyItemHeaderTimestamp]}>
                 {DateUtils.timestampToRelative(this.props.timestamp)}
             </Text>
         );

@@ -6,6 +6,9 @@ const styles = {
     ml1: {
         marginLeft: 10,
     },
+    mt2: {
+        marginTop: 20,
+    },
     p1: {
         padding: 10,
     },
@@ -67,6 +70,25 @@ const styles = {
     },
     sidebarLinkActiveText: {
         color: '#ffffff',
+    },
+
+    // History Items
+    historyItemAvatarWrapper: {
+        width: 40,
+    },
+    historyItemMessageWrapper: {
+        flexGrow: 1,
+    },
+    historyItemAvatar: {
+        borderRadius: '50%',
+        height: 40,
+        width: 40,
+        lineHeight: 40,
+    },
+    historyItemHeaderTimestamp: {
+        color: '#7d8b8f',
+        fontSize: 10,
+        lineHeight: 15,
     },
 };
 
