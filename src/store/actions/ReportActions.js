@@ -130,7 +130,7 @@ function fetchAll() {
     if (CONFIG.IS_IN_PRODUCTION) {
         return request('Get', {
             returnValueList: 'reportStuff',
-            reportIDList: '63212778,63212795,63212764,63212607',
+            reportIDList: '63212778,63212795,63212764,63212607,63699490',
             shouldLoadOptionalKeys: true,
         })
             .then((data) => {
