@@ -1,5 +1,5 @@
 import React from 'react';
-import {Text, FlatList} from 'react-native';
+import {Text, VirtualizedList} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
@@ -18,6 +18,12 @@ const propTypes = {
 };
 
 class ReportHistoryView extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.scrollToBottom = this.scrollToBottom.bind(this);
+    }
+
     componentDidMount() {
         this.bindToStore();
     }
@@ -54,9 +60,14 @@ class ReportHistoryView extends React.Component {
                 loaderParams: [this.props.reportID],
             }
         }, this);
+    }
 
+    scrollToBottom() {
         if (this.reportHistoryList) {
             this.reportHistoryList.scrollToEnd();
+
+            // Scroll to the bottom again because sometimes it doesn't scroll all the way to the bottom the first time
+            setTimeout(this.scrollToBottom, 250);
         }
     }
 
@@ -95,11 +106,15 @@ class ReportHistoryView extends React.Component {
         if (filteredHistory.length === 0) {
             return <Text>Be the first person to comment!</Text>;
         }
+        this.scrollToBottom();
 
         return (
-            <FlatList
+            <VirtualizedList
                 ref={el => this.reportHistoryList = el}
                 data={filteredHistory}
+                getItemCount={() => filteredHistory.length}
+                getItem={(data, index) => filteredHistory[index]}
+                initialNumToRender="10"
                 renderItem={({index, item}) => (
                     <ReportHistoryItem
                         historyItem={item}

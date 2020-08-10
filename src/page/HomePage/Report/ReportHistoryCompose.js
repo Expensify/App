@@ -62,6 +62,13 @@ class ReportHistoryCompose extends React.Component {
         if (e) {
             e.preventDefault();
         }
+
+        // Don't submit empty commentes
+        // @TODO show an error in the UI
+        if (!this.state.comment) {
+            return;
+        }
+
         this.props.onSubmit(this.state.comment);
         this.setState({
             comment: '',
@@ -79,6 +86,7 @@ class ReportHistoryCompose extends React.Component {
                     onChange={this.updateComment}
                     onKeyPress={this.triggerSubmitShortcut}
                     style={[styles.textInput]}
+                    value={this.state.comment}
                 />
                 <View style={[styles.mt1, styles.flexRow]}>
                     <Button title="Send" onPress={this.submitForm} />
