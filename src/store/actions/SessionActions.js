@@ -52,10 +52,11 @@ function setSuccessfulSignInData(data) {
  *
  * @param {string} login
  * @param {string} password
+ * @param {string} twoFactorAuthCode
  * @param {boolean} useExpensifyLogin
  * @returns {Promise}
  */
-function signIn(login, password, useExpensifyLogin = false) {
+function signIn(login, password, twoFactorAuthCode = '', useExpensifyLogin = false) {
     console.debug('[SIGNIN] Authenticating with expensify login?', useExpensifyLogin ? 'yes' : 'no');
     let authToken;
     return request('Authenticate', {
@@ -64,6 +65,7 @@ function signIn(login, password, useExpensifyLogin = false) {
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         partnerUserID: login,
         partnerUserSecret: password,
+        twoFactorAuthCode
     })
         .then((data) => {
             console.debug('[SIGNIN] Authentication result. Code:', data.jsonCode);
@@ -91,7 +93,7 @@ function signIn(login, password, useExpensifyLogin = false) {
             }
 
             console.debug('[SIGNIN] Successful sign in', 1);
-            return setSuccessfulSignInData();
+            return setSuccessfulSignInData(data);
         })
         .then(() => authToken)
         .catch((err) => {
