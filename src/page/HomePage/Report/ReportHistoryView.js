@@ -21,7 +21,7 @@ class ReportHistoryView extends React.Component {
     constructor(props) {
         super(props);
 
-        this.scrollToBottom = this.scrollToBottom.bind(this);
+        this.scrollToBottom = _.debounce(this.scrollToBottom.bind(this), 500);
     }
 
     componentDidMount() {
@@ -60,6 +60,7 @@ class ReportHistoryView extends React.Component {
                 loaderParams: [this.props.reportID],
             }
         }, this);
+        this.scrollToBottom();
     }
 
     scrollToBottom() {
@@ -69,7 +70,7 @@ class ReportHistoryView extends React.Component {
             });
 
             // Scroll to the bottom again because sometimes it doesn't scroll all the way to the bottom the first time
-            setTimeout(this.scrollToBottom, 250);
+            // setTimeout(this.scrollToBottom, 250);
         }
     }
 
@@ -108,7 +109,6 @@ class ReportHistoryView extends React.Component {
         if (filteredHistory.length === 0) {
             return <Text>Be the first person to comment!</Text>;
         }
-        this.scrollToBottom();
 
         return (
             <VirtualizedList
