@@ -30,6 +30,9 @@ class ReportHistoryView extends React.Component {
         }
     }
 
+    /**
+     * Binds this component to the store (needs to be done every time the props change)
+     */
     bindToStore() {
         // Bind this.state.reportHistory to the history in the store
         // and call fetchHistory to load it with data
@@ -42,22 +45,55 @@ class ReportHistoryView extends React.Component {
         }, this);
     }
 
-    render() {
+    getFilteredReportHistory() {
         const reportHistory = lodashGet(this.state, 'reportHistory');
 
-        // Only display the history items that are comments
-        const filteredHistory = _.filter(reportHistory, historyItem => historyItem.actionName === 'ADDCOMMENT');
+        // Only return comments
+        return _.filter(reportHistory, historyItem => historyItem.actionName === 'ADDCOMMENT')
+    }
 
+    /**
+     * Returns true when the report action immediately before the
+     * specified index is a comment made by the same actor who who
+     * is leaving a comment in the action at the specified index.
+     * Also checks to ensure that the comment is not too old to
+     * be considered part of the same comment
+     *
+     * @param {Number} historyItemIndex - index of the comment item in state to check
+     *
+     * @return {Boolean}
+     */
+    isConsecutiveHistoryItemMadeByPreviousActor(historyItemIndex) {
+        const filteredHistory = this.getFilteredReportHistory();
+
+        // This is the created action and the very first action so it cannot be a consecutive comment.
+        if (historyItemIndex === 0) {
+            return false;
+        }
+
+        const previousAction = filteredHistory[historyItemIndex - 1];
+        const currentAction = filteredHistory[historyItemIndex];
+
+        if (currentAction.timestamp - previousAction.timestamp > 300) {
+            return false;
+        }
+
+        return currentAction.actorEmail === previousAction.actorEmail;
+    }
+
+    render() {
+        const filteredHistory = this.getFilteredReportHistory();
         return (
             <View style={styles.flexColumn}>
                 {filteredHistory.length === 0 && (
                     <Text>Be the first person to comment!</Text>
                 )}
                 {filteredHistory.length > 0
-                && _.map(filteredHistory, reportHistoryItem => (
+                && _.map(filteredHistory, (reportHistoryItem, i) => (
                     <ReportHistoryItem
                         key={reportHistoryItem.sequenceNumber}
                         historyItem={reportHistoryItem}
+                        displayAsGroup={this.isConsecutiveHistoryItemMadeByPreviousActor(i)}
                     />
                 ))}
             </View>

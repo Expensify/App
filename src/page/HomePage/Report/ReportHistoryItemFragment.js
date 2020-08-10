@@ -2,6 +2,7 @@ import React from 'react';
 import {Text} from 'react-native';
 import Str from '../../../lib/Str';
 import ReportHistoryFragmentPropTypes from './ReportHistoryFragmentPropTypes';
+import styles from '../../../style/StyleSheet';
 
 const propTypes = {
     // The message fragment needing to be displayed
@@ -29,7 +30,7 @@ const ReportHistoryItemFragment = ({fragment}) => {
             //     )
             //     : <Text>{Str.htmlDecode(fragment.text)}</Text>;
         case 'TEXT':
-            return <Text className={styleClass}>{Str.htmlDecode(fragment.text)}</Text>;
+            return <Text style={[styles.reportHistoryItemUserName]}>{Str.htmlDecode(fragment.text)}</Text>;
         case 'LINK':
             return <Text>LINK</Text>;
 
