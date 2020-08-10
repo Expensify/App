@@ -36,6 +36,9 @@ const styles = {
     flexGrow4: {
         flexGrow: 4,
     },
+    textLightGray: {
+        color: '#7d8b8f',
+    },
     nav: {
         backgroundColor: '#efefef',
         padding: 20,
@@ -76,6 +79,9 @@ const styles = {
     historyItemAvatarWrapper: {
         width: 40,
     },
+    historyItemAvatarWrapperGrouped: {
+        width: 40,
+    },
     historyItemMessageWrapper: {
         flexGrow: 1,
     },
@@ -89,6 +95,9 @@ const styles = {
         color: '#7d8b8f',
         fontSize: 10,
         lineHeight: 15,
+    },
+    reportHistoryItemUserName: {
+        fontWeight: 'bold',
     },
 };
 
