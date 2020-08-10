@@ -167,10 +167,10 @@ function fetchHistory(reportID) {
  * Add a history item to a report
  *
  * @param {string} reportID
- * @param {string} commentText
+ * @param {string} reportComment
  * @returns {Promise}
  */
-function addHistoryItem(reportID, commentText) {
+function addHistoryItem(reportID, reportComment) {
     const messageParser = new ExpensiMark();
     const guid = Guid();
     const historyKey = `${STOREKEYS.REPORT}_${reportID}_history`;
@@ -202,14 +202,14 @@ function addHistoryItem(reportID, commentText) {
                         }
                     ],
                     automatic: false,
-                    sequenceNumber: highestSequenceNumber++,
+                    sequenceNumber: ++highestSequenceNumber,
                     avatar: personalDetails.avatarURL,
-                    timestamp: moment.unix(),
+                    timestamp: moment().unix(),
                     message: [
                         {
                             type: 'COMMENT',
-                            html: messageParser.replace(commentText),
-                            text: commentText,
+                            html: messageParser.replace(reportComment),
+                            text: reportComment,
                         }
                     ],
                     isFirstItem: false,
@@ -219,7 +219,7 @@ function addHistoryItem(reportID, commentText) {
         })
         .then(() => delayedWrite('Report_AddComment', {
             reportID,
-            reportComment: commentText,
+            reportComment,
         }));
 }
 
