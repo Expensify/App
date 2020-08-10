@@ -89,10 +89,9 @@ const styles = {
         flexGrow: 1,
     },
     historyItemAvatar: {
-        borderRadius: '50%',
+        borderRadius: 20,
         height: 40,
         width: 40,
-        lineHeight: 40,
     },
     historyItemHeaderTimestamp: {
         color: '#7d8b8f',

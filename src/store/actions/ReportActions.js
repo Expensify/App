@@ -1,4 +1,4 @@
-/* globals moment */
+import moment from 'moment';
 import _ from 'underscore';
 import * as Store from '../Store';
 import {request, delayedWrite} from '../../lib/Network';
@@ -6,9 +6,7 @@ import STOREKEYS from '../STOREKEYS';
 import ExpensiMark from '../../lib/ExpensiMark';
 import Guid from '../../lib/Guid';
 import CONFIG from '../../CONFIG';
-
-// @TODO implement pusher
-// import * as pusher from '../../lib/pusher';
+import * as pusher from '../../lib/Pusher/pusher';
 
 /**
  * Sorts the report actions so that the newest actions are at the bottom
@@ -27,34 +25,32 @@ function sortReportActions(firstReport, secondReport) {
  * @param {string} reportID
  * @param {object} reportAction
  */
-// function updateReportWithNewAction(reportID, reportAction) {
-//     // Get the comments for this report, and add the comment (being sure to sort and filter properly)
-//     let foundExistingReportHistoryItem = false;
-//
-//     Store.get(`${STOREKEYS.REPORT}_${reportID}_history`)
-//
-//         // Use a reducer to replace an existing report history item if there is one
-//         .then(reportHistory => _.map(reportHistory, (reportHistoryItem) => {
-//             // If there is an existing reportHistoryItem, replace it
-//             if (reportHistoryItem.sequenceNumber === reportAction.sequenceNumber) {
-//                 foundExistingReportHistoryItem = true;
-//                 return reportAction;
-//             }
-//             return reportHistoryItem;
-//         }))
-//         .then((reportHistory) => {
-//             // If there was no existing history item,
-//             // add it to the report history and mark the report for having unread
-//             // items
-//             if (!foundExistingReportHistoryItem) {
-//                 reportHistory.push(reportAction);
-//                 Store.merge(`${STOREKEYS.REPORT}_${reportID}`, {hasUnread: true});
-//             }
-//             return reportHistory;
-//         })
-//         .then(reportHistory => Store.set(`${STOREKEYS.REPORT}_${reportID}_history`,
-//         reportHistory.sort(sortReportActions)));
-// }
+function updateReportWithNewAction(reportID, reportAction) {
+    // Get the comments for this report, and add the comment (being sure to sort and filter properly)
+    let foundExistingReportHistoryItem = false;
+
+    Store.get(`${STOREKEYS.REPORT}_${reportID}_history`)
+
+        // Use a reducer to replace an existing report history item if there is one
+        .then(reportHistory => _.map(reportHistory, (reportHistoryItem) => {
+            // If there is an existing reportHistoryItem, replace it
+            if (reportHistoryItem.sequenceNumber === reportAction.sequenceNumber) {
+                foundExistingReportHistoryItem = true;
+                return reportAction;
+            }
+            return reportHistoryItem;
+        }))
+        .then((reportHistory) => {
+            // If there was no existing history item, add it to the report history and mark the report for having unread
+            // items
+            if (!foundExistingReportHistoryItem) {
+                reportHistory.push(reportAction);
+                Store.merge(`${STOREKEYS.REPORT}_${reportID}`, {hasUnread: true});
+            }
+            return reportHistory;
+        })
+        .then(reportHistory => Store.set(`${STOREKEYS.REPORT}_${reportID}_history`, reportHistory.sort(sortReportActions)));
+}
 
 /**
  * Checks the report to see if there are any unread history items
@@ -87,12 +83,9 @@ function hasUnreadHistoryItems(accountID, report) {
  */
 function initPusher() {
     return Store.get(STOREKEYS.SESSION, 'accountID')
-        .then(() => {
-            // @TODO: need to implement pusher
-            // return pusher.subscribe(`private-user-accountID-${accountID}`, 'reportComment', (pushJSON) => {
-            //     updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
-            // });
-        });
+        .then(accountID => pusher.subscribe(`private-user-accountID-${accountID}`, 'reportComment', (pushJSON) => {
+            updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
+        }));
 }
 
 /**
@@ -137,7 +130,8 @@ function fetchAll() {
                 _.each(data.reportListBeta, report => fetch(report.reportID));
                 return data;
             })
-            .then(data => Store.set(STOREKEYS.REPORTS, _.values(data.reports)));
+            .then(data => Store.set(STOREKEYS.REPORTS, _.values(data.reports)))
+            .catch((error) => { console.log('Error fetching report actions', error); });
     }
 
     return request('Get', {
@@ -151,7 +145,8 @@ function fetchAll() {
             _.each(data.reportListBeta, report => fetch(report.reportID));
             return data;
         })
-        .then(data => Store.set(STOREKEYS.REPORTS, _.values(data.reportListBeta)));
+        .then(data => Store.set(STOREKEYS.REPORTS, _.values(data.reportListBeta)))
+        .catch((error) => { console.log('Error fetching report actions', error); });
 }
 
 /**
