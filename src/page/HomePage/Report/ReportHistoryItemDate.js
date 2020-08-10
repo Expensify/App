@@ -9,15 +9,11 @@ const propTypes = {
     timestamp: PropTypes.number.isRequired,
 };
 
-class ReportHistoryItemDate extends React.Component {
-    render() {
-        return (
-            <Text style={[styles.historyItemHeaderTimestamp]}>
-                {DateUtils.timestampToRelative(this.props.timestamp)}
-            </Text>
-        );
-    }
-}
+const ReportHistoryItemDate = props => (
+    <Text style={[styles.historyItemHeaderTimestamp]}>
+        {DateUtils.timestampToRelative(props.timestamp)}
+    </Text>
+);
 
 ReportHistoryItemDate.propTypes = propTypes;
 ReportHistoryItemDate.displayName = 'ReportHistoryItemDate';

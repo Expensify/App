@@ -7,7 +7,8 @@ export default PropTypes.shape({
     // The text content of the fragment.
     text: PropTypes.string.isRequired,
 
-    // Used to apply additional styling. Style refers to a predetermined constant and not a class name. e.g. 'normal' or 'strong'
+    // Used to apply additional styling. Style refers to a predetermined constant and not a class name. e.g. 'normal'
+    // or 'strong'
     style: PropTypes.string,
 
     // ID of a report
