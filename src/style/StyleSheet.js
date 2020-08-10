@@ -27,6 +27,9 @@ const styles = {
     flexColumn: {
         flexDirection: 'column',
     },
+    flexJustifyEnd: {
+        justifyContent: 'flex-end',
+    },
     flexWrap: {
         flexWrap: 'wrap'
     },
