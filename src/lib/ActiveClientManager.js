@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import Guid from './Guid';
 import * as Store from '../store/Store';
 import STOREKEYS from '../store/STOREKEYS';
@@ -6,33 +7,34 @@ const clientID = Guid();
 
 /**
  * Add our client ID to the list of active IDs
+ *
+ * @returns {Promise}
  */
-const init = async () => {
-    const activeClientIDs = (await Store.get(STOREKEYS.ACTIVE_CLIENT_IDS)) || [];
-    activeClientIDs.push(clientID);
-    Store.set(STOREKEYS.ACTIVE_CLIENT_IDS, activeClientIDs);
-};
+const init = () => Store.merge(STOREKEYS.ACTIVE_CLIENT_IDS, {clientID});
 
 /**
  * Remove this client ID from the array of active client IDs when this client is exited
+ *
+ * @returns {Promise}
  */
 function removeClient() {
-    const activeClientIDs = Store.get(STOREKEYS.ACTIVE_CLIENT_IDS) || [];
-    const newActiveClientIDs = activeClientIDs.filter(activeClientID => activeClientID !== clientID);
-    Store.set(STOREKEYS.ACTIVE_CLIENT_IDS, newActiveClientIDs);
+    return Store.get(STOREKEYS.ACTIVE_CLIENT_IDS)
+        .then(activeClientIDs => _.omit(activeClientIDs, clientID))
+        .then(newActiveClientIDs => Store.set(STOREKEYS.ACTIVE_CLIENT_IDS, newActiveClientIDs));
 }
 
 /**
  * Checks if the current client is the leader (the first one in the list of active clients)
  *
- * @returns {boolean}
+ * @returns {Promise}
  */
 function isClientTheLeader() {
-    const activeClientIDs = Store.get(STOREKEYS.ACTIVE_CLIENT_IDS) || [];
-    if (!activeClientIDs.length) {
-        return false;
-    }
-    return activeClientIDs[0] === clientID;
+    return Store.get(STOREKEYS.ACTIVE_CLIENT_IDS)
+        .then(activeClientIDs => _.first(activeClientIDs) === clientID);
 }
 
-export {init, removeClient, isClientTheLeader};
+export {
+    init,
+    removeClient,
+    isClientTheLeader
+};

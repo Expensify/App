@@ -1,9 +1,9 @@
 import lodashGet from 'lodash.get';
 import _ from 'underscore';
-import * as PersistentStorage from '../lib/PersistentStorage';
+import AsyncStorage from '@react-native-community/async-storage';
 
-// Holds all of the callbacks that have registered for a specific key pattern
-const callbackMapping = {};
+// Keeps track of the last subscription ID that was used
+let lastSubscriptionID = 0;
 
 /**
  * Initialize the store with actions and listening for storage events
@@ -20,30 +20,41 @@ function init() {
     // });
 }
 
+// Holds a mapping of all the react components that want their state subscribed to a store key
+const callbackToStateMapping = {};
+
 /**
- * Subscribe a regex pattern to trigger a callback when a storage event happens for a key matching that regex
+ * Subscribes a react component's state directly to a store key
  *
  * @param {string} keyPattern
- * @param {function} cb
+ * @param {string} path a specific path of the store object to map to the state
+ * @param {mixed} defaultValue to return if the there is nothing from the store
+ * @param {string} statePropertyName the name of the property in the state to bind the data to
+ * @param {object} reactComponent whose setState() method will be called with any changed data
+ * @returns {number} an ID to use when calling unbind
  */
-function subscribe(keyPattern, cb) {
-    if (!callbackMapping[keyPattern]) {
-        callbackMapping[keyPattern] = [];
-    }
-    callbackMapping[keyPattern].push(cb);
+function bind(keyPattern, path, defaultValue, statePropertyName, reactComponent) {
+    const subscriptionID = lastSubscriptionID++;
+    callbackToStateMapping[subscriptionID] = {
+        regex: RegExp(keyPattern),
+        statePropertyName,
+        path,
+        reactComponent,
+        defaultValue,
+    };
+    return subscriptionID;
 }
 
 /**
- * Remove a callback from a regex pattern
+ * Remove the listener for a react component
  *
- * @param {string} keyPattern
- * @param {function} cb
+ * @param {string} subscriptionID
  */
-function unsubscribe(keyPattern, cb) {
-    if (!callbackMapping[keyPattern] || !callbackMapping[keyPattern].length) {
+function unbind(subscriptionID) {
+    if (!callbackToStateMapping[subscriptionID]) {
         return;
     }
-    callbackMapping[keyPattern] = callbackMapping[keyPattern].filter(existingCallback => existingCallback !== cb);
+    delete callbackToStateMapping[subscriptionID];
 }
 
 /**
@@ -53,16 +64,19 @@ function unsubscribe(keyPattern, cb) {
  * @param {mixed} data
  */
 function keyChanged(key, data) {
-    _.each(callbackMapping, (callbacks, keyPattern) => {
-        const regex = RegExp(keyPattern);
+    console.debug('[STORE] key changed', key, data);
 
-        // If there is a callback whose regex matches the key that was changed, then the callback for that regex
-        // is called and passed the data that changed
-        if (regex.test(key)) {
-            for (let i = 0; i < callbacks.length; i++) {
-                const callback = callbacks[i];
-                callback(data);
-            }
+    // Find components that were added with bind() and trigger their setState() method with the new data
+    _.each(callbackToStateMapping, (mappedComponent) => {
+        if (mappedComponent && mappedComponent.regex.test(key)) {
+            const newValue = mappedComponent.path
+                ? lodashGet(data, mappedComponent.path, mappedComponent.defaultValue)
+                : data || mappedComponent.defaultValue || null;
+
+            // Set the state of the react component with either the pathed data, or the data
+            mappedComponent.reactComponent.setState({
+                [mappedComponent.statePropertyName]: newValue,
+            });
         }
     });
 }
@@ -75,12 +89,11 @@ function keyChanged(key, data) {
  * @returns {Promise}
  */
 function set(key, val) {
-    // The storage event doesn't trigger for the current window, so just call keyChanged() manually to mimic
-    // the storage event
-    keyChanged(key, val);
-
     // Write the thing to persistent storage, which will trigger a storage event for any other tabs open on this domain
-    return PersistentStorage.set(key, val);
+    return AsyncStorage.setItem(key, JSON.stringify(val))
+        .then(() => {
+            keyChanged(key, val);
+        });
 }
 
 /**
@@ -93,13 +106,15 @@ function set(key, val) {
  * @returns {*}
  */
 function get(key, extraPath, defaultValue) {
-    return PersistentStorage.get(key)
+    return AsyncStorage.getItem(key)
+        .then(val => JSON.parse(val))
         .then((val) => {
             if (extraPath) {
                 return lodashGet(val, extraPath, defaultValue);
             }
             return val;
-        });
+        })
+        .catch(err => console.error(`Unable to get item from persistent storage. Key: ${key} Error: ${err}`));
 }
 
 /**
@@ -109,7 +124,16 @@ function get(key, extraPath, defaultValue) {
  * @returns {Promise}
  */
 function multiGet(keys) {
-    return PersistentStorage.multiGet(keys);
+    // AsyncStorage returns the data in an array format like:
+    // [ ['@MyApp_user', 'myUserValue'], ['@MyApp_key', 'myKeyValue'] ]
+    // This method will transform the data into a better JSON format like:
+    // {'@MyApp_user': 'myUserValue', '@MyApp_key': 'myKeyValue'}
+    return AsyncStorage.multiGet(keys)
+        .then(arrayOfData => _.reduce(arrayOfData, (finalData, keyValuePair) => ({
+            ...finalData,
+            [keyValuePair[0]]: JSON.parse(keyValuePair[1]),
+        }), {}))
+        .catch(err => console.error(`Unable to get item from persistent storage. Error: ${err}`, keys));
 }
 
 /**
@@ -120,7 +144,15 @@ function multiGet(keys) {
  * @returns {Promise}
  */
 function multiSet(data) {
-    return PersistentStorage.multiSet(data)
+    // AsyncStorage expenses the data in an array like:
+    // [["@MyApp_user", "value_1"], ["@MyApp_key", "value_2"]]
+    // This method will transform the params from a better JSON format like:
+    // {'@MyApp_user': 'myUserValue', '@MyApp_key': 'myKeyValue'}
+    const keyValuePairs = _.reduce(data, (finalArray, val, key) => ([
+        ...finalArray,
+        [key, JSON.stringify(val)],
+    ]), []);
+    return AsyncStorage.multiSet(keyValuePairs)
         .then(() => {
             _.each(data, (val, key) => keyChanged(key, val));
         });
@@ -132,16 +164,28 @@ function multiSet(data) {
  * @returns {Promise}
  */
 function clear() {
-    return PersistentStorage.clear();
+    return AsyncStorage.clear();
+}
+
+/**
+ * Merge a new value into an existing value at a key
+ *
+ * @param {string} key
+ * @param {string} val
+ * @returns {Promise}
+ */
+function merge(key, val) {
+    return AsyncStorage.mergeItem(key, JSON.stringify(val));
 }
 
 export {
-    subscribe,
-    unsubscribe,
+    bind,
+    unbind,
     set,
     multiSet,
     get,
     multiGet,
+    merge,
     clear,
     init
 };
