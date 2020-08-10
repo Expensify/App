@@ -83,6 +83,8 @@ class ReportHistoryCompose extends React.Component {
                     multiline
                     textAlignVertical
                     numberOfLines={3}
+                    minHeight={60}
+                    maxHeight={60}
                     onChange={this.updateComment}
                     onKeyPress={this.triggerSubmitShortcut}
                     style={[styles.textInput]}
