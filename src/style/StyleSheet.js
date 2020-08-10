@@ -42,15 +42,18 @@ const styles = {
         padding: 8,
     },
     sidebarLink: {
-        padding: '.5rem 1rem',
+        // TODO: Mobile does not support rem values
+        // padding: '.5rem 1rem',
         textDecorationLine: 'none',
     },
     sidebarLinkActive: {
         backgroundColor: '#007bff',
-        borderRadius: '.25rem',
+        // TODO: Mobile does not support rem values
+        // borderRadius: '.25rem',
     },
     sidebarLinkActiveAnchor: {
-        padding: '.5rem 1rem',
+        // TODO: Mobile does not support rem values
+        // padding: '.5rem 1rem',
         textDecorationLine: 'none',
     },
     sidebarLinkText: {

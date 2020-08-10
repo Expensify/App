@@ -20,7 +20,8 @@ Store.init();
 class Expensify extends Component {
     render() {
         return (
-            <Beforeunload onBeforeunload={ActiveClientManager.removeClient}>
+            // TODO: Mobile does not support Beforeunload
+            // <Beforeunload onBeforeunload={ActiveClientManager.removeClient}>
                 <Router>
                     {/* If there is ever a property for redirecting, we do the redirect here */}
                     {this.state && this.state.redirectTo && <Redirect to={this.state.redirectTo} />}
@@ -30,7 +31,7 @@ class Expensify extends Component {
                         <Route path="/" component={HomePage} />
                     </Switch>
                 </Router>
-            </Beforeunload>
+            // </Beforeunload>
         );
     }
 }
