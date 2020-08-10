@@ -91,7 +91,7 @@ function signIn(login, password, useExpensifyLogin = false) {
             }
 
             console.debug('[SIGNIN] Successful sign in', 1);
-            return setSuccessfulSignInData();
+            return setSuccessfulSignInData(data);
         })
         .then(() => authToken)
         .catch((err) => {
