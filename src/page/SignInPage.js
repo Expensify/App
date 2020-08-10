@@ -22,6 +22,11 @@ class App extends Component {
         };
     }
 
+    submitLogin() {
+        signIn(this.state.login, this.state.password,
+            this.state.twoFactorAuthCode, true);
+    }
+
     render() {
         return (
             <>
@@ -33,6 +38,7 @@ class App extends Component {
                             style={{height: 40, borderColor: 'black', borderWidth: 2}}
                             value={this.state.login}
                             onChangeText={text => this.setState({login: text})}
+                            onSubmitEditing={() => this.submitLogin()}
                         />
                     </View>
                     <View>
@@ -42,6 +48,7 @@ class App extends Component {
                             secureTextEntry
                             value={this.state.password}
                             onChangeText={text => this.setState({password: text})}
+                            onSubmitEditing={() => this.submitLogin()}
                         />
                     </View>
                     <View>
@@ -51,13 +58,13 @@ class App extends Component {
                             value={this.state.twoFactorAuthCode}
                             placeholder="Required when 2FA is enabled"
                             onChangeText={text => this.setState({twoFactorAuthCode: text})}
+                            onSubmitEditing={() => this.submitLogin()}
                         />
                     </View>
                     <View>
                         <Button
                             title="Log In"
-                            onPress={() => signIn(this.state.login, this.state.password,
-                                this.state.twoFactorAuthCode, true)}
+                            onPress={() => this.submitLogin()}
                         />
                         {this.state.error && (
                             <Text style={{color: 'red'}}>
