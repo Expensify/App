@@ -1,4 +1,8 @@
 import moment from 'moment';
+
+// We have to import moment-timezone, but don't access it directly because all it's functionality is added to moment
+// eslint-disable-next-line no-unused-vars
+import momentTimzone from 'moment-timezone';
 import Str from './Str';
 
 // Non-Deprecated Methods
@@ -25,7 +29,8 @@ function getTimezone() {
  * @private
  */
 function getLocalMomentFromTimestamp(timestamp) {
-    // We need a default here for flows where we may not have initialized the TIME_ZONE NVP like generatng PDFs in printablereport.php
+    // We need a default here for flows where we may not have initialized the TIME_ZONE NVP like generatng PDFs in
+    // printablereport.php
     const timezone = getTimezone();
     return moment.unix(timestamp).tz(timezone);
 }
@@ -45,10 +50,9 @@ function getLocalMomentFromTimestamp(timestamp) {
  */
 function timestampToDateTime(timestamp, includeTimeZone = false) {
     const date = getLocalMomentFromTimestamp(timestamp);
-    let format =
-        moment().year() !== date.get('year')
-            ? 'MMM D, YYYY [at] LT'
-            : 'MMM D [at] LT';
+    let format = moment().year() !== date.get('year')
+        ? 'MMM D, YYYY [at] LT'
+        : 'MMM D [at] LT';
     if (includeTimeZone) {
         format = `${format} [UTC]Z`;
     }
@@ -77,7 +81,7 @@ function timestampToRelative(timestamp) {
     const durationFromLocalNow = moment.duration(
         date.diff(getLocalMomentFromTimestamp(moment().unix())),
     );
-    const round = (num) => Math.floor(Math.abs(num));
+    const round = num => Math.floor(Math.abs(num));
 
     if (date.isAfter(moment().subtract(60, 'seconds'))) {
         return '< 1 minute ago';
