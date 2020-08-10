@@ -18,10 +18,6 @@ const propTypes = {
 };
 
 class ReportHistoryView extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
     componentDidMount() {
         this.bindToStore();
     }

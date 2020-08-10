@@ -175,7 +175,11 @@ function clear() {
  * @returns {Promise}
  */
 function merge(key, val) {
-    return AsyncStorage.mergeItem(key, JSON.stringify(val));
+    return AsyncStorage.mergeItem(key, JSON.stringify(val))
+        .then(() => get(key))
+        .then((newObject) => {
+            keyChanged(key, newObject);
+        });
 }
 
 export {
