@@ -31,7 +31,7 @@ function createLogin(authToken, login, password) {
         partnerUserID: login,
         partnerUserSecret: password,
     }).then(() => Store.set(STOREKEYS.CREDENTIALS, {login, password}))
-        .catch(err => Store.set(STOREKEYS.SESSION, {error: err}));
+        .catch(err => Store.merge(STOREKEYS.SESSION, {error: err}));
 }
 
 /**
@@ -56,6 +56,7 @@ function setSuccessfulSignInData(data) {
  * @returns {Promise}
  */
 function signIn(login, password, useExpensifyLogin = false) {
+    console.debug('[SIGNIN] Authenticating with expensify login?', useExpensifyLogin ? 'yes' : 'no');
     let authToken;
     return request('Authenticate', {
         useExpensifyLogin,
@@ -65,12 +66,13 @@ function signIn(login, password, useExpensifyLogin = false) {
         partnerUserSecret: password,
     })
         .then((data) => {
+            console.debug('[SIGNIN] Authentication result. Code:', data.jsonCode);
             authToken = data && data.authToken;
 
             // If we didn't get a 200 response from authenticate, the user needs to sign in again
-            if (data.jsonCode !== 200) {
+            if (!useExpensifyLogin && data.jsonCode !== 200) {
                 // eslint-disable-next-line no-console
-                console.debug('Non-200 from authenticate, going back to sign in page');
+                console.debug('[SIGNIN] Non-200 from authenticate, going back to sign in page');
                 return Store.multiSet({
                     [STOREKEYS.CREDENTIALS]: {},
                     [STOREKEYS.SESSION]: {error: data.message},
@@ -80,16 +82,22 @@ function signIn(login, password, useExpensifyLogin = false) {
 
             // If Expensify login, it's the users first time logging in and we need to create a login for the user
             if (useExpensifyLogin) {
+                console.debug('[SIGNIN] Creating a login');
                 return createLogin(data.authToken, Str.generateDeviceLoginID(), Guid())
-                    .then(() => setSuccessfulSignInData(data));
+                    .then(() => {
+                        console.debug('[SIGNIN] Successful sign in', 2);
+                        return setSuccessfulSignInData(data);
+                    });
             }
 
+            console.debug('[SIGNIN] Successful sign in', 1);
             return setSuccessfulSignInData();
         })
         .then(() => authToken)
         .catch((err) => {
             console.error(err);
-            return Store.set(STOREKEYS.SESSION, {error: err.message});
+            console.debug('[SIGNIN] Request error');
+            return Store.merge(STOREKEYS.SESSION, {error: err.message});
         });
 }
 
@@ -105,7 +113,7 @@ function deleteLogin(authToken, login) {
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         partnerUserID: login,
-    }).catch(err => Store.set(STOREKEYS.SESSION, {error: err.message}));
+    }).catch(err => Store.merge(STOREKEYS.SESSION, {error: err.message}));
 }
 
 /**
@@ -118,7 +126,7 @@ function signOut() {
         .then(() => Store.multiGet([STOREKEYS.SESSION, STOREKEYS.CREDENTIALS]))
         .then(data => deleteLogin(data.session.authToken, data.credentials.login))
         .then(Store.clear)
-        .catch(err => Store.set(STOREKEYS.SESSION, {error: err.message}));
+        .catch(err => Store.merge(STOREKEYS.SESSION, {error: err.message}));
 }
 
 /**
@@ -139,8 +147,7 @@ function verifyAuthToken() {
 
             return request('Get', {returnValueList: 'account'}).then((data) => {
                 if (data.jsonCode === 200) {
-                    console.debug('We have valid auth token');
-                    return Store.set(STOREKEYS.SESSION, data);
+                    return Store.merge(STOREKEYS.SESSION, data);
                 }
 
                 // If the auth token is bad and we didn't have credentials saved, we want them to go to the sign in page

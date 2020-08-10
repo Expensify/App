@@ -1,48 +1,30 @@
-/**
- * @format
- * @flow strict-local
- */
-import React, {Component} from 'react';
+import React from 'react';
 import {
     SafeAreaView,
-    Text,
     StatusBar,
     View,
-    Button
 } from 'react-native';
-import {signOut} from '../../store/actions/SessionActions';
+import {Route} from '../../lib/Router';
+import styles from '../../style/StyleSheet';
+import Header from './HeaderView';
+import Sidebar from './SidebarView';
+import Main from './MainView';
 
-export default class App extends Component {
-    constructor(props) {
-        super(props);
-
-        this.signOut = this.signOut.bind(this);
-    }
-
-    async signOut() {
-        await signOut();
-    }
-
-    render() {
-        return (
-            <>
-                <StatusBar barStyle="dark-content" />
-                <SafeAreaView>
-                    <View>
-                        <Text
-                            style={{
-                                fontSize: 20,
-                                margin: 20,
-                                textAlign: 'center',
-                                fontWeight: 'bold',
-                            }}
-                        >
-                            React Native Chat Homepage!
-                        </Text>
-                        <Button onPress={this.signOut} title="Sign Out" />
+const App = () => (
+    <>
+        <StatusBar barStyle="dark-content" />
+        <SafeAreaView style={[styles.flex1, styles.h100p]}>
+            <View style={[styles.flexColumn, styles.h100p]}>
+                <Route path="/:reportID?">
+                    <Header />
+                    <View style={[styles.flex1, styles.flexRow]}>
+                        <Sidebar />
+                        <Main />
                     </View>
-                </SafeAreaView>
-            </>
-        );
-    }
-}
+                </Route>
+            </View>
+        </SafeAreaView>
+    </>
+);
+App.displayName = 'App';
+export default App;

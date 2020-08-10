@@ -5,6 +5,9 @@ import {request, delayedWrite} from '../../lib/Network';
 import STOREKEYS from '../STOREKEYS';
 import ExpensiMark from '../../lib/ExpensiMark';
 import Guid from '../../lib/Guid';
+import CONFIG from '../../CONFIG';
+
+// @TODO implement pusher
 // import * as pusher from '../../lib/pusher';
 
 /**
@@ -48,9 +51,7 @@ function updateReportWithNewAction(reportID, reportAction) {
             }
             return reportHistory;
         })
-        .then((reportHistory) => {
-            return Store.set(`${STOREKEYS.REPORT}_${reportID}_history`, reportHistory.sort(sortReportActions));
-        });
+        .then(reportHistory => Store.set(`${STOREKEYS.REPORT}_${reportID}_history`, reportHistory.sort(sortReportActions)));
 }
 
 /**
@@ -64,7 +65,7 @@ function hasUnreadHistoryItems(accountID, report) {
     const usersLastReadActionID = report.reportNameValuePairs[`lastReadActionID_${accountID}`];
     if (!usersLastReadActionID || report.reportActionList.length === 0) {
         return false;
-    };
+    }
 
     // Find the most recent sequence number from the report history
     const highestSequenceNumber = _.chain(report.reportActionList)
@@ -94,6 +95,9 @@ function initPusher() {
 
 /**
  * Get a single report
+ *
+ * @param {string} reportID
+ * @returns {Promise}
  */
 function fetch(reportID) {
     let fetchedReport;
@@ -120,8 +124,7 @@ function fetch(reportID) {
  * @returns {Promise}
  */
 function fetchAll() {
-    // @TODO Figure out how to tell if we are in production
-    if (IS_IN_PRODUCTION) {
+    if (CONFIG.IS_IN_PRODUCTION) {
         return request('Get', {
             returnValueList: 'reportStuff',
             reportIDList: '63212778,63212795,63212764,63212607',
@@ -146,12 +149,13 @@ function fetchAll() {
             _.each(data.reportListBeta, report => fetch(report.reportID));
             return data;
         })
-        .then(data => Store.set(STOREKEYS.REPORTS, _.values(data.reports)));
+        .then(data => Store.set(STOREKEYS.REPORTS, _.values(data.reportListBeta)));
 }
 
 /**
  * Get the history of a report
  *
+ * @param {string} reportID
  * @returns {Promise}
  */
 function fetchHistory(reportID) {
@@ -174,7 +178,7 @@ function addHistoryItem(reportID, commentText) {
     const guid = Guid();
     const historyKey = `${STOREKEYS.REPORT}_${reportID}_history`;
 
-    Store.multiGet([historyKey, STOREKEYS.SESSION, STOREKEYS.PERSONAL_DETAILS])
+    return Store.multiGet([historyKey, STOREKEYS.SESSION, STOREKEYS.PERSONAL_DETAILS])
         .then((values) => {
             const reportHistory = values[historyKey];
             const email = values[STOREKEYS.SESSION].email || '';
@@ -216,12 +220,10 @@ function addHistoryItem(reportID, commentText) {
                 }
             ]);
         })
-        .then(() => {
-            return delayedWrite('Report_AddComment', {
-                reportID,
-                reportComment: commentText,
-            });
-        });
+        .then(() => delayedWrite('Report_AddComment', {
+            reportID,
+            reportComment: commentText,
+        }));
 }
 
 /**
@@ -241,14 +243,13 @@ function updateLastReadActionID(accountID, reportID, sequenceNumber) {
             [`lastReadActionID_${accountID}`]: sequenceNumber,
         }
     })
-        .then(() => {
-            // Update the lastReadActionID on the report optimistically
-            return delayedWrite('Report_SetLastReadActionID', {
-                accountID,
-                reportID,
-                sequenceNumber,
-            });
-        });
+
+        // Update the lastReadActionID on the report optimistically
+        .then(() => delayedWrite('Report_SetLastReadActionID', {
+            accountID,
+            reportID,
+            sequenceNumber,
+        }));
 }
 
 export {

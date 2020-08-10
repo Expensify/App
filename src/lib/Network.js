@@ -26,6 +26,12 @@ function request(command, data, type = 'post') {
             body: formData,
         }))
         .then(response => response.json())
+        .then((responseData) => {
+            if (responseData.jsonCode === 200) {
+                return responseData;
+            }
+            console.error('[API] Error', responseData);
+        })
         // eslint-disable-next-line no-unused-vars
         .catch(() => isAppOffline = true);
 }
