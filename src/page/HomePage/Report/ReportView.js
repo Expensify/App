@@ -55,12 +55,10 @@ class ReportView extends React.Component {
         }
 
         return (
-            <View>
-                <View style={styles.flexGrow1}>
-                    <Route path="/:reportID" exact>
-                        <ReportHistoryView reportID={this.props.match.params.reportID} />
-                    </Route>
-                </View>
+            <View style={styles.flex1}>
+                <Route path="/:reportID" exact>
+                    <ReportHistoryView reportID={this.props.match.params.reportID} />
+                </Route>
             </View>
         );
     }

@@ -2,6 +2,7 @@ import React from 'react';
 import {Text} from 'react-native';
 import Str from '../../../lib/Str';
 import ReportHistoryFragmentPropTypes from './ReportHistoryFragmentPropTypes';
+import styles from '../../../style/StyleSheet';
 
 const propTypes = {
     // The message fragment needing to be displayed
@@ -9,10 +10,10 @@ const propTypes = {
 };
 
 const ReportHistoryItemFragment = ({fragment}) => {
-    const styleClass = fragment.style === 'strong' ? 'quote' : '';
     switch (fragment.type) {
         case 'COMMENT':
             return <Text>{Str.htmlDecode(fragment.text)}</Text>;
+
             // return fragment.html
             //     ? (
             //         <Text
@@ -28,9 +29,10 @@ const ReportHistoryItemFragment = ({fragment}) => {
             //     )
             //     : <Text>{Str.htmlDecode(fragment.text)}</Text>;
         case 'TEXT':
-            return <Text className={styleClass}>{Str.htmlDecode(fragment.text)}</Text>;
+            return <Text style={[styles.reportHistoryItemUserName]}>{Str.htmlDecode(fragment.text)}</Text>;
         case 'LINK':
             return <Text>LINK</Text>;
+
             // return (
             //     <a
             //         className={styleClass}
@@ -43,6 +45,7 @@ const ReportHistoryItemFragment = ({fragment}) => {
             // );
         case 'INTEGRATION_COMMENT':
             return <Text>REPORT_LINK</Text>;
+
             // return (
             //     <div>
             //         <div className="history-integration-item">
@@ -61,6 +64,7 @@ const ReportHistoryItemFragment = ({fragment}) => {
             // );
         case 'REPORT_LINK':
             return <Text>REPORT_LINK</Text>;
+
             // return (
             //     <ChangePageLink
             //         text={fragment.text}
@@ -71,6 +75,7 @@ const ReportHistoryItemFragment = ({fragment}) => {
             // );
         case 'POLICY_LINK':
             return <Text>POLICY_LINK</Text>;
+
             // return (
             //     <ChangePageLink
             //         ariaLabel={`navigate to policy ${fragment.text}`}
@@ -80,8 +85,10 @@ const ReportHistoryItemFragment = ({fragment}) => {
             //     />
             // );
 
-        // If we have a message fragment type of OLD_MESSAGE this means we have not yet converted this over to the new data structure
-        // So we simply set this message as inner html and render it like we did before. This wil allow us to convert messages over to the new
+        // If we have a message fragment type of OLD_MESSAGE this means we have not yet converted this over to the new
+        // data structure
+        // So we simply set this message as inner html and render it like we did before. This wil allow us to convert
+        // messages over to the new
         // structure without needing to do it all at once.
         case 'OLD_MESSAGE':
             return <Text>OLD_MESSAGE</Text>;
