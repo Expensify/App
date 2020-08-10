@@ -130,7 +130,8 @@ function fetchAll() {
                 _.each(data.reportListBeta, report => fetch(report.reportID));
                 return data;
             })
-            .then(data => Store.set(STOREKEYS.REPORTS, _.values(data.reports)));
+            .then(data => Store.set(STOREKEYS.REPORTS, _.values(data.reports)))
+            .catch((error) => { console.log('Error fetching report actions', error); });
     }
 
     return request('Get', {
@@ -144,7 +145,8 @@ function fetchAll() {
             _.each(data.reportListBeta, report => fetch(report.reportID));
             return data;
         })
-        .then(data => Store.set(STOREKEYS.REPORTS, _.values(data.reportListBeta)));
+        .then(data => Store.set(STOREKEYS.REPORTS, _.values(data.reportListBeta)))
+        .catch((error) => { console.log('Error fetching report actions', error); });
 }
 
 /**
