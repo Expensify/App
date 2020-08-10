@@ -18,6 +18,7 @@
     "jquery": "^3.5.1",
     "lodash.get": "^4.4.2",
     "moment": "^2.27.0",
+    "moment-timezone": "^0.5.31",
     "prop-types": "^15.7.2",
     "pusher-js": "^7.0.0",
     "react": "^16.13.1",

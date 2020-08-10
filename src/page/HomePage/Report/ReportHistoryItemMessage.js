@@ -9,20 +9,16 @@ const propTypes = {
     historyItem: PropTypes.shape(ReportHistoryPropsTypes).isRequired,
 };
 
-class ReportHistoryItemMessage extends React.Component {
-    render() {
-        return (
-            <>
-                {_.map(_.compact(this.props.historyItem.message), fragment => (
-                    <ReportHistoryItemFragment
-                        key={_.uniqueId('historyItemFragment', this.props.historyItem.sequenceNumber)}
-                        fragment={fragment}
-                    />
-                ))}
-            </>
-        );
-    }
-}
+const ReportHistoryItemMessage = ({historyItem}) => (
+    <>
+        {_.map(_.compact(historyItem.message), fragment => (
+            <ReportHistoryItemFragment
+                key={_.uniqueId('historyItemFragment', historyItem.sequenceNumber)}
+                fragment={fragment}
+            />
+        ))}
+    </>
+);
 
 ReportHistoryItemMessage.propTypes = propTypes;
 ReportHistoryItemMessage.displayName = 'ReportHistoryItemMessage';

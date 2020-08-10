@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text} from 'react-native';
+import {Text, FlatList} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
@@ -30,6 +30,21 @@ class ReportHistoryView extends React.Component {
         }
     }
 
+    /**
+     * Returns the report history with everything but comments filtered out
+     *
+     * @returns {string[]}
+     */
+    getFilteredReportHistory() {
+        const reportHistory = lodashGet(this.state, 'reportHistory');
+
+        // Only return comments
+        return _.filter(reportHistory, historyItem => historyItem.actionName === 'ADDCOMMENT');
+    }
+
+    /**
+     * Binds this component to the store (needs to be done every time the props change)
+     */
     bindToStore() {
         // Bind this.state.reportHistory to the history in the store
         // and call fetchHistory to load it with data
@@ -40,27 +55,64 @@ class ReportHistoryView extends React.Component {
                 loaderParams: [this.props.reportID],
             }
         }, this);
+
+        if (this.reportHistoryList) {
+            this.reportHistoryList.scrollToEnd();
+        }
+    }
+
+    /**
+     * Returns true when the report action immediately before the
+     * specified index is a comment made by the same actor who who
+     * is leaving a comment in the action at the specified index.
+     * Also checks to ensure that the comment is not too old to
+     * be considered part of the same comment
+     *
+     * @param {Number} historyItemIndex - index of the comment item in state to check
+     *
+     * @return {Boolean}
+     */
+    isConsecutiveHistoryItemMadeByPreviousActor(historyItemIndex) {
+        const filteredHistory = this.getFilteredReportHistory();
+
+        // This is the created action and the very first action so it cannot be a consecutive comment.
+        if (historyItemIndex === 0) {
+            return false;
+        }
+
+        const previousAction = filteredHistory[historyItemIndex - 1];
+        const currentAction = filteredHistory[historyItemIndex];
+
+        if (currentAction.timestamp - previousAction.timestamp > 300) {
+            return false;
+        }
+
+        return currentAction.actorEmail === previousAction.actorEmail;
     }
 
     render() {
-        const reportHistory = lodashGet(this.state, 'reportHistory');
+        const filteredHistory = this.getFilteredReportHistory();
 
-        // Only display the history items that are comments
-        const filteredHistory = _.filter(reportHistory, historyItem => historyItem.actionName === 'ADDCOMMENT');
+        if (filteredHistory.length === 0) {
+            return <Text>Be the first person to comment!</Text>;
+        }
 
         return (
-            <View style={styles.flexColumn}>
-                {filteredHistory.length === 0 && (
-                    <Text>Be the first person to comment!</Text>
-                )}
-                {filteredHistory.length > 0
-                && _.map(filteredHistory, reportHistoryItem => (
-                    <ReportHistoryItem
-                        key={reportHistoryItem.sequenceNumber}
-                        historyItem={reportHistoryItem}
-                    />
-                ))}
-            </View>
+            <FlatList
+                ref={el => this.reportHistoryList = el}
+                data={filteredHistory}
+                renderItem={({index, item}) => {
+                    return (
+                        <ReportHistoryItem
+                            historyItem={item}
+                            displayAsGroup={this.isConsecutiveHistoryItemMadeByPreviousActor(index)}
+                        />
+                    );
+                }}
+
+                // We have to return a string for the key or else FlatList throws an error
+                keyExtractor={reportHistoryItem => `${reportHistoryItem.sequenceNumber}`}
+            />
         );
     }
 }
