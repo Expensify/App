@@ -30,6 +30,7 @@ function request(command, data, type = 'post') {
             if (responseData.jsonCode === 200) {
                 return responseData;
             }
+            // eslint-disable-next-line no-console
             console.info('[API] Error', responseData);
         })
         // eslint-disable-next-line no-unused-vars
