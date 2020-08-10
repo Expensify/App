@@ -148,7 +148,7 @@ function verifyAuthToken() {
             }
 
             return request('Get', {returnValueList: 'account'}).then((data) => {
-                if (data.jsonCode === 200) {
+                if (data && data.jsonCode === 200) {
                     return Store.merge(STOREKEYS.SESSION, data);
                 }
 
