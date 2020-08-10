@@ -219,6 +219,7 @@ function unsubscribe(channelName, eventName = '') {
         channel.unbind(eventName);
     } else {
         if (!channel.subscribed) {
+            // eslint-disable-next-line no-console
             console.warn('[Pusher] Attempted to unsubscribe from channel, but we are not subscribed to begin with', 0, {channelName});
             return;
         }

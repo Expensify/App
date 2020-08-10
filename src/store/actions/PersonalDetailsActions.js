@@ -71,6 +71,7 @@ function fetch() {
         })
         .catch((error) => {
             if (error.message === 'No login') {
+                // eslint-disable-next-line no-console
                 console.info('No email in store, not fetching personal details.');
                 return;
             }
