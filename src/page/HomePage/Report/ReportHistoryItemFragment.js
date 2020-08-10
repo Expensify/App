@@ -10,7 +10,6 @@ const propTypes = {
 };
 
 const ReportHistoryItemFragment = ({fragment}) => {
-    const styleClass = fragment.style === 'strong' ? 'quote' : '';
     switch (fragment.type) {
         case 'COMMENT':
             return <Text>{Str.htmlDecode(fragment.text)}</Text>;

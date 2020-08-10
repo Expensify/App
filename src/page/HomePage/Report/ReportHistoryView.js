@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text} from 'react-native';
+import {Text, FlatList} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
@@ -31,6 +31,18 @@ class ReportHistoryView extends React.Component {
     }
 
     /**
+     * Returns the report history with everything but comments filtered out
+     *
+     * @returns {string[]}
+     */
+    getFilteredReportHistory() {
+        const reportHistory = lodashGet(this.state, 'reportHistory');
+
+        // Only return comments
+        return _.filter(reportHistory, historyItem => historyItem.actionName === 'ADDCOMMENT');
+    }
+
+    /**
      * Binds this component to the store (needs to be done every time the props change)
      */
     bindToStore() {
@@ -43,13 +55,10 @@ class ReportHistoryView extends React.Component {
                 loaderParams: [this.props.reportID],
             }
         }, this);
-    }
 
-    getFilteredReportHistory() {
-        const reportHistory = lodashGet(this.state, 'reportHistory');
-
-        // Only return comments
-        return _.filter(reportHistory, historyItem => historyItem.actionName === 'ADDCOMMENT')
+        if (this.reportHistoryList) {
+            this.reportHistoryList.scrollToEnd();
+        }
     }
 
     /**
@@ -83,20 +92,27 @@ class ReportHistoryView extends React.Component {
 
     render() {
         const filteredHistory = this.getFilteredReportHistory();
+
+        if (filteredHistory.length === 0) {
+            return <Text>Be the first person to comment!</Text>;
+        }
+
         return (
-            <View style={styles.flexColumn}>
-                {filteredHistory.length === 0 && (
-                    <Text>Be the first person to comment!</Text>
-                )}
-                {filteredHistory.length > 0
-                && _.map(filteredHistory, (reportHistoryItem, i) => (
-                    <ReportHistoryItem
-                        key={reportHistoryItem.sequenceNumber}
-                        historyItem={reportHistoryItem}
-                        displayAsGroup={this.isConsecutiveHistoryItemMadeByPreviousActor(i)}
-                    />
-                ))}
-            </View>
+            <FlatList
+                ref={el => this.reportHistoryList = el}
+                data={filteredHistory}
+                renderItem={({index, item}) => {
+                    return (
+                        <ReportHistoryItem
+                            historyItem={item}
+                            displayAsGroup={this.isConsecutiveHistoryItemMadeByPreviousActor(index)}
+                        />
+                    );
+                }}
+
+                // We have to return a string for the key or else FlatList throws an error
+                keyExtractor={reportHistoryItem => `${reportHistoryItem.sequenceNumber}`}
+            />
         );
     }
 }
