@@ -9,7 +9,7 @@ import WithStore from '../../components/WithStore';
 class HeaderView extends React.Component {
     render() {
         return (
-            <View style={[styles.nav, styles.flexRow]}>
+            <View style={[styles.nav, styles.flexRow, styles.flexWrap]}>
                 <Text style={styles.brand}>Expensify Chat</Text>
                 {this.state && this.state.currentReportName && (
                     <Text style={[styles.navText, styles.ml1]}>
