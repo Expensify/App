@@ -110,14 +110,15 @@ class ReportHistoryView extends React.Component {
      * Takes a max seqNum and if it's greater than the last read action, then make a request to the API to
      * update the report
      *
-     * @param {number} maxVisibleSequenceNumber
+     * @param {number} maxSequenceNumber
      */
     recordlastReadActionID(maxSequenceNumber) {
         let myAccountID;
         Store.get(STOREKEYS.SESSION, 'accountID')
             .then((accountID) => {
                 myAccountID = accountID;
-                return Store.get(`${STOREKEYS.REPORT}_${this.props.reportID}`, `reportNameValuePairs.lastReadActionID_${accountID}`, 0)
+                const path = `reportNameValuePairs.lastReadActionID_${accountID}`;
+                return Store.get(`${STOREKEYS.REPORT}_${this.props.reportID}`, path, 0);
             })
             .then((lastReadActionID) => {
                 if (maxSequenceNumber > lastReadActionID) {
