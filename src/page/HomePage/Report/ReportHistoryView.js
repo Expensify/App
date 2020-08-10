@@ -3,7 +3,6 @@ import {Text, FlatList} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
-import styles from '../../../style/StyleSheet';
 import {fetchHistory} from '../../../store/actions/ReportActions';
 import WithStore from '../../../components/WithStore';
 import STOREKEYS from '../../../store/STOREKEYS';
@@ -101,14 +100,12 @@ class ReportHistoryView extends React.Component {
             <FlatList
                 ref={el => this.reportHistoryList = el}
                 data={filteredHistory}
-                renderItem={({index, item}) => {
-                    return (
-                        <ReportHistoryItem
-                            historyItem={item}
-                            displayAsGroup={this.isConsecutiveHistoryItemMadeByPreviousActor(index)}
-                        />
-                    );
-                }}
+                renderItem={({index, item}) => (
+                    <ReportHistoryItem
+                        historyItem={item}
+                        displayAsGroup={this.isConsecutiveHistoryItemMadeByPreviousActor(index)}
+                    />
+                )}
 
                 // We have to return a string for the key or else FlatList throws an error
                 keyExtractor={reportHistoryItem => `${reportHistoryItem.sequenceNumber}`}
