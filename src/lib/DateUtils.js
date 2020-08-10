@@ -1,4 +1,5 @@
 import moment from 'moment';
+import momentTimzone from 'moment-timezone';
 import Str from './Str';
 
 // Non-Deprecated Methods
