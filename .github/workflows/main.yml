@@ -7,8 +7,6 @@ name: Build and Deploy
 on:
   push:
     branches: [ master ]
-  pull_request:
-    branches: [ master ]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -31,7 +29,7 @@ jobs:
     # Installs Cloudflare CLI, requires sudo because it writes to a root owned
     # folder
     - name: Setup Cloudflare CLI
-      run: sudo pip3 install cloudflare
+      run: pip3 install cloudflare
 
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1
