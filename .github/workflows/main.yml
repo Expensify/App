@@ -26,10 +26,16 @@ jobs:
       with:
         node-version: '14.x'
 
-    # Installs Cloudflare CLI, requires sudo because it writes to a root owned
-    # folder
+    # Install python pre-reqs
+    - name: Setup python
+      run: sudo apt-get install python3-setuptools
+
+    # Installs Cloudflare CLI, after installing/upgrading dependencies
     - name: Setup Cloudflare CLI
-      run: pip3 install cloudflare
+      run: |
+           pip3 install --upgrade pip
+           pip3 install wheel # need wheel before cloudflare, this is the only way to ensure order. 
+           pip3 install cloudflare
 
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1
@@ -46,9 +52,9 @@ jobs:
       run: npm run build
     
     - name: Deploy to S3
-      run: aws s3 --recursive --acl public-read $GITHUB_WORKSPACE/dist s3://chat-test-expensify-com/
+      run: aws s3 cp --recursive --acl public-read $GITHUB_WORKSPACE/dist s3://chat-test-expensify-com/
 
     - name: Purge Cloudflare cache
-      run: cli4 --delete hosts=["chat.expensify.com"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
+      run: /home/runner/.local/bin/cli4 --delete hosts=["chat.expensify.com"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
       env:
-        CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_TOKEN }}
+        CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
