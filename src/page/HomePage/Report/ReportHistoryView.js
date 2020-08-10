@@ -20,8 +20,6 @@ const propTypes = {
 class ReportHistoryView extends React.Component {
     constructor(props) {
         super(props);
-
-        this.scrollToBottom = _.debounce(this.scrollToBottom.bind(this), 500);
     }
 
     componentDidMount() {
@@ -60,18 +58,6 @@ class ReportHistoryView extends React.Component {
                 loaderParams: [this.props.reportID],
             }
         }, this);
-        this.scrollToBottom();
-    }
-
-    scrollToBottom() {
-        if (this.reportHistoryList) {
-            this.reportHistoryList.scrollToEnd({
-                animated: false,
-            });
-
-            // Scroll to the bottom again because sometimes it doesn't scroll all the way to the bottom the first time
-            // setTimeout(this.scrollToBottom, 250);
-        }
     }
 
     /**
@@ -113,10 +99,11 @@ class ReportHistoryView extends React.Component {
         return (
             <VirtualizedList
                 ref={el => this.reportHistoryList = el}
-                data={filteredHistory}
+                data={filteredHistory.reverse()}
                 getItemCount={() => filteredHistory.length}
                 getItem={(data, index) => filteredHistory[index]}
                 initialNumToRender="10"
+                inverted
                 renderItem={({index, item}) => (
                     <ReportHistoryItem
                         historyItem={item}
