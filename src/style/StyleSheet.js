@@ -9,6 +9,9 @@ const styles = {
     mt2: {
         marginTop: 20,
     },
+    mt1: {
+        marginTop: 10,
+    },
     p1: {
         padding: 10,
     },
@@ -100,6 +103,12 @@ const styles = {
     },
     reportHistoryItemUserName: {
         fontWeight: 'bold',
+    },
+    textInput: {
+        borderColor: '#7d8b8f',
+        borderRadius: 5,
+        borderWidth: 1,
+        padding: 10,
     },
 };
 

@@ -24,7 +24,8 @@ function init(appKey, params) {
         });
 
         // If we want to pass params in our requests to api.php we'll need to add it to socket.config.auth.params
-        // as per the documentation (https://pusher.com/docs/channels/using_channels/connection#channels-options-parameter).
+        // as per the documentation
+        // (https://pusher.com/docs/channels/using_channels/connection#channels-options-parameter).
         // Any param mentioned here will show up in $_REQUEST when we call "Push_Authenticate". Params passed here need
         // to pass our inputRules to show up in the request.
         if (params) {
@@ -92,8 +93,9 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}, isChun
             return;
         }
 
-        // If we are chunking the requests, we need to construct a rolling list of all packets that have come through Pusher.
-        // If we've completed one of these full packets, we'll combine the data and act on the event that it's assigned to.
+        // If we are chunking the requests, we need to construct a rolling list of all packets that have come through
+        // Pusher. If we've completed one of these full packets, we'll combine the data and act on the event that it's
+        // assigned to.
 
         // If we haven't seen this eventID yet, initialize it into our rolling list of packets.
         if (!chunkedDataEvents[eventData.id]) {
@@ -109,13 +111,17 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}, isChun
             chunkedEvent.receivedFinal = true;
         }
 
-        // Only call the event callback if we've received the last packet and we don't have any holes in the complete packet.
+        // Only call the event callback if we've received the last packet and we don't have any holes in the complete
+        // packet.
         if (chunkedEvent.receivedFinal && chunkedEvent.chunks.length === Object.keys(chunkedEvent.chunks).length) {
             eventCallback(JSON.parse(chunkedEvent.chunks.join('')));
             try {
                 eventCallback(JSON.parse(chunkedEvent.chunks.join('')));
             } catch (err) {
-                console.error('[Pusher] Unable to parse chunked JSON response from Pusher', 0, {error: err, eventData: chunkedEvent.chunks.join('')});
+                console.error('[Pusher] Unable to parse chunked JSON response from Pusher', 0, {
+                    error: err,
+                    eventData: chunkedEvent.chunks.join('')
+                });
             }
 
             delete chunkedDataEvents[eventData.id];
@@ -131,7 +137,8 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}, isChun
  * @param {String} channelName
  * @param {String} eventName
  * @param {Function} [eventCallback]
- * @param {Boolean} [isChunked] This parameters tells us whether or not we expect the result to come in individual pieces/chunks (because it exceeds
+ * @param {Boolean} [isChunked] This parameters tells us whether or not we expect the result to come in individual
+ * pieces/chunks (because it exceeds
  *  the 10kB limit that pusher has).
  *
  * @return {Promise}
@@ -142,7 +149,8 @@ function subscribe(channelName, eventName, eventCallback = () => {}, isChunked =
     return new Promise((resolve, reject) => {
     // We cannot call subscribe() before init(). Prevent any attempt to do this on dev.
         if (!socket) {
-            throw new Error('[Pusher] instance not found. Pusher.subscribe() most likely has been called before Pusher.init()');
+            throw new Error(`[Pusher] instance not found. Pusher.subscribe() 
+            most likely has been called before Pusher.init()`);
         }
 
         console.debug('[Pusher] Attempting to subscribe to channel', true, {channelName, eventName});
@@ -157,7 +165,10 @@ function subscribe(channelName, eventName, eventCallback = () => {}, isChunked =
 
             channel.bind('pusher:subscription_error', (status) => {
                 if (status === 403) {
-                    console.debug('[Pusher] Issue authenticating with Pusher during subscribe attempt.', 0, {channelName, status});
+                    console.debug('[Pusher] Issue authenticating with Pusher during subscribe attempt.', 0, {
+                        channelName,
+                        status
+                    });
                 }
 
                 reject(status);
@@ -200,7 +211,8 @@ function unsubscribe(channelName, eventName = '') {
     const channel = getChannel(channelName);
 
     if (!channel) {
-        console.debug('[Pusher] Attempted to unsubscribe or unbind from a channel, but Pusher-JS has no knowledge of it', 0, {channelName, eventName});
+        console.debug(`[Pusher] Attempted to unsubscribe or unbind from a channel, 
+        but Pusher-JS has no knowledge of it`, 0, {channelName, eventName});
         return;
     }
 
@@ -210,7 +222,8 @@ function unsubscribe(channelName, eventName = '') {
     } else {
         if (!channel.subscribed) {
             // eslint-disable-next-line no-console
-            console.warn('[Pusher] Attempted to unsubscribe from channel, but we are not subscribed to begin with', 0, {channelName});
+            console.warn(`[Pusher] Attempted to unsubscribe from channel, 
+            but we are not subscribed to begin with`, 0, {channelName});
             return;
         }
 
