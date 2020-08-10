@@ -3,7 +3,8 @@ import {Text, VirtualizedList} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
-import {fetchHistory} from '../../../store/actions/ReportActions';
+import * as Store from '../../../store/Store';
+import {fetchHistory, updateLastReadActionID} from '../../../store/actions/ReportActions';
 import WithStore from '../../../components/WithStore';
 import STOREKEYS from '../../../store/STOREKEYS';
 import ReportHistoryItem from './ReportHistoryItem';
@@ -18,6 +19,12 @@ const propTypes = {
 };
 
 class ReportHistoryView extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.recordMaxVisibleAction = _.debounce(this.recordMaxVisibleAction.bind(this), 1000);
+    }
+
     componentDidMount() {
         this.bindToStore();
     }
@@ -86,6 +93,11 @@ class ReportHistoryView extends React.Component {
         return currentAction.actorEmail === previousAction.actorEmail;
     }
 
+    recordMaxVisibleAction(maxVisibleSequenceNumber) {
+        Store.get(STOREKEYS.SESSION, 'accountID')
+            .then(accountID => updateLastReadActionID(accountID, this.props.reportID, maxVisibleSequenceNumber));
+    }
+
     render() {
         const filteredHistory = this.getFilteredReportHistory();
 
@@ -107,6 +119,17 @@ class ReportHistoryView extends React.Component {
                         displayAsGroup={this.isConsecutiveHistoryItemMadeByPreviousActor(index)}
                     />
                 )}
+                viewabilityConfig={{
+                    itemVisiblePercentThreshold: 100,
+                }}
+                onViewableItemsChanged={({viewableItems}) => {
+                    const maxVisibleSequenceNumber = _.chain(viewableItems)
+                        .pluck('item')
+                        .pluck('sequenceNumber')
+                        .max()
+                        .value();
+                    this.recordMaxVisibleAction(maxVisibleSequenceNumber);
+                }}
 
                 // We have to return a string for the key or else FlatList throws an error
                 keyExtractor={reportHistoryItem => `${reportHistoryItem.sequenceNumber}`}
