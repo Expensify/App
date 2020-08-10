@@ -1,5 +1,5 @@
 import React from 'react';
-import {Text, FlatList} from 'react-native';
+import {Text, VirtualizedList} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
@@ -18,6 +18,10 @@ const propTypes = {
 };
 
 class ReportHistoryView extends React.Component {
+    constructor(props) {
+        super(props);
+    }
+
     componentDidMount() {
         this.bindToStore();
     }
@@ -54,10 +58,6 @@ class ReportHistoryView extends React.Component {
                 loaderParams: [this.props.reportID],
             }
         }, this);
-
-        if (this.reportHistoryList) {
-            this.reportHistoryList.scrollToEnd();
-        }
     }
 
     /**
@@ -97,9 +97,13 @@ class ReportHistoryView extends React.Component {
         }
 
         return (
-            <FlatList
+            <VirtualizedList
                 ref={el => this.reportHistoryList = el}
-                data={filteredHistory}
+                data={filteredHistory.reverse()}
+                getItemCount={() => filteredHistory.length}
+                getItem={(data, index) => filteredHistory[index]}
+                initialNumToRender="10"
+                inverted
                 renderItem={({index, item}) => (
                     <ReportHistoryItem
                         historyItem={item}

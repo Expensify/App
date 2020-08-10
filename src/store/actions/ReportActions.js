@@ -49,7 +49,9 @@ function updateReportWithNewAction(reportID, reportAction) {
             }
             return reportHistory;
         })
-        .then(reportHistory => Store.set(`${STOREKEYS.REPORT}_${reportID}_history`, reportHistory.sort(sortReportActions)));
+        .then((reportHistory) => {
+            Store.set(`${STOREKEYS.REPORT}_${reportID}_history`, reportHistory.sort(sortReportActions));
+        });
 }
 
 /**
@@ -83,9 +85,12 @@ function hasUnreadHistoryItems(accountID, report) {
  */
 function initPusher() {
     return Store.get(STOREKEYS.SESSION, 'accountID')
-        .then(accountID => pusher.subscribe(`private-user-accountID-${accountID}`, 'reportComment', (pushJSON) => {
-            updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
-        }));
+        .then((accountID) => {
+            const pusherChannelName = `private-user-accountID-${accountID}`;
+            pusher.subscribe(pusherChannelName, 'reportComment', (pushJSON) => {
+                updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
+            });
+        });
 }
 
 /**
@@ -169,10 +174,10 @@ function fetchHistory(reportID) {
  * Add a history item to a report
  *
  * @param {string} reportID
- * @param {string} commentText
+ * @param {string} reportComment
  * @returns {Promise}
  */
-function addHistoryItem(reportID, commentText) {
+function addHistoryItem(reportID, reportComment) {
     const messageParser = new ExpensiMark();
     const guid = Guid();
     const historyKey = `${STOREKEYS.REPORT}_${reportID}_history`;
@@ -204,14 +209,14 @@ function addHistoryItem(reportID, commentText) {
                         }
                     ],
                     automatic: false,
-                    sequenceNumber: highestSequenceNumber++,
+                    sequenceNumber: ++highestSequenceNumber,
                     avatar: personalDetails.avatarURL,
-                    timestamp: moment.unix(),
+                    timestamp: moment().unix(),
                     message: [
                         {
                             type: 'COMMENT',
-                            html: messageParser.replace(commentText),
-                            text: commentText,
+                            html: messageParser.replace(reportComment),
+                            text: reportComment,
                         }
                     ],
                     isFirstItem: false,
@@ -221,7 +226,7 @@ function addHistoryItem(reportID, commentText) {
         })
         .then(() => delayedWrite('Report_AddComment', {
             reportID,
-            reportComment: commentText,
+            reportComment,
         }));
 }
 
