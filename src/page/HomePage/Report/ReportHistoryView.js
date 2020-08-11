@@ -12,10 +12,6 @@ import ReportHistoryItem from './ReportHistoryItem';
 const propTypes = {
     // The ID of the report being looked at
     reportID: PropTypes.string.isRequired,
-
-    // These are from WithStore
-    bind: PropTypes.func.isRequired,
-    unbind: PropTypes.func.isRequired,
 };
 
 class ReportHistoryView extends React.Component {
@@ -23,17 +19,6 @@ class ReportHistoryView extends React.Component {
         super(props);
 
         this.recordlastReadActionID = _.debounce(this.recordlastReadActionID.bind(this), 1000, true);
-    }
-
-    componentDidMount() {
-        this.bindToStore();
-    }
-
-    componentDidUpdate(prevProps) {
-        if (prevProps.reportID !== this.props.reportID) {
-            this.props.unbind();
-            this.bindToStore();
-        }
     }
 
     /**
@@ -46,22 +31,6 @@ class ReportHistoryView extends React.Component {
 
         // Only return comments
         return _.filter(reportHistory, historyItem => historyItem.actionName === 'ADDCOMMENT');
-    }
-
-    /**
-     * Binds this component to the store (needs to be done every time the props change)
-     */
-    bindToStore() {
-        // Bind this.state.reportHistory to the history in the store
-        // and call fetchHistory to load it with data
-        this.props.bind({
-            reportHistory: {
-                key: `${STOREKEYS.REPORT}_${this.props.reportID}_history`,
-                loader: fetchHistory,
-                loaderParams: [this.props.reportID],
-                prefillWithKey: `${STOREKEYS.REPORT}_${this.props.reportID}_history`,
-            }
-        }, this);
     }
 
     /**
@@ -168,4 +137,13 @@ class ReportHistoryView extends React.Component {
 }
 ReportHistoryView.propTypes = propTypes;
 
-export default WithStore()(ReportHistoryView);
+const key = `${STOREKEYS.REPORT}_%DATAFROMPROPS%_history`;
+export default WithStore({
+    reportHistory: {
+        key,
+        loader: fetchHistory,
+        loaderParams: ['%DATAFROMPROPS%'],
+        prefillWithKey: key,
+        pathForProps: 'reportID',
+    },
+})(ReportHistoryView);

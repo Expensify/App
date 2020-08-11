@@ -121,7 +121,14 @@ export default function (mapStoreToStates) {
 
             // Load the data from an API request if necessary
             if (loader) {
-                loader(...loaderParams || []);
+                const paramsForLoaderFunction = _.map(loaderParams, (loaderParam) => {
+                    // Some params might com from the props data
+                    if (loaderParam === '%DATAFROMPROPS%') {
+                        return get(this.props, pathForProps);
+                    }
+                    return loaderParam;
+                });
+                loader(...paramsForLoaderFunction || []);
             }
         }
 
