@@ -5,6 +5,8 @@
  */
 import React from 'react';
 import _ from 'underscore';
+import get from 'lodash.get';
+import has from 'lodash.has';
 import * as Store from '../store/Store';
 
 export default function (mapStoreToStates) {
@@ -12,11 +14,10 @@ export default function (mapStoreToStates) {
         constructor(props) {
             super(props);
 
-            this.subscriptionIDs = [];
-            this.bind = this.bind.bind(this);
-            this.unbind = this.unbind.bind(this);
+            this.subscriptionIDs = {};
+            this.subscriptionIDsWithPropsData = {};
 
-            // Initialize the state with each of our property names
+            // Initialize the state with each of the property names from the mapping
             this.state = _.reduce(_.keys(mapStoreToStates), (finalResult, propertyName) => ({
                 ...finalResult,
                 [propertyName]: null,
@@ -24,7 +25,25 @@ export default function (mapStoreToStates) {
         }
 
         componentDidMount() {
-            this.bindStoreToStates(mapStoreToStates, this.wrappedComponent);
+            // Subscribe each of the state properties to the proper store key
+            _.each(mapStoreToStates, (mapping, propertyName) => {
+                this.bindSingleMappingToStore(mapping, propertyName, this.wrappedComponent);
+            });
+        }
+
+        componentDidUpdate(prevProps) {
+            // If any of the mappings use data from the props, then when the props change, all the
+            // subscriptions need to be rebound with the new props
+            _.each(mapStoreToStates, (mapping, propertyName) => {
+                if (has(mapping, 'pathForProps')) {
+                    const prevPropsData = get(prevProps, mapping.pathForProps);
+                    const currentPropsData = get(this.props, mapping.pathForProps);
+                    if (prevPropsData !== currentPropsData) {
+                        Store.unbind(this.subscriptionIDsWithPropsData[mapping.pathForProps]);
+                        this.bindSingleMappingToStore(mapping, propertyName, this.wrappedComponent);
+                    }
+                }
+            });
         }
 
         componentWillUnmount() {
@@ -32,41 +51,64 @@ export default function (mapStoreToStates) {
         }
 
         /**
-         * A method that is convenient to bind the state to the store. Typically used when you can't pass
-         * mapStoreToStates to this HOC. For example: if the key that you want to subscribe to has a piece of
-         * information that can only come from the component's props, then you want to use bind() directly from inside
-         * componentDidMount(). All subscriptions will automatically be unbound when unmounted.
-         *
-         * The options passed to bind are the exact same that you would pass to the HOC.
+         * Takes a single mapping and binds the state of the component to the store
          *
          * @param {object} mapping
+         * @param {string} propertyName
          * @param {object} component
          */
-        bind(mapping, component) {
-            this.bindStoreToStates(mapping, component);
-        }
+        bindSingleMappingToStore(mapping, propertyName, component) {
+            const {
+                key,
+                path,
+                prefillWithKey,
+                loader,
+                loaderParams,
+                defaultValue,
+                pathForProps,
+            } = mapping;
 
-        bindStoreToStates(statesToStoreMap, component) {
-            // Subscribe each of the state properties to the proper store key
-            _.each(statesToStoreMap, (stateToStoreMap, propertyName) => {
-                const {
-                    key,
-                    path,
-                    prefillWithKey,
-                    loader,
-                    loaderParams,
-                    defaultValue,
-                } = stateToStoreMap;
+            // Bind to the store and keep track of the subscription ID
+            if (pathForProps) {
+                // If there is a path for props data, then the data needs to be pulled out of props and parsed
+                // into the key
+                const dataFromProps = get(this.props, pathForProps);
+                const keyWithPropsData = key.replace('%DATAFROMPROPS%', dataFromProps);
+                const subscriptionID = Store.bind(keyWithPropsData, path, defaultValue, propertyName, component);
 
-                this.subscriptionIDs.push(Store.bind(key, path, defaultValue, propertyName, component));
-                if (prefillWithKey) {
-                    Store.get(prefillWithKey, path, defaultValue)
-                        .then(data => component.setState({[propertyName]: data}));
+                // Store the subscription ID it with a key that is unique to the data coming from the props
+                this.subscriptionIDsWithPropsData[pathForProps] = subscriptionID;
+            } else {
+                const subscriptionID = Store.bind(key, path, defaultValue, propertyName, component);
+                this.subscriptionIDs[subscriptionID] = subscriptionID;
+            }
+
+            // Prefill the state with any data already in the store
+            if (prefillWithKey) {
+                let prefillKey = prefillWithKey;
+
+                // If there is a path for props data, then the data needs to be pulled out of props and parsed
+                // into the key
+                if (pathForProps) {
+                    const dataFromProps = get(this.props, pathForProps);
+                    prefillKey = prefillWithKey.replace('%DATAFROMPROPS%', dataFromProps);
                 }
-                if (loader) {
-                    loader(...loaderParams || []);
-                }
-            });
+
+                Store.get(prefillKey, path, defaultValue)
+                    .then(data => component.setState({[propertyName]: data}));
+            }
+
+            // Load the data from an API request if necessary
+            if (loader) {
+                const paramsForLoaderFunction = _.map(loaderParams, (loaderParam) => {
+                    // Some params might com from the props data
+                    if (loaderParam === '%DATAFROMPROPS%') {
+                        return get(this.props, pathForProps);
+                    }
+                    return loaderParam;
+                });
+                loader(...paramsForLoaderFunction || []);
+            }
         }
 
         /**
@@ -74,6 +116,7 @@ export default function (mapStoreToStates) {
          */
         unbind() {
             _.each(this.subscriptionIDs, Store.unbind);
+            _.each(this.subscriptionIDsWithPropsData, Store.unbind);
         }
 
         render() {
@@ -85,8 +128,6 @@ export default function (mapStoreToStates) {
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...this.state}
                     ref={el => this.wrappedComponent = el}
-                    bind={this.bind}
-                    unbind={this.unbind}
                 />
             );
         }

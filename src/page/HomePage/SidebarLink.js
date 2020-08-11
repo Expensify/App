@@ -13,34 +13,12 @@ const propTypes = {
     // The name of the report to use as the text for this link
     reportName: PropTypes.string.isRequired,
 
-    // These are from WithStore
-    bind: PropTypes.func.isRequired,
-
     // These are from withRouter
     // eslint-disable-next-line react/forbid-prop-types
     match: PropTypes.object.isRequired,
 };
 
 class SidebarLink extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            isUnread: false,
-        };
-    }
-
-    componentDidMount() {
-        this.props.bind({
-            isUnread: {
-                // Bind to ONLY the report object, not the comments (that's why a $ is added at the end of the key name)
-                key: `${STOREKEYS.REPORT}_${this.props.reportID}$`,
-                path: 'hasUnread',
-                defaultValue: false,
-            },
-        }, this);
-    }
-
     render() {
         const paramsReportID = parseInt(this.props.match.params.reportID, 10);
         const isReportActive = paramsReportID === this.props.reportID;
@@ -52,7 +30,7 @@ class SidebarLink extends React.Component {
                 <Link to={`/${this.props.reportID}`} style={linkActiveStyle}>
                     <View style={[styles.flexRow]}>
                         <Text style={[textActiveStyle, styles.flex1]}>{this.props.reportName}</Text>
-                        {this.state.isUnread && (
+                        {this.state && this.state.isUnread && (
                             <View style={styles.unreadBadge} />
                         )}
                     </View>
@@ -63,4 +41,12 @@ class SidebarLink extends React.Component {
 }
 SidebarLink.propTypes = propTypes;
 
-export default withRouter(WithStore()(SidebarLink));
+export default withRouter(WithStore({
+    isUnread: {
+        // Bind to ONLY the report object, not the comments (that's why a $ is added at the end of the key name)
+        key: `${STOREKEYS.REPORT}_%DATAFROMPROPS%$`,
+        path: 'hasUnread',
+        defaultValue: false,
+        pathForProps: 'reportID',
+    }
+})(SidebarLink));
