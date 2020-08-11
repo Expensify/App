@@ -1,5 +1,5 @@
 import React from 'react';
-import {Text, VirtualizedList} from 'react-native';
+import {Text, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
@@ -18,7 +18,20 @@ class ReportHistoryView extends React.Component {
     constructor(props) {
         super(props);
 
+        // Keeps track of the history length so that when length changes, the list is scrolled to the bottom
+        this.previousReportHistoryLength = 0;
+        this.itemsAreRendered = false;
+
         this.recordlastReadActionID = _.debounce(this.recordlastReadActionID.bind(this), 1000, true);
+        this.scrollToBottomWhenListSizeChanges = this.scrollToBottomWhenListSizeChanges.bind(this);
+    }
+
+    componentDidUpdate(prevProps) {
+        // Reset the previous history length when the props change
+        if (this.props.reportID !== prevProps.reportID) {
+            this.previousReportHistoryLength = 0;
+            this.itemsAreRendered = false;
+        }
     }
 
     /**
@@ -100,6 +113,25 @@ class ReportHistoryView extends React.Component {
             });
     }
 
+    /**
+     * This function is triggered from the ref callback for the scrollview. That way it can be scrolled once all the
+     * items have been rendered. If the number of items in our history have changed since it was last rendered, then
+     * scroll the list to the end.
+     *
+     * @param {object} el
+     */
+    scrollToBottomWhenListSizeChanges(el) {
+        if (el) {
+            const filteredHistory = this.getFilteredReportHistory();
+            if (this.previousReportHistoryLength < filteredHistory.length) {
+                el.scrollToEnd({animated: false});
+                this.recordMaxAction();
+            }
+
+            this.previousReportHistoryLength = filteredHistory.length;
+        }
+    }
+
     render() {
         const filteredHistory = this.getFilteredReportHistory();
 
@@ -108,34 +140,15 @@ class ReportHistoryView extends React.Component {
         }
 
         return (
-            <VirtualizedList
-                data={filteredHistory.reverse()}
-                getItemCount={() => filteredHistory.length}
-                getItem={(data, index) => filteredHistory[index]}
-                initialNumToRender="10"
-                inverted
-                renderItem={({index, item}) => (
+            <ScrollView ref={this.scrollToBottomWhenListSizeChanges}>
+                {_.map(filteredHistory, (item, index) => (
                     <ReportHistoryItem
+                        key={item.sequenceNumber}
                         historyItem={item}
                         displayAsGroup={this.isConsecutiveHistoryItemMadeByPreviousActor(index)}
                     />
-                )}
-                viewabilityConfig={{
-                    itemVisiblePercentThreshold: 100,
-                }}
-                onViewableItemsChanged={({viewableItems}) => {
-                    const maxVisibleSequenceNumber = _.chain(viewableItems)
-                        .pluck('item')
-                        .pluck('sequenceNumber')
-                        .max()
-                        .value();
-                    this.recordlastReadActionID(maxVisibleSequenceNumber);
-                }}
-                onEndReached={() => this.recordMaxAction()}
-
-                // We have to return a string for the key or else FlatList throws an error
-                keyExtractor={reportHistoryItem => `${reportHistoryItem.sequenceNumber}`}
-            />
+                ))}
+            </ScrollView>
         );
     }
 }
