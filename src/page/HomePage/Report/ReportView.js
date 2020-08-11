@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import * as Store from '../../../store/Store';
 import {withRouter, Route} from '../../../lib/Router';
 import WithStore from '../../../components/WithStore';
 import STOREKEYS from '../../../store/STOREKEYS';
@@ -51,11 +50,6 @@ class ReportView extends React.Component {
     }
 
     render() {
-        // Update the current report in the store so any other components can update
-        if (this.state && this.state.report) {
-            Store.set(STOREKEYS.CURRENT_REPORT, this.state.report);
-        }
-
         return (
             <View style={styles.flex1}>
                 <Route path="/:reportID" exact>
