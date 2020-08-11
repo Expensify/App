@@ -5,6 +5,7 @@ import styles from '../../../style/StyleSheet';
 import ReportHistoryView from './ReportHistoryView';
 import ReportHistoryCompose from './ReportHistoryCompose';
 import {addHistoryItem} from '../../../store/actions/ReportActions';
+import KeyboardSpacer from '../../../components/KeyboardSpacer';
 
 const ReportView = () => (
     <View style={styles.flex1}>
@@ -25,9 +26,9 @@ const ReportView = () => (
                 />
             )}
         />
+        <KeyboardSpacer />
     </View>
 );
-
 ReportView.displayName = 'ReportView';
 
 export default withRouter(ReportView);
