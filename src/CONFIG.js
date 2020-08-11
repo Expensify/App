@@ -5,6 +5,7 @@ const IS_IN_PRODUCTION = Platform.OS === 'web' ? process.env.NODE_ENV === 'produ
 
 export default {
     IS_IN_PRODUCTION,
+    SITE_TITLE: 'Chat',
     PUSHER: {
         APP_KEY: IS_IN_PRODUCTION ? '268df511a204fbb60884' : 'ac6d22b891daae55283a',
         AUTH_URL: IS_IN_PRODUCTION ? 'https://www.expensify.com' : 'https://www.expensify.com.dev',

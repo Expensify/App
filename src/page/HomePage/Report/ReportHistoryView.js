@@ -157,7 +157,7 @@ class ReportHistoryView extends React.Component {
 }
 ReportHistoryView.propTypes = propTypes;
 
-const key = `${STOREKEYS.REPORT}_%DATAFROMPROPS%_history`;
+const key = `${STOREKEYS.REPORT_HISTORY}_%DATAFROMPROPS%`;
 export default WithStore({
     reportHistory: {
         key,
