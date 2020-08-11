@@ -25,6 +25,7 @@
     "react-beforeunload": "^2.2.2",
     "react-dom": "^16.13.1",
     "react-native": "0.63.2",
+    "react-native-keyboard-spacer": "^0.4.1",
     "react-native-web": "^0.13.5",
     "react-router-dom": "^5.2.0",
     "react-router-native": "^5.2.0",

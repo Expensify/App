@@ -81,7 +81,7 @@ class ReportHistoryCompose extends React.Component {
                 <TextInput
                     ref={el => this.textInput = el}
                     multiline
-                    textAlignVertical="auto"
+                    textAlignVertical="top"
                     numberOfLines={3}
                     minHeight={60}
                     maxHeight={60}
