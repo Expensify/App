@@ -1,3 +1,7 @@
+/**
+ * Web browsers can just inject HTML straight into the DOM, which is really handy. Unfortunately, native devices
+ * will need their own native implementations to allow the display of HTML
+ */
 import {Text} from 'react-native';
 import React from 'react';
 import PropTypes from 'prop-types';

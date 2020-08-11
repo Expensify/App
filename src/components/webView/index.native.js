@@ -1,3 +1,7 @@
+/**
+ * Unlike web browsers, native clients can't inject HTML straight into the DOM so there needs to be a native way
+ * of accomplishing that.
+ */
 import React from 'react';
 import {Text} from 'react-native';
 import Str from '../../lib/Str';
