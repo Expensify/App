@@ -1,6 +1,7 @@
 import React from 'react';
-import {View} from 'react-native';
+import {View, Platform} from 'react-native';
 import PropTypes from 'prop-types';
+import KeyboardSpacer from 'react-native-keyboard-spacer';
 import * as Store from '../../../store/Store';
 import {withRouter, Route} from '../../../lib/Router';
 import WithStore from '../../../components/WithStore';
@@ -61,6 +62,7 @@ class ReportView extends React.Component {
                 <Route path="/:reportID" exact>
                     <ReportHistoryView reportID={this.props.match.params.reportID} />
                     <ReportHistoryCompose onSubmit={text => addHistoryItem(this.props.match.params.reportID, text)} />
+                    {Platform.OS === 'ios' && (<KeyboardSpacer topSpacing={-36} />)}
                 </Route>
             </View>
         );
