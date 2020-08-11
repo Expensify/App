@@ -34,6 +34,16 @@ module.exports = {
                     emitWarning: true,
                 },
             },
+
+            // Gives the ability to load local images
+            {
+                test: /\.(png|jpe?g|gif)$/i,
+                use: [
+                    {
+                        loader: 'file-loader',
+                    },
+                ],
+            },
         ],
     },
     resolve: {
