@@ -12,10 +12,6 @@ import ReportHistoryItem from './ReportHistoryItem';
 const propTypes = {
     // The ID of the report being looked at
     reportID: PropTypes.string.isRequired,
-
-    // These are from WithStore
-    bind: PropTypes.func.isRequired,
-    unbind: PropTypes.func.isRequired,
 };
 
 class ReportHistoryView extends React.Component {
@@ -23,17 +19,6 @@ class ReportHistoryView extends React.Component {
         super(props);
 
         this.recordlastReadActionID = _.debounce(this.recordlastReadActionID.bind(this), 1000, true);
-    }
-
-    componentDidMount() {
-        this.bindToStore();
-    }
-
-    componentDidUpdate(prevProps) {
-        if (prevProps.reportID !== this.props.reportID) {
-            this.props.unbind();
-            this.bindToStore();
-        }
     }
 
     /**
@@ -49,22 +34,6 @@ class ReportHistoryView extends React.Component {
     }
 
     /**
-     * Binds this component to the store (needs to be done every time the props change)
-     */
-    bindToStore() {
-        // Bind this.state.reportHistory to the history in the store
-        // and call fetchHistory to load it with data
-        this.props.bind({
-            reportHistory: {
-                key: `${STOREKEYS.REPORT}_${this.props.reportID}_history`,
-                loader: fetchHistory,
-                loaderParams: [this.props.reportID],
-                prefillWithKey: `${STOREKEYS.REPORT}_${this.props.reportID}_history`,
-            }
-        }, this);
-    }
-
-    /**
      * Returns true when the report action immediately before the
      * specified index is a comment made by the same actor who who
      * is leaving a comment in the action at the specified index.
@@ -75,22 +44,26 @@ class ReportHistoryView extends React.Component {
      *
      * @return {Boolean}
      */
+    // eslint-disable-next-line
     isConsecutiveHistoryItemMadeByPreviousActor(historyItemIndex) {
-        const filteredHistory = this.getFilteredReportHistory();
+        // Disable this for now
+        return false;
 
-        // This is the created action and the very first action so it cannot be a consecutive comment.
-        if (historyItemIndex === 0) {
-            return false;
-        }
-
-        const previousAction = filteredHistory[historyItemIndex - 1];
-        const currentAction = filteredHistory[historyItemIndex];
-
-        if (currentAction.timestamp - previousAction.timestamp > 300) {
-            return false;
-        }
-
-        return currentAction.actorEmail === previousAction.actorEmail;
+        // const filteredHistory = this.getFilteredReportHistory();
+        //
+        // // This is the created action and the very first action so it cannot be a consecutive comment.
+        // if (historyItemIndex === 0) {
+        //     return false;
+        // }
+        //
+        // const previousAction = filteredHistory[historyItemIndex - 1];
+        // const currentAction = filteredHistory[historyItemIndex];
+        //
+        // if (currentAction.timestamp - previousAction.timestamp > 300) {
+        //     return false;
+        // }
+        //
+        // return currentAction.actorEmail === previousAction.actorEmail;
     }
 
     /**
@@ -168,4 +141,13 @@ class ReportHistoryView extends React.Component {
 }
 ReportHistoryView.propTypes = propTypes;
 
-export default WithStore()(ReportHistoryView);
+const key = `${STOREKEYS.REPORT}_%DATAFROMPROPS%_history`;
+export default WithStore({
+    reportHistory: {
+        key,
+        loader: fetchHistory,
+        loaderParams: ['%DATAFROMPROPS%'],
+        prefillWithKey: key,
+        pathForProps: 'reportID',
+    },
+})(ReportHistoryView);
