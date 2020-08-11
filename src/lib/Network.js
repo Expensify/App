@@ -2,6 +2,7 @@ import _ from 'underscore';
 import * as Store from '../store/Store';
 import CONFIG from '../CONFIG';
 import STOREKEYS from '../store/STOREKEYS';
+import ROUTES from '../ROUTES';
 
 let isAppOffline = false;
 
@@ -27,11 +28,18 @@ function request(command, data, type = 'post') {
         }))
         .then(response => response.json())
         .then((responseData) => {
+            // Successful request
             if (responseData.jsonCode === 200) {
                 return responseData;
             }
+
+            // AuthToken expired, go to the sign in page
+            if (responseData.jsonCode === 407) {
+                return Store.set(STOREKEYS.APP_REDIRECT_TO, ROUTES.SIGNIN);
+            }
+
             // eslint-disable-next-line no-console
-            console.info('[API] Error', responseData);
+            console.info('[API] UnhandledError', responseData);
         })
         // eslint-disable-next-line no-unused-vars
         .catch(() => {
