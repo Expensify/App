@@ -19,7 +19,10 @@ const ReportView = () => (
             path="/:reportID"
             exact
             component={({match}) => (
-                <ReportHistoryCompose reportID={match.params.reportID} onSubmit={addHistoryItem} />
+                <ReportHistoryCompose
+                    reportID={match.params.reportID}
+                    onSubmit={text => addHistoryItem(match.params.reportID, text)}
+                />
             )}
         />
     </View>
