@@ -26,7 +26,7 @@ class SidebarLink extends React.Component {
         const linkActiveStyle = isReportActive ? styles.sidebarLinkActiveAnchor : styles.sidebarLink;
         const textActiveStyle = isReportActive ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
         return (
-            <View style={linkWrapperActiveStyle}>
+            <View style={[styles.sidebarListItem, linkWrapperActiveStyle]}>
                 <Link to={`/${this.props.reportID}`} style={linkActiveStyle}>
                     <View style={[styles.flexRow]}>
                         <Text style={[textActiveStyle, styles.flex1]}>{this.props.reportName}</Text>

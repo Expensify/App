@@ -10,10 +10,9 @@ import {withRouter} from '../../lib/Router';
 class HeaderView extends React.Component {
     render() {
         return (
-            <View style={[styles.nav, styles.flexRow, styles.flexWrap]}>
-                <Text style={styles.brand}>Expensify Chat</Text>
+            <View style={[styles.appContentHeader, styles.flexRow, styles.flexWrap]}>
                 {this.state && this.state.reportName && (
-                    <Text style={[styles.navText, styles.ml1]}>
+                    <Text style={[styles.navText]}>
                         {this.state.reportName}
                     </Text>
                 )}
