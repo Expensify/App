@@ -27,6 +27,7 @@ class ReportHistoryView extends React.Component {
 
     componentDidMount() {
         this.bindToStore();
+        this.recordMaxAction();
     }
 
     componentDidUpdate(prevProps) {
@@ -75,22 +76,26 @@ class ReportHistoryView extends React.Component {
      *
      * @return {Boolean}
      */
+    // eslint-disable-next-line
     isConsecutiveHistoryItemMadeByPreviousActor(historyItemIndex) {
-        const filteredHistory = this.getFilteredReportHistory();
+        // Disable this for now
+        return false;
 
-        // This is the created action and the very first action so it cannot be a consecutive comment.
-        if (historyItemIndex === 0) {
-            return false;
-        }
-
-        const previousAction = filteredHistory[historyItemIndex - 1];
-        const currentAction = filteredHistory[historyItemIndex];
-
-        if (currentAction.timestamp - previousAction.timestamp > 300) {
-            return false;
-        }
-
-        return currentAction.actorEmail === previousAction.actorEmail;
+        // const filteredHistory = this.getFilteredReportHistory();
+        //
+        // // This is the created action and the very first action so it cannot be a consecutive comment.
+        // if (historyItemIndex === 0) {
+        //     return false;
+        // }
+        //
+        // const previousAction = filteredHistory[historyItemIndex - 1];
+        // const currentAction = filteredHistory[historyItemIndex];
+        //
+        // if (currentAction.timestamp - previousAction.timestamp > 300) {
+        //     return false;
+        // }
+        //
+        // return currentAction.actorEmail === previousAction.actorEmail;
     }
 
     /**
