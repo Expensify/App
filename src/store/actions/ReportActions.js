@@ -29,7 +29,7 @@ function updateReportWithNewAction(reportID, reportAction) {
     // Get the comments for this report, and add the comment (being sure to sort and filter properly)
     let foundExistingReportHistoryItem = false;
 
-    Store.get(`${STOREKEYS.REPORT}_${reportID}_history`)
+    Store.get(`${STOREKEYS.REPORT_HISTORY}_${reportID}`)
 
         // Use a reducer to replace an existing report history item if there is one
         .then(reportHistory => _.map(reportHistory, (reportHistoryItem) => {
@@ -50,7 +50,7 @@ function updateReportWithNewAction(reportID, reportAction) {
             return reportHistory;
         })
         .then((reportHistory) => {
-            Store.set(`${STOREKEYS.REPORT}_${reportID}_history`, reportHistory.sort(sortReportActions));
+            Store.set(`${STOREKEYS.REPORT_HISTORY}_${reportID}`, reportHistory.sort(sortReportActions));
         });
 }
 
@@ -187,7 +187,7 @@ function fetchHistory(reportID) {
         reportID,
         offset: 0,
     })
-        .then(data => Store.set(`${STOREKEYS.REPORT}_${reportID}_history`, data.history.sort(sortReportActions)));
+        .then(data => Store.set(`${STOREKEYS.REPORT_HISTORY}_${reportID}`, data.history.sort(sortReportActions)));
 }
 
 /**
@@ -200,7 +200,7 @@ function fetchHistory(reportID) {
 function addHistoryItem(reportID, reportComment) {
     const messageParser = new ExpensiMark();
     const guid = Guid();
-    const historyKey = `${STOREKEYS.REPORT}_${reportID}_history`;
+    const historyKey = `${STOREKEYS.REPORT_HISTORY}_${reportID}`;
 
     return Store.multiGet([historyKey, STOREKEYS.SESSION, STOREKEYS.PERSONAL_DETAILS])
         .then((values) => {
