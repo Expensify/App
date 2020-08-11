@@ -12,14 +12,18 @@ class SidebarView extends React.Component {
     render() {
         const reports = this.state && this.state.reports;
         return (
-            <View style={[styles.flex1, styles.p1]}>
-                <Image
-                    style={{height: 50, width: 200}}
-                    source={logo}
-                />
-                {_.map(reports, report => (
-                    <SidebarLink key={report.reportID} reportID={report.reportID} reportName={report.reportName} />
-                ))}
+            <View style={[styles.flex1, styles.sidebar]}>
+                <View style={[styles.sidebarHeader]}>
+                    <Image
+                        style={[styles.sidebarHeaderLogo]}
+                        source={logo}
+                    />
+                </View>
+                <View style={[styles.sidebarListContainer]}>
+                    {_.map(reports, report => (
+                        <SidebarLink key={report.reportID} reportID={report.reportID} reportName={report.reportName} />
+                    ))}
+                </View>
             </View>
         );
     }

@@ -45,40 +45,9 @@ const styles = {
     textLightGray: {
         color: '#7d8b8f',
     },
-    nav: {
-        backgroundColor: '#efefef',
-        padding: 20,
-    },
     brand: {
         fontSize: 25,
         fontWeight: 'bold',
-    },
-    navText: {
-        padding: 8,
-    },
-    sidebarLink: {
-        paddingTop: 4,
-        paddingRight: 8,
-        paddingBottom: 4,
-        paddingLeft: 8,
-        textDecorationLine: 'none',
-    },
-    sidebarLinkActive: {
-        backgroundColor: '#007bff',
-        borderRadius: 4,
-    },
-    sidebarLinkActiveAnchor: {
-        paddingTop: 4,
-        paddingRight: 8,
-        paddingBottom: 4,
-        paddingLeft: 8,
-        textDecorationLine: 'none',
-    },
-    sidebarLinkText: {
-        color: '#007bff',
-    },
-    sidebarLinkActiveText: {
-        color: '#ffffff',
     },
 
     // History Items
@@ -115,6 +84,83 @@ const styles = {
         height: 10,
         marginTop: 3,
         width: 10,
+    },
+
+    // Sidebar Styles
+    sidebar: {
+        backgroundColor: '#37444C',
+    },
+
+    sidebarHeader: {
+        height: 72,
+        justifyContent: 'center',
+        paddingLeft: 24,
+        paddingRight: 24,
+        width: '100%',
+    },
+
+    sidebarHeaderLogo: {
+        height: 21,
+        width: 143,
+    },
+
+    sidebarListContainer: {
+        paddingTop: 4,
+        paddingBottom: 4,
+        paddingLeft: 12,
+        paddingRight: 12,
+    },
+
+    sidebarListItem: {
+        height: 40,
+        justifyContent: 'center',
+        paddingTop: 8,
+        paddingRight: 12,
+        paddingBottom: 8,
+        paddingLeft: 12,
+        textDecorationLine: 'none',
+    },
+
+    sidebarLinkActive: {
+        backgroundColor: '#4A5960',
+        borderRadius: 8,
+    },
+
+    sidebarLinkActiveAnchor: {
+        textDecorationLine: 'none',
+    },
+
+    sidebarLinkText: {
+        color: '#C6C9CA',
+        textDecorationLine: 'none',
+    },
+
+    sidebarLinkActiveText: {
+        color: '#ffffff',
+    },
+
+    // App Content styles
+    appContentWrapper: {
+        backgroundColor: '#37444C',
+        color: '#4A5960',
+    },
+
+    appContent: {
+        backgroundColor: '#fafafa',
+        borderTopLeftRadius: 12,
+        borderBottomLeftRadius: 12,
+        overflow: 'hidden',
+    },
+
+    appContentHeader: {
+        borderBottomWidth: 1,
+        borderBottomColor: '#ECECEC',
+        padding: 20,
+    },
+
+    navText: {
+        color: '#37444C',
+        fontWeight: 700,
     },
 };
 
