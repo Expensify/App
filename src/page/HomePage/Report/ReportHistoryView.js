@@ -112,6 +112,7 @@ class ReportHistoryView extends React.Component {
             const filteredHistory = this.getFilteredReportHistory();
             if (this.previousReportHistoryLength < filteredHistory.length) {
                 el.scrollToEnd({animated: false});
+                this.recordMaxAction();
             }
 
             this.previousReportHistoryLength = filteredHistory.length;
