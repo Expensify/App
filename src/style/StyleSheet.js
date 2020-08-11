@@ -89,7 +89,6 @@ const styles = {
         width: 40,
     },
     historyItemMessageWrapper: {
-        flexGrow: 1,
     },
     historyItemAvatar: {
         borderRadius: 20,
