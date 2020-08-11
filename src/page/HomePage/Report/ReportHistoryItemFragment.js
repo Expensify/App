@@ -14,9 +14,7 @@ const ReportHistoryItemFragment = ({fragment}) => {
     switch (fragment.type) {
         case 'COMMENT':
             return fragment.html
-                ? (
-                    <WebView source={{html: Str.nl2br(fragment.html)}} originWhitelist={['*']} scrollEnabled={false} style={{height: 'auto'}} />
-                )
+                ? <WebView html={fragment.html} />
                 : <Text>{Str.htmlDecode(fragment.text)}</Text>;
 
             // return fragment.html
