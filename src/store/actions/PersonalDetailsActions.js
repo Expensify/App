@@ -42,32 +42,34 @@ function fetch() {
             });
         })
         .then((data) => {
-            const allPersonalDetails = _.reduce(data.personalDetailsList, (finalObject, personalDetails, login) => {
-                // Form the details into something that has all the data in an easy to use format.
-                const avatarURL = getAvatar(personalDetails, login);
-                const firstName = personalDetails.firstName || '';
-                const lastName = personalDetails.lastName || '';
-                const fullName = `${firstName} ${lastName}`.trim();
-                const displayName = fullName === '' ? login : fullName;
-                const displayNameWithEmail = fullName === '' ? login : `${fullName} (${login})`;
-                return {
-                    ...finalObject,
-                    [login]: {
-                        login,
-                        avatarURL,
-                        firstName,
-                        lastName,
-                        fullName,
-                        displayName,
-                        displayNameWithEmail,
-                    }
-                };
-            }, {});
-            const myPersonalDetails = allPersonalDetails[currentLogin] || {};
-            return Store.multiSet({
-                [STOREKEYS.PERSONAL_DETAILS]: allPersonalDetails,
-                [STOREKEYS.MY_PERSONAL_DETAILS]: myPersonalDetails,
-            });
+            if (data.jsonCode === 200) {
+                const allPersonalDetails = _.reduce(data.personalDetailsList, (finalObject, personalDetails, login) => {
+                    // Form the details into something that has all the data in an easy to use format.
+                    const avatarURL = getAvatar(personalDetails, login);
+                    const firstName = personalDetails.firstName || '';
+                    const lastName = personalDetails.lastName || '';
+                    const fullName = `${firstName} ${lastName}`.trim();
+                    const displayName = fullName === '' ? login : fullName;
+                    const displayNameWithEmail = fullName === '' ? login : `${fullName} (${login})`;
+                    return {
+                        ...finalObject,
+                        [login]: {
+                            login,
+                            avatarURL,
+                            firstName,
+                            lastName,
+                            fullName,
+                            displayName,
+                            displayNameWithEmail,
+                        }
+                    };
+                }, {});
+                const myPersonalDetails = allPersonalDetails[currentLogin] || {};
+                return Store.multiSet({
+                    [STOREKEYS.PERSONAL_DETAILS]: allPersonalDetails,
+                    [STOREKEYS.MY_PERSONAL_DETAILS]: myPersonalDetails,
+                });
+            }
         })
         .catch((error) => {
             if (error.message === 'No login') {
