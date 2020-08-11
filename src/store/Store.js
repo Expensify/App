@@ -1,5 +1,5 @@
 import lodashGet from 'lodash.get';
-import _, {map} from 'underscore';
+import _ from 'underscore';
 import AsyncStorage from '@react-native-community/async-storage';
 
 // Keeps track of the last subscription ID that was used
@@ -31,11 +31,19 @@ const callbackToStateMapping = {};
  * @param {mixed} defaultValue to return if the there is nothing from the store
  * @param {string} statePropertyName the name of the property in the state to bind the data to
  * @param {boolean} addAsCollection rather than setting a single state value, this will add things to an array
+ * @param {string} collectionId the name of the ID property to use for the collection
  * @param {object} reactComponent whose setState() method will be called with any changed data
- * @param {string} the name of the ID property to use for the collection
  * @returns {number} an ID to use when calling unbind
  */
-function bind(keyPattern, path, defaultValue, statePropertyName, addAsCollection, collectionId, reactComponent) {
+function bind(
+    keyPattern,
+    path,
+    defaultValue,
+    statePropertyName,
+    addAsCollection,
+    collectionId,
+    reactComponent
+) {
     const subscriptionID = lastSubscriptionID++;
     callbackToStateMapping[subscriptionID] = {
         regex: RegExp(keyPattern),

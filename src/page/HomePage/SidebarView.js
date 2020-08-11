@@ -10,14 +10,12 @@ import logo from '../../images/expensify-logo_reversed.png';
 import PageTitleUpdater from '../../lib/PageTitleUpdater';
 
 class SidebarView extends React.Component {
-
     /**
      * Updates the page title to indicate there are unread reports
      */
     updateUnreadReportIndicator() {
         if (this.state) {
             const hasUnreadReports = _.any(this.state.individualReports, report => report.hasUnread);
-            console.log('has unread', hasUnreadReports)
             PageTitleUpdater(hasUnreadReports);
         }
     }
