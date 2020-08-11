@@ -1,5 +1,5 @@
 import React from 'react';
-import {Text, VirtualizedList} from 'react-native';
+import {Text, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
@@ -18,7 +18,18 @@ class ReportHistoryView extends React.Component {
     constructor(props) {
         super(props);
 
+        this.previousReportHistoryLength = 0;
+
         this.recordlastReadActionID = _.debounce(this.recordlastReadActionID.bind(this), 1000, true);
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.reportID !== this.props.reportID) {
+            this.previousReportHistoryLength = 0;
+            if (this.historyItemList) {
+                this.historyItemList.scrollToEnd({animated: false});
+            }
+        }
     }
 
     /**
@@ -103,35 +114,26 @@ class ReportHistoryView extends React.Component {
             return <Text>Be the first person to comment!</Text>;
         }
 
+        console.log(this.previousReportHistoryLength, filteredHistory.length);
+        if (this.previousReportHistoryLength < filteredHistory.length) {
+            if (this.historyItemList) {
+                console.log('scroll')
+                this.historyItemList.scrollToEnd({animated: false});
+            }
+        }
+
+        this.previousReportHistoryLength = filteredHistory.length;
+
         return (
-            <VirtualizedList
-                data={filteredHistory.reverse()}
-                getItemCount={() => filteredHistory.length}
-                getItem={(data, index) => filteredHistory[index]}
-                initialNumToRender="10"
-                inverted
-                renderItem={({index, item}) => (
+            <ScrollView ref={el => this.historyItemList = el}>
+                {_.map(filteredHistory, (item, index) => (
                     <ReportHistoryItem
+                        key={item.sequenceNumber}
                         historyItem={item}
                         displayAsGroup={this.isConsecutiveHistoryItemMadeByPreviousActor(index)}
                     />
-                )}
-                viewabilityConfig={{
-                    itemVisiblePercentThreshold: 100,
-                }}
-                onViewableItemsChanged={({viewableItems}) => {
-                    const maxVisibleSequenceNumber = _.chain(viewableItems)
-                        .pluck('item')
-                        .pluck('sequenceNumber')
-                        .max()
-                        .value();
-                    this.recordlastReadActionID(maxVisibleSequenceNumber);
-                }}
-                onEndReached={() => this.recordMaxAction()}
-
-                // We have to return a string for the key or else FlatList throws an error
-                keyExtractor={reportHistoryItem => `${reportHistoryItem.sequenceNumber}`}
-            />
+                ))}
+            </ScrollView>
         );
     }
 }
