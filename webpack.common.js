@@ -34,6 +34,17 @@ module.exports = {
                     emitWarning: true,
                 },
             },
+
+            // This is necessary to support react-native-web-webview
+            {
+                test: /postMock.html$/,
+                use: {
+                    loader: 'file-loader',
+                    options: {
+                        name: '[name].[ext]',
+                    },
+                },
+            }
         ],
     },
     resolve: {
