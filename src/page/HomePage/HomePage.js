@@ -34,11 +34,13 @@ export default class App extends React.Component {
             <>
                 <StatusBar barStyle="dark-content" />
                 <SafeAreaView style={[styles.flex1, styles.h100p]}>
-                    <View style={[styles.flexColumn, styles.h100p]}>
+                    <View style={[styles.flexRow, styles.h100p]}>
                         <Route path="/:reportID?">
-                            <Header />
-                            <View style={[styles.flex1, styles.flexRow]}>
+                            <View>
                                 <Sidebar />
+                            </View>
+                            <View style={[styles.flex1, styles.flexColumn]}>
+                                <Header />
                                 <Main />
                             </View>
                         </Route>
