@@ -117,7 +117,7 @@ function fetch(reportID) {
         .then((accountID) => {
             // When we fetch a full report, we want to figure out if there are unread comments on it
             fetchedReport.hasUnread = hasUnreadHistoryItems(accountID, fetchedReport);
-            return Store.set(`${STOREKEYS.REPORT}_${reportID}`, fetchedReport);
+            return Store.merge(`${STOREKEYS.REPORT}_${reportID}`, fetchedReport);
         });
 }
 
