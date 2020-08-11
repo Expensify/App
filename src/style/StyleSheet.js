@@ -85,11 +85,6 @@ const styles = {
     historyItemAvatarWrapper: {
         width: 40,
     },
-    historyItemAvatarWrapperGrouped: {
-        width: 40,
-    },
-    historyItemMessageWrapper: {
-    },
     historyItemAvatar: {
         borderRadius: 20,
         height: 40,
