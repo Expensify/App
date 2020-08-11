@@ -22,13 +22,13 @@ class SidebarLink extends React.Component {
     render() {
         const paramsReportID = parseInt(this.props.match.params.reportID, 10);
         const isReportActive = paramsReportID === this.props.reportID;
-        const linkWrapperActiveStyle = isReportActive && styles.sidebarLinkActive;
-        const linkActiveStyle = isReportActive ? styles.sidebarLinkActiveAnchor : styles.sidebarLink;
+        const linkWrapperActiveStyle = isReportActive && styles.sidebarLinkWrapperActive;
+        const linkActiveStyle = isReportActive ? styles.sidebarLinkActive : styles.sidebarLink;
         const textActiveStyle = isReportActive ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
         return (
             <View style={[styles.sidebarListItem, linkWrapperActiveStyle]}>
                 <Link to={`/${this.props.reportID}`} style={linkActiveStyle}>
-                    <View style={[styles.flexRow]}>
+                    <View style={[styles.sidebarLinkInner]}>
                         <Text style={[textActiveStyle, styles.flex1]}>{this.props.reportName}</Text>
                         {this.state && this.state.isUnread && (
                             <View style={styles.unreadBadge} />
