@@ -36,7 +36,7 @@ export default class App extends React.Component {
                 <SafeAreaView style={[styles.flex1, styles.h100p]}>
                     <View style={[styles.flexRow, styles.h100p]}>
                         <Route path="/:reportID?">
-                            <View>
+                            <View style={{width: 300}}>
                                 <Sidebar />
                             </View>
                             <View style={[styles.flex1, styles.flexColumn]}>
