@@ -133,12 +133,21 @@ function fetchAll() {
             reportIDList: '63212778,63212795,63212764,63212607,63699490',
             shouldLoadOptionalKeys: true,
         })
+
+            // Load the full report of each one, it's OK to fire-and-forget these requests
             .then((data) => {
-                // Load the full report of each one, it's OK to fire-and-forget these requests
-                _.each(data.reportListBeta, report => fetch(report.reportID));
-                return data;
+                _.each(data.reports, report => fetch(report.reportID));
+                return data.reports;
             })
-            .then(data => Store.set(STOREKEYS.REPORTS, _.values(data.reports)))
+
+            // Transform the data so we only store what we need (space is valuable)
+            .then(data => _.chain(data)
+                .values()
+                .map(report => ({reportID: report.reportID, reportName: report.reportName}))
+                .value())
+
+            // Put the data into the store
+            .then(data => Store.set(STOREKEYS.REPORTS, data))
             // eslint-disable-next-line no-console
             .catch((error) => { console.log('Error fetching report actions', error); });
     }
@@ -149,12 +158,20 @@ function fetchAll() {
         offset: 0,
         limit: 10,
     })
+
+        // Load the full report of each one, it's OK to fire-and-forget these requests
         .then((data) => {
-            // Load the full report of each one, it's OK to fire-and-forget these requests
             _.each(data.reportListBeta, report => fetch(report.reportID));
-            return data;
+            return data.reportListBeta;
         })
-        .then(data => Store.set(STOREKEYS.REPORTS, _.values(data.reportListBeta)))
+
+        // Transform the data so we only store what we need (space is valuable)
+        .then(data => _.chain(data)
+            .map(report => ({reportID: report.reportID, reportName: report.reportName}))
+            .value())
+
+        // Put the data into the store
+        .then(data => Store.set(STOREKEYS.REPORTS, _.values(data)))
         // eslint-disable-next-line no-console
         .catch((error) => { console.log('Error fetching report actions', error); });
 }
