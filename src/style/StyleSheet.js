@@ -78,13 +78,6 @@ const styles = {
         borderWidth: 1,
         padding: 10,
     },
-    unreadBadge: {
-        backgroundColor: '#dc3545',
-        borderRadius: 15,
-        height: 10,
-        marginTop: 3,
-        width: 10,
-    },
 
     // Sidebar Styles
     sidebar: {
@@ -111,32 +104,73 @@ const styles = {
         paddingRight: 12,
     },
 
-    sidebarListItem: {
-        height: 40,
-        justifyContent: 'center',
+    sidebarListHeader: {
+        color: '#FFFFFF',
+        fontSize: 15,
+        fontWeight: 700,
         paddingTop: 8,
         paddingRight: 12,
         paddingBottom: 8,
         paddingLeft: 12,
-        textDecorationLine: 'none',
+    },
+
+    sidebarListItem: {
+        height: 40,
+        justifyContent: 'center',
+        textDecoration: 'none',
+    },
+
+    sidebarLink: {
+        height: 40,
+        paddingTop: 8,
+        paddingRight: 12,
+        paddingBottom: 8,
+        paddingLeft: 12,
+        textDecoration: 'none',
+    },
+
+    sidebarLinkInner: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        height: 24,
+    },
+
+    sidebarLinkText: {
+        color: '#C6C9CA',
+        fontSize: 13,
+        textDecoration: 'none',
+        textDecoration: 'none',
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
     },
 
     sidebarLinkActive: {
         backgroundColor: '#4A5960',
         borderRadius: 8,
-    },
-
-    sidebarLinkActiveAnchor: {
-        textDecorationLine: 'none',
-    },
-
-    sidebarLinkText: {
-        color: '#C6C9CA',
-        textDecorationLine: 'none',
+        height: 40,
+        paddingTop: 8,
+        paddingRight: 12,
+        paddingBottom: 8,
+        paddingLeft: 12,
+        textDecoration: 'none',
     },
 
     sidebarLinkActiveText: {
         color: '#ffffff',
+        fontSize: 13,
+        textDecoration: 'none',
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+    },
+
+    unreadBadge: {
+        backgroundColor: '#2ECB70',
+        borderRadius: 15,
+        height: 10,
+        marginTop: 3,
+        width: 10,
     },
 
     // App Content styles
@@ -155,12 +189,23 @@ const styles = {
     appContentHeader: {
         borderBottomWidth: 1,
         borderBottomColor: '#ECECEC',
-        padding: 20,
+        height: 73,
+        alignItems: 'center',
+        paddingLeft: 20,
+        paddingRight: 20,
     },
 
     navText: {
         color: '#37444C',
         fontWeight: 700,
+    },
+
+    // Chat Item
+    chatItem: {
+        paddingTop: 8,
+        paddingBottom: 8,
+        paddingLeft: 16,
+        paddingRight: 16,
     },
 };
 

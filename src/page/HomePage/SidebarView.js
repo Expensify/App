@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Image} from 'react-native';
+import {Text, View, Image} from 'react-native';
 import _ from 'underscore';
 import styles from '../../style/StyleSheet';
 import WithStore from '../../components/WithStore';
@@ -20,6 +20,11 @@ class SidebarView extends React.Component {
                     />
                 </View>
                 <View style={[styles.sidebarListContainer]}>
+                    <View style={[styles.sidebarListItem]}>
+                        <Text style={[styles.sidebarListHeader]}>
+                            Chats
+                        </Text>
+                    </View>
                     {_.map(reports, report => (
                         <SidebarLink key={report.reportID} reportID={report.reportID} reportName={report.reportName} />
                     ))}
