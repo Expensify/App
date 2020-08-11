@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {Text} from 'react-native';
 import PropTypes from 'prop-types';
 import ReportHistoryPropsTypes from './ReportHistoryPropsTypes';
 import ReportHistoryItemMessage from './ReportHistoryItemMessage';
@@ -11,14 +11,9 @@ const propTypes = {
 };
 
 const ReportHistoryItemGrouped = ({historyItem}) => (
-    <View style={[styles.flexRow]}>
-        <View style={[styles.historyItemAvatarWrapperGrouped]} />
-        <View style={[styles.historyItemMessageWrapper]}>
-            <View style={[styles.p1]}>
-                <ReportHistoryItemMessage historyItem={historyItem} />
-            </View>
-        </View>
-    </View>
+    <Text style={[styles.historyItemMessageWrapper]}>
+        <ReportHistoryItemMessage historyItem={historyItem} />
+    </Text>
 );
 
 ReportHistoryItemGrouped.propTypes = propTypes;

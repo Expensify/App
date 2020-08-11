@@ -85,11 +85,10 @@ const styles = {
     historyItemAvatarWrapper: {
         width: 40,
     },
-    historyItemAvatarWrapperGrouped: {
-        width: 40,
-    },
     historyItemMessageWrapper: {
         flexGrow: 1,
+        paddingLeft: 50,
+        marginBottom: 20,
     },
     historyItemAvatar: {
         borderRadius: 20,
