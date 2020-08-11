@@ -66,6 +66,8 @@ export default function (mapStoreToStates) {
                 loaderParams,
                 defaultValue,
                 pathForProps,
+                addAsCollection,
+                collectionId,
             } = mapping;
 
             // Bind to the store and keep track of the subscription ID
@@ -74,12 +76,12 @@ export default function (mapStoreToStates) {
                 // into the key
                 const dataFromProps = get(this.props, pathForProps);
                 const keyWithPropsData = key.replace('%DATAFROMPROPS%', dataFromProps);
-                const subscriptionID = Store.bind(keyWithPropsData, path, defaultValue, propertyName, component);
+                const subscriptionID = Store.bind(keyWithPropsData, path, defaultValue, propertyName, addAsCollection, collectionId, component);
 
                 // Store the subscription ID it with a key that is unique to the data coming from the props
                 this.subscriptionIDsWithPropsData[pathForProps] = subscriptionID;
             } else {
-                const subscriptionID = Store.bind(key, path, defaultValue, propertyName, component);
+                const subscriptionID = Store.bind(key, path, defaultValue, propertyName, addAsCollection, collectionId, component);
                 this.subscriptionIDs[subscriptionID] = subscriptionID;
             }
 
