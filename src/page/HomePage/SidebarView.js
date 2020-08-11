@@ -6,6 +6,7 @@ import WithStore from '../../components/WithStore';
 import STOREKEYS from '../../store/STOREKEYS';
 import {fetchAll} from '../../store/actions/ReportActions';
 import SidebarLink from './SidebarLink';
+import logo from '../../images/expensify-logo_reversed.png';
 
 class SidebarView extends React.Component {
     render() {
@@ -13,8 +14,8 @@ class SidebarView extends React.Component {
         return (
             <View style={[styles.flex1, styles.p1]}>
                 <Image
-                    style={{height: 50, width: 50}}
-                    source={{uri: 'https://d2k5nsl2zxldvw.cloudfront.net/images/expensify-logo-2019.svg'}}
+                    style={{height: 50, width: 200}}
+                    source={logo}
                 />
                 {_.map(reports, report => (
                     <SidebarLink key={report.reportID} reportID={report.reportID} reportName={report.reportName} />
