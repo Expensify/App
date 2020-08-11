@@ -13,8 +13,8 @@ import CONST from '../../CONST';
  * @returns {string}
  */
 function getAvatar(personalDetails, login) {
-    if (personalDetails.detailJSON && personalDetails.detailJSON.avatar) {
-        return personalDetails.detailJSON.avatar.replace(/&d=404$/, '');
+    if (personalDetails && personalDetails.avatar) {
+        return personalDetails.avatar.replace(/&d=404$/, '');
     }
 
     // There are 8 possible default avatars, so we choose which one this user has based
@@ -30,6 +30,7 @@ function getAvatar(personalDetails, login) {
  */
 function fetch() {
     let currentLogin;
+    let myPersonalDetails;
     const requestPromise = Store.get(STOREKEYS.SESSION, 'email')
         .then((login) => {
             if (!login) {
@@ -42,35 +43,34 @@ function fetch() {
             });
         })
         .then((data) => {
-            if (data.jsonCode === 200) {
-                const allPersonalDetails = _.reduce(data.personalDetailsList, (finalObject, personalDetails, login) => {
-                    // Form the details into something that has all the data in an easy to use format.
-                    const avatarURL = getAvatar(personalDetails, login);
-                    const firstName = personalDetails.firstName || '';
-                    const lastName = personalDetails.lastName || '';
-                    const fullName = `${firstName} ${lastName}`.trim();
-                    const displayName = fullName === '' ? login : fullName;
-                    const displayNameWithEmail = fullName === '' ? login : `${fullName} (${login})`;
-                    return {
-                        ...finalObject,
-                        [login]: {
-                            login,
-                            avatarURL,
-                            firstName,
-                            lastName,
-                            fullName,
-                            displayName,
-                            displayNameWithEmail,
-                        }
-                    };
-                }, {});
-                const myPersonalDetails = allPersonalDetails[currentLogin] || {};
-                return Store.multiSet({
-                    [STOREKEYS.PERSONAL_DETAILS]: allPersonalDetails,
-                    [STOREKEYS.MY_PERSONAL_DETAILS]: myPersonalDetails,
-                });
-            }
+            const allPersonalDetails = _.reduce(data.personalDetailsList, (finalObject, personalDetails, login) => {
+                // Form the details into something that has all the data in an easy to use format.
+                const avatarURL = getAvatar(personalDetails, login);
+                const firstName = personalDetails.firstName || '';
+                const lastName = personalDetails.lastName || '';
+                const fullName = `${firstName} ${lastName}`.trim();
+                const displayName = fullName === '' ? login : fullName;
+                const displayNameWithEmail = fullName === '' ? login : `${fullName} (${login})`;
+                return {
+                    ...finalObject,
+                    [login]: {
+                        login,
+                        avatarURL,
+                        firstName,
+                        lastName,
+                        fullName,
+                        displayName,
+                        displayNameWithEmail,
+                    }
+                };
+            }, {});
+
+            // Get my personal details so they can be easily accessed and subscribed to on their own key
+            myPersonalDetails = allPersonalDetails[currentLogin] || {};
+
+            return Store.set(STOREKEYS.PERSONAL_DETAILS, allPersonalDetails);
         })
+        .then(() => Store.merge(STOREKEYS.MY_PERSONAL_DETAILS, myPersonalDetails))
         .catch((error) => {
             if (error.message === 'No login') {
                 // eslint-disable-next-line no-console
