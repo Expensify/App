@@ -76,6 +76,7 @@ class ReportHistoryView extends React.Component {
      *
      * @return {Boolean}
      */
+    // eslint-disable-next-line
     isConsecutiveHistoryItemMadeByPreviousActor(historyItemIndex) {
         // Disable this for now
         return false;
