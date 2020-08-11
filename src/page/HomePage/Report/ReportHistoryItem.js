@@ -13,19 +13,14 @@ const propTypes = {
     displayAsGroup: PropTypes.bool.isRequired,
 };
 
-// TODO: Fix eslint error here
-// eslint-disable-next-line react/prefer-stateless-function
-class ReportHistoryItem extends React.Component {
-    render() {
-        return (
-            <View>
-                {!this.props.displayAsGroup && <ReportHistoryItemSingle historyItem={this.props.historyItem} />}
-                {this.props.displayAsGroup && <ReportHistoryItemGrouped historyItem={this.props.historyItem} />}
-                {this.props.historyItem.tempGuid && <ActivityIndicator type="small" color="#7d8b8f" />}
-            </View>
-        );
-    }
-}
+const ReportHistoryItem = ({displayAsGroup, historyItem}) => (
+    <View>
+        {!displayAsGroup && <ReportHistoryItemSingle historyItem={historyItem} />}
+        {displayAsGroup && <ReportHistoryItemGrouped historyItem={historyItem} />}
+        {historyItem.tempGuid && <ActivityIndicator type="small" color="#7d8b8f" />}
+    </View>
+);
 ReportHistoryItem.propTypes = propTypes;
+ReportHistoryItem.displayName = 'ReportHistoryItem';
 
 export default ReportHistoryItem;
