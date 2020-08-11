@@ -29,7 +29,7 @@ function updateReportWithNewAction(reportID, reportAction) {
     // Get the comments for this report, and add the comment (being sure to sort and filter properly)
     let foundExistingReportHistoryItem = false;
 
-    Store.get(`${STOREKEYS.REPORT}_${reportID}_history`)
+    Store.get(`${STOREKEYS.REPORT_HISTORY}_${reportID}`)
 
         // Use a reducer to replace an existing report history item if there is one
         .then(reportHistory => _.map(reportHistory, (reportHistoryItem) => {
@@ -50,7 +50,7 @@ function updateReportWithNewAction(reportID, reportAction) {
             return reportHistory;
         })
         .then((reportHistory) => {
-            Store.set(`${STOREKEYS.REPORT}_${reportID}_history`, reportHistory.sort(sortReportActions));
+            Store.set(`${STOREKEYS.REPORT_HISTORY}_${reportID}`, reportHistory.sort(sortReportActions));
         });
 }
 
@@ -133,12 +133,21 @@ function fetchAll() {
             reportIDList: '63212778,63212795,63212764,63212607,63699490',
             shouldLoadOptionalKeys: true,
         })
+
+            // Load the full report of each one, it's OK to fire-and-forget these requests
             .then((data) => {
-                // Load the full report of each one, it's OK to fire-and-forget these requests
-                _.each(data.reportListBeta, report => fetch(report.reportID));
-                return data;
+                _.each(data.reports, report => fetch(report.reportID));
+                return data.reports;
             })
-            .then(data => Store.set(STOREKEYS.REPORTS, _.values(data.reports)))
+
+            // Transform the data so we only store what we need (space is valuable)
+            .then(data => _.chain(data)
+                .values()
+                .map(report => ({reportID: report.reportID, reportName: report.reportName}))
+                .value())
+
+            // Put the data into the store
+            .then(data => Store.set(STOREKEYS.REPORTS, data))
             // eslint-disable-next-line no-console
             .catch((error) => { console.log('Error fetching report actions', error); });
     }
@@ -149,12 +158,20 @@ function fetchAll() {
         offset: 0,
         limit: 10,
     })
+
+        // Load the full report of each one, it's OK to fire-and-forget these requests
         .then((data) => {
-            // Load the full report of each one, it's OK to fire-and-forget these requests
             _.each(data.reportListBeta, report => fetch(report.reportID));
-            return data;
+            return data.reportListBeta;
         })
-        .then(data => Store.set(STOREKEYS.REPORTS, _.values(data.reportListBeta)))
+
+        // Transform the data so we only store what we need (space is valuable)
+        .then(data => _.chain(data)
+            .map(report => ({reportID: report.reportID, reportName: report.reportName}))
+            .value())
+
+        // Put the data into the store
+        .then(data => Store.set(STOREKEYS.REPORTS, _.values(data)))
         // eslint-disable-next-line no-console
         .catch((error) => { console.log('Error fetching report actions', error); });
 }
@@ -170,7 +187,7 @@ function fetchHistory(reportID) {
         reportID,
         offset: 0,
     })
-        .then(data => Store.set(`${STOREKEYS.REPORT}_${reportID}_history`, data.history.sort(sortReportActions)));
+        .then(data => Store.set(`${STOREKEYS.REPORT_HISTORY}_${reportID}`, data.history.sort(sortReportActions)));
 }
 
 /**
@@ -183,7 +200,7 @@ function fetchHistory(reportID) {
 function addHistoryItem(reportID, reportComment) {
     const messageParser = new ExpensiMark();
     const guid = Guid();
-    const historyKey = `${STOREKEYS.REPORT}_${reportID}_history`;
+    const historyKey = `${STOREKEYS.REPORT_HISTORY}_${reportID}`;
 
     return Store.multiGet([historyKey, STOREKEYS.SESSION, STOREKEYS.PERSONAL_DETAILS])
         .then((values) => {

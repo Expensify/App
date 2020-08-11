@@ -1,5 +1,6 @@
 import React from 'react';
 import {Text} from 'react-native';
+import WebView from '../../../components/webView';
 import Str from '../../../lib/Str';
 import ReportHistoryFragmentPropTypes from './ReportHistoryFragmentPropTypes';
 import styles from '../../../style/StyleSheet';
@@ -12,7 +13,9 @@ const propTypes = {
 const ReportHistoryItemFragment = ({fragment}) => {
     switch (fragment.type) {
         case 'COMMENT':
-            return <Text>{Str.htmlDecode(fragment.text)}</Text>;
+            return fragment.html
+                ? <WebView html={fragment.html} />
+                : <Text>{Str.htmlDecode(fragment.text)}</Text>;
 
             // return fragment.html
             //     ? (
