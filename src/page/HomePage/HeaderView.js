@@ -43,7 +43,7 @@ export default withRouter(WithStore({
     // binds to
     reportName: {
         // Note the trailing $ so that this component only binds to the specific report and no other report keys
-        // like report_1234_history
+        // like report_history_1234
         key: `${STOREKEYS.REPORT}_%DATAFROMPROPS%$`,
         path: 'reportName',
         prefillWithKey: `${STOREKEYS.REPORT}_%DATAFROMPROPS%`,

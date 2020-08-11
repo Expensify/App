@@ -30,14 +30,26 @@ const callbackToStateMapping = {};
  * @param {string} path a specific path of the store object to map to the state
  * @param {mixed} defaultValue to return if the there is nothing from the store
  * @param {string} statePropertyName the name of the property in the state to bind the data to
+ * @param {boolean} addAsCollection rather than setting a single state value, this will add things to an array
+ * @param {string} collectionId the name of the ID property to use for the collection
  * @param {object} reactComponent whose setState() method will be called with any changed data
  * @returns {number} an ID to use when calling unbind
  */
-function bind(keyPattern, path, defaultValue, statePropertyName, reactComponent) {
+function bind(
+    keyPattern,
+    path,
+    defaultValue,
+    statePropertyName,
+    addAsCollection,
+    collectionId,
+    reactComponent
+) {
     const subscriptionID = lastSubscriptionID++;
     callbackToStateMapping[subscriptionID] = {
         regex: RegExp(keyPattern),
         statePropertyName,
+        addAsCollection,
+        collectionId,
         path,
         reactComponent,
         defaultValue,
@@ -74,9 +86,21 @@ function keyChanged(key, data) {
                 : data || mappedComponent.defaultValue || null;
 
             // Set the state of the react component with either the pathed data, or the data
-            mappedComponent.reactComponent.setState({
-                [mappedComponent.statePropertyName]: newValue,
-            });
+            if (mappedComponent.addAsCollection) {
+                // Add the data to an array of existing items
+                mappedComponent.reactComponent.setState((prevState) => {
+                    const collection = prevState[mappedComponent.statePropertyName] || {};
+                    collection[newValue[mappedComponent.collectionId]] = newValue;
+                    const newState = {
+                        [mappedComponent.statePropertyName]: collection,
+                    };
+                    return newState;
+                });
+            } else {
+                mappedComponent.reactComponent.setState({
+                    [mappedComponent.statePropertyName]: newValue,
+                });
+            }
         }
     });
 }
