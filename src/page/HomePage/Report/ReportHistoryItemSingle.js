@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Image} from 'react-native';
+import {View, Image, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ReportHistoryPropsTypes from './ReportHistoryPropsTypes';
@@ -19,14 +19,14 @@ const ReportHistoryItemSingle = ({historyItem}) => {
         ? `${CONST.CLOUDFRONT_URL}/images/icons/concierge_2019.svg`
         : historyItem.avatar;
     return (
-        <View style={[styles.flexRow, styles.mt2]}>
-            <View style={[styles.historyItemAvatarWrapper]}>
-                <Image
-                    source={{uri: avatarUrl}}
-                    style={[styles.historyItemAvatar]}
-                />
-            </View>
-            <View style={[styles.historyItemMessageWrapper]}>
+        <>
+            <View style={[styles.flexRow, styles.mt2]}>
+                <View style={[styles.historyItemAvatarWrapper]}>
+                    <Image
+                        source={{uri: avatarUrl}}
+                        style={[styles.historyItemAvatar]}
+                    />
+                </View>
                 <View style={[styles.flexRow]}>
                     <View style={[styles.p1]}>
                         {historyItem.person.map(fragment => (
@@ -36,15 +36,15 @@ const ReportHistoryItemSingle = ({historyItem}) => {
                             />
                         ))}
                     </View>
-                    <View style={[styles.p1]}>
+                    <View style={[styles.p1, styles.flexGrow1]}>
                         <ReportHistoryItemDate timestamp={historyItem.timestamp} />
                     </View>
                 </View>
-                <View style={[styles.p1]}>
-                    <ReportHistoryItemMessage historyItem={historyItem} />
-                </View>
             </View>
-        </View>
+            <Text style={[styles.historyItemMessageWrapper]}>
+                <ReportHistoryItemMessage historyItem={historyItem} />
+            </Text>
+        </>
     );
 };
 

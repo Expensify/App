@@ -35,16 +35,15 @@ module.exports = {
                 },
             },
 
-            // This is necessary to support react-native-web-webview
+            // Gives the ability to load local images
             {
-                test: /postMock.html$/,
-                use: {
-                    loader: 'file-loader',
-                    options: {
-                        name: '[name].[ext]',
+                test: /\.(png|jpe?g|gif)$/i,
+                use: [
+                    {
+                        loader: 'file-loader',
                     },
-                },
-            }
+                ],
+            },
         ],
     },
     resolve: {
