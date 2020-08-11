@@ -18,18 +18,11 @@ class ReportHistoryView extends React.Component {
     constructor(props) {
         super(props);
 
+        // Keeps track of the history length so that when length changes, the list is scrolled to the bottom
         this.previousReportHistoryLength = 0;
 
         this.recordlastReadActionID = _.debounce(this.recordlastReadActionID.bind(this), 1000, true);
-    }
-
-    componentDidUpdate(prevProps) {
-        if (prevProps.reportID !== this.props.reportID) {
-            this.previousReportHistoryLength = 0;
-            if (this.historyItemList) {
-                this.historyItemList.scrollToEnd({animated: false});
-            }
-        }
+        this.scrollToBottomWhenListSizeChanges = this.scrollToBottomWhenListSizeChanges.bind(this);
     }
 
     /**
@@ -107,6 +100,19 @@ class ReportHistoryView extends React.Component {
             });
     }
 
+    scrollToBottomWhenListSizeChanges(el) {
+        if (el) {
+            const filteredHistory = this.getFilteredReportHistory();
+            console.log(this.previousReportHistoryLength, filteredHistory.length);
+            if (this.previousReportHistoryLength < filteredHistory.length) {
+                console.log('scroll')
+                el.scrollToEnd({animated: false});
+            }
+
+            this.previousReportHistoryLength = filteredHistory.length;
+        }
+    }
+
     render() {
         const filteredHistory = this.getFilteredReportHistory();
 
@@ -114,18 +120,9 @@ class ReportHistoryView extends React.Component {
             return <Text>Be the first person to comment!</Text>;
         }
 
-        console.log(this.previousReportHistoryLength, filteredHistory.length);
-        if (this.previousReportHistoryLength < filteredHistory.length) {
-            if (this.historyItemList) {
-                console.log('scroll')
-                this.historyItemList.scrollToEnd({animated: false});
-            }
-        }
-
-        this.previousReportHistoryLength = filteredHistory.length;
 
         return (
-            <ScrollView ref={el => this.historyItemList = el}>
+            <ScrollView ref={this.scrollToBottomWhenListSizeChanges}>
                 {_.map(filteredHistory, (item, index) => (
                     <ReportHistoryItem
                         key={item.sequenceNumber}
