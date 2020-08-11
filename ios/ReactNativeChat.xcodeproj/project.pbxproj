@@ -194,7 +194,6 @@
 				70165E3201109D033F609F7F /* Pods-ReactNativeChat-tvOSTests.debug.xcconfig */,
 				479CBDAF19255A32253AFB69 /* Pods-ReactNativeChat-tvOSTests.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -659,6 +658,7 @@
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = ReactNativeChat/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 1.0.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -681,6 +681,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				INFOPLIST_FILE = ReactNativeChat/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 1.0.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
