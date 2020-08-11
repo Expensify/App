@@ -100,12 +100,17 @@ class ReportHistoryView extends React.Component {
             });
     }
 
+    /**
+     * This function is triggered from the ref callback for the scrollview. That way it can be scrolled once all the
+     * items have been rendered. If the number of items in our history have changed since it was last rendered, then
+     * scroll the list to the end.
+     *
+     * @param {object} el
+     */
     scrollToBottomWhenListSizeChanges(el) {
         if (el) {
             const filteredHistory = this.getFilteredReportHistory();
-            console.log(this.previousReportHistoryLength, filteredHistory.length);
             if (this.previousReportHistoryLength < filteredHistory.length) {
-                console.log('scroll')
                 el.scrollToEnd({animated: false});
             }
 
