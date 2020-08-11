@@ -1,64 +1,20 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {Button, View, Text} from 'react-native';
-import {withRouter} from '../../lib/Router';
 import {signOut} from '../../store/actions/SessionActions';
 import {fetch as getPersonalDetails} from '../../store/actions/PersonalDetailsActions';
 import styles from '../../style/StyleSheet';
 import STOREKEYS from '../../store/STOREKEYS';
 import WithStore from '../../components/WithStore';
-
-const propTypes = {
-    // These are from WithStore
-    bind: PropTypes.func.isRequired,
-    unbind: PropTypes.func.isRequired,
-
-    // These are from withRouter
-    // eslint-disable-next-line react/forbid-prop-types
-    match: PropTypes.object,
-};
-
-const defaultProps = {
-    match: null,
-};
+import {withRouter} from '../../lib/Router';
 
 class HeaderView extends React.Component {
-    componentDidMount() {
-        this.bindToStore();
-    }
-
-    componentDidUpdate(prevProps) {
-        // If the report changed, then we need to re-bind to the store
-        if (prevProps.match.params.reportID !== this.props.match.params.reportID) {
-            this.props.unbind();
-            this.bindToStore();
-        }
-    }
-
-    /**
-     * Bind our state to our store. This can't be done with an HOC because props can't be accessed to make the key
-     */
-    bindToStore() {
-        const key = `${STOREKEYS.REPORT}_${this.props.match.params.reportID}`;
-        this.props.bind({
-            report: {
-                // Bind to only the data for the report (which is why there is a $ at the end)
-                key: `${key}$`,
-
-                // Prefill it with the key of the report exactly
-                // (because prefilling doesn't work with the regex patterns)
-                prefillWithKey: key,
-            }
-        }, this);
-    }
-
     render() {
         return (
             <View style={[styles.nav, styles.flexRow, styles.flexWrap]}>
                 <Text style={styles.brand}>Expensify Chat</Text>
-                {this.state && this.state.report && (
+                {this.state && this.state.reportName && (
                     <Text style={[styles.navText, styles.ml1]}>
-                        {this.state.report.reportName}
+                        {this.state.reportName}
                     </Text>
                 )}
                 <Text style={styles.flex1} />
@@ -73,16 +29,25 @@ class HeaderView extends React.Component {
     }
 }
 
-HeaderView.propTypes = propTypes;
-HeaderView.defaultProps = defaultProps;
-
 export default withRouter(WithStore({
-    // Map this.state.name to the personal details key in the store and bind it to the displayName property
+    // Map this.state.userDisplayName to the personal details key in the store and bind it to the displayName property
     // and load it with data from getPersonalDetails()
     userDisplayName: {
         key: STOREKEYS.MY_PERSONAL_DETAILS,
         path: 'displayName',
         loader: getPersonalDetails,
         prefillWithKey: STOREKEYS.MY_PERSONAL_DETAILS,
+    },
+
+    // Map this.state.reportName to the data for a specific report in the store, and bind it to the reportName property
+    // It uses the data returned from the props path (ie. the reportID) to replace %DATAFROMPROPS% in the key it
+    // binds to
+    reportName: {
+        // Note the trailing $ so that this component only binds to the specific report and no other report keys
+        // like report_1234_history
+        key: `${STOREKEYS.REPORT}_%DATAFROMPROPS%$`,
+        path: 'reportName',
+        prefillWithKey: `${STOREKEYS.REPORT}_%DATAFROMPROPS%`,
+        pathForProps: 'match.params.reportID',
     },
 })(HeaderView));
