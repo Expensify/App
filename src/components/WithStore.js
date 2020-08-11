@@ -17,9 +17,6 @@ export default function (mapStoreToStates) {
             this.subscriptionIDs = {};
             this.subscriptionIDsWithPropsData = {};
 
-            this.bind = this.bind.bind(this);
-            this.unbind = this.unbind.bind(this);
-
             // Initialize the state with each of our property names
             this.state = _.reduce(_.keys(mapStoreToStates), (finalResult, propertyName) => ({
                 ...finalResult,
@@ -48,21 +45,6 @@ export default function (mapStoreToStates) {
 
         componentWillUnmount() {
             this.unbind();
-        }
-
-        /**
-         * A method that is convenient to bind the state to the store. Typically used when you can't pass
-         * mapStoreToStates to this HOC. For example: if the key that you want to subscribe to has a piece of
-         * information that can only come from the component's props, then you want to use bind() directly from inside
-         * componentDidMount(). All subscriptions will automatically be unbound when unmounted.
-         *
-         * The options passed to bind are the exact same that you would pass to the HOC.
-         *
-         * @param {object} mapping
-         * @param {object} component
-         */
-        bind(mapping, component) {
-            this.bindStoreToStates(mapping, component);
         }
 
         /**
@@ -149,8 +131,6 @@ export default function (mapStoreToStates) {
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...this.state}
                     ref={el => this.wrappedComponent = el}
-                    bind={this.bind}
-                    unbind={this.unbind}
                 />
             );
         }
