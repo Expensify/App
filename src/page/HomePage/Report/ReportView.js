@@ -19,8 +19,8 @@ const ReportView = props => (
         <Route path="/:reportID" exact>
             <ReportHistoryView reportID={props.match.params.reportID} />
             <ReportHistoryCompose onSubmit={text => addHistoryItem(props.match.params.reportID, text)} />
-                    <KeyboardSpacer />
-                </Route>
+            <KeyboardSpacer />
+        </Route>
     </View>
 );
 ReportView.propTypes = propTypes;
