@@ -187,8 +187,8 @@ const styles = {
         textDecorationLine: 'none',
     },
     sidebarLinkTextUnread: {
-        fontWeight: 'bold',
-        color: '#ECECEC',
+        fontWeight: '600',
+        color: '#ffffff',
     },
     sidebarLinkActiveText: {
         color: '#ffffff',
