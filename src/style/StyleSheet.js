@@ -10,6 +10,9 @@ const colors = {
 
 const styles = {
     // Utility classes
+    bold: {
+        fontWeight: 'bold',
+    },
     mr1: {
         marginRight: 10,
     },
