@@ -1,6 +1,6 @@
 import moment from 'moment';
 import _ from 'underscore';
-import * as Store from '../Store';
+import * as Store from '../../lib/Store';
 import {request, delayedWrite} from '../../lib/Network';
 import STOREKEYS from '../STOREKEYS';
 import ExpensiMark from '../../lib/ExpensiMark';

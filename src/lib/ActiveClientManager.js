@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import Guid from './Guid';
-import * as Store from '../store/Store';
+import * as Store from './Store';
 import STOREKEYS from '../store/STOREKEYS';
 
 const clientID = Guid();
