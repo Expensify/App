@@ -20,7 +20,6 @@ class ReportHistoryView extends React.Component {
 
         // Keeps track of the history length so that when length changes, the list is scrolled to the bottom
         this.previousReportHistoryLength = 0;
-        this.itemsAreRendered = false;
 
         this.recordlastReadActionID = _.debounce(this.recordlastReadActionID.bind(this), 1000, true);
         this.scrollToBottomWhenListSizeChanges = this.scrollToBottomWhenListSizeChanges.bind(this);
@@ -32,18 +31,6 @@ class ReportHistoryView extends React.Component {
             this.previousReportHistoryLength = 0;
             this.itemsAreRendered = false;
         }
-    }
-
-    /**
-     * Returns the report history with everything but comments filtered out
-     *
-     * @returns {string[]}
-     */
-    getFilteredReportHistory() {
-        const reportHistory = lodashGet(this.state, 'reportHistory');
-
-        // Only return comments
-        return _.filter(reportHistory, historyItem => historyItem.actionName === 'ADDCOMMENT');
     }
 
     /**
@@ -120,20 +107,18 @@ class ReportHistoryView extends React.Component {
      */
     scrollToBottomWhenListSizeChanges() {
         if (this.historyListElement) {
-            const filteredHistory = this.getFilteredReportHistory();
-            if (this.previousReportHistoryLength < filteredHistory.length) {
+            if (this.previousReportHistoryLength < this.state.reportHistory.length) {
                 this.historyListElement.scrollToEnd({animated: false});
                 this.recordMaxAction();
             }
 
-            this.previousReportHistoryLength = filteredHistory.length;
+            this.previousReportHistoryLength = this.state.reportHistory.length;
         }
     }
 
     render() {
-        const filteredHistory = this.getFilteredReportHistory();
-
-        if (filteredHistory.length === 0) {
+        const reportHistory = lodashGet(this.state || {}, 'reportHistory', []);
+        if (reportHistory.length === 0) {
             return <Text>Be the first person to comment!</Text>;
         }
 
@@ -144,7 +129,7 @@ class ReportHistoryView extends React.Component {
                     this.scrollToBottomWhenListSizeChanges();
                 }}
             >
-                {_.map(filteredHistory, (item, index) => (
+                {_.map(reportHistory, (item, index) => (
                     <ReportHistoryItem
                         key={item.sequenceNumber}
                         historyItem={item}
