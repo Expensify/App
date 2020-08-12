@@ -57,7 +57,6 @@ const styles = {
     historyItemMessageWrapper: {
         flexGrow: 1,
         paddingLeft: 50,
-        marginBottom: 20,
     },
     historyItemAvatar: {
         borderRadius: 20,
@@ -97,7 +96,20 @@ const styles = {
         width: 143,
     },
 
+    sidebarFooter: {
+        borderTopWidth: 1,
+        borderTopColor: '#4A5960',
+        height: 72,
+        justifyContent: 'center',
+        paddingLeft: 24,
+        paddingRight: 24,
+        width: '100%',
+    },
+
     sidebarListContainer: {
+        flexGrow: 1,
+        height: 100,
+        overflow: 'scroll',
         paddingTop: 4,
         paddingBottom: 4,
         paddingLeft: 12,
@@ -107,7 +119,7 @@ const styles = {
     sidebarListHeader: {
         color: '#FFFFFF',
         fontSize: 15,
-        fontWeight: 700,
+        fontWeight: '700',
         paddingTop: 8,
         paddingRight: 12,
         paddingBottom: 8,
@@ -138,7 +150,6 @@ const styles = {
     sidebarLinkText: {
         color: '#C6C9CA',
         fontSize: 13,
-        textDecoration: 'none',
         textDecoration: 'none',
         whiteSpace: 'nowrap',
         overflow: 'hidden',
@@ -197,11 +208,19 @@ const styles = {
 
     navText: {
         color: '#37444C',
-        fontWeight: 700,
+        fontSize: 17,
+        fontWeight: '700',
     },
 
     // Chat Item
     chatItem: {
+        paddingTop: 8,
+        paddingBottom: 8,
+        paddingLeft: 16,
+        paddingRight: 16,
+    },
+
+    chatItemCompose: {
         paddingTop: 8,
         paddingBottom: 8,
         paddingLeft: 16,
