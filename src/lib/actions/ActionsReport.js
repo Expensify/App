@@ -2,7 +2,7 @@ import moment from 'moment';
 import _ from 'underscore';
 import Ion from '../Ion';
 import {request, delayedWrite} from '../Network';
-import IONKEYS from '../../store/IONKEYS';
+import IONKEYS from '../../IONKEYS';
 import ExpensiMark from '../ExpensiMark';
 import Guid from '../Guid';
 import CONFIG from '../../CONFIG';

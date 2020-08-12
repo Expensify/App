@@ -8,7 +8,7 @@ import {
     View,
 } from 'react-native';
 import {signIn} from '../lib/actions/ActionsSession';
-import IONKEYS from '../store/IONKEYS';
+import IONKEYS from '../IONKEYS';
 import WithIon from '../components/WithIon';
 
 class App extends Component {

@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import Guid from './Guid';
 import Ion from './Ion';
-import IONKEYS from '../store/IONKEYS';
+import IONKEYS from '../IONKEYS';
 
 const clientID = Guid();
 
