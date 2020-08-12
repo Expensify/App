@@ -58,36 +58,29 @@ export default function (mapIonToState) {
          * @param {object} reactComponent
          */
         connectSingleMappingToIon(mapping, statePropertyName, reactComponent) {
-            // Bind to the store and keep track of the connectionID
+            const ionConnectionConfig = {
+                keyPattern: mapping.key,
+                path: mapping.path,
+                defaultValue: mapping.defaultValue,
+                addAsCollection: mapping.addAsCollection,
+                collectionId: mapping.collectionId,
+                statePropertyName,
+                reactComponent,
+            };
+
+            // Connect to Ion and keep track of the connectionID
             if (mapping.pathForProps) {
                 // If there is a path for props data, then the data needs to be pulled out of props and parsed
                 // into the key
                 const dataFromProps = get(this.props, mapping.pathForProps);
                 const keyWithPropsData = mapping.key.replace('%DATAFROMPROPS%', dataFromProps);
-                const mappingConfig = {
-                    keyPattern: keyWithPropsData,
-                    path: mapping.path,
-                    defaultValue: mapping.defaultValue,
-                    addAsCollection: mapping.addAsCollection,
-                    collectionId: mapping.collectionId,
-                    statePropertyName,
-                    reactComponent,
-                };
-                const connectionID = Ion.connect(mappingConfig);
+                ionConnectionConfig.keyPattern = keyWithPropsData;
 
-                // Store the connectionID it with a key that is unique to the data coming from the props
-                this.connectionIDsWithPropsData[mapping.pathForProps] = connectionID;
+                // Store the connectionID with a key that is unique to the data coming from the props which allows
+                // it to be easily reconnected to when the props change
+                this.connectionIDsWithPropsData[mapping.pathForProps] = Ion.connect(ionConnectionConfig);
             } else {
-                const mappingConfig = {
-                    keyPattern: mapping.key,
-                    path: mapping.path,
-                    defaultValue: mapping.defaultValue,
-                    addAsCollection: mapping.addAsCollection,
-                    collectionId: mapping.collectionId,
-                    statePropertyName,
-                    reactComponent
-                };
-                const connectionID = Ion.connect(mappingConfig);
+                const connectionID = Ion.connect(ionConnectionConfig);
                 this.connectionIDs[connectionID] = connectionID;
             }
 
@@ -102,6 +95,7 @@ export default function (mapIonToState) {
                     prefillKey = mapping.prefillWithKey.replace('%DATAFROMPROPS%', dataFromProps);
                 }
 
+                // Get the data from Ion and put it into the state of our component right away
                 Ion.get(prefillKey, mapping.path, mapping.defaultValue)
                     .then(data => reactComponent.setState({[mapping.statePropertyName]: data}));
             }
@@ -115,6 +109,9 @@ export default function (mapIonToState) {
                     }
                     return loaderParam;
                 });
+
+                // Call the loader function and pass it any params. The loader function will take care of putting data
+                // into Ion
                 mapping.loader(...paramsForLoaderFunction || []);
             }
         }
