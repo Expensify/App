@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import {Text as RNText} from 'react-native';
 import fontFamily from '../style/fontFamily';
 
@@ -25,10 +26,10 @@ const propTypes = {
 const defaultProps = {
     color: '#ffffff',
     fontSize: 13,
-    family: 'Fabriga',
+    family: 'fabriga',
     textAlign: null,
     children: null,
-    style: null,
+    style: {},
 };
 
 const Text = ({
@@ -40,23 +41,29 @@ const Text = ({
     style,
     ...props
 }) => {
+    // If the style prop is an array of styles, we need to mix them all together
+    const mergedStyles = !_.isArray(style) ? style : _.reduce(style, (finalStyles, s) => ({
+        ...finalStyles,
+        ...s
+    }), {});
+
     const componentStyle = {
         color,
         fontSize,
         lineHeight: fontSize + 4,
         textAlign,
         ...fontFamily[family],
-        ...style,
+        ...mergedStyles,
     };
 
     return (
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <RNText style={componentStyle} {...props}>{children}</RNText>
+        <RNText style={[componentStyle]} {...props}>{children}</RNText>
     );
 };
 
-Text.defaultProps = propTypes;
-
-Text.propTypes = defaultProps;
+Text.propTypes = propTypes;
+Text.defaultProps = defaultProps;
+Text.displayName = 'Text';
 
 export default Text;
