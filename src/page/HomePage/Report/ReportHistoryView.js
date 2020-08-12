@@ -1,5 +1,6 @@
 import React from 'react';
-import {View, Text, ScrollView} from 'react-native';
+import {View, ScrollView} from 'react-native';
+import Text from '../../../components/Text';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
