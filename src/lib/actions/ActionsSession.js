@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import Store from '../Store';
+import Ion from '../Ion';
 import {request} from '../Network';
 import ROUTES from '../../ROUTES';
 import STOREKEYS from '../../store/STOREKEYS';
@@ -30,8 +30,8 @@ function createLogin(authToken, login, password) {
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         partnerUserID: login,
         partnerUserSecret: password,
-    }).then(() => Store.set(STOREKEYS.CREDENTIALS, {login, password}))
-        .catch(err => Store.merge(STOREKEYS.SESSION, {error: err}));
+    }).then(() => Ion.set(STOREKEYS.CREDENTIALS, {login, password}))
+        .catch(err => Ion.merge(STOREKEYS.SESSION, {error: err}));
 }
 
 /**
@@ -40,7 +40,7 @@ function createLogin(authToken, login, password) {
  * @returns {Promise}
  */
 function setSuccessfulSignInData(data) {
-    return Store.multiSet({
+    return Ion.multiSet({
         [STOREKEYS.SESSION]: data,
         [STOREKEYS.APP_REDIRECT_TO]: ROUTES.HOME,
         [STOREKEYS.LAST_AUTHENTICATED]: new Date().getTime(),
@@ -75,7 +75,7 @@ function signIn(login, password, twoFactorAuthCode = '', useExpensifyLogin = fal
             if (!useExpensifyLogin && data.jsonCode !== 200) {
                 // eslint-disable-next-line no-console
                 console.debug('[SIGNIN] Non-200 from authenticate, going back to sign in page');
-                return Store.multiSet({
+                return Ion.multiSet({
                     [STOREKEYS.CREDENTIALS]: {},
                     [STOREKEYS.SESSION]: {error: data.message},
                     [STOREKEYS.APP_REDIRECT_TO]: ROUTES.SIGNIN,
@@ -99,7 +99,7 @@ function signIn(login, password, twoFactorAuthCode = '', useExpensifyLogin = fal
         .catch((err) => {
             console.error(err);
             console.debug('[SIGNIN] Request error');
-            return Store.merge(STOREKEYS.SESSION, {error: err.message});
+            return Ion.merge(STOREKEYS.SESSION, {error: err.message});
         });
 }
 
@@ -115,7 +115,7 @@ function deleteLogin(authToken, login) {
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         partnerUserID: login,
-    }).catch(err => Store.merge(STOREKEYS.SESSION, {error: err.message}));
+    }).catch(err => Ion.merge(STOREKEYS.SESSION, {error: err.message}));
 }
 
 /**
@@ -124,11 +124,11 @@ function deleteLogin(authToken, login) {
  * @returns {Promise}
  */
 function signOut() {
-    return Store.set(STOREKEYS.APP_REDIRECT_TO, ROUTES.SIGNIN)
-        .then(() => Store.multiGet([STOREKEYS.SESSION, STOREKEYS.CREDENTIALS]))
+    return Ion.set(STOREKEYS.APP_REDIRECT_TO, ROUTES.SIGNIN)
+        .then(() => Ion.multiGet([STOREKEYS.SESSION, STOREKEYS.CREDENTIALS]))
         .then(data => deleteLogin(data.session.authToken, data.credentials.login))
-        .then(Store.clear)
-        .catch(err => Store.merge(STOREKEYS.SESSION, {error: err.message}));
+        .then(Ion.clear)
+        .catch(err => Ion.merge(STOREKEYS.SESSION, {error: err.message}));
 }
 
 /**
@@ -137,7 +137,7 @@ function signOut() {
  * @returns {Promise}
  */
 function verifyAuthToken() {
-    return Store.multiGet([STOREKEYS.LAST_AUTHENTICATED, STOREKEYS.CREDENTIALS])
+    return Ion.multiGet([STOREKEYS.LAST_AUTHENTICATED, STOREKEYS.CREDENTIALS])
         .then(({last_authenticated, credentials}) => {
             const haveCredentials = !_.isNull(credentials);
             const haveExpiredAuthToken = last_authenticated < new Date().getTime() - AUTH_TOKEN_EXPIRATION_TIME;
@@ -149,11 +149,11 @@ function verifyAuthToken() {
 
             return request('Get', {returnValueList: 'account'}).then((data) => {
                 if (data && data.jsonCode === 200) {
-                    return Store.merge(STOREKEYS.SESSION, data);
+                    return Ion.merge(STOREKEYS.SESSION, data);
                 }
 
                 // If the auth token is bad and we didn't have credentials saved, we want them to go to the sign in page
-                return Store.set(STOREKEYS.APP_REDIRECT_TO, ROUTES.SIGNIN);
+                return Ion.set(STOREKEYS.APP_REDIRECT_TO, ROUTES.SIGNIN);
             });
         });
 }

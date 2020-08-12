@@ -7,7 +7,7 @@ import React from 'react';
 import _ from 'underscore';
 import get from 'lodash.get';
 import has from 'lodash.has';
-import Store from '../lib/Store';
+import Ion from '../lib/Ion';
 
 export default function (mapStoreToStates) {
     return WrappedComponent => class WithStore extends React.Component {
@@ -39,7 +39,7 @@ export default function (mapStoreToStates) {
                     const prevPropsData = get(prevProps, mapping.pathForProps);
                     const currentPropsData = get(this.props, mapping.pathForProps);
                     if (prevPropsData !== currentPropsData) {
-                        Store.unbind(this.subscriptionIDsWithPropsData[mapping.pathForProps]);
+                        Ion.unbind(this.subscriptionIDsWithPropsData[mapping.pathForProps]);
                         this.bindSingleMappingToStore(mapping, propertyName, this.wrappedComponent);
                     }
                 }
@@ -76,7 +76,7 @@ export default function (mapStoreToStates) {
                 // into the key
                 const dataFromProps = get(this.props, pathForProps);
                 const keyWithPropsData = key.replace('%DATAFROMPROPS%', dataFromProps);
-                const subscriptionID = Store.bind(
+                const subscriptionID = Ion.bind(
                     keyWithPropsData,
                     path,
                     defaultValue,
@@ -89,7 +89,7 @@ export default function (mapStoreToStates) {
                 // Store the subscription ID it with a key that is unique to the data coming from the props
                 this.subscriptionIDsWithPropsData[pathForProps] = subscriptionID;
             } else {
-                const subscriptionID = Store.bind(
+                const subscriptionID = Ion.bind(
                     key,
                     path,
                     defaultValue,
@@ -112,7 +112,7 @@ export default function (mapStoreToStates) {
                     prefillKey = prefillWithKey.replace('%DATAFROMPROPS%', dataFromProps);
                 }
 
-                Store.get(prefillKey, path, defaultValue)
+                Ion.get(prefillKey, path, defaultValue)
                     .then(data => component.setState({[propertyName]: data}));
             }
 
@@ -133,8 +133,8 @@ export default function (mapStoreToStates) {
          * Unsubscribe from any subscriptions
          */
         unbind() {
-            _.each(this.subscriptionIDs, Store.unbind);
-            _.each(this.subscriptionIDsWithPropsData, Store.unbind);
+            _.each(this.subscriptionIDs, Ion.unbind);
+            _.each(this.subscriptionIDsWithPropsData, Ion.unbind);
         }
 
         render() {

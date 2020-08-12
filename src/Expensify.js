@@ -3,7 +3,7 @@ import React, {Component} from 'react';
 // import {Beforeunload} from 'react-beforeunload';
 import SignInPage from './page/SignInPage';
 import HomePage from './page/HomePage/HomePage';
-import Store from './lib/Store';
+import Ion from './lib/Ion';
 import * as ActiveClientManager from './lib/ActiveClientManager';
 import {verifyAuthToken} from './lib/actions/ActionsSession';
 import STOREKEYS from './store/STOREKEYS';
@@ -16,7 +16,7 @@ import {
 } from './lib/Router';
 
 // Initialize the store when the app loads for the first time
-Store.init();
+Ion.init();
 
 class Expensify extends Component {
     render() {

@@ -162,7 +162,7 @@ function multiGet(keys) {
 
 /**
  * Sets multiple keys and values. Example
- * Store.multiSet({'key1': 'a', 'key2': 'b'});
+ * Ion.multiSet({'key1': 'a', 'key2': 'b'});
  *
  * @param {object} data
  * @returns {Promise}
@@ -206,7 +206,7 @@ function merge(key, val) {
         });
 }
 
-const Store = {
+const Ion = {
     bind,
     unbind,
     set,
@@ -218,4 +218,4 @@ const Store = {
     init
 };
 
-export default Store;
+export default Ion;
