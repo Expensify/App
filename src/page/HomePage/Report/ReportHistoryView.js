@@ -128,7 +128,7 @@ class ReportHistoryView extends React.Component {
                 ref={(el) => {
                     this.historyListElement = el;
                 }}
-                onContentSizeChange={() => this.scrollToBottomWhenListSizeChanges()}
+                onContentSizeChange={this.scrollToBottomWhenListSizeChanges}
                 bounces={false}
             >
                 {_.map(filteredHistory, (item, index) => (
