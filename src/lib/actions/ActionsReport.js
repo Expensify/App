@@ -113,32 +113,30 @@ function fetchAll() {
     let fetchedReports;
 
     // Request each report one at a time to allow individual reports to fail if access to it is prevents by Auth
-    const reportFetchPromises = _.map(CONFIG.REPORT_IDS.split(','), (reportID) => {
-        return request('Get', {
-            returnValueList: 'reportStuff',
-            reportIDList: reportID,
-            shouldLoadOptionalKeys: true,
-        })
-            .then(data => fetchedReports = data.reports)
-            .then(() => Ion.get(IONKEYS.SESSION, 'accountID'))
-            .then((accountID) => {
-                const ionPromises = _.map(fetchedReports, (report) => {
-                    // Store only the absolute bare minimum of data in Ion because space is limited
-                    const newReport = {
-                        reportID: report.reportID,
-                        reportName: report.reportName,
-                        reportNameValuePairs: report.reportNameValuePairs,
-                        hasUnread: hasUnreadHistoryItems(accountID, report),
-                    };
+    const reportFetchPromises = _.map(CONFIG.REPORT_IDS.split(','), reportID => request('Get', {
+        returnValueList: 'reportStuff',
+        reportIDList: reportID,
+        shouldLoadOptionalKeys: true,
+    })
+        .then(data => fetchedReports = data.reports)
+        .then(() => Ion.get(IONKEYS.SESSION, 'accountID'))
+        .then((accountID) => {
+            const ionPromises = _.map(fetchedReports, (report) => {
+                // Store only the absolute bare minimum of data in Ion because space is limited
+                const newReport = {
+                    reportID: report.reportID,
+                    reportName: report.reportName,
+                    reportNameValuePairs: report.reportNameValuePairs,
+                    hasUnread: hasUnreadHistoryItems(accountID, report),
+                };
 
-                    // Merge the data into Ion. Don't use set() here or multiSet() because then that would
-                    // overwrite any existing data (like if they have unread messages)
-                    return Ion.merge(`${IONKEYS.REPORT}_${report.reportID}`, newReport);
-                });
-
-                return Promise.allSettled(ionPromises);
+                // Merge the data into Ion. Don't use set() here or multiSet() because then that would
+                // overwrite any existing data (like if they have unread messages)
+                return Ion.merge(`${IONKEYS.REPORT}_${report.reportID}`, newReport);
             });
-    });
+
+            return Promise.allSettled(ionPromises);
+        }));
 
     return Promise.allSettled(reportFetchPromises);
 }
