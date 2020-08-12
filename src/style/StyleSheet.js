@@ -64,9 +64,10 @@ const styles = {
     flexGrow4: {
         flexGrow: 4,
     },
-    brand: {
-        fontSize: 25,
-        fontWeight: 'bold',
+    textP: {
+        color: colors.text,
+        fontSize: 15,
+        lineHeight: 20,
     },
 
     colorReversed: {
@@ -112,6 +113,7 @@ const styles = {
         borderColor: colors.border,
         borderWidth: 1,
         color: colors.text,
+        fontFamily: 'GTAmericaExp-Regular',
         padding: 12,
     },
 
@@ -268,8 +270,8 @@ const styles = {
         textDecorationLine: 'none',
     },
     sidebarLinkTextUnread: {
-        fontWeight: 'bold',
-        color: '#ECECEC',
+        fontWeight: '600',
+        color: '#ffffff',
     },
     sidebarLinkActiveText: {
         color: '#ffffff',
@@ -317,6 +319,11 @@ const styles = {
     chatContent: {
         flex: 4,
         justifyContent: 'flex-end',
+    },
+
+    chatContentInner: {
+        paddingTop: 8,
+        paddingBottom: 8,
     },
 
     chatContentEmpty: {
@@ -368,13 +375,12 @@ const styles = {
         color: colors.textSupporting,
         fontSize: 11,
         lineHeight: 20,
-        fontWeight: '600',
     },
 
     chatItemMessage: {
         color: colors.text,
         fontSize: 15,
-        lineHeight: '1.4',
+        lineHeight: 20,
         marginTop: -2,
         marginBottom: -2,
         whiteSpace: 'pre-wrap',

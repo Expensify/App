@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
+import Text from '../../components/Text';
 import {Link, withRouter} from '../../lib/Router';
 import IONKEYS from '../../IONKEYS';
 import styles from '../../style/StyleSheet';
@@ -25,7 +26,8 @@ class SidebarLink extends React.Component {
         const linkWrapperActiveStyle = isReportActive && styles.sidebarLinkWrapperActive;
         const linkActiveStyle = isReportActive ? styles.sidebarLinkActive : styles.sidebarLink;
         const textActiveStyle = isReportActive ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
-        const textActiveUnreadStyle = this.state && this.state.isUnread ? [textActiveStyle, styles.sidebarLinkTextUnread] : [textActiveStyle];
+        const textActiveUnreadStyle = this.state && this.state.isUnread
+            ? [textActiveStyle, styles.sidebarLinkTextUnread] : [textActiveStyle];
         return (
             <View style={[styles.sidebarListItem, linkWrapperActiveStyle]}>
                 <Link to={`/${this.props.reportID}`} style={linkActiveStyle}>
