@@ -300,6 +300,7 @@ const styles = {
     chatItemCompose: {
         borderTopWidth: 1,
         borderTopColor: colors.border,
+        color: colors.text,
         minHeight: '85',
         paddingTop: 20,
         paddingBottom: 20,
