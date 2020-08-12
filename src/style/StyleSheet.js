@@ -207,7 +207,6 @@ const styles = {
     sidebarFooterLink: {
         color: '#C6C9CA',
         fontSize: 11,
-        marginTop: 4,
     },
 
     sidebarListContainer: {
