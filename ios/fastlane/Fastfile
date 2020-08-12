@@ -22,7 +22,7 @@ platform :ios do
         use_automatic_signing: true,
         path: "ReactNativeChat.xcodeproj"
     )
-    build_app(scheme: "ReactNativeChat")
+    build_app(scheme: "ReactNativeChat", export_xcargs: "-allowProvisioningUpdates")
     upload_to_testflight
   end
 end
