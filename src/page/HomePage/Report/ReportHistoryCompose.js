@@ -77,7 +77,7 @@ class ReportHistoryCompose extends React.Component {
 
     render() {
         return (
-            <View style={[styles.mt2]}>
+            <View style={[styles.chatItemCompose]}>
                 <TextInput
                     ref={el => this.textInput = el}
                     multiline

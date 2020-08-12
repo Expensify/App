@@ -1,6 +1,8 @@
 import React from 'react';
-import {View, Image} from 'react-native';
 import _ from 'underscore';
+import {Button, Text, View, Image} from 'react-native';
+import {signOut} from '../../store/actions/SessionActions';
+import {fetch as getPersonalDetails} from '../../store/actions/PersonalDetailsActions';
 import styles from '../../style/StyleSheet';
 import WithStore from '../../components/WithStore';
 import STOREKEYS from '../../store/STOREKEYS';
@@ -24,20 +26,45 @@ class SidebarView extends React.Component {
         const reports = this.state && this.state.reports;
         this.updateUnreadReportIndicator();
         return (
-            <View style={[styles.flex1, styles.p1]}>
-                <Image
-                    style={{height: 50, width: 200}}
-                    source={logo}
-                />
-                {_.map(reports, report => (
-                    <SidebarLink key={report.reportID} reportID={report.reportID} reportName={report.reportName} />
-                ))}
+            <View style={[styles.flex1, styles.sidebar]}>
+                <View style={[styles.sidebarHeader]}>
+                    <Image
+                        style={[styles.sidebarHeaderLogo]}
+                        source={logo}
+                    />
+                </View>
+                <View style={[styles.sidebarListContainer]}>
+                    <View style={[styles.sidebarListItem]}>
+                        <Text style={[styles.sidebarListHeader]}>
+                            Chats
+                        </Text>
+                    </View>
+                    {_.map(reports, report => (
+                        <SidebarLink key={report.reportID} reportID={report.reportID} reportName={report.reportName} />
+                    ))}
+                </View>
+                <View style={[styles.sidebarFooter]}>
+                    {this.state && this.state.userDisplayName && (
+                        <Text style={[styles.sidebarFooterUsername]}>
+                            {this.state.userDisplayName}
+                        </Text>
+                    )}
+                    <Button onPress={signOut} title="Sign Out" />
+                </View>
             </View>
         );
     }
 }
 
 export default WithStore({
+    // Map this.state.userDisplayName to the personal details key in the store and bind it to the displayName property
+    // and load it with data from getPersonalDetails()
+    userDisplayName: {
+        key: STOREKEYS.MY_PERSONAL_DETAILS,
+        path: 'displayName',
+        loader: getPersonalDetails,
+        prefillWithKey: STOREKEYS.MY_PERSONAL_DETAILS,
+    },
     reports: {
         key: STOREKEYS.REPORTS,
         loader: fetchAll,

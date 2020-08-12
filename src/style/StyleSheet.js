@@ -45,40 +45,9 @@ const styles = {
     textLightGray: {
         color: '#7d8b8f',
     },
-    nav: {
-        backgroundColor: '#efefef',
-        padding: 20,
-    },
     brand: {
         fontSize: 25,
         fontWeight: 'bold',
-    },
-    navText: {
-        padding: 8,
-    },
-    sidebarLink: {
-        paddingTop: 4,
-        paddingRight: 8,
-        paddingBottom: 4,
-        paddingLeft: 8,
-        textDecorationLine: 'none',
-    },
-    sidebarLinkActive: {
-        backgroundColor: '#007bff',
-        borderRadius: 4,
-    },
-    sidebarLinkActiveAnchor: {
-        paddingTop: 4,
-        paddingRight: 8,
-        paddingBottom: 4,
-        paddingLeft: 8,
-        textDecorationLine: 'none',
-    },
-    sidebarLinkText: {
-        color: '#007bff',
-    },
-    sidebarLinkActiveText: {
-        color: '#ffffff',
     },
 
     // History Items
@@ -88,7 +57,6 @@ const styles = {
     historyItemMessageWrapper: {
         flexGrow: 1,
         paddingLeft: 50,
-        marginBottom: 20,
     },
     historyItemAvatar: {
         borderRadius: 20,
@@ -109,12 +77,154 @@ const styles = {
         borderWidth: 1,
         padding: 10,
     },
+
+    // Sidebar Styles
+    sidebar: {
+        backgroundColor: '#37444C',
+    },
+
+    sidebarHeader: {
+        height: 72,
+        justifyContent: 'center',
+        paddingLeft: 24,
+        paddingRight: 24,
+        width: '100%',
+    },
+
+    sidebarHeaderLogo: {
+        height: 21,
+        width: 143,
+    },
+
+    sidebarFooter: {
+        borderTopWidth: 1,
+        borderTopColor: '#4A5960',
+        height: 72,
+        justifyContent: 'center',
+        paddingLeft: 24,
+        paddingRight: 24,
+        width: '100%',
+    },
+
+    sidebarListContainer: {
+        flexGrow: 1,
+        height: 100,
+        overflow: 'scroll',
+        paddingTop: 4,
+        paddingBottom: 4,
+        paddingLeft: 12,
+        paddingRight: 12,
+    },
+
+    sidebarListHeader: {
+        color: '#FFFFFF',
+        fontSize: 15,
+        fontWeight: '700',
+        paddingTop: 8,
+        paddingRight: 12,
+        paddingBottom: 8,
+        paddingLeft: 12,
+    },
+
+    sidebarListItem: {
+        height: 40,
+        justifyContent: 'center',
+        textDecoration: 'none',
+    },
+
+    sidebarLink: {
+        height: 40,
+        paddingTop: 8,
+        paddingRight: 12,
+        paddingBottom: 8,
+        paddingLeft: 12,
+        textDecoration: 'none',
+    },
+
+    sidebarLinkInner: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        height: 24,
+    },
+
+    sidebarLinkText: {
+        color: '#C6C9CA',
+        fontSize: 13,
+        textDecoration: 'none',
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+    },
+
+    sidebarLinkActive: {
+        backgroundColor: '#4A5960',
+        borderRadius: 8,
+        height: 40,
+        paddingTop: 8,
+        paddingRight: 12,
+        paddingBottom: 8,
+        paddingLeft: 12,
+        textDecoration: 'none',
+    },
+
+    sidebarLinkActiveText: {
+        color: '#ffffff',
+        fontSize: 13,
+        textDecoration: 'none',
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+    },
+
     unreadBadge: {
-        backgroundColor: '#dc3545',
+        backgroundColor: '#2ECB70',
         borderRadius: 15,
         height: 10,
         marginTop: 3,
         width: 10,
+    },
+
+    // App Content styles
+    appContentWrapper: {
+        backgroundColor: '#37444C',
+        color: '#4A5960',
+    },
+
+    appContent: {
+        backgroundColor: '#fafafa',
+        borderTopLeftRadius: 12,
+        borderBottomLeftRadius: 12,
+        overflow: 'hidden',
+    },
+
+    appContentHeader: {
+        borderBottomWidth: 1,
+        borderBottomColor: '#ECECEC',
+        height: 73,
+        alignItems: 'center',
+        paddingLeft: 20,
+        paddingRight: 20,
+    },
+
+    navText: {
+        color: '#37444C',
+        fontSize: 17,
+        fontWeight: '700',
+    },
+
+    // Chat Item
+    chatItem: {
+        paddingTop: 8,
+        paddingBottom: 8,
+        paddingLeft: 16,
+        paddingRight: 16,
+    },
+
+    chatItemCompose: {
+        paddingTop: 8,
+        paddingBottom: 8,
+        paddingLeft: 16,
+        paddingRight: 16,
     },
 };
 
