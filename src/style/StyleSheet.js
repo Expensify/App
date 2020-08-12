@@ -72,6 +72,7 @@ const styles = {
         borderColor: colors.border,
         borderWidth: 1,
         color: colors.text,
+        fontFamily: 'GTAmericaExp-Regular',
         padding: 12,
     },
 
@@ -186,8 +187,8 @@ const styles = {
         textDecorationLine: 'none',
     },
     sidebarLinkTextUnread: {
-        fontWeight: 'bold',
-        color: '#ECECEC',
+        fontWeight: '600',
+        color: '#ffffff',
     },
     sidebarLinkActiveText: {
         color: '#ffffff',
@@ -292,7 +293,7 @@ const styles = {
     chatItemMessage: {
         color: colors.text,
         fontSize: 15,
-        lineHeight: '1.4',
+        lineHeight: 20,
         marginTop: -2,
         marginBottom: -2,
         whiteSpace: 'pre-wrap',
