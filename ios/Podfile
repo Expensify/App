@@ -23,12 +23,3 @@ target 'ReactNativeChat' do
     flipper_post_install(installer)
   end
 end
-
-target 'ReactNativeChat-tvOS' do
-  # Pods for ReactNativeChat-tvOS
-
-  target 'ReactNativeChat-tvOSTests' do
-    inherit! :search_paths
-    # Pods for testing
-  end
-end
