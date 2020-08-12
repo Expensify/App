@@ -10,7 +10,7 @@ const propTypes = {
 };
 
 const ReportHistoryItemDate = props => (
-    <Text style={[styles.historyItemHeaderTimestamp]}>
+    <Text style={[styles.chatItemMessageHeaderTimestamp]}>
         {DateUtils.timestampToRelative(props.timestamp)}
     </Text>
 );

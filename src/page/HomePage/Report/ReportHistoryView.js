@@ -1,5 +1,5 @@
 import React from 'react';
-import {Text, ScrollView} from 'react-native';
+import {View, Text, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
@@ -8,6 +8,7 @@ import {fetchHistory, updateLastReadActionID} from '../../../store/actions/Repor
 import WithStore from '../../../components/WithStore';
 import STOREKEYS from '../../../store/STOREKEYS';
 import ReportHistoryItem from './ReportHistoryItem';
+import styles from '../../../style/StyleSheet';
 
 const propTypes = {
     // The ID of the report being looked at
@@ -134,7 +135,11 @@ class ReportHistoryView extends React.Component {
         const filteredHistory = this.getFilteredReportHistory();
 
         if (filteredHistory.length === 0) {
-            return <Text>Be the first person to comment!</Text>;
+            return (
+                <View style={[styles.chatContent, styles.chatContentEmpty]}>
+                    <Text>Be the first person to comment!</Text>
+                </View>
+            );
         }
 
         return (

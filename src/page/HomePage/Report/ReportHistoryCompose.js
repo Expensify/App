@@ -82,17 +82,16 @@ class ReportHistoryCompose extends React.Component {
                     ref={el => this.textInput = el}
                     multiline
                     textAlignVertical="top"
-                    numberOfLines={3}
-                    minHeight={60}
+                    numberOfLines={1}
+                    minHeight={40}
                     maxHeight={60}
+                    placeholder="Write something..."
+                    placeholderTextColor="#7D8B8F"
                     onChangeText={this.updateComment}
                     onKeyPress={this.triggerSubmitShortcut}
                     style={[styles.textInput]}
                     value={this.state.comment}
                 />
-                <View style={[styles.mt1, styles.flexRow]}>
-                    <Button title="Send" onPress={this.submitForm} />
-                </View>
             </View>
         );
     }
