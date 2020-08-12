@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import Ion from './Ion';
 import CONFIG from '../CONFIG';
-import STOREKEYS from '../store/STOREKEYS';
+import IONKEYS from '../store/IONKEYS';
 import ROUTES from '../ROUTES';
 
 let isAppOffline = false;
@@ -15,7 +15,7 @@ let isAppOffline = false;
  * @returns {Promise}
  */
 function request(command, data, type = 'post') {
-    return Ion.get(STOREKEYS.SESSION, 'authToken')
+    return Ion.get(IONKEYS.SESSION, 'authToken')
         .then((authToken) => {
             const formData = new FormData();
             formData.append('authToken', authToken);
@@ -35,7 +35,7 @@ function request(command, data, type = 'post') {
 
             // AuthToken expired, go to the sign in page
             if (responseData.jsonCode === 407) {
-                return Ion.set(STOREKEYS.APP_REDIRECT_TO, ROUTES.SIGNIN);
+                return Ion.set(IONKEYS.APP_REDIRECT_TO, ROUTES.SIGNIN);
             }
 
             // eslint-disable-next-line no-console

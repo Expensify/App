@@ -10,7 +10,7 @@ import {signOut} from '../../lib/actions/ActionsSession';
 import {fetch as getPersonalDetails} from '../../lib/actions/ActionsPersonalDetails';
 import styles from '../../style/StyleSheet';
 import WithIon from '../../components/WithIon';
-import STOREKEYS from '../../store/STOREKEYS';
+import IONKEYS from '../../store/IONKEYS';
 import {fetchAll} from '../../lib/actions/ActionsReport';
 import SidebarLink from './SidebarLink';
 import logo from '../../images/expensify-logo_reversed.png';
@@ -65,18 +65,18 @@ export default WithIon({
     // Map this.state.userDisplayName to the personal details key in the store and bind it to the displayName property
     // and load it with data from getPersonalDetails()
     userDisplayName: {
-        key: STOREKEYS.MY_PERSONAL_DETAILS,
+        key: IONKEYS.MY_PERSONAL_DETAILS,
         path: 'displayName',
         loader: getPersonalDetails,
-        prefillWithKey: STOREKEYS.MY_PERSONAL_DETAILS,
+        prefillWithKey: IONKEYS.MY_PERSONAL_DETAILS,
     },
     reports: {
-        key: STOREKEYS.REPORTS,
+        key: IONKEYS.REPORTS,
         loader: fetchAll,
-        prefillWithKey: STOREKEYS.REPORTS,
+        prefillWithKey: IONKEYS.REPORTS,
     },
     individualReports: {
-        key: `${STOREKEYS.REPORT}_[0-9]+$`,
+        key: `${IONKEYS.REPORT}_[0-9]+$`,
         addAsCollection: true,
         collectionId: 'reportID',
     },

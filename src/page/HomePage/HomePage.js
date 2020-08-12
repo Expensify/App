@@ -10,13 +10,13 @@ import Header from './HeaderView';
 import Sidebar from './SidebarView';
 import Main from './MainView';
 import Ion from '../../lib/Ion';
-import STOREKEYS from '../../store/STOREKEYS';
+import IONKEYS from '../../store/IONKEYS';
 import {initPusher} from '../../lib/actions/ActionsReport';
 import * as pusher from '../../lib/Pusher/pusher';
 
 export default class App extends React.Component {
     componentDidMount() {
-        Ion.get(STOREKEYS.SESSION, 'authToken').then((authToken) => {
+        Ion.get(IONKEYS.SESSION, 'authToken').then((authToken) => {
             if (authToken) {
                 // Initialize the pusher connection
                 pusher.init(null, {

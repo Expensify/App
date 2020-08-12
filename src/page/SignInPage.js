@@ -8,7 +8,7 @@ import {
     View,
 } from 'react-native';
 import {signIn} from '../lib/actions/ActionsSession';
-import STOREKEYS from '../store/STOREKEYS';
+import IONKEYS from '../store/IONKEYS';
 import WithIon from '../components/WithIon';
 
 class App extends Component {
@@ -80,5 +80,5 @@ class App extends Component {
 
 export default WithIon({
     // Bind this.state.error to the error in the session object
-    error: {key: STOREKEYS.SESSION, path: 'error', defaultValue: null},
+    error: {key: IONKEYS.SESSION, path: 'error', defaultValue: null},
 })(App);
