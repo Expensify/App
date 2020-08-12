@@ -7,7 +7,7 @@ import React from 'react';
 import _ from 'underscore';
 import get from 'lodash.get';
 import has from 'lodash.has';
-import * as Store from '../lib/Store';
+import Store from '../lib/Store';
 
 export default function (mapStoreToStates) {
     return WrappedComponent => class WithStore extends React.Component {

@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import * as Store from '../Store';
+import Store from '../Store';
 import {request} from '../Network';
 import STOREKEYS from '../../store/STOREKEYS';
 import md5 from '../md5';

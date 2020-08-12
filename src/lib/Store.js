@@ -206,7 +206,7 @@ function merge(key, val) {
         });
 }
 
-export {
+const Store = {
     bind,
     unbind,
     set,
@@ -217,3 +217,5 @@ export {
     clear,
     init
 };
+
+export default Store;
