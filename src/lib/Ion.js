@@ -2,8 +2,8 @@ import lodashGet from 'lodash.get';
 import _ from 'underscore';
 import AsyncStorage from '@react-native-community/async-storage';
 
-// Keeps track of the last subscription ID that was used
-let lastSubscriptionID = 0;
+// Keeps track of the last connectionID that was used so we can keep incrementing it
+let lastConnectionID = 0;
 
 /**
  * Initialize the store with actions and listening for storage events
@@ -44,8 +44,8 @@ function connect(
     collectionId,
     reactComponent
 ) {
-    const subscriptionID = lastSubscriptionID++;
-    callbackToStateMapping[subscriptionID] = {
+    const connectionID = lastConnectionID++;
+    callbackToStateMapping[connectionID] = {
         regex: RegExp(keyPattern),
         statePropertyName,
         addAsCollection,
@@ -54,19 +54,19 @@ function connect(
         reactComponent,
         defaultValue,
     };
-    return subscriptionID;
+    return connectionID;
 }
 
 /**
  * Remove the listener for a react component
  *
- * @param {string} subscriptionID
+ * @param {string} connectionID
  */
-function disconnect(subscriptionID) {
-    if (!callbackToStateMapping[subscriptionID]) {
+function disconnect(connectionID) {
+    if (!callbackToStateMapping[connectionID]) {
         return;
     }
-    delete callbackToStateMapping[subscriptionID];
+    delete callbackToStateMapping[connectionID];
 }
 
 /**
