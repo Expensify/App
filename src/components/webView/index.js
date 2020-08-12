@@ -6,6 +6,7 @@ import {Text} from 'react-native';
 import React from 'react';
 import PropTypes from 'prop-types';
 import ExpensiMark from '../../lib/ExpensiMark';
+import styles from '../../style/StyleSheet';
 
 const parser = new ExpensiMark();
 const propTypes = {
@@ -16,7 +17,7 @@ const defaultProps = {
 };
 
 const WebView = ({html}) => (
-    <Text>
+    <Text style={[styles.chatItemMessage]}>
         {/* eslint-disable-next-line react/no-danger */}
         <span dangerouslySetInnerHTML={{__html: parser.replace(html)}} />
     </Text>

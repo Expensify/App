@@ -1,3 +1,13 @@
+const colors = {
+    componentBG: '#FFFFFF',
+    background: '#FAFAFA',
+    border: '#ECECEC',
+    heading: '#37444C',
+    text: '#4A5960',
+    textSupporting: '#7D8B8F',
+    blue: '#2EAAE2',
+};
+
 const styles = {
     // Utility classes
     mr1: {
@@ -42,9 +52,6 @@ const styles = {
     flexGrow4: {
         flexGrow: 4,
     },
-    textLightGray: {
-        color: '#7d8b8f',
-    },
     brand: {
         fontSize: 25,
         fontWeight: 'bold',
@@ -54,33 +61,23 @@ const styles = {
     historyItemAvatarWrapper: {
         width: 40,
     },
-    historyItemMessageWrapper: {
-        flexGrow: 1,
-        paddingLeft: 50,
-    },
     historyItemAvatar: {
         borderRadius: 20,
         height: 40,
         width: 40,
     },
-    historyItemHeaderTimestamp: {
-        color: '#7d8b8f',
-        fontSize: 10,
-        lineHeight: 15,
-    },
-    reportHistoryItemUserName: {
-        fontWeight: 'bold',
-    },
     textInput: {
-        borderColor: '#7d8b8f',
-        borderRadius: 5,
+        backgroundColor: colors.componentBG,
+        borderRadius: 8,
+        borderColor: colors.border,
         borderWidth: 1,
-        padding: 10,
+        color: colors.text,
+        padding: 12,
     },
 
     // Sidebar Styles
     sidebar: {
-        backgroundColor: '#37444C',
+        backgroundColor: colors.heading,
     },
 
     sidebarHeader: {
@@ -97,18 +94,41 @@ const styles = {
     },
 
     sidebarFooter: {
+        alignItems: 'center',
         borderTopWidth: 1,
-        borderTopColor: '#4A5960',
-        height: 72,
-        justifyContent: 'center',
+        borderTopColor: colors.text,
+        display: 'flex',
+        flexDirection: 'row',
+        height: 85,
+        justifyContent: 'flex-start',
         paddingLeft: 24,
         paddingRight: 24,
         width: '100%',
     },
 
+    sidebarFooterAvatar: {
+        backgroundColor: colors.text,
+        borderRadius: '50%',
+        height: 40,
+        marginRight: 12,
+        width: 40,
+    },
+
+    sidebarFooterUsername: {
+        color: '#FFFFFF',
+        fontSize: 15,
+        fontWeight: '700',
+    },
+
+    sidebarFooterLink: {
+        color: '#C6C9CA',
+        fontSize: 11,
+        marginTop: 4,
+    },
+
     sidebarListContainer: {
+        flexBasis: 'inherit',
         flexGrow: 1,
-        height: 100,
         overflow: 'scroll',
         paddingTop: 4,
         paddingBottom: 4,
@@ -157,7 +177,7 @@ const styles = {
     },
 
     sidebarLinkActive: {
-        backgroundColor: '#4A5960',
+        backgroundColor: colors.blue,
         borderRadius: 8,
         height: 40,
         paddingTop: 8,
@@ -186,12 +206,12 @@ const styles = {
 
     // App Content styles
     appContentWrapper: {
-        backgroundColor: '#37444C',
-        color: '#4A5960',
+        backgroundColor: colors.heading,
+        color: colors.text,
     },
 
     appContent: {
-        backgroundColor: '#fafafa',
+        backgroundColor: colors.background,
         borderTopLeftRadius: 12,
         borderBottomLeftRadius: 12,
         overflow: 'hidden',
@@ -199,7 +219,7 @@ const styles = {
 
     appContentHeader: {
         borderBottomWidth: 1,
-        borderBottomColor: '#ECECEC',
+        borderBottomColor: colors.border,
         height: 73,
         alignItems: 'center',
         paddingLeft: 20,
@@ -207,22 +227,84 @@ const styles = {
     },
 
     navText: {
-        color: '#37444C',
+        color: colors.heading,
         fontSize: 17,
         fontWeight: '700',
     },
 
+    chatContent: {
+        flex: 4,
+        justifyContent: 'flex-end',
+    },
+
+    chatContentEmpty: {
+        paddingTop: 16,
+        paddingBottom: 16,
+        paddingLeft: 16,
+        paddingRight: 16,
+    },
+
     // Chat Item
     chatItem: {
+        display: 'flex',
+        flexDirection: 'row',
         paddingTop: 8,
         paddingBottom: 8,
         paddingLeft: 16,
         paddingRight: 16,
     },
 
+    chatItemLeft: {
+        display: 'flex',
+        flexShrink: 0,
+        marginRight: 8,
+    },
+
+    chatItemRight: {
+        flexGrow: 1,
+        flexShrink: 1,
+        flexBasis: 0,
+        position: 'relative',
+    },
+
+    chatItemMessageHeader: {
+        alignItems: 'baseline',
+        display: 'flex',
+        flexDirection: 'row',
+    },
+
+    chatItemMessageHeaderSender: {
+        color: colors.heading,
+        fontSize: 15,
+        lineHeight: 20,
+        fontWeight: '600',
+        paddingRight: 5,
+        paddingBottom: 4,
+    },
+
+    chatItemMessageHeaderTimestamp: {
+        color: colors.textSupporting,
+        fontSize: 11,
+        lineHeight: 20,
+        fontWeight: '600',
+    },
+
+    chatItemMessage: {
+        color: colors.text,
+        fontSize: 15,
+        lineHeight: '1.4',
+        marginTop: -2,
+        marginBottom: -2,
+        whiteSpace: 'pre-wrap',
+        wordBreak: 'break-word',
+    },
+
     chatItemCompose: {
-        paddingTop: 8,
-        paddingBottom: 8,
+        borderTopWidth: 1,
+        borderTopColor: colors.border,
+        minHeight: '85',
+        paddingTop: 20,
+        paddingBottom: 20,
         paddingLeft: 16,
         paddingRight: 16,
     },

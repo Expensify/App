@@ -1,7 +1,6 @@
 import React from 'react';
 import _ from 'underscore';
 import {
-    Button,
     Text,
     View,
     Image
@@ -49,12 +48,20 @@ class SidebarView extends React.Component {
                     ))}
                 </View>
                 <View style={[styles.sidebarFooter]}>
-                    {this.state && this.state.userDisplayName && (
-                        <Text style={[styles.sidebarFooterUsername]}>
-                            {this.state.userDisplayName}
-                        </Text>
-                    )}
-                    <Button onPress={signOut} title="Sign Out" />
+                    <View style={[styles.sidebarFooterAvatar]}>
+                        <Image
+                            source={{uri: this.state && this.state.avatarURL}}
+                            style={[styles.historyItemAvatar]}
+                        />
+                    </View>
+                    <View style={[styles.flexColumn]}>
+                        {this.state && this.state.userDisplayName && (
+                            <Text style={[styles.sidebarFooterUsername]}>
+                                {this.state.userDisplayName}
+                            </Text>
+                        )}
+                        <Text style={[styles.sidebarFooterLink]} onPress={signOut}>Sign Out</Text>
+                    </View>
                 </View>
             </View>
         );
@@ -67,6 +74,12 @@ export default WithIon({
     userDisplayName: {
         key: IONKEYS.MY_PERSONAL_DETAILS,
         path: 'displayName',
+        loader: getPersonalDetails,
+        prefillWithKey: IONKEYS.MY_PERSONAL_DETAILS,
+    },
+    avatarURL: {
+        key: IONKEYS.MY_PERSONAL_DETAILS,
+        path: 'avatarURL',
         loader: getPersonalDetails,
         prefillWithKey: IONKEYS.MY_PERSONAL_DETAILS,
     },
