@@ -32,7 +32,7 @@ const ReportHistoryItemFragment = ({fragment}) => {
             //     )
             //     : <Text>{Str.htmlDecode(fragment.text)}</Text>;
         case 'TEXT':
-            return <Text style={[styles.reportHistoryItemUserName]}>{Str.htmlDecode(fragment.text)}</Text>;
+            return <Text style={[styles.chatItemMessageHeaderSender]}>{Str.htmlDecode(fragment.text)}</Text>;
         case 'LINK':
             return <Text>LINK</Text>;
 
