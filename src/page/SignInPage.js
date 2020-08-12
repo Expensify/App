@@ -7,9 +7,9 @@ import {
     TextInput,
     View,
 } from 'react-native';
-import {signIn} from '../store/actions/SessionActions';
-import STOREKEYS from '../store/STOREKEYS';
-import WithStore from '../components/WithStore';
+import {signIn} from '../lib/actions/ActionsSession';
+import IONKEYS from '../IONKEYS';
+import WithIon from '../components/WithIon';
 
 class App extends Component {
     constructor(props) {
@@ -78,7 +78,7 @@ class App extends Component {
     }
 }
 
-export default WithStore({
+export default WithIon({
     // Bind this.state.error to the error in the session object
-    error: {key: STOREKEYS.SESSION, path: 'error', defaultValue: null},
+    error: {key: IONKEYS.SESSION, path: 'error', defaultValue: null},
 })(App);
