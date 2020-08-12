@@ -69,8 +69,8 @@ function hasUnreadHistoryItems(accountID, report) {
 
     // Find the most recent sequence number from the report history
     const lastReportAction = _.chain(report.reportActionList)
-        .sortBy(sortReportActions)
-        .last()
+        .pluck('sequenceNumber')
+        .max()
         .value();
 
     if (!lastReportAction) {

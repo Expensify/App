@@ -13,13 +13,19 @@ const propTypes = {
     displayAsGroup: PropTypes.bool.isRequired,
 };
 
-const ReportHistoryItem = ({displayAsGroup, historyItem}) => (
-    <View>
-        {!displayAsGroup && <ReportHistoryItemSingle historyItem={historyItem} />}
-        {displayAsGroup && <ReportHistoryItemGrouped historyItem={historyItem} />}
-        {historyItem.tempGuid && <ActivityIndicator type="small" color="#7d8b8f" />}
-    </View>
-);
+const ReportHistoryItem = ({displayAsGroup, historyItem}) => {
+    if (historyItem.actionName !== 'ADDCOMMENT') {
+        return null;
+    }
+
+    return (
+        <View>
+            {!displayAsGroup && <ReportHistoryItemSingle historyItem={historyItem} />}
+            {displayAsGroup && <ReportHistoryItemGrouped historyItem={historyItem} />}
+            {historyItem.tempGuid && <ActivityIndicator type="small" color="#7d8b8f" />}
+        </View>
+    );
+};
 ReportHistoryItem.propTypes = propTypes;
 ReportHistoryItem.displayName = 'ReportHistoryItem';
 
