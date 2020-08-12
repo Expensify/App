@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import Guid from './Guid';
-import * as Store from '../store/Store';
-import STOREKEYS from '../store/STOREKEYS';
+import Ion from './Ion';
+import IONKEYS from '../IONKEYS';
 
 const clientID = Guid();
 
@@ -10,7 +10,7 @@ const clientID = Guid();
  *
  * @returns {Promise}
  */
-const init = () => Store.merge(STOREKEYS.ACTIVE_CLIENT_IDS, {clientID});
+const init = () => Ion.merge(IONKEYS.ACTIVE_CLIENT_IDS, {clientID});
 
 /**
  * Remove this client ID from the array of active client IDs when this client is exited
@@ -18,9 +18,9 @@ const init = () => Store.merge(STOREKEYS.ACTIVE_CLIENT_IDS, {clientID});
  * @returns {Promise}
  */
 function removeClient() {
-    return Store.get(STOREKEYS.ACTIVE_CLIENT_IDS)
+    return Ion.get(IONKEYS.ACTIVE_CLIENT_IDS)
         .then(activeClientIDs => _.omit(activeClientIDs, clientID))
-        .then(newActiveClientIDs => Store.set(STOREKEYS.ACTIVE_CLIENT_IDS, newActiveClientIDs));
+        .then(newActiveClientIDs => Ion.set(IONKEYS.ACTIVE_CLIENT_IDS, newActiveClientIDs));
 }
 
 /**
@@ -29,7 +29,7 @@ function removeClient() {
  * @returns {Promise}
  */
 function isClientTheLeader() {
-    return Store.get(STOREKEYS.ACTIVE_CLIENT_IDS)
+    return Ion.get(IONKEYS.ACTIVE_CLIENT_IDS)
         .then(activeClientIDs => _.first(activeClientIDs) === clientID);
 }
 

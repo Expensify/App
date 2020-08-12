@@ -3,11 +3,11 @@ import React, {Component} from 'react';
 // import {Beforeunload} from 'react-beforeunload';
 import SignInPage from './page/SignInPage';
 import HomePage from './page/HomePage/HomePage';
-import * as Store from './store/Store';
+import Ion from './lib/Ion';
 import * as ActiveClientManager from './lib/ActiveClientManager';
-import {verifyAuthToken} from './store/actions/SessionActions';
-import STOREKEYS from './store/STOREKEYS';
-import WithStore from './components/WithStore';
+import {verifyAuthToken} from './lib/actions/ActionsSession';
+import IONKEYS from './IONKEYS';
+import WithIon from './components/WithIon';
 import {
     Route,
     Router,
@@ -16,7 +16,7 @@ import {
 } from './lib/Router';
 
 // Initialize the store when the app loads for the first time
-Store.init();
+Ion.init();
 
 class Expensify extends Component {
     render() {
@@ -39,9 +39,9 @@ class Expensify extends Component {
     }
 }
 
-export default WithStore({
+export default WithIon({
     redirectTo: {
-        key: STOREKEYS.APP_REDIRECT_TO,
+        key: IONKEYS.APP_REDIRECT_TO,
         loader: () => {
             // Verify that our authToken is OK to use
             verifyAuthToken();

@@ -4,7 +4,7 @@ import {withRouter, Route} from '../../../lib/Router';
 import styles from '../../../style/StyleSheet';
 import ReportHistoryView from './ReportHistoryView';
 import ReportHistoryCompose from './ReportHistoryCompose';
-import {addHistoryItem} from '../../../store/actions/ReportActions';
+import {addHistoryItem} from '../../../lib/actions/ActionsReport';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
 
 const ReportView = () => (
