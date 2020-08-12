@@ -1,5 +1,5 @@
 import React from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ReportHistoryItemSingle from './ReportHistoryItemSingle';
 import ReportHistoryPropsTypes from './ReportHistoryPropsTypes';
@@ -22,7 +22,6 @@ const ReportHistoryItem = ({displayAsGroup, historyItem}) => {
         <View>
             {!displayAsGroup && <ReportHistoryItemSingle historyItem={historyItem} />}
             {displayAsGroup && <ReportHistoryItemGrouped historyItem={historyItem} />}
-            {historyItem.tempGuid && <ActivityIndicator type="small" color="#7d8b8f" />}
         </View>
     );
 };

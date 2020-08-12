@@ -19,19 +19,8 @@ class ReportHistoryView extends React.Component {
     constructor(props) {
         super(props);
 
-        // Keeps track of the history length so that when length changes, the list is scrolled to the bottom
-        this.previousReportHistoryLength = 0;
-
         this.recordlastReadActionID = _.debounce(this.recordlastReadActionID.bind(this), 1000, true);
         this.scrollToBottomWhenListSizeChanges = this.scrollToBottomWhenListSizeChanges.bind(this);
-    }
-
-    componentDidUpdate(prevProps) {
-        // Reset the previous history length when the props change
-        if (this.props.reportID !== prevProps.reportID) {
-            this.previousReportHistoryLength = 0;
-            this.itemsAreRendered = false;
-        }
     }
 
     /**
@@ -107,14 +96,8 @@ class ReportHistoryView extends React.Component {
      * scroll the list to the end.
      */
     scrollToBottomWhenListSizeChanges() {
-        if (this.historyListElement) {
-            if (this.previousReportHistoryLength < this.state.reportHistory.length) {
-                this.historyListElement.scrollToEnd({animated: false});
-                this.recordMaxAction();
-            }
-
-            this.previousReportHistoryLength = this.state.reportHistory.length;
-        }
+        this.historyListElement.scrollToEnd({animated: false});
+        this.recordMaxAction();
     }
 
     render() {
@@ -131,8 +114,9 @@ class ReportHistoryView extends React.Component {
             <ScrollView
                 ref={(el) => {
                     this.historyListElement = el;
-                    this.scrollToBottomWhenListSizeChanges();
                 }}
+                onContentSizeChange={this.scrollToBottomWhenListSizeChanges}
+                bounces={false}
             >
                 {_.map(reportHistory, (item, index) => (
                     <ReportHistoryItem
