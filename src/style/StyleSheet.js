@@ -6,6 +6,7 @@ const colors = {
     text: '#4A5960',
     textSupporting: '#7D8B8F',
     blue: '#2EAAE2',
+    green: '#2ECB70',
 };
 
 const styles = {
@@ -22,6 +23,16 @@ const styles = {
     mt1: {
         marginTop: 10,
     },
+    mb2: {
+        marginBottom: 8,
+    },
+    mb3: {
+        marginBottom: 12,
+    },
+    mb4: {
+        marginBottom: 16,
+    },
+
     p1: {
         padding: 10,
     },
@@ -57,6 +68,18 @@ const styles = {
         fontWeight: 'bold',
     },
 
+    colorReversed: {
+        color: '#ffffff',
+    },
+
+    button: {
+        borderWidth: 1,
+        borderColor: colors.border,
+        height: 40,
+        borderRadius: 8,
+        textAlign: 'center',
+    },
+
     // History Items
     historyItemAvatarWrapper: {
         width: 40,
@@ -66,6 +89,7 @@ const styles = {
         height: 40,
         width: 40,
     },
+
     textInput: {
         backgroundColor: colors.componentBG,
         borderRadius: 8,
@@ -73,6 +97,40 @@ const styles = {
         borderWidth: 1,
         color: colors.text,
         padding: 12,
+    },
+
+    textInputReversed: {
+        backgroundColor: colors.heading,
+        borderRadius: 8,
+        borderColor: colors.text,
+        borderWidth: 1,
+        color: '#ffffff',
+        padding: 12,
+    },
+
+    formLabel: {
+        fontSize: 13,
+        fontWeight: '600',
+        lineHeight: 18,
+        marginBottom: 4,
+    },
+
+    signInPage: {
+        backgroundColor: colors.heading,
+        height: '100%',
+    },
+
+    signInPageInner: {
+        marginLeft: 'auto',
+        marginRight: 'auto',
+        minWidth: 300,
+    },
+
+    signInPageLogo: {
+        alignContent: 'center',
+        height: 72,
+        justifyContent: 'center',
+        width: '100%',
     },
 
     // Sidebar Styles
