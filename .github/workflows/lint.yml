@@ -1,13 +1,12 @@
-name: Lint
+name: eslint
 
 on: pull_request
 
 jobs:
-    eslint:
+    build:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v2
-            - uses: hallee/eslint-action@1.0.3
-              if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
-              with:
-                  repo-token: ${{secrets.GITHUB_TOKEN}}
+            - name: Use Node.js
+              uses: actions/setup-node@v1
+            - run: npm run lint
