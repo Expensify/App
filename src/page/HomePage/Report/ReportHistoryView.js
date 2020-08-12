@@ -120,15 +120,8 @@ class ReportHistoryView extends React.Component {
      * scroll the list to the end.
      */
     scrollToBottomWhenListSizeChanges() {
-        if (this.historyListElement) {
-            const filteredHistory = this.getFilteredReportHistory();
-            if (this.previousReportHistoryLength < filteredHistory.length) {
-                this.historyListElement.scrollToEnd({animated: false});
-                this.recordMaxAction();
-            }
-
-            this.previousReportHistoryLength = filteredHistory.length;
-        }
+        this.historyListElement.scrollToEnd({animated: false});
+        this.recordMaxAction();
     }
 
     render() {
@@ -146,8 +139,9 @@ class ReportHistoryView extends React.Component {
             <ScrollView
                 ref={(el) => {
                     this.historyListElement = el;
-                    this.scrollToBottomWhenListSizeChanges();
                 }}
+                onContentSizeChange={() => this.scrollToBottomWhenListSizeChanges()}
+                bounces={false}
             >
                 {_.map(filteredHistory, (item, index) => (
                     <ReportHistoryItem
