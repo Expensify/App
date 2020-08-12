@@ -29,8 +29,9 @@
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
 #### Deploying the iOS & Android app
+* To install the required tools to deploy, run `bundle install` from the root of this project
 * To deploy the app run: `npm run deploy`
-* To build a APK to share run: `Build > Generate Signed Bundle / APK...` from Android Studio 
+* To build an APK to share run (e.g. via Slack): `Build > Generate Signed Bundle / APK...` from Android Studio 
 
 ## Running the tests 🎰
 * To run the **Jest Unit Tests**: `npm run test`

@@ -10,8 +10,8 @@
 #     https://docs.fastlane.tools/plugins/available-plugins
 #
 
-# Uncomment the line if you want fastlane to automatically update itself
-# update_fastlane
+skip_docs
+opt_out_usage
 
 default_platform(:android)
 
