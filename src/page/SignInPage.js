@@ -12,7 +12,7 @@ import {signIn} from '../lib/actions/ActionsSession';
 import IONKEYS from '../IONKEYS';
 import WithIon from '../components/WithIon';
 import styles from '../style/StyleSheet';
-import logo from '../images/expensify-logo_reversed.png';
+import logo from '../../assets/images/expensify-logo_reversed.png';
 
 class App extends Component {
     constructor(props) {

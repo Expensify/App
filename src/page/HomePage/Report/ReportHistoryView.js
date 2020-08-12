@@ -1,9 +1,9 @@
 import React from 'react';
 import {View, ScrollView} from 'react-native';
-import Text from '../../../components/Text';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
+import Text from '../../../components/Text';
 import Ion from '../../../lib/Ion';
 import {fetchHistory, updateLastReadActionID} from '../../../lib/actions/ActionsReport';
 import WithIon from '../../../components/WithIon';
