@@ -3,7 +3,6 @@ import _ from 'underscore';
 import Ion from '../Ion';
 import {request, delayedWrite} from '../Network';
 import IONKEYS from '../../IONKEYS';
-import Guid from '../Guid';
 import CONFIG from '../../CONFIG';
 import * as pusher from '../Pusher/pusher';
 
@@ -197,7 +196,6 @@ function fetchHistory(reportID) {
  * @returns {Promise}
  */
 function addHistoryItem(reportID, reportComment) {
-    const guid = Guid();
     const historyKey = `${IONKEYS.REPORT_HISTORY}_${reportID}`;
 
     return Ion.multiGet([historyKey, IONKEYS.SESSION, IONKEYS.PERSONAL_DETAILS])
@@ -216,7 +214,6 @@ function addHistoryItem(reportID, reportComment) {
             return Ion.set(historyKey, [
                 ...reportHistory,
                 {
-                    tempGuid: guid,
                     actionName: 'ADDCOMMENT',
                     actorEmail: Ion.get(IONKEYS.SESSION, 'email'),
                     person: [
