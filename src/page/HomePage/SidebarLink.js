@@ -4,7 +4,7 @@ import {Text, View} from 'react-native';
 import {Link, withRouter} from '../../lib/Router';
 import STOREKEYS from '../../store/STOREKEYS';
 import styles from '../../style/StyleSheet';
-import WithStore from '../../components/WithStore';
+import WithIon from '../../components/WithIon';
 
 const propTypes = {
     // The ID of the report for this link
@@ -41,7 +41,7 @@ class SidebarLink extends React.Component {
 }
 SidebarLink.propTypes = propTypes;
 
-export default withRouter(WithStore({
+export default withRouter(WithIon({
     isUnread: {
         // Bind to ONLY the report object, not the comments (that's why a $ is added at the end of the key name)
         key: `${STOREKEYS.REPORT}_%DATAFROMPROPS%$`,

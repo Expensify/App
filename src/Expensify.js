@@ -7,7 +7,7 @@ import Ion from './lib/Ion';
 import * as ActiveClientManager from './lib/ActiveClientManager';
 import {verifyAuthToken} from './lib/actions/ActionsSession';
 import STOREKEYS from './store/STOREKEYS';
-import WithStore from './components/WithStore';
+import WithIon from './components/WithIon';
 import {
     Route,
     Router,
@@ -39,7 +39,7 @@ class Expensify extends Component {
     }
 }
 
-export default WithStore({
+export default WithIon({
     redirectTo: {
         key: STOREKEYS.APP_REDIRECT_TO,
         loader: () => {
