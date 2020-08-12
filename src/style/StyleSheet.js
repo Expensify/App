@@ -5,6 +5,7 @@ const colors = {
     heading: '#37444C',
     text: '#4A5960',
     textSupporting: '#7D8B8F',
+    blue: '#2EAAE2',
 };
 
 const styles = {
@@ -176,7 +177,7 @@ const styles = {
     },
 
     sidebarLinkActive: {
-        backgroundColor: colors.text,
+        backgroundColor: colors.blue,
         borderRadius: 8,
         height: 40,
         paddingTop: 8,
