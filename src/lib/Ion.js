@@ -29,13 +29,13 @@ const callbackToStateMapping = {};
  * @param {string} keyPattern
  * @param {string} path a specific path of the store object to map to the state
  * @param {mixed} defaultValue to return if the there is nothing from the store
- * @param {string} statePropertyName the name of the property in the state to bind the data to
+ * @param {string} statePropertyName the name of the property in the state to connect the data to
  * @param {boolean} addAsCollection rather than setting a single state value, this will add things to an array
  * @param {string} collectionId the name of the ID property to use for the collection
  * @param {object} reactComponent whose setState() method will be called with any changed data
  * @returns {number} an ID to use when calling disconnect
  */
-function bind(
+function connect(
     keyPattern,
     path,
     defaultValue,
@@ -62,7 +62,7 @@ function bind(
  *
  * @param {string} subscriptionID
  */
-function unbind(subscriptionID) {
+function disconnect(subscriptionID) {
     if (!callbackToStateMapping[subscriptionID]) {
         return;
     }
@@ -78,7 +78,7 @@ function unbind(subscriptionID) {
 function keyChanged(key, data) {
     console.debug('[STORE] key changed', key, data);
 
-    // Find components that were added with bind() and trigger their setState() method with the new data
+    // Find components that were added with connect() and trigger their setState() method with the new data
     _.each(callbackToStateMapping, (mappedComponent) => {
         if (mappedComponent && mappedComponent.regex.test(key)) {
             const newValue = mappedComponent.path
@@ -207,8 +207,8 @@ function merge(key, val) {
 }
 
 const Ion = {
-    bind,
-    unbind,
+    connect,
+    disconnect,
     set,
     multiSet,
     get,
