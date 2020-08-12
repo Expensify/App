@@ -30,7 +30,7 @@ class SidebarLink extends React.Component {
             <View style={[styles.sidebarListItem, linkWrapperActiveStyle]}>
                 <Link to={`/${this.props.reportID}`} style={linkActiveStyle}>
                     <View style={[styles.sidebarLinkInner]}>
-                        <Text style={textActiveUnreadStyle}>{this.props.reportName}</Text>
+                        <Text numberOfLines={1} style={textActiveUnreadStyle}>{this.props.reportName}</Text>
                     </View>
                 </Link>
             </View>
