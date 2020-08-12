@@ -119,7 +119,7 @@ class ReportHistoryView extends React.Component {
         if (filteredHistory.length === 0) {
             return (
                 <View style={[styles.chatContent, styles.chatContentEmpty]}>
-                    <Text>Be the first person to comment!</Text>
+                    <Text style={[styles.textP]}>Be the first person to comment!</Text>
                 </View>
             );
         }
@@ -131,6 +131,7 @@ class ReportHistoryView extends React.Component {
                 }}
                 onContentSizeChange={this.scrollToBottomWhenListSizeChanges}
                 bounces={false}
+                style={[styles.chatContentInner]}
             >
                 {_.map(filteredHistory, (item, index) => (
                     <ReportHistoryItem

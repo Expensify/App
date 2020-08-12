@@ -52,9 +52,10 @@ const styles = {
     flexGrow4: {
         flexGrow: 4,
     },
-    brand: {
-        fontSize: 25,
-        fontWeight: 'bold',
+    textP: {
+        color: colors.text,
+        fontSize: 15,
+        lineHeight: 20,
     },
 
     // History Items
@@ -238,6 +239,11 @@ const styles = {
         justifyContent: 'flex-end',
     },
 
+    chatContentInner: {
+        paddingTop: 8,
+        paddingBottom: 8,
+    },
+
     chatContentEmpty: {
         paddingTop: 16,
         paddingBottom: 16,
@@ -287,7 +293,6 @@ const styles = {
         color: colors.textSupporting,
         fontSize: 11,
         lineHeight: 20,
-        fontWeight: '600',
     },
 
     chatItemMessage: {
