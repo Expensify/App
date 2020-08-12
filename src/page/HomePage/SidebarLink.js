@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
+import Text from '../../components/Text';
 import {Link, withRouter} from '../../lib/Router';
 import IONKEYS from '../../IONKEYS';
 import styles from '../../style/StyleSheet';
