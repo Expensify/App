@@ -48,7 +48,12 @@ class SidebarView extends React.Component {
                     ))}
                 </View>
                 <View style={[styles.sidebarFooter]}>
-                    <View style={[styles.sidebarFooterAvatar]} />
+                    <View style={[styles.sidebarFooterAvatar]}>
+                        <Image
+                            source={{uri: this.state && this.state.avatarURL}}
+                            style={[styles.historyItemAvatar]}
+                        />
+                    </View>
                     <View style={[styles.flexColumn]}>
                         {this.state && this.state.userDisplayName && (
                             <Text style={[styles.sidebarFooterUsername]}>
@@ -69,6 +74,12 @@ export default WithIon({
     userDisplayName: {
         key: IONKEYS.MY_PERSONAL_DETAILS,
         path: 'displayName',
+        loader: getPersonalDetails,
+        prefillWithKey: IONKEYS.MY_PERSONAL_DETAILS,
+    },
+    avatarURL: {
+        key: IONKEYS.MY_PERSONAL_DETAILS,
+        path: 'avatarURL',
         loader: getPersonalDetails,
         prefillWithKey: IONKEYS.MY_PERSONAL_DETAILS,
     },
