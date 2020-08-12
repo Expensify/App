@@ -40,7 +40,7 @@ function connect(mapping) {
     const connectionID = lastConnectionID++;
     const connectionMapping = {
         ...mapping,
-        regex: RegExp(mapping.keyPattern),
+        regex: RegExp(mapping.key),
     };
     callbackToStateMapping[connectionID] = connectionMapping;
     return connectionID;
