@@ -1,7 +1,7 @@
 import React from 'react';
 import {View, Text} from 'react-native';
 import styles from '../../style/StyleSheet';
-import IONKEYS from '../../store/IONKEYS';
+import IONKEYS from '../../IONKEYS';
 import WithIon from '../../components/WithIon';
 import {withRouter} from '../../lib/Router';
 
