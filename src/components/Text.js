@@ -24,7 +24,7 @@ const propTypes = {
     style: PropTypes.any,
 };
 const defaultProps = {
-    color: '#ffffff',
+    color: '#4A5960',
     fontSize: 15,
     family: 'GTA',
     textAlign: null,

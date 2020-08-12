@@ -1,10 +1,10 @@
 import React from 'react';
 import _ from 'underscore';
 import {
-    Text,
     View,
     Image
 } from 'react-native';
+import Text from '../../components/Text';
 import {signOut} from '../../lib/actions/ActionsSession';
 import {fetch as getPersonalDetails} from '../../lib/actions/ActionsPersonalDetails';
 import styles from '../../style/StyleSheet';

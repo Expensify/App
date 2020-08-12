@@ -72,6 +72,7 @@ const styles = {
         borderColor: colors.border,
         borderWidth: 1,
         color: colors.text,
+        fontFamily: 'GT-America-Standard',
         padding: 12,
     },
 
