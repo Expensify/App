@@ -1,10 +1,10 @@
 import React from 'react';
 import _ from 'underscore';
 import {
-    Text,
     View,
     Image
 } from 'react-native';
+import Text from '../../components/Text';
 import {signOut} from '../../lib/actions/ActionsSession';
 import {fetch as getPersonalDetails} from '../../lib/actions/ActionsPersonalDetails';
 import styles from '../../style/StyleSheet';
@@ -12,7 +12,7 @@ import WithIon from '../../components/WithIon';
 import IONKEYS from '../../IONKEYS';
 import {fetchAll} from '../../lib/actions/ActionsReport';
 import SidebarLink from './SidebarLink';
-import logo from '../../images/expensify-logo_reversed.png';
+import logo from '../../../assets/images/expensify-logo_reversed.png';
 import PageTitleUpdater from '../../lib/PageTitleUpdater';
 
 class SidebarView extends React.Component {
