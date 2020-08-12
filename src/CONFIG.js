@@ -1,5 +1,5 @@
 import {Platform} from 'react-native';
-import devConfig from './CONFIG.DEV';
+import devConfig from './CONFIG.DEV.example';
 
 // eslint-disable-next-line no-undef
 const IS_IN_PRODUCTION = Platform.OS === 'web' ? process.env.NODE_ENV === 'production' : !__DEV__;
