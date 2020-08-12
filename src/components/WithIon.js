@@ -59,11 +59,7 @@ export default function (mapIonToState) {
          */
         connectSingleMappingToIon(mapping, statePropertyName, reactComponent) {
             const ionConnectionConfig = {
-                keyPattern: mapping.key,
-                path: mapping.path,
-                defaultValue: mapping.defaultValue,
-                addAsCollection: mapping.addAsCollection,
-                collectionId: mapping.collectionId,
+                ...mapping,
                 statePropertyName,
                 reactComponent,
             };
@@ -74,7 +70,7 @@ export default function (mapIonToState) {
                 // into the key
                 const dataFromProps = get(this.props, mapping.pathForProps);
                 const keyWithPropsData = mapping.key.replace('%DATAFROMPROPS%', dataFromProps);
-                ionConnectionConfig.keyPattern = keyWithPropsData;
+                ionConnectionConfig.key = keyWithPropsData;
 
                 // Store the connectionID with a key that is unique to the data coming from the props which allows
                 // it to be easily reconnected to when the props change
