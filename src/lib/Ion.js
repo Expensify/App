@@ -26,34 +26,23 @@ const callbackToStateMapping = {};
 /**
  * Subscribes a react component's state directly to a store key
  *
- * @param {string} keyPattern
- * @param {string} path a specific path of the store object to map to the state
- * @param {mixed} defaultValue to return if the there is nothing from the store
- * @param {string} statePropertyName the name of the property in the state to connect the data to
- * @param {boolean} addAsCollection rather than setting a single state value, this will add things to an array
- * @param {string} collectionId the name of the ID property to use for the collection
- * @param {object} reactComponent whose setState() method will be called with any changed data
+ * @param {object} mapping the mapping information to connect Ion to the components state
+ * @param {string} mapping.keyPattern
+ * @param {string} [mapping.path] a specific path of the store object to map to the state
+ * @param {mixed} [mapping.defaultValue] to return if the there is nothing from the store
+ * @param {string} mapping.statePropertyName the name of the property in the state to connect the data to
+ * @param {boolean} [mapping.addAsCollection] rather than setting a single state value, this will add things to an array
+ * @param {string} [mapping.collectionId] the name of the ID property to use for the collection
+ * @param {object} mapping.reactComponent whose setState() method will be called with any changed data
  * @returns {number} an ID to use when calling disconnect
  */
-function connect(
-    keyPattern,
-    path,
-    defaultValue,
-    statePropertyName,
-    addAsCollection,
-    collectionId,
-    reactComponent
-) {
+function connect(mapping) {
     const connectionID = lastConnectionID++;
-    callbackToStateMapping[connectionID] = {
-        regex: RegExp(keyPattern),
-        statePropertyName,
-        addAsCollection,
-        collectionId,
-        path,
-        reactComponent,
-        defaultValue,
+    const connectionMapping = {
+        ...mapping,
+        regex: RegExp(mapping.keyPattern),
     };
+    callbackToStateMapping[connectionID] = connectionMapping;
     return connectionID;
 }
 
