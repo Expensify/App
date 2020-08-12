@@ -1,0 +1,5 @@
+app_identifier("com.expensifyreactnative.chat") # The bundle identifier of your app
+apple_id("andrewgable@gmail.com") # Your Apple email address
+
+itc_team_id("119139839") # App Store Connect Team ID
+team_id("Y823MCGK2T") # Developer Portal Team ID

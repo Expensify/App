@@ -3,10 +3,10 @@ import {View, Text, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
-import * as Store from '../../../store/Store';
-import {fetchHistory, updateLastReadActionID} from '../../../store/actions/ReportActions';
-import WithStore from '../../../components/WithStore';
-import STOREKEYS from '../../../store/STOREKEYS';
+import Ion from '../../../lib/Ion';
+import {fetchHistory, updateLastReadActionID} from '../../../lib/actions/ActionsReport';
+import WithIon from '../../../components/WithIon';
+import IONKEYS from '../../../IONKEYS';
 import ReportHistoryItem from './ReportHistoryItem';
 import styles from '../../../style/StyleSheet';
 
@@ -101,11 +101,11 @@ class ReportHistoryView extends React.Component {
      */
     recordlastReadActionID(maxSequenceNumber) {
         let myAccountID;
-        Store.get(STOREKEYS.SESSION, 'accountID')
+        Ion.get(IONKEYS.SESSION, 'accountID')
             .then((accountID) => {
                 myAccountID = accountID;
                 const path = `reportNameValuePairs.lastReadActionID_${accountID}`;
-                return Store.get(`${STOREKEYS.REPORT}_${this.props.reportID}`, path, 0);
+                return Ion.get(`${IONKEYS.REPORT}_${this.props.reportID}`, path, 0);
             })
             .then((lastReadActionID) => {
                 if (maxSequenceNumber > lastReadActionID) {
@@ -162,8 +162,8 @@ class ReportHistoryView extends React.Component {
 }
 ReportHistoryView.propTypes = propTypes;
 
-const key = `${STOREKEYS.REPORT_HISTORY}_%DATAFROMPROPS%`;
-export default WithStore({
+const key = `${IONKEYS.REPORT_HISTORY}_%DATAFROMPROPS%`;
+export default WithIon({
     reportHistory: {
         key,
         loader: fetchHistory,

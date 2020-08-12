@@ -1,3 +1,12 @@
+const colors = {
+    componentBG: '#FFFFFF',
+    background: '#FAFAFA',
+    border: '#ECECEC',
+    heading: '#37444C',
+    text: '#4A5960',
+    textSupporting: '#7D8B8F',
+};
+
 const styles = {
     // Utility classes
     mr1: {
@@ -42,9 +51,6 @@ const styles = {
     flexGrow4: {
         flexGrow: 4,
     },
-    textLightGray: {
-        color: '#7d8b8f',
-    },
     brand: {
         fontSize: 25,
         fontWeight: 'bold',
@@ -59,25 +65,17 @@ const styles = {
         height: 40,
         width: 40,
     },
-    historyItemHeaderTimestamp: {
-        color: '#7d8b8f',
-        fontSize: 10,
-        lineHeight: 15,
-    },
-    reportHistoryItemUserName: {
-        fontWeight: 'bold',
-    },
     textInput: {
-        backgroundColor: '#ffffff',
-        borderColor: '#ECECEC',
+        backgroundColor: colors.componentBG,
         borderRadius: 8,
+        borderColor: colors.border,
         borderWidth: 1,
         padding: 12,
     },
 
     // Sidebar Styles
     sidebar: {
-        backgroundColor: '#37444C',
+        backgroundColor: colors.heading,
     },
 
     sidebarHeader: {
@@ -94,13 +92,36 @@ const styles = {
     },
 
     sidebarFooter: {
+        alignItems: 'center',
         borderTopWidth: 1,
-        borderTopColor: '#4A5960',
+        borderTopColor: colors.text,
+        display: 'flex',
+        flexDirection: 'row',
         height: 85,
-        justifyContent: 'center',
+        justifyContent: 'flex-start',
         paddingLeft: 24,
         paddingRight: 24,
         width: '100%',
+    },
+
+    sidebarFooterAvatar: {
+        backgroundColor: colors.text,
+        borderRadius: '50%',
+        height: 40,
+        marginRight: 12,
+        width: 40,
+    },
+
+    sidebarFooterUsername: {
+        color: '#FFFFFF',
+        fontSize: 15,
+        fontWeight: '700',
+    },
+
+    sidebarFooterLink: {
+        color: '#C6C9CA',
+        fontSize: 11,
+        marginTop: 4,
     },
 
     sidebarListContainer: {
@@ -154,7 +175,7 @@ const styles = {
     },
 
     sidebarLinkActive: {
-        backgroundColor: '#4A5960',
+        backgroundColor: colors.text,
         borderRadius: 8,
         height: 40,
         paddingTop: 8,
@@ -183,12 +204,12 @@ const styles = {
 
     // App Content styles
     appContentWrapper: {
-        backgroundColor: '#37444C',
-        color: '#4A5960',
+        backgroundColor: colors.heading,
+        color: colors.text,
     },
 
     appContent: {
-        backgroundColor: '#fafafa',
+        backgroundColor: colors.background,
         borderTopLeftRadius: 12,
         borderBottomLeftRadius: 12,
         overflow: 'hidden',
@@ -196,7 +217,7 @@ const styles = {
 
     appContentHeader: {
         borderBottomWidth: 1,
-        borderBottomColor: '#ECECEC',
+        borderBottomColor: colors.border,
         height: 73,
         alignItems: 'center',
         paddingLeft: 20,
@@ -204,17 +225,17 @@ const styles = {
     },
 
     navText: {
-        color: '#37444C',
+        color: colors.heading,
         fontSize: 17,
         fontWeight: '700',
     },
 
     chatContent: {
         flex: 4,
+        justifyContent: 'flex-end',
     },
 
     chatContentEmpty: {
-        justifyContent: 'flex-end',
         paddingTop: 16,
         paddingBottom: 16,
         paddingLeft: 16,
@@ -251,7 +272,7 @@ const styles = {
     },
 
     chatItemMessageHeaderSender: {
-        color: '#37444C',
+        color: colors.heading,
         fontSize: 15,
         lineHeight: 20,
         fontWeight: '600',
@@ -260,14 +281,14 @@ const styles = {
     },
 
     chatItemMessageHeaderTimestamp: {
-        color: '#7D8B8F',
+        color: colors.textSupporting,
         fontSize: 11,
         lineHeight: 20,
         fontWeight: '600',
     },
 
     chatItemMessage: {
-        color: '#4A5960',
+        color: colors.text,
         fontSize: 15,
         lineHeight: '1.4',
         marginTop: -2,
@@ -278,7 +299,7 @@ const styles = {
 
     chatItemCompose: {
         borderTopWidth: 1,
-        borderTopColor: '#ECECEC',
+        borderTopColor: colors.border,
         minHeight: '85',
         paddingTop: 20,
         paddingBottom: 20,

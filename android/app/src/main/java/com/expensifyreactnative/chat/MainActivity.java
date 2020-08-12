@@ -1,4 +1,4 @@
-package com.reactnativechat;
+package com.expensifyreactnative.chat;
 
 import com.facebook.react.ReactActivity;
 
