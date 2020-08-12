@@ -108,7 +108,7 @@ const styles = {
 
     sidebarFooterAvatar: {
         backgroundColor: colors.text,
-        borderRadius: '50%',
+        borderRadius: 20,
         height: 40,
         marginRight: 12,
         width: 40,
@@ -127,8 +127,9 @@ const styles = {
     },
 
     sidebarListContainer: {
-        flexBasis: 'inherit',
+        flex: 1,
         flexGrow: 1,
+        scrollbarWidth: 'none',
         overflow: 'scroll',
         paddingTop: 4,
         paddingBottom: 4,
@@ -149,7 +150,7 @@ const styles = {
     sidebarListItem: {
         height: 40,
         justifyContent: 'center',
-        textDecoration: 'none',
+        textDecorationLine: 'none',
     },
 
     sidebarLink: {
@@ -158,7 +159,7 @@ const styles = {
         paddingRight: 12,
         paddingBottom: 8,
         paddingLeft: 12,
-        textDecoration: 'none',
+        textDecorationLine: 'none',
     },
 
     sidebarLinkInner: {
@@ -170,10 +171,8 @@ const styles = {
     sidebarLinkText: {
         color: '#C6C9CA',
         fontSize: 13,
-        textDecoration: 'none',
-        whiteSpace: 'nowrap',
+        textDecorationLine: 'none',
         overflow: 'hidden',
-        textOverflow: 'ellipsis',
     },
 
     sidebarLinkActive: {
@@ -184,7 +183,7 @@ const styles = {
         paddingRight: 12,
         paddingBottom: 8,
         paddingLeft: 12,
-        textDecoration: 'none',
+        textDecorationLine: 'none',
     },
     sidebarLinkTextUnread: {
         fontWeight: 'bold',
@@ -193,10 +192,8 @@ const styles = {
     sidebarLinkActiveText: {
         color: '#ffffff',
         fontSize: 13,
-        textDecoration: 'none',
-        whiteSpace: 'nowrap',
+        textDecorationLine: 'none',
         overflow: 'hidden',
-        textOverflow: 'ellipsis',
     },
 
     unreadBadge: {
@@ -305,7 +302,7 @@ const styles = {
     chatItemCompose: {
         borderTopWidth: 1,
         borderTopColor: colors.border,
-        minHeight: '85',
+        minHeight: 85,
         paddingTop: 20,
         paddingBottom: 20,
         paddingLeft: 16,
