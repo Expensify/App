@@ -54,10 +54,6 @@ const styles = {
     historyItemAvatarWrapper: {
         width: 40,
     },
-    historyItemMessageWrapper: {
-        flexGrow: 1,
-        paddingLeft: 50,
-    },
     historyItemAvatar: {
         borderRadius: 20,
         height: 40,
@@ -72,10 +68,11 @@ const styles = {
         fontWeight: 'bold',
     },
     textInput: {
-        borderColor: '#7d8b8f',
-        borderRadius: 5,
+        backgroundColor: '#ffffff',
+        borderColor: '#ECECEC',
+        borderRadius: 8,
         borderWidth: 1,
-        padding: 10,
+        padding: 12,
     },
 
     // Sidebar Styles
@@ -99,7 +96,7 @@ const styles = {
     sidebarFooter: {
         borderTopWidth: 1,
         borderTopColor: '#4A5960',
-        height: 72,
+        height: 85,
         justifyContent: 'center',
         paddingLeft: 24,
         paddingRight: 24,
@@ -107,8 +104,8 @@ const styles = {
     },
 
     sidebarListContainer: {
+        flexBasis: 'inherit',
         flexGrow: 1,
-        height: 100,
         overflow: 'scroll',
         paddingTop: 4,
         paddingBottom: 4,
@@ -212,17 +209,79 @@ const styles = {
         fontWeight: '700',
     },
 
+    chatContent: {
+        flex: 4,
+    },
+
+    chatContentEmpty: {
+        justifyContent: 'flex-end',
+        paddingTop: 16,
+        paddingBottom: 16,
+        paddingLeft: 16,
+        paddingRight: 16,
+    },
+
     // Chat Item
     chatItem: {
+        display: 'flex',
+        flexDirection: 'row',
         paddingTop: 8,
         paddingBottom: 8,
         paddingLeft: 16,
         paddingRight: 16,
     },
 
+    chatItemLeft: {
+        display: 'flex',
+        flexShrink: 0,
+        marginRight: 8,
+    },
+
+    chatItemRight: {
+        flexGrow: 1,
+        flexShrink: 1,
+        flexBasis: 0,
+        position: 'relative',
+    },
+
+    chatItemMessageHeader: {
+        alignItems: 'baseline',
+        display: 'flex',
+        flexDirection: 'row',
+    },
+
+    chatItemMessageHeaderSender: {
+        color: '#37444C',
+        fontSize: 15,
+        lineHeight: 20,
+        fontWeight: '600',
+        paddingRight: 5,
+        paddingBottom: 4,
+    },
+
+    chatItemMessageHeaderTimestamp: {
+        color: '#7D8B8F',
+        fontSize: 11,
+        lineHeight: 20,
+        fontWeight: '600',
+    },
+
+    chatItemMessage: {
+        color: '#4A5960',
+        fontSize: 15,
+        lineHeight: '1.4',
+        marginTop: -2,
+        marginBottom: -2,
+        whiteSpace: 'pre-wrap',
+        wordBreak: 'break-word',
+    },
+
     chatItemCompose: {
-        paddingTop: 8,
-        paddingBottom: 8,
+        borderTopWidth: 1,
+        borderTopColor: '#ECECEC',
+        minHeight: '85',
+        paddingTop: 20,
+        paddingBottom: 20,
         paddingLeft: 16,
         paddingRight: 16,
     },

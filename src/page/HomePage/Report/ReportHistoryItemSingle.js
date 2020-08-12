@@ -20,30 +20,30 @@ const ReportHistoryItemSingle = ({historyItem}) => {
         : historyItem.avatar;
     return (
         <View style={[styles.chatItem]}>
-            <View style={[styles.flexRow]}>
+            <View style={[styles.chatItemLeft]}>
                 <View style={[styles.historyItemAvatarWrapper]}>
                     <Image
                         source={{uri: avatarUrl}}
                         style={[styles.historyItemAvatar]}
                     />
                 </View>
-                <View style={[styles.flexRow]}>
-                    <View style={[styles.p1]}>
-                        {historyItem.person.map(fragment => (
-                            <ReportHistoryItemFragment
-                                key={_.uniqueId('person-', historyItem.sequenceNumber)}
-                                fragment={fragment}
-                            />
-                        ))}
-                    </View>
-                    <View style={[styles.p1, styles.flexGrow1]}>
-                        <ReportHistoryItemDate timestamp={historyItem.timestamp} />
-                    </View>
+            </View>
+            <View style={[styles.chatItemRight]}>
+                <View style={[styles.chatItemMessageHeader]}>
+                    {historyItem.person.map(fragment => (
+                        <ReportHistoryItemFragment
+                            key={_.uniqueId('person-', historyItem.sequenceNumber)}
+                            fragment={fragment}
+                        />
+                    ))}
+                    <ReportHistoryItemDate timestamp={historyItem.timestamp} />
+                </View>
+                <View style={[styles.chatItemMessage]}>
+                    <Text>
+                        <ReportHistoryItemMessage historyItem={historyItem} />
+                    </Text>
                 </View>
             </View>
-            <Text style={[styles.historyItemMessageWrapper]}>
-                <ReportHistoryItemMessage historyItem={historyItem} />
-            </Text>
         </View>
     );
 };
