@@ -12,7 +12,7 @@ import WithIon from '../../components/WithIon';
 import IONKEYS from '../../IONKEYS';
 import {fetchAll} from '../../lib/actions/ActionsReport';
 import SidebarLink from './SidebarLink';
-import logo from '../../images/expensify-logo_reversed.png';
+import logo from '../../../assets/images/expensify-logo_reversed.png';
 import PageTitleUpdater from '../../lib/PageTitleUpdater';
 
 class SidebarView extends React.Component {
