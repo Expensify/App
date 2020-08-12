@@ -1,2 +1,2 @@
-json_key_file("/Users/andrew/Desktop/api-5477116272585997799-823303-02a2f77c7888.json") # Path to the json secret file - Follow https://docs.fastlane.tools/actions/supply/#setup to get one
+json_key_file("app/service-account.json") # Path to the json secret file - Follow https://docs.fastlane.tools/actions/supply/#setup to get one
 package_name("com.expensifyreactnative.chat") # e.g. com.krausefx.app
