@@ -30,8 +30,10 @@ function updateReportWithNewAction(reportID, reportAction) {
     let foundExistingReportHistoryItem = false;
 
     Ion.get(`${IONKEYS.REPORT}_${reportID}`, 'reportID')
-        .then((reportID) => {
-            if (!reportID) {
+        .then((ionReportID) => {
+            // This is necessary for local development because there will be pusher events from other engineers with
+            // different reportIDs
+            if (!ionReportID) {
                 throw new Error('Report does not exist in the store, so ignoring new comments');
             }
 
