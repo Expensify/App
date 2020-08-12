@@ -14,7 +14,13 @@ export default function (mapIonToState) {
         constructor(props) {
             super(props);
 
+            // This stores all the Ion connection IDs to be used when the component unmounts so everything can be
+            // disconnected
             this.connectionIDs = {};
+
+            // This stores all of the Ion connection IDs from the mappings where they Ion key uses data from
+            // this.props. These are stored differently because anytime the props change, the component has to be
+            // reconnected to Ion with the new props.
             this.connectionIDsWithPropsData = {};
 
             // Initialize the state with each of the property names from the mapping
@@ -25,7 +31,7 @@ export default function (mapIonToState) {
         }
 
         componentDidMount() {
-            // Subscribe each of the state properties to the proper store key
+            // Subscribe each of the state properties to the proper Ion key
             _.each(mapIonToState, (mapping, propertyName) => {
                 this.connectSingleMappingToIon(mapping, propertyName, this.wrappedComponent);
             });
@@ -33,7 +39,7 @@ export default function (mapIonToState) {
 
         componentDidUpdate(prevProps) {
             // If any of the mappings use data from the props, then when the props change, all the
-            // connections need to be rebound with the new props
+            // connections need to be reconnected with the new props
             _.each(mapIonToState, (mapping, propertyName) => {
                 if (has(mapping, 'pathForProps')) {
                     const prevPropsData = get(prevProps, mapping.pathForProps);
@@ -47,7 +53,9 @@ export default function (mapIonToState) {
         }
 
         componentWillUnmount() {
-            this.disconnect();
+            // Disconnect everything from Ion
+            _.each(this.connectionIDs, Ion.disconnect);
+            _.each(this.connectionIDsWithPropsData, Ion.disconnect);
         }
 
         /**
@@ -110,14 +118,6 @@ export default function (mapIonToState) {
                 // into Ion
                 mapping.loader(...paramsForLoaderFunction || []);
             }
-        }
-
-        /**
-         * Disconnect everything from Ion
-         */
-        disconnect() {
-            _.each(this.connectionIDs, Ion.disconnect);
-            _.each(this.connectionIDsWithPropsData, Ion.disconnect);
         }
 
         render() {
