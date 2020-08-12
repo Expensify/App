@@ -20,6 +20,8 @@ DerivedData
 *.hmap
 *.ipa
 *.xcuserstate
+*.cer
+*.mobileprovision
 
 # Android/IntelliJ
 #
@@ -41,6 +43,7 @@ buck-out/
 \.buckd/
 *.keystore
 !debug.keystore
+android/app/service-account.json
 
 # fastlane
 #

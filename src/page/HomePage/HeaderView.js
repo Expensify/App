@@ -1,8 +1,8 @@
 import React from 'react';
 import {View, Text} from 'react-native';
 import styles from '../../style/StyleSheet';
-import STOREKEYS from '../../store/STOREKEYS';
-import WithStore from '../../components/WithStore';
+import IONKEYS from '../../IONKEYS';
+import WithIon from '../../components/WithIon';
 import {withRouter} from '../../lib/Router';
 
 class HeaderView extends React.Component {
@@ -19,16 +19,16 @@ class HeaderView extends React.Component {
     }
 }
 
-export default withRouter(WithStore({
+export default withRouter(WithIon({
     // Map this.state.reportName to the data for a specific report in the store, and bind it to the reportName property
     // It uses the data returned from the props path (ie. the reportID) to replace %DATAFROMPROPS% in the key it
     // binds to
     reportName: {
         // Note the trailing $ so that this component only binds to the specific report and no other report keys
         // like report_history_1234
-        key: `${STOREKEYS.REPORT}_%DATAFROMPROPS%$`,
+        key: `${IONKEYS.REPORT}_%DATAFROMPROPS%$`,
         path: 'reportName',
-        prefillWithKey: `${STOREKEYS.REPORT}_%DATAFROMPROPS%`,
+        prefillWithKey: `${IONKEYS.REPORT}_%DATAFROMPROPS%`,
         pathForProps: 'match.params.reportID',
     },
 })(HeaderView));

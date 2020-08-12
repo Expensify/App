@@ -1,24 +1,24 @@
 /**
  * This is a higher order component that provides the ability to map a state property directly to
- * something in the store. That way, as soon as the store changes, the state will be set and the view
+ * something in Ion (a key/value store). That way, as soon as data in Ion changes, the state will be set and the view
  * will automatically change to reflect the new data.
  */
 import React from 'react';
 import _ from 'underscore';
 import get from 'lodash.get';
 import has from 'lodash.has';
-import * as Store from '../store/Store';
+import Ion from '../lib/Ion';
 
-export default function (mapStoreToStates) {
-    return WrappedComponent => class WithStore extends React.Component {
+export default function (mapIonToState) {
+    return WrappedComponent => class WithIon extends React.Component {
         constructor(props) {
             super(props);
 
-            this.subscriptionIDs = {};
-            this.subscriptionIDsWithPropsData = {};
+            this.connectionIDs = {};
+            this.connectionIDsWithPropsData = {};
 
             // Initialize the state with each of the property names from the mapping
-            this.state = _.reduce(_.keys(mapStoreToStates), (finalResult, propertyName) => ({
+            this.state = _.reduce(_.keys(mapIonToState), (finalResult, propertyName) => ({
                 ...finalResult,
                 [propertyName]: null,
             }), {});
@@ -26,28 +26,28 @@ export default function (mapStoreToStates) {
 
         componentDidMount() {
             // Subscribe each of the state properties to the proper store key
-            _.each(mapStoreToStates, (mapping, propertyName) => {
-                this.bindSingleMappingToStore(mapping, propertyName, this.wrappedComponent);
+            _.each(mapIonToState, (mapping, propertyName) => {
+                this.connectSingleMappingToIon(mapping, propertyName, this.wrappedComponent);
             });
         }
 
         componentDidUpdate(prevProps) {
             // If any of the mappings use data from the props, then when the props change, all the
-            // subscriptions need to be rebound with the new props
-            _.each(mapStoreToStates, (mapping, propertyName) => {
+            // connections need to be rebound with the new props
+            _.each(mapIonToState, (mapping, propertyName) => {
                 if (has(mapping, 'pathForProps')) {
                     const prevPropsData = get(prevProps, mapping.pathForProps);
                     const currentPropsData = get(this.props, mapping.pathForProps);
                     if (prevPropsData !== currentPropsData) {
-                        Store.unbind(this.subscriptionIDsWithPropsData[mapping.pathForProps]);
-                        this.bindSingleMappingToStore(mapping, propertyName, this.wrappedComponent);
+                        Ion.disconnect(this.connectionIDsWithPropsData[mapping.pathForProps]);
+                        this.connectSingleMappingToIon(mapping, propertyName, this.wrappedComponent);
                     }
                 }
             });
         }
 
         componentWillUnmount() {
-            this.unbind();
+            this.disconnect();
         }
 
         /**
@@ -57,7 +57,7 @@ export default function (mapStoreToStates) {
          * @param {string} propertyName
          * @param {object} component
          */
-        bindSingleMappingToStore(mapping, propertyName, component) {
+        connectSingleMappingToIon(mapping, propertyName, component) {
             const {
                 key,
                 path,
@@ -70,13 +70,13 @@ export default function (mapStoreToStates) {
                 collectionId,
             } = mapping;
 
-            // Bind to the store and keep track of the subscription ID
+            // Bind to the store and keep track of the connectionID
             if (pathForProps) {
                 // If there is a path for props data, then the data needs to be pulled out of props and parsed
                 // into the key
                 const dataFromProps = get(this.props, pathForProps);
                 const keyWithPropsData = key.replace('%DATAFROMPROPS%', dataFromProps);
-                const subscriptionID = Store.bind(
+                const connectionID = Ion.connect(
                     keyWithPropsData,
                     path,
                     defaultValue,
@@ -86,10 +86,10 @@ export default function (mapStoreToStates) {
                     component
                 );
 
-                // Store the subscription ID it with a key that is unique to the data coming from the props
-                this.subscriptionIDsWithPropsData[pathForProps] = subscriptionID;
+                // Store the connectionID it with a key that is unique to the data coming from the props
+                this.connectionIDsWithPropsData[pathForProps] = connectionID;
             } else {
-                const subscriptionID = Store.bind(
+                const connectionID = Ion.connect(
                     key,
                     path,
                     defaultValue,
@@ -98,10 +98,10 @@ export default function (mapStoreToStates) {
                     collectionId,
                     component
                 );
-                this.subscriptionIDs[subscriptionID] = subscriptionID;
+                this.connectionIDs[connectionID] = connectionID;
             }
 
-            // Prefill the state with any data already in the store
+            // Pre-fill the state with any data already in the store
             if (prefillWithKey) {
                 let prefillKey = prefillWithKey;
 
@@ -112,7 +112,7 @@ export default function (mapStoreToStates) {
                     prefillKey = prefillWithKey.replace('%DATAFROMPROPS%', dataFromProps);
                 }
 
-                Store.get(prefillKey, path, defaultValue)
+                Ion.get(prefillKey, path, defaultValue)
                     .then(data => component.setState({[propertyName]: data}));
             }
 
@@ -130,11 +130,11 @@ export default function (mapStoreToStates) {
         }
 
         /**
-         * Unsubscribe from any subscriptions
+         * Disconnect everything from Ion
          */
-        unbind() {
-            _.each(this.subscriptionIDs, Store.unbind);
-            _.each(this.subscriptionIDsWithPropsData, Store.unbind);
+        disconnect() {
+            _.each(this.connectionIDs, Ion.disconnect);
+            _.each(this.connectionIDsWithPropsData, Ion.disconnect);
         }
 
         render() {

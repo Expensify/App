@@ -2,8 +2,8 @@ import lodashGet from 'lodash.get';
 import _ from 'underscore';
 import AsyncStorage from '@react-native-community/async-storage';
 
-// Keeps track of the last subscription ID that was used
-let lastSubscriptionID = 0;
+// Keeps track of the last connectionID that was used so we can keep incrementing it
+let lastConnectionID = 0;
 
 /**
  * Initialize the store with actions and listening for storage events
@@ -29,13 +29,13 @@ const callbackToStateMapping = {};
  * @param {string} keyPattern
  * @param {string} path a specific path of the store object to map to the state
  * @param {mixed} defaultValue to return if the there is nothing from the store
- * @param {string} statePropertyName the name of the property in the state to bind the data to
+ * @param {string} statePropertyName the name of the property in the state to connect the data to
  * @param {boolean} addAsCollection rather than setting a single state value, this will add things to an array
  * @param {string} collectionId the name of the ID property to use for the collection
  * @param {object} reactComponent whose setState() method will be called with any changed data
- * @returns {number} an ID to use when calling unbind
+ * @returns {number} an ID to use when calling disconnect
  */
-function bind(
+function connect(
     keyPattern,
     path,
     defaultValue,
@@ -44,8 +44,8 @@ function bind(
     collectionId,
     reactComponent
 ) {
-    const subscriptionID = lastSubscriptionID++;
-    callbackToStateMapping[subscriptionID] = {
+    const connectionID = lastConnectionID++;
+    callbackToStateMapping[connectionID] = {
         regex: RegExp(keyPattern),
         statePropertyName,
         addAsCollection,
@@ -54,19 +54,19 @@ function bind(
         reactComponent,
         defaultValue,
     };
-    return subscriptionID;
+    return connectionID;
 }
 
 /**
  * Remove the listener for a react component
  *
- * @param {string} subscriptionID
+ * @param {string} connectionID
  */
-function unbind(subscriptionID) {
-    if (!callbackToStateMapping[subscriptionID]) {
+function disconnect(connectionID) {
+    if (!callbackToStateMapping[connectionID]) {
         return;
     }
-    delete callbackToStateMapping[subscriptionID];
+    delete callbackToStateMapping[connectionID];
 }
 
 /**
@@ -78,7 +78,7 @@ function unbind(subscriptionID) {
 function keyChanged(key, data) {
     console.debug('[STORE] key changed', key, data);
 
-    // Find components that were added with bind() and trigger their setState() method with the new data
+    // Find components that were added with connect() and trigger their setState() method with the new data
     _.each(callbackToStateMapping, (mappedComponent) => {
         if (mappedComponent && mappedComponent.regex.test(key)) {
             const newValue = mappedComponent.path
@@ -162,7 +162,7 @@ function multiGet(keys) {
 
 /**
  * Sets multiple keys and values. Example
- * Store.multiSet({'key1': 'a', 'key2': 'b'});
+ * Ion.multiSet({'key1': 'a', 'key2': 'b'});
  *
  * @param {object} data
  * @returns {Promise}
@@ -206,9 +206,9 @@ function merge(key, val) {
         });
 }
 
-export {
-    bind,
-    unbind,
+const Ion = {
+    connect,
+    disconnect,
     set,
     multiSet,
     get,
@@ -217,3 +217,5 @@ export {
     clear,
     init
 };
+
+export default Ion;
