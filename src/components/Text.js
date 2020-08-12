@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Text} from 'react-native';
+import {Text as RNText} from 'react-native';
 import fontFamily from '../style/fontFamily';
 
 const propTypes = {
@@ -31,7 +31,7 @@ const defaultProps = {
     style: null,
 };
 
-const Typography = ({
+const Text = ({
     color,
     fontSize,
     textAlign,
@@ -51,12 +51,12 @@ const Typography = ({
 
     return (
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <Text style={componentStyle} {...props}>{children}</Text>
+        <RNText style={componentStyle} {...props}>{children}</RNText>
     );
 };
 
-Typography.defaultProps = propTypes;
+Text.defaultProps = propTypes;
 
-Typography.propTypes = defaultProps;
+Text.propTypes = defaultProps;
 
-export default Typography;
+export default Text;
