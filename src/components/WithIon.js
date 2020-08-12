@@ -68,8 +68,20 @@ export default function (mapIonToState) {
          * @param {boolean} [mapping.addAsCollection] rather than setting a single state value, this will add things to
          *  an array
          * @param {string} [mapping.collectionId] the name of the ID property to use for the collection
-         * @param {string} statePropertyName
-         * @param {object} reactComponent
+         * @param {string} [mapping.pathForProps] the statePropertyName can contain the string %DATAFROMPROPS% wich will
+         *  be replaced with data from the props matching this path. That way, the component can connect to an Ion key
+         *  that uses data from this.props.
+         *
+         *  For example, if a component wants to connect to the Ion key "report_22" and
+         *  "22" comes from this.props.match.params.reportID. The statePropertyName would be set to
+         *  "report_%DATAFROMPROPS%" and pathForProps would be set to "match.params.reportID"
+         * @param {string} [mapping.prefillWithKey] the name of the Ion key to prefill the component with. Useful for
+         *  loading the existing data in Ion while making an XHR to request updated data.
+         * @param {function} [mapping.loader] a method that will be called after connection to Ion in order to load it
+         *  with data. Typically this will be a method that makes an XHR to load data from the API.
+         * @param {mixed[]} [mapping.loaderParams] An array of params to be passed to the loader method
+         * @param {string} statePropertyName the name of the state property that Ion will add the data to
+         * @param {object} reactComponent a reference to the react component whose state needs updated by Ion
          */
         connectMappingToIon(mapping, statePropertyName, reactComponent) {
             const ionConnectionConfig = {
