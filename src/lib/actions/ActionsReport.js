@@ -3,7 +3,6 @@ import _ from 'underscore';
 import Ion from '../Ion';
 import {request, delayedWrite} from '../Network';
 import IONKEYS from '../../IONKEYS';
-import ExpensiMark from '../ExpensiMark';
 import CONFIG from '../../CONFIG';
 import * as pusher from '../Pusher/pusher';
 
@@ -197,7 +196,6 @@ function fetchHistory(reportID) {
  * @returns {Promise}
  */
 function addHistoryItem(reportID, reportComment) {
-    const messageParser = new ExpensiMark();
     const historyKey = `${IONKEYS.REPORT_HISTORY}_${reportID}`;
 
     return Ion.multiGet([historyKey, IONKEYS.SESSION, IONKEYS.PERSONAL_DETAILS])
@@ -232,7 +230,7 @@ function addHistoryItem(reportID, reportComment) {
                     message: [
                         {
                             type: 'COMMENT',
-                            html: messageParser.replace(reportComment),
+                            html: reportComment,
                             text: reportComment,
                         }
                     ],
