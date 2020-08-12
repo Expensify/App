@@ -1,5 +1,6 @@
 import React from 'react';
-import {View, Image, Text} from 'react-native';
+import {View, Image} from 'react-native';
+import Text from '../../../components/Text';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ReportHistoryPropsTypes from './ReportHistoryPropsTypes';
@@ -31,12 +32,16 @@ const ReportHistoryItemSingle = ({historyItem}) => {
             <View style={[styles.chatItemRight]}>
                 <View style={[styles.chatItemMessageHeader]}>
                     {historyItem.person.map(fragment => (
-                        <ReportHistoryItemFragment
-                            key={_.uniqueId('person-', historyItem.sequenceNumber)}
-                            fragment={fragment}
-                        />
+                        <Text>
+                            <ReportHistoryItemFragment
+                                key={_.uniqueId('person-', historyItem.sequenceNumber)}
+                                fragment={fragment}
+                            />
+                        </Text>
                     ))}
-                    <ReportHistoryItemDate timestamp={historyItem.timestamp} />
+                    <Text>
+                        <ReportHistoryItemDate timestamp={historyItem.timestamp} />
+                    </Text>
                 </View>
                 <View style={[styles.chatItemMessage]}>
                     <Text>
