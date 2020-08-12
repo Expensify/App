@@ -97,83 +97,36 @@ function initPusher() {
 }
 
 /**
- * Get a single report
- *
- * @param {string} reportID
- * @returns {Promise}
- */
-function fetch(reportID) {
-    let fetchedReport;
-    return request('Get', {
-        returnValueList: 'reportStuff',
-        reportIDList: reportID,
-        shouldLoadOptionalKeys: true,
-    })
-        .then(data => data.reports && data.reports[reportID])
-        .then((report) => {
-            fetchedReport = report;
-            return Ion.get(IONKEYS.SESSION, 'accountID');
-        })
-        .then((accountID) => {
-            // When we fetch a full report, we want to figure out if there are unread comments on it
-            fetchedReport.hasUnread = hasUnreadHistoryItems(accountID, fetchedReport);
-            return Ion.merge(`${IONKEYS.REPORT}_${reportID}`, fetchedReport);
-        });
-}
-
-/**
  * Get all of our reports
  *
  * @returns {Promise}
  */
 function fetchAll() {
-    if (CONFIG.IS_IN_PRODUCTION) {
-        return request('Get', {
-            returnValueList: 'reportStuff',
-            reportIDList: '63212778,63212795,63212764,63212607,63699490',
-            shouldLoadOptionalKeys: true,
-        })
-
-            // Load the full report of each one, it's OK to fire-and-forget these requests
-            .then((data) => {
-                _.each(data.reports, report => fetch(report.reportID));
-                return data.reports;
-            })
-
-            // Transform the data so we only store what we need (space is valuable)
-            .then(data => _.chain(data)
-                .values()
-                .map(report => ({reportID: report.reportID, reportName: report.reportName}))
-                .value())
-
-            // Put the data into the store
-            .then(data => Ion.set(IONKEYS.REPORTS, data))
-            // eslint-disable-next-line no-console
-            .catch((error) => { console.log('Error fetching report actions', error); });
-    }
-
+    let fetchedReports;
     return request('Get', {
-        returnValueList: 'reportListBeta',
-        sortBy: 'starred',
-        offset: 0,
-        limit: 10,
+        returnValueList: 'reportStuff',
+        reportIDList: CONFIG.REPORT_IDS,
+        shouldLoadOptionalKeys: true,
     })
+        .then(data => fetchedReports = data.reports)
+        .then(() => Ion.get(IONKEYS.SESSION, 'accountID'))
+        .then((accountID) => {
+            const ionPromises = _.map(fetchedReports, (report) => {
+                // Store only the absolute bare minimum of data in Ion because space is limited
+                const newReport = {
+                    reportID: report.reportID,
+                    reportName: report.reportName,
+                    reportNameValuePairs: report.reportNameValuePairs,
+                    hasUnread: hasUnreadHistoryItems(accountID, report),
+                };
 
-        // Load the full report of each one, it's OK to fire-and-forget these requests
-        .then((data) => {
-            _.each(data.reportListBeta, report => fetch(report.reportID));
-            return data.reportListBeta;
-        })
+                // Merge the data into Ion. Don't use set() here or multiSet() because then that would
+                // overwrite any existing data (like if they have unread messages)
+                return Ion.merge(`${IONKEYS.REPORT}_${report.reportID}`, newReport);
+            });
 
-        // Transform the data so we only store what we need (space is valuable)
-        .then(data => _.chain(data)
-            .map(report => ({reportID: report.reportID, reportName: report.reportName}))
-            .value())
-
-        // Put the data into the store
-        .then(data => Ion.set(IONKEYS.REPORTS, _.values(data)))
-        // eslint-disable-next-line no-console
-        .catch((error) => { console.log('Error fetching report actions', error); });
+            return Promise.all(ionPromises);
+        });
 }
 
 /**
@@ -278,7 +231,6 @@ function updateLastReadActionID(accountID, reportID, sequenceNumber) {
 
 export {
     fetchAll,
-    fetch,
     fetchHistory,
     addHistoryItem,
     updateLastReadActionID,
