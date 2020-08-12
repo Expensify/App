@@ -6,7 +6,7 @@ import HomePage from './page/HomePage/HomePage';
 import Ion from './lib/Ion';
 import * as ActiveClientManager from './lib/ActiveClientManager';
 import {verifyAuthToken} from './lib/actions/ActionsSession';
-import STOREKEYS from './store/STOREKEYS';
+import IONKEYS from './store/IONKEYS';
 import WithIon from './components/WithIon';
 import {
     Route,
@@ -41,7 +41,7 @@ class Expensify extends Component {
 
 export default WithIon({
     redirectTo: {
-        key: STOREKEYS.APP_REDIRECT_TO,
+        key: IONKEYS.APP_REDIRECT_TO,
         loader: () => {
             // Verify that our authToken is OK to use
             verifyAuthToken();

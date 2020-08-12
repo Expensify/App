@@ -2,7 +2,7 @@ import moment from 'moment';
 import _ from 'underscore';
 import Ion from '../Ion';
 import {request, delayedWrite} from '../Network';
-import STOREKEYS from '../../store/STOREKEYS';
+import IONKEYS from '../../store/IONKEYS';
 import ExpensiMark from '../ExpensiMark';
 import Guid from '../Guid';
 import CONFIG from '../../CONFIG';
@@ -29,7 +29,7 @@ function updateReportWithNewAction(reportID, reportAction) {
     // Get the comments for this report, and add the comment (being sure to sort and filter properly)
     let foundExistingReportHistoryItem = false;
 
-    Ion.get(`${STOREKEYS.REPORT_HISTORY}_${reportID}`)
+    Ion.get(`${IONKEYS.REPORT_HISTORY}_${reportID}`)
 
         // Use a reducer to replace an existing report history item if there is one
         .then(reportHistory => _.map(reportHistory, (reportHistoryItem) => {
@@ -45,12 +45,12 @@ function updateReportWithNewAction(reportID, reportAction) {
             // items
             if (!foundExistingReportHistoryItem) {
                 reportHistory.push(reportAction);
-                Ion.merge(`${STOREKEYS.REPORT}_${reportID}`, {hasUnread: true});
+                Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {hasUnread: true});
             }
             return reportHistory;
         })
         .then((reportHistory) => {
-            Ion.set(`${STOREKEYS.REPORT_HISTORY}_${reportID}`, reportHistory.sort(sortReportActions));
+            Ion.set(`${IONKEYS.REPORT_HISTORY}_${reportID}`, reportHistory.sort(sortReportActions));
         });
 }
 
@@ -87,7 +87,7 @@ function hasUnreadHistoryItems(accountID, report) {
  * @returns {Promise}
  */
 function initPusher() {
-    return Ion.get(STOREKEYS.SESSION, 'accountID')
+    return Ion.get(IONKEYS.SESSION, 'accountID')
         .then((accountID) => {
             const pusherChannelName = `private-user-accountID-${accountID}`;
             pusher.subscribe(pusherChannelName, 'reportComment', (pushJSON) => {
@@ -112,12 +112,12 @@ function fetch(reportID) {
         .then(data => data.reports && data.reports[reportID])
         .then((report) => {
             fetchedReport = report;
-            return Ion.get(STOREKEYS.SESSION, 'accountID');
+            return Ion.get(IONKEYS.SESSION, 'accountID');
         })
         .then((accountID) => {
             // When we fetch a full report, we want to figure out if there are unread comments on it
             fetchedReport.hasUnread = hasUnreadHistoryItems(accountID, fetchedReport);
-            return Ion.merge(`${STOREKEYS.REPORT}_${reportID}`, fetchedReport);
+            return Ion.merge(`${IONKEYS.REPORT}_${reportID}`, fetchedReport);
         });
 }
 
@@ -147,7 +147,7 @@ function fetchAll() {
                 .value())
 
             // Put the data into the store
-            .then(data => Ion.set(STOREKEYS.REPORTS, data))
+            .then(data => Ion.set(IONKEYS.REPORTS, data))
             // eslint-disable-next-line no-console
             .catch((error) => { console.log('Error fetching report actions', error); });
     }
@@ -171,7 +171,7 @@ function fetchAll() {
             .value())
 
         // Put the data into the store
-        .then(data => Ion.set(STOREKEYS.REPORTS, _.values(data)))
+        .then(data => Ion.set(IONKEYS.REPORTS, _.values(data)))
         // eslint-disable-next-line no-console
         .catch((error) => { console.log('Error fetching report actions', error); });
 }
@@ -187,7 +187,7 @@ function fetchHistory(reportID) {
         reportID,
         offset: 0,
     })
-        .then(data => Ion.set(`${STOREKEYS.REPORT_HISTORY}_${reportID}`, data.history.sort(sortReportActions)));
+        .then(data => Ion.set(`${IONKEYS.REPORT_HISTORY}_${reportID}`, data.history.sort(sortReportActions)));
 }
 
 /**
@@ -200,13 +200,13 @@ function fetchHistory(reportID) {
 function addHistoryItem(reportID, reportComment) {
     const messageParser = new ExpensiMark();
     const guid = Guid();
-    const historyKey = `${STOREKEYS.REPORT_HISTORY}_${reportID}`;
+    const historyKey = `${IONKEYS.REPORT_HISTORY}_${reportID}`;
 
-    return Ion.multiGet([historyKey, STOREKEYS.SESSION, STOREKEYS.PERSONAL_DETAILS])
+    return Ion.multiGet([historyKey, IONKEYS.SESSION, IONKEYS.PERSONAL_DETAILS])
         .then((values) => {
             const reportHistory = values[historyKey];
-            const email = values[STOREKEYS.SESSION].email || '';
-            const personalDetails = values[STOREKEYS.PERSONAL_DETAILS][email];
+            const email = values[IONKEYS.SESSION].email || '';
+            const personalDetails = values[IONKEYS.PERSONAL_DETAILS][email];
 
             // The new sequence number will be one higher than the highest
             let highestSequenceNumber = _.chain(reportHistory)
@@ -220,7 +220,7 @@ function addHistoryItem(reportID, reportComment) {
                 {
                     tempGuid: guid,
                     actionName: 'ADDCOMMENT',
-                    actorEmail: Ion.get(STOREKEYS.SESSION, 'email'),
+                    actorEmail: Ion.get(IONKEYS.SESSION, 'email'),
                     person: [
                         {
                             style: 'strong',
@@ -261,7 +261,7 @@ function addHistoryItem(reportID, reportComment) {
  */
 function updateLastReadActionID(accountID, reportID, sequenceNumber) {
     // Mark the report as not having any unread items
-    return Ion.merge(`${STOREKEYS.REPORT}_${reportID}`, {
+    return Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {
         hasUnread: false,
         reportNameValuePairs: {
             [`lastReadActionID_${accountID}`]: sequenceNumber,

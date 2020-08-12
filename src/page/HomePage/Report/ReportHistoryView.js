@@ -6,7 +6,7 @@ import lodashGet from 'lodash.get';
 import Ion from '../../../lib/Ion';
 import {fetchHistory, updateLastReadActionID} from '../../../lib/actions/ActionsReport';
 import WithIon from '../../../components/WithIon';
-import STOREKEYS from '../../../store/STOREKEYS';
+import IONKEYS from '../../../store/IONKEYS';
 import ReportHistoryItem from './ReportHistoryItem';
 
 const propTypes = {
@@ -100,11 +100,11 @@ class ReportHistoryView extends React.Component {
      */
     recordlastReadActionID(maxSequenceNumber) {
         let myAccountID;
-        Ion.get(STOREKEYS.SESSION, 'accountID')
+        Ion.get(IONKEYS.SESSION, 'accountID')
             .then((accountID) => {
                 myAccountID = accountID;
                 const path = `reportNameValuePairs.lastReadActionID_${accountID}`;
-                return Ion.get(`${STOREKEYS.REPORT}_${this.props.reportID}`, path, 0);
+                return Ion.get(`${IONKEYS.REPORT}_${this.props.reportID}`, path, 0);
             })
             .then((lastReadActionID) => {
                 if (maxSequenceNumber > lastReadActionID) {
@@ -157,7 +157,7 @@ class ReportHistoryView extends React.Component {
 }
 ReportHistoryView.propTypes = propTypes;
 
-const key = `${STOREKEYS.REPORT_HISTORY}_%DATAFROMPROPS%`;
+const key = `${IONKEYS.REPORT_HISTORY}_%DATAFROMPROPS%`;
 export default WithIon({
     reportHistory: {
         key,

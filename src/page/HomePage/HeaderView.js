@@ -1,7 +1,7 @@
 import React from 'react';
 import {View, Text} from 'react-native';
 import styles from '../../style/StyleSheet';
-import STOREKEYS from '../../store/STOREKEYS';
+import IONKEYS from '../../store/IONKEYS';
 import WithIon from '../../components/WithIon';
 import {withRouter} from '../../lib/Router';
 
@@ -26,9 +26,9 @@ export default withRouter(WithIon({
     reportName: {
         // Note the trailing $ so that this component only binds to the specific report and no other report keys
         // like report_history_1234
-        key: `${STOREKEYS.REPORT}_%DATAFROMPROPS%$`,
+        key: `${IONKEYS.REPORT}_%DATAFROMPROPS%$`,
         path: 'reportName',
-        prefillWithKey: `${STOREKEYS.REPORT}_%DATAFROMPROPS%`,
+        prefillWithKey: `${IONKEYS.REPORT}_%DATAFROMPROPS%`,
         pathForProps: 'match.params.reportID',
     },
 })(HeaderView));
