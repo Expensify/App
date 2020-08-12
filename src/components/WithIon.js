@@ -62,6 +62,12 @@ export default function (mapIonToState) {
          * Takes a single mapping and binds the state of the component to the store
          *
          * @param {object} mapping
+         * @param {string} [mapping.path] a specific path of the store object to map to the state
+         * @param {mixed} [mapping.defaultValue] Used in conjunction with mapping.path to return if the there is nothing
+         *  at mapping.path
+         * @param {boolean} [mapping.addAsCollection] rather than setting a single state value, this will add things to
+         *  an array
+         * @param {string} [mapping.collectionId] the name of the ID property to use for the collection
          * @param {string} statePropertyName
          * @param {object} reactComponent
          */
