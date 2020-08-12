@@ -55,9 +55,9 @@ export default function (mapIonToState) {
          *
          * @param {object} mapping
          * @param {string} propertyName
-         * @param {object} component
+         * @param {object} reactComponent
          */
-        connectSingleMappingToIon(mapping, propertyName, component) {
+        connectSingleMappingToIon(mapping, propertyName, reactComponent) {
             const {
                 key,
                 path,
@@ -70,34 +70,37 @@ export default function (mapIonToState) {
                 collectionId,
             } = mapping;
 
+
             // Bind to the store and keep track of the connectionID
             if (pathForProps) {
                 // If there is a path for props data, then the data needs to be pulled out of props and parsed
                 // into the key
                 const dataFromProps = get(this.props, pathForProps);
                 const keyWithPropsData = key.replace('%DATAFROMPROPS%', dataFromProps);
-                const connectionID = Ion.connect(
-                    keyWithPropsData,
+                const mappingConfig = {
+                    keyPattern: keyWithPropsData,
                     path,
                     defaultValue,
-                    propertyName,
+                    statePropertyName: propertyName,
                     addAsCollection,
                     collectionId,
-                    component
-                );
+                    reactComponent,
+                };
+                const connectionID = Ion.connect(mappingConfig);
 
                 // Store the connectionID it with a key that is unique to the data coming from the props
                 this.connectionIDsWithPropsData[pathForProps] = connectionID;
             } else {
-                const connectionID = Ion.connect(
-                    key,
+                const mappingConfig = {
+                    keyPattern: key,
                     path,
                     defaultValue,
-                    propertyName,
+                    statePropertyName: propertyName,
                     addAsCollection,
                     collectionId,
-                    component
-                );
+                    reactComponent
+                };
+                const connectionID = Ion.connect(mappingConfig);
                 this.connectionIDs[connectionID] = connectionID;
             }
 
@@ -113,7 +116,7 @@ export default function (mapIonToState) {
                 }
 
                 Ion.get(prefillKey, path, defaultValue)
-                    .then(data => component.setState({[propertyName]: data}));
+                    .then(data => reactComponent.setState({[propertyName]: data}));
             }
 
             // Load the data from an API request if necessary
