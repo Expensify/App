@@ -10,7 +10,7 @@ import has from 'lodash.has';
 import Ion from '../lib/Ion';
 
 export default function (mapStoreToStates) {
-    return WrappedComponent => class WithStore extends React.Component {
+    return WrappedComponent => class WithIon extends React.Component {
         constructor(props) {
             super(props);
 

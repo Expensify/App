@@ -9,7 +9,7 @@ import {
 import {signOut} from '../../lib/actions/ActionsSession';
 import {fetch as getPersonalDetails} from '../../lib/actions/ActionsPersonalDetails';
 import styles from '../../style/StyleSheet';
-import WithStore from '../../components/WithStore';
+import WithIon from '../../components/WithIon';
 import STOREKEYS from '../../store/STOREKEYS';
 import {fetchAll} from '../../lib/actions/ActionsReport';
 import SidebarLink from './SidebarLink';
@@ -61,7 +61,7 @@ class SidebarView extends React.Component {
     }
 }
 
-export default WithStore({
+export default WithIon({
     // Map this.state.userDisplayName to the personal details key in the store and bind it to the displayName property
     // and load it with data from getPersonalDetails()
     userDisplayName: {

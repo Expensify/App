@@ -5,7 +5,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import Ion from '../../../lib/Ion';
 import {fetchHistory, updateLastReadActionID} from '../../../lib/actions/ActionsReport';
-import WithStore from '../../../components/WithStore';
+import WithIon from '../../../components/WithIon';
 import STOREKEYS from '../../../store/STOREKEYS';
 import ReportHistoryItem from './ReportHistoryItem';
 
@@ -158,7 +158,7 @@ class ReportHistoryView extends React.Component {
 ReportHistoryView.propTypes = propTypes;
 
 const key = `${STOREKEYS.REPORT_HISTORY}_%DATAFROMPROPS%`;
-export default WithStore({
+export default WithIon({
     reportHistory: {
         key,
         loader: fetchHistory,
