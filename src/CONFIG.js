@@ -16,5 +16,5 @@ export default {
         PARTNER_PASSWORD: IS_IN_PRODUCTION ? 'e21965746fd75f82bb66' : 'c3a9ac418ea3f152aae2',
         API_ROOT: IS_IN_PRODUCTION ? 'https://www.expensify.com/api?' : 'https://www.expensify.com.dev/api?',
     },
-    REPORT_IDS: IS_IN_PRODUCTION ? '63212778,63212795,63212764,63212607,63699490' : '35,29',
+    REPORT_IDS: IS_IN_PRODUCTION ? '63212778,63212795,63212764,63212607,63699490' : '35,29,123123123',
 };
