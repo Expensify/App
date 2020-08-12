@@ -6,6 +6,8 @@ const colors = {
     text: '#4A5960',
     textSupporting: '#7D8B8F',
     blue: '#2EAAE2',
+    green: '#2ECB70',
+    red: '#E84A3B',
 };
 
 const styles = {
@@ -22,6 +24,16 @@ const styles = {
     mt1: {
         marginTop: 10,
     },
+    mb2: {
+        marginBottom: 8,
+    },
+    mb3: {
+        marginBottom: 12,
+    },
+    mb4: {
+        marginBottom: 16,
+    },
+
     p1: {
         padding: 10,
     },
@@ -58,6 +70,33 @@ const styles = {
         lineHeight: 20,
     },
 
+    colorReversed: {
+        color: '#ffffff',
+    },
+
+    button: {
+        borderColor: colors.border,
+        borderRadius: 8,
+        borderWidth: 1,
+        height: 40,
+        justifyContent: 'center',
+    },
+
+    buttonText: {
+        color: colors.text,
+        fontWeight: '700',
+        textAlign: 'center',
+    },
+
+    buttonSuccess: {
+        backgroundColor: colors.green,
+        borderWidth: 0,
+    },
+
+    buttonSuccessText: {
+        color: '#ffffff',
+    },
+
     // History Items
     historyItemAvatarWrapper: {
         width: 40,
@@ -67,6 +106,7 @@ const styles = {
         height: 40,
         width: 40,
     },
+
     textInput: {
         backgroundColor: colors.componentBG,
         borderRadius: 8,
@@ -75,6 +115,48 @@ const styles = {
         color: colors.text,
         fontFamily: 'GTAmericaExp-Regular',
         padding: 12,
+    },
+
+    textInputReversed: {
+        backgroundColor: colors.heading,
+        borderRadius: 8,
+        borderColor: colors.text,
+        borderWidth: 1,
+        color: '#ffffff',
+        padding: 12,
+    },
+
+    formLabel: {
+        fontSize: 13,
+        fontWeight: '600',
+        lineHeight: 18,
+        marginBottom: 4,
+    },
+
+    formError: {
+        color: colors.red,
+        fontSize: 13,
+        lineHeight: 18,
+        marginBottom: 4,
+    },
+
+    signInPage: {
+        backgroundColor: colors.heading,
+        height: '100%',
+        padding: 20,
+    },
+
+    signInPageInner: {
+        marginLeft: 'auto',
+        marginRight: 'auto',
+        maxWidth: 325,
+        width: '100%',
+    },
+
+    signInPageLogo: {
+        height: 72,
+        justifyContent: 'center',
+        width: '100%',
     },
 
     // Sidebar Styles
