@@ -3,7 +3,7 @@ import React, {Component} from 'react';
 // import {Beforeunload} from 'react-beforeunload';
 import SignInPage from './page/SignInPage';
 import HomePage from './page/HomePage/HomePage';
-import * as Store from './store/Store';
+import * as Store from './lib/Store';
 import * as ActiveClientManager from './lib/ActiveClientManager';
 import {verifyAuthToken} from './store/actions/SessionActions';
 import STOREKEYS from './store/STOREKEYS';
