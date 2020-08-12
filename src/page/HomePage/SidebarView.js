@@ -1,6 +1,11 @@
 import React from 'react';
 import _ from 'underscore';
-import {Button, Text, View, Image} from 'react-native';
+import {
+    Button,
+    Text,
+    View,
+    Image
+} from 'react-native';
 import {signOut} from '../../lib/actions/ActionsSession';
 import {fetch as getPersonalDetails} from '../../lib/actions/ActionsPersonalDetails';
 import styles from '../../style/StyleSheet';
