@@ -25,8 +25,8 @@ const propTypes = {
 };
 const defaultProps = {
     color: '#ffffff',
-    fontSize: 13,
-    family: 'fabriga',
+    fontSize: 15,
+    family: 'GTA',
     textAlign: null,
     children: null,
     style: {},
@@ -50,7 +50,7 @@ const Text = ({
     const componentStyle = {
         color,
         fontSize,
-        lineHeight: fontSize + 4,
+        lineHeight: '1.4',
         textAlign,
         ...fontFamily[family],
         ...mergedStyles,
