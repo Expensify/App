@@ -293,7 +293,7 @@ const styles = {
     chatItemMessage: {
         color: colors.text,
         fontSize: 15,
-        lineHeight: '1.4',
+        lineHeight: 20,
         marginTop: -2,
         marginBottom: -2,
         whiteSpace: 'pre-wrap',

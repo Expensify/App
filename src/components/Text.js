@@ -50,7 +50,7 @@ const Text = ({
     const componentStyle = {
         color,
         fontSize,
-        lineHeight: '1.4',
+        lineHeight: 20,
         textAlign,
         ...fontFamily[family],
         ...mergedStyles,
