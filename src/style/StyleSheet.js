@@ -10,9 +10,6 @@ const colors = {
 
 const styles = {
     // Utility classes
-    bold: {
-        fontWeight: 'bold',
-    },
     mr1: {
         marginRight: 10,
     },
@@ -189,7 +186,10 @@ const styles = {
         paddingLeft: 12,
         textDecoration: 'none',
     },
-
+    sidebarLinkTextUnread: {
+        fontWeight: 'bold',
+        color: '#ECECEC',
+    },
     sidebarLinkActiveText: {
         color: '#ffffff',
         fontSize: 13,
