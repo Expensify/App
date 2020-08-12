@@ -1,7 +1,6 @@
 import React from 'react';
 import _ from 'underscore';
 import {
-    Button,
     Text,
     View,
     Image
@@ -49,12 +48,15 @@ class SidebarView extends React.Component {
                     ))}
                 </View>
                 <View style={[styles.sidebarFooter]}>
-                    {this.state && this.state.userDisplayName && (
-                        <Text style={[styles.sidebarFooterUsername]}>
-                            {this.state.userDisplayName}
-                        </Text>
-                    )}
-                    <Button onPress={signOut} title="Sign Out" />
+                    <View style={[styles.sidebarFooterAvatar]} />
+                    <View style={[styles.flexColumn]}>
+                        {this.state && this.state.userDisplayName && (
+                            <Text style={[styles.sidebarFooterUsername]}>
+                                {this.state.userDisplayName}
+                            </Text>
+                        )}
+                        <Text style={[styles.sidebarFooterLink]} onPress={signOut}>Sign Out</Text>
+                    </View>
                 </View>
             </View>
         );
