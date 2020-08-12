@@ -5,6 +5,11 @@
 2. Install `watchman`: `brew install watchman`
 3. Install dependencies: `npm install`
 4. (_Optional, but recommended_) Start ngrok (`Expensidev/script/ngrok.sh`), replace `expensify.com.dev` value in `src/CONFIG.js` with your ngrok value
+5. Update `api.php` in [Web-Expensify](https://github.com/Expensify/Web-Expensify/blob/3ae46d91a037db3ae6bdefa3b82313431759565f/api.php#L22) to add the following headers to avoid CORS issues
+    ```
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Credentials: *');
+    ```
 
 ## Running the web app 💻
 * To run a **Development Server**: `npm run web`
