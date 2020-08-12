@@ -12,6 +12,7 @@ const propTypes = {
     fontSize: PropTypes.number,
 
     // The alignment of the text
+    // eslint-disable-next-line react/forbid-prop-types
     textAlign: PropTypes.any,
 
     // Any children to display
@@ -21,6 +22,7 @@ const propTypes = {
     family: PropTypes.string,
 
     // Any additional styles to apply
+    // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.any,
 };
 const defaultProps = {
