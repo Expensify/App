@@ -7,6 +7,7 @@ const colors = {
     textSupporting: '#7D8B8F',
     blue: '#2EAAE2',
     green: '#2ECB70',
+    red: '#E84A3B',
 };
 
 const styles = {
@@ -73,11 +74,26 @@ const styles = {
     },
 
     button: {
-        borderWidth: 1,
         borderColor: colors.border,
-        height: 40,
         borderRadius: 8,
+        borderWidth: 1,
+        height: 40,
+        justifyContent: 'center',
+    },
+
+    buttonText: {
+        color: colors.text,
+        fontWeight: '700',
         textAlign: 'center',
+    },
+
+    buttonSuccess: {
+        backgroundColor: colors.green,
+        borderWidth: 0,
+    },
+
+    buttonSuccessText: {
+        color: '#ffffff',
     },
 
     // History Items
@@ -115,19 +131,27 @@ const styles = {
         marginBottom: 4,
     },
 
+    formError: {
+        color: colors.red,
+        fontSize: 13,
+        lineHeight: 18,
+        marginBottom: 4,
+    },
+
     signInPage: {
         backgroundColor: colors.heading,
         height: '100%',
+        padding: 20,
     },
 
     signInPageInner: {
         marginLeft: 'auto',
         marginRight: 'auto',
-        minWidth: 300,
+        maxWidth: 325,
+        width: '100%',
     },
 
     signInPageLogo: {
-        alignContent: 'center',
         height: 72,
         justifyContent: 'center',
         width: '100%',
