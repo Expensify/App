@@ -10,7 +10,7 @@ import {signOut} from '../../lib/actions/ActionsSession';
 import {fetch as getPersonalDetails} from '../../lib/actions/ActionsPersonalDetails';
 import styles from '../../style/StyleSheet';
 import WithIon from '../../components/WithIon';
-import IONKEYS from '../../store/IONKEYS';
+import IONKEYS from '../../IONKEYS';
 import {fetchAll} from '../../lib/actions/ActionsReport';
 import SidebarLink from './SidebarLink';
 import logo from '../../images/expensify-logo_reversed.png';

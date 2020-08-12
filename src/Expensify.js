@@ -6,7 +6,7 @@ import HomePage from './page/HomePage/HomePage';
 import Ion from './lib/Ion';
 import * as ActiveClientManager from './lib/ActiveClientManager';
 import {verifyAuthToken} from './lib/actions/ActionsSession';
-import IONKEYS from './store/IONKEYS';
+import IONKEYS from './IONKEYS';
 import WithIon from './components/WithIon';
 import {
     Route,

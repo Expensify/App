@@ -6,7 +6,7 @@ import lodashGet from 'lodash.get';
 import Ion from '../../../lib/Ion';
 import {fetchHistory, updateLastReadActionID} from '../../../lib/actions/ActionsReport';
 import WithIon from '../../../components/WithIon';
-import IONKEYS from '../../../store/IONKEYS';
+import IONKEYS from '../../../IONKEYS';
 import ReportHistoryItem from './ReportHistoryItem';
 
 const propTypes = {

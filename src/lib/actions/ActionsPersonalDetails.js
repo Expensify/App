@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import Ion from '../Ion';
 import {request} from '../Network';
-import IONKEYS from '../../store/IONKEYS';
+import IONKEYS from '../../IONKEYS';
 import md5 from '../md5';
 import CONST from '../../CONST';
 

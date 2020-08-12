@@ -2,7 +2,7 @@ import _ from 'underscore';
 import Ion from '../Ion';
 import {request} from '../Network';
 import ROUTES from '../../ROUTES';
-import IONKEYS from '../../store/IONKEYS';
+import IONKEYS from '../../IONKEYS';
 import CONFIG from '../../CONFIG';
 import Str from '../Str';
 import Guid from '../Guid';
