@@ -1,6 +1,6 @@
 /**
  * This is a higher order component that provides the ability to map a state property directly to
- * something in the store. That way, as soon as the store changes, the state will be set and the view
+ * something in Ion (a key/value store). That way, as soon as data in Ion changes, the state will be set and the view
  * will automatically change to reflect the new data.
  */
 import React from 'react';
@@ -33,7 +33,7 @@ export default function (mapIonToState) {
 
         componentDidUpdate(prevProps) {
             // If any of the mappings use data from the props, then when the props change, all the
-            // subscriptions need to be rebound with the new props
+            // connections need to be rebound with the new props
             _.each(mapIonToState, (mapping, propertyName) => {
                 if (has(mapping, 'pathForProps')) {
                     const prevPropsData = get(prevProps, mapping.pathForProps);
@@ -70,7 +70,7 @@ export default function (mapIonToState) {
                 collectionId,
             } = mapping;
 
-            // Bind to the store and keep track of the subscription ID
+            // Bind to the store and keep track of the connectionID
             if (pathForProps) {
                 // If there is a path for props data, then the data needs to be pulled out of props and parsed
                 // into the key
@@ -86,7 +86,7 @@ export default function (mapIonToState) {
                     component
                 );
 
-                // Store the subscription ID it with a key that is unique to the data coming from the props
+                // Store the connectionID it with a key that is unique to the data coming from the props
                 this.connectionIDsWithPropsData[pathForProps] = connectionID;
             } else {
                 const connectionID = Ion.connect(
@@ -101,7 +101,7 @@ export default function (mapIonToState) {
                 this.connectionIDs[connectionID] = connectionID;
             }
 
-            // Prefill the state with any data already in the store
+            // Pre-fill the state with any data already in the store
             if (prefillWithKey) {
                 let prefillKey = prefillWithKey;
 
@@ -130,7 +130,7 @@ export default function (mapIonToState) {
         }
 
         /**
-         * Unsubscribe from any subscriptions
+         * Disconnect everything from Ion
          */
         disconnect() {
             _.each(this.connectionIDs, Ion.disconnect);
