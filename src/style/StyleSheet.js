@@ -70,6 +70,7 @@ const styles = {
         borderRadius: 8,
         borderColor: colors.border,
         borderWidth: 1,
+        color: colors.text,
         padding: 12,
     },
 
@@ -300,7 +301,6 @@ const styles = {
     chatItemCompose: {
         borderTopWidth: 1,
         borderTopColor: colors.border,
-        color: colors.text,
         minHeight: '85',
         paddingTop: 20,
         paddingBottom: 20,
