@@ -13,6 +13,11 @@
 
 ## Running the iOS app 📱
 * To run a on a **Development Simulator**: `npm run ios`
+    * If the app is booting on a simulator for the first time, run the following two commands:
+    ```bash
+    xcrun simctl keychain booted add-root-cert ~/Expensidev/config/ssl/rootCA.crt #Adds root cert and trusts it
+    xcrun simctl keychain booted add-cert ~/Expensidev/config/ssl/expensify.com.dev.pem #Adds .dev cert and trusts it
+    ```
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 * In order
 
