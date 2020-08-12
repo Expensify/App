@@ -3,7 +3,7 @@ import {Text, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
-import Store from '../../../lib/Store';
+import Ion from '../../../lib/Ion';
 import {fetchHistory, updateLastReadActionID} from '../../../lib/actions/ActionsReport';
 import WithStore from '../../../components/WithStore';
 import STOREKEYS from '../../../store/STOREKEYS';
@@ -100,11 +100,11 @@ class ReportHistoryView extends React.Component {
      */
     recordlastReadActionID(maxSequenceNumber) {
         let myAccountID;
-        Store.get(STOREKEYS.SESSION, 'accountID')
+        Ion.get(STOREKEYS.SESSION, 'accountID')
             .then((accountID) => {
                 myAccountID = accountID;
                 const path = `reportNameValuePairs.lastReadActionID_${accountID}`;
-                return Store.get(`${STOREKEYS.REPORT}_${this.props.reportID}`, path, 0);
+                return Ion.get(`${STOREKEYS.REPORT}_${this.props.reportID}`, path, 0);
             })
             .then((lastReadActionID) => {
                 if (maxSequenceNumber > lastReadActionID) {

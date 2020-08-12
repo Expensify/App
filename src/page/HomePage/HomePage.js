@@ -9,14 +9,14 @@ import styles from '../../style/StyleSheet';
 import Header from './HeaderView';
 import Sidebar from './SidebarView';
 import Main from './MainView';
-import Store from '../../lib/Store';
+import Ion from '../../lib/Ion';
 import STOREKEYS from '../../store/STOREKEYS';
 import {initPusher} from '../../lib/actions/ActionsReport';
 import * as pusher from '../../lib/Pusher/pusher';
 
 export default class App extends React.Component {
     componentDidMount() {
-        Store.get(STOREKEYS.SESSION, 'authToken').then((authToken) => {
+        Ion.get(STOREKEYS.SESSION, 'authToken').then((authToken) => {
             if (authToken) {
                 // Initialize the pusher connection
                 pusher.init(null, {

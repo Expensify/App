@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import Store from '../Store';
+import Ion from '../Ion';
 import {request} from '../Network';
 import STOREKEYS from '../../store/STOREKEYS';
 import md5 from '../md5';
@@ -31,7 +31,7 @@ function getAvatar(personalDetails, login) {
 function fetch() {
     let currentLogin;
     let myPersonalDetails;
-    const requestPromise = Store.get(STOREKEYS.SESSION, 'email')
+    const requestPromise = Ion.get(STOREKEYS.SESSION, 'email')
         .then((login) => {
             if (!login) {
                 throw Error('No login');
@@ -68,9 +68,9 @@ function fetch() {
             // Get my personal details so they can be easily accessed and subscribed to on their own key
             myPersonalDetails = allPersonalDetails[currentLogin] || {};
 
-            return Store.set(STOREKEYS.PERSONAL_DETAILS, allPersonalDetails);
+            return Ion.set(STOREKEYS.PERSONAL_DETAILS, allPersonalDetails);
         })
-        .then(() => Store.merge(STOREKEYS.MY_PERSONAL_DETAILS, myPersonalDetails))
+        .then(() => Ion.merge(STOREKEYS.MY_PERSONAL_DETAILS, myPersonalDetails))
         .catch((error) => {
             if (error.message === 'No login') {
                 // eslint-disable-next-line no-console
@@ -98,7 +98,7 @@ function fetchTimezone() {
     })
         .then((data) => {
             const timezone = data.nameValuePairs.timeZone.selected || 'America/Los_Angeles';
-            Store.merge(STOREKEYS.MY_PERSONAL_DETAILS, {timezone});
+            Ion.merge(STOREKEYS.MY_PERSONAL_DETAILS, {timezone});
         });
 
     // Refresh the timezone every 30 minutes
