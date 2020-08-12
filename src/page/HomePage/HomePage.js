@@ -11,7 +11,7 @@ import Sidebar from './SidebarView';
 import Main from './MainView';
 import * as Store from '../../lib/Store';
 import STOREKEYS from '../../store/STOREKEYS';
-import {initPusher} from '../../store/actions/ReportActions';
+import {initPusher} from '../../lib/actions/ActionsReport';
 import * as pusher from '../../lib/Pusher/pusher';
 
 export default class App extends React.Component {

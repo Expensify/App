@@ -1,12 +1,12 @@
 import React from 'react';
 import _ from 'underscore';
 import {Button, Text, View, Image} from 'react-native';
-import {signOut} from '../../store/actions/SessionActions';
-import {fetch as getPersonalDetails} from '../../store/actions/PersonalDetailsActions';
+import {signOut} from '../../lib/actions/ActionsSession';
+import {fetch as getPersonalDetails} from '../../lib/actions/ActionsPersonalDetails';
 import styles from '../../style/StyleSheet';
 import WithStore from '../../components/WithStore';
 import STOREKEYS from '../../store/STOREKEYS';
-import {fetchAll} from '../../store/actions/ReportActions';
+import {fetchAll} from '../../lib/actions/ActionsReport';
 import SidebarLink from './SidebarLink';
 import logo from '../../images/expensify-logo_reversed.png';
 import PageTitleUpdater from '../../lib/PageTitleUpdater';

@@ -1,11 +1,11 @@
 import _ from 'underscore';
-import * as Store from '../../lib/Store';
-import {request} from '../../lib/Network';
+import * as Store from '../Store';
+import {request} from '../Network';
 import ROUTES from '../../ROUTES';
-import STOREKEYS from '../STOREKEYS';
+import STOREKEYS from '../../store/STOREKEYS';
 import CONFIG from '../../CONFIG';
-import Str from '../../lib/Str';
-import Guid from '../../lib/Guid';
+import Str from '../Str';
+import Guid from '../Guid';
 
 /**
  * Amount of time (in ms) after which an authToken is considered expired.
