@@ -11,15 +11,27 @@
 * To build a **production build**: `npm run build`
 * Changes applied to Javascript will be applied automatically
 
+#### Deploying the web app
+* The web app automatically deploys via a GitHub Action in `.github/workflows/main.yml`
+
 ## Running the iOS app 📱
 * To run a on a **Development Simulator**: `npm run ios`
+    * If the app is booting on a simulator for the first time, run the following two commands:
+    ```bash
+    xcrun simctl keychain booted add-root-cert ~/Expensidev/config/ssl/rootCA.crt #Adds root cert and trusts it
+    xcrun simctl keychain booted add-cert ~/Expensidev/config/ssl/expensify.com.dev.pem #Adds .dev cert and trusts it
+    ```
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
-* In order
 
 ## Running the Android app 🤖
 * Running via `ngrok` is required, see step 3 in **_Getting Started_**
 * To run a on a **Development Emulator**: `npm run android`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
+
+#### Deploying the iOS & Android app
+* To install the required tools to deploy, run `bundle install` from the root of this project
+* To deploy the app run: `npm run deploy`
+* To build an APK to share run (e.g. via Slack): `Build > Generate Signed Bundle / APK...` from Android Studio 
 
 ## Running the tests 🎰
 * To run the **Jest Unit Tests**: `npm run test`
