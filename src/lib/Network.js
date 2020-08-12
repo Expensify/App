@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import * as Store from './Store';
+import Store from './Store';
 import CONFIG from '../CONFIG';
 import STOREKEYS from '../store/STOREKEYS';
 import ROUTES from '../ROUTES';
