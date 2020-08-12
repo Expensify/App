@@ -38,6 +38,7 @@ class App extends Component {
                     <View style={[styles.signInPageInner]}>
                         <View style={[styles.signInPageLogo]}>
                             <Image
+                                resizeMode="contain"
                                 style={[styles.sidebarHeaderLogo]}
                                 source={logo}
                             />
@@ -76,7 +77,8 @@ class App extends Component {
                             <TouchableOpacity
                                 style={[styles.button, styles.buttonSuccess, styles.mb4]}
                                 onPress={() => this.submitLogin()}
-                                underlayColor='#fff'>
+                                underlayColor="#fff"
+                            >
                                 <Text style={[styles.buttonText, styles.buttonSuccessText]}>Log In</Text>
                             </TouchableOpacity>
                             {this.state.error && (
