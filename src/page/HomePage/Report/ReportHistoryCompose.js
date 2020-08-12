@@ -15,6 +15,7 @@ class ReportHistoryCompose extends React.Component {
         this.updateComment = this.updateComment.bind(this);
         this.submitForm = this.submitForm.bind(this);
         this.triggerSubmitShortcut = this.triggerSubmitShortcut.bind(this);
+        this.submitForm = this.submitForm.bind(this);
 
         this.state = {
             comment: '',
@@ -63,7 +64,7 @@ class ReportHistoryCompose extends React.Component {
             e.preventDefault();
         }
 
-        // Don't submit empty commentes
+        // Don't submit empty comments
         // @TODO show an error in the UI
         if (!this.state.comment) {
             return;
@@ -81,6 +82,7 @@ class ReportHistoryCompose extends React.Component {
                 <TextInput
                     ref={el => this.textInput = el}
                     multiline
+                    blurOnSubmit
                     textAlignVertical="top"
                     numberOfLines={1}
                     minHeight={40}
@@ -91,6 +93,8 @@ class ReportHistoryCompose extends React.Component {
                     onKeyPress={this.triggerSubmitShortcut}
                     style={[styles.textInput]}
                     value={this.state.comment}
+                    returnKeyType="send"
+                    onSubmitEditing={this.submitForm}
                 />
             </View>
         );
