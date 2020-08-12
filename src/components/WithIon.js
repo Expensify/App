@@ -33,7 +33,7 @@ export default function (mapIonToState) {
         componentDidMount() {
             // Subscribe each of the state properties to the proper Ion key
             _.each(mapIonToState, (mapping, propertyName) => {
-                this.connectSingleMappingToIon(mapping, propertyName, this.wrappedComponent);
+                this.connectMappingToIon(mapping, propertyName, this.wrappedComponent);
             });
         }
 
@@ -46,7 +46,7 @@ export default function (mapIonToState) {
                     const currentPropsData = get(this.props, mapping.pathForProps);
                     if (prevPropsData !== currentPropsData) {
                         Ion.disconnect(this.connectionIDsWithPropsData[mapping.pathForProps]);
-                        this.connectSingleMappingToIon(mapping, propertyName, this.wrappedComponent);
+                        this.connectMappingToIon(mapping, propertyName, this.wrappedComponent);
                     }
                 }
             });
@@ -71,7 +71,7 @@ export default function (mapIonToState) {
          * @param {string} statePropertyName
          * @param {object} reactComponent
          */
-        connectSingleMappingToIon(mapping, statePropertyName, reactComponent) {
+        connectMappingToIon(mapping, statePropertyName, reactComponent) {
             const ionConnectionConfig = {
                 ...mapping,
                 statePropertyName,
