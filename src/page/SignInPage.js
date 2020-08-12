@@ -74,13 +74,13 @@ class App extends Component {
                         </View>
                         <View>
                             <TouchableOpacity
-                                style={[styles.button, styles.buttonSuccess]}
+                                style={[styles.button, styles.buttonSuccess, styles.mb4]}
                                 onPress={() => this.submitLogin()}
                                 underlayColor='#fff'>
                                 <Text style={[styles.buttonText, styles.buttonSuccessText]}>Log In</Text>
                             </TouchableOpacity>
                             {this.state.error && (
-                                <Text style={{color: 'red'}}>
+                                <Text style={[styles.formError]}>
                                     {this.state.error}
                                 </Text>
                             )}
