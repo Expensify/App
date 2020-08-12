@@ -8,15 +8,6 @@ import Str from '../Str';
 import Guid from '../Guid';
 
 /**
- * Amount of time (in ms) after which an authToken is considered expired.
- * Currently set to 90min
- *
- * @private
- * @type {Number}
- */
-const AUTH_TOKEN_EXPIRATION_TIME = 1000 * 60 * 90;
-
-/**
  * Create login
  * @param {string} authToken
  * @param {string} login
@@ -140,7 +131,7 @@ function verifyAuthToken() {
     return Ion.multiGet([IONKEYS.LAST_AUTHENTICATED, IONKEYS.CREDENTIALS])
         .then(({last_authenticated, credentials}) => {
             const haveCredentials = !_.isNull(credentials);
-            const haveExpiredAuthToken = last_authenticated < new Date().getTime() - AUTH_TOKEN_EXPIRATION_TIME;
+            const haveExpiredAuthToken = last_authenticated < new Date().getTime() - CONFIG.AUTH_TOKEN_EXPIRATION_TIME;
 
             if (haveExpiredAuthToken && haveCredentials) {
                 console.debug('Invalid auth token: Token has expired.');

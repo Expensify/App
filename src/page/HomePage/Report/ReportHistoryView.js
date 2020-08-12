@@ -1,5 +1,6 @@
 import React from 'react';
-import {View, Text, ScrollView} from 'react-native';
+import {View, ScrollView} from 'react-native';
+import Text from '../../../components/Text';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
@@ -118,7 +119,7 @@ class ReportHistoryView extends React.Component {
         if (filteredHistory.length === 0) {
             return (
                 <View style={[styles.chatContent, styles.chatContentEmpty]}>
-                    <Text>Be the first person to comment!</Text>
+                    <Text style={[styles.textP]}>Be the first person to comment!</Text>
                 </View>
             );
         }
@@ -130,6 +131,7 @@ class ReportHistoryView extends React.Component {
                 }}
                 onContentSizeChange={this.scrollToBottomWhenListSizeChanges}
                 bounces={false}
+                style={[styles.chatContentInner]}
             >
                 {_.map(filteredHistory, (item, index) => (
                     <ReportHistoryItem

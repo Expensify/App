@@ -4,8 +4,8 @@
  */
 import React from 'react';
 import {Text} from 'react-native';
-import Str from '../../lib/Str';
 import PropTypes from 'prop-types';
+import Str from '../../lib/Str';
 
 const propTypes = {
     html: PropTypes.string,
