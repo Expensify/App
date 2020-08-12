@@ -107,7 +107,7 @@ export default function (mapIonToState) {
 
                 // Get the data from Ion and put it into the state of our component right away
                 Ion.get(prefillKey, mapping.path, mapping.defaultValue)
-                    .then(data => reactComponent.setState({[mapping.statePropertyName]: data}));
+                    .then(data => reactComponent.setState({[statePropertyName]: data}));
             }
 
             // Load the data from an API request if necessary
