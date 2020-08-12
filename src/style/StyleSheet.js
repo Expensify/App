@@ -129,6 +129,7 @@ const styles = {
     sidebarListContainer: {
         flex: 1,
         flexGrow: 1,
+        scrollbarWidth: 'none',
         overflow: 'scroll',
         paddingTop: 4,
         paddingBottom: 4,
