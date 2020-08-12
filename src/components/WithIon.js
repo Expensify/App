@@ -16,12 +16,12 @@ export default function (mapIonToState) {
 
             // This stores all the Ion connection IDs to be used when the component unmounts so everything can be
             // disconnected
-            this.connectionIDs = {};
+            this.actionConnectionIDs = {};
 
             // This stores all of the Ion connection IDs from the mappings where they Ion key uses data from
             // this.props. These are stored differently because anytime the props change, the component has to be
             // reconnected to Ion with the new props.
-            this.connectionIDsWithPropsData = {};
+            this.activeConnectionIDsWithPropsData = {};
 
             // Initialize the state with each of the property names from the mapping
             this.state = _.reduce(_.keys(mapIonToState), (finalResult, propertyName) => ({
@@ -45,7 +45,7 @@ export default function (mapIonToState) {
                     const prevPropsData = get(prevProps, mapping.pathForProps);
                     const currentPropsData = get(this.props, mapping.pathForProps);
                     if (prevPropsData !== currentPropsData) {
-                        Ion.disconnect(this.connectionIDsWithPropsData[mapping.pathForProps]);
+                        Ion.disconnect(this.activeConnectionIDsWithPropsData[mapping.pathForProps]);
                         this.connectMappingToIon(mapping, propertyName, this.wrappedComponent);
                     }
                 }
@@ -54,8 +54,8 @@ export default function (mapIonToState) {
 
         componentWillUnmount() {
             // Disconnect everything from Ion
-            _.each(this.connectionIDs, Ion.disconnect);
-            _.each(this.connectionIDsWithPropsData, Ion.disconnect);
+            _.each(this.actionConnectionIDs, Ion.disconnect);
+            _.each(this.activeConnectionIDsWithPropsData, Ion.disconnect);
         }
 
         /**
@@ -88,10 +88,10 @@ export default function (mapIonToState) {
 
                 // Store the connectionID with a key that is unique to the data coming from the props which allows
                 // it to be easily reconnected to when the props change
-                this.connectionIDsWithPropsData[mapping.pathForProps] = Ion.connect(ionConnectionConfig);
+                this.activeConnectionIDsWithPropsData[mapping.pathForProps] = Ion.connect(ionConnectionConfig);
             } else {
                 const connectionID = Ion.connect(ionConnectionConfig);
-                this.connectionIDs[connectionID] = connectionID;
+                this.actionConnectionIDs[connectionID] = connectionID;
             }
 
             // Pre-fill the state with any data already in the store
