@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import Ion from './Ion';
 import CONFIG from '../CONFIG';
-import IONKEYS from '../store/IONKEYS';
+import IONKEYS from '../IONKEYS';
 import ROUTES from '../ROUTES';
 
 let isAppOffline = false;

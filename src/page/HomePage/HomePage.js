@@ -10,7 +10,7 @@ import Header from './HeaderView';
 import Sidebar from './SidebarView';
 import Main from './MainView';
 import Ion from '../../lib/Ion';
-import IONKEYS from '../../store/IONKEYS';
+import IONKEYS from '../../IONKEYS';
 import {initPusher} from '../../lib/actions/ActionsReport';
 import * as pusher from '../../lib/Pusher/pusher';
 

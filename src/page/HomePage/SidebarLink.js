@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {Text, View} from 'react-native';
 import {Link, withRouter} from '../../lib/Router';
-import IONKEYS from '../../store/IONKEYS';
+import IONKEYS from '../../IONKEYS';
 import styles from '../../style/StyleSheet';
 import WithIon from '../../components/WithIon';
 
