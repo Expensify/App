@@ -29,7 +29,14 @@ function updateReportWithNewAction(reportID, reportAction) {
     // Get the comments for this report, and add the comment (being sure to sort and filter properly)
     let foundExistingReportHistoryItem = false;
 
-    Ion.get(`${IONKEYS.REPORT_HISTORY}_${reportID}`)
+    Ion.get(`${IONKEYS.REPORT}_${reportID}`, 'reportID')
+        .then((reportID) => {
+            if (!reportID) {
+                throw new Error('Report does not exist in the store, so ignoring new comments');
+            }
+
+            return Ion.get(`${IONKEYS.REPORT_HISTORY}_${reportID}`);
+        })
 
         // Use a reducer to replace an existing report history item if there is one
         .then(reportHistory => _.map(reportHistory, (reportHistoryItem) => {
