@@ -1,3 +1,6 @@
+const colors = {
+    lightGrey: '#7d8b8f',
+};
 const styles = {
     // Utility classes
     mr1: {
@@ -43,7 +46,7 @@ const styles = {
         flexGrow: 4,
     },
     textLightGray: {
-        color: '#7d8b8f',
+        color: colors.lightGrey,
     },
     brand: {
         fontSize: 25,
@@ -64,7 +67,7 @@ const styles = {
         width: 40,
     },
     historyItemHeaderTimestamp: {
-        color: '#7d8b8f',
+        color: colors.lightGrey,
         fontSize: 10,
         lineHeight: 15,
     },
@@ -72,7 +75,7 @@ const styles = {
         fontWeight: 'bold',
     },
     textInput: {
-        borderColor: '#7d8b8f',
+        borderColor: colors.lightGrey,
         borderRadius: 5,
         borderWidth: 1,
         padding: 10,
