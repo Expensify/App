@@ -185,7 +185,10 @@ const styles = {
         paddingLeft: 12,
         textDecorationLine: 'none',
     },
-
+    sidebarLinkTextUnread: {
+        fontWeight: 'bold',
+        color: '#ECECEC',
+    },
     sidebarLinkActiveText: {
         color: '#ffffff',
         fontSize: 13,
