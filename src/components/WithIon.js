@@ -39,7 +39,7 @@ export default function (mapIonToState) {
                     const prevPropsData = get(prevProps, mapping.pathForProps);
                     const currentPropsData = get(this.props, mapping.pathForProps);
                     if (prevPropsData !== currentPropsData) {
-                        Ion.unbind(this.connectionIDsWithPropsData[mapping.pathForProps]);
+                        Ion.disconnect(this.connectionIDsWithPropsData[mapping.pathForProps]);
                         this.connectSingleMappingToIon(mapping, propertyName, this.wrappedComponent);
                     }
                 }
@@ -76,7 +76,7 @@ export default function (mapIonToState) {
                 // into the key
                 const dataFromProps = get(this.props, pathForProps);
                 const keyWithPropsData = key.replace('%DATAFROMPROPS%', dataFromProps);
-                const connectionID = Ion.bind(
+                const connectionID = Ion.connect(
                     keyWithPropsData,
                     path,
                     defaultValue,
@@ -89,7 +89,7 @@ export default function (mapIonToState) {
                 // Store the subscription ID it with a key that is unique to the data coming from the props
                 this.connectionIDsWithPropsData[pathForProps] = connectionID;
             } else {
-                const connectionID = Ion.bind(
+                const connectionID = Ion.connect(
                     key,
                     path,
                     defaultValue,
@@ -133,8 +133,8 @@ export default function (mapIonToState) {
          * Unsubscribe from any subscriptions
          */
         disconnect() {
-            _.each(this.connectionIDs, Ion.unbind);
-            _.each(this.connectionIDsWithPropsData, Ion.unbind);
+            _.each(this.connectionIDs, Ion.disconnect);
+            _.each(this.connectionIDsWithPropsData, Ion.disconnect);
         }
 
         render() {
