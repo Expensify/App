@@ -1,12 +1,12 @@
 import moment from 'moment';
 import _ from 'underscore';
-import * as Store from '../../lib/Store';
-import {request, delayedWrite} from '../../lib/Network';
-import STOREKEYS from '../STOREKEYS';
-import ExpensiMark from '../../lib/ExpensiMark';
-import Guid from '../../lib/Guid';
+import * as Store from '../Store';
+import {request, delayedWrite} from '../Network';
+import STOREKEYS from '../../store/STOREKEYS';
+import ExpensiMark from '../ExpensiMark';
+import Guid from '../Guid';
 import CONFIG from '../../CONFIG';
-import * as pusher from '../../lib/Pusher/pusher';
+import * as pusher from '../Pusher/pusher';
 
 /**
  * Sorts the report actions so that the newest actions are at the bottom

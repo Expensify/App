@@ -5,7 +5,7 @@ import SignInPage from './page/SignInPage';
 import HomePage from './page/HomePage/HomePage';
 import * as Store from './lib/Store';
 import * as ActiveClientManager from './lib/ActiveClientManager';
-import {verifyAuthToken} from './store/actions/SessionActions';
+import {verifyAuthToken} from './lib/actions/ActionsSession';
 import STOREKEYS from './store/STOREKEYS';
 import WithStore from './components/WithStore';
 import {

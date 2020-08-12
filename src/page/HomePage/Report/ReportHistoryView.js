@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import * as Store from '../../../lib/Store';
-import {fetchHistory, updateLastReadActionID} from '../../../store/actions/ReportActions';
+import {fetchHistory, updateLastReadActionID} from '../../../lib/actions/ActionsReport';
 import WithStore from '../../../components/WithStore';
 import STOREKEYS from '../../../store/STOREKEYS';
 import ReportHistoryItem from './ReportHistoryItem';

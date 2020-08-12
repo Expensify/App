@@ -7,7 +7,7 @@ import {
     TextInput,
     View,
 } from 'react-native';
-import {signIn} from '../store/actions/SessionActions';
+import {signIn} from '../lib/actions/ActionsSession';
 import STOREKEYS from '../store/STOREKEYS';
 import WithStore from '../components/WithStore';
 

@@ -1,8 +1,8 @@
 import _ from 'underscore';
-import * as Store from '../../lib/Store';
-import {request} from '../../lib/Network';
-import STOREKEYS from '../STOREKEYS';
-import md5 from '../../lib/md5';
+import * as Store from '../Store';
+import {request} from '../Network';
+import STOREKEYS from '../../store/STOREKEYS';
+import md5 from '../md5';
 import CONST from '../../CONST';
 
 /**
