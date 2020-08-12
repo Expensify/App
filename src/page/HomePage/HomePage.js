@@ -9,7 +9,7 @@ import styles from '../../style/StyleSheet';
 import Header from './HeaderView';
 import Sidebar from './SidebarView';
 import Main from './MainView';
-import * as Store from '../../store/Store';
+import * as Store from '../../lib/Store';
 import STOREKEYS from '../../store/STOREKEYS';
 import {initPusher} from '../../store/actions/ReportActions';
 import * as pusher from '../../lib/Pusher/pusher';
