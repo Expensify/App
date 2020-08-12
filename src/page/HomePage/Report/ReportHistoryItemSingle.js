@@ -19,8 +19,8 @@ const ReportHistoryItemSingle = ({historyItem}) => {
         ? `${CONST.CLOUDFRONT_URL}/images/icons/concierge_2019.svg`
         : historyItem.avatar;
     return (
-        <>
-            <View style={[styles.flexRow, styles.mt2]}>
+        <View style={[styles.chatItem]}>
+            <View style={[styles.flexRow]}>
                 <View style={[styles.historyItemAvatarWrapper]}>
                     <Image
                         source={{uri: avatarUrl}}
@@ -44,7 +44,7 @@ const ReportHistoryItemSingle = ({historyItem}) => {
             <Text style={[styles.historyItemMessageWrapper]}>
                 <ReportHistoryItemMessage historyItem={historyItem} />
             </Text>
-        </>
+        </View>
     );
 };
 
