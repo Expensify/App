@@ -9,16 +9,16 @@ import get from 'lodash.get';
 import has from 'lodash.has';
 import Ion from '../lib/Ion';
 
-export default function (mapStoreToStates) {
+export default function (mapIonToState) {
     return WrappedComponent => class WithIon extends React.Component {
         constructor(props) {
             super(props);
 
-            this.subscriptionIDs = {};
-            this.subscriptionIDsWithPropsData = {};
+            this.connectionIDs = {};
+            this.connectionIDsWithPropsData = {};
 
             // Initialize the state with each of the property names from the mapping
-            this.state = _.reduce(_.keys(mapStoreToStates), (finalResult, propertyName) => ({
+            this.state = _.reduce(_.keys(mapIonToState), (finalResult, propertyName) => ({
                 ...finalResult,
                 [propertyName]: null,
             }), {});
@@ -26,28 +26,28 @@ export default function (mapStoreToStates) {
 
         componentDidMount() {
             // Subscribe each of the state properties to the proper store key
-            _.each(mapStoreToStates, (mapping, propertyName) => {
-                this.bindSingleMappingToStore(mapping, propertyName, this.wrappedComponent);
+            _.each(mapIonToState, (mapping, propertyName) => {
+                this.connectSingleMappingToIon(mapping, propertyName, this.wrappedComponent);
             });
         }
 
         componentDidUpdate(prevProps) {
             // If any of the mappings use data from the props, then when the props change, all the
             // subscriptions need to be rebound with the new props
-            _.each(mapStoreToStates, (mapping, propertyName) => {
+            _.each(mapIonToState, (mapping, propertyName) => {
                 if (has(mapping, 'pathForProps')) {
                     const prevPropsData = get(prevProps, mapping.pathForProps);
                     const currentPropsData = get(this.props, mapping.pathForProps);
                     if (prevPropsData !== currentPropsData) {
-                        Ion.unbind(this.subscriptionIDsWithPropsData[mapping.pathForProps]);
-                        this.bindSingleMappingToStore(mapping, propertyName, this.wrappedComponent);
+                        Ion.unbind(this.connectionIDsWithPropsData[mapping.pathForProps]);
+                        this.connectSingleMappingToIon(mapping, propertyName, this.wrappedComponent);
                     }
                 }
             });
         }
 
         componentWillUnmount() {
-            this.unbind();
+            this.disconnect();
         }
 
         /**
@@ -57,7 +57,7 @@ export default function (mapStoreToStates) {
          * @param {string} propertyName
          * @param {object} component
          */
-        bindSingleMappingToStore(mapping, propertyName, component) {
+        connectSingleMappingToIon(mapping, propertyName, component) {
             const {
                 key,
                 path,
@@ -76,7 +76,7 @@ export default function (mapStoreToStates) {
                 // into the key
                 const dataFromProps = get(this.props, pathForProps);
                 const keyWithPropsData = key.replace('%DATAFROMPROPS%', dataFromProps);
-                const subscriptionID = Ion.bind(
+                const connectionID = Ion.bind(
                     keyWithPropsData,
                     path,
                     defaultValue,
@@ -87,9 +87,9 @@ export default function (mapStoreToStates) {
                 );
 
                 // Store the subscription ID it with a key that is unique to the data coming from the props
-                this.subscriptionIDsWithPropsData[pathForProps] = subscriptionID;
+                this.connectionIDsWithPropsData[pathForProps] = connectionID;
             } else {
-                const subscriptionID = Ion.bind(
+                const connectionID = Ion.bind(
                     key,
                     path,
                     defaultValue,
@@ -98,7 +98,7 @@ export default function (mapStoreToStates) {
                     collectionId,
                     component
                 );
-                this.subscriptionIDs[subscriptionID] = subscriptionID;
+                this.connectionIDs[connectionID] = connectionID;
             }
 
             // Prefill the state with any data already in the store
@@ -132,9 +132,9 @@ export default function (mapStoreToStates) {
         /**
          * Unsubscribe from any subscriptions
          */
-        unbind() {
-            _.each(this.subscriptionIDs, Ion.unbind);
-            _.each(this.subscriptionIDsWithPropsData, Ion.unbind);
+        disconnect() {
+            _.each(this.connectionIDs, Ion.unbind);
+            _.each(this.connectionIDsWithPropsData, Ion.unbind);
         }
 
         render() {

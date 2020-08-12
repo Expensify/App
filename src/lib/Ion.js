@@ -33,7 +33,7 @@ const callbackToStateMapping = {};
  * @param {boolean} addAsCollection rather than setting a single state value, this will add things to an array
  * @param {string} collectionId the name of the ID property to use for the collection
  * @param {object} reactComponent whose setState() method will be called with any changed data
- * @returns {number} an ID to use when calling unbind
+ * @returns {number} an ID to use when calling disconnect
  */
 function bind(
     keyPattern,
