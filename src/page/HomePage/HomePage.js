@@ -1,10 +1,10 @@
 import React from 'react';
 import {
-    SafeAreaView,
     StatusBar,
     View,
     Dimensions,
 } from 'react-native';
+import {SafeAreaInsetsContext, SafeAreaProvider} from 'react-native-safe-area-context';
 import {Route} from '../../lib/Router';
 import styles from '../../style/StyleSheet';
 import Header from './HeaderView';
@@ -84,29 +84,31 @@ export default class App extends React.Component {
         const hamburgerStyle = this.state.isSmallScreen && this.state.hamburgerShown ? {
             position: 'absolute', left: 0, top: 0, bottom: 0, zIndex: 2, width: 300
         } : {width: 300};
+        const visibility = this.state.hamburgerShown ? {display: 'flex'} : {display: 'none'};
         const appContentStyle = this.state.hamburgerShown ? styles.appContentRounded : null;
         return (
-            <>
+            <SafeAreaProvider>
                 <StatusBar barStyle="dark-content" />
-                <SafeAreaView style={[styles.flex1, styles.h100p, styles.appContent]}>
-                    <View style={[styles.appContentWrapper, styles.flexRow, styles.h100p]}>
-                        <Route path="/:reportID?">
-                            {this.state.hamburgerShown && (
-                            <View style={[hamburgerStyle]}>
-                                <Sidebar toggleHamburger={this.toggleHamburger} />
-                            </View>
-                            )}
-                            <View style={[styles.appContent, styles.flex1, styles.flexColumn, appContentStyle]}>
-                                <Header
-                                    shouldShowHamburgerButton={!this.state.hamburgerShown}
-                                    toggleHamburger={this.toggleHamburger}
-                                />
-                                <Main />
-                            </View>
-                        </Route>
-                    </View>
-                </SafeAreaView>
-            </>
+                <SafeAreaInsetsContext.Consumer style={[styles.flex1, styles.h100p, styles.appContent]}>
+                    {insets => (
+                        <View style={[styles.appContent, styles.flexRow, styles.h100p,
+                            {paddingTop: insets.top, paddingBottom: insets.bottom * 0.7}]}>
+                            <Route path="/:reportID?">
+                                <View style={[hamburgerStyle, visibility]}>
+                                    <Sidebar insets={insets} toggleHamburger={this.toggleHamburger} />
+                                </View>
+                                <View style={[styles.appContent, styles.flex1, styles.flexColumn, appContentStyle]}>
+                                    <Header
+                                        shouldShowHamburgerButton={!this.state.hamburgerShown}
+                                        toggleHamburger={this.toggleHamburger}
+                                    />
+                                    <Main />
+                                </View>
+                            </Route>
+                        </View>
+                    )}
+                </SafeAreaInsetsContext.Consumer>
+            </SafeAreaProvider>
         );
     }
 }
