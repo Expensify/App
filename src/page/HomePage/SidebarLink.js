@@ -17,6 +17,9 @@ const propTypes = {
     // These are from withRouter
     // eslint-disable-next-line react/forbid-prop-types
     match: PropTypes.object.isRequired,
+
+    // Toggles the hamburger menu open and closed
+    toggleHamburger: PropTypes.func.isRequired,
 };
 
 class SidebarLink extends React.Component {
@@ -30,9 +33,17 @@ class SidebarLink extends React.Component {
             ? [textActiveStyle, styles.sidebarLinkTextUnread] : [textActiveStyle];
         return (
             <View style={[styles.sidebarListItem, linkWrapperActiveStyle]}>
-                <Link to={`/${this.props.reportID}`} style={linkActiveStyle}>
+                <Link
+                    to={`/${this.props.reportID}`}
+                    style={linkActiveStyle}
+                    onPress={() => {
+                        this.props.toggleHamburger();
+                    }}
+                >
                     <View style={[styles.sidebarLinkInner]}>
-                        <Text numberOfLines={1} style={textActiveUnreadStyle}>{this.props.reportName}</Text>
+                        <Text numberOfLines={1} style={textActiveUnreadStyle}>
+                            {this.props.reportName}
+                        </Text>
                     </View>
                 </Link>
             </View>

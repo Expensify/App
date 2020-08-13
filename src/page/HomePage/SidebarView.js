@@ -4,6 +4,7 @@ import {
     View,
     Image
 } from 'react-native';
+import PropTypes from 'prop-types';
 import Text from '../../components/Text';
 import {signOut} from '../../lib/actions/ActionsSession';
 import {fetch as getPersonalDetails} from '../../lib/actions/ActionsPersonalDetails';
@@ -15,7 +16,18 @@ import SidebarLink from './SidebarLink';
 import logo from '../../../assets/images/expensify-logo_reversed.png';
 import PageTitleUpdater from '../../lib/PageTitleUpdater';
 
+const propTypes = {
+    // Toggles the hamburger menu open and closed
+    toggleHamburger: PropTypes.func.isRequired,
+};
+
 class SidebarView extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.toggleHamburger = this.props.toggleHamburger.bind(this);
+    }
+
     /**
      * Updates the page title to indicate there are unread reports
      */
@@ -33,6 +45,7 @@ class SidebarView extends React.Component {
             <View style={[styles.flex1, styles.sidebar]}>
                 <View style={[styles.sidebarHeader]}>
                     <Image
+                        resizeMode="contain"
                         style={[styles.sidebarHeaderLogo]}
                         source={logo}
                     />
@@ -44,7 +57,12 @@ class SidebarView extends React.Component {
                         </Text>
                     </View>
                     {_.map(reports, report => (
-                        <SidebarLink key={report.reportID} reportID={report.reportID} reportName={report.reportName} />
+                        <SidebarLink
+                            key={report.reportID}
+                            reportID={report.reportID}
+                            reportName={report.reportName}
+                            toggleHamburger={this.toggleHamburger}
+                        />
                     ))}
                 </View>
                 <View style={[styles.sidebarFooter]}>
@@ -67,6 +85,8 @@ class SidebarView extends React.Component {
         );
     }
 }
+
+SidebarView.propTypes = propTypes;
 
 export default WithIon({
     // Map this.state.userDisplayName to the personal details key in the store and bind it to the displayName property

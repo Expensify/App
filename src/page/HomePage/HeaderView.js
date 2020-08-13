@@ -1,15 +1,27 @@
 import React from 'react';
-import {View} from 'react-native';
+import {View, Button} from 'react-native';
+import PropTypes from 'prop-types';
 import Text from '../../components/Text';
 import styles from '../../style/StyleSheet';
 import IONKEYS from '../../IONKEYS';
 import WithIon from '../../components/WithIon';
 import {withRouter} from '../../lib/Router';
 
+const propTypes = {
+    // Toggles the hamburger menu open and closed
+    toggleHamburger: PropTypes.func.isRequired,
+};
+
 class HeaderView extends React.Component {
     render() {
         return (
             <View style={[styles.appContentHeader, styles.flexRow, styles.flexWrap]}>
+                <Button
+                    onPress={() => {
+                        this.props.toggleHamburger();
+                    }}
+                    title="="
+                />
                 {this.state && this.state.reportName && (
                     <Text style={[styles.navText]}>
                         {this.state.reportName}
@@ -33,3 +45,5 @@ export default withRouter(WithIon({
         pathForProps: 'match.params.reportID',
     },
 })(HeaderView));
+
+HeaderView.propTypes = propTypes;
