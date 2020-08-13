@@ -25,18 +25,6 @@ class ReportHistoryView extends React.Component {
     }
 
     /**
-     * Returns the report history with everything but comments filtered out
-     *
-     * @returns {string[]}
-     */
-    getFilteredReportHistory() {
-        const reportHistory = lodashGet(this.state, 'reportHistory');
-
-        // Only return comments
-        return _.filter(reportHistory, historyItem => historyItem.actionName === 'ADDCOMMENT');
-    }
-
-    /**
      * Returns true when the report action immediately before the
      * specified index is a comment made by the same actor who who
      * is leaving a comment in the action at the specified index.
@@ -114,9 +102,8 @@ class ReportHistoryView extends React.Component {
     }
 
     render() {
-        const filteredHistory = this.getFilteredReportHistory();
-
-        if (filteredHistory.length === 0) {
+        const reportHistory = lodashGet(this.state || {}, 'reportHistory', []);
+        if (reportHistory.length === 0) {
             return (
                 <View style={[styles.chatContent, styles.chatContentEmpty]}>
                     <Text style={[styles.textP]}>Be the first person to comment!</Text>
@@ -133,7 +120,7 @@ class ReportHistoryView extends React.Component {
                 bounces={false}
                 style={[styles.chatContentInner]}
             >
-                {_.map(filteredHistory, (item, index) => (
+                {_.map(reportHistory, (item, index) => (
                     <ReportHistoryItem
                         key={item.sequenceNumber}
                         historyItem={item}
