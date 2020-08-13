@@ -9,7 +9,6 @@
     header('Access-Control-Allow-Origin: *');
     header('Access-Control-Allow-Credentials: *');
     ```
-6. Run `cp ./src/CONFIG.DEV.example.js ./src/CONFIG.DEV.js` and edit `CONFIG.DEV.js` to have your local config options
 
 ## Running the web app 💻
 * To run a **Development Server**: `npm run web`
