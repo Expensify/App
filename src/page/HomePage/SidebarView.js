@@ -19,6 +19,10 @@ import PageTitleUpdater from '../../lib/PageTitleUpdater';
 const propTypes = {
     // Toggles the hamburger menu open and closed
     toggleHamburger: PropTypes.func.isRequired,
+
+    // Safe area insets required for mobile devices margins
+    // eslint-disable-next-line react/forbid-prop-types
+    insets: PropTypes.object.isRequired
 };
 
 class SidebarView extends React.Component {
@@ -43,7 +47,7 @@ class SidebarView extends React.Component {
         this.updateUnreadReportIndicator();
         return (
             <View style={[styles.flex1, styles.sidebar]}>
-                <View style={[styles.sidebarHeader]}>
+                <View style={[styles.sidebarHeader, {marginTop: this.props.insets.top}]}>
                     <Image
                         resizeMode="contain"
                         style={[styles.sidebarHeaderLogo]}
@@ -65,7 +69,7 @@ class SidebarView extends React.Component {
                         />
                     ))}
                 </View>
-                <View style={[styles.sidebarFooter]}>
+                <View style={[styles.sidebarFooter, {marginBottom: this.props.insets.bottom * 0.7}]}>
                     <View style={[styles.sidebarFooterAvatar]}>
                         <Image
                             source={{uri: this.state && this.state.avatarURL}}
