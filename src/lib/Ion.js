@@ -32,7 +32,7 @@ const callbackToStateMapping = {};
  * @param {mixed} [mapping.defaultValue] to return if the there is nothing from the store
  * @param {string} mapping.statePropertyName the name of the property in the state to connect the data to
  * @param {boolean} [mapping.addAsCollection] rather than setting a single state value, this will add things to an array
- * @param {string} [mapping.collectionId] the name of the ID property to use for the collection
+ * @param {string} [mapping.collectionID] the name of the ID property to use for the collection
  * @param {object} mapping.reactComponent whose setState() method will be called with any changed data
  * @returns {number} an ID to use when calling disconnect
  */
