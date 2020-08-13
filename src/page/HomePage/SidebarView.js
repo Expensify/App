@@ -33,7 +33,7 @@ class SidebarView extends React.Component {
      */
     updateUnreadReportIndicator() {
         if (this.state) {
-            const hasUnreadReports = _.any(this.state.individualReports, report => report.hasUnread);
+            const hasUnreadReports = _.any(this.state.reports, report => report.hasUnread);
             PageTitleUpdater(hasUnreadReports);
         }
     }
@@ -104,13 +104,9 @@ export default WithIon({
         prefillWithKey: IONKEYS.MY_PERSONAL_DETAILS,
     },
     reports: {
-        key: IONKEYS.REPORTS,
-        loader: fetchAll,
-        prefillWithKey: IONKEYS.REPORTS,
-    },
-    individualReports: {
         key: `${IONKEYS.REPORT}_[0-9]+$`,
         addAsCollection: true,
         collectionId: 'reportID',
+        loader: fetchAll,
     },
 })(SidebarView);

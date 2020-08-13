@@ -5,6 +5,7 @@ import {request, delayedWrite} from '../Network';
 import IONKEYS from '../../IONKEYS';
 import CONFIG from '../../CONFIG';
 import * as pusher from '../Pusher/pusher';
+import promiseAllSettled from '../promiseAllSettled';
 
 /**
  * Sorts the report actions so that the newest actions are at the bottom
@@ -27,7 +28,16 @@ function updateReportWithNewAction(reportID, reportAction) {
     // Get the comments for this report, and add the comment (being sure to sort and filter properly)
     let foundExistingReportHistoryItem = false;
 
-    Ion.get(`${IONKEYS.REPORT_HISTORY}_${reportID}`)
+    Ion.get(`${IONKEYS.REPORT}_${reportID}`, 'reportID')
+        .then((ionReportID) => {
+            // This is necessary for local development because there will be pusher events from other engineers with
+            // different reportIDs
+            if (!CONFIG.IS_IN_PRODUCTION && !ionReportID) {
+                throw new Error('Report does not exist in the store, so ignoring new comments');
+            }
+
+            return Ion.get(`${IONKEYS.REPORT_HISTORY}_${reportID}`);
+        })
 
         // Use a reducer to replace an existing report history item if there is one
         .then(reportHistory => _.map(reportHistory, (reportHistoryItem) => {
@@ -67,8 +77,8 @@ function hasUnreadHistoryItems(accountID, report) {
 
     // Find the most recent sequence number from the report history
     const lastReportAction = _.chain(report.reportActionList)
-        .sortBy(sortReportActions)
-        .last()
+        .pluck('sequenceNumber')
+        .max()
         .value();
 
     if (!lastReportAction) {
@@ -95,83 +105,40 @@ function initPusher() {
 }
 
 /**
- * Get a single report
- *
- * @param {string} reportID
- * @returns {Promise}
- */
-function fetch(reportID) {
-    let fetchedReport;
-    return request('Get', {
-        returnValueList: 'reportStuff',
-        reportIDList: reportID,
-        shouldLoadOptionalKeys: true,
-    })
-        .then(data => data.reports && data.reports[reportID])
-        .then((report) => {
-            fetchedReport = report;
-            return Ion.get(IONKEYS.SESSION, 'accountID');
-        })
-        .then((accountID) => {
-            // When we fetch a full report, we want to figure out if there are unread comments on it
-            fetchedReport.hasUnread = hasUnreadHistoryItems(accountID, fetchedReport);
-            return Ion.merge(`${IONKEYS.REPORT}_${reportID}`, fetchedReport);
-        });
-}
-
-/**
  * Get all of our reports
  *
  * @returns {Promise}
  */
 function fetchAll() {
-    if (CONFIG.IS_IN_PRODUCTION) {
-        return request('Get', {
-            returnValueList: 'reportStuff',
-            reportIDList: '63212778,63212795,63212764,63212607,63699490',
-            shouldLoadOptionalKeys: true,
-        })
+    let fetchedReports;
 
-            // Load the full report of each one, it's OK to fire-and-forget these requests
-            .then((data) => {
-                _.each(data.reports, report => fetch(report.reportID));
-                return data.reports;
-            })
-
-            // Transform the data so we only store what we need (space is valuable)
-            .then(data => _.chain(data)
-                .values()
-                .map(report => ({reportID: report.reportID, reportName: report.reportName}))
-                .value())
-
-            // Put the data into the store
-            .then(data => Ion.set(IONKEYS.REPORTS, data))
-            // eslint-disable-next-line no-console
-            .catch((error) => { console.log('Error fetching report actions', error); });
-    }
-
-    return request('Get', {
-        returnValueList: 'reportListBeta',
-        sortBy: 'starred',
-        offset: 0,
-        limit: 10,
+    // Request each report one at a time to allow individual reports to fail if access to it is prevents by Auth
+    const reportFetchPromises = _.map(CONFIG.REPORT_IDS.split(','), reportID => request('Get', {
+        returnValueList: 'reportStuff',
+        reportIDList: reportID,
+        shouldLoadOptionalKeys: true,
     })
+        .then(data => fetchedReports = data.reports)
+        .then(() => Ion.get(IONKEYS.SESSION, 'accountID'))
+        .then((accountID) => {
+            const ionPromises = _.map(fetchedReports, (report) => {
+                // Store only the absolute bare minimum of data in Ion because space is limited
+                const newReport = {
+                    reportID: report.reportID,
+                    reportName: report.reportName,
+                    reportNameValuePairs: report.reportNameValuePairs,
+                    hasUnread: hasUnreadHistoryItems(accountID, report),
+                };
 
-        // Load the full report of each one, it's OK to fire-and-forget these requests
-        .then((data) => {
-            _.each(data.reportListBeta, report => fetch(report.reportID));
-            return data.reportListBeta;
-        })
+                // Merge the data into Ion. Don't use set() here or multiSet() because then that would
+                // overwrite any existing data (like if they have unread messages)
+                return Ion.merge(`${IONKEYS.REPORT}_${report.reportID}`, newReport);
+            });
 
-        // Transform the data so we only store what we need (space is valuable)
-        .then(data => _.chain(data)
-            .map(report => ({reportID: report.reportID, reportName: report.reportName}))
-            .value())
+            return promiseAllSettled(ionPromises);
+        }));
 
-        // Put the data into the store
-        .then(data => Ion.set(IONKEYS.REPORTS, _.values(data)))
-        // eslint-disable-next-line no-console
-        .catch((error) => { console.log('Error fetching report actions', error); });
+    return promiseAllSettled(reportFetchPromises);
 }
 
 /**
@@ -273,7 +240,6 @@ function updateLastReadActionID(accountID, reportID, sequenceNumber) {
 
 export {
     fetchAll,
-    fetch,
     fetchHistory,
     addHistoryItem,
     updateLastReadActionID,
