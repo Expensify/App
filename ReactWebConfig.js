@@ -1,21 +1,19 @@
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
+Object.defineProperty(exports, '__esModule', {
+    value: true
 });
 exports.ReactWebConfig = undefined;
 
-var _webpack = require('webpack');
+const webpack = require('webpack');
 
-var _webpack2 = _interopRequireDefault(_webpack);
+// eslint-disable-next-line no-underscore-dangle
+function interopRequireDefault(obj) { return obj && obj.__esModule ? obj : {default: obj}; }
 
-var _dotenv = require('dotenv');
+const webpack2 = interopRequireDefault(webpack);
+const dotenv = require('dotenv');
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var ReactWebConfig = exports.ReactWebConfig = function ReactWebConfig(path) {
-  var env = (0, _dotenv.config)({ path: path }).parsed;
-  return new _webpack2.default.DefinePlugin({
-    '__REACT_WEB_CONFIG__': JSON.stringify(env)
-  });
+const ReactWebConfig = exports.ReactWebConfig = function ReactWebConfig(path) {
+    const env = (0, dotenv.config)({path}).parsed;
+    return new webpack2.default.DefinePlugin({
+        __REACT_WEB_CONFIG__: JSON.stringify(env)
+    });
 };
