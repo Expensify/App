@@ -9,7 +9,7 @@ import CONFIG from '../../CONFIG';
  * @param {boolean} hasUnread
  */
 const PageTitleUpdater = (hasUnread) => {
-    document.title = hasUnread ? `★ ${CONFIG.SITE_TITLE}` : CONFIG.SITE_TITLE;
+    document.title = hasUnread ? `(NEW!) ${CONFIG.SITE_TITLE}` : CONFIG.SITE_TITLE;
 };
 
 export default PageTitleUpdater;
