@@ -54,6 +54,10 @@ export default class App extends React.Component {
         Dimensions.removeEventListener('change', this.onChange);
     }
 
+    /**
+     * Fired when the windows dimensions changes
+     * @param {object} changedWindow
+     */
     onChange({window: changedWindow}) {
         this.setState({isSmallScreen: changedWindow.width < widthBreakPoint});
         if (!this.state.hamburgerShown && changedWindow.width > widthBreakPoint) {
@@ -63,6 +67,10 @@ export default class App extends React.Component {
         }
     }
 
+    /**
+     * Method called when we want to toggle the hamburger menu opened and closed
+     * Only changes hamburger state on small screens (e.g. Mobile and mWeb)
+     */
     toggleHamburger() {
         if (!this.state.isSmallScreen) {
             return;
