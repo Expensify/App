@@ -5,6 +5,7 @@ import {request, delayedWrite} from '../Network';
 import IONKEYS from '../../IONKEYS';
 import CONFIG from '../../CONFIG';
 import * as pusher from '../Pusher/pusher';
+import promiseAllSettled from '../promiseAllSettled';
 
 /**
  * Sorts the report actions so that the newest actions are at the bottom
@@ -134,10 +135,10 @@ function fetchAll() {
                 return Ion.merge(`${IONKEYS.REPORT}_${report.reportID}`, newReport);
             });
 
-            return Promise.allSettled(ionPromises);
+            return promiseAllSettled(ionPromises);
         }));
 
-    return Promise.allSettled(reportFetchPromises);
+    return promiseAllSettled(reportFetchPromises);
 }
 
 /**
