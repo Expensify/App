@@ -32,9 +32,8 @@ const ReportHistoryItemSingle = ({historyItem}) => {
             <View style={[styles.chatItemRight]}>
                 <View style={[styles.chatItemMessageHeader]}>
                     {historyItem.person.map(fragment => (
-                        <Text>
+                        <Text key={_.uniqueId('person-', historyItem.sequenceNumber)}>
                             <ReportHistoryItemFragment
-                                key={_.uniqueId('person-', historyItem.sequenceNumber)}
                                 fragment={fragment}
                             />
                         </Text>
