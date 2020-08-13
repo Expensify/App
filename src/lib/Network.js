@@ -7,19 +7,25 @@ import {registerSocketEventCallback} from './Pusher/pusher';
 
 let isAppOffline = false;
 
-registerSocketEventCallback((eventName) => {
+registerSocketEventCallback((eventName, data) => {
+    let isCurrentlyOffline = false;
     switch (eventName) {
         case 'connected':
-            isAppOffline = false;
-            Ion.merge(IONKEYS.NETWORK, {isOffline: false});
+            isCurrentlyOffline = false;
             break;
         case 'disconnected':
-            isAppOffline = true;
-            Ion.merge(IONKEYS.NETWORK, {isOffline: true});
+            isCurrentlyOffline = true;
+            break;
+        case 'state_change':
+            if (data.current === 'connecting' || data.current === 'unavailable') {
+                isCurrentlyOffline = true;
+            }
             break;
         default:
             break;
     }
+    isAppOffline = isCurrentlyOffline;
+    Ion.merge(IONKEYS.NETWORK, {isOffline: isCurrentlyOffline});
 });
 
 /**
@@ -60,6 +66,7 @@ function request(command, data, type = 'post') {
         // eslint-disable-next-line no-unused-vars
         .catch(() => {
             isAppOffline = true;
+            Ion.merge(IONKEYS.NETWORK, {isOffline: true});
 
             // Throw a new error to prevent any other `then()` in the promise chain from being triggered (until another
             // catch() happens
@@ -93,9 +100,7 @@ function delayedWrite(command, data) {
  */
 function processWriteQueue() {
     if (isAppOffline) {
-        // Make a simple request to see if we're online again
-        request('Get', null)
-            .then(() => isAppOffline = false);
+        // Don't do anything if we are offline. Once pusher reconnects, then it should be online again
         return;
     }
 
