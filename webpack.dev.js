@@ -13,7 +13,7 @@ module.exports = merge(common, {
     },
     plugins: [
         new webpack.DefinePlugin({
-            'process.env.REPORT_IDS': JSON.stringify(devConfig.REPORT_IDS),
+            'REPORT_IDS': JSON.stringify(devConfig.REPORT_IDS),
         })
     ],
 });
