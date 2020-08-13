@@ -1,13 +1,12 @@
+const path = require('path');
 const {merge} = require('webpack-merge');
-const webpack = require('webpack');
 const common = require('./webpack.common.js');
+const ReactWebConfig = require('./ReactWebConfig').ReactWebConfig;
 
 module.exports = merge(common, {
     mode: 'production',
     devtool: 'source-map',
     plugins: [
-        new webpack.DefinePlugin({
-            'process.env.REPORT_IDS': JSON.stringify('63212778,63212795,63212764,63212607,63699490'),
-        })
+        ReactWebConfig(path.resolve(__dirname, './.env.production')),
     ],
 });

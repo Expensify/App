@@ -82,6 +82,11 @@ project.ext.react = [
     enableHermes: false,  // clean and rebuild if changing
 ]
 
+project.ext.envConfigFiles = [
+    debug: ".env",
+    release: ".env.production",
+]
+
 apply from: "../../node_modules/react-native/react.gradle"
 
 /**
