@@ -1,7 +1,6 @@
 const path = require('path');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const ReactWebConfig = require('./joeTestDir/ReactWebConfig').ReactWebConfig;
 
 module.exports = {
     entry: {
@@ -17,7 +16,6 @@ module.exports = {
             template: 'web/index.html',
             filename: 'index.html',
         }),
-        ReactWebConfig(path.resolve(__dirname, '../.env')),
     ],
     module: {
         rules: [
