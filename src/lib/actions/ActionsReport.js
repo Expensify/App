@@ -7,17 +7,6 @@ import CONFIG from '../../CONFIG';
 import * as pusher from '../Pusher/pusher';
 
 /**
- * Sorts the report actions so that the newest actions are at the bottom
- *
- * @param {object} firstReport
- * @param {object} secondReport
- * @returns {number}
- */
-function sortReportActions(firstReport, secondReport) {
-    return firstReport.sequenceNumber - secondReport.sequenceNumber;
-}
-
-/**
  * Updates a report in the store with a new report action
  *
  * @param {string} reportID
