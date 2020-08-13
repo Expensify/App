@@ -74,8 +74,8 @@ export default class App extends React.Component {
 
     render() {
         const hamburgerStyle = this.state.isSmallScreen && this.state.hamburgerShown ? {
-            position: 'absolute', left: 0, top: 0, bottom: 0, zIndex: 2, maxWidth: 300
-        } : {maxWidth: 300};
+            position: 'absolute', left: 0, top: 0, bottom: 0, zIndex: 2, width: 300
+        } : {width: 300};
         return (
             <>
                 <StatusBar barStyle="dark-content" />
