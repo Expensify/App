@@ -86,7 +86,7 @@ export default WithIon({
     reports: {
         key: `${IONKEYS.REPORT}_[0-9]+$`,
         addAsCollection: true,
-        collectionId: 'reportID',
+        collectionID: 'reportID',
         loader: fetchAll,
     },
 })(SidebarView);

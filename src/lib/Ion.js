@@ -79,7 +79,7 @@ function keyChanged(key, data) {
                 // Add the data to an array of existing items
                 mappedComponent.reactComponent.setState((prevState) => {
                     const collection = prevState[mappedComponent.statePropertyName] || {};
-                    collection[newValue[mappedComponent.collectionId]] = newValue;
+                    collection[newValue[mappedComponent.collectionID]] = newValue;
                     const newState = {
                         [mappedComponent.statePropertyName]: collection,
                     };
