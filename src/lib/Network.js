@@ -3,8 +3,24 @@ import Ion from './Ion';
 import CONFIG from '../CONFIG';
 import IONKEYS from '../IONKEYS';
 import ROUTES from '../ROUTES';
+import {registerSocketEventCallback} from './Pusher/pusher';
 
 let isAppOffline = false;
+
+registerSocketEventCallback((eventName) => {
+    switch (eventName) {
+        case 'connected':
+            isAppOffline = false;
+            Ion.merge(IONKEYS.NETWORK, {isOffline: false});
+            break;
+        case 'disconnected':
+            isAppOffline = true;
+            Ion.merge(IONKEYS.NETWORK, {isOffline: true});
+            break;
+        default:
+            break;
+    }
+});
 
 /**
  * Make an XHR to the server
