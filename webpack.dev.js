@@ -1,5 +1,7 @@
 const path = require('path');
 const {merge} = require('webpack-merge');
+const webpack = require('webpack');
+const devConfig = require('./src/CONFIG.DEV');
 const common = require('./webpack.common.js');
 
 module.exports = merge(common, {
@@ -9,4 +11,9 @@ module.exports = merge(common, {
         contentBase: path.join(__dirname, 'dist'),
         hot: true,
     },
+    plugins: [
+        new webpack.DefinePlugin({
+            'process.env.REPORT_IDS': JSON.stringify(devConfig.REPORT_IDS),
+        })
+    ],
 });
