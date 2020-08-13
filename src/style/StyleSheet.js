@@ -309,6 +309,17 @@ const styles = {
         paddingRight: 20,
     },
 
+    LHNToggle: {
+        justifyContent: 'center',
+        height: 40,
+        width: 40,
+    },
+
+    LHNToggleIcon: {
+        height: 15,
+        width: 18,
+    },
+
     navText: {
         color: colors.heading,
         fontSize: 17,

@@ -1,11 +1,12 @@
 import React from 'react';
-import {View, Button} from 'react-native';
+import {View, Image, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
 import Text from '../../components/Text';
 import styles from '../../style/StyleSheet';
 import IONKEYS from '../../IONKEYS';
 import WithIon from '../../components/WithIon';
 import {withRouter} from '../../lib/Router';
+import LHNToggle from '../../../assets/images/icon-menu-toggle@3x.png';
 
 const propTypes = {
     // Toggles the hamburger menu open and closed
@@ -17,15 +18,23 @@ const propTypes = {
 
 class HeaderView extends React.Component {
     render() {
+        const hamburgerStyle = this.props.shouldShowHamburgerButton ? styles.shownHamburgerButtonStyle : null;
+
         return (
-            <View style={[styles.appContentHeader, styles.flexRow, styles.flexWrap]}>
+            <View style={[styles.appContentHeader, styles.flexRow, styles.flexWrap, hamburgerStyle]}>
                 {this.props.shouldShowHamburgerButton && (
-                <Button
+                <TouchableOpacity
                     onPress={() => {
                         this.props.toggleHamburger();
                     }}
-                    title="="
-                />
+                    style={[styles.LHNToggle]}
+                >
+                    <Image
+                        resizeMode="contain"
+                        style={[styles.LHNToggleIcon]}
+                        source={LHNToggle}
+                    />
+                </TouchableOpacity>
                 )}
                 {this.state && this.state.reportName && (
                     <Text style={[styles.navText]}>
