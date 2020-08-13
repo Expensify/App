@@ -11,7 +11,7 @@ function interopRequireDefault(obj) { return obj && obj.__esModule ? obj : {defa
 const webpack2 = interopRequireDefault(webpack);
 const dotenv = require('dotenv');
 
-const ReactWebConfig = exports.ReactWebConfig = function ReactWebConfig(path) {
+exports.ReactWebConfig = function ReactWebConfig(path) {
     const env = (0, dotenv.config)({path}).parsed;
     return new webpack2.default.DefinePlugin({
         __REACT_WEB_CONFIG__: JSON.stringify(env)

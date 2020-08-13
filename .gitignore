@@ -61,3 +61,6 @@ android/app/service-account.json
 
 # CocoaPods
 /ios/Pods/
+
+# Local DEV config
+/.env
