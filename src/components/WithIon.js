@@ -9,8 +9,14 @@ import get from 'lodash.get';
 import has from 'lodash.has';
 import Ion from '../lib/Ion';
 
-function getDisplayName(WrappedComponent) {
-    return WrappedComponent.displayName || WrappedComponent.name || 'Component';
+/**
+ * Returns the display name of a component
+ *
+ * @param {object} component
+ * @returns {string}
+ */
+function getDisplayName(component) {
+    return component.displayName || component.name || 'Component';
 }
 
 export default function (mapIonToState) {
