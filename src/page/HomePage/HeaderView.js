@@ -6,7 +6,7 @@ import styles from '../../style/StyleSheet';
 import IONKEYS from '../../IONKEYS';
 import WithIon from '../../components/WithIon';
 import {withRouter} from '../../lib/Router';
-import LHNToggle from '../../../assets/images/icon-menu-toggle@3x.png';
+import LHNToggle from '../../../assets/images/icon-menu-toggle.png';
 
 const propTypes = {
     // Toggles the hamburger menu open and closed
@@ -18,7 +18,7 @@ const propTypes = {
 
 class HeaderView extends React.Component {
     render() {
-        const hamburgerStyle = this.props.shouldShowHamburgerButton ? styles.shownHamburgerButtonStyle : null;
+        const hamburgerStyle = this.props.shouldShowHamburgerButton ? null : styles.appContentHeaderRounded;
 
         return (
             <View style={[styles.appContentHeader, styles.flexRow, styles.flexWrap, hamburgerStyle]}>

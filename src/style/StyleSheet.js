@@ -40,6 +40,10 @@ const styles = {
     h100p: {
         height: '100%',
     },
+    flex0: {
+        flex: 0,
+    },
+
     flex1: {
         flex: 1,
     },
@@ -295,9 +299,12 @@ const styles = {
 
     appContent: {
         backgroundColor: colors.background,
+        overflow: 'hidden',
+    },
+
+    appContentRounded: {
         borderTopLeftRadius: 12,
         borderBottomLeftRadius: 12,
-        overflow: 'hidden',
     },
 
     appContentHeader: {
@@ -310,8 +317,10 @@ const styles = {
     },
 
     LHNToggle: {
-        justifyContent: 'center',
+        alignItems: 'center',
         height: 40,
+        justifyContent: 'center',
+        marginRight: 8,
         width: 40,
     },
 
@@ -339,8 +348,8 @@ const styles = {
     chatContentEmpty: {
         paddingTop: 16,
         paddingBottom: 16,
-        paddingLeft: 16,
-        paddingRight: 16,
+        paddingLeft: 20,
+        paddingRight: 20,
     },
 
     // Chat Item
@@ -349,8 +358,8 @@ const styles = {
         flexDirection: 'row',
         paddingTop: 8,
         paddingBottom: 8,
-        paddingLeft: 16,
-        paddingRight: 16,
+        paddingLeft: 20,
+        paddingRight: 20,
     },
 
     chatItemLeft: {
@@ -403,8 +412,8 @@ const styles = {
         minHeight: 85,
         paddingTop: 20,
         paddingBottom: 20,
-        paddingLeft: 16,
-        paddingRight: 16,
+        paddingLeft: 20,
+        paddingRight: 20,
     },
 };
 
