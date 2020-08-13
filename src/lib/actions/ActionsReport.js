@@ -151,7 +151,10 @@ function fetchHistory(reportID) {
         reportID,
         offset: 0,
     })
-        .then(data => Ion.set(`${IONKEYS.REPORT_HISTORY}_${reportID}`, data.history.sort(sortReportActions)));
+        .then((data) => {
+            const ionPromises = _.map(data.history, item => Ion.merge(`${IONKEYS.REPORT_ACTION}_${item.sequenceNumber}`, item));
+            return Promise.all(ionPromises);
+        });
 }
 
 /**
