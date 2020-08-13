@@ -137,12 +137,14 @@ class ReportHistoryView extends React.Component {
 }
 ReportHistoryView.propTypes = propTypes;
 
-const key = `${IONKEYS.REPORT_HISTORY}_%DATAFROMPROPS%`;
+const key = `${IONKEYS.REPORT_ACTION}_%DATAFROMPROPS%_`;
 export default WithIon({
     reportHistory: {
         key,
         loader: fetchHistory,
         loaderParams: ['%DATAFROMPROPS%'],
+        addAsCollection: true,
+        collectionID: 'sequenceNumber',
         prefillWithKey: key,
         pathForProps: 'reportID',
     },

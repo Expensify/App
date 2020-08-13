@@ -152,8 +152,14 @@ function fetchHistory(reportID) {
         offset: 0,
     })
         .then((data) => {
-            const ionPromises = _.map(data.history, item => Ion.merge(`${IONKEYS.REPORT_ACTION}_${item.sequenceNumber}`, item));
-            return Promise.all(ionPromises);
+            const multiSetData = _.reduce(data.history, (finalData, item) => {
+                const historyItemKey = `${IONKEYS.REPORT_ACTION}_${reportID}_${item.sequenceNumber}`;
+                return {
+                    ...finalData,
+                    [historyItemKey]: item,
+                };
+            }, {});
+            return Ion.multiSet(multiSetData);
         });
 }
 
