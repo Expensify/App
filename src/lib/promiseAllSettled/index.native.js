@@ -1,5 +1,5 @@
 /**
- * This file implements the idea of Promise.allSettled which isn't supported on IOS. Read more about it here:
+ * This file implements the idea of Promise.allSettled which isn't supported on native devices. Read more about it here:
  * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled
  */
 import _ from 'underscore';
