@@ -24,9 +24,6 @@ function sortReportActions(firstReport, secondReport) {
  * @param {object} reportAction
  */
 function updateReportWithNewAction(reportID, reportAction) {
-    // Get the comments for this report, and add the comment (being sure to sort and filter properly)
-    let foundExistingReportHistoryItem = false;
-
     Ion.get(`${IONKEYS.REPORT}_${reportID}`, 'reportID')
         .then((ionReportID) => {
             // This is necessary for local development because there will be pusher events from other engineers with
@@ -35,29 +32,29 @@ function updateReportWithNewAction(reportID, reportAction) {
                 throw new Error('Report does not exist in the store, so ignoring new comments');
             }
 
+            // Get the report history and return that to the next chain
             return Ion.get(`${IONKEYS.REPORT_HISTORY}_${reportID}`);
         })
 
-        // Use a reducer to replace an existing report history item if there is one
-        .then(reportHistory => _.map(reportHistory, (reportHistoryItem) => {
-            // If there is an existing reportHistoryItem, replace it
-            if (reportHistoryItem.sequenceNumber === reportAction.sequenceNumber) {
-                foundExistingReportHistoryItem = true;
-                return reportAction;
-            }
-            return reportHistoryItem;
-        }))
+        // Look to see if the report action from pusher already exists or not (it would exist if it's a comment just
+        // written by the user). If the action doesn't exist, then update the unread flag on the report so the user
+        // knows there is a new comment
         .then((reportHistory) => {
-            // If there was no existing history item, add it to the report history and mark the report for having unread
-            // items
-            if (!foundExistingReportHistoryItem) {
-                reportHistory.push(reportAction);
+            if (!reportHistory[reportAction.sequenceNumber]) {
                 Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {hasUnread: true});
             }
             return reportHistory;
         })
+
+        // Put the report action from pusher into the history, it's OK to overwrite it if it already exists
+        .then(reportHistory => ({
+            ...reportHistory,
+            [reportAction.sequenceNumber]: reportAction,
+        }))
+
+        // Put the report history back into Ion
         .then((reportHistory) => {
-            Ion.set(`${IONKEYS.REPORT_HISTORY}_${reportID}`, reportHistory.sort(sortReportActions));
+            Ion.set(`${IONKEYS.REPORT_HISTORY}_${reportID}`, reportHistory);
         });
 }
 
@@ -151,7 +148,10 @@ function fetchHistory(reportID) {
         reportID,
         offset: 0,
     })
-        .then(data => Ion.set(`${IONKEYS.REPORT_HISTORY}_${reportID}`, data.history.sort(sortReportActions)));
+        .then((data) => {
+            const indexedData = _.indexBy(data.history, 'sequenceNumber');
+            Ion.set(`${IONKEYS.REPORT_HISTORY}_${reportID}`, indexedData);
+        });
 }
 
 /**
@@ -175,11 +175,12 @@ function addHistoryItem(reportID, reportComment) {
                 .pluck('sequenceNumber')
                 .max()
                 .value() || 0;
+            const newSequenceNumber = ++highestSequenceNumber;
 
             // Optimistically add the new comment to the store before waiting to save it to the server
-            return Ion.set(historyKey, [
+            return Ion.set(historyKey, {
                 ...reportHistory,
-                {
+                [newSequenceNumber]: {
                     actionName: 'ADDCOMMENT',
                     actorEmail: Ion.get(IONKEYS.SESSION, 'email'),
                     person: [
@@ -203,7 +204,7 @@ function addHistoryItem(reportID, reportComment) {
                     isFirstItem: false,
                     isAttachmentPlaceHolder: false,
                 }
-            ]);
+            });
         })
         .then(() => delayedWrite('Report_AddComment', {
             reportID,
