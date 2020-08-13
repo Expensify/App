@@ -84,6 +84,7 @@ export default class App extends React.Component {
         const hamburgerStyle = this.state.isSmallScreen && this.state.hamburgerShown ? {
             position: 'absolute', left: 0, top: 0, bottom: 0, zIndex: 2, width: 300
         } : {width: 300};
+        const appContentStyle = this.state.hamburgerShown ? styles.appContentRounded : null;
         return (
             <>
                 <StatusBar barStyle="dark-content" />
@@ -95,7 +96,7 @@ export default class App extends React.Component {
                                 <Sidebar toggleHamburger={this.toggleHamburger} />
                             </View>
                             )}
-                            <View style={[styles.appContent, styles.flex1, styles.flexColumn]}>
+                            <View style={[styles.appContent, styles.flex1, styles.flexColumn, appContentStyle]}>
                                 <Header
                                     shouldShowHamburgerButton={!this.state.hamburgerShown}
                                     toggleHamburger={this.toggleHamburger}
