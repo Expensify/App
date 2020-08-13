@@ -61,6 +61,9 @@ class SidebarView extends React.Component {
                             </Text>
                         )}
                         <Text style={[styles.sidebarFooterLink]} onPress={signOut}>Sign Out</Text>
+                        {this.state && this.state.isOffline && (
+                            <Text>OFFLINE</Text>
+                        )}
                     </View>
                 </View>
             </View>
@@ -88,5 +91,10 @@ export default WithIon({
         addAsCollection: true,
         collectionId: 'reportID',
         loader: fetchAll,
+    },
+    isOffline: {
+        key: IONKEYS.NETWORK,
+        path: 'isOffline',
+        defaultValue: false,
     },
 })(SidebarView);
