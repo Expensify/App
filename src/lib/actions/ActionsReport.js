@@ -151,16 +151,7 @@ function fetchHistory(reportID) {
         reportID,
         offset: 0,
     })
-        .then((data) => {
-            const multiSetData = _.reduce(data.history, (finalData, item) => {
-                const historyItemKey = `${IONKEYS.REPORT_ACTION}_${reportID}_${item.sequenceNumber}`;
-                return {
-                    ...finalData,
-                    [historyItemKey]: item,
-                };
-            }, {});
-            return Ion.multiSet(multiSetData);
-        });
+        .then(data => Ion.set(`${IONKEYS.REPORT_HISTORY}_${reportID}`, data.history.sort(sortReportActions)));
 }
 
 /**

@@ -102,11 +102,7 @@ class ReportHistoryView extends React.Component {
     }
 
     render() {
-        let reportHistory = [];
-        if (this.state && this.state.reportHistory) {
-            reportHistory = this.state.reportHistory;
-        }
-
+        const reportHistory = this.state && this.state.reportHistory || [];
         if (reportHistory.length === 0) {
             return (
                 <View style={[styles.chatContent, styles.chatContentEmpty]}>
@@ -137,14 +133,12 @@ class ReportHistoryView extends React.Component {
 }
 ReportHistoryView.propTypes = propTypes;
 
-const key = `${IONKEYS.REPORT_ACTION}_%DATAFROMPROPS%_`;
+const key = `${IONKEYS.REPORT_HISTORY}_%DATAFROMPROPS%`;
 export default WithIon({
     reportHistory: {
         key,
         loader: fetchHistory,
         loaderParams: ['%DATAFROMPROPS%'],
-        addAsCollection: true,
-        collectionID: 'sequenceNumber',
         prefillWithKey: key,
         pathForProps: 'reportID',
     },
