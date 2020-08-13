@@ -79,7 +79,7 @@ export default class App extends React.Component {
         return (
             <>
                 <StatusBar barStyle="dark-content" />
-                <SafeAreaView style={[styles.flex1, styles.h100p]}>
+                <SafeAreaView style={[styles.flex1, styles.h100p, styles.appContent]}>
                     <View style={[styles.appContentWrapper, styles.flexRow, styles.h100p]}>
                         <Route path="/:reportID?">
                             {this.state.hamburgerShown && (
