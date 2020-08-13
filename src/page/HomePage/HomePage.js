@@ -16,17 +16,15 @@ import {initPusher} from '../../lib/actions/ActionsReport';
 import * as pusher from '../../lib/Pusher/pusher';
 
 const window = Dimensions.get('window');
+const widthBreakPoint = 1000;
 
 export default class App extends React.Component {
     constructor(props) {
         super(props);
 
         this.state = {
-            hamburgerShown: false,
-            dimensions: {
-                window
-            }
-
+            hamburgerShown: window.width > widthBreakPoint,
+            isSmallScreen: window.width < widthBreakPoint
         };
 
         this.toggleHamburger = this.toggleHamburger.bind(this);
@@ -57,38 +55,43 @@ export default class App extends React.Component {
     }
 
     onChange({window: changedWindow}) {
-        this.setState({dimensions: {window: changedWindow}});
+        this.setState({isSmallScreen: changedWindow.width < widthBreakPoint});
+        if (!this.state.hamburgerShown && changedWindow.width > widthBreakPoint) {
+            this.setState({hamburgerShown: true});
+        } else if (this.state.hamburgerShown && changedWindow.width < widthBreakPoint) {
+            this.setState({hamburgerShown: false});
+        }
     }
 
     toggleHamburger() {
+        if (!this.state.isSmallScreen) {
+            return;
+        }
+
         const currentValue = this.state.hamburgerShown;
         this.setState({hamburgerShown: !currentValue});
     }
 
     render() {
-        const {dimensions} = this.state;
-        const largeWindow = dimensions.window.width > 1000;
-        const shouldShowHamburger = largeWindow || this.state.hamburgerShown;
-        const hamburgerStyle = !shouldShowHamburger ? {
-            position: 'absolute', left: 0, top: 0, bottom: 0
-        } : null;
+        const hamburgerStyle = this.state.isSmallScreen && this.state.hamburgerShown ? {
+            position: 'absolute', left: 0, top: 0, bottom: 0, zIndex: 2, maxWidth: 300
+        } : {maxWidth: 300};
         return (
             <>
                 <StatusBar barStyle="dark-content" />
                 <SafeAreaView style={[styles.flex1, styles.h100p]}>
                     <View style={[styles.appContentWrapper, styles.flexRow, styles.h100p]}>
                         <Route path="/:reportID?">
-                            {shouldShowHamburger && (
-                            <View style={[{
-                                width: 300, zIndex: 20
-                            }, hamburgerStyle]}
-                            >
+                            {this.state.hamburgerShown && (
+                            <View style={[hamburgerStyle]}>
                                 <Sidebar toggleHamburger={this.toggleHamburger} />
                             </View>
                             )}
                             <View style={[styles.appContent, styles.flex1, styles.flexColumn]}>
-                                <Header shouldShowHamburgerButton={!largeWindow}
-                                        toggleHamburger={this.toggleHamburger} />
+                                <Header
+                                    shouldShowHamburgerButton={!this.state.hamburgerShown}
+                                    toggleHamburger={this.toggleHamburger}
+                                />
                                 <Main />
                             </View>
                         </Route>
