@@ -10,18 +10,23 @@ import {withRouter} from '../../lib/Router';
 const propTypes = {
     // Toggles the hamburger menu open and closed
     toggleHamburger: PropTypes.func.isRequired,
+
+    // Decides whether we should show the hamburger menu button
+    shouldShowHamburgerButton: PropTypes.bool.isRequired,
 };
 
 class HeaderView extends React.Component {
     render() {
         return (
             <View style={[styles.appContentHeader, styles.flexRow, styles.flexWrap]}>
+                {this.props.shouldShowHamburgerButton && (
                 <Button
                     onPress={() => {
                         this.props.toggleHamburger();
                     }}
                     title="="
                 />
+                )}
                 {this.state && this.state.reportName && (
                     <Text style={[styles.navText]}>
                         {this.state.reportName}

@@ -36,12 +36,15 @@ class SidebarLink extends React.Component {
                 <Link
                     to={`/${this.props.reportID}`}
                     style={linkActiveStyle}
-                    onPress={() => {
-                        this.props.toggleHamburger();
-                    }}
                 >
                     <View style={[styles.sidebarLinkInner]}>
-                        <Text numberOfLines={1} style={textActiveUnreadStyle}>
+                        <Text
+                            numberOfLines={1}
+                            style={textActiveUnreadStyle}
+                            onPress={() => {
+                                this.props.toggleHamburger();
+                            }}
+                        >
                             {this.props.reportName}
                         </Text>
                     </View>
