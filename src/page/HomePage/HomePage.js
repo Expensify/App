@@ -96,7 +96,7 @@ export default class App extends React.Component {
                                 <View style={[styles.appContent, appContentStyle, styles.flex1, styles.flexColumn]}>
                                     <Header
                                         shouldShowHamburgerButton={!this.state.hamburgerShown}
-                                        toggleHamburger={this.toggleHamburger}
+                                        onHamburgerButtonClicked={this.toggleHamburger}
                                     />
                                     <Main />
                                 </View>
