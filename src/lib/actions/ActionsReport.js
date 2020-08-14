@@ -165,7 +165,7 @@ function addHistoryItem(reportID, reportComment) {
                 .pluck('sequenceNumber')
                 .max()
                 .value() || 0;
-            const newSequenceNumber = ++highestSequenceNumber;
+            const newSequenceNumber = highestSequenceNumber + 1;
 
             // Optimistically add the new comment to the store before waiting to save it to the server
             return Ion.set(historyKey, {
