@@ -23,12 +23,6 @@ const propTypes = {
 };
 
 class SidebarLink extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.toggleHamburger = this.props.toggleHamburger.bind(this);
-    }
-
     render() {
         const paramsReportID = parseInt(this.props.match.params.reportID, 10);
         const isReportActive = paramsReportID === this.props.reportID;
@@ -40,8 +34,8 @@ class SidebarLink extends React.Component {
         return (
             <View style={[styles.sidebarListItem, linkWrapperActiveStyle]}>
                 <Link
-                    onPress={this.toggleHamburger}
-                    onClick={this.toggleHamburger}
+                    onPress={this.props.toggleHamburger}
+                    onClick={this.props.toggleHamburger}
                     to={`/${this.props.reportID}`}
                     style={linkActiveStyle}
                 >
