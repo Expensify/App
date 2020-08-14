@@ -41,13 +41,9 @@ export default class App extends React.Component {
 
                 // Setup the report action handler to subscribe to pusher
                 initPusher();
-
-                // TODO: Remove, debugging
-                Ion.set(IONKEYS.APP_REDIRECT_TO, '/36');
-
-                Dimensions.addEventListener('change', this.onChange);
             }
         });
+        Dimensions.addEventListener('change', this.onChange);
     }
 
     componentWillUnmount() {
@@ -92,7 +88,8 @@ export default class App extends React.Component {
                 <SafeAreaInsetsContext.Consumer style={[styles.flex1, styles.h100p, styles.appContent]}>
                     {insets => (
                         <View style={[styles.appContent, styles.flexRow, styles.h100p,
-                            {paddingTop: insets.top, paddingBottom: insets.bottom * 0.7}]}>
+                            {paddingTop: insets.top, paddingBottom: insets.bottom * 0.7}]}
+                        >
                             <Route path="/:reportID?">
                                 <View style={[hamburgerStyle, visibility]}>
                                     <Sidebar insets={insets} toggleHamburger={this.toggleHamburger} />
