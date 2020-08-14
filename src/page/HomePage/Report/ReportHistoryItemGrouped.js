@@ -10,13 +10,7 @@ const propTypes = {
     historyItem: PropTypes.shape(ReportHistoryPropsTypes).isRequired,
 };
 
-class ReportHistoryItemGrouped extends React.Component {
-    shouldComponentUpdate(nextProps) {
-        // Only re-render if the sequenceNumber and created property have changed
-        return nextProps.historyItem.sequenceNumber !== this.props.historyItem.sequenceNumber
-            && nextProps.historyItem.created !== this.props.historyItem.created;
-    }
-
+class ReportHistoryItemGrouped extends React.PureComponent {
     render() {
         const {historyItem} = this.props;
         return (
