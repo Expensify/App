@@ -92,7 +92,7 @@ export default class App extends React.Component {
                         <View style={[styles.appContent, styles.flexRow, styles.h100p, getSafeAreaPadding(insets)]}>
                             <Route path="/:reportID?">
                                 <View style={[hamburgerStyle, visibility]}>
-                                    <Sidebar insets={insets} toggleHamburger={this.toggleHamburger} />
+                                    <Sidebar insets={insets} onLinkClick={this.toggleHamburger} />
                                 </View>
                                 <View style={[styles.appContent, appContentStyle, styles.flex1, styles.flexColumn]}>
                                     <Header

@@ -18,7 +18,7 @@ import PageTitleUpdater from '../../lib/PageTitleUpdater';
 
 const propTypes = {
     // Toggles the hamburger menu open and closed
-    toggleHamburger: PropTypes.func.isRequired,
+    onLinkClick: PropTypes.func.isRequired,
 
     // Safe area insets required for mobile devices margins
     // eslint-disable-next-line react/forbid-prop-types
@@ -59,7 +59,7 @@ class SidebarView extends React.Component {
                             key={report.reportID}
                             reportID={report.reportID}
                             reportName={report.reportName}
-                            toggleHamburger={this.props.toggleHamburger}
+                            onLinkClick={this.props.onLinkClick}
                         />
                     ))}
                 </View>
