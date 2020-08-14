@@ -18,8 +18,12 @@ jobs:
         - name: Install node packages
           run: npm install
 
+        - name: Unecrpyt secret
+          run: cd android/app && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" \
+              --output my-upload-key.keystore my-upload-key.keystore.gpg
+
         - name: Run Fastlane
-          run: cd android && bundle exec fastlane beta
+          run: cd ../ && bundle exec fastlane beta
           env:
               AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
               AWS_ACCESS_KEY_ID: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
