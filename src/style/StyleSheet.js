@@ -311,9 +311,15 @@ const styles = {
         borderBottomWidth: 1,
         borderBottomColor: colors.border,
         height: 73,
-        alignItems: 'center',
+        justifyContent: 'center',
+        display: 'flex',
         paddingLeft: 20,
         paddingRight: 20,
+    },
+
+    appContentHeaderTitle: {
+        alignItems: 'center',
+        flexDirection: 'row',
     },
 
     LHNToggle: {
@@ -376,7 +382,7 @@ const styles = {
     },
 
     chatItemMessageHeader: {
-        alignItems: 'baseline',
+        alignItems: 'center',
         display: 'flex',
         flexDirection: 'row',
     },
@@ -384,6 +390,7 @@ const styles = {
     chatItemMessageHeaderSender: {
         color: colors.heading,
         fontSize: 15,
+        height: 24,
         lineHeight: 20,
         fontWeight: '600',
         paddingRight: 5,
@@ -393,6 +400,7 @@ const styles = {
     chatItemMessageHeaderTimestamp: {
         color: colors.textSupporting,
         fontSize: 11,
+        height: 24,
         lineHeight: 20,
     },
 
