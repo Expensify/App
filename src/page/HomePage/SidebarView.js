@@ -16,14 +16,19 @@ import SidebarLink from './SidebarLink';
 import logo from '../../../assets/images/expensify-logo_reversed.png';
 import PageTitleUpdater from '../../lib/PageTitleUpdater';
 import Ion from '../../lib/Ion';
+import {withRouter} from '../../lib/Router';
 
+let urlLocationObject = {};
 const propTypes = {
     // Toggles the hamburger menu open and closed
     toggleHamburger: PropTypes.func.isRequired,
 
     // Safe area insets required for mobile devices margins
     // eslint-disable-next-line react/forbid-prop-types
-    insets: PropTypes.object.isRequired
+    insets: PropTypes.object.isRequired,
+
+    // The location object containing the URL path
+    location: PropTypes.object.isRequired,
 };
 
 class SidebarView extends React.Component {
@@ -31,6 +36,7 @@ class SidebarView extends React.Component {
         super(props);
 
         this.toggleHamburger = this.props.toggleHamburger.bind(this);
+        urlLocationObject = props.location;
     }
 
     /**
@@ -93,7 +99,7 @@ class SidebarView extends React.Component {
 
 SidebarView.propTypes = propTypes;
 
-export default WithIon({
+export default withRouter(WithIon({
     // Map this.state.userDisplayName to the personal details key in the store and bind it to the displayName property
     // and load it with data from getPersonalDetails()
     userDisplayName: {
@@ -114,9 +120,9 @@ export default WithIon({
         collectionID: 'reportID',
         loader: () => fetchAll().then((data) => {
             // If we're on the home page, then redirect to the first report ID
-            if (window.location.pathname === '/' && data.length) {
+            if (urlLocationObject && urlLocationObject.pathname === '/' && data.length) {
                 Ion.set(IONKEYS.APP_REDIRECT_TO, `/${data[0].reportID}`);
             }
         }),
     },
-})(SidebarView);
+})(SidebarView));
