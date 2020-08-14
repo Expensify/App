@@ -28,13 +28,15 @@ function createLogin(authToken, login, password) {
 
 /**
  * Sets API data in the store when we make a successful "Authenticate"/"CreateLogin" request
+ *
  * @param {object} data
+ * @params {string} exitTo
  * @returns {Promise}
  */
-function setSuccessfulSignInData(data) {
+function setSuccessfulSignInData(data, exitTo) {
     return Ion.multiSet({
         [IONKEYS.SESSION]: data,
-        [IONKEYS.APP_REDIRECT_TO]: ROUTES.HOME,
+        [IONKEYS.APP_REDIRECT_TO]: `/${exitTo}` || ROUTES.HOME,
         [IONKEYS.LAST_AUTHENTICATED]: new Date().getTime(),
     });
 }
@@ -46,9 +48,10 @@ function setSuccessfulSignInData(data) {
  * @param {string} password
  * @param {string} twoFactorAuthCode
  * @param {boolean} useExpensifyLogin
+ * @param {string} exitTo
  * @returns {Promise}
  */
-function signIn(login, password, twoFactorAuthCode = '', useExpensifyLogin = false) {
+function signIn(login, password, twoFactorAuthCode = '', useExpensifyLogin = false, exitTo) {
     console.debug('[SIGNIN] Authenticating with expensify login?', useExpensifyLogin ? 'yes' : 'no');
     let authToken;
     return request('Authenticate', {
@@ -80,12 +83,12 @@ function signIn(login, password, twoFactorAuthCode = '', useExpensifyLogin = fal
                 return createLogin(data.authToken, Str.generateDeviceLoginID(), Guid())
                     .then(() => {
                         console.debug('[SIGNIN] Successful sign in', 2);
-                        return setSuccessfulSignInData(data);
+                        return setSuccessfulSignInData(data, exitTo);
                     });
             }
 
             console.debug('[SIGNIN] Successful sign in', 1);
-            return setSuccessfulSignInData(data);
+            return setSuccessfulSignInData(data, exitTo);
         })
         .then(() => authToken)
         .catch((err) => {

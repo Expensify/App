@@ -8,6 +8,7 @@ import {
     Image,
     View,
 } from 'react-native';
+import {withRouter} from '../lib/Router';
 import {signIn} from '../lib/actions/ActionsSession';
 import IONKEYS from '../IONKEYS';
 import WithIon from '../components/WithIon';
@@ -18,6 +19,8 @@ class App extends Component {
     constructor(props) {
         super(props);
 
+        this.submitForm = this.submitForm.bind(this);
+
         this.state = {
             login: '',
             password: '',
@@ -25,9 +28,12 @@ class App extends Component {
         };
     }
 
-    submitLogin() {
+    /**
+     * Sign into the application when the form is submitted
+     */
+    submitForm() {
         signIn(this.state.login, this.state.password,
-            this.state.twoFactorAuthCode, true);
+            this.state.twoFactorAuthCode, true, this.props.match.params.exitTo);
     }
 
     render() {
@@ -49,7 +55,7 @@ class App extends Component {
                                 style={[styles.textInput, styles.textInputReversed]}
                                 value={this.state.login}
                                 onChangeText={text => this.setState({login: text})}
-                                onSubmitEditing={() => this.submitLogin()}
+                                onSubmitEditing={this.submitForm}
                             />
                         </View>
                         <View style={[styles.mb4]}>
@@ -59,7 +65,7 @@ class App extends Component {
                                 secureTextEntry
                                 value={this.state.password}
                                 onChangeText={text => this.setState({password: text})}
-                                onSubmitEditing={() => this.submitLogin()}
+                                onSubmitEditing={this.submitForm}
                             />
                         </View>
                         <View style={[styles.mb4]}>
@@ -70,13 +76,13 @@ class App extends Component {
                                 placeholder="Required when 2FA is enabled"
                                 placeholderTextColor="#C6C9CA"
                                 onChangeText={text => this.setState({twoFactorAuthCode: text})}
-                                onSubmitEditing={() => this.submitLogin()}
+                                onSubmitEditing={this.submitForm}
                             />
                         </View>
                         <View>
                             <TouchableOpacity
                                 style={[styles.button, styles.buttonSuccess, styles.mb4]}
-                                onPress={() => this.submitLogin()}
+                                onPress={this.submitForm}
                                 underlayColor="#fff"
                             >
                                 <Text style={[styles.buttonText, styles.buttonSuccessText]}>Log In</Text>
@@ -94,7 +100,7 @@ class App extends Component {
     }
 }
 
-export default WithIon({
+export default withRouter(WithIon({
     // Bind this.state.error to the error in the session object
     error: {key: IONKEYS.SESSION, path: 'error', defaultValue: null},
-})(App);
+})(App));
