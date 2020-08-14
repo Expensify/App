@@ -10,11 +10,22 @@ const propTypes = {
     historyItem: PropTypes.shape(ReportHistoryPropsTypes).isRequired,
 };
 
-const ReportHistoryItemGrouped = ({historyItem}) => (
-    <Text style={[styles.historyItemMessageWrapper]}>
-        <ReportHistoryItemMessage historyItem={historyItem} />
-    </Text>
-);
+class ReportHistoryItemGrouped extends React.Component {
+    shouldComponentUpdate(nextProps) {
+        // Only re-render if the sequenceNumber and created property have changed
+        return nextProps.historyItem.sequenceNumber !== this.props.historyItem.sequenceNumber
+            && nextProps.historyItem.created !== this.props.historyItem.created;
+    }
+
+    render() {
+        const {historyItem} = this.props;
+        return (
+            <Text style={[styles.historyItemMessageWrapper]}>
+                <ReportHistoryItemMessage historyItem={historyItem} />
+            </Text>
+        );
+    }
+}
 
 ReportHistoryItemGrouped.propTypes = propTypes;
 
