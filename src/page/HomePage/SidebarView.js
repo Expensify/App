@@ -14,6 +14,7 @@ import {fetchAll} from '../../lib/actions/ActionsReport';
 import SidebarLink from './SidebarLink';
 import logo from '../../../assets/images/expensify-logo_reversed.png';
 import PageTitleUpdater from '../../lib/PageTitleUpdater';
+import Ion from '../../lib/Ion';
 
 class SidebarView extends React.Component {
     /**
@@ -87,6 +88,11 @@ export default WithIon({
         key: `${IONKEYS.REPORT}_[0-9]+$`,
         addAsCollection: true,
         collectionId: 'reportID',
-        loader: fetchAll,
+        loader: () => fetchAll().then((data) => {
+            // If we're on the home page, then redirect to the first report ID
+            if (window.location.pathname === '/' && data.length) {
+                Ion.set(IONKEYS.APP_REDIRECT_TO, `/${data[0].reportID}`);
+            }
+        }),
     },
 })(SidebarView);

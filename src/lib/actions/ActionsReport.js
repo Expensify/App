@@ -109,7 +109,8 @@ function initPusher() {
  * @returns {Promise}
  */
 function fetchAll() {
-    let fetchedReports;
+    let fetchedReports = [];
+    let fetchedReport;
 
     // Request each report one at a time to allow individual reports to fail if access to it is prevents by Auth
     const reportFetchPromises = _.map(CONFIG.REPORT_IDS.split(','), reportID => request('Get', {
@@ -117,10 +118,10 @@ function fetchAll() {
         reportIDList: reportID,
         shouldLoadOptionalKeys: true,
     })
-        .then(data => fetchedReports = data.reports)
+        .then(data => fetchedReport = data.reports)
         .then(() => Ion.get(IONKEYS.SESSION, 'accountID'))
         .then((accountID) => {
-            const ionPromises = _.map(fetchedReports, (report) => {
+            const ionPromises = _.map(fetchedReport, (report) => {
                 // Store only the absolute bare minimum of data in Ion because space is limited
                 const newReport = {
                     reportID: report.reportID,
@@ -128,6 +129,8 @@ function fetchAll() {
                     reportNameValuePairs: report.reportNameValuePairs,
                     hasUnread: hasUnreadHistoryItems(accountID, report),
                 };
+
+                fetchedReports.push(newReport);
 
                 // Merge the data into Ion. Don't use set() here or multiSet() because then that would
                 // overwrite any existing data (like if they have unread messages)
@@ -137,7 +140,14 @@ function fetchAll() {
             return Promise.allSettled(ionPromises);
         }));
 
-    return Promise.allSettled(reportFetchPromises);
+    return new Promise((resolve, reject) => Promise.allSettled(reportFetchPromises)
+        .then(() => {
+            fetchedReports = _.sortBy(fetchedReports, 'reportID');
+            resolve(fetchedReports);
+        })
+        .catch(() => {
+            reject();
+        }));
 }
 
 /**
