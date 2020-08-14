@@ -8,12 +8,19 @@ import {
     Image,
     View,
 } from 'react-native';
+import PropTypes from 'prop-types';
 import {withRouter} from '../lib/Router';
 import {signIn} from '../lib/actions/ActionsSession';
 import IONKEYS from '../IONKEYS';
 import WithIon from '../components/WithIon';
 import styles from '../style/StyleSheet';
 import logo from '../../assets/images/expensify-logo_reversed.png';
+
+const propTypes = {
+    // These are from withRouter
+    // eslint-disable-next-line react/forbid-prop-types
+    match: PropTypes.object.isRequired,
+};
 
 class App extends Component {
     constructor(props) {
@@ -99,6 +106,8 @@ class App extends Component {
         );
     }
 }
+
+App.propTypes = propTypes;
 
 export default withRouter(WithIon({
     // Bind this.state.error to the error in the session object

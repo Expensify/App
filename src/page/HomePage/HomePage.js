@@ -14,7 +14,6 @@ import Ion from '../../lib/Ion';
 import IONKEYS from '../../IONKEYS';
 import {initPusher} from '../../lib/actions/ActionsReport';
 import * as pusher from '../../lib/Pusher/pusher';
-import redirectToSignIn from '../../lib/actions/ActionsSignInRedirect';
 
 const windowSize = Dimensions.get('window');
 const widthBreakPoint = 1000;
@@ -47,11 +46,6 @@ export default class App extends React.Component {
             }
         });
         Dimensions.addEventListener('change', this.onChange);
-            console.log(1)
-            setTimeout(() => {
-                console.log(2)
-                redirectToSignIn();
-            }, 5000);
     }
 
     componentWillUnmount() {

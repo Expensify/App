@@ -26,6 +26,7 @@ function request(command, data, type = 'post') {
             method: type,
             body: formData,
         }))
+
         // This will catch any HTTP network errors (like 404s and such), not to be confused with jsonCode which this
         // does NOT catch
         .catch(() => {
