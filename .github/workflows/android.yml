@@ -19,8 +19,7 @@ jobs:
           run: npm install
 
         - name: Decrypt keystore
-          run: cd android/app && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" \
-              --output my-upload-key.keystore my-upload-key.keystore.gpg
+          run: cd android/app && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output my-upload-key.keystore my-upload-key.keystore.gpg
           env:
               LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
