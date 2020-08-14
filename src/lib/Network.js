@@ -2,7 +2,7 @@ import _ from 'underscore';
 import Ion from './Ion';
 import CONFIG from '../CONFIG';
 import IONKEYS from '../IONKEYS';
-import ROUTES from '../ROUTES';
+import redirectToSignIn from './actions/ActionsSignInRedirect';
 
 let isAppOffline = false;
 
@@ -35,7 +35,7 @@ function request(command, data, type = 'post') {
 
             // AuthToken expired, go to the sign in page
             if (responseData.jsonCode === 407) {
-                return Ion.set(IONKEYS.APP_REDIRECT_TO, ROUTES.SIGNIN);
+                return redirectToSignIn();
             }
 
             // eslint-disable-next-line no-console
