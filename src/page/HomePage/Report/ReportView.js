@@ -7,23 +7,12 @@ import KeyboardSpacer from '../../../components/KeyboardSpacer';
 
 const ReportView = () => (
     <>
-        <Route
-            path="/:reportID"
-            exact
-            component={({match}) => (
-                <ReportHistoryView reportID={match.params.reportID} />
-            )}
-        />
-        <Route
-            path="/:reportID"
-            exact
-            component={({match}) => (
-                <ReportHistoryCompose
-                    reportID={match.params.reportID}
-                    onSubmit={text => addHistoryItem(match.params.reportID, text)}
-                />
-            )}
-        />
+        <Route path="/:reportID" exact>
+            <ReportHistoryView />
+            <ReportHistoryCompose
+                onSubmit={addHistoryItem}
+            />
+        </Route>
         <KeyboardSpacer />
     </>
 );

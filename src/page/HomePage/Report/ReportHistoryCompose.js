@@ -1,11 +1,16 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, TextInput} from 'react-native';
+import {View, TextInput, Platform} from 'react-native';
 import styles from '../../../style/StyleSheet';
+import {withRouter} from '../../../lib/Router';
 
 const propTypes = {
     // A method to call when the form is submitted
     onSubmit: PropTypes.func.isRequired,
+
+    // This comes from withRouter
+    // eslint-disable-next-line react/forbid-prop-types
+    match: PropTypes.object.isRequired,
 };
 
 class ReportHistoryCompose extends React.Component {
@@ -23,10 +28,22 @@ class ReportHistoryCompose extends React.Component {
     }
 
     componentDidMount() {
-        this.textInput.focus();
+        this.focusInput();
     }
 
     componentDidUpdate() {
+        this.focusInput();
+    }
+
+    /**
+     * Focuses the input on web, but does not on native platforms
+     */
+    focusInput() {
+        // TODO: Remove this platform dependent code, but I am unsure how at the moment
+        if (Platform.OS !== 'web') {
+            return;
+        }
+
         this.textInput.focus();
     }
 
@@ -70,7 +87,7 @@ class ReportHistoryCompose extends React.Component {
             return;
         }
 
-        this.props.onSubmit(this.state.comment);
+        this.props.onSubmit(this.props.match.params.reportID, this.state.comment);
         this.setState({
             comment: '',
         });
@@ -102,4 +119,4 @@ class ReportHistoryCompose extends React.Component {
 }
 ReportHistoryCompose.propTypes = propTypes;
 
-export default ReportHistoryCompose;
+export default withRouter(ReportHistoryCompose);
