@@ -18,6 +18,8 @@ default_platform(:ios)
 platform :ios do
   desc "Build and upload app to TestFlight"
   lane :beta do
+    ENV["ENVFILE"]=".env.production"
+
     update_code_signing_settings(
         use_automatic_signing: true,
         path: "ReactNativeChat.xcodeproj"
