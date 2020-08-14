@@ -9,7 +9,7 @@
     header('Access-Control-Allow-Origin: *');
     header('Access-Control-Allow-Credentials: *');
     ```
-5. Run `cp .env.example.js .env` and edit `.env` to have your local config options
+5. Run `cp .env.example .env` and edit `.env` to have your local config options
 
 
 ## Running the web app 💻
