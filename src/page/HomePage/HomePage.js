@@ -23,7 +23,9 @@ export default class App extends React.Component {
         super(props);
 
         this.state = {
-            hamburgerShown: windowSize.width > widthBreakPoint,
+            // TODO: Set back to windowSize.width > widthBreakPoint once
+            //  https://github.com/AndrewGable/ReactNativeChat/pull/132 is merged
+            hamburgerShown: true,
             isSmallScreen: windowSize.width <= widthBreakPoint
         };
 
