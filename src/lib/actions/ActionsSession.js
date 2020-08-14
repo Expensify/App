@@ -30,7 +30,7 @@ function createLogin(authToken, login, password) {
  * Sets API data in the store when we make a successful "Authenticate"/"CreateLogin" request
  *
  * @param {object} data
- * @params {string} exitTo
+ * @param {string} exitTo
  * @returns {Promise}
  */
 function setSuccessfulSignInData(data, exitTo) {
