@@ -10,11 +10,16 @@ const propTypes = {
     historyItem: PropTypes.shape(ReportHistoryPropsTypes).isRequired,
 };
 
-const ReportHistoryItemGrouped = ({historyItem}) => (
-    <Text style={[styles.historyItemMessageWrapper]}>
-        <ReportHistoryItemMessage historyItem={historyItem} />
-    </Text>
-);
+class ReportHistoryItemGrouped extends React.PureComponent {
+    render() {
+        const {historyItem} = this.props;
+        return (
+            <Text style={[styles.historyItemMessageWrapper]}>
+                <ReportHistoryItemMessage historyItem={historyItem} />
+            </Text>
+        );
+    }
+}
 
 ReportHistoryItemGrouped.propTypes = propTypes;
 
