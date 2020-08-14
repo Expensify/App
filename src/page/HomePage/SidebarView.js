@@ -28,6 +28,7 @@ const propTypes = {
     insets: PropTypes.object.isRequired,
 
     // The location object containing the URL path
+    // eslint-disable-next-line react/forbid-prop-types
     location: PropTypes.object.isRequired,
 };
 
