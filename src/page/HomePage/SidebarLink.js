@@ -19,7 +19,7 @@ const propTypes = {
     match: PropTypes.object.isRequired,
 
     // Toggles the hamburger menu open and closed
-    toggleHamburger: PropTypes.func.isRequired,
+    onLinkClick: PropTypes.func.isRequired,
 };
 
 class SidebarLink extends React.Component {
@@ -34,8 +34,8 @@ class SidebarLink extends React.Component {
         return (
             <View style={[styles.sidebarListItem, linkWrapperActiveStyle]}>
                 <Link
-                    onPress={this.props.toggleHamburger}
-                    onClick={this.props.toggleHamburger}
+                    onPress={this.props.onLinkClick}
+                    onClick={this.props.onLinkClick}
                     to={`/${this.props.reportID}`}
                     style={linkActiveStyle}
                 >
