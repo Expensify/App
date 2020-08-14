@@ -26,8 +26,7 @@ class App extends Component {
     }
 
     submitLogin() {
-        signIn(this.state.login, this.state.password,
-            this.state.twoFactorAuthCode, true);
+        signIn(this.state.login, this.state.password, this.state.twoFactorAuthCode);
     }
 
     render() {

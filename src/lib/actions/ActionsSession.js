@@ -26,32 +26,17 @@ function createLogin(authToken, login, password) {
 }
 
 /**
- * Sets API data in the store when we make a successful "Authenticate"/"CreateLogin" request
- * @param {object} data
- * @returns {Promise}
- */
-function setSuccessfulSignInData(data) {
-    return Ion.multiSet({
-        [IONKEYS.SESSION]: data,
-        [IONKEYS.APP_REDIRECT_TO]: ROUTES.HOME,
-        [IONKEYS.LAST_AUTHENTICATED]: new Date().getTime(),
-    });
-}
-
-/**
  * Sign in with the API
  *
  * @param {string} login
  * @param {string} password
  * @param {string} twoFactorAuthCode
- * @param {boolean} useExpensifyLogin
  * @returns {Promise}
  */
-function signIn(login, password, twoFactorAuthCode = '', useExpensifyLogin = false) {
-    console.debug('[SIGNIN] Authenticating with expensify login?', useExpensifyLogin ? 'yes' : 'no');
-    let authToken;
+function signIn(login, password, twoFactorAuthCode = '') {
+    console.debug('[SIGNIN] Authenticating with expensify login');
     return request('Authenticate', {
-        useExpensifyLogin,
+        useExpensifyLogin: true,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         partnerUserID: login,
@@ -59,11 +44,10 @@ function signIn(login, password, twoFactorAuthCode = '', useExpensifyLogin = fal
         twoFactorAuthCode
     })
         .then((data) => {
-            console.debug('[SIGNIN] Authentication result. Code:', data.jsonCode);
-            authToken = data && data.authToken;
+            console.debug('[SIGNIN] Authentication result. Code:', data.jsonCode, data);
 
             // If we didn't get a 200 response from authenticate, the user needs to sign in again
-            if (!useExpensifyLogin && data.jsonCode !== 200) {
+            if (data.jsonCode !== 200) {
                 // eslint-disable-next-line no-console
                 console.debug('[SIGNIN] Non-200 from authenticate, going back to sign in page');
                 return Ion.multiSet({
@@ -74,19 +58,18 @@ function signIn(login, password, twoFactorAuthCode = '', useExpensifyLogin = fal
             }
 
             // If Expensify login, it's the users first time logging in and we need to create a login for the user
-            if (useExpensifyLogin) {
-                console.debug('[SIGNIN] Creating a login');
-                return createLogin(data.authToken, Str.generateDeviceLoginID(), Guid())
-                    .then(() => {
-                        console.debug('[SIGNIN] Successful sign in', 2);
-                        return setSuccessfulSignInData(data);
+            console.debug('[SIGNIN] Creating a login');
+            return createLogin(data.authToken, Str.generateDeviceLoginID(), Guid())
+                .then(() => {
+                    console.debug('[SIGNIN] Successful sign in', 2);
+                    return Ion.multiSet({
+                        // Response include things we don't need to store like jsonCode, httpCode, and requestID
+                        [IONKEYS.SESSION]: _.pick(data, 'authToken', 'email', 'accountID'),
+                        [IONKEYS.APP_REDIRECT_TO]: ROUTES.HOME,
+                        [IONKEYS.LAST_AUTHENTICATED]: new Date().getTime(),
                     });
-            }
-
-            console.debug('[SIGNIN] Successful sign in', 1);
-            return setSuccessfulSignInData(data);
+                });
         })
-        .then(() => authToken)
         .catch((err) => {
             console.error(err);
             console.debug('[SIGNIN] Request error');
