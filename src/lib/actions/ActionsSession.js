@@ -10,20 +10,32 @@ import redirectToSignIn from './ActionsSignInRedirect';
 
 /**
  * Create login
- * @param {string} authToken
  * @param {string} login
  * @param {string} password
  * @returns {Promise}
  */
-function createLogin(authToken, login, password) {
+function createLogin(login, password) {
     return request('CreateLogin', {
-        authToken,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         partnerUserID: login,
         partnerUserSecret: password,
     }).then(() => Ion.set(IONKEYS.CREDENTIALS, {login, password}))
         .catch(err => Ion.merge(IONKEYS.SESSION, {error: err}));
+}
+
+/**
+ * Sets API data in the store when we make a successful "Authenticate"/"CreateLogin" request
+ * @param {object} data
+ * @returns {Promise}
+ */
+function setSuccessfulSignInData(data) {
+    return Ion.multiSet({
+        // Response include things we don't need to store like jsonCode, httpCode, and requestID
+        [IONKEYS.SESSION]: _.pick(data, 'authToken', 'email', 'accountID'),
+        [IONKEYS.APP_REDIRECT_TO]: ROUTES.HOME,
+        [IONKEYS.LAST_AUTHENTICATED]: new Date().getTime(),
+    });
 }
 
 /**
@@ -58,18 +70,12 @@ function signIn(login, password, twoFactorAuthCode = '') {
                     .then(redirectToSignIn);
             }
 
+            return setSuccessfulSignInData(data);
+        })
+        .then(() => {
             // If Expensify login, it's the users first time logging in and we need to create a login for the user
             console.debug('[SIGNIN] Creating a login');
-            return createLogin(data.authToken, Str.generateDeviceLoginID(), Guid())
-                .then(() => {
-                    console.debug('[SIGNIN] Successful sign in', 2);
-                    return Ion.multiSet({
-                        // Response include things we don't need to store like jsonCode, httpCode, and requestID
-                        [IONKEYS.SESSION]: _.pick(data, 'authToken', 'email', 'accountID'),
-                        [IONKEYS.APP_REDIRECT_TO]: ROUTES.HOME,
-                        [IONKEYS.LAST_AUTHENTICATED]: new Date().getTime(),
-                    });
-                });
+            return createLogin(Str.generateDeviceLoginID(), Guid());
         })
         .catch((err) => {
             console.error(err);
