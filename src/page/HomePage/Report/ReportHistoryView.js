@@ -10,10 +10,12 @@ import WithIon from '../../../components/WithIon';
 import IONKEYS from '../../../IONKEYS';
 import ReportHistoryItem from './ReportHistoryItem';
 import styles from '../../../style/StyleSheet';
+import {withRouter} from '../../../lib/Router';
 
 const propTypes = {
-    // The ID of the report being looked at
-    reportID: PropTypes.string.isRequired,
+    // This comes from withRouter
+    // eslint-disable-next-line react/forbid-prop-types
+    match: PropTypes.object.isRequired,
 };
 
 class ReportHistoryView extends React.Component {
@@ -82,11 +84,11 @@ class ReportHistoryView extends React.Component {
             .then((accountID) => {
                 myAccountID = accountID;
                 const path = `reportNameValuePairs.lastReadActionID_${accountID}`;
-                return Ion.get(`${IONKEYS.REPORT}_${this.props.reportID}`, path, 0);
+                return Ion.get(`${IONKEYS.REPORT}_${this.props.match.params.reportID}`, path, 0);
             })
             .then((lastReadActionID) => {
                 if (maxSequenceNumber > lastReadActionID) {
-                    updateLastReadActionID(myAccountID, this.props.reportID, maxSequenceNumber);
+                    updateLastReadActionID(myAccountID, this.props.match.params.reportID, maxSequenceNumber);
                 }
             });
     }
@@ -138,12 +140,12 @@ class ReportHistoryView extends React.Component {
 ReportHistoryView.propTypes = propTypes;
 
 const key = `${IONKEYS.REPORT_HISTORY}_%DATAFROMPROPS%`;
-export default WithIon({
+export default withRouter(WithIon({
     reportHistory: {
         key,
         loader: fetchHistory,
         loaderParams: ['%DATAFROMPROPS%'],
         prefillWithKey: key,
-        pathForProps: 'reportID',
+        pathForProps: 'match.params.reportID',
     },
-})(ReportHistoryView);
+})(ReportHistoryView));
