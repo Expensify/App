@@ -51,7 +51,6 @@ function setSuccessfulSignInData(data, exitTo) {
  */
 function signIn(login, password, twoFactorAuthCode = '', useExpensifyLogin = false, exitTo) {
     console.debug('[SIGNIN] Authenticating with expensify login?', useExpensifyLogin ? 'yes' : 'no');
-    let authToken;
     return request('Authenticate', {
         useExpensifyLogin,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
@@ -62,7 +61,6 @@ function signIn(login, password, twoFactorAuthCode = '', useExpensifyLogin = fal
     })
         .then((data) => {
             console.debug('[SIGNIN] Authentication result. Code:', data && data.jsonCode);
-            authToken = data && data.authToken;
 
             // If we didn't get a 200 response from authenticate, the user needs to sign in again
             if (!useExpensifyLogin && data.jsonCode !== 200) {
