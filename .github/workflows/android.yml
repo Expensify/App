@@ -24,7 +24,7 @@ jobs:
               LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
         - name: Run Fastlane
-          run: cd ../ && fastlane beta
+          run: cd android/ && fastlane beta
           env:
               AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
               AWS_ACCESS_KEY_ID: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
