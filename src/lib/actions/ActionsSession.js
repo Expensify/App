@@ -60,7 +60,7 @@ function signIn(login, password, twoFactorAuthCode = '', useExpensifyLogin = fal
         twoFactorAuthCode
     })
         .then((data) => {
-            console.debug('[SIGNIN] Authentication result. Code:', data.jsonCode);
+            console.debug('[SIGNIN] Authentication result. Code:', data && data.jsonCode);
             authToken = data && data.authToken;
 
             // If we didn't get a 200 response from authenticate, the user needs to sign in again
