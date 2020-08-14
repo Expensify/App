@@ -10,14 +10,12 @@ import redirectToSignIn from './ActionsSignInRedirect';
 
 /**
  * Create login
- * @param {string} authToken
  * @param {string} login
  * @param {string} password
  * @returns {Promise}
  */
-function createLogin(authToken, login, password) {
+function createLogin(login, password) {
     return request('CreateLogin', {
-        authToken,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         partnerUserID: login,
@@ -52,7 +50,7 @@ function setSuccessfulSignInData(data, exitTo) {
  * @returns {Promise}
  */
 function signIn(login, password, twoFactorAuthCode = '', useExpensifyLogin = false, exitTo) {
-    console.debug('[SIGNIN] Authenticating with expensify login?', useExpensifyLogin ? 'yes' : 'no');
+    console.log('[SIGNIN] Authenticating with expensify login?', useExpensifyLogin ? 'yes' : 'no');
     let authToken;
     return request('Authenticate', {
         useExpensifyLogin,
@@ -76,21 +74,17 @@ function signIn(login, password, twoFactorAuthCode = '', useExpensifyLogin = fal
                 })
                     .then(redirectToSignIn);
             }
-
+            return setSuccessfulSignInData(data, exitTo);
+        })
+        .then(() => {
             // If Expensify login, it's the users first time logging in and we need to create a login for the user
             if (useExpensifyLogin) {
                 console.debug('[SIGNIN] Creating a login');
-                return createLogin(data.authToken, Str.generateDeviceLoginID(), Guid())
-                    .then(() => {
-                        console.debug('[SIGNIN] Successful sign in', 2);
-                        return setSuccessfulSignInData(data, exitTo);
-                    });
+                return createLogin(Str.generateDeviceLoginID(), Guid());
             }
 
-            console.debug('[SIGNIN] Successful sign in', 1);
-            return setSuccessfulSignInData(data, exitTo);
+            return new Promise();
         })
-        .then(() => authToken)
         .catch((err) => {
             console.error(err);
             console.debug('[SIGNIN] Request error');
