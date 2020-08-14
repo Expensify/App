@@ -9,7 +9,13 @@ import ROUTES from '../../ROUTES';
  * @returns {Promise}
  */
 function redirectToSignIn() {
-    return Ion.set(IONKEYS.APP_REDIRECT_TO, ROUTES.SIGNIN);
+    return Ion.get(IONKEYS.CURRENT_URL)
+        .then((url) => {
+            const urlWithExitTo = url !== '/'
+                ? `${ROUTES.SIGNIN}/exitTo${url}`
+                : ROUTES.SIGNIN;
+            return Ion.set(IONKEYS.APP_REDIRECT_TO, urlWithExitTo);
+        });
 }
 
 export default redirectToSignIn;
