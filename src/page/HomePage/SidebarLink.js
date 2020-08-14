@@ -39,7 +39,12 @@ class SidebarLink extends React.Component {
             ? [textActiveStyle, styles.sidebarLinkTextUnread] : [textActiveStyle];
         return (
             <View style={[styles.sidebarListItem, linkWrapperActiveStyle]}>
-                <Link onPress={this.toggleHamburger} onClick={this.toggleHamburger} to={`/${this.props.reportID}`} style={linkActiveStyle}>
+                <Link
+                    onPress={this.toggleHamburger}
+                    onClick={this.toggleHamburger}
+                    to={`/${this.props.reportID}`}
+                    style={linkActiveStyle}
+                >
                     <View style={[styles.sidebarLinkInner]}>
                         <Text numberOfLines={1} style={textActiveUnreadStyle}>
                             {this.props.reportName}
