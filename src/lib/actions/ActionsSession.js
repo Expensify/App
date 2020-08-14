@@ -50,7 +50,7 @@ function setSuccessfulSignInData(data, exitTo) {
  * @returns {Promise}
  */
 function signIn(login, password, twoFactorAuthCode = '', useExpensifyLogin = false, exitTo) {
-    console.log('[SIGNIN] Authenticating with expensify login?', useExpensifyLogin ? 'yes' : 'no');
+    console.debug('[SIGNIN] Authenticating with expensify login?', useExpensifyLogin ? 'yes' : 'no');
     let authToken;
     return request('Authenticate', {
         useExpensifyLogin,
