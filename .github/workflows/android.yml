@@ -15,12 +15,10 @@ jobs:
         - name: Install gems
           run: bundle install
 
-        - name: Go into android/
-          run: cd android/
-
         - uses: maierj/fastlane-action@v1.4.0
           with:
             lane: 'beta'
+            subdirectory: 'android'
           env:
             AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
             AWS_ACCESS_KEY_ID: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
