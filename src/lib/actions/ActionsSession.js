@@ -36,7 +36,7 @@ function createLogin(authToken, login, password) {
 function setSuccessfulSignInData(data, exitTo) {
     return Ion.multiSet({
         [IONKEYS.SESSION]: data,
-        [IONKEYS.APP_REDIRECT_TO]: `/${exitTo}` || ROUTES.HOME,
+        [IONKEYS.APP_REDIRECT_TO]: exitTo ? `/${exitTo}` : ROUTES.HOME,
         [IONKEYS.LAST_AUTHENTICATED]: new Date().getTime(),
     });
 }
