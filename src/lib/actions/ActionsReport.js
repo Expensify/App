@@ -171,6 +171,7 @@ function addHistoryItem(reportID, reportComment) {
             return Ion.set(historyKey, {
                 ...reportHistory,
                 [newSequenceNumber]: {
+                    isQueued: true,
                     actionName: 'ADDCOMMENT',
                     actorEmail: Ion.get(IONKEYS.SESSION, 'email'),
                     person: [

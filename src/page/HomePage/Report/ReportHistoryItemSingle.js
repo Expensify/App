@@ -9,6 +9,7 @@ import ReportHistoryItemFragment from './ReportHistoryItemFragment';
 import styles from '../../../style/StyleSheet';
 import CONST from '../../../CONST';
 import ReportHistoryItemDate from './ReportHistoryItemDate';
+import LHNToggle from '../../../../assets/images/icon-menu-toggle.png';
 
 const propTypes = {
     // All the data of the history item
@@ -43,6 +44,15 @@ class ReportHistoryItemSingle extends React.PureComponent {
                         <View>
                             <ReportHistoryItemDate timestamp={historyItem.timestamp} />
                         </View>
+                        {historyItem.isQueued && (
+                            <View style={[styles.chatItemQueuedMessageIndicatorView]}>
+                                <Image
+                                    resizeMode="contain"
+                                    style={[styles.chatItemQueuedMessageIcon]}
+                                    source={LHNToggle}
+                                />
+                            </View>
+                        )}
                     </View>
                     <View style={[styles.chatItemMessage]}>
                         <Text>

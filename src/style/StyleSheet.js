@@ -426,6 +426,15 @@ const styles = {
         paddingLeft: 20,
         paddingRight: 20,
     },
+
+    chatItemQueuedMessageIndicatorView: {
+        paddingLeft: 8,
+    },
+
+    chatItemQueuedMessageIcon: {
+        height: 10,
+        width: 10,
+    }
 };
 
 /**
