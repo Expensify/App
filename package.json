@@ -1,6 +1,6 @@
 {
   "name": "ReactNativeChat",
-  "version": "1.0.1-1",
+  "version": "1.0.1-2",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
