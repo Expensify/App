@@ -16,11 +16,21 @@ opt_out_usage
 default_platform(:android)
 
 platform :android do
-  desc "Deploy a new version to the Google Play"
+  desc "Deploy a new version to Github"
   lane :beta do
     ENV["ENVFILE"]=".env.production"
 
-    gradle(task: "clean bundleRelease")
-    upload_to_play_store(track: 'internal')
+    version = `node -pe "require('../../package.json').version"`.strip
+
+    gradle(task: "clean assembleRelease")
+
+    set_github_release(
+        repository_name: "AndrewGable/ReactNativeChat",
+        api_token: ENV["GITHUB_TOKEN"],
+        name: version,
+        description: ("Release version " + version),
+        tag_name: version,
+        upload_assets: ["./app/build/outputs/apk/release/app-release.apk"]
+    )
   end
 end
