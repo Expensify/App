@@ -26,11 +26,11 @@ export default class App extends React.Component {
             // TODO: Set back to windowSize.width > widthBreakPoint once
             //  https://github.com/AndrewGable/ReactNativeChat/pull/132 is merged
             hamburgerShown: true,
-            isSmallScreen: windowSize.width <= widthBreakPoint
+            isHamburgerEnabled: windowSize.width <= widthBreakPoint
         };
 
         this.toggleHamburger = this.toggleHamburger.bind(this);
-        this.onChange = this.onChange.bind(this);
+        this.toggleHamburgerBasedOnDimensions = this.toggleHamburgerBasedOnDimensions.bind(this);
     }
 
     componentDidMount() {
@@ -45,19 +45,19 @@ export default class App extends React.Component {
                 initPusher();
             }
         });
-        Dimensions.addEventListener('change', this.onChange);
+        Dimensions.addEventListener('change', this.toggleHamburgerBasedOnDimensions);
     }
 
     componentWillUnmount() {
-        Dimensions.removeEventListener('change', this.onChange);
+        Dimensions.removeEventListener('change', this.toggleHamburgerBasedOnDimensions);
     }
 
     /**
      * Fired when the windows dimensions changes
      * @param {object} changedWindow
      */
-    onChange({window: changedWindow}) {
-        this.setState({isSmallScreen: changedWindow.width <= widthBreakPoint});
+    toggleHamburgerBasedOnDimensions({window: changedWindow}) {
+        this.setState({isHamburgerEnabled: changedWindow.width <= widthBreakPoint});
         if (!this.state.hamburgerShown && changedWindow.width > widthBreakPoint) {
             this.setState({hamburgerShown: true});
         } else if (this.state.hamburgerShown && changedWindow.width < widthBreakPoint) {
@@ -70,7 +70,7 @@ export default class App extends React.Component {
      * Only changes hamburger state on small screens (e.g. Mobile and mWeb)
      */
     toggleHamburger() {
-        if (!this.state.isSmallScreen) {
+        if (!this.state.isHamburgerEnabled) {
             return;
         }
 
@@ -79,11 +79,10 @@ export default class App extends React.Component {
     }
 
     render() {
-        const hamburgerStyle = this.state.isSmallScreen && this.state.hamburgerShown ? {
-            position: 'absolute', left: 0, top: 0, bottom: 0, zIndex: 2, width: 300
-        } : {width: 300};
-        const visibility = this.state.hamburgerShown ? {display: 'flex'} : {display: 'none'};
-        const appContentStyle = !this.state.isSmallScreen ? styles.appContentRounded : null;
+        const hamburgerStyle = this.state.isHamburgerEnabled && this.state.hamburgerShown
+            ? styles.hamburgerOpenAbsolute : styles.hamburgerOpen;
+        const visibility = this.state.hamburgerShown ? styles.visible : styles.invisible;
+        const appContentStyle = !this.state.isHamburgerEnabled ? styles.appContentRounded : null;
         return (
             <SafeAreaProvider>
                 <StatusBar barStyle="dark-content" />
