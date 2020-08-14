@@ -6,7 +6,12 @@ jobs:
     build:
         runs-on: ubuntu-latest
         steps:
-        - name: Install dependenices
+        - uses: actions/setup-ruby@v1
+
+        - name: Install bundler
+          run: gem install bundler
+
+        - name: Install gems
           run: bundle install
 
         - name: Go into android/
