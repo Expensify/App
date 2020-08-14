@@ -1,6 +1,14 @@
 const webpack = {
-    presets: ['@babel/preset-react', '@babel/preset-env'],
-    plugins: [['react-native-web', {commonjs: true}], '@babel/transform-runtime'],
+    env: {
+        production: {
+            presets: ['@babel/preset-react', '@babel/preset-env'],
+            plugins: [['react-native-web', {commonjs: true}], '@babel/transform-runtime', 'transform-remove-console'],
+        },
+        development: {
+            presets: ['@babel/preset-react', '@babel/preset-env'],
+            plugins: [['react-native-web', {commonjs: true}], '@babel/transform-runtime'],
+        }
+    }
 };
 
 const metro = {
