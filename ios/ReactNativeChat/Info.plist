@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>ReactNativeChat</string>
+	<string>$(PRODUCT_NAME)</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -22,6 +22,8 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>3</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true />
 	<key>NSAppTransportSecurity</key>
@@ -47,7 +49,15 @@
 		</dict>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string />
+	<string ></string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>GTAmericaExp-Bold.otf</string>
+		<string>GTAmericaExp-Light.otf</string>
+		<string>GTAmericaExp-Medium.otf</string>
+		<string>GTAmericaExp-Regular.otf</string>
+		<string>GTAmericaExp-Thin.otf</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>
@@ -61,16 +71,6 @@
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
-	<false />
-	<key>ITSAppUsesNonExemptEncryption</key>
-	<false />
-	<key>UIAppFonts</key>
-	<array>
-		<string>GTAmericaExp-Bold.otf</string>
-		<string>GTAmericaExp-Light.otf</string>
-		<string>GTAmericaExp-Medium.otf</string>
-		<string>GTAmericaExp-Regular.otf</string>
-		<string>GTAmericaExp-Thin.otf</string>
-	</array>
+	<false/>
 </dict>
 </plist>
