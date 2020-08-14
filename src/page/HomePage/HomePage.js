@@ -6,7 +6,7 @@ import {
 } from 'react-native';
 import {SafeAreaInsetsContext, SafeAreaProvider} from 'react-native-safe-area-context';
 import {Route} from '../../lib/Router';
-import styles from '../../style/StyleSheet';
+import styles, {getSafeAreaPadding} from '../../style/StyleSheet';
 import Header from './HeaderView';
 import Sidebar from './SidebarView';
 import Main from './MainView';
@@ -15,7 +15,7 @@ import IONKEYS from '../../IONKEYS';
 import {initPusher} from '../../lib/actions/ActionsReport';
 import * as pusher from '../../lib/Pusher/pusher';
 
-const window = Dimensions.get('window');
+const windowSize = Dimensions.get('window');
 const widthBreakPoint = 1000;
 
 export default class App extends React.Component {
@@ -23,8 +23,8 @@ export default class App extends React.Component {
         super(props);
 
         this.state = {
-            hamburgerShown: window.width > widthBreakPoint,
-            isSmallScreen: window.width < widthBreakPoint
+            hamburgerShown: windowSize.width > widthBreakPoint,
+            isSmallScreen: windowSize.width <= widthBreakPoint
         };
 
         this.toggleHamburger = this.toggleHamburger.bind(this);
@@ -55,7 +55,7 @@ export default class App extends React.Component {
      * @param {object} changedWindow
      */
     onChange({window: changedWindow}) {
-        this.setState({isSmallScreen: changedWindow.width < widthBreakPoint});
+        this.setState({isSmallScreen: changedWindow.width <= widthBreakPoint});
         if (!this.state.hamburgerShown && changedWindow.width > widthBreakPoint) {
             this.setState({hamburgerShown: true});
         } else if (this.state.hamburgerShown && changedWindow.width < widthBreakPoint) {
@@ -81,20 +81,18 @@ export default class App extends React.Component {
             position: 'absolute', left: 0, top: 0, bottom: 0, zIndex: 2, width: 300
         } : {width: 300};
         const visibility = this.state.hamburgerShown ? {display: 'flex'} : {display: 'none'};
-        const appContentStyle = this.state.hamburgerShown ? styles.appContentRounded : null;
+        const appContentStyle = !this.state.isSmallScreen ? styles.appContentRounded : null;
         return (
             <SafeAreaProvider>
                 <StatusBar barStyle="dark-content" />
-                <SafeAreaInsetsContext.Consumer style={[styles.flex1, styles.h100p, styles.appContent]}>
+                <SafeAreaInsetsContext.Consumer style={[styles.flex1, styles.h100p]}>
                     {insets => (
-                        <View style={[styles.appContent, styles.flexRow, styles.h100p,
-                            {paddingTop: insets.top, paddingBottom: insets.bottom * 0.7}]}
-                        >
+                        <View style={[styles.flexRow, styles.h100p, getSafeAreaPadding(insets)]}>
                             <Route path="/:reportID?">
                                 <View style={[hamburgerStyle, visibility]}>
                                     <Sidebar insets={insets} toggleHamburger={this.toggleHamburger} />
                                 </View>
-                                <View style={[styles.appContent, styles.flex1, styles.flexColumn, appContentStyle]}>
+                                <View style={[styles.appContent, appContentStyle, styles.flex1, styles.flexColumn]}>
                                     <Header
                                         shouldShowHamburgerButton={!this.state.hamburgerShown}
                                         toggleHamburger={this.toggleHamburger}

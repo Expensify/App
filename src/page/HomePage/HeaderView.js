@@ -18,10 +18,8 @@ const propTypes = {
 
 class HeaderView extends React.Component {
     render() {
-        const hamburgerStyle = this.props.shouldShowHamburgerButton ? null : styles.appContentHeaderRounded;
-
         return (
-            <View style={[styles.appContentHeader, hamburgerStyle]}>
+            <View style={[styles.appContentHeader]}>
                 <View style={[styles.appContentHeaderTitle]}>
                     {this.props.shouldShowHamburgerButton && (
                     <TouchableOpacity
@@ -47,6 +45,7 @@ class HeaderView extends React.Component {
         );
     }
 }
+HeaderView.propTypes = propTypes;
 
 export default withRouter(WithIon({
     // Map this.state.reportName to the data for a specific report in the store, and bind it to the reportName property
@@ -61,5 +60,3 @@ export default withRouter(WithIon({
         pathForProps: 'match.params.reportID',
     },
 })(HeaderView));
-
-HeaderView.propTypes = propTypes;

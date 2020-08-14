@@ -8,7 +8,7 @@ import PropTypes from 'prop-types';
 import Text from '../../components/Text';
 import {signOut} from '../../lib/actions/ActionsSession';
 import {fetch as getPersonalDetails} from '../../lib/actions/ActionsPersonalDetails';
-import styles from '../../style/StyleSheet';
+import styles, {getSafeAreaMargins} from '../../style/StyleSheet';
 import WithIon from '../../components/WithIon';
 import IONKEYS from '../../IONKEYS';
 import {fetchAll} from '../../lib/actions/ActionsReport';
@@ -69,7 +69,7 @@ class SidebarView extends React.Component {
                         />
                     ))}
                 </View>
-                <View style={[styles.sidebarFooter, {marginBottom: this.props.insets.bottom * 0.7}]}>
+                <View style={[styles.sidebarFooter, getSafeAreaMargins(this.props.insets)]}>
                     <View style={[styles.sidebarFooterAvatar]}>
                         <Image
                             source={{uri: this.state && this.state.avatarURL}}

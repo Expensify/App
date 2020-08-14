@@ -1,3 +1,6 @@
+// We place items a percentage to the safe area on the top or bottom of the screen
+const safeInsertPercentage = 0.7;
+
 const colors = {
     componentBG: '#FFFFFF',
     background: '#FAFAFA',
@@ -425,4 +428,26 @@ const styles = {
     },
 };
 
+/**
+ * Takes safe area insets and returns padding to use for a View
+ *
+ * @param {object} insets
+ * @returns {{paddingBottom: number, paddingTop: number}}
+ */
+function getSafeAreaPadding(insets) {
+    return {paddingTop: insets.top, paddingBottom: insets.bottom * safeInsertPercentage};
+}
+
+/**
+ * Takes safe area insets and returns margin to use for a View
+ *
+ * @param {object} insets
+ * @returns {{marginBottom: number}}
+ */
+function getSafeAreaMargins(insets) {
+    return {marginBottom: insets.bottom * safeInsertPercentage};
+}
+
+
 export default styles;
+export {getSafeAreaPadding, getSafeAreaMargins};
