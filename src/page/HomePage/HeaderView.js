@@ -21,26 +21,28 @@ class HeaderView extends React.Component {
         const hamburgerStyle = this.props.shouldShowHamburgerButton ? null : styles.appContentHeaderRounded;
 
         return (
-            <View style={[styles.appContentHeader, styles.flexRow, styles.flexWrap, hamburgerStyle]}>
-                {this.props.shouldShowHamburgerButton && (
-                <TouchableOpacity
-                    onPress={() => {
-                        this.props.toggleHamburger();
-                    }}
-                    style={[styles.LHNToggle]}
-                >
-                    <Image
-                        resizeMode="contain"
-                        style={[styles.LHNToggleIcon]}
-                        source={LHNToggle}
-                    />
-                </TouchableOpacity>
-                )}
-                {this.state && this.state.reportName && (
-                    <Text style={[styles.navText]}>
-                        {this.state.reportName}
-                    </Text>
-                )}
+            <View style={[styles.appContentHeader, hamburgerStyle]}>
+                <View style={[styles.appContentHeaderTitle]}>
+                    {this.props.shouldShowHamburgerButton && (
+                    <TouchableOpacity
+                        onPress={() => {
+                            this.props.toggleHamburger();
+                        }}
+                        style={[styles.LHNToggle]}
+                    >
+                        <Image
+                            resizeMode="contain"
+                            style={[styles.LHNToggleIcon]}
+                            source={LHNToggle}
+                        />
+                    </TouchableOpacity>
+                    )}
+                    {this.state && this.state.reportName && (
+                        <Text style={[styles.navText]}>
+                            {this.state.reportName}
+                        </Text>
+                    )}
+                </View>
             </View>
         );
     }
