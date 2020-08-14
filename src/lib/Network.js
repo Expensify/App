@@ -2,7 +2,7 @@ import _ from 'underscore';
 import Ion from './Ion';
 import CONFIG from '../CONFIG';
 import IONKEYS from '../IONKEYS';
-import ROUTES from '../ROUTES';
+import redirectToSignIn from './actions/ActionsSignInRedirect';
 
 let isAppOffline = false;
 
@@ -26,28 +26,35 @@ function request(command, data, type = 'post') {
             method: type,
             body: formData,
         }))
-        .then(response => response.json())
-        .then((responseData) => {
-            // Successful request
-            if (responseData.jsonCode === 200) {
-                return responseData;
-            }
 
-            // AuthToken expired, go to the sign in page
-            if (responseData.jsonCode === 407) {
-                return Ion.set(IONKEYS.APP_REDIRECT_TO, ROUTES.SIGNIN);
-            }
-
-            // eslint-disable-next-line no-console
-            console.info('[API] UnhandledError', responseData);
-        })
-        // eslint-disable-next-line no-unused-vars
+        // This will catch any HTTP network errors (like 404s and such), not to be confused with jsonCode which this
+        // does NOT catch
         .catch(() => {
             isAppOffline = true;
 
             // Throw a new error to prevent any other `then()` in the promise chain from being triggered (until another
             // catch() happens
             throw new Error('API is offline');
+        })
+
+        // Convert the data into JSON
+        .then(response => response.json())
+
+        // Handle any of our jsonCodes
+        .then((responseData) => {
+            if (responseData) {
+                // AuthToken expired, go to the sign in page
+                if (responseData.jsonCode === 407) {
+                    redirectToSignIn();
+                    throw new Error('[API] Auth token expired');
+                }
+
+                if (responseData.jsonCode !== 200) {
+                    throw new Error(responseData.message);
+                }
+            }
+
+            return responseData;
         });
 }
 

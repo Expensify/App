@@ -6,6 +6,7 @@ import IONKEYS from '../../IONKEYS';
 import CONFIG from '../../CONFIG';
 import Str from '../Str';
 import Guid from '../Guid';
+import redirectToSignIn from './ActionsSignInRedirect';
 
 /**
  * Create login
@@ -44,7 +45,7 @@ function signIn(login, password, twoFactorAuthCode = '') {
         twoFactorAuthCode
     })
         .then((data) => {
-            console.debug('[SIGNIN] Authentication result. Code:', data.jsonCode, data);
+            console.debug('[SIGNIN] Authentication result. Code:', data && data.jsonCode);
 
             // If we didn't get a 200 response from authenticate, the user needs to sign in again
             if (data.jsonCode !== 200) {
@@ -53,8 +54,8 @@ function signIn(login, password, twoFactorAuthCode = '') {
                 return Ion.multiSet({
                     [IONKEYS.CREDENTIALS]: {},
                     [IONKEYS.SESSION]: {error: data.message},
-                    [IONKEYS.APP_REDIRECT_TO]: ROUTES.SIGNIN,
-                });
+                })
+                    .then(redirectToSignIn);
             }
 
             // If Expensify login, it's the users first time logging in and we need to create a login for the user
@@ -98,7 +99,7 @@ function deleteLogin(authToken, login) {
  * @returns {Promise}
  */
 function signOut() {
-    return Ion.set(IONKEYS.APP_REDIRECT_TO, ROUTES.SIGNIN)
+    return redirectToSignIn()
         .then(() => Ion.multiGet([IONKEYS.SESSION, IONKEYS.CREDENTIALS]))
         .then(data => deleteLogin(data.session.authToken, data.credentials.login))
         .then(Ion.clear)
@@ -127,7 +128,7 @@ function verifyAuthToken() {
                 }
 
                 // If the auth token is bad and we didn't have credentials saved, we want them to go to the sign in page
-                return Ion.set(IONKEYS.APP_REDIRECT_TO, ROUTES.SIGNIN);
+                return redirectToSignIn();
             });
         });
 }
@@ -135,5 +136,5 @@ function verifyAuthToken() {
 export {
     signIn,
     signOut,
-    verifyAuthToken
+    verifyAuthToken,
 };
