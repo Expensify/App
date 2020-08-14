@@ -19,4 +19,8 @@ export default {
     },
     REPORT_IDS: Config.REPORT_IDS,
     SITE_TITLE: 'Chat',
+    FAVICON: {
+        DEFAULT: 'favicon.jpg',
+        UNREAD: 'favicon-unread.jpg'
+    }
 };
