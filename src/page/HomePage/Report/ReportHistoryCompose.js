@@ -31,11 +31,6 @@ class ReportHistoryCompose extends React.Component {
         this.focusInput();
     }
 
-    shouldComponentUpdate(nextProps) {
-        // Only re-render when the reportID changes
-        return nextProps.match.params.reportID !== this.props.match.params.reportID;
-    }
-
     componentDidUpdate() {
         this.focusInput();
     }
