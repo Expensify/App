@@ -1,3 +1,6 @@
+// We place items a percentage to the safe area on the top or bottom of the screen
+const safeInsertPercentage = 0.7;
+
 const colors = {
     componentBG: '#FFFFFF',
     background: '#FAFAFA',
@@ -40,6 +43,10 @@ const styles = {
     h100p: {
         height: '100%',
     },
+    flex0: {
+        flex: 0,
+    },
+
     flex1: {
         flex: 1,
     },
@@ -295,18 +302,40 @@ const styles = {
 
     appContent: {
         backgroundColor: colors.background,
+        overflow: 'hidden',
+    },
+
+    appContentRounded: {
         borderTopLeftRadius: 12,
         borderBottomLeftRadius: 12,
-        overflow: 'hidden',
     },
 
     appContentHeader: {
         borderBottomWidth: 1,
         borderBottomColor: colors.border,
         height: 73,
-        alignItems: 'center',
+        justifyContent: 'center',
+        display: 'flex',
         paddingLeft: 20,
         paddingRight: 20,
+    },
+
+    appContentHeaderTitle: {
+        alignItems: 'center',
+        flexDirection: 'row',
+    },
+
+    LHNToggle: {
+        alignItems: 'center',
+        height: 40,
+        justifyContent: 'center',
+        marginRight: 8,
+        width: 40,
+    },
+
+    LHNToggleIcon: {
+        height: 15,
+        width: 18,
     },
 
     navText: {
@@ -328,8 +357,8 @@ const styles = {
     chatContentEmpty: {
         paddingTop: 16,
         paddingBottom: 16,
-        paddingLeft: 16,
-        paddingRight: 16,
+        paddingLeft: 20,
+        paddingRight: 20,
     },
 
     // Chat Item
@@ -338,8 +367,8 @@ const styles = {
         flexDirection: 'row',
         paddingTop: 8,
         paddingBottom: 8,
-        paddingLeft: 16,
-        paddingRight: 16,
+        paddingLeft: 20,
+        paddingRight: 20,
     },
 
     chatItemLeft: {
@@ -356,7 +385,7 @@ const styles = {
     },
 
     chatItemMessageHeader: {
-        alignItems: 'baseline',
+        alignItems: 'center',
         display: 'flex',
         flexDirection: 'row',
     },
@@ -364,6 +393,7 @@ const styles = {
     chatItemMessageHeaderSender: {
         color: colors.heading,
         fontSize: 15,
+        height: 24,
         lineHeight: 20,
         fontWeight: '600',
         paddingRight: 5,
@@ -373,6 +403,7 @@ const styles = {
     chatItemMessageHeaderTimestamp: {
         color: colors.textSupporting,
         fontSize: 11,
+        height: 24,
         lineHeight: 20,
     },
 
@@ -392,9 +423,31 @@ const styles = {
         minHeight: 85,
         paddingTop: 20,
         paddingBottom: 20,
-        paddingLeft: 16,
-        paddingRight: 16,
+        paddingLeft: 20,
+        paddingRight: 20,
     },
 };
 
+/**
+ * Takes safe area insets and returns padding to use for a View
+ *
+ * @param {object} insets
+ * @returns {{paddingBottom: number, paddingTop: number}}
+ */
+function getSafeAreaPadding(insets) {
+    return {paddingTop: insets.top, paddingBottom: insets.bottom * safeInsertPercentage};
+}
+
+/**
+ * Takes safe area insets and returns margin to use for a View
+ *
+ * @param {object} insets
+ * @returns {{marginBottom: number}}
+ */
+function getSafeAreaMargins(insets) {
+    return {marginBottom: insets.bottom * safeInsertPercentage};
+}
+
+
 export default styles;
+export {getSafeAreaPadding, getSafeAreaMargins};
