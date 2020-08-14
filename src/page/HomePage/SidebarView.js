@@ -26,12 +26,6 @@ const propTypes = {
 };
 
 class SidebarView extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.toggleHamburger = this.props.toggleHamburger.bind(this);
-    }
-
     /**
      * Updates the page title to indicate there are unread reports
      */
@@ -65,7 +59,7 @@ class SidebarView extends React.Component {
                             key={report.reportID}
                             reportID={report.reportID}
                             reportName={report.reportName}
-                            toggleHamburger={this.toggleHamburger}
+                            toggleHamburger={this.props.toggleHamburger}
                         />
                     ))}
                 </View>
