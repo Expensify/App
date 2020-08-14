@@ -18,7 +18,11 @@ function request(command, data, type = 'post') {
     return Ion.get(IONKEYS.SESSION, 'authToken')
         .then((authToken) => {
             const formData = new FormData();
-            formData.append('authToken', authToken);
+
+            // If we're calling Authenticate we don't need an authToken, so let's not send "undefined"
+            if (command !== 'Authenticate') {
+                formData.append('authToken', authToken);
+            }
             _.each(data, (val, key) => formData.append(key, val));
             return formData;
         })
