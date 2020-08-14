@@ -1,7 +1,10 @@
 const path = require('path');
+const webpack = require('webpack');
 const {merge} = require('webpack-merge');
+const dotenv = require('dotenv');
 const common = require('./webpack.common.js');
-const ReactWebConfig = require('./ReactWebConfig').ReactWebConfig;
+
+const env = dotenv.config({path: path.resolve('./.env.production')}).parsed;
 
 module.exports = merge(common, {
     mode: 'development',
@@ -11,6 +14,8 @@ module.exports = merge(common, {
         hot: true,
     },
     plugins: [
-        ReactWebConfig(path.resolve(__dirname, './.env')),
+        new webpack.DefinePlugin({
+            __REACT_WEB_CONFIG__: JSON.stringify(env),
+        })
     ]
 });
