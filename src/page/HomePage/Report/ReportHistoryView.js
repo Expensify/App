@@ -102,7 +102,11 @@ class ReportHistoryView extends React.Component {
     }
 
     render() {
-        const reportHistory = lodashGet(this.state || {}, 'reportHistory', []);
+        let reportHistory = [];
+        if (this.state && this.state.reportHistory) {
+            reportHistory = this.state.reportHistory;
+        }
+
         if (reportHistory.length === 0) {
             return (
                 <View style={[styles.chatContent, styles.chatContentEmpty]}>
