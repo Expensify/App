@@ -63,4 +63,4 @@ android/app/service-account.json
 /ios/Pods/
 
 # Local DEV config
-/src/CONFIG.DEV.js
+/.env

@@ -1,4 +1,5 @@
 import {Platform} from 'react-native';
+import Config from 'react-native-config';
 
 // eslint-disable-next-line no-undef
 const IS_IN_PRODUCTION = Platform.OS === 'web' ? process.env.NODE_ENV === 'production' : !__DEV__;
@@ -16,6 +17,6 @@ export default {
         AUTH_URL: IS_IN_PRODUCTION ? 'https://www.expensify.com' : 'https://www.expensify.com.dev',
         CLUSTER: 'mt1',
     },
-    REPORT_IDS: process.env.REPORT_IDS,
+    REPORT_IDS: Config.REPORT_IDS,
     SITE_TITLE: 'Chat',
 };

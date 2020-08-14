@@ -1,8 +1,10 @@
+const webpack = require('webpack');
 const path = require('path');
 const {merge} = require('webpack-merge');
-const webpack = require('webpack');
-const devConfig = require('./src/CONFIG.DEV');
+const dotenv = require('dotenv');
 const common = require('./webpack.common.js');
+
+const env = dotenv.config(path.resolve(__dirname, '.env')).parsed;
 
 module.exports = merge(common, {
     mode: 'development',
@@ -13,7 +15,7 @@ module.exports = merge(common, {
     },
     plugins: [
         new webpack.DefinePlugin({
-            'process.env.REPORT_IDS': JSON.stringify(devConfig.REPORT_IDS),
+            __REACT_WEB_CONFIG__: JSON.stringify(env),
         })
-    ],
+    ]
 });
