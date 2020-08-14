@@ -20,17 +20,17 @@ platform :android do
   lane :beta do
     ENV["ENVFILE"]=".env.production"
 
-    version = `node -pe "require('../../package.json').version"`.strip
-
     gradle(task: "clean assembleRelease")
 
-    set_github_release(
-        repository_name: "AndrewGable/ReactNativeChat",
-        api_token: ENV["GITHUB_TOKEN"],
-        name: version,
-        description: ("Release version " + version),
-        tag_name: version,
-        upload_assets: ["./app/build/outputs/apk/release/app-release.apk"]
+    aws_s3(
+        access_key: ENV['AWS_SECRET_ACCESS_KEY'],
+        secret_access_key: ENV['AWS_SECRET_ACCESS_KEY'],
+        aws_profile: ENV['AWS_ACCESS_KEY_ID'],
+        bucket: 's3://chat-test-expensify-com/',
+        region: 'us-east-1',
+        apk: './app/build/outputs/apk/release/app-release.apk',
+        path: '/',
+        upload_metadata: false,
     )
   end
 end
