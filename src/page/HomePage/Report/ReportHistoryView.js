@@ -24,7 +24,6 @@ class ReportHistoryView extends React.Component {
 
         this.recordlastReadActionID = _.debounce(this.recordlastReadActionID.bind(this), 1000, true);
         this.scrollToBottomWhenListSizeChanges = this.scrollToBottomWhenListSizeChanges.bind(this);
-        this.sortReportActions = this.sortReportActions.bind(this);
     }
 
     /**
@@ -104,19 +103,8 @@ class ReportHistoryView extends React.Component {
         this.recordMaxAction();
     }
 
-    /**
-     * Sorts the report actions so that the newest actions are at the bottom
-     *
-     * @param {object} firstReport
-     * @param {object} secondReport
-     * @returns {number}
-     */
-    sortReportActions(firstReport, secondReport) {
-        return firstReport.sequenceNumber - secondReport.sequenceNumber;
-    }
-
     render() {
-        let reportHistory = [];
+        let reportHistory = {};
         if (this.state && this.state.reportHistory) {
             reportHistory = this.state.reportHistory;
         }
@@ -138,7 +126,7 @@ class ReportHistoryView extends React.Component {
                 bounces={false}
                 style={[styles.chatContentInner]}
             >
-                {_.chain(reportHistory).sortBy(this.sortReportActions).map((item, index) => (
+                {_.chain(reportHistory).sortBy('sequenceNumber').map((item, index) => (
                     <ReportHistoryItem
                         key={item.sequenceNumber}
                         historyItem={item}
