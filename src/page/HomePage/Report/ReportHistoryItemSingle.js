@@ -15,42 +15,51 @@ const propTypes = {
     historyItem: PropTypes.shape(ReportHistoryPropsTypes).isRequired,
 };
 
-const ReportHistoryItemSingle = ({historyItem}) => {
-    const avatarUrl = historyItem.automatic
-        ? `${CONST.CLOUDFRONT_URL}/images/icons/concierge_2019.svg`
-        : historyItem.avatar;
-    return (
-        <View style={[styles.chatItem]}>
-            <View style={[styles.chatItemLeft]}>
-                <View style={[styles.historyItemAvatarWrapper]}>
-                    <Image
-                        source={{uri: avatarUrl}}
-                        style={[styles.historyItemAvatar]}
-                    />
-                </View>
-            </View>
-            <View style={[styles.chatItemRight]}>
-                <View style={[styles.chatItemMessageHeader]}>
-                    {historyItem.person.map(fragment => (
-                        <View key={_.uniqueId('person-', historyItem.sequenceNumber)}>
-                            <ReportHistoryItemFragment
-                                fragment={fragment}
-                            />
-                        </View>
-                    ))}
-                    <View>
-                        <ReportHistoryItemDate timestamp={historyItem.timestamp} />
+class ReportHistoryItemSingle extends React.Component {
+    shouldComponentUpdate(nextProps) {
+        // Only re-render if the sequenceNumber and created property have changed
+        return nextProps.historyItem.sequenceNumber !== this.props.historyItem.sequenceNumber
+            && nextProps.historyItem.created !== this.props.historyItem.created;
+    }
+
+    render() {
+        const {historyItem} = this.props;
+        const avatarUrl = historyItem.automatic
+            ? `${CONST.CLOUDFRONT_URL}/images/icons/concierge_2019.svg`
+            : historyItem.avatar;
+        return (
+            <View style={[styles.chatItem]}>
+                <View style={[styles.chatItemLeft]}>
+                    <View style={[styles.historyItemAvatarWrapper]}>
+                        <Image
+                            source={{uri: avatarUrl}}
+                            style={[styles.historyItemAvatar]}
+                        />
                     </View>
                 </View>
-                <View style={[styles.chatItemMessage]}>
-                    <Text>
-                        <ReportHistoryItemMessage historyItem={historyItem} />
-                    </Text>
+                <View style={[styles.chatItemRight]}>
+                    <View style={[styles.chatItemMessageHeader]}>
+                        {historyItem.person.map(fragment => (
+                            <View key={_.uniqueId('person-', historyItem.sequenceNumber)}>
+                                <ReportHistoryItemFragment
+                                    fragment={fragment}
+                                />
+                            </View>
+                        ))}
+                        <View>
+                            <ReportHistoryItemDate timestamp={historyItem.timestamp} />
+                        </View>
+                    </View>
+                    <View style={[styles.chatItemMessage]}>
+                        <Text>
+                            <ReportHistoryItemMessage historyItem={historyItem} />
+                        </Text>
+                    </View>
                 </View>
             </View>
-        </View>
-    );
-};
+        );
+    }
+}
 
 ReportHistoryItemSingle.propTypes = propTypes;
 
