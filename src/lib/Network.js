@@ -2,7 +2,6 @@ import _ from 'underscore';
 import Ion from './Ion';
 import CONFIG from '../CONFIG';
 import IONKEYS from '../IONKEYS';
-import redirectToSignIn from './actions/ActionsSignInRedirect';
 import verifyAuthToken from './actions/ActionsReauthenticate';
 
 let isAppOffline = false;
@@ -47,7 +46,6 @@ function request(command, data, type = 'post') {
                 // AuthToken expired, go to the sign in page
                 if (responseData.jsonCode === 407) {
                     return verifyAuthToken();
-                    throw new Error('[API] Auth token expired');
                 }
 
                 if (responseData.jsonCode !== 200) {
@@ -56,6 +54,11 @@ function request(command, data, type = 'post') {
             }
 
             return responseData;
+        })
+        .then((responseData) => {
+            if (responseData.jsonCode === 407) {
+                throw new Error('[API] Auth token expired');
+            }
         });
 }
 
