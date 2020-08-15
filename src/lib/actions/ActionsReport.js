@@ -113,12 +113,8 @@ function fetchAll() {
             const report = get(promiseResult, 'value.reports', {});
 
             // If there is no report found from the promise, return null
-            if (_.isEmpty(report)) {
-                return null;
-            }
-
-            // Grab the actual report object from the first index in the array
-            return _.values(report)[0];
+            // Otherwise, grab the actual report object from the first index in the values array
+            return _.isEmpty(report) ? null : _.values(report)[0];
         })))
         .then(() => Ion.get(IONKEYS.SESSION, 'accountID'))
         .then((accountID) => {
