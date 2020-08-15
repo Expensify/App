@@ -28,6 +28,8 @@ class MainView extends React.Component {
 
         const reportIDInURL = parseInt(this.props.match.params.reportID, 10);
 
+        // The styles for each of our reports. Basically, they are all hidden except for the one matching the
+        // reportID in the URL
         const reportStyles = _.reduce(this.state.reports, (memo, report) => {
             const finalData = {...memo};
             const reportStyle = reportIDInURL === report.reportID
