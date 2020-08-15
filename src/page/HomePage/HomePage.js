@@ -46,6 +46,7 @@ export default class App extends React.Component {
             }
         });
         Dimensions.addEventListener('change', this.onChange);
+        StatusBar.setBackgroundColor(styles.appContentStatusBar.color, styles.appContentStatusBar.animated);
     }
 
     componentWillUnmount() {

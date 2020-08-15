@@ -147,6 +147,11 @@ const styles = {
         marginBottom: 4,
     },
 
+    signInPageStatusBar: {
+        color: colors.heading,
+        animated: false
+    },
+
     signInPage: {
         backgroundColor: colors.heading,
         height: '100%',
@@ -303,6 +308,11 @@ const styles = {
     appContent: {
         backgroundColor: colors.background,
         overflow: 'hidden',
+    },
+
+    appContentStatusBar: {
+        color: colors.background,
+        animated: true
     },
 
     appContentRounded: {
