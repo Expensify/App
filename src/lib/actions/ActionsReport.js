@@ -6,6 +6,7 @@ import IONKEYS from '../../IONKEYS';
 import CONFIG from '../../CONFIG';
 import * as pusher from '../Pusher/pusher';
 import promiseAllSettled from '../promiseAllSettled';
+import ExpensiMark from '../ExpensiMark';
 
 /**
  * Updates a report in the store with a new report action
@@ -154,6 +155,10 @@ function fetchHistory(reportID) {
 function addHistoryItem(reportID, reportComment) {
     const historyKey = `${IONKEYS.REPORT_HISTORY}_${reportID}`;
 
+    // Convert the comment from MD into HTML because that's how it is stored in the database
+    const parser = new ExpensiMark();
+    const htmlComment = parser.replace(reportComment);
+
     return Ion.multiGet([historyKey, IONKEYS.SESSION, IONKEYS.PERSONAL_DETAILS])
         .then((values) => {
             const reportHistory = values[historyKey];
@@ -187,8 +192,8 @@ function addHistoryItem(reportID, reportComment) {
                     message: [
                         {
                             type: 'COMMENT',
-                            html: reportComment,
-                            text: reportComment,
+                            html: htmlComment,
+                            text: htmlComment,
                         }
                     ],
                     isFirstItem: false,
@@ -198,7 +203,7 @@ function addHistoryItem(reportID, reportComment) {
         })
         .then(() => delayedWrite('Report_AddComment', {
             reportID,
-            reportComment,
+            reportComment: htmlComment,
         }));
 }
 
