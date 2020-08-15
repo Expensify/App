@@ -89,7 +89,14 @@ export default class App extends React.Component {
                 <StatusBar barStyle="dark-content" />
                 <SafeAreaInsetsContext.Consumer style={[styles.flex1, styles.h100p]}>
                     {insets => (
-                        <View style={[styles.appContentWrapper, appContentWrapperStyle, styles.flexRow, styles.h100p, getSafeAreaPadding(insets)]}>
+                        <View
+                            style={[styles.appContentWrapper,
+                                appContentWrapperStyle,
+                                styles.flexRow,
+                                styles.h100p,
+                                getSafeAreaPadding(insets)
+                            ]}
+                        >
                             <Route path="/:reportID?">
                                 <View style={[hamburgerStyle, visibility]}>
                                     <Sidebar insets={insets} onLinkClick={this.toggleHamburger} />
