@@ -18,6 +18,13 @@ jobs:
         - name: Install node packages
           run: npm install
 
+        - name: Configure AWS Credentials
+          uses: aws-actions/configure-aws-credentials@v1
+          with:
+            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            aws-region: us-east-1
+
         - name: Decrypt keystore
           run: cd android/app && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output my-upload-key.keystore my-upload-key.keystore.gpg
           env:
@@ -25,6 +32,6 @@ jobs:
 
         - name: Run Fastlane
           run: bundle exec fastlane android beta
-          env:
-              AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-              AWS_ACCESS_KEY_ID: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+        - name: Deploy to S3
+          run: aws s3 cp --acl public-read $GITHUB_WORKSPACE/android/app/build/outputs/apk/release/app-release.apk s3://chat-test-expensify-com/
