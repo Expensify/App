@@ -17,6 +17,7 @@ module.exports = {
             template: 'web/index.html',
             filename: 'index.html',
         }),
+        // Copies favicons into the dist/ folder to use for unread status
         new CopyPlugin({
             patterns: [
                 {from: 'web/favicon.png'},
