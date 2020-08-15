@@ -107,7 +107,7 @@ function fetchAll() {
         shouldLoadOptionalKeys: true,
     }));
 
-    return promiseAllSettled(reportFetchPromises)
+    const allSettledPromise = promiseAllSettled(reportFetchPromises)
         .then(data => fetchedReports = _.compact(_.map(data, (promiseResult) => {
             // Grab the report from the promise result which stores it in the `value` key
             const report = get(promiseResult, 'value.reports', {});
@@ -134,6 +134,12 @@ function fetchAll() {
 
             return promiseAllSettled(ionPromises);
         });
+
+    return new Promise(resolve => allSettledPromise
+        .then(() => {
+            fetchedReports = _.sortBy(fetchedReports, 'reportID');
+            resolve(fetchedReports);
+        }));
 }
 
 /**
