@@ -35,6 +35,10 @@ class App extends Component {
         };
     }
 
+    componentDidMount() {
+        StatusBar.setBackgroundColor(styles.signInPageStatusBar.color, styles.signInPageStatusBar.animated);
+    }
+
     /**
      * Sign into the application when the form is submitted
      */
