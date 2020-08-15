@@ -307,6 +307,7 @@ const styles = {
     },
 
     // App Content Wrapper styles for large screens
+    // The darker BG color allows the rounded corners to show through
     appContentWrapperLarge: {
         backgroundColor: colors.heading,
     },
