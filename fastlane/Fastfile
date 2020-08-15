@@ -30,7 +30,7 @@ platform :android do
       aws_profile: ENV['AWS_ACCESS_KEY_ID'],
       bucket: 's3://chat-test-expensify-com/',
       region: 'us-east-1',
-      apk: './app/build/outputs/apk/release/app-release.apk',
+      apk: lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH],
       path: '/',
       upload_metadata: false,
     )
