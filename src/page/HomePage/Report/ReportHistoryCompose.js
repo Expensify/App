@@ -1,11 +1,15 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, TextInput} from 'react-native';
+import {View} from 'react-native';
 import styles from '../../../style/StyleSheet';
+import TextInputFocusable from '../../../components/TextInputFocusable';
 
 const propTypes = {
     // A method to call when the form is submitted
     onSubmit: PropTypes.func.isRequired,
+
+    // The ID of the report actions will be created for
+    reportID: PropTypes.number.isRequired,
 };
 
 class ReportHistoryCompose extends React.Component {
@@ -20,14 +24,6 @@ class ReportHistoryCompose extends React.Component {
         this.state = {
             comment: '',
         };
-    }
-
-    componentDidMount() {
-        this.textInput.focus();
-    }
-
-    componentDidUpdate() {
-        this.textInput.focus();
     }
 
     /**
@@ -70,7 +66,7 @@ class ReportHistoryCompose extends React.Component {
             return;
         }
 
-        this.props.onSubmit(this.state.comment);
+        this.props.onSubmit(this.props.reportID, this.state.comment);
         this.setState({
             comment: '',
         });
@@ -79,8 +75,7 @@ class ReportHistoryCompose extends React.Component {
     render() {
         return (
             <View style={[styles.chatItemCompose]}>
-                <TextInput
-                    ref={el => this.textInput = el}
+                <TextInputFocusable
                     multiline
                     blurOnSubmit
                     textAlignVertical="top"

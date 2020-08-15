@@ -19,6 +19,21 @@ import {
 Ion.init();
 
 class Expensify extends Component {
+    constructor(props) {
+        super(props);
+
+        this.recordCurrentRoute = this.recordCurrentRoute.bind(this);
+    }
+
+    /**
+     * Keep the current route match stored in Ion so other libs can access it
+     *
+     * @param {object} params.match
+     */
+    recordCurrentRoute({match}) {
+        Ion.set(IONKEYS.CURRENT_URL, match.url);
+    }
+
     render() {
         return (
 
@@ -27,9 +42,10 @@ class Expensify extends Component {
             <Router>
                 {/* If there is ever a property for redirecting, we do the redirect here */}
                 {this.state && this.state.redirectTo && <Redirect to={this.state.redirectTo} />}
+                <Route path="*" render={this.recordCurrentRoute} />
 
                 <Switch>
-                    <Route path="/signin" component={SignInPage} />
+                    <Route path={['/signin/exitTo/:exitTo*', '/signin']} component={SignInPage} />
                     <Route path="/" component={HomePage} />
                 </Switch>
             </Router>

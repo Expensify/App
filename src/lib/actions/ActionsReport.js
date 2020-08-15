@@ -1,22 +1,13 @@
 import moment from 'moment';
 import _ from 'underscore';
+import get from 'lodash.get';
 import Ion from '../Ion';
 import {request, delayedWrite} from '../Network';
 import IONKEYS from '../../IONKEYS';
 import CONFIG from '../../CONFIG';
 import * as pusher from '../Pusher/pusher';
 import promiseAllSettled from '../promiseAllSettled';
-
-/**
- * Sorts the report actions so that the newest actions are at the bottom
- *
- * @param {object} firstReport
- * @param {object} secondReport
- * @returns {number}
- */
-function sortReportActions(firstReport, secondReport) {
-    return firstReport.sequenceNumber - secondReport.sequenceNumber;
-}
+import ExpensiMark from '../ExpensiMark';
 
 /**
  * Updates a report in the store with a new report action
@@ -25,9 +16,6 @@ function sortReportActions(firstReport, secondReport) {
  * @param {object} reportAction
  */
 function updateReportWithNewAction(reportID, reportAction) {
-    // Get the comments for this report, and add the comment (being sure to sort and filter properly)
-    let foundExistingReportHistoryItem = false;
-
     Ion.get(`${IONKEYS.REPORT}_${reportID}`, 'reportID')
         .then((ionReportID) => {
             // This is necessary for local development because there will be pusher events from other engineers with
@@ -36,29 +24,29 @@ function updateReportWithNewAction(reportID, reportAction) {
                 throw new Error('Report does not exist in the store, so ignoring new comments');
             }
 
+            // Get the report history and return that to the next chain
             return Ion.get(`${IONKEYS.REPORT_HISTORY}_${reportID}`);
         })
 
-        // Use a reducer to replace an existing report history item if there is one
-        .then(reportHistory => _.map(reportHistory, (reportHistoryItem) => {
-            // If there is an existing reportHistoryItem, replace it
-            if (reportHistoryItem.sequenceNumber === reportAction.sequenceNumber) {
-                foundExistingReportHistoryItem = true;
-                return reportAction;
-            }
-            return reportHistoryItem;
-        }))
+        // Look to see if the report action from pusher already exists or not (it would exist if it's a comment just
+        // written by the user). If the action doesn't exist, then update the unread flag on the report so the user
+        // knows there is a new comment
         .then((reportHistory) => {
-            // If there was no existing history item, add it to the report history and mark the report for having unread
-            // items
-            if (!foundExistingReportHistoryItem) {
-                reportHistory.push(reportAction);
+            if (!reportHistory[reportAction.sequenceNumber]) {
                 Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {hasUnread: true});
             }
             return reportHistory;
         })
+
+        // Put the report action from pusher into the history, it's OK to overwrite it if it already exists
+        .then(reportHistory => ({
+            ...reportHistory,
+            [reportAction.sequenceNumber]: reportAction,
+        }))
+
+        // Put the report history back into Ion
         .then((reportHistory) => {
-            Ion.set(`${IONKEYS.REPORT_HISTORY}_${reportID}`, reportHistory.sort(sortReportActions));
+            Ion.set(`${IONKEYS.REPORT_HISTORY}_${reportID}`, reportHistory);
         });
 }
 
@@ -117,8 +105,17 @@ function fetchAll() {
         returnValueList: 'reportStuff',
         reportIDList: reportID,
         shouldLoadOptionalKeys: true,
-    })
-        .then(data => fetchedReports = data.reports)
+    }));
+
+    return promiseAllSettled(reportFetchPromises)
+        .then(data => fetchedReports = _.compact(_.map(data, (promiseResult) => {
+            // Grab the report from the promise result which stores it in the `value` key
+            const report = get(promiseResult, 'value.reports', {});
+
+            // If there is no report found from the promise, return null
+            // Otherwise, grab the actual report object from the first index in the values array
+            return _.isEmpty(report) ? null : _.values(report)[0];
+        })))
         .then(() => Ion.get(IONKEYS.SESSION, 'accountID'))
         .then((accountID) => {
             const ionPromises = _.map(fetchedReports, (report) => {
@@ -136,9 +133,7 @@ function fetchAll() {
             });
 
             return promiseAllSettled(ionPromises);
-        }));
-
-    return promiseAllSettled(reportFetchPromises);
+        });
 }
 
 /**
@@ -152,7 +147,10 @@ function fetchHistory(reportID) {
         reportID,
         offset: 0,
     })
-        .then(data => Ion.set(`${IONKEYS.REPORT_HISTORY}_${reportID}`, data.history.sort(sortReportActions)));
+        .then((data) => {
+            const indexedData = _.indexBy(data.history, 'sequenceNumber');
+            Ion.set(`${IONKEYS.REPORT_HISTORY}_${reportID}`, indexedData);
+        });
 }
 
 /**
@@ -165,6 +163,10 @@ function fetchHistory(reportID) {
 function addHistoryItem(reportID, reportComment) {
     const historyKey = `${IONKEYS.REPORT_HISTORY}_${reportID}`;
 
+    // Convert the comment from MD into HTML because that's how it is stored in the database
+    const parser = new ExpensiMark();
+    const htmlComment = parser.replace(reportComment);
+
     return Ion.multiGet([historyKey, IONKEYS.SESSION, IONKEYS.PERSONAL_DETAILS])
         .then((values) => {
             const reportHistory = values[historyKey];
@@ -176,11 +178,12 @@ function addHistoryItem(reportID, reportComment) {
                 .pluck('sequenceNumber')
                 .max()
                 .value() || 0;
+            const newSequenceNumber = highestSequenceNumber + 1;
 
             // Optimistically add the new comment to the store before waiting to save it to the server
-            return Ion.set(historyKey, [
+            return Ion.set(historyKey, {
                 ...reportHistory,
-                {
+                [newSequenceNumber]: {
                     actionName: 'ADDCOMMENT',
                     actorEmail: Ion.get(IONKEYS.SESSION, 'email'),
                     person: [
@@ -197,18 +200,18 @@ function addHistoryItem(reportID, reportComment) {
                     message: [
                         {
                             type: 'COMMENT',
-                            html: reportComment,
-                            text: reportComment,
+                            html: htmlComment,
+                            text: htmlComment,
                         }
                     ],
                     isFirstItem: false,
                     isAttachmentPlaceHolder: false,
                 }
-            ]);
+            });
         })
         .then(() => delayedWrite('Report_AddComment', {
             reportID,
-            reportComment,
+            reportComment: htmlComment,
         }));
 }
 
