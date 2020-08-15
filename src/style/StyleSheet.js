@@ -40,6 +40,13 @@ const styles = {
     p1: {
         padding: 10,
     },
+    pr1: {
+        paddingRight: 4,
+    },
+    pr2: {
+        paddingRight: 8,
+    },
+
     h100p: {
         height: '100%',
     },
