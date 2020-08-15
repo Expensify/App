@@ -9,7 +9,7 @@ import ReportHistoryItemFragment from './ReportHistoryItemFragment';
 import styles from '../../../style/StyleSheet';
 import CONST from '../../../CONST';
 import ReportHistoryItemDate from './ReportHistoryItemDate';
-import LHNToggle from '../../../../assets/images/icon-menu-toggle.png';
+import LHNToggle from '../../../../assets/images/icon-hourglass.png';
 
 const propTypes = {
     // All the data of the history item

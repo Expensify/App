@@ -428,12 +428,15 @@ const styles = {
     },
 
     chatItemQueuedMessageIndicatorView: {
-        paddingLeft: 8,
+        alignSelf: 'center',
+        height: 20,
+        paddingLeft: 2,
     },
 
     chatItemQueuedMessageIcon: {
-        height: 10,
-        width: 10,
+        alignSelf: 'center',
+        height: 16,
+        width: 16,
     }
 };
 
