@@ -11,7 +11,7 @@ import ROUTES from '../../ROUTES';
 function redirectToSignIn() {
     return Ion.get(IONKEYS.CURRENT_URL)
         .then((url) => {
-            const urlWithExitTo = url !== '/'
+            const urlWithExitTo = url && url !== '/'
                 ? `${ROUTES.SIGNIN}/exitTo${url}`
                 : ROUTES.SIGNIN;
             return Ion.set(IONKEYS.APP_REDIRECT_TO, urlWithExitTo);
