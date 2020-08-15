@@ -10,7 +10,7 @@
     "build": "webpack --config webpack.prod.js",
     "test": "jest",
     "lint": "eslint .",
-    "deploy-ios": "npm version prerelease && fastlane ios beta",
+    "deploy-ios": "npm version prerelease && git push && fastlane ios beta",
     "postversion": "react-native-version"
   },
   "dependencies": {
