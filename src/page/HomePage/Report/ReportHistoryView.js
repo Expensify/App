@@ -104,7 +104,7 @@ class ReportHistoryView extends React.Component {
     }
 
     render() {
-        let reportHistory = [];
+        let reportHistory = {};
         if (this.state && this.state.reportHistory) {
             reportHistory = this.state.reportHistory;
         }
@@ -126,13 +126,13 @@ class ReportHistoryView extends React.Component {
                 bounces={false}
                 style={[styles.chatContentInner]}
             >
-                {_.map(reportHistory, (item, index) => (
+                {_.chain(reportHistory).sortBy('sequenceNumber').map((item, index) => (
                     <ReportHistoryItem
                         key={item.sequenceNumber}
                         historyItem={item}
                         displayAsGroup={this.isConsecutiveHistoryItemMadeByPreviousActor(index)}
                     />
-                ))}
+                )).value()}
             </ScrollView>
         );
     }
