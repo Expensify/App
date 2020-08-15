@@ -107,10 +107,18 @@ function processWriteQueue() {
     }
 }
 
+/**
+ * @returns {boolean}
+ */
+function isOffline() {
+    return isAppOffline;
+}
+
 // Process our write queue very often
 setInterval(processWriteQueue, 1000);
 
 export {
     request,
     delayedWrite,
+    isOffline
 };

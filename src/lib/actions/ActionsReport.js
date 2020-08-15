@@ -1,7 +1,7 @@
 import moment from 'moment';
 import _ from 'underscore';
 import Ion from '../Ion';
-import {request, delayedWrite} from '../Network';
+import {request, delayedWrite, isOffline} from '../Network';
 import IONKEYS from '../../IONKEYS';
 import CONFIG from '../../CONFIG';
 import * as pusher from '../Pusher/pusher';
@@ -171,7 +171,7 @@ function addHistoryItem(reportID, reportComment) {
             return Ion.set(historyKey, {
                 ...reportHistory,
                 [newSequenceNumber]: {
-                    isQueued: true,
+                    isQueued: isOffline,
                     actionName: 'ADDCOMMENT',
                     actorEmail: Ion.get(IONKEYS.SESSION, 'email'),
                     person: [
