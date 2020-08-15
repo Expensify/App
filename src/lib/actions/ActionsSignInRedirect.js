@@ -11,9 +11,19 @@ import ROUTES from '../../ROUTES';
 function redirectToSignIn() {
     return Ion.get(IONKEYS.CURRENT_URL)
         .then((url) => {
-            const urlWithExitTo = url && url !== '/'
-                ? `${ROUTES.SIGNIN}/exitTo${url}`
-                : ROUTES.SIGNIN;
+            if (!url) {
+                return;
+            }
+
+            // If there is already an exitTo, or has the URL of signin, don't redirect
+            if (url.indexOf('exitTo') !== -1 || url.indexOf('signin') !== -1) {
+                return;
+            }
+
+            // When the URL is at the root of the site, go to sign-in, otherwise add the exitTo
+            const urlWithExitTo = url === '/'
+                ? ROUTES.SIGNIN
+                : `${ROUTES.SIGNIN}/exitTo${url}`;
             return Ion.set(IONKEYS.APP_REDIRECT_TO, urlWithExitTo);
         });
 }

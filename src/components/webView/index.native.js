@@ -3,9 +3,10 @@
  * of accomplishing that.
  */
 import React from 'react';
-import {Text} from 'react-native';
 import PropTypes from 'prop-types';
-import Str from '../../lib/Str';
+import HTML from 'react-native-render-html';
+import {View, Linking} from 'react-native';
+import styles, {webViewStyles} from '../../style/StyleSheet';
 
 const propTypes = {
     html: PropTypes.string,
@@ -14,9 +15,15 @@ const defaultProps = {
     html: '',
 };
 
-// @TODO native clients don't support directly injecting HTML so a method needs to be found to do this reliably
 const WebView = ({html}) => (
-    <Text>{Str.htmlDecode(html)}</Text>
+    <View style={[styles.flex1, styles.flexRow]}>
+        <HTML
+            baseFontStyle={webViewStyles.baseFontStyle}
+            tagsStyles={webViewStyles.tagStyles}
+            onLinkPress={(event, href) => Linking.openURL(href)}
+            html={html}
+        />
+    </View>
 );
 
 WebView.propTypes = propTypes;
