@@ -2,8 +2,7 @@ import React from 'react';
 import _ from 'underscore';
 import {
     View,
-    Image,
-    Linking
+    Image
 } from 'react-native';
 import PropTypes from 'prop-types';
 import Text from '../../components/Text';
@@ -16,6 +15,7 @@ import {fetchAll} from '../../lib/actions/ActionsReport';
 import SidebarLink from './SidebarLink';
 import logo from '../../../assets/images/expensify-logo_reversed.png';
 import PageTitleUpdater from '../../lib/PageTitleUpdater';
+import Anchor from '../../components/Anchor';
 
 const propTypes = {
     // Toggles the hamburger menu open and closed
@@ -27,27 +27,6 @@ const propTypes = {
 };
 
 class SidebarView extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.openTestFlightLink = this.openTestFlightLink.bind(this);
-        this.openAndroidLink = this.openAndroidLink.bind(this);
-    }
-
-    /**
-     * Opens the link to join the iOS TestFlight
-     */
-    openTestFlightLink() {
-        Linking.openURL('https://testflight.apple.com/join/vBYbMRQG');
-    }
-
-    /**
-     * Opens link to download the latest Android APK
-     */
-    openAndroidLink() {
-        Linking.openURL('https://chat.expensify.com/app-release.apk');
-    }
-
     /**
      * Updates the page title to indicate there are unread reports
      */
@@ -99,18 +78,18 @@ class SidebarView extends React.Component {
                             </Text>
                         )}
                         <View style={[styles.flexRow]}>
-                            <Text
+                            <Anchor
                                 style={[styles.sidebarFooterLink, styles.mr2]}
-                                onPress={this.openTestFlightLink}
+                                href="https://testflight.apple.com/join/vBYbMRQG"
                             >
                                 iOS
-                            </Text>
-                            <Text
+                            </Anchor>
+                            <Anchor
                                 style={[styles.sidebarFooterLink, styles.mr2]}
-                                onPress={this.openAndroidLink}
+                                href="https://chat.expensify.com/app-release.apk"
                             >
                                 Android
-                            </Text>
+                            </Anchor>
                             <Text style={[styles.sidebarFooterLink]} onPress={signOut}>Sign Out</Text>
                         </View>
                     </View>
