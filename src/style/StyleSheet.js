@@ -300,10 +300,15 @@ const styles = {
         width: 10,
     },
 
-    // App Content styles
+    // App Content Wrapper styles
     appContentWrapper: {
-        backgroundColor: colors.heading,
+        backgroundColor: colors.background,
         color: colors.text,
+    },
+
+    // App Content Wrapper styles for large screens
+    appContentWrapperLarge: {
+        backgroundColor: colors.heading,
     },
 
     appContent: {
