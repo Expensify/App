@@ -2,12 +2,18 @@ import _ from 'underscore';
 import Ion from './Ion';
 import CONFIG from '../CONFIG';
 import IONKEYS from '../IONKEYS';
-import ROUTES from '../ROUTES';
 import {registerSocketEventCallback} from './Pusher/pusher';
 import redirectToSignIn from './actions/ActionsSignInRedirect';
 
 let isAppOffline = false;
 
+/**
+ * Events that happen on the pusher socket are used to determine if the app is online or offline. The offline setting
+ * is stored in Ion so the rest of the app has access to it.
+ *
+ * @params {string} eventName,
+ * @params {object} data
+ */
 registerSocketEventCallback((eventName, data) => {
     let isCurrentlyOffline = false;
     switch (eventName) {
