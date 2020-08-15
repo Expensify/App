@@ -12,6 +12,5 @@ export default {
     REPORT: 'report',
     REPORT_HISTORY: 'report_history',
     REPORT_ACTION: 'reportAction',
-    REPORTS: 'reports',
     SESSION: 'session',
 };
