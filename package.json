@@ -1,6 +1,6 @@
 {
   "name": "react-native-chat",
-  "version": "1.0.1-2",
+  "version": "1.0.1-3",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -33,8 +33,10 @@
     "react-native": "0.63.2",
     "react-native-config": "^1.3.3",
     "react-native-keyboard-spacer": "^0.4.1",
+    "react-native-render-html": "^4.2.3",
     "react-native-safe-area-context": "^3.1.4",
     "react-native-web": "^0.13.5",
+    "react-native-webview": "^10.6.0",
     "react-router-dom": "^5.2.0",
     "react-router-native": "^5.2.0",
     "react-web-config": "^1.0.0",
