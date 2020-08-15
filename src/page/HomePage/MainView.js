@@ -18,8 +18,6 @@ class MainView extends React.Component {
     constructor(props) {
         super(props);
 
-        this.renderedReports = {};
-
         this.state = {};
     }
 
@@ -44,7 +42,6 @@ class MainView extends React.Component {
                 {_.map(this.state.reports, report => (
                     <View
                         key={report.reportID}
-                        ref={el => this.renderedReports[report.reportID] = el}
                         style={reportStyles[report.reportID]}
                     >
                         <ReportView reportID={report.reportID} />
