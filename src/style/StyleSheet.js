@@ -76,6 +76,12 @@ const styles = {
         fontSize: 15,
         lineHeight: 20,
     },
+    invisible: {
+        display: 'none'
+    },
+    visible: {
+        display: 'flex'
+    },
 
     colorReversed: {
         color: '#ffffff',
@@ -426,6 +432,20 @@ const styles = {
         paddingLeft: 20,
         paddingRight: 20,
     },
+
+    hamburgerOpenAbsolute: {
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        bottom: 0,
+        zIndex: 2,
+        width: 300
+    },
+
+    hamburgerOpen: {
+        width: 300
+    }
+
 };
 
 /**
