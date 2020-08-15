@@ -469,7 +469,7 @@ const webViewStyles = {
     baseFontStyle: {
         color: colors.text,
         fontSize: 15,
-        fontFamily: 'GTAmericaExp-Regular',
+        fontFamily: 'GTAmericaExp-Regular'
     }
 };
 

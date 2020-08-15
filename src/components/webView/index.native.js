@@ -5,8 +5,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import HTML from 'react-native-render-html';
-import {Linking} from 'react-native';
-import {webViewStyles} from '../../style/StyleSheet';
+import {View, Linking} from 'react-native';
+import styles, {webViewStyles} from '../../style/StyleSheet';
 
 const propTypes = {
     html: PropTypes.string,
@@ -16,12 +16,15 @@ const defaultProps = {
 };
 
 const WebView = ({html}) => (
-    <HTML
-        baseFontStyle={webViewStyles.baseFontStyle}
-        tagsStyles={webViewStyles.tagStyles}
-        onLinkPress={(event, href) => Linking.openURL(href)}
-        html={html}
-    />
+    <View style={styles.flex1}>
+        <HTML
+            containerStyle={styles.flexWrap}
+            baseFontStyle={webViewStyles.baseFontStyle}
+            tagsStyles={webViewStyles.tagStyles}
+            onLinkPress={(event, href) => Linking.openURL(href)}
+            html={html}
+        />
+    </View>
 );
 
 WebView.propTypes = propTypes;
