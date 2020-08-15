@@ -33,8 +33,8 @@ class MainView extends React.Component {
         const reportStyles = _.reduce(this.state.reports, (memo, report) => {
             const finalData = {...memo};
             const reportStyle = reportIDInURL === report.reportID
-                ? [styles.dFlex, styles.flex1]
-                : [styles.dNone];
+                ? [{position: 'relative', left: 'auto'}, styles.dFlex, styles.flex1]
+                : [{position: 'absolute', left: -10000}, styles.dFlex, styles.flex1];
             finalData[report.reportID] = [reportStyle];
             return finalData;
         }, {});
