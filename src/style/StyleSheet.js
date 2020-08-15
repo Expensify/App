@@ -454,6 +454,26 @@ const styles = {
 
 };
 
+const webViewStyles = {
+    tagStyles: {
+        em: {
+            fontStyle: 'italic',
+        },
+
+        del: {
+            textDecorationLine: 'line-through',
+            textDecorationStyle: 'solid'
+        }
+    },
+
+    baseFontStyle: {
+        color: colors.text,
+        fontSize: 15,
+        fontFamily: 'GTAmericaExp-Regular'
+    }
+};
+
+
 /**
  * Takes safe area insets and returns padding to use for a View
  *
@@ -474,6 +494,7 @@ function getSafeAreaMargins(insets) {
     return {marginBottom: insets.bottom * safeInsertPercentage};
 }
 
-
 export default styles;
-export {getSafeAreaPadding, getSafeAreaMargins};
+export {
+    getSafeAreaPadding, getSafeAreaMargins, colors, webViewStyles
+};
