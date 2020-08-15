@@ -2,16 +2,14 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import styles from '../../../style/StyleSheet';
-import {withRouter} from '../../../lib/Router';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 
 const propTypes = {
     // A method to call when the form is submitted
     onSubmit: PropTypes.func.isRequired,
 
-    // This comes from withRouter
-    // eslint-disable-next-line react/forbid-prop-types
-    match: PropTypes.object.isRequired,
+    // The ID of the report actions will be created for
+    reportID: PropTypes.number.isRequired,
 };
 
 class ReportHistoryCompose extends React.Component {
@@ -68,7 +66,7 @@ class ReportHistoryCompose extends React.Component {
             return;
         }
 
-        this.props.onSubmit(this.props.match.params.reportID, this.state.comment);
+        this.props.onSubmit(this.props.reportID, this.state.comment);
         this.setState({
             comment: '',
         });
@@ -99,4 +97,4 @@ class ReportHistoryCompose extends React.Component {
 }
 ReportHistoryCompose.propTypes = propTypes;
 
-export default withRouter(ReportHistoryCompose);
+export default ReportHistoryCompose;

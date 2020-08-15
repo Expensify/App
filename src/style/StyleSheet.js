@@ -71,16 +71,16 @@ const styles = {
     flexGrow4: {
         flexGrow: 4,
     },
+    dFlex: {
+        display: 'flex',
+    },
+    dNone: {
+        display: 'none',
+    },
     textP: {
         color: colors.text,
         fontSize: 15,
         lineHeight: 20,
-    },
-    invisible: {
-        display: 'none'
-    },
-    visible: {
-        display: 'flex'
     },
 
     colorReversed: {
