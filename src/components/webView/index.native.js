@@ -16,9 +16,8 @@ const defaultProps = {
 };
 
 const WebView = ({html}) => (
-    <View style={styles.flex1}>
+    <View style={[styles.flex1, styles.flexRow]}>
         <HTML
-            containerStyle={styles.flexWrap}
             baseFontStyle={webViewStyles.baseFontStyle}
             tagsStyles={webViewStyles.tagStyles}
             onLinkPress={(event, href) => Linking.openURL(href)}
