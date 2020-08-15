@@ -84,11 +84,11 @@ class ReportHistoryView extends React.Component {
             .then((accountID) => {
                 myAccountID = accountID;
                 const path = `reportNameValuePairs.lastReadActionID_${accountID}`;
-                return Ion.get(`${IONKEYS.REPORT}_${this.props.match.params.reportID}`, path, 0);
+                return Ion.get(`${IONKEYS.REPORT}_${this.props.reportID}`, path, 0);
             })
             .then((lastReadActionID) => {
                 if (maxSequenceNumber > lastReadActionID) {
-                    updateLastReadActionID(myAccountID, this.props.match.params.reportID, maxSequenceNumber);
+                    updateLastReadActionID(myAccountID, this.props.reportID, maxSequenceNumber);
                 }
             });
     }
@@ -146,6 +146,6 @@ export default withRouter(WithIon({
         loader: fetchHistory,
         loaderParams: ['%DATAFROMPROPS%'],
         prefillWithKey: key,
-        pathForProps: 'match.params.reportID',
+        pathForProps: 'reportID',
     },
 })(ReportHistoryView));
