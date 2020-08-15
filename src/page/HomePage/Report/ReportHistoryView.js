@@ -10,10 +10,11 @@ import WithIon from '../../../components/WithIon';
 import IONKEYS from '../../../IONKEYS';
 import ReportHistoryItem from './ReportHistoryItem';
 import styles from '../../../style/StyleSheet';
+import {withRouter} from '../../../lib/Router';
 
 const propTypes = {
-    // The ID of the report being looked at
-    reportID: PropTypes.string.isRequired,
+    // The ID of the report actions will be created for
+    reportID: PropTypes.number.isRequired,
 };
 
 class ReportHistoryView extends React.Component {
@@ -102,7 +103,11 @@ class ReportHistoryView extends React.Component {
     }
 
     render() {
-        const reportHistory = this.state && this.state.reportHistory || [];
+        let reportHistory = {};
+        if (this.state && this.state.reportHistory) {
+            reportHistory = this.state.reportHistory;
+        }
+
         if (reportHistory.length === 0) {
             return (
                 <View style={[styles.chatContent, styles.chatContentEmpty]}>
@@ -120,13 +125,13 @@ class ReportHistoryView extends React.Component {
                 bounces={false}
                 style={[styles.chatContentInner]}
             >
-                {_.map(reportHistory, (item, index) => (
+                {_.chain(reportHistory).sortBy('sequenceNumber').map((item, index) => (
                     <ReportHistoryItem
                         key={item.sequenceNumber}
                         historyItem={item}
                         displayAsGroup={this.isConsecutiveHistoryItemMadeByPreviousActor(index)}
                     />
-                ))}
+                )).value()}
             </ScrollView>
         );
     }
@@ -134,7 +139,7 @@ class ReportHistoryView extends React.Component {
 ReportHistoryView.propTypes = propTypes;
 
 const key = `${IONKEYS.REPORT_HISTORY}_%DATAFROMPROPS%`;
-export default WithIon({
+export default withRouter(WithIon({
     reportHistory: {
         key,
         loader: fetchHistory,
@@ -142,4 +147,4 @@ export default WithIon({
         prefillWithKey: key,
         pathForProps: 'reportID',
     },
-})(ReportHistoryView);
+})(ReportHistoryView));

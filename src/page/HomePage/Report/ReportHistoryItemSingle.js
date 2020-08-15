@@ -15,42 +15,45 @@ const propTypes = {
     historyItem: PropTypes.shape(ReportHistoryPropsTypes).isRequired,
 };
 
-const ReportHistoryItemSingle = ({historyItem}) => {
-    const avatarUrl = historyItem.automatic
-        ? `${CONST.CLOUDFRONT_URL}/images/icons/concierge_2019.svg`
-        : historyItem.avatar;
-    return (
-        <View style={[styles.chatItem]}>
-            <View style={[styles.chatItemLeft]}>
-                <View style={[styles.historyItemAvatarWrapper]}>
-                    <Image
-                        source={{uri: avatarUrl}}
-                        style={[styles.historyItemAvatar]}
-                    />
+class ReportHistoryItemSingle extends React.PureComponent {
+    render() {
+        const {historyItem} = this.props;
+        const avatarUrl = historyItem.automatic
+            ? `${CONST.CLOUDFRONT_URL}/images/icons/concierge_2019.svg`
+            : historyItem.avatar;
+        return (
+            <View style={[styles.chatItem]}>
+                <View style={[styles.chatItemLeft]}>
+                    <View style={[styles.historyItemAvatarWrapper]}>
+                        <Image
+                            source={{uri: avatarUrl}}
+                            style={[styles.historyItemAvatar]}
+                        />
+                    </View>
                 </View>
-            </View>
-            <View style={[styles.chatItemRight]}>
-                <View style={[styles.chatItemMessageHeader]}>
-                    {historyItem.person.map(fragment => (
-                        <Text key={_.uniqueId('person-', historyItem.sequenceNumber)}>
-                            <ReportHistoryItemFragment
-                                fragment={fragment}
-                            />
+                <View style={[styles.chatItemRight]}>
+                    <View style={[styles.chatItemMessageHeader]}>
+                        {historyItem.person.map(fragment => (
+                            <View key={_.uniqueId('person-', historyItem.sequenceNumber)}>
+                                <ReportHistoryItemFragment
+                                    fragment={fragment}
+                                />
+                            </View>
+                        ))}
+                        <View>
+                            <ReportHistoryItemDate timestamp={historyItem.timestamp} />
+                        </View>
+                    </View>
+                    <View style={[styles.chatItemMessage]}>
+                        <Text>
+                            <ReportHistoryItemMessage historyItem={historyItem} />
                         </Text>
-                    ))}
-                    <Text>
-                        <ReportHistoryItemDate timestamp={historyItem.timestamp} />
-                    </Text>
-                </View>
-                <View style={[styles.chatItemMessage]}>
-                    <Text>
-                        <ReportHistoryItemMessage historyItem={historyItem} />
-                    </Text>
+                    </View>
                 </View>
             </View>
-        </View>
-    );
-};
+        );
+    }
+}
 
 ReportHistoryItemSingle.propTypes = propTypes;
 

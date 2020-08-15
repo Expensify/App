@@ -48,6 +48,7 @@ module.exports = {
     },
     resolve: {
         alias: {
+            'react-native-config': 'react-web-config',
             'react-native$': 'react-native-web',
         },
     },

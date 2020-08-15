@@ -65,8 +65,6 @@ function disconnect(connectionID) {
  * @param {mixed} data
  */
 function keyChanged(key, data) {
-    console.debug('[STORE] key changed', key, data);
-
     // Find components that were added with connect() and trigger their setState() method with the new data
     _.each(callbackToStateMapping, (mappedComponent) => {
         if (mappedComponent && mappedComponent.regex.test(key)) {
@@ -79,7 +77,7 @@ function keyChanged(key, data) {
                 // Add the data to an array of existing items
                 mappedComponent.reactComponent.setState((prevState) => {
                     const collection = prevState[mappedComponent.statePropertyName] || {};
-                    collection[newValue[mappedComponent.collectionId]] = newValue;
+                    collection[newValue[mappedComponent.collectionID]] = newValue;
                     const newState = {
                         [mappedComponent.statePropertyName]: collection,
                     };
