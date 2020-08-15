@@ -1,5 +1,6 @@
 import moment from 'moment';
 import _ from 'underscore';
+import get from 'lodash.get';
 import Ion from '../Ion';
 import {request, delayedWrite} from '../Network';
 import IONKEYS from '../../IONKEYS';
@@ -104,8 +105,17 @@ function fetchAll() {
         returnValueList: 'reportStuff',
         reportIDList: reportID,
         shouldLoadOptionalKeys: true,
-    })
-        .then(data => fetchedReports = data.reports)
+    }));
+
+    return promiseAllSettled(reportFetchPromises)
+        .then(data => fetchedReports = _.compact(_.map(data, (promiseResult) => {
+            // Grab the report from the promise result which stores it in the `value` key
+            const report = get(promiseResult, 'value.reports', {});
+
+            // If there is no report found from the promise, return null
+            // Otherwise, grab the actual report object from the first index in the values array
+            return _.isEmpty(report) ? null : _.values(report)[0];
+        })))
         .then(() => Ion.get(IONKEYS.SESSION, 'accountID'))
         .then((accountID) => {
             const ionPromises = _.map(fetchedReports, (report) => {
@@ -123,9 +133,7 @@ function fetchAll() {
             });
 
             return promiseAllSettled(ionPromises);
-        }));
-
-    return promiseAllSettled(reportFetchPromises);
+        });
 }
 
 /**
