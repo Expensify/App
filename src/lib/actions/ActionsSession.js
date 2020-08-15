@@ -10,14 +10,12 @@ import redirectToSignIn from './ActionsSignInRedirect';
 
 /**
  * Create login
- * @param {string} authToken
  * @param {string} login
  * @param {string} password
  * @returns {Promise}
  */
-function createLogin(authToken, login, password) {
+function createLogin(login, password) {
     return request('CreateLogin', {
-        authToken,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         partnerUserID: login,
@@ -36,7 +34,7 @@ function createLogin(authToken, login, password) {
 function setSuccessfulSignInData(data, exitTo) {
     return Ion.multiSet({
         [IONKEYS.SESSION]: data,
-        [IONKEYS.APP_REDIRECT_TO]: `/${exitTo}` || ROUTES.HOME,
+        [IONKEYS.APP_REDIRECT_TO]: exitTo ? `/${exitTo}` : ROUTES.HOME,
         [IONKEYS.LAST_AUTHENTICATED]: new Date().getTime(),
     });
 }
@@ -53,7 +51,6 @@ function setSuccessfulSignInData(data, exitTo) {
  */
 function signIn(login, password, twoFactorAuthCode = '', useExpensifyLogin = false, exitTo) {
     console.debug('[SIGNIN] Authenticating with expensify login?', useExpensifyLogin ? 'yes' : 'no');
-    let authToken;
     return request('Authenticate', {
         useExpensifyLogin,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
@@ -64,7 +61,6 @@ function signIn(login, password, twoFactorAuthCode = '', useExpensifyLogin = fal
     })
         .then((data) => {
             console.debug('[SIGNIN] Authentication result. Code:', data && data.jsonCode);
-            authToken = data && data.authToken;
 
             // If we didn't get a 200 response from authenticate, the user needs to sign in again
             if (!useExpensifyLogin && data.jsonCode !== 200) {
@@ -76,21 +72,17 @@ function signIn(login, password, twoFactorAuthCode = '', useExpensifyLogin = fal
                 })
                     .then(redirectToSignIn);
             }
-
+            return setSuccessfulSignInData(data, exitTo);
+        })
+        .then(() => {
             // If Expensify login, it's the users first time logging in and we need to create a login for the user
             if (useExpensifyLogin) {
                 console.debug('[SIGNIN] Creating a login');
-                return createLogin(data.authToken, Str.generateDeviceLoginID(), Guid())
-                    .then(() => {
-                        console.debug('[SIGNIN] Successful sign in', 2);
-                        return setSuccessfulSignInData(data, exitTo);
-                    });
+                return createLogin(Str.generateDeviceLoginID(), Guid());
             }
 
-            console.debug('[SIGNIN] Successful sign in', 1);
-            return setSuccessfulSignInData(data, exitTo);
+            return new Promise();
         })
-        .then(() => authToken)
         .catch((err) => {
             console.error(err);
             console.debug('[SIGNIN] Request error');
