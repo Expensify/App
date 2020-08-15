@@ -65,8 +65,6 @@ function disconnect(connectionID) {
  * @param {mixed} data
  */
 function keyChanged(key, data) {
-    console.debug('[STORE] key changed', key, data);
-
     // Find components that were added with connect() and trigger their setState() method with the new data
     _.each(callbackToStateMapping, (mappedComponent) => {
         if (mappedComponent && mappedComponent.regex.test(key)) {
