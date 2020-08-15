@@ -1,8 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, TextInput, Platform} from 'react-native';
+import {View} from 'react-native';
 import styles from '../../../style/StyleSheet';
 import {withRouter} from '../../../lib/Router';
+import TextInputFocusable from '../../../components/TextInputFocusable';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -25,26 +26,6 @@ class ReportHistoryCompose extends React.Component {
         this.state = {
             comment: '',
         };
-    }
-
-    componentDidMount() {
-        this.focusInput();
-    }
-
-    componentDidUpdate() {
-        this.focusInput();
-    }
-
-    /**
-     * Focuses the input on web, but does not on native platforms
-     */
-    focusInput() {
-        // TODO: Remove this platform dependent code, but I am unsure how at the moment
-        if (Platform.OS !== 'web') {
-            return;
-        }
-
-        this.textInput.focus();
     }
 
     /**
@@ -96,8 +77,7 @@ class ReportHistoryCompose extends React.Component {
     render() {
         return (
             <View style={[styles.chatItemCompose]}>
-                <TextInput
-                    ref={el => this.textInput = el}
+                <TextInputFocusable
                     multiline
                     blurOnSubmit
                     textAlignVertical="top"
