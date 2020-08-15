@@ -143,8 +143,8 @@ export default function (mapIonToState) {
                         return loaderParam;
                     });
 
-                    // Call the loader function and pass it any params. The loader function will take care of putting data
-                    // into Ion
+                    // Call the loader function and pass it any params. The loader function will take care of putting
+                    // data into Ion
                     mapping.loader(...paramsForLoaderFunction || []);
                 }
             }

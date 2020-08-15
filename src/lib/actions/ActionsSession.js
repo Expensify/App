@@ -6,6 +6,7 @@ import IONKEYS from '../../IONKEYS';
 import CONFIG from '../../CONFIG';
 import Str from '../Str';
 import Guid from '../Guid';
+import redirectToSignIn from './ActionsSignInRedirect';
 
 /**
  * Create login
@@ -27,13 +28,15 @@ function createLogin(authToken, login, password) {
 
 /**
  * Sets API data in the store when we make a successful "Authenticate"/"CreateLogin" request
+ *
  * @param {object} data
+ * @param {string} exitTo
  * @returns {Promise}
  */
-function setSuccessfulSignInData(data) {
+function setSuccessfulSignInData(data, exitTo) {
     return Ion.multiSet({
         [IONKEYS.SESSION]: data,
-        [IONKEYS.APP_REDIRECT_TO]: ROUTES.HOME,
+        [IONKEYS.APP_REDIRECT_TO]: `/${exitTo}` || ROUTES.HOME,
         [IONKEYS.LAST_AUTHENTICATED]: new Date().getTime(),
     });
 }
@@ -45,9 +48,10 @@ function setSuccessfulSignInData(data) {
  * @param {string} password
  * @param {string} twoFactorAuthCode
  * @param {boolean} useExpensifyLogin
+ * @param {string} exitTo
  * @returns {Promise}
  */
-function signIn(login, password, twoFactorAuthCode = '', useExpensifyLogin = false) {
+function signIn(login, password, twoFactorAuthCode = '', useExpensifyLogin = false, exitTo) {
     console.debug('[SIGNIN] Authenticating with expensify login?', useExpensifyLogin ? 'yes' : 'no');
     let authToken;
     return request('Authenticate', {
@@ -59,7 +63,7 @@ function signIn(login, password, twoFactorAuthCode = '', useExpensifyLogin = fal
         twoFactorAuthCode
     })
         .then((data) => {
-            console.debug('[SIGNIN] Authentication result. Code:', data.jsonCode);
+            console.debug('[SIGNIN] Authentication result. Code:', data && data.jsonCode);
             authToken = data && data.authToken;
 
             // If we didn't get a 200 response from authenticate, the user needs to sign in again
@@ -69,8 +73,8 @@ function signIn(login, password, twoFactorAuthCode = '', useExpensifyLogin = fal
                 return Ion.multiSet({
                     [IONKEYS.CREDENTIALS]: {},
                     [IONKEYS.SESSION]: {error: data.message},
-                    [IONKEYS.APP_REDIRECT_TO]: ROUTES.SIGNIN,
-                });
+                })
+                    .then(redirectToSignIn);
             }
 
             // If Expensify login, it's the users first time logging in and we need to create a login for the user
@@ -79,12 +83,12 @@ function signIn(login, password, twoFactorAuthCode = '', useExpensifyLogin = fal
                 return createLogin(data.authToken, Str.generateDeviceLoginID(), Guid())
                     .then(() => {
                         console.debug('[SIGNIN] Successful sign in', 2);
-                        return setSuccessfulSignInData(data);
+                        return setSuccessfulSignInData(data, exitTo);
                     });
             }
 
             console.debug('[SIGNIN] Successful sign in', 1);
-            return setSuccessfulSignInData(data);
+            return setSuccessfulSignInData(data, exitTo);
         })
         .then(() => authToken)
         .catch((err) => {
@@ -115,7 +119,7 @@ function deleteLogin(authToken, login) {
  * @returns {Promise}
  */
 function signOut() {
-    return Ion.set(IONKEYS.APP_REDIRECT_TO, ROUTES.SIGNIN)
+    return redirectToSignIn()
         .then(() => Ion.multiGet([IONKEYS.SESSION, IONKEYS.CREDENTIALS]))
         .then(data => deleteLogin(data.session.authToken, data.credentials.login))
         .then(Ion.clear)
@@ -144,7 +148,7 @@ function verifyAuthToken() {
                 }
 
                 // If the auth token is bad and we didn't have credentials saved, we want them to go to the sign in page
-                return Ion.set(IONKEYS.APP_REDIRECT_TO, ROUTES.SIGNIN);
+                return redirectToSignIn();
             });
         });
 }
@@ -152,5 +156,5 @@ function verifyAuthToken() {
 export {
     signIn,
     signOut,
-    verifyAuthToken
+    verifyAuthToken,
 };
