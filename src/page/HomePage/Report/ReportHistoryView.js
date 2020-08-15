@@ -98,7 +98,9 @@ class ReportHistoryView extends React.Component {
      * scroll the list to the end.
      */
     scrollToBottomWhenListSizeChanges() {
-        this.historyListElement.scrollToEnd({animated: false});
+        if (this.historyListElement) {
+            this.historyListElement.scrollToEnd({animated: false});
+        }
         this.recordMaxAction();
     }
 
