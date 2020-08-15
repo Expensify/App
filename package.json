@@ -1,5 +1,5 @@
 {
-  "name": "ReactNativeChat",
+  "name": "react-native-chat",
   "version": "1.0.1-2",
   "private": true,
   "scripts": {
@@ -10,7 +10,7 @@
     "build": "webpack --config webpack.prod.js",
     "test": "jest",
     "lint": "eslint .",
-    "deploy-mobile": "npm version prerelease && git push && cd android && fastlane beta && cd ../iOS && fastlane beta",
+    "deploy-ios": "npm version prerelease && fastlane ios beta",
     "postversion": "react-native-version"
   },
   "dependencies": {
