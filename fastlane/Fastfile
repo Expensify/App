@@ -13,7 +13,18 @@
 skip_docs
 opt_out_usage
 
-default_platform(:ios)
+platform :android do
+  desc "Generate a new APK"
+  lane :beta do
+    ENV["ENVFILE"]=".env.production"
+
+    gradle(
+      project_dir: './android',
+      task: 'assemble',
+      build_type: 'Release',
+    )
+  end
+end
 
 platform :ios do
   desc "Build and upload app to TestFlight"
@@ -22,10 +33,9 @@ platform :ios do
 
     update_code_signing_settings(
         use_automatic_signing: true,
-        path: "ReactNativeChat.xcodeproj"
+        path: "./ios/ReactNativeChat.xcodeproj"
     )
-    build_app(scheme: "ReactNativeChat", export_xcargs: "-allowProvisioningUpdates")
+    build_app(workspace:'./ios/ReactNativeChat.xcworkspace',scheme: "ReactNativeChat", export_xcargs: "-allowProvisioningUpdates")
     upload_to_testflight
   end
 end
-
