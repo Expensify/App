@@ -69,7 +69,9 @@ class SidebarView extends React.Component {
                                 source={{uri: this.state && this.state.avatarURL}}
                                 style={[styles.historyItemAvatar]}
                             />
-                            <View style={[styles.statusIndicator]} />
+                            {this.state && this.state.isOffline && (
+                                <View style={[styles.statusIndicator]} />
+                            )}
                     </View>
                     <View style={[styles.flexColumn]}>
                         {this.state && this.state.userDisplayName && (
