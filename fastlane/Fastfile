@@ -14,7 +14,7 @@ skip_docs
 opt_out_usage
 
 platform :android do
-  desc "Deploy a new version to Github"
+  desc "Generate a new APK"
   lane :beta do
     ENV["ENVFILE"]=".env.production"
 
