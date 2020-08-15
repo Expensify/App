@@ -11,13 +11,12 @@ import _ from 'underscore';
  * @returns {Promise}
  */
 const promiseAllSettled = (arrayOfPromises) => {
-    const mainPromise = new Promise((resolve) => {
-        const done = _.after(arrayOfPromises.length, resolve);
-        _.each(arrayOfPromises, (promise) => {
-            promise.then(done).catch(done);
-        });
-    });
-    return mainPromise;
+    const wrappedPromises = arrayOfPromises.map(p => Promise.resolve(p)
+        .then(
+            val => ({status: 'fulfilled', value: val}),
+            err => ({status: 'rejected', reason: err})
+        ));
+    return Promise.all(wrappedPromises);
 };
 
 export default promiseAllSettled;
