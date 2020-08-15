@@ -1,0 +1,52 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+skip_docs
+opt_out_usage
+
+platform :android do
+  desc "Deploy a new version to Github"
+  lane :beta do
+    ENV["ENVFILE"]=".env.production"
+
+    gradle(
+      project_dir: './android',
+      task: 'assemble',
+      build_type: 'Release',
+    )
+
+    aws_s3(
+      access_key: ENV['AWS_SECRET_ACCESS_KEY'],
+      secret_access_key: ENV['AWS_SECRET_ACCESS_KEY'],
+      aws_profile: ENV['AWS_ACCESS_KEY_ID'],
+      bucket: 's3://chat-test-expensify-com/',
+      region: 'us-east-1',
+      apk: './app/build/outputs/apk/release/app-release.apk',
+      path: '/',
+      upload_metadata: false,
+    )
+  end
+end
+
+platform :ios do
+  desc "Build and upload app to TestFlight"
+  lane :beta do
+    ENV["ENVFILE"]=".env.production"
+
+    update_code_signing_settings(
+        use_automatic_signing: true,
+        path: "./ios/ReactNativeChat.xcodeproj"
+    )
+    build_app(workspace:'./ios/ReactNativeChat.xcworkspace',scheme: "ReactNativeChat", export_xcargs: "-allowProvisioningUpdates")
+    upload_to_testflight
+  end
+end
