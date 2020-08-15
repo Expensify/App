@@ -12,7 +12,7 @@ const propTypes = {
     reportID: PropTypes.number.isRequired,
 };
 
-// Make this a PureComponent so that it only re-renders when the reportID changes (and it never should change, so once
+// This is a PureComponent so that it only re-renders when the reportID changes (and it never should change, so once
 // rendered, always rendered)
 class ReportView extends React.PureComponent {
     render() {
