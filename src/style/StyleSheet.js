@@ -300,10 +300,16 @@ const styles = {
         width: 10,
     },
 
-    // App Content styles
+    // App Content Wrapper styles
     appContentWrapper: {
-        backgroundColor: colors.heading,
+        backgroundColor: colors.background,
         color: colors.text,
+    },
+
+    // App Content Wrapper styles for large screens
+    // The darker BG color allows the rounded corners to show through
+    appContentWrapperLarge: {
+        backgroundColor: colors.heading,
     },
 
     appContent: {
