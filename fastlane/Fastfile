@@ -25,9 +25,8 @@ platform :android do
     )
 
     aws_s3(
-      access_key: ENV['AWS_SECRET_ACCESS_KEY'],
+      access_key: ENV['AWS_ACCESS_KEY_ID'],
       secret_access_key: ENV['AWS_SECRET_ACCESS_KEY'],
-      aws_profile: ENV['AWS_ACCESS_KEY_ID'],
       bucket: 'chat-test-expensify-com',
       region: 'us-east-1',
       apk: lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH],
