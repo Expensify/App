@@ -81,7 +81,7 @@ export default class App extends React.Component {
     render() {
         const hamburgerStyle = this.state.isHamburgerEnabled && this.state.hamburgerShown
             ? styles.hamburgerOpenAbsolute : styles.hamburgerOpen;
-        const visibility = this.state.hamburgerShown ? styles.visible : styles.invisible;
+        const visibility = this.state.hamburgerShown ? styles.dFlex : styles.dNone;
         const appContentStyle = !this.state.isHamburgerEnabled ? styles.appContentRounded : null;
         return (
             <SafeAreaProvider>

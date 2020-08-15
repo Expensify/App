@@ -82,12 +82,6 @@ const styles = {
         fontSize: 15,
         lineHeight: 20,
     },
-    invisible: {
-        display: 'none'
-    },
-    visible: {
-        display: 'flex'
-    },
 
     colorReversed: {
         color: '#ffffff',
