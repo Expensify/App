@@ -38,7 +38,8 @@
 
 #### Deploying the iOS & Android app
 * To install the required tools to deploy, run `bundle install` from the root of this project
-* To deploy the app run: `npm run deploy`
+* To deploy the iOS app run: `npm run deploy-ios`
+* The Android app automatically deploys via a GitHub action to: [https://chat.expensify.com/app-release.apk](https://chat.expensify.com/app-release.apk)
 * To build an APK to share run (e.g. via Slack): `Build > Generate Signed Bundle / APK...` from Android Studio 
 
 ## Running the tests 🎰
