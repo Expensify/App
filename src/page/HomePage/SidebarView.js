@@ -77,8 +77,8 @@ class SidebarView extends React.Component {
                             </Text>
                         )}
                         <View style={[styles.flexRow]}>
-                            <Text style={[styles.sidebarFooterLink, styles.pr2]} onPress={signOut}>iOS</Text>
-                            <Text style={[styles.sidebarFooterLink, styles.pr2]} onPress={signOut}>Android</Text>
+                            <Text style={[styles.sidebarFooterLink, styles.mr2]} onPress={signOut}>iOS</Text>
+                            <Text style={[styles.sidebarFooterLink, styles.mr2]} onPress={signOut}>Android</Text>
                             <Text style={[styles.sidebarFooterLink]} onPress={signOut}>Sign Out</Text>
                         </View>
                     </View>

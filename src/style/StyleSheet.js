@@ -16,8 +16,12 @@ const colors = {
 const styles = {
     // Utility classes
     mr1: {
-        marginRight: 10,
+        marginRight: 4,
     },
+    mr2: {
+        marginRight: 8,
+    },
+
     ml1: {
         marginLeft: 10,
     },
