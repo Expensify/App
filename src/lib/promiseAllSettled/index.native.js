@@ -4,6 +4,8 @@
  *
  * Returns a promise that is resolved when all provided promises are either resolved or rejected
  *
+ * @source: https://stackoverflow.com/a/39031032/1858217
+ *
  * @param {Promise[]} arrayOfPromises
  * @returns {Promise}
  */
