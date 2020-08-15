@@ -65,10 +65,13 @@ class SidebarView extends React.Component {
                 </View>
                 <View style={[styles.sidebarFooter, getSafeAreaMargins(this.props.insets)]}>
                     <View style={[styles.sidebarFooterAvatar]}>
-                        <Image
-                            source={{uri: this.state && this.state.avatarURL}}
-                            style={[styles.historyItemAvatar]}
-                        />
+                            <Image
+                                source={{uri: this.state && this.state.avatarURL}}
+                                style={[styles.historyItemAvatar]}
+                            />
+                            {this.state && this.state.isOffline && (
+                                <View style={[styles.statusIndicator]} />
+                            )}
                     </View>
                     <View style={[styles.flexColumn]}>
                         {this.state && this.state.userDisplayName && (
@@ -77,9 +80,6 @@ class SidebarView extends React.Component {
                             </Text>
                         )}
                         <Text style={[styles.sidebarFooterLink]} onPress={signOut}>Sign Out</Text>
-                        {this.state && this.state.isOffline && (
-                            <Text>OFFLINE</Text>
-                        )}
                     </View>
                 </View>
             </View>
