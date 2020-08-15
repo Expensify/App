@@ -5,7 +5,7 @@ import Config from 'react-native-config';
 const IS_IN_PRODUCTION = Platform.OS === 'web' ? process.env.NODE_ENV === 'production' : !__DEV__;
 
 export default {
-    AUTH_TOKEN_EXPIRATION_TIME: 1000 * 60 * 90,
+    AUTH_TOKEN_EXPIRATION_TIME: 5,
     EXPENSIFY: {
         API_ROOT: IS_IN_PRODUCTION ? 'https://www.expensify.com/api?' : 'https://www.expensify.com.dev/api?',
         PARTNER_NAME: IS_IN_PRODUCTION ? 'chat-expensify-com' : 'android',

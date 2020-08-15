@@ -6,7 +6,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import Text from '../../components/Text';
-import {signOut} from '../../lib/actions/ActionsSession';
+import signOut from '../../lib/actions/ActionsSession';
 import {fetch as getPersonalDetails} from '../../lib/actions/ActionsPersonalDetails';
 import styles, {getSafeAreaMargins} from '../../style/StyleSheet';
 import WithIon from '../../components/WithIon';
