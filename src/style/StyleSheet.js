@@ -71,6 +71,12 @@ const styles = {
     flexGrow4: {
         flexGrow: 4,
     },
+    dFlex: {
+        display: 'flex',
+    },
+    dNone: {
+        display: 'none',
+    },
     textP: {
         color: colors.text,
         fontSize: 15,

@@ -13,9 +13,8 @@ import styles from '../../../style/StyleSheet';
 import {withRouter} from '../../../lib/Router';
 
 const propTypes = {
-    // This comes from withRouter
-    // eslint-disable-next-line react/forbid-prop-types
-    match: PropTypes.object.isRequired,
+    // The ID of the report actions will be created for
+    reportID: PropTypes.number.isRequired,
 };
 
 class ReportHistoryView extends React.Component {
