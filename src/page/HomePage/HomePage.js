@@ -82,13 +82,21 @@ export default class App extends React.Component {
         const hamburgerStyle = this.state.isHamburgerEnabled && this.state.hamburgerShown
             ? styles.hamburgerOpenAbsolute : styles.hamburgerOpen;
         const visibility = this.state.hamburgerShown ? styles.dFlex : styles.dNone;
+        const appContentWrapperStyle = !this.state.isHamburgerEnabled ? styles.appContentWrapperLarge : null;
         const appContentStyle = !this.state.isHamburgerEnabled ? styles.appContentRounded : null;
         return (
             <SafeAreaProvider>
                 <StatusBar barStyle="dark-content" />
                 <SafeAreaInsetsContext.Consumer style={[styles.flex1, styles.h100p]}>
                     {insets => (
-                        <View style={[styles.appContent, styles.flexRow, styles.h100p, getSafeAreaPadding(insets)]}>
+                        <View
+                            style={[styles.appContentWrapper,
+                                appContentWrapperStyle,
+                                styles.flexRow,
+                                styles.h100p,
+                                getSafeAreaPadding(insets)
+                            ]}
+                        >
                             <Route path="/:reportID?">
                                 <View style={[hamburgerStyle, visibility]}>
                                     <Sidebar insets={insets} onLinkClick={this.toggleHamburger} />
