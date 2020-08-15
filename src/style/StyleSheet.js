@@ -213,7 +213,7 @@ const styles = {
     },
 
     statusIndicator: {
-        background: colors.icon,
+        backgroundColor: colors.icon,
         borderColor: colors.heading,
         borderRadius: 7,
         borderWidth: 2,
@@ -222,6 +222,7 @@ const styles = {
         top: 3,
         height: 14,
         width: 14,
+        zIndex: 10,
     },
 
     sidebarFooterUsername: {
