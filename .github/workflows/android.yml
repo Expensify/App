@@ -34,4 +34,4 @@ jobs:
           run: bundle exec fastlane android beta
 
         - name: Deploy to S3
-          run: aws s3 cp --acl public-read $GITHUB_WORKSPACE/android/app/build/outputs/apk/release/app-release.apk s3://chat-test-expensify-com/
+          run: aws s3 cp --acl public-read $GITHUB_WORKSPACE/android/app/build/outputs/apk/release/app-release.apk s3://chat-test-expensify-com/app-release.apk
