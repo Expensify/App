@@ -36,7 +36,9 @@ class App extends Component {
     }
 
     componentDidMount() {
-        StatusBar.setBackgroundColor(styles.signInPageStatusBar.color, styles.signInPageStatusBar.animated);
+        StatusBar.setBarStyle('light-content', true);
+        StatusBar.setBackgroundColor('transparent', true);
+        StatusBar.setTranslucent(true);
     }
 
     /**
@@ -50,7 +52,7 @@ class App extends Component {
     render() {
         return (
             <>
-                <StatusBar barStyle="dark-content" />
+                <StatusBar />
                 <SafeAreaView style={[styles.signInPage]}>
                     <View style={[styles.signInPageInner]}>
                         <View style={[styles.signInPageLogo]}>
