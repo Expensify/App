@@ -61,6 +61,8 @@ class App extends Component {
                             <TextInput
                                 style={[styles.textInput, styles.textInputReversed]}
                                 value={this.state.login}
+                                autoCompleteType="email"
+                                textContentType="username"
                                 onChangeText={text => this.setState({login: text})}
                                 onSubmitEditing={this.submitForm}
                             />
@@ -70,6 +72,8 @@ class App extends Component {
                             <TextInput
                                 style={[styles.textInput, styles.textInputReversed]}
                                 secureTextEntry
+                                autoCompleteType="password"
+                                textContentType="password"
                                 value={this.state.password}
                                 onChangeText={text => this.setState({password: text})}
                                 onSubmitEditing={this.submitForm}
