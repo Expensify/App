@@ -71,6 +71,12 @@ const styles = {
     flexGrow4: {
         flexGrow: 4,
     },
+    dFlex: {
+        display: 'flex',
+    },
+    dNone: {
+        display: 'none',
+    },
     textP: {
         color: colors.text,
         fontSize: 15,
@@ -299,10 +305,16 @@ const styles = {
         width: 10,
     },
 
-    // App Content styles
+    // App Content Wrapper styles
     appContentWrapper: {
-        backgroundColor: colors.heading,
+        backgroundColor: colors.background,
         color: colors.text,
+    },
+
+    // App Content Wrapper styles for large screens
+    // The darker BG color allows the rounded corners to show through
+    appContentWrapperLarge: {
+        backgroundColor: colors.heading,
     },
 
     appContent: {
@@ -436,7 +448,41 @@ const styles = {
         paddingLeft: 20,
         paddingRight: 20,
     },
+
+    hamburgerOpenAbsolute: {
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        bottom: 0,
+        zIndex: 2,
+        width: 300
+    },
+
+    hamburgerOpen: {
+        width: 300
+    }
+
 };
+
+const webViewStyles = {
+    tagStyles: {
+        em: {
+            fontStyle: 'italic',
+        },
+
+        del: {
+            textDecorationLine: 'line-through',
+            textDecorationStyle: 'solid'
+        }
+    },
+
+    baseFontStyle: {
+        color: colors.text,
+        fontSize: 15,
+        fontFamily: 'GTAmericaExp-Regular'
+    }
+};
+
 
 /**
  * Takes safe area insets and returns padding to use for a View
@@ -458,6 +504,7 @@ function getSafeAreaMargins(insets) {
     return {marginBottom: insets.bottom * safeInsertPercentage};
 }
 
-
 export default styles;
-export {getSafeAreaPadding, getSafeAreaMargins};
+export {
+    getSafeAreaPadding, getSafeAreaMargins, colors, webViewStyles
+};

@@ -1,16 +1,15 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, TextInput, Platform} from 'react-native';
+import {View} from 'react-native';
 import styles from '../../../style/StyleSheet';
-import {withRouter} from '../../../lib/Router';
+import TextInputFocusable from '../../../components/TextInputFocusable';
 
 const propTypes = {
     // A method to call when the form is submitted
     onSubmit: PropTypes.func.isRequired,
 
-    // This comes from withRouter
-    // eslint-disable-next-line react/forbid-prop-types
-    match: PropTypes.object.isRequired,
+    // The ID of the report actions will be created for
+    reportID: PropTypes.number.isRequired,
 };
 
 class ReportHistoryCompose extends React.Component {
@@ -25,26 +24,6 @@ class ReportHistoryCompose extends React.Component {
         this.state = {
             comment: '',
         };
-    }
-
-    componentDidMount() {
-        this.focusInput();
-    }
-
-    componentDidUpdate() {
-        this.focusInput();
-    }
-
-    /**
-     * Focuses the input on web, but does not on native platforms
-     */
-    focusInput() {
-        // TODO: Remove this platform dependent code, but I am unsure how at the moment
-        if (Platform.OS !== 'web') {
-            return;
-        }
-
-        this.textInput.focus();
     }
 
     /**
@@ -87,7 +66,7 @@ class ReportHistoryCompose extends React.Component {
             return;
         }
 
-        this.props.onSubmit(this.props.match.params.reportID, this.state.comment);
+        this.props.onSubmit(this.props.reportID, this.state.comment);
         this.setState({
             comment: '',
         });
@@ -96,8 +75,7 @@ class ReportHistoryCompose extends React.Component {
     render() {
         return (
             <View style={[styles.chatItemCompose]}>
-                <TextInput
-                    ref={el => this.textInput = el}
+                <TextInputFocusable
                     multiline
                     blurOnSubmit
                     textAlignVertical="top"
@@ -119,4 +97,4 @@ class ReportHistoryCompose extends React.Component {
 }
 ReportHistoryCompose.propTypes = propTypes;
 
-export default withRouter(ReportHistoryCompose);
+export default ReportHistoryCompose;
