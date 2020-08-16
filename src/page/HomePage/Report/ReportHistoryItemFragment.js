@@ -3,7 +3,7 @@ import WebView from '../../../components/webView';
 import Str from '../../../lib/Str';
 import ReportHistoryFragmentPropTypes from './ReportHistoryFragmentPropTypes';
 import styles from '../../../style/StyleSheet';
-import Text from '../../../components/Text'
+import Text from '../../../components/Text';
 
 const propTypes = {
     // The message fragment needing to be displayed

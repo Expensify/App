@@ -2,7 +2,6 @@ import React from 'react';
 import {View, Image} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import Text from '../../../components/Text';
 import ReportHistoryPropsTypes from './ReportHistoryPropsTypes';
 import ReportHistoryItemMessage from './ReportHistoryItemMessage';
 import ReportHistoryItemFragment from './ReportHistoryItemFragment';
