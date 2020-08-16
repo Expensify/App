@@ -463,6 +463,10 @@ const webViewStyles = {
         del: {
             textDecorationLine: 'line-through',
             textDecorationStyle: 'solid'
+        },
+
+        a: {
+            color: colors.blue
         }
     },
 
