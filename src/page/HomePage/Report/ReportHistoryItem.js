@@ -13,19 +13,28 @@ const propTypes = {
     displayAsGroup: PropTypes.bool.isRequired,
 };
 
-const ReportHistoryItem = ({displayAsGroup, historyItem}) => {
-    if (historyItem.actionName !== 'ADDCOMMENT') {
-        return null;
+class ReportHistoryItem extends React.Component {
+    shouldComponentUpdate(nextProps) {
+        // This component should only render if the history item's sequenceNumber or displayAsGroup props change
+        return nextProps.historyItem.sequenceNumber !== this.props.historyItem.sequenceNumber
+            || nextProps.displayAsGroup !== this.props.displayAsGroup;
     }
 
-    return (
-        <View>
-            {!displayAsGroup && <ReportHistoryItemSingle historyItem={historyItem} />}
-            {displayAsGroup && <ReportHistoryItemGrouped historyItem={historyItem} />}
-        </View>
-    );
-};
+    render() {
+        const {historyItem, displayAsGroup} = this.props;
+        if (historyItem.actionName !== 'ADDCOMMENT') {
+            return null;
+        }
+
+        return (
+            <View>
+                {!displayAsGroup && <ReportHistoryItemSingle historyItem={historyItem} />}
+                {displayAsGroup && <ReportHistoryItemGrouped historyItem={historyItem} />}
+            </View>
+        );
+    }
+}
+
 ReportHistoryItem.propTypes = propTypes;
-ReportHistoryItem.displayName = 'ReportHistoryItem';
 
 export default ReportHistoryItem;

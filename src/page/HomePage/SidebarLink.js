@@ -2,10 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import Text from '../../components/Text';
-import {Link, withRouter} from '../../lib/Router';
+import {withRouter} from '../../lib/Router';
 import IONKEYS from '../../IONKEYS';
 import styles from '../../style/StyleSheet';
 import WithIon from '../../components/WithIon';
+import PressableLink from '../../components/PressableLink';
 
 const propTypes = {
     // The ID of the report for this link
@@ -19,16 +20,10 @@ const propTypes = {
     match: PropTypes.object.isRequired,
 
     // Toggles the hamburger menu open and closed
-    toggleHamburger: PropTypes.func.isRequired,
+    onLinkClick: PropTypes.func.isRequired,
 };
 
 class SidebarLink extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.toggleHamburger = this.props.toggleHamburger.bind(this);
-    }
-
     render() {
         const paramsReportID = parseInt(this.props.match.params.reportID, 10);
         const isReportActive = paramsReportID === this.props.reportID;
@@ -39,18 +34,13 @@ class SidebarLink extends React.Component {
             ? [textActiveStyle, styles.sidebarLinkTextUnread] : [textActiveStyle];
         return (
             <View style={[styles.sidebarListItem, linkWrapperActiveStyle]}>
-                <Link
-                    onPress={this.toggleHamburger}
-                    onClick={this.toggleHamburger}
-                    to={`/${this.props.reportID}`}
-                    style={linkActiveStyle}
-                >
+                <PressableLink onClick={this.props.onLinkClick} to={`/${this.props.reportID}`} style={linkActiveStyle}>
                     <View style={[styles.sidebarLinkInner]}>
                         <Text numberOfLines={1} style={textActiveUnreadStyle}>
                             {this.props.reportName}
                         </Text>
                     </View>
-                </Link>
+                </PressableLink>
             </View>
         );
     }

@@ -10,7 +10,7 @@ import LHNToggle from '../../../assets/images/icon-menu-toggle.png';
 
 const propTypes = {
     // Toggles the hamburger menu open and closed
-    toggleHamburger: PropTypes.func.isRequired,
+    onHamburgerButtonClicked: PropTypes.func.isRequired,
 
     // Decides whether we should show the hamburger menu button
     shouldShowHamburgerButton: PropTypes.bool.isRequired,
@@ -23,9 +23,7 @@ class HeaderView extends React.Component {
                 <View style={[styles.appContentHeaderTitle]}>
                     {this.props.shouldShowHamburgerButton && (
                     <TouchableOpacity
-                        onPress={() => {
-                            this.props.toggleHamburger();
-                        }}
+                        onPress={this.props.onHamburgerButtonClicked}
                         style={[styles.LHNToggle]}
                     >
                         <Image
