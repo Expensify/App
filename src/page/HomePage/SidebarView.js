@@ -18,27 +18,16 @@ import PageTitleUpdater from '../../lib/PageTitleUpdater';
 import Ion from '../../lib/Ion';
 import {withRouter} from '../../lib/Router';
 
-let urlLocationObject = {};
 const propTypes = {
     // Toggles the hamburger menu open and closed
     onLinkClick: PropTypes.func.isRequired,
 
     // Safe area insets required for mobile devices margins
     // eslint-disable-next-line react/forbid-prop-types
-    insets: PropTypes.object.isRequired,
-
-    // The location object containing the URL path
-    // eslint-disable-next-line react/forbid-prop-types
-    location: PropTypes.object.isRequired,
+    insets: PropTypes.object.isRequired
 };
 
 class SidebarView extends React.Component {
-    constructor(props) {
-        super(props);
-
-        urlLocationObject = props.location;
-    }
-
     /**
      * Updates the page title to indicate there are unread reports
      */
@@ -118,11 +107,16 @@ export default withRouter(WithIon({
         key: `${IONKEYS.REPORT}_[0-9]+$`,
         addAsCollection: true,
         collectionID: 'reportID',
-        loader: () => fetchAll().then((data) => {
-            // If we're on the home page, then redirect to the first report ID
-            if (urlLocationObject && urlLocationObject.pathname === '/' && data.length) {
-                Ion.set(IONKEYS.APP_REDIRECT_TO, `/${data[0].reportID}`);
-            }
+        loader: () => fetchAll().then(() => {
+            Ion.multiGet([IONKEYS.CURRENT_URL, IONKEYS.REPORT_IDS]).then((values) => {
+                const currentURL = values[IONKEYS.CURRENT_URL] || '';
+                const reportIDs = values[IONKEYS.REPORT_IDS] || [];
+
+                // If we're on the home page, then redirect to the first report ID
+                if (currentURL === '/' && reportIDs.length) {
+                    Ion.set(IONKEYS.APP_REDIRECT_TO, `/${reportIDs[0]}`);
+                }
+            });
         }),
     },
 })(SidebarView));

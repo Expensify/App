@@ -10,7 +10,8 @@ export default {
     MY_PERSONAL_DETAILS: 'my_personal_details',
     PERSONAL_DETAILS: 'personal_details',
     REPORT: 'report',
-    REPORT_HISTORY: 'report_history',
     REPORT_ACTION: 'reportAction',
+    REPORT_HISTORY: 'report_history',
+    REPORT_IDS: 'report_ids',
     SESSION: 'session',
 };

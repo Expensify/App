@@ -107,7 +107,7 @@ function fetchAll() {
         shouldLoadOptionalKeys: true,
     }));
 
-    const allSettledPromise = promiseAllSettled(reportFetchPromises)
+    return promiseAllSettled(reportFetchPromises)
         .then(data => fetchedReports = _.compact(_.map(data, (promiseResult) => {
             // Grab the report from the promise result which stores it in the `value` key
             const report = get(promiseResult, 'value.reports', {});
@@ -117,6 +117,7 @@ function fetchAll() {
             return _.isEmpty(report) ? null : _.values(report)[0];
         })))
         .then(() => Ion.get(IONKEYS.SESSION, 'accountID'))
+        .then(() => Ion.set(IONKEYS.REPORT_IDS, _.pluck(fetchedReports, 'reportID')))
         .then((accountID) => {
             const ionPromises = _.map(fetchedReports, (report) => {
                 // Store only the absolute bare minimum of data in Ion because space is limited
@@ -134,12 +135,6 @@ function fetchAll() {
 
             return promiseAllSettled(ionPromises);
         });
-
-    return new Promise(resolve => allSettledPromise
-        .then(() => {
-            fetchedReports = _.sortBy(fetchedReports, 'reportID');
-            resolve(fetchedReports);
-        }));
 }
 
 /**
