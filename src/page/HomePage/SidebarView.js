@@ -16,7 +16,6 @@ import SidebarLink from './SidebarLink';
 import logo from '../../../assets/images/expensify-logo_reversed.png';
 import PageTitleUpdater from '../../lib/PageTitleUpdater';
 import Ion from '../../lib/Ion';
-import {withRouter} from '../../lib/Router';
 
 const propTypes = {
     // Toggles the hamburger menu open and closed
@@ -88,7 +87,7 @@ class SidebarView extends React.Component {
 
 SidebarView.propTypes = propTypes;
 
-export default withRouter(WithIon({
+export default WithIon({
     // Map this.state.userDisplayName to the personal details key in the store and bind it to the displayName property
     // and load it with data from getPersonalDetails()
     userDisplayName: {
@@ -119,4 +118,4 @@ export default withRouter(WithIon({
             });
         }),
     },
-})(SidebarView));
+})(SidebarView);
