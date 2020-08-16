@@ -201,7 +201,9 @@ function addHistoryItem(reportID, reportComment) {
                         {
                             type: 'COMMENT',
                             html: htmlComment,
-                            text: htmlComment,
+
+                            // Remove HTML from text when applying optimistic offline comment
+                            text: htmlComment.replace(/<[^>]*>?/gm, ''),
                         }
                     ],
                     isFirstItem: false,
