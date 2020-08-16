@@ -47,8 +47,8 @@ export default class App extends React.Component {
         });
         Dimensions.addEventListener('change', this.toggleHamburgerBasedOnDimensions);
 
-        StatusBar.setBarStyle("dark-content");
-        StatusBar.setBackgroundColor("transparent");
+        StatusBar.setBarStyle('dark-content', true);
+        StatusBar.setBackgroundColor('transparent', true);
         StatusBar.setTranslucent(true);
     }
 
@@ -90,7 +90,7 @@ export default class App extends React.Component {
         const appContentStyle = !this.state.isHamburgerEnabled ? styles.appContentRounded : null;
         return (
             <SafeAreaProvider>
-                <StatusBar barStyle="dark-content" />
+                <StatusBar />
                 <SafeAreaInsetsContext.Consumer style={[styles.flex1, styles.h100p]}>
                     {insets => (
                         <View
