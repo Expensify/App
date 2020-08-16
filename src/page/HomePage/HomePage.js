@@ -46,7 +46,10 @@ export default class App extends React.Component {
             }
         });
         Dimensions.addEventListener('change', this.toggleHamburgerBasedOnDimensions);
-        StatusBar.setBackgroundColor(styles.appContentStatusBar.color, styles.appContentStatusBar.animated);
+
+        StatusBar.setBarStyle("dark-content");
+        StatusBar.setBackgroundColor("transparent");
+        StatusBar.setTranslucent(true);
     }
 
     componentWillUnmount() {
