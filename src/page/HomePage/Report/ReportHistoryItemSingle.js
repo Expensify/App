@@ -45,9 +45,7 @@ class ReportHistoryItemSingle extends React.PureComponent {
                         </View>
                     </View>
                     <View style={[styles.chatItemMessage]}>
-                        <Text>
-                            <ReportHistoryItemMessage historyItem={historyItem} />
-                        </Text>
+                        <ReportHistoryItemMessage historyItem={historyItem} />
                     </View>
                 </View>
             </View>
