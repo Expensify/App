@@ -148,7 +148,6 @@ export default withRouter(WithIon({
         key,
         loader: fetchHistory,
         loaderParams: ['%DATAFROMPROPS%'],
-        prefillWithKey: key,
         pathForProps: 'reportID',
     },
 })(ReportHistoryView));
