@@ -2,7 +2,7 @@ import {Platform} from 'react-native';
 import Config from 'react-native-config';
 
 // eslint-disable-next-line no-undef
-const IS_IN_PRODUCTION = false;
+const IS_IN_PRODUCTION = Platform.OS === 'web' ? process.env.NODE_ENV === 'production' : !__DEV__;
 
 export default {
     AUTH_TOKEN_EXPIRATION_TIME: 1000 * 60 * 90,
