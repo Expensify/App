@@ -87,45 +87,54 @@ function request(command, data, type = 'post') {
     //     console.debug('Invalid auth token: Token has expired.');
     //     return signIn(credentials.login, credentials.password);
     // }
+
+    if (reauthenticating) {
+        alert(`swallowing request ${command} ${data.returnValueList}`);
+        return new Promise(resolve => resolve());
+    }
+
+    // We treat Authenticate in a special way
+    // TODO explain why
+    if (command === 'Authenticate') {
+        alert('in Authenticate');
+        return xhr(command, data, type)
+            .then((response) => {
+                console.debug('[SIGNIN] Authentication result. Code:', response && response.jsonCode);
+
+                // If we didn't get a 200 response from authenticate, the user needs to sign in again
+                // TODO: check for response.useExpensifyLogin
+                if (!command.useExpensifyLogin && response.jsonCode !== 200) {
+                    // eslint-disable-next-line no-console
+                    console.debug('[SIGNIN] Non-200 from authenticate, going back to sign in page');
+                    return Ion.multiSet({
+                        [IONKEYS.CREDENTIALS]: {},
+                        [IONKEYS.SESSION]: {error: response.message},
+                    })
+                        .then(redirectToSignIn);
+                }
+
+                // TODO: check for exitTo
+                alert('setting successful signin data');
+                return setSuccessfulSignInData(response, command.exitTo);
+            })
+            .then(() => {
+                alert(`about to create login ${data.useExpensifyLogin}`);
+                // If Expensify login, it's the users first time signing in and we need to
+                // create a login for the user
+                if (data.useExpensifyLogin) {
+                    console.debug('[SIGNIN] Creating a login');
+                    return createLogin(Str.generateDeviceLoginID(), Guid());
+                }
+
+                return Promise.resolve();
+            });
+    }
+
+    alert(`normal xhr ${command} ${data.returnValueList}`);
     return xhr(command, data, type)
 
         // Handle any of our jsonCodes
         .then((responseData) => {
-            // We treat Authenticate in a special way
-            // TODO explain why
-            if (command === 'Authenticate') {
-                console.debug('in Authenticate');
-                return xhr(command, data, type)
-                    .then((response) => {
-                        console.debug('[SIGNIN] Authentication result. Code:', response && response.jsonCode);
-
-                        // If we didn't get a 200 response from authenticate, the user needs to sign in again
-                        // TODO: check for response.useExpensifyLogin
-                        if (!command.useExpensifyLogin && response.jsonCode !== 200) {
-                            // eslint-disable-next-line no-console
-                            console.debug('[SIGNIN] Non-200 from authenticate, going back to sign in page');
-                            return Ion.multiSet({
-                                [IONKEYS.CREDENTIALS]: {},
-                                [IONKEYS.SESSION]: {error: response.message},
-                            })
-                                .then(redirectToSignIn);
-                        }
-
-                        // TODO: check for exitTo
-                        return setSuccessfulSignInData(response, command.exitTo);
-                    })
-                    .then(() => {
-                        // If Expensify login, it's the users first time signing in and we need to
-                        // create a login for the user
-                        if (command.useExpensifyLogin) {
-                            console.debug('[SIGNIN] Creating a login');
-                            return createLogin(Str.generateDeviceLoginID(), Guid());
-                        }
-
-                        return new Promise(resolve => resolve());
-                    });
-            }
-
             // AuthToken expired, re-authenticate
             if (!reauthenticating && responseData.jsonCode === 407) {
                 reauthenticating = true;
@@ -147,11 +156,10 @@ function request(command, data, type = 'post') {
                     .catch(() => {
                         reauthenticating = false;
                         redirectToSignIn();
+                        return Promise.reject();
                     });
             }
-
-            // None of the above, just make the request
-            return xhr(command, data, type);
+            return Promise.resolve();
         });
 }
 
