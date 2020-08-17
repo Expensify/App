@@ -123,8 +123,7 @@ export default class App extends React.Component {
                                     hamburgerStyle,
                                     visibility,
                                     {
-                                        transform: [{translateX: this.state.animationTranslateX}
-                                        ]
+                                        transform: [{translateX: this.state.animationTranslateX}]
                                     }]}
                                 >
                                     <Sidebar insets={insets} onLinkClick={this.toggleHamburger} />
