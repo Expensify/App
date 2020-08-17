@@ -10,7 +10,7 @@
     "build": "webpack --config webpack.prod.js",
     "test": "jest",
     "lint": "eslint .",
-    "deploy-ios": "npm version prerelease && fastlane ios beta",
+    "deploy-ios": "npm version prerelease && git push && fastlane ios beta",
     "postversion": "react-native-version"
   },
   "dependencies": {
@@ -56,6 +56,7 @@
     "babel-plugin-react-native-web": "^0.13.5",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "clean-webpack-plugin": "^3.0.0",
+    "copy-webpack-plugin": "^6.0.3",
     "eslint": "^7.6.0",
     "eslint-config-expensify": "^2.0.11",
     "eslint-loader": "^4.0.2",

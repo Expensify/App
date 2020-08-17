@@ -2,7 +2,6 @@ import React from 'react';
 import {View, Image} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import Text from '../../../components/Text';
 import ReportHistoryPropsTypes from './ReportHistoryPropsTypes';
 import ReportHistoryItemMessage from './ReportHistoryItemMessage';
 import ReportHistoryItemFragment from './ReportHistoryItemFragment';
@@ -45,9 +44,7 @@ class ReportHistoryItemSingle extends React.PureComponent {
                         </View>
                     </View>
                     <View style={[styles.chatItemMessage]}>
-                        <Text>
-                            <ReportHistoryItemMessage historyItem={historyItem} />
-                        </Text>
+                        <ReportHistoryItemMessage historyItem={historyItem} />
                     </View>
                 </View>
             </View>

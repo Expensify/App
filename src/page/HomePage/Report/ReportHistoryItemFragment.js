@@ -1,9 +1,9 @@
 import React from 'react';
-import {Text} from 'react-native';
 import WebView from '../../../components/WebView';
 import Str from '../../../lib/Str';
 import ReportHistoryFragmentPropTypes from './ReportHistoryFragmentPropTypes';
 import styles from '../../../style/StyleSheet';
+import Text from '../../../components/Text';
 
 const propTypes = {
     // The message fragment needing to be displayed
@@ -13,7 +13,8 @@ const propTypes = {
 const ReportHistoryItemFragment = ({fragment}) => {
     switch (fragment.type) {
         case 'COMMENT':
-            return fragment.html
+            // Only render HTML if we have html in the fragment
+            return fragment.html !== fragment.text
                 ? <WebView html={fragment.html} />
                 : <Text>{Str.htmlDecode(fragment.text)}</Text>;
 
