@@ -32,7 +32,9 @@ module.exports = {
             {
                 test: /\.js$/,
                 loader: 'babel-loader',
-                exclude: /node_modules|\.native.js$/,
+
+                // Exclude node_modules except two packages we need to convert for rendering HTML
+                exclude: /node_modules\/(?!(react-native-render-html|react-native-webview)\/).*|\.native.js$/,
             },
             {
                 test: /\.js$/,
