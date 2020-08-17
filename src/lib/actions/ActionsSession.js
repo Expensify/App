@@ -27,6 +27,7 @@ function signIn(login, password, twoFactorAuthCode = '', useExpensifyLogin = fal
         twoFactorAuthCode,
         exitTo
     })
+
         // Handle any of our jsonCodes
         .then((responseData) => {
             if (responseData) {

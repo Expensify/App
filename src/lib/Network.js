@@ -41,6 +41,35 @@ function setSuccessfulSignInData(data, exitTo) {
     });
 }
 
+function xhr(command, data, type = 'post') {
+    return Ion.get(IONKEYS.SESSION, 'authToken')
+        .then((authToken) => {
+            const formData = new FormData();
+
+            // If we're calling Authenticate we don't need an authToken, so let's not send "undefined"
+            if (command !== 'Authenticate') {
+                formData.append('authToken', authToken);
+            }
+            _.each(data, (val, key) => formData.append(key, val));
+            return formData;
+        })
+        .then(formData => fetch(`${CONFIG.EXPENSIFY.API_ROOT}command=${command}`, {
+            method: type,
+            body: formData,
+        })
+            .then(response => response.json()))
+
+        // This will catch any HTTP network errors (like 404s and such), not to be confused with jsonCode which this
+        // does NOT catch
+        .catch(() => {
+            isAppOffline = true;
+
+            // Throw a new error to prevent any other `then()` in the promise chain from being triggered (until another
+            // catch() happens
+            throw new Error('API is offline');
+        });
+}
+
 /**
  * Make an XHR to the server
  *
@@ -60,17 +89,13 @@ function request(command, data, type = 'post') {
     // }
     return xhr(command, data, type)
 
-        // Convert the data into JSON
-        .then(response => response.json())
-
         // Handle any of our jsonCodes
         .then((responseData) => {
             // We treat Authenticate in a special way
             // TODO explain why
             if (command === 'Authenticate') {
-                console.log('in Authenticate');
+                console.debug('in Authenticate');
                 return xhr(command, data, type)
-                    .then(response => response.json())
                     .then((response) => {
                         console.debug('[SIGNIN] Authentication result. Code:', response && response.jsonCode);
 
@@ -85,18 +110,20 @@ function request(command, data, type = 'post') {
                             })
                                 .then(redirectToSignIn);
                         }
+
                         // TODO: check for exitTo
                         return setSuccessfulSignInData(response, command.exitTo);
                     })
                     .then(() => {
-                        // If Expensify login, it's the users first time logging in and we need to create a login for the user
+                        // If Expensify login, it's the users first time signing in and we need to
+                        // create a login for the user
                         if (command.useExpensifyLogin) {
                             console.debug('[SIGNIN] Creating a login');
                             return createLogin(Str.generateDeviceLoginID(), Guid());
                         }
 
                         return new Promise(resolve => resolve());
-                    })
+                    });
             }
 
             // AuthToken expired, re-authenticate
@@ -104,7 +131,7 @@ function request(command, data, type = 'post') {
                 reauthenticating = true;
 
                 return Ion.get(IONKEYS.CREDENTIALS)
-                    .then(({login, password}) => request('Authenticate', {
+                    .then(({login, password}) => xhr('Authenticate', {
                         useExpensifyLogin: false,
                         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
                         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
@@ -115,41 +142,16 @@ function request(command, data, type = 'post') {
                     .then(() => setSuccessfulSignInData())
                     .then(() => {
                         reauthenticating = false;
-                        return xhr(command, data, type)
-                            .then(response => response.json());
+                        return xhr(command, data, type);
+                    })
+                    .catch(() => {
+                        reauthenticating = false;
+                        redirectToSignIn();
                     });
             }
 
             // None of the above, just make the request
-            return xhr(command, data, type)
-                .then(response => response.json());
-        });
-}
-function xhr(command, data, type = 'post') {
-    return Ion.get(IONKEYS.SESSION, 'authToken')
-        .then((authToken) => {
-            const formData = new FormData();
-
-            // If we're calling Authenticate we don't need an authToken, so let's not send "undefined"
-            if (command !== 'Authenticate') {
-                formData.append('authToken', authToken);
-            }
-            _.each(data, (val, key) => formData.append(key, val));
-            return formData;
-        })
-        .then(formData => fetch(`${CONFIG.EXPENSIFY.API_ROOT}command=${command}`, {
-            method: type,
-            body: formData,
-        }))
-
-        // This will catch any HTTP network errors (like 404s and such), not to be confused with jsonCode which this
-        // does NOT catch
-        .catch(() => {
-            isAppOffline = true;
-
-            // Throw a new error to prevent any other `then()` in the promise chain from being triggered (until another
-            // catch() happens
-            throw new Error('API is offline');
+            return xhr(command, data, type);
         });
 }
 
