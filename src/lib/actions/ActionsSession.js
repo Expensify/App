@@ -27,23 +27,6 @@ function signIn(login, password, twoFactorAuthCode = '', useExpensifyLogin = fal
         twoFactorAuthCode,
         exitTo
     })
-
-        // Handle any of our jsonCodes
-        .then((responseData) => {
-            if (responseData) {
-                // AuthToken expired, go to the sign in page
-                if (responseData.jsonCode === 407) {
-                    redirectToSignIn();
-                    throw new Error('[API] Auth token expired');
-                }
-
-                if (responseData.jsonCode !== 200) {
-                    throw new Error(responseData.message);
-                }
-            }
-
-            return new Promise(resolve => resolve());
-        })
         .catch((err) => {
             console.error(err);
             console.debug('[SIGNIN] Request error');
