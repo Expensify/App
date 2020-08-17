@@ -2,9 +2,44 @@ import _ from 'underscore';
 import Ion from './Ion';
 import CONFIG from '../CONFIG';
 import IONKEYS from '../IONKEYS';
+import ROUTES from '../ROUTES';
+import Str from './Str';
+import Guid from './Guid';
 import redirectToSignIn from './actions/ActionsSignInRedirect';
 
 let isAppOffline = false;
+let reauthenticating = false;
+
+/**
+ * Create login
+ * @param {string} login
+ * @param {string} password
+ * @returns {Promise}
+ */
+function createLogin(login, password) {
+    return request('CreateLogin', {
+        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+        partnerUserID: login,
+        partnerUserSecret: password,
+    }).then(() => Ion.set(IONKEYS.CREDENTIALS, {login, password}))
+        .catch(err => Ion.merge(IONKEYS.SESSION, {error: err}));
+}
+
+/**
+ * Sets API data in the store when we make a successful "Authenticate"/"CreateLogin" request
+ *
+ * @param {object} data
+ * @param {string} exitTo
+ * @returns {Promise}
+ */
+function setSuccessfulSignInData(data, exitTo) {
+    return Ion.multiSet({
+        [IONKEYS.SESSION]: data,
+        [IONKEYS.APP_REDIRECT_TO]: exitTo ? `/${exitTo}` : ROUTES.HOME,
+        [IONKEYS.LAST_AUTHENTICATED]: new Date().getTime(),
+    });
+}
 
 /**
  * Make an XHR to the server
@@ -15,6 +50,82 @@ let isAppOffline = false;
  * @returns {Promise}
  */
 function request(command, data, type = 'post') {
+    // TODO: add chceke for expiration
+    // const haveCredentials = !_.isNull(credentials);
+    // const haveExpiredAuthToken = last_authenticated < new Date().getTime() - CONFIG.AUTH_TOKEN_EXPIRATION_TIME;
+
+    // if (haveExpiredAuthToken && haveCredentials) {
+    //     console.debug('Invalid auth token: Token has expired.');
+    //     return signIn(credentials.login, credentials.password);
+    // }
+    return xhr(command, data, type)
+
+        // Convert the data into JSON
+        .then(response => response.json())
+
+        // Handle any of our jsonCodes
+        .then((responseData) => {
+            // We treat Authenticate in a special way
+            // TODO explain why
+            if (command === 'Authenticate') {
+                console.log('in Authenticate');
+                return xhr(command, data, type)
+                    .then(response => response.json())
+                    .then((response) => {
+                        console.debug('[SIGNIN] Authentication result. Code:', response && response.jsonCode);
+
+                        // If we didn't get a 200 response from authenticate, the user needs to sign in again
+                        // TODO: check for response.useExpensifyLogin
+                        if (!command.useExpensifyLogin && response.jsonCode !== 200) {
+                            // eslint-disable-next-line no-console
+                            console.debug('[SIGNIN] Non-200 from authenticate, going back to sign in page');
+                            return Ion.multiSet({
+                                [IONKEYS.CREDENTIALS]: {},
+                                [IONKEYS.SESSION]: {error: response.message},
+                            })
+                                .then(redirectToSignIn);
+                        }
+                        // TODO: check for exitTo
+                        return setSuccessfulSignInData(response, command.exitTo);
+                    })
+                    .then(() => {
+                        // If Expensify login, it's the users first time logging in and we need to create a login for the user
+                        if (command.useExpensifyLogin) {
+                            console.debug('[SIGNIN] Creating a login');
+                            return createLogin(Str.generateDeviceLoginID(), Guid());
+                        }
+
+                        return new Promise(resolve => resolve());
+                    })
+            }
+
+            // AuthToken expired, re-authenticate
+            if (!reauthenticating && responseData.jsonCode === 407) {
+                reauthenticating = true;
+
+                return Ion.get(IONKEYS.CREDENTIALS)
+                    .then(({login, password}) => request('Authenticate', {
+                        useExpensifyLogin: false,
+                        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+                        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+                        partnerUserID: login,
+                        partnerUserSecret: password,
+                        twoFactorAuthCode: ''
+                    }))
+                    .then(() => setSuccessfulSignInData())
+                    .then(() => {
+                        reauthenticating = false;
+                        return xhr(command, data, type)
+                            .then(response => response.json());
+                    });
+            }
+
+            // None of the above, just make the request
+            return xhr(command, data, type)
+                .then(response => response.json());
+        });
+}
+function xhr(command, data, type = 'post') {
     return Ion.get(IONKEYS.SESSION, 'authToken')
         .then((authToken) => {
             const formData = new FormData();
@@ -39,26 +150,6 @@ function request(command, data, type = 'post') {
             // Throw a new error to prevent any other `then()` in the promise chain from being triggered (until another
             // catch() happens
             throw new Error('API is offline');
-        })
-
-        // Convert the data into JSON
-        .then(response => response.json())
-
-        // Handle any of our jsonCodes
-        .then((responseData) => {
-            if (responseData) {
-                // AuthToken expired, go to the sign in page
-                if (responseData.jsonCode === 407) {
-                    redirectToSignIn();
-                    throw new Error('[API] Auth token expired');
-                }
-
-                if (responseData.jsonCode !== 200) {
-                    throw new Error(responseData.message);
-                }
-            }
-
-            return responseData;
         });
 }
 
@@ -89,7 +180,7 @@ function delayedWrite(command, data) {
 function processWriteQueue() {
     if (isAppOffline) {
         // Make a simple request to see if we're online again
-        request('Get', null)
+        xhr('Get', null)
             .then(() => isAppOffline = false);
         return;
     }
@@ -102,7 +193,7 @@ function processWriteQueue() {
         // Take the request object out of the queue and make the request
         const delayedWriteRequest = delayedWriteQueue.shift();
 
-        request(delayedWriteRequest.command, delayedWriteRequest.data)
+        xhr(delayedWriteRequest.command, delayedWriteRequest.data)
             .then(delayedWriteRequest.callback)
             .catch(() => {
                 // If the request failed, we need to put the request object back into the queue
