@@ -361,11 +361,6 @@ const styles = {
         justifyContent: 'flex-end',
     },
 
-    chatContentInner: {
-        paddingTop: 8,
-        paddingBottom: 8,
-    },
-
     chatContentEmpty: {
         paddingTop: 16,
         paddingBottom: 16,
