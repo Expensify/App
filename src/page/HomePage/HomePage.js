@@ -3,7 +3,8 @@ import {
     StatusBar,
     View,
     Dimensions,
-    Animated
+    Animated,
+    Easing
 } from 'react-native';
 import {SafeAreaInsetsContext, SafeAreaProvider} from 'react-native-safe-area-context';
 import {Route} from '../../lib/Router';
@@ -86,7 +87,8 @@ export default class App extends React.Component {
 
         Animated.timing(this.state.animationTranslateX, {
             toValue: animationFinalValue,
-            duration: 250,
+            duration: 200,
+            easing: Easing.ease,
             useNativeDriver: false
         }).start(({finished}) => {
             // If the hamburger is currently shown, we want to hide it only after the animation is complete
