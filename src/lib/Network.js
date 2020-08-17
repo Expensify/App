@@ -29,6 +29,7 @@ function request(command, data, type = 'post') {
         .then(formData => fetch(`${CONFIG.EXPENSIFY.API_ROOT}command=${command}`, {
             method: type,
             body: formData,
+            credentials: 'include'
         }))
 
         // This will catch any HTTP network errors (like 404s and such), not to be confused with jsonCode which this
