@@ -35,6 +35,12 @@ class App extends Component {
         };
     }
 
+    componentDidMount() {
+        StatusBar.setBarStyle('light-content', true);
+        StatusBar.setBackgroundColor('transparent', true);
+        StatusBar.setTranslucent(true);
+    }
+
     /**
      * Sign into the application when the form is submitted
      */
@@ -46,7 +52,7 @@ class App extends Component {
     render() {
         return (
             <>
-                <StatusBar barStyle="dark-content" />
+                <StatusBar />
                 <SafeAreaView style={[styles.signInPage]}>
                     <View style={[styles.signInPageInner]}>
                         <View style={[styles.signInPageLogo]}>
