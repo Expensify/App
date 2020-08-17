@@ -65,5 +65,6 @@ export default WithIon({
             // Initialize this client as being an active client
             ActiveClientManager.init();
         },
+        skipPrefillOfData: true,
     },
 })(Expensify);
