@@ -50,9 +50,7 @@ export default withRouter(WithIon({
     // It uses the data returned from the props path (ie. the reportID) to replace %DATAFROMPROPS% in the key it
     // binds to
     reportName: {
-        // Note the trailing $ so that this component only binds to the specific report and no other report keys
-        // like report_history_1234
-        key: `${IONKEYS.REPORT}_%DATAFROMPROPS%$`,
+        key: `${IONKEYS.REPORT}_%DATAFROMPROPS%`,
         path: 'reportName',
         prefillWithKey: `${IONKEYS.REPORT}_%DATAFROMPROPS%`,
         pathForProps: 'match.params.reportID',
