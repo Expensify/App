@@ -451,11 +451,18 @@ const styles = {
         top: 0,
         bottom: 0,
         zIndex: 2,
-        width: 300
+        width: 300,
+        shadowColor: '#000000',
+        shadowOffset: {
+            width: 0,
+            height: 0,
+        },
+        shadowOpacity: 0.3,
+        shadowRadius: 20
     },
 
     hamburgerOpen: {
-        width: 300
+        width: 300,
     }
 
 };
