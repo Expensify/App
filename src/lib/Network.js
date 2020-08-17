@@ -35,7 +35,10 @@ function createLogin(login, password) {
  */
 function setSuccessfulSignInData(data, exitTo) {
     return Ion.multiSet({
-        [IONKEYS.SESSION]: data,
+
+        // The response from Authenticate includes requestID, jsonCode, etc
+        // but we only care about setting these three values in Ion
+        [IONKEYS.SESSION]: _.pick(data, 'authToken', 'accountID', 'email'),
         [IONKEYS.APP_REDIRECT_TO]: exitTo ? `/${exitTo}` : ROUTES.HOME,
         [IONKEYS.LAST_AUTHENTICATED]: new Date().getTime(),
     });
@@ -117,8 +120,9 @@ function request(command, data, type = 'post') {
                 alert('setting successful signin data');
                 return setSuccessfulSignInData(response, command.exitTo);
             })
-            .then(() => {
-                alert(`about to create login ${data.useExpensifyLogin}`);
+            .then((response) => {
+                console.debug(`about to create login ${data.useExpensifyLogin}`);
+
                 // If Expensify login, it's the users first time signing in and we need to
                 // create a login for the user
                 if (data.useExpensifyLogin) {
@@ -126,7 +130,7 @@ function request(command, data, type = 'post') {
                     return createLogin(Str.generateDeviceLoginID(), Guid());
                 }
 
-                return Promise.resolve();
+                return Promise.resolve(response);
             });
     }
 
@@ -159,7 +163,7 @@ function request(command, data, type = 'post') {
                         return Promise.reject();
                     });
             }
-            return Promise.resolve();
+            return Promise.resolve(responseData);
         });
 }
 
