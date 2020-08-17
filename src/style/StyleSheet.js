@@ -453,6 +453,7 @@ const webViewStyles = {
     tagStyles: {
         em: {
             fontStyle: 'italic',
+            fontFamily: 'System'
         },
 
         del: {
