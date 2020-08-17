@@ -1,14 +1,9 @@
 {
     "appId": "com.expensifyreactnative.chat",
-    "name": "Chat",
     "productName": "Chat",
     "mac": {
         "category": "public.app-category.finance",
         "icon": "./android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png"
-    },
-    "protocols": {
-        "name": "Chat",
-        "schemes": ["expensify://"]
     },
     "files": [
         "./dist/**/*",
