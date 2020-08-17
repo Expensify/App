@@ -52,7 +52,6 @@ export default withRouter(WithIon({
     reportName: {
         key: `${IONKEYS.REPORT}_%DATAFROMPROPS%`,
         path: 'reportName',
-        prefillWithKey: `${IONKEYS.REPORT}_%DATAFROMPROPS%`,
         pathForProps: 'match.params.reportID',
     },
 })(HeaderView));
