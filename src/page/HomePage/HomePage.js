@@ -94,7 +94,7 @@ export default class App extends React.Component {
             // If the hamburger is currently shown, we want to hide it only after the animation is complete
             // Otherwise, we can't see the animation
             if (finished && hamburgerIsShown) {
-                this.setState({hamburgerShown: !hamburgerIsShown});
+                this.setState({hamburgerShown: false});
             }
         });
     }
