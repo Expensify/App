@@ -38,9 +38,7 @@ class ReportHistoryItemFragment extends React.PureComponent {
         const htmlNode = node;
 
         // We only want to attach auth tokens to images that come from Expensify attachments
-        if (htmlNode.name === 'img'
-            && htmlNode.attribs['data-expensify-source']
-            && new URL(htmlNode.attribs['data-expensify-source']).hostname === CONFIG.EXPENSIFY.HOST_NAME) {
+        if (htmlNode.name === 'img' && htmlNode.attribs['data-expensify-source']) {
             htmlNode.attribs.src = `${node.attribs.src}?authToken=${this.props.authToken}`;
             return htmlNode;
         }
