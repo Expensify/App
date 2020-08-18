@@ -122,10 +122,6 @@ function processWriteQueue() {
         return;
     }
 
-    if (delayedWriteQueue.length === 0) {
-        return;
-    }
-
     for (let i = 0; i < delayedWriteQueue.length; i++) {
         // Take the request object out of the queue and make the request
         const delayedWriteRequest = delayedWriteQueue.shift();
