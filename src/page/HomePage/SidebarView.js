@@ -15,6 +15,7 @@ import {fetchAll} from '../../lib/actions/ActionsReport';
 import SidebarLink from './SidebarLink';
 import logo from '../../../assets/images/expensify-logo_reversed.png';
 import PageTitleUpdater from '../../lib/PageTitleUpdater';
+import Anchor from '../../components/Anchor';
 
 const propTypes = {
     // Toggles the hamburger menu open and closed
@@ -69,6 +70,9 @@ class SidebarView extends React.Component {
                             source={{uri: this.state && this.state.avatarURL}}
                             style={[styles.historyItemAvatar]}
                         />
+                        {this.state && this.state.isOffline && (
+                        <View style={[styles.statusIndicator]} />
+                        )}
                     </View>
                     <View style={[styles.flexColumn]}>
                         {this.state && this.state.userDisplayName && (
@@ -76,7 +80,27 @@ class SidebarView extends React.Component {
                                 {this.state.userDisplayName}
                             </Text>
                         )}
-                        <Text style={[styles.sidebarFooterLink]} onPress={signOut}>Sign Out</Text>
+                        <View style={[styles.flexRow]}>
+                            <Anchor
+                                style={[styles.sidebarFooterLink, styles.mr2]}
+                                href="https://chat.expensify.com/Chat.app.zip"
+                            >
+                                Desktop
+                            </Anchor>
+                            <Anchor
+                                style={[styles.sidebarFooterLink, styles.mr2]}
+                                href="https://testflight.apple.com/join/vBYbMRQG"
+                            >
+                                iOS
+                            </Anchor>
+                            <Anchor
+                                style={[styles.sidebarFooterLink, styles.mr2]}
+                                href="https://chat.expensify.com/app-release.apk"
+                            >
+                                Android
+                            </Anchor>
+                            <Text style={[styles.sidebarFooterLink]} onPress={signOut}>Sign Out</Text>
+                        </View>
                     </View>
                 </View>
             </View>
@@ -106,5 +130,10 @@ export default WithIon({
         addAsCollection: true,
         collectionID: 'reportID',
         loader: fetchAll,
+    },
+    isOffline: {
+        key: IONKEYS.NETWORK,
+        path: 'isOffline',
+        defaultValue: false,
     },
 })(SidebarView);
