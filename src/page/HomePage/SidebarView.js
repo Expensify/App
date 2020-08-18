@@ -70,6 +70,9 @@ class SidebarView extends React.Component {
                             source={{uri: this.state && this.state.avatarURL}}
                             style={[styles.historyItemAvatar]}
                         />
+                        {this.state && this.state.isOffline && (
+                        <View style={[styles.statusIndicator]} />
+                        )}
                     </View>
                     <View style={[styles.flexColumn]}>
                         {this.state && this.state.userDisplayName && (
@@ -121,5 +124,10 @@ export default WithIon({
         addAsCollection: true,
         collectionID: 'reportID',
         loader: fetchAll,
+    },
+    isOffline: {
+        key: IONKEYS.NETWORK,
+        path: 'isOffline',
+        defaultValue: false,
     },
 })(SidebarView);
