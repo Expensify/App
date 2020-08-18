@@ -140,6 +140,7 @@ const styles = {
         color: colors.text,
         fontFamily: 'GTAmericaExp-Regular',
         padding: 12,
+        marginRight: 12,
     },
 
     textInputReversed: {
@@ -457,6 +458,18 @@ const styles = {
         paddingBottom: 20,
         paddingLeft: 20,
         paddingRight: 20,
+        display: 'flex',
+        justifyContent: 'flex-start',
+    },
+
+    chatItemSubmitButton: {
+        borderColor: colors.border,
+        borderRadius: 8,
+        borderWidth: 1,
+        minHeight: 40,
+        maxHeight: 60,
+        width: 60,
+        justifyContent: 'center',
     },
 
     hamburgerOpenAbsolute: {
