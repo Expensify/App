@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import Ion from '../Ion';
-import {delayedWrite} from '../Network';
+import {queueRequest} from '../Network';
 import IONKEYS from '../../IONKEYS';
 import md5 from '../md5';
 import CONST from '../../CONST';
@@ -38,7 +38,7 @@ function fetch() {
             }
 
             currentLogin = login;
-            return delayedWrite('Get', {
+            return queueRequest('Get', {
                 returnValueList: 'personalDetailsList',
             });
         })
@@ -92,7 +92,7 @@ function fetch() {
  * @returns {Promise}
  */
 function fetchTimezone() {
-    const requestPromise = delayedWrite('Get', {
+    const requestPromise = queueRequest('Get', {
         returnValueList: 'nameValuePairs',
         name: 'timeZone',
     })

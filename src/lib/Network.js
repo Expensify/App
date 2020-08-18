@@ -15,8 +15,8 @@ let isAppOffline = false;
 // response in the subsequent API calls
 let reauthenticating = false;
 
-// Holds a queue of all the write requests that need to happen
-const delayedWriteQueue = [];
+// Queue for network requests so we don't lose actions done by the user while offline
+const networkRequestQueue = [];
 
 /**
  * Events that happen on the pusher socket are used to determine if the app is online or offline. The offline setting
@@ -53,10 +53,10 @@ registerSocketEventCallback((eventName, data) => {
  * @param {mixed} data
  * @returns {Promise}
  */
-function delayedWrite(command, data) {
+function queueRequest(command, data) {
     return new Promise((resolve) => {
         // Add the write request to a queue of actions to perform
-        delayedWriteQueue.push({
+        networkRequestQueue.push({
             command,
             data,
             callback: resolve,
@@ -113,7 +113,7 @@ function xhr(command, data, type = 'post') {
             Ion.merge(IONKEYS.NETWORK, {isOffline: true});
 
             // If the request failed, we need to put the request object back into the queue
-            delayedWrite(command, data);
+            queueRequest(command, data);
 
             // Throw a new error to prevent any other `then()` in the promise chain from being triggered (until another
             // catch() happens
@@ -152,7 +152,7 @@ function createLogin(login, password) {
 function request(command, data, type = 'post') {
     // If we're in the process of re-authenticating, queue this request for after we're done re-authenticating
     if (reauthenticating) {
-        return delayedWrite(command, data);
+        return queueRequest(command, data);
     }
 
     // We treat Authenticate in a special way because unlike other commands, this one can't fail
@@ -232,14 +232,14 @@ function processWriteQueue() {
 
     // Don't make any requests until we're done re-authenticating since we'll use the new authToken
     // from that response for the subsequent network requests
-    if (reauthenticating || delayedWriteQueue.length === 0) {
+    if (reauthenticating || networkRequestQueue.length === 0) {
         return;
     }
-    for (let i = 0; i < delayedWriteQueue.length; i++) {
+    for (let i = 0; i < networkRequestQueue.length; i++) {
         // Take the request object out of the queue and make the request
-        const delayedWriteRequest = delayedWriteQueue.shift();
-        request(delayedWriteRequest.command, delayedWriteRequest.data)
-            .then(delayedWriteRequest.callback);
+        const queuedRequest = networkRequestQueue.shift();
+        request(queuedRequest.command, queuedRequest.data)
+            .then(queuedRequest.callback);
     }
 }
 
@@ -248,5 +248,5 @@ setInterval(processWriteQueue, 1000);
 
 export {
     request,
-    delayedWrite,
+    queueRequest,
 };

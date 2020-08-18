@@ -2,7 +2,7 @@ import moment from 'moment';
 import _ from 'underscore';
 import get from 'lodash.get';
 import Ion from '../Ion';
-import {delayedWrite} from '../Network';
+import {queueRequest} from '../Network';
 import IONKEYS from '../../IONKEYS';
 import CONFIG from '../../CONFIG';
 import * as pusher from '../Pusher/pusher';
@@ -101,7 +101,7 @@ function fetchAll() {
     let fetchedReports;
 
     // Request each report one at a time to allow individual reports to fail if access to it is prevents by Auth
-    const reportFetchPromises = _.map(CONFIG.REPORT_IDS.split(','), reportID => delayedWrite('Get', {
+    const reportFetchPromises = _.map(CONFIG.REPORT_IDS.split(','), reportID => queueRequest('Get', {
         returnValueList: 'reportStuff',
         reportIDList: reportID,
         shouldLoadOptionalKeys: true,
@@ -144,7 +144,7 @@ function fetchAll() {
  * @returns {Promise}
  */
 function fetchHistory(reportID) {
-    return delayedWrite('Report_GetHistory', {
+    return queueRequest('Report_GetHistory', {
         reportID,
         offset: 0,
     })
@@ -212,7 +212,7 @@ function addHistoryItem(reportID, reportComment) {
                 }
             });
         })
-        .then(() => delayedWrite('Report_AddComment', {
+        .then(() => queueRequest('Report_AddComment', {
             reportID,
             reportComment: htmlComment,
         }));
@@ -237,7 +237,7 @@ function updateLastReadActionID(accountID, reportID, sequenceNumber) {
     })
 
         // Update the lastReadActionID on the report optimistically
-        .then(() => delayedWrite('Report_SetLastReadActionID', {
+        .then(() => queueRequest('Report_SetLastReadActionID', {
             accountID,
             reportID,
             sequenceNumber,
