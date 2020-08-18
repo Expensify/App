@@ -1,8 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, Text, TouchableOpacity} from 'react-native';
+import {View, Image, TouchableOpacity} from 'react-native';
 import styles from '../../../style/StyleSheet';
 import TextInputFocusable from '../../../components/TextInputFocusable';
+import sendIcon from '../../../../assets/images/icon-send.png';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -74,27 +75,30 @@ class ReportHistoryCompose extends React.Component {
 
     render() {
         return (
-            <View style={[styles.chatItemCompose, styles.flexRow]}>
-                <TextInputFocusable
-                    multiline
-                    textAlignVertical="top"
-                    numberOfLines={1}
-                    minHeight={40}
-                    maxHeight={60}
-                    placeholder="Write something..."
-                    placeholderTextColor="#7D8B8F"
-                    onChangeText={this.updateComment}
-                    onKeyPress={this.triggerSubmitShortcut}
-                    style={[styles.textInput, styles.flex4, styles.mr3]}
-                    value={this.state.comment}
-                />
-                <TouchableOpacity
-                    style={[styles.chatItemSubmitButton, styles.buttonSuccess]}
-                    onPress={this.submitForm}
-                    underlayColor="#fff"
-                >
-                    <Text style={[styles.buttonText, styles.buttonSuccessText]}>Send</Text>
-                </TouchableOpacity>
+            <View style={[styles.chatItemCompose]}>
+                <View style={[styles.chatItemComposeBox, styles.flexRow]}>
+                    <TextInputFocusable
+                        multiline
+                        textAlignVertical="top"
+                        placeholder="Write something..."
+                        placeholderTextColor="#7D8B8F"
+                        onChangeText={this.updateComment}
+                        onKeyPress={this.triggerSubmitShortcut}
+                        style={[styles.textInput, styles.textInputCompose, styles.flex4]}
+                        value={this.state.comment}
+                    />
+                    <TouchableOpacity
+                        style={[styles.chatItemSubmitButton, styles.buttonSuccess]}
+                        onPress={this.submitForm}
+                        underlayColor="#fff"
+                    >
+                        <Image
+                            resizeMode="contain"
+                            style={[styles.chatItemSubmitButtonIcon]}
+                            source={sendIcon}
+                        />
+                    </TouchableOpacity>
+                </View>
             </View>
         );
     }
