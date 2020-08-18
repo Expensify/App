@@ -27,4 +27,4 @@ jobs:
               run: npm run desktop-build
 
             - name: Deploy to S3
-              run: aws s3 cp --acl public-read $GITHUB_WORKSPACE/dist/mac/Chat.app s3://chat-test-expensify-com/Chat.app
+              run: aws s3 cp --recursive --acl public-read $GITHUB_WORKSPACE/dist/mac/Chat.app s3://chat-test-expensify-com/Chat.app
