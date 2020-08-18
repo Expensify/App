@@ -112,6 +112,9 @@ function xhr(command, data, type = 'post') {
             isAppOffline = true;
             Ion.merge(IONKEYS.NETWORK, {isOffline: true});
 
+            // If the request failed, we need to put the request object back into the queue
+            delayedWrite(command, data);
+
             // Throw a new error to prevent any other `then()` in the promise chain from being triggered (until another
             // catch() happens
             throw new Error('API is offline');
@@ -234,11 +237,7 @@ function processWriteQueue() {
         // Take the request object out of the queue and make the request
         const delayedWriteRequest = delayedWriteQueue.shift();
         request(delayedWriteRequest.command, delayedWriteRequest.data)
-            .then(delayedWriteRequest.callback)
-            .catch(() => {
-                // If the request failed, we need to put the request object back into the queue
-                delayedWriteQueue.push(delayedWriteRequest);
-            });
+            .then(delayedWriteRequest.callback);
     }
 }
 
