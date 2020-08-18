@@ -152,6 +152,7 @@ export default withRouter(WithIon({
         prefillWithKey: key,
         pathForProps: 'reportID',
     },
-    //TODO: Clean up default, just for testing
+
+    // TODO: Clean up default, just for testing
     authToken: {key: IONKEYS.SESSION, path: 'authToken', defaultValue: 'abc'},
 })(ReportHistoryView));
