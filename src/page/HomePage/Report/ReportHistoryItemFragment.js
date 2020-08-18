@@ -1,5 +1,5 @@
 import React from 'react';
-import WebView from '../../../components/webView';
+import WebView from '../../../components/WebView';
 import Str from '../../../lib/Str';
 import ReportHistoryFragmentPropTypes from './ReportHistoryFragmentPropTypes';
 import styles from '../../../style/StyleSheet';
