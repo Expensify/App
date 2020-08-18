@@ -161,7 +161,6 @@ function request(command, data, type = 'post') {
                 // If we didn't get a 200 response from authenticate, the user needs to sign in again
                 // TODO: check for response.useExpensifyLogin
                 if (!command.useExpensifyLogin && response.jsonCode !== 200) {
-                    // eslint-disable-next-line no-console
                     return Ion.multiSet({
                         [IONKEYS.CREDENTIALS]: {},
                         [IONKEYS.SESSION]: {error: response.message},
@@ -177,7 +176,6 @@ function request(command, data, type = 'post') {
                     console.debug('[SIGNIN] Creating a login');
                     return createLogin(Str.generateDeviceLoginID(), Guid());
                 }
-
                 return response;
             });
     }
