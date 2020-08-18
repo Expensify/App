@@ -6,13 +6,18 @@ import Str from '../../../lib/Str';
 import ReportHistoryFragmentPropTypes from './ReportHistoryFragmentPropTypes';
 import styles, {webViewStyles} from '../../../style/StyleSheet';
 import Text from '../../../components/Text';
+import CONFIG from '../../../CONFIG';
 
 const propTypes = {
     // The message fragment needing to be displayed
     fragment: ReportHistoryFragmentPropTypes.isRequired,
 
     // Current users auth token
-    authToken: PropTypes.string.isRequired
+    authToken: PropTypes.string
+};
+
+const defaultProps = {
+    authToken: ''
 };
 
 class ReportHistoryItemFragment extends React.PureComponent {
@@ -31,8 +36,11 @@ class ReportHistoryItemFragment extends React.PureComponent {
      */
     alterNode(node) {
         const htmlNode = node;
-        if (htmlNode.name === 'img') {
-            console.log(`in alterNode ${JSON.stringify(this.props)}`);
+
+        // We only want to attach auth tokens to images that come from Expensify attachments
+        if (htmlNode.name === 'img'
+            && htmlNode.attribs['data-expensify-source']
+            && new URL(htmlNode.attribs['data-expensify-source']).hostname === CONFIG.EXPENSIFY.HOST_NAME) {
             htmlNode.attribs.src = `${node.attribs.src}?authToken=${this.props.authToken}`;
             return htmlNode;
         }
@@ -81,6 +89,7 @@ class ReportHistoryItemFragment extends React.PureComponent {
 }
 
 ReportHistoryItemFragment.propTypes = propTypes;
+ReportHistoryItemFragment.defaultProps = defaultProps;
 ReportHistoryItemFragment.displayName = 'ReportHistoryItemFragment';
 
 export default ReportHistoryItemFragment;

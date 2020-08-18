@@ -37,10 +37,7 @@ class ReportHistoryItemSingle extends React.PureComponent {
                     <View style={[styles.chatItemMessageHeader]}>
                         {historyItem.person.map(fragment => (
                             <View key={_.uniqueId('person-', historyItem.sequenceNumber)}>
-                                <ReportHistoryItemFragment
-                                    fragment={fragment}
-                                    authToken={authToken}
-                                />
+                                <ReportHistoryItemFragment fragment={fragment} />
                             </View>
                         ))}
                         <View>
@@ -48,7 +45,7 @@ class ReportHistoryItemSingle extends React.PureComponent {
                         </View>
                     </View>
                     <View style={[styles.chatItemMessage]}>
-                        <ReportHistoryItemMessage historyItem={historyItem} />
+                        <ReportHistoryItemMessage historyItem={historyItem} authToken={authToken} />
                     </View>
                 </View>
             </View>
