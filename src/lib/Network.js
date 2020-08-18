@@ -15,8 +15,8 @@ let isAppOffline = false;
 // response in the subsequent API calls
 let reauthenticating = false;
 
-// Holds a queue of all the write requests that need to happen
-const delayedWriteQueue = [];
+// Queue for network requests so we don't lose actions done by the user while offline
+const networkRequestQueue = [];
 
 /**
  * Events that happen on the pusher socket are used to determine if the app is online or offline. The offline setting
@@ -47,20 +47,24 @@ registerSocketEventCallback((eventName, data) => {
 });
 
 /**
- * Make an XHR to the server
+ * Adds a request to networkRequestQueue
  *
  * @param {string} command
  * @param {mixed} data
  * @returns {Promise}
  */
-function delayedWrite(command, data) {
+function queueRequest(command, data) {
     return new Promise((resolve) => {
         // Add the write request to a queue of actions to perform
-        delayedWriteQueue.push({
+        networkRequestQueue.push({
             command,
             data,
             callback: resolve,
         });
+
+        // Try to fire off the request as soon as it's queued so we don't add a delay to every queued command
+        // eslint-disable-next-line no-use-before-define
+        processNetworkRequestQueue();
     });
 }
 
@@ -113,7 +117,7 @@ function xhr(command, data, type = 'post') {
             Ion.merge(IONKEYS.NETWORK, {isOffline: true});
 
             // If the request failed, we need to put the request object back into the queue
-            delayedWrite(command, data);
+            queueRequest(command, data);
 
             // Throw a new error to prevent any other `then()` in the promise chain from being triggered (until another
             // catch() happens
@@ -142,7 +146,11 @@ function createLogin(login, password) {
 }
 
 /**
- * Make an XHR to the server
+ * Makes an API request.
+ *
+ * For most API commands if we get a 407 jsonCode in the response, which means the authToken
+ * expired, this function automatically makes an API call to Authenticate and get a fresh authToken, and retries the
+ * original API command
  *
  * @param {string} command
  * @param {mixed} data
@@ -152,7 +160,7 @@ function createLogin(login, password) {
 function request(command, data, type = 'post') {
     // If we're in the process of re-authenticating, queue this request for after we're done re-authenticating
     if (reauthenticating) {
-        return delayedWrite(command, data);
+        return queueRequest(command, data);
     }
 
     // We treat Authenticate in a special way because unlike other commands, this one can't fail
@@ -216,9 +224,9 @@ function request(command, data, type = 'post') {
 }
 
 /**
- * Process the write queue by looping through the queue and attempting to make the requests
+ * Process the networkRequestQueue by looping through the queue and attempting to make the requests
  */
-function processWriteQueue() {
+function processNetworkRequestQueue() {
     if (isAppOffline) {
         // Two things will bring the app online again...
         // 1. Pusher reconnecting (see registerSocketEventCallback at the top of this file)
@@ -232,21 +240,21 @@ function processWriteQueue() {
 
     // Don't make any requests until we're done re-authenticating since we'll use the new authToken
     // from that response for the subsequent network requests
-    if (reauthenticating || delayedWriteQueue.length === 0) {
+    if (reauthenticating || networkRequestQueue.length === 0) {
         return;
     }
-    for (let i = 0; i < delayedWriteQueue.length; i++) {
+    for (let i = 0; i < networkRequestQueue.length; i++) {
         // Take the request object out of the queue and make the request
-        const delayedWriteRequest = delayedWriteQueue.shift();
-        request(delayedWriteRequest.command, delayedWriteRequest.data)
-            .then(delayedWriteRequest.callback);
+        const queuedRequest = networkRequestQueue.shift();
+        request(queuedRequest.command, queuedRequest.data)
+            .then(queuedRequest.callback);
     }
 }
 
 // Process our write queue very often
-setInterval(processWriteQueue, 1000);
+setInterval(processNetworkRequestQueue, 1000);
 
 export {
     request,
-    delayedWrite,
+    queueRequest,
 };
