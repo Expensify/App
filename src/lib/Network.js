@@ -200,24 +200,29 @@ function request(command, data, type = 'post') {
             if (!reauthenticating && responseData.jsonCode === 407 && data.doNotRetry !== true) {
                 reauthenticating = true;
                 return Ion.get(IONKEYS.CREDENTIALS)
-                    .then(({login, password}) => xhr('Authenticate', {
-                        useExpensifyLogin: false,
-                        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-                        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-                        partnerUserID: login,
-                        partnerUserSecret: password,
-                        twoFactorAuthCode: ''
-                    })
-                        .then((response) => {
-                            reauthenticating = false;
-                            return setSuccessfulSignInData(response);
-                        })
-                        .then(() => xhr(command, data, type))
-                        .catch(() => {
-                            reauthenticating = false;
-                            redirectToSignIn();
-                            return Promise.reject();
-                        }));
+                    .then((credentials) => {
+                        if (credentials && credentials.login && credentials.password) {
+                            return xhr('Authenticate', {
+                                useExpensifyLogin: false,
+                                partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+                                partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+                                partnerUserID: credentials.login,
+                                partnerUserSecret: credentials.password,
+                                twoFactorAuthCode: ''
+                            })
+                                .then((response) => {
+                                    reauthenticating = false;
+                                    return setSuccessfulSignInData(response);
+                                })
+                                .then(() => xhr(command, data, type))
+                                .catch(() => {
+                                    reauthenticating = false;
+                                    redirectToSignIn();
+                                    return Promise.reject();
+                                });
+                        }
+                        return redirectToSignIn();
+                    });
             }
             return responseData;
         });
