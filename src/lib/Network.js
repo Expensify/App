@@ -104,21 +104,13 @@ function xhr(command, data, type = 'post') {
  * @returns {Promise}
  */
 function request(command, data, type = 'post') {
-    // TODO: add chceke for expiration
-    // const haveCredentials = !_.isNull(credentials);
-    // const haveExpiredAuthToken = last_authenticated < new Date().getTime() - CONFIG.AUTH_TOKEN_EXPIRATION_TIME;
-
-    // if (haveExpiredAuthToken && haveCredentials) {
-    //     console.debug('Invalid auth token: Token has expired.');
-    //     return signIn(credentials.login, credentials.password);
-    // }
-
     if (reauthenticating) {
         return delayedWrite(command, data);
     }
 
-    // We treat Authenticate in a special way
-    // TODO explain why
+    // We treat Authenticate in a special way because unlike other commands, this one can't fail
+    // with 407 authToken expired. When other api commands fail with this error we call Authenticate
+    // to get a new authToken and then fire the original api command again
     if (command === 'Authenticate') {
         return xhr(command, data, type)
             .then((response) => {
@@ -185,6 +177,11 @@ function processWriteQueue() {
         // Make a simple request to see if we're online again
         request('Get', null)
             .then(() => isAppOffline = false);
+        return;
+    }
+
+    // Don't make any requests until we're done re-authenticating
+    if (reauthenticating) {
         return;
     }
 
