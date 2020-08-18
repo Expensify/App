@@ -5,6 +5,7 @@ const colors = {
     componentBG: '#FFFFFF',
     background: '#FAFAFA',
     border: '#ECECEC',
+    icon: '#C6C9CA',
     heading: '#37444C',
     text: '#4A5960',
     textSupporting: '#7D8B8F',
@@ -220,6 +221,19 @@ const styles = {
         height: 40,
         marginRight: 12,
         width: 40,
+    },
+
+    statusIndicator: {
+        backgroundColor: colors.icon,
+        borderColor: colors.heading,
+        borderRadius: 7,
+        borderWidth: 2,
+        position: 'absolute',
+        right: -6,
+        top: 3,
+        height: 14,
+        width: 14,
+        zIndex: 10,
     },
 
     sidebarFooterUsername: {
