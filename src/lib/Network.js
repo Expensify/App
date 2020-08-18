@@ -9,6 +9,10 @@ import {registerSocketEventCallback} from './Pusher/pusher';
 import redirectToSignIn from './actions/ActionsSignInRedirect';
 
 let isAppOffline = false;
+
+// Indicates if we're in the process of re-authenticating. When an API call returns jsonCode 407 indicating that the
+// authToken expired, we set this to true, pause all API calls, re-authenticate, and then use the authToken fromm the
+// response in the subsequent API calls
 let reauthenticating = false;
 
 // Holds a queue of all the write requests that need to happen
@@ -217,19 +221,14 @@ function processWriteQueue() {
         return;
     }
 
-    // Don't make any requests until we're done re-authenticating
-    if (reauthenticating) {
+    // Don't make any requests until we're done re-authenticating since we'll use the new authToken
+    // from that response for the subsequent network requests
+    if (reauthenticating || delayedWriteQueue.length === 0) {
         return;
     }
-
-    if (delayedWriteQueue.length === 0) {
-        return;
-    }
-
     for (let i = 0; i < delayedWriteQueue.length; i++) {
         // Take the request object out of the queue and make the request
         const delayedWriteRequest = delayedWriteQueue.shift();
-
         request(delayedWriteRequest.command, delayedWriteRequest.data)
             .then(delayedWriteRequest.callback)
             .catch(() => {
