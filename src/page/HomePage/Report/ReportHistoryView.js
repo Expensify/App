@@ -125,7 +125,9 @@ class ReportHistoryView extends React.Component {
                 }}
                 onContentSizeChange={this.scrollToBottomWhenListSizeChanges}
                 bounces={false}
-                style={[styles.chatContentInner]}
+                contentContainerStyle={{
+                    paddingVertical: 8
+                }}
             >
                 {_.chain(reportHistory).sortBy('sequenceNumber').map((item, index) => (
                     <ReportHistoryItem
