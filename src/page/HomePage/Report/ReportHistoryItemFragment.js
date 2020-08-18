@@ -6,7 +6,6 @@ import Str from '../../../lib/Str';
 import ReportHistoryFragmentPropTypes from './ReportHistoryFragmentPropTypes';
 import styles, {webViewStyles} from '../../../style/StyleSheet';
 import Text from '../../../components/Text';
-import CONFIG from '../../../CONFIG';
 
 const propTypes = {
     // The message fragment needing to be displayed
