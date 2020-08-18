@@ -11,15 +11,16 @@ import redirectToSignIn from './ActionsSignInRedirect';
  * @param {string} login
  * @param {string} password
  * @param {string} twoFactorAuthCode
- * @param {boolean} useExpensifyLogin
  * @param {string} exitTo
  * @returns {Promise}
  */
-function signIn(login, password, twoFactorAuthCode = '', useExpensifyLogin = false, exitTo) {
-    console.debug('[SIGNIN] Authenticating with expensify login?', useExpensifyLogin ? 'yes' : 'no');
+function signIn(login, password, twoFactorAuthCode = '', exitTo) {
+    console.debug('[SIGNIN] Authenticating with expensify login');
 
     return request('Authenticate', {
-        useExpensifyLogin,
+        // When authenticating for the first time, we pass useExpensifyLogin as true so we check for credentials for
+        // the expensify partnerID to let users authenticate with their expensify user and password.
+        useExpensifyLogin: true,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         partnerUserID: login,

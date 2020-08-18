@@ -161,8 +161,10 @@ function request(command, data, type = 'post') {
     if (command === 'Authenticate') {
         return xhr(command, data, type)
             .then((response) => {
-                // If we didn't get a 200 response from authenticate, the user needs to sign in again
-                // TODO: check for response.useExpensifyLogin
+                // If we didn't get a 200 response from authenticate and useExpensifyLogin != true, it means we're
+                // trying to authenticate with the login credentials we created after the initial authentication, and
+                // failing, so we need the user to sign in again with their expensify credentials again, which they can
+                // do from the sign in page
                 if (!command.useExpensifyLogin && response.jsonCode !== 200) {
                     return Ion.multiSet({
                         [IONKEYS.CREDENTIALS]: {},
