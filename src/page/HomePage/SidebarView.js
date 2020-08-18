@@ -80,7 +80,7 @@ class SidebarView extends React.Component {
                         <View style={[styles.flexRow]}>
                             <Anchor
                                 style={[styles.sidebarFooterLink, styles.mr2]}
-                                href="https://chat.expensify.com/Chat.app"
+                                href="https://chat.expensify.com/Chat.app.zip"
                             >
                                 Desktop
                             </Anchor>
