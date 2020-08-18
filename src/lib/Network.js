@@ -193,7 +193,7 @@ function delayedWrite(command, data) {
 function processWriteQueue() {
     if (isAppOffline) {
         // Make a simple request to see if we're online again
-        xhr('Get', null)
+        request('Get', null)
             .then(() => isAppOffline = false);
         return;
     }
@@ -206,7 +206,7 @@ function processWriteQueue() {
         // Take the request object out of the queue and make the request
         const delayedWriteRequest = delayedWriteQueue.shift();
 
-        xhr(delayedWriteRequest.command, delayedWriteRequest.data)
+        request(delayedWriteRequest.command, delayedWriteRequest.data)
             .then(delayedWriteRequest.callback)
             .catch(() => {
                 // If the request failed, we need to put the request object back into the queue
