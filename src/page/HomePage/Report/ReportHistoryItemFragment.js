@@ -1,8 +1,9 @@
 import React from 'react';
-import WebView from '../../../components/WebView';
+import HTML from 'react-native-render-html';
+import {Linking} from 'react-native';
 import Str from '../../../lib/Str';
 import ReportHistoryFragmentPropTypes from './ReportHistoryFragmentPropTypes';
-import styles from '../../../style/StyleSheet';
+import styles, {webViewStyles} from '../../../style/StyleSheet';
 import Text from '../../../components/Text';
 
 const propTypes = {
@@ -15,7 +16,14 @@ const ReportHistoryItemFragment = ({fragment}) => {
         case 'COMMENT':
             // Only render HTML if we have html in the fragment
             return fragment.html !== fragment.text
-                ? <WebView html={fragment.html} />
+                ? (
+                    <HTML
+                        baseFontStyle={webViewStyles.baseFontStyle}
+                        tagsStyles={webViewStyles.tagStyles}
+                        onLinkPress={(event, href) => Linking.openURL(href)}
+                        html={fragment.html}
+                    />
+                )
                 : <Text>{Str.htmlDecode(fragment.text)}</Text>;
 
             // return fragment.html
