@@ -33,7 +33,14 @@ module.exports = {
                 test: /\.js$/,
                 loader: 'babel-loader',
 
-                // Exclude node_modules except two packages we need to convert for rendering HTML
+                /**
+                 * Exclude node_modules except two packages we need to convert for rendering HTML because they import
+                 * "react-native" internally and use JSX which we need to convert to JS for the browser.
+                 *
+                 * You'll need to add anything in here that needs the alias for "react-native" -> "react-native-web"
+                 * You can remove something from this list if it doesn't use "react-native" as an import and it doesn't
+                 * use JSX/JS that needs to be transformed by babel.
+                 */
                 exclude: /node_modules\/(?!(react-native-render-html|react-native-webview)\/).*|\.native.js$/,
             },
             {

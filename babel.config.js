@@ -1,5 +1,6 @@
 const defaultPresets = ['@babel/preset-react', '@babel/preset-env'];
-const defaultPlugins = [['react-native-web', {commonjs: true}], '@babel/transform-runtime'];
+const defaultPlugins = [['react-native-web', {commonjs: true}], '@babel/transform-runtime',
+    'transform-class-properties'];
 
 const webpack = {
     env: {
