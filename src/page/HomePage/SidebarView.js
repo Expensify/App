@@ -15,6 +15,7 @@ import {fetchAll} from '../../lib/actions/ActionsReport';
 import SidebarLink from './SidebarLink';
 import logo from '../../../assets/images/expensify-logo_reversed.png';
 import PageTitleUpdater from '../../lib/PageTitleUpdater';
+import Ion from '../../lib/Ion';
 import Anchor from '../../components/Anchor';
 
 const propTypes = {
@@ -129,7 +130,17 @@ export default WithIon({
         key: `${IONKEYS.REPORT}_[0-9]+$`,
         addAsCollection: true,
         collectionID: 'reportID',
-        loader: fetchAll,
+        loader: () => fetchAll().then(() => {
+            Ion.multiGet([IONKEYS.CURRENT_URL, IONKEYS.FIRST_REPORT_ID]).then((values) => {
+                const currentURL = values[IONKEYS.CURRENT_URL] || '';
+                const firstReportID = values[IONKEYS.FIRST_REPORT_ID] || 0;
+
+                // If we're on the home page, then redirect to the first report ID
+                if (currentURL === '/' && firstReportID) {
+                    Ion.set(IONKEYS.APP_REDIRECT_TO, `/${firstReportID}`);
+                }
+            });
+        }),
     },
     isOffline: {
         key: IONKEYS.NETWORK,

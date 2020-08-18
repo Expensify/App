@@ -215,7 +215,13 @@ function request(command, data, type = 'post') {
  */
 function processWriteQueue() {
     if (isAppOffline) {
-        // Don't do anything if we are offline. Once pusher reconnects, then it should be online again
+        // Two things will bring the app online again...
+        // 1. Pusher reconnecting (see registerSocketEventCallback at the top of this file)
+        // 2. Getting a 200 response back from the API (happens right below)
+
+        // Make a simple request every second to see if the API is online again
+        request('Get', null)
+            .then(() => isAppOffline = false);
         return;
     }
 
