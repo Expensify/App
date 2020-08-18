@@ -10,6 +10,27 @@ import redirectToSignIn from './actions/ActionsSignInRedirect';
 let isAppOffline = false;
 let reauthenticating = false;
 
+// Holds a queue of all the write requests that need to happen
+const delayedWriteQueue = [];
+
+/**
+ * A method to write data to the API in a delayed fashion that supports the app being offline
+ *
+ * @param {string} command
+ * @param {mixed} data
+ * @returns {Promise}
+ */
+function delayedWrite(command, data) {
+    return new Promise((resolve) => {
+        // Add the write request to a queue of actions to perform
+        delayedWriteQueue.push({
+            command,
+            data,
+            callback: resolve,
+        });
+    });
+}
+
 /**
  * Create login
  * @param {string} login
@@ -100,7 +121,6 @@ function request(command, data, type = 'post') {
     if (command === 'Authenticate') {
         return xhr(command, data, type)
             .then((response) => {
-
                 // If we didn't get a 200 response from authenticate, the user needs to sign in again
                 // TODO: check for response.useExpensifyLogin
                 if (!command.useExpensifyLogin && response.jsonCode !== 200) {
@@ -116,7 +136,6 @@ function request(command, data, type = 'post') {
                 return setSuccessfulSignInData(response, command.exitTo);
             })
             .then((response) => {
-
                 // If Expensify login, it's the users first time signing in and we need to
                 // create a login for the user
                 if (data.useExpensifyLogin) {
@@ -158,27 +177,6 @@ function request(command, data, type = 'post') {
             }
             return Promise.resolve(responseData);
         });
-}
-
-// Holds a queue of all the write requests that need to happen
-const delayedWriteQueue = [];
-
-/**
- * A method to write data to the API in a delayed fashion that supports the app being offline
- *
- * @param {string} command
- * @param {mixed} data
- * @returns {Promise}
- */
-function delayedWrite(command, data) {
-    return new Promise((resolve) => {
-        // Add the write request to a queue of actions to perform
-        delayedWriteQueue.push({
-            command,
-            data,
-            callback: resolve,
-        });
-    });
 }
 
 /**
