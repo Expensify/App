@@ -8,6 +8,7 @@ export default {
     CREDENTIALS: 'credentials',
     LAST_AUTHENTICATED: 'last_authenticated',
     MY_PERSONAL_DETAILS: 'my_personal_details',
+    NETWORK: 'network',
     PERSONAL_DETAILS: 'personal_details',
     REPORT: 'report',
     REPORT_HISTORY: 'report_history',

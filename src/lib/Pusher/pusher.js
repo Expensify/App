@@ -3,6 +3,17 @@ import Pusher from './library';
 import CONFIG from '../../CONFIG';
 
 let socket;
+const socketEventCallbacks = [];
+
+/**
+ * Trigger each of the socket event callbacks with the event information
+ *
+ * @param {string} eventName
+ * @param {mixed} data
+ */
+function callSocketEventCallbacks(eventName, data) {
+    _.each(socketEventCallbacks, cb => cb(eventName, data));
+}
 
 /**
  * Initialize our pusher lib
@@ -36,18 +47,22 @@ function init(appKey, params) {
         // Listen for connection errors and log them
         socket.connection.bind('error', (error) => {
             console.error('[Pusher] error', error);
+            callSocketEventCallbacks('error', error);
         });
 
         socket.connection.bind('connected', () => {
             console.debug('[Pusher] connected');
+            callSocketEventCallbacks('connected');
         });
 
         socket.connection.bind('disconnected', () => {
             console.debug('[Pusher] disconnected');
+            callSocketEventCallbacks('disconnected');
         });
 
         socket.connection.bind('state_change', (states) => {
             console.debug('[Pusher] state changed', states);
+            callSocketEventCallbacks('state_change', states);
         });
     }
 }
@@ -296,6 +311,15 @@ function sendChunkedEvent(channelName, eventName, payload) {
     }
 }
 
+/**
+ * Register a method that will be triggered when a socket event happens (like disconnecting)
+ *
+ * @param {function} cb
+ */
+function registerSocketEventCallback(cb) {
+    socketEventCallbacks.push(cb);
+}
+
 export {
     init,
     subscribe,
@@ -306,4 +330,5 @@ export {
     isAlreadySubscribing,
     sendEvent,
     sendChunkedEvent,
+    registerSocketEventCallback,
 };
