@@ -145,6 +145,12 @@ ReportHistoryView.propTypes = propTypes;
 
 const key = `${IONKEYS.REPORT_HISTORY}_%DATAFROMPROPS%`;
 export default withRouter(WithIon({
+    authToken: {
+        key: IONKEYS.SESSION,
+        path: 'authToken',
+        prefillWithKey: IONKEYS.SESSION,
+        pathForProps: 'authToken',
+    },
     reportHistory: {
         key,
         loader: fetchHistory,
@@ -153,6 +159,4 @@ export default withRouter(WithIon({
         pathForProps: 'reportID',
     },
 
-    // TODO: Clean up default, just for testing
-    authToken: {key: IONKEYS.SESSION, path: 'authToken', defaultValue: 'abc'},
 })(ReportHistoryView));

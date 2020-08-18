@@ -20,11 +20,12 @@ class ReportHistoryItem extends React.Component {
     shouldComponentUpdate(nextProps) {
         // This component should only render if the history item's sequenceNumber or displayAsGroup props change
         return nextProps.historyItem.sequenceNumber !== this.props.historyItem.sequenceNumber
-            || nextProps.displayAsGroup !== this.props.displayAsGroup;
+            || nextProps.displayAsGroup !== this.props.displayAsGroup
+            || nextProps.authToken !== this.props.authToken;
     }
 
     render() {
-        const {historyItem, displayAsGroup} = this.props;
+        const {historyItem, displayAsGroup, authToken} = this.props;
         if (historyItem.actionName !== 'ADDCOMMENT') {
             return null;
         }
@@ -34,7 +35,7 @@ class ReportHistoryItem extends React.Component {
                 {!displayAsGroup && (
                 <ReportHistoryItemSingle
                     historyItem={historyItem}
-                    authToken={this.props.authToken}
+                    authToken={authToken}
                 />
                 )}
                 {displayAsGroup && <ReportHistoryItemGrouped historyItem={historyItem} />}
