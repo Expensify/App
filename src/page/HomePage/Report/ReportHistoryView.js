@@ -158,5 +158,4 @@ export default withRouter(WithIon({
         prefillWithKey: key,
         pathForProps: 'reportID',
     },
-
 })(ReportHistoryView));
