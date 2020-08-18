@@ -459,7 +459,6 @@ const styles = {
         paddingLeft: 20,
         paddingRight: 20,
         display: 'flex',
-        justifyContent: 'flex-start',
     },
 
     chatItemSubmitButton: {
