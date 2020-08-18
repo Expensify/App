@@ -2,9 +2,38 @@ import _ from 'underscore';
 import Ion from './Ion';
 import CONFIG from '../CONFIG';
 import IONKEYS from '../IONKEYS';
+import {registerSocketEventCallback} from './Pusher/pusher';
 import redirectToSignIn from './actions/ActionsSignInRedirect';
 
 let isAppOffline = false;
+
+/**
+ * Events that happen on the pusher socket are used to determine if the app is online or offline. The offline setting
+ * is stored in Ion so the rest of the app has access to it.
+ *
+ * @params {string} eventName,
+ * @params {object} data
+ */
+registerSocketEventCallback((eventName, data) => {
+    let isCurrentlyOffline = false;
+    switch (eventName) {
+        case 'connected':
+            isCurrentlyOffline = false;
+            break;
+        case 'disconnected':
+            isCurrentlyOffline = true;
+            break;
+        case 'state_change':
+            if (data.current === 'connecting' || data.current === 'unavailable') {
+                isCurrentlyOffline = true;
+            }
+            break;
+        default:
+            break;
+    }
+    isAppOffline = isCurrentlyOffline;
+    Ion.merge(IONKEYS.NETWORK, {isOffline: isCurrentlyOffline});
+});
 
 /**
  * Make an XHR to the server
@@ -36,6 +65,7 @@ function request(command, data, type = 'post') {
         // does NOT catch
         .catch(() => {
             isAppOffline = true;
+            Ion.merge(IONKEYS.NETWORK, {isOffline: true});
 
             // Throw a new error to prevent any other `then()` in the promise chain from being triggered (until another
             // catch() happens
@@ -89,9 +119,7 @@ function delayedWrite(command, data) {
  */
 function processWriteQueue() {
     if (isAppOffline) {
-        // Make a simple request to see if we're online again
-        request('Get', null)
-            .then(() => isAppOffline = false);
+        // Don't do anything if we are offline. Once pusher reconnects, then it should be online again
         return;
     }
 
