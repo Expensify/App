@@ -201,27 +201,31 @@ function request(command, data, type = 'post') {
                 reauthenticating = true;
                 return Ion.get(IONKEYS.CREDENTIALS)
                     .then((credentials) => {
-                        if (credentials && credentials.login && credentials.password) {
-                            return xhr('Authenticate', {
-                                useExpensifyLogin: false,
-                                partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-                                partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-                                partnerUserID: credentials.login,
-                                partnerUserSecret: credentials.password,
-                                twoFactorAuthCode: ''
-                            })
-                                .then((response) => {
-                                    reauthenticating = false;
-                                    return setSuccessfulSignInData(response);
-                                })
-                                .then(() => xhr(command, data, type))
-                                .catch(() => {
-                                    reauthenticating = false;
-                                    redirectToSignIn();
-                                    return Promise.reject();
-                                });
+                        // The first time we load the app we won't have credentials to re-authenticate with
+                        // so we send the user to the signin page
+                        if (!credentials || !credentials.login || !credentials.password) {
+                            return redirectToSignIn();
                         }
-                        return redirectToSignIn();
+
+                        // If we have login credentials stored in Ion, we use them to re-authenticate
+                        return xhr('Authenticate', {
+                            useExpensifyLogin: false,
+                            partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+                            partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+                            partnerUserID: credentials.login,
+                            partnerUserSecret: credentials.password,
+                            twoFactorAuthCode: ''
+                        })
+                            .then((response) => {
+                                reauthenticating = false;
+                                return setSuccessfulSignInData(response);
+                            })
+                            .then(() => xhr(command, data, type))
+                            .catch(() => {
+                                reauthenticating = false;
+                                redirectToSignIn();
+                                return Promise.reject();
+                            });
                     });
             }
             return responseData;
