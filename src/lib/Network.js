@@ -98,16 +98,13 @@ function request(command, data, type = 'post') {
     // We treat Authenticate in a special way
     // TODO explain why
     if (command === 'Authenticate') {
-        alert('in Authenticate');
         return xhr(command, data, type)
             .then((response) => {
-                console.debug('[SIGNIN] Authentication result. Code:', response && response.jsonCode);
 
                 // If we didn't get a 200 response from authenticate, the user needs to sign in again
                 // TODO: check for response.useExpensifyLogin
                 if (!command.useExpensifyLogin && response.jsonCode !== 200) {
                     // eslint-disable-next-line no-console
-                    console.debug('[SIGNIN] Non-200 from authenticate, going back to sign in page');
                     return Ion.multiSet({
                         [IONKEYS.CREDENTIALS]: {},
                         [IONKEYS.SESSION]: {error: response.message},
@@ -116,11 +113,9 @@ function request(command, data, type = 'post') {
                 }
 
                 // TODO: check for exitTo
-                alert('setting successful signin data');
                 return setSuccessfulSignInData(response, command.exitTo);
             })
             .then((response) => {
-                console.debug(`about to create login ${data.useExpensifyLogin}`);
 
                 // If Expensify login, it's the users first time signing in and we need to
                 // create a login for the user
@@ -133,7 +128,6 @@ function request(command, data, type = 'post') {
             });
     }
 
-    alert(`normal xhr ${command} ${data.returnValueList}`);
     return xhr(command, data, type)
 
         // Handle any of our jsonCodes
