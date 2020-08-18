@@ -18,8 +18,21 @@ class TextInputFocusable extends React.Component {
     }
 
     render() {
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        return <TextInput ref={el => this.textInput = el} {...this.props} />;
+        const scrollHeight = this.state && this.state.height ? this.state.height : 40;
+        return (
+            <TextInput
+                ref={el => this.textInput = el}
+                onChange={(event) => {
+                    // eslint-disable-next-line react/no-unused-state
+                    this.setState({height: event.nativeEvent.srcElement.scrollHeight});
+                }}
+                minHeight={scrollHeight}
+                style={[...this.props.style, {minHeight: scrollHeight}]}
+                /* eslint-disable-next-line react/jsx-props-no-spreading */
+                {...this.props}
+                container
+            />
+        );
     }
 }
 

@@ -138,7 +138,6 @@ const styles = {
     textInput: {
         backgroundColor: colors.componentBG,
         borderRadius: 8,
-        height: 40,
         borderColor: colors.border,
         borderWidth: 1,
         color: colors.text,
@@ -471,14 +470,11 @@ const styles = {
         borderWidth: 1,
         borderColor: colors.border,
         borderRadius: 8,
-        minHeight: 40,
     },
 
     textInputCompose: {
         borderWidth: 0,
         outline: 0,
-        height: 'auto',
-        minHeight: 38,
         padding: 10,
     },
 
