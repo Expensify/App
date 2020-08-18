@@ -32,10 +32,10 @@ function updateReportWithNewAction(reportID, reportAction) {
         // written by the user). If the action doesn't exist, then update the unread flag on the report so the user
         // knows there is a new comment
         .then((reportHistory) => {
-            if (!reportHistory[reportAction.sequenceNumber]) {
+            if (reportHistory && !reportHistory[reportAction.sequenceNumber]) {
                 Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {hasUnread: true});
             }
-            return reportHistory;
+            return reportHistory || {};
         })
 
         // Put the report action from pusher into the history, it's OK to overwrite it if it already exists
@@ -201,7 +201,9 @@ function addHistoryItem(reportID, reportComment) {
                         {
                             type: 'COMMENT',
                             html: htmlComment,
-                            text: htmlComment,
+
+                            // Remove HTML from text when applying optimistic offline comment
+                            text: htmlComment.replace(/<[^>]*>?/gm, ''),
                         }
                     ],
                     isFirstItem: false,
