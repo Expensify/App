@@ -189,7 +189,7 @@ function request(command, data, type = 'post') {
     // re-authenticate to get a fresh authToken and make the original http request again
     return xhr(command, data, type)
         .then((responseData) => {
-            if (!reauthenticating && responseData.jsonCode === 407) {
+            if (!reauthenticating && responseData.jsonCode === 407 && data.doNotRetry !== true) {
                 reauthenticating = true;
                 return Ion.get(IONKEYS.CREDENTIALS)
                     .then(({login, password}) => xhr('Authenticate', {

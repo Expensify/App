@@ -79,7 +79,7 @@ function verifyAuthToken() {
                 return signIn(credentials.login, credentials.password);
             }
 
-            return request('Get', {returnValueList: 'account'}).then((data) => {
+            return request('Get', {returnValueList: 'account', doNotRetry: true}).then((data) => {
                 if (data && data.jsonCode === 200) {
                     return Ion.merge(IONKEYS.SESSION, data);
                 }
