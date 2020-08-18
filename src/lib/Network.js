@@ -40,7 +40,6 @@ function delayedWrite(command, data) {
  */
 function setSuccessfulSignInData(data, exitTo) {
     return Ion.multiSet({
-
         // The response from Authenticate includes requestID, jsonCode, etc
         // but we only care about setting these three values in Ion
         [IONKEYS.SESSION]: _.pick(data, 'authToken', 'accountID', 'email'),
@@ -49,6 +48,13 @@ function setSuccessfulSignInData(data, exitTo) {
     });
 }
 
+/**
+ * Makes XHR request
+ * @param {String} command the name of the API command
+ * @param {Object} data parameters for the API command
+ * @param {String} type HTTP request type (get/post)
+ * @returns {Promise}
+ */
 function xhr(command, data, type = 'post') {
     return Ion.get(IONKEYS.SESSION, 'authToken')
         .then((authToken) => {
@@ -93,7 +99,8 @@ function createLogin(login, password) {
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         partnerUserID: login,
         partnerUserSecret: password,
-    }).then(() => Ion.set(IONKEYS.CREDENTIALS, {login, password}))
+    })
+        .then(() => Ion.set(IONKEYS.CREDENTIALS, {login, password}))
         .catch(err => Ion.merge(IONKEYS.SESSION, {error: err}));
 }
 
@@ -106,6 +113,7 @@ function createLogin(login, password) {
  * @returns {Promise}
  */
 function request(command, data, type = 'post') {
+    // If we're in the process of re-authenticating, queue this request for after we're done re-authenticating
     if (reauthenticating) {
         return delayedWrite(command, data);
     }
@@ -136,15 +144,14 @@ function request(command, data, type = 'post') {
                     return createLogin(Str.generateDeviceLoginID(), Guid());
                 }
 
-                return Promise.resolve(response);
+                return response;
             });
     }
 
+    // Make the http request, and if we get 407 jsonCode in the response,
+    // re-authenticate to get a fresh authToken and make the original http request again
     return xhr(command, data, type)
-
-        // Handle any of our jsonCodes
         .then((responseData) => {
-            // AuthToken expired, re-authenticate
             if (!reauthenticating && responseData.jsonCode === 407) {
                 reauthenticating = true;
                 return Ion.get(IONKEYS.CREDENTIALS)
@@ -167,7 +174,7 @@ function request(command, data, type = 'post') {
                             return Promise.reject();
                         }));
             }
-            return Promise.resolve(responseData);
+            return responseData;
         });
 }
 
