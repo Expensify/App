@@ -25,9 +25,7 @@ export default class App extends React.Component {
         super(props);
 
         this.state = {
-            // TODO: Set back to windowSize.width > widthBreakPoint once
-            //  https://github.com/AndrewGable/ReactNativeChat/pull/132 is merged
-            hamburgerShown: true,
+            hamburgerShown: windowSize.width > widthBreakPoint,
             isHamburgerEnabled: windowSize.width <= widthBreakPoint,
             animationTranslateX: new Animated.Value(0),
         };
