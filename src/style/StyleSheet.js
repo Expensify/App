@@ -428,6 +428,7 @@ const styles = {
     chatItemMessage: {
         color: colors.text,
         fontSize: 15,
+        fontFamily: 'GTAmericaExp-Regular',
         lineHeight: 20,
         marginTop: -2,
         marginBottom: -2,
