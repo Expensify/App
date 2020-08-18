@@ -38,6 +38,7 @@ function delayedWrite(command, data) {
  * @returns {Promise}
  */
 function createLogin(login, password) {
+    // eslint-disable-next-line no-use-before-define
     return request('CreateLogin', {
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
