@@ -7,7 +7,7 @@
 4. Update `api.php` in [Web-Expensify](https://github.com/Expensify/Web-Expensify/blob/3ae46d91a037db3ae6bdefa3b82313431759565f/api.php#L22) to add the following headers to avoid CORS issues
     ```
     header('Access-Control-Allow-Origin: *');
-    header('Access-Control-Allow-Credentials: *');
+    header('Access-Control-Allow-Credentials: true');
     ```
 5. Run `cp .env.example .env` and edit `.env` to have your local config options
 
