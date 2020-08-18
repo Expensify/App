@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {View, Text, TouchableOpacity} from 'react-native';
 import styles from '../../../style/StyleSheet';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 
@@ -74,10 +74,9 @@ class ReportHistoryCompose extends React.Component {
 
     render() {
         return (
-            <View style={[styles.chatItemCompose]}>
+            <View style={[styles.chatItemCompose, styles.flexRow]}>
                 <TextInputFocusable
                     multiline
-                    blurOnSubmit
                     textAlignVertical="top"
                     numberOfLines={1}
                     minHeight={40}
@@ -86,11 +85,16 @@ class ReportHistoryCompose extends React.Component {
                     placeholderTextColor="#7D8B8F"
                     onChangeText={this.updateComment}
                     onKeyPress={this.triggerSubmitShortcut}
-                    style={[styles.textInput]}
+                    style={[styles.textInput, styles.flex4]}
                     value={this.state.comment}
-                    returnKeyType="send"
-                    onSubmitEditing={this.submitForm}
                 />
+                <TouchableOpacity
+                    style={[styles.chatItemSubmitButton, styles.buttonSuccess]}
+                    onPress={this.submitForm}
+                    underlayColor="#fff"
+                >
+                    <Text style={[styles.buttonText, styles.buttonSuccessText]}>Send</Text>
+                </TouchableOpacity>
             </View>
         );
     }
