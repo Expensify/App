@@ -54,7 +54,7 @@ function xhr(command, data, type = 'post') {
                 formData.append('authToken', authToken);
             }
             _.each(data, (val, key) => formData.append(key, val));
-            return formData;
+            return Promise.resolve(formData);
         })
         .then(formData => fetch(`${CONFIG.EXPENSIFY.API_ROOT}command=${command}`, {
             method: type,
