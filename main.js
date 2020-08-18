@@ -7,7 +7,8 @@ const serve = require('electron-serve');
  * @see: https://www.electronjs.org/docs/tutorial/application-architecture#main-and-renderer-processes
  */
 
-// TODO: Turn this off, use CORS after alpha launch
+// TODO: Turn this off, use web-security after alpha launch, currently we recieve a CORS issue preventing
+// the electron app from making any API reuqests.
 app.commandLine.appendSwitch('disable-web-security');
 
 const mainWindow = (async () => {
