@@ -11,7 +11,8 @@ export default {
     NETWORK: 'network',
     PERSONAL_DETAILS: 'personal_details',
     REPORT: 'report',
-    REPORT_HISTORY: 'report_history',
     REPORT_ACTION: 'reportAction',
+    REPORT_HISTORY: 'report_history',
+    FIRST_REPORT_ID: 'first_report_id',
     SESSION: 'session',
 };
