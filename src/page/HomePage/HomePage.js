@@ -25,7 +25,7 @@ export default class App extends React.Component {
         super(props);
 
         this.state = {
-            hamburgerShown: windowSize.width > widthBreakPoint,
+            hamburgerShown: true,
             isHamburgerEnabled: windowSize.width <= widthBreakPoint,
             animationTranslateX: new Animated.Value(0),
         };
