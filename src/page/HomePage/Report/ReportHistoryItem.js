@@ -11,6 +11,9 @@ const propTypes = {
 
     // Should the comment have the appearance of being grouped with the previous comment?
     displayAsGroup: PropTypes.bool.isRequired,
+
+    // Current users auth token
+    authToken: PropTypes.string.isRequired,
 };
 
 class ReportHistoryItem extends React.Component {
@@ -28,7 +31,7 @@ class ReportHistoryItem extends React.Component {
 
         return (
             <View>
-                {!displayAsGroup && <ReportHistoryItemSingle historyItem={historyItem} />}
+                {!displayAsGroup && <ReportHistoryItemSingle historyItem={historyItem} authToken={this.props.authToken} />}
                 {displayAsGroup && <ReportHistoryItemGrouped historyItem={historyItem} />}
             </View>
         );

@@ -12,11 +12,14 @@ import ReportHistoryItemDate from './ReportHistoryItemDate';
 const propTypes = {
     // All the data of the history item
     historyItem: PropTypes.shape(ReportHistoryPropsTypes).isRequired,
+
+    // Current users auth token
+    authToken: PropTypes.string.isRequired,
 };
 
 class ReportHistoryItemSingle extends React.PureComponent {
     render() {
-        const {historyItem} = this.props;
+        const {historyItem} = this.props.historyItem;
         const avatarUrl = historyItem.automatic
             ? `${CONST.CLOUDFRONT_URL}/images/icons/concierge_2019.svg`
             : historyItem.avatar;
@@ -36,6 +39,7 @@ class ReportHistoryItemSingle extends React.PureComponent {
                             <View key={_.uniqueId('person-', historyItem.sequenceNumber)}>
                                 <ReportHistoryItemFragment
                                     fragment={fragment}
+                                    authToken={this.props.authToken}
                                 />
                             </View>
                         ))}

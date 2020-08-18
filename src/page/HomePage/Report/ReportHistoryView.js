@@ -133,6 +133,7 @@ class ReportHistoryView extends React.Component {
                     <ReportHistoryItem
                         key={item.sequenceNumber}
                         historyItem={item}
+                        authToken={this.state.authToken}
                         displayAsGroup={this.isConsecutiveHistoryItemMadeByPreviousActor(index)}
                     />
                 )).value()}
@@ -151,4 +152,6 @@ export default withRouter(WithIon({
         prefillWithKey: key,
         pathForProps: 'reportID',
     },
+    //TODO: Clean up default, just for testing
+    authToken: {key: IONKEYS.SESSION, path: 'authToken', defaultValue: 'abc'},
 })(ReportHistoryView));
