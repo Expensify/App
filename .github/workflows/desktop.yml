@@ -1,9 +1,6 @@
 name: android
 
-on:
-    push:
-        branches:
-            - *
+on: push
 
 jobs:
     build:
