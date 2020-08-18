@@ -5,6 +5,7 @@ const colors = {
     componentBG: '#FFFFFF',
     background: '#FAFAFA',
     border: '#ECECEC',
+    icon: '#C6C9CA',
     heading: '#37444C',
     text: '#4A5960',
     textSupporting: '#7D8B8F',
@@ -16,8 +17,12 @@ const colors = {
 const styles = {
     // Utility classes
     mr1: {
-        marginRight: 10,
+        marginRight: 4,
     },
+    mr2: {
+        marginRight: 8,
+    },
+
     ml1: {
         marginLeft: 10,
     },
@@ -40,6 +45,13 @@ const styles = {
     p1: {
         padding: 10,
     },
+    pr1: {
+        paddingRight: 4,
+    },
+    pr2: {
+        paddingRight: 8,
+    },
+
     h100p: {
         height: '100%',
     },
@@ -211,6 +223,19 @@ const styles = {
         width: 40,
     },
 
+    statusIndicator: {
+        backgroundColor: colors.icon,
+        borderColor: colors.heading,
+        borderRadius: 7,
+        borderWidth: 2,
+        position: 'absolute',
+        right: -6,
+        top: 3,
+        height: 14,
+        width: 14,
+        zIndex: 10,
+    },
+
     sidebarFooterUsername: {
         color: '#FFFFFF',
         fontSize: 15,
@@ -361,11 +386,6 @@ const styles = {
         justifyContent: 'flex-end',
     },
 
-    chatContentInner: {
-        paddingTop: 8,
-        paddingBottom: 8,
-    },
-
     chatContentEmpty: {
         paddingTop: 16,
         paddingBottom: 16,
@@ -422,6 +442,7 @@ const styles = {
     chatItemMessage: {
         color: colors.text,
         fontSize: 15,
+        fontFamily: 'GTAmericaExp-Regular',
         lineHeight: 20,
         marginTop: -2,
         marginBottom: -2,
@@ -445,11 +466,18 @@ const styles = {
         top: 0,
         bottom: 0,
         zIndex: 2,
-        width: 300
+        width: 300,
+        shadowColor: '#000000',
+        shadowOffset: {
+            width: 0,
+            height: 0,
+        },
+        shadowOpacity: 0.3,
+        shadowRadius: 20
     },
 
     hamburgerOpen: {
-        width: 300
+        width: 300,
     }
 
 };
@@ -458,11 +486,16 @@ const webViewStyles = {
     tagStyles: {
         em: {
             fontStyle: 'italic',
+            fontFamily: 'System'
         },
 
         del: {
             textDecorationLine: 'line-through',
             textDecorationStyle: 'solid'
+        },
+
+        a: {
+            color: colors.blue
         }
     },
 
