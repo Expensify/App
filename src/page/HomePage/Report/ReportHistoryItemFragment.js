@@ -12,6 +12,16 @@ const propTypes = {
 };
 
 const ReportHistoryItemFragment = ({fragment}) => {
+    // TODO: Figure out how to grab authToken
+    const authToken = '';
+    const alterNode = (node) => {
+        const htmlNode = node;
+        if (htmlNode.name === 'img') {
+            htmlNode.attribs.src = `${node.attribs.src}?authToken=${authToken}`;
+            return htmlNode;
+        }
+    };
+
     switch (fragment.type) {
         case 'COMMENT':
             // Only render HTML if we have html in the fragment
@@ -22,6 +32,7 @@ const ReportHistoryItemFragment = ({fragment}) => {
                         tagsStyles={webViewStyles.tagStyles}
                         onLinkPress={(event, href) => Linking.openURL(href)}
                         html={fragment.html}
+                        alterNode={alterNode}
                     />
                 )
                 : <Text>{Str.htmlDecode(fragment.text)}</Text>;
