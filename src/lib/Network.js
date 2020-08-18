@@ -153,7 +153,6 @@ function request(command, data, type = 'post') {
             // AuthToken expired, re-authenticate
             if (!reauthenticating && responseData.jsonCode === 407) {
                 reauthenticating = true;
-
                 return Ion.get(IONKEYS.CREDENTIALS)
                     .then(({login, password}) => xhr('Authenticate', {
                         useExpensifyLogin: false,

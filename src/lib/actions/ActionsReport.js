@@ -2,7 +2,7 @@ import moment from 'moment';
 import _ from 'underscore';
 import get from 'lodash.get';
 import Ion from '../Ion';
-import {request, delayedWrite} from '../Network';
+import {delayedWrite} from '../Network';
 import IONKEYS from '../../IONKEYS';
 import CONFIG from '../../CONFIG';
 import * as pusher from '../Pusher/pusher';
@@ -101,7 +101,7 @@ function fetchAll() {
     let fetchedReports;
 
     // Request each report one at a time to allow individual reports to fail if access to it is prevents by Auth
-    const reportFetchPromises = _.map(CONFIG.REPORT_IDS.split(','), reportID => request('Get', {
+    const reportFetchPromises = _.map(CONFIG.REPORT_IDS.split(','), reportID => delayedWrite('Get', {
         returnValueList: 'reportStuff',
         reportIDList: reportID,
         shouldLoadOptionalKeys: true,
@@ -143,7 +143,7 @@ function fetchAll() {
  * @returns {Promise}
  */
 function fetchHistory(reportID) {
-    return request('Report_GetHistory', {
+    return delayedWrite('Report_GetHistory', {
         reportID,
         offset: 0,
     })
