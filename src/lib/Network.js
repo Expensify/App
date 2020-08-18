@@ -61,6 +61,10 @@ function queueRequest(command, data) {
             data,
             callback: resolve,
         });
+
+        // Try to fire off the request as soon as it's queued so we don't add a delay to every queued command
+        // eslint-disable-next-line no-use-before-define
+        processNetworkRequestQueue();
     });
 }
 
@@ -220,9 +224,9 @@ function request(command, data, type = 'post') {
 }
 
 /**
- * Process the write queue by looping through the queue and attempting to make the requests
+ * Process the networkRequestQueue by looping through the queue and attempting to make the requests
  */
-function processWriteQueue() {
+function processNetworkRequestQueue() {
     if (isAppOffline) {
         // Two things will bring the app online again...
         // 1. Pusher reconnecting (see registerSocketEventCallback at the top of this file)
@@ -248,7 +252,7 @@ function processWriteQueue() {
 }
 
 // Process our write queue very often
-setInterval(processWriteQueue, 1000);
+setInterval(processNetworkRequestQueue, 1000);
 
 export {
     request,
