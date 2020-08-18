@@ -150,17 +150,17 @@ function request(command, data, type = 'post') {
                         partnerUserID: login,
                         partnerUserSecret: password,
                         twoFactorAuthCode: ''
-                    }))
-                    .then(() => setSuccessfulSignInData())
-                    .then(() => {
-                        reauthenticating = false;
-                        return xhr(command, data, type);
                     })
-                    .catch(() => {
-                        reauthenticating = false;
-                        redirectToSignIn();
-                        return Promise.reject();
-                    });
+                        .then((response) => {
+                            reauthenticating = false;
+                            return setSuccessfulSignInData(response);
+                        })
+                        .then(() => xhr(command, data, type))
+                        .catch(() => {
+                            reauthenticating = false;
+                            redirectToSignIn();
+                            return Promise.reject();
+                        }));
             }
             return Promise.resolve(responseData);
         });
