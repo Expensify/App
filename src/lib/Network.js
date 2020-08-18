@@ -132,8 +132,6 @@ function request(command, data, type = 'post') {
                     })
                         .then(redirectToSignIn);
                 }
-
-                // TODO: check for exitTo
                 return setSuccessfulSignInData(response, command.exitTo);
             })
             .then((response) => {
