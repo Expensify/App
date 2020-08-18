@@ -142,7 +142,11 @@ function createLogin(login, password) {
 }
 
 /**
- * Make an XHR to the server
+ * Makes an API request.
+ *
+ * For most API commands if we get a 407 jsonCode in the response, which means the authToken
+ * expired, this function automatically makes an API call to Authenticate and get a fresh authToken, and retries the
+ * original API command
  *
  * @param {string} command
  * @param {mixed} data
