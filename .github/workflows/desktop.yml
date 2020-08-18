@@ -26,5 +26,8 @@ jobs:
             - name: Build desktop app
               run: npm run desktop-build
 
+            - name: Zip desktop build
+              run: 7z a $GITHUB_WORKSPACE/dist/mac/Chat.app.zip $GITHUB_WORKSPACE/dist/mac/Chat.app
+
             - name: Deploy to S3
-              run: aws s3 cp --recursive --acl public-read $GITHUB_WORKSPACE/dist/mac/Chat.app s3://chat-test-expensify-com/Chat.app
+              run: aws s3 cp --recursive --acl public-read $GITHUB_WORKSPACE/dist/mac/Chat.app.zip s3://chat-test-expensify-com/Chat.app.zip
