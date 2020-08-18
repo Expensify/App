@@ -138,6 +138,7 @@ const styles = {
     textInput: {
         backgroundColor: colors.componentBG,
         borderRadius: 8,
+        height: 40,
         borderColor: colors.border,
         borderWidth: 1,
         color: colors.text,
@@ -464,14 +465,37 @@ const styles = {
         display: 'flex',
     },
 
-    chatItemSubmitButton: {
+    chatItemComposeBox: {
+        backgroundColor: '#FFFFFF',
+        borderWidth: 1,
         borderColor: colors.border,
         borderRadius: 8,
-        borderWidth: 1,
         minHeight: 40,
-        maxHeight: 60,
-        width: 60,
+    },
+
+    textInputCompose: {
+        borderWidth: 0,
+        outline: 0,
+        height: 'auto',
+        minHeight: 38,
+        padding: 10,
+    },
+
+    chatItemSubmitButton: {
+        alignSelf: 'flex-end',
+        borderRadius: 6,
+        height: 32,
+        paddingTop: 8,
+        paddingRight: 6,
+        paddingBottom: 8,
+        paddingLeft: 6,
+        margin: 3,
         justifyContent: 'center',
+    },
+
+    chatItemSubmitButtonIcon: {
+        height: 20,
+        width: 20,
     },
 
     hamburgerOpenAbsolute: {
