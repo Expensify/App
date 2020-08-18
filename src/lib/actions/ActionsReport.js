@@ -172,7 +172,7 @@ function addHistoryItem(reportID, reportComment) {
         .then((values) => {
             const reportHistory = values[historyKey];
             const email = values[IONKEYS.SESSION].email || '';
-            const personalDetails = values[IONKEYS.PERSONAL_DETAILS][email];
+            const personalDetails = get(values,[IONKEYS.PERSONAL_DETAILS, email], {});
 
             // The new sequence number will be one higher than the highest
             let highestSequenceNumber = _.chain(reportHistory)
