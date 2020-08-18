@@ -85,7 +85,7 @@ class ReportHistoryCompose extends React.Component {
                     placeholderTextColor="#7D8B8F"
                     onChangeText={this.updateComment}
                     onKeyPress={this.triggerSubmitShortcut}
-                    style={[styles.textInput, styles.flex4]}
+                    style={[styles.textInput, styles.flex4, styles.mr3]}
                     value={this.state.comment}
                 />
                 <TouchableOpacity

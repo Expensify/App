@@ -22,6 +22,9 @@ const styles = {
     mr2: {
         marginRight: 8,
     },
+    mr3: {
+        marginRight: 12,
+    },
 
     ml1: {
         marginLeft: 10,
@@ -140,7 +143,7 @@ const styles = {
         color: colors.text,
         fontFamily: 'GTAmericaExp-Regular',
         padding: 12,
-        marginRight: 12,
+        textAlignVertical: 'center',
     },
 
     textInputReversed: {
