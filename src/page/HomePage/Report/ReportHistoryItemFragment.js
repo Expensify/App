@@ -1,6 +1,7 @@
 import React from 'react';
 import HTML from 'react-native-render-html';
 import {Linking} from 'react-native';
+import PropTypes from 'prop-types';
 import Str from '../../../lib/Str';
 import ReportHistoryFragmentPropTypes from './ReportHistoryFragmentPropTypes';
 import styles, {webViewStyles} from '../../../style/StyleSheet';
@@ -9,19 +10,26 @@ import Text from '../../../components/Text';
 const propTypes = {
     // The message fragment needing to be displayed
     fragment: ReportHistoryFragmentPropTypes.isRequired,
+
+    // Current users auth token
+    authToken: PropTypes.string.isRequired
+};
+
+/**
+ * Function to edit HTML on the fly before it's rendered, currently this attaches authTokens as a URL parameters
+ *
+ * @param {object} node
+ * @returns {*}
+ */
+const alterNode = (node) => {
+    const htmlNode = node;
+    if (htmlNode.name === 'img') {
+        htmlNode.attribs.src = `${node.attribs.src}?authToken=${this.props.authToken}`;
+        return htmlNode;
+    }
 };
 
 const ReportHistoryItemFragment = ({fragment}) => {
-    // TODO: Figure out how to grab authToken
-    const authToken = '';
-    const alterNode = (node) => {
-        const htmlNode = node;
-        if (htmlNode.name === 'img') {
-            htmlNode.attribs.src = `${node.attribs.src}?authToken=${authToken}`;
-            return htmlNode;
-        }
-    };
-
     switch (fragment.type) {
         case 'COMMENT':
             // Only render HTML if we have html in the fragment
