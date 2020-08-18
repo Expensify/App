@@ -47,7 +47,7 @@ registerSocketEventCallback((eventName, data) => {
 });
 
 /**
- * Make an XHR to the server
+ * Adds a request to networkRequestQueue
  *
  * @param {string} command
  * @param {mixed} data
