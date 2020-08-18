@@ -92,8 +92,7 @@ function request(command, data, type = 'post') {
     // }
 
     if (reauthenticating) {
-        alert(`swallowing request ${command} ${data.returnValueList}`);
-        return new Promise(resolve => resolve());
+        return delayedWrite(command, data);
     }
 
     // We treat Authenticate in a special way
