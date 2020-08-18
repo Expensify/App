@@ -10,7 +10,6 @@ const mainWindow = (async () => {
     await app.whenReady();
 
     const browserWindow = new BrowserWindow({
-        // TODO: Grab from StyleSheet.js
         backgroundColor: '#FAFAFA',
         width: 1200,
         height: 900,
