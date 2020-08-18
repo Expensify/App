@@ -19,7 +19,7 @@ const propTypes = {
 
 class ReportHistoryItemSingle extends React.PureComponent {
     render() {
-        const {historyItem} = this.props.historyItem;
+        const {historyItem, authToken} = this.props;
         const avatarUrl = historyItem.automatic
             ? `${CONST.CLOUDFRONT_URL}/images/icons/concierge_2019.svg`
             : historyItem.avatar;
@@ -39,7 +39,7 @@ class ReportHistoryItemSingle extends React.PureComponent {
                             <View key={_.uniqueId('person-', historyItem.sequenceNumber)}>
                                 <ReportHistoryItemFragment
                                     fragment={fragment}
-                                    authToken={this.props.authToken}
+                                    authToken={authToken}
                                 />
                             </View>
                         ))}
