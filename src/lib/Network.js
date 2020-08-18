@@ -32,23 +32,6 @@ function delayedWrite(command, data) {
 }
 
 /**
- * Create login
- * @param {string} login
- * @param {string} password
- * @returns {Promise}
- */
-function createLogin(login, password) {
-    // eslint-disable-next-line no-use-before-define
-    return request('CreateLogin', {
-        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-        partnerUserID: login,
-        partnerUserSecret: password,
-    }).then(() => Ion.set(IONKEYS.CREDENTIALS, {login, password}))
-        .catch(err => Ion.merge(IONKEYS.SESSION, {error: err}));
-}
-
-/**
  * Sets API data in the store when we make a successful "Authenticate"/"CreateLogin" request
  *
  * @param {object} data
@@ -93,6 +76,25 @@ function xhr(command, data, type = 'post') {
             // catch() happens
             throw new Error('API is offline');
         });
+}
+
+/**
+ * Create login
+ * @param {string} login
+ * @param {string} password
+ * @returns {Promise}
+ */
+function createLogin(login, password) {
+    // We call createLogin after getting a successful response to the Authenticate request
+    // so it's very unlikely that this will fail with 407 authToken expired which means we
+    // won't need to replay this request and thus we can use xhr instead of request
+    return xhr('CreateLogin', {
+        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+        partnerUserID: login,
+        partnerUserSecret: password,
+    }).then(() => Ion.set(IONKEYS.CREDENTIALS, {login, password}))
+        .catch(err => Ion.merge(IONKEYS.SESSION, {error: err}));
 }
 
 /**
