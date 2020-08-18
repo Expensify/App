@@ -13,6 +13,6 @@ export default {
     REPORT: 'report',
     REPORT_ACTION: 'reportAction',
     REPORT_HISTORY: 'report_history',
-    REPORT_IDS: 'report_ids',
+    FIRST_REPORT_ID: 'first_report_id',
     SESSION: 'session',
 };
