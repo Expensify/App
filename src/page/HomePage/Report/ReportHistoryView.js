@@ -149,7 +149,6 @@ export default withRouter(WithIon({
         key: IONKEYS.SESSION,
         path: 'authToken',
         prefillWithKey: IONKEYS.SESSION,
-        pathForProps: 'authToken',
     },
     reportHistory: {
         key,
