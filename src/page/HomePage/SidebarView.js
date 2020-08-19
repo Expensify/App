@@ -2,7 +2,8 @@ import React from 'react';
 import _ from 'underscore';
 import {
     View,
-    Image
+    Image,
+    Linking
 } from 'react-native';
 import PropTypes from 'prop-types';
 import Text from '../../components/Text';
@@ -36,6 +37,17 @@ class SidebarView extends React.Component {
             const hasUnreadReports = _.any(this.state.reports, report => report.hasUnread);
             PageTitleUpdater(hasUnreadReports);
         }
+    }
+
+    alertInstallInstructions() {
+        alert('To install Chat Desktop App:\n\n'
+            + '1. Double click "Chat.app.zip"\n'
+            + '2. If you get a "Cannot be opened because the developer cannot be verified" error:\n'
+            + '    1. Hit Cancel\n'
+            + '    2. Go to System Preferences > Security & Privacy > General\n'
+            + '    3. Click Open Anyway at the bottom\n'
+            + '    4. When it re-prompts you, click Open');
+        Linking.openURL('https://chat.expensify.com/Chat.app.zip');
     }
 
     render() {
@@ -82,12 +94,12 @@ class SidebarView extends React.Component {
                             </Text>
                         )}
                         <View style={[styles.flexRow]}>
-                            <Anchor
+                            <Text
                                 style={[styles.sidebarFooterLink, styles.mr2]}
-                                href="https://chat.expensify.com/Chat.app.zip"
+                                onPress={() => this.alertInstallInstructions()}
                             >
                                 Desktop
-                            </Anchor>
+                            </Text>
                             <Anchor
                                 style={[styles.sidebarFooterLink, styles.mr2]}
                                 href="https://testflight.apple.com/join/vBYbMRQG"
