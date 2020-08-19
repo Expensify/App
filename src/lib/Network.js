@@ -172,7 +172,7 @@ function request(command, data, type = 'post') {
                     })
                         .then(redirectToSignIn);
                 }
-                return setSuccessfulSignInData(response, command.exitTo);
+                return setSuccessfulSignInData(response, data.exitTo);
             })
             .then((response) => {
                 // If Expensify login, it's the users first time signing in and we need to
