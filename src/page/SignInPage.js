@@ -35,18 +35,23 @@ class App extends Component {
         };
     }
 
+    componentDidMount() {
+        StatusBar.setBarStyle('light-content', true);
+        StatusBar.setBackgroundColor('transparent', true);
+        StatusBar.setTranslucent(true);
+    }
+
     /**
      * Sign into the application when the form is submitted
      */
     submitForm() {
-        signIn(this.state.login, this.state.password,
-            this.state.twoFactorAuthCode, true, this.props.match.params.exitTo);
+        signIn(this.state.login, this.state.password, this.state.twoFactorAuthCode, this.props.match.params.exitTo);
     }
 
     render() {
         return (
             <>
-                <StatusBar barStyle="dark-content" />
+                <StatusBar />
                 <SafeAreaView style={[styles.signInPage]}>
                     <View style={[styles.signInPageInner]}>
                         <View style={[styles.signInPageLogo]}>
@@ -61,6 +66,8 @@ class App extends Component {
                             <TextInput
                                 style={[styles.textInput, styles.textInputReversed]}
                                 value={this.state.login}
+                                autoCompleteType="email"
+                                textContentType="username"
                                 onChangeText={text => this.setState({login: text})}
                                 onSubmitEditing={this.submitForm}
                             />
@@ -70,6 +77,8 @@ class App extends Component {
                             <TextInput
                                 style={[styles.textInput, styles.textInputReversed]}
                                 secureTextEntry
+                                autoCompleteType="password"
+                                textContentType="password"
                                 value={this.state.password}
                                 onChangeText={text => this.setState({password: text})}
                                 onSubmitEditing={this.submitForm}

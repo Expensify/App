@@ -2,7 +2,7 @@ import moment from 'moment';
 import _ from 'underscore';
 import get from 'lodash.get';
 import Ion from '../Ion';
-import {request, delayedWrite} from '../Network';
+import {queueRequest} from '../Network';
 import IONKEYS from '../../IONKEYS';
 import CONFIG from '../../CONFIG';
 import * as pusher from '../Pusher/pusher';
@@ -32,10 +32,10 @@ function updateReportWithNewAction(reportID, reportAction) {
         // written by the user). If the action doesn't exist, then update the unread flag on the report so the user
         // knows there is a new comment
         .then((reportHistory) => {
-            if (!reportHistory[reportAction.sequenceNumber]) {
+            if (reportHistory && !reportHistory[reportAction.sequenceNumber]) {
                 Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {hasUnread: true});
             }
-            return reportHistory;
+            return reportHistory || {};
         })
 
         // Put the report action from pusher into the history, it's OK to overwrite it if it already exists
@@ -101,7 +101,7 @@ function fetchAll() {
     let fetchedReports;
 
     // Request each report one at a time to allow individual reports to fail if access to it is prevents by Auth
-    const reportFetchPromises = _.map(CONFIG.REPORT_IDS.split(','), reportID => request('Get', {
+    const reportFetchPromises = _.map(CONFIG.REPORT_IDS.split(','), reportID => queueRequest('Get', {
         returnValueList: 'reportStuff',
         reportIDList: reportID,
         shouldLoadOptionalKeys: true,
@@ -117,6 +117,7 @@ function fetchAll() {
             return _.isEmpty(report) ? null : _.values(report)[0];
         })))
         .then(() => Ion.get(IONKEYS.SESSION, 'accountID'))
+        .then(() => Ion.set(IONKEYS.FIRST_REPORT_ID, _.first(_.pluck(fetchedReports, 'reportID')) || 0))
         .then((accountID) => {
             const ionPromises = _.map(fetchedReports, (report) => {
                 // Store only the absolute bare minimum of data in Ion because space is limited
@@ -143,7 +144,7 @@ function fetchAll() {
  * @returns {Promise}
  */
 function fetchHistory(reportID) {
-    return request('Report_GetHistory', {
+    return queueRequest('Report_GetHistory', {
         reportID,
         offset: 0,
     })
@@ -171,7 +172,7 @@ function addHistoryItem(reportID, reportComment) {
         .then((values) => {
             const reportHistory = values[historyKey];
             const email = values[IONKEYS.SESSION].email || '';
-            const personalDetails = values[IONKEYS.PERSONAL_DETAILS][email];
+            const personalDetails = get(values, [IONKEYS.PERSONAL_DETAILS, email], {});
 
             // The new sequence number will be one higher than the highest
             let highestSequenceNumber = _.chain(reportHistory)
@@ -201,7 +202,9 @@ function addHistoryItem(reportID, reportComment) {
                         {
                             type: 'COMMENT',
                             html: htmlComment,
-                            text: htmlComment,
+
+                            // Remove HTML from text when applying optimistic offline comment
+                            text: htmlComment.replace(/<[^>]*>?/gm, ''),
                         }
                     ],
                     isFirstItem: false,
@@ -209,7 +212,7 @@ function addHistoryItem(reportID, reportComment) {
                 }
             });
         })
-        .then(() => delayedWrite('Report_AddComment', {
+        .then(() => queueRequest('Report_AddComment', {
             reportID,
             reportComment: htmlComment,
         }));
@@ -234,7 +237,7 @@ function updateLastReadActionID(accountID, reportID, sequenceNumber) {
     })
 
         // Update the lastReadActionID on the report optimistically
-        .then(() => delayedWrite('Report_SetLastReadActionID', {
+        .then(() => queueRequest('Report_SetLastReadActionID', {
             accountID,
             reportID,
             sequenceNumber,
