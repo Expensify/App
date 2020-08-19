@@ -140,20 +140,11 @@ function multiGet(keys) {
     // This method will transform the data into a better JSON format like:
     // {'@MyApp_user': 'myUserValue', '@MyApp_key': 'myKeyValue'}
     return AsyncStorage.multiGet(keys)
-        .then(arrayOfData => _.reduce(arrayOfData, (finalData, keyValuePair) => {
-            // If we don't find a value in the store for the key we're looking for we return undefined
-            let value;
-            try {
-                value = JSON.parse(keyValuePair[1]);
-            } catch (e) {
-                value = undefined;
-            }
-            return {
-                ...finalData,
-                [keyValuePair[0]]: value,
-            };
-        }), {})
-        .catch(err => console.error(`Unable to get item from persistent storage. Error: ${err.stack}`, keys));
+        .then(arrayOfData => _.reduce(arrayOfData, (finalData, keyValuePair) => ({
+            ...finalData,
+            [keyValuePair[0]]: JSON.parse(keyValuePair[1]),
+        }), {}))
+        .catch(err => console.error(`Unable to get item from persistent storage. Error: ${err}`, keys));
 }
 
 /**
