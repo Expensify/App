@@ -117,7 +117,7 @@ function fetchAll() {
             return _.isEmpty(report) ? null : _.values(report)[0];
         })))
         .then(() => Ion.get(IONKEYS.SESSION, 'accountID'))
-        .then(() => Ion.set(IONKEYS.FIRST_REPORT_ID, _.first(_.pluck(fetchedReports, 'reportID'))))
+        .then(() => Ion.set(IONKEYS.FIRST_REPORT_ID, _.first(_.pluck(fetchedReports, 'reportID')) || 0))
         .then((accountID) => {
             const ionPromises = _.map(fetchedReports, (report) => {
                 // Store only the absolute bare minimum of data in Ion because space is limited
