@@ -2,9 +2,8 @@
 
 # Philosophy
 This application is built with the following principals.
-
-1. **Offline first** - All data that is brought into the app should be stored immediately in Ion.
-1. **UI Binds to Ion** - UI components bind to Ion so that any change to the Ion data is automatically reflected in the component.
+1. **Offline first** - All data that is brought into the app should be stored immediately in Ion which puts the data into persistent storage (eg. localStorage on browser platforms).
+1. **UI Binds to Ion** - UI components bind to Ion so that any change to the Ion data is automatically reflected in the component by calling setState() on the component with the changed data.
 1. **Actions manage Ion Data** - When the UI needs to request or write data from the server, this is done through Actions exclusively.
     1. Actions should never return data, see the first point.
 1. **Cross Platform 99.9999%**
