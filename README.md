@@ -19,12 +19,12 @@ This application is built with the following principals.
 4. Update `api.php` in [Web-Expensify](https://github.com/Expensify/Web-Expensify/blob/3ae46d91a037db3ae6bdefa3b82313431759565f/api.php#L22) to add the following headers to avoid CORS issues
     ```
     header('Access-Control-Allow-Origin: *');
-    header('Access-Control-Allow-Credentials: *');
+    header('Access-Control-Allow-Credentials: true');
     ```
 5. Run `cp .env.example .env` and edit `.env` to have your local config options
 
 
-## Running the web app 💻
+## Running the web app 🕸
 * To run a **Development Server**: `npm run web`
 * To build a **production build**: `npm run build`
 * Changes applied to Javascript will be applied automatically
@@ -52,7 +52,14 @@ This application is built with the following principals.
 * To install the required tools to deploy, run `bundle install` from the root of this project
 * To deploy the iOS app run: `npm run deploy-ios`
 * The Android app automatically deploys via a GitHub action to: [https://chat.expensify.com/app-release.apk](https://chat.expensify.com/app-release.apk)
-* To build an APK to share run (e.g. via Slack): `Build > Generate Signed Bundle / APK...` from Android Studio 
+* To build an APK to share run (e.g. via Slack): `Build > Generate Signed Bundle / APK...` from Android Studio
+
+## Running the desktop app 🖥
+ * To run the **Development app**, run: `npm run desktop`
+ * To build a **production build**, run: `npm run desktop-build`
+ 
+#### Deploying the desktop app
+ * The desktop app automatically deploys via a GitHub Action in `.github/workflows/desktop.yml`
 
 ## Running the tests 🎰
 * To run the **Jest Unit Tests**: `npm run test`

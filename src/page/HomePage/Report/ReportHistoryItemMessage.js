@@ -7,14 +7,18 @@ import ReportHistoryPropsTypes from './ReportHistoryPropsTypes';
 const propTypes = {
     // The report history item
     historyItem: PropTypes.shape(ReportHistoryPropsTypes).isRequired,
+
+    // Current users auth token
+    authToken: PropTypes.string.isRequired,
 };
 
-const ReportHistoryItemMessage = ({historyItem}) => (
+const ReportHistoryItemMessage = ({historyItem, authToken}) => (
     <>
         {_.map(_.compact(historyItem.message), fragment => (
             <ReportHistoryItemFragment
                 key={_.uniqueId('historyItemFragment', historyItem.sequenceNumber)}
                 fragment={fragment}
+                authToken={authToken}
             />
         ))}
     </>

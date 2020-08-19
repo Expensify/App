@@ -2,7 +2,6 @@ import React from 'react';
 import {View, Image} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import Text from '../../../components/Text';
 import ReportHistoryPropsTypes from './ReportHistoryPropsTypes';
 import ReportHistoryItemMessage from './ReportHistoryItemMessage';
 import ReportHistoryItemFragment from './ReportHistoryItemFragment';
@@ -13,11 +12,14 @@ import ReportHistoryItemDate from './ReportHistoryItemDate';
 const propTypes = {
     // All the data of the history item
     historyItem: PropTypes.shape(ReportHistoryPropsTypes).isRequired,
+
+    // Current users auth token
+    authToken: PropTypes.string.isRequired,
 };
 
 class ReportHistoryItemSingle extends React.PureComponent {
     render() {
-        const {historyItem} = this.props;
+        const {historyItem, authToken} = this.props;
         const avatarUrl = historyItem.automatic
             ? `${CONST.CLOUDFRONT_URL}/images/icons/concierge_2019.svg`
             : historyItem.avatar;
@@ -35,9 +37,7 @@ class ReportHistoryItemSingle extends React.PureComponent {
                     <View style={[styles.chatItemMessageHeader]}>
                         {historyItem.person.map(fragment => (
                             <View key={_.uniqueId('person-', historyItem.sequenceNumber)}>
-                                <ReportHistoryItemFragment
-                                    fragment={fragment}
-                                />
+                                <ReportHistoryItemFragment fragment={fragment} />
                             </View>
                         ))}
                         <View>
@@ -45,9 +45,7 @@ class ReportHistoryItemSingle extends React.PureComponent {
                         </View>
                     </View>
                     <View style={[styles.chatItemMessage]}>
-                        <Text>
-                            <ReportHistoryItemMessage historyItem={historyItem} />
-                        </Text>
+                        <ReportHistoryItemMessage historyItem={historyItem} authToken={authToken} />
                     </View>
                 </View>
             </View>

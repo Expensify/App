@@ -5,6 +5,7 @@ const colors = {
     componentBG: '#FFFFFF',
     background: '#FAFAFA',
     border: '#ECECEC',
+    icon: '#C6C9CA',
     heading: '#37444C',
     text: '#4A5960',
     textSupporting: '#7D8B8F',
@@ -16,8 +17,15 @@ const colors = {
 const styles = {
     // Utility classes
     mr1: {
-        marginRight: 10,
+        marginRight: 4,
     },
+    mr2: {
+        marginRight: 8,
+    },
+    mr3: {
+        marginRight: 12,
+    },
+
     ml1: {
         marginLeft: 10,
     },
@@ -40,6 +48,13 @@ const styles = {
     p1: {
         padding: 10,
     },
+    pr1: {
+        paddingRight: 4,
+    },
+    pr2: {
+        paddingRight: 8,
+    },
+
     h100p: {
         height: '100%',
     },
@@ -123,11 +138,13 @@ const styles = {
     textInput: {
         backgroundColor: colors.componentBG,
         borderRadius: 8,
+        height: 40,
         borderColor: colors.border,
         borderWidth: 1,
         color: colors.text,
         fontFamily: 'GTAmericaExp-Regular',
         padding: 12,
+        textAlignVertical: 'center',
     },
 
     textInputReversed: {
@@ -157,6 +174,10 @@ const styles = {
         backgroundColor: colors.heading,
         height: '100%',
         padding: 20,
+    },
+
+    genericView: {
+        backgroundColor: colors.heading,
     },
 
     signInPageInner: {
@@ -209,6 +230,19 @@ const styles = {
         height: 40,
         marginRight: 12,
         width: 40,
+    },
+
+    statusIndicator: {
+        backgroundColor: colors.icon,
+        borderColor: colors.heading,
+        borderRadius: 7,
+        borderWidth: 2,
+        position: 'absolute',
+        right: -6,
+        top: 3,
+        height: 14,
+        width: 14,
+        zIndex: 10,
     },
 
     sidebarFooterUsername: {
@@ -300,10 +334,16 @@ const styles = {
         width: 10,
     },
 
-    // App Content styles
+    // App Content Wrapper styles
     appContentWrapper: {
-        backgroundColor: colors.heading,
+        backgroundColor: colors.background,
         color: colors.text,
+    },
+
+    // App Content Wrapper styles for large screens
+    // The darker BG color allows the rounded corners to show through
+    appContentWrapperLarge: {
+        backgroundColor: colors.heading,
     },
 
     appContent: {
@@ -353,11 +393,6 @@ const styles = {
     chatContent: {
         flex: 4,
         justifyContent: 'flex-end',
-    },
-
-    chatContentInner: {
-        paddingTop: 8,
-        paddingBottom: 8,
     },
 
     chatContentEmpty: {
@@ -416,6 +451,7 @@ const styles = {
     chatItemMessage: {
         color: colors.text,
         fontSize: 15,
+        fontFamily: 'GTAmericaExp-Regular',
         lineHeight: 20,
         marginTop: -2,
         marginBottom: -2,
@@ -431,6 +467,40 @@ const styles = {
         paddingBottom: 20,
         paddingLeft: 20,
         paddingRight: 20,
+        display: 'flex',
+    },
+
+    chatItemComposeBox: {
+        backgroundColor: '#FFFFFF',
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: 8,
+        minHeight: 40,
+    },
+
+    textInputCompose: {
+        borderWidth: 0,
+        outline: 0,
+        height: 'auto',
+        minHeight: 38,
+        padding: 10,
+    },
+
+    chatItemSubmitButton: {
+        alignSelf: 'flex-end',
+        borderRadius: 6,
+        height: 32,
+        paddingTop: 8,
+        paddingRight: 6,
+        paddingBottom: 8,
+        paddingLeft: 6,
+        margin: 3,
+        justifyContent: 'center',
+    },
+
+    chatItemSubmitButtonIcon: {
+        height: 20,
+        width: 20,
     },
 
     hamburgerOpenAbsolute: {
@@ -439,14 +509,46 @@ const styles = {
         top: 0,
         bottom: 0,
         zIndex: 2,
-        width: 300
+        width: 300,
+        shadowColor: '#000000',
+        shadowOffset: {
+            width: 0,
+            height: 0,
+        },
+        shadowOpacity: 0.3,
+        shadowRadius: 20
     },
 
     hamburgerOpen: {
-        width: 300
+        width: 300,
     }
 
 };
+
+const webViewStyles = {
+    tagStyles: {
+        em: {
+            fontStyle: 'italic',
+            fontFamily: 'System'
+        },
+
+        del: {
+            textDecorationLine: 'line-through',
+            textDecorationStyle: 'solid'
+        },
+
+        a: {
+            color: colors.blue
+        }
+    },
+
+    baseFontStyle: {
+        color: colors.text,
+        fontSize: 15,
+        fontFamily: 'GTAmericaExp-Regular'
+    }
+};
+
 
 /**
  * Takes safe area insets and returns padding to use for a View
@@ -468,6 +570,7 @@ function getSafeAreaMargins(insets) {
     return {marginBottom: insets.bottom * safeInsertPercentage};
 }
 
-
 export default styles;
-export {getSafeAreaPadding, getSafeAreaMargins};
+export {
+    getSafeAreaPadding, getSafeAreaMargins, colors, webViewStyles
+};

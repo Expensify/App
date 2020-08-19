@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, ScrollView} from 'react-native';
+import {View, ScrollView, Keyboard} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
@@ -22,7 +22,15 @@ class ReportHistoryView extends React.Component {
         super(props);
 
         this.recordlastReadActionID = _.debounce(this.recordlastReadActionID.bind(this), 1000, true);
-        this.scrollToBottomWhenListSizeChanges = this.scrollToBottomWhenListSizeChanges.bind(this);
+        this.scrollToListBottom = this.scrollToListBottom.bind(this);
+    }
+
+    componentDidMount() {
+        this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
+    }
+
+    componentWillUnmount() {
+        this.keyboardEvent.remove();
     }
 
     /**
@@ -97,8 +105,10 @@ class ReportHistoryView extends React.Component {
      * items have been rendered. If the number of items in our history have changed since it was last rendered, then
      * scroll the list to the end.
      */
-    scrollToBottomWhenListSizeChanges() {
-        this.historyListElement.scrollToEnd({animated: false});
+    scrollToListBottom() {
+        if (this.historyListElement) {
+            this.historyListElement.scrollToEnd({animated: false});
+        }
         this.recordMaxAction();
     }
 
@@ -121,14 +131,17 @@ class ReportHistoryView extends React.Component {
                 ref={(el) => {
                     this.historyListElement = el;
                 }}
-                onContentSizeChange={this.scrollToBottomWhenListSizeChanges}
+                onContentSizeChange={this.scrollToListBottom}
                 bounces={false}
-                style={[styles.chatContentInner]}
+                contentContainerStyle={{
+                    paddingVertical: 8
+                }}
             >
                 {_.chain(reportHistory).sortBy('sequenceNumber').map((item, index) => (
                     <ReportHistoryItem
                         key={item.sequenceNumber}
                         historyItem={item}
+                        authToken={this.state.authToken}
                         displayAsGroup={this.isConsecutiveHistoryItemMadeByPreviousActor(index)}
                     />
                 )).value()}
@@ -140,6 +153,11 @@ ReportHistoryView.propTypes = propTypes;
 
 const key = `${IONKEYS.REPORT_HISTORY}_%DATAFROMPROPS%`;
 export default withRouter(WithIon({
+    authToken: {
+        key: IONKEYS.SESSION,
+        path: 'authToken',
+        prefillWithKey: IONKEYS.SESSION,
+    },
     reportHistory: {
         key,
         loader: fetchHistory,

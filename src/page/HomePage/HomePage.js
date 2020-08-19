@@ -3,6 +3,8 @@ import {
     StatusBar,
     View,
     Dimensions,
+    Animated,
+    Easing
 } from 'react-native';
 import {SafeAreaInsetsContext, SafeAreaProvider} from 'react-native-safe-area-context';
 import {Route} from '../../lib/Router';
@@ -23,10 +25,9 @@ export default class App extends React.Component {
         super(props);
 
         this.state = {
-            // TODO: Set back to windowSize.width > widthBreakPoint once
-            //  https://github.com/AndrewGable/ReactNativeChat/pull/132 is merged
             hamburgerShown: true,
-            isHamburgerEnabled: windowSize.width <= widthBreakPoint
+            isHamburgerEnabled: windowSize.width <= widthBreakPoint,
+            animationTranslateX: new Animated.Value(0),
         };
 
         this.toggleHamburger = this.toggleHamburger.bind(this);
@@ -46,6 +47,10 @@ export default class App extends React.Component {
             }
         });
         Dimensions.addEventListener('change', this.toggleHamburgerBasedOnDimensions);
+
+        StatusBar.setBarStyle('dark-content', true);
+        StatusBar.setBackgroundColor('transparent', true);
+        StatusBar.setTranslucent(true);
     }
 
     componentWillUnmount() {
@@ -74,28 +79,60 @@ export default class App extends React.Component {
             return;
         }
 
-        const currentValue = this.state.hamburgerShown;
-        this.setState({hamburgerShown: !currentValue});
+        const hamburgerIsShown = this.state.hamburgerShown;
+        const animationFinalValue = hamburgerIsShown ? -300 : 0;
+
+        // If the hamburger currently is not shown, we want to immediately make it visible for the animation
+        if (!hamburgerIsShown) {
+            this.setState({hamburgerShown: !hamburgerIsShown});
+        }
+
+        Animated.timing(this.state.animationTranslateX, {
+            toValue: animationFinalValue,
+            duration: 200,
+            easing: Easing.ease,
+            useNativeDriver: false
+        }).start(({finished}) => {
+            // If the hamburger is currently shown, we want to hide it only after the animation is complete
+            // Otherwise, we can't see the animation
+            if (finished && hamburgerIsShown) {
+                this.setState({hamburgerShown: false});
+            }
+        });
     }
 
     render() {
         const hamburgerStyle = this.state.isHamburgerEnabled && this.state.hamburgerShown
             ? styles.hamburgerOpenAbsolute : styles.hamburgerOpen;
         const visibility = this.state.hamburgerShown ? styles.dFlex : styles.dNone;
+        const appContentWrapperStyle = !this.state.isHamburgerEnabled ? styles.appContentWrapperLarge : null;
         const appContentStyle = !this.state.isHamburgerEnabled ? styles.appContentRounded : null;
         return (
             <SafeAreaProvider>
-                <StatusBar barStyle="dark-content" />
+                <StatusBar />
                 <SafeAreaInsetsContext.Consumer style={[styles.flex1, styles.h100p]}>
                     {insets => (
-                        <View style={[styles.appContent, styles.flexRow, styles.h100p, getSafeAreaPadding(insets)]}>
+                        <View
+                            style={[styles.appContentWrapper,
+                                appContentWrapperStyle,
+                                styles.flexRow,
+                                styles.h100p,
+                                getSafeAreaPadding(insets)
+                            ]}
+                        >
                             <Route path="/:reportID?">
-                                <View style={[hamburgerStyle, visibility]}>
+                                <Animated.View style={[
+                                    hamburgerStyle,
+                                    visibility,
+                                    {
+                                        transform: [{translateX: this.state.animationTranslateX}]
+                                    }]}
+                                >
                                     <Sidebar insets={insets} onLinkClick={this.toggleHamburger} />
-                                </View>
+                                </Animated.View>
                                 <View style={[styles.appContent, appContentStyle, styles.flex1, styles.flexColumn]}>
                                     <Header
-                                        shouldShowHamburgerButton={!this.state.hamburgerShown}
+                                        shouldShowHamburgerButton={this.state.isHamburgerEnabled}
                                         onHamburgerButtonClicked={this.toggleHamburger}
                                     />
                                     <Main />
