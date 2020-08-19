@@ -37,6 +37,11 @@ class Expensify extends Component {
     }
 
     render() {
+        // Always enforce that re-renders of this component use the react-router Redirect component and at least have a redirectTo value
+        // that goes somewhere. this.state.redirectTo will only ever be set from elsewhere in the code by Ion and can only happen after the initial render.
+        // If we have no redirectTo value we'll next look at the authToken since the lack of once indicates that we need to sign in. If we have no redirectTo and we do 
+        // have an authToken then we should just redirect to the root. If we don't do this then an unauthenticated user will fall through to the site root by
+        // default and they will see things they aren't supposed to see.
         const redirectTo = this.state.redirectTo || (!this.state.authToken && '/signin') || '/';
         return (
 
