@@ -8,7 +8,7 @@ import {
     Route,
     Redirect,
     Switch,
-    withRouter
+    withRouter,
 } from 'react-router-dom';
 
 export {
