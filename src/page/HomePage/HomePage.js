@@ -27,11 +27,12 @@ export default class App extends React.Component {
         this.state = {
             hamburgerShown: windowSize.width > widthBreakPoint,
             isHamburgerEnabled: windowSize.width <= widthBreakPoint,
-            animationTranslateX: new Animated.Value(0),
         };
+        console.log('@marc this.state in constructor', this.state);
 
         this.toggleHamburger = this.toggleHamburger.bind(this);
         this.toggleHamburgerBasedOnDimensions = this.toggleHamburgerBasedOnDimensions.bind(this);
+        this.animationTranslateX = new Animated.Value(this.state.hamburgerShown ? -300 : 0);
     }
 
     componentDidMount() {
@@ -75,6 +76,7 @@ export default class App extends React.Component {
      * Only changes hamburger state on small screens (e.g. Mobile and mWeb)
      */
     toggleHamburger() {
+        console.log('@marc this.state in toggleHamburger', this.state);
         if (!this.state.isHamburgerEnabled) {
             return;
         }
@@ -84,10 +86,10 @@ export default class App extends React.Component {
 
         // If the hamburger currently is not shown, we want to immediately make it visible for the animation
         if (!hamburgerIsShown) {
-            this.setState({hamburgerShown: !hamburgerIsShown});
+            this.setState({hamburgerShown: true});
         }
 
-        Animated.timing(this.state.animationTranslateX, {
+        Animated.timing(this.animationTranslateX, {
             toValue: animationFinalValue,
             duration: 200,
             easing: Easing.ease,
@@ -125,7 +127,7 @@ export default class App extends React.Component {
                                     hamburgerStyle,
                                     visibility,
                                     {
-                                        transform: [{translateX: this.state.animationTranslateX}]
+                                        transform: [{translateX: this.animationTranslateX}]
                                     }]}
                                 >
                                     <Sidebar insets={insets} onLinkClick={this.toggleHamburger} />
