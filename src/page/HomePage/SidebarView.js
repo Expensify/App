@@ -132,8 +132,8 @@ export default WithIon({
         collectionID: 'reportID',
         loader: () => fetchAll().then(() => {
             Ion.multiGet([IONKEYS.CURRENT_URL, IONKEYS.FIRST_REPORT_ID]).then((values) => {
-                const currentURL = values && values[IONKEYS.CURRENT_URL] ? values[IONKEYS.CURRENT_URL] : '';
-                const firstReportID = values && values[IONKEYS.FIRST_REPORT_ID] ? values[IONKEYS.FIRST_REPORT_ID] : 0;
+                const currentURL = values[IONKEYS.CURRENT_URL] || '';
+                const firstReportID = values[IONKEYS.FIRST_REPORT_ID] || 0;
 
                 // If we're on the home page, then redirect to the first report ID
                 if (currentURL === '/' && firstReportID) {
