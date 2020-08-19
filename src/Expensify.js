@@ -23,6 +23,8 @@ class Expensify extends Component {
         super(props);
 
         this.recordCurrentRoute = this.recordCurrentRoute.bind(this);
+
+        this.state = {};
     }
 
     /**
@@ -35,13 +37,14 @@ class Expensify extends Component {
     }
 
     render() {
+        const redirectTo = this.state.redirectTo || (!this.state.authToken && '/signin') || '/';
         return (
 
             // TODO: Mobile does not support Beforeunload
             // <Beforeunload onBeforeunload={ActiveClientManager.removeClient}>
             <Router>
                 {/* If there is ever a property for redirecting, we do the redirect here */}
-                {this.state && this.state.redirectTo && <Redirect to={this.state.redirectTo} />}
+                {redirectTo && <Redirect to={redirectTo} />}
                 <Route path="*" render={this.recordCurrentRoute} />
 
                 <Switch>
@@ -65,5 +68,10 @@ export default WithIon({
             // Initialize this client as being an active client
             ActiveClientManager.init();
         },
+    },
+    authToken: {
+        key: IONKEYS.SESSION,
+        path: 'authToken',
+        prefillWithKey: IONKEYS.SESSION,
     },
 })(Expensify);
