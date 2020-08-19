@@ -233,7 +233,8 @@ function processNetworkRequestQueue() {
         // 2. Getting a 200 response back from the API (happens right below)
 
         // Make a simple request every second to see if the API is online again
-        request('Get', null)
+        request('Get', {doNotRetry: true})
+            .then(() => Ion.merge(IONKEYS.NETWORK, {isOffline: false}))
             .then(() => isAppOffline = false);
         return;
     }
