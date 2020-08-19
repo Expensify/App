@@ -1,4 +1,6 @@
 import React, {Component} from 'react';
+import {View} from 'react-native';
+import get from 'lodash.get';
 
 // import {Beforeunload} from 'react-beforeunload';
 import SignInPage from './page/SignInPage';
@@ -8,6 +10,8 @@ import * as ActiveClientManager from './lib/ActiveClientManager';
 import {verifyAuthToken} from './lib/actions/ActionsSession';
 import IONKEYS from './IONKEYS';
 import WithIon from './components/WithIon';
+import styles from './style/StyleSheet';
+
 import {
     Route,
     Router,
@@ -24,7 +28,21 @@ class Expensify extends Component {
 
         this.recordCurrentRoute = this.recordCurrentRoute.bind(this);
 
-        this.state = {};
+        this.state = {
+            loading: true,
+            authenticated: false,
+        };
+    }
+
+    componentDidMount() {
+        // We need to delay initializing the main app so we can check for an authToken and
+        // redirect to the signin page if we do not have one. Otherwise when the app inits
+        // we will fall through to the homepage and the user will see a brief flash of the main
+        // app experience.
+        Ion.get(IONKEYS.SESSION)
+            .then((response) => {
+                this.setState({loading: false, authenticated: Boolean(get(response, 'authToken', false))});
+            });
     }
 
     /**
@@ -37,12 +55,16 @@ class Expensify extends Component {
     }
 
     render() {
-        // Always enforce that re-renders of this component use the react-router Redirect component and at least have a redirectTo value
-        // that goes somewhere. this.state.redirectTo will only ever be set from elsewhere in the code by Ion and can only happen after the initial render.
-        // If we have no redirectTo value we'll next look at the authToken since the lack of once indicates that we need to sign in. If we have no redirectTo and we do 
-        // have an authToken then we should just redirect to the root. If we don't do this then an unauthenticated user will fall through to the site root by
-        // default and they will see things they aren't supposed to see.
-        const redirectTo = this.state.redirectTo || (!this.state.authToken && '/signin') || '/';
+        if (this.state.loading) {
+            return (
+                <View style={styles.genericView} />
+            );
+        }
+
+        // We can only have a redirectTo if this is not the initial render so if we have one we'll
+        // always navigate to it. If we are not authenticated by this point then we'll force navigate to sign in.
+        const redirectTo = this.state.redirectTo || (!this.state.authenticated && '/signin');
+
         return (
 
             // TODO: Mobile does not support Beforeunload
@@ -73,10 +95,5 @@ export default WithIon({
             // Initialize this client as being an active client
             ActiveClientManager.init();
         },
-    },
-    authToken: {
-        key: IONKEYS.SESSION,
-        path: 'authToken',
-        prefillWithKey: IONKEYS.SESSION,
     },
 })(Expensify);
