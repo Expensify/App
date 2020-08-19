@@ -28,11 +28,10 @@ export default class App extends React.Component {
             hamburgerShown: windowSize.width > widthBreakPoint,
             isHamburgerEnabled: windowSize.width <= widthBreakPoint,
         };
-        console.log('@marc this.state in constructor', this.state);
 
         this.toggleHamburger = this.toggleHamburger.bind(this);
         this.toggleHamburgerBasedOnDimensions = this.toggleHamburgerBasedOnDimensions.bind(this);
-        this.animationTranslateX = new Animated.Value(this.state.hamburgerShown ? -300 : 0);
+        this.animationTranslateX = new Animated.Value(!this.state.hamburgerShown ? -300 : 0);
     }
 
     componentDidMount() {
@@ -76,7 +75,6 @@ export default class App extends React.Component {
      * Only changes hamburger state on small screens (e.g. Mobile and mWeb)
      */
     toggleHamburger() {
-        console.log('@marc this.state in toggleHamburger', this.state);
         if (!this.state.isHamburgerEnabled) {
             return;
         }
