@@ -1,4 +1,6 @@
 import React, {Component} from 'react';
+import {View} from 'react-native';
+import get from 'lodash.get';
 
 // import {Beforeunload} from 'react-beforeunload';
 import SignInPage from './page/SignInPage';
@@ -8,6 +10,8 @@ import * as ActiveClientManager from './lib/ActiveClientManager';
 import {verifyAuthToken} from './lib/actions/ActionsSession';
 import IONKEYS from './IONKEYS';
 import WithIon from './components/WithIon';
+import styles from './style/StyleSheet';
+
 import {
     Route,
     Router,
@@ -23,6 +27,22 @@ class Expensify extends Component {
         super(props);
 
         this.recordCurrentRoute = this.recordCurrentRoute.bind(this);
+
+        this.state = {
+            loading: true,
+            authenticated: false,
+        };
+    }
+
+    componentDidMount() {
+        // We need to delay initializing the main app so we can check for an authToken and
+        // redirect to the signin page if we do not have one. Otherwise when the app inits
+        // we will fall through to the homepage and the user will see a brief flash of the main
+        // app experience.
+        Ion.get(IONKEYS.SESSION)
+            .then((response) => {
+                this.setState({loading: false, authenticated: Boolean(get(response, 'authToken', false))});
+            });
     }
 
     /**
@@ -35,13 +55,23 @@ class Expensify extends Component {
     }
 
     render() {
+        if (this.state.loading) {
+            return (
+                <View style={styles.genericView} />
+            );
+        }
+
+        // We can only have a redirectTo if this is not the initial render so if we have one we'll
+        // always navigate to it. If we are not authenticated by this point then we'll force navigate to sign in.
+        const redirectTo = this.state.redirectTo || (!this.state.authenticated && '/signin');
+
         return (
 
             // TODO: Mobile does not support Beforeunload
             // <Beforeunload onBeforeunload={ActiveClientManager.removeClient}>
             <Router>
                 {/* If there is ever a property for redirecting, we do the redirect here */}
-                {this.state && this.state.redirectTo && <Redirect to={this.state.redirectTo} />}
+                {redirectTo && <Redirect to={redirectTo} />}
                 <Route path="*" render={this.recordCurrentRoute} />
 
                 <Switch>
