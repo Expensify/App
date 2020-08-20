@@ -79,21 +79,24 @@ function keyChanged(key, data) {
                 mappedComponent.callback(newValue);
             }
 
-            // Set the state of the react component with either the pathed data, or the data
-            if (mappedComponent.addAsCollection) {
-                // Add the data to an array of existing items
-                mappedComponent.reactComponent.setState((prevState) => {
-                    const collection = prevState[mappedComponent.statePropertyName] || {};
-                    collection[newValue[mappedComponent.collectionID]] = newValue;
-                    const newState = {
-                        [mappedComponent.statePropertyName]: collection,
-                    };
-                    return newState;
-                });
-            } else {
-                mappedComponent.reactComponent.setState({
-                    [mappedComponent.statePropertyName]: newValue,
-                });
+            // If there is a react component attached to the mapping, then set the state of the react component
+            // with either the pathed data, or the data
+            if (mappedComponent.reactComponent) {
+                if (mappedComponent.addAsCollection) {
+                    // Add the data to an array of existing items
+                    mappedComponent.reactComponent.setState((prevState) => {
+                        const collection = prevState[mappedComponent.statePropertyName] || {};
+                        collection[newValue[mappedComponent.collectionID]] = newValue;
+                        const newState = {
+                            [mappedComponent.statePropertyName]: collection,
+                        };
+                        return newState;
+                    });
+                } else {
+                    mappedComponent.reactComponent.setState({
+                        [mappedComponent.statePropertyName]: newValue,
+                    });
+                }
             }
         }
     });
