@@ -23,11 +23,13 @@ import {
 Ion.init();
 
 const propTypes = {
+    /* Ion Props */
+
+    // A route set by Ion that we will redirect to if present. Always empty on app init.
     redirectTo: PropTypes.string,
 };
 
 const defaultProps = {
-    // A route set by Ion that we will redirect to if present. Always empty on app init.
     redirectTo: '',
 };
 
