@@ -16,14 +16,22 @@ export default function (WrappedComponent) {
     class withBackgroundRefresh extends React.Component {
         constructor() {
             super();
+            this.timer = null;
             this.onVisibilityChange.bind(this);
         }
 
         componentDidMount() {
-            window.addEventListener(CONST.EVENT.VISIBILITY_CHANGE, this.onVisibilityChange());
+            window.addEventListener(CONST.EVENT.VISIBILITY_CHANGE, () => {
+                window.clearInterval(this.timer);
+                window.setInterval(this.onVisibilityChange, CONST.REFRESH_TIMEOUT);
+                this.onVisibilityChange();
+            });
 
             // When the page first loads, get the current version hash
             this.getStoredVersionAsync();
+
+            // Trigger onVisibilityChange every 30 min
+            this.timer = window.setInterval(this.onVisibilityChange, CONST.REFRESH_TIMEOUT);
         }
 
         async onVisibilityChange() {
