@@ -5,7 +5,7 @@
  *  - Prompts the user to refresh the page if it's currently visible
  */
 import React from 'react';
-import AsyncStorage from '@react-native-community/async-storage';
+import Ion from '../Ion';
 
 import CONST from './CONST';
 import {request} from '../Network';
@@ -59,11 +59,11 @@ export default function (WrappedComponent) {
          * Get stored git hash, or if there is none then fetch the remote git hash and save it to LocalStorage.
          */
         async getStoredVersionAsync() {
-            const storedVersion = await AsyncStorage.getItem(CONST.KEY_VERSION_HASH);
+            const storedVersion = await Ion.get(CONST.KEY_VERSION_HASH);
             if (!storedVersion) {
                 // only get the remote version if there is no version locally stored
                 const remoteVersion = await request(CONST.COMMAND.GET_VERSION_HASH);
-                AsyncStorage.setItem(CONST.KEY_VERSION_HASH, remoteVersion);
+                Ion.set(CONST.KEY_VERSION_HASH, remoteVersion);
             }
         }
 
@@ -79,7 +79,7 @@ export default function (WrappedComponent) {
          * @returns {boolean}
          */
         async pageShouldRefreshAsync() {
-            const storedVersion = await AsyncStorage.getItem(CONST.KEY_VERSION_HASH);
+            const storedVersion = await Ion.get(CONST.KEY_VERSION_HASH);
 
             // If the app is offline, this request will hang indefinitely.
             // But that's okay, because it couldn't possibly refresh anyways.
@@ -87,7 +87,7 @@ export default function (WrappedComponent) {
 
             if (storedVersion === remoteVersion) {
                 if (!storedVersion) {
-                    await AsyncStorage.setItem(CONST.KEY_VERSION_HASH, remoteVersion);
+                    await Ion.set(CONST.KEY_VERSION_HASH, remoteVersion);
                 }
                 return false;
             }
