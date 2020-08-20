@@ -11,10 +11,24 @@ import IONKEYS from '../../../IONKEYS';
 import ReportHistoryItem from './ReportHistoryItem';
 import styles from '../../../style/StyleSheet';
 import {withRouter} from '../../../lib/Router';
+import ReportHistoryPropsTypes from './ReportHistoryPropsTypes';
 
 const propTypes = {
     // The ID of the report actions will be created for
     reportID: PropTypes.number.isRequired,
+
+    /* Ion Props */
+
+    // Array of report history items for this report
+    reportHistory: PropTypes.arrayOf(PropTypes.shape(ReportHistoryPropsTypes)),
+
+    // Current user authToken
+    authToken: PropTypes.string,
+};
+
+const defaultProps = {
+    reportHistory: [],
+    authToken: '',
 };
 
 class ReportHistoryView extends React.Component {
@@ -71,7 +85,7 @@ class ReportHistoryView extends React.Component {
      * action when scrolled
      */
     recordMaxAction() {
-        const reportHistory = lodashGet(this.state, 'reportHistory', []);
+        const reportHistory = lodashGet(this.props, 'reportHistory', []);
         const maxVisibleSequenceNumber = _.chain(reportHistory)
             .pluck('sequenceNumber')
             .max()
@@ -113,12 +127,7 @@ class ReportHistoryView extends React.Component {
     }
 
     render() {
-        let reportHistory = {};
-        if (this.state && this.state.reportHistory) {
-            reportHistory = this.state.reportHistory;
-        }
-
-        if (reportHistory.length === 0) {
+        if (this.props.reportHistory.length === 0) {
             return (
                 <View style={[styles.chatContent, styles.chatContentEmpty]}>
                     <Text style={[styles.textP]}>Be the first person to comment!</Text>
@@ -137,11 +146,11 @@ class ReportHistoryView extends React.Component {
                     paddingVertical: 8
                 }}
             >
-                {_.chain(reportHistory).sortBy('sequenceNumber').map((item, index) => (
+                {_.chain(this.props.reportHistory).sortBy('sequenceNumber').map((item, index) => (
                     <ReportHistoryItem
                         key={item.sequenceNumber}
                         historyItem={item}
-                        authToken={this.state.authToken}
+                        authToken={this.props.authToken}
                         displayAsGroup={this.isConsecutiveHistoryItemMadeByPreviousActor(index)}
                     />
                 )).value()}
@@ -149,7 +158,9 @@ class ReportHistoryView extends React.Component {
         );
     }
 }
+
 ReportHistoryView.propTypes = propTypes;
+ReportHistoryView.defaultProps = defaultProps;
 
 const key = `${IONKEYS.REPORT_HISTORY}_%DATAFROMPROPS%`;
 export default withRouter(WithIon({
@@ -162,7 +173,6 @@ export default withRouter(WithIon({
         key,
         loader: fetchHistory,
         loaderParams: ['%DATAFROMPROPS%'],
-        prefillWithKey: key,
         pathForProps: 'reportID',
     },
 })(ReportHistoryView));

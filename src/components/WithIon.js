@@ -5,8 +5,8 @@
  */
 import React from 'react';
 import _ from 'underscore';
-import get from 'lodash.get';
-import has from 'lodash.has';
+import lodashGet from 'lodash.get';
+import lodashHas from 'lodash.has';
 import Ion from '../lib/Ion';
 
 /**
@@ -52,9 +52,9 @@ export default function (mapIonToState) {
                 // If any of the mappings use data from the props, then when the props change, all the
                 // connections need to be reconnected with the new props
                 _.each(mapIonToState, (mapping, propertyName) => {
-                    if (has(mapping, 'pathForProps')) {
-                        const prevPropsData = get(prevProps, mapping.pathForProps);
-                        const currentPropsData = get(this.props, mapping.pathForProps);
+                    if (lodashHas(mapping, 'pathForProps')) {
+                        const prevPropsData = lodashGet(prevProps, mapping.pathForProps);
+                        const currentPropsData = lodashGet(this.props, mapping.pathForProps);
                         if (prevPropsData !== currentPropsData) {
                             Ion.disconnect(this.activeConnectionIDsWithPropsData[mapping.pathForProps]);
                             this.connectMappingToIon(mapping, propertyName, this.wrappedComponent);
@@ -86,26 +86,25 @@ export default function (mapIonToState) {
              *  For example, if a component wants to connect to the Ion key "report_22" and
              *  "22" comes from this.props.match.params.reportID. The statePropertyName would be set to
              *  "report_%DATAFROMPROPS%" and pathForProps would be set to "match.params.reportID"
-             * @param {string} [mapping.prefillWithKey] the name of the Ion key to prefill the component with. Useful
-             *  for loading the existing data in Ion while making an XHR to request updated data.
              * @param {function} [mapping.loader] a method that will be called after connection to Ion in order to load
              *  it with data. Typically this will be a method that makes an XHR to load data from the API.
              * @param {mixed[]} [mapping.loaderParams] An array of params to be passed to the loader method
+             * @param {boolean} [mapping.initWithStoredValues] If set to false, then no data will be prefilled into the
+             *  component
              * @param {string} statePropertyName the name of the state property that Ion will add the data to
-             * @param {object} reactComponent a reference to the react component whose state needs updated by Ion
              */
-            connectMappingToIon(mapping, statePropertyName, reactComponent) {
+            connectMappingToIon(mapping, statePropertyName) {
                 const ionConnectionConfig = {
                     ...mapping,
                     statePropertyName,
-                    reactComponent,
+                    withIonInstance: this,
                 };
 
                 // Connect to Ion and keep track of the connectionID
                 if (mapping.pathForProps) {
                     // If there is a path for props data, then the data needs to be pulled out of props and parsed
                     // into the key
-                    const dataFromProps = get(this.props, mapping.pathForProps);
+                    const dataFromProps = lodashGet(this.props, mapping.pathForProps);
                     const keyWithPropsData = mapping.key.replace('%DATAFROMPROPS%', dataFromProps);
                     ionConnectionConfig.key = keyWithPropsData;
 
@@ -118,19 +117,9 @@ export default function (mapIonToState) {
                 }
 
                 // Pre-fill the state with any data already in the store
-                if (mapping.prefillWithKey) {
-                    let prefillKey = mapping.prefillWithKey;
-
-                    // If there is a path for props data, then the data needs to be pulled out of props and parsed
-                    // into the key
-                    if (mapping.pathForProps) {
-                        const dataFromProps = get(this.props, mapping.pathForProps);
-                        prefillKey = mapping.prefillWithKey.replace('%DATAFROMPROPS%', dataFromProps);
-                    }
-
-                    // Get the data from Ion and put it into the state of our component right away
-                    Ion.get(prefillKey, mapping.path, mapping.defaultValue)
-                        .then(data => reactComponent.setState({[statePropertyName]: data}));
+                if (mapping.initWithStoredValues !== false) {
+                    Ion.get(ionConnectionConfig.key, mapping.path, mapping.defaultValue)
+                        .then(data => this.setState({[statePropertyName]: data}));
                 }
 
                 // Load the data from an API request if necessary
@@ -138,7 +127,7 @@ export default function (mapIonToState) {
                     const paramsForLoaderFunction = _.map(mapping.loaderParams, (loaderParam) => {
                         // Some params might com from the props data
                         if (loaderParam === '%DATAFROMPROPS%') {
-                            return get(this.props, mapping.pathForProps);
+                            return lodashGet(this.props, mapping.pathForProps);
                         }
                         return loaderParam;
                     });

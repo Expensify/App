@@ -124,8 +124,11 @@ function xhr(command, data, type = 'post') {
             isAppOffline = true;
             Ion.merge(IONKEYS.NETWORK, {isOffline: true});
 
-            // If the request failed, we need to put the request object back into the queue
-            queueRequest(command, data);
+            // If the request failed, we need to put the request object back into the queue as long as there is no
+            // doNotRetry option set in the data
+            if (data.doNotRetry !== true) {
+                queueRequest(command, data);
+            }
 
             // Throw a new error to prevent any other `then()` in the promise chain from being triggered (until another
             // catch() happens

@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {View} from 'react-native';
-import get from 'lodash.get';
+import PropTypes from 'prop-types';
 
 // import {Beforeunload} from 'react-beforeunload';
 import SignInPage from './page/SignInPage';
@@ -22,6 +22,17 @@ import {
 // Initialize the store when the app loads for the first time
 Ion.init();
 
+const propTypes = {
+    /* Ion Props */
+
+    // A route set by Ion that we will redirect to if present. Always empty on app init.
+    redirectTo: PropTypes.string,
+};
+
+const defaultProps = {
+    redirectTo: '',
+};
+
 class Expensify extends Component {
     constructor(props) {
         super(props);
@@ -30,7 +41,7 @@ class Expensify extends Component {
 
         this.state = {
             loading: true,
-            authenticated: false,
+            authToken: '',
         };
     }
 
@@ -39,9 +50,9 @@ class Expensify extends Component {
         // redirect to the signin page if we do not have one. Otherwise when the app inits
         // we will fall through to the homepage and the user will see a brief flash of the main
         // app experience.
-        Ion.get(IONKEYS.SESSION)
-            .then((response) => {
-                this.setState({loading: false, authenticated: Boolean(get(response, 'authToken', false))});
+        Ion.get(IONKEYS.SESSION, 'authToken', '')
+            .then((authToken) => {
+                this.setState({loading: false, authToken});
             });
     }
 
@@ -63,7 +74,7 @@ class Expensify extends Component {
 
         // We can only have a redirectTo if this is not the initial render so if we have one we'll
         // always navigate to it. If we are not authenticated by this point then we'll force navigate to sign in.
-        const redirectTo = this.state.redirectTo || (!this.state.authenticated && '/signin');
+        const redirectTo = this.props.redirectTo || (!this.state.authToken && '/signin');
 
         return (
 
@@ -85,6 +96,9 @@ class Expensify extends Component {
     }
 }
 
+Expensify.propTypes = propTypes;
+Expensify.defaultProps = defaultProps;
+
 export default WithIon({
     redirectTo: {
         key: IONKEYS.APP_REDIRECT_TO,
@@ -95,5 +109,10 @@ export default WithIon({
             // Initialize this client as being an active client
             ActiveClientManager.init();
         },
+
+        // Prevent the prefilling of Ion data or else the app will always redirect to what the last value was set to.
+        // This ends up in a situation where you go to a report, refresh the page, and then rather than seeing the
+        // report you are brought back to the root of the site (ie. "/").
+        initWithStoredValues: false,
     },
 })(Expensify);
