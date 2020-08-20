@@ -154,13 +154,11 @@ export default WithIon({
         key: IONKEYS.MY_PERSONAL_DETAILS,
         path: 'displayName',
         loader: getPersonalDetails,
-        prefillWithKey: IONKEYS.MY_PERSONAL_DETAILS,
     },
     avatarURL: {
         key: IONKEYS.MY_PERSONAL_DETAILS,
         path: 'avatarURL',
         loader: getPersonalDetails,
-        prefillWithKey: IONKEYS.MY_PERSONAL_DETAILS,
     },
     reports: {
         key: `${IONKEYS.REPORT}_[0-9]+$`,

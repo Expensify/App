@@ -62,6 +62,5 @@ export default withRouter(WithIon({
         path: 'hasUnread',
         defaultValue: false,
         pathForProps: 'reportID',
-        prefillWithKey: `${IONKEYS.REPORT}_%DATAFROMPROPS%`
     }
 })(SidebarLink));
