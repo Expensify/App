@@ -92,13 +92,12 @@ export default function (mapIonToState) {
              *  it with data. Typically this will be a method that makes an XHR to load data from the API.
              * @param {mixed[]} [mapping.loaderParams] An array of params to be passed to the loader method
              * @param {string} statePropertyName the name of the state property that Ion will add the data to
-             * @param {object} reactComponent a reference to the react component whose state needs updated by Ion
              */
-            connectMappingToIon(mapping, statePropertyName, reactComponent) {
+            connectMappingToIon(mapping, statePropertyName) {
                 const ionConnectionConfig = {
                     ...mapping,
                     statePropertyName,
-                    reactComponent,
+                    withIonInstance: this,
                 };
 
                 // Connect to Ion and keep track of the connectionID
@@ -130,7 +129,7 @@ export default function (mapIonToState) {
 
                     // Get the data from Ion and put it into the state of our component right away
                     Ion.get(prefillKey, mapping.path, mapping.defaultValue)
-                        .then(data => reactComponent.setState({[statePropertyName]: data}));
+                        .then(data => this.setState({[statePropertyName]: data}));
                 }
 
                 // Load the data from an API request if necessary

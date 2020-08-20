@@ -103,9 +103,9 @@ class App extends Component {
                             >
                                 <Text style={[styles.buttonText, styles.buttonSuccessText]}>Log In</Text>
                             </TouchableOpacity>
-                            {this.state.error && (
+                            {this.props.error && (
                                 <Text style={[styles.formError]}>
-                                    {this.state.error}
+                                    {this.props.error}
                                 </Text>
                             )}
                         </View>

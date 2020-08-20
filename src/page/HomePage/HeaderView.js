@@ -33,9 +33,9 @@ class HeaderView extends React.Component {
                         />
                     </TouchableOpacity>
                     )}
-                    {this.state && this.state.reportName && (
+                    {this.props.reportName && (
                         <Text numberOfLines={2} style={[styles.navText]}>
-                            {this.state.reportName}
+                            {this.props.reportName}
                         </Text>
                     )}
                 </View>
@@ -46,7 +46,7 @@ class HeaderView extends React.Component {
 HeaderView.propTypes = propTypes;
 
 export default withRouter(WithIon({
-    // Map this.state.reportName to the data for a specific report in the store, and bind it to the reportName property
+    // Map this.props.reportName to the data for a specific report in the store, and bind it to the reportName property
     // It uses the data returned from the props path (ie. the reportID) to replace %DATAFROMPROPS% in the key it
     // binds to
     reportName: {

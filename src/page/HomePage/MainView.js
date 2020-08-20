@@ -15,14 +15,8 @@ const propTypes = {
 };
 
 class MainView extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {};
-    }
-
     render() {
-        if (!this.state || !this.state.reports || this.state.reports.length === 0) {
+        if (!this.props.reports || this.props.reports.length === 0) {
             return null;
         }
 
@@ -30,7 +24,7 @@ class MainView extends React.Component {
 
         // The styles for each of our reports. Basically, they are all hidden except for the one matching the
         // reportID in the URL
-        const reportStyles = _.reduce(this.state.reports, (memo, report) => {
+        const reportStyles = _.reduce(this.props.reports, (memo, report) => {
             const finalData = {...memo};
             const reportStyle = reportIDInURL === report.reportID
                 ? [styles.dFlex, styles.flex1]
@@ -41,7 +35,7 @@ class MainView extends React.Component {
 
         return (
             <>
-                {_.map(this.state.reports, report => (
+                {_.map(this.props.reports, report => (
                     <View
                         key={report.reportID}
                         style={reportStyles[report.reportID]}
