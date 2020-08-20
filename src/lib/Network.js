@@ -8,8 +8,6 @@ import Guid from './Guid';
 import {registerSocketEventCallback} from './Pusher/pusher';
 import redirectToSignIn from './actions/SignInRedirect';
 
-let isAppOffline = false;
-
 // Indicates if we're in the process of re-authenticating. When an API call returns jsonCode 407 indicating that the
 // authToken expired, we set this to true, pause all API calls, re-authenticate, and then use the authToken fromm the
 // response in the subsequent API calls
@@ -42,7 +40,6 @@ registerSocketEventCallback((eventName, data) => {
         default:
             break;
     }
-    isAppOffline = isCurrentlyOffline;
     Ion.merge(IONKEYS.NETWORK, {isOffline: isCurrentlyOffline});
 });
 
@@ -107,20 +104,16 @@ function xhr(command, data, type = 'post') {
         .then(formData => fetch(`${CONFIG.EXPENSIFY.API_ROOT}command=${command}`, {
             method: type,
             body: formData,
-        })
-            .then(response => response.json()))
+        }))
+        .then(response => response.json())
 
         // This will catch any HTTP network errors (like 404s and such), not to be confused with jsonCode which this
         // does NOT catch
         .catch(() => {
-            isAppOffline = true;
             Ion.merge(IONKEYS.NETWORK, {isOffline: true});
 
-            // If the request failed, we need to put the request object back into the queue as long as there is no
-            // doNotRetry option set in the data
-            if (data.doNotRetry !== true) {
-                queueRequest(command, data);
-            }
+            // If the request failed, we need to put the request object back into the queue
+            queueRequest(command, data);
 
             // Throw a new error to prevent any other `then()` in the promise chain from being triggered (until another
             // catch() happens
@@ -230,29 +223,34 @@ function request(command, data, type = 'post') {
  * Process the networkRequestQueue by looping through the queue and attempting to make the requests
  */
 function processNetworkRequestQueue() {
-    if (isAppOffline) {
-        // Two things will bring the app online again...
-        // 1. Pusher reconnecting (see registerSocketEventCallback at the top of this file)
-        // 2. Getting a 200 response back from the API (happens right below)
+    Ion.get(IONKEYS.NETWORK, 'isOffline')
+        .then((isOffline) => {
+            if (isOffline) {
+                // Two things will bring the app online again...
+                // 1. Pusher reconnecting (see registerSocketEventCallback at the top of this file)
+                // 2. Getting a 200 response back from the API (happens right below)
 
-        // Make a simple request every second to see if the API is online again
-        request('Get', {doNotRetry: true})
-            .then(() => Ion.merge(IONKEYS.NETWORK, {isOffline: false}))
-            .then(() => isAppOffline = false);
-        return;
-    }
+                // Make a simple request every second to see if the API is online again
+                fetch(`${CONFIG.EXPENSIFY.API_ROOT}command=Get`, {
+                    method: 'post',
+                    body: {doNotRetry: true},
+                })
+                    .then(() => Ion.merge(IONKEYS.NETWORK, {isOffline: false}));
+                return;
+            }
 
-    // Don't make any requests until we're done re-authenticating since we'll use the new authToken
-    // from that response for the subsequent network requests
-    if (reauthenticating || networkRequestQueue.length === 0) {
-        return;
-    }
-    for (let i = 0; i < networkRequestQueue.length; i++) {
-        // Take the request object out of the queue and make the request
-        const queuedRequest = networkRequestQueue.shift();
-        request(queuedRequest.command, queuedRequest.data)
-            .then(queuedRequest.callback);
-    }
+            // Don't make any requests until we're done re-authenticating since we'll use the new authToken
+            // from that response for the subsequent network requests
+            if (reauthenticating || networkRequestQueue.length === 0) {
+                return;
+            }
+            for (let i = 0; i < networkRequestQueue.length; i++) {
+                // Take the request object out of the queue and make the request
+                const queuedRequest = networkRequestQueue.shift();
+                request(queuedRequest.command, queuedRequest.data)
+                    .then(queuedRequest.callback);
+            }
+        });
 }
 
 // Process our write queue very often
