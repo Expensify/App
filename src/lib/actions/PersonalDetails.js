@@ -4,7 +4,6 @@ import {onReconnect, queueRequest} from '../Network';
 import IONKEYS from '../../IONKEYS';
 import md5 from '../md5';
 import CONST from '../../CONST';
-import {fetchAll, fetchHistory} from './Report';
 
 /**
  * Returns the URL for a user's avatar and handles someone not having any avatar at all
