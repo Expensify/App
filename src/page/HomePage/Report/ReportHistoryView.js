@@ -5,7 +5,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import Text from '../../../components/Text';
 import Ion from '../../../lib/Ion';
-import {fetchHistory, updateLastReadActionID} from '../../../lib/actions/ActionsReport';
+import {fetchHistory, updateLastReadActionID} from '../../../lib/actions/Report';
 import WithIon from '../../../components/WithIon';
 import IONKEYS from '../../../IONKEYS';
 import ReportHistoryItem from './ReportHistoryItem';

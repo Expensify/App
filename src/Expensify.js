@@ -6,7 +6,7 @@ import SignInPage from './page/SignInPage';
 import HomePage from './page/HomePage/HomePage';
 import Ion from './lib/Ion';
 import * as ActiveClientManager from './lib/ActiveClientManager';
-import {verifyAuthToken} from './lib/actions/ActionsSession';
+import {verifyAuthToken} from './lib/actions/Session';
 import IONKEYS from './IONKEYS';
 import WithIon from './components/WithIon';
 import styles from './style/StyleSheet';

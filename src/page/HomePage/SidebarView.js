@@ -7,12 +7,12 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import Text from '../../components/Text';
-import {signOut} from '../../lib/actions/ActionsSession';
-import {fetch as getPersonalDetails} from '../../lib/actions/ActionsPersonalDetails';
+import {signOut} from '../../lib/actions/Session';
+import {fetch as getPersonalDetails} from '../../lib/actions/PersonalDetails';
 import styles, {getSafeAreaMargins} from '../../style/StyleSheet';
 import WithIon from '../../components/WithIon';
 import IONKEYS from '../../IONKEYS';
-import {fetchAll} from '../../lib/actions/ActionsReport';
+import {fetchAll} from '../../lib/actions/Report';
 import SidebarLink from './SidebarLink';
 import logo from '../../../assets/images/expensify-logo_reversed.png';
 import PageTitleUpdater from '../../lib/PageTitleUpdater';

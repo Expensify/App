@@ -6,7 +6,7 @@ import ROUTES from '../ROUTES';
 import Str from './Str';
 import Guid from './Guid';
 import {registerSocketEventCallback} from './Pusher/pusher';
-import redirectToSignIn from './actions/ActionsSignInRedirect';
+import redirectToSignIn from './actions/SignInRedirect';
 
 let isAppOffline = false;
 
