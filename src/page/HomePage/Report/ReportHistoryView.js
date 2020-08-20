@@ -114,8 +114,8 @@ class ReportHistoryView extends React.Component {
 
     render() {
         let reportHistory = {};
-        if (this.state && this.state.reportHistory) {
-            reportHistory = this.state.reportHistory;
+        if (this.props.reportHistory) {
+            reportHistory = this.props.reportHistory;
         }
 
         if (reportHistory.length === 0) {
@@ -141,7 +141,7 @@ class ReportHistoryView extends React.Component {
                     <ReportHistoryItem
                         key={item.sequenceNumber}
                         historyItem={item}
-                        authToken={this.state.authToken}
+                        authToken={this.props.authToken}
                         displayAsGroup={this.isConsecutiveHistoryItemMadeByPreviousActor(index)}
                     />
                 )).value()}

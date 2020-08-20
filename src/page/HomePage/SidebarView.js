@@ -33,10 +33,8 @@ class SidebarView extends React.Component {
      * Updates the page title to indicate there are unread reports
      */
     updateUnreadReportIndicator() {
-        if (this.state) {
-            const hasUnreadReports = _.any(this.state.reports, report => report.hasUnread);
-            PageTitleUpdater(hasUnreadReports);
-        }
+        const hasUnreadReports = _.any(this.props.reports, report => report.hasUnread);
+        PageTitleUpdater(hasUnreadReports);
     }
 
     alertInstallInstructions() {
@@ -51,7 +49,7 @@ class SidebarView extends React.Component {
     }
 
     render() {
-        const reports = this.state && this.state.reports;
+        const reports = this.props.reports;
         this.updateUnreadReportIndicator();
         return (
             <View style={[styles.flex1, styles.sidebar]}>
@@ -80,17 +78,17 @@ class SidebarView extends React.Component {
                 <View style={[styles.sidebarFooter, getSafeAreaMargins(this.props.insets)]}>
                     <View style={[styles.sidebarFooterAvatar]}>
                         <Image
-                            source={{uri: this.state && this.state.avatarURL}}
+                            source={{uri: this.props.avatarURL}}
                             style={[styles.historyItemAvatar]}
                         />
-                        {this.state && this.state.isOffline && (
+                        {this.props.isOffline && (
                         <View style={[styles.statusIndicator]} />
                         )}
                     </View>
                     <View style={[styles.flexColumn]}>
-                        {this.state && this.state.userDisplayName && (
+                        {this.props.userDisplayName && (
                             <Text style={[styles.sidebarFooterUsername]}>
-                                {this.state.userDisplayName}
+                                {this.props.userDisplayName}
                             </Text>
                         )}
                         <View style={[styles.flexRow]}>
@@ -124,7 +122,7 @@ class SidebarView extends React.Component {
 SidebarView.propTypes = propTypes;
 
 export default WithIon({
-    // Map this.state.userDisplayName to the personal details key in the store and bind it to the displayName property
+    // Map this.props.userDisplayName to the personal details key in the store and bind it to the displayName property
     // and load it with data from getPersonalDetails()
     userDisplayName: {
         key: IONKEYS.MY_PERSONAL_DETAILS,
