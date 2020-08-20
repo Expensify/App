@@ -20,7 +20,8 @@ let reauthenticating = false;
 const networkRequestQueue = [];
 
 
-// Subscribe to the
+// Subscribe to the state change event via NetInfo so we can update
+// whether a user has internet connectivity or not
 NetInfo.addEventListener((state) => {
     Ion.merge(IONKEYS.NETWORK, {isOffline: !state.isConnected});
 });
