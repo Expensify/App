@@ -69,5 +69,6 @@ module.exports = {
             'react-native-config': 'react-web-config',
             'react-native$': 'react-native-web',
         },
+        extensions: [ '.web.js', '.js' ],
     },
 };
