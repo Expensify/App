@@ -107,5 +107,10 @@ export default WithIon({
             // Initialize this client as being an active client
             ActiveClientManager.init();
         },
+
+        // Prevent the prefilling of Ion data or else the app will always redirect to what the last value was set to.
+        // This ends up in a situation where you go to a report, refresh the page, and then rather than seeing the
+        // report you are brought back to the root of the site (ie. "/").
+        initWithStoredValues: false,
     },
 })(Expensify);
