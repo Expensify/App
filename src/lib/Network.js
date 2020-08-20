@@ -256,7 +256,33 @@ function processNetworkRequestQueue() {
 // Process our write queue very often
 setInterval(processNetworkRequestQueue, 1000);
 
+// Holds all of the callbacks that need to be triggered when the network reconnects
+const reconnectionCallbacks = [];
+
+/**
+ * Register a callback function to be called when the network reconnects
+ *
+ * @param {function} cb
+ */
+function onReconnect(cb) {
+    reconnectionCallbacks.push(cb);
+}
+
+// When the app reconnects from being offline, fetch all of the reports and their history
+let isAppOffline = false;
+Ion.connect({
+    key: IONKEYS.NETWORK,
+    path: 'isOffline',
+    callback: (isOffline) => {
+        if (isAppOffline && !isOffline) {
+            _.each(reconnectionCallbacks, cb => cb());
+        }
+        isAppOffline = isOffline;
+    }
+});
+
 export {
     request,
     queueRequest,
+    onReconnect,
 };

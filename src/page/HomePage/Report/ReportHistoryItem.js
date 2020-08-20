@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import ReportHistoryItemSingle from './ReportHistoryItemSingle';
 import ReportHistoryPropsTypes from './ReportHistoryPropsTypes';
 import ReportHistoryItemGrouped from './ReportHistoryItemGrouped';
@@ -21,7 +22,8 @@ class ReportHistoryItem extends React.Component {
         // This component should only render if the history item's sequenceNumber or displayAsGroup props change
         return nextProps.historyItem.sequenceNumber !== this.props.historyItem.sequenceNumber
             || nextProps.displayAsGroup !== this.props.displayAsGroup
-            || nextProps.authToken !== this.props.authToken;
+            || nextProps.authToken !== this.props.authToken
+            || !_.isEqual(nextProps.historyItem, this.props.historyItem);
     }
 
     render() {

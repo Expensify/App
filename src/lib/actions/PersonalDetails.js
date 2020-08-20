@@ -1,9 +1,10 @@
 import _ from 'underscore';
 import Ion from '../Ion';
-import {queueRequest} from '../Network';
+import {onReconnect, queueRequest} from '../Network';
 import IONKEYS from '../../IONKEYS';
 import md5 from '../md5';
 import CONST from '../../CONST';
+import {fetchAll, fetchHistory} from './Report';
 
 /**
  * Returns the URL for a user's avatar and handles someone not having any avatar at all
@@ -106,16 +107,8 @@ function fetchTimezone() {
     return requestPromise;
 }
 
-// When the app goes from being offline, to being online, fetch all of the personal details
-Ion.connect({
-    key: IONKEYS.NETWORK,
-    path: 'isOffline',
-    callback: (isOffline) => {
-        if (!isOffline) {
-            fetch();
-        }
-    }
-});
+// When the app reconnects from being offline, fetch all of the personal details
+onReconnect(fetch);
 
 export {
     fetch,
