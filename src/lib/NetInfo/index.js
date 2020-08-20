@@ -8,10 +8,10 @@ const unsubscribe = connection ? connection.removeEventListener('change', () => 
 
 function addEventListener(callback) {
     if (connection) {
-        connection.addEventListener('change', () => callback(navigator.onLine));
+        connection.addEventListener('change', () => callback({isConnected: navigator.onLine}));
     } else {
-        window.addEventListener('offline', () => callback(false));
-        window.addEventListener('online', () => callback(true));
+        window.addEventListener('offline', () => callback({isConnected: false}));
+        window.addEventListener('online', () => callback({isConnected: true}));
     }
 
     return unsubscribe;
