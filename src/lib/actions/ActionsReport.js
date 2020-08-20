@@ -1,6 +1,6 @@
 import moment from 'moment';
 import _ from 'underscore';
-import get from 'lodash.get';
+import lodashGet from 'lodash.get';
 import Ion from '../Ion';
 import {queueRequest} from '../Network';
 import IONKEYS from '../../IONKEYS';
@@ -110,7 +110,7 @@ function fetchAll() {
     return promiseAllSettled(reportFetchPromises)
         .then(data => fetchedReports = _.compact(_.map(data, (promiseResult) => {
             // Grab the report from the promise result which stores it in the `value` key
-            const report = get(promiseResult, 'value.reports', {});
+            const report = lodashGet(promiseResult, 'value.reports', {});
 
             // If there is no report found from the promise, return null
             // Otherwise, grab the actual report object from the first index in the values array
@@ -172,7 +172,7 @@ function addHistoryItem(reportID, reportComment) {
         .then((values) => {
             const reportHistory = values[historyKey];
             const email = values[IONKEYS.SESSION].email || '';
-            const personalDetails = get(values, [IONKEYS.PERSONAL_DETAILS, email], {});
+            const personalDetails = lodashGet(values, [IONKEYS.PERSONAL_DETAILS, email], {});
 
             // The new sequence number will be one higher than the highest
             let highestSequenceNumber = _.chain(reportHistory)
