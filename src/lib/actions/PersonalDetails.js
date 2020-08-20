@@ -106,12 +106,13 @@ function fetchTimezone() {
     return requestPromise;
 }
 
+// When the app goes from being offline, to being online, fetch all of the personal details
 Ion.connect({
     key: IONKEYS.NETWORK,
     path: 'isOffline',
     callback: (isOffline) => {
         if (!isOffline) {
-            console.log('get personal datails', isOffline);
+            fetch();
         }
     }
 });
