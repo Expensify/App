@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import NetInfo from '@react-native-community/netinfo';
 import Ion from './Ion';
 import CONFIG from '../CONFIG';
 import IONKEYS from '../IONKEYS';
@@ -7,7 +8,6 @@ import Str from './Str';
 import Guid from './Guid';
 import {registerSocketEventCallback} from './Pusher/pusher';
 import redirectToSignIn from './actions/ActionsSignInRedirect';
-import NetInfo from './NetInfo';
 
 let isAppOffline = false;
 
@@ -18,7 +18,6 @@ let reauthenticating = false;
 
 // Queue for network requests so we don't lose actions done by the user while offline
 const networkRequestQueue = [];
-
 
 // Subscribe to the state change event via NetInfo so we can update
 // whether a user has internet connectivity or not
