@@ -27,7 +27,7 @@ const defaultProps = {
 
 class MainView extends React.Component {
     render() {
-        if (!this.props.reports || this.props.reports.length === 0) {
+        if (this.props.reports.length === 0) {
             return null;
         }
 
