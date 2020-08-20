@@ -24,6 +24,7 @@ const propTypes = {
 
     /* Ion Props */
 
+    // Does the report for this link have unread comments?
     isUnread: PropTypes.bool,
 };
 
