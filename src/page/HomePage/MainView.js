@@ -12,6 +12,17 @@ const propTypes = {
     // This comes from withRouter
     // eslint-disable-next-line react/forbid-prop-types
     match: PropTypes.object.isRequired,
+
+    /* Ion Props */
+
+    // List of reports to display
+    reports: PropTypes.arrayOf(PropTypes.shape({
+        reportID: PropTypes.number,
+    })),
+};
+
+const defaultProps = {
+    reports: [],
 };
 
 class MainView extends React.Component {
@@ -49,6 +60,7 @@ class MainView extends React.Component {
 }
 
 MainView.propTypes = propTypes;
+MainView.defaultProps = defaultProps;
 
 export default withRouter(WithIon({
     reports: {

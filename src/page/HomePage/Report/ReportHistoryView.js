@@ -11,10 +11,24 @@ import IONKEYS from '../../../IONKEYS';
 import ReportHistoryItem from './ReportHistoryItem';
 import styles from '../../../style/StyleSheet';
 import {withRouter} from '../../../lib/Router';
+import ReportHistoryPropsTypes from './ReportHistoryPropsTypes';
 
 const propTypes = {
     // The ID of the report actions will be created for
     reportID: PropTypes.number.isRequired,
+
+    /* Ion Props */
+
+    // Array of report history items for this report
+    reportHistory: PropTypes.arrayOf(PropTypes.shape(ReportHistoryPropsTypes)),
+
+    // Current user authToken
+    authToken: PropTypes.string,
+};
+
+const defaultProps = {
+    reportHistory: [],
+    authToken: '',
 };
 
 class ReportHistoryView extends React.Component {
@@ -71,7 +85,7 @@ class ReportHistoryView extends React.Component {
      * action when scrolled
      */
     recordMaxAction() {
-        const reportHistory = lodashGet(this.state, 'reportHistory', []);
+        const reportHistory = lodashGet(this.props, 'reportHistory', []);
         const maxVisibleSequenceNumber = _.chain(reportHistory)
             .pluck('sequenceNumber')
             .max()
@@ -149,7 +163,9 @@ class ReportHistoryView extends React.Component {
         );
     }
 }
+
 ReportHistoryView.propTypes = propTypes;
+ReportHistoryView.defaultProps = defaultProps;
 
 const key = `${IONKEYS.REPORT_HISTORY}_%DATAFROMPROPS%`;
 export default withRouter(WithIon({

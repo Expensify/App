@@ -25,7 +25,32 @@ const propTypes = {
 
     // Safe area insets required for mobile devices margins
     // eslint-disable-next-line react/forbid-prop-types
-    insets: PropTypes.object.isRequired
+    insets: PropTypes.object.isRequired,
+
+    /* Ion Props */
+
+    // Display name of the current user from their personal details
+    userDisplayName: PropTypes.string,
+
+    // Avatar URL of the current user from their personal details
+    avatarURL: PropTypes.string,
+
+    // List of reports
+    reports: PropTypes.arrayOf(PropTypes.shape({
+        hasUnread: PropTypes.bool,
+        reportName: PropTypes.string,
+        reportID: PropTypes.number,
+    })),
+
+    // Is this person offline?
+    isOffline: PropTypes.bool,
+};
+
+const defaultProps = {
+    userDisplayName: '',
+    avatarURL: '',
+    reports: [],
+    isOffline: false,
 };
 
 class SidebarView extends React.Component {
@@ -120,6 +145,7 @@ class SidebarView extends React.Component {
 }
 
 SidebarView.propTypes = propTypes;
+SidebarView.defaultProps = defaultProps;
 
 export default WithIon({
     // Map this.props.userDisplayName to the personal details key in the store and bind it to the displayName property
