@@ -5,10 +5,16 @@
  *  - Prompts the user to refresh the page if it's currently visible
  */
 import React from 'react';
-import Ion from '../Ion';
 
-import CONST from './CONST';
-import {request} from '../Network';
+import Ion from '../../lib/Ion';
+import {request} from '../../lib/Network';
+
+const STATE_HIDDEN = 'hidden';
+const STATE_VISIBLE = 'visible';
+const EVENT_VISIBILITY_CHANGE = 'visibilitychange';
+
+// See if we should refresh the page every 30 minutes
+const REFRESH_TIMEOUT = 1800000;
 
 const getDisplayName = component => component.displayName || component.name || 'Component';
 
