@@ -92,13 +92,12 @@ export default function (mapIonToState) {
              * @param {boolean} [mapping.initWithStoredValues] If set to false, then no data will be prefilled into the
              *  component
              * @param {string} statePropertyName the name of the state property that Ion will add the data to
-             * @param {object} reactComponent a reference to the react component whose state needs updated by Ion
              */
-            connectMappingToIon(mapping, statePropertyName, reactComponent) {
+            connectMappingToIon(mapping, statePropertyName) {
                 const ionConnectionConfig = {
                     ...mapping,
                     statePropertyName,
-                    reactComponent,
+                    withIonInstance: this,
                 };
 
                 // Connect to Ion and keep track of the connectionID
@@ -120,7 +119,7 @@ export default function (mapIonToState) {
                 // Pre-fill the state with any data already in the store
                 if (mapping.initWithStoredValues !== false) {
                     Ion.get(ionConnectionConfig.key, mapping.path, mapping.defaultValue)
-                        .then(data => reactComponent.setState({[statePropertyName]: data}));
+                        .then(data => this.setState({[statePropertyName]: data}));
                 }
 
                 // Load the data from an API request if necessary
