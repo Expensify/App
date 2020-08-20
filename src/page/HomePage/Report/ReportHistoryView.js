@@ -127,7 +127,7 @@ class ReportHistoryView extends React.Component {
     }
 
     render() {
-        if (this.props.reportHistory.length === 0) {
+        if (!this.props.reportHistory || this.props.reportHistory.length === 0) {
             return (
                 <View style={[styles.chatContent, styles.chatContentEmpty]}>
                     <Text style={[styles.textP]}>Be the first person to comment!</Text>

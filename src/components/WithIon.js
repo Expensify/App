@@ -146,7 +146,6 @@ export default function (mapIonToState) {
                         {...this.props}
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...this.state}
-                        ref={el => this.wrappedComponent = el}
                     />
                 );
             }
