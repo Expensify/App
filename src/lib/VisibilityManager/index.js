@@ -8,7 +8,7 @@ import React from 'react';
 import AsyncStorage from '@react-native-community/async-storage';
 
 import CONST from './CONST';
-import {queueRequest} from '../Network';
+import {request} from '../Network';
 
 const getDisplayName = component => component.displayName || component.name || 'Component';
 
@@ -17,13 +17,13 @@ export default function (WrappedComponent) {
         constructor() {
             super();
             this.timer = null;
-            this.onVisibilityChange.bind(this);
+            this.onVisibilityChange = this.onVisibilityChange.bind(this);
         }
 
         componentDidMount() {
             window.addEventListener(CONST.EVENT.VISIBILITY_CHANGE, () => {
-                window.clearInterval(this.timer);
-                window.setInterval(this.onVisibilityChange, CONST.REFRESH_TIMEOUT);
+                clearInterval(this.timer);
+                setInterval(this.onVisibilityChange, CONST.REFRESH_TIMEOUT);
                 this.onVisibilityChange();
             });
 
@@ -34,6 +34,12 @@ export default function (WrappedComponent) {
             this.timer = window.setInterval(this.onVisibilityChange, CONST.REFRESH_TIMEOUT);
         }
 
+        /**
+         * Check if the app should be refreshed.
+         * If yes and the window is hidden, refresh it immediately.
+         * If yes and the window is visible, prompt the user to refresh the page.
+         * If no, do nothing.
+         */
         async onVisibilityChange() {
             const pageShouldRefresh = await this.pageShouldRefreshAsync();
             if (pageShouldRefresh) {
@@ -56,7 +62,7 @@ export default function (WrappedComponent) {
             const storedVersion = await AsyncStorage.getItem(CONST.KEY_VERSION_HASH);
             if (!storedVersion) {
                 // only get the remote version if there is no version locally stored
-                const remoteVersion = await queueRequest(CONST.COMMAND.GET_VERSION_HASH);
+                const remoteVersion = await request(CONST.COMMAND.GET_VERSION_HASH);
                 AsyncStorage.setItem(CONST.KEY_VERSION_HASH, remoteVersion);
             }
         }
@@ -77,7 +83,7 @@ export default function (WrappedComponent) {
 
             // If the app is offline, this request will hang indefinitely.
             // But that's okay, because it couldn't possibly refresh anyways.
-            const remoteVersion = await queueRequest(CONST.COMMAND.GET_VERSION_HASH);
+            const remoteVersion = await request(CONST.COMMAND.GET_VERSION_HASH);
 
             if (storedVersion === remoteVersion) {
                 if (!storedVersion) {
