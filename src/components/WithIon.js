@@ -5,8 +5,8 @@
  */
 import React from 'react';
 import _ from 'underscore';
-import get from 'lodash.get';
-import has from 'lodash.has';
+import lodashGet from 'lodash.get';
+import lodashHas from 'lodash.has';
 import Ion from '../lib/Ion';
 
 /**
@@ -52,9 +52,9 @@ export default function (mapIonToState) {
                 // If any of the mappings use data from the props, then when the props change, all the
                 // connections need to be reconnected with the new props
                 _.each(mapIonToState, (mapping, propertyName) => {
-                    if (has(mapping, 'pathForProps')) {
-                        const prevPropsData = get(prevProps, mapping.pathForProps);
-                        const currentPropsData = get(this.props, mapping.pathForProps);
+                    if (lodashHas(mapping, 'pathForProps')) {
+                        const prevPropsData = lodashGet(prevProps, mapping.pathForProps);
+                        const currentPropsData = lodashGet(this.props, mapping.pathForProps);
                         if (prevPropsData !== currentPropsData) {
                             Ion.disconnect(this.activeConnectionIDsWithPropsData[mapping.pathForProps]);
                             this.connectMappingToIon(mapping, propertyName, this.wrappedComponent);
@@ -105,7 +105,7 @@ export default function (mapIonToState) {
                 if (mapping.pathForProps) {
                     // If there is a path for props data, then the data needs to be pulled out of props and parsed
                     // into the key
-                    const dataFromProps = get(this.props, mapping.pathForProps);
+                    const dataFromProps = lodashGet(this.props, mapping.pathForProps);
                     const keyWithPropsData = mapping.key.replace('%DATAFROMPROPS%', dataFromProps);
                     ionConnectionConfig.key = keyWithPropsData;
 
@@ -128,7 +128,7 @@ export default function (mapIonToState) {
                     const paramsForLoaderFunction = _.map(mapping.loaderParams, (loaderParam) => {
                         // Some params might com from the props data
                         if (loaderParam === '%DATAFROMPROPS%') {
-                            return get(this.props, mapping.pathForProps);
+                            return lodashGet(this.props, mapping.pathForProps);
                         }
                         return loaderParam;
                     });
