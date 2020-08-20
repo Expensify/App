@@ -1,4 +1,5 @@
 import React from 'react';
+import get from 'lodash.get';
 import _ from 'underscore';
 import {
     View,
@@ -53,6 +54,8 @@ class SidebarView extends React.Component {
     render() {
         const reports = this.state && this.state.reports;
         this.updateUnreadReportIndicator();
+        const isOffline = get(this.state, 'isOffline', true);
+        const indicatorStyles = [styles.statusIndicator, isOffline ? styles.statusIndicatorOffline : styles.statusIndicatorOnline];
         return (
             <View style={[styles.flex1, styles.sidebar]}>
                 <View style={[styles.sidebarHeader, {marginTop: this.props.insets.top}]}>
@@ -83,9 +86,7 @@ class SidebarView extends React.Component {
                             source={{uri: this.state && this.state.avatarURL}}
                             style={[styles.historyItemAvatar]}
                         />
-                        {this.state && this.state.isOffline && (
-                        <View style={[styles.statusIndicator]} />
-                        )}
+                        <View style={indicatorStyles} />
                     </View>
                     <View style={[styles.flexColumn]}>
                         {this.state && this.state.userDisplayName && (

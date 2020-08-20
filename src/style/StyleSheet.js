@@ -233,7 +233,6 @@ const styles = {
     },
 
     statusIndicator: {
-        backgroundColor: colors.icon,
         borderColor: colors.heading,
         borderRadius: 7,
         borderWidth: 2,
@@ -243,6 +242,14 @@ const styles = {
         height: 14,
         width: 14,
         zIndex: 10,
+    },
+
+    statusIndicatorOnline: {
+        backgroundColor: colors.green,
+    },
+
+    statusIndicatorOffline: {
+        backgroundColor: colors.icon,
     },
 
     sidebarFooterUsername: {
