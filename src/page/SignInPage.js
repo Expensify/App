@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withRouter} from '../lib/Router';
-import {signIn} from '../lib/actions/ActionsSession';
+import {signIn} from '../lib/actions/Session';
 import IONKEYS from '../IONKEYS';
 import WithIon from '../components/WithIon';
 import styles from '../style/StyleSheet';
