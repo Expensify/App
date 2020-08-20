@@ -89,7 +89,7 @@ export default function (mapIonToState) {
              * @param {function} [mapping.loader] a method that will be called after connection to Ion in order to load
              *  it with data. Typically this will be a method that makes an XHR to load data from the API.
              * @param {mixed[]} [mapping.loaderParams] An array of params to be passed to the loader method
-             * @param {boolean} [mapping.skipPrefillOfData] If set to true, then no data will be prefilled into the
+             * @param {boolean} [mapping.initWithStoredValues] If set to false, then no data will be prefilled into the
              *  component
              * @param {string} statePropertyName the name of the state property that Ion will add the data to
              * @param {object} reactComponent a reference to the react component whose state needs updated by Ion
