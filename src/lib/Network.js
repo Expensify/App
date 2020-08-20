@@ -268,7 +268,7 @@ function onReconnect(cb) {
     reconnectionCallbacks.push(cb);
 }
 
-// When the app reconnects from being offline, fetch all of the reports and their history
+// When the app reconnects from being offline, trigger each of the reconnection callbacks
 let isAppOffline = false;
 Ion.connect({
     key: IONKEYS.NETWORK,
