@@ -14,36 +14,44 @@ const propTypes = {
 
     // Decides whether we should show the hamburger menu button
     shouldShowHamburgerButton: PropTypes.bool.isRequired,
+
+    /* Ion Props */
+
+    // Name of the report (if we have one)
+    reportName: PropTypes.string,
 };
 
-class HeaderView extends React.Component {
-    render() {
-        return (
-            <View style={[styles.appContentHeader]}>
-                <View style={[styles.appContentHeaderTitle]}>
-                    {this.props.shouldShowHamburgerButton && (
-                    <TouchableOpacity
-                        onPress={this.props.onHamburgerButtonClicked}
-                        style={[styles.LHNToggle]}
-                    >
-                        <Image
-                            resizeMode="contain"
-                            style={[styles.LHNToggleIcon]}
-                            source={LHNToggle}
-                        />
-                    </TouchableOpacity>
-                    )}
-                    {this.props.reportName && (
-                        <Text numberOfLines={2} style={[styles.navText]}>
-                            {this.props.reportName}
-                        </Text>
-                    )}
-                </View>
-            </View>
-        );
-    }
-}
+const defaultProps = {
+    reportName: '',
+};
+
+const HeaderView = props => (
+    <View style={[styles.appContentHeader]}>
+        <View style={[styles.appContentHeaderTitle]}>
+            {props.shouldShowHamburgerButton && (
+            <TouchableOpacity
+                onPress={props.onHamburgerButtonClicked}
+                style={[styles.LHNToggle]}
+            >
+                <Image
+                    resizeMode="contain"
+                    style={[styles.LHNToggleIcon]}
+                    source={LHNToggle}
+                />
+            </TouchableOpacity>
+            )}
+            {props.reportName && (
+                <Text numberOfLines={2} style={[styles.navText]}>
+                    {props.reportName}
+                </Text>
+            )}
+        </View>
+    </View>
+);
+
 HeaderView.propTypes = propTypes;
+HeaderView.displayName = 'HeaderView';
+HeaderView.defaultProps = defaultProps;
 
 export default withRouter(WithIon({
     // Map this.props.reportName to the data for a specific report in the store, and bind it to the reportName property
