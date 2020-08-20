@@ -127,12 +127,7 @@ class ReportHistoryView extends React.Component {
     }
 
     render() {
-        let reportHistory = {};
-        if (this.props.reportHistory) {
-            reportHistory = this.props.reportHistory;
-        }
-
-        if (reportHistory.length === 0) {
+        if (this.props.reportHistory.length === 0) {
             return (
                 <View style={[styles.chatContent, styles.chatContentEmpty]}>
                     <Text style={[styles.textP]}>Be the first person to comment!</Text>
@@ -151,7 +146,7 @@ class ReportHistoryView extends React.Component {
                     paddingVertical: 8
                 }}
             >
-                {_.chain(reportHistory).sortBy('sequenceNumber').map((item, index) => (
+                {_.chain(this.props.reportHistory).sortBy('sequenceNumber').map((item, index) => (
                     <ReportHistoryItem
                         key={item.sequenceNumber}
                         historyItem={item}
