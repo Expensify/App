@@ -118,7 +118,7 @@ export default function (mapIonToState) {
                 }
 
                 // Pre-fill the state with any data already in the store
-                if (!mapping.skipPrefillOfData) {
+                if (mapping.initWithStoredValues !== false) {
                     Ion.get(ionConnectionConfig.key, mapping.path, mapping.defaultValue)
                         .then(data => reactComponent.setState({[statePropertyName]: data}));
                 }
