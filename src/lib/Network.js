@@ -16,6 +16,26 @@ let reauthenticating = false;
 // Queue for network requests so we don't lose actions done by the user while offline
 const networkRequestQueue = [];
 
+// Holds all of the callbacks that need to be triggered when the network reconnects
+const reconnectionCallbacks = [];
+
+// A local variable for knowing if the app is online or offline
+let isAppOffline = false;
+
+/**
+ * Called when the offline status of the app changes and if the network is "reconnecting" (going from offline to online)
+ * then all of the reconnection callbacks are triggered
+ *
+ * @param {boolean} isCurrentlyOffline
+ */
+function setNewOfflineStatus(isCurrentlyOffline) {
+    Ion.merge(IONKEYS.NETWORK, {isOffline: isCurrentlyOffline});
+    if (isAppOffline && !isCurrentlyOffline) {
+        _.each(reconnectionCallbacks, cb => cb());
+    }
+    isAppOffline = isCurrentlyOffline;
+}
+
 /**
  * Events that happen on the pusher socket are used to determine if the app is online or offline. The offline setting
  * is stored in Ion so the rest of the app has access to it.
@@ -40,7 +60,7 @@ registerSocketEventCallback((eventName, data) => {
         default:
             break;
     }
-    Ion.merge(IONKEYS.NETWORK, {isOffline: isCurrentlyOffline});
+    setNewOfflineStatus(isCurrentlyOffline);
 });
 
 /**
@@ -110,7 +130,7 @@ function xhr(command, data, type = 'post') {
         // This will catch any HTTP network errors (like 404s and such), not to be confused with jsonCode which this
         // does NOT catch
         .catch(() => {
-            Ion.merge(IONKEYS.NETWORK, {isOffline: true});
+            setNewOfflineStatus(true);
 
             // If the request failed, we need to put the request object back into the queue
             queueRequest(command, data);
@@ -235,7 +255,7 @@ function processNetworkRequestQueue() {
                     method: 'post',
                     body: {doNotRetry: true},
                 })
-                    .then(() => Ion.merge(IONKEYS.NETWORK, {isOffline: false}));
+                    .then(() => setNewOfflineStatus(false));
                 return;
             }
 
@@ -256,30 +276,15 @@ function processNetworkRequestQueue() {
 // Process our write queue very often
 setInterval(processNetworkRequestQueue, 1000);
 
-// Holds all of the callbacks that need to be triggered when the network reconnects
-const reconnectionCallbacks = [];
-
 /**
  * Register a callback function to be called when the network reconnects
  *
+ * @public
  * @param {function} cb
  */
 function onReconnect(cb) {
     reconnectionCallbacks.push(cb);
 }
-
-// When the app reconnects from being offline, trigger each of the reconnection callbacks
-let isAppOffline = false;
-Ion.connect({
-    key: IONKEYS.NETWORK,
-    path: 'isOffline',
-    callback: (isOffline) => {
-        if (isAppOffline && !isOffline) {
-            _.each(reconnectionCallbacks, cb => cb());
-        }
-        isAppOffline = isOffline;
-    }
-});
 
 export {
     request,
