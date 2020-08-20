@@ -55,7 +55,10 @@ class SidebarView extends React.Component {
         const reports = this.state && this.state.reports;
         this.updateUnreadReportIndicator();
         const isOffline = get(this.state, 'isOffline', true);
-        const indicatorStyles = [styles.statusIndicator, isOffline ? styles.statusIndicatorOffline : styles.statusIndicatorOnline];
+        const indicatorStyles = [
+            styles.statusIndicator,
+            isOffline ? styles.statusIndicatorOffline : styles.statusIndicatorOnline
+        ];
         return (
             <View style={[styles.flex1, styles.sidebar]}>
                 <View style={[styles.sidebarHeader, {marginTop: this.props.insets.top}]}>
