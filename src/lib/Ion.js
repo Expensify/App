@@ -33,9 +33,9 @@ const callbackToStateMapping = {};
  * @param {string} mapping.statePropertyName the name of the property in the state to connect the data to
  * @param {boolean} [mapping.addAsCollection] rather than setting a single state value, this will add things to an array
  * @param {string} [mapping.collectionID] the name of the ID property to use for the collection
- * @param {object} [mapping.reactComponent] whose setState() method will be called with any changed data
  * @param {object} [mapping.callback] An alternative to using mapping.reactComponent so that a method can be bound to
  *  Ion without having to be a react component
+ * @param {object} mapping.withIonInstance whose setState() method will be called with any changed data
  * @returns {number} an ID to use when calling disconnect
  */
 function connect(mapping) {
@@ -79,12 +79,12 @@ function keyChanged(key, data) {
                 mappedComponent.callback(newValue);
             }
 
-            // If there is a react component attached to the mapping, then set the state of the react component
-            // with either the pathed data, or the data
-            if (mappedComponent.reactComponent) {
+            // If there is a withIonInstance, then the state needs to be set on that instance with the new value
+            if (mappedComponent.withIonInstance) {
+                // Set the state of the react component with either the pathed data, or the data
                 if (mappedComponent.addAsCollection) {
                     // Add the data to an array of existing items
-                    mappedComponent.reactComponent.setState((prevState) => {
+                    mappedComponent.withIonInstance.setState((prevState) => {
                         const collection = prevState[mappedComponent.statePropertyName] || {};
                         collection[newValue[mappedComponent.collectionID]] = newValue;
                         const newState = {
@@ -93,7 +93,7 @@ function keyChanged(key, data) {
                         return newState;
                     });
                 } else {
-                    mappedComponent.reactComponent.setState({
+                    mappedComponent.withIonInstance.setState({
                         [mappedComponent.statePropertyName]: newValue,
                     });
                 }

@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import {View} from 'react-native';
+import PropTypes from 'prop-types';
 
 // import {Beforeunload} from 'react-beforeunload';
 import SignInPage from './page/SignInPage';
@@ -20,6 +21,17 @@ import {
 
 // Initialize the store when the app loads for the first time
 Ion.init();
+
+const propTypes = {
+    /* Ion Props */
+
+    // A route set by Ion that we will redirect to if present. Always empty on app init.
+    redirectTo: PropTypes.string,
+};
+
+const defaultProps = {
+    redirectTo: '',
+};
 
 class Expensify extends Component {
     constructor(props) {
@@ -62,7 +74,7 @@ class Expensify extends Component {
 
         // We can only have a redirectTo if this is not the initial render so if we have one we'll
         // always navigate to it. If we are not authenticated by this point then we'll force navigate to sign in.
-        const redirectTo = this.state.redirectTo || (!this.state.authToken && '/signin');
+        const redirectTo = this.props.redirectTo || (!this.state.authToken && '/signin');
 
         return (
 
@@ -83,6 +95,9 @@ class Expensify extends Component {
         );
     }
 }
+
+Expensify.propTypes = propTypes;
+Expensify.defaultProps = defaultProps;
 
 export default WithIon({
     redirectTo: {
