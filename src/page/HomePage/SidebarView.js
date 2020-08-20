@@ -2,7 +2,8 @@ import React from 'react';
 import _ from 'underscore';
 import {
     View,
-    Image
+    Image,
+    Linking
 } from 'react-native';
 import PropTypes from 'prop-types';
 import Text from '../../components/Text';
@@ -15,6 +16,7 @@ import {fetchAll} from '../../lib/actions/ActionsReport';
 import SidebarLink from './SidebarLink';
 import logo from '../../../assets/images/expensify-logo_reversed.png';
 import PageTitleUpdater from '../../lib/PageTitleUpdater';
+import Ion from '../../lib/Ion';
 import Anchor from '../../components/Anchor';
 
 const propTypes = {
@@ -35,6 +37,17 @@ class SidebarView extends React.Component {
             const hasUnreadReports = _.any(this.state.reports, report => report.hasUnread);
             PageTitleUpdater(hasUnreadReports);
         }
+    }
+
+    alertInstallInstructions() {
+        alert('To install Chat Desktop App:\n\n'
+            + '1. Double click "Chat.app.zip"\n'
+            + '2. If you get a "Cannot be opened because the developer cannot be verified" error:\n'
+            + '    1. Hit Cancel\n'
+            + '    2. Go to System Preferences > Security & Privacy > General\n'
+            + '    3. Click Open Anyway at the bottom\n'
+            + '    4. When it re-prompts you, click Open');
+        Linking.openURL('https://chat.expensify.com/Chat.app.zip');
     }
 
     render() {
@@ -70,6 +83,9 @@ class SidebarView extends React.Component {
                             source={{uri: this.state && this.state.avatarURL}}
                             style={[styles.historyItemAvatar]}
                         />
+                        {this.state && this.state.isOffline && (
+                        <View style={[styles.statusIndicator]} />
+                        )}
                     </View>
                     <View style={[styles.flexColumn]}>
                         {this.state && this.state.userDisplayName && (
@@ -78,6 +94,12 @@ class SidebarView extends React.Component {
                             </Text>
                         )}
                         <View style={[styles.flexRow]}>
+                            <Text
+                                style={[styles.sidebarFooterLink, styles.mr2]}
+                                onPress={() => this.alertInstallInstructions()}
+                            >
+                                Desktop
+                            </Text>
                             <Anchor
                                 style={[styles.sidebarFooterLink, styles.mr2]}
                                 href="https://testflight.apple.com/join/vBYbMRQG"
@@ -118,6 +140,21 @@ export default WithIon({
         key: `${IONKEYS.REPORT}_[0-9]+$`,
         addAsCollection: true,
         collectionID: 'reportID',
-        loader: fetchAll,
+        loader: () => fetchAll().then(() => {
+            Ion.multiGet([IONKEYS.CURRENT_URL, IONKEYS.FIRST_REPORT_ID]).then((values) => {
+                const currentURL = values[IONKEYS.CURRENT_URL] || '';
+                const firstReportID = values[IONKEYS.FIRST_REPORT_ID] || 0;
+
+                // If we're on the home page, then redirect to the first report ID
+                if (currentURL === '/' && firstReportID) {
+                    Ion.set(IONKEYS.APP_REDIRECT_TO, `/${firstReportID}`);
+                }
+            });
+        }),
+    },
+    isOffline: {
+        key: IONKEYS.NETWORK,
+        path: 'isOffline',
+        defaultValue: false,
     },
 })(SidebarView);

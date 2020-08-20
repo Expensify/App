@@ -34,7 +34,7 @@ class HeaderView extends React.Component {
                     </TouchableOpacity>
                     )}
                     {this.state && this.state.reportName && (
-                        <Text style={[styles.navText]}>
+                        <Text numberOfLines={2} style={[styles.navText]}>
                             {this.state.reportName}
                         </Text>
                     )}
