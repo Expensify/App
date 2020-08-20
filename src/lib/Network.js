@@ -20,7 +20,8 @@ let reauthenticating = false;
 const networkRequestQueue = [];
 
 // Subscribe to the state change event via NetInfo so we can update
-// whether a user has internet connectivity or not
+// whether a user has internet connectivity or not. This is more reliable
+// than the Pusher `disconnected` event which takes about 10-15 seconds to emit
 NetInfo.addEventListener((state) => {
     Ion.merge(IONKEYS.NETWORK, {isOffline: !state.isConnected});
 });
