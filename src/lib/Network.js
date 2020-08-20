@@ -7,7 +7,8 @@ import Str from './Str';
 import Guid from './Guid';
 import {registerSocketEventCallback} from './Pusher/pusher';
 import redirectToSignIn from './actions/ActionsSignInRedirect';
-import NetInfo from './NetInfo';
+
+// import NetInfo from './NetInfo';
 
 let isAppOffline = false;
 
@@ -21,9 +22,9 @@ const networkRequestQueue = [];
 
 
 // Subscribe
-NetInfo.addEventListener(connected => {
-    Ion.merge(IONKEYS.NETWORK, {isOffline: !connected});
-});
+// NetInfo.addEventListener((connected) => {
+//     Ion.merge(IONKEYS.NETWORK, {isOffline: !connected});
+// });
 
 /**
  * Events that happen on the pusher socket are used to determine if the app is online or offline. The offline setting
