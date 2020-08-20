@@ -106,6 +106,16 @@ function fetchTimezone() {
     return requestPromise;
 }
 
+Ion.connect({
+    key: IONKEYS.NETWORK,
+    path: 'isOffline',
+    callback: (isOffline) => {
+        if (!isOffline) {
+            console.log('get personal datails', isOffline);
+        }
+    }
+});
+
 export {
     fetch,
     fetchTimezone,
