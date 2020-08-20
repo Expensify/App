@@ -27,6 +27,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    // A route set by Ion that we will redirect to if present. Always empty on app init.
     redirectTo: '',
 };
 
