@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {View} from 'react-native';
-import get from 'lodash.get';
+import PropTypes from 'prop-types';
 
 // import {Beforeunload} from 'react-beforeunload';
 import SignInPage from './page/SignInPage';
@@ -22,6 +22,14 @@ import {
 // Initialize the store when the app loads for the first time
 Ion.init();
 
+const propTypes = {
+    redirectTo: PropTypes.string,
+};
+
+const defaultProps = {
+    redirectTo: '',
+};
+
 class Expensify extends Component {
     constructor(props) {
         super(props);
@@ -30,7 +38,7 @@ class Expensify extends Component {
 
         this.state = {
             loading: true,
-            authenticated: false,
+            authToken: '',
         };
     }
 
@@ -39,9 +47,9 @@ class Expensify extends Component {
         // redirect to the signin page if we do not have one. Otherwise when the app inits
         // we will fall through to the homepage and the user will see a brief flash of the main
         // app experience.
-        Ion.get(IONKEYS.SESSION)
-            .then((response) => {
-                this.setState({loading: false, authenticated: Boolean(get(response, 'authToken', false))});
+        Ion.get(IONKEYS.SESSION, 'authToken', '')
+            .then((authToken) => {
+                this.setState({loading: false, authToken});
             });
     }
 
@@ -63,7 +71,7 @@ class Expensify extends Component {
 
         // We can only have a redirectTo if this is not the initial render so if we have one we'll
         // always navigate to it. If we are not authenticated by this point then we'll force navigate to sign in.
-        const redirectTo = this.props.redirectTo || (!this.state.authenticated && '/signin');
+        const redirectTo = this.props.redirectTo || (!this.state.authToken && '/signin');
 
         return (
 
@@ -84,6 +92,9 @@ class Expensify extends Component {
         );
     }
 }
+
+Expensify.propTypes = propTypes;
+Expensify.defaultProps = defaultProps;
 
 export default WithIon({
     redirectTo: {
