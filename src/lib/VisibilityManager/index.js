@@ -33,7 +33,10 @@ export default function (WrappedComponent) {
                     // Refresh page w/o browser cache
                     window.location.reload(true);
                 } else if (document.visibilityState === CONST.STATE.VISIBLE) {
-                    // TODO: Notify user that they should refresh the page
+                    // TODO: Notify user in a less invasive way that they should refresh the page (i.e: Growl)
+                    if (window.confirm('Refresh the page to get the latest updates!')) {
+                        window.location.reload(true);
+                    }
                 }
             }
         }
