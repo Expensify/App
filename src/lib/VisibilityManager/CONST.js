@@ -1,4 +1,4 @@
-export default CONST = {
+export default {
     STATE: {
         HIDDEN: 'hidden',
         VISIBLE: 'visible',
