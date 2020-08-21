@@ -38,12 +38,46 @@ class ChatSwitcherView extends React.Component {
         this.maxSearchResults = 10;
 
         this.updateSearch = this.updateSearch.bind(this);
-        this.handleKeyDown = this.handleKeyDown.bind(this);
+        this.handleKeyPress = this.handleKeyPress.bind(this);
 
         this.state = {
             search: '',
             options: [],
         };
+    }
+
+    /**
+     * When arrow keys are pressed, the focused option needs to change
+     * When enter key is pressed, the highlighted option is selected
+     *
+     * @param {SyntheticEvent} e
+     */
+    handleKeyPress(e) {
+        console.log('keypress', e.key)
+        switch (e.key) {
+            case 'Enter':
+                e.preventDefault();
+                break;
+
+            case 'ArrowUp':
+                break;
+
+            case 'ArrowDown':
+                break;
+
+            case 'Tab':
+            case 'Escape':
+                // Reset our app to the default state and blur the text input
+                this.setState({
+                    search: '',
+                    options: [],
+                });
+                this.textInput.blur();
+                break;
+
+            default:
+                break;
+        }
     }
 
     /**
@@ -114,12 +148,13 @@ class ChatSwitcherView extends React.Component {
             <>
                 <View style={[styles.flexRow]}>
                     <TextInput
+                        ref={el => this.textInput = el}
                         style={[styles.textInput, styles.textInputReversed, styles.flex1]}
                         value={this.state.search}
                         onBlur={this.props.onBlur}
                         onChangeText={this.updateSearch}
                         onFocus={this.props.onFocus}
-                        onKeyDown={this.handleKeyDown}
+                        onKeyPress={this.handleKeyPress}
                         placeholder="Find or start a chat"
                         placeholderTextColor={colors.textSupporting}
                     />
