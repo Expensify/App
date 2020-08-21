@@ -13,7 +13,7 @@ const COMMAND_GET_VERSION = '';
 /**
  * Get stored git hash, or if there is none then fetch the remote git hash and save it in Ion
  */
-const getStoredVersionAsync = async () => {
+const getStoredVersion = async () => {
     const storedVersion = await Ion.get(IONKEYS.APP.VERSION_HASH);
     if (!storedVersion) {
         // only get the remote version if there is no version locally stored
@@ -28,7 +28,7 @@ const getStoredVersionAsync = async () => {
  * If they are the same, save the updated version in Ion.
  * Else, set app_shouldRefresh = true in Ion
  */
-const appShouldRefreshAsync = async () => {
+const appShouldRefresh = async () => {
     const storedVersion = await Ion.get(IONKEYS.APP.VERSION_HASH);
 
     // If the app is offline, this request will hang indefinitely.
@@ -47,21 +47,16 @@ const appShouldRefreshAsync = async () => {
 /**
  * Resets the timer to periodically check if the app should refresh,
  * and checks the remote hash for changes.
- */
-
-/**
- * Resets the timer to periodically check if the app should refresh,
- * and checks the remote hash for changes.
  *
  * @param {Number} timer
  */
 const checkShouldUpdateAndResetTimer = async (timer) => {
     // Reset timeout
     clearInterval(timer);
-    const newTimer = setInterval(appShouldRefreshAsync, REFRESH_TIMEOUT);
+    const newTimer = setInterval(appShouldRefresh, REFRESH_TIMEOUT);
 
     // Compare hashes and update Ion app_shouldRefresh
-    appShouldRefreshAsync();
+    appShouldRefresh();
 
     return newTimer;
 };
@@ -75,10 +70,10 @@ const init = async () => {
     Ion.set(IONKEYS.APP.SHOULD_REFRESH, false);
 
     // When the page first loads, get the current version hash
-    getStoredVersionAsync();
+    getStoredVersion();
 
     // Check periodically if we should refresh the app
-    let timer = setInterval(appShouldRefreshAsync, REFRESH_TIMEOUT);
+    let timer = setInterval(appShouldRefresh, REFRESH_TIMEOUT);
 
     window.addEventListener(EVENT_VISIBILITY_CHANGE, () => {
         timer = checkShouldUpdateAndResetTimer(timer);
