@@ -20,8 +20,7 @@ const propTypes = {
 class ReportHistoryItem extends React.Component {
     shouldComponentUpdate(nextProps) {
         // This component should only render if the history item's sequenceNumber or displayAsGroup props change
-        return nextProps.historyItem.sequenceNumber !== this.props.historyItem.sequenceNumber
-            || nextProps.displayAsGroup !== this.props.displayAsGroup
+        return nextProps.displayAsGroup !== this.props.displayAsGroup
             || nextProps.authToken !== this.props.authToken
             || !_.isEqual(nextProps.historyItem, this.props.historyItem);
     }
