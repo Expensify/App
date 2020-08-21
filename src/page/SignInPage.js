@@ -28,7 +28,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    error: '',
+    error: null,
 };
 
 class App extends Component {
