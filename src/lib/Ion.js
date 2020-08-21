@@ -33,8 +33,6 @@ const callbackToStateMapping = {};
  * @param {string} mapping.statePropertyName the name of the property in the state to connect the data to
  * @param {boolean} [mapping.addAsCollection] rather than setting a single state value, this will add things to an array
  * @param {string} [mapping.collectionID] the name of the ID property to use for the collection
- * @param {object} [mapping.callback] An alternative to using mapping.reactComponent so that a method can be bound to
- *  Ion without having to be a react component
  * @param {object} mapping.withIonInstance whose setState() method will be called with any changed data
  * @returns {number} an ID to use when calling disconnect
  */
@@ -73,11 +71,6 @@ function keyChanged(key, data) {
             const newValue = mappedComponent.path
                 ? lodashGet(data, mappedComponent.path, mappedComponent.defaultValue)
                 : data || mappedComponent.defaultValue || null;
-
-            // If there is a callback attached to the mapping, then trigger the callback and pass it the new value
-            if (mappedComponent.callback) {
-                mappedComponent.callback(newValue);
-            }
 
             // If there is a withIonInstance, then the state needs to be set on that instance with the new value
             if (mappedComponent.withIonInstance) {
