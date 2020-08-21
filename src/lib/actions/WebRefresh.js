@@ -10,6 +10,9 @@ const STATE_VISIBLE = 'visible';
 // See if we should refresh the page every 30 minutes
 const REFRESH_TIMEOUT = 1800000;
 
+// TODO: create API command to fetch version.json (created during any webpack process, i.e. npm run build, npm run web
+const COMMAND_GET_VERSION = '';
+
 /**
  * Get stored git hash, or if there is none then fetch the remote git hash and save it in Ion
  */
@@ -17,7 +20,7 @@ const getStoredVersionAsync = async () => {
     const storedVersion = await Ion.get(IONKEYS.APP_VERSION_HASH);
     if (!storedVersion) {
         // only get the remote version if there is no version locally stored
-        const remoteVersion = await request(CONST.COMMAND.GET_VERSION_HASH);
+        const remoteVersion = await request(COMMAND_GET_VERSION);
         Ion.set(IONKEYS.APP_VERSION_HASH, remoteVersion);
     }
 };
@@ -33,7 +36,7 @@ const appShouldRefreshAsync = async () => {
 
     // If the app is offline, this request will hang indefinitely.
     // But that's okay, because it couldn't possibly refresh anyways.
-    const remoteVersion = await request(CONST.COMMAND.GET_VERSION_HASH);
+    const remoteVersion = await request(COMMAND_GET_VERSION);
 
     if (storedVersion === remoteVersion) {
         if (!storedVersion) {

@@ -1,7 +1,31 @@
+const fs = require('fs');
 const path = require('path');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
+
+const APP_VERSION = require('./package.json').version;
+
+/**
+ * Simple webpack plugin that writes the app version (from package.json) and the webpack hash to './version.json'
+ */
+class CustomVersionFilePlugin {
+    apply(compiler) {
+        compiler.hooks.done.tap(this.constructor.name, stats => new Promise((resolve, reject) => {
+            const json = JSON.stringify({
+                appVersion: APP_VERSION,
+                buildHash: stats.hash,
+            });
+            fs.writeFile('./version.json', json, 'utf8', (err) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+                resolve();
+            });
+        }));
+    }
+}
 
 module.exports = {
     entry: {
@@ -25,6 +49,8 @@ module.exports = {
                 {from: 'web/favicon-unread.png'},
             ],
         }),
+
+        new CustomVersionFilePlugin(),
     ],
     module: {
         rules: [
