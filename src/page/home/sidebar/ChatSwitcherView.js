@@ -11,6 +11,7 @@ import styles, {colors} from '../../../style/StyleSheet';
 import WithIon from '../../../components/WithIon';
 import IONKEYS from '../../../IONKEYS';
 import Str from '../../../lib/Str';
+import KeyboardShortcut from '../../../lib/KeyboardShortcut';
 
 const propTypes = {
     // A method that is triggered when the TextInput gets focus
@@ -37,13 +38,34 @@ class ChatSwitcherView extends React.Component {
 
         this.maxSearchResults = 10;
 
-        this.updateSearch = this.updateSearch.bind(this);
         this.handleKeyPress = this.handleKeyPress.bind(this);
+        this.updateSearch = this.updateSearch.bind(this);
 
         this.state = {
             search: '',
             options: [],
         };
+    }
+
+    componentDidMount() {
+        this.enableKeyboardShortcut();
+    }
+
+    componentWillUnmount() {
+        this.disableKeyboardShortcut();
+    }
+
+    enableKeyboardShortcut() {
+        // Command + K
+        KeyboardShortcut.subscribe('K', () => {
+            if (this.textInput) {
+                this.textInput.focus();
+            }
+        }, ['meta']);
+    }
+
+    disableKeyboardShortcut() {
+        KeyboardShortcut.unsubscribe('K');
     }
 
     /**
@@ -55,6 +77,7 @@ class ChatSwitcherView extends React.Component {
             options: [],
         }, () => {
             this.textInput.blur();
+            this.enableKeyboardShortcut();
         });
     }
 
@@ -219,7 +242,10 @@ class ChatSwitcherView extends React.Component {
                         value={this.state.search}
                         onBlur={() => this.state.search === '' && this.props.onBlur()}
                         onChangeText={this.updateSearch}
-                        onFocus={this.props.onFocus}
+                        onFocus={() => {
+                            this.props.onFocus();
+                            this.disableKeyboardShortcut();
+                        }}
                         onKeyPress={this.handleKeyPress}
                         placeholder="Find or start a chat"
                         placeholderTextColor={colors.textSupporting}

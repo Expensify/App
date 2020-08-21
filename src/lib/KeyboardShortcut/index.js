@@ -47,8 +47,8 @@ function bindHandlerToKeyupEvent(event) {
 }
 
 // Make sure we don't add multiple listeners
-document.removeEventListener('keyup', bindHandlerToKeyupEvent);
-document.addEventListener('keyup', bindHandlerToKeyupEvent);
+document.removeEventListener('keydown', bindHandlerToKeyupEvent);
+document.addEventListener('keydown', bindHandlerToKeyupEvent);
 
 /**
  * Module storing the different keyboard shortcut
@@ -64,12 +64,13 @@ document.addEventListener('keyup', bindHandlerToKeyupEvent);
 const KeyboardShortcut = {
     /**
      * Subscribes to a keyboard event.
-     * @param {int} keyCode The key code to watch
+     * @param {string} key The key code to watch
      * @param {function} callback The callback to call
      * @param {string|array} modifiers Can either be shift or control
      * @param {bool} captureOnInputs Should we capture the event on inputs too?
      */
-    subscribe(keyCode, callback, modifiers = 'shift', captureOnInputs = false) {
+    subscribe(key, callback, modifiers = 'shift', captureOnInputs = false) {
+        const keyCode = key.charCodeAt(0);
         if (events[keyCode] === undefined) {
             events[keyCode] = [];
         }
