@@ -86,7 +86,7 @@ class Expensify extends Component {
 
 export default WithIon({
     redirectTo: {
-        key: IONKEYS.APP_REDIRECT_TO,
+        key: IONKEYS.APP.REDIRECT_TO,
         loader: () => {
             // Verify that our authToken is OK to use
             verifyAuthToken();

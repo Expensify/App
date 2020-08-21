@@ -3,9 +3,11 @@
  */
 export default {
     ACTIVE_CLIENT_IDS: 'activeClientIDs',
-    APP_REDIRECT_TO: 'app_redirectTo',
-    APP_SHOULD_REFRESH: 'app_shouldRefresh',
-    APP_VERSION_HASH: 'app_versionHash',
+    APP: {
+        REDIRECT_TO: 'app_redirectTo',
+        SHOULD_REFRESH: 'app_shouldRefresh',
+        VERSION_HASH: 'app_versionHash',
+    },
     CURRENT_URL: 'current_url',
     CREDENTIALS: 'credentials',
     LAST_AUTHENTICATED: 'last_authenticated',

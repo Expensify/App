@@ -149,7 +149,7 @@ export default WithIon({
 
                 // If we're on the home page, then redirect to the first report ID
                 if (currentURL === '/' && firstReportID) {
-                    Ion.set(IONKEYS.APP_REDIRECT_TO, `/${firstReportID}`);
+                    Ion.set(IONKEYS.APP.REDIRECT_TO, `/${firstReportID}`);
                 }
             });
         }),

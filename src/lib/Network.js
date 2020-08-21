@@ -80,7 +80,7 @@ function setSuccessfulSignInData(data, exitTo) {
         // The response from Authenticate includes requestID, jsonCode, etc
         // but we only care about setting these three values in Ion
         [IONKEYS.SESSION]: _.pick(data, 'authToken', 'accountID', 'email'),
-        [IONKEYS.APP_REDIRECT_TO]: exitTo ? `/${exitTo}` : ROUTES.HOME,
+        [IONKEYS.APP.REDIRECT_TO]: exitTo ? `/${exitTo}` : ROUTES.HOME,
         [IONKEYS.LAST_AUTHENTICATED]: new Date().getTime(),
     });
 }

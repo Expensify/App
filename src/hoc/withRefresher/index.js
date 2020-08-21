@@ -23,8 +23,6 @@ export default function (WrappedComponent) {
             this.state = {
                 appShouldRefresh: false,
             };
-
-            this.onVisibilityChange = this.onVisibilityChange.bind(this);
         }
 
         componentDidMount() {
@@ -51,7 +49,7 @@ export default function (WrappedComponent) {
     withBackgroundRefresh.displayName = getDisplayName(WrappedComponent);
     return withIon({
         appShouldRefresh: {
-            key: IONKEYS,
+            key: IONKEYS.APP.SHOULD_REFRESH,
         },
     })(withBackgroundRefresh);
 }

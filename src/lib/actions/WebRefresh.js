@@ -14,11 +14,11 @@ const COMMAND_GET_VERSION = '';
  * Get stored git hash, or if there is none then fetch the remote git hash and save it in Ion
  */
 const getStoredVersionAsync = async () => {
-    const storedVersion = await Ion.get(IONKEYS.APP_VERSION_HASH);
+    const storedVersion = await Ion.get(IONKEYS.APP.VERSION_HASH);
     if (!storedVersion) {
         // only get the remote version if there is no version locally stored
         const remoteVersion = await request(COMMAND_GET_VERSION);
-        Ion.set(IONKEYS.APP_VERSION_HASH, remoteVersion);
+        Ion.set(IONKEYS.APP.VERSION_HASH, remoteVersion);
     }
 };
 
@@ -29,7 +29,7 @@ const getStoredVersionAsync = async () => {
  * Else, set app_shouldRefresh = true in Ion
  */
 const appShouldRefreshAsync = async () => {
-    const storedVersion = await Ion.get(IONKEYS.APP_VERSION_HASH);
+    const storedVersion = await Ion.get(IONKEYS.APP.VERSION_HASH);
 
     // If the app is offline, this request will hang indefinitely.
     // But that's okay, because it couldn't possibly refresh anyways.
@@ -37,10 +37,10 @@ const appShouldRefreshAsync = async () => {
 
     if (storedVersion === remoteVersion) {
         if (!storedVersion) {
-            await Ion.set(IONKEYS.APP_VERSION_HASH, remoteVersion);
+            await Ion.set(IONKEYS.APP.VERSION_HASH, remoteVersion);
         }
     } else {
-        await Ion.set(IONKEYS.APP_SHOULD_REFRESH, true);
+        await Ion.set(IONKEYS.APP.SHOULD_REFRESH, true);
     }
 };
 
@@ -64,7 +64,7 @@ const checkShouldUpdateAndResetTimer = async () => {
  * 3) If the app's visibility changes or 30 minutes passes without it changing,  check if the app should refresh.
  */
 const init = async () => {
-    Ion.set(IONKEYS.APP_SHOULD_REFRESH, false);
+    Ion.set(IONKEYS.APP.SHOULD_REFRESH, false);
 
     // When the page first loads, get the current version hash
     getStoredVersionAsync();

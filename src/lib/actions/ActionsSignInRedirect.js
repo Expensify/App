@@ -24,7 +24,7 @@ function redirectToSignIn() {
             const urlWithExitTo = url === '/'
                 ? ROUTES.SIGNIN
                 : `${ROUTES.SIGNIN}/exitTo${url}`;
-            return Ion.set(IONKEYS.APP_REDIRECT_TO, urlWithExitTo);
+            return Ion.set(IONKEYS.APP.REDIRECT_TO, urlWithExitTo);
         });
 }
 
