@@ -4,7 +4,7 @@ import Text from '../../../components/Text';
 import styles from '../../../style/StyleSheet';
 import Anchor from '../../../components/Anchor';
 
-const AppLinksView = () => {
+const AppLinks = () => {
     // Give instructions for downloading the desktop app
     function alertInstallInstructions() {
         alert('To install Chat Desktop App:\n\n'
@@ -41,4 +41,4 @@ const AppLinksView = () => {
     );
 };
 
-export default AppLinksView;
+export default AppLinks;

@@ -3,7 +3,7 @@ import {Image, View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles, {getSafeAreaMargins} from '../../../style/StyleSheet';
 import Text from '../../../components/Text';
-import AppLinksView from './AppLinksView';
+import AppLinks from './AppLinks';
 import {signOut} from '../../../lib/actions/ActionsSession';
 import IONKEYS from '../../../IONKEYS';
 import {fetch as getPersonalDetails} from '../../../lib/actions/ActionsPersonalDetails';
@@ -52,7 +52,7 @@ const SidebarBottom = ({myPersonalDetails, isOffline, insets}) => (
                 </Text>
             )}
             <View style={[styles.flexRow]}>
-                <AppLinksView />
+                <AppLinks />
                 <Text style={[styles.sidebarFooterLink]} onPress={signOut}>Sign Out</Text>
             </View>
         </View>
