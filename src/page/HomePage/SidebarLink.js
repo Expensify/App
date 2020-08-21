@@ -21,31 +21,41 @@ const propTypes = {
 
     // Toggles the hamburger menu open and closed
     onLinkClick: PropTypes.func.isRequired,
+
+    /* Ion Props */
+
+    // Does the report for this link have unread comments?
+    isUnread: PropTypes.bool,
 };
 
-class SidebarLink extends React.Component {
-    render() {
-        const paramsReportID = parseInt(this.props.match.params.reportID, 10);
-        const isReportActive = paramsReportID === this.props.reportID;
-        const linkWrapperActiveStyle = isReportActive && styles.sidebarLinkWrapperActive;
-        const linkActiveStyle = isReportActive ? styles.sidebarLinkActive : styles.sidebarLink;
-        const textActiveStyle = isReportActive ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
-        const textActiveUnreadStyle = this.state && this.state.isUnread
-            ? [textActiveStyle, styles.sidebarLinkTextUnread] : [textActiveStyle];
-        return (
-            <View style={[styles.sidebarListItem, linkWrapperActiveStyle]}>
-                <PressableLink onClick={this.props.onLinkClick} to={`/${this.props.reportID}`} style={linkActiveStyle}>
-                    <View style={[styles.sidebarLinkInner]}>
-                        <Text numberOfLines={1} style={textActiveUnreadStyle}>
-                            {this.props.reportName}
-                        </Text>
-                    </View>
-                </PressableLink>
-            </View>
-        );
-    }
-}
+const defaultProps = {
+    isUnread: false,
+};
+
+const SidebarLink = (props) => {
+    const paramsReportID = parseInt(props.match.params.reportID, 10);
+    const isReportActive = paramsReportID === props.reportID;
+    const linkWrapperActiveStyle = isReportActive && styles.sidebarLinkWrapperActive;
+    const linkActiveStyle = isReportActive ? styles.sidebarLinkActive : styles.sidebarLink;
+    const textActiveStyle = isReportActive ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
+    const textActiveUnreadStyle = props.isUnread
+        ? [textActiveStyle, styles.sidebarLinkTextUnread] : [textActiveStyle];
+    return (
+        <View style={[styles.sidebarListItem, linkWrapperActiveStyle]}>
+            <PressableLink onClick={props.onLinkClick} to={`/${props.reportID}`} style={linkActiveStyle}>
+                <View style={[styles.sidebarLinkInner]}>
+                    <Text numberOfLines={1} style={textActiveUnreadStyle}>
+                        {props.reportName}
+                    </Text>
+                </View>
+            </PressableLink>
+        </View>
+    );
+};
+
+SidebarLink.displayName = 'SidebarLink';
 SidebarLink.propTypes = propTypes;
+SidebarLink.defaultProps = defaultProps;
 
 export default withRouter(WithIon({
     isUnread: {
@@ -53,6 +63,5 @@ export default withRouter(WithIon({
         path: 'hasUnread',
         defaultValue: false,
         pathForProps: 'reportID',
-        prefillWithKey: `${IONKEYS.REPORT}_%DATAFROMPROPS%`
     }
 })(SidebarLink));

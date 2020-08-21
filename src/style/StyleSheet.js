@@ -175,6 +175,10 @@ const styles = {
         padding: 20,
     },
 
+    genericView: {
+        backgroundColor: colors.heading,
+    },
+
     signInPageInner: {
         marginLeft: 'auto',
         marginRight: 'auto',
