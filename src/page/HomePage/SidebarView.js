@@ -47,7 +47,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    userDisplayName: '',
+    userDisplayName: null,
     avatarURL: '',
     reports: {},
     isOffline: false,
