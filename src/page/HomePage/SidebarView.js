@@ -36,7 +36,11 @@ const propTypes = {
     avatarURL: PropTypes.string,
 
     // List of reports
-    reports: PropTypes.object,
+    reports: PropTypes.objectOf(PropTypes.shape({
+        reportID: PropTypes.number,
+        reportName: PropTypes.string,
+        hasUnread: PropTypes.bool,
+    })),
 
     // Is this person offline?
     isOffline: PropTypes.bool,
