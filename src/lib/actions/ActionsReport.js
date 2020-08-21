@@ -97,11 +97,19 @@ function initPusher() {
  *
  * @returns {Promise}
  */
-function fetchAll() {
+async function fetchAll() {
+    // Get the chat report IDs
+    const {chatList} = await queueRequest('Get', {
+        returnValueList: 'chatList',
+    });
+
+    const chatReportIDs = _.map(chatList.split(','), Number);
+    const envReportIDs = CONFIG.REPORT_IDS.split(',');
+
     let fetchedReports;
 
     // Request each report one at a time to allow individual reports to fail if access to it is prevents by Auth
-    const reportFetchPromises = _.map(CONFIG.REPORT_IDS.split(','), reportID => queueRequest('Get', {
+    const reportFetchPromises = _.map([...chatReportIDs, ...envReportIDs], reportID => queueRequest('Get', {
         returnValueList: 'reportStuff',
         reportIDList: reportID,
         shouldLoadOptionalKeys: true,
@@ -119,7 +127,7 @@ function fetchAll() {
         .then(() => Ion.get(IONKEYS.SESSION, 'accountID'))
         .then(() => Ion.set(IONKEYS.FIRST_REPORT_ID, _.first(_.pluck(fetchedReports, 'reportID')) || 0))
         .then((accountID) => {
-            const ionPromises = _.map(fetchedReports, (report) => {
+            const ionPromises = _.map(fetchedReports, async (report) => {
                 // Store only the absolute bare minimum of data in Ion because space is limited
                 const newReport = {
                     reportID: report.reportID,
@@ -127,6 +135,26 @@ function fetchAll() {
                     reportNameValuePairs: report.reportNameValuePairs,
                     hasUnread: hasUnreadHistoryItems(accountID, report),
                 };
+
+                // Get the shared report lists if it's a chat report and build a better temporary title using the emails
+                // This is hacky but it gets us a bit closer to differentiating chats and letting us know who the
+                // participants are.
+                const type = lodashGet(report.reportNameValuePairs, 'type');
+                if (type === 'chat') {
+                    const {sharedReportList} = await queueRequest('Get', {
+                        returnValueList: 'sharedReportList',
+                        reportID: report.reportID,
+                    });
+                    const emails = _.map(sharedReportList, ({email}) => {
+                        if (email === 'concierge@expensify.com') {
+                            return 'Concierge';
+                        }
+
+                        return email;
+                    });
+
+                    newReport.reportName = `Chat between ${emails.join(', ')}`;
+                }
 
                 // Merge the data into Ion. Don't use set() here or multiSet() because then that would
                 // overwrite any existing data (like if they have unread messages)
