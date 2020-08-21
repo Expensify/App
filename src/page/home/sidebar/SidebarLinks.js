@@ -10,6 +10,7 @@ import IONKEYS from '../../../IONKEYS';
 import {fetchAll} from '../../../lib/actions/ActionsReport';
 import Ion from '../../../lib/Ion';
 import PageTitleUpdater from '../../../lib/PageTitleUpdater/index.native';
+import ChatSwitcherView from './ChatSwitcherView';
 
 const propTypes = {
     // Toggles the hamburger menu open and closed
@@ -30,11 +31,11 @@ const defaultProps = {
 
 const SidebarLinks = ({reports, onLinkClick}) => {
     // Updates the page title to indicate there are unread reports
-    const hasUnreadReports = _.any(reports, report => report.hasUnread);
-    PageTitleUpdater(hasUnreadReports);
+    PageTitleUpdater(_.any(reports, report => report.hasUnread));
 
     return (
         <View style={[styles.sidebarListContainer]}>
+            <ChatSwitcherView />
             <View style={[styles.sidebarListItem]}>
                 <Text style={[styles.sidebarListHeader]}>
                     Chats
