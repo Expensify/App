@@ -130,7 +130,7 @@ App.propTypes = propTypes;
 App.defaultProps = defaultProps;
 
 export default compose(
-    withRouter(),
+    withRouter,
     withIon({
         // Bind this.props.error to the error in the session object
         error: {key: IONKEYS.SESSION, path: 'error', defaultValue: null},

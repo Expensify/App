@@ -64,7 +64,7 @@ MainView.propTypes = propTypes;
 MainView.defaultProps = defaultProps;
 
 export default compose(
-    withRouter(),
+    withRouter,
     withIon({
         reports: {
             key: `${IONKEYS.REPORT}_[0-9]+$`,
