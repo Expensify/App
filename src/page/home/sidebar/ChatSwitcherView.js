@@ -39,6 +39,7 @@ class ChatSwitcherView extends React.Component {
         this.maxSearchResults = 10;
 
         this.handleKeyPress = this.handleKeyPress.bind(this);
+        this.reset = this.reset.bind(this);
         this.updateSearch = this.updateSearch.bind(this);
 
         this.state = {
@@ -77,6 +78,7 @@ class ChatSwitcherView extends React.Component {
             options: [],
         }, () => {
             this.textInput.blur();
+            this.props.onBlur();
             this.enableKeyboardShortcut();
         });
     }
@@ -252,7 +254,7 @@ class ChatSwitcherView extends React.Component {
                     />
                     <TouchableOpacity
                         style={[styles.chatItemSubmitButton, styles.buttonSuccess]}
-                        onPress={() => this.setState({search: ''})}
+                        onPress={this.reset}
                         underlayColor="#fff"
                     >
                         <Text>X</Text>
