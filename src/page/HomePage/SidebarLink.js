@@ -59,7 +59,7 @@ SidebarLink.propTypes = propTypes;
 SidebarLink.defaultProps = defaultProps;
 
 export default compose(
-    withRouter(),
+    withRouter,
     withIon({
         isUnread: {
             key: `${IONKEYS.REPORT}_%DATAFROMPROPS%`,

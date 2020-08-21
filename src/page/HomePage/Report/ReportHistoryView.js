@@ -165,7 +165,7 @@ ReportHistoryView.defaultProps = defaultProps;
 
 const key = `${IONKEYS.REPORT_HISTORY}_%DATAFROMPROPS%`;
 export default compose(
-    withRouter(),
+    withRouter,
     withIon({
         authToken: {
             key: IONKEYS.SESSION,
