@@ -21,7 +21,7 @@ function updateReportWithNewAction(reportID, reportAction) {
             // This is necessary for local development because there will be pusher events from other engineers with
             // different reportIDs
             if (!CONFIG.IS_IN_PRODUCTION && !ionReportID) {
-                throw new Error('Report does not exist in the store, so ignoring new comments');
+                throw new Error('report does not exist in the store, so ignoring new comments');
             }
 
             // Get the report history and return that to the next chain
