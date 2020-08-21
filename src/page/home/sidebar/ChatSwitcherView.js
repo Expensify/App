@@ -47,22 +47,62 @@ class ChatSwitcherView extends React.Component {
     }
 
     /**
+     * Swaps the focused index from {oldFocusedIndex} to {newFocusedIndex}
+     *
+     * @param {number} oldFocusedIndex
+     * @param {number} newFocusedIndex
+     */
+    switchFocusedIndex(oldFocusedIndex, newFocusedIndex) {
+        this.setState((prevState) => {
+            const newOptions = [...prevState.options];
+            newOptions[oldFocusedIndex].focused = false;
+            newOptions[newFocusedIndex].focused = true;
+
+            return {
+                options: newOptions
+            };
+        });
+    }
+
+    /**
      * When arrow keys are pressed, the focused option needs to change
      * When enter key is pressed, the highlighted option is selected
      *
      * @param {SyntheticEvent} e
      */
     handleKeyPress(e) {
-        console.log('keypress', e.key)
+        let oldFocusedIndex;
+        let newFocusedIndex;
+
         switch (e.key) {
             case 'Enter':
                 e.preventDefault();
                 break;
 
-            case 'ArrowUp':
+            case 'ArrowDown':
+                oldFocusedIndex = _.findIndex(this.state.options, o => o.focused);
+                newFocusedIndex = oldFocusedIndex + 1;
+
+                // Wrap around to the top of the list
+                if (newFocusedIndex > this.state.options.length - 1) {
+                    newFocusedIndex = 0;
+                }
+
+                this.switchFocusedIndex(oldFocusedIndex, newFocusedIndex);
+                e.preventDefault();
                 break;
 
-            case 'ArrowDown':
+            case 'ArrowUp':
+                oldFocusedIndex = _.findIndex(this.state.options, o => o.focused);
+                newFocusedIndex = oldFocusedIndex - 1;
+
+                // Wrap around to the bottom of the list
+                if (newFocusedIndex < 0) {
+                    newFocusedIndex = this.state.options.length - 1;
+                }
+
+                this.switchFocusedIndex(oldFocusedIndex, newFocusedIndex);
+                e.preventDefault();
                 break;
 
             case 'Tab':
@@ -137,6 +177,11 @@ class ChatSwitcherView extends React.Component {
             focused: false,
             ...option
         }));
+
+        // Set the first option to be focused
+        if (options.length) {
+            options[0].focused = true;
+        }
 
         this.setState({
             options,
