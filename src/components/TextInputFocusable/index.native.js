@@ -6,7 +6,7 @@ import {TextInput} from 'react-native';
  * the way of the view
  */
 // eslint-disable-next-line react/jsx-props-no-spreading
-const TextInputFocusable = props => (<TextInput {...props} minHeight={40} />);
+const TextInputFocusable = props => (<TextInput {...props} />);
 
 TextInputFocusable.displayName = 'TextInputFocusable';
 
