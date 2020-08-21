@@ -22,16 +22,25 @@ class TextInputFocusable extends React.Component {
         this.focusInput();
     }
 
+    /**
+     * Check the current scrollHeight of the textarea (minus any padding) and
+     * divide by line height to get the total number of rows for the textarea.
+     *
+     * @param {object} event
+     */
     updateNumberOfLines(event) {
         const target = event.nativeEvent.target;
         const computedStyle = window.getComputedStyle(target);
         const lineHeight = parseInt(computedStyle.lineHeight, 10) || 20;
-        const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10) + parseInt(computedStyle.paddingTop, 10);
+        const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10)
+            + parseInt(computedStyle.paddingTop, 10);
 
         // We have to reset the rows back to the minimum before updating so that the scrollHeight is not
-        // affected by the previous row setting. If we don't rows will be added, but not removed on backspace/delete.
+        // affected by the previous row setting. If we don't, rows will be added but not removed on backspace/delete.
         this.setState({numberOfLines: 1}, () => {
-            this.setState({numberOfLines: Math.ceil((target.scrollHeight - paddingTopAndBottom) / lineHeight)});
+            this.setState({
+                numberOfLines: Math.ceil((target.scrollHeight - paddingTopAndBottom) / lineHeight)
+            });
         });
     }
 
@@ -40,14 +49,13 @@ class TextInputFocusable extends React.Component {
     }
 
     render() {
-        const numberOfLines = this.state && this.state.numberOfLines ? this.state.numberOfLines : 1;
         return (
             <TextInput
                 ref={el => this.textInput = el}
                 onChange={(event) => {
                     this.updateNumberOfLines(event);
                 }}
-                numberOfLines={numberOfLines}
+                numberOfLines={this.state.numberOfLines}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...this.props}
             />
