@@ -61,8 +61,7 @@ const checkShouldUpdateAndResetTimer = async () => {
 /**
  * 1) Initialize shouldRefresh to false
  * 2) Get the stored version hash, or if there is none saved, fetch remote hash and save it.
- * 3) Periodically check if app should refresh
- * 4) Additionally, check if app should refresh when its visibility changes.
+ * 3) If the app's visibility changes or 30 minutes passes without it changing,  check if the app should refresh.
  */
 const init = async () => {
     Ion.set(IONKEYS.APP_SHOULD_REFRESH, false);
