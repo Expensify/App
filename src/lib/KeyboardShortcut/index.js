@@ -36,7 +36,11 @@ function bindHandlerToKeyupEvent(event) {
     }
 
     // If configured to do so, prevent input text control to trigger this event
-    if (!cb.captureOnInputs && (event.target.nodeName === 'INPUT' || event.target.nodeName === 'TEXTAREA' || event.target.contentEditable === 'true')) {
+    if (!cb.captureOnInputs && (
+        event.target.nodeName === 'INPUT'
+        || event.target.nodeName === 'TEXTAREA'
+        || event.target.contentEditable === 'true'
+    )) {
         return;
     }
 

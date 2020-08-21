@@ -56,6 +56,9 @@ class ChatSwitcherView extends React.Component {
         this.disableKeyboardShortcut();
     }
 
+    /**
+     * Listen for the Command+K key being pressed so the focus can be given to the chat switcher
+     */
     enableKeyboardShortcut() {
         // Command + K
         KeyboardShortcut.subscribe('K', () => {
@@ -65,6 +68,9 @@ class ChatSwitcherView extends React.Component {
         }, ['meta']);
     }
 
+    /**
+     * Stop listening to the keyboard shortcut
+     */
     disableKeyboardShortcut() {
         KeyboardShortcut.unsubscribe('K');
     }
