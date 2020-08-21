@@ -19,9 +19,6 @@ const networkRequestQueue = [];
 // Holds all of the callbacks that need to be triggered when the network reconnects
 const reconnectionCallbacks = [];
 
-// A local variable for knowing if the app is online or offline
-let isAppOffline = false;
-
 /**
  * Called when the offline status of the app changes and if the network is "reconnecting" (going from offline to online)
  * then all of the reconnection callbacks are triggered
@@ -29,11 +26,13 @@ let isAppOffline = false;
  * @param {boolean} isCurrentlyOffline
  */
 function setNewOfflineStatus(isCurrentlyOffline) {
-    Ion.merge(IONKEYS.NETWORK, {isOffline: isCurrentlyOffline});
-    if (isAppOffline && !isCurrentlyOffline) {
-        _.each(reconnectionCallbacks, cb => cb());
-    }
-    isAppOffline = isCurrentlyOffline;
+    Ion.get(IONKEYS.NETWORK, 'isOffline')
+        .then((prevWasOffline) => {
+            Ion.merge(IONKEYS.NETWORK, {isOffline: isCurrentlyOffline});
+            if (prevWasOffline && !isCurrentlyOffline) {
+                _.each(reconnectionCallbacks, cb => cb());
+            }
+        });
 }
 
 /**

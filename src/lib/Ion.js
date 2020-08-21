@@ -72,24 +72,21 @@ function keyChanged(key, data) {
                 ? lodashGet(data, mappedComponent.path, mappedComponent.defaultValue)
                 : data || mappedComponent.defaultValue || null;
 
-            // If there is a withIonInstance, then the state needs to be set on that instance with the new value
-            if (mappedComponent.withIonInstance) {
-                // Set the state of the react component with either the pathed data, or the data
-                if (mappedComponent.addAsCollection) {
-                    // Add the data to an array of existing items
-                    mappedComponent.withIonInstance.setState((prevState) => {
-                        const collection = prevState[mappedComponent.statePropertyName] || {};
-                        collection[newValue[mappedComponent.collectionID]] = newValue;
-                        const newState = {
-                            [mappedComponent.statePropertyName]: collection,
-                        };
-                        return newState;
-                    });
-                } else {
-                    mappedComponent.withIonInstance.setState({
-                        [mappedComponent.statePropertyName]: newValue,
-                    });
-                }
+            // Set the state of the react component with either the pathed data, or the data
+            if (mappedComponent.addAsCollection) {
+                // Add the data to an array of existing items
+                mappedComponent.withIonInstance.setState((prevState) => {
+                    const collection = prevState[mappedComponent.statePropertyName] || {};
+                    collection[newValue[mappedComponent.collectionID]] = newValue;
+                    const newState = {
+                        [mappedComponent.statePropertyName]: collection,
+                    };
+                    return newState;
+                });
+            } else {
+                mappedComponent.withIonInstance.setState({
+                    [mappedComponent.statePropertyName]: newValue,
+                });
             }
         }
     });
