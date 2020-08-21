@@ -132,8 +132,11 @@ function xhr(command, data, type = 'post') {
         .catch(() => {
             setNewOfflineStatus(true);
 
-            // If the request failed, we need to put the request object back into the queue
-            queueRequest(command, data);
+            // If the request failed, we need to put the request object back into the queue as long as there is no
+            // doNotRetry option set in the data
+            if (data.doNotRetry !== true) {
+                queueRequest(command, data);
+            }
 
             // Throw a new error to prevent any other `then()` in the promise chain from being triggered (until another
             // catch() happens
@@ -251,10 +254,7 @@ function processNetworkRequestQueue() {
                 // 2. Getting a 200 response back from the API (happens right below)
 
                 // Make a simple request every second to see if the API is online again
-                fetch(`${CONFIG.EXPENSIFY.API_ROOT}command=Get`, {
-                    method: 'post',
-                    body: {doNotRetry: true},
-                })
+                xhr('Get', {doNotRetry: true})
                     .then(() => setNewOfflineStatus(false));
                 return;
             }
