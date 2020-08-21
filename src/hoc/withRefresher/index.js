@@ -10,6 +10,9 @@ import InitRefresher from '../../lib/actions/WebRefresh';
 import IONKEYS from '../../IONKEYS';
 import withIon from '../../components/WithIon';
 
+const STATE_HIDDEN = 'hidden';
+const STATE_VISIBLE = 'visible';
+
 const getDisplayName = component => component.displayName || component.name || 'Component';
 
 export default function (WrappedComponent) {
@@ -30,7 +33,16 @@ export default function (WrappedComponent) {
 
         render() {
             if (this.state.appShouldRefresh) {
-                window.location.reload(true);
+                if (document.visibilityState === STATE_HIDDEN) {
+                    // Page is hidden, refresh immediately
+                    window.location.reload(true);
+                } else if (document.visibilityState === STATE_VISIBLE) {
+                    // TODO: Notify user in a less invasive way that they should refresh the page (i.e: Growl)
+                    // Prompt user to refresh the page
+                    if (window.confirm('Refresh the page to get the latest updates!')) {
+                        window.location.reload(true);
+                    }
+                }
             }
             return <WrappedComponent />;
         }

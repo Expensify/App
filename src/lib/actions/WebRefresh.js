@@ -4,9 +4,6 @@ import {request} from '../Network';
 
 const EVENT_VISIBILITY_CHANGE = 'visibilitychange';
 
-const STATE_HIDDEN = 'hidden';
-const STATE_VISIBLE = 'visible';
-
 // See if we should refresh the page every 30 minutes
 const REFRESH_TIMEOUT = 1800000;
 
@@ -48,11 +45,10 @@ const appShouldRefreshAsync = async () => {
 };
 
 /**
- * Resets the timer to periodically check if the app should refresh.
- * If the app is hidden, refresh.
- * If the app is visible, prompt the user to refresh.
+ * Resets the timer to periodically check if the app should refresh,
+ * and checks the remote hash for changes.
  */
-const resetTimerAndMaybeRefresh = async () => {
+const checkShouldUpdateAndResetTimer = async () => {
     // Reset timeout
     const timer = Ion.get(IONKEYS.REFRESHER_TIMER);
     clearInterval(timer);
@@ -60,15 +56,6 @@ const resetTimerAndMaybeRefresh = async () => {
 
     // Compare hashes and update Ion app_shouldRefresh
     appShouldRefreshAsync();
-
-    if (document.visibilityState === STATE_HIDDEN) {
-        window.location.reload();
-    } else if (document.visibilityState === STATE_VISIBLE) {
-        // TODO: Notify user in a less invasive way that they should refresh the page (i.e: Growl)
-        if (window.confirm('Refresh the page to get the latest updates!')) {
-            window.location.reload(true);
-        }
-    }
 };
 
 /**
@@ -86,7 +73,7 @@ const init = async () => {
     // Check periodically if we should refresh the app
     Ion.set(IONKEYS.REFRESHER_TIMER, setInterval(appShouldRefreshAsync, REFRESH_TIMEOUT));
 
-    window.addEventListener(EVENT_VISIBILITY_CHANGE, resetTimerAndMaybeRefresh);
+    window.addEventListener(EVENT_VISIBILITY_CHANGE, checkShouldUpdateAndResetTimer);
 };
 
 export default init;
