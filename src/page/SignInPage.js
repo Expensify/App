@@ -20,6 +20,15 @@ const propTypes = {
     // These are from withRouter
     // eslint-disable-next-line react/forbid-prop-types
     match: PropTypes.object.isRequired,
+
+    /* Ion Props */
+
+    // Error to display when there is a session error returned
+    error: PropTypes.string,
+};
+
+const defaultProps = {
+    error: null,
 };
 
 class App extends Component {
@@ -45,8 +54,7 @@ class App extends Component {
      * Sign into the application when the form is submitted
      */
     submitForm() {
-        signIn(this.state.login, this.state.password,
-            this.state.twoFactorAuthCode, true, this.props.match.params.exitTo);
+        signIn(this.state.login, this.state.password, this.state.twoFactorAuthCode, this.props.match.params.exitTo);
     }
 
     render() {
@@ -104,9 +112,9 @@ class App extends Component {
                             >
                                 <Text style={[styles.buttonText, styles.buttonSuccessText]}>Log In</Text>
                             </TouchableOpacity>
-                            {this.state.error && (
+                            {this.props.error && (
                                 <Text style={[styles.formError]}>
-                                    {this.state.error}
+                                    {this.props.error}
                                 </Text>
                             )}
                         </View>
@@ -118,8 +126,9 @@ class App extends Component {
 }
 
 App.propTypes = propTypes;
+App.defaultProps = defaultProps;
 
 export default withRouter(WithIon({
-    // Bind this.state.error to the error in the session object
+    // Bind this.props.error to the error in the session object
     error: {key: IONKEYS.SESSION, path: 'error', defaultValue: null},
 })(App));

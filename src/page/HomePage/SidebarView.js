@@ -2,7 +2,8 @@ import React from 'react';
 import _ from 'underscore';
 import {
     View,
-    Image
+    Image,
+    Linking
 } from 'react-native';
 import PropTypes from 'prop-types';
 import Text from '../../components/Text';
@@ -24,7 +25,32 @@ const propTypes = {
 
     // Safe area insets required for mobile devices margins
     // eslint-disable-next-line react/forbid-prop-types
-    insets: PropTypes.object.isRequired
+    insets: PropTypes.object.isRequired,
+
+    /* Ion Props */
+
+    // Display name of the current user from their personal details
+    userDisplayName: PropTypes.string,
+
+    // Avatar URL of the current user from their personal details
+    avatarURL: PropTypes.string,
+
+    // List of reports
+    reports: PropTypes.objectOf(PropTypes.shape({
+        reportID: PropTypes.number,
+        reportName: PropTypes.string,
+        hasUnread: PropTypes.bool,
+    })),
+
+    // Is this person offline?
+    isOffline: PropTypes.bool,
+};
+
+const defaultProps = {
+    userDisplayName: null,
+    avatarURL: '',
+    reports: {},
+    isOffline: false,
 };
 
 class SidebarView extends React.Component {
@@ -32,14 +58,23 @@ class SidebarView extends React.Component {
      * Updates the page title to indicate there are unread reports
      */
     updateUnreadReportIndicator() {
-        if (this.state) {
-            const hasUnreadReports = _.any(this.state.reports, report => report.hasUnread);
-            PageTitleUpdater(hasUnreadReports);
-        }
+        const hasUnreadReports = _.any(this.props.reports, report => report.hasUnread);
+        PageTitleUpdater(hasUnreadReports);
+    }
+
+    alertInstallInstructions() {
+        alert('To install Chat Desktop App:\n\n'
+            + '1. Double click "Chat.app.zip"\n'
+            + '2. If you get a "Cannot be opened because the developer cannot be verified" error:\n'
+            + '    1. Hit Cancel\n'
+            + '    2. Go to System Preferences > Security & Privacy > General\n'
+            + '    3. Click Open Anyway at the bottom\n'
+            + '    4. When it re-prompts you, click Open');
+        Linking.openURL('https://chat.expensify.com/Chat.app.zip');
     }
 
     render() {
-        const reports = this.state && this.state.reports;
+        const reports = this.props.reports;
         this.updateUnreadReportIndicator();
         return (
             <View style={[styles.flex1, styles.sidebar]}>
@@ -68,26 +103,26 @@ class SidebarView extends React.Component {
                 <View style={[styles.sidebarFooter, getSafeAreaMargins(this.props.insets)]}>
                     <View style={[styles.sidebarFooterAvatar]}>
                         <Image
-                            source={{uri: this.state && this.state.avatarURL}}
+                            source={{uri: this.props.avatarURL}}
                             style={[styles.historyItemAvatar]}
                         />
-                        {this.state && this.state.isOffline && (
+                        {this.props.isOffline && (
                         <View style={[styles.statusIndicator]} />
                         )}
                     </View>
                     <View style={[styles.flexColumn]}>
-                        {this.state && this.state.userDisplayName && (
+                        {this.props.userDisplayName && (
                             <Text style={[styles.sidebarFooterUsername]}>
-                                {this.state.userDisplayName}
+                                {this.props.userDisplayName}
                             </Text>
                         )}
                         <View style={[styles.flexRow]}>
-                            <Anchor
+                            <Text
                                 style={[styles.sidebarFooterLink, styles.mr2]}
-                                href="https://chat.expensify.com/Chat.app.zip"
+                                onPress={() => this.alertInstallInstructions()}
                             >
                                 Desktop
-                            </Anchor>
+                            </Text>
                             <Anchor
                                 style={[styles.sidebarFooterLink, styles.mr2]}
                                 href="https://testflight.apple.com/join/vBYbMRQG"
@@ -110,21 +145,20 @@ class SidebarView extends React.Component {
 }
 
 SidebarView.propTypes = propTypes;
+SidebarView.defaultProps = defaultProps;
 
 export default WithIon({
-    // Map this.state.userDisplayName to the personal details key in the store and bind it to the displayName property
+    // Map this.props.userDisplayName to the personal details key in the store and bind it to the displayName property
     // and load it with data from getPersonalDetails()
     userDisplayName: {
         key: IONKEYS.MY_PERSONAL_DETAILS,
         path: 'displayName',
         loader: getPersonalDetails,
-        prefillWithKey: IONKEYS.MY_PERSONAL_DETAILS,
     },
     avatarURL: {
         key: IONKEYS.MY_PERSONAL_DETAILS,
         path: 'avatarURL',
         loader: getPersonalDetails,
-        prefillWithKey: IONKEYS.MY_PERSONAL_DETAILS,
     },
     reports: {
         key: `${IONKEYS.REPORT}_[0-9]+$`,
