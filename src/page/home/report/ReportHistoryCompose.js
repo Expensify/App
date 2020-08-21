@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View, Image, TouchableOpacity} from 'react-native';
-import styles from '../../../style/StyleSheet';
+import styles, {colors} from '../../../style/StyleSheet';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 import sendIcon from '../../../../assets/images/icon-send.png';
 
@@ -82,6 +82,7 @@ class ReportHistoryCompose extends React.Component {
                         textAlignVertical="top"
                         placeholder="Write something..."
                         placeholderTextColor="#7D8B8F"
+                        placeholderTextColor={colors.textSupporting}
                         onChangeText={this.updateComment}
                         onKeyPress={this.triggerSubmitShortcut}
                         style={[styles.textInput, styles.textInputCompose, styles.flex4]}
