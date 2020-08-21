@@ -106,8 +106,6 @@ async function fetchAll() {
     const chatReportIDs = _.map(chatList.split(','), Number);
     const envReportIDs = CONFIG.REPORT_IDS.split(',');
 
-    let fetchedReports;
-
     // Request each report one at a time to allow individual reports to fail if access to it is prevents by Auth
     const reportFetchPromises = _.map([...chatReportIDs, ...envReportIDs], reportID => queueRequest('Get', {
         returnValueList: 'reportStuff',
@@ -115,54 +113,53 @@ async function fetchAll() {
         shouldLoadOptionalKeys: true,
     }));
 
-    return promiseAllSettled(reportFetchPromises)
-        .then(data => fetchedReports = _.compact(_.map(data, (promiseResult) => {
-            // Grab the report from the promise result which stores it in the `value` key
-            const report = lodashGet(promiseResult, 'value.reports', {});
+    const settledPromises = await promiseAllSettled(reportFetchPromises);
+    const fetchedReports = _.compact(_.map(settledPromises, (promiseResult) => {
+        // Grab the report from the promise result which stores it in the `value` key
+        const report = lodashGet(promiseResult, 'value.reports', {});
 
-            // If there is no report found from the promise, return null
-            // Otherwise, grab the actual report object from the first index in the values array
-            return _.isEmpty(report) ? null : _.values(report)[0];
-        })))
-        .then(() => Ion.get(IONKEYS.SESSION, 'accountID'))
-        .then(() => Ion.set(IONKEYS.FIRST_REPORT_ID, _.first(_.pluck(fetchedReports, 'reportID')) || 0))
-        .then((accountID) => {
-            const ionPromises = _.map(fetchedReports, async (report) => {
-                // Store only the absolute bare minimum of data in Ion because space is limited
-                const newReport = {
-                    reportID: report.reportID,
-                    reportName: report.reportName,
-                    reportNameValuePairs: report.reportNameValuePairs,
-                    hasUnread: hasUnreadHistoryItems(accountID, report),
-                };
+        // If there is no report found from the promise, return null
+        // Otherwise, grab the actual report object from the first index in the values array
+        return _.isEmpty(report) ? null : _.values(report)[0];
+    }));
 
-                // Get the shared report lists if it's a chat report and build a better temporary title using the emails
-                // This is hacky but it gets us a bit closer to differentiating chats and letting us know who the
-                // participants are.
-                const type = lodashGet(report.reportNameValuePairs, 'type');
-                if (type === 'chat') {
-                    const {sharedReportList} = await queueRequest('Get', {
-                        returnValueList: 'sharedReportList',
-                        reportID: report.reportID,
-                    });
-                    const emails = _.map(sharedReportList, ({email}) => {
-                        if (email === 'concierge@expensify.com') {
-                            return 'Concierge';
-                        }
+    const accountID = await Ion.get(IONKEYS.SESSION, 'accountID');
+    await Ion.set(IONKEYS.FIRST_REPORT_ID, _.first(_.pluck(fetchedReports, 'reportID')) || 0);
+    const ionPromises = _.map(fetchedReports, async (report) => {
+        // Store only the absolute bare minimum of data in Ion because space is limited
+        const newReport = {
+            reportID: report.reportID,
+            reportName: report.reportName,
+            reportNameValuePairs: report.reportNameValuePairs,
+            hasUnread: hasUnreadHistoryItems(accountID, report),
+        };
 
-                        return email;
-                    });
-
-                    newReport.reportName = `Chat between ${emails.join(', ')}`;
+        // Get the shared report lists if it's a chat report and build a better temporary title using the emails
+        // This is hacky but it gets us a bit closer to differentiating chats and letting us know who the
+        // participants are.
+        const type = lodashGet(report.reportNameValuePairs, 'type');
+        if (type === 'chat') {
+            const {sharedReportList} = await queueRequest('Get', {
+                returnValueList: 'sharedReportList',
+                reportID: report.reportID,
+            });
+            const emails = _.map(sharedReportList, ({email}) => {
+                if (email === 'concierge@expensify.com') {
+                    return 'Concierge';
                 }
 
-                // Merge the data into Ion. Don't use set() here or multiSet() because then that would
-                // overwrite any existing data (like if they have unread messages)
-                return Ion.merge(`${IONKEYS.REPORT}_${report.reportID}`, newReport);
+                return email;
             });
 
-            return promiseAllSettled(ionPromises);
-        });
+            newReport.reportName = `Chat between ${emails.join(', ')}`;
+        }
+
+        // Merge the data into Ion. Don't use set() here or multiSet() because then that would
+        // overwrite any existing data (like if they have unread messages)
+        return Ion.merge(`${IONKEYS.REPORT}_${report.reportID}`, newReport);
+    });
+
+    return promiseAllSettled(ionPromises);
 }
 
 /**
