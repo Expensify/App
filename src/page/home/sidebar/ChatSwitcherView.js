@@ -47,6 +47,30 @@ class ChatSwitcherView extends React.Component {
     }
 
     /**
+     * Reset the component to it's default state and blur the input
+     */
+    reset() {
+        this.setState({
+            search: '',
+            options: [],
+        }, () => {
+            this.textInput.blur();
+        });
+    }
+
+    /**
+     * Redirect to the chat that was selected
+     *
+     * @param {object} option
+     * @param {string} option.value
+     */
+    selectOption(option) {
+        console.log('selected option', option);
+        // @TODO need to get the report ID for that person and then redirect to it
+        this.reset();
+    }
+
+    /**
      * Swaps the focused index from {oldFocusedIndex} to {newFocusedIndex}
      *
      * @param {number} oldFocusedIndex
@@ -76,6 +100,8 @@ class ChatSwitcherView extends React.Component {
 
         switch (e.key) {
             case 'Enter':
+                // Select the focused option
+                this.selectOption(_.findWhere(this.state.options, {focused: true}));
                 e.preventDefault();
                 break;
 
@@ -107,12 +133,7 @@ class ChatSwitcherView extends React.Component {
 
             case 'Tab':
             case 'Escape':
-                // Reset our app to the default state and blur the text input
-                this.setState({
-                    search: '',
-                    options: [],
-                });
-                this.textInput.blur();
+                this.reset();
                 break;
 
             default:
@@ -196,7 +217,7 @@ class ChatSwitcherView extends React.Component {
                         ref={el => this.textInput = el}
                         style={[styles.textInput, styles.textInputReversed, styles.flex1]}
                         value={this.state.search}
-                        onBlur={this.props.onBlur}
+                        onBlur={() => this.state.search === '' && this.props.onBlur()}
                         onChangeText={this.updateSearch}
                         onFocus={this.props.onFocus}
                         onKeyPress={this.handleKeyPress}
@@ -213,7 +234,10 @@ class ChatSwitcherView extends React.Component {
                 </View>
 
                 {this.state.options.length > 0 && _.map(this.state.options, option => (
-                    <TouchableOpacity key={option.value}>
+                    <TouchableOpacity
+                        key={option.value}
+                        onPress={() => this.selectOption(option)}
+                    >
                         <Text>
                             {option.focused && '> '}
                             {option.text}
