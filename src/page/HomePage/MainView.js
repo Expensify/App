@@ -16,7 +16,9 @@ const propTypes = {
     /* Ion Props */
 
     // List of reports to display
-    reports: PropTypes.object,
+    reports: PropTypes.objectOf(PropTypes.shape({
+        reportID: PropTypes.number,
+    })),
 };
 
 const defaultProps = {

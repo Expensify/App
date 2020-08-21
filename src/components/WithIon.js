@@ -33,12 +33,6 @@ export default function (mapIonToState) {
                 // this.props. These are stored differently because anytime the props change, the component has to be
                 // reconnected to Ion with the new props.
                 this.activeConnectionIDsWithPropsData = {};
-
-                // Initialize the state with each of the property names from the mapping
-                this.state = _.reduce(_.keys(mapIonToState), (finalResult, propertyName) => ({
-                    ...finalResult,
-                    [propertyName]: null,
-                }), {});
             }
 
             componentDidMount() {

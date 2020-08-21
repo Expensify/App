@@ -20,7 +20,7 @@ const propTypes = {
     /* Ion Props */
 
     // Array of report history items for this report
-    reportHistory: PropTypes.object,
+    reportHistory: PropTypes.PropTypes.objectOf(PropTypes.shape(ReportHistoryPropsTypes)),
 
     // Current user authToken
     authToken: PropTypes.string,
