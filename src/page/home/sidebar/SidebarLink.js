@@ -1,12 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
-import Text from '../../components/Text';
-import {withRouter} from '../../lib/Router';
-import IONKEYS from '../../IONKEYS';
-import styles from '../../style/StyleSheet';
-import WithIon from '../../components/WithIon';
-import PressableLink from '../../components/PressableLink';
+import Text from '../../../components/Text';
+import {withRouter} from '../../../lib/Router/index';
+import IONKEYS from '../../../IONKEYS';
+import styles from '../../../style/StyleSheet';
+import WithIon from '../../../components/WithIon';
+import PressableLink from '../../../components/PressableLink/index';
 
 const propTypes = {
     // The ID of the report for this link

@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 
 // import {Beforeunload} from 'react-beforeunload';
 import SignInPage from './page/SignInPage';
-import HomePage from './page/HomePage/HomePage';
+import HomePage from './page/home/HomePage';
 import Ion from './lib/Ion';
 import * as ActiveClientManager from './lib/ActiveClientManager';
 import {verifyAuthToken} from './lib/actions/ActionsSession';

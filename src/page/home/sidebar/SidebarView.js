@@ -6,18 +6,18 @@ import {
     Linking
 } from 'react-native';
 import PropTypes from 'prop-types';
-import Text from '../../components/Text';
-import {signOut} from '../../lib/actions/ActionsSession';
-import {fetch as getPersonalDetails} from '../../lib/actions/ActionsPersonalDetails';
-import styles, {getSafeAreaMargins} from '../../style/StyleSheet';
-import WithIon from '../../components/WithIon';
-import IONKEYS from '../../IONKEYS';
-import {fetchAll} from '../../lib/actions/ActionsReport';
+import Text from '../../../components/Text';
+import {signOut} from '../../../lib/actions/ActionsSession';
+import {fetch as getPersonalDetails} from '../../../lib/actions/ActionsPersonalDetails';
+import styles, {getSafeAreaMargins} from '../../../style/StyleSheet';
+import WithIon from '../../../components/WithIon';
+import IONKEYS from '../../../IONKEYS';
+import {fetchAll} from '../../../lib/actions/ActionsReport';
 import SidebarLink from './SidebarLink';
-import logo from '../../../assets/images/expensify-logo_reversed.png';
-import PageTitleUpdater from '../../lib/PageTitleUpdater';
-import Ion from '../../lib/Ion';
-import Anchor from '../../components/Anchor';
+import logo from '../../../../assets/images/expensify-logo_reversed.png';
+import PageTitleUpdater from '../../../lib/PageTitleUpdater/index';
+import Ion from '../../../lib/Ion';
+import Anchor from '../../../components/Anchor';
 
 const propTypes = {
     // Toggles the hamburger menu open and closed
