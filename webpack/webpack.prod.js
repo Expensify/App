@@ -1,3 +1,5 @@
+import CustomVersionFilePlugin from './CustomVersionFilePlugin';
+
 const path = require('path');
 const webpack = require('webpack');
 const {merge} = require('webpack-merge');
@@ -12,6 +14,8 @@ module.exports = merge(common, {
     plugins: [
         new webpack.DefinePlugin({
             __REACT_WEB_CONFIG__: JSON.stringify(env),
-        })
+        }),
+
+        new CustomVersionFilePlugin(),
     ],
 });
