@@ -29,33 +29,51 @@ const defaultProps = {
     reports: {},
 };
 
-const SidebarLinks = ({reports, onLinkClick}) => {
-    // Updates the page title to indicate there are unread reports
-    PageTitleUpdater(_.any(reports, report => report.hasUnread));
+class SidebarLinks extends React.Component {
+    constructor(props) {
+        super(props);
 
-    return (
-        <View style={[styles.sidebarListContainer]}>
-            <ChatSwitcherView />
-            <View style={[styles.sidebarListItem]}>
-                <Text style={[styles.sidebarListHeader]}>
-                    Chats
-                </Text>
-            </View>
-            {_.map(reports, report => (
-                <SidebarLink
-                    key={report.reportID}
-                    reportID={report.reportID}
-                    reportName={report.reportName}
-                    onLinkClick={onLinkClick}
+        this.state = {
+            areReportLinksVisible: true,
+        };
+    }
+
+    render() {
+        const {reports, onLinkClick} = this.props;
+
+        // Updates the page title to indicate there are unread reports
+        PageTitleUpdater(_.any(reports, report => report.hasUnread));
+
+        return (
+            <View style={[styles.sidebarListContainer]}>
+                <ChatSwitcherView
+                    onBlur={() => this.setState({areReportLinksVisible: true})}
+                    onFocus={() => this.setState({areReportLinksVisible: false})}
                 />
-            ))}
-        </View>
-    );
-};
+                {this.state.areReportLinksVisible && (
+                    <>
+                        <View style={[styles.sidebarListItem]}>
+                            <Text style={[styles.sidebarListHeader]}>
+                                Chats
+                            </Text>
+                        </View>
+                        {_.map(reports, report => (
+                            <SidebarLink
+                                key={report.reportID}
+                                reportID={report.reportID}
+                                reportName={report.reportName}
+                                onLinkClick={onLinkClick}
+                            />
+                        ))}
+                    </>
+                )}
+            </View>
+        );
+    }
+}
 
 SidebarLinks.propTypes = propTypes;
 SidebarLinks.defaultProps = defaultProps;
-SidebarLinks.displayName = 'SidebarLinks';
 
 export default WithIon({
     reports: {
