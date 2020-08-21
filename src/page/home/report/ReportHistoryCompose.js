@@ -81,7 +81,6 @@ class ReportHistoryCompose extends React.Component {
                         multiline
                         textAlignVertical="top"
                         placeholder="Write something..."
-                        placeholderTextColor="#7D8B8F"
                         placeholderTextColor={colors.textSupporting}
                         onChangeText={this.updateComment}
                         onKeyPress={this.triggerSubmitShortcut}
