@@ -10,7 +10,7 @@ import Text from '../../components/Text';
 import {signOut} from '../../lib/actions/ActionsSession';
 import {fetch as getPersonalDetails} from '../../lib/actions/ActionsPersonalDetails';
 import styles, {getSafeAreaMargins} from '../../style/StyleSheet';
-import WithIon from '../../components/WithIon';
+import withIon from '../../components/withIon';
 import IONKEYS from '../../IONKEYS';
 import {fetchAll} from '../../lib/actions/ActionsReport';
 import SidebarLink from './SidebarLink';
@@ -147,7 +147,7 @@ class SidebarView extends React.Component {
 SidebarView.propTypes = propTypes;
 SidebarView.defaultProps = defaultProps;
 
-export default WithIon({
+export default withIon({
     // Map this.props.userDisplayName to the personal details key in the store and bind it to the displayName property
     // and load it with data from getPersonalDetails()
     userDisplayName: {

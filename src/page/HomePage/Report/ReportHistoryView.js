@@ -6,12 +6,13 @@ import lodashGet from 'lodash.get';
 import Text from '../../../components/Text';
 import Ion from '../../../lib/Ion';
 import {fetchHistory, updateLastReadActionID} from '../../../lib/actions/ActionsReport';
-import WithIon from '../../../components/WithIon';
+import withIon from '../../../components/withIon';
 import IONKEYS from '../../../IONKEYS';
 import ReportHistoryItem from './ReportHistoryItem';
 import styles from '../../../style/StyleSheet';
 import {withRouter} from '../../../lib/Router';
 import ReportHistoryPropsTypes from './ReportHistoryPropsTypes';
+import compose from '../../../lib/ComposeUtil';
 
 const propTypes = {
     // The ID of the report actions will be created for
@@ -163,16 +164,19 @@ ReportHistoryView.propTypes = propTypes;
 ReportHistoryView.defaultProps = defaultProps;
 
 const key = `${IONKEYS.REPORT_HISTORY}_%DATAFROMPROPS%`;
-export default withRouter(WithIon({
-    authToken: {
-        key: IONKEYS.SESSION,
-        path: 'authToken',
-        prefillWithKey: IONKEYS.SESSION,
-    },
-    reportHistory: {
-        key,
-        loader: fetchHistory,
-        loaderParams: ['%DATAFROMPROPS%'],
-        pathForProps: 'reportID',
-    },
-})(ReportHistoryView));
+export default compose(
+    withRouter(),
+    withIon({
+        authToken: {
+            key: IONKEYS.SESSION,
+            path: 'authToken',
+            prefillWithKey: IONKEYS.SESSION,
+        },
+        reportHistory: {
+            key,
+            loader: fetchHistory,
+            loaderParams: ['%DATAFROMPROPS%'],
+            pathForProps: 'reportID',
+        },
+    }),
+)(ReportHistoryView);

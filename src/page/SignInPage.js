@@ -9,10 +9,11 @@ import {
     View,
 } from 'react-native';
 import PropTypes from 'prop-types';
+import compose from '../lib/ComposeUtil';
 import {withRouter} from '../lib/Router';
 import {signIn} from '../lib/actions/ActionsSession';
 import IONKEYS from '../IONKEYS';
-import WithIon from '../components/WithIon';
+import withIon from '../components/withIon';
 import styles from '../style/StyleSheet';
 import logo from '../../assets/images/expensify-logo_reversed.png';
 
@@ -128,7 +129,10 @@ class App extends Component {
 App.propTypes = propTypes;
 App.defaultProps = defaultProps;
 
-export default withRouter(WithIon({
-    // Bind this.props.error to the error in the session object
-    error: {key: IONKEYS.SESSION, path: 'error', defaultValue: null},
-})(App));
+export default compose(
+    withRouter(),
+    withIon({
+        // Bind this.props.error to the error in the session object
+        error: {key: IONKEYS.SESSION, path: 'error', defaultValue: null},
+    })
+)(App);

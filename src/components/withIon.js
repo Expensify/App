@@ -21,7 +21,7 @@ function getDisplayName(component) {
 
 export default function (mapIonToState) {
     return (WrappedComponent) => {
-        class WithIon extends React.Component {
+        class withIon extends React.Component {
             constructor(props) {
                 super(props);
 
@@ -145,7 +145,7 @@ export default function (mapIonToState) {
             }
         }
 
-        WithIon.displayName = `WithIon(${getDisplayName(WrappedComponent)})`;
-        return WithIon;
+        withIon.displayName = `WithIon(${getDisplayName(WrappedComponent)})`;
+        return withIon;
     };
 }
