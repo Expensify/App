@@ -48,14 +48,22 @@ const appShouldRefreshAsync = async () => {
  * Resets the timer to periodically check if the app should refresh,
  * and checks the remote hash for changes.
  */
-const checkShouldUpdateAndResetTimer = async () => {
+
+/**
+ * Resets the timer to periodically check if the app should refresh,
+ * and checks the remote hash for changes.
+ *
+ * @param {Number} timer
+ */
+const checkShouldUpdateAndResetTimer = async (timer) => {
     // Reset timeout
-    const timer = Ion.get(IONKEYS.REFRESHER_TIMER);
     clearInterval(timer);
-    setInterval(appShouldRefreshAsync, REFRESH_TIMEOUT);
+    const newTimer = setInterval(appShouldRefreshAsync, REFRESH_TIMEOUT);
 
     // Compare hashes and update Ion app_shouldRefresh
     appShouldRefreshAsync();
+
+    return newTimer;
 };
 
 /**
@@ -70,9 +78,11 @@ const init = async () => {
     getStoredVersionAsync();
 
     // Check periodically if we should refresh the app
-    Ion.set(IONKEYS.REFRESHER_TIMER, setInterval(appShouldRefreshAsync, REFRESH_TIMEOUT));
+    let timer = setInterval(appShouldRefreshAsync, REFRESH_TIMEOUT);
 
-    window.addEventListener(EVENT_VISIBILITY_CHANGE, checkShouldUpdateAndResetTimer);
+    window.addEventListener(EVENT_VISIBILITY_CHANGE, () => {
+        timer = checkShouldUpdateAndResetTimer(timer);
+    });
 };
 
 export default init;

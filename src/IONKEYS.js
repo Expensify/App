@@ -14,7 +14,6 @@ export default {
     MY_PERSONAL_DETAILS: 'my_personal_details',
     NETWORK: 'network',
     PERSONAL_DETAILS: 'personal_details',
-    REFRESHER_TIMER: 'refresherTimer',
     REPORT: 'report',
     REPORT_ACTION: 'reportAction',
     REPORT_HISTORY: 'report_history',
