@@ -20,14 +20,14 @@ const propTypes = {
     /* Ion Props */
 
     // Array of report history items for this report
-    reportHistory: PropTypes.arrayOf(PropTypes.shape(ReportHistoryPropsTypes)),
+    reportHistory: PropTypes.PropTypes.objectOf(PropTypes.shape(ReportHistoryPropsTypes)),
 
     // Current user authToken
     authToken: PropTypes.string,
 };
 
 const defaultProps = {
-    reportHistory: [],
+    reportHistory: {},
     authToken: '',
 };
 
@@ -85,7 +85,7 @@ class ReportHistoryView extends React.Component {
      * action when scrolled
      */
     recordMaxAction() {
-        const reportHistory = lodashGet(this.props, 'reportHistory', []);
+        const reportHistory = lodashGet(this.props, 'reportHistory', {});
         const maxVisibleSequenceNumber = _.chain(reportHistory)
             .pluck('sequenceNumber')
             .max()
@@ -127,7 +127,7 @@ class ReportHistoryView extends React.Component {
     }
 
     render() {
-        if (this.props.reportHistory.length === 0) {
+        if (!_.size(this.props.reportHistory)) {
             return (
                 <View style={[styles.chatContent, styles.chatContentEmpty]}>
                     <Text style={[styles.textP]}>Be the first person to comment!</Text>
