@@ -36,10 +36,10 @@ const propTypes = {
     avatarURL: PropTypes.string,
 
     // List of reports
-    reports: PropTypes.arrayOf(PropTypes.shape({
-        hasUnread: PropTypes.bool,
-        reportName: PropTypes.string,
+    reports: PropTypes.objectOf(PropTypes.shape({
         reportID: PropTypes.number,
+        reportName: PropTypes.string,
+        hasUnread: PropTypes.bool,
     })),
 
     // Is this person offline?
@@ -47,9 +47,9 @@ const propTypes = {
 };
 
 const defaultProps = {
-    userDisplayName: '',
+    userDisplayName: null,
     avatarURL: '',
-    reports: [],
+    reports: {},
     isOffline: false,
 };
 

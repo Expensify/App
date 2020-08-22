@@ -16,18 +16,18 @@ const propTypes = {
     /* Ion Props */
 
     // List of reports to display
-    reports: PropTypes.arrayOf(PropTypes.shape({
+    reports: PropTypes.objectOf(PropTypes.shape({
         reportID: PropTypes.number,
     })),
 };
 
 const defaultProps = {
-    reports: [],
+    reports: {},
 };
 
 class MainView extends React.Component {
     render() {
-        if (this.props.reports.length === 0) {
+        if (!_.size(this.props.reports)) {
             return null;
         }
 
