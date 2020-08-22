@@ -22,7 +22,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    reportName: '',
+    reportName: null,
 };
 
 const HeaderView = props => (
