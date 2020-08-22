@@ -3,7 +3,7 @@ import {
     View,
     TextInput,
     TouchableOpacity,
-    Text,
+    Text, Image,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -198,6 +198,7 @@ class ChatSwitcherView extends React.Component {
                 text: p.displayName,
                 value: p.login,
                 valueToSearch: p.displayNameWithEmail.replace(new RegExp(/&nbsp;/g), ''),
+                image: p.avatarURL,
             }))
             .value();
 
@@ -272,10 +273,22 @@ class ChatSwitcherView extends React.Component {
                         key={option.value}
                         onPress={() => this.selectOption(option)}
                     >
-                        <Text>
-                            {option.focused && '> '}
-                            {option.text}
-                        </Text>
+                        <View
+                            style={[
+                                styles.flexRow,
+                                styles.mb2,
+                                styles.p1,
+                                option.focused ? styles.chatViewItemFocused : null
+                            ]}
+                        >
+                            <Image
+                                source={{uri: option.image}}
+                                style={[styles.chatViewImage]}
+                            />
+                            <Text style={[option.focused ? styles.sidebarLinkActiveText : styles.sidebarLinkText]}>
+                                {option.text}
+                            </Text>
+                        </View>
                     </TouchableOpacity>
                 ))}
             </>

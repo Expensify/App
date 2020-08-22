@@ -521,8 +521,20 @@ const styles = {
 
     hamburgerOpen: {
         width: 300,
-    }
+    },
 
+
+    chatViewImage: {
+        borderRadius: 15,
+        height: 30,
+        width: 30,
+    },
+    chatViewItemText: {
+        color: colors.text,
+    },
+    chatViewItemFocused: {
+        backgroundColor: colors.green,
+    },
 };
 
 const webViewStyles = {
