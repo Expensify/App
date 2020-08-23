@@ -7,7 +7,7 @@ import IONKEYS from '../../IONKEYS';
 import styles from '../../style/StyleSheet';
 import withIon from '../../components/withIon';
 import PressableLink from '../../components/PressableLink';
-import compose from '../../lib/ComposeUtil';
+import compose from '../../lib/compose';
 
 const propTypes = {
     // The ID of the report for this link

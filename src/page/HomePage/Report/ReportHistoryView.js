@@ -12,7 +12,7 @@ import ReportHistoryItem from './ReportHistoryItem';
 import styles from '../../../style/StyleSheet';
 import {withRouter} from '../../../lib/Router';
 import ReportHistoryPropsTypes from './ReportHistoryPropsTypes';
-import compose from '../../../lib/ComposeUtil';
+import compose from '../../../lib/compose';
 
 const propTypes = {
     // The ID of the report actions will be created for
