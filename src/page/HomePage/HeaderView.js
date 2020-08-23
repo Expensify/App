@@ -7,7 +7,7 @@ import IONKEYS from '../../IONKEYS';
 import withIon from '../../components/withIon';
 import {withRouter} from '../../lib/Router';
 import LHNToggle from '../../../assets/images/icon-menu-toggle.png';
-import compose from '../../lib/ComposeUtil';
+import compose from '../../lib/compose';
 
 const propTypes = {
     // Toggles the hamburger menu open and closed

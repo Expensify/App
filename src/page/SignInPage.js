@@ -9,7 +9,7 @@ import {
     View,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import compose from '../lib/ComposeUtil';
+import compose from '../lib/compose';
 import {withRouter} from '../lib/Router';
 import {signIn} from '../lib/actions/ActionsSession';
 import IONKEYS from '../IONKEYS';

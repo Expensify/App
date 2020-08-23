@@ -7,7 +7,7 @@ import withIon from '../../components/withIon';
 import IONKEYS from '../../IONKEYS';
 import styles from '../../style/StyleSheet';
 import {withRouter} from '../../lib/Router';
-import compose from '../../lib/ComposeUtil';
+import compose from '../../lib/compose';
 
 const propTypes = {
     // This comes from withRouter
