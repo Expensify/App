@@ -1,3 +1,5 @@
+import {StyleSheet} from 'react-native';
+
 // We place items a percentage to the safe area on the top or bottom of the screen
 const safeInsertPercentage = 0.7;
 
@@ -14,7 +16,7 @@ const colors = {
     red: '#E84A3B',
 };
 
-const styles = {
+const styles = StyleSheet.create({
     // Utility classes
     mr1: {
         marginRight: 4,
@@ -480,7 +482,6 @@ const styles = {
 
     textInputCompose: {
         borderWidth: 0,
-        outline: 0,
         height: 'auto',
         minHeight: 38,
         padding: 10,
@@ -523,7 +524,7 @@ const styles = {
         width: 300,
     }
 
-};
+});
 
 const webViewStyles = {
     tagStyles: {

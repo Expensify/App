@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {View, StyleSheet} from 'react-native';
 import Text from '../../components/Text';
 import {withRouter} from '../../lib/Router';
 import IONKEYS from '../../IONKEYS';
@@ -42,7 +42,7 @@ const SidebarLink = (props) => {
         ? [textActiveStyle, styles.sidebarLinkTextUnread] : [textActiveStyle];
     return (
         <View style={[styles.sidebarListItem, linkWrapperActiveStyle]}>
-            <PressableLink onClick={props.onLinkClick} to={`/${props.reportID}`} style={linkActiveStyle}>
+            <PressableLink onClick={props.onLinkClick} to={`/${props.reportID}`} style={StyleSheet.flatten(linkActiveStyle)}>
                 <View style={[styles.sidebarLinkInner]}>
                     <Text numberOfLines={1} style={textActiveUnreadStyle}>
                         {props.reportName}
