@@ -181,7 +181,9 @@ class ChatSwitcherView extends React.Component {
             new RegExp(Str.escapeForRegExp(value), 'i'),
         ];
 
-        // Use a Set so that duplicate values are automatically removed
+        // Because we want to regexes above to be listed in a specific order, the for loop below will end up adding
+        // duplicate options to the list (because one option can match multiple regex patterns).
+        // A Set is used here so that duplicate values are automatically removed.
         const matches = new Set();
         const searchOptions = _.chain(this.props.personalDetails)
             .values()
