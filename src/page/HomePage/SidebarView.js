@@ -18,7 +18,7 @@ import logo from '../../../assets/images/expensify-logo_reversed.png';
 import PageTitleUpdater from '../../lib/PageTitleUpdater';
 import Ion from '../../lib/Ion';
 import Anchor from '../../components/Anchor';
-import InsertPropTypes from '../home/sidebar/InsetPropTypes';
+import InsertPropTypes from '../SafeAreaInsetPropTypes';
 
 const propTypes = {
     // Toggles the hamburger menu open and closed

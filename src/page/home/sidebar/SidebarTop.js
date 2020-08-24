@@ -2,11 +2,11 @@ import React from 'react';
 import {Image, View} from 'react-native';
 import styles from '../../../style/StyleSheet';
 import logo from '../../../../assets/images/expensify-logo_reversed.png';
-import InsertPropTypes from './InsetPropTypes';
+import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
 
 const propTypes = {
     // Safe area insets required for mobile devices margins
-    insets: InsertPropTypes.isRequired,
+    insets: SafeAreaInsetPropTypes.isRequired,
 };
 
 const SidebarTop = ({insets}) => (
