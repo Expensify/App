@@ -2,7 +2,7 @@ import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import Ion from '../Ion';
-import {queueRequest} from '../Network';
+import {queueRequest, onReconnect} from '../Network';
 import IONKEYS from '../../IONKEYS';
 import CONFIG from '../../CONFIG';
 import * as pusher from '../Pusher/pusher';
@@ -134,7 +134,8 @@ function fetchAll() {
             });
 
             return promiseAllSettled(ionPromises);
-        });
+        })
+        .then(() => fetchedReports);
 }
 
 /**
@@ -243,6 +244,11 @@ function updateLastReadActionID(accountID, reportID, sequenceNumber) {
             sequenceNumber,
         }));
 }
+
+// When the app reconnects from being offline, fetch all of the reports and their history
+onReconnect(() => {
+    fetchAll().then(reports => _.each(reports, report => fetchHistory(report.reportID)));
+});
 
 export {
     fetchAll,

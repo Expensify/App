@@ -3,7 +3,7 @@ import Ion from '../Ion';
 import {request} from '../Network';
 import IONKEYS from '../../IONKEYS';
 import CONFIG from '../../CONFIG';
-import redirectToSignIn from './ActionsSignInRedirect';
+import redirectToSignIn from './SignInRedirect';
 
 /**
  * Sign in with the API
