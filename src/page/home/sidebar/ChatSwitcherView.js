@@ -92,6 +92,16 @@ class ChatSwitcherView extends React.Component {
     }
 
     /**
+     * Trigger the on blur callback from the props if there is no search value present
+     */
+    triggerOnBlurCallback() {
+        if (this.state.search === '') {
+            return;
+        }
+        this.props.onBlur();
+    }
+
+    /**
      * Redirect to the chat that was selected
      *
      * @param {object} option
@@ -218,7 +228,7 @@ class ChatSwitcherView extends React.Component {
                         ref={el => this.textInput = el}
                         style={[styles.textInput, styles.textInputReversed, styles.flex1]}
                         value={this.state.search}
-                        onBlur={() => this.state.search === '' && this.props.onBlur()}
+                        onBlur={this.triggerOnBlurCallback}
                         onChangeText={this.updateSearch}
                         onFocus={() => {
                             this.props.onFocus();
