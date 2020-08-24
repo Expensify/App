@@ -8,6 +8,7 @@ import CONFIG from '../../CONFIG';
 import * as pusher from '../Pusher/pusher';
 import promiseAllSettled from '../promiseAllSettled';
 import ExpensiMark from '../ExpensiMark';
+import Notification from '../Notification';
 
 /**
  * Updates a report in the store with a new report action
@@ -45,8 +46,31 @@ function updateReportWithNewAction(reportID, reportAction) {
         }))
 
         // Put the report history back into Ion
-        .then((reportHistory) => {
-            Ion.set(`${IONKEYS.REPORT_HISTORY}_${reportID}`, reportHistory);
+        .then(reportHistory => Ion.set(`${IONKEYS.REPORT_HISTORY}_${reportID}`, reportHistory))
+
+        // Check to see if we need to show a notification for this report
+        .then(async () => {
+            // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
+            const email = await Ion.get(IONKEYS.SESSION, 'email');
+            if (reportAction.actorEmail === email) {
+                return;
+            }
+
+            const currentUrl = await Ion.get(IONKEYS.CURRENT_URL);
+            const currentReportID = Number(lodashGet(currentUrl.split('/'), [1], 0));
+
+            // If we are currently viewing this report do not show a notification.
+            if (reportID === currentReportID) {
+                return;
+            }
+
+            Notification.showCommentNotification({
+                reportAction,
+                onClick: () => {
+                    // Navigate to this report onClick
+                    Ion.set(IONKEYS.APP_REDIRECT_TO, `/${reportID}`);
+                }
+            });
         });
 }
 
