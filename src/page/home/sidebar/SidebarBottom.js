@@ -4,9 +4,9 @@ import PropTypes from 'prop-types';
 import styles, {getSafeAreaMargins} from '../../../style/StyleSheet';
 import Text from '../../../components/Text';
 import AppLinks from './AppLinks';
-import {signOut} from '../../../lib/actions/ActionsSession';
+import {signOut} from '../../../lib/actions/Session';
 import IONKEYS from '../../../IONKEYS';
-import {fetch as getPersonalDetails} from '../../../lib/actions/ActionsPersonalDetails';
+import {fetch as getPersonalDetails} from '../../../lib/actions/PersonalDetails';
 import WithIon from '../../../components/WithIon';
 
 const propTypes = {

@@ -7,7 +7,7 @@ import Text from '../../../components/Text';
 import SidebarLink from './SidebarLink';
 import WithIon from '../../../components/WithIon';
 import IONKEYS from '../../../IONKEYS';
-import {fetchAll} from '../../../lib/actions/ActionsReport';
+import {fetchAll} from '../../../lib/actions/Report';
 import Ion from '../../../lib/Ion';
 import PageTitleUpdater from '../../../lib/PageTitleUpdater/index.native';
 import ChatSwitcherView from './ChatSwitcherView';
