@@ -5,14 +5,14 @@ import styles from '../../../style/StyleSheet';
 import SidebarTop from './SidebarTop';
 import SidebarBottom from './SidebarBottom';
 import SidebarLinks from './SidebarLinks';
+import InsertPropTypes from './InsetPropTypes';
 
 const propTypes = {
     // Toggles the hamburger menu open and closed
     onLinkClick: PropTypes.func.isRequired,
 
     // Safe area insets required for mobile devices margins
-    // eslint-disable-next-line react/forbid-prop-types
-    insets: PropTypes.object.isRequired,
+    insets: InsertPropTypes.isRequired,
 };
 
 const SidebarView = ({insets, onLinkClick}) => (

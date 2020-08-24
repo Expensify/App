@@ -18,14 +18,14 @@ import logo from '../../../assets/images/expensify-logo_reversed.png';
 import PageTitleUpdater from '../../lib/PageTitleUpdater';
 import Ion from '../../lib/Ion';
 import Anchor from '../../components/Anchor';
+import InsertPropTypes from '../home/sidebar/InsetPropTypes';
 
 const propTypes = {
     // Toggles the hamburger menu open and closed
     onLinkClick: PropTypes.func.isRequired,
 
     // Safe area insets required for mobile devices margins
-    // eslint-disable-next-line react/forbid-prop-types
-    insets: PropTypes.object.isRequired,
+    insets: InsertPropTypes.isRequired,
 
     /* Ion Props */
 

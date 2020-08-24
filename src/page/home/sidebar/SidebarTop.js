@@ -1,13 +1,12 @@
 import React from 'react';
 import {Image, View} from 'react-native';
-import PropTypes from 'prop-types';
 import styles from '../../../style/StyleSheet';
 import logo from '../../../../assets/images/expensify-logo_reversed.png';
+import InsertPropTypes from './InsetPropTypes';
 
 const propTypes = {
     // Safe area insets required for mobile devices margins
-    // eslint-disable-next-line react/forbid-prop-types
-    insets: PropTypes.object.isRequired,
+    insets: InsertPropTypes.isRequired,
 };
 
 const SidebarTop = ({insets}) => (

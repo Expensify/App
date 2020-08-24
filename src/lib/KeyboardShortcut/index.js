@@ -12,10 +12,10 @@ function bindHandlerToKeyupEvent(event) {
     }
 
     // The active callback is the last element in the array
-    let cb = events[event.keyCode];
-    cb = cb[cb.length - 1];
+    const eventCallbacks = events[event.keyCode];
+    const callback = eventCallbacks[eventCallbacks.length - 1];
 
-    const pressedModifiers = _.all(cb.modifiers, (modifier) => {
+    const pressedModifiers = _.all(callback.modifiers, (modifier) => {
         if (modifier === 'shift' && !event.shiftKey) {
             return false;
         }
@@ -36,7 +36,7 @@ function bindHandlerToKeyupEvent(event) {
     }
 
     // If configured to do so, prevent input text control to trigger this event
-    if (!cb.captureOnInputs && (
+    if (!callback.captureOnInputs && (
         event.target.nodeName === 'INPUT'
         || event.target.nodeName === 'TEXTAREA'
         || event.target.contentEditable === 'true'
@@ -44,8 +44,8 @@ function bindHandlerToKeyupEvent(event) {
         return;
     }
 
-    if (_.isFunction(cb.callback)) {
-        cb.callback(event);
+    if (_.isFunction(callback.callback)) {
+        callback.callback(event);
     }
     event.preventDefault();
 }
