@@ -201,9 +201,7 @@ class ChatSwitcherView extends React.Component {
                     const option = searchOptions[j];
                     const isMatch = matchRegexes[i].test(option.valueToSearch);
 
-                    // Don't include the disabled options that match the regex unless we specified we want them to show.
-                    // If we want them to show then add them whether they match the regex or not.
-                    // Make sure we don't include the same option twice
+                    // Make sure we don't include the same option twice (automatically handled be using a `Set`)
                     if (isMatch) {
                         matches.add(option);
                     }
