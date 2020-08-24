@@ -8,11 +8,11 @@ import {signOut} from '../../../lib/actions/Session';
 import IONKEYS from '../../../IONKEYS';
 import {fetch as getPersonalDetails} from '../../../lib/actions/PersonalDetails';
 import WithIon from '../../../components/WithIon';
-import InsertPropTypes from './InsetPropTypes';
+import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
 
 const propTypes = {
     // Safe area insets required for mobile devices margins
-    insets: InsertPropTypes.isRequired,
+    insets: SafeAreaInsetPropTypes.isRequired,
 
     /* Ion Props */
 
