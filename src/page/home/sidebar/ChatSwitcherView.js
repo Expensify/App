@@ -45,6 +45,7 @@ class ChatSwitcherView extends React.Component {
         this.state = {
             search: '',
             options: [],
+            focusedIndex: 0,
         };
     }
 
@@ -82,6 +83,7 @@ class ChatSwitcherView extends React.Component {
         this.setState({
             search: '',
             options: [],
+            focusedIndex: 0,
         }, () => {
             this.textInput.blur();
             this.props.onBlur();
@@ -102,63 +104,42 @@ class ChatSwitcherView extends React.Component {
     }
 
     /**
-     * Swaps the focused index from {oldFocusedIndex} to {newFocusedIndex}
-     *
-     * @param {number} oldFocusedIndex
-     * @param {number} newFocusedIndex
-     */
-    switchFocusedIndex(oldFocusedIndex, newFocusedIndex) {
-        this.setState((prevState) => {
-            const newOptions = [...prevState.options];
-            newOptions[oldFocusedIndex].focused = false;
-            newOptions[newFocusedIndex].focused = true;
-
-            return {
-                options: newOptions
-            };
-        });
-    }
-
-    /**
      * When arrow keys are pressed, the focused option needs to change
      * When enter key is pressed, the highlighted option is selected
      *
      * @param {SyntheticEvent} e
      */
     handleKeyPress(e) {
-        let oldFocusedIndex;
         let newFocusedIndex;
 
         switch (e.key) {
             case 'Enter':
                 // Select the focused option
-                this.selectOption(_.findWhere(this.state.options, {focused: true}));
+                this.selectOption(this.state.options[this.state.focusedIndex]);
                 e.preventDefault();
                 break;
 
             case 'ArrowDown':
-                oldFocusedIndex = _.findIndex(this.state.options, o => o.focused);
-                newFocusedIndex = oldFocusedIndex + 1;
+                newFocusedIndex = this.state.focusedIndex + 1;
 
                 // Wrap around to the top of the list
                 if (newFocusedIndex > this.state.options.length - 1) {
                     newFocusedIndex = 0;
                 }
 
-                this.switchFocusedIndex(oldFocusedIndex, newFocusedIndex);
+                this.setState({focusedIndex: newFocusedIndex});
                 e.preventDefault();
                 break;
 
             case 'ArrowUp':
-                oldFocusedIndex = _.findIndex(this.state.options, o => o.focused);
-                newFocusedIndex = oldFocusedIndex - 1;
+                newFocusedIndex = this.state.focusedIndex - 1;
 
                 // Wrap around to the bottom of the list
                 if (newFocusedIndex < 0) {
                     newFocusedIndex = this.state.options.length - 1;
                 }
 
-                this.switchFocusedIndex(oldFocusedIndex, newFocusedIndex);
+                this.setState({focusedIndex: newFocusedIndex});
                 e.preventDefault();
                 break;
 
@@ -191,7 +172,7 @@ class ChatSwitcherView extends React.Component {
         ];
 
         // Use a Set so that duplicate values are automatically removed
-        let matches = new Set();
+        const matches = new Set();
         const searchOptions = _.chain(this.props.personalDetails)
             .values()
             .map(p => ({
@@ -224,20 +205,8 @@ class ChatSwitcherView extends React.Component {
             }
         }
 
-        matches = Array.from(matches);
-
-        const options = _(matches).map(option => ({
-            focused: false,
-            ...option
-        }));
-
-        // Set the first option to be focused
-        if (options.length) {
-            options[0].focused = true;
-        }
-
         this.setState({
-            options,
+            options: Array.from(matches),
         });
     }
 
@@ -268,7 +237,7 @@ class ChatSwitcherView extends React.Component {
                     </TouchableOpacity>
                 </View>
 
-                {this.state.options.length > 0 && _.map(this.state.options, option => (
+                {this.state.options.length > 0 && _.map(this.state.options, (option, i) => (
                     <TouchableOpacity
                         key={option.value}
                         onPress={() => this.selectOption(option)}
@@ -278,14 +247,19 @@ class ChatSwitcherView extends React.Component {
                                 styles.flexRow,
                                 styles.mb2,
                                 styles.p1,
-                                option.focused ? styles.chatViewItemFocused : null
+                                i === this.state.focusedIndex ? styles.chatViewItemFocused : null
                             ]}
                         >
                             <Image
                                 source={{uri: option.image}}
                                 style={[styles.chatViewImage]}
                             />
-                            <Text style={[option.focused ? styles.sidebarLinkActiveText : styles.sidebarLinkText]}>
+                            <Text
+                                style={[i === this.state.focusedIndex
+                                    ? styles.sidebarLinkActiveText
+                                    : styles.sidebarLinkText
+                                ]}
+                            >
                                 {option.text}
                             </Text>
                         </View>
