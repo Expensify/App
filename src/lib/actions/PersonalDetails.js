@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import Ion from '../Ion';
-import {queueRequest} from '../Network';
+import {onReconnect, queueRequest} from '../Network';
 import IONKEYS from '../../IONKEYS';
 import md5 from '../md5';
 import CONST from '../../CONST';
@@ -105,6 +105,9 @@ function fetchTimezone() {
     setTimeout(fetchTimezone, 1000 * 60 * 30);
     return requestPromise;
 }
+
+// When the app reconnects from being offline, fetch all of the personal details
+onReconnect(fetch);
 
 export {
     fetch,
