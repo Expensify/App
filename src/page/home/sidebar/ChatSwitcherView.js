@@ -66,7 +66,7 @@ class ChatSwitcherView extends React.Component {
             if (this.textInput) {
                 this.textInput.focus();
             }
-        }, ['meta']);
+        }, ['meta'], true);
     }
 
     /**
