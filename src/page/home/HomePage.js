@@ -14,7 +14,7 @@ import Sidebar from './sidebar/SidebarView';
 import Main from './MainView';
 import Ion from '../../lib/Ion';
 import IONKEYS from '../../IONKEYS';
-import {initPusher} from '../../lib/actions/ActionsReport';
+import {initPusher} from '../../lib/actions/Report';
 import * as pusher from '../../lib/Pusher/pusher';
 
 const windowSize = Dimensions.get('window');
