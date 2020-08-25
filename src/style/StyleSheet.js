@@ -205,8 +205,8 @@ const styles = {
     },
 
     sidebarHeaderLogo: {
-        height: 21,
-        width: 143,
+        height: 40,
+        width: 40,
     },
 
     sidebarFooter: {
