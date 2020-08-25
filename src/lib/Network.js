@@ -201,13 +201,19 @@ function request(command, data, type = 'post') {
                 // trying to authenticate with the login credentials we created after the initial authentication, and
                 // failing, so we need the user to sign in again with their expensify credentials again, which they can
                 // do from the sign in page
-                if (!command.useExpensifyLogin && response.jsonCode !== 200) {
+                if (!data.useExpensifyLogin && response.jsonCode !== 200) {
                     return Ion.multiSet({
                         [IONKEYS.CREDENTIALS]: {},
                         [IONKEYS.SESSION]: {error: response.message},
                     })
                         .then(redirectToSignIn);
                 }
+
+                // Did not authenticate throw something
+                if (response.jsonCode !== 200) {
+                    throw new Error(response.message);
+                }
+
                 return setSuccessfulSignInData(response, data.exitTo);
             })
             .then((response) => {
@@ -238,6 +244,11 @@ function request(command, data, type = 'post') {
                     })
                         .then(response => Ion.get(IONKEYS.CURRENT_URL).then((exitTo) => {
                             reauthenticating = false;
+
+                            if (response.jsonCode !== 200) {
+                                throw new Error(response.message);
+                            }
+
                             return setSuccessfulSignInData(response, exitTo.substring(1));
                         }))
                         .then(() => xhr(command, data, type))
