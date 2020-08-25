@@ -76,6 +76,10 @@ class SidebarView extends React.Component {
     render() {
         const reports = this.props.reports;
         this.updateUnreadReportIndicator();
+        const indicatorStyles = [
+            styles.statusIndicator,
+            this.props.isOffline ? styles.statusIndicatorOffline : styles.statusIndicatorOnline
+        ];
         return (
             <View style={[styles.flex1, styles.sidebar]}>
                 <View style={[styles.sidebarHeader, {marginTop: this.props.insets.top}]}>
@@ -106,9 +110,7 @@ class SidebarView extends React.Component {
                             source={{uri: this.props.avatarURL}}
                             style={[styles.historyItemAvatar]}
                         />
-                        {this.props.isOffline && (
-                        <View style={[styles.statusIndicator]} />
-                        )}
+                        <View style={indicatorStyles} />
                     </View>
                     <View style={[styles.flexColumn]}>
                         {this.props.userDisplayName && (
