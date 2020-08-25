@@ -34,30 +34,34 @@ const defaultProps = {
     isOffline: false,
 };
 
-const SidebarBottom = ({myPersonalDetails, isOffline, insets}) => (
-    <View style={[styles.sidebarFooter, getSafeAreaMargins(insets)]}>
-        <View style={[styles.sidebarFooterAvatar]}>
-            <Image
-                source={{uri: myPersonalDetails.avatarURL}}
-                style={[styles.historyItemAvatar]}
-            />
-            {isOffline && (
-                <View style={[styles.statusIndicator]} />
-            )}
-        </View>
-        <View style={[styles.flexColumn]}>
-            {myPersonalDetails.userDisplayName && (
-                <Text style={[styles.sidebarFooterUsername]}>
-                    {myPersonalDetails.userDisplayName}
-                </Text>
-            )}
-            <View style={[styles.flexRow]}>
-                <AppLinks />
-                <Text style={[styles.sidebarFooterLink]} onPress={signOut}>Sign Out</Text>
+const SidebarBottom = ({myPersonalDetails, isOffline, insets}) => {
+    const indicatorStyles = [
+        styles.statusIndicator,
+        isOffline ? styles.statusIndicatorOffline : styles.statusIndicatorOnline
+    ];
+    return (
+        <View style={[styles.sidebarFooter, getSafeAreaMargins(insets)]}>
+            <View style={[styles.sidebarFooterAvatar]}>
+                <Image
+                    source={{uri: myPersonalDetails.avatarURL}}
+                    style={[styles.historyItemAvatar]}
+                />
+                <View style={indicatorStyles} />
+            </View>
+            <View style={[styles.flexColumn]}>
+                {myPersonalDetails.userDisplayName && (
+                    <Text style={[styles.sidebarFooterUsername]}>
+                        {myPersonalDetails.userDisplayName}
+                    </Text>
+                )}
+                <View style={[styles.flexRow]}>
+                    <AppLinks />
+                    <Text style={[styles.sidebarFooterLink]} onPress={signOut}>Sign Out</Text>
+                </View>
             </View>
         </View>
-    </View>
-);
+    );
+}
 
 SidebarBottom.propTypes = propTypes;
 SidebarBottom.defaultProps = defaultProps;
