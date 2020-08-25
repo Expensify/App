@@ -1,8 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import {Linking} from 'react-native';
-import Text from './Text';
+import {Linking, Text} from 'react-native';
 
 /**
  * Text based component that is passed a URL to open onPress
