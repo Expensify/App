@@ -83,7 +83,8 @@ function verifyAuthToken() {
             // have credentials to re-authenticate
             return request('Get', {returnValueList: 'account', doNotRetry: !haveCredentials}).then((data) => {
                 if (data && data.jsonCode === 200) {
-                    return Ion.merge(IONKEYS.SESSION, data);
+                    return Ion.merge(IONKEYS.SESSION, data)
+                        .then(() => Ion.set(IONKEYS.LAST_AUTHENTICATED, new Date().getTime()));
                 }
 
                 // If the auth token is bad and we didn't have credentials saved, we want them to go to the sign in page
