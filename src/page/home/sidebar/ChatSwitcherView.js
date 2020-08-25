@@ -250,7 +250,7 @@ class ChatSwitcherView extends React.Component {
     render() {
         return (
             <>
-                <View style={[styles.flexRow]}>
+                <View style={[styles.flexRow, styles.mb4]}>
                     {this.state.search === '' && (
                         <View style={[styles.mr2]}>
                             <Image
@@ -278,52 +278,55 @@ class ChatSwitcherView extends React.Component {
 
                     {this.state.search !== '' && (
                         <TouchableOpacity
-                            style={[styles.chatSwitcherClearButton]}
+                            style={[styles.chatSwitcherInputClear]}
                             onPress={this.reset}
                             underlayColor={colors.componentBG}
                         >
                             <Image
                                 resizeMode="contain"
-                                style={[styles.chatItemSubmitButtonIcon]}
+                                style={[styles.chatSwitcherInputClearIcon]}
                                 source={iconX}
                             />
                         </TouchableOpacity>
                     )}
                 </View>
 
-                {this.state.options.length > 0 && _.map(this.state.options, (option, i) => {
-                    const textStyle = i === this.state.focusedIndex
-                        ? styles.sidebarLinkActiveText
-                        : styles.sidebarLinkText;
-                    return (
-                        <TouchableOpacity
-                            key={option.login}
-                            onPress={() => this.selectOption(option)}
-                        >
-                            <View
-                                style={[
-                                    styles.flexRow,
-                                    styles.mb2,
-                                    styles.p1,
-                                    i === this.state.focusedIndex ? styles.chatViewItemFocused : null
-                                ]}
+                <View style={[styles.chatSwitcherItemList]}>
+                    {this.state.options.length > 0 && _.map(this.state.options, (option, i) => {
+                        const textStyle = i === this.state.focusedIndex
+                            ? styles.sidebarLinkActiveText
+                            : styles.sidebarLinkText;
+                        return (
+                            <TouchableOpacity
+                                key={option.login}
+                                onPress={() => this.selectOption(option)}
                             >
-                                <Image
-                                    source={{uri: option.avatarURL}}
-                                    style={[styles.chatViewImage, styles.mr2]}
-                                />
-                                <View style={[styles.flexColumn]}>
-                                    <Text style={[textStyle]}>
-                                        {option.fullName}
-                                    </Text>
-                                    <Text style={[textStyle]}>
-                                        {option.login}
-                                    </Text>
+                                <View
+                                    style={[
+                                        styles.flexRow,
+                                        styles.mb2,
+                                        styles.alignItemsCenter,
+                                        styles.chatSwitcherItem,
+                                        i === this.state.focusedIndex ? styles.chatSwitcherItemFocused : null
+                                    ]}
+                                >
+                                    <Image
+                                        source={{uri: option.avatarURL}}
+                                        style={[styles.chatSwitcherAvatarImage, styles.mr2]}
+                                    />
+                                    <View>
+                                        <Text style={[textStyle, styles.h3]} numberOfLines={1}>
+                                            {option.fullName}
+                                        </Text>
+                                        <Text style={[textStyle, styles.textMicro]} numberOfLines={1}>
+                                            {option.login}
+                                        </Text>
+                                    </View>
                                 </View>
-                            </View>
-                        </TouchableOpacity>
-                    );
-                })}
+                            </TouchableOpacity>
+                        );
+                    })}
+                </View>
             </>
         );
     }
