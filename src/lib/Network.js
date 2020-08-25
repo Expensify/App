@@ -6,7 +6,7 @@ import IONKEYS from '../IONKEYS';
 import ROUTES from '../ROUTES';
 import Str from './Str';
 import Guid from './Guid';
-import {registerSocketEventCallback} from './Pusher/pusher';
+import * as Pusher from './Pusher/pusher';
 import redirectToSignIn from './actions/SignInRedirect';
 
 // Indicates if we're in the process of re-authenticating. When an API call returns jsonCode 407 indicating that the
@@ -15,7 +15,7 @@ import redirectToSignIn from './actions/SignInRedirect';
 let reauthenticating = false;
 
 // Queue for network requests so we don't lose actions done by the user while offline
-const networkRequestQueue = [];
+let networkRequestQueue = [];
 
 // Holds all of the callbacks that need to be triggered when the network reconnects
 const reconnectionCallbacks = [];
@@ -50,7 +50,7 @@ NetInfo.addEventListener((state) => {
  * @params {string} eventName,
  * @params {object} data
  */
-registerSocketEventCallback((eventName, data) => {
+Pusher.registerSocketEventCallback((eventName, data) => {
     let isCurrentlyOffline = false;
     switch (eventName) {
         case 'connected':
@@ -100,6 +100,7 @@ function queueRequest(command, data) {
  * @returns {Promise}
  */
 function setSuccessfulSignInData(data, exitTo) {
+    Pusher.updateAuthTokenAndReconnect(_.pick(data, 'authToken'));
     return Ion.multiSet({
         // The response from Authenticate includes requestID, jsonCode, etc
         // but we only care about setting these three values in Ion
@@ -234,10 +235,10 @@ function request(command, data, type = 'post') {
                         partnerUserSecret: password,
                         twoFactorAuthCode: ''
                     })
-                        .then((response) => {
+                        .then(response => Ion.get(IONKEYS.CURRENT_URL).then((exitTo) => {
                             reauthenticating = false;
-                            return setSuccessfulSignInData(response);
-                        })
+                            return setSuccessfulSignInData(response, exitTo.substring(1));
+                        }))
                         .then(() => xhr(command, data, type))
                         .catch(() => {
                             reauthenticating = false;
@@ -271,12 +272,13 @@ function processNetworkRequestQueue() {
             if (reauthenticating || networkRequestQueue.length === 0) {
                 return;
             }
-            for (let i = 0; i < networkRequestQueue.length; i++) {
-                // Take the request object out of the queue and make the request
-                const queuedRequest = networkRequestQueue.shift();
+
+            _.each(networkRequestQueue, (queuedRequest) => {
                 request(queuedRequest.command, queuedRequest.data)
                     .then(queuedRequest.callback);
-            }
+            });
+
+            networkRequestQueue = [];
         });
 }
 
