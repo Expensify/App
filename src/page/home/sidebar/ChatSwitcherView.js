@@ -64,6 +64,7 @@ class ChatSwitcherView extends React.Component {
 
         this.handleKeyPress = this.handleKeyPress.bind(this);
         this.reset = this.reset.bind(this);
+        this.triggerOnBlurCallback = this.triggerOnBlurCallback.bind(this);
         this.updateSearch = this.updateSearch.bind(this);
 
         this.state = {
@@ -126,7 +127,7 @@ class ChatSwitcherView extends React.Component {
         if (this.state.search === '') {
             return;
         }
-        this.props.onBlur();
+        this.reset();
     }
 
     /**
@@ -218,21 +219,14 @@ class ChatSwitcherView extends React.Component {
         // duplicate options to the list (because one option can match multiple regex patterns).
         // A Set is used here so that duplicate values are automatically removed.
         const matches = new Set();
-        const searchOptions = _.chain(this.props.personalDetails)
-            .values()
-            .map(p => ({
-                text: p.displayName,
-                value: p.login,
-                valueToSearch: p.displayNameWithEmail.replace(new RegExp(/&nbsp;/g), ''),
-                image: p.avatarURL,
-            }))
-            .value();
+        const searchOptions = _.values(this.props.personalDetails);;
 
         for (let i = 0; i < matchRegexes.length; i++) {
             if (matches.size < this.maxSearchResults) {
                 for (let j = 0; j < searchOptions.length; j++) {
                     const option = searchOptions[j];
-                    const isMatch = matchRegexes[i].test(option.valueToSearch);
+                    const valueToSearch = option.displayNameWithEmail.replace(new RegExp(/&nbsp;/g), '');
+                    const isMatch = matchRegexes[i].test(valueToSearch);
 
                     // Make sure we don't include the same option twice (automatically handled be using a `Set`)
                     if (isMatch) {
@@ -297,34 +291,39 @@ class ChatSwitcherView extends React.Component {
                     )}
                 </View>
 
-                {this.state.options.length > 0 && _.map(this.state.options, (option, i) => (
-                    <TouchableOpacity
-                        key={option.value}
-                        onPress={() => this.selectOption(option)}
-                    >
-                        <View
-                            style={[
-                                styles.flexRow,
-                                styles.mb2,
-                                styles.p1,
-                                i === this.state.focusedIndex ? styles.chatViewItemFocused : null
-                            ]}
+                {this.state.options.length > 0 && _.map(this.state.options, (option, i) => {
+                    const textStyle = i === this.state.focusedIndex
+                        ? styles.sidebarLinkActiveText
+                        : styles.sidebarLinkText;
+                    return (
+                        <TouchableOpacity
+                            key={option.login}
+                            onPress={() => this.selectOption(option)}
                         >
-                            <Image
-                                source={{uri: option.image}}
-                                style={[styles.chatViewImage]}
-                            />
-                            <Text
-                                style={[i === this.state.focusedIndex
-                                    ? styles.sidebarLinkActiveText
-                                    : styles.sidebarLinkText
+                            <View
+                                style={[
+                                    styles.flexRow,
+                                    styles.mb2,
+                                    styles.p1,
+                                    i === this.state.focusedIndex ? styles.chatViewItemFocused : null
                                 ]}
                             >
-                                {option.text}
-                            </Text>
-                        </View>
-                    </TouchableOpacity>
-                ))}
+                                <Image
+                                    source={{uri: option.avatarURL}}
+                                    style={[styles.chatViewImage, styles.mr2]}
+                                />
+                                <View style={[styles.flexColumn]}>
+                                    <Text style={[textStyle]}>
+                                        {option.fullName}
+                                    </Text>
+                                    <Text style={[textStyle]}>
+                                        {option.login}
+                                    </Text>
+                                </View>
+                            </View>
+                        </TouchableOpacity>
+                    );
+                })}
             </>
         );
     }
