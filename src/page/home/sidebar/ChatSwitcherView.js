@@ -14,6 +14,7 @@ import Str from '../../../lib/Str';
 import KeyboardShortcut from '../../../lib/KeyboardShortcut';
 import iconX from '../../../../assets/images/icon-x.png';
 import logo from '../../../../assets/images/expensify-logo_reversed.png';
+import logoCircle from '../../../../assets/images/expensify-logo-round.png';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
 
 const propTypes = {
@@ -255,7 +256,7 @@ class ChatSwitcherView extends React.Component {
                     <Image
                         resizeMode="contain"
                         style={[styles.sidebarHeaderLogo]}
-                        source={logo}
+                        source={logoCircle}
                     />
                 </View>
 
