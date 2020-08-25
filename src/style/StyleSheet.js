@@ -173,7 +173,6 @@ const styles = {
         borderWidth: 1,
         color: colors.text,
         fontFamily: 'GTAmericaExp-Regular',
-        outline: 'none',
         padding: 12,
         textAlignVertical: 'center',
     },
