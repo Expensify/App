@@ -52,25 +52,24 @@ class SidebarLinks extends React.Component {
                         onFocus={() => this.setState({areReportLinksVisible: false})}
                     />
                 </View>
-                <View style={[styles.sidebarListContainer]}>
-                    {this.state.areReportLinksVisible && (
-                        <>
-                            <View style={[styles.sidebarListItem]}>
-                                <Text style={[styles.sidebarListHeader]}>
-                                    Chats
-                                </Text>
-                            </View>
-                            {_.map(reports, report => (
-                                <SidebarLink
-                                    key={report.reportID}
-                                    reportID={report.reportID}
-                                    reportName={report.reportName}
-                                    onLinkClick={onLinkClick}
-                                />
-                            ))}
-                        </>
-                    )}
-                </View>
+
+                {this.state.areReportLinksVisible && (
+                    <View style={[styles.sidebarListContainer]}>
+                        <View style={[styles.sidebarListItem]}>
+                            <Text style={[styles.sidebarListHeader]}>
+                                Chats
+                            </Text>
+                        </View>
+                        {_.map(reports, report => (
+                            <SidebarLink
+                                key={report.reportID}
+                                reportID={report.reportID}
+                                reportName={report.reportName}
+                                onLinkClick={onLinkClick}
+                            />
+                        ))}
+                    </View>
+                )}
             </View>
         );
     }

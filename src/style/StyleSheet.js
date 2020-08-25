@@ -58,6 +58,7 @@ const styles = {
     h100p: {
         height: '100%',
     },
+
     flex0: {
         flex: 0,
     },
@@ -68,34 +69,56 @@ const styles = {
     flex4: {
         flex: 4,
     },
+
     flexRow: {
         flexDirection: 'row',
     },
+
     flexColumn: {
         flexDirection: 'column',
     },
+
     flexJustifyEnd: {
         justifyContent: 'flex-end',
     },
+
+    alignItemsCenter: {
+        alignItems: 'center',
+    },
+
     flexWrap: {
         flexWrap: 'wrap'
     },
+
     flexGrow1: {
         flexGrow: 1,
     },
+
     flexGrow4: {
         flexGrow: 4,
     },
+
     dFlex: {
         display: 'flex',
     },
+
     dNone: {
         display: 'none',
     },
+
     textP: {
         color: colors.text,
         fontSize: 15,
         lineHeight: 20,
+    },
+
+    h3: {
+        color: '#FFFFFF',
+        fontWeight: 600,
+    },
+
+    textMicro: {
+        fontSize: 11,
     },
 
     colorReversed: {
@@ -199,11 +222,12 @@ const styles = {
     },
 
     sidebarHeader: {
-        height: 72,
+        minHeight: 72,
         paddingTop: 16,
         paddingRight: 20,
         paddingBottom: 16,
         paddingLeft: 20,
+        flex: 1,
     },
 
     sidebarHeaderLogo: {
@@ -265,7 +289,7 @@ const styles = {
 
     sidebarListContainer: {
         flex: 1,
-        flexGrow: 1,
+        flexGrow: 20,
         scrollbarWidth: 'none',
         overflow: 'scroll',
         paddingTop: 4,
@@ -510,16 +534,14 @@ const styles = {
         width: 20,
     },
 
-    chatSwitcherClearButton: {
-        alignSelf: 'flex-end',
-        borderRadius: 6,
-        height: 32,
-        paddingTop: 8,
-        paddingRight: 6,
-        paddingBottom: 8,
-        paddingLeft: 6,
-        margin: 3,
-        justifyContent: 'center',
+    chatSwitcherInputClear: {
+        alignSelf: 'center',
+        paddingLeft: 8,
+    },
+
+    chatSwitcherInputClearIcon: {
+        height: 24,
+        width: 24,
     },
 
     hamburgerOpenAbsolute: {
@@ -542,17 +564,30 @@ const styles = {
         width: 300,
     },
 
-
-    chatViewImage: {
-        borderRadius: 15,
-        height: 30,
-        width: 30,
+    chatSwitcherItemList: {
+        flex: 1,
+        flexGrow: 1,
+        scrollbarWidth: 'none',
+        overflow: 'scroll',
     },
-    chatViewItemText: {
+
+    chatSwitcherAvatarImage: {
+        borderRadius: 14,
+        height: 28,
+        width: 28,
+    },
+
+    chatSwitcherItem: {
+        padding: 12,
+    },
+
+    chatSwitcherItemText: {
         color: colors.text,
     },
-    chatViewItemFocused: {
-        backgroundColor: colors.green,
+
+    chatSwitcherItemFocused: {
+        backgroundColor: colors.blue,
+        borderRadius: 8,
     },
 };
 
