@@ -61,7 +61,7 @@ const SidebarBottom = ({myPersonalDetails, isOffline, insets}) => {
             </View>
         </View>
     );
-}
+};
 
 SidebarBottom.propTypes = propTypes;
 SidebarBottom.defaultProps = defaultProps;
