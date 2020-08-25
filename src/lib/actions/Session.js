@@ -12,15 +12,16 @@ import redirectToSignIn from './SignInRedirect';
  * @param {string} password
  * @param {string} twoFactorAuthCode
  * @param {string} exitTo
+ * @param {boolean} useExpensifyLogin
+ *
  * @returns {Promise}
  */
-function signIn(login, password, twoFactorAuthCode = '', exitTo) {
+function signIn(login, password, twoFactorAuthCode = '', exitTo, useExpensifyLogin = true) {
     console.debug('[SIGNIN] Authenticating with expensify login');
-
     return request('Authenticate', {
         // When authenticating for the first time, we pass useExpensifyLogin as true so we check for credentials for
         // the expensify partnerID to let users authenticate with their expensify user and password.
-        useExpensifyLogin: true,
+        useExpensifyLogin,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         partnerUserID: login,
@@ -69,22 +70,23 @@ function signOut() {
  * @returns {Promise}
  */
 function verifyAuthToken() {
-    return Ion.multiGet([IONKEYS.LAST_AUTHENTICATED, IONKEYS.CREDENTIALS])
-        .then(({last_authenticated, credentials}) => {
+    return Ion.multiGet([IONKEYS.LAST_AUTHENTICATED, IONKEYS.CREDENTIALS, IONKEYS.CURRENT_URL])
+        .then(({last_authenticated, credentials, current_url}) => {
             const haveCredentials = !_.isNull(credentials);
-            const haveExpiredAuthToken = last_authenticated < new Date().getTime() - CONFIG.AUTH_TOKEN_EXPIRATION_TIME;
+            // const haveExpiredAuthToken = last_authenticated < new Date().getTime() - CONFIG.AUTH_TOKEN_EXPIRATION_TIME;
+            const haveExpiredAuthToken = last_authenticated < new Date().getTime() - 5000;
+
 
             if (haveExpiredAuthToken && haveCredentials) {
                 console.debug('Invalid auth token: Token has expired.');
-                return signIn(credentials.login, credentials.password);
+                return signIn(credentials.login, credentials.password, '', current_url.substring(1), false);
             }
 
             // We make this request to see if we have a valid authToken, and we only want to retry it if we know we
             // have credentials to re-authenticate
             return request('Get', {returnValueList: 'account', doNotRetry: !haveCredentials}).then((data) => {
                 if (data && data.jsonCode === 200) {
-                    return Ion.merge(IONKEYS.SESSION, data)
-                        .then(() => Ion.set(IONKEYS.LAST_AUTHENTICATED, new Date().getTime()));
+                    return Ion.merge(IONKEYS.SESSION, data);
                 }
 
                 // If the auth token is bad and we didn't have credentials saved, we want them to go to the sign in page
