@@ -503,6 +503,18 @@ const styles = {
         width: 20,
     },
 
+    chatSwitcherClearButton: {
+        alignSelf: 'flex-end',
+        borderRadius: 6,
+        height: 32,
+        paddingTop: 8,
+        paddingRight: 6,
+        paddingBottom: 8,
+        paddingLeft: 6,
+        margin: 3,
+        justifyContent: 'center',
+    },
+
     hamburgerOpenAbsolute: {
         position: 'absolute',
         left: 0,
