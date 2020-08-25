@@ -315,12 +315,20 @@ class ChatSwitcherView extends React.Component {
                                         style={[styles.chatSwitcherAvatarImage, styles.mr2]}
                                     />
                                     <View>
-                                        <Text style={[textStyle, styles.h3]} numberOfLines={1}>
-                                            {option.fullName}
-                                        </Text>
-                                        <Text style={[textStyle, styles.textMicro]} numberOfLines={1}>
-                                            {option.login}
-                                        </Text>
+                                        {option.fullName === '' ? (
+                                            <Text style={[textStyle, styles.h3]} numberOfLines={1}>
+                                                {option.login}
+                                            </Text>
+                                        ) : (
+                                            <>
+                                                <Text style={[textStyle, styles.h3]} numberOfLines={1}>
+                                                    {option.fullName}
+                                                </Text>
+                                                <Text style={[textStyle, styles.textMicro]} numberOfLines={1}>
+                                                    {option.login}
+                                                </Text>
+                                            </>
+                                        )}
                                     </View>
                                 </View>
                             </TouchableOpacity>
