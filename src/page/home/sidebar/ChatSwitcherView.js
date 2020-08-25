@@ -72,6 +72,7 @@ class ChatSwitcherView extends React.Component {
             options: [],
             focusedIndex: 0,
             isLogoVisible: true,
+            isClearButtonVisible: false,
         };
     }
 
@@ -113,6 +114,7 @@ class ChatSwitcherView extends React.Component {
             options: [],
             focusedIndex: 0,
             isLogoVisible: blurAfterReset,
+            isClearButtonVisible: !blurAfterReset,
         }, () => {
             if (blurAfterReset) {
                 this.textInput.blur();
@@ -129,7 +131,10 @@ class ChatSwitcherView extends React.Component {
     triggerOnFocusCallback() {
         this.props.onFocus();
         this.disableKeyboardShortcut();
-        this.setState({isLogoVisible: false});
+        this.setState({
+            isLogoVisible: false,
+            isClearButtonVisible: true,
+        });
     }
 
     /**
@@ -275,7 +280,7 @@ class ChatSwitcherView extends React.Component {
                         placeholderTextColor={colors.textSupporting}
                     />
 
-                    {this.state.search !== '' && (
+                    {this.state.isClearButtonVisible && (
                         <TouchableOpacity
                             style={[styles.chatSwitcherInputClear]}
                             onPress={this.reset}
