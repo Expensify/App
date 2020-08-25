@@ -252,7 +252,7 @@ class ChatSwitcherView extends React.Component {
             <>
                 <View style={[styles.flexRow, styles.mb4]}>
                     {this.state.search === '' && (
-                        <View style={[styles.mr2]}>
+                        <View style={[styles.mr2, styles.ml2]}>
                             <Image
                                 resizeMode="contain"
                                 style={[styles.sidebarHeaderLogo]}
@@ -263,7 +263,7 @@ class ChatSwitcherView extends React.Component {
 
                     <TextInput
                         ref={el => this.textInput = el}
-                        style={[styles.textInput, styles.textInputReversed, styles.flex1]}
+                        style={[styles.textInput, styles.textInputReversed, styles.flex1, styles.mr2]}
                         value={this.state.search}
                         onBlur={this.triggerOnBlurCallback}
                         onChangeText={this.updateSearch}
