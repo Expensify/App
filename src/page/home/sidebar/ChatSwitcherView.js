@@ -314,7 +314,7 @@ class ChatSwitcherView extends React.Component {
                                         source={{uri: option.avatarURL}}
                                         style={[styles.chatSwitcherAvatarImage, styles.mr2]}
                                     />
-                                    <View>
+                                    <View style={[styles.flex1]}>
                                         {option.fullName === '' ? (
                                             <Text style={[textStyle, styles.h3]} numberOfLines={1}>
                                                 {option.login}
