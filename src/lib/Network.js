@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import NetInfo from '@react-native-community/netinfo';
 import Ion from './Ion';
 import CONFIG from '../CONFIG';
 import IONKEYS from '../IONKEYS';
@@ -34,6 +35,13 @@ function setNewOfflineStatus(isCurrentlyOffline) {
             }
         });
 }
+
+// Subscribe to the state change event via NetInfo so we can update
+// whether a user has internet connectivity or not. This is more reliable
+// than the Pusher `disconnected` event which takes about 10-15 seconds to emit
+NetInfo.addEventListener((state) => {
+    setNewOfflineStatus(!state.isConnected);
+});
 
 /**
  * Events that happen on the pusher socket are used to determine if the app is online or offline. The offline setting
