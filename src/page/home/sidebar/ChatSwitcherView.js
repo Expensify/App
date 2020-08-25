@@ -13,9 +13,7 @@ import IONKEYS from '../../../IONKEYS';
 import Str from '../../../lib/Str';
 import KeyboardShortcut from '../../../lib/KeyboardShortcut';
 import iconX from '../../../../assets/images/icon-x.png';
-import logo from '../../../../assets/images/expensify-logo_reversed.png';
 import logoCircle from '../../../../assets/images/expensify-logo-round.png';
-import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
 
 const propTypes = {
     // A method that is triggered when the TextInput gets focus
@@ -23,9 +21,6 @@ const propTypes = {
 
     // A method that is triggered when the TextInput loses focus
     onBlur: PropTypes.func.isRequired,
-
-    // Safe area insets required for mobile devices margins
-    insets: SafeAreaInsetPropTypes.isRequired,
 
     /* Ion Props */
 
@@ -252,15 +247,17 @@ class ChatSwitcherView extends React.Component {
     render() {
         return (
             <>
-                <View style={[styles.sidebarHeader, {marginTop: this.props.insets.top}]}>
-                    <Image
-                        resizeMode="contain"
-                        style={[styles.sidebarHeaderLogo]}
-                        source={logoCircle}
-                    />
-                </View>
+                <View style={[styles.flexRow, styles.mt1]}>
+                    {this.state.search === '' && (
+                        <View style={[styles.mr2]}>
+                            <Image
+                                resizeMode="contain"
+                                style={[styles.sidebarHeaderLogo]}
+                                source={logoCircle}
+                            />
+                        </View>
+                    )}
 
-                <View style={[styles.flexRow]}>
                     <TextInput
                         ref={el => this.textInput = el}
                         style={[styles.textInput, styles.textInputReversed, styles.flex1]}
@@ -275,7 +272,8 @@ class ChatSwitcherView extends React.Component {
                         placeholder="Find or start a chat"
                         placeholderTextColor={colors.textSupporting}
                     />
-                    {this.state.search && (
+
+                    {this.state.search !== '' && (
                         <TouchableOpacity
                             style={[styles.chatSwitcherClearButton]}
                             onPress={this.reset}
