@@ -1,7 +1,6 @@
 import React from 'react';
 import {
     View,
-    TextInput,
     TouchableOpacity,
     Text, Image,
 } from 'react-native';
@@ -14,6 +13,7 @@ import Str from '../../../lib/Str';
 import KeyboardShortcut from '../../../lib/KeyboardShortcut';
 import iconX from '../../../../assets/images/icon-x.png';
 import logoCircle from '../../../../assets/images/expensify-logo-round.png';
+import TextInputWithFocusStyles from '../../../components/TextInputWithFocusStyles';
 
 const propTypes = {
     // A method that is triggered when the TextInput gets focus
@@ -268,7 +268,9 @@ class ChatSwitcherView extends React.Component {
                         </View>
                     )}
 
-                    <TextInput
+                    <TextInputWithFocusStyles
+                        styleFocusIn={[{backgroundColor: 'red'}]}
+                        styleFocusOut={[{backgroundColor: 'blue'}]}
                         ref={el => this.textInput = el}
                         style={[styles.textInput, styles.textInputReversed, styles.flex1, styles.mr2]}
                         value={this.state.search}
