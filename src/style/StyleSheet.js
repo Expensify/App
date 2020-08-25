@@ -19,9 +19,11 @@ const styles = {
     mr1: {
         marginRight: 4,
     },
+
     mr2: {
         marginRight: 8,
     },
+
     mr3: {
         marginRight: 12,
     },
@@ -29,6 +31,11 @@ const styles = {
     ml1: {
         marginLeft: 10,
     },
+
+    ml2: {
+        marginLeft: 8,
+    },
+
     mt2: {
         marginTop: 20,
     },
@@ -114,7 +121,7 @@ const styles = {
 
     h3: {
         color: '#FFFFFF',
-        fontWeight: 600,
+        fontWeight: '600',
     },
 
     textMicro: {
@@ -224,9 +231,9 @@ const styles = {
     sidebarHeader: {
         minHeight: 72,
         paddingTop: 16,
-        paddingRight: 20,
+        paddingRight: 12,
         paddingBottom: 16,
-        paddingLeft: 20,
+        paddingLeft: 12,
         flex: 1,
     },
 
@@ -536,7 +543,6 @@ const styles = {
 
     chatSwitcherInputClear: {
         alignSelf: 'center',
-        paddingLeft: 8,
     },
 
     chatSwitcherInputClearIcon: {
