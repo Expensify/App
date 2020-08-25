@@ -45,28 +45,32 @@ class SidebarLinks extends React.Component {
         PageTitleUpdater(_.any(reports, report => report.hasUnread));
 
         return (
-            <View style={[styles.sidebarListContainer]}>
-                <ChatSwitcherView
-                    onBlur={() => this.setState({areReportLinksVisible: true})}
-                    onFocus={() => this.setState({areReportLinksVisible: false})}
-                />
-                {this.state.areReportLinksVisible && (
-                    <>
-                        <View style={[styles.sidebarListItem]}>
-                            <Text style={[styles.sidebarListHeader]}>
-                                Chats
-                            </Text>
-                        </View>
-                        {_.map(reports, report => (
-                            <SidebarLink
-                                key={report.reportID}
-                                reportID={report.reportID}
-                                reportName={report.reportName}
-                                onLinkClick={onLinkClick}
-                            />
-                        ))}
-                    </>
-                )}
+            <View style={[styles.flex1]}>
+                <View style={[styles.sidebarHeader]}>
+                    <ChatSwitcherView
+                        onBlur={() => this.setState({areReportLinksVisible: true})}
+                        onFocus={() => this.setState({areReportLinksVisible: false})}
+                    />
+                </View>
+                <View style={[styles.sidebarListContainer]}>
+                    {this.state.areReportLinksVisible && (
+                        <>
+                            <View style={[styles.sidebarListItem]}>
+                                <Text style={[styles.sidebarListHeader]}>
+                                    Chats
+                                </Text>
+                            </View>
+                            {_.map(reports, report => (
+                                <SidebarLink
+                                    key={report.reportID}
+                                    reportID={report.reportID}
+                                    reportName={report.reportName}
+                                    onLinkClick={onLinkClick}
+                                />
+                            ))}
+                        </>
+                    )}
+                </View>
             </View>
         );
     }

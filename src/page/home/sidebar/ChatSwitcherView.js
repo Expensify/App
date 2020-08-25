@@ -250,7 +250,7 @@ class ChatSwitcherView extends React.Component {
     render() {
         return (
             <>
-                <View style={[styles.flexRow, styles.mt1]}>
+                <View style={[styles.flexRow]}>
                     {this.state.search === '' && (
                         <View style={[styles.mr2]}>
                             <Image
