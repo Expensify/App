@@ -279,7 +279,7 @@ class ChatSwitcherView extends React.Component {
                         onFocus={this.triggerOnFocusCallback}
                         onKeyPress={this.handleKeyPress}
                         placeholder="Find or start a chat"
-                        placeholderTextColor={colors.textSupporting}
+                        placeholderTextColor={colors.icon}
                     />
 
                     {this.state.isClearButtonVisible && (
