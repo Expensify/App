@@ -11,10 +11,14 @@ import {fetchAll} from '../../../lib/actions/Report';
 import Ion from '../../../lib/Ion';
 import PageTitleUpdater from '../../../lib/PageTitleUpdater/index.native';
 import ChatSwitcherView from './ChatSwitcherView';
+import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
 
 const propTypes = {
     // Toggles the hamburger menu open and closed
     onLinkClick: PropTypes.func.isRequired,
+
+    // Safe area insets required for mobile devices margins
+    insets: SafeAreaInsetPropTypes.isRequired,
 
     /* Ion Props */
 
@@ -49,6 +53,7 @@ class SidebarLinks extends React.Component {
                 <ChatSwitcherView
                     onBlur={() => this.setState({areReportLinksVisible: true})}
                     onFocus={() => this.setState({areReportLinksVisible: false})}
+                    insets={this.props.insets}
                 />
                 {this.state.areReportLinksVisible && (
                     <>

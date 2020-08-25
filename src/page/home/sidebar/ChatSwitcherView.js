@@ -13,7 +13,8 @@ import IONKEYS from '../../../IONKEYS';
 import Str from '../../../lib/Str';
 import KeyboardShortcut from '../../../lib/KeyboardShortcut';
 import iconX from '../../../../assets/images/icon-x.png';
-import sendIcon from '../../../../assets/images/icon-send.png';
+import logo from '../../../../assets/images/expensify-logo_reversed.png';
+import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
 
 const propTypes = {
     // A method that is triggered when the TextInput gets focus
@@ -21,6 +22,9 @@ const propTypes = {
 
     // A method that is triggered when the TextInput loses focus
     onBlur: PropTypes.func.isRequired,
+
+    // Safe area insets required for mobile devices margins
+    insets: SafeAreaInsetPropTypes.isRequired,
 
     /* Ion Props */
 
@@ -247,6 +251,14 @@ class ChatSwitcherView extends React.Component {
     render() {
         return (
             <>
+                <View style={[styles.sidebarHeader, {marginTop: this.props.insets.top}]}>
+                    <Image
+                        resizeMode="contain"
+                        style={[styles.sidebarHeaderLogo]}
+                        source={logo}
+                    />
+                </View>
+
                 <View style={[styles.flexRow]}>
                     <TextInput
                         ref={el => this.textInput = el}
@@ -262,17 +274,19 @@ class ChatSwitcherView extends React.Component {
                         placeholder="Find or start a chat"
                         placeholderTextColor={colors.textSupporting}
                     />
-                    <TouchableOpacity
-                        style={[styles.chatSwitcherClearButton]}
-                        onPress={this.reset}
-                        underlayColor={colors.componentBG}
-                    >
-                        <Image
-                            resizeMode="contain"
-                            style={[styles.chatItemSubmitButtonIcon]}
-                            source={iconX}
-                        />
-                    </TouchableOpacity>
+                    {this.state.search && (
+                        <TouchableOpacity
+                            style={[styles.chatSwitcherClearButton]}
+                            onPress={this.reset}
+                            underlayColor={colors.componentBG}
+                        >
+                            <Image
+                                resizeMode="contain"
+                                style={[styles.chatItemSubmitButtonIcon]}
+                                source={iconX}
+                            />
+                        </TouchableOpacity>
+                    )}
                 </View>
 
                 {this.state.options.length > 0 && _.map(this.state.options, (option, i) => (
