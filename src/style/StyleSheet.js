@@ -206,6 +206,11 @@ const styles = {
         padding: 20,
     },
 
+    signinLogo: {
+        height: 21,
+        width: 143,
+    },
+
     genericView: {
         backgroundColor: colors.heading,
     },
