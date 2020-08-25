@@ -198,12 +198,6 @@ const styles = {
         backgroundColor: colors.heading,
     },
 
-    sidebarHeader: {
-        height: 72,
-        justifyContent: 'center',
-        width: '100%',
-    },
-
     sidebarHeaderLogo: {
         height: 40,
         width: 40,

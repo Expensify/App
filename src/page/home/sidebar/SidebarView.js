@@ -16,7 +16,7 @@ const propTypes = {
 
 const SidebarView = ({insets, onLinkClick}) => (
     <View style={[styles.flex1, styles.sidebar]}>
-        <SidebarLinks onLinkClick={onLinkClick} insets={insets} />
+        <SidebarLinks onLinkClick={onLinkClick} />
         <SidebarBottom insets={insets} />
     </View>
 );
