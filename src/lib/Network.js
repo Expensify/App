@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import lodashGet from 'lodash.get';
 import NetInfo from '@react-native-community/netinfo';
 import Ion from './Ion';
 import CONFIG from '../CONFIG';
@@ -100,7 +101,7 @@ function queueRequest(command, data) {
  * @returns {Promise}
  */
 function setSuccessfulSignInData(data, exitTo) {
-    Pusher.updateAuthTokenAndReconnect(_.pick(data, 'authToken'));
+    Pusher.updateAuthTokenAndReconnect(lodashGet(data, 'authToken'));
     return Ion.multiSet({
         // The response from Authenticate includes requestID, jsonCode, etc
         // but we only care about setting these three values in Ion
