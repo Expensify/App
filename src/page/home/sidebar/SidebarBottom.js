@@ -19,7 +19,7 @@ const propTypes = {
     // The personal details of the person who is logged in
     myPersonalDetails: PropTypes.shape({
         // Display name of the current user from their personal details
-        userDisplayName: PropTypes.string,
+        displayName: PropTypes.string,
 
         // Avatar URL of the current user from their personal details
         avatarURL: PropTypes.string,
