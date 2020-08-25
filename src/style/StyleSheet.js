@@ -201,8 +201,6 @@ const styles = {
     sidebarHeader: {
         height: 72,
         justifyContent: 'center',
-        paddingLeft: 24,
-        paddingRight: 24,
         width: '100%',
     },
 
