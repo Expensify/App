@@ -263,7 +263,7 @@ class ChatSwitcherView extends React.Component {
                     <TouchableOpacity
                         style={[styles.chatItemSubmitButton, styles.buttonSuccess]}
                         onPress={this.reset}
-                        underlayColor="#fff"
+                        underlayColor={colors.componentBG}
                     >
                         <Text>X</Text>
                     </TouchableOpacity>
