@@ -102,16 +102,20 @@ class ChatSwitcherView extends React.Component {
 
     /**
      * Reset the component to it's default state and blur the input
+     *
+     * @param {boolean} blurAfterReset
      */
-    reset() {
+    reset(blurAfterReset = true) {
         this.setState({
             search: '',
             options: [],
             focusedIndex: 0,
         }, () => {
-            this.textInput.blur();
-            this.props.onBlur();
-            this.enableKeyboardShortcut();
+            if (blurAfterReset) {
+                this.textInput.blur();
+                this.props.onBlur();
+                this.enableKeyboardShortcut();
+            }
         });
     }
 
@@ -193,6 +197,11 @@ class ChatSwitcherView extends React.Component {
      * @param {string} value
      */
     updateSearch(value) {
+        if (value === '') {
+            this.reset(false);
+            return;
+        }
+
         this.setState({search: value});
 
         // Search our full list of options. We want:
