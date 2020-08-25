@@ -49,9 +49,9 @@ const SidebarBottom = ({myPersonalDetails, isOffline, insets}) => {
                 <View style={indicatorStyles} />
             </View>
             <View style={[styles.flexColumn]}>
-                {myPersonalDetails.userDisplayName && (
+                {myPersonalDetails.displayName && (
                     <Text style={[styles.sidebarFooterUsername]}>
-                        {myPersonalDetails.userDisplayName}
+                        {myPersonalDetails.displayName}
                     </Text>
                 )}
                 <View style={[styles.flexRow]}>
