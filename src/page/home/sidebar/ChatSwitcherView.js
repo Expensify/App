@@ -64,13 +64,14 @@ class ChatSwitcherView extends React.Component {
 
         this.handleKeyPress = this.handleKeyPress.bind(this);
         this.reset = this.reset.bind(this);
-        this.triggerOnBlurCallback = this.triggerOnBlurCallback.bind(this);
+        this.triggerOnFocusCallback = this.triggerOnFocusCallback.bind(this);
         this.updateSearch = this.updateSearch.bind(this);
 
         this.state = {
             search: '',
             options: [],
             focusedIndex: 0,
+            isLogoVisible: true,
         };
     }
 
@@ -111,6 +112,7 @@ class ChatSwitcherView extends React.Component {
             search: '',
             options: [],
             focusedIndex: 0,
+            isLogoVisible: blurAfterReset,
         }, () => {
             if (blurAfterReset) {
                 this.textInput.blur();
@@ -121,13 +123,13 @@ class ChatSwitcherView extends React.Component {
     }
 
     /**
-     * Trigger the on blur callback from the props if there is no search value present
+     * When the text input gets focus, the onFocus() callback needs to be called, the keyboard shortcut is disabled
+     * and the logo is hidden
      */
-    triggerOnBlurCallback() {
-        if (this.state.search === '') {
-            return;
-        }
-        this.reset();
+    triggerOnFocusCallback() {
+        this.props.onFocus();
+        this.disableKeyboardShortcut();
+        this.setState({isLogoVisible: false});
     }
 
     /**
@@ -251,7 +253,7 @@ class ChatSwitcherView extends React.Component {
         return (
             <>
                 <View style={[styles.flexRow, styles.mb4]}>
-                    {this.state.search === '' && (
+                    {this.state.isLogoVisible && (
                         <View style={[styles.mr2, styles.ml2]}>
                             <Image
                                 resizeMode="contain"
@@ -265,12 +267,9 @@ class ChatSwitcherView extends React.Component {
                         ref={el => this.textInput = el}
                         style={[styles.textInput, styles.textInputReversed, styles.flex1, styles.mr2]}
                         value={this.state.search}
-                        onBlur={this.triggerOnBlurCallback}
+                        onBlur={this.reset}
                         onChangeText={this.updateSearch}
-                        onFocus={() => {
-                            this.props.onFocus();
-                            this.disableKeyboardShortcut();
-                        }}
+                        onFocus={this.triggerOnFocusCallback}
                         onKeyPress={this.handleKeyPress}
                         placeholder="Find or start a chat"
                         placeholderTextColor={colors.textSupporting}
