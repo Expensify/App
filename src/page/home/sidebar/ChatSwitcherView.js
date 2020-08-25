@@ -219,7 +219,7 @@ class ChatSwitcherView extends React.Component {
         // duplicate options to the list (because one option can match multiple regex patterns).
         // A Set is used here so that duplicate values are automatically removed.
         const matches = new Set();
-        const searchOptions = _.values(this.props.personalDetails);;
+        const searchOptions = _.values(this.props.personalDetails);
 
         for (let i = 0; i < matchRegexes.length; i++) {
             if (matches.size < this.maxSearchResults) {
