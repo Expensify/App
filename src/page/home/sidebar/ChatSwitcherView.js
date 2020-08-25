@@ -12,6 +12,8 @@ import WithIon from '../../../components/WithIon';
 import IONKEYS from '../../../IONKEYS';
 import Str from '../../../lib/Str';
 import KeyboardShortcut from '../../../lib/KeyboardShortcut';
+import iconX from '../../../../assets/images/icon-x.png';
+import sendIcon from '../../../../assets/images/icon-send.png';
 
 const propTypes = {
     // A method that is triggered when the TextInput gets focus
@@ -261,11 +263,15 @@ class ChatSwitcherView extends React.Component {
                         placeholderTextColor={colors.textSupporting}
                     />
                     <TouchableOpacity
-                        style={[styles.chatItemSubmitButton, styles.buttonSuccess]}
+                        style={[styles.chatSwitcherClearButton]}
                         onPress={this.reset}
                         underlayColor={colors.componentBG}
                     >
-                        <Text>X</Text>
+                        <Image
+                            resizeMode="contain"
+                            style={[styles.chatItemSubmitButtonIcon]}
+                            source={iconX}
+                        />
                     </TouchableOpacity>
                 </View>
 
