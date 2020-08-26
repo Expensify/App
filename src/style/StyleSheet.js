@@ -239,6 +239,7 @@ const styles = {
     },
 
     sidebarHeader: {
+        minHeight: 72,
         paddingTop: 16,
         paddingRight: 12,
         paddingBottom: 16,
@@ -303,7 +304,7 @@ const styles = {
 
     sidebarListContainer: {
         flex: 1,
-        flexGrow: 20,
+        flexGrow: 100,
         scrollbarWidth: 'none',
         overflow: 'scroll',
         paddingTop: 4,
