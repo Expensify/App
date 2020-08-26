@@ -77,7 +77,7 @@ function verifyAuthToken() {
 
             if (haveExpiredAuthToken && haveCredentials) {
                 console.debug('Invalid auth token: Token has expired.');
-                return signIn(credentials.login, credentials.password, '', current_url.substring(1), false);
+                return signIn(credentials.login, credentials.password, '', current_url, false);
             }
 
             // We make this request to see if we have a valid authToken, and we only want to retry it if we know we
