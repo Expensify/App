@@ -73,9 +73,7 @@ function verifyAuthToken() {
     return Ion.multiGet([IONKEYS.LAST_AUTHENTICATED, IONKEYS.CREDENTIALS, IONKEYS.CURRENT_URL])
         .then(({last_authenticated, credentials, current_url}) => {
             const haveCredentials = !_.isNull(credentials);
-            // const haveExpiredAuthToken = last_authenticated < new Date().getTime() - CONFIG.AUTH_TOKEN_EXPIRATION_TIME;
-            const haveExpiredAuthToken = last_authenticated < new Date().getTime() - 5000;
-
+            const haveExpiredAuthToken = last_authenticated < new Date().getTime() - CONFIG.AUTH_TOKEN_EXPIRATION_TIME;
 
             if (haveExpiredAuthToken && haveCredentials) {
                 console.debug('Invalid auth token: Token has expired.');

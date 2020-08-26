@@ -5,7 +5,7 @@ import Ion from '../Ion';
 import {queueRequest, onReconnect} from '../Network';
 import IONKEYS from '../../IONKEYS';
 import CONFIG from '../../CONFIG';
-import * as pusher from '../Pusher/pusher';
+import * as Pusher from '../Pusher/pusher';
 import promiseAllSettled from '../promiseAllSettled';
 import ExpensiMark from '../ExpensiMark';
 
@@ -86,7 +86,7 @@ function initPusher() {
     return Ion.get(IONKEYS.SESSION, 'accountID')
         .then((accountID) => {
             const pusherChannelName = `private-user-accountID-${accountID}`;
-            pusher.subscribe(pusherChannelName, 'reportComment', (pushJSON) => {
+            Pusher.subscribe(pusherChannelName, 'reportComment', (pushJSON) => {
                 updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
             });
         });
