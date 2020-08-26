@@ -4,6 +4,9 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 
 const propTypes = {
+    // A ref to forward to the text input
+    forwardedRef: PropTypes.func.isRequired,
+
     // Styles to apply to the text input when it has focus
     // eslint-disable-next-line react/forbid-prop-types
     styleFocusIn: PropTypes.any,
@@ -11,10 +14,21 @@ const propTypes = {
     // Styles to apply to the text input when it does not have focus
     // eslint-disable-next-line react/forbid-prop-types
     styleFocusOut: PropTypes.any,
+
+    // General styles to apply to the text input
+    // eslint-disable-next-line react/forbid-prop-types
+    style: PropTypes.any,
+
+    // A function to call when the input has been blurred
+    onBlur: PropTypes.func.isRequired,
+
+    // A function to call when the input has gotten focus
+    onFocus: PropTypes.func.isRequired,
 };
 const defaultProps = {
     styleFocusIn: null,
     styleFocusOut: null,
+    style: null,
 };
 
 class TextInputWithFocusStyles extends React.Component {
