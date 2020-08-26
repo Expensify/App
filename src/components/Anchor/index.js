@@ -39,12 +39,12 @@ const Anchor = ({
     style,
     ...props
 }) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
     <a
         style={StyleSheet.flatten(style)}
         href={href}
         rel={rel}
         target={target}
+        // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
     >
         {children}
