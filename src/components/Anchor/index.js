@@ -10,6 +10,12 @@ const propTypes = {
     // The URL to open
     href: PropTypes.string.isRequired,
 
+    // What headers to send to the linked page (usually noopener and noreferrer)
+    rel: PropTypes.string,
+
+    // Used to determine where to open a link ("_blank" is passed for a new tab)
+    target: PropTypes.string,
+
     // Any children to display
     children: PropTypes.node,
 
@@ -19,12 +25,16 @@ const propTypes = {
 };
 
 const defaultProps = {
+    rel: '',
+    target: '',
     children: null,
     style: {},
 };
 
 const Anchor = ({
     href,
+    rel,
+    target,
     children,
     style,
     ...props
@@ -37,7 +47,7 @@ const Anchor = ({
 
     return (
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <a style={mergedStyles} href={href} {...props}>{children}</a>
+        <a style={mergedStyles} href={href} rel={rel} target={target} {...props}>{children}</a>
     );
 };
 
