@@ -15,6 +15,7 @@ import iconX from '../../../../assets/images/icon-x.png';
 import logoCircle from '../../../../assets/images/expensify-logo-round.png';
 import TextInputWithFocusStyles from '../../../components/TextInputWithFocusStyles';
 import ChatSwitcherList from './ChatSwitcherList';
+import ChatSwitcherSearchForm from './ChatSwitcherSearchForm';
 
 const propTypes = {
     // A method that is triggered when the TextInput gets focus
@@ -259,45 +260,17 @@ class ChatSwitcherView extends React.Component {
     render() {
         return (
             <>
-                <View style={[styles.flexRow, styles.mb4]}>
-                    {this.state.isLogoVisible && (
-                        <View style={[styles.mr2, styles.ml2]}>
-                            <Image
-                                resizeMode="contain"
-                                style={[styles.sidebarHeaderLogo]}
-                                source={logoCircle}
-                            />
-                        </View>
-                    )}
-
-                    <TextInputWithFocusStyles
-                        styleFocusIn={[{backgroundColor: 'red'}]}
-                        styleFocusOut={[{backgroundColor: 'blue'}]}
-                        ref={el => this.textInput = el}
-                        style={[styles.textInput, styles.textInputReversed, styles.flex1, styles.mr2]}
-                        value={this.state.search}
-                        onBlur={this.reset}
-                        onChangeText={this.updateSearch}
-                        onFocus={this.triggerOnFocusCallback}
-                        onKeyPress={this.handleKeyPress}
-                        placeholder="Find or start a chat"
-                        placeholderTextColor={colors.icon}
-                    />
-
-                    {this.state.isClearButtonVisible && (
-                        <TouchableOpacity
-                            style={[styles.chatSwitcherInputClear]}
-                            onPress={this.reset}
-                            underlayColor={colors.componentBG}
-                        >
-                            <Image
-                                resizeMode="contain"
-                                style={[styles.chatSwitcherInputClearIcon]}
-                                source={iconX}
-                            />
-                        </TouchableOpacity>
-                    )}
-                </View>
+                <ChatSwitcherSearchForm
+                    ref={el => this.textInput = el}
+                    isClearButtonVisible={this.state.isClearButtonVisible}
+                    isLogoVisible={this.state.isLogoVisible}
+                    searchValue={this.state.search}
+                    onBlur={this.reset}
+                    onChangeText={this.updateSearch}
+                    onClearButtonClick={this.reset}
+                    onFocus={this.triggerOnFocusCallback}
+                    onKeyPress={this.handleKeyPress}
+                />
 
                 <ChatSwitcherList
                     onSelect={this.selectOption}
