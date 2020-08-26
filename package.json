@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@react-native-community/async-storage": "^1.11.0",
-    "@react-native-community/netinfo": "^5.9.5",
+    "@react-native-community/netinfo": "^5.9.6",
     "babel-plugin-transform-remove-console": "^6.9.4",
     "dotenv": "^8.2.0",
     "electron-serve": "^1.0.0",

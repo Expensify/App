@@ -5,8 +5,8 @@ import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import Text from '../../../components/Text';
 import Ion from '../../../lib/Ion';
-import {fetchHistory, updateLastReadActionID} from '../../../lib/actions/ActionsReport';
 import withIon from '../../../components/withIon';
+import {fetchHistory, updateLastReadActionID} from '../../../lib/actions/Report';
 import IONKEYS from '../../../IONKEYS';
 import ReportHistoryItem from './ReportHistoryItem';
 import styles from '../../../style/StyleSheet';
@@ -144,7 +144,7 @@ class ReportHistoryView extends React.Component {
                 onContentSizeChange={this.scrollToListBottom}
                 bounces={false}
                 contentContainerStyle={{
-                    paddingVertical: 8
+                    paddingVertical: 16
                 }}
             >
                 {_.chain(this.props.reportHistory).sortBy('sequenceNumber').map((item, index) => (
