@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import styles from '../../../style/StyleSheet';
 import Text from '../../../components/Text';
 import SidebarLink from './SidebarLink';
-import WithIon from '../../../components/WithIon';
+import withIon from '../../../components/withIon';
 import IONKEYS from '../../../IONKEYS';
 import {fetchAll} from '../../../lib/actions/Report';
 import Ion from '../../../lib/Ion';
@@ -94,7 +94,7 @@ class SidebarLinks extends React.Component {
 SidebarLinks.propTypes = propTypes;
 SidebarLinks.defaultProps = defaultProps;
 
-export default WithIon({
+export default withIon({
     reports: {
         key: `${IONKEYS.REPORT}_[0-9]+$`,
         addAsCollection: true,

@@ -145,7 +145,7 @@ export default function (mapIonToState) {
             }
         }
 
-        withIon.displayName = `WithIon(${getDisplayName(WrappedComponent)})`;
+        withIon.displayName = `withIon(${getDisplayName(WrappedComponent)})`;
         return withIon;
     };
 }
