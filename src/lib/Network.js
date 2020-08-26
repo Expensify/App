@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import lodashGet from 'lodash.get';
 import NetInfo from '@react-native-community/netinfo';
 import Ion from './Ion';
 import CONFIG from '../CONFIG';
@@ -9,6 +8,43 @@ import Str from './Str';
 import Guid from './Guid';
 import * as Pusher from './Pusher/pusher';
 import redirectToSignIn from './actions/SignInRedirect';
+
+/**
+ * This is a custom authorizer given to Pusher so we can make
+ * sure we are always passing a valid auth hash to Pusher. Due to
+ * the nature of infinite sessions it's possible that our authToken
+ * will expire and we'll want to be able to retry Pusher connections
+ * while the we fetch a new authToken.
+ */
+Pusher.registerCustomAuthorizer((channel, {authEndpoint}) => {
+    return {
+        authorize: (socketId, callback) => {
+            const tryToConnect = async () => {
+                console.debug('[Network] Attempting to authorize Pusher');
+
+                const authToken = await Ion.get(IONKEYS.SESSION, 'authToken');
+                const formData = new FormData();
+                formData.append('socket_id', socketId);
+                formData.append('channel_name', channel.name);
+                formData.append('authToken', authToken);
+
+                try {
+                    const authResponse = await fetch(authEndpoint, {
+                        method: 'POST',
+                        body: formData,
+                    });
+                    const data = await authResponse.json();
+                    callback(null, data);
+                } catch (err) {
+                    console.debug('[Network] Failed to authorize Pusher');
+                    callback(new Error(`Error calling auth endpoint: ${err}`));
+                }
+            };
+
+            tryToConnect();
+        },
+    }
+});
 
 // Indicates if we're in the process of re-authenticating. When an API call returns jsonCode 407 indicating that the
 // authToken expired, we set this to true, pause all API calls, re-authenticate, and then use the authToken fromm the
@@ -101,7 +137,6 @@ function queueRequest(command, data) {
  * @returns {Promise}
  */
 function setSuccessfulSignInData(data, exitTo) {
-    Pusher.updateAuthTokenAndReconnect(lodashGet(data, 'authToken'));
     return Ion.multiSet({
         // The response from Authenticate includes requestID, jsonCode, etc
         // but we only care about setting these three values in Ion
@@ -258,6 +293,14 @@ function request(command, data, type = 'post') {
                             return Promise.reject();
                         }));
             }
+
+            // We can end up here if we have queued up many
+            // requests and have an expired authToken. In these cases,
+            // we just need to requeue the request
+            if (reauthenticating) {
+                return queueRequest(command, data);
+            }
+
             return responseData;
         })
 
@@ -274,6 +317,10 @@ function request(command, data, type = 'post') {
  * Process the networkRequestQueue by looping through the queue and attempting to make the requests
  */
 function processNetworkRequestQueue() {
+    if (networkRequestQueue.length === 0) {
+        return;
+    }
+
     Ion.get(IONKEYS.NETWORK, 'isOffline')
         .then((isOffline) => {
             if (isOffline) {
@@ -289,7 +336,7 @@ function processNetworkRequestQueue() {
 
             // Don't make any requests until we're done re-authenticating since we'll use the new authToken
             // from that response for the subsequent network requests
-            if (reauthenticating || networkRequestQueue.length === 0) {
+            if (reauthenticating) {
                 return;
             }
 
