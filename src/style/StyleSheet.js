@@ -184,6 +184,11 @@ const styles = {
         borderWidth: 1,
         color: '#ffffff',
         padding: 12,
+        outline: 'none',
+    },
+
+    textInputReversedFocus: {
+        borderColor: colors.icon,
     },
 
     formLabel: {

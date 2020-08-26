@@ -48,8 +48,7 @@ const ChatSwitcherSearchForm = props => (
         )}
 
         <TextInputWithFocusStyles
-            styleFocusIn={[{backgroundColor: 'red'}]}
-            styleFocusOut={[{backgroundColor: 'blue'}]}
+            styleFocusIn={[styles.textInputReversedFocus]}
             ref={props.forwardedRef}
             style={[styles.textInput, styles.textInputReversed, styles.flex1, styles.mr2]}
             value={props.searchValue}
