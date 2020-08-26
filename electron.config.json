@@ -7,6 +7,6 @@
     },
     "files": [
         "./dist/**/*",
-        "./main.js"
+        "./desktop/electron/main.js"
     ]
 }
