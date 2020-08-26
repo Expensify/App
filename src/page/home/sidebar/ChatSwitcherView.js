@@ -71,18 +71,7 @@ class ChatSwitcherView extends React.Component {
     }
 
     componentDidMount() {
-        this.enableKeyboardShortcut();
-    }
-
-    componentWillUnmount() {
-        this.disableKeyboardShortcut();
-    }
-
-    /**
-     * Listen for the Command+K key being pressed so the focus can be given to the chat switcher
-     */
-    enableKeyboardShortcut() {
-        // Command + K
+        // Listen for the Command+K key being pressed so the focus can be given to the chat switcher
         KeyboardShortcut.subscribe('K', () => {
             if (this.textInput) {
                 this.textInput.focus();
@@ -90,10 +79,7 @@ class ChatSwitcherView extends React.Component {
         }, ['meta'], true);
     }
 
-    /**
-     * Stop listening to the keyboard shortcut
-     */
-    disableKeyboardShortcut() {
+    componentWillUnmount() {
         KeyboardShortcut.unsubscribe('K');
     }
 
@@ -113,7 +99,6 @@ class ChatSwitcherView extends React.Component {
             if (blurAfterReset) {
                 this.textInput.blur();
                 this.props.onBlur();
-                this.enableKeyboardShortcut();
             }
         });
     }
@@ -124,7 +109,6 @@ class ChatSwitcherView extends React.Component {
      */
     triggerOnFocusCallback() {
         this.props.onFocus();
-        this.disableKeyboardShortcut();
         this.setState({
             isLogoVisible: false,
             isClearButtonVisible: true,
