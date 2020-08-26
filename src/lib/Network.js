@@ -32,14 +32,17 @@ Pusher.registerCustomAuthorizer((channel, {authEndpoint}) => ({
                     body: formData,
                 });
             })
-            .then((authResponse) => authResponse.json())
-            .then((data) => callback(null, data))
+            .then(authResponse => authResponse.json())
+            .then(data => callback(null, data))
             .catch((err) => {
                 console.debug('[Network] Failed to authorize Pusher');
                 callback(new Error(`Error calling auth endpoint: ${err}`));
             });
     },
 }));
+
+// Initialize the pusher connection
+Pusher.init();
 
 // Indicates if we're in the process of re-authenticating. When an API call returns jsonCode 407 indicating that the
 // authToken expired, we set this to true, pause all API calls, re-authenticate, and then use the authToken fromm the
@@ -134,7 +137,7 @@ function queueRequest(command, data) {
 function setSuccessfulSignInData(data, exitTo) {
     let redirectTo;
 
-    if (exitTo && exit[0] === '/') {
+    if (exitTo && exitTo[0] === '/') {
         redirectTo = exitTo.substring(1);
     } else if (exitTo) {
         redirectTo = exitTo;
@@ -282,18 +285,16 @@ function request(command, data, type = 'post') {
                         partnerUserSecret: password,
                         twoFactorAuthCode: ''
                     }))
-                    .then(response =>
-                        Ion.get(IONKEYS.CURRENT_URL)
-                            .then((exitTo) => {
-                                reauthenticating = false;
+                    .then(response => Ion.get(IONKEYS.CURRENT_URL)
+                        .then((exitTo) => {
+                            reauthenticating = false;
 
-                                if (response.jsonCode !== 200) {
-                                    throw new Error(response.message);
-                                }
+                            if (response.jsonCode !== 200) {
+                                throw new Error(response.message);
+                            }
 
-                                return setSuccessfulSignInData(response, exitTo);
-                            })
-                    )
+                            return setSuccessfulSignInData(response, exitTo);
+                        }))
                     .then(() => xhr(command, data, type))
                     .catch(() => {
                         reauthenticating = false;

@@ -13,7 +13,6 @@ import Header from './HeaderView';
 import Sidebar from './SidebarView';
 import Main from './MainView';
 import {initPusher} from '../../lib/actions/Report';
-import * as Pusher from '../../lib/Pusher/pusher';
 
 const windowSize = Dimensions.get('window');
 const widthBreakPoint = 1000;
@@ -33,9 +32,6 @@ export default class App extends React.Component {
     }
 
     componentDidMount() {
-        // Initialize the pusher connection
-        Pusher.init();
-
         // Setup the report action handler to subscribe to pusher
         initPusher();
 
