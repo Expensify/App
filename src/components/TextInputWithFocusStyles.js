@@ -36,7 +36,7 @@ class TextInputWithFocusStyles extends React.Component {
         super(props);
 
         this.state = {
-            style: this.props.styleFocusOut,
+            isFocused: false,
         };
     }
 
@@ -48,15 +48,19 @@ class TextInputWithFocusStyles extends React.Component {
                 ...finalStyles,
                 ...s
             }), {});
-        const stateStyles = !_.isArray(this.state.style)
-            ? this.state.style
-            : _.reduce(this.state.style, (finalStyles, s) => ({
+        let focusedStyle = this.state.isFocused
+            ? this.props.styleFocusIn
+            : this.props.styleFocusOut;
+
+        focusedStyle = !_.isArray(focusedStyle)
+            ? focusedStyle
+            : _.reduce(focusedStyle, (finalStyles, s) => ({
                 ...finalStyles,
                 ...s
             }), {});
 
         // Merge the two styles together
-        const mergedStyles = _.extend(propStyles, stateStyles);
+        const mergedStyles = _.extend(propStyles, focusedStyle);
 
         // Omit the props that are used in this intermediary component and only pass down the props that
         // are necessary
@@ -72,11 +76,11 @@ class TextInputWithFocusStyles extends React.Component {
                 ref={this.props.forwardedRef}
                 style={mergedStyles}
                 onFocus={() => {
-                    this.setState({style: this.props.styleFocusIn});
+                    this.setState({isFocused: true});
                     this.props.onFocus();
                 }}
                 onBlur={() => {
-                    this.setState({style: this.props.styleFocusOut});
+                    this.setState({isFocused: false});
                     this.props.onBlur();
                 }}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
