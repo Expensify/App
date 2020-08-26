@@ -2,11 +2,12 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import Text from '../../../components/Text';
-import {withRouter} from '../../../lib/Router/index';
+import {withRouter} from '../../../lib/Router';
 import IONKEYS from '../../../IONKEYS';
 import styles from '../../../style/StyleSheet';
-import WithIon from '../../../components/WithIon';
-import PressableLink from '../../../components/PressableLink/index';
+import withIon from '../../../components/withIon';
+import PressableLink from '../../../components/PressableLink';
+import compose from '../../../lib/compose';
 
 const propTypes = {
     // The ID of the report for this link
@@ -57,11 +58,14 @@ SidebarLink.displayName = 'SidebarLink';
 SidebarLink.propTypes = propTypes;
 SidebarLink.defaultProps = defaultProps;
 
-export default withRouter(WithIon({
-    isUnread: {
-        key: `${IONKEYS.REPORT}_%DATAFROMPROPS%`,
-        path: 'hasUnread',
-        defaultValue: false,
-        pathForProps: 'reportID',
-    }
-})(SidebarLink));
+export default compose(
+    withRouter,
+    withIon({
+        isUnread: {
+            key: `${IONKEYS.REPORT}_%DATAFROMPROPS%`,
+            path: 'hasUnread',
+            defaultValue: false,
+            pathForProps: 'reportID',
+        }
+    }),
+)(SidebarLink);

@@ -16,12 +16,7 @@ This application is built with the following principles.
 1. Install `node` & `npm`: `brew install node`
 2. Install `watchman`: `brew install watchman`
 3. Install dependencies: `npm install`
-4. Update `api.php` in [Web-Expensify](https://github.com/Expensify/Web-Expensify/blob/3ae46d91a037db3ae6bdefa3b82313431759565f/api.php#L22) to add the following headers to avoid CORS issues
-    ```
-    header('Access-Control-Allow-Origin: *');
-    header('Access-Control-Allow-Credentials: true');
-    ```
-5. Run `cp .env.example .env` and edit `.env` to have your local config options
+4. Run `cp .env.example .env` and edit `.env` to have your local config options
 
 
 ## Running the web app 🕸
