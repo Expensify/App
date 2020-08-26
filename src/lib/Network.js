@@ -311,10 +311,6 @@ function request(command, data, type = 'post') {
  * Process the networkRequestQueue by looping through the queue and attempting to make the requests
  */
 function processNetworkRequestQueue() {
-    if (networkRequestQueue.length === 0) {
-        return;
-    }
-
     Ion.get(IONKEYS.NETWORK, 'isOffline')
         .then((isOffline) => {
             if (isOffline) {
@@ -330,7 +326,7 @@ function processNetworkRequestQueue() {
 
             // Don't make any requests until we're done re-authenticating since we'll use the new authToken
             // from that response for the subsequent network requests
-            if (reauthenticating) {
+            if (reauthenticating || networkRequestQueue.length === 0) {
                 return;
             }
 
