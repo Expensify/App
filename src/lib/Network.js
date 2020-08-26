@@ -132,11 +132,21 @@ function queueRequest(command, data) {
  * @returns {Promise}
  */
 function setSuccessfulSignInData(data, exitTo) {
+    let redirectTo;
+
+    if (exitTo && exit[0] === '/') {
+        redirectTo = exitTo.substring(1);
+    } else if (exitTo) {
+        redirectTo = exitTo;
+    } else {
+        redirectTo = ROUTES.HOME;
+    }
+
     return Ion.multiSet({
         // The response from Authenticate includes requestID, jsonCode, etc
         // but we only care about setting these three values in Ion
         [IONKEYS.SESSION]: _.pick(data, 'authToken', 'accountID', 'email'),
-        [IONKEYS.APP_REDIRECT_TO]: exitTo ? `/${exitTo}` : ROUTES.HOME,
+        [IONKEYS.APP_REDIRECT_TO]: redirectTo,
         [IONKEYS.LAST_AUTHENTICATED]: new Date().getTime(),
     });
 }
@@ -271,22 +281,25 @@ function request(command, data, type = 'post') {
                         partnerUserID: login,
                         partnerUserSecret: password,
                         twoFactorAuthCode: ''
-                    })
-                        .then(response => Ion.get(IONKEYS.CURRENT_URL).then((exitTo) => {
-                            reauthenticating = false;
+                    }))
+                    .then(response =>
+                        Ion.get(IONKEYS.CURRENT_URL)
+                            .then((exitTo) => {
+                                reauthenticating = false;
 
-                            if (response.jsonCode !== 200) {
-                                throw new Error(response.message);
-                            }
+                                if (response.jsonCode !== 200) {
+                                    throw new Error(response.message);
+                                }
 
-                            return setSuccessfulSignInData(response, exitTo.substring(1));
-                        }))
-                        .then(() => xhr(command, data, type))
-                        .catch(() => {
-                            reauthenticating = false;
-                            redirectToSignIn();
-                            return Promise.reject();
-                        }));
+                                return setSuccessfulSignInData(response, exitTo);
+                            })
+                    )
+                    .then(() => xhr(command, data, type))
+                    .catch(() => {
+                        reauthenticating = false;
+                        redirectToSignIn();
+                        return Promise.reject();
+                    });
             }
 
             // We can end up here if we have queued up many
