@@ -3,10 +3,11 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ReportView from './Report/ReportView';
-import WithIon from '../../components/WithIon';
+import withIon from '../../components/withIon';
 import IONKEYS from '../../IONKEYS';
 import styles from '../../style/StyleSheet';
 import {withRouter} from '../../lib/Router';
+import compose from '../../lib/compose';
 
 const propTypes = {
     // This comes from withRouter
@@ -62,10 +63,13 @@ class MainView extends React.Component {
 MainView.propTypes = propTypes;
 MainView.defaultProps = defaultProps;
 
-export default withRouter(WithIon({
-    reports: {
-        key: `${IONKEYS.REPORT}_[0-9]+$`,
-        addAsCollection: true,
-        collectionID: 'reportID',
-    },
-})(MainView));
+export default compose(
+    withRouter,
+    withIon({
+        reports: {
+            key: `${IONKEYS.REPORT}_[0-9]+$`,
+            addAsCollection: true,
+            collectionID: 'reportID',
+        },
+    }),
+)(MainView);
