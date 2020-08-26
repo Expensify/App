@@ -29,9 +29,9 @@ const mainWindow = (async () => {
 
     // When the user clicks a link that has target="_blank" (which is all external links)
     // open the default browser instead of a new electron window
-    browserWindow.webContents.on('new-window', function(e, url) {
+    browserWindow.webContents.on('new-window', (e, url) => {
         // make sure local urls stay in electron perimeter
-        if('file://' === url.substr(0, 'file://'.length)) {
+        if (url.substr(0, 'file://'.length) === 'file://') {
             return;
         }
 
