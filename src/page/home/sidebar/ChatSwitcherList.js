@@ -52,10 +52,12 @@ const ChatSwitcherList = ({focusedIndex, options, onSelect}) => (
                             i === focusedIndex ? styles.chatSwitcherItemFocused : null
                         ]}
                     >
-                        <Image
-                            source={{uri: option.avatarURL}}
-                            style={[styles.chatSwitcherAvatarImage, styles.mr2]}
-                        />
+                        <View style={[styles.chatSwitcherAvatar, styles.mr2]}>
+                            <Image
+                                source={{uri: option.avatarURL}}
+                                style={[styles.chatSwitcherAvatarImage]}
+                            />
+                        </View>
                         <View style={[styles.flex1]}>
                             {option.fullName === '' ? (
                                 <Text style={[textStyle, styles.h3]} numberOfLines={1}>

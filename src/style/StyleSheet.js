@@ -582,8 +582,15 @@ const styles = {
         overflow: 'scroll',
     },
 
-    chatSwitcherAvatarImage: {
+    chatSwitcherAvatar: {
+        backgroundColor: colors.text,
         borderRadius: 14,
+        height: 28,
+        overflow: 'hidden',
+        width: 28,
+    },
+
+    chatSwitcherAvatarImage: {
         height: 28,
         width: 28,
     },
