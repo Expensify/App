@@ -10,6 +10,15 @@ const propTypes = {
     // The URL to open
     href: PropTypes.string.isRequired,
 
+    // What headers to send to the linked page (usually noopener and noreferrer)
+    // This is unused in native, but is here for parity with web
+    rel: PropTypes.string,
+
+    // Used to determine where to open a link ("_blank" is passed for a new tab)
+    // This is unused in native, but is here for parity with web
+    target: PropTypes.string,
+
+
     // Any children to display
     children: PropTypes.node,
 
@@ -19,6 +28,8 @@ const propTypes = {
 };
 
 const defaultProps = {
+    rel: null,
+    target: null,
     children: null,
     style: {},
 };
