@@ -75,6 +75,7 @@ class TextInputWithFocusStyles extends React.Component {
 TextInputWithFocusStyles.propTypes = propTypes;
 TextInputWithFocusStyles.defaultProps = defaultProps;
 
-export default React.forwardRef((props, ref) => {
-    return <TextInputWithFocusStyles {...props} forwardedRef={ref} />
-});
+export default React.forwardRef((props, ref) => (
+    /* eslint-disable-next-line react/jsx-props-no-spreading */
+    <TextInputWithFocusStyles {...props} forwardedRef={ref} />
+));
