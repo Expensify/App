@@ -35,7 +35,8 @@ const defaultProps = {
 const ChatSwitcherList = ({focusedIndex, options, onSelect}) => (
     <View style={[styles.chatSwitcherItemList]}>
         {options.length > 0 && _.map(options, (option, i) => {
-            const textStyle = i === focusedIndex
+            const optionIsFocused = i === focusedIndex;
+            const textStyle = optionIsFocused
                 ? styles.sidebarLinkActiveText
                 : styles.sidebarLinkText;
             return (
@@ -49,7 +50,7 @@ const ChatSwitcherList = ({focusedIndex, options, onSelect}) => (
                             styles.mb2,
                             styles.alignItemsCenter,
                             styles.chatSwitcherItem,
-                            i === focusedIndex ? styles.chatSwitcherItemFocused : null
+                            optionIsFocused ? styles.chatSwitcherItemFocused : null
                         ]}
                     >
                         <View style={[styles.chatSwitcherAvatar, styles.mr2]}>
