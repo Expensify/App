@@ -2,7 +2,7 @@ import _ from 'underscore';
 import NetInfo from '@react-native-community/netinfo';
 import Ion from './Ion';
 import CONFIG from '../CONFIG';
-import * as Pusher from '../Pusher/pusher';
+import * as Pusher from './Pusher/pusher';
 import IONKEYS from '../IONKEYS';
 import ROUTES from '../ROUTES';
 import Str from './Str';
