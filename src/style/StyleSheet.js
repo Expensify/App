@@ -239,7 +239,6 @@ const styles = {
     },
 
     sidebarHeader: {
-        minHeight: 72,
         paddingTop: 16,
         paddingRight: 12,
         paddingBottom: 16,
