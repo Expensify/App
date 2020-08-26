@@ -60,24 +60,22 @@ class ReportHistoryView extends React.Component {
      */
     // eslint-disable-next-line
     isConsecutiveHistoryItemMadeByPreviousActor(historyItemIndex) {
-        // Disable this for now
-        return false;
+        // this.getFilteredReportHistory();
+        const reportHistory = lodashGet(this.props, 'reportHistory', {});
 
-        // const filteredHistory = this.getFilteredReportHistory();
-        //
-        // // This is the created action and the very first action so it cannot be a consecutive comment.
-        // if (historyItemIndex === 0) {
-        //     return false;
-        // }
-        //
-        // const previousAction = filteredHistory[historyItemIndex - 1];
-        // const currentAction = filteredHistory[historyItemIndex];
-        //
-        // if (currentAction.timestamp - previousAction.timestamp > 300) {
-        //     return false;
-        // }
-        //
-        // return currentAction.actorEmail === previousAction.actorEmail;
+        // This is the created action and the very first action so it cannot be a consecutive comment.
+        if (historyItemIndex === 0) {
+            return false;
+        }
+
+        const previousAction = reportHistory[historyItemIndex - 1];
+        const currentAction = reportHistory[historyItemIndex];
+
+        if (currentAction.timestamp - previousAction.timestamp > 300) {
+            return false;
+        }
+
+        return currentAction.actorEmail === previousAction.actorEmail;
     }
 
     /**

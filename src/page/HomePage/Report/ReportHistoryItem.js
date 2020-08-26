@@ -34,7 +34,7 @@ class ReportHistoryItem extends React.Component {
         return (
             <View>
                 {!displayAsGroup && (<ReportHistoryItemSingle historyItem={historyItem} authToken={authToken} />)}
-                {displayAsGroup && <ReportHistoryItemGrouped historyItem={historyItem} authToken={authToken} />}
+                {displayAsGroup && (<ReportHistoryItemGrouped historyItem={historyItem} authToken={authToken} />)}
             </View>
         );
     }
