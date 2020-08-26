@@ -14,6 +14,12 @@ import ChatSwitcherView from './ChatSwitcherView';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
 
 const propTypes = {
+    // A function to call when the chat switcher is blurred
+    onChatSwitcherBlur: PropTypes.func.isRequired,
+
+    // A function to call when the chat switcher gets focus
+    onChatSwitcherFocus: PropTypes.func.isRequired,
+
     // Toggles the hamburger menu open and closed
     onLinkClick: PropTypes.func.isRequired,
 
@@ -52,8 +58,14 @@ class SidebarLinks extends React.Component {
             <View style={[styles.flex1, {marginTop: this.props.insets.top}]}>
                 <View style={[styles.sidebarHeader]}>
                     <ChatSwitcherView
-                        onBlur={() => this.setState({areReportLinksVisible: true})}
-                        onFocus={() => this.setState({areReportLinksVisible: false})}
+                        onBlur={() => {
+                            this.setState({areReportLinksVisible: true});
+                            this.props.onChatSwitcherBlur();
+                        }}
+                        onFocus={() => {
+                            this.setState({areReportLinksVisible: false});
+                            this.props.onChatSwitcherFocus();
+                        }}
                     />
                 </View>
 

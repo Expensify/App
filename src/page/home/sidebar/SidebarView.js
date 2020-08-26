@@ -14,12 +14,28 @@ const propTypes = {
     insets: SafeAreaInsetPropTypes.isRequired,
 };
 
-const SidebarView = ({insets, onLinkClick}) => (
-    <View style={[styles.flex1, styles.sidebar]}>
-        <SidebarLinks onLinkClick={onLinkClick} insets={insets} />
-        <SidebarBottom insets={insets} />
-    </View>
-);
+class SidebarView extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            isSidebarBottomVisible: true,
+        };
+    }
+
+    render() {
+        return (
+            <View style={[styles.flex1, styles.sidebar]}>
+                <SidebarLinks
+                    onLinkClick={this.props.onLinkClick}
+                    insets={this.props.insets}
+                    onChatSwitcherFocus={() => this.setState({isSidebarBottomVisible: false})}
+                    onChatSwitcherBlur={() => this.setState({isSidebarBottomVisible: true})}
+                />
+                {this.state.isSidebarBottomVisible && <SidebarBottom insets={this.props.insets} />}
+            </View>
+        );
+    }
+}
 
 SidebarView.propTypes = propTypes;
 
