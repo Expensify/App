@@ -1,5 +1,5 @@
 import React from 'react';
-import {TextInput} from 'react-native';
+import {TextInput, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 
@@ -42,25 +42,13 @@ class TextInputWithFocusStyles extends React.Component {
 
     render() {
         // Make full objects out of both the style coming from props, and the style we have in the state
-        const propStyles = !_.isArray(this.props.style)
-            ? this.props.style
-            : _.reduce(this.props.style, (finalStyles, s) => ({
-                ...finalStyles,
-                ...s
-            }), {});
-        let focusedStyle = this.state.isFocused
-            ? this.props.styleFocusIn
-            : this.props.styleFocusOut;
-
-        focusedStyle = !_.isArray(focusedStyle)
-            ? focusedStyle
-            : _.reduce(focusedStyle, (finalStyles, s) => ({
-                ...finalStyles,
-                ...s
-            }), {});
+        const propStyles = StyleSheet.flatten(this.props.style);
+        const focusedStyle = this.state.isFocused
+            ? StyleSheet.flatten(this.props.styleFocusIn)
+            : StyleSheet.flatten(this.props.styleFocusOut);
 
         // Merge the two styles together
-        const mergedStyles = _.extend(propStyles, focusedStyle);
+        const style = StyleSheet.compose(propStyles, focusedStyle);
 
         // Omit the props that are used in this intermediary component and only pass down the props that
         // are necessary
@@ -74,7 +62,7 @@ class TextInputWithFocusStyles extends React.Component {
         return (
             <TextInput
                 ref={this.props.forwardedRef}
-                style={mergedStyles}
+                style={style}
                 onFocus={() => {
                     this.setState({isFocused: true});
                     this.props.onFocus();

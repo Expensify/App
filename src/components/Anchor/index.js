@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
+import {StyleSheet} from 'react-native';
 
 /**
  * Text based component that is passed a URL to open onPress
@@ -28,18 +28,10 @@ const Anchor = ({
     children,
     style,
     ...props
-}) => {
-    // If the style prop is an array of styles, we need to mix them all together
-    const mergedStyles = !_.isArray(style) ? style : _.reduce(style, (finalStyles, s) => ({
-        ...finalStyles,
-        ...s
-    }), {});
-
-    return (
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        <a style={mergedStyles} href={href} {...props}>{children}</a>
-    );
-};
+}) => (
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <a style={StyleSheet.flatten(style)} href={href} {...props}>{children}</a>
+);
 
 Anchor.propTypes = propTypes;
 Anchor.defaultProps = defaultProps;
