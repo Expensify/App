@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import WithIon from '../../../components/WithIon';
+import withIon from '../../../components/withIon';
 import IONKEYS from '../../../IONKEYS';
 import Str from '../../../lib/Str';
 import KeyboardShortcut from '../../../lib/KeyboardShortcut';
@@ -260,7 +260,7 @@ class ChatSwitcherView extends React.Component {
 ChatSwitcherView.propTypes = propTypes;
 ChatSwitcherView.defaultProps = defaultProps;
 
-export default WithIon({
+export default withIon({
     personalDetails: {
         key: `^${IONKEYS.PERSONAL_DETAILS}$`,
     },
