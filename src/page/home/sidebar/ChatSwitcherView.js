@@ -1,19 +1,10 @@
 import React from 'react';
-import {
-    View,
-    TouchableOpacity,
-    Text, Image,
-} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import styles, {colors} from '../../../style/StyleSheet';
 import WithIon from '../../../components/WithIon';
 import IONKEYS from '../../../IONKEYS';
 import Str from '../../../lib/Str';
 import KeyboardShortcut from '../../../lib/KeyboardShortcut';
-import iconX from '../../../../assets/images/icon-x.png';
-import logoCircle from '../../../../assets/images/expensify-logo-round.png';
-import TextInputWithFocusStyles from '../../../components/TextInputWithFocusStyles';
 import ChatSwitcherList from './ChatSwitcherList';
 import ChatSwitcherSearchForm from './ChatSwitcherSearchForm';
 

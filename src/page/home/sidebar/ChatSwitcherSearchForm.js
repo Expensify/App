@@ -7,6 +7,9 @@ import TextInputWithFocusStyles from '../../../components/TextInputWithFocusStyl
 import iconX from '../../../../assets/images/icon-x.png';
 
 const propTypes = {
+    // A ref to forward to the text input
+    forwardedRef: PropTypes.func.isRequired,
+
     // Whether or not the clear button is visible
     isClearButtonVisible: PropTypes.bool.isRequired,
 
