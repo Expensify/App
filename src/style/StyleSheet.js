@@ -249,8 +249,6 @@ const styles = {
 
     sidebarFooter: {
         alignItems: 'center',
-        borderTopWidth: 1,
-        borderTopColor: colors.text,
         display: 'flex',
         flexDirection: 'row',
         height: 85,
@@ -503,10 +501,7 @@ const styles = {
     },
 
     chatItemCompose: {
-        borderTopWidth: 1,
-        borderTopColor: colors.border,
-        minHeight: 85,
-        paddingTop: 20,
+        minHeight: 65,
         paddingBottom: 20,
         paddingLeft: 20,
         paddingRight: 20,
