@@ -265,6 +265,7 @@ function request(command, data, type = 'post') {
 
     // Make the http request, and if we get 407 jsonCode in the response,
     // re-authenticate to get a fresh authToken and make the original http request again
+    let authenticateResponse;
     return xhr(command, data, type)
         .then((responseData) => {
             if (!reauthenticating && responseData.jsonCode === 407 && data.doNotRetry !== true) {
@@ -278,21 +279,30 @@ function request(command, data, type = 'post') {
                         partnerUserSecret: password,
                         twoFactorAuthCode: ''
                     }))
-                    .then(response => Ion.get(IONKEYS.CURRENT_URL)
-                        .then((exitTo) => {
-                            reauthenticating = false;
-
-                            if (response.jsonCode !== 200) {
-                                throw new Error(response.message);
-                            }
-
-                            return setSuccessfulSignInData(response, exitTo);
-                        }))
-                    .then(() => xhr(command, data, type))
-                    .catch(() => {
+                    .then(response => {
+                        authenticateResponse = response;
+                        return Ion.get(IONKEYS.CURRENT_URL);
+                    })
+                    .then((exitTo) => {
                         reauthenticating = false;
-                        redirectToSignIn();
-                        return Promise.reject();
+
+                        // If authentication fails throw so that we hit
+                        // the catch below and redirect to sign in
+                        if (authenticateResponse.jsonCode !== 200) {
+                            throw new Error(authenticateResponse.message);
+                        }
+
+                        return setSuccessfulSignInData(authenticateResponse, exitTo);
+                    })
+                    .then(() => xhr(command, data, type))
+                    .catch((error) => {
+                        reauthenticating = false;
+                        return Ion.multiSet({
+                            [IONKEYS.CREDENTIALS]: {},
+                            [IONKEYS.SESSION]: {error: error.message},
+                        })
+                            .then(redirectToSignIn)
+                            .then(() => Promise.reject());
                     });
             }
 
