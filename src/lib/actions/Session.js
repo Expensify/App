@@ -17,7 +17,7 @@ import redirectToSignIn from './SignInRedirect';
  * @returns {Promise}
  */
 function signIn(login, password, twoFactorAuthCode = '', exitTo, useExpensifyLogin = true) {
-    console.debug('[SIGNIN] Authenticating with expensify login');
+    console.debug('[SIGNIN] Authenticating with login type:', useExpensifyLogin ? 'expensify' : 'device');
     return request('Authenticate', {
         // When authenticating for the first time, we pass useExpensifyLogin as true so we check for credentials for
         // the expensify partnerID to let users authenticate with their expensify user and password.

@@ -4,6 +4,7 @@ import CONFIG from '../../CONFIG';
 
 let socket;
 const socketEventCallbacks = [];
+let customAuthorizer;
 
 /**
  * Trigger each of the socket event callbacks with the event information
@@ -17,6 +18,7 @@ function callSocketEventCallbacks(eventName, data) {
 
 /**
  * Initialize our pusher lib
+ *
  * @param {String} appKey
  * @param {Object} [params]
  * @public
@@ -29,10 +31,17 @@ function init(appKey, params) {
         //         window.console.log(message);
         //     }
         // };
-        socket = new Pusher(CONFIG.PUSHER.APP_KEY, {
+
+        const options = {
             cluster: CONFIG.PUSHER.CLUSTER,
             authEndpoint: `${CONFIG.PUSHER.AUTH_URL}/api.php?command=Push_Authenticate`,
-        });
+        };
+
+        if (customAuthorizer) {
+            options.authorizer = customAuthorizer;
+        }
+
+        socket = new Pusher(CONFIG.PUSHER.APP_KEY, options);
 
         // If we want to pass params in our requests to api.php we'll need to add it to socket.config.auth.params
         // as per the documentation
@@ -321,15 +330,14 @@ function registerSocketEventCallback(cb) {
 }
 
 /**
- * @param {String} authToken
+ * A custom authorizer allows us to take a more fine-grained approach to
+ * authenticating Pusher. e.g. we can handle failed attempts to authorize
+ * with an expired authToken and retry the attempt.
+ *
+ * @param {Function} authorizer
  */
-function updateAuthTokenAndReconnect(authToken) {
-    if (!socket) {
-        return;
-    }
-
-    socket.config.auth.params.authToken = authToken;
-    socket.connect();
+function registerCustomAuthorizer(authorizer) {
+    customAuthorizer = authorizer;
 }
 
 export {
@@ -343,5 +351,5 @@ export {
     sendEvent,
     sendChunkedEvent,
     registerSocketEventCallback,
-    updateAuthTokenAndReconnect,
+    registerCustomAuthorizer,
 };
