@@ -12,10 +12,8 @@ import styles, {getSafeAreaPadding} from '../../style/StyleSheet';
 import Header from './HeaderView';
 import Sidebar from './SidebarView';
 import Main from './MainView';
-import Ion from '../../lib/Ion';
-import IONKEYS from '../../IONKEYS';
 import {initPusher} from '../../lib/actions/Report';
-import * as pusher from '../../lib/Pusher/pusher';
+import * as Pusher from '../../lib/Pusher/pusher';
 
 const windowSize = Dimensions.get('window');
 const widthBreakPoint = 1000;
@@ -35,17 +33,12 @@ export default class App extends React.Component {
     }
 
     componentDidMount() {
-        Ion.get(IONKEYS.SESSION, 'authToken').then((authToken) => {
-            if (authToken) {
-                // Initialize the pusher connection
-                pusher.init(null, {
-                    authToken,
-                });
+        // Initialize the pusher connection
+        Pusher.init();
 
-                // Setup the report action handler to subscribe to pusher
-                initPusher();
-            }
-        });
+        // Setup the report action handler to subscribe to pusher
+        initPusher();
+
         Dimensions.addEventListener('change', this.toggleHamburgerBasedOnDimensions);
 
         StatusBar.setBarStyle('dark-content', true);

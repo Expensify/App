@@ -340,6 +340,13 @@ function registerCustomAuthorizer(authorizer) {
     customAuthorizer = authorizer;
 }
 
+/**
+ * Pusher socket for debugging purposes
+ *
+ * @returns {Function}
+ */
+window.getPusherInstance = () => socket;
+
 export {
     init,
     subscribe,

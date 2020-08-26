@@ -16,35 +16,29 @@ import redirectToSignIn from './actions/SignInRedirect';
  * will expire and we'll want to be able to retry Pusher connections
  * while the we fetch a new authToken.
  */
-Pusher.registerCustomAuthorizer((channel, {authEndpoint}) => {
-    return {
-        authorize: (socketId, callback) => {
-            const tryToConnect = async () => {
-                console.debug('[Network] Attempting to authorize Pusher');
+Pusher.registerCustomAuthorizer((channel, {authEndpoint}) => ({
+    authorize: async (socketId, callback) => {
+        console.debug('[Network] Attempting to authorize Pusher');
 
-                const authToken = await Ion.get(IONKEYS.SESSION, 'authToken');
-                const formData = new FormData();
-                formData.append('socket_id', socketId);
-                formData.append('channel_name', channel.name);
-                formData.append('authToken', authToken);
+        const authToken = await Ion.get(IONKEYS.SESSION, 'authToken');
+        const formData = new FormData();
+        formData.append('socket_id', socketId);
+        formData.append('channel_name', channel.name);
+        formData.append('authToken', authToken);
 
-                try {
-                    const authResponse = await fetch(authEndpoint, {
-                        method: 'POST',
-                        body: formData,
-                    });
-                    const data = await authResponse.json();
-                    callback(null, data);
-                } catch (err) {
-                    console.debug('[Network] Failed to authorize Pusher');
-                    callback(new Error(`Error calling auth endpoint: ${err}`));
-                }
-            };
-
-            tryToConnect();
-        },
-    }
-});
+        try {
+            const authResponse = await fetch(authEndpoint, {
+                method: 'POST',
+                body: formData,
+            });
+            const data = await authResponse.json();
+            callback(null, data);
+        } catch (err) {
+            console.debug('[Network] Failed to authorize Pusher');
+            callback(new Error(`Error calling auth endpoint: ${err}`));
+        }
+    },
+}));
 
 // Indicates if we're in the process of re-authenticating. When an API call returns jsonCode 407 indicating that the
 // authToken expired, we set this to true, pause all API calls, re-authenticate, and then use the authToken fromm the
