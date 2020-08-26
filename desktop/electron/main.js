@@ -13,7 +13,7 @@ const contextMenu = require('electron-context-menu');
 app.commandLine.appendSwitch('disable-web-security');
 
 const mainWindow = (async () => {
-    const loadURL = serve({directory: 'dist'});
+    const loadURL = serve({directory: '../../dist'});
 
     await app.whenReady();
 
