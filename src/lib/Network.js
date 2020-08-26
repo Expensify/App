@@ -17,26 +17,27 @@ import redirectToSignIn from './actions/SignInRedirect';
  * while the we fetch a new authToken.
  */
 Pusher.registerCustomAuthorizer((channel, {authEndpoint}) => ({
-    authorize: async (socketId, callback) => {
+    authorize: (socketId, callback) => {
         console.debug('[Network] Attempting to authorize Pusher');
 
-        const authToken = await Ion.get(IONKEYS.SESSION, 'authToken');
-        const formData = new FormData();
-        formData.append('socket_id', socketId);
-        formData.append('channel_name', channel.name);
-        formData.append('authToken', authToken);
+        return Ion.get(IONKEYS.SESSION, 'authToken')
+            .then((authToken) => {
+                const formData = new FormData();
+                formData.append('socket_id', socketId);
+                formData.append('channel_name', channel.name);
+                formData.append('authToken', authToken);
 
-        try {
-            const authResponse = await fetch(authEndpoint, {
-                method: 'POST',
-                body: formData,
+                return fetch(authEndpoint, {
+                    method: 'POST',
+                    body: formData,
+                });
+            })
+            .then((authResponse) => authResponse.json())
+            .then((data) => callback(null, data))
+            .catch((err) => {
+                console.debug('[Network] Failed to authorize Pusher');
+                callback(new Error(`Error calling auth endpoint: ${err}`));
             });
-            const data = await authResponse.json();
-            callback(null, data);
-        } catch (err) {
-            console.debug('[Network] Failed to authorize Pusher');
-            callback(new Error(`Error calling auth endpoint: ${err}`));
-        }
     },
 }));
 
