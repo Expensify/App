@@ -11,7 +11,7 @@ import {
 import PropTypes from 'prop-types';
 import compose from '../lib/compose';
 import {withRouter} from '../lib/Router';
-import {signIn} from '../lib/actions/ActionsSession';
+import {signIn} from '../lib/actions/Session';
 import IONKEYS from '../IONKEYS';
 import withIon from '../components/withIon';
 import styles from '../style/StyleSheet';
