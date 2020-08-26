@@ -14,6 +14,7 @@ import KeyboardShortcut from '../../../lib/KeyboardShortcut';
 import iconX from '../../../../assets/images/icon-x.png';
 import logoCircle from '../../../../assets/images/expensify-logo-round.png';
 import TextInputWithFocusStyles from '../../../components/TextInputWithFocusStyles';
+import ChatSwitcherList from './ChatSwitcherList';
 
 const propTypes = {
     // A method that is triggered when the TextInput gets focus
@@ -64,6 +65,7 @@ class ChatSwitcherView extends React.Component {
 
         this.handleKeyPress = this.handleKeyPress.bind(this);
         this.reset = this.reset.bind(this);
+        this.selectOption = this.selectOption.bind(this);
         this.triggerOnFocusCallback = this.triggerOnFocusCallback.bind(this);
         this.updateSearch = this.updateSearch.bind(this);
 
@@ -297,50 +299,11 @@ class ChatSwitcherView extends React.Component {
                     )}
                 </View>
 
-                <View style={[styles.chatSwitcherItemList]}>
-                    {this.state.options.length > 0 && _.map(this.state.options, (option, i) => {
-                        const textStyle = i === this.state.focusedIndex
-                            ? styles.sidebarLinkActiveText
-                            : styles.sidebarLinkText;
-                        return (
-                            <TouchableOpacity
-                                key={option.login}
-                                onPress={() => this.selectOption(option)}
-                            >
-                                <View
-                                    style={[
-                                        styles.flexRow,
-                                        styles.mb2,
-                                        styles.alignItemsCenter,
-                                        styles.chatSwitcherItem,
-                                        i === this.state.focusedIndex ? styles.chatSwitcherItemFocused : null
-                                    ]}
-                                >
-                                    <Image
-                                        source={{uri: option.avatarURL}}
-                                        style={[styles.chatSwitcherAvatarImage, styles.mr2]}
-                                    />
-                                    <View style={[styles.flex1]}>
-                                        {option.fullName === '' ? (
-                                            <Text style={[textStyle, styles.h3]} numberOfLines={1}>
-                                                {option.login}
-                                            </Text>
-                                        ) : (
-                                            <>
-                                                <Text style={[textStyle, styles.h3]} numberOfLines={1}>
-                                                    {option.fullName}
-                                                </Text>
-                                                <Text style={[textStyle, styles.textMicro]} numberOfLines={1}>
-                                                    {option.login}
-                                                </Text>
-                                            </>
-                                        )}
-                                    </View>
-                                </View>
-                            </TouchableOpacity>
-                        );
-                    })}
-                </View>
+                <ChatSwitcherList
+                    onSelect={this.selectOption}
+                    focusedIndex={this.state.focusedIndex}
+                    options={this.state.options}
+                />
             </>
         );
     }
