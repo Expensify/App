@@ -2,28 +2,27 @@ import _ from 'underscore';
 import NetInfo from '@react-native-community/netinfo';
 import Ion from './Ion';
 import CONFIG from '../CONFIG';
+import * as Pusher from '../Pusher/pusher';
 import IONKEYS from '../IONKEYS';
 import ROUTES from '../ROUTES';
 import Str from './Str';
 import Guid from './Guid';
-import * as Pusher from './Pusher/pusher';
 import redirectToSignIn from './actions/SignInRedirect';
 
 /**
- * This is a custom authorizer given to Pusher so we can make
- * sure we are always passing a valid auth hash to Pusher. Due to
- * the nature of infinite sessions it's possible that our authToken
- * will expire and we'll want to be able to retry Pusher connections
- * while the we fetch a new authToken.
+ * When authTokens expire they will automatically be refreshed.
+ * The authorizer helps make sure that we are always passing the
+ * current valid token to generate the signed auth response
+ * needed to subscribe to Pusher channels.
  */
 Pusher.registerCustomAuthorizer((channel, {authEndpoint}) => ({
-    authorize: (socketId, callback) => {
+    authorize: (socketID, callback) => {
         console.debug('[Network] Attempting to authorize Pusher');
 
         return Ion.get(IONKEYS.SESSION, 'authToken')
             .then((authToken) => {
                 const formData = new FormData();
-                formData.append('socket_id', socketId);
+                formData.append('socket_id', socketID);
                 formData.append('channel_name', channel.name);
                 formData.append('authToken', authToken);
 
@@ -240,21 +239,15 @@ function request(command, data, type = 'post') {
     if (command === 'Authenticate') {
         return xhr(command, data, type)
             .then((response) => {
-                // If we didn't get a 200 response from authenticate and useExpensifyLogin != true, it means we're
-                // trying to authenticate with the login credentials we created after the initial authentication, and
-                // failing, so we need the user to sign in again with their expensify credentials again, which they can
-                // do from the sign in page
-                if (!data.useExpensifyLogin && response.jsonCode !== 200) {
+                // If we didn't get a 200 response from authenticate we either failed to authenticate with
+                // an expensify login or the login credentials we created after the initial authentication.
+                // In both cases, we need the user to sign in again with their expensify credentials
+                if (response.jsonCode !== 200) {
                     return Ion.multiSet({
                         [IONKEYS.CREDENTIALS]: {},
                         [IONKEYS.SESSION]: {error: response.message},
                     })
                         .then(redirectToSignIn);
-                }
-
-                // Did not authenticate throw something
-                if (response.jsonCode !== 200) {
-                    throw new Error(response.message);
                 }
 
                 return setSuccessfulSignInData(response, data.exitTo);

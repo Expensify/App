@@ -12,7 +12,7 @@ import styles, {getSafeAreaPadding} from '../../style/StyleSheet';
 import Header from './HeaderView';
 import Sidebar from './SidebarView';
 import Main from './MainView';
-import {initPusher} from '../../lib/actions/Report';
+import {subscribeToReportCommentEvents} from '../../lib/actions/Report';
 
 const windowSize = Dimensions.get('window');
 const widthBreakPoint = 1000;
@@ -32,8 +32,8 @@ export default class App extends React.Component {
     }
 
     componentDidMount() {
-        // Setup the report action handler to subscribe to pusher
-        initPusher();
+        // Listen for report comment events
+        subscribeToReportCommentEvents();
 
         Dimensions.addEventListener('change', this.toggleHamburgerBasedOnDimensions);
 

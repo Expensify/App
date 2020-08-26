@@ -78,11 +78,11 @@ function hasUnreadHistoryItems(accountID, report) {
 }
 
 /**
- * Initialize our pusher subscriptions to listen for new report comments
+ * Listen for new report comments via Pusher
  *
  * @returns {Promise}
  */
-function initPusher() {
+function subscribeToReportCommentEvents() {
     return Ion.get(IONKEYS.SESSION, 'accountID')
         .then((accountID) => {
             const pusherChannelName = `private-user-accountID-${accountID}`;
@@ -255,5 +255,5 @@ export {
     fetchHistory,
     addHistoryItem,
     updateLastReadActionID,
-    initPusher,
+    subscribeToReportCommentEvents,
 };
