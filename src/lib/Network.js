@@ -246,6 +246,14 @@ function request(command, data, type = 'post') {
                         }));
             }
             return responseData;
+        })
+
+        // Always keep an updated authToken in the session
+        .then((responseData) => {
+            if (responseData.authToken) {
+                Ion.merge(IONKEYS.SESSION, {authToken: responseData.authToken});
+            }
+            return responseData;
         });
 }
 

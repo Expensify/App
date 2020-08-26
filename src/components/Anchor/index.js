@@ -1,8 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import {Linking} from 'react-native';
-import Text from './Text';
 
 /**
  * Text based component that is passed a URL to open onPress
@@ -39,7 +37,7 @@ const Anchor = ({
 
     return (
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <Text style={[mergedStyles]} onPress={() => Linking.openURL(href)} {...props}>{children}</Text>
+        <a style={mergedStyles} href={href} {...props}>{children}</a>
     );
 };
 
