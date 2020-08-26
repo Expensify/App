@@ -279,7 +279,7 @@ function request(command, data, type = 'post') {
                         partnerUserSecret: password,
                         twoFactorAuthCode: ''
                     }))
-                    .then(response => {
+                    .then((response) => {
                         authenticateResponse = response;
                         return Ion.get(IONKEYS.CURRENT_URL);
                     })
