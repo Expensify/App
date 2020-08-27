@@ -122,9 +122,7 @@ function subscribeToReportCommentEvents() {
 function fetchChatReports() {
     let currentUserEmail;
     let currentUserAccountID;
-    let fetchedChatList;
     let fetchedReports;
-    let fetchedSharedReportList;
 
     return Ion.get(IONKEYS.SESSION)
         .then((session) => {
@@ -133,7 +131,6 @@ function fetchChatReports() {
             return queueRequest('Get', {returnValueList: 'chatList'});
         })
         .then(({chatList}) => {
-            fetchedChatList = chatList;
             return queueRequest('Get', {
                 returnValueList: 'reportStuff',
                 reportIDList: chatList,
@@ -142,17 +139,11 @@ function fetchChatReports() {
         })
         .then(({reports}) => {
             fetchedReports = reports;
-            return queueRequest('Get', {
-                returnValueList: 'sharedReportList',
-                reportIDList: fetchedChatList,
-            });
-        })
-        .then(({sharedReportList}) => {
-            fetchedSharedReportList = sharedReportList;
 
             // Build array of all participant emails so we can
             // get the personal details.
-            const emails = _.chain(sharedReportList)
+            const emails = _.chain(reports)
+                .pluck('sharedReportList')
                 .reduce((participants, sharedList) => {
                     const emailArray = _.map(sharedList, participant => participant.email);
                     return [...participants, ...emailArray];
@@ -170,7 +161,7 @@ function fetchChatReports() {
                 const newReport = getSimplifiedReportObject(report, currentUserAccountID);
 
                 if (lodashGet(report, 'reportNameValuePairs.type') === 'chat') {
-                    newReport.reportName = _.chain(fetchedSharedReportList[report.reportID])
+                    newReport.reportName = _.chain(report.sharedReportList)
                         .map(participant => participant.email)
                         .filter(participant => participant !== currentUserEmail)
                         .map(participant => lodashGet(personalDetails, [participant, 'firstName'], participant))
