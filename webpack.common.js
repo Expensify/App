@@ -69,5 +69,9 @@ module.exports = {
             'react-native-config': 'react-web-config',
             'react-native$': 'react-native-web',
         },
+
+        // React Native libraries may have web-specific module implementations that appear with the extension `.web.js`
+        // without this, web will try to use native implementations and break in not very obvious ways
+        extensions: ['.web.js', '.js'],
     },
 };

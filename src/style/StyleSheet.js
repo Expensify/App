@@ -213,8 +213,6 @@ const styles = {
 
     sidebarFooter: {
         alignItems: 'center',
-        borderTopWidth: 1,
-        borderTopColor: colors.text,
         display: 'flex',
         flexDirection: 'row',
         height: 85,
@@ -233,7 +231,6 @@ const styles = {
     },
 
     statusIndicator: {
-        backgroundColor: colors.icon,
         borderColor: colors.heading,
         borderRadius: 7,
         borderWidth: 2,
@@ -245,6 +242,14 @@ const styles = {
         zIndex: 10,
     },
 
+    statusIndicatorOnline: {
+        backgroundColor: colors.green,
+    },
+
+    statusIndicatorOffline: {
+        backgroundColor: colors.icon,
+    },
+
     sidebarFooterUsername: {
         color: '#FFFFFF',
         fontSize: 15,
@@ -254,6 +259,9 @@ const styles = {
     sidebarFooterLink: {
         color: '#C6C9CA',
         fontSize: 11,
+        textDecorationLine: 'none',
+        fontFamily: 'GTAmericaExp-Regular',
+        lineHeight: 20,
     },
 
     sidebarListContainer: {
@@ -418,6 +426,14 @@ const styles = {
         marginRight: 8,
     },
 
+    chatItemRightGrouped: {
+        flexGrow: 1,
+        flexShrink: 1,
+        flexBasis: 0,
+        position: 'relative',
+        marginLeft: 48,
+    },
+
     chatItemRight: {
         flexGrow: 1,
         flexShrink: 1,
@@ -460,10 +476,7 @@ const styles = {
     },
 
     chatItemCompose: {
-        borderTopWidth: 1,
-        borderTopColor: colors.border,
-        minHeight: 85,
-        paddingTop: 20,
+        minHeight: 65,
         paddingBottom: 20,
         paddingLeft: 20,
         paddingRight: 20,
@@ -535,6 +548,10 @@ const webViewStyles = {
         del: {
             textDecorationLine: 'line-through',
             textDecorationStyle: 'solid'
+        },
+
+        strong: {
+            fontWeight: '600',
         },
 
         a: {
