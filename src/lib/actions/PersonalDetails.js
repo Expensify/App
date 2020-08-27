@@ -30,11 +30,7 @@ function getAvatar(personalDetails, login) {
  * @return {Object}
  */
 function formatPersonalDetails(personalDetailsList) {
-    const newDetailsList = {...personalDetailsList};
-    delete newDetailsList.jsonCode;
-    delete newDetailsList.requestID;
-
-    return _.reduce(newDetailsList, (finalObject, personalDetails, login) => {
+    return _.reduce(personalDetailsList, (finalObject, personalDetails, login) => {
         // Form the details into something that has all the data in an easy to use format.
         const avatarURL = getAvatar(personalDetails, login);
         const firstName = personalDetails.firstName || '';
