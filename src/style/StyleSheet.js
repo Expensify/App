@@ -6,6 +6,7 @@ const safeInsertPercentage = 0.7;
 const colors = {
     componentBG: '#FFFFFF',
     background: '#FAFAFA',
+    black: '#000000',
     blue: '#2EAAE2',
     border: '#ECECEC',
     green: '#2ECB70',
@@ -15,7 +16,6 @@ const colors = {
     textReversed: '#FFFFFF',
     textSupporting: '#7D8B8F',
     red: '#E84A3B',
-    shadow: '#000000',
 };
 
 const styles = {
@@ -527,7 +527,7 @@ const styles = {
         bottom: 0,
         zIndex: 2,
         width: 300,
-        shadowColor: colors.shadow,
+        shadowColor: colors.black,
         shadowOffset: {
             width: 0,
             height: 0,
