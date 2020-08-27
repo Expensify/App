@@ -8,6 +8,7 @@ const colors = {
     icon: '#C6C9CA',
     heading: '#37444C',
     text: '#4A5960',
+    textReversed: '#FFFFFF',
     textSupporting: '#7D8B8F',
     blue: '#2EAAE2',
     green: '#2ECB70',
@@ -99,7 +100,7 @@ const styles = {
     },
 
     colorReversed: {
-        color: '#ffffff',
+        color: colors.textReversed,
     },
 
     button: {
@@ -122,7 +123,7 @@ const styles = {
     },
 
     buttonSuccessText: {
-        color: '#ffffff',
+        color: colors.textReversed,
     },
 
     // History Items
@@ -152,7 +153,7 @@ const styles = {
         borderRadius: 8,
         borderColor: colors.text,
         borderWidth: 1,
-        color: '#ffffff',
+        color: colors.textReversed,
         padding: 12,
     },
 
@@ -251,7 +252,7 @@ const styles = {
     },
 
     sidebarFooterUsername: {
-        color: '#FFFFFF',
+        color: colors.textReversed,
         fontSize: 15,
         fontWeight: '700',
     },
@@ -276,7 +277,7 @@ const styles = {
     },
 
     sidebarListHeader: {
-        color: '#FFFFFF',
+        color: colors.textReversed,
         fontSize: 15,
         fontWeight: '700',
         paddingTop: 8,
@@ -325,10 +326,10 @@ const styles = {
     },
     sidebarLinkTextUnread: {
         fontWeight: '600',
-        color: '#ffffff',
+        color: colors.textReversed,
     },
     sidebarLinkActiveText: {
-        color: '#ffffff',
+        color: colors.textReversed,
         fontSize: 13,
         textDecorationLine: 'none',
         overflow: 'hidden',
@@ -484,7 +485,7 @@ const styles = {
     },
 
     chatItemComposeBox: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.componentBG,
         borderWidth: 1,
         borderColor: colors.border,
         borderRadius: 8,
