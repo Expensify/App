@@ -169,7 +169,7 @@ function fetchAll() {
                 };
 
                 if (lodashGet(report, 'reportNameValuePairs.type') === 'chat') {
-                    //  eslint wants this next line to be unreasonably long
+                    // eslint wants this next line to be unreasonably long
                     // eslint-disable-next-line arrow-body-style
                     newReport.reportName = _.map(participantMap[report.reportID], (participantEmail) => {
                         return (participantDetails[participantEmail] || {}).firstName || participantEmail;
