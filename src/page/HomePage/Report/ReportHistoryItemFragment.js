@@ -6,7 +6,7 @@ import Str from '../../../lib/Str';
 import ReportHistoryFragmentPropTypes from './ReportHistoryFragmentPropTypes';
 import styles, {webViewStyles} from '../../../style/StyleSheet';
 import Text from '../../../components/Text';
-import Anchor from '../../../components/Anchor';
+import AnchorForCommentsOnly from '../../../components/AnchorForCommentsOnly';
 
 const propTypes = {
     // The message fragment needing to be displayed
@@ -30,15 +30,7 @@ class ReportHistoryItemFragment extends React.PureComponent {
         // For <a> tags, the <Anchor> attribute is used to be more cross-platform friendly
         this.customRenderers = {
             a: (htmlAttribs, children, convertedCSSStyles, passProps) => (
-                <Anchor
-                    href={htmlAttribs.href}
-                    target={htmlAttribs.target}
-                    rel={htmlAttribs.rel}
-                    style={passProps.style}
-                    key={passProps.key}
-                >
-                    {children}
-                </Anchor>
+                <AnchorForCommentsOnly href={htmlAttribs.href} target={htmlAttribs.target} rel={htmlAttribs.rel} style={passProps.style} key={passProps.key}>{children}</AnchorForCommentsOnly>
             ),
         };
     }
