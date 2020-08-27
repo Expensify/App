@@ -1,7 +1,6 @@
 {
   "name": "react-native-chat",
   "version": "1.0.1-4",
-  "main": "main.js",
   "author": "Expensify, Inc.",
   "homepage": "https://expensify.com",
   "private": true,
