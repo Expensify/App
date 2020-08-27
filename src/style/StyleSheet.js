@@ -547,6 +547,10 @@ const webViewStyles = {
             textDecorationStyle: 'solid'
         },
 
+        strong: {
+            fontWeight: '600',
+        },
+
         a: {
             color: colors.blue
         }
