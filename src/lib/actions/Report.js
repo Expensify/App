@@ -253,7 +253,7 @@ function fetchChatReport(participants) {
         .then((data) => {
             currentUserEmail = data.session.email;
             currentUserAccountID = data.session.accountID;
-            personalDetails = data.personalDetails;
+            personalDetails = data.personal_details;
         })
 
         // Make a request to get the reportID for this list of participants
