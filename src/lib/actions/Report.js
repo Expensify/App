@@ -8,7 +8,7 @@ import CONFIG from '../../CONFIG';
 import * as Pusher from '../Pusher/pusher';
 import promiseAllSettled from '../promiseAllSettled';
 import ExpensiMark from '../ExpensiMark';
-import {getForEmails} from './PersonalDetails';
+import * as PersonalDetails from './PersonalDetails';
 
 /**
  * Updates a report in the store with a new report action
@@ -94,31 +94,100 @@ function subscribeToReportCommentEvents() {
 }
 
 /**
+ * Get all chat reports and provide the proper report name
+ * by fetching sharedReportList and personalDetails
+ *
+ * @returns {Promise}
+ */
+function fetchChatReports() {
+    let currentUserEmail;
+    let currentUserAccountID;
+    let fetchedChatList;
+    let fetchedReports;
+    let fetchedSharedReportList;
+
+    return Ion.get(IONKEYS.SESSION)
+        .then((session) => {
+            currentUserEmail = session.email;
+            currentUserAccountID = session.accountID;
+            return queueRequest('Get', {returnValueList: 'chatList'});
+        })
+        .then(({chatList}) => {
+            fetchedChatList = chatList;
+            return queueRequest('Get', {
+                returnValueList: 'reportStuff',
+                reportIDList: chatList,
+                shouldLoadOptionalKeys: true,
+            });
+        })
+        .then(({reports}) => {
+            fetchedReports = reports;
+            return queueRequest('Get', {
+                returnValueList: 'sharedReportList',
+                reportIDList: fetchedChatList,
+            });
+        })
+        .then(({sharedReportList}) => {
+            fetchedSharedReportList = sharedReportList;
+
+            // Build array of all participant emails so we can
+            // get the personal details.
+            const emails = _.chain(sharedReportList)
+                .reduce((participants, sharedList) => {
+                    const emailArray = _.map(sharedList, participant => participant.email);
+                    return [...participants, ...emailArray];
+                }, [])
+                .filter(email => email !== currentUserEmail)
+                .unique()
+                .value();
+
+            return PersonalDetails.getForEmails(emails);
+        })
+        .then((personalDetails) => {
+            // Process the reports and store them in Ion
+            const ionPromises = _.map(fetchedReports, (report) => {
+                // Store only the absolute bare minimum of data in Ion because space is limited
+                const newReport = {
+                    reportID: report.reportID,
+                    reportName: report.reportName,
+                    reportNameValuePairs: report.reportNameValuePairs,
+                    hasUnread: hasUnreadHistoryItems(currentUserAccountID, report),
+                };
+
+                if (lodashGet(report, 'reportNameValuePairs.type') === 'chat') {
+                    newReport.reportName = _.chain(fetchedSharedReportList[report.reportID])
+                        .map(participant => participant.email)
+                        .filter(participant => participant !== currentUserEmail)
+                        .map(participant => lodashGet(personalDetails, [participant, 'firstName'], participant))
+                        .value()
+                        .join(', ');
+                }
+
+                // Merge the data into Ion. Don't use set() here or multiSet() because then that would
+                // overwrite any existing data (like if they have unread messages)
+                return Ion.merge(`${IONKEYS.REPORT}_${report.reportID}`, newReport);
+            });
+
+            return Promise.all(ionPromises);
+        });
+}
+
+/**
  * Get all of our reports
  *
  * @returns {Promise}
  */
 function fetchAll() {
     let fetchedReports;
-    let participantMap;
-    let accountID;
-    const uniqueParticipants = [];
 
-    // Get the chat report IDs
-    return queueRequest('Get', {returnValueList: 'chatList'})
-        .then(({chatList}) => {
-            const chatReportIDs = _.filter(chatList.split(',')).map(Number);
-            const envReportIDs = CONFIG.REPORT_IDS.split(',');
+    // Request each report one at a time to allow individual reports to fail if access to it is prevented by Auth
+    const reportFetchPromises = _.map(CONFIG.REPORT_IDS.split(','), reportID => queueRequest('Get', {
+        returnValueList: 'reportStuff',
+        reportIDList: reportID,
+        shouldLoadOptionalKeys: true,
+    }));
 
-            // Request each report one at a time to allow individual reports to fail if access to it is prevents by Auth
-            const reportFetchPromises = _.map([...envReportIDs, ...chatReportIDs], reportID => queueRequest('Get', {
-                returnValueList: 'reportStuff',
-                reportIDList: reportID,
-                shouldLoadOptionalKeys: true,
-            }));
-
-            return promiseAllSettled(reportFetchPromises);
-        })
+    return promiseAllSettled(reportFetchPromises)
         .then(data => fetchedReports = _.compact(_.map(data, (promiseResult) => {
             // Grab the report from the promise result which stores it in the `value` key
             const report = lodashGet(promiseResult, 'value.reports', {});
@@ -127,38 +196,9 @@ function fetchAll() {
             // Otherwise, grab the actual report object from the first index in the values array
             return _.isEmpty(report) ? null : _.values(report)[0];
         })))
+        .then(() => Ion.set(IONKEYS.FIRST_REPORT_ID, _.first(_.pluck(fetchedReports, 'reportID')) || 0))
         .then(() => Ion.get(IONKEYS.SESSION, 'accountID'))
-        .then((currentAccountID) => {
-            accountID = currentAccountID;
-            return Ion.set(IONKEYS.FIRST_REPORT_ID, _.first(_.pluck(fetchedReports, 'reportID')) || 0);
-        })
-        .then(() => Promise.all(_.map(_.pluck(fetchedReports, 'reportID'), reportID => queueRequest('Get', {
-            returnValueList: 'sharedReportList',
-            reportID,
-        }))))
-        .then((responses) => {
-            participantMap = _.reduce(responses, (map, response, index) => {
-                const reportID = fetchedReports[index].reportID;
-                return {
-                    ...map,
-                    [reportID]: _.reduce(response.sharedReportList, (participants, participant) => {
-                        if (participant.accountID === accountID) {
-                            return participants;
-                        }
-
-                        // This is so we can build a unique list of participants
-                        if (!uniqueParticipants.includes(participant.email)) {
-                            uniqueParticipants.push(participant.email);
-                        }
-
-                        participants.push(participant.email);
-                        return participants;
-                    }, []),
-                };
-            }, {});
-        })
-        .then(() => getForEmails(uniqueParticipants.join(',')))
-        .then((participantDetails) => {
+        .then((accountID) => {
             const ionPromises = _.map(fetchedReports, (report) => {
                 // Store only the absolute bare minimum of data in Ion because space is limited
                 const newReport = {
@@ -167,14 +207,6 @@ function fetchAll() {
                     reportNameValuePairs: report.reportNameValuePairs,
                     hasUnread: hasUnreadHistoryItems(accountID, report),
                 };
-
-                if (lodashGet(report, 'reportNameValuePairs.type') === 'chat') {
-                    // eslint wants this next line to be unreasonably long
-                    // eslint-disable-next-line arrow-body-style
-                    newReport.reportName = _.map(participantMap[report.reportID], (participantEmail) => {
-                        return (participantDetails[participantEmail] || {}).firstName || participantEmail;
-                    }).join(', ');
-                }
 
                 // Merge the data into Ion. Don't use set() here or multiSet() because then that would
                 // overwrite any existing data (like if they have unread messages)
@@ -301,6 +333,7 @@ onReconnect(() => {
 export {
     fetchAll,
     fetchHistory,
+    fetchChatReports,
     addHistoryItem,
     updateLastReadActionID,
     subscribeToReportCommentEvents,

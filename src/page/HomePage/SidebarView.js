@@ -12,7 +12,7 @@ import {fetch as getPersonalDetails} from '../../lib/actions/PersonalDetails';
 import styles, {getSafeAreaMargins} from '../../style/StyleSheet';
 import withIon from '../../components/withIon';
 import IONKEYS from '../../IONKEYS';
-import {fetchAll} from '../../lib/actions/Report';
+import {fetchAll, fetchChatReports} from '../../lib/actions/Report';
 import SidebarLink from './SidebarLink';
 import logo from '../../../assets/images/expensify-logo_reversed.png';
 import PageTitleUpdater from '../../lib/PageTitleUpdater';
@@ -176,6 +176,8 @@ export default withIon({
                     Ion.set(IONKEYS.APP_REDIRECT_TO, `/${firstReportID}`);
                 }
             });
+
+            fetchChatReports();
         }),
     },
     isOffline: {
