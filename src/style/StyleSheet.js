@@ -407,6 +407,12 @@ const styles = {
         justifyContent: 'flex-end',
     },
 
+    chatContentScrollView: {
+        flexGrow: 1,
+        justifyContent: 'flex-end',
+        paddingVertical: 16,
+    },
+
     chatContentEmpty: {
         paddingTop: 16,
         paddingBottom: 16,
