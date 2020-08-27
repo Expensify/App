@@ -1,4 +1,4 @@
-// Web implementation only. Do not import for direct use. Use Notification.
+// Web and desktop implementation only. Do not import for direct use. Use Notification.
 
 import Str from '../Str';
 import CONST from '../../CONST';
