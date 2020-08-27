@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import ReportView from './Report/ReportView';
+import ReportView from './report/ReportView';
 import withIon from '../../components/withIon';
 import IONKEYS from '../../IONKEYS';
 import styles from '../../style/StyleSheet';
