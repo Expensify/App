@@ -212,7 +212,10 @@ function fetchChatReport(participants) {
         })
 
         // Finally, fetch all the history for the report
-        .then(() => fetchHistory(reportID));
+        .then(() => fetchHistory(reportID))
+
+        // Return the reportID as the final return value
+        .then(() => reportID);
 }
 
 /**

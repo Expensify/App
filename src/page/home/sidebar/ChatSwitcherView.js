@@ -2,11 +2,13 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import withIon from '../../../components/withIon';
+import Ion from '../../../lib/Ion';
 import IONKEYS from '../../../IONKEYS';
 import Str from '../../../lib/Str';
 import KeyboardShortcut from '../../../lib/KeyboardShortcut';
 import ChatSwitcherList from './ChatSwitcherList';
 import ChatSwitcherSearchForm from './ChatSwitcherSearchForm';
+import {fetchChatReport} from '../../../lib/actions/Report';
 
 const propTypes = {
     // A method that is triggered when the TextInput gets focus
@@ -57,7 +59,7 @@ class ChatSwitcherView extends React.Component {
 
         this.handleKeyPress = this.handleKeyPress.bind(this);
         this.reset = this.reset.bind(this);
-        this.selectOption = this.selectOption.bind(this);
+        this.fetchChatReportAndRedirect = this.fetchChatReportAndRedirect.bind(this);
         this.triggerOnFocusCallback = this.triggerOnFocusCallback.bind(this);
         this.updateSearch = this.updateSearch.bind(this);
 
@@ -116,14 +118,15 @@ class ChatSwitcherView extends React.Component {
     }
 
     /**
-     * Redirect to the chat that was selected
+     * Fetch the chat report and then redirect to the new report
      *
      * @param {object} option
      * @param {string} option.value
      */
-    selectOption(option) {
-        console.log('selected option', option);
-        // @TODO need to get the report ID for that person and then redirect to it
+    fetchChatReportAndRedirect(option) {
+        Ion.get(IONKEYS.MY_PERSONAL_DETAILS, 'login')
+            .then(currentLogin => fetchChatReport([currentLogin, option.login]))
+            .then(reportID => Ion.set(IONKEYS.APP_REDIRECT_TO, `/${reportID}`));
         this.reset();
     }
 
@@ -139,7 +142,7 @@ class ChatSwitcherView extends React.Component {
         switch (e.key) {
             case 'Enter':
                 // Select the focused option
-                this.selectOption(this.state.options[this.state.focusedIndex]);
+                this.fetchChatReportAndRedirect(this.state.options[this.state.focusedIndex]);
                 e.preventDefault();
                 break;
 
@@ -248,7 +251,7 @@ class ChatSwitcherView extends React.Component {
                 />
 
                 <ChatSwitcherList
-                    onSelect={this.selectOption}
+                    onSelect={this.fetchChatReportAndRedirect}
                     focusedIndex={this.state.focusedIndex}
                     options={this.state.options}
                 />
