@@ -30,7 +30,7 @@ class ReportHistoryItemFragment extends React.PureComponent {
         // For <a> tags, the <Anchor> attribute is used to be more cross-platform friendly
         this.customRenderers = {
             a: (htmlAttribs, children, convertedCSSStyles, passProps) => (
-                <Anchor
+                <AnchorForCommentsOnly
                     href={htmlAttribs.href}
                     target={htmlAttribs.target}
                     rel={htmlAttribs.rel}
@@ -38,7 +38,7 @@ class ReportHistoryItemFragment extends React.PureComponent {
                     key={passProps.key}
                 >
                     {children}
-                </Anchor>
+                </AnchorForCommentsOnly>
             ),
         };
     }

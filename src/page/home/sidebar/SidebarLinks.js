@@ -7,7 +7,7 @@ import Text from '../../../components/Text';
 import SidebarLink from './SidebarLink';
 import withIon from '../../../components/withIon';
 import IONKEYS from '../../../IONKEYS';
-import {fetchAll} from '../../../lib/actions/Report';
+import {fetchAll, fetchChatReports} from '../../../lib/actions/Report';
 import Ion from '../../../lib/Ion';
 import PageTitleUpdater from '../../../lib/PageTitleUpdater/index.native';
 import ChatSwitcherView from './ChatSwitcherView';
@@ -110,6 +110,8 @@ export default withIon({
                     Ion.set(IONKEYS.APP_REDIRECT_TO, `/${firstReportID}`);
                 }
             });
+
+            fetchChatReports();
         }),
     },
 })(SidebarLinks);
