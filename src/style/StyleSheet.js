@@ -423,6 +423,14 @@ const styles = {
         marginRight: 8,
     },
 
+    chatItemRightGrouped: {
+        flexGrow: 1,
+        flexShrink: 1,
+        flexBasis: 0,
+        position: 'relative',
+        marginLeft: 48,
+    },
+
     chatItemRight: {
         flexGrow: 1,
         flexShrink: 1,
