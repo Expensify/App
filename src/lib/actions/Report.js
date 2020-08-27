@@ -300,9 +300,6 @@ function fetchChatReport(participants) {
             return Ion.merge(`${IONKEYS.REPORT}_${reportID}`, newReport);
         })
 
-        // Finally, fetch all the history for the report
-        .then(() => fetchHistory(reportID))
-
         // Return the reportID as the final return value
         .then(() => reportID);
 }
