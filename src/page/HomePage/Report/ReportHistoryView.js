@@ -60,7 +60,6 @@ class ReportHistoryView extends React.Component {
      */
     // eslint-disable-next-line
     isConsecutiveHistoryItemMadeByPreviousActor(historyItemIndex) {
-        // this.getFilteredReportHistory();
         const reportHistory = lodashGet(this.props, 'reportHistory', {});
 
         // This is the created action and the very first action so it cannot be a consecutive comment.
