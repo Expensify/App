@@ -78,7 +78,7 @@ function fetch() {
             // Get my personal details so they can be easily accessed and subscribed to on their own key
             myPersonalDetails = allPersonalDetails[currentLogin] || {};
 
-            return Ion.set(IONKEYS.PERSONAL_DETAILS, allPersonalDetails);
+            return Ion.merge(IONKEYS.PERSONAL_DETAILS, allPersonalDetails);
         })
         .then(() => Ion.merge(IONKEYS.MY_PERSONAL_DETAILS, myPersonalDetails))
         .catch((error) => {
