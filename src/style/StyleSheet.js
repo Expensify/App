@@ -23,9 +23,11 @@ const styles = {
     mr1: {
         marginRight: 4,
     },
+
     mr2: {
         marginRight: 8,
     },
+
     mr3: {
         marginRight: 12,
     },
@@ -33,6 +35,11 @@ const styles = {
     ml1: {
         marginLeft: 10,
     },
+
+    ml2: {
+        marginLeft: 8,
+    },
+
     mt2: {
         marginTop: 20,
     },
@@ -62,6 +69,7 @@ const styles = {
     h100p: {
         height: '100%',
     },
+
     flex0: {
         flex: 0,
     },
@@ -72,34 +80,56 @@ const styles = {
     flex4: {
         flex: 4,
     },
+
     flexRow: {
         flexDirection: 'row',
     },
+
     flexColumn: {
         flexDirection: 'column',
     },
+
     flexJustifyEnd: {
         justifyContent: 'flex-end',
     },
+
+    alignItemsCenter: {
+        alignItems: 'center',
+    },
+
     flexWrap: {
         flexWrap: 'wrap'
     },
+
     flexGrow1: {
         flexGrow: 1,
     },
+
     flexGrow4: {
         flexGrow: 4,
     },
+
     dFlex: {
         display: 'flex',
     },
+
     dNone: {
         display: 'none',
     },
+
     textP: {
         color: colors.text,
         fontSize: 15,
         lineHeight: 20,
+    },
+
+    h3: {
+        color: '#FFFFFF',
+        fontWeight: '600',
+    },
+
+    textMicro: {
+        fontSize: 11,
     },
 
     colorReversed: {
@@ -158,6 +188,11 @@ const styles = {
         borderWidth: 1,
         color: colors.textReversed,
         padding: 12,
+        outline: 'none',
+    },
+
+    textInputReversedFocus: {
+        borderColor: colors.icon,
     },
 
     formLabel: {
@@ -178,6 +213,11 @@ const styles = {
         backgroundColor: colors.heading,
         height: '100%',
         padding: 20,
+    },
+
+    signinLogo: {
+        height: 21,
+        width: 143,
     },
 
     genericView: {
@@ -203,16 +243,17 @@ const styles = {
     },
 
     sidebarHeader: {
-        height: 72,
-        justifyContent: 'center',
-        paddingLeft: 24,
-        paddingRight: 24,
-        width: '100%',
+        minHeight: 72,
+        paddingTop: 16,
+        paddingRight: 12,
+        paddingBottom: 16,
+        paddingLeft: 12,
+        flex: 1,
     },
 
     sidebarHeaderLogo: {
-        height: 21,
-        width: 143,
+        height: 40,
+        width: 40,
     },
 
     sidebarFooter: {
@@ -270,7 +311,7 @@ const styles = {
 
     sidebarListContainer: {
         flex: 1,
-        flexGrow: 1,
+        flexGrow: 100,
         scrollbarWidth: 'none',
         overflow: 'scroll',
         paddingTop: 4,
@@ -526,6 +567,15 @@ const styles = {
         width: 20,
     },
 
+    chatSwitcherInputClear: {
+        alignSelf: 'center',
+    },
+
+    chatSwitcherInputClearIcon: {
+        height: 24,
+        width: 24,
+    },
+
     hamburgerOpenAbsolute: {
         position: 'absolute',
         left: 0,
@@ -544,8 +594,40 @@ const styles = {
 
     hamburgerOpen: {
         width: 300,
-    }
+    },
 
+    chatSwitcherItemList: {
+        flex: 1,
+        flexGrow: 1,
+        scrollbarWidth: 'none',
+        overflow: 'scroll',
+    },
+
+    chatSwitcherAvatar: {
+        backgroundColor: colors.text,
+        borderRadius: 14,
+        height: 28,
+        overflow: 'hidden',
+        width: 28,
+    },
+
+    chatSwitcherAvatarImage: {
+        height: 28,
+        width: 28,
+    },
+
+    chatSwitcherItem: {
+        padding: 12,
+    },
+
+    chatSwitcherItemText: {
+        color: colors.text,
+    },
+
+    chatSwitcherItemFocused: {
+        backgroundColor: colors.blue,
+        borderRadius: 8,
+    },
 };
 
 const webViewStyles = {

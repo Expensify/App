@@ -10,7 +10,7 @@ import {SafeAreaInsetsContext, SafeAreaProvider} from 'react-native-safe-area-co
 import {Route} from '../../lib/Router';
 import styles, {getSafeAreaPadding} from '../../style/StyleSheet';
 import Header from './HeaderView';
-import Sidebar from './SidebarView';
+import Sidebar from './sidebar/SidebarView';
 import Main from './MainView';
 import {subscribeToReportCommentEvents} from '../../lib/actions/Report';
 
