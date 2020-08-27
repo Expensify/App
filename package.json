@@ -1,13 +1,14 @@
 {
   "name": "react-native-chat",
   "version": "1.0.1-4",
+  "main": "main.js",
   "author": "Expensify, Inc.",
   "homepage": "https://expensify.com",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
     "ios": "react-native run-ios",
-    "desktop": "webpack --config webpack.dev.js && electron desktop/electron/main.js",
+    "desktop": "webpack --config webpack.dev.js && electron main.js",
     "start": "react-native start",
     "web": "webpack-dev-server --open --config webpack.dev.js",
     "build": "webpack --config webpack.prod.js",
