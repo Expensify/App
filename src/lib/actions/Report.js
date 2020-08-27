@@ -130,13 +130,11 @@ function fetchChatReports() {
             currentUserAccountID = session.accountID;
             return queueRequest('Get', {returnValueList: 'chatList'});
         })
-        .then(({chatList}) => {
-            return queueRequest('Get', {
-                returnValueList: 'reportStuff',
-                reportIDList: chatList,
-                shouldLoadOptionalKeys: true,
-            });
-        })
+        .then(({chatList}) => queueRequest('Get', {
+            returnValueList: 'reportStuff',
+            reportIDList: chatList,
+            shouldLoadOptionalKeys: true,
+        }))
         .then(({reports}) => {
             fetchedReports = reports;
 
