@@ -67,7 +67,7 @@ class App extends Component {
                         <View style={[styles.signInPageLogo]}>
                             <Image
                                 resizeMode="contain"
-                                style={[styles.sidebarHeaderLogo]}
+                                style={[styles.signinLogo]}
                                 source={logo}
                             />
                         </View>

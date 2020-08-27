@@ -61,6 +61,17 @@ const Str = {
     generateDeviceLoginID() {
         return `react-native-chat-${Guid()}`;
     },
+
+    /**
+     * Escapes all special RegExp characters from a string
+     *
+     * @param {String} string The subject
+     *
+     * @returns {String} The escaped string
+     */
+    escapeForRegExp(string) {
+        return string.replace(/[-[\]/{}()*+?.\\^$|]/g, '\\$&');
+    },
 };
 
 export default Str;
