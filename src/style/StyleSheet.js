@@ -261,7 +261,7 @@ const styles = {
         fontSize: 11,
         textDecorationLine: 'none',
         fontFamily: 'GTAmericaExp-Regular',
-        lineHeight: '20px',
+        lineHeight: 20,
     },
 
     sidebarListContainer: {
