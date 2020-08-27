@@ -17,6 +17,7 @@ import Notification from '../Notification';
  * @param {object} reportAction
  */
 function updateReportWithNewAction(reportID, reportAction) {
+    let currentUserEmail;
     Ion.get(`${IONKEYS.REPORT}_${reportID}`, 'reportID')
         .then((ionReportID) => {
             // This is necessary for local development because there will be pusher events from other engineers with
@@ -49,14 +50,17 @@ function updateReportWithNewAction(reportID, reportAction) {
         .then(reportHistory => Ion.set(`${IONKEYS.REPORT_HISTORY}_${reportID}`, reportHistory))
 
         // Check to see if we need to show a notification for this report
-        .then(async () => {
+        .then(() => Ion.get(IONKEYS.SESSION, 'email'))
+        .then((email) => {
+            currentUserEmail = email;
+            return Ion.get(IONKEYS.CURRENT_URL);
+        })
+        .then((currentUrl) => {
             // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
-            const email = await Ion.get(IONKEYS.SESSION, 'email');
-            if (reportAction.actorEmail === email) {
+            if (reportAction.actorEmail === currentUserEmail) {
                 return;
             }
 
-            const currentUrl = await Ion.get(IONKEYS.CURRENT_URL);
             const currentReportID = Number(lodashGet(currentUrl.split('/'), [1], 0));
 
             // If we are currently viewing this report do not show a notification.
