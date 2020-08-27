@@ -58,7 +58,7 @@ function updateReportWithNewAction(reportID, reportAction) {
  * @returns {boolean}
  */
 function hasUnreadHistoryItems(accountID, report) {
-    const usersLastReadActionID = report.reportNameValuePairs[`lastReadActionID_${accountID}`];
+    const usersLastReadActionID = lodashGet(report, ['reportNameValuePairs', `lastReadActionID_${accountID}`]);
     if (!usersLastReadActionID || report.reportActionList.length === 0) {
         return false;
     }
@@ -202,7 +202,9 @@ function fetchChatReport(participants) {
         }))
 
         // Put the report object into Ion
-        .then((report) => {
+        .then((data) => {
+            const report = data.reports[reportID];
+
             // Store only the absolute bare minimum of data in Ion because space is limited
             const newReport = getSimplifiedReportObject(report, currentAccountID);
 
