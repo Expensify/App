@@ -172,18 +172,18 @@ function fetchHistory(reportID) {
 
 /**
  * Get the chat report ID, and then the history, for a chat report for a specific
- * set of patricipants
+ * set of participants
  *
  * @param {string[]} participants
+ * @returns {Promise}
  */
 function fetchChatReport(participants) {
     let currentAccountID;
     let reportID;
 
-    // Get the current users accountID which is used for checking if there are unread comments
+    // Get the current users accountID and set it aside in a local variable
+    // which is used for checking if there are unread comments
     return Ion.get(IONKEYS.SESSION, 'accountID')
-
-        // Set aside the accountID in a local variable
         .then(accountID => currentAccountID = accountID)
 
         // Make a request to get the reportID for this list of participants
@@ -191,7 +191,7 @@ function fetchChatReport(participants) {
             emailList: participants.join(','),
         }))
 
-        // Set aside the reportID in a local variable
+        // Set aside the reportID in a local variable so it can be accessed in the rest of the chain
         .then(data => reportID = data.reportID)
 
         // Make a request to get all the information about the report
