@@ -14,7 +14,7 @@ import {withRouter} from '../lib/Router';
 import {signIn} from '../lib/actions/Session';
 import IONKEYS from '../IONKEYS';
 import withIon from '../components/withIon';
-import styles from '../style/StyleSheet';
+import styles, {colors} from '../style/StyleSheet';
 import logo from '../../assets/images/expensify-logo_reversed.png';
 
 const propTypes = {
@@ -100,7 +100,7 @@ class App extends Component {
                                 style={[styles.textInput, styles.textInputReversed]}
                                 value={this.state.twoFactorAuthCode}
                                 placeholder="Required when 2FA is enabled"
-                                placeholderTextColor="#C6C9CA"
+                                placeholderTextColor={colors.icon}
                                 onChangeText={text => this.setState({twoFactorAuthCode: text})}
                                 onSubmitEditing={this.submitForm}
                             />
