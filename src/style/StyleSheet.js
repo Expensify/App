@@ -1,4 +1,6 @@
 // We place items a percentage to the safe area on the top or bottom of the screen
+import fontFamily from './fontFamily';
+
 const safeInsertPercentage = 0.7;
 
 const colors = {
@@ -144,7 +146,7 @@ const styles = {
         borderColor: colors.border,
         borderWidth: 1,
         color: colors.text,
-        fontFamily: 'GTAmericaExp-Regular',
+        fontFamily: fontFamily.GTA,
         padding: 12,
         textAlignVertical: 'center',
     },
@@ -262,7 +264,7 @@ const styles = {
         color: colors.icon,
         fontSize: 11,
         textDecorationLine: 'none',
-        fontFamily: 'GTAmericaExp-Regular',
+        fontFamily: fontFamily.GTA,
         lineHeight: 20,
     },
 
@@ -469,7 +471,7 @@ const styles = {
     chatItemMessage: {
         color: colors.text,
         fontSize: 15,
-        fontFamily: 'GTAmericaExp-Regular',
+        fontFamily: fontFamily.GTA,
         lineHeight: 20,
         marginTop: -2,
         marginBottom: -2,
@@ -544,7 +546,7 @@ const webViewStyles = {
     tagStyles: {
         em: {
             fontStyle: 'italic',
-            fontFamily: 'System'
+            fontFamily: fontFamily.SYSTEM,
         },
 
         del: {
@@ -564,7 +566,7 @@ const webViewStyles = {
     baseFontStyle: {
         color: colors.text,
         fontSize: 15,
-        fontFamily: 'GTAmericaExp-Regular'
+        fontFamily: fontFamily.GTA
     }
 };
 
