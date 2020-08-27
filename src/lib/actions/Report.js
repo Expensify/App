@@ -187,8 +187,8 @@ function fetchChatReport(participants) {
         .then(accountID => currentAccountID = accountID)
 
         // Make a request to get the reportID for this list of participants
-        .then(() => queueRequest('', {
-            participants: participants.join(','),
+        .then(() => queueRequest('CreateChatReport', {
+            emailList: participants.join(','),
         }))
 
         // Set aside the reportID in a local variable
