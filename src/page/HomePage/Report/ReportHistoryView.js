@@ -71,6 +71,7 @@ class ReportHistoryView extends React.Component {
         const previousAction = reportHistory[historyItemIndex - 1];
         const currentAction = reportHistory[historyItemIndex];
 
+        // Comments are only grouped if they happen within 5 minutes of each other
         if (currentAction.timestamp - previousAction.timestamp > 300) {
             return false;
         }
