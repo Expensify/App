@@ -258,7 +258,7 @@ const styles = {
     },
 
     sidebarFooterLink: {
-        color: '#C6C9CA',
+        color: colors.icon,
         fontSize: 11,
         textDecorationLine: 'none',
         fontFamily: 'GTAmericaExp-Regular',
@@ -308,7 +308,7 @@ const styles = {
     },
 
     sidebarLinkText: {
-        color: '#C6C9CA',
+        color: colors.icon,
         fontSize: 13,
         textDecorationLine: 'none',
         overflow: 'hidden',
