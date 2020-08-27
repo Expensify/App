@@ -10,7 +10,7 @@ import Text from '../../components/Text';
 import {signOut} from '../../lib/actions/Session';
 import {fetch as getPersonalDetails} from '../../lib/actions/PersonalDetails';
 import styles, {getSafeAreaMargins} from '../../style/StyleSheet';
-import WithIon from '../../components/WithIon';
+import withIon from '../../components/withIon';
 import IONKEYS from '../../IONKEYS';
 import {fetchAll} from '../../lib/actions/Report';
 import SidebarLink from './SidebarLink';
@@ -76,6 +76,10 @@ class SidebarView extends React.Component {
     render() {
         const reports = this.props.reports;
         this.updateUnreadReportIndicator();
+        const indicatorStyles = [
+            styles.statusIndicator,
+            this.props.isOffline ? styles.statusIndicatorOffline : styles.statusIndicatorOnline
+        ];
         return (
             <View style={[styles.flex1, styles.sidebar]}>
                 <View style={[styles.sidebarHeader, {marginTop: this.props.insets.top}]}>
@@ -106,9 +110,7 @@ class SidebarView extends React.Component {
                             source={{uri: this.props.avatarURL}}
                             style={[styles.historyItemAvatar]}
                         />
-                        {this.props.isOffline && (
-                        <View style={[styles.statusIndicator]} />
-                        )}
+                        <View style={indicatorStyles} />
                     </View>
                     <View style={[styles.flexColumn]}>
                         {this.props.userDisplayName && (
@@ -147,7 +149,7 @@ class SidebarView extends React.Component {
 SidebarView.propTypes = propTypes;
 SidebarView.defaultProps = defaultProps;
 
-export default WithIon({
+export default withIon({
     // Map this.props.userDisplayName to the personal details key in the store and bind it to the displayName property
     // and load it with data from getPersonalDetails()
     userDisplayName: {

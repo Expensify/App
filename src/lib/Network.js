@@ -1,12 +1,47 @@
 import _ from 'underscore';
+import NetInfo from '@react-native-community/netinfo';
 import Ion from './Ion';
 import CONFIG from '../CONFIG';
+import * as Pusher from './Pusher/pusher';
 import IONKEYS from '../IONKEYS';
 import ROUTES from '../ROUTES';
 import Str from './Str';
 import Guid from './Guid';
-import {registerSocketEventCallback} from './Pusher/pusher';
 import redirectToSignIn from './actions/SignInRedirect';
+
+/**
+ * When authTokens expire they will automatically be refreshed.
+ * The authorizer helps make sure that we are always passing the
+ * current valid token to generate the signed auth response
+ * needed to subscribe to Pusher channels.
+ */
+Pusher.registerCustomAuthorizer((channel, {authEndpoint}) => ({
+    authorize: (socketID, callback) => {
+        console.debug('[Network] Attempting to authorize Pusher');
+
+        return Ion.get(IONKEYS.SESSION, 'authToken')
+            .then((authToken) => {
+                const formData = new FormData();
+                formData.append('socket_id', socketID);
+                formData.append('channel_name', channel.name);
+                formData.append('authToken', authToken);
+
+                return fetch(authEndpoint, {
+                    method: 'POST',
+                    body: formData,
+                });
+            })
+            .then(authResponse => authResponse.json())
+            .then(data => callback(null, data))
+            .catch((err) => {
+                console.debug('[Network] Failed to authorize Pusher');
+                callback(new Error(`Error calling auth endpoint: ${err}`));
+            });
+    },
+}));
+
+// Initialize the pusher connection
+Pusher.init();
 
 // Indicates if we're in the process of re-authenticating. When an API call returns jsonCode 407 indicating that the
 // authToken expired, we set this to true, pause all API calls, re-authenticate, and then use the authToken fromm the
@@ -14,7 +49,7 @@ import redirectToSignIn from './actions/SignInRedirect';
 let reauthenticating = false;
 
 // Queue for network requests so we don't lose actions done by the user while offline
-const networkRequestQueue = [];
+let networkRequestQueue = [];
 
 // Holds all of the callbacks that need to be triggered when the network reconnects
 const reconnectionCallbacks = [];
@@ -35,6 +70,13 @@ function setNewOfflineStatus(isCurrentlyOffline) {
         });
 }
 
+// Subscribe to the state change event via NetInfo so we can update
+// whether a user has internet connectivity or not. This is more reliable
+// than the Pusher `disconnected` event which takes about 10-15 seconds to emit
+NetInfo.addEventListener((state) => {
+    setNewOfflineStatus(!state.isConnected);
+});
+
 /**
  * Events that happen on the pusher socket are used to determine if the app is online or offline. The offline setting
  * is stored in Ion so the rest of the app has access to it.
@@ -42,7 +84,7 @@ function setNewOfflineStatus(isCurrentlyOffline) {
  * @params {string} eventName,
  * @params {object} data
  */
-registerSocketEventCallback((eventName, data) => {
+Pusher.registerSocketEventCallback((eventName, data) => {
     let isCurrentlyOffline = false;
     switch (eventName) {
         case 'connected':
@@ -92,11 +134,21 @@ function queueRequest(command, data) {
  * @returns {Promise}
  */
 function setSuccessfulSignInData(data, exitTo) {
+    let redirectTo;
+
+    if (exitTo && exitTo[0] === '/') {
+        redirectTo = exitTo.substring(1);
+    } else if (exitTo) {
+        redirectTo = exitTo;
+    } else {
+        redirectTo = ROUTES.HOME;
+    }
+
     return Ion.multiSet({
         // The response from Authenticate includes requestID, jsonCode, etc
         // but we only care about setting these three values in Ion
         [IONKEYS.SESSION]: _.pick(data, 'authToken', 'accountID', 'email'),
-        [IONKEYS.APP_REDIRECT_TO]: exitTo ? `/${exitTo}` : ROUTES.HOME,
+        [IONKEYS.APP_REDIRECT_TO]: redirectTo,
         [IONKEYS.LAST_AUTHENTICATED]: new Date().getTime(),
     });
 }
@@ -187,17 +239,17 @@ function request(command, data, type = 'post') {
     if (command === 'Authenticate') {
         return xhr(command, data, type)
             .then((response) => {
-                // If we didn't get a 200 response from authenticate and useExpensifyLogin != true, it means we're
-                // trying to authenticate with the login credentials we created after the initial authentication, and
-                // failing, so we need the user to sign in again with their expensify credentials again, which they can
-                // do from the sign in page
-                if (!command.useExpensifyLogin && response.jsonCode !== 200) {
+                // If we didn't get a 200 response from authenticate we either failed to authenticate with
+                // an expensify login or the login credentials we created after the initial authentication.
+                // In both cases, we need the user to sign in again with their expensify credentials
+                if (response.jsonCode !== 200) {
                     return Ion.multiSet({
                         [IONKEYS.CREDENTIALS]: {},
                         [IONKEYS.SESSION]: {error: response.message},
                     })
                         .then(redirectToSignIn);
                 }
+
                 return setSuccessfulSignInData(response, data.exitTo);
             })
             .then((response) => {
@@ -213,6 +265,7 @@ function request(command, data, type = 'post') {
 
     // Make the http request, and if we get 407 jsonCode in the response,
     // re-authenticate to get a fresh authToken and make the original http request again
+    let authenticateResponse;
     return xhr(command, data, type)
         .then((responseData) => {
             if (!reauthenticating && responseData.jsonCode === 407 && data.doNotRetry !== true) {
@@ -225,17 +278,48 @@ function request(command, data, type = 'post') {
                         partnerUserID: login,
                         partnerUserSecret: password,
                         twoFactorAuthCode: ''
+                    }))
+                    .then((response) => {
+                        authenticateResponse = response;
+                        return Ion.get(IONKEYS.CURRENT_URL);
                     })
-                        .then((response) => {
-                            reauthenticating = false;
-                            return setSuccessfulSignInData(response);
+                    .then((exitTo) => {
+                        reauthenticating = false;
+
+                        // If authentication fails throw so that we hit
+                        // the catch below and redirect to sign in
+                        if (authenticateResponse.jsonCode !== 200) {
+                            throw new Error(authenticateResponse.message);
+                        }
+
+                        return setSuccessfulSignInData(authenticateResponse, exitTo);
+                    })
+                    .then(() => xhr(command, data, type))
+                    .catch((error) => {
+                        reauthenticating = false;
+                        return Ion.multiSet({
+                            [IONKEYS.CREDENTIALS]: {},
+                            [IONKEYS.SESSION]: {error: error.message},
                         })
-                        .then(() => xhr(command, data, type))
-                        .catch(() => {
-                            reauthenticating = false;
-                            redirectToSignIn();
-                            return Promise.reject();
-                        }));
+                            .then(redirectToSignIn)
+                            .then(() => Promise.reject());
+                    });
+            }
+
+            // We can end up here if we have queued up many
+            // requests and have an expired authToken. In these cases,
+            // we just need to requeue the request
+            if (reauthenticating) {
+                return queueRequest(command, data);
+            }
+
+            return responseData;
+        })
+
+        // Always keep an updated authToken in the session
+        .then((responseData) => {
+            if (responseData.authToken) {
+                Ion.merge(IONKEYS.SESSION, {authToken: responseData.authToken});
             }
             return responseData;
         });
@@ -263,12 +347,13 @@ function processNetworkRequestQueue() {
             if (reauthenticating || networkRequestQueue.length === 0) {
                 return;
             }
-            for (let i = 0; i < networkRequestQueue.length; i++) {
-                // Take the request object out of the queue and make the request
-                const queuedRequest = networkRequestQueue.shift();
+
+            _.each(networkRequestQueue, (queuedRequest) => {
                 request(queuedRequest.command, queuedRequest.data)
                     .then(queuedRequest.callback);
-            }
+            });
+
+            networkRequestQueue = [];
         });
 }
 

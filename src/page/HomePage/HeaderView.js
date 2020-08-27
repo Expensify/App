@@ -4,9 +4,10 @@ import PropTypes from 'prop-types';
 import Text from '../../components/Text';
 import styles from '../../style/StyleSheet';
 import IONKEYS from '../../IONKEYS';
-import WithIon from '../../components/WithIon';
+import withIon from '../../components/withIon';
 import {withRouter} from '../../lib/Router';
 import LHNToggle from '../../../assets/images/icon-menu-toggle.png';
+import compose from '../../lib/compose';
 
 const propTypes = {
     // Toggles the hamburger menu open and closed
@@ -53,13 +54,17 @@ HeaderView.propTypes = propTypes;
 HeaderView.displayName = 'HeaderView';
 HeaderView.defaultProps = defaultProps;
 
-export default withRouter(WithIon({
-    // Map this.props.reportName to the data for a specific report in the store, and bind it to the reportName property
-    // It uses the data returned from the props path (ie. the reportID) to replace %DATAFROMPROPS% in the key it
-    // binds to
-    reportName: {
-        key: `${IONKEYS.REPORT}_%DATAFROMPROPS%`,
-        path: 'reportName',
-        pathForProps: 'match.params.reportID',
-    },
-})(HeaderView));
+export default compose(
+    withRouter,
+    withIon({
+        // Map this.props.reportName to the data for a specific report in the store,
+        // and bind it to the reportName property.
+        // It uses the data returned from the props path (ie. the reportID) to replace %DATAFROMPROPS% in the key it
+        // binds to
+        reportName: {
+            key: `${IONKEYS.REPORT}_%DATAFROMPROPS%`,
+            path: 'reportName',
+            pathForProps: 'match.params.reportID',
+        },
+    }),
+)(HeaderView);

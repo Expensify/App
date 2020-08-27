@@ -9,7 +9,7 @@ import Ion from './lib/Ion';
 import * as ActiveClientManager from './lib/ActiveClientManager';
 import {verifyAuthToken} from './lib/actions/Session';
 import IONKEYS from './IONKEYS';
-import WithIon from './components/WithIon';
+import withIon from './components/withIon';
 import styles from './style/StyleSheet';
 
 import {
@@ -99,7 +99,7 @@ class Expensify extends Component {
 Expensify.propTypes = propTypes;
 Expensify.defaultProps = defaultProps;
 
-export default WithIon({
+export default withIon({
     redirectTo: {
         key: IONKEYS.APP_REDIRECT_TO,
         loader: () => {

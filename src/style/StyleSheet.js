@@ -213,8 +213,6 @@ const styles = {
 
     sidebarFooter: {
         alignItems: 'center',
-        borderTopWidth: 1,
-        borderTopColor: colors.text,
         display: 'flex',
         flexDirection: 'row',
         height: 85,
@@ -233,7 +231,6 @@ const styles = {
     },
 
     statusIndicator: {
-        backgroundColor: colors.icon,
         borderColor: colors.heading,
         borderRadius: 7,
         borderWidth: 2,
@@ -243,6 +240,14 @@ const styles = {
         height: 14,
         width: 14,
         zIndex: 10,
+    },
+
+    statusIndicatorOnline: {
+        backgroundColor: colors.green,
+    },
+
+    statusIndicatorOffline: {
+        backgroundColor: colors.icon,
     },
 
     sidebarFooterUsername: {
@@ -460,10 +465,7 @@ const styles = {
     },
 
     chatItemCompose: {
-        borderTopWidth: 1,
-        borderTopColor: colors.border,
-        minHeight: 85,
-        paddingTop: 20,
+        minHeight: 65,
         paddingBottom: 20,
         paddingLeft: 20,
         paddingRight: 20,
@@ -535,6 +537,10 @@ const webViewStyles = {
         del: {
             textDecorationLine: 'line-through',
             textDecorationStyle: 'solid'
+        },
+
+        strong: {
+            fontWeight: '600',
         },
 
         a: {

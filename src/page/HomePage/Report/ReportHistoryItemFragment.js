@@ -6,6 +6,7 @@ import Str from '../../../lib/Str';
 import ReportHistoryFragmentPropTypes from './ReportHistoryFragmentPropTypes';
 import styles, {webViewStyles} from '../../../style/StyleSheet';
 import Text from '../../../components/Text';
+import Anchor from '../../../components/Anchor';
 
 const propTypes = {
     // The message fragment needing to be displayed
@@ -24,6 +25,14 @@ class ReportHistoryItemFragment extends React.PureComponent {
         super(props);
 
         this.alterNode = this.alterNode.bind(this);
+
+        // Define the custom render methods
+        // For <a> tags, the <Anchor> attribute is used to be more cross-platform friendly
+        this.customRenderers = {
+            a: (htmlAttribs, children, convertedCSSStyles, passProps) => (
+                <Anchor href={htmlAttribs.href} target={htmlAttribs.target} rel={htmlAttribs.rel} style={passProps.style} key={passProps.key}>{children}</Anchor>
+            ),
+        };
     }
 
     /**
@@ -51,6 +60,7 @@ class ReportHistoryItemFragment extends React.PureComponent {
                 return fragment.html !== fragment.text
                     ? (
                         <HTML
+                            renderers={this.customRenderers}
                             baseFontStyle={webViewStyles.baseFontStyle}
                             tagsStyles={webViewStyles.tagStyles}
                             onLinkPress={(event, href) => Linking.openURL(href)}
