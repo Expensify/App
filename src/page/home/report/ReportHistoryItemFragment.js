@@ -6,7 +6,7 @@ import Str from '../../../lib/Str';
 import ReportHistoryFragmentPropTypes from './ReportHistoryFragmentPropTypes';
 import styles, {webViewStyles} from '../../../style/StyleSheet';
 import Text from '../../../components/Text';
-import Anchor from '../../../components/Anchor';
+import AnchorForCommentsOnly from '../../../components/AnchorForCommentsOnly';
 
 const propTypes = {
     // The message fragment needing to be displayed

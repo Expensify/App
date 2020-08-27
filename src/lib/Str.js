@@ -59,7 +59,7 @@ const Str = {
      * @returns {string}
      */
     generateDeviceLoginID() {
-        return `React-Native-Chat-${Guid()}`;
+        return `react-native-chat-${Guid()}`;
     },
 
     /**
