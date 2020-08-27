@@ -53,6 +53,6 @@ const AnchorForCommentsOnly = ({
 
 AnchorForCommentsOnly.propTypes = propTypes;
 AnchorForCommentsOnly.defaultProps = defaultProps;
-AnchorForCommentsOnly.displayName = 'Anchor';
+AnchorForCommentsOnly.displayName = 'AnchorForCommentsOnly';
 
 export default AnchorForCommentsOnly;
