@@ -109,7 +109,7 @@ class App extends Component {
                             <TouchableOpacity
                                 style={[styles.button, styles.buttonSuccess, styles.mb4]}
                                 onPress={this.submitForm}
-                                underlayColor="#fff"
+                                underlayColor={colors.componentBG}
                             >
                                 <Text style={[styles.buttonText, styles.buttonSuccessText]}>Log In</Text>
                             </TouchableOpacity>

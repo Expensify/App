@@ -4,15 +4,16 @@ const safeInsertPercentage = 0.7;
 const colors = {
     componentBG: '#FFFFFF',
     background: '#FAFAFA',
+    blue: '#2EAAE2',
     border: '#ECECEC',
-    icon: '#C6C9CA',
+    green: '#2ECB70',
     heading: '#37444C',
+    icon: '#C6C9CA',
     text: '#4A5960',
     textReversed: '#FFFFFF',
     textSupporting: '#7D8B8F',
-    blue: '#2EAAE2',
-    green: '#2ECB70',
     red: '#E84A3B',
+    shadow: '#000000',
 };
 
 const styles = {
@@ -336,7 +337,7 @@ const styles = {
     },
 
     unreadBadge: {
-        backgroundColor: '#2ECB70',
+        backgroundColor: colors.green,
         borderRadius: 15,
         height: 10,
         marginTop: 3,
@@ -524,7 +525,7 @@ const styles = {
         bottom: 0,
         zIndex: 2,
         width: 300,
-        shadowColor: '#000000',
+        shadowColor: colors.shadow,
         shadowOffset: {
             width: 0,
             height: 0,
