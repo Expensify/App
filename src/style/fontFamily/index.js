@@ -1,7 +1,6 @@
 const fontFamily = {
-    GTA: {
-        fontFamily: 'GTAmericaExp-Regular',
-    },
+    GTA: 'GTAmericaExp-Regular',
+    SYSTEM: 'System',
 };
 
 export default fontFamily;

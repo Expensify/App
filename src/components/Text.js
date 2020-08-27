@@ -55,7 +55,7 @@ const Text = ({
         fontSize,
         lineHeight: 20,
         textAlign,
-        ...fontFamily[family],
+        fontFamily: fontFamily[family],
         ...mergedStyles,
     };
 

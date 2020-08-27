@@ -90,7 +90,7 @@ class ReportHistoryCompose extends React.Component {
                     <TouchableOpacity
                         style={[styles.chatItemSubmitButton, styles.buttonSuccess]}
                         onPress={this.submitForm}
-                        underlayColor="#fff"
+                        underlayColor={colors.componentBG}
                     >
                         <Image
                             resizeMode="contain"
