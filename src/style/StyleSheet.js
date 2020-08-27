@@ -1,16 +1,20 @@
 // We place items a percentage to the safe area on the top or bottom of the screen
+import fontFamily from './fontFamily';
+
 const safeInsertPercentage = 0.7;
 
 const colors = {
     componentBG: '#FFFFFF',
     background: '#FAFAFA',
-    border: '#ECECEC',
-    icon: '#C6C9CA',
-    heading: '#37444C',
-    text: '#4A5960',
-    textSupporting: '#7D8B8F',
+    black: '#000000',
     blue: '#2EAAE2',
+    border: '#ECECEC',
     green: '#2ECB70',
+    heading: '#37444C',
+    icon: '#C6C9CA',
+    text: '#4A5960',
+    textReversed: '#FFFFFF',
+    textSupporting: '#7D8B8F',
     red: '#E84A3B',
 };
 
@@ -99,7 +103,7 @@ const styles = {
     },
 
     colorReversed: {
-        color: '#ffffff',
+        color: colors.textReversed,
     },
 
     button: {
@@ -122,7 +126,7 @@ const styles = {
     },
 
     buttonSuccessText: {
-        color: '#ffffff',
+        color: colors.textReversed,
     },
 
     // History Items
@@ -142,7 +146,7 @@ const styles = {
         borderColor: colors.border,
         borderWidth: 1,
         color: colors.text,
-        fontFamily: 'GTAmericaExp-Regular',
+        fontFamily: fontFamily.GTA,
         padding: 12,
         textAlignVertical: 'center',
     },
@@ -152,7 +156,7 @@ const styles = {
         borderRadius: 8,
         borderColor: colors.text,
         borderWidth: 1,
-        color: '#ffffff',
+        color: colors.textReversed,
         padding: 12,
     },
 
@@ -251,16 +255,16 @@ const styles = {
     },
 
     sidebarFooterUsername: {
-        color: '#FFFFFF',
+        color: colors.textReversed,
         fontSize: 15,
         fontWeight: '700',
     },
 
     sidebarFooterLink: {
-        color: '#C6C9CA',
+        color: colors.icon,
         fontSize: 11,
         textDecorationLine: 'none',
-        fontFamily: 'GTAmericaExp-Regular',
+        fontFamily: fontFamily.GTA,
         lineHeight: 20,
     },
 
@@ -276,7 +280,7 @@ const styles = {
     },
 
     sidebarListHeader: {
-        color: '#FFFFFF',
+        color: colors.textReversed,
         fontSize: 15,
         fontWeight: '700',
         paddingTop: 8,
@@ -307,7 +311,7 @@ const styles = {
     },
 
     sidebarLinkText: {
-        color: '#C6C9CA',
+        color: colors.icon,
         fontSize: 13,
         textDecorationLine: 'none',
         overflow: 'hidden',
@@ -325,17 +329,17 @@ const styles = {
     },
     sidebarLinkTextUnread: {
         fontWeight: '600',
-        color: '#ffffff',
+        color: colors.textReversed,
     },
     sidebarLinkActiveText: {
-        color: '#ffffff',
+        color: colors.textReversed,
         fontSize: 13,
         textDecorationLine: 'none',
         overflow: 'hidden',
     },
 
     unreadBadge: {
-        backgroundColor: '#2ECB70',
+        backgroundColor: colors.green,
         borderRadius: 15,
         height: 10,
         marginTop: 3,
@@ -467,7 +471,7 @@ const styles = {
     chatItemMessage: {
         color: colors.text,
         fontSize: 15,
-        fontFamily: 'GTAmericaExp-Regular',
+        fontFamily: fontFamily.GTA,
         lineHeight: 20,
         marginTop: -2,
         marginBottom: -2,
@@ -484,7 +488,7 @@ const styles = {
     },
 
     chatItemComposeBox: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.componentBG,
         borderWidth: 1,
         borderColor: colors.border,
         borderRadius: 8,
@@ -523,7 +527,7 @@ const styles = {
         bottom: 0,
         zIndex: 2,
         width: 300,
-        shadowColor: '#000000',
+        shadowColor: colors.black,
         shadowOffset: {
             width: 0,
             height: 0,
@@ -542,7 +546,7 @@ const webViewStyles = {
     tagStyles: {
         em: {
             fontStyle: 'italic',
-            fontFamily: 'System'
+            fontFamily: fontFamily.SYSTEM,
         },
 
         del: {
@@ -562,7 +566,7 @@ const webViewStyles = {
     baseFontStyle: {
         color: colors.text,
         fontSize: 15,
-        fontFamily: 'GTAmericaExp-Regular'
+        fontFamily: fontFamily.GTA
     }
 };
 
