@@ -243,7 +243,11 @@ class ChatSwitcherView extends React.Component {
                     isClearButtonVisible={this.state.isClearButtonVisible}
                     isLogoVisible={this.state.isLogoVisible}
                     searchValue={this.state.search}
-                    onBlur={this.reset}
+                    onBlur={() => {
+                        if (this.state.search === '') {
+                            this.reset();
+                        }
+                    }}
                     onChangeText={this.updateSearch}
                     onClearButtonClick={this.reset}
                     onFocus={this.triggerOnFocusCallback}
