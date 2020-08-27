@@ -5,13 +5,14 @@ import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import Text from '../../../components/Text';
 import Ion from '../../../lib/Ion';
+import withIon from '../../../components/withIon';
 import {fetchHistory, updateLastReadActionID} from '../../../lib/actions/Report';
-import WithIon from '../../../components/WithIon';
 import IONKEYS from '../../../IONKEYS';
 import ReportHistoryItem from './ReportHistoryItem';
 import styles from '../../../style/StyleSheet';
 import {withRouter} from '../../../lib/Router';
 import ReportHistoryPropsTypes from './ReportHistoryPropsTypes';
+import compose from '../../../lib/compose';
 
 const propTypes = {
     // The ID of the report actions will be created for
@@ -60,24 +61,22 @@ class ReportHistoryView extends React.Component {
      */
     // eslint-disable-next-line
     isConsecutiveHistoryItemMadeByPreviousActor(historyItemIndex) {
-        // Disable this for now
-        return false;
+        const reportHistory = lodashGet(this.props, 'reportHistory', {});
 
-        // const filteredHistory = this.getFilteredReportHistory();
-        //
-        // // This is the created action and the very first action so it cannot be a consecutive comment.
-        // if (historyItemIndex === 0) {
-        //     return false;
-        // }
-        //
-        // const previousAction = filteredHistory[historyItemIndex - 1];
-        // const currentAction = filteredHistory[historyItemIndex];
-        //
-        // if (currentAction.timestamp - previousAction.timestamp > 300) {
-        //     return false;
-        // }
-        //
-        // return currentAction.actorEmail === previousAction.actorEmail;
+        // This is the created action and the very first action so it cannot be a consecutive comment.
+        if (historyItemIndex === 0) {
+            return false;
+        }
+
+        const previousAction = reportHistory[historyItemIndex - 1];
+        const currentAction = reportHistory[historyItemIndex];
+
+        // Comments are only grouped if they happen within 5 minutes of each other
+        if (currentAction.timestamp - previousAction.timestamp > 300) {
+            return false;
+        }
+
+        return currentAction.actorEmail === previousAction.actorEmail;
     }
 
     /**
@@ -143,7 +142,7 @@ class ReportHistoryView extends React.Component {
                 onContentSizeChange={this.scrollToListBottom}
                 bounces={false}
                 contentContainerStyle={{
-                    paddingVertical: 8
+                    paddingVertical: 16
                 }}
             >
                 {_.chain(this.props.reportHistory).sortBy('sequenceNumber').map((item, index) => (
@@ -163,16 +162,19 @@ ReportHistoryView.propTypes = propTypes;
 ReportHistoryView.defaultProps = defaultProps;
 
 const key = `${IONKEYS.REPORT_HISTORY}_%DATAFROMPROPS%`;
-export default withRouter(WithIon({
-    authToken: {
-        key: IONKEYS.SESSION,
-        path: 'authToken',
-        prefillWithKey: IONKEYS.SESSION,
-    },
-    reportHistory: {
-        key,
-        loader: fetchHistory,
-        loaderParams: ['%DATAFROMPROPS%'],
-        pathForProps: 'reportID',
-    },
-})(ReportHistoryView));
+export default compose(
+    withRouter,
+    withIon({
+        authToken: {
+            key: IONKEYS.SESSION,
+            path: 'authToken',
+            prefillWithKey: IONKEYS.SESSION,
+        },
+        reportHistory: {
+            key,
+            loader: fetchHistory,
+            loaderParams: ['%DATAFROMPROPS%'],
+            pathForProps: 'reportID',
+        },
+    }),
+)(ReportHistoryView);

@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import {Linking, Text} from 'react-native';
 
 /**
  * Text based component that is passed a URL to open onPress
@@ -10,6 +9,12 @@ import {Linking, Text} from 'react-native';
 const propTypes = {
     // The URL to open
     href: PropTypes.string.isRequired,
+
+    // What headers to send to the linked page (usually noopener and noreferrer)
+    rel: PropTypes.string,
+
+    // Used to determine where to open a link ("_blank" is passed for a new tab)
+    target: PropTypes.string,
 
     // Any children to display
     children: PropTypes.node,
@@ -20,12 +25,16 @@ const propTypes = {
 };
 
 const defaultProps = {
+    rel: '',
+    target: '',
     children: null,
     style: {},
 };
 
-const Anchor = ({
+const AnchorForCommentsOnly = ({
     href,
+    rel,
+    target,
     children,
     style,
     ...props
@@ -38,14 +47,12 @@ const Anchor = ({
 
     return (
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <Text style={mergedStyles} onPress={() => Linking.openURL(href)} {...props}>
-            {children}
-        </Text>
+        <a style={mergedStyles} href={href} rel={rel} target={target} {...props}>{children}</a>
     );
 };
 
-Anchor.propTypes = propTypes;
-Anchor.defaultProps = defaultProps;
-Anchor.displayName = 'Anchor';
+AnchorForCommentsOnly.propTypes = propTypes;
+AnchorForCommentsOnly.defaultProps = defaultProps;
+AnchorForCommentsOnly.displayName = 'AnchorForCommentsOnly';
 
-export default Anchor;
+export default AnchorForCommentsOnly;
