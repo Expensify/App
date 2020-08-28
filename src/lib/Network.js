@@ -16,6 +16,7 @@ import redirectToSignIn from './actions/SignInRedirect';
  */
 const updateStoredAuthToken = _.throttle((authToken) => {
     Ion.merge(IONKEYS.SESSION, {authToken});
+    Ion.set(IONKEYS.LAST_AUTHENTICATED, new Date().getTime());
 }, 1000 * 60 * 90, {leading: false});
 
 /**
