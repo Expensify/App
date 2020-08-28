@@ -231,7 +231,7 @@ function fetchReportByIDIfNotExists(reportID) {
 
     Ion.multiGet([reportIDKey, IONKEYS.SESSION])
         .then((data) => {
-            if (lodashGet(data, [reportIDKey, 'reportID'], false)) {
+            if (lodashGet(data, [reportIDKey, 'reportName'], false)) {
                 return;
             }
             currentUserAccountID = data[IONKEYS.SESSION].accountID;
@@ -448,6 +448,7 @@ function addHistoryItem(reportID, reportComment) {
 function updateLastReadActionID(accountID, reportID, sequenceNumber) {
     // Mark the report as not having any unread items
     return Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {
+        reportID,
         hasUnread: false,
         reportNameValuePairs: {
             [`lastReadActionID_${accountID}`]: sequenceNumber,
