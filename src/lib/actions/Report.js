@@ -232,7 +232,7 @@ function fetchAll() {
         const reportIDInURL = response.substring(1);
         const reportIDs = CONFIG.REPORT_IDS.split(',');
 
-        if (!reportIDs.includes(reportIDInURL)) {
+        if (reportIDInURL && !reportIDs.includes(reportIDInURL)) {
             reportIDs.push(reportIDInURL);
         }
 
