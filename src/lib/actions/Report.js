@@ -353,7 +353,7 @@ function addHistoryItem(reportID, reportComment) {
                 ...reportHistory,
                 [newSequenceNumber]: {
                     actionName: 'ADDCOMMENT',
-                    actorEmail: Ion.get(IONKEYS.SESSION, 'email'),
+                    actorEmail: email,
                     person: [
                         {
                             style: 'strong',
