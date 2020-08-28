@@ -288,10 +288,6 @@ function fetchHistory(reportID) {
         offset: 0,
     })
         .then((data) => {
-            if (data.jsonCode !== 200) {
-                return;
-            }
-
             const indexedData = _.indexBy(data.history, 'sequenceNumber');
             Ion.set(`${IONKEYS.REPORT_HISTORY}_${reportID}`, indexedData);
         });
