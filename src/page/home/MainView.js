@@ -40,7 +40,6 @@ class MainView extends React.Component {
 
     componentDidUpdate(prevProps) {
         const reportIDInURL = parseInt(this.props.match.params.reportID, 10);
-
         const stateContainsReportID = _.contains(_.pluck(this.state.reports, 'reportID'), reportIDInURL);
         if (stateContainsReportID && prevProps.reports === this.props.reports) {
             return;
@@ -56,6 +55,11 @@ class MainView extends React.Component {
         }
     }
 
+    /**
+     * Sets our state reports variable
+     *
+     * @param {object} reports
+     */
     updateReports(reports) {
         this.setState({reports});
     }
