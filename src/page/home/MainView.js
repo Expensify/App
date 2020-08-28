@@ -28,8 +28,7 @@ const defaultProps = {
 
 class MainView extends React.Component {
     render() {
-        const reports = this.props.reports;
-        if (!_.size(reports)) {
+        if (!_.size(this.props.reports)) {
             return null;
         }
 
@@ -37,7 +36,7 @@ class MainView extends React.Component {
 
         // The styles for each of our reports. Basically, they are all hidden except for the one matching the
         // reportID in the URL
-        const reportStyles = _.reduce(reports, (memo, report) => {
+        const reportStyles = _.reduce(this.props.reports, (memo, report) => {
             const finalData = {...memo};
             const reportStyle = reportIDInURL === report.reportID
                 ? [styles.dFlex, styles.flex1]
@@ -46,15 +45,9 @@ class MainView extends React.Component {
             return finalData;
         }, {});
 
-        // If we don't have the reportID in reports let's insert it. The lower components
-        // will handle fetching the report and adding it to Ion
-        if (reportIDInURL && !_.contains(_.pluck(reports, 'reportID'), reportIDInURL)) {
-            reports[reportIDInURL] = {reportID: reportIDInURL};
-        }
-
         return (
             <>
-                {_.map(reports, report => (
+                {_.map(this.props.reports, report => (
                     <View
                         key={report.reportID}
                         style={reportStyles[report.reportID]}
