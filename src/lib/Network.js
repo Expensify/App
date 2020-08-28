@@ -137,9 +137,9 @@ function setSuccessfulSignInData(data, exitTo) {
     let redirectTo;
 
     if (exitTo && exitTo[0] === '/') {
-        redirectTo = exitTo.substring(1);
-    } else if (exitTo) {
         redirectTo = exitTo;
+    } else if (exitTo) {
+        redirectTo = `/${exitTo}`;
     } else {
         redirectTo = ROUTES.HOME;
     }
