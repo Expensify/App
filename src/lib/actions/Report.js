@@ -173,6 +173,20 @@ function fetchChatReports() {
 }
 
 /**
+ * Get the history of a specific report
+ *
+ * @param {Number} reportID
+ * @returns {Promise}
+ */
+function fetchReport(reportID) {
+    return queueRequest('Get', {
+        returnValueList: 'reportStuff',
+        reportIDList: reportID,
+        shouldLoadOptionalKeys: true,
+    });
+}
+
+/**
  * Get all of our reports
  *
  * @returns {Promise}
@@ -334,6 +348,7 @@ export {
     fetchAll,
     fetchHistory,
     fetchChatReports,
+    fetchReport,
     addHistoryItem,
     updateLastReadActionID,
     subscribeToReportCommentEvents,

@@ -8,6 +8,7 @@ import IONKEYS from '../../IONKEYS';
 import styles from '../../style/StyleSheet';
 import {withRouter} from '../../lib/Router';
 import compose from '../../lib/compose';
+import {fetchReport} from '../../lib/actions/Report';
 
 const propTypes = {
     // This comes from withRouter
@@ -27,8 +28,40 @@ const defaultProps = {
 };
 
 class MainView extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.updateReports = this.updateReports.bind(this);
+
+        this.state = {
+            reports: this.props.reports,
+        };
+    }
+
+    componentDidUpdate(prevProps) {
+        const reportIDInURL = parseInt(this.props.match.params.reportID, 10);
+
+        const stateContainsReportID = _.contains(_.pluck(this.state.reports, 'reportID'), reportIDInURL);
+        if (stateContainsReportID && prevProps.reports === this.props.reports) {
+            return;
+        }
+
+        const propsContainsReportID = _.contains(_.pluck(this.props.reports, 'reportID'), reportIDInURL);
+        if (propsContainsReportID) {
+            this.updateReports(this.props.reports);
+        } else {
+            fetchReport(reportIDInURL).then(({reports}) => {
+                this.updateReports(reports);
+            });
+        }
+    }
+
+    updateReports(reports) {
+        this.setState({reports});
+    }
+
     render() {
-        if (!_.size(this.props.reports)) {
+        if (!_.size(this.state.reports)) {
             return null;
         }
 
@@ -36,7 +69,7 @@ class MainView extends React.Component {
 
         // The styles for each of our reports. Basically, they are all hidden except for the one matching the
         // reportID in the URL
-        const reportStyles = _.reduce(this.props.reports, (memo, report) => {
+        const reportStyles = _.reduce(this.state.reports, (memo, report) => {
             const finalData = {...memo};
             const reportStyle = reportIDInURL === report.reportID
                 ? [styles.dFlex, styles.flex1]
@@ -47,7 +80,7 @@ class MainView extends React.Component {
 
         return (
             <>
-                {_.map(this.props.reports, report => (
+                {_.map(this.state.reports, report => (
                     <View
                         key={report.reportID}
                         style={reportStyles[report.reportID]}
