@@ -236,6 +236,7 @@ function subscribeToReportCommentEvents() {
  */
 function fetchChatReports() {
     return queueRequest('Get', {returnValueList: 'chatList'})
+        // The string cast below is necessary as Get rvl='chatList' may return an int
         .then(({chatList}) => fetchChatReportsByIDs(String(chatList).split(',')));
 }
 
