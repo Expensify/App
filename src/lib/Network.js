@@ -10,6 +10,15 @@ import Guid from './Guid';
 import redirectToSignIn from './actions/SignInRedirect';
 
 /**
+ * Updates the authToken stored in the session at most once every 90 minutes
+ *
+ * @param {string} authToken
+ */
+const updateStoredAuthToken = _.throttle((authToken) => {
+    Ion.merge(IONKEYS.SESSION, {authToken});
+}, 1000 * 60 * 90, {leading: false});
+
+/**
  * When authTokens expire they will automatically be refreshed.
  * The authorizer helps make sure that we are always passing the
  * current valid token to generate the signed auth response
@@ -313,6 +322,14 @@ function request(command, data, type = 'post') {
                 return queueRequest(command, data);
             }
 
+            return responseData;
+        })
+
+        // Keep an updated authToken in the session
+        .then((responseData) => {
+            if (responseData.authToken) {
+                updateStoredAuthToken(responseData.authToken);
+            }
             return responseData;
         });
 }
