@@ -235,7 +235,7 @@ function fetchAll() {
         shouldLoadOptionalKeys: true,
     }));
 
-    // Chat reports need to be fetched separately then the reports hard-coded in the config
+    // Chat reports need to be fetched separately than the reports hard-coded in the config
     // files. The promise for fetching them is added to the array of promises here so
     // that both types of reports (chat reports and hard-coded reports) are fetched in
     // parallel
