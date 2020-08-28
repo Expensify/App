@@ -7,7 +7,6 @@ import SignInPage from './page/SignInPage';
 import HomePage from './page/home/HomePage';
 import Ion from './lib/Ion';
 import * as ActiveClientManager from './lib/ActiveClientManager';
-import {verifyAuthToken} from './lib/actions/Session';
 import IONKEYS from './IONKEYS';
 import withIon from './components/withIon';
 import styles from './style/StyleSheet';
@@ -103,9 +102,6 @@ export default withIon({
     redirectTo: {
         key: IONKEYS.APP_REDIRECT_TO,
         loader: () => {
-            // Verify that our authToken is OK to use
-            verifyAuthToken();
-
             // Initialize this client as being an active client
             ActiveClientManager.init();
         },
