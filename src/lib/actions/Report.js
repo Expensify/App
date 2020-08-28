@@ -153,6 +153,9 @@ function updateReportWithNewAction(reportID, reportAction) {
                 throw new Error('report does not exist in the store, so ignoring new comments');
             }
 
+            // When handling a realtime update for a chat that does not yet exist in our store we
+            // need to fetch it so that we can properly navigate to it. This enables us populate
+            // newly created  chats in the LHN without requiring a full refresh of the app.
             if (!ionReportID) {
                 return fetchChatReportsByIDs([reportID])
                     .then(() => Ion.get(`${IONKEYS.REPORT_HISTORY}_${reportID}`));
