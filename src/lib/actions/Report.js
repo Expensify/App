@@ -36,6 +36,7 @@ function updateReportWithNewAction(reportID, reportAction) {
         // knows there is a new comment
         .then((reportHistory) => {
             if (reportHistory && !reportHistory[reportAction.sequenceNumber]) {
+                debugger;
                 Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {hasUnread: true});
             }
             return reportHistory || {};
@@ -197,6 +198,7 @@ function fetchChatReports() {
 
                 // Merge the data into Ion. Don't use set() here or multiSet() because then that would
                 // overwrite any existing data (like if they have unread messages)
+                debugger;
                 return Ion.merge(`${IONKEYS.REPORT}_${report.reportID}`, newReport);
             });
 
@@ -208,14 +210,34 @@ function fetchChatReports() {
  * Get the history of a specific report
  *
  * @param {Number} reportID
- * @returns {Promise}
  */
-function fetchReport(reportID) {
-    return queueRequest('Get', {
-        returnValueList: 'reportStuff',
-        reportIDList: reportID,
-        shouldLoadOptionalKeys: true,
-    });
+function fetchReportByID(reportID) {
+    let currentUserAccountID;
+    const reportIDKey = `${IONKEYS.REPORT}_${reportID}`;
+
+    Ion.multiGet([reportIDKey, IONKEYS.SESSION])
+        .then((data) => {
+            debugger;
+            if (data[reportIDKey].reportID !== undefined) {
+                return;
+            }
+            currentUserAccountID = data[IONKEYS.SESSION].accountID;
+
+            // We don't have this report so let's fetch it
+            queueRequest('Get', {
+                returnValueList: 'reportStuff',
+                reportIDList: reportID,
+                shouldLoadOptionalKeys: true,
+            }).then(({reports}) => {
+                // Store only the absolute bare minimum of data in Ion because space is limited
+                debugger;
+                if (reports[reportID] === undefined) {
+                    return;
+                }
+                const newReport = getSimplifiedReportObject(reports[reportID], currentUserAccountID);
+                Ion.merge(reportIDKey, newReport);
+            });
+        });
 }
 
 /**
@@ -251,6 +273,7 @@ function fetchAll() {
 
                 // Merge the data into Ion. Don't use set() here or multiSet() because then that would
                 // overwrite any existing data (like if they have unread messages)
+                debugger;
                 return Ion.merge(`${IONKEYS.REPORT}_${report.reportID}`, newReport);
             });
 
@@ -273,6 +296,8 @@ function fetchHistory(reportID) {
         .then((data) => {
             const indexedData = _.indexBy(data.history, 'sequenceNumber');
             Ion.set(`${IONKEYS.REPORT_HISTORY}_${reportID}`, indexedData);
+            debugger;
+            fetchReportByID(reportID);
         });
 }
 
@@ -328,6 +353,7 @@ function fetchChatReport(participants) {
 
             // Merge the data into Ion. Don't use set() here or multiSet() because then that would
             // overwrite any existing data (like if they have unread messages)
+            debugger;
             return Ion.merge(`${IONKEYS.REPORT}_${reportID}`, newReport);
         })
 
@@ -410,6 +436,7 @@ function addHistoryItem(reportID, reportComment) {
  */
 function updateLastReadActionID(accountID, reportID, sequenceNumber) {
     // Mark the report as not having any unread items
+    debugger;
     return Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {
         hasUnread: false,
         reportNameValuePairs: {
@@ -435,7 +462,7 @@ export {
     fetchHistory,
     fetchChatReport,
     fetchChatReports,
-    fetchReport,
+    fetchReportByID,
     addHistoryItem,
     updateLastReadActionID,
     subscribeToReportCommentEvents,
