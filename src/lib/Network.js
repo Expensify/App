@@ -137,9 +137,9 @@ function setSuccessfulSignInData(data, exitTo) {
     let redirectTo;
 
     if (exitTo && exitTo[0] === '/') {
-        redirectTo = exitTo.substring(1);
-    } else if (exitTo) {
         redirectTo = exitTo;
+    } else if (exitTo) {
+        redirectTo = `/${exitTo}`;
     } else {
         redirectTo = ROUTES.HOME;
     }
@@ -313,14 +313,6 @@ function request(command, data, type = 'post') {
                 return queueRequest(command, data);
             }
 
-            return responseData;
-        })
-
-        // Always keep an updated authToken in the session
-        .then((responseData) => {
-            if (responseData.authToken) {
-                Ion.merge(IONKEYS.SESSION, {authToken: responseData.authToken});
-            }
             return responseData;
         });
 }

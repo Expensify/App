@@ -9,6 +9,7 @@ import {
     View,
 } from 'react-native';
 import PropTypes from 'prop-types';
+import CONFIG from '../CONFIG';
 import compose from '../lib/compose';
 import {withRouter} from '../lib/Router';
 import {signIn} from '../lib/actions/Session';
@@ -39,8 +40,8 @@ class App extends Component {
         this.submitForm = this.submitForm.bind(this);
 
         this.state = {
-            login: '',
-            password: '',
+            login: CONFIG.LOGIN.PARTNER_USER_ID || '',
+            password: CONFIG.LOGIN.PARTNER_USER_SECRET || '',
             twoFactorAuthCode: '',
         };
     }

@@ -71,6 +71,12 @@ class ReportHistoryView extends React.Component {
         const previousAction = reportHistory[historyItemIndex - 1];
         const currentAction = reportHistory[historyItemIndex];
 
+        // It's OK for there to be no previous action, and in that case, false will be returned
+        // so that the comment isn't grouped
+        if (!currentAction || !previousAction) {
+            return false;
+        }
+
         // Comments are only grouped if they happen within 5 minutes of each other
         if (currentAction.timestamp - previousAction.timestamp > 300) {
             return false;
@@ -141,9 +147,7 @@ class ReportHistoryView extends React.Component {
                 }}
                 onContentSizeChange={this.scrollToListBottom}
                 bounces={false}
-                contentContainerStyle={{
-                    paddingVertical: 16
-                }}
+                contentContainerStyle={[styles.chatContentScrollView]}
             >
                 {_.chain(this.props.reportHistory).sortBy('sequenceNumber').map((item, index) => (
                     <ReportHistoryItem
@@ -168,7 +172,6 @@ export default compose(
         authToken: {
             key: IONKEYS.SESSION,
             path: 'authToken',
-            prefillWithKey: IONKEYS.SESSION,
         },
         reportHistory: {
             key,
