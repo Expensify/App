@@ -15,6 +15,6 @@ export default {
     // Unix timestamp
     timestamp: PropTypes.number.isRequired,
 
-    // Report history message
+    // report history message
     message: PropTypes.arrayOf(HistoryFragmentPropTypes).isRequired,
 };
