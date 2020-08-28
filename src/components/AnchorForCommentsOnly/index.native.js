@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
-import {Linking, Text} from 'react-native';
+import {Linking, StyleSheet, Text} from 'react-native';
 
 /**
  * Text based component that is passed a URL to open onPress
@@ -40,18 +39,10 @@ const AnchorForCommentsOnly = ({
     children,
     style,
     ...props
-}) => {
-    // If the style prop is an array of styles, we need to mix them all together
-    const mergedStyles = !_.isArray(style) ? style : _.reduce(style, (finalStyles, s) => ({
-        ...finalStyles,
-        ...s
-    }), {});
-
-    return (
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        <Text style={[mergedStyles]} onPress={() => Linking.openURL(href)} {...props}>{children}</Text>
-    );
-};
+}) => (
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <Text style={StyleSheet.flatten(style)} onPress={() => Linking.openURL(href)} {...props}>{children}</Text>
+);
 
 AnchorForCommentsOnly.propTypes = propTypes;
 AnchorForCommentsOnly.defaultProps = defaultProps;
