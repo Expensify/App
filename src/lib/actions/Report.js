@@ -80,7 +80,6 @@ function getChatReportName(sharedReportList, personalDetails, currentUserEmail) 
  * chat report IDs
  *
  * @param {Array} chatList
- *
  * @return {Promise}
  */
 function fetchChatReportsByIDs(chatList) {
@@ -149,7 +148,7 @@ function updateReportWithNewAction(reportID, reportAction) {
         .then((ionReportID) => {
             // This is necessary for local development because there will be pusher events from other engineers with
             // different reportIDs. This means that while in development it's not possible to make new chats appear
-            // by leaving creating chats and leaving comments in other windows
+            // by creating chats then leaving comments in other windows.
             if (!CONFIG.IS_IN_PRODUCTION && !ionReportID) {
                 throw new Error('report does not exist in the store, so ignoring new comments');
             }
