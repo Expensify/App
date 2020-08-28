@@ -119,7 +119,9 @@ export default {
         push({
             title: `New message from ${plainTextPerson}`,
             body: plainTextMessage,
-            delay: 0,
+
+            // Close the notification after 10 seconds
+            delay: 1000 * 10,
             onClick,
         });
     },
