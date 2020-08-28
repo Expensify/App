@@ -142,6 +142,23 @@ function subscribeToReportCommentEvents() {
 }
 
 /**
+ * Returns a generated report title based on the participants
+ *
+ * @param {array} sharedReportList
+ * @param {object} personalDetails
+ * @param {string} currentUserEmail
+ * @return {string}
+ */
+function getChatReportName(sharedReportList, personalDetails, currentUserEmail) {
+    return _.chain(sharedReportList)
+        .map(participant => participant.email)
+        .filter(participant => participant !== currentUserEmail)
+        .map(participant => lodashGet(personalDetails, [participant, 'firstName']) || participant)
+        .value()
+        .join(', ');
+}
+
+/**
  * Get all chat reports and provide the proper report name
  * by fetching sharedReportList and personalDetails
  *
@@ -187,12 +204,11 @@ function fetchChatReports() {
                 const newReport = getSimplifiedReportObject(report, currentUserAccountID);
 
                 if (lodashGet(report, 'reportNameValuePairs.type') === 'chat') {
-                    newReport.reportName = _.chain(report.sharedReportList)
-                        .map(participant => participant.email)
-                        .filter(participant => participant !== currentUserEmail)
-                        .map(participant => lodashGet(personalDetails, [participant, 'firstName'], participant))
-                        .value()
-                        .join(', ');
+                    newReport.reportName = getChatReportName(
+                        report.sharedReportList,
+                        personalDetails,
+                        currentUserEmail
+                    );
                 }
 
                 // Merge the data into Ion. Don't use set() here or multiSet() because then that would
@@ -305,12 +321,7 @@ function fetchChatReport(participants) {
 
             // Store only the absolute bare minimum of data in Ion because space is limited
             const newReport = getSimplifiedReportObject(report, currentUserAccountID);
-            newReport.reportName = _.chain(report.sharedReportList)
-                .map(participant => participant.email)
-                .filter(participant => participant !== currentUserEmail)
-                .map(participant => lodashGet(personalDetails, [participant, 'firstName'], participant))
-                .value()
-                .join(', ');
+            newReport.reportName = getChatReportName(report.sharedReportList, personalDetails, currentUserEmail);
 
             // Merge the data into Ion. Don't use set() here or multiSet() because then that would
             // overwrite any existing data (like if they have unread messages)

@@ -168,7 +168,6 @@ export default compose(
         authToken: {
             key: IONKEYS.SESSION,
             path: 'authToken',
-            prefillWithKey: IONKEYS.SESSION,
         },
         reportHistory: {
             key,
