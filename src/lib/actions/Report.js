@@ -348,6 +348,36 @@ function fetchChatReport(participants) {
 }
 
 /**
+ * Fetches a specific report if we don't already have it
+ *
+ * @param {string} reportID
+ */
+function fetchReportByIDIfNotExists(reportID) {
+    debugger;
+    let currentUserAccountID;
+    const reportIDKey = `${IONKEYS.REPORT}_${parseInt(reportID, 10)}`;
+
+    Ion.multiGet([reportIDKey, IONKEYS.SESSION])
+        .then((data) => {
+            if (lodashGet(data, [reportIDKey, 'reportName'], false)) {
+                return;
+            }
+            currentUserAccountID = data[IONKEYS.SESSION].accountID;
+
+            // We don't have this report so let's fetch it
+            queueRequest('Get', {
+                returnValueList: 'reportStuff',
+                reportIDList: reportID,
+                shouldLoadOptionalKeys: true,
+            }).then(({reports}) => {
+                // Store only the absolute bare minimum of data in Ion because space is limited
+                const newReport = getSimplifiedReportObject(reports[reportID], currentUserAccountID);
+                Ion.merge(reportIDKey, newReport);
+            });
+        });
+}
+
+/**
  * Add a history item to a report
  *
  * @param {string} reportID
@@ -446,6 +476,7 @@ export {
     fetchAll,
     fetchHistory,
     fetchChatReport,
+    fetchReportByIDIfNotExists,
     addHistoryItem,
     updateLastReadActionID,
     subscribeToReportCommentEvents,

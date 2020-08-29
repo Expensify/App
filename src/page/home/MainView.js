@@ -8,6 +8,7 @@ import IONKEYS from '../../IONKEYS';
 import styles from '../../style/StyleSheet';
 import {withRouter} from '../../lib/Router';
 import compose from '../../lib/compose';
+import {fetchReportByIDIfNotExists} from '../../lib/actions/Report';
 
 const propTypes = {
     // This comes from withRouter
@@ -33,6 +34,7 @@ class MainView extends React.Component {
         }
 
         const reportIDInURL = parseInt(this.props.match.params.reportID, 10);
+        debugger;
 
         // The styles for each of our reports. Basically, they are all hidden except for the one matching the
         // reportID in the URL
@@ -68,6 +70,9 @@ export default compose(
     withIon({
         reports: {
             key: `${IONKEYS.REPORT}_[0-9]+$`,
+            loader: fetchReportByIDIfNotExists,
+            loaderParams: ['%DATAFROMPROPS%'],
+            pathForProps: 'match.params.reportID',
             addAsCollection: true,
             collectionID: 'reportID',
         },
