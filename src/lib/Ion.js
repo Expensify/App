@@ -152,7 +152,7 @@ function getInitialStateFromConnectionConfig(connectionConfig) {
             .then(values => _.reduce(values, (finalObject, value) => ({
                 ...finalObject,
                 [value[connectionConfig.collectionID]]: value,
-            })));
+            }), {}));
     }
 
     return get(connectionConfig.key, connectionConfig.path, connectionConfig.defaultValue);
