@@ -50,12 +50,24 @@ function getLocalMomentFromTimestamp(timestamp) {
  */
 function timestampToDateTime(timestamp, includeTimeZone = false) {
     const date = getLocalMomentFromTimestamp(timestamp);
-    let format = moment().year() !== date.get('year')
-        ? 'MMM D, YYYY [at] LT'
-        : 'MMM D [at] LT';
+    const isThisYear = moment().format('YYYY') === date.format('YYYY');
+    const isToday = moment().format('D MMM YYYY') === date.format('D MMM YYYY');
+    const yesterday = moment().add(-1, 'day').format('D MMM YYYY');
+    const isYesterday = yesterday === date.format('D MMM YYYY');
+
+    let format = 'LT';
+    if (isYesterday) {
+        format = `[Yesterday at] ${format}`;
+    } else if (!isToday) {
+        format = `MMM D [at] ${format}`;
+    } else if (!isThisYear) {
+        format = `MMM D, YYYY [at] ${format}`;
+    }
+
     if (includeTimeZone) {
         format = `${format} [UTC]Z`;
     }
+
     return date.format(format);
 }
 
