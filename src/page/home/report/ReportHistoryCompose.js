@@ -61,13 +61,15 @@ class ReportHistoryCompose extends React.Component {
             e.preventDefault();
         }
 
+        const trimmedComment = this.state.comment.trim();
+
         // Don't submit empty comments
         // @TODO show an error in the UI
-        if (!this.state.comment) {
+        if (!trimmedComment) {
             return;
         }
 
-        this.props.onSubmit(this.props.reportID, this.state.comment);
+        this.props.onSubmit(this.props.reportID, trimmedComment);
         this.setState({
             comment: '',
         });
