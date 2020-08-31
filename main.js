@@ -16,8 +16,37 @@ app.commandLine.appendSwitch('disable-web-security');
 
 // TODO: Remove this before merging, just used for testing
 autoUpdater.logger = log;
+Object.assign(console, log.functions);
 autoUpdater.logger.transports.file.level = 'info';
+
 log.info('App starting...');
+
+autoUpdater.on('checking-for-update', () => {
+    log.info('Checking for update...');
+});
+
+autoUpdater.on('update-available', (info) => {
+    log.info(`Update available ${JSON.stringify(info)}`);
+});
+
+autoUpdater.on('update-not-available', (info) => {
+    log.info(`Update not available ${JSON.stringify(info)}`);
+});
+
+autoUpdater.on('error', (err) => {
+    log.info(`Error in auto-updater. ${err}`);
+});
+
+autoUpdater.on('download-progress', (progressObj) => {
+    let log_message = `Download speed: ${progressObj.bytesPerSecond}`;
+    log_message = `${log_message} - Downloaded ${progressObj.percent}%`;
+    log_message = `${log_message} (${progressObj.transferred}/${progressObj.total})`;
+    log.info(log_message);
+});
+
+autoUpdater.on('update-downloaded', (info) => {
+    log.info(`Update downloaded ${JSON.stringify(info)}`);
+});
 
 const mainWindow = (async () => {
     const loadURL = serve({directory: 'dist'});
