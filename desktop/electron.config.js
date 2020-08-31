@@ -12,11 +12,13 @@ module.exports = {
         publish: [{
             provider: 's3',
             bucket: 'chat-test-expensify-com',
+            region: 'us-east-1',
             channel: 'latest'
         }]
     },
     dmg: {
-        artifactName: 'Chat',
+        title: 'Chat',
+        artifactName: 'Chat.dmg',
         internetEnabled: true
     },
     files: [
