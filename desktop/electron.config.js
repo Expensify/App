@@ -9,14 +9,14 @@ module.exports = {
         entitlements: 'desktop/entitlements.mac.plist',
         entitlementsInherit: 'desktop/entitlements.mac.plist',
         type: 'distribution',
-        publish: {
+        publish: [{
             provider: 's3',
-            bucket: 'chat-test-expensify-com'
-        }
+            bucket: 'chat-test-expensify-com',
+            channel: 'latest'
+        }]
     },
     files: [
         './dist/**/*',
-        './main.js',
-        './desktop/updater.js'
+        './main.js'
     ]
 };
