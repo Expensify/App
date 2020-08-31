@@ -149,7 +149,6 @@ function setSuccessfulSignInData(data, exitTo) {
         // but we only care about setting these three values in Ion
         [IONKEYS.SESSION]: _.pick(data, 'authToken', 'accountID', 'email'),
         [IONKEYS.APP_REDIRECT_TO]: redirectTo,
-        [IONKEYS.LAST_AUTHENTICATED]: new Date().getTime(),
     });
 }
 
