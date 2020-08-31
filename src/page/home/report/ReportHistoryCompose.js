@@ -33,7 +33,6 @@ class ReportHistoryCompose extends React.Component {
      * @param {string} newComment
      */
     updateComment(newComment) {
-        console.log('updateComment');
         this.setState({
             comment: newComment,
         });
