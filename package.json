@@ -3,6 +3,7 @@
   "version": "1.0.1-10",
   "author": "Expensify, Inc.",
   "homepage": "https://expensify.com",
+  "description": "Expensify Chat",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -11,8 +12,7 @@
     "start": "react-native start",
     "web": "webpack-dev-server --open --config webpack.dev.js",
     "build": "webpack --config webpack.prod.js",
-    "desktop-build": "webpack --config webpack.prod.js && electron-builder --dir --config desktop/electron.config.js --publish always",
-    "local-desktop-build": "webpack --config webpack.prod.js && electron-builder --dir --config desktop/electron.config.js",
+    "desktop-build": "webpack --config webpack.prod.js && electron-builder --config desktop/electron.config.js --publish always",
     "test": "jest",
     "lint": "eslint .",
     "deploy-ios": "npm version prerelease && git push && fastlane ios beta",
