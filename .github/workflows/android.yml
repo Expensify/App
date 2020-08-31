@@ -2,7 +2,7 @@ name: Build and Deploy Android
 
 on:
     push:
-        branches: [ master ]
+        tags: '**'
 
 jobs:
     build:
