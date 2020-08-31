@@ -1,5 +1,6 @@
 const {app, BrowserWindow, shell} = require('electron');
 const serve = require('electron-serve');
+const contextMenu = require('electron-context-menu');
 
 /**
  * Electron main process that handles wrapping the web application.
@@ -15,6 +16,10 @@ const mainWindow = (async () => {
     const loadURL = serve({directory: 'dist'});
 
     await app.whenReady();
+
+    // Initialize the right click menu
+    // See https://github.com/sindresorhus/electron-context-menu
+    contextMenu();
 
     const browserWindow = new BrowserWindow({
         backgroundColor: '#FAFAFA',
