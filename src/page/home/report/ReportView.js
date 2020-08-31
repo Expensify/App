@@ -19,7 +19,7 @@ const propTypes = {
 // or not. This should greatly reduce how often comments are re-rendered.
 class ReportView extends React.PureComponent {
     render() {
-        // Only display the compose form for the active report because the form needs to get focus and */}
+        // Only display the compose form for the active report because the form needs to get focus and
         // calling focus() on 42 different forms doesn't work
         const shouldShowComposeForm = this.props.isActiveReport;
         return (
