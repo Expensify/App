@@ -34,7 +34,6 @@ class MainView extends React.Component {
         }
 
         const reportIDInURL = parseInt(this.props.match.params.reportID, 10);
-        debugger;
 
         // The styles for each of our reports. Basically, they are all hidden except for the one matching the
         // reportID in the URL
@@ -70,11 +69,14 @@ export default compose(
     withIon({
         reports: {
             key: `${IONKEYS.REPORT}_[0-9]+$`,
-            loader: fetchReportByIDIfNotExists,
-            loaderParams: ['%DATAFROMPROPS%'],
-            pathForProps: 'match.params.reportID',
             addAsCollection: true,
             collectionID: 'reportID',
         },
+        reportInURL: {
+            key: `${IONKEYS.REPORT}_%DATAFROMPROPS%`,
+            loader: fetchReportByIDIfNotExists,
+            loaderParams: ['%DATAFROMPROPS%'],
+            pathForProps: 'match.params.reportID',
+        }
     }),
 )(MainView);
