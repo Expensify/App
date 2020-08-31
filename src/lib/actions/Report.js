@@ -374,7 +374,6 @@ function fetchChatReport(participants) {
  * @param {string} reportID
  */
 function fetchReportByIDIfNotExists(reportID) {
-    debugger;
     let currentUserAccountID;
     const reportIDKey = `${IONKEYS.REPORT}_${parseInt(reportID, 10)}`;
 
@@ -391,6 +390,10 @@ function fetchReportByIDIfNotExists(reportID) {
                 reportIDList: reportID,
                 shouldLoadOptionalKeys: true,
             }).then(({reports}) => {
+                if (reports === undefined) {
+                    return;
+                }
+
                 // Store only the absolute bare minimum of data in Ion because space is limited
                 const newReport = getSimplifiedReportObject(reports[reportID], currentUserAccountID);
                 Ion.merge(reportIDKey, newReport);
