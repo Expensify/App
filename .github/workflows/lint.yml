@@ -1,6 +1,6 @@
 name: eslint
 
-on: [push]
+on: push
 
 jobs:
     build:

@@ -2,7 +2,7 @@ name: Build and Deploy Web
 
 on:
     push:
-        tags: '**'
+        tags: ['**']
 
 jobs:
     build:
