@@ -2,6 +2,7 @@ const {app, BrowserWindow, shell} = require('electron');
 const serve = require('electron-serve');
 const contextMenu = require('electron-context-menu');
 const {autoUpdater} = require('electron-updater');
+const log = require('electron-log');
 
 /**
  * Electron main process that handles wrapping the web application.
@@ -12,6 +13,11 @@ const {autoUpdater} = require('electron-updater');
 // TODO: Turn this off, use web-security after alpha launch, currently we receive a CORS issue preventing
 // the electron app from making any API requests.
 app.commandLine.appendSwitch('disable-web-security');
+
+// TODO: Remove this before merging, just used for testing
+autoUpdater.logger = log;
+autoUpdater.logger.transports.file.level = 'info';
+log.info('App starting...');
 
 const mainWindow = (async () => {
     const loadURL = serve({directory: 'dist'});
@@ -45,11 +51,6 @@ const mainWindow = (async () => {
         e.preventDefault();
         shell.openExternal(url);
     });
-
-    // TODO: Remove this before merging, just used for testing
-    const log = require('electron-log');
-    log.transports.file.level = 'debug';
-    autoUpdater.logger = log;
 
     // Check for auto updates
     await autoUpdater.checkForUpdatesAndNotify();
