@@ -10,12 +10,9 @@ import {SafeAreaInsetsContext, SafeAreaProvider} from 'react-native-safe-area-co
 import {Route} from '../../lib/Router';
 import styles, {getSafeAreaPadding} from '../../style/StyleSheet';
 import Header from './HeaderView';
-import Sidebar from './SidebarView';
+import Sidebar from './sidebar/SidebarView';
 import Main from './MainView';
-import Ion from '../../lib/Ion';
-import IONKEYS from '../../IONKEYS';
-import {initPusher} from '../../lib/actions/ActionsReport';
-import * as pusher from '../../lib/Pusher/pusher';
+import {subscribeToReportCommentEvents} from '../../lib/actions/Report';
 
 const windowSize = Dimensions.get('window');
 const widthBreakPoint = 1000;
@@ -27,25 +24,17 @@ export default class App extends React.Component {
         this.state = {
             hamburgerShown: true,
             isHamburgerEnabled: windowSize.width <= widthBreakPoint,
-            animationTranslateX: new Animated.Value(0),
         };
 
         this.toggleHamburger = this.toggleHamburger.bind(this);
         this.toggleHamburgerBasedOnDimensions = this.toggleHamburgerBasedOnDimensions.bind(this);
+        this.animationTranslateX = new Animated.Value(!this.state.hamburgerShown ? -300 : 0);
     }
 
     componentDidMount() {
-        Ion.get(IONKEYS.SESSION, 'authToken').then((authToken) => {
-            if (authToken) {
-                // Initialize the pusher connection
-                pusher.init(null, {
-                    authToken,
-                });
+        // Listen for report comment events
+        subscribeToReportCommentEvents();
 
-                // Setup the report action handler to subscribe to pusher
-                initPusher();
-            }
-        });
         Dimensions.addEventListener('change', this.toggleHamburgerBasedOnDimensions);
 
         StatusBar.setBarStyle('dark-content', true);
@@ -84,10 +73,10 @@ export default class App extends React.Component {
 
         // If the hamburger currently is not shown, we want to immediately make it visible for the animation
         if (!hamburgerIsShown) {
-            this.setState({hamburgerShown: !hamburgerIsShown});
+            this.setState({hamburgerShown: true});
         }
 
-        Animated.timing(this.state.animationTranslateX, {
+        Animated.timing(this.animationTranslateX, {
             toValue: animationFinalValue,
             duration: 200,
             easing: Easing.ease,
@@ -125,7 +114,7 @@ export default class App extends React.Component {
                                     hamburgerStyle,
                                     visibility,
                                     {
-                                        transform: [{translateX: this.state.animationTranslateX}]
+                                        transform: [{translateX: this.animationTranslateX}]
                                     }]}
                                 >
                                     <Sidebar insets={insets} onLinkClick={this.toggleHamburger} />

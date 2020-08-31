@@ -4,6 +4,7 @@ import CONFIG from '../../CONFIG';
 
 let socket;
 const socketEventCallbacks = [];
+let customAuthorizer;
 
 /**
  * Trigger each of the socket event callbacks with the event information
@@ -17,6 +18,7 @@ function callSocketEventCallbacks(eventName, data) {
 
 /**
  * Initialize our pusher lib
+ *
  * @param {String} appKey
  * @param {Object} [params]
  * @public
@@ -29,10 +31,17 @@ function init(appKey, params) {
         //         window.console.log(message);
         //     }
         // };
-        socket = new Pusher(CONFIG.PUSHER.APP_KEY, {
+
+        const options = {
             cluster: CONFIG.PUSHER.CLUSTER,
             authEndpoint: `${CONFIG.PUSHER.AUTH_URL}/api.php?command=Push_Authenticate`,
-        });
+        };
+
+        if (customAuthorizer) {
+            options.authorizer = customAuthorizer;
+        }
+
+        socket = new Pusher(CONFIG.PUSHER.APP_KEY, options);
 
         // If we want to pass params in our requests to api.php we'll need to add it to socket.config.auth.params
         // as per the documentation
@@ -164,7 +173,7 @@ function subscribe(channelName, eventName, eventCallback = () => {}, isChunked =
     return new Promise((resolve, reject) => {
     // We cannot call subscribe() before init(). Prevent any attempt to do this on dev.
         if (!socket) {
-            throw new Error(`[Pusher] instance not found. Pusher.subscribe() 
+            throw new Error(`[Pusher] instance not found. Pusher.subscribe()
             most likely has been called before Pusher.init()`);
         }
 
@@ -226,7 +235,7 @@ function unsubscribe(channelName, eventName = '') {
     const channel = getChannel(channelName);
 
     if (!channel) {
-        console.debug(`[Pusher] Attempted to unsubscribe or unbind from a channel, 
+        console.debug(`[Pusher] Attempted to unsubscribe or unbind from a channel,
         but Pusher-JS has no knowledge of it`, 0, {channelName, eventName});
         return;
     }
@@ -237,7 +246,7 @@ function unsubscribe(channelName, eventName = '') {
     } else {
         if (!channel.subscribed) {
             // eslint-disable-next-line no-console
-            console.warn(`[Pusher] Attempted to unsubscribe from channel, 
+            console.warn(`[Pusher] Attempted to unsubscribe from channel,
             but we are not subscribed to begin with`, 0, {channelName});
             return;
         }
@@ -320,6 +329,26 @@ function registerSocketEventCallback(cb) {
     socketEventCallbacks.push(cb);
 }
 
+/**
+ * A custom authorizer allows us to take a more fine-grained approach to
+ * authenticating Pusher. e.g. we can handle failed attempts to authorize
+ * with an expired authToken and retry the attempt.
+ *
+ * @param {Function} authorizer
+ */
+function registerCustomAuthorizer(authorizer) {
+    customAuthorizer = authorizer;
+}
+
+if (window) {
+    /**
+     * Pusher socket for debugging purposes
+     *
+     * @returns {Function}
+     */
+    window.getPusherInstance = () => socket;
+}
+
 export {
     init,
     subscribe,
@@ -331,4 +360,5 @@ export {
     sendEvent,
     sendChunkedEvent,
     registerSocketEventCallback,
+    registerCustomAuthorizer,
 };

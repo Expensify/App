@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import ReportHistoryItemSingle from './ReportHistoryItemSingle';
 import ReportHistoryPropsTypes from './ReportHistoryPropsTypes';
 import ReportHistoryItemGrouped from './ReportHistoryItemGrouped';
@@ -19,9 +20,9 @@ const propTypes = {
 class ReportHistoryItem extends React.Component {
     shouldComponentUpdate(nextProps) {
         // This component should only render if the history item's sequenceNumber or displayAsGroup props change
-        return nextProps.historyItem.sequenceNumber !== this.props.historyItem.sequenceNumber
-            || nextProps.displayAsGroup !== this.props.displayAsGroup
-            || nextProps.authToken !== this.props.authToken;
+        return nextProps.displayAsGroup !== this.props.displayAsGroup
+            || nextProps.authToken !== this.props.authToken
+            || !_.isEqual(nextProps.historyItem, this.props.historyItem);
     }
 
     render() {
@@ -32,7 +33,7 @@ class ReportHistoryItem extends React.Component {
 
         return (
             <View>
-                {!displayAsGroup && (<ReportHistoryItemSingle historyItem={historyItem} authToken={authToken} />)}
+                {!displayAsGroup && <ReportHistoryItemSingle historyItem={historyItem} authToken={authToken} />}
                 {displayAsGroup && <ReportHistoryItemGrouped historyItem={historyItem} authToken={authToken} />}
             </View>
         );
