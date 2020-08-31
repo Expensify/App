@@ -16,6 +16,7 @@ module.exports = {
     },
     files: [
         './dist/**/*',
-        './main.js'
+        './main.js',
+        './desktop/updater.js'
     ]
 };
