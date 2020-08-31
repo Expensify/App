@@ -12,6 +12,7 @@
     "web": "webpack-dev-server --open --config webpack.dev.js",
     "build": "webpack --config webpack.prod.js",
     "desktop-build": "webpack --config webpack.prod.js && electron-builder --dir --config desktop/electron.config.js --publish always",
+    "local-desktop-build": "webpack --config webpack.prod.js && electron-builder --dir --config desktop/electron.config.js",
     "test": "jest",
     "lint": "eslint .",
     "deploy-ios": "npm version prerelease && git push && fastlane ios beta",
