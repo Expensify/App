@@ -1,0 +1,29 @@
+name: Create a new version
+
+on:
+    push:
+        branches: [ master ]
+
+jobs:
+    build:
+        runs-on: ubuntu-16.04
+
+        steps:
+            - uses: actions/checkout@v2
+
+            - name: Setup Node
+              uses: actions/setup-node@v1
+              with:
+                  node-version: '14.x'
+
+            - name: Install dependenices
+              run: npm install
+
+            - name: Generate version
+              run: npm version prerelease -m "Update version to %s"
+
+            - name: Push new version
+              run: |
+                git config user.name github-actions
+                git push
+                git push --tags

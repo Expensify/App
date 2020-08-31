@@ -1,0 +1,51 @@
+name: Build and Deploy Web
+
+on:
+    push:
+        tags: '**'
+
+jobs:
+    build:
+        runs-on: ubuntu-16.04
+
+        steps:
+        - uses: actions/checkout@v2
+
+        # Installs node
+        - name: Setup Node
+          uses: actions/setup-node@v1
+          with:
+            node-version: '14.x'
+
+        # Install python pre-reqs
+        - name: Setup python
+          run: sudo apt-get install python3-setuptools
+
+        # Installs Cloudflare CLI, after installing/upgrading dependencies
+        - name: Setup Cloudflare CLI
+          run: |
+               pip3 install --upgrade pip
+               pip3 install wheel # need wheel before cloudflare, this is the only way to ensure order.
+               pip3 install cloudflare
+
+        - name: Configure AWS Credentials
+          uses: aws-actions/configure-aws-credentials@v1
+          with:
+            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            aws-region: us-east-1
+
+        # Install node modules
+        - name: Install dependenices
+          run: npm install
+
+        - name: Build web
+          run: npm run build
+
+        - name: Deploy to S3
+          run: aws s3 cp --recursive --acl public-read $GITHUB_WORKSPACE/dist s3://chat-test-expensify-com/
+
+        - name: Purge Cloudflare cache
+          run: /home/runner/.local/bin/cli4 --delete hosts=["chat.expensify.com"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
+          env:
+            CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}

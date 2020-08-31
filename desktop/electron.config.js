@@ -13,5 +13,9 @@ module.exports = {
     files: [
         './dist/**/*',
         './main.js'
-    ]
+    ],
+    publish: {
+        provider: 's3',
+        bucket: 'chat-test-expensify-com'
+    }
 };
