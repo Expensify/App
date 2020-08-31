@@ -33,6 +33,7 @@ class ReportHistoryCompose extends React.Component {
      * @param {string} newComment
      */
     updateComment(newComment) {
+        console.log('updateComment');
         this.setState({
             comment: newComment,
         });
@@ -71,6 +72,7 @@ class ReportHistoryCompose extends React.Component {
         this.setState({
             comment: '',
         });
+        this.textInputFocusable.clearLines();
     }
 
     render() {
@@ -78,6 +80,7 @@ class ReportHistoryCompose extends React.Component {
             <View style={[styles.chatItemCompose]}>
                 <View style={[styles.chatItemComposeBox, styles.flexRow]}>
                     <TextInputFocusable
+                        ref={el => this.textInputFocusable = el}
                         multiline
                         textAlignVertical="top"
                         placeholder="Write something..."
