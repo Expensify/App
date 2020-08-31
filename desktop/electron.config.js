@@ -15,6 +15,10 @@ module.exports = {
             channel: 'latest'
         }]
     },
+    dmg: {
+        artifactName: 'Chat',
+        internetEnabled: true
+    },
     files: [
         './dist/**/*',
         './main.js'
