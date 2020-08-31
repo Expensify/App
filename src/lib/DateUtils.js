@@ -52,9 +52,13 @@ function timestampToDateTime(timestamp, includeTimeZone = false) {
     const date = getLocalMomentFromTimestamp(timestamp);
     const isThisYear = moment().format('YYYY') === date.format('YYYY');
     const isToday = moment().format('D MMM YYYY') === date.format('D MMM YYYY');
+    const yesterday = moment().add(-1, 'day').format('D MMM YYYY');
+    const isYesterday = yesterday === date.format('D MMM YYYY');
 
     let format = 'LT';
-    if (!isToday) {
+    if (isYesterday) {
+        format = `[Yesterday at] ${format}`;
+    } else if (!isToday) {
         format = `MMM D [at] ${format}`;
     } else if (!isThisYear) {
         format = `MMM D, YYYY [at] ${format}`;
