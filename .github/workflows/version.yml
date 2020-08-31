@@ -17,11 +17,11 @@ jobs:
             - name: Install dependenices
               run: npm install
 
+            - name: Set git user
+              run: git config user.name github-action
+
             - name: Generate version
               run: npm version prerelease -m "Update version to %s"
 
             - name: Push new version
-              run: |
-                git config user.name github-actions
-                git push
-                git push --tags
+              run: git push && git push --tags
