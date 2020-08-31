@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ReportHistoryView from './ReportHistoryView';
 import ReportHistoryCompose from './ReportHistoryCompose';
-import {addHistoryItem} from '../../../lib/actions/ActionsReport';
+import {addHistoryItem} from '../../../lib/actions/Report';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
 import styles from '../../../style/StyleSheet';
 

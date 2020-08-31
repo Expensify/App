@@ -1,16 +1,20 @@
 // We place items a percentage to the safe area on the top or bottom of the screen
+import fontFamily from './fontFamily';
+
 const safeInsertPercentage = 0.7;
 
 const colors = {
     componentBG: '#FFFFFF',
     background: '#FAFAFA',
-    border: '#ECECEC',
-    icon: '#C6C9CA',
-    heading: '#37444C',
-    text: '#4A5960',
-    textSupporting: '#7D8B8F',
+    black: '#000000',
     blue: '#2EAAE2',
+    border: '#ECECEC',
     green: '#2ECB70',
+    heading: '#37444C',
+    icon: '#C6C9CA',
+    text: '#4A5960',
+    textReversed: '#FFFFFF',
+    textSupporting: '#7D8B8F',
     red: '#E84A3B',
 };
 
@@ -19,9 +23,11 @@ const styles = {
     mr1: {
         marginRight: 4,
     },
+
     mr2: {
         marginRight: 8,
     },
+
     mr3: {
         marginRight: 12,
     },
@@ -29,6 +35,11 @@ const styles = {
     ml1: {
         marginLeft: 10,
     },
+
+    ml2: {
+        marginLeft: 8,
+    },
+
     mt2: {
         marginTop: 20,
     },
@@ -58,6 +69,7 @@ const styles = {
     h100p: {
         height: '100%',
     },
+
     flex0: {
         flex: 0,
     },
@@ -68,38 +80,60 @@ const styles = {
     flex4: {
         flex: 4,
     },
+
     flexRow: {
         flexDirection: 'row',
     },
+
     flexColumn: {
         flexDirection: 'column',
     },
+
     flexJustifyEnd: {
         justifyContent: 'flex-end',
     },
+
+    alignItemsCenter: {
+        alignItems: 'center',
+    },
+
     flexWrap: {
         flexWrap: 'wrap'
     },
+
     flexGrow1: {
         flexGrow: 1,
     },
+
     flexGrow4: {
         flexGrow: 4,
     },
+
     dFlex: {
         display: 'flex',
     },
+
     dNone: {
         display: 'none',
     },
+
     textP: {
         color: colors.text,
         fontSize: 15,
         lineHeight: 20,
     },
 
+    h3: {
+        color: '#FFFFFF',
+        fontWeight: '600',
+    },
+
+    textMicro: {
+        fontSize: 11,
+    },
+
     colorReversed: {
-        color: '#ffffff',
+        color: colors.textReversed,
     },
 
     button: {
@@ -122,7 +156,7 @@ const styles = {
     },
 
     buttonSuccessText: {
-        color: '#ffffff',
+        color: colors.textReversed,
     },
 
     // History Items
@@ -142,7 +176,7 @@ const styles = {
         borderColor: colors.border,
         borderWidth: 1,
         color: colors.text,
-        fontFamily: 'GTAmericaExp-Regular',
+        fontFamily: fontFamily.GTA,
         padding: 12,
         textAlignVertical: 'center',
     },
@@ -152,8 +186,13 @@ const styles = {
         borderRadius: 8,
         borderColor: colors.text,
         borderWidth: 1,
-        color: '#ffffff',
+        color: colors.textReversed,
         padding: 12,
+        outline: 'none',
+    },
+
+    textInputReversedFocus: {
+        borderColor: colors.icon,
     },
 
     formLabel: {
@@ -174,6 +213,11 @@ const styles = {
         backgroundColor: colors.heading,
         height: '100%',
         padding: 20,
+    },
+
+    signinLogo: {
+        height: 21,
+        width: 143,
     },
 
     genericView: {
@@ -199,22 +243,21 @@ const styles = {
     },
 
     sidebarHeader: {
-        height: 72,
-        justifyContent: 'center',
-        paddingLeft: 24,
-        paddingRight: 24,
-        width: '100%',
+        minHeight: 72,
+        paddingTop: 16,
+        paddingRight: 12,
+        paddingBottom: 16,
+        paddingLeft: 12,
+        flex: 1,
     },
 
     sidebarHeaderLogo: {
-        height: 21,
-        width: 143,
+        height: 40,
+        width: 40,
     },
 
     sidebarFooter: {
         alignItems: 'center',
-        borderTopWidth: 1,
-        borderTopColor: colors.text,
         display: 'flex',
         flexDirection: 'row',
         height: 85,
@@ -233,7 +276,6 @@ const styles = {
     },
 
     statusIndicator: {
-        backgroundColor: colors.icon,
         borderColor: colors.heading,
         borderRadius: 7,
         borderWidth: 2,
@@ -245,20 +287,31 @@ const styles = {
         zIndex: 10,
     },
 
+    statusIndicatorOnline: {
+        backgroundColor: colors.green,
+    },
+
+    statusIndicatorOffline: {
+        backgroundColor: colors.icon,
+    },
+
     sidebarFooterUsername: {
-        color: '#FFFFFF',
+        color: colors.textReversed,
         fontSize: 15,
         fontWeight: '700',
     },
 
     sidebarFooterLink: {
-        color: '#C6C9CA',
+        color: colors.icon,
         fontSize: 11,
+        textDecorationLine: 'none',
+        fontFamily: fontFamily.GTA,
+        lineHeight: 20,
     },
 
     sidebarListContainer: {
         flex: 1,
-        flexGrow: 1,
+        flexGrow: 100,
         scrollbarWidth: 'none',
         overflow: 'scroll',
         paddingTop: 4,
@@ -268,7 +321,7 @@ const styles = {
     },
 
     sidebarListHeader: {
-        color: '#FFFFFF',
+        color: colors.textReversed,
         fontSize: 15,
         fontWeight: '700',
         paddingTop: 8,
@@ -299,7 +352,7 @@ const styles = {
     },
 
     sidebarLinkText: {
-        color: '#C6C9CA',
+        color: colors.icon,
         fontSize: 13,
         textDecorationLine: 'none',
         overflow: 'hidden',
@@ -317,17 +370,17 @@ const styles = {
     },
     sidebarLinkTextUnread: {
         fontWeight: '600',
-        color: '#ffffff',
+        color: colors.textReversed,
     },
     sidebarLinkActiveText: {
-        color: '#ffffff',
+        color: colors.textReversed,
         fontSize: 13,
         textDecorationLine: 'none',
         overflow: 'hidden',
     },
 
     unreadBadge: {
-        backgroundColor: '#2ECB70',
+        backgroundColor: colors.green,
         borderRadius: 15,
         height: 10,
         marginTop: 3,
@@ -395,6 +448,12 @@ const styles = {
         justifyContent: 'flex-end',
     },
 
+    chatContentScrollView: {
+        flexGrow: 1,
+        justifyContent: 'flex-end',
+        paddingVertical: 16,
+    },
+
     chatContentEmpty: {
         paddingTop: 16,
         paddingBottom: 16,
@@ -416,6 +475,14 @@ const styles = {
         display: 'flex',
         flexShrink: 0,
         marginRight: 8,
+    },
+
+    chatItemRightGrouped: {
+        flexGrow: 1,
+        flexShrink: 1,
+        flexBasis: 0,
+        position: 'relative',
+        marginLeft: 48,
     },
 
     chatItemRight: {
@@ -451,7 +518,7 @@ const styles = {
     chatItemMessage: {
         color: colors.text,
         fontSize: 15,
-        fontFamily: 'GTAmericaExp-Regular',
+        fontFamily: fontFamily.GTA,
         lineHeight: 20,
         marginTop: -2,
         marginBottom: -2,
@@ -460,10 +527,7 @@ const styles = {
     },
 
     chatItemCompose: {
-        borderTopWidth: 1,
-        borderTopColor: colors.border,
-        minHeight: 85,
-        paddingTop: 20,
+        minHeight: 65,
         paddingBottom: 20,
         paddingLeft: 20,
         paddingRight: 20,
@@ -471,7 +535,7 @@ const styles = {
     },
 
     chatItemComposeBox: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.componentBG,
         borderWidth: 1,
         borderColor: colors.border,
         borderRadius: 8,
@@ -503,6 +567,15 @@ const styles = {
         width: 20,
     },
 
+    chatSwitcherInputClear: {
+        alignSelf: 'center',
+    },
+
+    chatSwitcherInputClearIcon: {
+        height: 24,
+        width: 24,
+    },
+
     hamburgerOpenAbsolute: {
         position: 'absolute',
         left: 0,
@@ -510,7 +583,7 @@ const styles = {
         bottom: 0,
         zIndex: 2,
         width: 300,
-        shadowColor: '#000000',
+        shadowColor: colors.black,
         shadowOffset: {
             width: 0,
             height: 0,
@@ -521,20 +594,56 @@ const styles = {
 
     hamburgerOpen: {
         width: 300,
-    }
+    },
 
+    chatSwitcherItemList: {
+        flex: 1,
+        flexGrow: 1,
+        scrollbarWidth: 'none',
+        overflow: 'scroll',
+    },
+
+    chatSwitcherAvatar: {
+        backgroundColor: colors.text,
+        borderRadius: 14,
+        height: 28,
+        overflow: 'hidden',
+        width: 28,
+    },
+
+    chatSwitcherAvatarImage: {
+        height: 28,
+        width: 28,
+    },
+
+    chatSwitcherItem: {
+        padding: 12,
+    },
+
+    chatSwitcherItemText: {
+        color: colors.text,
+    },
+
+    chatSwitcherItemFocused: {
+        backgroundColor: colors.blue,
+        borderRadius: 8,
+    },
 };
 
 const webViewStyles = {
     tagStyles: {
         em: {
             fontStyle: 'italic',
-            fontFamily: 'System'
+            fontFamily: fontFamily.SYSTEM,
         },
 
         del: {
             textDecorationLine: 'line-through',
             textDecorationStyle: 'solid'
+        },
+
+        strong: {
+            fontWeight: '600',
         },
 
         a: {
@@ -545,7 +654,7 @@ const webViewStyles = {
     baseFontStyle: {
         color: colors.text,
         fontSize: 15,
-        fontFamily: 'GTAmericaExp-Regular'
+        fontFamily: fontFamily.GTA
     }
 };
 

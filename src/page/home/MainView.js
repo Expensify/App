@@ -2,27 +2,33 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import ReportView from './Report/ReportView';
-import WithIon from '../../components/WithIon';
+import ReportView from './report/ReportView';
+import withIon from '../../components/withIon';
 import IONKEYS from '../../IONKEYS';
 import styles from '../../style/StyleSheet';
 import {withRouter} from '../../lib/Router';
+import compose from '../../lib/compose';
 
 const propTypes = {
     // This comes from withRouter
     // eslint-disable-next-line react/forbid-prop-types
     match: PropTypes.object.isRequired,
+
+    /* Ion Props */
+
+    // List of reports to display
+    reports: PropTypes.objectOf(PropTypes.shape({
+        reportID: PropTypes.number,
+    })),
+};
+
+const defaultProps = {
+    reports: {},
 };
 
 class MainView extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {};
-    }
-
     render() {
-        if (!this.state || !this.state.reports || this.state.reports.length === 0) {
+        if (!_.size(this.props.reports)) {
             return null;
         }
 
@@ -30,7 +36,7 @@ class MainView extends React.Component {
 
         // The styles for each of our reports. Basically, they are all hidden except for the one matching the
         // reportID in the URL
-        const reportStyles = _.reduce(this.state.reports, (memo, report) => {
+        const reportStyles = _.reduce(this.props.reports, (memo, report) => {
             const finalData = {...memo};
             const reportStyle = reportIDInURL === report.reportID
                 ? [styles.dFlex, styles.flex1]
@@ -41,7 +47,7 @@ class MainView extends React.Component {
 
         return (
             <>
-                {_.map(this.state.reports, report => (
+                {_.map(this.props.reports, report => (
                     <View
                         key={report.reportID}
                         style={reportStyles[report.reportID]}
@@ -55,11 +61,15 @@ class MainView extends React.Component {
 }
 
 MainView.propTypes = propTypes;
+MainView.defaultProps = defaultProps;
 
-export default withRouter(WithIon({
-    reports: {
-        key: `${IONKEYS.REPORT}_[0-9]+$`,
-        addAsCollection: true,
-        collectionID: 'reportID',
-    },
-})(MainView));
+export default compose(
+    withRouter,
+    withIon({
+        reports: {
+            key: `${IONKEYS.REPORT}_[0-9]+$`,
+            addAsCollection: true,
+            collectionID: 'reportID',
+        },
+    }),
+)(MainView);
