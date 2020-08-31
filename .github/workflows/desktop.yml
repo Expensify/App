@@ -1,8 +1,6 @@
 name: Build and Deploy Desktop
 
-on:
-    push:
-        tags: ['**']
+on: push
 
 jobs:
     build:
@@ -24,12 +22,6 @@ jobs:
                   aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
                   aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
                   aws-region: us-east-1
-
-            - name: Update version
-              run: |
-                git config user.name github-actions
-                npm run version prerelease
-
 
             - name: Decrypt Developer ID Certificate
               run: cd desktop && gpg --quiet --batch --yes --decrypt --passphrase="$DEVELOPER_ID_SECRET_PASSPHRASE" --output developer_id.p12 developer_id.p12.gpg
