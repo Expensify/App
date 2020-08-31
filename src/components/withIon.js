@@ -94,6 +94,8 @@ export default function (mapIonToState) {
                     withIonInstance: this,
                 };
 
+                let connectionID;
+
                 // Connect to Ion and keep track of the connectionID
                 if (mapping.pathForProps) {
                     // If there is a path for props data, then the data needs to be pulled out of props and parsed
@@ -104,15 +106,16 @@ export default function (mapIonToState) {
 
                     // Store the connectionID with a key that is unique to the data coming from the props which allows
                     // it to be easily reconnected to when the props change
-                    this.activeConnectionIDsWithPropsData[mapping.pathForProps] = Ion.connect(ionConnectionConfig);
+                    connectionID = Ion.connect(ionConnectionConfig);
+                    this.activeConnectionIDsWithPropsData[mapping.pathForProps] = connectionID;
                 } else {
-                    const connectionID = Ion.connect(ionConnectionConfig);
+                    connectionID = Ion.connect(ionConnectionConfig);
                     this.actionConnectionIDs[connectionID] = connectionID;
                 }
 
                 // Pre-fill the state with any data already in the store
                 if (mapping.initWithStoredValues !== false) {
-                    Ion.getInitialStateFromConnectionConfig(ionConnectionConfig)
+                    Ion.getInitialStateFromConnectionID(connectionID)
                         .then(data => this.setState({[statePropertyName]: data}));
                 }
 
