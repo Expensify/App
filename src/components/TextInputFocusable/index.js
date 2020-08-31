@@ -48,6 +48,10 @@ class TextInputFocusable extends React.Component {
         this.textInput.focus();
     }
 
+    clearLines() {
+        this.setState({numberOfLines: 1});
+    }
+
     render() {
         return (
             <TextInput
