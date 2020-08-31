@@ -8,14 +8,14 @@ module.exports = {
         hardenedRuntime: true,
         entitlements: 'desktop/entitlements.mac.plist',
         entitlementsInherit: 'desktop/entitlements.mac.plist',
-        type: 'distribution'
+        type: 'distribution',
+        publish: {
+            provider: 's3',
+            bucket: 'chat-test-expensify-com'
+        }
     },
     files: [
         './dist/**/*',
         './main.js'
-    ],
-    publish: {
-        provider: 's3',
-        bucket: 'chat-test-expensify-com'
-    }
+    ]
 };

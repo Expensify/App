@@ -1,8 +1,11 @@
-const {app, BrowserWindow, shell} = require('electron');
+const {
+    app, BrowserWindow, shell, Menu
+} = require('electron');
 const serve = require('electron-serve');
 const contextMenu = require('electron-context-menu');
 const {autoUpdater} = require('electron-updater');
 const log = require('electron-log');
+const {checkForUpdates} = require('./desktop/updater');
 
 /**
  * Electron main process that handles wrapping the web application.
@@ -48,6 +51,30 @@ autoUpdater.on('update-downloaded', (info) => {
     log.info(`Update downloaded ${JSON.stringify(info)}`);
 });
 
+const template = [];
+if (process.platform === 'darwin') {
+    // OS X
+    const name = app.getName();
+    template.unshift({
+        label: name,
+        submenu: [
+            {
+                label: `About ${name}`,
+                role: 'about'
+            },
+            {
+                label: 'Check for updates...',
+                click() { checkForUpdates(); }
+            },
+            {
+                label: 'Quit',
+                accelerator: 'Command+Q',
+                click() { app.quit(); }
+            },
+        ]
+    });
+}
+
 const mainWindow = (async () => {
     const loadURL = serve({directory: 'dist'});
 
@@ -80,6 +107,9 @@ const mainWindow = (async () => {
         e.preventDefault();
         shell.openExternal(url);
     });
+
+    const menu = Menu.buildFromTemplate(template);
+    Menu.setApplicationMenu(menu);
 
     // Check for auto updates
     await autoUpdater.checkForUpdatesAndNotify();
