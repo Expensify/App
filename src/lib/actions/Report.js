@@ -349,7 +349,12 @@ function fetchChatReport(participants) {
             const report = data.reports[reportID];
 
             // Store only the absolute bare minimum of data in Ion because space is limited
-            const newReport = getSimplifiedReportObject(report, currentUserAccountID, personalDetails, currentUserEmail);
+            const newReport = getSimplifiedReportObject(
+                report,
+                currentUserAccountID,
+                personalDetails,
+                currentUserEmail
+            );
 
             // Merge the data into Ion. Don't use set() here or multiSet() because then that would
             // overwrite any existing data (like if they have unread messages)
