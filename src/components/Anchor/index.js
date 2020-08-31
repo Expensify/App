@@ -38,7 +38,7 @@ const Anchor = ({
 
     return (
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <Text style={mergedStyles} onPress={() => {debugger; window.open(href, '_blank');}} {...props}>
+        <Text style={mergedStyles} onPress={() => window.open(href, '_blank')} {...props}>
             {children}
         </Text>
     );
