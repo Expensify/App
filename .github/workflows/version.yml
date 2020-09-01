@@ -11,6 +11,7 @@ jobs:
               with:
                   fetch-depth: 0
                   ref: master
+                  token: ${{ secrets.BOTIFY_TOKEN }}
 
             - name: Setup Node
               uses: actions/setup-node@v1
@@ -31,8 +32,6 @@ jobs:
 
             - name: Push new version
               run: git push --set-upstream origin version-bump-${{ github.sha }}
-              with:
-                  github_token: ${{ secrets.GITHUB_TOKEN }}
 
             - name: tag release
               run: git tag $(npm run print-version --silent) && git push --tags
