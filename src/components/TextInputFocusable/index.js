@@ -12,7 +12,6 @@ class TextInputFocusable extends React.Component {
         this.state = {
             numberOfLines: 1,
         };
-        this.updateNumberOfLines = this.updateNumberOfLines.bind(this);
     }
 
     componentDidMount() {
@@ -22,29 +21,18 @@ class TextInputFocusable extends React.Component {
     componentDidUpdate(prevProps) {
         this.focusInput();
 
-        // Need to chek against previous value so it does not create a infinite loop
-        if (this.props.value !== prevProps.value && this.props.value === '' && this.state.numberOfLines !== 1) {
-            this.resetLines();
+        if (prevProps.value !== this.props.value) {
+            this.updateNumberOfLines(this.textInput);
         }
-    }
-
-    /**
-     * Resets the number of lines to 1
-     *
-     * @private
-     */
-    resetLines() {
-        this.setState({numberOfLines: 1});
     }
 
     /**
      * Check the current scrollHeight of the textarea (minus any padding) and
      * divide by line height to get the total number of rows for the textarea.
      *
-     * @param {object} event
+     * @param {object} target
      */
-    updateNumberOfLines(event) {
-        const target = event.nativeEvent.target;
+    updateNumberOfLines(target) {
         const computedStyle = window.getComputedStyle(target);
         const lineHeight = parseInt(computedStyle.lineHeight, 10) || 20;
         const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10)
@@ -59,6 +47,17 @@ class TextInputFocusable extends React.Component {
         });
     }
 
+    /**
+     * Check the current scrollHeight of the textarea (minus any padding) and
+     * divide by line height to get the total number of rows for the textarea.
+     *
+     * @param {object} event
+     */
+    updateContent(event) {
+        const target = event.nativeEvent.target;
+        this.updateNumberOfLines(target);
+    }
+
     focusInput() {
         this.textInput.focus();
     }
@@ -68,7 +67,7 @@ class TextInputFocusable extends React.Component {
             <TextInput
                 ref={el => this.textInput = el}
                 onChange={(event) => {
-                    this.updateNumberOfLines(event);
+                    this.updateContent(event);
                 }}
                 numberOfLines={this.state.numberOfLines}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
