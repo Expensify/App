@@ -71,7 +71,6 @@ class ReportHistoryCompose extends React.Component {
         this.setState({
             comment: '',
         });
-        this.textInputFocusable.clearLines();
     }
 
     render() {

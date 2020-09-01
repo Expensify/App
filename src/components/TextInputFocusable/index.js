@@ -1,5 +1,6 @@
 import React from 'react';
 import {TextInput} from 'react-native';
+import PropTypes from 'prop-types';
 
 /**
  * On web we like to have the Text Input field always focused so the user can easily type a new chat
@@ -18,8 +19,22 @@ class TextInputFocusable extends React.Component {
         this.focusInput();
     }
 
-    componentDidUpdate() {
+    componentDidUpdate(prevProps) {
         this.focusInput();
+
+        // Need to chek against previous value so it does not create a infinite loop
+        if (this.props.value !== prevProps.value && this.props.value === '') {
+            this.resetLines();
+        }
+    }
+
+    /**
+     * Resets the number of lines to 1
+     *
+     * @private
+     */
+    resetLines() {
+        this.setState({numberOfLines: 1});
     }
 
     /**
@@ -48,10 +63,6 @@ class TextInputFocusable extends React.Component {
         this.textInput.focus();
     }
 
-    clearLines() {
-        this.setState({numberOfLines: 1});
-    }
-
     render() {
         return (
             <TextInput
@@ -66,5 +77,11 @@ class TextInputFocusable extends React.Component {
         );
     }
 }
+
+const propTypes = {
+    // The value of the comment box
+    value: PropTypes.string.isRequired,
+};
+TextInputFocusable.propTypes = propTypes;
 
 export default TextInputFocusable;
