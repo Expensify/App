@@ -3,12 +3,14 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 
 // import {Beforeunload} from 'react-beforeunload';
+import compose from './lib/compose';
 import SignInPage from './page/SignInPage';
 import HomePage from './page/home/HomePage';
 import Ion from './lib/Ion';
 import * as ActiveClientManager from './lib/ActiveClientManager';
 import IONKEYS from './IONKEYS';
 import withIon from './components/withIon';
+import withRefresher from './components/withRefresher';
 import styles from './style/StyleSheet';
 
 import {
@@ -98,17 +100,20 @@ class Expensify extends Component {
 Expensify.propTypes = propTypes;
 Expensify.defaultProps = defaultProps;
 
-export default withIon({
-    redirectTo: {
-        key: IONKEYS.APP.REDIRECT_TO,
-        loader: () => {
-            // Initialize this client as being an active client
-            ActiveClientManager.init();
-        },
+export default compose(
+    withRefresher,
+    withIon({
+        redirectTo: {
+            key: IONKEYS.APP.REDIRECT_TO,
+            loader: () => {
+                // Initialize this client as being an active client
+                ActiveClientManager.init();
+            },
 
-        // Prevent the prefilling of Ion data or else the app will always redirect to what the last value was set to.
-        // This ends up in a situation where you go to a report, refresh the page, and then rather than seeing the
-        // report you are brought back to the root of the site (ie. "/").
-        initWithStoredValues: false,
-    },
-})(Expensify);
+            // Prevent the prefilling of Ion data or else the app will always redirect to what the last value was set to.
+            // This ends up in a situation where you go to a report, refresh the page, and then rather than seeing the
+            // report you are brought back to the root of the site (ie. "/").
+            initWithStoredValues: false,
+        }
+    }),
+)(Expensify);
