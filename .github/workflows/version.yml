@@ -1,8 +1,6 @@
 name: Create a new version
 
-on:
-    push:
-        branches: [master]
+on: push
 
 jobs:
     build:
@@ -23,7 +21,7 @@ jobs:
               run: npm install
 
             - name: Set git user
-              run: git config user.name github-action
+              run: git config user.name botify
 
             - name: Checkout new branch
               run: git checkout -b version-bump-${{ github.sha }}
@@ -33,6 +31,8 @@ jobs:
 
             - name: Push new version
               run: git push --set-upstream origin version-bump-${{ github.sha }}
+              with:
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
 
             - name: tag release
               run: git tag $(npm run print-version --silent) && git push --tags
