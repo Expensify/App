@@ -23,7 +23,7 @@ class TextInputFocusable extends React.Component {
         this.focusInput();
 
         // Need to chek against previous value so it does not create a infinite loop
-        if (this.props.value !== prevProps.value && this.props.value === '') {
+        if (this.props.value !== prevProps.value && this.props.value === '' && this.state.numberOfLines !== 1) {
             this.resetLines();
         }
     }
