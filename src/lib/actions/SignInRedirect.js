@@ -4,7 +4,7 @@ import ROUTES from '../../ROUTES';
 
 /**
  * Redirects to the sign in page and handles adding any exitTo params to the URL.
- * Normally this method would live in ActionsSession.js, but that would cause a circular dependency with Network.js.
+ * Normally this method would live in Session.js, but that would cause a circular dependency with Network.js.
  *
  * @returns {Promise}
  */

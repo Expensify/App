@@ -10,7 +10,6 @@ export default {
     },
     CURRENT_URL: 'current_url',
     CREDENTIALS: 'credentials',
-    LAST_AUTHENTICATED: 'last_authenticated',
     MY_PERSONAL_DETAILS: 'my_personal_details',
     NETWORK: 'network',
     PERSONAL_DETAILS: 'personal_details',

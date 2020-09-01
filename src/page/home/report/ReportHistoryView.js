@@ -5,16 +5,31 @@ import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import Text from '../../../components/Text';
 import Ion from '../../../lib/Ion';
-import {fetchHistory, updateLastReadActionID} from '../../../lib/actions/ActionsReport';
-import WithIon from '../../../components/WithIon';
+import withIon from '../../../components/withIon';
+import {fetchHistory, updateLastReadActionID} from '../../../lib/actions/Report';
 import IONKEYS from '../../../IONKEYS';
 import ReportHistoryItem from './ReportHistoryItem';
 import styles from '../../../style/StyleSheet';
 import {withRouter} from '../../../lib/Router';
+import ReportHistoryPropsTypes from './ReportHistoryPropsTypes';
+import compose from '../../../lib/compose';
 
 const propTypes = {
     // The ID of the report actions will be created for
     reportID: PropTypes.number.isRequired,
+
+    /* Ion Props */
+
+    // Array of report history items for this report
+    reportHistory: PropTypes.PropTypes.objectOf(PropTypes.shape(ReportHistoryPropsTypes)),
+
+    // Current user authToken
+    authToken: PropTypes.string,
+};
+
+const defaultProps = {
+    reportHistory: {},
+    authToken: '',
 };
 
 class ReportHistoryView extends React.Component {
@@ -46,24 +61,28 @@ class ReportHistoryView extends React.Component {
      */
     // eslint-disable-next-line
     isConsecutiveHistoryItemMadeByPreviousActor(historyItemIndex) {
-        // Disable this for now
-        return false;
+        const reportHistory = lodashGet(this.props, 'reportHistory', {});
 
-        // const filteredHistory = this.getFilteredReportHistory();
-        //
-        // // This is the created action and the very first action so it cannot be a consecutive comment.
-        // if (historyItemIndex === 0) {
-        //     return false;
-        // }
-        //
-        // const previousAction = filteredHistory[historyItemIndex - 1];
-        // const currentAction = filteredHistory[historyItemIndex];
-        //
-        // if (currentAction.timestamp - previousAction.timestamp > 300) {
-        //     return false;
-        // }
-        //
-        // return currentAction.actorEmail === previousAction.actorEmail;
+        // This is the created action and the very first action so it cannot be a consecutive comment.
+        if (historyItemIndex === 0) {
+            return false;
+        }
+
+        const previousAction = reportHistory[historyItemIndex - 1];
+        const currentAction = reportHistory[historyItemIndex];
+
+        // It's OK for there to be no previous action, and in that case, false will be returned
+        // so that the comment isn't grouped
+        if (!currentAction || !previousAction) {
+            return false;
+        }
+
+        // Comments are only grouped if they happen within 5 minutes of each other
+        if (currentAction.timestamp - previousAction.timestamp > 300) {
+            return false;
+        }
+
+        return currentAction.actorEmail === previousAction.actorEmail;
     }
 
     /**
@@ -71,7 +90,7 @@ class ReportHistoryView extends React.Component {
      * action when scrolled
      */
     recordMaxAction() {
-        const reportHistory = lodashGet(this.state, 'reportHistory', []);
+        const reportHistory = lodashGet(this.props, 'reportHistory', {});
         const maxVisibleSequenceNumber = _.chain(reportHistory)
             .pluck('sequenceNumber')
             .max()
@@ -113,12 +132,7 @@ class ReportHistoryView extends React.Component {
     }
 
     render() {
-        let reportHistory = {};
-        if (this.state && this.state.reportHistory) {
-            reportHistory = this.state.reportHistory;
-        }
-
-        if (reportHistory.length === 0) {
+        if (!_.size(this.props.reportHistory)) {
             return (
                 <View style={[styles.chatContent, styles.chatContentEmpty]}>
                     <Text style={[styles.textP]}>Be the first person to comment!</Text>
@@ -133,15 +147,13 @@ class ReportHistoryView extends React.Component {
                 }}
                 onContentSizeChange={this.scrollToListBottom}
                 bounces={false}
-                contentContainerStyle={{
-                    paddingVertical: 8
-                }}
+                contentContainerStyle={[styles.chatContentScrollView]}
             >
-                {_.chain(reportHistory).sortBy('sequenceNumber').map((item, index) => (
+                {_.chain(this.props.reportHistory).sortBy('sequenceNumber').map((item, index) => (
                     <ReportHistoryItem
                         key={item.sequenceNumber}
                         historyItem={item}
-                        authToken={this.state.authToken}
+                        authToken={this.props.authToken}
                         displayAsGroup={this.isConsecutiveHistoryItemMadeByPreviousActor(index)}
                     />
                 )).value()}
@@ -149,20 +161,23 @@ class ReportHistoryView extends React.Component {
         );
     }
 }
+
 ReportHistoryView.propTypes = propTypes;
+ReportHistoryView.defaultProps = defaultProps;
 
 const key = `${IONKEYS.REPORT_HISTORY}_%DATAFROMPROPS%`;
-export default withRouter(WithIon({
-    authToken: {
-        key: IONKEYS.SESSION,
-        path: 'authToken',
-        prefillWithKey: IONKEYS.SESSION,
-    },
-    reportHistory: {
-        key,
-        loader: fetchHistory,
-        loaderParams: ['%DATAFROMPROPS%'],
-        prefillWithKey: key,
-        pathForProps: 'reportID',
-    },
-})(ReportHistoryView));
+export default compose(
+    withRouter,
+    withIon({
+        authToken: {
+            key: IONKEYS.SESSION,
+            path: 'authToken',
+        },
+        reportHistory: {
+            key,
+            loader: fetchHistory,
+            loaderParams: ['%DATAFROMPROPS%'],
+            pathForProps: 'reportID',
+        },
+    }),
+)(ReportHistoryView);

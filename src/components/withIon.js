@@ -21,7 +21,7 @@ function getDisplayName(component) {
 
 export default function (mapIonToState) {
     return (WrappedComponent) => {
-        class WithIon extends React.Component {
+        class withIon extends React.Component {
             constructor(props) {
                 super(props);
 
@@ -33,12 +33,6 @@ export default function (mapIonToState) {
                 // this.props. These are stored differently because anytime the props change, the component has to be
                 // reconnected to Ion with the new props.
                 this.activeConnectionIDsWithPropsData = {};
-
-                // Initialize the state with each of the property names from the mapping
-                this.state = _.reduce(_.keys(mapIonToState), (finalResult, propertyName) => ({
-                    ...finalResult,
-                    [propertyName]: null,
-                }), {});
             }
 
             componentDidMount() {
@@ -86,20 +80,21 @@ export default function (mapIonToState) {
              *  For example, if a component wants to connect to the Ion key "report_22" and
              *  "22" comes from this.props.match.params.reportID. The statePropertyName would be set to
              *  "report_%DATAFROMPROPS%" and pathForProps would be set to "match.params.reportID"
-             * @param {string} [mapping.prefillWithKey] the name of the Ion key to prefill the component with. Useful
-             *  for loading the existing data in Ion while making an XHR to request updated data.
              * @param {function} [mapping.loader] a method that will be called after connection to Ion in order to load
              *  it with data. Typically this will be a method that makes an XHR to load data from the API.
              * @param {mixed[]} [mapping.loaderParams] An array of params to be passed to the loader method
+             * @param {boolean} [mapping.initWithStoredValues] If set to false, then no data will be prefilled into the
+             *  component
              * @param {string} statePropertyName the name of the state property that Ion will add the data to
-             * @param {object} reactComponent a reference to the react component whose state needs updated by Ion
              */
-            connectMappingToIon(mapping, statePropertyName, reactComponent) {
+            connectMappingToIon(mapping, statePropertyName) {
                 const ionConnectionConfig = {
                     ...mapping,
                     statePropertyName,
-                    reactComponent,
+                    withIonInstance: this,
                 };
+
+                let connectionID;
 
                 // Connect to Ion and keep track of the connectionID
                 if (mapping.pathForProps) {
@@ -111,26 +106,17 @@ export default function (mapIonToState) {
 
                     // Store the connectionID with a key that is unique to the data coming from the props which allows
                     // it to be easily reconnected to when the props change
-                    this.activeConnectionIDsWithPropsData[mapping.pathForProps] = Ion.connect(ionConnectionConfig);
+                    connectionID = Ion.connect(ionConnectionConfig);
+                    this.activeConnectionIDsWithPropsData[mapping.pathForProps] = connectionID;
                 } else {
-                    const connectionID = Ion.connect(ionConnectionConfig);
+                    connectionID = Ion.connect(ionConnectionConfig);
                     this.actionConnectionIDs[connectionID] = connectionID;
                 }
 
                 // Pre-fill the state with any data already in the store
-                if (mapping.prefillWithKey) {
-                    let prefillKey = mapping.prefillWithKey;
-
-                    // If there is a path for props data, then the data needs to be pulled out of props and parsed
-                    // into the key
-                    if (mapping.pathForProps) {
-                        const dataFromProps = lodashGet(this.props, mapping.pathForProps);
-                        prefillKey = mapping.prefillWithKey.replace('%DATAFROMPROPS%', dataFromProps);
-                    }
-
-                    // Get the data from Ion and put it into the state of our component right away
-                    Ion.get(prefillKey, mapping.path, mapping.defaultValue)
-                        .then(data => reactComponent.setState({[statePropertyName]: data}));
+                if (mapping.initWithStoredValues !== false) {
+                    Ion.getInitialStateFromConnectionID(connectionID)
+                        .then(data => this.setState({[statePropertyName]: data}));
                 }
 
                 // Load the data from an API request if necessary
@@ -157,13 +143,12 @@ export default function (mapIonToState) {
                         {...this.props}
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...this.state}
-                        ref={el => this.wrappedComponent = el}
                     />
                 );
             }
         }
 
-        WithIon.displayName = `WithIon(${getDisplayName(WrappedComponent)})`;
-        return WithIon;
+        withIon.displayName = `withIon(${getDisplayName(WrappedComponent)})`;
+        return withIon;
     };
 }

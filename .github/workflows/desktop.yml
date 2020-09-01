@@ -25,8 +25,18 @@ jobs:
                   aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
                   aws-region: us-east-1
 
+            - name: Decrypt Developer ID Certificate
+              run: cd desktop && gpg --quiet --batch --yes --decrypt --passphrase="$DEVELOPER_ID_SECRET_PASSPHRASE" --output developer_id.p12 developer_id.p12.gpg
+              env:
+                  DEVELOPER_ID_SECRET_PASSPHRASE: ${{ secrets.DEVELOPER_ID_SECRET_PASSPHRASE }}
+
             - name: Build desktop app
               run: npm run desktop-build
+              env:
+                CSC_LINK: ${{ secrets.CSC_LINK }}
+                CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+                APPLE_ID: ${{ secrets.APPLE_ID }}
+                APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
 
             - name: Zip desktop build
               run: 7z a $GITHUB_WORKSPACE/dist/mac/Chat.app.zip $GITHUB_WORKSPACE/dist/mac/Chat.app
