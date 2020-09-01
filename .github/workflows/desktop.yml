@@ -1,6 +1,8 @@
 name: Build and Deploy Desktop
 
-on: push
+on:
+    push:
+        tags: ['**']
 
 jobs:
     build:
