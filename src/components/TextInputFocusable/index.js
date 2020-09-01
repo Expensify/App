@@ -22,7 +22,7 @@ class TextInputFocusable extends React.Component {
         this.focusInput();
 
         if (prevProps.value !== this.props.value) {
-            this.updateNumberOfLines(this.textInput);
+            this.updateNumberOfLines();
         }
     }
 
@@ -30,9 +30,9 @@ class TextInputFocusable extends React.Component {
      * Check the current scrollHeight of the textarea (minus any padding) and
      * divide by line height to get the total number of rows for the textarea.
      *
-     * @param {object} target
      */
-    updateNumberOfLines(target) {
+    updateNumberOfLines() {
+        const target = this.textInput;
         const computedStyle = window.getComputedStyle(target);
         const lineHeight = parseInt(computedStyle.lineHeight, 10) || 20;
         const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10)
@@ -47,17 +47,6 @@ class TextInputFocusable extends React.Component {
         });
     }
 
-    /**
-     * Check the current scrollHeight of the textarea (minus any padding) and
-     * divide by line height to get the total number of rows for the textarea.
-     *
-     * @param {object} event
-     */
-    updateContent(event) {
-        const target = event.nativeEvent.target;
-        this.updateNumberOfLines(target);
-    }
-
     focusInput() {
         this.textInput.focus();
     }
@@ -66,8 +55,8 @@ class TextInputFocusable extends React.Component {
         return (
             <TextInput
                 ref={el => this.textInput = el}
-                onChange={(event) => {
-                    this.updateContent(event);
+                onChange={() => {
+                    this.updateNumberOfLines();
                 }}
                 numberOfLines={this.state.numberOfLines}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
