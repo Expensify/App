@@ -35,3 +35,5 @@ jobs:
               uses: peter-evans/create-pull-request@v3
               with:
                     labels: automerge
+                    branch: version-${{ github.sha }}
+                    base: master
