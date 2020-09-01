@@ -111,7 +111,7 @@ function fetchChatReportsByIDs(chatList) {
                 .unique()
                 .value();
 
-            return PersonalDetails.getForEmails(emails);
+            return PersonalDetails.getForEmails(emails.join(','));
         })
         .then((personalDetails) => {
             // Process the reports and store them in Ion

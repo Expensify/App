@@ -129,6 +129,30 @@ function get(key, extraPath, defaultValue) {
 }
 
 /**
+ * Returns initial state for a connection config so that stored data
+ * is available shortly after the first render.
+ *
+ * @param {Number} connectionID
+ * @return {Promise}
+ */
+function getInitialStateFromConnectionID(connectionID) {
+    const config = callbackToStateMapping[connectionID];
+    if (config.addAsCollection) {
+        return AsyncStorage.getAllKeys()
+            .then((keys) => {
+                const regex = RegExp(config.key);
+                const matchingKeys = _.filter(keys, key => regex.test(key));
+                return Promise.all(_.map(matchingKeys, key => get(key)));
+            })
+            .then(values => _.reduce(values, (finalObject, value) => ({
+                ...finalObject,
+                [value[config.collectionID]]: value,
+            }), {}));
+    }
+    return get(config.key, config.path, config.defaultValue);
+}
+
+/**
  * Get multiple keys of data
  *
  * @param {string[]} keys
@@ -202,7 +226,8 @@ const Ion = {
     multiGet,
     merge,
     clear,
-    init
+    init,
+    getInitialStateFromConnectionID,
 };
 
 export default Ion;
