@@ -2,6 +2,7 @@ const {app, BrowserWindow, shell} = require('electron');
 const serve = require('electron-serve');
 const contextMenu = require('electron-context-menu');
 const {autoUpdater} = require('electron-updater');
+const log = require('electron-log');
 
 /**
  * Electron main process that handles wrapping the web application.
@@ -16,6 +17,15 @@ app.commandLine.appendSwitch('disable-web-security');
 // Initialize the right click menu
 // See https://github.com/sindresorhus/electron-context-menu
 contextMenu();
+
+// Send all autoUpdater logs to a log file: ~/Library/Logs/react-native-chat/main.log
+// See https://www.npmjs.com/package/electron-log
+autoUpdater.logger = log;
+autoUpdater.logger.transports.file.level = 'info';
+
+// Send all Console logs to a log file: ~/Library/Logs/react-native-chat/main.log
+// See https://www.npmjs.com/package/electron-log
+Object.assign(console, log.functions);
 
 const mainWindow = (() => {
     const loadURL = serve({directory: 'dist'});
