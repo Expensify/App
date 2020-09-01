@@ -9,6 +9,5 @@ import {TextInput} from 'react-native';
 const TextInputFocusable = props => (<TextInput {...props} />);
 
 TextInputFocusable.displayName = 'TextInputFocusable';
-TextInputFocusable.clearLines = function () {};
 
 export default TextInputFocusable;
