@@ -1,5 +1,6 @@
 import React from 'react';
 import {TextInput} from 'react-native';
+import PropTypes from 'prop-types';
 
 /**
  * On web we like to have the Text Input field always focused so the user can easily type a new chat
@@ -23,6 +24,22 @@ class TextInputFocusable extends React.Component {
     }
 
     /**
+     * Calculates the max number of lines the text input can have
+     *
+     * @param {number} lineHeight
+     * @param {number} paddingTopAndBottom
+     * @param {number} scrollHeight
+     *
+     * @returns {number}
+     */
+    getNumberOfLines(lineHeight, paddingTopAndBottom, scrollHeight) {
+        const maxLines = this.props.maxLines;
+        let newNumberOfLines = Math.ceil((scrollHeight - paddingTopAndBottom) / lineHeight);
+        newNumberOfLines = maxLines <= 0 ? newNumberOfLines : Math.min(newNumberOfLines, maxLines);
+        return newNumberOfLines;
+    }
+
+    /**
      * Check the current scrollHeight of the textarea (minus any padding) and
      * divide by line height to get the total number of rows for the textarea.
      *
@@ -39,7 +56,7 @@ class TextInputFocusable extends React.Component {
         // affected by the previous row setting. If we don't, rows will be added but not removed on backspace/delete.
         this.setState({numberOfLines: 1}, () => {
             this.setState({
-                numberOfLines: Math.ceil((target.scrollHeight - paddingTopAndBottom) / lineHeight)
+                numberOfLines: this.getNumberOfLines(lineHeight, paddingTopAndBottom, target.scrollHeight)
             });
         });
     }
@@ -62,5 +79,17 @@ class TextInputFocusable extends React.Component {
         );
     }
 }
+
+const propTypes = {
+    // Maximum number of lines in the text input
+    maxLines: PropTypes.number,
+};
+
+const defaultProps = {
+    maxLines: -1,
+};
+
+TextInputFocusable.propTypes = propTypes;
+TextInputFocusable.defaultProps = defaultProps;
 
 export default TextInputFocusable;
