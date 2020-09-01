@@ -121,6 +121,11 @@ function fetchChatReportsByIDs(chatList) {
         .then((personalDetails) => {
             // Process the reports and store them in Ion
             const ionPromises = _.map(fetchedReports, (report) => {
+                debugger;
+                if (!hasUnreadHistoryItems(currentUserAccountID, report)) {
+                    return;
+                }
+
                 // Store only the absolute bare minimum of data in Ion because space is limited
                 const newReport = getSimplifiedReportObject(
                     report,
@@ -250,9 +255,11 @@ function fetchChatReports() {
  */
 function fetchAll() {
     let fetchedReports;
+    const configReportIDs = CONFIG.REPORT_IDS.split(',').map(Number);
 
     // Request each report one at a time to allow individual reports to fail if access to it is prevented by Auth
-    const reportFetchPromises = _.map(CONFIG.REPORT_IDS.split(','), reportID => queueRequest('Get', {
+    debugger;
+    const reportFetchPromises = _.map(configReportIDs, reportID => queueRequest('Get', {
         returnValueList: 'reportStuff',
         reportIDList: reportID,
         shouldLoadOptionalKeys: true,
@@ -277,6 +284,12 @@ function fetchAll() {
         .then(() => Ion.get(IONKEYS.SESSION, 'accountID'))
         .then((accountID) => {
             const ionPromises = _.map(fetchedReports, (report) => {
+                debugger;
+                const pinnedChat = configReportIDs.includes(report.reportID);
+                if (!pinnedChat && !hasUnreadHistoryItems(accountID, report)) {
+                    return;
+                }
+
                 // Store only the absolute bare minimum of data in Ion because space is limited
                 const newReport = getSimplifiedReportObject(report, accountID);
 
