@@ -20,9 +20,7 @@ const getStoredVersion = () => Ion.get(IONKEYS.APP.VERSION_HASH)
         // only get the remote version if there is no version locally stored
         if (!storedVersion) {
             request(COMMAND_GET_VERSION)
-                .then((remoteVersion) => {
-                    return Ion.set(IONKEYS.APP.VERSION_HASH, remoteVersion);
-                });
+                .then(remoteVersion => Ion.set(IONKEYS.APP.VERSION_HASH, remoteVersion));
         } else {
             return new Promise().resolve(storedVersion);
         }
@@ -37,9 +35,7 @@ const getStoredVersion = () => Ion.get(IONKEYS.APP.VERSION_HASH)
  * @returns {Promise}
  */
 const appShouldRefresh = () => Ion.get(IONKEYS.APP.VERSION_HASH)
-    .then((storedVersion) => {
-        return [storedVersion, request(COMMAND_GET_VERSION)]
-    })
+    .then(storedVersion => [storedVersion, request(COMMAND_GET_VERSION)])
     .then((storedVersion, remoteVersion) => {
         if (storedVersion === remoteVersion) {
             if (!storedVersion) {
