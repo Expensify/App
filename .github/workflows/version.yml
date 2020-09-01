@@ -32,8 +32,10 @@ jobs:
               run: git push --set-upstream origin version-${{ github.sha }}
 
             - name: Create Pull Request
-              uses: peter-evans/create-pull-request@v3
+              uses: repo-sync/pull-request@v2
               with:
-                    labels: automerge
-                    branch: version-${{ github.sha }}
-                    base: master
+                    source_branch: version-${{ github.sha }}
+                    destination_branch: "master"
+                    pr_title: "Auto Version PR"
+                    pr_label: "automerge"
+                    github_token: ${{ secrets.GITHUB_TOKEN }}
