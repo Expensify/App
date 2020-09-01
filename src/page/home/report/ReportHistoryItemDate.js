@@ -11,7 +11,7 @@ const propTypes = {
 
 const ReportHistoryItemDate = props => (
     <Text style={[styles.chatItemMessageHeaderTimestamp]}>
-        {DateUtils.timestampToRelative(props.timestamp)}
+        {DateUtils.timestampToDateTime(props.timestamp)}
     </Text>
 );
 

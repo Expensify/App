@@ -39,6 +39,14 @@ const SidebarBottom = ({myPersonalDetails, isOffline, insets}) => {
         styles.statusIndicator,
         isOffline ? styles.statusIndicatorOffline : styles.statusIndicatorOnline
     ];
+
+    // On the very first sign in or after clearing storage these
+    // details will not be present on the first render so we'll just
+    // return nothing for now.
+    if (!myPersonalDetails) {
+        return null;
+    }
+
     return (
         <View style={[styles.sidebarFooter, getSafeAreaMargins(insets)]}>
             <View style={[styles.sidebarFooterAvatar]}>

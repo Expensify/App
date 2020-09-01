@@ -146,9 +146,9 @@ function setSuccessfulSignInData(data, exitTo) {
     let redirectTo;
 
     if (exitTo && exitTo[0] === '/') {
-        redirectTo = exitTo.substring(1);
-    } else if (exitTo) {
         redirectTo = exitTo;
+    } else if (exitTo) {
+        redirectTo = `/${exitTo}`;
     } else {
         redirectTo = ROUTES.HOME;
     }
@@ -158,7 +158,6 @@ function setSuccessfulSignInData(data, exitTo) {
         // but we only care about setting these three values in Ion
         [IONKEYS.SESSION]: _.pick(data, 'authToken', 'accountID', 'email'),
         [IONKEYS.APP_REDIRECT_TO]: redirectTo,
-        [IONKEYS.LAST_AUTHENTICATED]: new Date().getTime(),
     });
 }
 
