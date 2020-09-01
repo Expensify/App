@@ -15,8 +15,8 @@ const propTypes = {
     isActiveReport: PropTypes.bool.isRequired,
 };
 
-// This is a PureComponent so that it only re-renders when the reportID changes or the report is active
-// or not. This should greatly reduce how often comments are re-rendered.
+// This is a PureComponent so that it only re-renders when the reportID changes or when the report changes from
+// active to inactive (or vice versa). This should greatly reduce how often comments are re-rendered.
 class ReportView extends React.PureComponent {
     render() {
         // Only display the compose form for the active report because the form needs to get focus and
