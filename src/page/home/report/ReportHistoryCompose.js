@@ -78,7 +78,6 @@ class ReportHistoryCompose extends React.Component {
             <View style={[styles.chatItemCompose]}>
                 <View style={[styles.chatItemComposeBox, styles.flexRow]}>
                     <TextInputFocusable
-                        ref={el => this.textInputFocusable = el}
                         multiline
                         textAlignVertical="top"
                         placeholder="Write something..."
