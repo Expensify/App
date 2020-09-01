@@ -8,7 +8,7 @@ import React from 'react';
 
 import InitRefresher from '../../lib/actions/WebRefresh';
 import IONKEYS from '../../IONKEYS';
-import withIon from '../../components/WithIon';
+import withIon from '../WithIon';
 
 const STATE_HIDDEN = 'hidden';
 const STATE_VISIBLE = 'visible';
