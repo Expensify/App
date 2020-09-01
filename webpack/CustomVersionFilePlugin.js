@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require('path');
 const APP_VERSION = require('../package.json').version;
 
 /**
@@ -11,7 +12,7 @@ export default class CustomVersionFilePlugin {
                 appVersion: APP_VERSION,
                 buildHash: stats.hash,
             });
-            fs.writeFile('./version.json', json, 'utf8', (err) => {
+            fs.writeFile(path.join(__dirname, 'dist/version.json'), json, 'utf8', (err) => {
                 if (err) {
                     reject(err);
                     return;
