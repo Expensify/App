@@ -6,7 +6,6 @@ export default {
     APP: {
         REDIRECT_TO: 'app_redirectTo',
         SHOULD_REFRESH: 'app_shouldRefresh',
-        VERSION_HASH: 'app_versionHash',
     },
     CURRENT_URL: 'current_url',
     CREDENTIALS: 'credentials',
