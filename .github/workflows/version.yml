@@ -1,0 +1,41 @@
+name: Create a new version
+
+on:
+    push:
+        branches: [master]
+
+jobs:
+    build:
+        runs-on: ubuntu-16.04
+
+        steps:
+            - uses: actions/checkout@v2
+
+            - name: Setup Node
+              uses: actions/setup-node@v1
+              with:
+                  node-version: '14.x'
+
+            - name: Install dependenices
+              run: npm install
+
+            - name: Set git user
+              run: git config user.name github-action
+
+            - name: Checkout new branch
+              run: git checkout -b version-${{ github.sha }}
+
+            - name: Generate version
+              run: npm --no-git-tag-version version prerelease -m "Update version to %s"
+
+            - name: Push new version
+              run: git push --set-upstream origin version-${{ github.sha }}
+
+            - name: Create Pull Request
+              uses: repo-sync/pull-request@v2
+              with:
+                    source_branch: version-${{ github.sha }}
+                    destination_branch: "master"
+                    pr_title: "Auto Version PR"
+                    pr_label: "automerge"
+                    github_token: ${{ secrets.GITHUB_TOKEN }}
