@@ -1,8 +1,6 @@
 name: Create a new version
 
-on:
-    push:
-        branches: [master]
+on: push
 
 jobs:
     build:
@@ -10,6 +8,8 @@ jobs:
 
         steps:
             - uses: actions/checkout@v2
+              with:
+                  ref: master
 
             - name: Setup Node
               uses: actions/setup-node@v1
