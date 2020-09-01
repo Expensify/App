@@ -10,6 +10,9 @@ const log = require('electron-log');
  * @see: https://www.electronjs.org/docs/tutorial/application-architecture#main-and-renderer-processes
  */
 
+// Interval that we check for new versions of the app
+const UPDATE_INTERVAL = 1000 * 60 * 60;
+
 // TODO: Turn this off, use web-security after alpha launch, currently we receive a CORS issue preventing
 // the electron app from making any API requests.
 app.commandLine.appendSwitch('disable-web-security');
@@ -56,8 +59,15 @@ const mainWindow = (() => {
 
             return browserWindow;
         })
+
+        // After initializing and configuring the browser window, load the compiled JavaScript
         .then(browserWindow => loadURL(browserWindow))
-        .then(() => autoUpdater.checkForUpdatesAndNotify());
+
+        // Check for a new version of the app on launch
+        .then(() => autoUpdater.checkForUpdatesAndNotify())
+
+        // Set a timer to check for new versions of the app
+        .then(() => setInterval(() => autoUpdater.checkForUpdatesAndNotify(), UPDATE_INTERVAL));
 });
 
 mainWindow().then(window => window);
