@@ -32,6 +32,9 @@ jobs:
             - name: Push new version
               run: git push --set-upstream origin version-bump-${{ github.sha }}
 
+            - name: tag release
+              run: git tag $(npm run print-version --silent) && git push --tags
+
             - name: Create Pull Request
               uses: repo-sync/pull-request@v2
               with:

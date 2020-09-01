@@ -19,11 +19,3 @@ jobs:
               uses: pascalgn/automerge-action@v0.9.0
               env:
                   GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-
-            - name: Setup Node
-              uses: actions/setup-node@v1
-              with:
-                node-version: '14.x'
-
-            - name: tag release
-              run: git tag $(npm run print-version --silent) && git push --tags
