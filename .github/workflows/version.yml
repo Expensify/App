@@ -22,8 +22,16 @@ jobs:
             - name: Set git user
               run: git config user.name github-action
 
+            - name: Checkout new branch
+              run: git checkout -b version-${{ github.sha }}
+
             - name: Generate version
-              run: npm version prerelease -m "Update version to %s"
+              run: npm --no-git-tag-version version prerelease -m "Update version to %s"
 
             - name: Push new version
-              run: git push && git push --tags
+              run: git push
+
+            - name: Create Pull Request
+              uses: peter-evans/create-pull-request@v3
+              with:
+                    labels: automerge

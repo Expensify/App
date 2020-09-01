@@ -16,7 +16,8 @@
     "test": "jest",
     "lint": "eslint .",
     "deploy-ios": "npm version prerelease && git push && fastlane ios beta",
-    "postversion": "react-native-version"
+    "postversion": "react-native-version",
+    "print-version": "echo $npm_package_version"
   },
   "dependencies": {
     "@react-native-community/async-storage": "^1.11.0",
