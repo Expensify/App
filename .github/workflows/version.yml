@@ -22,7 +22,9 @@ jobs:
               run: npm install
 
             - name: Set git user
-              run: git config user.name botify
+              run: |
+                git fetch
+                git config user.name botify
 
             - name: Checkout new branch
               run: git checkout -b version-bump-${{ github.sha }}
