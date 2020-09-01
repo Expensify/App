@@ -9,7 +9,13 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - name: automerge
+            - name: Check for an auto approve
+              uses: hmarr/auto-approve-action@v2.0.0
+              with:
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+              if: github.event.label.name == 'automerge'
+
+            - name: Check for an auto merge
               uses: pascalgn/automerge-action@v0.9.0
               env:
                   GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
