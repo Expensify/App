@@ -70,10 +70,9 @@ function hasUnreadHistoryItems(accountID, report) {
  * @param {number} report.reportID
  * @param {string} report.reportName
  * @param {object} report.reportNameValuePairs
- * @param {string} accountID
  * @returns {object}
  */
-function getSimplifiedReportObject(report, accountID) {
+function getSimplifiedReportObject(report) {
     return {
         reportID: report.reportID,
         reportName: report.reportName,
@@ -86,11 +85,9 @@ function getSimplifiedReportObject(report, accountID) {
  * Returns a generated report title based on the participants
  *
  * @param {array} sharedReportList
- * @param {object} personalDetails
- * @param {string} currentUserEmail
  * @return {string}
  */
-function getChatReportName(sharedReportList, personalDetails, currentUserEmail) {
+function getChatReportName(sharedReportList) {
     return _.chain(sharedReportList)
         .map(participant => participant.email)
         .filter(participant => participant !== currentUserEmail)
@@ -133,14 +130,10 @@ function fetchChatReportsByIDs(chatList) {
         .then(() => {
             // Process the reports and store them in Ion
             const ionPromises = _.map(fetchedReports, (report) => {
-                const newReport = getSimplifiedReportObject(report, currentUserAccountID);
+                const newReport = getSimplifiedReportObject(report);
 
                 if (lodashGet(report, 'reportNameValuePairs.type') === 'chat') {
-                    newReport.reportName = getChatReportName(
-                        report.sharedReportList,
-                        personalDetails,
-                        currentUserEmail
-                    );
+                    newReport.reportName = getChatReportName(report.sharedReportList);
                 }
 
                 // Merge the data into Ion. Don't use set() here or multiSet() because then that would
@@ -230,17 +223,14 @@ function updateReportWithNewAction(reportID, reportAction) {
  * Initialize our pusher subscriptions to listen for new report comments
  */
 function subscribeToReportCommentEvents() {
-    return Ion.get(IONKEYS.SESSION, 'accountID')
-        .then((accountID) => {
-            const pusherChannelName = `private-user-accountID-${accountID}`;
-            if (Pusher.isSubscribed(pusherChannelName) || Pusher.isAlreadySubscribing(pusherChannelName)) {
-                return;
-            }
+    const pusherChannelName = `private-user-accountID-${currentUserAccountID}`;
+    if (Pusher.isSubscribed(pusherChannelName) || Pusher.isAlreadySubscribing(pusherChannelName)) {
+        return;
+    }
 
-            Pusher.subscribe(pusherChannelName, 'reportComment', (pushJSON) => {
-                updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
-            });
-        });
+    Pusher.subscribe(pusherChannelName, 'reportComment', (pushJSON) => {
+        updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
+    });
 }
 
 /**
@@ -350,8 +340,8 @@ function fetchChatReport(participants) {
             const report = data.reports[reportID];
 
             // Store only the absolute bare minimum of data in Ion because space is limited
-            const newReport = getSimplifiedReportObject(report, currentUserAccountID);
-            newReport.reportName = getChatReportName(report.sharedReportList, personalDetails, currentUserEmail);
+            const newReport = getSimplifiedReportObject(report);
+            newReport.reportName = getChatReportName(report.sharedReportList);
 
             // Merge the data into Ion. Don't use set() here or multiSet() because then that would
             // overwrite any existing data (like if they have unread messages)
