@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import lodashGet from 'lodash.get';
 import NetInfo from '@react-native-community/netinfo';
 import Ion from './Ion';
 import CONFIG from '../CONFIG';
