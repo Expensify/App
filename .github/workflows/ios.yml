@@ -28,6 +28,16 @@ jobs:
             - name: Install cocoapods
               run: cd ios && pod install
 
+            - name: Decrypt profile
+              run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output expensify_appstore.mobileprovision expensify_appstore.mobileprovision.gpg
+              env:
+                  LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+
+            - name: Decrypt certificate
+              run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output distribution.cer distribution.cer.gpg
+              env:
+                  LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+
             - name: Run Fastlane
               run: bundle exec fastlane ios beta
               env:
