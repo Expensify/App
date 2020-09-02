@@ -24,41 +24,24 @@ function init() {
 const callbackToStateMapping = {};
 
 /**
- * Subscribes a react component's state directly to a store key
+ * Get some data from the store
  *
- * @param {object} mapping the mapping information to connect Ion to the components state
- * @param {string} mapping.keyPattern
- * @param {string} [mapping.path] a specific path of the store object to map to the state
- * @param {mixed} [mapping.defaultValue] to return if the there is nothing from the store
- * @param {string} mapping.statePropertyName the name of the property in the state to connect the data to
- * @param {boolean} [mapping.addAsCollection] rather than setting a single state value, this will add things to an array
- * @param {string} [mapping.collectionID] the name of the ID property to use for the collection
- * @param {object} [mapping.withIonInstance] whose setState() method will be called with any changed data
- *      This is used by React components to connect to Ion
- * @param {object} [mapping.callback] a method that will be called with changed data
- *      This is used by any non-React code to connect to Ion
- * @returns {number} an ID to use when calling disconnect
+ * @param {string} key
+ * @param {string} [extraPath] passed to _.get() in order to return just a piece of the localStorage object
+ * @param {mixed} [defaultValue] passed to the second param of _.get() in order to specify a default value if the value
+ *      we are looking for doesn't exist in the object yet
+ * @returns {*}
  */
-function connect(mapping) {
-    const connectionID = lastConnectionID++;
-    const connectionMapping = {
-        ...mapping,
-        regex: RegExp(mapping.key),
-    };
-    callbackToStateMapping[connectionID] = connectionMapping;
-    return connectionID;
-}
-
-/**
- * Remove the listener for a react component
- *
- * @param {string} connectionID
- */
-function disconnect(connectionID) {
-    if (!callbackToStateMapping[connectionID]) {
-        return;
-    }
-    delete callbackToStateMapping[connectionID];
+function get(key, extraPath, defaultValue) {
+    return AsyncStorage.getItem(key)
+        .then(val => JSON.parse(val))
+        .then((val) => {
+            if (extraPath) {
+                return lodashGet(val, extraPath, defaultValue);
+            }
+            return val;
+        })
+        .catch(err => console.error(`Unable to get item from persistent storage. Key: ${key} Error: ${err}`));
 }
 
 /**
@@ -102,6 +85,53 @@ function keyChanged(key, data) {
 }
 
 /**
+ * Subscribes a react component's state directly to a store key
+ *
+ * @param {object} mapping the mapping information to connect Ion to the components state
+ * @param {string} mapping.keyPattern
+ * @param {string} [mapping.path] a specific path of the store object to map to the state
+ * @param {mixed} [mapping.defaultValue] to return if the there is nothing from the store
+ * @param {string} mapping.statePropertyName the name of the property in the state to connect the data to
+ * @param {boolean} [mapping.addAsCollection] rather than setting a single state value, this will add things to an array
+ * @param {string} [mapping.collectionID] the name of the ID property to use for the collection
+ * @param {object} [mapping.withIonInstance] whose setState() method will be called with any changed data
+ *      This is used by React components to connect to Ion
+ * @param {object} [mapping.callback] a method that will be called with changed data
+ *      This is used by any non-React code to connect to Ion
+ * @returns {number} an ID to use when calling disconnect
+ */
+function connect(mapping) {
+    const connectionID = lastConnectionID++;
+    const connectionMapping = {
+        ...mapping,
+        regex: RegExp(mapping.key),
+    };
+    callbackToStateMapping[connectionID] = connectionMapping;
+
+    // If the mapping has a callback, trigger it with the existing data
+    // in Ion so it initializes properly
+    // @TODO remove the if statement when this is supported by react components
+    if (mapping.callback) {
+        get(mapping.key)
+            .then(val => keyChanged(mapping.key, val));
+    }
+
+    return connectionID;
+}
+
+/**
+ * Remove the listener for a react component
+ *
+ * @param {string} connectionID
+ */
+function disconnect(connectionID) {
+    if (!callbackToStateMapping[connectionID]) {
+        return;
+    }
+    delete callbackToStateMapping[connectionID];
+}
+
+/**
  * Write a value to our store with the given key
  *
  * @param {string} key
@@ -114,27 +144,6 @@ function set(key, val) {
         .then(() => {
             keyChanged(key, val);
         });
-}
-
-/**
- * Get some data from the store
- *
- * @param {string} key
- * @param {string} [extraPath] passed to _.get() in order to return just a piece of the localStorage object
- * @param {mixed} [defaultValue] passed to the second param of _.get() in order to specify a default value if the value
- *      we are looking for doesn't exist in the object yet
- * @returns {*}
- */
-function get(key, extraPath, defaultValue) {
-    return AsyncStorage.getItem(key)
-        .then(val => JSON.parse(val))
-        .then((val) => {
-            if (extraPath) {
-                return lodashGet(val, extraPath, defaultValue);
-            }
-            return val;
-        })
-        .catch(err => console.error(`Unable to get item from persistent storage. Key: ${key} Error: ${err}`));
 }
 
 /**
