@@ -1,0 +1,34 @@
+name: Build and Deploy iOS
+
+# This workflow is run when any tag is published
+#on:
+#    push:
+#        tags:
+#            - '*'
+
+# TODO: Remove, just for testing
+on: push
+
+jobs:
+    build:
+        runs-on: macos-latest
+        steps:
+            - uses: actions/checkout@v2
+            - uses: actions/setup-ruby@v1
+
+            - name: Install bundler
+              run: gem install bundler
+
+            - name: Install gems
+              run: bundle install
+
+            - name: Install node packages
+              run: npm install
+
+            - name: Install cocoapods
+              run: cd ios && pod install
+
+            - name: Run Fastlane
+              run: bundle exec fastlane ios beta
+              env:
+                  FASTLANE_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
