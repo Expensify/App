@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
+import lodashOrderBy from 'lodash.orderBy';
 import styles from '../../../style/StyleSheet';
 import Text from '../../../components/Text';
 import SidebarLink from './SidebarLink';
@@ -50,6 +51,7 @@ class SidebarLinks extends React.Component {
 
     render() {
         const {reports, onLinkClick} = this.props;
+        const sortedReports = lodashOrderBy(this.props.reports, ['pinnedReport', 'reportName'], ['desc', 'asc']);
 
         // Updates the page title to indicate there are unread reports
         PageTitleUpdater(_.any(reports, report => report.hasUnread));
@@ -76,7 +78,7 @@ class SidebarLinks extends React.Component {
                                 Chats
                             </Text>
                         </View>
-                        {_.map(reports, report => (
+                        {_.map(sortedReports, report => (
                             <SidebarLink
                                 key={report.reportID}
                                 reportID={report.reportID}
