@@ -222,6 +222,10 @@ function subscribeToReportCommentEvents() {
     return Ion.get(IONKEYS.SESSION, 'accountID')
         .then((accountID) => {
             const pusherChannelName = `private-user-accountID-${accountID}`;
+            if (Pusher.isSubscribed(pusherChannelName) || Pusher.isAlreadySubscribing(pusherChannelName)) {
+                return;
+            }
+
             Pusher.subscribe(pusherChannelName, 'reportComment', (pushJSON) => {
                 updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
             });

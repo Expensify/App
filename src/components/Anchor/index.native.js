@@ -5,6 +5,10 @@ import {Linking, Text} from 'react-native';
 
 /**
  * Text based component that is passed a URL to open onPress
+ *
+ * This file is for iOS and Android.
+ * It is different from the web/desktop version because it uses the built in react-native Linking.openURL
+ * This is required because Linking.openURL provides the correct functionality for mobile, but not web/desktop
  */
 
 const propTypes = {
@@ -25,11 +29,11 @@ const defaultProps = {
 };
 
 const Anchor = ({
-                   href,
-                   children,
-                   style,
-                   ...props
-               }) => {
+    href,
+    children,
+    style,
+    ...props
+}) => {
     // If the style prop is an array of styles, we need to mix them all together
     const mergedStyles = !_.isArray(style) ? style : _.reduce(style, (finalStyles, s) => ({
         ...finalStyles,
