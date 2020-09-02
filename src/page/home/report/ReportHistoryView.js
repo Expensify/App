@@ -73,6 +73,11 @@ class ReportHistoryView extends React.Component {
             return false;
         }
 
+        // Only comments that follow other comments are consecutive
+        if (previousAction.actionName !== 'ADDCOMMENT' || currentAction.actionName !== 'ADDCOMMENT') {
+            return false;
+        }
+
         // Comments are only grouped if they happen within 5 minutes of each other
         if (currentAction.timestamp - previousAction.timestamp > 300) {
             return false;

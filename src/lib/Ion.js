@@ -62,23 +62,24 @@ function keyChanged(key, data) {
                 mappedComponent.callback(newValue, key);
             }
 
-            if (mappedComponent.withIonInstance) {
-                // Set the state of the react component with either the pathed data, or the data
-                if (mappedComponent.addAsCollection) {
-                    // Add the data to an array of existing items
-                    mappedComponent.withIonInstance.setState((prevState) => {
-                        const collection = prevState[mappedComponent.statePropertyName] || {};
-                        collection[newValue[mappedComponent.collectionID]] = newValue;
-                        const newState = {
-                            [mappedComponent.statePropertyName]: collection,
-                        };
-                        return newState;
-                    });
-                } else {
-                    mappedComponent.withIonInstance.setState({
-                        [mappedComponent.statePropertyName]: newValue,
-                    });
-                }
+            if (!mappedComponent.withIonInstance) {
+                return;
+            }
+
+            // Set the state of the react component with either the pathed data, or the data
+            if (mappedComponent.addAsCollection) {
+                // Add the data to an array of existing items
+                mappedComponent.withIonInstance.setState((prevState) => {
+                    const collection = prevState[mappedComponent.statePropertyName] || {};
+                    collection[newValue[mappedComponent.collectionID]] = newValue;
+                    return {
+                        [mappedComponent.statePropertyName]: collection,
+                    };
+                });
+            } else {
+                mappedComponent.withIonInstance.setState({
+                    [mappedComponent.statePropertyName]: newValue,
+                });
             }
         }
     });

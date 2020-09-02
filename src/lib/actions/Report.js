@@ -63,21 +63,6 @@ function hasUnreadHistoryItems(accountID, report) {
 }
 
 /**
- * Returns a generated report title based on the participants
- *
- * @param {array} sharedReportList
- * @return {string}
- */
-function getChatReportName(sharedReportList) {
-    return _.chain(sharedReportList)
-        .map(participant => participant.email)
-        .filter(participant => participant !== currentUserEmail)
-        .map(participant => lodashGet(personalDetails, [participant, 'firstName']) || participant)
-        .value()
-        .join(', ');
-}
-
-/**
  * Only store the minimal amount of data in Ion that needs to be stored
  * because space is limited
  *
@@ -85,18 +70,33 @@ function getChatReportName(sharedReportList) {
  * @param {number} report.reportID
  * @param {string} report.reportName
  * @param {object} report.reportNameValuePairs
- * @param {object} report.sharedReportList
+ * @param {string} accountID
  * @returns {object}
  */
-function getSimplifiedReportObject(report) {
+function getSimplifiedReportObject(report, accountID) {
     return {
         reportID: report.reportID,
-        reportName: !_.isEmpty(personalDetails) && lodashGet(report, 'reportNameValuePairs.type') === 'chat'
-            ? getChatReportName(report.sharedReportList)
-            : report.reportName,
+        reportName: report.reportName,
         reportNameValuePairs: report.reportNameValuePairs,
         hasUnread: hasUnreadHistoryItems(currentUserAccountID, report),
     };
+}
+
+/**
+ * Returns a generated report title based on the participants
+ *
+ * @param {array} sharedReportList
+ * @param {object} personalDetails
+ * @param {string} currentUserEmail
+ * @return {string}
+ */
+function getChatReportName(sharedReportList, personalDetails, currentUserEmail) {
+    return _.chain(sharedReportList)
+        .map(participant => participant.email)
+        .filter(participant => participant !== currentUserEmail)
+        .map(participant => lodashGet(personalDetails, [participant, 'firstName']) || participant)
+        .value()
+        .join(', ');
 }
 
 /**
@@ -133,8 +133,15 @@ function fetchChatReportsByIDs(chatList) {
         .then(() => {
             // Process the reports and store them in Ion
             const ionPromises = _.map(fetchedReports, (report) => {
-                // Store only the absolute bare minimum of data in Ion because space is limited
-                const newReport = getSimplifiedReportObject(report);
+                const newReport = getSimplifiedReportObject(report, currentUserAccountID);
+
+                if (lodashGet(report, 'reportNameValuePairs.type') === 'chat') {
+                    newReport.reportName = getChatReportName(
+                        report.sharedReportList,
+                        personalDetails,
+                        currentUserEmail
+                    );
+                }
 
                 // Merge the data into Ion. Don't use set() here or multiSet() because then that would
                 // overwrite any existing data (like if they have unread messages)
@@ -223,10 +230,17 @@ function updateReportWithNewAction(reportID, reportAction) {
  * Initialize our pusher subscriptions to listen for new report comments
  */
 function subscribeToReportCommentEvents() {
-    const pusherChannelName = `private-user-accountID-${currentUserAccountID}`;
-    Pusher.subscribe(pusherChannelName, 'reportComment', (pushJSON) => {
-        updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
-    });
+    return Ion.get(IONKEYS.SESSION, 'accountID')
+        .then((accountID) => {
+            const pusherChannelName = `private-user-accountID-${accountID}`;
+            if (Pusher.isSubscribed(pusherChannelName) || Pusher.isAlreadySubscribing(pusherChannelName)) {
+                return;
+            }
+
+            Pusher.subscribe(pusherChannelName, 'reportComment', (pushJSON) => {
+                updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
+            });
+        });
 }
 
 /**
@@ -336,7 +350,8 @@ function fetchChatReport(participants) {
             const report = data.reports[reportID];
 
             // Store only the absolute bare minimum of data in Ion because space is limited
-            const newReport = getSimplifiedReportObject(report);
+            const newReport = getSimplifiedReportObject(report, currentUserAccountID);
+            newReport.reportName = getChatReportName(report.sharedReportList, personalDetails, currentUserEmail);
 
             // Merge the data into Ion. Don't use set() here or multiSet() because then that would
             // overwrite any existing data (like if they have unread messages)
@@ -345,34 +360,6 @@ function fetchChatReport(participants) {
 
         // Return the reportID as the final return value
         .then(() => reportID);
-}
-
-/**
- * Looks for a report in Ion and if it doesn't exist, the report will be fetched from the API and placed in Ion
- *
- * @param {string} reportID
- */
-function fetchReportByIDIfNotExists(reportID) {
-    const report = currentReports[`${IONKEYS.REPORT}_${reportID}`];
-    if (lodashGet(report, 'reportName', false)) {
-        return;
-    }
-
-    // We don't have this report so let's fetch it
-    queueRequest('Get', {
-        returnValueList: 'reportStuff',
-        reportIDList: reportID,
-        shouldLoadOptionalKeys: true,
-    })
-        .then(({reports}) => {
-            if (reports === undefined) {
-                return;
-            }
-
-            // Store only the absolute bare minimum of data in Ion because space is limited
-            const newReport = getSimplifiedReportObject(reports[reportID]);
-            Ion.merge(`${IONKEYS.REPORT}_${reportID}`, newReport);
-        });
 }
 
 /**
@@ -467,7 +454,6 @@ export {
     fetchAll,
     fetchHistory,
     fetchChatReport,
-    fetchReportByIDIfNotExists,
     addHistoryItem,
     updateLastReadActionID,
     subscribeToReportCommentEvents,
