@@ -8,19 +8,16 @@ import styles from '../../../style/StyleSheet';
 const propTypes = {
     // All the data of the history item
     historyItem: PropTypes.shape(ReportHistoryPropsTypes).isRequired,
-
-    // Current users auth token
-    authToken: PropTypes.string.isRequired,
 };
 
 class ReportHistoryItemGrouped extends React.PureComponent {
     render() {
-        const {historyItem, authToken} = this.props;
+        const {historyItem} = this.props;
         return (
             <View style={[styles.chatItem]}>
                 <View style={[styles.chatItemRightGrouped]}>
                     <View style={[styles.chatItemMessage]}>
-                        <ReportHistoryItemMessage historyItem={historyItem} authToken={authToken} />
+                        <ReportHistoryItemMessage historyItem={historyItem} />
                     </View>
                 </View>
             </View>
