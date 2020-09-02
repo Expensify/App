@@ -1,10 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import {Linking, Text} from 'react-native';
+import {Text} from 'react-native';
 
 /**
  * Text based component that is passed a URL to open onPress
+ *
+ * This file is for web and desktop.
+ * It is different from the native version because it uses javascript to manually force a new window to open.
+ * This is required because Linking.openURL (used in native) does not allow for links to open in new tabs/windows
  */
 
 const propTypes = {
@@ -38,7 +42,7 @@ const Anchor = ({
 
     return (
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <Text style={mergedStyles} onPress={() => Linking.openURL(href)} {...props}>
+        <Text style={mergedStyles} onPress={() => window.open(href, '_blank')} {...props}>
             {children}
         </Text>
     );
