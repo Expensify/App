@@ -11,6 +11,23 @@ import ExpensiMark from '../ExpensiMark';
 import Notification from '../Notification';
 import * as PersonalDetails from './PersonalDetails';
 
+let currentUserEmail;
+Ion.connect({key: IONKEYS.SESSION, path: 'email', callback: val => currentUserEmail = val});
+
+let currentUserAccountID;
+Ion.connect({key: IONKEYS.SESSION, path: 'accountID', callback: val => currentUserAccountID = val});
+
+let currentURL;
+Ion.connect({key: IONKEYS.CURRENT_URL, callback: val => currentURL = val});
+
+let personalDetails;
+
+// Use a regex pattern here for an exact match so it doesn't also match "my_personal_details"
+Ion.connect({key: `^${IONKEYS.PERSONAL_DETAILS}$`, callback: val => personalDetails = val});
+
+let myPersonalDetails;
+Ion.connect({key: IONKEYS.MY_PERSONAL_DETAILS, callback: val => myPersonalDetails = val});
+
 /**
  * Checks the report to see if there are any unread history items
  *
@@ -42,11 +59,9 @@ function hasUnreadHistoryItems(accountID, report) {
  * Returns a generated report title based on the participants
  *
  * @param {array} sharedReportList
- * @param {object} personalDetails
- * @param {string} currentUserEmail
  * @return {string}
  */
-function getChatReportName(sharedReportList, personalDetails, currentUserEmail) {
+function getChatReportName(sharedReportList) {
     return _.chain(sharedReportList)
         .map(participant => participant.email)
         .filter(participant => participant !== currentUserEmail)
@@ -64,19 +79,16 @@ function getChatReportName(sharedReportList, personalDetails, currentUserEmail) 
  * @param {string} report.reportName
  * @param {object} report.reportNameValuePairs
  * @param {object} report.sharedReportList
- * @param {string} accountID
- * @param {object} [personalDetails]
- * @param {string} [currentUserEmail]
  * @returns {object}
  */
-function getSimplifiedReportObject(report, accountID, personalDetails = {}, currentUserEmail = '') {
+function getSimplifiedReportObject(report) {
     return {
         reportID: report.reportID,
         reportName: !_.isEmpty(personalDetails) && lodashGet(report, 'reportNameValuePairs.type') === 'chat'
-            ? getChatReportName(report.sharedReportList, personalDetails, currentUserEmail)
+            ? getChatReportName(report.sharedReportList)
             : report.reportName,
         reportNameValuePairs: report.reportNameValuePairs,
-        hasUnread: hasUnreadHistoryItems(accountID, report),
+        hasUnread: hasUnreadHistoryItems(currentUserAccountID, report),
     };
 }
 
@@ -88,19 +100,12 @@ function getSimplifiedReportObject(report, accountID, personalDetails = {}, curr
  * @return {Promise}
  */
 function fetchChatReportsByIDs(chatList) {
-    let currentUserEmail;
-    let currentUserAccountID;
     let fetchedReports;
-    return Ion.get(IONKEYS.SESSION)
-        .then((session) => {
-            currentUserEmail = session.email;
-            currentUserAccountID = session.accountID;
-            return queueRequest('Get', {
-                returnValueList: 'reportStuff',
-                reportIDList: chatList.join(','),
-                shouldLoadOptionalKeys: true,
-            });
-        })
+    return queueRequest('Get', {
+        returnValueList: 'reportStuff',
+        reportIDList: chatList.join(','),
+        shouldLoadOptionalKeys: true,
+    })
         .then(({reports}) => {
             fetchedReports = reports;
 
@@ -118,16 +123,11 @@ function fetchChatReportsByIDs(chatList) {
 
             return PersonalDetails.getForEmails(emails.join(','));
         })
-        .then((personalDetails) => {
+        .then(() => {
             // Process the reports and store them in Ion
             const ionPromises = _.map(fetchedReports, (report) => {
                 // Store only the absolute bare minimum of data in Ion because space is limited
-                const newReport = getSimplifiedReportObject(
-                    report,
-                    currentUserAccountID,
-                    personalDetails,
-                    currentUserEmail
-                );
+                const newReport = getSimplifiedReportObject(report);
 
                 // Merge the data into Ion. Don't use set() here or multiSet() because then that would
                 // overwrite any existing data (like if they have unread messages)
@@ -145,7 +145,6 @@ function fetchChatReportsByIDs(chatList) {
  * @param {object} reportAction
  */
 function updateReportWithNewAction(reportID, reportAction) {
-    let currentUserEmail;
     Ion.get(`${IONKEYS.REPORT}_${reportID}`, 'reportID')
         .then((ionReportID) => {
             // This is necessary for local development because there will be pusher events from other engineers with
@@ -186,19 +185,13 @@ function updateReportWithNewAction(reportID, reportAction) {
         // Put the report history back into Ion
         .then(reportHistory => Ion.set(`${IONKEYS.REPORT_HISTORY}_${reportID}`, reportHistory))
 
-        // Check to see if we need to show a notification for this report
-        .then(() => Ion.get(IONKEYS.SESSION, 'email'))
-        .then((email) => {
-            currentUserEmail = email;
-            return Ion.get(IONKEYS.CURRENT_URL);
-        })
-        .then((currentUrl) => {
+        .then(() => {
             // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
             if (reportAction.actorEmail === currentUserEmail) {
                 return;
             }
 
-            const currentReportID = Number(lodashGet(currentUrl.split('/'), [1], 0));
+            const currentReportID = Number(lodashGet(currentURL.split('/'), [1], 0));
 
             // If we are currently viewing this report do not show a notification.
             if (reportID === currentReportID) {
@@ -217,17 +210,12 @@ function updateReportWithNewAction(reportID, reportAction) {
 
 /**
  * Initialize our pusher subscriptions to listen for new report comments
- *
- * @returns {Promise}
  */
 function subscribeToReportCommentEvents() {
-    return Ion.get(IONKEYS.SESSION, 'accountID')
-        .then((accountID) => {
-            const pusherChannelName = `private-user-accountID-${accountID}`;
-            Pusher.subscribe(pusherChannelName, 'reportComment', (pushJSON) => {
-                updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
-            });
-        });
+    const pusherChannelName = `private-user-accountID-${currentUserAccountID}`;
+    Pusher.subscribe(pusherChannelName, 'reportComment', (pushJSON) => {
+        updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
+    });
 }
 
 /**
@@ -274,11 +262,10 @@ function fetchAll() {
             return _.isEmpty(report) ? null : _.values(report)[0];
         })))
         .then(() => Ion.set(IONKEYS.FIRST_REPORT_ID, _.first(_.pluck(fetchedReports, 'reportID')) || 0))
-        .then(() => Ion.get(IONKEYS.SESSION, 'accountID'))
-        .then((accountID) => {
+        .then(() => {
             const ionPromises = _.map(fetchedReports, (report) => {
                 // Store only the absolute bare minimum of data in Ion because space is limited
-                const newReport = getSimplifiedReportObject(report, accountID);
+                const newReport = getSimplifiedReportObject(report);
 
                 // Merge the data into Ion. Don't use set() here or multiSet() because then that would
                 // overwrite any existing data (like if they have unread messages)
@@ -315,24 +302,13 @@ function fetchHistory(reportID) {
  * @returns {Promise}
  */
 function fetchChatReport(participants) {
-    let currentUserEmail;
-    let currentUserAccountID;
-    let personalDetails;
     let reportID;
 
     // Get the current users accountID and set it aside in a local variable
     // which is used for checking if there are unread comments
-    return Ion.multiGet([IONKEYS.SESSION, IONKEYS.PERSONAL_DETAILS])
-        .then((data) => {
-            currentUserEmail = data.session.email;
-            currentUserAccountID = data.session.accountID;
-            personalDetails = data.personal_details;
-        })
-
-        // Make a request to get the reportID for this list of participants
-        .then(() => queueRequest('CreateChatReport', {
-            emailList: participants.join(','),
-        }))
+    return queueRequest('CreateChatReport', {
+        emailList: participants.join(','),
+    })
 
         // Set aside the reportID in a local variable so it can be accessed in the rest of the chain
         .then(data => reportID = data.reportID)
@@ -349,12 +325,7 @@ function fetchChatReport(participants) {
             const report = data.reports[reportID];
 
             // Store only the absolute bare minimum of data in Ion because space is limited
-            const newReport = getSimplifiedReportObject(
-                report,
-                currentUserAccountID,
-                personalDetails,
-                currentUserEmail
-            );
+            const newReport = getSimplifiedReportObject(report);
 
             // Merge the data into Ion. Don't use set() here or multiSet() because then that would
             // overwrite any existing data (like if they have unread messages)
@@ -371,9 +342,6 @@ function fetchChatReport(participants) {
  * @param {string} reportID
  */
 function fetchReportByIDIfNotExists(reportID) {
-    let currentUserAccountID;
-    let currentUserEmail;
-    let personalDetails;
     const reportIDKey = `${IONKEYS.REPORT}_${reportID}`;
 
     Ion.get(reportIDKey)
@@ -382,31 +350,19 @@ function fetchReportByIDIfNotExists(reportID) {
                 return;
             }
 
-            Ion.multiGet([IONKEYS.SESSION, IONKEYS.PERSONAL_DETAILS])
-                .then((data) => {
-                    currentUserEmail = data.session.email;
-                    currentUserAccountID = data.session.accountID;
-                    personalDetails = data.personal_details;
-
-                    // We don't have this report so let's fetch it
-                    return queueRequest('Get', {
-                        returnValueList: 'reportStuff',
-                        reportIDList: reportID,
-                        shouldLoadOptionalKeys: true,
-                    });
-                })
+            // We don't have this report so let's fetch it
+            queueRequest('Get', {
+                returnValueList: 'reportStuff',
+                reportIDList: reportID,
+                shouldLoadOptionalKeys: true,
+            })
                 .then(({reports}) => {
                     if (reports === undefined) {
                         return;
                     }
 
                     // Store only the absolute bare minimum of data in Ion because space is limited
-                    const newReport = getSimplifiedReportObject(
-                        reports[reportID],
-                        currentUserAccountID,
-                        personalDetails,
-                        currentUserEmail
-                    );
+                    const newReport = getSimplifiedReportObject(reports[reportID]);
                     Ion.merge(reportIDKey, newReport);
                 });
         });
@@ -426,12 +382,8 @@ function addHistoryItem(reportID, reportComment) {
     const parser = new ExpensiMark();
     const htmlComment = parser.replace(reportComment);
 
-    return Ion.multiGet([historyKey, IONKEYS.SESSION, IONKEYS.PERSONAL_DETAILS])
-        .then((values) => {
-            const reportHistory = values[historyKey];
-            const email = values[IONKEYS.SESSION].email || '';
-            const personalDetails = lodashGet(values, [IONKEYS.PERSONAL_DETAILS, email], {});
-
+    return Ion.get(historyKey)
+        .then((reportHistory) => {
             // The new sequence number will be one higher than the highest
             let highestSequenceNumber = _.chain(reportHistory)
                 .pluck('sequenceNumber')
@@ -444,17 +396,17 @@ function addHistoryItem(reportID, reportComment) {
                 ...reportHistory,
                 [newSequenceNumber]: {
                     actionName: 'ADDCOMMENT',
-                    actorEmail: email,
+                    actorEmail: currentUserEmail,
                     person: [
                         {
                             style: 'strong',
-                            text: personalDetails.displayName || email,
+                            text: myPersonalDetails.displayName || currentUserEmail,
                             type: 'TEXT'
                         }
                     ],
                     automatic: false,
                     sequenceNumber: ++highestSequenceNumber,
-                    avatar: personalDetails.avatarURL,
+                    avatar: myPersonalDetails.avatarURL,
                     timestamp: moment().unix(),
                     message: [
                         {

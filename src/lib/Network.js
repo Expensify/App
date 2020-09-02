@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import lodashGet from 'lodash.get';
 import NetInfo from '@react-native-community/netinfo';
 import Ion from './Ion';
 import CONFIG from '../CONFIG';
@@ -11,16 +10,16 @@ import Guid from './Guid';
 import redirectToSignIn from './actions/SignInRedirect';
 
 let authToken;
-Ion.connect({key: IONKEYS.SESSION, callback: s => authToken = lodashGet(s, 'authToken', '')});
+Ion.connect({key: IONKEYS.SESSION, path: 'authToken', callback: val => authToken = val});
 
 let isOffline;
-Ion.connect({key: IONKEYS.NETWORK, callback: n => isOffline = lodashGet(n, 'isOffline', false)});
+Ion.connect({key: IONKEYS.NETWORK, path: 'isOffline', callback: val => isOffline = val});
 
 let credentials;
-Ion.connect({key: IONKEYS.CREDENTIALS, callback: c => credentials = c});
+Ion.connect({key: IONKEYS.CREDENTIALS, callback: val => credentials = val});
 
 let currentUrl;
-Ion.connect({key: IONKEYS.CURRENT_URL, callback: url => currentUrl = url});
+Ion.connect({key: IONKEYS.CURRENT_URL, callback: val => currentUrl = val});
 
 /**
  * When authTokens expire they will automatically be refreshed.
