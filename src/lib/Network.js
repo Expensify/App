@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import NetInfo from '@react-native-community/netinfo';
+import * as path from 'path';
 import Ion from './Ion';
 import CONFIG from '../CONFIG';
 import * as Pusher from './Pusher/pusher';
@@ -198,6 +199,16 @@ function xhr(command, data, type = 'post') {
 }
 
 /**
+ * Just download a file from the web server.
+ *
+ * @param {String} relativePath
+ * @returns {Promise<Response>}
+ */
+function download(relativePath) {
+    return fetch(path.join('chat.expensify.com', relativePath));
+}
+
+/**
  * Create login
  * @param {string} login
  * @param {string} password
@@ -361,6 +372,19 @@ function onReconnect(cb) {
 }
 
 /**
+ * Determine if there is currently a network connection.
+ */
+
+/**
+ * Determine if there is a network connection currently.
+ *
+ * @returns {boolean}
+ */
+function isOnline() {
+    return !isOffline;
+}
+
+/**
  * Get the authToken that the network uses
  * @returns {string}
  */
@@ -369,8 +393,10 @@ function getAuthToken() {
 }
 
 export {
-    request,
-    queueRequest,
-    onReconnect,
+    download,
     getAuthToken,
+    isOnline,
+    onReconnect,
+    queueRequest,
+    request,
 };
