@@ -22,8 +22,8 @@ export default function (WrappedComponent) {
             InitRefresher();
         }
 
-        componentDidUpdate() {
-            if (this.props.appShouldRefresh) {
+        componentDidUpdate(prevProps) {
+            if (!prevProps.appShouldRefresh && this.props.appShouldRefresh) {
                 if (document.visibilityState === 'hidden') {
                     // Page is hidden, refresh immediately
                     window.location.reload(true);
@@ -32,6 +32,8 @@ export default function (WrappedComponent) {
                     // Prompt user to refresh the page
                     if (window.confirm('Refresh the page to get the latest updates!')) {
                         window.location.reload(true);
+                    } else {
+                        this.props.appShouldRefresh = false;
                     }
                 }
             }
