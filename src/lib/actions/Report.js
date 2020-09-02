@@ -11,6 +11,7 @@ import ExpensiMark from '../ExpensiMark';
 import Notification from '../Notification';
 import * as PersonalDetails from './PersonalDetails';
 
+// List of reportIDs that we define in .env
 const configReportIDs = CONFIG.REPORT_IDS.split(',').map(Number);
 
 /**

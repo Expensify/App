@@ -16,9 +16,8 @@ const propTypes = {
     // The name of the report to use as the text for this link
     reportName: PropTypes.string.isRequired,
 
-    pinnedReport: PropTypes.string.isRequired,
-
-    hasUnread: PropTypes.string.isRequired,
+    // If its a pinned report let's always display it
+    pinnedReport: PropTypes.bool.isRequired,
 
     // These are from withRouter
     // eslint-disable-next-line react/forbid-prop-types
@@ -45,7 +44,7 @@ const SidebarLink = (props) => {
     const textActiveStyle = isReportActive ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textActiveUnreadStyle = props.isUnread
         ? [textActiveStyle, styles.sidebarLinkTextUnread] : [textActiveStyle];
-    const shouldShowLink = props.pinnedReport || props.hasUnread || isReportActive;
+    const shouldShowLink = props.pinnedReport || props.isUnread || isReportActive;
 
     return (
         (shouldShowLink && (
