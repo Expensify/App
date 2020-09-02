@@ -105,22 +105,25 @@ export default {
      * @param {Function} params.onClick
      */
     pushReportCommentNotification({reportAction, onClick}) {
-        if (!ActiveClientManager.isClientTheLeader()) {
-            return;
-        }
+        ActiveClientManager.isClientTheLeader()
+            .then((isClientTheLeader) => {
+                if (!isClientTheLeader) {
+                    return;
+                }
 
-        const {person, message} = reportAction;
+                const {person, message} = reportAction;
 
-        const plainTextPerson = Str.htmlDecode(person.map(f => f.text).join());
+                const plainTextPerson = Str.htmlDecode(person.map(f => f.text).join());
 
-        // Specifically target the comment part of the message
-        const plainTextMessage = Str.htmlDecode((message.find(f => f.type === 'COMMENT') || {}).text);
+                // Specifically target the comment part of the message
+                const plainTextMessage = Str.htmlDecode((message.find(f => f.type === 'COMMENT') || {}).text);
 
-        push({
-            title: `New message from ${plainTextPerson}`,
-            body: plainTextMessage,
-            delay: 0,
-            onClick,
-        });
+                push({
+                    title: `New message from ${plainTextPerson}`,
+                    body: plainTextMessage,
+                    delay: 0,
+                    onClick,
+                });
+            });
     },
 };
