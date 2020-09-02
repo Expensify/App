@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import lodashGet from 'lodash.get';
 import NetInfo from '@react-native-community/netinfo';
 import Ion from './Ion';
 import CONFIG from '../CONFIG';
@@ -10,10 +11,10 @@ import Guid from './Guid';
 import redirectToSignIn from './actions/SignInRedirect';
 
 let authToken;
-Ion.connect({key: IONKEYS.SESSION, callback: s => authToken = s.authToken});
+Ion.connect({key: IONKEYS.SESSION, callback: s => authToken = lodashGet(s, 'authToken', '')});
 
 let isOffline;
-Ion.connect({key: IONKEYS.NETWORK, callback: n => isOffline = n.isOffline});
+Ion.connect({key: IONKEYS.NETWORK, callback: n => isOffline = lodashGet(n, 'isOffline', false)});
 
 let credentials;
 Ion.connect({key: IONKEYS.CREDENTIALS, callback: c => credentials = c});
@@ -307,6 +308,11 @@ function request(command, data, type = 'post') {
             // we just need to requeue the request
             if (reauthenticating) {
                 return queueRequest(command, data);
+            }
+
+            // Always update the authToken to be the authToken returned from any request
+            if (responseData.authToken) {
+                Ion.merge(IONKEYS.SESSION, {authToken: responseData.authToken});
             }
 
             return responseData;
