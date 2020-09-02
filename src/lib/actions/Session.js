@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import Ion from '../Ion';
 import {request} from '../Network';
 import IONKEYS from '../../IONKEYS';
@@ -64,37 +63,7 @@ function signOut() {
         .catch(err => Ion.merge(IONKEYS.SESSION, {error: err.message}));
 }
 
-/**
- * Make sure the authToken we have is OK to use
- *
- * @returns {Promise}
- */
-function verifyAuthToken() {
-    return Ion.multiGet([IONKEYS.LAST_AUTHENTICATED, IONKEYS.CREDENTIALS, IONKEYS.CURRENT_URL])
-        .then(({last_authenticated, credentials, current_url}) => {
-            const haveCredentials = !_.isNull(credentials);
-            const haveExpiredAuthToken = last_authenticated < new Date().getTime() - CONFIG.AUTH_TOKEN_EXPIRATION_TIME;
-
-            if (haveExpiredAuthToken && haveCredentials) {
-                console.debug('Invalid auth token: Token has expired.');
-                return signIn(credentials.login, credentials.password, '', current_url, false);
-            }
-
-            // We make this request to see if we have a valid authToken, and we only want to retry it if we know we
-            // have credentials to re-authenticate
-            return request('Get', {returnValueList: 'account', doNotRetry: !haveCredentials}).then((data) => {
-                if (data && data.jsonCode === 200) {
-                    return Ion.merge(IONKEYS.SESSION, data);
-                }
-
-                // If the auth token is bad and we didn't have credentials saved, we want them to go to the sign in page
-                return redirectToSignIn();
-            });
-        });
-}
-
 export {
     signIn,
     signOut,
-    verifyAuthToken,
 };
