@@ -1,5 +1,6 @@
 name: automerge
 
+# This workflow is triggered by a pull request that is labeled
 on:
     pull_request:
         types:
