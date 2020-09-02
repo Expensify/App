@@ -22,14 +22,10 @@ const propTypes = {
 
     // Array of report history items for this report
     reportHistory: PropTypes.PropTypes.objectOf(PropTypes.shape(ReportHistoryPropsTypes)),
-
-    // Current user authToken
-    authToken: PropTypes.string,
 };
 
 const defaultProps = {
     reportHistory: {},
-    authToken: '',
 };
 
 class ReportHistoryView extends React.Component {
@@ -153,7 +149,6 @@ class ReportHistoryView extends React.Component {
                     <ReportHistoryItem
                         key={item.sequenceNumber}
                         historyItem={item}
-                        authToken={this.props.authToken}
                         displayAsGroup={this.isConsecutiveHistoryItemMadeByPreviousActor(index)}
                     />
                 )).value()}
@@ -169,10 +164,6 @@ const key = `${IONKEYS.REPORT_HISTORY}_%DATAFROMPROPS%`;
 export default compose(
     withRouter,
     withIon({
-        authToken: {
-            key: IONKEYS.SESSION,
-            path: 'authToken',
-        },
         reportHistory: {
             key,
             loader: fetchHistory,
