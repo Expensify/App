@@ -28,6 +28,9 @@ Ion.connect({key: `^${IONKEYS.PERSONAL_DETAILS}$`, callback: val => personalDeta
 let myPersonalDetails;
 Ion.connect({key: IONKEYS.MY_PERSONAL_DETAILS, callback: val => myPersonalDetails = val});
 
+const currentReports = {};
+Ion.connect({key: `${IONKEYS.REPORT}_[0-9]+$`, callback: (val, key) => currentReports[key] = val});
+
 /**
  * Checks the report to see if there are any unread history items
  *
@@ -145,26 +148,28 @@ function fetchChatReportsByIDs(chatList) {
  * @param {object} reportAction
  */
 function updateReportWithNewAction(reportID, reportAction) {
-    Ion.get(`${IONKEYS.REPORT}_${reportID}`, 'reportID')
-        .then((ionReportID) => {
-            // This is necessary for local development because there will be pusher events from other engineers with
-            // different reportIDs. This means that while in development it's not possible to make new chats appear
-            // by creating chats then leaving comments in other windows.
-            if (!CONFIG.IS_IN_PRODUCTION && !ionReportID) {
-                throw new Error('report does not exist in the store, so ignoring new comments');
-            }
+    let promise;
 
-            // When handling a realtime update for a chat that does not yet exist in our store we
-            // need to fetch it so that we can properly navigate to it. This enables us populate
-            // newly created  chats in the LHN without requiring a full refresh of the app.
-            if (!ionReportID) {
-                return fetchChatReportsByIDs([reportID])
-                    .then(() => Ion.get(`${IONKEYS.REPORT_HISTORY}_${reportID}`));
-            }
+    // This is necessary for local development because there will be pusher events from other engineers with
+    // different reportIDs. This means that while in development it's not possible to make new chats appear
+    // by creating chats then leaving comments in other windows.
+    if (!CONFIG.IS_IN_PRODUCTION && !currentReports[`${IONKEYS.REPORT}_${reportID}`]) {
+        throw new Error('report does not exist in the store, so ignoring new comments');
+    }
 
-            // Get the report history and return that to the next chain
-            return Ion.get(`${IONKEYS.REPORT_HISTORY}_${reportID}`);
-        })
+    // When handling a realtime update for a chat that does not yet exist in our store we
+    // need to fetch it so that we can properly navigate to it. This enables us populate
+    // newly created  chats in the LHN without requiring a full refresh of the app.
+    if (!currentReports[`${IONKEYS.REPORT}_${reportID}`]) {
+        promise = fetchChatReportsByIDs([reportID])
+            .then(() => Ion.get(`${IONKEYS.REPORT_HISTORY}_${reportID}`));
+    } else {
+        // Get the report history and return that to the next chain
+        promise = Ion.get(`${IONKEYS.REPORT_HISTORY}_${reportID}`);
+    }
+
+    // Get the report history and return that to the next chain
+    promise
 
         // Look to see if the report action from pusher already exists or not (it would exist if it's a comment just
         // written by the user). If the action doesn't exist, then update the unread flag on the report so the user
@@ -342,29 +347,25 @@ function fetchChatReport(participants) {
  * @param {string} reportID
  */
 function fetchReportByIDIfNotExists(reportID) {
-    const reportIDKey = `${IONKEYS.REPORT}_${reportID}`;
+    const report = currentReports[`${IONKEYS.REPORT}_${reportID}`];
+    if (lodashGet(report, 'reportName', false)) {
+        return;
+    }
 
-    Ion.get(reportIDKey)
-        .then((report) => {
-            if (lodashGet(report, 'reportName', false)) {
+    // We don't have this report so let's fetch it
+    queueRequest('Get', {
+        returnValueList: 'reportStuff',
+        reportIDList: reportID,
+        shouldLoadOptionalKeys: true,
+    })
+        .then(({reports}) => {
+            if (reports === undefined) {
                 return;
             }
 
-            // We don't have this report so let's fetch it
-            queueRequest('Get', {
-                returnValueList: 'reportStuff',
-                reportIDList: reportID,
-                shouldLoadOptionalKeys: true,
-            })
-                .then(({reports}) => {
-                    if (reports === undefined) {
-                        return;
-                    }
-
-                    // Store only the absolute bare minimum of data in Ion because space is limited
-                    const newReport = getSimplifiedReportObject(reports[reportID]);
-                    Ion.merge(reportIDKey, newReport);
-                });
+            // Store only the absolute bare minimum of data in Ion because space is limited
+            const newReport = getSimplifiedReportObject(reports[reportID]);
+            Ion.merge(`${IONKEYS.REPORT}_${reportID}`, newReport);
         });
 }
 
