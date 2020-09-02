@@ -2,6 +2,15 @@ import React from 'react';
 import {TextInput} from 'react-native';
 import PropTypes from 'prop-types';
 
+const propTypes = {
+    // Maximum number of lines in the text input
+    maxLines: PropTypes.number,
+};
+
+const defaultProps = {
+    maxLines: -1,
+};
+
 /**
  * On web we like to have the Text Input field always focused so the user can easily type a new chat
  */
@@ -79,15 +88,6 @@ class TextInputFocusable extends React.Component {
         );
     }
 }
-
-const propTypes = {
-    // Maximum number of lines in the text input
-    maxLines: PropTypes.number,
-};
-
-const defaultProps = {
-    maxLines: -1,
-};
 
 TextInputFocusable.propTypes = propTypes;
 TextInputFocusable.defaultProps = defaultProps;
