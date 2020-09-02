@@ -7,11 +7,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+import getDisplayName from '../../lib/getDisplayName';
 import InitRefresher from '../../lib/actions/WebRefresh';
 import IONKEYS from '../../IONKEYS';
 import withIon from '../withIon';
-
-const getDisplayName = component => component.displayName || component.name || 'Component';
 
 export default function (WrappedComponent) {
     const propTypes = {
@@ -45,7 +44,7 @@ export default function (WrappedComponent) {
     }
 
     withRefresher.propTypes = propTypes;
-    withRefresher.displayName = getDisplayName(WrappedComponent);
+    withRefresher.displayName = `withRefresher(${getDisplayName(WrappedComponent)})`;
 
     return withIon({
         appShouldRefresh: {

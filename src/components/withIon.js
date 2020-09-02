@@ -7,17 +7,9 @@ import React from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import lodashHas from 'lodash.has';
-import Ion from '../lib/Ion';
 
-/**
- * Returns the display name of a component
- *
- * @param {object} component
- * @returns {string}
- */
-function getDisplayName(component) {
-    return component.displayName || component.name || 'Component';
-}
+import getDisplayName from '../lib/getDisplayName';
+import Ion from '../lib/Ion';
 
 export default function (mapIonToProps) {
     return (WrappedComponent) => {
