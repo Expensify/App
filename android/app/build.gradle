@@ -138,8 +138,8 @@ android {
         applicationId "com.expensifyreactnative.chat"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 25
-        versionName "1.0.1-24"
+        versionCode 26
+        versionName "1.0.1-25"
     }
     splits {
         abi {
