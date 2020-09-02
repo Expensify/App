@@ -72,7 +72,7 @@ const reconnectionCallbacks = [];
  */
 function setNewOfflineStatus(isCurrentlyOffline) {
     if (isOffline && !isCurrentlyOffline) {
-        _.each(reconnectionCallbacks, cb => cb());
+        _.each(reconnectionCallbacks, callback => callback());
     }
     Ion.merge(IONKEYS.NETWORK, {isOffline: isCurrentlyOffline});
 }
