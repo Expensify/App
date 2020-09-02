@@ -17,6 +17,7 @@ import {
     Redirect,
     Switch
 } from './lib/Router';
+import ROUTES from './ROUTES';
 
 // Initialize the store when the app loads for the first time
 Ion.init();
@@ -33,7 +34,7 @@ const propTypes = {
 
 const defaultProps = {
     redirectTo: '',
-    authToken: null,
+    authToken: '__NOTINITIALIZED__',
 };
 
 class Expensify extends Component {
@@ -41,14 +42,6 @@ class Expensify extends Component {
         super(props);
 
         this.recordCurrentRoute = this.recordCurrentRoute.bind(this);
-
-        this.state = {
-            loading: true,
-        };
-    }
-
-    componentDidMount() {
-        this.setState({loading: false});
     }
 
     /**
@@ -61,17 +54,18 @@ class Expensify extends Component {
     }
 
     render() {
-        // For the first render, don't render anything because there needs to be an authToken loaded
-        // into the props before continuing
-        if (this.state.loading) {
+        // Until the authToken has been initialized from Ion, display a blank page
+        if (this.props.authToken === '__NOTINITIALIZED__') {
             return (
                 <View style={styles.genericView} />
             );
         }
 
-        // We can only have a redirectTo if this is not the initial render so if we have one we'll
-        // always navigate to it. If we are not authenticated by this point then we'll force navigate to sign in.
-        const redirectTo = this.props.redirectTo || (this.props.authToken === '' && '/signin');
+        // If there is no authToken, then redirect to the sign in page, otherwise redirect to wherever
+        // the redirectTo props is
+        const redirectTo = !this.props.authToken
+            ? ROUTES.SIGNIN
+            : this.props.redirectTo;
 
         return (
 
