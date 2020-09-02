@@ -1,5 +1,6 @@
 name: Build and Deploy Desktop
 
+# This workflow is run when any tag is published
 on:
     push:
         tags:
