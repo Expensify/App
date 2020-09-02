@@ -116,7 +116,7 @@ export default function (mapIonToState) {
                 // Pre-fill the state with any data already in the store
                 if (mapping.initWithStoredValues !== false) {
                     Ion.getInitialStateFromConnectionID(connectionID)
-                        .then(data => this.setState({[statePropertyName]: data || null}));
+                        .then(data => this.setState({[statePropertyName]: data}));
                 }
 
                 // Load the data from an API request if necessary
