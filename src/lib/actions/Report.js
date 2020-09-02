@@ -12,10 +12,11 @@ import Notification from '../Notification';
 import * as PersonalDetails from './PersonalDetails';
 
 let currentUserEmail;
-Ion.connect({key: IONKEYS.SESSION, path: 'email', callback: val => currentUserEmail = val});
-
 let currentUserAccountID;
-Ion.connect({key: IONKEYS.SESSION, path: 'accountID', callback: val => currentUserAccountID = val});
+Ion.connect({key: IONKEYS.SESSION, callback: (val) => {
+    currentUserEmail = val.email;
+    currentUserAccountID = val.accountID;
+}});
 
 let currentURL;
 Ion.connect({key: IONKEYS.CURRENT_URL, callback: val => currentURL = val});
