@@ -1,9 +1,11 @@
 name: automerge
+
 on:
     pull_request:
         types:
             - labeled
     status: {}
+
 jobs:
     automerge:
         runs-on: ubuntu-latest
