@@ -1,5 +1,6 @@
 name: Build and Deploy Web
 
+# This workflow is run when any tag is published
 on:
     push:
         tags:
