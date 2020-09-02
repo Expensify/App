@@ -5,7 +5,7 @@ on:
     push:
         branches-ignore:
             - 'master'
-            - 'bump-version-*'
+            - 'version-bump-*'
         tags-ignore:
             - '*'
 
