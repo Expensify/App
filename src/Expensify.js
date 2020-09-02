@@ -27,21 +27,42 @@ const propTypes = {
 
     // A route set by Ion that we will redirect to if present. Always empty on app init.
     redirectTo: PropTypes.string,
-
-    // The authToken for the current session
-    authToken: PropTypes.string,
 };
 
 const defaultProps = {
     redirectTo: '',
-    authToken: '__NOTINITIALIZED__',
 };
 
 class Expensify extends Component {
     constructor(props) {
         super(props);
 
+        // Initialize this client as being an active client
+        ActiveClientManager.init();
+
         this.recordCurrentRoute = this.recordCurrentRoute.bind(this);
+        this.removeLoadingState = this.removeLoadingState.bind(this);
+
+        this.state = {
+            showLoadingState: true,
+            authToken: null,
+        };
+    }
+
+    componentDidMount() {
+        Ion.connect({key: IONKEYS.SESSION, path: 'authToken', callback: this.removeLoadingState});
+    }
+
+    /**
+     * When the authToken is updated, the app should remove the loading state and handle the authToken
+     *
+     * @param {string} authToken
+     */
+    removeLoadingState(authToken) {
+        this.setState({
+            authToken,
+            showLoadingState: false,
+        });
     }
 
     /**
@@ -55,7 +76,7 @@ class Expensify extends Component {
 
     render() {
         // Until the authToken has been initialized from Ion, display a blank page
-        if (this.props.authToken === '__NOTINITIALIZED__') {
+        if (this.state.showLoadingState) {
             return (
                 <View style={styles.genericView} />
             );
@@ -63,9 +84,10 @@ class Expensify extends Component {
 
         // If there is no authToken, then redirect to the sign in page, otherwise redirect to wherever
         // the redirectTo props is
-        const redirectTo = !this.props.authToken
+        const redirectTo = !this.state.authToken
             ? ROUTES.SIGNIN
             : this.props.redirectTo;
+
         return (
 
             // TODO: Mobile does not support Beforeunload
@@ -90,16 +112,8 @@ Expensify.propTypes = propTypes;
 Expensify.defaultProps = defaultProps;
 
 export default withIon({
-    authToken: {
-        key: IONKEYS.SESSION,
-        path: 'authToken',
-    },
     redirectTo: {
         key: IONKEYS.APP_REDIRECT_TO,
-        loader: () => {
-            // Initialize this client as being an active client
-            ActiveClientManager.init();
-        },
 
         // Prevent the prefilling of Ion data or else the app will always redirect to what the last value was set to.
         // This ends up in a situation where you go to a report, refresh the page, and then rather than seeing the
