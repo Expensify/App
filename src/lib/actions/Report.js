@@ -31,6 +31,9 @@ Ion.connect({key: IONKEYS.MY_PERSONAL_DETAILS, callback: val => myPersonalDetail
 const currentReports = {};
 Ion.connect({key: `${IONKEYS.REPORT}_[0-9]+$`, callback: (val, key) => currentReports[key] = val});
 
+const currentReportHistories = {};
+Ion.connect({key: `${IONKEYS.REPORT_HISTORY}_[0-9]+$`, callback: (val, key) => currentReportHistories[key] = val});
+
 /**
  * Checks the report to see if there are any unread history items
  *
@@ -162,10 +165,12 @@ function updateReportWithNewAction(reportID, reportAction) {
     // newly created  chats in the LHN without requiring a full refresh of the app.
     if (!currentReports[`${IONKEYS.REPORT}_${reportID}`]) {
         promise = fetchChatReportsByIDs([reportID])
-            .then(() => Ion.get(`${IONKEYS.REPORT_HISTORY}_${reportID}`));
+            .then(() => currentReportHistories[`${IONKEYS.REPORT_HISTORY}_${reportID}`]);
     } else {
         // Get the report history and return that to the next chain
-        promise = Ion.get(`${IONKEYS.REPORT_HISTORY}_${reportID}`);
+        promise = new Promise((resolve) => {
+            resolve(currentReportHistories[`${IONKEYS.REPORT_HISTORY}_${reportID}`]);
+        });
     }
 
     // Get the report history and return that to the next chain
@@ -382,47 +387,45 @@ function addHistoryItem(reportID, reportComment) {
     // Convert the comment from MD into HTML because that's how it is stored in the database
     const parser = new ExpensiMark();
     const htmlComment = parser.replace(reportComment);
+    const reportHistory = currentReportHistories[historyKey];
 
-    return Ion.get(historyKey)
-        .then((reportHistory) => {
-            // The new sequence number will be one higher than the highest
-            let highestSequenceNumber = _.chain(reportHistory)
-                .pluck('sequenceNumber')
-                .max()
-                .value() || 0;
-            const newSequenceNumber = highestSequenceNumber + 1;
+    // The new sequence number will be one higher than the highest
+    let highestSequenceNumber = _.chain(reportHistory)
+        .pluck('sequenceNumber')
+        .max()
+        .value() || 0;
+    const newSequenceNumber = highestSequenceNumber + 1;
 
-            // Optimistically add the new comment to the store before waiting to save it to the server
-            return Ion.set(historyKey, {
-                ...reportHistory,
-                [newSequenceNumber]: {
-                    actionName: 'ADDCOMMENT',
-                    actorEmail: currentUserEmail,
-                    person: [
-                        {
-                            style: 'strong',
-                            text: myPersonalDetails.displayName || currentUserEmail,
-                            type: 'TEXT'
-                        }
-                    ],
-                    automatic: false,
-                    sequenceNumber: ++highestSequenceNumber,
-                    avatar: myPersonalDetails.avatarURL,
-                    timestamp: moment().unix(),
-                    message: [
-                        {
-                            type: 'COMMENT',
-                            html: htmlComment,
-
-                            // Remove HTML from text when applying optimistic offline comment
-                            text: htmlComment.replace(/<[^>]*>?/gm, ''),
-                        }
-                    ],
-                    isFirstItem: false,
-                    isAttachmentPlaceHolder: false,
+    // Optimistically add the new comment to the store before waiting to save it to the server
+    return Ion.set(historyKey, {
+        ...reportHistory,
+        [newSequenceNumber]: {
+            actionName: 'ADDCOMMENT',
+            actorEmail: currentUserEmail,
+            person: [
+                {
+                    style: 'strong',
+                    text: myPersonalDetails.displayName || currentUserEmail,
+                    type: 'TEXT'
                 }
-            });
-        })
+            ],
+            automatic: false,
+            sequenceNumber: ++highestSequenceNumber,
+            avatar: myPersonalDetails.avatarURL,
+            timestamp: moment().unix(),
+            message: [
+                {
+                    type: 'COMMENT',
+                    html: htmlComment,
+
+                    // Remove HTML from text when applying optimistic offline comment
+                    text: htmlComment.replace(/<[^>]*>?/gm, ''),
+                }
+            ],
+            isFirstItem: false,
+            isAttachmentPlaceHolder: false,
+        }
+    })
         .then(() => queueRequest('Report_AddComment', {
             reportID,
             reportComment: htmlComment,
