@@ -1,6 +1,13 @@
 name: eslint
 
-on: push
+# Only lint on branches that aren't related to master and the deploy process
+on:
+    push:
+        branches-ignore:
+            - 'master'
+            - 'bump-version-*'
+        tags-ignore:
+            - '*'
 
 jobs:
     build:
