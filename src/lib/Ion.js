@@ -111,6 +111,8 @@ function connect(mapping) {
     // If the mapping has a callback, trigger it with the existing data
     // in Ion so it initializes properly
     // @TODO remove the if statement when this is supported by react components
+    // @TODO need to support full regex key connections for callbacks.
+    //      This would look something like getInitialStateFromConnectionID
     if (mapping.callback) {
         get(mapping.key)
             .then(val => keyChanged(mapping.key, val));
