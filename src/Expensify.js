@@ -94,7 +94,8 @@ class Expensify extends Component {
             // <Beforeunload onBeforeunload={ActiveClientManager.removeClient}>
             <Router>
                 {/* If there is ever a property for redirecting, we do the redirect here */}
-                {redirectTo && <Redirect to={redirectTo} />}
+                {/* Leave this as a ternary or else iOS throws an error about text not being wrapped in <Text> */}
+                {redirectTo ? <Redirect to={redirectTo} /> : null}
                 <Route path="*" render={this.recordCurrentRoute} />
 
                 <Switch>
