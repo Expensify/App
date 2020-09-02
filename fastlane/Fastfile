@@ -31,15 +31,10 @@ platform :ios do
   lane :beta do
     ENV["ENVFILE"]=".env.production"
 
-    update_code_signing_settings(
-        use_automatic_signing: true,
-        path: "./ios/ReactNativeChat.xcodeproj"
-    )
-
     build_app(
         workspace:'./ios/ReactNativeChat.xcworkspace',
         scheme: "ReactNativeChat",
-        export_xcargs: "-allowProvisioningUpdates"
+        xcargs: "-allowProvisioningUpdates"
     )
 
     upload_to_testflight(
