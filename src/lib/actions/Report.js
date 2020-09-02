@@ -27,18 +27,15 @@ function hasUnreadHistoryItems(accountID, report) {
         return false;
     }
 
-    // Find the most recent sequence number from the report history
-    const lastReportAction = _.chain(report.reportActionList)
-        .pluck('sequenceNumber')
-        .max()
-        .value();
-
-    if (!lastReportAction) {
+    if (!report.reportActionList) {
         return false;
     }
 
-    // There are unread items if the last one the user has read is less than the highest sequence number we have
-    return usersLastReadActionID < lastReportAction.sequenceNumber;
+    // There are unread items if the last one the user has read is less than the number of items in reportActionList.
+    // Note: Do not use sequenceNumbers to check unread because when multiple chat reports are present a `Get` request
+    // with all the reports in reportIDList will have sequence number that does not match their values from
+    // `Report_GetHistory`. Reason - https://github.com/Expensify/Server-Expensify/blob/bb8c41ed6c582cdc68672a6521b63460d085af08/auth/command/Get.cpp#L262
+    return usersLastReadActionID < report.reportActionList.length;
 }
 
 /**
