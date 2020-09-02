@@ -11,6 +11,8 @@ import ExpensiMark from '../ExpensiMark';
 import Notification from '../Notification';
 import * as PersonalDetails from './PersonalDetails';
 
+const configReportIDs = CONFIG.REPORT_IDS.split(',').map(Number);
+
 /**
  * Checks the report to see if there are any unread history items
  *
@@ -77,6 +79,7 @@ function getSimplifiedReportObject(report, accountID, personalDetails = {}, curr
             : report.reportName,
         reportNameValuePairs: report.reportNameValuePairs,
         hasUnread: hasUnreadHistoryItems(accountID, report),
+        pinnedReport: configReportIDs.includes(report.reportID),
     };
 }
 
@@ -121,11 +124,6 @@ function fetchChatReportsByIDs(chatList) {
         .then((personalDetails) => {
             // Process the reports and store them in Ion
             const ionPromises = _.map(fetchedReports, (report) => {
-                debugger;
-                if (!hasUnreadHistoryItems(currentUserAccountID, report)) {
-                    return;
-                }
-
                 // Store only the absolute bare minimum of data in Ion because space is limited
                 const newReport = getSimplifiedReportObject(
                     report,
@@ -144,6 +142,23 @@ function fetchChatReportsByIDs(chatList) {
 }
 
 /**
+ * Get the history of a report
+ *
+ * @param {string} reportID
+ * @returns {Promise}
+ */
+function fetchHistory(reportID) {
+    return queueRequest('Report_GetHistory', {
+        reportID,
+        offset: 0,
+    })
+        .then((data) => {
+            const indexedData = _.indexBy(data.history, 'sequenceNumber');
+            Ion.set(`${IONKEYS.REPORT_HISTORY}_${reportID}`, indexedData);
+        });
+}
+
+/**
  * Updates a report in the store with a new report action
  *
  * @param {string} reportID
@@ -151,6 +166,8 @@ function fetchChatReportsByIDs(chatList) {
  */
 function updateReportWithNewAction(reportID, reportAction) {
     let currentUserEmail;
+    let ionReportFound = true;
+
     Ion.get(`${IONKEYS.REPORT}_${reportID}`, 'reportID')
         .then((ionReportID) => {
             // This is necessary for local development because there will be pusher events from other engineers with
@@ -164,7 +181,9 @@ function updateReportWithNewAction(reportID, reportAction) {
             // need to fetch it so that we can properly navigate to it. This enables us populate
             // newly created  chats in the LHN without requiring a full refresh of the app.
             if (!ionReportID) {
+                ionReportFound = false;
                 return fetchChatReportsByIDs([reportID])
+                    .then(() => fetchHistory(reportID))
                     .then(() => Ion.get(`${IONKEYS.REPORT_HISTORY}_${reportID}`));
             }
 
@@ -176,7 +195,9 @@ function updateReportWithNewAction(reportID, reportAction) {
         // written by the user). If the action doesn't exist, then update the unread flag on the report so the user
         // knows there is a new comment
         .then((reportHistory) => {
-            if (reportHistory && !reportHistory[reportAction.sequenceNumber]) {
+            // If there was no ionReport found then we cannot check sequence number because the fetchHistory in the
+            // previous block will give us the most up to date information.
+            if (!ionReportFound || (reportHistory && !reportHistory[reportAction.sequenceNumber])) {
                 Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {hasUnread: true});
             }
             return reportHistory || {};
@@ -255,10 +276,8 @@ function fetchChatReports() {
  */
 function fetchAll() {
     let fetchedReports;
-    const configReportIDs = CONFIG.REPORT_IDS.split(',').map(Number);
 
     // Request each report one at a time to allow individual reports to fail if access to it is prevented by Auth
-    debugger;
     const reportFetchPromises = _.map(configReportIDs, reportID => queueRequest('Get', {
         returnValueList: 'reportStuff',
         reportIDList: reportID,
@@ -284,12 +303,6 @@ function fetchAll() {
         .then(() => Ion.get(IONKEYS.SESSION, 'accountID'))
         .then((accountID) => {
             const ionPromises = _.map(fetchedReports, (report) => {
-                debugger;
-                const pinnedChat = configReportIDs.includes(report.reportID);
-                if (!pinnedChat && !hasUnreadHistoryItems(accountID, report)) {
-                    return;
-                }
-
                 // Store only the absolute bare minimum of data in Ion because space is limited
                 const newReport = getSimplifiedReportObject(report, accountID);
 
@@ -301,23 +314,6 @@ function fetchAll() {
             return promiseAllSettled(ionPromises);
         })
         .then(() => fetchedReports);
-}
-
-/**
- * Get the history of a report
- *
- * @param {string} reportID
- * @returns {Promise}
- */
-function fetchHistory(reportID) {
-    return queueRequest('Report_GetHistory', {
-        reportID,
-        offset: 0,
-    })
-        .then((data) => {
-            const indexedData = _.indexBy(data.history, 'sequenceNumber');
-            Ion.set(`${IONKEYS.REPORT_HISTORY}_${reportID}`, indexedData);
-        });
 }
 
 /**

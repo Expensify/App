@@ -81,6 +81,8 @@ class SidebarLinks extends React.Component {
                                 key={report.reportID}
                                 reportID={report.reportID}
                                 reportName={report.reportName}
+                                pinnedReport={report.pinnedReport}
+                                hasUnread={report.hasUnread}
                                 onLinkClick={onLinkClick}
                             />
                         ))}
