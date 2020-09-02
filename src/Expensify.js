@@ -26,10 +26,14 @@ const propTypes = {
 
     // A route set by Ion that we will redirect to if present. Always empty on app init.
     redirectTo: PropTypes.string,
+
+    // The authToken for the current session
+    authToken: PropTypes.string,
 };
 
 const defaultProps = {
     redirectTo: '',
+    authToken: null,
 };
 
 class Expensify extends Component {
@@ -40,19 +44,11 @@ class Expensify extends Component {
 
         this.state = {
             loading: true,
-            authToken: '',
         };
     }
 
     componentDidMount() {
-        // We need to delay initializing the main app so we can check for an authToken and
-        // redirect to the signin page if we do not have one. Otherwise when the app inits
-        // we will fall through to the homepage and the user will see a brief flash of the main
-        // app experience.
-        Ion.get(IONKEYS.SESSION, 'authToken', '')
-            .then((authToken) => {
-                this.setState({loading: false, authToken});
-            });
+        this.setState({loading: false});
     }
 
     /**
@@ -65,6 +61,7 @@ class Expensify extends Component {
     }
 
     render() {
+        // If there is no authToken in the props yet, render nothing
         if (this.state.loading) {
             return (
                 <View style={styles.genericView} />
@@ -73,7 +70,7 @@ class Expensify extends Component {
 
         // We can only have a redirectTo if this is not the initial render so if we have one we'll
         // always navigate to it. If we are not authenticated by this point then we'll force navigate to sign in.
-        const redirectTo = this.props.redirectTo || (!this.state.authToken && '/signin');
+        const redirectTo = this.props.redirectTo || (this.props.authToken === '' && '/signin');
 
         return (
 
@@ -99,6 +96,10 @@ Expensify.propTypes = propTypes;
 Expensify.defaultProps = defaultProps;
 
 export default withIon({
+    authToken: {
+        key: IONKEYS.SESSION,
+        path: 'authToken',
+    },
     redirectTo: {
         key: IONKEYS.APP_REDIRECT_TO,
         loader: () => {
