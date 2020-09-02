@@ -2,8 +2,6 @@ import Ion from '../Ion';
 import IONKEYS from '../../IONKEYS';
 import {request} from '../Network';
 
-const EVENT_VISIBILITY_CHANGE = 'visibilitychange';
-
 // See if we should refresh the page every 30 minutes
 const REFRESH_TIMEOUT = 1800000;
 
@@ -28,25 +26,6 @@ const appShouldRefresh = (localVersion) => {
 };
 
 /**
- * Resets the timer to periodically check if the app should refresh,
- * and checks the remote hash for changes.
- *
- * @param {String} currentVersion
- * @param {Number} timer
- * @returns {Number} newTimer
- */
-const checkShouldUpdateAndResetTimer = (currentVersion, timer) => {
-    // Reset timeout
-    clearInterval(timer);
-    const newTimer = setInterval(appShouldRefresh, REFRESH_TIMEOUT);
-
-    // Compare hashes and update Ion app_shouldRefresh
-    appShouldRefresh(currentVersion);
-
-    return newTimer;
-};
-
-/**
  * 1) Initialize shouldRefresh to false
  * 2) Get the current version hash and save it.
  * 3) If the app's visibility changes or 30 minutes passes without it changing,  check if the app should refresh.
@@ -57,11 +36,16 @@ const init = () => {
     // When the page first loads, get the current version hash
     request(COMMAND_GET_VERSION).then((currentVersion) => {
         // Check periodically if we should refresh the app
-        let timer = setInterval(appShouldRefresh, REFRESH_TIMEOUT);
+        let timer = setInterval(() => appShouldRefresh(currentVersion), REFRESH_TIMEOUT);
 
         // Also check if the app's visibility changes
-        window.addEventListener(EVENT_VISIBILITY_CHANGE, () => {
-            timer = checkShouldUpdateAndResetTimer(currentVersion, timer);
+        window.addEventListener('visibilitychange', () => {
+            // Reset timeout
+            clearInterval(timer);
+            timer = setInterval(() => appShouldRefresh(currentVersion), REFRESH_TIMEOUT);
+
+            // Compare hashes and update Ion app_shouldRefresh
+            appShouldRefresh(currentVersion);
         });
     });
 };

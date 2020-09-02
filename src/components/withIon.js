@@ -19,7 +19,7 @@ function getDisplayName(component) {
     return component.displayName || component.name || 'Component';
 }
 
-export default function (mapIonToState) {
+export default function (mapIonToProps) {
     return (WrappedComponent) => {
         class withIon extends React.Component {
             constructor(props) {
@@ -37,7 +37,7 @@ export default function (mapIonToState) {
 
             componentDidMount() {
                 // Subscribe each of the state properties to the proper Ion key
-                _.each(mapIonToState, (mapping, propertyName) => {
+                _.each(mapIonToProps, (mapping, propertyName) => {
                     this.connectMappingToIon(mapping, propertyName, this.wrappedComponent);
                 });
             }
@@ -45,7 +45,7 @@ export default function (mapIonToState) {
             componentDidUpdate(prevProps) {
                 // If any of the mappings use data from the props, then when the props change, all the
                 // connections need to be reconnected with the new props
-                _.each(mapIonToState, (mapping, propertyName) => {
+                _.each(mapIonToProps, (mapping, propertyName) => {
                     if (lodashHas(mapping, 'pathForProps')) {
                         const prevPropsData = lodashGet(prevProps, mapping.pathForProps);
                         const currentPropsData = lodashGet(this.props, mapping.pathForProps);
