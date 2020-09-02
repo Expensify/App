@@ -312,7 +312,7 @@ function request(command, data, type = 'post') {
 
             // Always update the authToken to be the authToken returned from any request
             if (responseData.authToken) {
-                Ion.merge(IONKEYS.SESSION, {authToken: responseData.authToken});
+                authToken = responseData.authToken;
             }
 
             return responseData;

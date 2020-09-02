@@ -66,7 +66,6 @@ class Expensify extends Component {
         const redirectTo = !this.props.authToken
             ? ROUTES.SIGNIN
             : this.props.redirectTo;
-
         return (
 
             // TODO: Mobile does not support Beforeunload
