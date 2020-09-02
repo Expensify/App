@@ -35,7 +35,28 @@ platform :ios do
         use_automatic_signing: true,
         path: "./ios/ReactNativeChat.xcodeproj"
     )
-    build_app(workspace:'./ios/ReactNativeChat.xcworkspace',scheme: "ReactNativeChat", export_xcargs: "-allowProvisioningUpdates")
-    upload_to_testflight
+
+    build_app(
+        workspace:'./ios/ReactNativeChat.xcworkspace',
+        scheme: "ReactNativeChat",
+        export_xcargs: "-allowProvisioningUpdates"
+    )
+
+    upload_to_testflight(
+        distribute_external: true,
+        reject_build_waiting_for_review: true,
+        changelog: "Thank you for beta testing the Expensify Chat, this version includes bug fixes and improvements.",
+        groups: ["Beta"],
+        demo_account_required: true,
+        beta_app_review_info: {
+            contact_email: "mobile@expensify.com",
+            contact_first_name: "Andrew",
+            contact_last_name: "Gable",
+            contact_phone: "+1 916 698 2582",
+            demo_account_name: "andrew+empty@expensifail.com",
+            demo_account_password: "asdfASDF00",
+            notes: "Use the account provided above. Thank you for the review."
+        }
+    )
   end
 end
