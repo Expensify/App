@@ -61,7 +61,8 @@ class Expensify extends Component {
     }
 
     render() {
-        // If there is no authToken in the props yet, render nothing
+        // For the first render, don't render anything because there needs to be an authToken loaded
+        // into the props before continuing
         if (this.state.loading) {
             return (
                 <View style={styles.genericView} />
