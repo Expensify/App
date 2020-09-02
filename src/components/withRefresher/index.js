@@ -23,7 +23,7 @@ export default function (WrappedComponent) {
             InitRefresher();
         }
 
-        render() {
+        refreshIfNeeded() {
             if (this.props.appShouldRefresh) {
                 if (document.visibilityState === 'hidden') {
                     // Page is hidden, refresh immediately
@@ -36,6 +36,10 @@ export default function (WrappedComponent) {
                     }
                 }
             }
+        }
+
+        render() {
+            this.refreshIfNeeded();
             return <WrappedComponent />;
         }
     }
