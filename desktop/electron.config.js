@@ -10,6 +10,16 @@ module.exports = {
         entitlementsInherit: 'desktop/entitlements.mac.plist',
         type: 'distribution'
     },
+    dmg: {
+        title: 'Chat',
+        artifactName: 'Chat.dmg',
+        internetEnabled: true
+    },
+    publish: [{
+        provider: 's3',
+        bucket: 'chat-test-expensify-com',
+        channel: 'latest'
+    }],
     files: [
         './dist/**/*',
         './main.js'
