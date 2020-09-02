@@ -44,7 +44,7 @@ class Expensify extends Component {
         this.removeLoadingState = this.removeLoadingState.bind(this);
 
         this.state = {
-            showLoadingState: true,
+            isLoading: true,
             authToken: null,
         };
     }
@@ -61,7 +61,7 @@ class Expensify extends Component {
     removeLoadingState(authToken) {
         this.setState({
             authToken,
-            showLoadingState: false,
+            isLoading: false,
         });
     }
 
@@ -76,14 +76,12 @@ class Expensify extends Component {
 
     render() {
         // Until the authToken has been initialized from Ion, display a blank page
-        if (this.state.showLoadingState) {
+        if (this.state.isLoading) {
             return (
                 <View style={styles.genericView} />
             );
         }
 
-        // If there is no authToken, then redirect to the sign in page, otherwise redirect to wherever
-        // the redirectTo props is
         const redirectTo = !this.state.authToken
             ? ROUTES.SIGNIN
             : this.props.redirectTo;
