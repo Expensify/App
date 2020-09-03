@@ -28,8 +28,7 @@ class ReportView extends React.PureComponent {
 
                 {shouldShowComposeForm && (
                     <ReportHistoryCompose
-                        reportID={this.props.reportID}
-                        onSubmit={addHistoryItem}
+                        onSubmit={(text) => addHistoryItem(this.props.reportID, text)}
                     />
                 )}
 
