@@ -31,12 +31,9 @@ Ion.connect({key: `^${IONKEYS.PERSONAL_DETAILS}$`, callback: val => personalDeta
 
 let myPersonalDetails;
 Ion.connect({key: IONKEYS.MY_PERSONAL_DETAILS, callback: val => myPersonalDetails = val});
-
-const currentReportActions = {};
-Ion.connect({key: `${IONKEYS.REPORT_ACTIONS}_[0-9]+$`, callback: (val, key) => {
-    currentReportActions[key] = val;
-}});
 /* eslint-enable object-curly-newline,object-property-newline */
+
+const reportMaxSequenceNumbers = {};
 
 /**
  * Checks the report to see if there are any unread action items
@@ -158,48 +155,46 @@ function updateReportWithNewAction(reportID, reportAction) {
     // Always merge the reportID into Ion
     // If the report doesn't exist in Ion yet, then all the rest of the data will be filled out
     // from the code at the top of this file
-    Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {reportID});
+    Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {
+        reportID,
+        maxSequenceNumber: reportAction.sequenceNumber,
+    });
 
-    // Get the report actions and return that to the next chain
-    new Promise((resolve) => {
-        resolve(currentReportActions[`${IONKEYS.REPORT_ACTIONS}_${reportID}`]);
-    })
+    const previousMaxSequenceNumber = reportMaxSequenceNumbers[reportID];
+    const newMaxSequenceNumber = reportAction.sequenceNumber;
 
-        // Look to see if the report action from pusher already exists or not (it would exist if it's a comment just
-        // written by the user). If the action doesn't exist, then update the unread flag on the report so the user
-        // knows there is a new comment
-        .then((reportActions) => {
-            if (reportActions && !reportActions[reportAction.sequenceNumber]) {
-                Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {hasUnread: true});
-            }
-        })
-
-        // Merge the new action into Ion
-        .then(() => Ion.merge(`${IONKEYS.REPORT_ACTIONS}_${reportID}`, {
-            [reportAction.sequenceNumber]: reportAction,
-        }))
-
-        .then(() => {
-            // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
-            if (reportAction.actorEmail === currentUserEmail) {
-                return;
-            }
-
-            const currentReportID = Number(lodashGet(currentURL.split('/'), [1], 0));
-
-            // If we are currently viewing this report do not show a notification.
-            if (reportID === currentReportID) {
-                return;
-            }
-
-            Notification.showCommentNotification({
-                reportAction,
-                onClick: () => {
-                    // Navigate to this report onClick
-                    Ion.set(IONKEYS.APP_REDIRECT_TO, `/${reportID}`);
-                }
-            });
+    // Mark the report as unread if there is a new max sequence number
+    if (newMaxSequenceNumber > previousMaxSequenceNumber) {
+        Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {
+            hasUnread: true,
+            maxSequenceNumber: newMaxSequenceNumber,
         });
+    }
+
+    // Add the action into Ion
+    Ion.merge(`${IONKEYS.REPORT_ACTIONS}_${reportID}`, {
+        [reportAction.sequenceNumber]: reportAction,
+    });
+
+    // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
+    if (reportAction.actorEmail === currentUserEmail) {
+        return;
+    }
+
+    const currentReportID = Number(lodashGet(currentURL.split('/'), [1], 0));
+
+    // If we are currently viewing this report do not show a notification.
+    if (reportID === currentReportID) {
+        return;
+    }
+
+    Notification.showCommentNotification({
+        reportAction,
+        onClick: () => {
+            // Navigate to this report onClick
+            Ion.set(IONKEYS.APP_REDIRECT_TO, `/${reportID}`);
+        }
+    });
 }
 
 /**
@@ -288,7 +283,12 @@ function fetchActions(reportID) {
     })
         .then((data) => {
             const indexedData = _.indexBy(data.history, 'sequenceNumber');
+            const maxSequenceNumber = _.chain(data.history)
+                .pluck('sequenceNumber')
+                .max()
+                .value();
             Ion.set(`${IONKEYS.REPORT_ACTIONS}_${reportID}`, indexedData);
+            Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {maxSequenceNumber});
         });
 }
 
@@ -340,7 +340,6 @@ function fetchOrCreateChatReport(participants) {
  *
  * @param {string} reportID
  * @param {string} text
- * @returns {Promise}
  */
 function addAction(reportID, text) {
     const actionKey = `${IONKEYS.REPORT_ACTIONS}_${reportID}`;
@@ -348,17 +347,18 @@ function addAction(reportID, text) {
     // Convert the comment from MD into HTML because that's how it is stored in the database
     const parser = new ExpensiMark();
     const htmlComment = parser.replace(text);
-    const reportActions = currentReportActions[actionKey];
 
     // The new sequence number will be one higher than the highest
-    let highestSequenceNumber = _.chain(reportActions)
-        .pluck('sequenceNumber')
-        .max()
-        .value() || 0;
+    let highestSequenceNumber = reportMaxSequenceNumbers[reportID] || 0;
     const newSequenceNumber = highestSequenceNumber + 1;
 
+    // Update the report in Ion to have the new sequence number
+    Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {
+        maxSequenceNumber: newSequenceNumber,
+    });
+
     // Optimistically add the new comment to the store before waiting to save it to the server
-    return Ion.merge(actionKey, {
+    Ion.merge(actionKey, {
         [newSequenceNumber]: {
             actionName: 'ADDCOMMENT',
             actorEmail: currentUserEmail,
@@ -385,11 +385,12 @@ function addAction(reportID, text) {
             isFirstItem: false,
             isAttachmentPlaceHolder: false,
         }
-    })
-        .then(() => queueRequest('Report_AddComment', {
-            reportID,
-            reportComment: htmlComment,
-        }));
+    });
+
+    queueRequest('Report_AddComment', {
+        reportID,
+        reportComment: htmlComment,
+    });
 }
 
 /**
@@ -428,9 +429,17 @@ onReconnect(() => {
 Ion.connect({
     key: `${IONKEYS.REPORT}_[0-9]+$`,
     callback: (val) => {
+        // Nothing can be done without a report ID and it's OK to fail gracefully
+        if (!val.reportID) {
+            return;
+        }
+
         if (val && val.reportName === undefined) {
             fetchChatReportsByIDs([val.reportID]);
         }
+
+        // Keep a local copy of all the max sequence numbers for reports
+        reportMaxSequenceNumbers[val.reportID] = val.maxSequenceNumber;
     }
 });
 
