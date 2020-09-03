@@ -37,6 +37,7 @@ function hasUnreadHistoryItems(accountID, report) {
         return false;
     }
 
+    // There are unread items if the last one the user has read is less than the highest sequence number we have
     return usersLastReadActionID < sequenceNumber;
 }
 
