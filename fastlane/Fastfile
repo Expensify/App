@@ -33,7 +33,7 @@ platform :ios do
     ENV["ENVFILE"]=".env.production"
 
     install_provisioning_profile(
-        path: "./ios/expensify_appstore.mobileprovision"
+        path: "./ios/chat_expensify_appstore.mobileprovision"
     )
 
     keychain_password = SecureRandom.uuid
@@ -59,7 +59,7 @@ platform :ios do
         export_options: {
             method: "app-store",
             provisioningProfiles: {
-                "com.chat.expensify.chat" => "expensify_appstore.mobileprovision"
+                "com.chat.expensify.chat" => "chat_expensify_appstore"
             }
         }
     )
