@@ -28,12 +28,13 @@ const defaultProps = {
     reportActions: {},
 };
 
-class ReportActionView extends React.Component {
+class ReportActionsView extends React.Component {
     constructor(props) {
         super(props);
 
         this.recordlastReadActionID = _.debounce(this.recordlastReadActionID.bind(this), 1000, true);
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
+        this.recordMaxAction = this.recordMaxAction.bind(this);
     }
 
     componentDidMount() {
@@ -42,6 +43,14 @@ class ReportActionView extends React.Component {
 
     componentWillUnmount() {
         this.keyboardEvent.remove();
+    }
+
+    componentDidUpdate(prevProps) {
+        // When the number of actions change, wait three seconds, then record the max action
+        // This will make the unread indicator go away if you receive comments in the same chat you're looking at
+        if (_.size(prevProps.reportActions) !== _.size(this.props.reportActions)){
+            setTimeout(this.recordMaxAction, 3000);
+        }
     }
 
     /**
@@ -114,6 +123,7 @@ class ReportActionView extends React.Component {
                 return Ion.get(`${IONKEYS.REPORT}_${this.props.reportID}`, path, 0);
             })
             .then((lastReadActionID) => {
+                console.log('unread', maxSequenceNumber, lastReadActionID);
                 if (maxSequenceNumber > lastReadActionID) {
                     updateLastReadActionID(myAccountID, this.props.reportID, maxSequenceNumber);
                 }
@@ -162,8 +172,8 @@ class ReportActionView extends React.Component {
     }
 }
 
-ReportActionView.propTypes = propTypes;
-ReportActionView.defaultProps = defaultProps;
+ReportActionsView.propTypes = propTypes;
+ReportActionsView.defaultProps = defaultProps;
 
 const key = `${IONKEYS.REPORT_ACTIONS}_%DATAFROMPROPS%`;
 export default compose(
@@ -176,4 +186,4 @@ export default compose(
             pathForProps: 'reportID',
         },
     }),
-)(ReportActionView);
+)(ReportActionsView);
