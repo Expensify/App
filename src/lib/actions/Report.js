@@ -11,6 +11,8 @@ import ExpensiMark from '../ExpensiMark';
 import Notification from '../Notification';
 import * as PersonalDetails from './PersonalDetails';
 
+// Disabling these rules makes the following code more compact and easier to read for these instances
+/* eslint-disable object-curly-newline,object-property-newline */
 let currentUserEmail;
 let currentUserAccountID;
 Ion.connect({key: IONKEYS.SESSION, callback: (val) => {
@@ -21,25 +23,25 @@ Ion.connect({key: IONKEYS.SESSION, callback: (val) => {
 let currentURL;
 Ion.connect({key: IONKEYS.CURRENT_URL, callback: val => currentURL = val});
 
-let personalDetails;
-
 // Use a regex pattern here for an exact match so it doesn't also match "my_personal_details"
+let personalDetails;
 Ion.connect({key: `^${IONKEYS.PERSONAL_DETAILS}$`, callback: val => personalDetails = val});
 
 let myPersonalDetails;
 Ion.connect({key: IONKEYS.MY_PERSONAL_DETAILS, callback: val => myPersonalDetails = val});
 
-const currentReportIDs = {};
+const currentReportIDs = [];
 Ion.connect({key: `${IONKEYS.REPORT}_[0-9]+$`, callback: (val, key) => {
-    // Keep track of all the reportIDs that we know about. They are kept on the keys of an object so it is super
+    // Keep track of all the reportIDs that are known. They are kept on the keys of an object so it is super
     // fast to look them up
-    currentReportIDs[key.replace(`${IONKEYS.REPORT}_`, '')] = '';
+    currentReportIDs.push(parseInt(key.replace(`${IONKEYS.REPORT}_`, ''), 10));
 }});
 
 const currentReportHistories = {};
 Ion.connect({key: `${IONKEYS.REPORT_HISTORY}_[0-9]+$`, callback: (val, key) => {
     currentReportHistories[key] = val;
 }});
+/* eslint-enable object-curly-newline,object-property-newline */
 
 /**
  * Checks the report to see if there are any unread history items
@@ -158,19 +160,20 @@ function fetchChatReportsByIDs(chatList) {
  * @param {object} reportAction
  */
 function updateReportWithNewAction(reportID, reportAction) {
+    const reportExistsInIon = _.contains(currentReportIDs, reportID);
     let promise;
 
     // This is necessary for local development because there will be pusher events from other engineers with
     // different reportIDs. This means that while in development it's not possible to make new chats appear
     // by creating chats then leaving comments in other windows.
-    if (!CONFIG.IS_IN_PRODUCTION && !currentReportIDs[reportID]) {
+    if (!CONFIG.IS_IN_PRODUCTION && !reportExistsInIon) {
         throw new Error('report does not exist in the store, so ignoring new comments');
     }
 
     // When handling a realtime update for a chat that does not yet exist in our store we
     // need to fetch it so that we can properly navigate to it. This enables us populate
     // newly created  chats in the LHN without requiring a full refresh of the app.
-    if (!currentReportIDs[reportID]) {
+    if (!reportExistsInIon) {
         promise = fetchChatReportsByIDs([reportID])
             .then(() => currentReportHistories[`${IONKEYS.REPORT_HISTORY}_${reportID}`]);
     } else {
@@ -190,17 +193,12 @@ function updateReportWithNewAction(reportID, reportAction) {
             if (reportHistory && !reportHistory[reportAction.sequenceNumber]) {
                 Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {hasUnread: true});
             }
-            return reportHistory || {};
         })
 
-        // Put the report action from pusher into the history, it's OK to overwrite it if it already exists
-        .then(reportHistory => ({
-            ...reportHistory,
+        // Merge the new action into Ion
+        .then(() => Ion.merge(`${IONKEYS.REPORT_HISTORY}_${reportID}`, {
             [reportAction.sequenceNumber]: reportAction,
         }))
-
-        // Put the report history back into Ion
-        .then(reportHistory => Ion.set(`${IONKEYS.REPORT_HISTORY}_${reportID}`, reportHistory))
 
         .then(() => {
             // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
