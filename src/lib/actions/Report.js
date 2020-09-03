@@ -32,26 +32,26 @@ Ion.connect({key: `^${IONKEYS.PERSONAL_DETAILS}$`, callback: val => personalDeta
 let myPersonalDetails;
 Ion.connect({key: IONKEYS.MY_PERSONAL_DETAILS, callback: val => myPersonalDetails = val});
 
-const currentReportHistories = {};
+const currentReportActions = {};
 Ion.connect({key: `${IONKEYS.REPORT_ACTIONS}_[0-9]+$`, callback: (val, key) => {
-    currentReportHistories[key] = val;
+    currentReportActions[key] = val;
 }});
 /* eslint-enable object-curly-newline,object-property-newline */
 
 /**
- * Checks the report to see if there are any unread history items
+ * Checks the report to see if there are any unread action items
  *
  * @param {string} accountID
  * @param {object} report
  * @returns {boolean}
  */
-function hasUnreadHistoryItems(accountID, report) {
+function hasUnreadActions(accountID, report) {
     const usersLastReadActionID = lodashGet(report, ['reportNameValuePairs', `lastReadActionID_${accountID}`]);
     if (!usersLastReadActionID || report.reportActionList.length === 0) {
         return false;
     }
 
-    // Find the most recent sequence number from the report history
+    // Find the most recent sequence number from the report actions
     const lastReportAction = _.chain(report.reportActionList)
         .pluck('sequenceNumber')
         .max()
@@ -80,7 +80,7 @@ function getSimplifiedReportObject(report) {
         reportID: report.reportID,
         reportName: report.reportName,
         reportNameValuePairs: report.reportNameValuePairs,
-        hasUnread: hasUnreadHistoryItems(currentUserAccountID, report),
+        hasUnread: hasUnreadActions(currentUserAccountID, report),
     };
 }
 
@@ -160,16 +160,16 @@ function updateReportWithNewAction(reportID, reportAction) {
     // from the code at the top of this file
     Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {reportID});
 
-    // Get the report history and return that to the next chain
+    // Get the report actions and return that to the next chain
     new Promise((resolve) => {
-        resolve(currentReportHistories[`${IONKEYS.REPORT_ACTIONS}_${reportID}`]);
+        resolve(currentReportActions[`${IONKEYS.REPORT_ACTIONS}_${reportID}`]);
     })
 
         // Look to see if the report action from pusher already exists or not (it would exist if it's a comment just
         // written by the user). If the action doesn't exist, then update the unread flag on the report so the user
         // knows there is a new comment
-        .then((reportHistory) => {
-            if (reportHistory && !reportHistory[reportAction.sequenceNumber]) {
+        .then((reportActions) => {
+            if (reportActions && !reportActions[reportAction.sequenceNumber]) {
                 Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {hasUnread: true});
             }
         })
@@ -276,12 +276,12 @@ function fetchAll() {
 }
 
 /**
- * Get the history of a report
+ * Get the actions of a report
  *
  * @param {string} reportID
  * @returns {Promise}
  */
-function fetchHistory(reportID) {
+function fetchActions(reportID) {
     return queueRequest('Report_GetHistory', {
         reportID,
         offset: 0,
@@ -293,13 +293,13 @@ function fetchHistory(reportID) {
 }
 
 /**
- * Get the chat report ID, and then the history, for a chat report for a specific
+ * Get the report ID, and then the actions, for a chat report for a specific
  * set of participants
  *
  * @param {string[]} participants
  * @returns {Promise}
  */
-function fetchChatReport(participants) {
+function fetchOrCreateChatReport(participants) {
     let reportID;
 
     // Get the current users accountID and set it aside in a local variable
@@ -336,29 +336,29 @@ function fetchChatReport(participants) {
 }
 
 /**
- * Add a history item to a report
+ * Add an action item to a report
  *
  * @param {string} reportID
- * @param {string} reportComment
+ * @param {string} text
  * @returns {Promise}
  */
-function addHistoryItem(reportID, reportComment) {
-    const historyKey = `${IONKEYS.REPORT_ACTIONS}_${reportID}`;
+function addAction(reportID, text) {
+    const actionKey = `${IONKEYS.REPORT_ACTIONS}_${reportID}`;
 
     // Convert the comment from MD into HTML because that's how it is stored in the database
     const parser = new ExpensiMark();
-    const htmlComment = parser.replace(reportComment);
-    const reportHistory = currentReportHistories[historyKey];
+    const htmlComment = parser.replace(text);
+    const reportActions = currentReportActions[actionKey];
 
     // The new sequence number will be one higher than the highest
-    let highestSequenceNumber = _.chain(reportHistory)
+    let highestSequenceNumber = _.chain(reportActions)
         .pluck('sequenceNumber')
         .max()
         .value() || 0;
     const newSequenceNumber = highestSequenceNumber + 1;
 
     // Optimistically add the new comment to the store before waiting to save it to the server
-    return Ion.merge(historyKey, {
+    return Ion.merge(actionKey, {
         [newSequenceNumber]: {
             actionName: 'ADDCOMMENT',
             actorEmail: currentUserEmail,
@@ -418,9 +418,9 @@ function updateLastReadActionID(accountID, reportID, sequenceNumber) {
         }));
 }
 
-// When the app reconnects from being offline, fetch all of the reports and their history
+// When the app reconnects from being offline, fetch all of the reports and their actions
 onReconnect(() => {
-    fetchAll().then(reports => _.each(reports, report => fetchHistory(report.reportID)));
+    fetchAll().then(reports => _.each(reports, report => fetchActions(report.reportID)));
 });
 
 // Listen for all reports added to Ion and if there is one that doesn't have a name, then
@@ -436,9 +436,9 @@ Ion.connect({
 
 export {
     fetchAll,
-    fetchHistory,
-    fetchChatReport,
-    addHistoryItem,
+    fetchActions,
+    fetchOrCreateChatReport,
+    addAction,
     updateLastReadActionID,
     subscribeToReportCommentEvents,
 };

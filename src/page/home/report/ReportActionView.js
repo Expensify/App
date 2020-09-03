@@ -6,7 +6,7 @@ import lodashGet from 'lodash.get';
 import Text from '../../../components/Text';
 import Ion from '../../../lib/Ion';
 import withIon from '../../../components/withIon';
-import {fetchHistory, updateLastReadActionID} from '../../../lib/actions/Report';
+import {fetchActions, updateLastReadActionID} from '../../../lib/actions/Report';
 import IONKEYS from '../../../IONKEYS';
 import ReportActionItem from './ReportActionItem';
 import styles from '../../../style/StyleSheet';
@@ -171,7 +171,7 @@ export default compose(
     withIon({
         reportHistory: {
             key,
-            loader: fetchHistory,
+            loader: fetchActions,
             loaderParams: ['%DATAFROMPROPS%'],
             pathForProps: 'reportID',
         },
