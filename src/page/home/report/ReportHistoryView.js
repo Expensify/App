@@ -165,7 +165,7 @@ class ReportHistoryView extends React.Component {
 ReportHistoryView.propTypes = propTypes;
 ReportHistoryView.defaultProps = defaultProps;
 
-const key = `${IONKEYS.REPORT_HISTORY}_%DATAFROMPROPS%`;
+const key = `${IONKEYS.REPORT_ACTIONS}_%DATAFROMPROPS%`;
 export default compose(
     withRouter,
     withIon({
