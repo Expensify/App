@@ -2,9 +2,9 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import ReportHistoryItemSingle from './ReportHistoryItemSingle';
-import ReportHistoryPropsTypes from './ReportHistoryPropsTypes';
-import ReportHistoryItemGrouped from './ReportHistoryItemGrouped';
+import ReportActionItemSingle from './ReportActionItemSingle';
+import ReportHistoryPropsTypes from './ReportActionPropsTypes';
+import ReportActionItemGrouped from './ReportActionItemGrouped';
 
 const propTypes = {
     // All the data of the history item
@@ -14,7 +14,7 @@ const propTypes = {
     displayAsGroup: PropTypes.bool.isRequired,
 };
 
-class ReportHistoryItem extends React.Component {
+class ReportActionItem extends React.Component {
     shouldComponentUpdate(nextProps) {
         // This component should only render if the history item's sequenceNumber or displayAsGroup props change
         return nextProps.displayAsGroup !== this.props.displayAsGroup
@@ -29,13 +29,13 @@ class ReportHistoryItem extends React.Component {
 
         return (
             <View>
-                {!displayAsGroup && <ReportHistoryItemSingle historyItem={historyItem} />}
-                {displayAsGroup && <ReportHistoryItemGrouped historyItem={historyItem} />}
+                {!displayAsGroup && <ReportActionItemSingle historyItem={historyItem} />}
+                {displayAsGroup && <ReportActionItemGrouped historyItem={historyItem} />}
             </View>
         );
     }
 }
 
-ReportHistoryItem.propTypes = propTypes;
+ReportActionItem.propTypes = propTypes;
 
-export default ReportHistoryItem;
+export default ReportActionItem;

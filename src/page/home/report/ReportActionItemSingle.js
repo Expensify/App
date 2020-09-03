@@ -2,19 +2,19 @@ import React from 'react';
 import {View, Image} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import ReportHistoryPropsTypes from './ReportHistoryPropsTypes';
-import ReportHistoryItemMessage from './ReportHistoryItemMessage';
-import ReportHistoryItemFragment from './ReportHistoryItemFragment';
+import ReportHistoryPropsTypes from './ReportActionPropsTypes';
+import ReportActionItemMessage from './ReportActionItemMessage';
+import ReportActionItemFragment from './ReportActionItemFragment';
 import styles from '../../../style/StyleSheet';
 import CONST from '../../../CONST';
-import ReportHistoryItemDate from './ReportHistoryItemDate';
+import ReportActionItemDate from './ReportActionItemDate';
 
 const propTypes = {
     // All the data of the history item
     historyItem: PropTypes.shape(ReportHistoryPropsTypes).isRequired,
 };
 
-class ReportHistoryItemSingle extends React.PureComponent {
+class ReportActionItemSingle extends React.PureComponent {
     render() {
         const {historyItem} = this.props;
         const avatarUrl = historyItem.automatic
@@ -34,15 +34,15 @@ class ReportHistoryItemSingle extends React.PureComponent {
                     <View style={[styles.chatItemMessageHeader]}>
                         {historyItem.person.map(fragment => (
                             <View key={_.uniqueId('person-', historyItem.sequenceNumber)}>
-                                <ReportHistoryItemFragment fragment={fragment} />
+                                <ReportActionItemFragment fragment={fragment} />
                             </View>
                         ))}
                         <View>
-                            <ReportHistoryItemDate timestamp={historyItem.timestamp} />
+                            <ReportActionItemDate timestamp={historyItem.timestamp} />
                         </View>
                     </View>
                     <View style={[styles.chatItemMessage]}>
-                        <ReportHistoryItemMessage historyItem={historyItem} />
+                        <ReportActionItemMessage historyItem={historyItem} />
                     </View>
                 </View>
             </View>
@@ -50,6 +50,6 @@ class ReportHistoryItemSingle extends React.PureComponent {
     }
 }
 
-ReportHistoryItemSingle.propTypes = propTypes;
+ReportActionItemSingle.propTypes = propTypes;
 
-export default ReportHistoryItemSingle;
+export default ReportActionItemSingle;

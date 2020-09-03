@@ -1,8 +1,8 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import ReportHistoryPropsTypes from './ReportHistoryPropsTypes';
-import ReportHistoryItemMessage from './ReportHistoryItemMessage';
+import ReportHistoryPropsTypes from './ReportActionPropsTypes';
+import ReportActionItemMessage from './ReportActionItemMessage';
 import styles from '../../../style/StyleSheet';
 
 const propTypes = {
@@ -10,14 +10,14 @@ const propTypes = {
     historyItem: PropTypes.shape(ReportHistoryPropsTypes).isRequired,
 };
 
-class ReportHistoryItemGrouped extends React.PureComponent {
+class ReportActionItemGrouped extends React.PureComponent {
     render() {
         const {historyItem} = this.props;
         return (
             <View style={[styles.chatItem]}>
                 <View style={[styles.chatItemRightGrouped]}>
                     <View style={[styles.chatItemMessage]}>
-                        <ReportHistoryItemMessage historyItem={historyItem} />
+                        <ReportActionItemMessage historyItem={historyItem} />
                     </View>
                 </View>
             </View>
@@ -25,6 +25,6 @@ class ReportHistoryItemGrouped extends React.PureComponent {
     }
 }
 
-ReportHistoryItemGrouped.propTypes = propTypes;
+ReportActionItemGrouped.propTypes = propTypes;
 
-export default ReportHistoryItemGrouped;
+export default ReportActionItemGrouped;

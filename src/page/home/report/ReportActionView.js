@@ -8,10 +8,10 @@ import Ion from '../../../lib/Ion';
 import withIon from '../../../components/withIon';
 import {fetchHistory, updateLastReadActionID} from '../../../lib/actions/Report';
 import IONKEYS from '../../../IONKEYS';
-import ReportHistoryItem from './ReportHistoryItem';
+import ReportActionItem from './ReportActionItem';
 import styles from '../../../style/StyleSheet';
 import {withRouter} from '../../../lib/Router';
-import ReportHistoryPropsTypes from './ReportHistoryPropsTypes';
+import ReportHistoryPropsTypes from './ReportActionPropsTypes';
 import compose from '../../../lib/compose';
 
 const propTypes = {
@@ -28,7 +28,7 @@ const defaultProps = {
     reportHistory: {},
 };
 
-class ReportHistoryView extends React.Component {
+class ReportActionView extends React.Component {
     constructor(props) {
         super(props);
 
@@ -151,7 +151,7 @@ class ReportHistoryView extends React.Component {
                 contentContainerStyle={[styles.chatContentScrollView]}
             >
                 {_.chain(this.props.reportHistory).sortBy('sequenceNumber').map((item, index) => (
-                    <ReportHistoryItem
+                    <ReportActionItem
                         key={item.sequenceNumber}
                         historyItem={item}
                         displayAsGroup={this.isConsecutiveHistoryItemMadeByPreviousActor(index)}
@@ -162,8 +162,8 @@ class ReportHistoryView extends React.Component {
     }
 }
 
-ReportHistoryView.propTypes = propTypes;
-ReportHistoryView.defaultProps = defaultProps;
+ReportActionView.propTypes = propTypes;
+ReportActionView.defaultProps = defaultProps;
 
 const key = `${IONKEYS.REPORT_ACTIONS}_%DATAFROMPROPS%`;
 export default compose(
@@ -176,4 +176,4 @@ export default compose(
             pathForProps: 'reportID',
         },
     }),
-)(ReportHistoryView);
+)(ReportActionView);
