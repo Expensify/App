@@ -22,14 +22,10 @@ const propTypes = {
 
     // Array of report history items for this report
     reportHistory: PropTypes.PropTypes.objectOf(PropTypes.shape(ReportHistoryPropsTypes)),
-
-    // Current user authToken
-    authToken: PropTypes.string,
 };
 
 const defaultProps = {
     reportHistory: {},
-    authToken: '',
 };
 
 class ReportHistoryView extends React.Component {
@@ -74,6 +70,11 @@ class ReportHistoryView extends React.Component {
         // It's OK for there to be no previous action, and in that case, false will be returned
         // so that the comment isn't grouped
         if (!currentAction || !previousAction) {
+            return false;
+        }
+
+        // Only comments that follow other comments are consecutive
+        if (previousAction.actionName !== 'ADDCOMMENT' || currentAction.actionName !== 'ADDCOMMENT') {
             return false;
         }
 
@@ -153,7 +154,6 @@ class ReportHistoryView extends React.Component {
                     <ReportHistoryItem
                         key={item.sequenceNumber}
                         historyItem={item}
-                        authToken={this.props.authToken}
                         displayAsGroup={this.isConsecutiveHistoryItemMadeByPreviousActor(index)}
                     />
                 )).value()}
@@ -169,10 +169,6 @@ const key = `${IONKEYS.REPORT_HISTORY}_%DATAFROMPROPS%`;
 export default compose(
     withRouter,
     withIon({
-        authToken: {
-            key: IONKEYS.SESSION,
-            path: 'authToken',
-        },
         reportHistory: {
             key,
             loader: fetchHistory,
