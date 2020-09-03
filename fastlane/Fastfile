@@ -55,13 +55,7 @@ platform :ios do
 
     build_app(
         workspace:'./ios/ReactNativeChat.xcworkspace',
-        scheme: "ReactNativeChat",
-        export_options: {
-            method: "app-store",
-            provisioningProfiles: {
-                "com.chat.expensify.chat" => "chat_expensify_appstore"
-            }
-        }
+        scheme: "ReactNativeChat"
     )
 
     upload_to_testflight(
