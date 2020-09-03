@@ -14,8 +14,8 @@ skip_docs
 opt_out_usage
 
 platform :android do
-  desc "Generate a new APK"
-  lane :beta do
+  desc "Generate a new local APK"
+  lane :build do
     ENV["ENVFILE"]=".env.production"
 
     gradle(
@@ -24,9 +24,35 @@ platform :android do
       build_type: 'Release',
     )
   end
+
+  desc "Build and upload app to Google Play"
+  lane :beta do
+    ENV["ENVFILE"]=".env.production"
+
+    gradle(
+        project_dir: './android',
+        task: 'bundle',
+        build_type: 'Release',
+    )
+
+    upload_to_play_store(
+        track: 'internal',
+        json_key: './android/app/android-fastlane-json-key.json'
+    )
+  end
 end
 
 platform :ios do
+  desc "Generate a local iOS production build"
+  lane :build do
+    ENV["ENVFILE"]=".env.production"
+
+    build_app(
+        workspace: "./ios/ReactNativeChat.xcworkspace",
+        scheme: "ReactNativeChat"
+    )
+  end
+
   desc "Build and upload app to TestFlight"
   lane :beta do
     require 'securerandom'

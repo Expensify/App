@@ -1,10 +1,13 @@
 name: Build and Deploy Android
 
 # This workflow is run when any tag is published
-on:
-    push:
-        tags:
-            - '*'
+#on:
+#    push:
+#        tags:
+#            - '*'
+
+# TODO: Remove, added for testing
+on: push
 
 jobs:
     build:
@@ -22,6 +25,7 @@ jobs:
         - name: Install node packages
           run: npm install
 
+        # TODO: Remove this step when Android app is approved in store
         - name: Configure AWS Credentials
           uses: aws-actions/configure-aws-credentials@v1
           with:
@@ -34,8 +38,18 @@ jobs:
           env:
               LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
-        - name: Run Fastlane
-          run: bundle exec fastlane android beta
+        - name: Decrypt json key
+          run: cd android/app && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output android-fastlane-json-key.json android-fastlane-json-key.json.gpg
+          env:
+              LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
+        # TODO: Remove this step when Android app is approved in store
+        - name: Run Fastlane build
+          run: bundle exec fastlane android build
+
+        # TODO: Remove this step when Android app is approved in store
         - name: Deploy to S3
           run: aws s3 cp --acl public-read $GITHUB_WORKSPACE/android/app/build/outputs/apk/release/app-release.apk s3://chat-test-expensify-com/app-release.apk
+
+        - name: Run Fastlane beta
+          run: bundle exec fastlane android beta
