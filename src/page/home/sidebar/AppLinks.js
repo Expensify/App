@@ -12,7 +12,7 @@ const AppLinks = () => (
         </Anchor>
         <Anchor
             style={[styles.sidebarFooterLink, styles.mr2]}
-            href="https://testflight.apple.com/join/vBYbMRQG"
+            href="https://testflight.apple.com/join/ucuXr4g5"
         >
             iOS
         </Anchor>
