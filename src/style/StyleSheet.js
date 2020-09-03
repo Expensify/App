@@ -570,18 +570,6 @@ const styles = {
         width: 20,
     },
 
-    chatItemAttachmentButton: {
-        alignSelf: 'flex-end',
-        height: 38,
-        paddingTop: 8,
-        paddingRight: 6,
-        paddingBottom: 8,
-        paddingLeft: 6,
-        marginLeft: 3,
-        marginRight: 3,
-        justifyContent: 'center',
-    },
-
     chatSwitcherInputClear: {
         alignSelf: 'center',
     },
