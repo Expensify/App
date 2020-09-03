@@ -265,7 +265,6 @@ function onReconnect(cb) {
 }
 
 export {
-    request,
     queueRequest,
     setNewOfflineStatus,
     onReconnect,

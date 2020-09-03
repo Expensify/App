@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import Ion from './Ion';
 import IONKEYS from '../IONKEYS';
-import {request, setNewOfflineStatus, onReconnect as onNetworkReconnect} from './Network';
+import {queueRequest, setNewOfflineStatus, onReconnect as onNetworkReconnect} from './Network';
 import CONFIG from '../CONFIG';
 import * as Pusher from './Pusher/pusher';
 import ROUTES from '../ROUTES';
@@ -121,7 +121,7 @@ function getAuthToken() {
  * @returns {Promise}
  */
 function authenticate(parameters) {
-    return request('Authenticate', {
+    return queueRequest('Authenticate', {
         // When authenticating for the first time, we pass useExpensifyLogin as true so we check for credentials for
         // the expensify partnerID to let users authenticate with their expensify user and password.
         useExpensifyLogin: true,
@@ -148,7 +148,7 @@ function authenticate(parameters) {
  * @returns {Promise}
  */
 function deleteLogin(parameters) {
-    return request('DeleteLogin', {
+    return queueRequest('DeleteLogin', {
         authToken,
         partnerUserID: parameters.partnerUserID,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
