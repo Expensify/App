@@ -93,7 +93,7 @@ class ReportHistoryCompose extends React.Component {
                         value={this.state.comment}
                     />
                     <TouchableOpacity
-                        style={[styles.chatItemSubmitButton, styles.buttonSuccess]}
+                        style={[styles.chatItemSubmitButton, styles.chatItemSubmitButtonMargin, styles.buttonSuccess]}
                         onPress={this.submitForm}
                         underlayColor={colors.componentBG}
                     >
@@ -105,7 +105,7 @@ class ReportHistoryCompose extends React.Component {
                     </TouchableOpacity>
                     <TouchableOpacityNewTab
                         href={urlToNavigateTo}
-                        style={[styles.chatItemSubmitButton, styles.buttonSuccess]}
+                        style={[styles.chatItemSubmitButton, styles.chatItemAttachmentButtonMargin]}
                         underlayColor={colors.componentBG}
                     >
                         <Image
