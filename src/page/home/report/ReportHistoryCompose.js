@@ -4,6 +4,7 @@ import {View, Image, TouchableOpacity} from 'react-native';
 import styles, {colors} from '../../../style/StyleSheet';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 import sendIcon from '../../../../assets/images/icon-send.png';
+import TouchableOpacityNewTab from '../../../components/TouchableOpacityNewTab';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -76,6 +77,7 @@ class ReportHistoryCompose extends React.Component {
     }
 
     render() {
+        const urlToNavigateTo = `https://www.expensify.com/report?reportID=${this.props.reportID}&shouldScrollToLastUnread=true`;
         return (
             <View style={[styles.chatItemCompose]}>
                 <View style={[styles.chatItemComposeBox, styles.flexRow]}>
@@ -100,6 +102,16 @@ class ReportHistoryCompose extends React.Component {
                             source={sendIcon}
                         />
                     </TouchableOpacity>
+                    <TouchableOpacityNewTab
+                        href={urlToNavigateTo}
+                        style={[styles.chatItemSubmitButton, styles.buttonSuccess]}
+                    >
+                        <Image
+                            style={[styles.chatItemSubmitButtonIcon]}
+                            resizeMode="contain"
+                            source={sendIcon}
+                        />
+                    </TouchableOpacityNewTab>
                 </View>
             </View>
         );
