@@ -4,6 +4,7 @@ import {View, Image, TouchableOpacity} from 'react-native';
 import styles, {colors} from '../../../style/StyleSheet';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 import sendIcon from '../../../../assets/images/icon-send.png';
+import paperClipIcon from '../../../../assets/images/icon-paper-clip.png';
 import TouchableOpacityNewTab from '../../../components/TouchableOpacityNewTab';
 
 const propTypes = {
@@ -105,11 +106,12 @@ class ReportHistoryCompose extends React.Component {
                     <TouchableOpacityNewTab
                         href={urlToNavigateTo}
                         style={[styles.chatItemSubmitButton, styles.buttonSuccess]}
+                        underlayColor={colors.componentBG}
                     >
                         <Image
                             style={[styles.chatItemSubmitButtonIcon]}
                             resizeMode="contain"
-                            source={sendIcon}
+                            source={paperClipIcon}
                         />
                     </TouchableOpacityNewTab>
                 </View>
