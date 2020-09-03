@@ -9,9 +9,6 @@ import ROUTES from '../ROUTES';
 let authToken;
 Ion.connect({key: IONKEYS.SESSION, path: 'authToken', callback: val => authToken = val});
 
-let currentUrl;
-Ion.connect({key: IONKEYS.CURRENT_URL, callback: url => currentUrl = url});
-
 /**
  * When authTokens expire they will automatically be refreshed.
  * The authorizer helps make sure that we are always passing the
