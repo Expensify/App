@@ -12,14 +12,11 @@ import ReportHistoryItemDate from './ReportHistoryItemDate';
 const propTypes = {
     // All the data of the history item
     historyItem: PropTypes.shape(ReportHistoryPropsTypes).isRequired,
-
-    // Current users auth token
-    authToken: PropTypes.string.isRequired,
 };
 
 class ReportHistoryItemSingle extends React.PureComponent {
     render() {
-        const {historyItem, authToken} = this.props;
+        const {historyItem} = this.props;
         const avatarUrl = historyItem.automatic
             ? `${CONST.CLOUDFRONT_URL}/images/icons/concierge_2019.svg`
             : historyItem.avatar;
@@ -45,7 +42,7 @@ class ReportHistoryItemSingle extends React.PureComponent {
                         </View>
                     </View>
                     <View style={[styles.chatItemMessage]}>
-                        <ReportHistoryItemMessage historyItem={historyItem} authToken={authToken} />
+                        <ReportHistoryItemMessage historyItem={historyItem} />
                     </View>
                 </View>
             </View>
