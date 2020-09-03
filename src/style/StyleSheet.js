@@ -558,8 +558,21 @@ const styles = {
         paddingRight: 6,
         paddingBottom: 8,
         paddingLeft: 6,
-        margin: 3,
         justifyContent: 'center',
+    },
+
+    chatItemSubmitButtonMargin: {
+        marginLeft: 3,
+        marginTop: 3,
+        marginBottom: 3,
+        marginRight: 0,
+    },
+
+    chatItemAttachmentButtonMargin: {
+        marginLeft: 0,
+        marginTop: 3,
+        marginBottom: 3,
+        marginRight: 3
     },
 
     chatItemSubmitButtonIcon: {
