@@ -41,7 +41,7 @@ Ion.connect({key: `${IONKEYS.REPORT}_[0-9]+$`, callback: val => {
 }});
 
 const currentReportHistories = {};
-Ion.connect({key: `${IONKEYS.REPORT_HISTORY}_[0-9]+$`, callback: (val, key) => {
+Ion.connect({key: `${IONKEYS.REPORT_ACTIONS}_[0-9]+$`, callback: (val, key) => {
     currentReportHistories[key] = val;
 }});
 /* eslint-enable object-curly-newline,object-property-newline */
@@ -170,7 +170,7 @@ function updateReportWithNewAction(reportID, reportAction) {
 
     // Get the report history and return that to the next chain
     new Promise((resolve) => {
-        resolve(currentReportHistories[`${IONKEYS.REPORT_HISTORY}_${reportID}`]);
+        resolve(currentReportHistories[`${IONKEYS.REPORT_ACTIONS}_${reportID}`]);
     })
 
         // Look to see if the report action from pusher already exists or not (it would exist if it's a comment just
@@ -183,7 +183,7 @@ function updateReportWithNewAction(reportID, reportAction) {
         })
 
         // Merge the new action into Ion
-        .then(() => Ion.merge(`${IONKEYS.REPORT_HISTORY}_${reportID}`, {
+        .then(() => Ion.merge(`${IONKEYS.REPORT_ACTIONS}_${reportID}`, {
             [reportAction.sequenceNumber]: reportAction,
         }))
 
@@ -296,7 +296,7 @@ function fetchHistory(reportID) {
     })
         .then((data) => {
             const indexedData = _.indexBy(data.history, 'sequenceNumber');
-            Ion.set(`${IONKEYS.REPORT_HISTORY}_${reportID}`, indexedData);
+            Ion.set(`${IONKEYS.REPORT_ACTIONS}_${reportID}`, indexedData);
         });
 }
 
@@ -351,7 +351,7 @@ function fetchChatReport(participants) {
  * @returns {Promise}
  */
 function addHistoryItem(reportID, reportComment) {
-    const historyKey = `${IONKEYS.REPORT_HISTORY}_${reportID}`;
+    const historyKey = `${IONKEYS.REPORT_ACTIONS}_${reportID}`;
 
     // Convert the comment from MD into HTML because that's how it is stored in the database
     const parser = new ExpensiMark();
