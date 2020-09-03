@@ -20,12 +20,12 @@ const propTypes = {
 
     /* Ion Props */
 
-    // Array of report history items for this report
-    reportHistory: PropTypes.PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
+    // Array of report actions for this report
+    reportActions: PropTypes.PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
 };
 
 const defaultProps = {
-    reportHistory: {},
+    reportActions: {},
 };
 
 class ReportActionView extends React.Component {
@@ -51,21 +51,21 @@ class ReportActionView extends React.Component {
      * Also checks to ensure that the comment is not too old to
      * be considered part of the same comment
      *
-     * @param {Number} historyItemIndex - index of the comment item in state to check
+     * @param {Number} actionIndex - index of the comment item in state to check
      *
      * @return {Boolean}
      */
     // eslint-disable-next-line
-    isConsecutiveHistoryItemMadeByPreviousActor(historyItemIndex) {
-        const reportHistory = lodashGet(this.props, 'reportHistory', {});
+    isConsecutiveActionMadeByPreviousActor(actionIndex) {
+        const reportActions = lodashGet(this.props, 'reportActions', {});
 
         // This is the created action and the very first action so it cannot be a consecutive comment.
-        if (historyItemIndex === 0) {
+        if (actionIndex === 0) {
             return false;
         }
 
-        const previousAction = reportHistory[historyItemIndex - 1];
-        const currentAction = reportHistory[historyItemIndex];
+        const previousAction = reportActions[actionIndex - 1];
+        const currentAction = reportActions[actionIndex];
 
         // It's OK for there to be no previous action, and in that case, false will be returned
         // so that the comment isn't grouped
@@ -91,8 +91,8 @@ class ReportActionView extends React.Component {
      * action when scrolled
      */
     recordMaxAction() {
-        const reportHistory = lodashGet(this.props, 'reportHistory', {});
-        const maxVisibleSequenceNumber = _.chain(reportHistory)
+        const reportActions = lodashGet(this.props, 'reportActions', {});
+        const maxVisibleSequenceNumber = _.chain(reportActions)
             .pluck('sequenceNumber')
             .max()
             .value();
@@ -122,18 +122,18 @@ class ReportActionView extends React.Component {
 
     /**
      * This function is triggered from the ref callback for the scrollview. That way it can be scrolled once all the
-     * items have been rendered. If the number of items in our history have changed since it was last rendered, then
+     * items have been rendered. If the number of actions have changed since it was last rendered, then
      * scroll the list to the end.
      */
     scrollToListBottom() {
-        if (this.historyListElement) {
-            this.historyListElement.scrollToEnd({animated: false});
+        if (this.actionListElement) {
+            this.actionListElement.scrollToEnd({animated: false});
         }
         this.recordMaxAction();
     }
 
     render() {
-        if (!_.size(this.props.reportHistory)) {
+        if (!_.size(this.props.reportActions)) {
             return (
                 <View style={[styles.chatContent, styles.chatContentEmpty]}>
                     <Text style={[styles.textP]}>Be the first person to comment!</Text>
@@ -144,17 +144,17 @@ class ReportActionView extends React.Component {
         return (
             <ScrollView
                 ref={(el) => {
-                    this.historyListElement = el;
+                    this.actionListElement = el;
                 }}
                 onContentSizeChange={this.scrollToListBottom}
                 bounces={false}
                 contentContainerStyle={[styles.chatContentScrollView]}
             >
-                {_.chain(this.props.reportHistory).sortBy('sequenceNumber').map((item, index) => (
+                {_.chain(this.props.reportActions).sortBy('sequenceNumber').map((item, index) => (
                     <ReportActionItem
                         key={item.sequenceNumber}
-                        historyItem={item}
-                        displayAsGroup={this.isConsecutiveHistoryItemMadeByPreviousActor(index)}
+                        action={item}
+                        displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
                     />
                 )).value()}
             </ScrollView>
@@ -169,7 +169,7 @@ const key = `${IONKEYS.REPORT_ACTIONS}_%DATAFROMPROPS%`;
 export default compose(
     withRouter,
     withIon({
-        reportHistory: {
+        reportActions: {
             key,
             loader: fetchActions,
             loaderParams: ['%DATAFROMPROPS%'],

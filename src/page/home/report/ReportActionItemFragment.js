@@ -2,7 +2,7 @@ import React from 'react';
 import HTML from 'react-native-render-html';
 import {Linking} from 'react-native';
 import Str from '../../../lib/Str';
-import ReportHistoryFragmentPropTypes from './ReportActionFragmentPropTypes';
+import ReportActionFragmentPropTypes from './ReportActionFragmentPropTypes';
 import styles, {webViewStyles} from '../../../style/StyleSheet';
 import Text from '../../../components/Text';
 import AnchorForCommentsOnly from '../../../components/AnchorForCommentsOnly';
@@ -10,7 +10,7 @@ import {getAuthToken} from '../../../lib/Network';
 
 const propTypes = {
     // The message fragment needing to be displayed
-    fragment: ReportHistoryFragmentPropTypes.isRequired,
+    fragment: ReportActionFragmentPropTypes.isRequired,
 };
 
 class ReportActionItemFragment extends React.PureComponent {
