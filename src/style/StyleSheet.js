@@ -548,7 +548,10 @@ const styles = {
         outline: 0,
         height: 'auto',
         minHeight: 38,
-        padding: 10,
+        paddingTop: 10,
+        paddingRight: 8,
+        paddingBottom: 10,
+        paddingLeft: 8,
     },
 
     chatItemSubmitButton: {
@@ -577,7 +580,7 @@ const styles = {
         marginBottom: 6,
         marginTop: 6,
         justifyContent: 'center',
-        width: 37,
+        width: 39,
     },
 
     chatSwitcherInputClear: {
