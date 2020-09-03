@@ -127,7 +127,6 @@ function request(command, parameters, type = 'post') {
     // with 407 authToken expired. When other api commands fail with this error we call Authenticate
     // to get a new authToken and then fire the original api command again
     if (command === 'Authenticate') {
-        // yes
         return xhr(command, parameters, type)
             .then((response) => {
                 // If we didn't get a 200 response from authenticate we either failed to authenticate with
@@ -161,12 +160,14 @@ function request(command, parameters, type = 'post') {
             });
     }
 
+    // Add authToken automatically to all commands
+    const parametersWithAuthToken = {...parameters, ...{authToken}};
+
     // Make the http request, and if we get 407 jsonCode in the response,
     // re-authenticate to get a fresh authToken and make the original http request again
-    // yes
-    return xhr(command, parameters, type)
+    return xhr(command, parametersWithAuthToken, type)
         .then((responseData) => {
-            if (!reauthenticating && responseData.jsonCode === 407 && parameters.doNotRetry !== true) {
+            if (!reauthenticating && responseData.jsonCode === 407 && parametersWithAuthToken.doNotRetry !== true) {
                 reauthenticating = true;
                 return xhr('Authenticate', {
                     useExpensifyLogin: false,
@@ -187,7 +188,7 @@ function request(command, parameters, type = 'post') {
 
                         return response;
                     })
-                    .then(() => xhr(command, parameters, type))
+                    .then(() => xhr(command, parametersWithAuthToken, type))
                     .catch((error) => {
                         reauthenticating = false;
                         return Ion.multiSet({
@@ -203,15 +204,15 @@ function request(command, parameters, type = 'post') {
             // requests and have an expired authToken. In these cases,
             // we just need to requeue the request
             if (reauthenticating) {
-                return queueRequest(command, parameters);
+                return queueRequest(command, parametersWithAuthToken);
             }
             return responseData;
         })
         .catch(() => {
             // If the request failed, we need to put the request object back into the queue as long as there is no
-            // doNotRetry option set in the parameters
-            if (parameters.doNotRetry !== true) {
-                queueRequest(command, parameters);
+            // doNotRetry option set in the parametersWithAuthToken
+            if (parametersWithAuthToken.doNotRetry !== true) {
+                queueRequest(command, parametersWithAuthToken);
             }
         });
 }
