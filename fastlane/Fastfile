@@ -33,22 +33,24 @@ platform :ios do
     ENV["ENVFILE"]=".env.production"
 
     install_provisioning_profile(
-        path:"./ios/expensify_appstore.mobileprovision"
+        path: "./ios/expensify_appstore.mobileprovision"
     )
 
+    keychain_password = SecureRandom.uuid
+
     create_keychain(
-        name:"ios-build.keychain",
-        password:"$KEYCHAIN_PASSWORD",
-        default_keychain:"true",
-        unlock:"true",
-        timeout:"3600",
-        add_to_search_list:"true"
+        name: "ios-build.keychain",
+        password:keychain_password,
+        default_keychain: "true",
+        unlock: "true",
+        timeout: "3600",
+        add_to_search_list: "true"
     )
 
     import_certificate(
-        certificate_path:"./ios/distribution.cer",
-        keychain_name:"ios-build.keychain",
-        keychain_password: SecureRandom.uuid
+        certificate_path: "./ios/distribution.cer",
+        keychain_name: "ios-build.keychain",
+        keychain_password: keychain_password
     )
 
     build_app(
