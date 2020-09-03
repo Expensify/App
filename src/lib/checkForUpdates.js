@@ -14,7 +14,7 @@ export default function (platformSpecificUpdate) {
     // Check for updates every hour
     setInterval(updateIfOnline, UPDATE_INTERVAL);
 
-    // On Web, we want to refresh the page if necessary when the app is backgrounded.
+    // On Web, we want to check for updates and refresh the page if necessary when the app is backgrounded.
     // That way, it will auto-update silently when they minimize the page,
     // and we don't bug the user any more than necessary :)
     if (Platform.OS === 'web') {
