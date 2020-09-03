@@ -113,14 +113,14 @@ function setSuccessfulSignInData(data, exitTo) {
  * original API command
  *
  * @param {string} command
- * @param {mixed} data
+ * @param {object} parameters
  * @param {string} [type]
  * @returns {Promise}
  */
-function request(command, data, type = 'post') {
+function request(command, parameters, type = 'post') {
     // If we're in the process of re-authenticating, queue this request for after we're done re-authenticating
     if (reauthenticating) {
-        return queueRequest(command, data);
+        return queueRequest(command, parameters);
     }
 
     // We treat Authenticate in a special way because unlike other commands, this one can't fail
@@ -128,7 +128,7 @@ function request(command, data, type = 'post') {
     // to get a new authToken and then fire the original api command again
     if (command === 'Authenticate') {
         // yes
-        return xhr(command, data, type)
+        return xhr(command, parameters, type)
             .then((response) => {
                 // If we didn't get a 200 response from authenticate we either failed to authenticate with
                 // an expensify login or the login credentials we created after the initial authentication.
@@ -140,13 +140,13 @@ function request(command, data, type = 'post') {
                     })
                         .then(redirectToSignIn);
                 }
-                setSuccessfulSignInData(response, data.exitTo);
+                setSuccessfulSignInData(response, parameters.exitTo);
                 return response;
             })
             .then((response) => {
                 // If Expensify login, it's the users first time signing in and we need to
                 // create a login for the user
-                if (data.useExpensifyLogin) {
+                if (parameters.useExpensifyLogin) {
                     console.debug('[SIGNIN] Creating a login');
                     createLogin(Str.generateDeviceLoginID(), Guid());
                 }
@@ -154,9 +154,9 @@ function request(command, data, type = 'post') {
             })
             .catch(() => {
                 // If the request failed, we need to put the request object back into the queue as long as there is no
-                // doNotRetry option set in the data
-                if (data.doNotRetry !== true) {
-                    queueRequest(command, data);
+                // doNotRetry option set in the parameters
+                if (parameters.doNotRetry !== true) {
+                    queueRequest(command, parameters);
                 }
             });
     }
@@ -164,9 +164,9 @@ function request(command, data, type = 'post') {
     // Make the http request, and if we get 407 jsonCode in the response,
     // re-authenticate to get a fresh authToken and make the original http request again
     // yes
-    return xhr(command, data, type)
+    return xhr(command, parameters, type)
         .then((responseData) => {
-            if (!reauthenticating && responseData.jsonCode === 407 && data.doNotRetry !== true) {
+            if (!reauthenticating && responseData.jsonCode === 407 && parameters.doNotRetry !== true) {
                 reauthenticating = true;
                 return xhr('Authenticate', {
                     useExpensifyLogin: false,
@@ -187,7 +187,7 @@ function request(command, data, type = 'post') {
 
                         return response;
                     })
-                    .then(() => xhr(command, data, type))
+                    .then(() => xhr(command, parameters, type))
                     .catch((error) => {
                         reauthenticating = false;
                         return Ion.multiSet({
@@ -203,15 +203,15 @@ function request(command, data, type = 'post') {
             // requests and have an expired authToken. In these cases,
             // we just need to requeue the request
             if (reauthenticating) {
-                return queueRequest(command, data);
+                return queueRequest(command, parameters);
             }
             return responseData;
         })
         .catch(() => {
             // If the request failed, we need to put the request object back into the queue as long as there is no
-            // doNotRetry option set in the data
-            if (data.doNotRetry !== true) {
-                queueRequest(command, data);
+            // doNotRetry option set in the parameters
+            if (parameters.doNotRetry !== true) {
+                queueRequest(command, parameters);
             }
         });
 }
@@ -307,7 +307,6 @@ Pusher.registerSocketEventCallback((eventName, data) => {
 });
 
 // PUBLIC
-
 
 /**
  * Register a callback function to be called when the network reconnects
