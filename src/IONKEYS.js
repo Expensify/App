@@ -5,7 +5,6 @@ export default {
     ACTIVE_CLIENT_IDS: 'activeClientIDs',
     APP: {
         REDIRECT_TO: 'app_redirectTo',
-        SHOULD_REFRESH: 'app_shouldRefresh',
     },
     CURRENT_URL: 'current_url',
     CREDENTIALS: 'credentials',
