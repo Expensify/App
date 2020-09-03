@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import Ion from './Ion';
 import IONKEYS from '../IONKEYS';
-import {request, setNewOfflineStatus, onReconnect} from './Network';
+import {request, setNewOfflineStatus, onReconnect as onNetworkReconnect} from './Network';
 import CONFIG from '../CONFIG';
 import * as Pusher from './Pusher/pusher';
 import ROUTES from '../ROUTES';
@@ -100,8 +100,8 @@ function setSuccessfulSignInData(data, exitTo) {
  * @public
  * @param {function} cb
  */
-function whenReconnected(cb) {
-    onReconnect(cb);
+function onReconnect(cb) {
+    onNetworkReconnect(cb);
 }
 
 /**
@@ -161,5 +161,5 @@ export {
     authenticate,
     deleteLogin,
     getAuthToken,
-    whenReconnected,
+    onReconnect,
 };
