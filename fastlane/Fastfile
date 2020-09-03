@@ -49,14 +49,8 @@ platform :ios do
         keychain_password: keychain_password
     )
 
-    # install_provisioning_profile(
-    #     path: "./ios/chat_expensify_appstore.mobileprovision"
-    # )
-
-    get_provisioning_profile(
-        app_identifier: "com.chat.expensify.chat",
-        username: "ios@expensify.com",
-        team_id: "368M544MTT"
+    install_provisioning_profile(
+        path: "./ios/chat_expensify_appstore.mobileprovision"
     )
 
     build_app(
