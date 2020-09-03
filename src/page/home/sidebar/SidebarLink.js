@@ -16,9 +16,6 @@ const propTypes = {
     // The name of the report to use as the text for this link
     reportName: PropTypes.string.isRequired,
 
-    // If its a pinned report let's always display it
-    pinnedReport: PropTypes.bool.isRequired,
-
     // These are from withRouter
     // eslint-disable-next-line react/forbid-prop-types
     match: PropTypes.object.isRequired,
@@ -44,20 +41,17 @@ const SidebarLink = (props) => {
     const textActiveStyle = isReportActive ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textActiveUnreadStyle = props.isUnread
         ? [textActiveStyle, styles.sidebarLinkTextUnread] : [textActiveStyle];
-    const shouldShowLink = props.pinnedReport || props.isUnread || isReportActive;
 
     return (
-        (shouldShowLink && (
-            <View style={[styles.sidebarListItem, linkWrapperActiveStyle]}>
-                <PressableLink onClick={props.onLinkClick} to={`/${props.reportID}`} style={linkActiveStyle}>
-                    <View style={[styles.sidebarLinkInner]}>
-                        <Text numberOfLines={1} style={textActiveUnreadStyle}>
-                            {props.reportName}
-                        </Text>
-                    </View>
-                </PressableLink>
-            </View>
-        ))
+        <View style={[styles.sidebarListItem, linkWrapperActiveStyle]}>
+            <PressableLink onClick={props.onLinkClick} to={`/${props.reportID}`} style={linkActiveStyle}>
+                <View style={[styles.sidebarLinkInner]}>
+                    <Text numberOfLines={1} style={textActiveUnreadStyle}>
+                        {props.reportName}
+                    </Text>
+                </View>
+            </PressableLink>
+        </View>
     );
 };
 
