@@ -8,7 +8,7 @@ import Str from '../../../lib/Str';
 import KeyboardShortcut from '../../../lib/KeyboardShortcut';
 import ChatSwitcherList from './ChatSwitcherList';
 import ChatSwitcherSearchForm from './ChatSwitcherSearchForm';
-import {fetchChatReport} from '../../../lib/actions/Report';
+import {fetchOrCreateChatReport} from '../../../lib/actions/Report';
 
 const propTypes = {
     // A method that is triggered when the TextInput gets focus
@@ -125,7 +125,7 @@ class ChatSwitcherView extends React.Component {
      */
     fetchChatReportAndRedirect(option) {
         Ion.get(IONKEYS.MY_PERSONAL_DETAILS, 'login')
-            .then(currentLogin => fetchChatReport([currentLogin, option.login]))
+            .then(currentLogin => fetchOrCreateChatReport([currentLogin, option.login]))
             .then(reportID => Ion.set(IONKEYS.APP_REDIRECT_TO, `/${reportID}`));
         this.reset();
     }

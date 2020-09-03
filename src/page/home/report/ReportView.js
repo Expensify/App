@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ReportHistoryView from './ReportActionView';
 import ReportActionCompose from './ReportActionCompose';
-import {addHistoryItem} from '../../../lib/actions/Report';
+import {addAction} from '../../../lib/actions/Report';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
 import styles from '../../../style/StyleSheet';
 
@@ -28,7 +28,7 @@ class ReportView extends React.PureComponent {
 
                 {shouldShowComposeForm && (
                     <ReportActionCompose
-                        onSubmit={text => addHistoryItem(this.props.reportID, text)}
+                        onSubmit={text => addAction(this.props.reportID, text)}
                     />
                 )}
 
