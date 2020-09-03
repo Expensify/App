@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import Ion from '../Ion';
-import {queueRequest} from '../Network';
-import {onReconnect, getAuthToken} from '../API';
+import {onReconnect, getAuthToken, queueRequest} from '../API';
 import IONKEYS from '../../IONKEYS';
 import md5 from '../md5';
 import CONST from '../../CONST';
