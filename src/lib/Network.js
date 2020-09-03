@@ -82,6 +82,12 @@ function xhr(command, data, type = 'post') {
         body: formData,
     })
         .then(response => response.json())
+        .then((response) => {
+            // eg, Get?rvl=personalDetailsList 407
+            // eg, PersonalDetails_GetForEmails 200
+            console.debug(command === 'Get' ? `${command}?rvl=${data.returnValueList}` : command, response.jsonCode);
+            return response;
+        })
 
         // This will catch any HTTP network errors (like 404s and such), not to be confused with jsonCode which this
         // does NOT catch
