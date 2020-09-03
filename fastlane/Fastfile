@@ -32,8 +32,6 @@ platform :ios do
     require 'securerandom'
     ENV["ENVFILE"]=".env.production"
 
-    get_provisioning_profile
-
     keychain_password = SecureRandom.uuid
 
     create_keychain(
@@ -49,6 +47,12 @@ platform :ios do
         certificate_path: "./ios/Certificates.p12",
         keychain_name: "ios-build.keychain",
         keychain_password: keychain_password
+    )
+
+    get_provisioning_profile(
+        app_identifier: "com.chat.expensify.chat",
+        username: "ios@expensify.com",
+        team_id: "368M544MTT"
     )
 
     build_app(
