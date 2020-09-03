@@ -1,5 +1,5 @@
 import Ion from '../Ion';
-import {request} from '../Network';
+import * as API from '../API';
 import IONKEYS from '../../IONKEYS';
 import CONFIG from '../../CONFIG';
 import redirectToSignIn from './SignInRedirect';
@@ -16,7 +16,7 @@ import redirectToSignIn from './SignInRedirect';
  * @returns {Promise}
  */
 function signIn(login, password, twoFactorAuthCode = '', exitTo) {
-    return request('Authenticate', {
+    return API.authenticate({
         // When authenticating for the first time, we pass useExpensifyLogin as true so we check for credentials for
         // the expensify partnerID to let users authenticate with their expensify user and password.
         useExpensifyLogin: true,
@@ -26,12 +26,7 @@ function signIn(login, password, twoFactorAuthCode = '', exitTo) {
         partnerUserSecret: password,
         twoFactorAuthCode,
         exitTo
-    })
-        .catch((err) => {
-            console.error(err);
-            console.debug('[SIGNIN] Request error');
-            return Ion.merge(IONKEYS.SESSION, {error: err.message});
-        });
+    });
 }
 
 /**
@@ -41,12 +36,12 @@ function signIn(login, password, twoFactorAuthCode = '', exitTo) {
  * @returns {Promise}
  */
 function deleteLogin(authToken, login) {
-    return request('DeleteLogin', {
+    return API.deleteLogin({
         authToken,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         partnerUserID: login,
-    }).catch(err => Ion.merge(IONKEYS.SESSION, {error: err.message}));
+    });
 }
 
 /**
