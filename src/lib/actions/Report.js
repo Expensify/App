@@ -29,11 +29,17 @@ Ion.connect({key: `^${IONKEYS.PERSONAL_DETAILS}$`, callback: val => personalDeta
 let myPersonalDetails;
 Ion.connect({key: IONKEYS.MY_PERSONAL_DETAILS, callback: val => myPersonalDetails = val});
 
-const currentReports = {};
-Ion.connect({key: `${IONKEYS.REPORT}_[0-9]+$`, callback: (val, key) => currentReports[key] = val});
+const currentReportIDs = {};
+Ion.connect({key: `${IONKEYS.REPORT}_[0-9]+$`, callback: (val, key) => {
+    // Keep track of all the reportIDs that we know about. They are kept on the keys of an object so it is super
+    // fast to look them up
+    currentReportIDs[key.replace(`${IONKEYS.REPORT}_`, '')] = '';
+}});
 
 const currentReportHistories = {};
-Ion.connect({key: `${IONKEYS.REPORT_HISTORY}_[0-9]+$`, callback: (val, key) => currentReportHistories[key] = val});
+Ion.connect({key: `${IONKEYS.REPORT_HISTORY}_[0-9]+$`, callback: (val, key) => {
+    currentReportHistories[key] = val;
+}});
 
 /**
  * Checks the report to see if there are any unread history items
@@ -157,14 +163,14 @@ function updateReportWithNewAction(reportID, reportAction) {
     // This is necessary for local development because there will be pusher events from other engineers with
     // different reportIDs. This means that while in development it's not possible to make new chats appear
     // by creating chats then leaving comments in other windows.
-    if (!CONFIG.IS_IN_PRODUCTION && !currentReports[`${IONKEYS.REPORT}_${reportID}`]) {
+    if (!CONFIG.IS_IN_PRODUCTION && !currentReportIDs[reportID]) {
         throw new Error('report does not exist in the store, so ignoring new comments');
     }
 
     // When handling a realtime update for a chat that does not yet exist in our store we
     // need to fetch it so that we can properly navigate to it. This enables us populate
     // newly created  chats in the LHN without requiring a full refresh of the app.
-    if (!currentReports[`${IONKEYS.REPORT}_${reportID}`]) {
+    if (!currentReportIDs[reportID]) {
         promise = fetchChatReportsByIDs([reportID])
             .then(() => currentReportHistories[`${IONKEYS.REPORT_HISTORY}_${reportID}`]);
     } else {
