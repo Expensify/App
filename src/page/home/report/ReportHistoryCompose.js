@@ -6,6 +6,7 @@ import TextInputFocusable from '../../../components/TextInputFocusable';
 import sendIcon from '../../../../assets/images/icon-send.png';
 import paperClipIcon from '../../../../assets/images/icon-paper-clip.png';
 import TouchableOpacityNewTab from '../../../components/TouchableOpacityNewTab';
+import CONFIG from '../../../CONFIG';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -78,7 +79,7 @@ class ReportHistoryCompose extends React.Component {
     }
 
     render() {
-        const urlToNavigateTo = `https://www.expensify.com/report?reportID=${this.props.reportID}&shouldScrollToLastUnread=true`;
+        const urlToNavigateTo = `${CONFIG.PUSHER.AUTH_URL}/report?reportID=${this.props.reportID}&shouldScrollToLastUnread=true`;
         return (
             <View style={[styles.chatItemCompose]}>
                 <View style={[styles.chatItemComposeBox, styles.flexRow]}>
