@@ -82,6 +82,17 @@ class ReportHistoryCompose extends React.Component {
         return (
             <View style={[styles.chatItemCompose]}>
                 <View style={[styles.chatItemComposeBox, styles.flexRow]}>
+                    <TouchableOpacityNewTab
+                        href={urlToNavigateTo}
+                        style={[styles.chatItemAttachmentButton]}
+                        underlayColor={colors.componentBG}
+                    >
+                        <Image
+                            style={[styles.chatItemSubmitButtonIcon]}
+                            resizeMode="contain"
+                            source={paperClipIcon}
+                        />
+                    </TouchableOpacityNewTab>
                     <TextInputFocusable
                         multiline
                         textAlignVertical="top"
@@ -93,7 +104,7 @@ class ReportHistoryCompose extends React.Component {
                         value={this.state.comment}
                     />
                     <TouchableOpacity
-                        style={[styles.chatItemSubmitButton, styles.chatItemSubmitButtonMargin, styles.buttonSuccess]}
+                        style={[styles.chatItemSubmitButton, styles.buttonSuccess]}
                         onPress={this.submitForm}
                         underlayColor={colors.componentBG}
                     >
@@ -103,17 +114,6 @@ class ReportHistoryCompose extends React.Component {
                             source={sendIcon}
                         />
                     </TouchableOpacity>
-                    <TouchableOpacityNewTab
-                        href={urlToNavigateTo}
-                        style={[styles.chatItemSubmitButton, styles.chatItemAttachmentButtonMargin]}
-                        underlayColor={colors.componentBG}
-                    >
-                        <Image
-                            style={[styles.chatItemSubmitButtonIcon]}
-                            resizeMode="contain"
-                            source={paperClipIcon}
-                        />
-                    </TouchableOpacityNewTab>
                 </View>
             </View>
         );
