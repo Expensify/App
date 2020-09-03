@@ -32,6 +32,10 @@ platform :ios do
     require 'securerandom'
     ENV["ENVFILE"]=".env.production"
 
+    disable_automatic_code_signing(
+        path: "./ios/ReactNativeChat.xcodeproj"
+    )
+
     keychain_password = SecureRandom.uuid
 
     create_keychain(
