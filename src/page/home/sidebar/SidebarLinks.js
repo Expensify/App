@@ -60,9 +60,9 @@ class SidebarLinks extends React.Component {
         const reportIDInUrl = parseInt(this.props.match.params.reportID, 10);
         const sortedReports = lodashOrderBy(this.props.reports, ['pinnedReport', 'reportName'], ['desc', 'asc']);
 
-        // Lets only show reports that are pinned, has unread messages or is the currently active reportID
+        // Filter the reports so that the only reports shown are pinned, unread, and the one matching the URL
         // eslint-disable-next-line max-len
-        const reportsToDisplay = _.filter(sortedReports, report => (report.pinnedReport || report.hasUnread || (report.reportID === reportIDInUrl)));
+        const reportsToDisplay = _.filter(sortedReports, report => (report.pinnedReport || report.hasUnread || report.reportID === reportIDInUrl));
 
         // Updates the page title to indicate there are unread reports
         PageTitleUpdater(_.any(reports, report => report.hasUnread));
