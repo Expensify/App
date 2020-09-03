@@ -48,14 +48,20 @@ platform :ios do
     )
 
     import_certificate(
-        certificate_path: "./ios/distribution.cer",
+        certificate_path: "./ios/Certificates.p12",
         keychain_name: "ios-build.keychain",
         keychain_password: keychain_password
     )
 
     build_app(
         workspace:'./ios/ReactNativeChat.xcworkspace',
-        scheme: "ReactNativeChat"
+        scheme: "ReactNativeChat",
+        export_options: {
+            method: "app-store",
+            provisioningProfiles: {
+                "com.chat.expensify.chat" => "expensify_appstore"
+            }
+        }
     )
 
     upload_to_testflight(
