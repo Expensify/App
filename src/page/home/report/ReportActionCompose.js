@@ -10,7 +10,7 @@ const propTypes = {
     onSubmit: PropTypes.func.isRequired,
 };
 
-class ReportHistoryCompose extends React.Component {
+class ReportActionCompose extends React.Component {
     constructor(props) {
         super(props);
 
@@ -102,6 +102,6 @@ class ReportHistoryCompose extends React.Component {
         );
     }
 }
-ReportHistoryCompose.propTypes = propTypes;
+ReportActionCompose.propTypes = propTypes;
 
-export default ReportHistoryCompose;
+export default ReportActionCompose;

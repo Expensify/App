@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 
-import HistoryFragmentPropTypes from './ReportHistoryFragmentPropTypes';
+import HistoryFragmentPropTypes from './ReportActionFragmentPropTypes';
 
 export default {
     // Name of the action e.g. ADDCOMMENT

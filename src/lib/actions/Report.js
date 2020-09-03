@@ -32,14 +32,6 @@ Ion.connect({key: `^${IONKEYS.PERSONAL_DETAILS}$`, callback: val => personalDeta
 let myPersonalDetails;
 Ion.connect({key: IONKEYS.MY_PERSONAL_DETAILS, callback: val => myPersonalDetails = val});
 
-// Listen for all reports added to Ion and if there is one that doesn't have a name, then
-// fetch that report from the server so that it has all updated information about it
-Ion.connect({key: `${IONKEYS.REPORT}_[0-9]+$`, callback: val => {
-    if (val && val.reportName === undefined) {
-        fetchChatReportsByIDs([val.reportID]);
-    }
-}});
-
 const currentReportHistories = {};
 Ion.connect({key: `${IONKEYS.REPORT_ACTIONS}_[0-9]+$`, callback: (val, key) => {
     currentReportHistories[key] = val;
@@ -429,6 +421,17 @@ function updateLastReadActionID(accountID, reportID, sequenceNumber) {
 // When the app reconnects from being offline, fetch all of the reports and their history
 onReconnect(() => {
     fetchAll().then(reports => _.each(reports, report => fetchHistory(report.reportID)));
+});
+
+// Listen for all reports added to Ion and if there is one that doesn't have a name, then
+// fetch that report from the server so that it has all updated information about it
+Ion.connect({
+    key: `${IONKEYS.REPORT}_[0-9]+$`,
+    callback: (val) => {
+        if (val && val.reportName === undefined) {
+            fetchChatReportsByIDs([val.reportID]);
+        }
+    }
 });
 
 export {

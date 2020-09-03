@@ -2,7 +2,7 @@ import React from 'react';
 import HTML from 'react-native-render-html';
 import {Linking} from 'react-native';
 import Str from '../../../lib/Str';
-import ReportHistoryFragmentPropTypes from './ReportHistoryFragmentPropTypes';
+import ReportHistoryFragmentPropTypes from './ReportActionFragmentPropTypes';
 import styles, {webViewStyles} from '../../../style/StyleSheet';
 import Text from '../../../components/Text';
 import AnchorForCommentsOnly from '../../../components/AnchorForCommentsOnly';
@@ -13,7 +13,7 @@ const propTypes = {
     fragment: ReportHistoryFragmentPropTypes.isRequired,
 };
 
-class ReportHistoryItemFragment extends React.PureComponent {
+class ReportActionItemFragment extends React.PureComponent {
     constructor(props) {
         super(props);
 
@@ -96,7 +96,7 @@ class ReportHistoryItemFragment extends React.PureComponent {
     }
 }
 
-ReportHistoryItemFragment.propTypes = propTypes;
-ReportHistoryItemFragment.displayName = 'ReportHistoryItemFragment';
+ReportActionItemFragment.propTypes = propTypes;
+ReportActionItemFragment.displayName = 'ReportActionItemFragment';
 
-export default ReportHistoryItemFragment;
+export default ReportActionItemFragment;

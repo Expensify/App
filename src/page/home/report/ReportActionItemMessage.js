@@ -1,18 +1,18 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import ReportHistoryItemFragment from './ReportHistoryItemFragment';
-import ReportHistoryPropsTypes from './ReportHistoryPropsTypes';
+import ReportActionItemFragment from './ReportActionItemFragment';
+import ReportHistoryPropsTypes from './ReportActionPropsTypes';
 
 const propTypes = {
     // The report history item
     historyItem: PropTypes.shape(ReportHistoryPropsTypes).isRequired,
 };
 
-const ReportHistoryItemMessage = ({historyItem}) => (
+const ReportActionItemMessage = ({historyItem}) => (
     <>
         {_.map(_.compact(historyItem.message), fragment => (
-            <ReportHistoryItemFragment
+            <ReportActionItemFragment
                 key={_.uniqueId('historyItemFragment', historyItem.sequenceNumber)}
                 fragment={fragment}
             />
@@ -20,7 +20,7 @@ const ReportHistoryItemMessage = ({historyItem}) => (
     </>
 );
 
-ReportHistoryItemMessage.propTypes = propTypes;
-ReportHistoryItemMessage.displayName = 'ReportHistoryItemMessage';
+ReportActionItemMessage.propTypes = propTypes;
+ReportActionItemMessage.displayName = 'ReportActionItemMessage';
 
-export default ReportHistoryItemMessage;
+export default ReportActionItemMessage;
