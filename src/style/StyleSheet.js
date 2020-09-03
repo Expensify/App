@@ -544,10 +544,13 @@ const styles = {
 
     textInputCompose: {
         borderWidth: 0,
+        borderRadius: 0,
         outline: 0,
         height: 'auto',
         minHeight: 38,
         padding: 10,
+        borderLeftColor: colors.border,
+        borderLeftWidth: 1,
     },
 
     chatItemSubmitButton: {
@@ -568,7 +571,7 @@ const styles = {
     },
 
     chatItemAttachmentButton: {
-        alignSelf: 'flex-start',
+        alignSelf: 'flex-end',
         height: 38,
         paddingTop: 8,
         paddingRight: 6,
@@ -577,9 +580,6 @@ const styles = {
         marginLeft: 3,
         marginRight: 3,
         justifyContent: 'center',
-        backgroundColor: colors.componentBG,
-        borderRightColor: colors.border,
-        borderRightWidth: 1,
     },
 
     chatSwitcherInputClear: {
