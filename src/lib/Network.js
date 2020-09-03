@@ -2,55 +2,16 @@ import _ from 'underscore';
 import NetInfo from '@react-native-community/netinfo';
 import Ion from './Ion';
 import CONFIG from '../CONFIG';
-import * as Pusher from './Pusher/pusher';
 import IONKEYS from '../IONKEYS';
-import ROUTES from '../ROUTES';
 import Str from './Str';
 import Guid from './Guid';
 import redirectToSignIn from './actions/SignInRedirect';
-
-let authToken;
-Ion.connect({key: IONKEYS.SESSION, path: 'authToken', callback: val => authToken = val});
 
 let isOffline;
 Ion.connect({key: IONKEYS.NETWORK, path: 'isOffline', callback: val => isOffline = val});
 
 let credentials;
 Ion.connect({key: IONKEYS.CREDENTIALS, callback: c => credentials = c});
-
-let currentUrl;
-Ion.connect({key: IONKEYS.CURRENT_URL, callback: url => currentUrl = url});
-
-/**
- * When authTokens expire they will automatically be refreshed.
- * The authorizer helps make sure that we are always passing the
- * current valid token to generate the signed auth response
- * needed to subscribe to Pusher channels.
- */
-Pusher.registerCustomAuthorizer((channel, {authEndpoint}) => ({
-    authorize: (socketID, callback) => {
-        console.debug('[Network] Attempting to authorize Pusher');
-
-        const formData = new FormData();
-        formData.append('socket_id', socketID);
-        formData.append('channel_name', channel.name);
-        formData.append('authToken', authToken);
-
-        return fetch(authEndpoint, {
-            method: 'POST',
-            body: formData,
-        })
-            .then(authResponse => authResponse.json())
-            .then(data => callback(null, data))
-            .catch((err) => {
-                console.debug('[Network] Failed to authorize Pusher');
-                callback(new Error(`Error calling auth endpoint: ${err}`));
-            });
-    },
-}));
-
-// Initialize the pusher connection
-Pusher.init();
 
 // Indicates if we're in the process of re-authenticating. When an API call returns jsonCode 407 indicating that the
 // authToken expired, we set this to true, pause all API calls, re-authenticate, and then use the authToken fromm the
@@ -84,33 +45,6 @@ NetInfo.addEventListener((state) => {
 });
 
 /**
- * Events that happen on the pusher socket are used to determine if the app is online or offline. The offline setting
- * is stored in Ion so the rest of the app has access to it.
- *
- * @params {string} eventName,
- * @params {object} data
- */
-Pusher.registerSocketEventCallback((eventName, data) => {
-    let isCurrentlyOffline = false;
-    switch (eventName) {
-        case 'connected':
-            isCurrentlyOffline = false;
-            break;
-        case 'disconnected':
-            isCurrentlyOffline = true;
-            break;
-        case 'state_change':
-            if (data.current === 'connecting' || data.current === 'unavailable') {
-                isCurrentlyOffline = true;
-            }
-            break;
-        default:
-            break;
-    }
-    setNewOfflineStatus(isCurrentlyOffline);
-});
-
-/**
  * Adds a request to networkRequestQueue
  *
  * @param {string} command
@@ -133,32 +67,6 @@ function queueRequest(command, data) {
 }
 
 /**
- * Sets API data in the store when we make a successful "Authenticate"/"CreateLogin" request
- *
- * @param {object} data
- * @param {string} exitTo
- * @returns {Promise}
- */
-function setSuccessfulSignInData(data, exitTo) {
-    let redirectTo;
-
-    if (exitTo && exitTo[0] === '/') {
-        redirectTo = exitTo;
-    } else if (exitTo) {
-        redirectTo = `/${exitTo}`;
-    } else {
-        redirectTo = ROUTES.HOME;
-    }
-
-    return Ion.multiSet({
-        // The response from Authenticate includes requestID, jsonCode, etc
-        // but we only care about setting these three values in Ion
-        [IONKEYS.SESSION]: _.pick(data, 'authToken', 'accountID', 'email'),
-        [IONKEYS.APP_REDIRECT_TO]: redirectTo,
-    });
-}
-
-/**
  * Makes XHR request
  * @param {String} command the name of the API command
  * @param {Object} data parameters for the API command
@@ -167,11 +75,6 @@ function setSuccessfulSignInData(data, exitTo) {
  */
 function xhr(command, data, type = 'post') {
     const formData = new FormData();
-
-    // If we're calling Authenticate we don't need an authToken, so let's not send "undefined"
-    if (command !== 'Authenticate') {
-        formData.append('authToken', authToken);
-    }
     _.each(data, (val, key) => formData.append(key, val));
 
     return fetch(`${CONFIG.EXPENSIFY.API_ROOT}command=${command}`, {
@@ -252,7 +155,7 @@ function request(command, data, type = 'post') {
                         .then(redirectToSignIn);
                 }
 
-                return setSuccessfulSignInData(response, data.exitTo);
+                return response;
             })
             .then((response) => {
                 // If Expensify login, it's the users first time signing in and we need to
@@ -288,7 +191,7 @@ function request(command, data, type = 'post') {
                             throw new Error(response.message);
                         }
 
-                        return setSuccessfulSignInData(response, currentUrl);
+                        return response;
                     })
                     .then(() => xhr(command, data, type))
                     .catch((error) => {
@@ -308,12 +211,6 @@ function request(command, data, type = 'post') {
             if (reauthenticating) {
                 return queueRequest(command, data);
             }
-
-            // Always update the authToken to be the authToken returned from any request
-            if (responseData.authToken) {
-                authToken = responseData.authToken;
-            }
-
             return responseData;
         });
 }
@@ -360,17 +257,9 @@ function onReconnect(cb) {
     reconnectionCallbacks.push(cb);
 }
 
-/**
- * Get the authToken that the network uses
- * @returns {string}
- */
-function getAuthToken() {
-    return authToken;
-}
-
 export {
     request,
     queueRequest,
+    setNewOfflineStatus,
     onReconnect,
-    getAuthToken,
 };

@@ -2,7 +2,8 @@ import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import Ion from '../Ion';
-import {queueRequest, onReconnect} from '../Network';
+import {queueRequest} from '../Network';
+import {whenReconnected} from '../API';
 import IONKEYS from '../../IONKEYS';
 import CONFIG from '../../CONFIG';
 import * as Pusher from '../Pusher/pusher';
@@ -454,7 +455,7 @@ function updateLastReadActionID(accountID, reportID, sequenceNumber) {
 }
 
 // When the app reconnects from being offline, fetch all of the reports and their history
-onReconnect(() => {
+whenReconnected(() => {
     fetchAll().then(reports => _.each(reports, report => fetchHistory(report.reportID)));
 });
 

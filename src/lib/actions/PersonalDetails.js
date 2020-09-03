@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import Ion from '../Ion';
-import {onReconnect, queueRequest} from '../Network';
+import {queueRequest} from '../Network';
+import {whenReconnected} from '../API';
 import IONKEYS from '../../IONKEYS';
 import md5 from '../md5';
 import CONST from '../../CONST';
@@ -135,7 +136,7 @@ function getForEmails(emailList) {
 }
 
 // When the app reconnects from being offline, fetch all of the personal details
-onReconnect(fetch);
+whenReconnected(fetch);
 
 export {
     fetch,
