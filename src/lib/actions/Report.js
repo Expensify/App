@@ -2,7 +2,7 @@ import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import Ion from '../Ion';
-import {queueRequest, onReconnect, getAuthToken} from '../API';
+import {queueRequest, onReconnect} from '../API';
 import IONKEYS from '../../IONKEYS';
 import CONFIG from '../../CONFIG';
 import * as Pusher from '../Pusher/pusher';
@@ -94,7 +94,6 @@ function fetchChatReportsByIDs(chatList) {
                 returnValueList: 'reportStuff',
                 reportIDList: chatList.join(','),
                 shouldLoadOptionalKeys: true,
-                authToken: getAuthToken(),
             });
         })
         .then(({reports}) => {
@@ -242,7 +241,6 @@ function subscribeToReportCommentEvents() {
 function fetchChatReports() {
     return queueRequest('Get', {
         returnValueList: 'chatList',
-        authToken: getAuthToken(),
     })
 
         // The string cast below is necessary as Get rvl='chatList' may return an int
@@ -262,7 +260,6 @@ function fetchAll() {
         returnValueList: 'reportStuff',
         reportIDList: reportID,
         shouldLoadOptionalKeys: true,
-        authToken: getAuthToken(),
     }));
 
     // Chat reports need to be fetched separately than the reports hard-coded in the config
@@ -307,7 +304,6 @@ function fetchHistory(reportID) {
     return queueRequest('Report_GetHistory', {
         reportID,
         offset: 0,
-        authToken: getAuthToken(),
     })
         .then((data) => {
             const indexedData = _.indexBy(data.history, 'sequenceNumber');
@@ -340,7 +336,6 @@ function fetchChatReport(participants) {
         // Make a request to get the reportID for this list of participants
         .then(() => queueRequest('CreateChatReport', {
             emailList: participants.join(','),
-            authToken: getAuthToken(),
         }))
 
         // Set aside the reportID in a local variable so it can be accessed in the rest of the chain
@@ -351,7 +346,6 @@ function fetchChatReport(participants) {
             returnValueList: 'reportStuff',
             reportIDList: reportID,
             shouldLoadOptionalKeys: true,
-            authToken: getAuthToken(),
         }))
 
         // Put the report object into Ion
@@ -432,7 +426,6 @@ function addHistoryItem(reportID, reportComment) {
         .then(() => queueRequest('Report_AddComment', {
             reportID,
             reportComment: htmlComment,
-            authToken: getAuthToken(),
         }));
 }
 
@@ -459,7 +452,6 @@ function updateLastReadActionID(accountID, reportID, sequenceNumber) {
             accountID,
             reportID,
             sequenceNumber,
-            authToken: getAuthToken(),
         }));
 }
 

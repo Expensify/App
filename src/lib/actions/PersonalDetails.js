@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import Ion from '../Ion';
-import {onReconnect, getAuthToken, queueRequest} from '../API';
+import {onReconnect, queueRequest} from '../API';
 import IONKEYS from '../../IONKEYS';
 import md5 from '../md5';
 import CONST from '../../CONST';
@@ -70,7 +70,6 @@ function fetch() {
             currentLogin = login;
             return queueRequest('Get', {
                 returnValueList: 'personalDetailsList',
-                authToken: getAuthToken(),
             });
         })
         .then((data) => {
@@ -106,7 +105,6 @@ function fetchTimezone() {
     const requestPromise = queueRequest('Get', {
         returnValueList: 'nameValuePairs',
         name: 'timeZone',
-        authToken: getAuthToken(),
     })
         .then((data) => {
             const timezone = data.nameValuePairs.timeZone.selected || 'America/Los_Angeles';
@@ -128,7 +126,6 @@ function getForEmails(emailList) {
     let detailsFormatted;
     return queueRequest('PersonalDetails_GetForEmails', {
         emailList,
-        authToken: getAuthToken(),
     })
         .then((details) => {
             detailsFormatted = formatPersonalDetails(details);
