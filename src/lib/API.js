@@ -87,7 +87,6 @@ function setSuccessfulSignInData(data, exitTo) {
     } else {
         redirectTo = ROUTES.HOME;
     }
-
     return Ion.multiSet({
         // The response from Authenticate includes requestID, jsonCode, etc
         // but we only care about setting these three values in Ion

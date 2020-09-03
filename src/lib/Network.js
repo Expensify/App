@@ -101,16 +101,17 @@ function xhr(command, data, type = 'post') {
 }
 
 /**
- * Create login
+ * @param {string} authToken
  * @param {string} login
  * @param {string} password
  * @returns {Promise}
  */
-function createLogin(login, password) {
+function createLogin(authToken, login, password) {
     // We call createLogin after getting a successful response to the Authenticate request
     // so it's very unlikely that this will fail with 407 authToken expired which means we
     // won't need to replay this request and thus we can use xhr instead of request
     return xhr('CreateLogin', {
+        authToken,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         partnerUserID: login,
@@ -162,7 +163,7 @@ function request(command, data, type = 'post') {
                 // create a login for the user
                 if (data.useExpensifyLogin) {
                     console.debug('[SIGNIN] Creating a login');
-                    return createLogin(Str.generateDeviceLoginID(), Guid());
+                    createLogin(response.authToken, Str.generateDeviceLoginID(), Guid());
                 }
                 return response;
             });
