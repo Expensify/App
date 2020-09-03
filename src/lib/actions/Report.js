@@ -16,8 +16,10 @@ import * as PersonalDetails from './PersonalDetails';
 let currentUserEmail;
 let currentUserAccountID;
 Ion.connect({key: IONKEYS.SESSION, callback: (val) => {
-    currentUserEmail = val.email;
-    currentUserAccountID = val.accountID;
+    if (val) {
+        currentUserEmail = val.email;
+        currentUserAccountID = val.accountID;
+    }
 }});
 
 let currentURL;
@@ -30,11 +32,12 @@ Ion.connect({key: `^${IONKEYS.PERSONAL_DETAILS}$`, callback: val => personalDeta
 let myPersonalDetails;
 Ion.connect({key: IONKEYS.MY_PERSONAL_DETAILS, callback: val => myPersonalDetails = val});
 
-const currentReportIDs = [];
-Ion.connect({key: `${IONKEYS.REPORT}_[0-9]+$`, callback: (val, key) => {
-    // Keep track of all the reportIDs that are known. They are kept on the keys of an object so it is super
-    // fast to look them up
-    currentReportIDs.push(parseInt(key.replace(`${IONKEYS.REPORT}_`, ''), 10));
+// Listen for all reports added to Ion and if there is one that doesn't have a name, then
+// fetch that report from the server so that it has all updated information about it
+Ion.connect({key: `${IONKEYS.REPORT}_[0-9]+$`, callback: val => {
+    if (val && val.reportName === undefined) {
+        fetchChatReportsByIDs([val.reportID]);
+    }
 }});
 
 const currentReportHistories = {};
@@ -160,31 +163,15 @@ function fetchChatReportsByIDs(chatList) {
  * @param {object} reportAction
  */
 function updateReportWithNewAction(reportID, reportAction) {
-    const reportExistsInIon = _.contains(currentReportIDs, reportID);
-    let promise;
-
-    // This is necessary for local development because there will be pusher events from other engineers with
-    // different reportIDs. This means that while in development it's not possible to make new chats appear
-    // by creating chats then leaving comments in other windows.
-    if (!CONFIG.IS_IN_PRODUCTION && !reportExistsInIon) {
-        throw new Error('report does not exist in the store, so ignoring new comments');
-    }
-
-    // When handling a realtime update for a chat that does not yet exist in our store we
-    // need to fetch it so that we can properly navigate to it. This enables us populate
-    // newly created  chats in the LHN without requiring a full refresh of the app.
-    if (!reportExistsInIon) {
-        promise = fetchChatReportsByIDs([reportID])
-            .then(() => currentReportHistories[`${IONKEYS.REPORT_HISTORY}_${reportID}`]);
-    } else {
-        // Get the report history and return that to the next chain
-        promise = new Promise((resolve) => {
-            resolve(currentReportHistories[`${IONKEYS.REPORT_HISTORY}_${reportID}`]);
-        });
-    }
+    // Always merge the reportID into Ion
+    // If the report doesn't exist in Ion yet, then all the rest of the data will be filled out
+    // from the code at the top of this file
+    Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {reportID});
 
     // Get the report history and return that to the next chain
-    promise
+    new Promise((resolve) => {
+        resolve(currentReportHistories[`${IONKEYS.REPORT_HISTORY}_${reportID}`]);
+    })
 
         // Look to see if the report action from pusher already exists or not (it would exist if it's a comment just
         // written by the user). If the action doesn't exist, then update the unread flag on the report so the user
