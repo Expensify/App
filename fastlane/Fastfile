@@ -32,8 +32,12 @@ platform :ios do
     require 'securerandom'
     ENV["ENVFILE"]=".env.production"
 
-    disable_automatic_code_signing(
-        path: "./ios/ReactNativeChat.xcodeproj"
+    update_code_signing_settings(
+        use_automatic_signing: false,
+        path: "./ios/ReactNativeChat.xcodeproj",
+        profile_name: "chat_expensify_appstore",
+        bundle_identifier: "com.chat.expensify.chat",
+        team_id: "368M544MTT"
     )
 
     keychain_password = SecureRandom.uuid
@@ -52,6 +56,10 @@ platform :ios do
         keychain_name: "ios-build.keychain",
         keychain_password: keychain_password
     )
+
+    # install_provisioning_profile(
+    #     path: "./ios/chat_expensify_appstore.mobileprovision"
+    # )
 
     get_provisioning_profile(
         app_identifier: "com.chat.expensify.chat",
