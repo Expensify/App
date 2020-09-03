@@ -79,12 +79,12 @@ class ReportHistoryCompose extends React.Component {
     }
 
     render() {
-        const urlToNavigateTo = `${CONFIG.PUSHER.AUTH_URL}/report?reportID=${this.props.reportID}&shouldScrollToLastUnread=true`;
+        const href = `${CONFIG.PUSHER.AUTH_URL}/report?reportID=${this.props.reportID}&shouldScrollToLastUnread=true`;
         return (
             <View style={[styles.chatItemCompose]}>
                 <View style={[styles.chatItemComposeBox, styles.flexRow]}>
                     <TouchableOpacityNewTab
-                        href={urlToNavigateTo}
+                        href={href}
                         style={[styles.chatItemAttachButton]}
                         underlayColor={colors.componentBG}
                     >
