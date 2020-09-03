@@ -1,13 +1,10 @@
 name: Build and Deploy iOS
 
 # This workflow is run when any tag is published
-#on:
-#    push:
-#        tags:
-#            - '*'
-
-# TODO: Remove, just for testing
-on: push
+on:
+    push:
+        tags:
+            - '*'
 
 jobs:
     build:
