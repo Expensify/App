@@ -18,7 +18,7 @@ const AppLinks = () => (
         </Anchor>
         <Anchor
             style={[styles.sidebarFooterLink, styles.mr2]}
-            href="https://chat.expensify.com/app-release.apk"
+            href="https://play.google.com/apps/internaltest/4700657970395613233"
         >
             Android
         </Anchor>
