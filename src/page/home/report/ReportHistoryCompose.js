@@ -85,7 +85,7 @@ class ReportHistoryCompose extends React.Component {
                 <View style={[styles.chatItemComposeBox, styles.flexRow]}>
                     <TouchableOpacityNewTab
                         href={urlToNavigateTo}
-                        style={[styles.chatItemSubmitButton]}
+                        style={[styles.chatItemAttachButton]}
                         underlayColor={colors.componentBG}
                     >
                         <Image

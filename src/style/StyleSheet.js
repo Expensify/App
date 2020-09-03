@@ -549,8 +549,6 @@ const styles = {
         height: 'auto',
         minHeight: 38,
         padding: 10,
-        borderLeftColor: colors.border,
-        borderLeftWidth: 1,
     },
 
     chatItemSubmitButton: {
@@ -568,6 +566,18 @@ const styles = {
     chatItemSubmitButtonIcon: {
         height: 20,
         width: 20,
+    },
+
+    chatItemAttachButton: {
+        alignItems: 'center',
+        alignSelf: 'flex-end',
+        borderRightColor: colors.border,
+        borderRightWidth: 1,
+        height: 26,
+        marginBottom: 6,
+        marginTop: 6,
+        justifyContent: 'center',
+        width: 37,
     },
 
     chatSwitcherInputClear: {
