@@ -558,26 +558,28 @@ const styles = {
         paddingRight: 6,
         paddingBottom: 8,
         paddingLeft: 6,
+        margin: 3,
         justifyContent: 'center',
-    },
-
-    chatItemSubmitButtonMargin: {
-        marginLeft: 3,
-        marginTop: 3,
-        marginBottom: 3,
-        marginRight: 0,
-    },
-
-    chatItemAttachmentButtonMargin: {
-        marginLeft: 0,
-        marginTop: 3,
-        marginBottom: 3,
-        marginRight: 3
     },
 
     chatItemSubmitButtonIcon: {
         height: 20,
         width: 20,
+    },
+
+    chatItemAttachmentButton: {
+        alignSelf: 'flex-start',
+        height: 38,
+        paddingTop: 8,
+        paddingRight: 6,
+        paddingBottom: 8,
+        paddingLeft: 6,
+        marginLeft: 3,
+        marginRight: 3,
+        justifyContent: 'center',
+        backgroundColor: colors.componentBG,
+        borderRightColor: colors.border,
+        borderRightWidth: 1,
     },
 
     chatSwitcherInputClear: {
