@@ -8,9 +8,6 @@ import sendIcon from '../../../../assets/images/icon-send.png';
 const propTypes = {
     // A method to call when the form is submitted
     onSubmit: PropTypes.func.isRequired,
-
-    // The ID of the report actions will be created for
-    reportID: PropTypes.number.isRequired,
 };
 
 class ReportHistoryCompose extends React.Component {
@@ -69,7 +66,7 @@ class ReportHistoryCompose extends React.Component {
             return;
         }
 
-        this.props.onSubmit(this.props.reportID, trimmedComment);
+        this.props.onSubmit(trimmedComment);
         this.setState({
             comment: '',
         });
