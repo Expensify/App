@@ -2,18 +2,18 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ReportActionItemFragment from './ReportActionItemFragment';
-import ReportHistoryPropsTypes from './ReportActionPropsTypes';
+import ReportActionPropTypes from './ReportActionPropTypes';
 
 const propTypes = {
-    // The report history item
-    historyItem: PropTypes.shape(ReportHistoryPropsTypes).isRequired,
+    // The report action
+    action: PropTypes.shape(ReportActionPropTypes).isRequired,
 };
 
-const ReportActionItemMessage = ({historyItem}) => (
+const ReportActionItemMessage = ({action}) => (
     <>
-        {_.map(_.compact(historyItem.message), fragment => (
+        {_.map(_.compact(action.message), fragment => (
             <ReportActionItemFragment
-                key={_.uniqueId('historyItemFragment', historyItem.sequenceNumber)}
+                key={_.uniqueId('actionFragment', action.sequenceNumber)}
                 fragment={fragment}
             />
         ))}

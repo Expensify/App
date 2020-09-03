@@ -11,7 +11,7 @@ import IONKEYS from '../../../IONKEYS';
 import ReportActionItem from './ReportActionItem';
 import styles from '../../../style/StyleSheet';
 import {withRouter} from '../../../lib/Router';
-import ReportHistoryPropsTypes from './ReportActionPropsTypes';
+import ReportActionPropTypes from './ReportActionPropTypes';
 import compose from '../../../lib/compose';
 
 const propTypes = {
@@ -21,7 +21,7 @@ const propTypes = {
     /* Ion Props */
 
     // Array of report history items for this report
-    reportHistory: PropTypes.PropTypes.objectOf(PropTypes.shape(ReportHistoryPropsTypes)),
+    reportHistory: PropTypes.PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
 };
 
 const defaultProps = {

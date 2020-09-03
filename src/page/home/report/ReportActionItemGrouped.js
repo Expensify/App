@@ -1,13 +1,13 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import ReportHistoryPropsTypes from './ReportActionPropsTypes';
+import ReportActionPropTypes from './ReportActionPropTypes';
 import ReportActionItemMessage from './ReportActionItemMessage';
 import styles from '../../../style/StyleSheet';
 
 const propTypes = {
     // All the data of the history item
-    historyItem: PropTypes.shape(ReportHistoryPropsTypes).isRequired,
+    historyItem: PropTypes.shape(ReportActionPropTypes).isRequired,
 };
 
 class ReportActionItemGrouped extends React.PureComponent {
