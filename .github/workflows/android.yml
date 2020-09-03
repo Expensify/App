@@ -25,14 +25,6 @@ jobs:
         - name: Install node packages
           run: npm install
 
-        # TODO: Remove this step when Android app is approved in store
-        - name: Configure AWS Credentials
-          uses: aws-actions/configure-aws-credentials@v1
-          with:
-            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            aws-region: us-east-1
-
         - name: Decrypt keystore
           run: cd android/app && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output my-upload-key.keystore my-upload-key.keystore.gpg
           env:
@@ -42,14 +34,6 @@ jobs:
           run: cd android/app && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output android-fastlane-json-key.json android-fastlane-json-key.json.gpg
           env:
               LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
-        # TODO: Remove this step when Android app is approved in store
-        - name: Run Fastlane build
-          run: bundle exec fastlane android build
-
-        # TODO: Remove this step when Android app is approved in store
-        - name: Deploy to S3
-          run: aws s3 cp --acl public-read $GITHUB_WORKSPACE/android/app/build/outputs/apk/release/app-release.apk s3://chat-test-expensify-com/app-release.apk
 
         - name: Run Fastlane beta
           run: bundle exec fastlane android beta
