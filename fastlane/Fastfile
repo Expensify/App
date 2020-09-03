@@ -59,7 +59,7 @@ platform :ios do
         export_options: {
             method: "app-store",
             provisioningProfiles: {
-                "com.chat.expensify.chat" => "expensify_appstore"
+                "com.chat.expensify.chat" => "expensify_appstore.mobileprovision"
             }
         }
     )
