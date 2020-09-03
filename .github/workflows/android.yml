@@ -1,8 +1,10 @@
 name: Build and Deploy Android
 
+# This workflow is run when any tag is published
 on:
     push:
-        tags: ['**']
+        tags:
+            - '*'
 
 jobs:
     build:

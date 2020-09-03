@@ -10,6 +10,9 @@ jobs:
 
         steps:
             - uses: actions/checkout@v2
+              with:
+                  fetch-depth: 0
+                  token: ${{ secrets.BOTIFY_TOKEN }}
 
             - name: Setup Node
               uses: actions/setup-node@v1
@@ -19,23 +22,28 @@ jobs:
             - name: Install dependenices
               run: npm install
 
-            - name: Set git user
-              run: git config user.name github-action
+            - name: Set up git
+              run: |
+                git fetch
+                git checkout master
+                git config user.name botify
 
             - name: Checkout new branch
-              run: git checkout -b version-${{ github.sha }}
+              run: git checkout -b version-bump-${{ github.sha }}
 
             - name: Generate version
-              run: npm --no-git-tag-version version prerelease -m "Update version to %s"
+              run: npm version prerelease -m "Update version to %s"
 
             - name: Push new version
-              run: git push --set-upstream origin version-${{ github.sha }}
+              run: git push --set-upstream origin version-bump-${{ github.sha }}
+
+            - name: Push tags
+              run: git push --tags
 
             - name: Create Pull Request
               uses: repo-sync/pull-request@v2
               with:
-                    source_branch: version-${{ github.sha }}
+                    source_branch: version-bump-${{ github.sha }}
                     destination_branch: "master"
-                    pr_title: "Auto Version PR"
                     pr_label: "automerge"
-                    github_token: ${{ secrets.GITHUB_TOKEN }}
+                    github_token: ${{ secrets.BOTIFY_TOKEN }}
