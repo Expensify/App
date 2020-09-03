@@ -40,7 +40,7 @@ platform :ios do
 
     create_keychain(
         name: "ios-build.keychain",
-        password:keychain_password,
+        password: keychain_password,
         default_keychain: "true",
         unlock: "true",
         timeout: "3600",
