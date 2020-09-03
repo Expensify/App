@@ -9,6 +9,18 @@ import Str from './Str';
 import Guid from './Guid';
 import redirectToSignIn from './actions/SignInRedirect';
 
+let authToken;
+Ion.connect({key: IONKEYS.SESSION, path: 'authToken', callback: val => authToken = val});
+
+let isOffline;
+Ion.connect({key: IONKEYS.NETWORK, path: 'isOffline', callback: val => isOffline = val});
+
+let credentials;
+Ion.connect({key: IONKEYS.CREDENTIALS, callback: c => credentials = c});
+
+let currentUrl;
+Ion.connect({key: IONKEYS.CURRENT_URL, callback: url => currentUrl = url});
+
 /**
  * When authTokens expire they will automatically be refreshed.
  * The authorizer helps make sure that we are always passing the
@@ -19,18 +31,15 @@ Pusher.registerCustomAuthorizer((channel, {authEndpoint}) => ({
     authorize: (socketID, callback) => {
         console.debug('[Network] Attempting to authorize Pusher');
 
-        return Ion.get(IONKEYS.SESSION, 'authToken')
-            .then((authToken) => {
-                const formData = new FormData();
-                formData.append('socket_id', socketID);
-                formData.append('channel_name', channel.name);
-                formData.append('authToken', authToken);
+        const formData = new FormData();
+        formData.append('socket_id', socketID);
+        formData.append('channel_name', channel.name);
+        formData.append('authToken', authToken);
 
-                return fetch(authEndpoint, {
-                    method: 'POST',
-                    body: formData,
-                });
-            })
+        return fetch(authEndpoint, {
+            method: 'POST',
+            body: formData,
+        })
             .then(authResponse => authResponse.json())
             .then(data => callback(null, data))
             .catch((err) => {
@@ -61,13 +70,10 @@ const reconnectionCallbacks = [];
  * @param {boolean} isCurrentlyOffline
  */
 function setNewOfflineStatus(isCurrentlyOffline) {
-    Ion.get(IONKEYS.NETWORK, 'isOffline')
-        .then((prevWasOffline) => {
-            Ion.merge(IONKEYS.NETWORK, {isOffline: isCurrentlyOffline});
-            if (prevWasOffline && !isCurrentlyOffline) {
-                _.each(reconnectionCallbacks, cb => cb());
-            }
-        });
+    if (isOffline && !isCurrentlyOffline) {
+        _.each(reconnectionCallbacks, callback => callback());
+    }
+    Ion.merge(IONKEYS.NETWORK, {isOffline: isCurrentlyOffline});
 }
 
 // Subscribe to the state change event via NetInfo so we can update
@@ -160,21 +166,18 @@ function setSuccessfulSignInData(data, exitTo) {
  * @returns {Promise}
  */
 function xhr(command, data, type = 'post') {
-    return Ion.get(IONKEYS.SESSION, 'authToken')
-        .then((authToken) => {
-            const formData = new FormData();
+    const formData = new FormData();
 
-            // If we're calling Authenticate we don't need an authToken, so let's not send "undefined"
-            if (command !== 'Authenticate') {
-                formData.append('authToken', authToken);
-            }
-            _.each(data, (val, key) => formData.append(key, val));
-            return formData;
-        })
-        .then(formData => fetch(`${CONFIG.EXPENSIFY.API_ROOT}command=${command}`, {
-            method: type,
-            body: formData,
-        }))
+    // If we're calling Authenticate we don't need an authToken, so let's not send "undefined"
+    if (command !== 'Authenticate') {
+        formData.append('authToken', authToken);
+    }
+    _.each(data, (val, key) => formData.append(key, val));
+
+    return fetch(`${CONFIG.EXPENSIFY.API_ROOT}command=${command}`, {
+        method: type,
+        body: formData,
+    })
         .then(response => response.json())
 
         // This will catch any HTTP network errors (like 404s and such), not to be confused with jsonCode which this
@@ -264,34 +267,28 @@ function request(command, data, type = 'post') {
 
     // Make the http request, and if we get 407 jsonCode in the response,
     // re-authenticate to get a fresh authToken and make the original http request again
-    let authenticateResponse;
     return xhr(command, data, type)
         .then((responseData) => {
             if (!reauthenticating && responseData.jsonCode === 407 && data.doNotRetry !== true) {
                 reauthenticating = true;
-                return Ion.get(IONKEYS.CREDENTIALS)
-                    .then(({login, password}) => xhr('Authenticate', {
-                        useExpensifyLogin: false,
-                        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-                        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-                        partnerUserID: login,
-                        partnerUserSecret: password,
-                        twoFactorAuthCode: ''
-                    }))
+                return xhr('Authenticate', {
+                    useExpensifyLogin: false,
+                    partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+                    partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+                    partnerUserID: credentials.login,
+                    partnerUserSecret: credentials.password,
+                    twoFactorAuthCode: ''
+                })
                     .then((response) => {
-                        authenticateResponse = response;
-                        return Ion.get(IONKEYS.CURRENT_URL);
-                    })
-                    .then((exitTo) => {
                         reauthenticating = false;
 
                         // If authentication fails throw so that we hit
                         // the catch below and redirect to sign in
-                        if (authenticateResponse.jsonCode !== 200) {
-                            throw new Error(authenticateResponse.message);
+                        if (response.jsonCode !== 200) {
+                            throw new Error(response.message);
                         }
 
-                        return setSuccessfulSignInData(authenticateResponse, exitTo);
+                        return setSuccessfulSignInData(response, currentUrl);
                     })
                     .then(() => xhr(command, data, type))
                     .catch((error) => {
@@ -312,6 +309,11 @@ function request(command, data, type = 'post') {
                 return queueRequest(command, data);
             }
 
+            // Always update the authToken to be the authToken returned from any request
+            if (responseData.authToken) {
+                authToken = responseData.authToken;
+            }
+
             return responseData;
         });
 }
@@ -320,32 +322,29 @@ function request(command, data, type = 'post') {
  * Process the networkRequestQueue by looping through the queue and attempting to make the requests
  */
 function processNetworkRequestQueue() {
-    Ion.get(IONKEYS.NETWORK, 'isOffline')
-        .then((isOffline) => {
-            if (isOffline) {
-                // Two things will bring the app online again...
-                // 1. Pusher reconnecting (see registerSocketEventCallback at the top of this file)
-                // 2. Getting a 200 response back from the API (happens right below)
+    if (isOffline) {
+        // Two things will bring the app online again...
+        // 1. Pusher reconnecting (see registerSocketEventCallback at the top of this file)
+        // 2. Getting a 200 response back from the API (happens right below)
 
-                // Make a simple request every second to see if the API is online again
-                xhr('Get', {doNotRetry: true})
-                    .then(() => setNewOfflineStatus(false));
-                return;
-            }
+        // Make a simple request every second to see if the API is online again
+        xhr('Get', {doNotRetry: true})
+            .then(() => setNewOfflineStatus(false));
+        return;
+    }
 
-            // Don't make any requests until we're done re-authenticating since we'll use the new authToken
-            // from that response for the subsequent network requests
-            if (reauthenticating || networkRequestQueue.length === 0) {
-                return;
-            }
+    // Don't make any requests until we're done re-authenticating since we'll use the new authToken
+    // from that response for the subsequent network requests
+    if (reauthenticating || networkRequestQueue.length === 0) {
+        return;
+    }
 
-            _.each(networkRequestQueue, (queuedRequest) => {
-                request(queuedRequest.command, queuedRequest.data)
-                    .then(queuedRequest.callback);
-            });
+    _.each(networkRequestQueue, (queuedRequest) => {
+        request(queuedRequest.command, queuedRequest.data)
+            .then(queuedRequest.callback);
+    });
 
-            networkRequestQueue = [];
-        });
+    networkRequestQueue = [];
 }
 
 // Process our write queue very often
@@ -361,8 +360,17 @@ function onReconnect(cb) {
     reconnectionCallbacks.push(cb);
 }
 
+/**
+ * Get the authToken that the network uses
+ * @returns {string}
+ */
+function getAuthToken() {
+    return authToken;
+}
+
 export {
     request,
     queueRequest,
     onReconnect,
+    getAuthToken,
 };
