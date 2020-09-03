@@ -1,9 +1,9 @@
 import React from 'react';
 import HTML from 'react-native-render-html';
-import {Linking} from 'react-native';
+import {Linking, Dimensions} from 'react-native';
 import Str from '../../../lib/Str';
 import ReportHistoryFragmentPropTypes from './ReportHistoryFragmentPropTypes';
-import styles, {webViewStyles} from '../../../style/StyleSheet';
+import styles, {webViewStyles, widthBreakPoint} from '../../../style/StyleSheet';
 import Text from '../../../components/Text';
 import AnchorForCommentsOnly from '../../../components/AnchorForCommentsOnly';
 import {getAuthToken} from '../../../lib/Network';
@@ -48,6 +48,10 @@ class ReportHistoryItemFragment extends React.PureComponent {
 
         // We only want to attach auth tokens to images that come from Expensify attachments
         if (htmlNode.name === 'img' && htmlNode.attribs['data-expensify-source']) {
+            // Remove the '320.jpg' ending from image attachments to view the full size image
+            htmlNode.attribs.src = htmlNode.attribs.src.endsWith('.320.jpg')
+                ? htmlNode.attribs.src.substring(0, htmlNode.attribs.src.lastIndexOf('.320.jpg'))
+                : htmlNode.attribs.src;
             htmlNode.attribs.src = `${node.attribs.src}?authToken=${getAuthToken()}`;
             return htmlNode;
         }
@@ -55,6 +59,8 @@ class ReportHistoryItemFragment extends React.PureComponent {
 
     render() {
         const {fragment} = this.props;
+        const windowWidth = Dimensions.get('window').width;
+        const maxImageWidth = windowWidth > widthBreakPoint ? windowWidth / 4 : windowWidth / 1.5;
         switch (fragment.type) {
             case 'COMMENT':
                 // Only render HTML if we have html in the fragment
@@ -67,6 +73,8 @@ class ReportHistoryItemFragment extends React.PureComponent {
                             onLinkPress={(event, href) => Linking.openURL(href)}
                             html={fragment.html}
                             alterNode={this.alterNode}
+                            imagesMaxWidth={maxImageWidth}
+                            imagesInitialDimensions={{width: maxImageWidth}}
                         />
                     )
                     : <Text>{Str.htmlDecode(fragment.text)}</Text>;
