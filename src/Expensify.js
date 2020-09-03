@@ -17,6 +17,7 @@ import {
     Redirect,
     Switch
 } from './lib/Router';
+import ROUTES from './ROUTES';
 
 // Initialize the store when the app loads for the first time
 Ion.init();
@@ -36,23 +37,32 @@ class Expensify extends Component {
     constructor(props) {
         super(props);
 
+        // Initialize this client as being an active client
+        ActiveClientManager.init();
+
         this.recordCurrentRoute = this.recordCurrentRoute.bind(this);
+        this.removeLoadingState = this.removeLoadingState.bind(this);
 
         this.state = {
-            loading: true,
-            authToken: '',
+            isLoading: true,
+            authToken: null,
         };
     }
 
     componentDidMount() {
-        // We need to delay initializing the main app so we can check for an authToken and
-        // redirect to the signin page if we do not have one. Otherwise when the app inits
-        // we will fall through to the homepage and the user will see a brief flash of the main
-        // app experience.
-        Ion.get(IONKEYS.SESSION, 'authToken', '')
-            .then((authToken) => {
-                this.setState({loading: false, authToken});
-            });
+        Ion.connect({key: IONKEYS.SESSION, path: 'authToken', callback: this.removeLoadingState});
+    }
+
+    /**
+     * When the authToken is updated, the app should remove the loading state and handle the authToken
+     *
+     * @param {string} authToken
+     */
+    removeLoadingState(authToken) {
+        this.setState({
+            authToken,
+            isLoading: false,
+        });
     }
 
     /**
@@ -65,15 +75,16 @@ class Expensify extends Component {
     }
 
     render() {
-        if (this.state.loading) {
+        // Until the authToken has been initialized from Ion, display a blank page
+        if (this.state.isLoading) {
             return (
                 <View style={styles.genericView} />
             );
         }
 
-        // We can only have a redirectTo if this is not the initial render so if we have one we'll
-        // always navigate to it. If we are not authenticated by this point then we'll force navigate to sign in.
-        const redirectTo = this.props.redirectTo || (!this.state.authToken && '/signin');
+        const redirectTo = !this.state.authToken
+            ? ROUTES.SIGNIN
+            : this.props.redirectTo;
 
         return (
 
@@ -81,7 +92,8 @@ class Expensify extends Component {
             // <Beforeunload onBeforeunload={ActiveClientManager.removeClient}>
             <Router>
                 {/* If there is ever a property for redirecting, we do the redirect here */}
-                {redirectTo && <Redirect to={redirectTo} />}
+                {/* Leave this as a ternary or else iOS throws an error about text not being wrapped in <Text> */}
+                {redirectTo ? <Redirect to={redirectTo} /> : null}
                 <Route path="*" render={this.recordCurrentRoute} />
 
                 <Switch>
@@ -101,10 +113,6 @@ Expensify.defaultProps = defaultProps;
 export default withIon({
     redirectTo: {
         key: IONKEYS.APP_REDIRECT_TO,
-        loader: () => {
-            // Initialize this client as being an active client
-            ActiveClientManager.init();
-        },
 
         // Prevent the prefilling of Ion data or else the app will always redirect to what the last value was set to.
         // This ends up in a situation where you go to a report, refresh the page, and then rather than seeing the

@@ -5,6 +5,9 @@ import PropTypes from 'prop-types';
 const propTypes = {
     // Maximum number of lines in the text input
     maxLines: PropTypes.number,
+
+    // The value of the comment box
+    value: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
@@ -21,15 +24,18 @@ class TextInputFocusable extends React.Component {
         this.state = {
             numberOfLines: 1,
         };
-        this.updateNumberOfLines = this.updateNumberOfLines.bind(this);
     }
 
     componentDidMount() {
         this.focusInput();
     }
 
-    componentDidUpdate() {
+    componentDidUpdate(prevProps) {
         this.focusInput();
+
+        if (prevProps.value !== this.props.value) {
+            this.updateNumberOfLines();
+        }
     }
 
     /**
@@ -52,11 +58,9 @@ class TextInputFocusable extends React.Component {
      * Check the current scrollHeight of the textarea (minus any padding) and
      * divide by line height to get the total number of rows for the textarea.
      *
-     * @param {object} event
      */
-    updateNumberOfLines(event) {
-        const target = event.nativeEvent.target;
-        const computedStyle = window.getComputedStyle(target);
+    updateNumberOfLines() {
+        const computedStyle = window.getComputedStyle(this.textInput);
         const lineHeight = parseInt(computedStyle.lineHeight, 10) || 20;
         const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10)
             + parseInt(computedStyle.paddingTop, 10);
@@ -65,7 +69,7 @@ class TextInputFocusable extends React.Component {
         // affected by the previous row setting. If we don't, rows will be added but not removed on backspace/delete.
         this.setState({numberOfLines: 1}, () => {
             this.setState({
-                numberOfLines: this.getNumberOfLines(lineHeight, paddingTopAndBottom, target.scrollHeight)
+                numberOfLines: this.getNumberOfLines(lineHeight, paddingTopAndBottom, this.textInput.scrollHeight)
             });
         });
     }
@@ -78,8 +82,8 @@ class TextInputFocusable extends React.Component {
         return (
             <TextInput
                 ref={el => this.textInput = el}
-                onChange={(event) => {
-                    this.updateNumberOfLines(event);
+                onChange={() => {
+                    this.updateNumberOfLines();
                 }}
                 numberOfLines={this.state.numberOfLines}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
