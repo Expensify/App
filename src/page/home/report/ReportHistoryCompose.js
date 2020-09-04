@@ -5,8 +5,7 @@ import styles, {colors} from '../../../style/StyleSheet';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 import sendIcon from '../../../../assets/images/icon-send.png';
 import paperClipIcon from '../../../../assets/images/icon-paper-clip.png';
-import TouchableOpacityNewTab from '../../../components/TouchableOpacityNewTab';
-import CONFIG from '../../../CONFIG';
+import ImagePicker from '../../../lib/ImagePicker';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -24,6 +23,7 @@ class ReportHistoryCompose extends React.Component {
         this.submitForm = this.submitForm.bind(this);
         this.triggerSubmitShortcut = this.triggerSubmitShortcut.bind(this);
         this.submitForm = this.submitForm.bind(this);
+        this.onAttachmentButtonTapped = this.onAttachmentButtonTapped.bind(this);
 
         this.state = {
             comment: '',
@@ -31,13 +31,34 @@ class ReportHistoryCompose extends React.Component {
     }
 
     /**
-     * Update the value of the comment input in the state
+     * Handle the attachment icon being tapped
      *
-     * @param {string} newComment
+     * @param {SyntheticEvent} [e]
      */
-    updateComment(newComment) {
-        this.setState({
-            comment: newComment,
+    onAttachmentButtonTapped(e) {
+        if (e) {
+            e.preventDefault();
+        }
+
+        ImagePicker.showImagePicker((response) => {
+            console.log('Response = ', response);
+
+            if (response.didCancel) {
+                console.log('User cancelled image picker');
+            } else if (response.error) {
+                console.log('ImagePicker Error: ', response.error);
+            } else if (response.customButton) {
+                console.log('User tapped custom button: ', response.customButton);
+            } else {
+                const source = {uri: response.uri};
+                console.log('Source: ', source);
+
+                // You can also display the image using data:
+                // const source = { uri: 'data:image/jpeg;base64,' + response.data };
+                // this.setState({
+                //     avatarSource: source,
+                // });
+            }
         });
     }
 
@@ -78,13 +99,23 @@ class ReportHistoryCompose extends React.Component {
         });
     }
 
+    /**
+     * Update the value of the comment input in the state
+     *
+     * @param {string} newComment
+     */
+    updateComment(newComment) {
+        this.setState({
+            comment: newComment,
+        });
+    }
+
     render() {
-        const href = `${CONFIG.PUSHER.AUTH_URL}/report?reportID=${this.props.reportID}&shouldScrollToLastUnread=true`;
         return (
             <View style={[styles.chatItemCompose]}>
                 <View style={[styles.chatItemComposeBox, styles.flexRow]}>
-                    <TouchableOpacityNewTab
-                        href={href}
+                    <TouchableOpacity
+                        onPress={this.onAttachmentButtonTapped}
                         style={[styles.chatItemAttachButton]}
                         underlayColor={colors.componentBG}
                     >
@@ -93,7 +124,7 @@ class ReportHistoryCompose extends React.Component {
                             resizeMode="contain"
                             source={paperClipIcon}
                         />
-                    </TouchableOpacityNewTab>
+                    </TouchableOpacity>
                     <TextInputFocusable
                         multiline
                         textAlignVertical="top"
