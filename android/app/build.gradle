@@ -135,7 +135,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.expensifyreactnative.chat"
+        applicationId "com.expensify.chat"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 36
