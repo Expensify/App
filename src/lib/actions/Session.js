@@ -52,15 +52,14 @@ function deleteLogin(authToken, login) {
 
 /**
  * Sign out of our application
- *
- * @returns {Promise}
  */
 function signOut() {
-    return redirectToSignIn()
-        .then(() => Ion.multiGet([IONKEYS.SESSION, IONKEYS.CREDENTIALS]))
+    Ion.multiGet([IONKEYS.SESSION, IONKEYS.CREDENTIALS])
         .then(data => deleteLogin(data.session.authToken, data.credentials.login))
         .then(Ion.clear)
         .catch(err => Ion.merge(IONKEYS.SESSION, {error: err.message}));
+
+    redirectToSignIn();
 }
 
 export {
