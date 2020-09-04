@@ -197,12 +197,12 @@ function request(command, parameters, type = 'post') {
                     .then(() => xhr(command, parametersWithAuthToken, type))
                     .catch((error) => {
                         reauthenticating = false;
-                        return Ion.multiSet({
+                        Ion.multiSet({
                             [IONKEYS.CREDENTIALS]: {},
                             [IONKEYS.SESSION]: {error: error.message},
                         })
-                            .then(redirectToSignIn)
-                            .then(() => Promise.reject());
+                        redirectToSignIn();
+                        return Promise.reject();
                     });
             }
 
