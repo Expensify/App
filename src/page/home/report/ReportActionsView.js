@@ -15,6 +15,10 @@ import ReportActionPropTypes from './ReportActionPropTypes';
 import compose from '../../../lib/compose';
 
 const propTypes = {
+    // These are from withRouter
+    // eslint-disable-next-line react/forbid-prop-types
+    match: PropTypes.object.isRequired,
+
     // The ID of the report actions will be created for
     reportID: PropTypes.number.isRequired,
 
@@ -133,7 +137,7 @@ class ReportActionsView extends React.Component {
 
     /**
      * This function is triggered from the ref callback for the scrollview. That way it can be scrolled once all the
-     * items have been rendered. If the number of actions have changed since it was last rendered, then
+     * items have been rendered. If the number of actions has changed since it was last rendered, then
      * scroll the list to the end.
      */
     scrollToListBottom() {

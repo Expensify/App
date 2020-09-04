@@ -35,10 +35,6 @@ const defaultProps = {
 };
 
 const SidebarLink = (props) => {
-    if (!props.reportName) {
-        return null;
-    }
-
     const reportIDInUrl = parseInt(props.match.params.reportID, 10);
     const isReportActive = reportIDInUrl === props.reportID;
     const linkWrapperActiveStyle = isReportActive && styles.sidebarLinkWrapperActive;
