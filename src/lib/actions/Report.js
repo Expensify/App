@@ -35,6 +35,9 @@ Ion.connect({key: IONKEYS.MY_PERSONAL_DETAILS, callback: val => myPersonalDetail
 
 const reportMaxSequenceNumbers = {};
 
+// List of reportIDs that we define in .env
+const configReportIDs = CONFIG.REPORT_IDS.split(',').map(Number);
+
 /**
  * Checks the report to see if there are any unread action items
  *
@@ -48,18 +51,18 @@ function hasUnreadActions(accountID, report) {
         return false;
     }
 
-    // Find the most recent sequence number from the report actions
-    const lastReportAction = _.chain(report.reportActionList)
+    // Find the most recent sequence number from the report history
+    const sequenceNumber = _.chain(report.reportActionList)
         .pluck('sequenceNumber')
         .max()
         .value();
 
-    if (!lastReportAction) {
+    if (!sequenceNumber) {
         return false;
     }
 
     // There are unread items if the last one the user has read is less than the highest sequence number we have
-    return usersLastReadActionID < lastReportAction.sequenceNumber;
+    return usersLastReadActionID < sequenceNumber;
 }
 
 /**
@@ -78,6 +81,7 @@ function getSimplifiedReportObject(report) {
         reportName: report.reportName,
         reportNameValuePairs: report.reportNameValuePairs,
         hasUnread: hasUnreadActions(currentUserAccountID, report),
+        pinnedReport: configReportIDs.includes(report.reportID),
     };
 }
 
@@ -145,6 +149,23 @@ function fetchChatReportsByIDs(chatList) {
             });
 
             return Promise.all(ionPromises);
+        });
+}
+
+/**
+ * Get the history of a report
+ *
+ * @param {string} reportID
+ * @returns {Promise}
+ */
+function fetchHistory(reportID) {
+    return queueRequest('Report_GetHistory', {
+        reportID,
+        offset: 0,
+    })
+        .then((data) => {
+            const indexedData = _.indexBy(data.history, 'sequenceNumber');
+            Ion.set(`${IONKEYS.REPORT_HISTORY}_${reportID}`, indexedData);
         });
 }
 
@@ -236,7 +257,7 @@ function fetchAll() {
     let fetchedReports;
 
     // Request each report one at a time to allow individual reports to fail if access to it is prevented by Auth
-    const reportFetchPromises = _.map(CONFIG.REPORT_IDS.split(','), reportID => queueRequest('Get', {
+    const reportFetchPromises = _.map(configReportIDs, reportID => queueRequest('Get', {
         returnValueList: 'reportStuff',
         reportIDList: reportID,
         shouldLoadOptionalKeys: true,
