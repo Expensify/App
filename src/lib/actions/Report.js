@@ -52,17 +52,15 @@ function hasUnreadActions(accountID, report) {
     }
 
     // Find the most recent sequence number from the report history
-    const sequenceNumber = _.chain(report.reportActionList)
-        .pluck('sequenceNumber')
-        .max()
-        .value();
+    const maxSequenceNumber = reportMaxSequenceNumbers[report.reportID];
 
-    if (!sequenceNumber) {
+    if (!maxSequenceNumber) {
         return false;
     }
+    console.log('unread', maxSequenceNumber, usersLastReadActionID);
 
     // There are unread items if the last one the user has read is less than the highest sequence number we have
-    return usersLastReadActionID < sequenceNumber;
+    return usersLastReadActionID < maxSequenceNumber;
 }
 
 /**
@@ -149,23 +147,6 @@ function fetchChatReportsByIDs(chatList) {
             });
 
             return Promise.all(ionPromises);
-        });
-}
-
-/**
- * Get the history of a report
- *
- * @param {string} reportID
- * @returns {Promise}
- */
-function fetchHistory(reportID) {
-    return queueRequest('Report_GetHistory', {
-        reportID,
-        offset: 0,
-    })
-        .then((data) => {
-            const indexedData = _.indexBy(data.history, 'sequenceNumber');
-            Ion.set(`${IONKEYS.REPORT_HISTORY}_${reportID}`, indexedData);
         });
 }
 
