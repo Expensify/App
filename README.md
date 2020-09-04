@@ -22,7 +22,7 @@ This application is built with the following principles.
 ## Running the web app 🕸
 * To run a **Development Server**: `npm run web`
 * To build a **production build**: `npm run build`
-* Changes applied to Javascript will be applied automatically
+* Changes applied to Javascript will be applied automatically via WebPack as configured in `webpack.dev.js`
 
 ## Running the iOS app 📱
 * To install the iOS dependencies, run: `cd ios/ && pod install`
@@ -40,9 +40,8 @@ This application is built with the following principles.
 * To run a on a **Development Emulator**: `npm run android`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
-## Running the desktop app 🖥
- * To run the **Development app**, run: `npm run desktop`
- * To build a **production build**, run: `npm run desktop-build`
+## Running the MacOS desktop app 🖥
+ * To run the **Development app**, run: `npm run desktop`, this will start a new Electron process running on your MacOS desktop in the `dist/Mac` folder.
 
 ## Running the tests 🎰
 * To run the **Jest Unit Tests**: `npm run test`
@@ -59,13 +58,13 @@ This application is built with the following principles.
 # Deploying 
 ##  Continuous deployment / GitHub workflows
 Every PR merged into `master` will kick off the **Create a new version** GitHub workflow defined in `.github/workflows/version.yml`.
-It will look at the current version and increment it by one build version, create a PR with that new version, and tag the version.
+It will look at the current version and increment it by one build version (using [`react-native-version`](https://www.npmjs.com/package/react-native-version)), create a PR with that new version, and tag the version.
 
 The PR will be merged automatically by the GitHub workflow **automerge** to keep the version always up to date.
 
 When a new tag is pushed, it will trigger a deploy of all four clients:
 1. The **web** app automatically deploys via a GitHub Action in `.github/workflows/main.yml`
-2. The **desktop** app automatically deploys via a GitHub Action in `.github/workflows/desktop.yml`
+2. The **MacOS desktop** app automatically deploys via a GitHub Action in `.github/workflows/desktop.yml`
 3. The **Android** app automatically deploys via a GitHub Action in `.github/workflows/android.yml`
 4. The **iOS** app automatically deploys via a GitHub Action in `.github/workflows/ios.yml`
 
@@ -75,7 +74,7 @@ Sometimes it might be beneficial to generate a local production version instead 
 ## Local production build of the web app
 In order to generate a production web build, run `npm run build`, this will generate a production javascript build in the `dist/` folder.
 
-## Local production build of the desktop app
+## Local production build of the MacOS desktop app
 In order to compile a production desktop build, run `npm run desktop-build`, this will generate a production app in the `dist/Mac` folder named `Chat.app`.
   
 #### Local production build the iOS app
