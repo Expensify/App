@@ -447,9 +447,6 @@ function handleReportChanged(report) {
 
     reportMaxSequenceNumbers[val.reportID] = val.maxSequenceNumber;
 }
-
-// Listen for all reports added to Ion and if there is one that doesn't have a name, then
-// fetch that report from the server so that it has all updated information about it
 Ion.connect({
     key: `${IONKEYS.REPORT}_[0-9]+$`,
     callback: handleReportChanged
