@@ -42,9 +42,11 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        const isReportVisible = this.props.reportID === this.props.match.params.reportID;
+
         // When the number of actions change, wait three seconds, then record the max action
         // This will make the unread indicator go away if you receive comments in the same chat you're looking at
-        if (_.size(prevProps.reportActions) !== _.size(this.props.reportActions)) {
+        if (isReportVisible && _.size(prevProps.reportActions) !== _.size(this.props.reportActions)) {
             setTimeout(this.recordMaxAction, 3000);
         }
     }
