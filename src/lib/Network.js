@@ -10,7 +10,7 @@ import IONKEYS from '../IONKEYS';
  *
  * @param {boolean} isCurrentlyOffline
  */
-function setNewOfflineStatus(isCurrentlyOffline) {
+function setOfflineStatus(isCurrentlyOffline) {
     Ion.merge(IONKEYS.NETWORK, {isOffline: isCurrentlyOffline});
 }
 
@@ -18,7 +18,7 @@ function setNewOfflineStatus(isCurrentlyOffline) {
 // whether a user has internet connectivity or not. This is more reliable
 // than the Pusher `disconnected` event which takes about 10-15 seconds to emit
 NetInfo.addEventListener((state) => {
-    setNewOfflineStatus(!state.isConnected);
+    setOfflineStatus(!state.isConnected);
 });
 
 /**
@@ -47,7 +47,7 @@ function xhr(command, data, type = 'post') {
         // This will catch any HTTP network errors (like 404s and such), not to be confused with jsonCode which this
         // does NOT catch
         .catch(() => {
-            setNewOfflineStatus(true);
+            setOfflineStatus(true);
 
             // Throw a new error to prevent any other `then()` in the promise chain from being triggered (until another
             // catch() happens
@@ -57,5 +57,5 @@ function xhr(command, data, type = 'post') {
 
 export {
     xhr,
-    setNewOfflineStatus,
+    setOfflineStatus,
 };

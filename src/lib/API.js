@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import Ion from './Ion';
 import IONKEYS from '../IONKEYS';
-import {xhr, setNewOfflineStatus} from './Network';
+import {xhr, setOfflineStatus} from './Network';
 import CONFIG from '../CONFIG';
 import * as Pusher from './Pusher/pusher';
 import ROUTES from '../ROUTES';
@@ -234,7 +234,7 @@ function processNetworkRequestQueue() {
 
         // Make a simple request every second to see if the API is online again
         xhr('Get', {doNotRetry: true})
-            .then(() => setNewOfflineStatus(false));
+            .then(() => setOfflineStatus(false));
         return;
     }
 
@@ -310,7 +310,7 @@ Pusher.registerSocketEventCallback((eventName, data) => {
         default:
             break;
     }
-    setNewOfflineStatus(isCurrentlyOffline);
+    setOfflineStatus(isCurrentlyOffline);
 });
 
 /**
