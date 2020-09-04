@@ -70,10 +70,14 @@ class ReportHistoryItemFragment extends React.PureComponent {
                             alterNode={this.alterNode}
                         />
                     )
-                    : <Text>{Str.htmlDecode(fragment.text)}</Text>;
+                    : <Text 
+                        selectable
+                        >{Str.htmlDecode(fragment.text)}</Text>;
             case 'TEXT':
                 return (
-                    <Text style={[styles.chatItemMessageHeaderSender]}>
+                    <Text 
+                        selectable
+                        style={[styles.chatItemMessageHeaderSender]}>
                         {Str.htmlDecode(fragment.text)}
                     </Text>
                 );
