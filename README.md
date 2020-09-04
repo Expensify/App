@@ -17,8 +17,7 @@ This application is built with the following principles.
 1. Install `node` & `npm`: `brew install node`
 2. Install `watchman`: `brew install watchman`
 3. Install dependencies: `npm install`
-4. Run `cp .env.example .env` and edit `.env` to have your local config options
-
+4. Run `cp .env.example .env` and edit `.env` to have your local config options(for example, we are curretly hardcoding the pinned chat reports IDs with the `REPORT_IDS` config option).
 ## Running the web app 🕸
 * To run a **Development Server**: `npm run web`
 * To build a **production build**: `npm run build`
