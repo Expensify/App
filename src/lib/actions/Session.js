@@ -4,6 +4,18 @@ import IONKEYS from '../../IONKEYS';
 import CONFIG from '../../CONFIG';
 import redirectToSignIn from './SignInRedirect';
 
+let session;
+Ion.connect({
+    key: IONKEYS.SESSION,
+    callback: val => session = val,
+});
+
+let credentials;
+Ion.connect({
+    key: IONKEYS.CREDENTIALS,
+    callback: val => credentials = val,
+});
+
 /**
  * Sign in with the API
  *
@@ -54,8 +66,7 @@ function deleteLogin(authToken, login) {
  * Sign out of our application
  */
 function signOut() {
-    Ion.multiGet([IONKEYS.SESSION, IONKEYS.CREDENTIALS])
-        .then(data => deleteLogin(data.session.authToken, data.credentials.login))
+    deleteLogin(session.authToken, credentials.login)
         .then(Ion.clear)
         .catch(err => Ion.merge(IONKEYS.SESSION, {error: err.message}));
 
