@@ -243,7 +243,6 @@ const Ion = {
     disconnect,
     set,
     multiSet,
-    get,
     multiGet,
     merge,
     clear,
