@@ -41,16 +41,16 @@ class ReportActionsView extends React.Component {
         this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
     }
 
-    componentWillUnmount() {
-        this.keyboardEvent.remove();
-    }
-
     componentDidUpdate(prevProps) {
         // When the number of actions change, wait three seconds, then record the max action
         // This will make the unread indicator go away if you receive comments in the same chat you're looking at
         if (_.size(prevProps.reportActions) !== _.size(this.props.reportActions)){
             setTimeout(this.recordMaxAction, 3000);
         }
+    }
+
+    componentWillUnmount() {
+        this.keyboardEvent.remove();
     }
 
     /**
@@ -123,7 +123,6 @@ class ReportActionsView extends React.Component {
                 return Ion.get(`${IONKEYS.REPORT}_${this.props.reportID}`, path, 0);
             })
             .then((lastReadActionID) => {
-                console.log('unread', maxSequenceNumber, lastReadActionID);
                 if (maxSequenceNumber > lastReadActionID) {
                     updateLastReadActionID(myAccountID, this.props.reportID, maxSequenceNumber);
                 }

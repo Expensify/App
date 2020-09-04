@@ -125,9 +125,12 @@ function fetchChatReportsByIDs(chatList) {
                 .unique()
                 .value();
 
-            return PersonalDetails.getForEmails(emails.join(','));
-        })
-        .then(() => {
+            // Fetch the person details if there are any
+            if (emails && emails.length !== 0) {
+                PersonalDetails.getForEmails(emails.join(','));
+            }
+
+
             // Process the reports and store them in Ion
             const ionPromises = _.map(fetchedReports, (report) => {
                 const newReport = getSimplifiedReportObject(report);
@@ -246,28 +249,30 @@ function fetchAll() {
     reportFetchPromises.push(fetchChatReports());
 
     return promiseAllSettled(reportFetchPromises)
-        .then(data => fetchedReports = _.compact(_.map(data, (promiseResult) => {
-            // Grab the report from the promise result which stores it in the `value` key
-            const report = lodashGet(promiseResult, 'value.reports', {});
+        .then((data) => {
+            fetchedReports = _.compact(_.map(data, (promiseResult) => {
+                // Grab the report from the promise result which stores it in the `value` key
+                const report = lodashGet(promiseResult, 'value.reports', {});
 
-            // If there is no report found from the promise, return null
-            // Otherwise, grab the actual report object from the first index in the values array
-            return _.isEmpty(report) ? null : _.values(report)[0];
-        })))
-        .then(() => Ion.set(IONKEYS.FIRST_REPORT_ID, _.first(_.pluck(fetchedReports, 'reportID')) || 0))
-        .then(() => {
-            const ionPromises = _.map(fetchedReports, (report) => {
+                // If there is no report found from the promise, return null
+                // Otherwise, grab the actual report object from the first index in the values array
+                return _.isEmpty(report) ? null : _.values(report)[0];
+            }));
+
+            // Store the first report ID in Ion
+            Ion.set(IONKEYS.FIRST_REPORT_ID, _.first(_.pluck(fetchedReports, 'reportID')) || 0);
+
+            _.each(fetchedReports, (report) => {
                 // Store only the absolute bare minimum of data in Ion because space is limited
                 const newReport = getSimplifiedReportObject(report);
 
                 // Merge the data into Ion. Don't use set() here or multiSet() because then that would
                 // overwrite any existing data (like if they have unread messages)
-                return Ion.merge(`${IONKEYS.REPORT}_${report.reportID}`, newReport);
+                Ion.merge(`${IONKEYS.REPORT}_${report.reportID}`, newReport);
             });
 
-            return promiseAllSettled(ionPromises);
-        })
-        .then(() => fetchedReports);
+            return fetchedReports;
+        });
 }
 
 /**
@@ -308,15 +313,17 @@ function fetchOrCreateChatReport(participants) {
         emailList: participants.join(','),
     })
 
-        // Set aside the reportID in a local variable so it can be accessed in the rest of the chain
-        .then(data => reportID = data.reportID)
+        .then((data) => {
+            // Set aside the reportID in a local variable so it can be accessed in the rest of the chain
+            reportID = data.reportID;
 
-        // Make a request to get all the information about the report
-        .then(() => queueRequest('Get', {
-            returnValueList: 'reportStuff',
-            reportIDList: reportID,
-            shouldLoadOptionalKeys: true,
-        }))
+            // Make a request to get all the information about the report
+            return queueRequest('Get', {
+                returnValueList: 'reportStuff',
+                reportIDList: reportID,
+                shouldLoadOptionalKeys: true,
+            });
+        })
 
         // Put the report object into Ion
         .then((data) => {
@@ -328,11 +335,11 @@ function fetchOrCreateChatReport(participants) {
 
             // Merge the data into Ion. Don't use set() here or multiSet() because then that would
             // overwrite any existing data (like if they have unread messages)
-            return Ion.merge(`${IONKEYS.REPORT}_${reportID}`, newReport);
-        })
+            Ion.merge(`${IONKEYS.REPORT}_${reportID}`, newReport);
 
-        // Return the reportID as the final return value
-        .then(() => reportID);
+            // Return the reportID as the final return value
+            return reportID;
+        });
 }
 
 /**
@@ -400,23 +407,23 @@ function addAction(reportID, text) {
  * @param {string} accountID
  * @param {string} reportID
  * @param {number} sequenceNumber
- * @returns {Promise}
  */
 function updateLastReadActionID(accountID, reportID, sequenceNumber) {
     // Mark the report as not having any unread items
-    return Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {
+    Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {
         hasUnread: false,
         reportNameValuePairs: {
             [`lastReadActionID_${accountID}`]: sequenceNumber,
         }
-    })
+    });
 
-        // Update the lastReadActionID on the report optimistically
-        .then(() => queueRequest('Report_SetLastReadActionID', {
-            accountID,
-            reportID,
-            sequenceNumber,
-        }));
+
+    // Update the lastReadActionID on the report optimistically
+    queueRequest('Report_SetLastReadActionID', {
+        accountID,
+        reportID,
+        sequenceNumber,
+    });
 }
 
 // When the app reconnects from being offline, fetch all of the reports and their actions
@@ -442,7 +449,6 @@ Ion.connect({
         reportMaxSequenceNumbers[val.reportID] = val.maxSequenceNumber;
     }
 });
-
 export {
     fetchAll,
     fetchActions,
