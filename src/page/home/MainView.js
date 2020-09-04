@@ -55,7 +55,7 @@ class MainView extends React.Component {
 
         return (
             <>
-                {_.map(this.props.reports, report => report.reportID && (
+                {_.map(this.props.reports, report => (
                     <View
                         key={report.reportID}
                         style={reportStyles[report.reportID]}

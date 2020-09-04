@@ -11,27 +11,37 @@ import ExpensiMark from '../ExpensiMark';
 import Notification from '../Notification';
 import * as PersonalDetails from './PersonalDetails';
 
-// Disabling these rules makes the following code more compact and easier to read for these instances
-/* eslint-disable object-curly-newline,object-property-newline */
 let currentUserEmail;
 let currentUserAccountID;
-Ion.connect({key: IONKEYS.SESSION, callback: (val) => {
-    if (val) {
-        currentUserEmail = val.email;
-        currentUserAccountID = val.accountID;
+Ion.connect({
+    key: IONKEYS.SESSION,
+    callback: (val) => {
+        // When signed out, val is undefined
+        if (val) {
+            currentUserEmail = val.email;
+            currentUserAccountID = val.accountID;
+        }
     }
-}});
+});
 
 let currentURL;
-Ion.connect({key: IONKEYS.CURRENT_URL, callback: val => currentURL = val});
+Ion.connect({
+    key: IONKEYS.CURRENT_URL,
+    callback: val => currentURL = val,
+});
 
 // Use a regex pattern here for an exact match so it doesn't also match "my_personal_details"
 let personalDetails;
-Ion.connect({key: `^${IONKEYS.PERSONAL_DETAILS}$`, callback: val => personalDetails = val});
+Ion.connect({
+    key: `^${IONKEYS.PERSONAL_DETAILS}$`,
+    callback: val => personalDetails = val,
+});
 
 let myPersonalDetails;
-Ion.connect({key: IONKEYS.MY_PERSONAL_DETAILS, callback: val => myPersonalDetails = val});
-/* eslint-enable object-curly-newline,object-property-newline */
+Ion.connect({
+    key: IONKEYS.MY_PERSONAL_DETAILS,
+    callback: val => myPersonalDetails = val,
+});
 
 const reportMaxSequenceNumbers = {};
 
@@ -159,7 +169,7 @@ function fetchChatReportsByIDs(chatList) {
 /**
  * Updates a report in the store with a new report action
  *
- * @param {string} reportID
+ * @param {number} reportID
  * @param {object} reportAction
  */
 function updateReportWithNewAction(reportID, reportAction) {
@@ -283,7 +293,7 @@ function fetchAll() {
 /**
  * Get the actions of a report
  *
- * @param {string} reportID
+ * @param {number} reportID
  * @returns {Promise}
  */
 function fetchActions(reportID) {
@@ -304,13 +314,11 @@ function fetchActions(reportID) {
  * set of participants
  *
  * @param {string[]} participants
- * @returns {Promise}
+ * @returns {Promise} resolves with reportID
  */
 function fetchOrCreateChatReport(participants) {
     let reportID;
 
-    // Get the current users accountID and set it aside in a local variable
-    // which is used for checking if there are unread comments
     return queueRequest('CreateChatReport', {
         emailList: participants.join(','),
     })
@@ -347,7 +355,7 @@ function fetchOrCreateChatReport(participants) {
 /**
  * Add an action item to a report
  *
- * @param {string} reportID
+ * @param {number} reportID
  * @param {string} text
  */
 function addAction(reportID, text) {
@@ -407,7 +415,7 @@ function addAction(reportID, text) {
  * network layer handle the delayed write.
  *
  * @param {string} accountID
- * @param {string} reportID
+ * @param {number} reportID
  * @param {number} sequenceNumber
  */
 function updateLastReadActionID(accountID, reportID, sequenceNumber) {
