@@ -199,6 +199,7 @@ function updateReportWithNewAction(reportID, reportAction) {
 
     // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
     if (reportAction.actorEmail === currentUserEmail) {
+        console.debug('[NOTIFICATION] No notification because comment is from the currently logged in user');
         return;
     }
 
@@ -206,9 +207,11 @@ function updateReportWithNewAction(reportID, reportAction) {
 
     // If we are currently viewing this report do not show a notification.
     if (reportID === currentReportID) {
+        console.debug('[NOTIFICATION] No notification because it was a comment for the current report');
         return;
     }
 
+    console.debug('[NOTIFICATION] Creating notification');
     Notification.showCommentNotification({
         reportAction,
         onClick: () => {
