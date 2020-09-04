@@ -8,7 +8,7 @@ import CONST from '../../CONST';
 let currentUserEmail;
 Ion.connect({
     key: IONKEYS.SESSION,
-    callback: val => currentUserEmail = val.email;
+    callback: val => currentUserEmail = val.email,
 });
 
 /**

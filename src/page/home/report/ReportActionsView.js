@@ -121,18 +121,7 @@ class ReportActionsView extends React.Component {
      * @param {number} maxSequenceNumber
      */
     recordlastReadActionID(maxSequenceNumber) {
-        let myAccountID;
-        Ion.get(IONKEYS.SESSION, 'accountID')
-            .then((accountID) => {
-                myAccountID = accountID;
-                const path = `reportNameValuePairs.lastReadActionID_${accountID}`;
-                return Ion.get(`${IONKEYS.REPORT}_${this.props.reportID}`, path, 0);
-            })
-            .then((lastReadActionID) => {
-                if (maxSequenceNumber > lastReadActionID) {
-                    updateLastReadActionID(myAccountID, this.props.reportID, maxSequenceNumber);
-                }
-            });
+        updateLastReadActionID(this.props.reportID, maxSequenceNumber);
     }
 
     /**
@@ -180,12 +169,11 @@ class ReportActionsView extends React.Component {
 ReportActionsView.propTypes = propTypes;
 ReportActionsView.defaultProps = defaultProps;
 
-const key = `${IONKEYS.REPORT_ACTIONS}_%DATAFROMPROPS%`;
 export default compose(
     withRouter,
     withIon({
         reportActions: {
-            key,
+            key: `${IONKEYS.REPORT_ACTIONS}_%DATAFROMPROPS%`,
             loader: fetchActions,
             loaderParams: ['%DATAFROMPROPS%'],
             pathForProps: 'reportID',

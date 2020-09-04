@@ -10,7 +10,7 @@ import ChatSwitcherList from './ChatSwitcherList';
 import ChatSwitcherSearchForm from './ChatSwitcherSearchForm';
 import {fetchOrCreateChatReport} from '../../../lib/actions/Report';
 
-const personalDetailsPropTypes = PropTypes.objectOf(PropTypes.shape({
+const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
     login: PropTypes.string.isRequired,
 
@@ -33,7 +33,7 @@ const personalDetailsPropTypes = PropTypes.objectOf(PropTypes.shape({
     // Either the user's full name and their login, or just the login if the full name is empty
     // `${fullName} (${login})`
     displayNameWithEmail: PropTypes.string.isRequired,
-}));
+});
 
 const propTypes = {
     // A method that is triggered when the TextInput gets focus
@@ -47,14 +47,14 @@ const propTypes = {
     // All of the personal details for everyone
     // The keys of this object are the logins of the users, and the values are an object
     // with their details
-    personalDetails: personalDetailsPropTypes,
+    personalDetails: PropTypes.objectOf(personalDetailsPropTypes),
 
     // The personal details of the person who is currently logged in
     myPersonalDetails: personalDetailsPropTypes,
 };
 const defaultProps = {
     personalDetails: {},
-    myPersonalDetails: {},
+    myPersonalDetails: null,
 };
 
 class ChatSwitcherView extends React.Component {
