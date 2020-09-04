@@ -49,8 +49,13 @@ function hasUnreadActions(report) {
         'reportNameValuePairs',
         `lastReadActionID_${currentUserAccountID}`,
     ]);
-    if (!usersLastReadActionID || report.reportActionList.length === 0) {
+
+    if (report.reportActionList.length === 0) {
         return false;
+    }
+
+    if (!usersLastReadActionID) {
+        return true;
     }
 
     // Find the most recent sequence number from the report history
@@ -430,12 +435,7 @@ function updateLastReadActionID(accountID, reportID, sequenceNumber) {
  * @param {object} report
  */
 function handleReportChanged(report) {
-    // Nothing can be done without a report ID and it's OK to fail gracefully
-    if (!report.reportID) {
-        return;
-    }
-
-    if (report && report.reportName === undefined) {
+    if (report.reportName === undefined) {
         fetchChatReportsByIDs([report.reportID]);
     }
 
