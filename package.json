@@ -88,6 +88,13 @@
     "webpack-merge": "^5.1.1"
   },
   "jest": {
-    "preset": "react-native"
+    "preset": "react-native",
+    "transformIgnorePatterns": [
+      "node_modules/(?!react-native)/"
+    ],
+    "globals": {
+      "__DEV__": true,
+      "WebSocket": {}
+    }
   }
 }
