@@ -11,6 +11,9 @@ import ExpensiMark from '../ExpensiMark';
 import Notification from '../Notification';
 import * as PersonalDetails from './PersonalDetails';
 
+// List of reportIDs that we define in .env
+const configReportIDs = CONFIG.REPORT_IDS.split(',').map(Number);
+
 /**
  * Checks the report to see if there are any unread history items
  *
@@ -25,17 +28,17 @@ function hasUnreadHistoryItems(accountID, report) {
     }
 
     // Find the most recent sequence number from the report history
-    const lastReportAction = _.chain(report.reportActionList)
+    const sequenceNumber = _.chain(report.reportActionList)
         .pluck('sequenceNumber')
         .max()
         .value();
 
-    if (!lastReportAction) {
+    if (!sequenceNumber) {
         return false;
     }
 
     // There are unread items if the last one the user has read is less than the highest sequence number we have
-    return usersLastReadActionID < lastReportAction.sequenceNumber;
+    return usersLastReadActionID < sequenceNumber;
 }
 
 /**
@@ -55,6 +58,7 @@ function getSimplifiedReportObject(report, accountID) {
         reportName: report.reportName,
         reportNameValuePairs: report.reportNameValuePairs,
         hasUnread: hasUnreadHistoryItems(accountID, report),
+        pinnedReport: configReportIDs.includes(report.reportID),
     };
 }
 
@@ -137,6 +141,23 @@ function fetchChatReportsByIDs(chatList) {
 }
 
 /**
+ * Get the history of a report
+ *
+ * @param {string} reportID
+ * @returns {Promise}
+ */
+function fetchHistory(reportID) {
+    return queueRequest('Report_GetHistory', {
+        reportID,
+        offset: 0,
+    })
+        .then((data) => {
+            const indexedData = _.indexBy(data.history, 'sequenceNumber');
+            Ion.set(`${IONKEYS.REPORT_HISTORY}_${reportID}`, indexedData);
+        });
+}
+
+/**
  * Updates a report in the store with a new report action
  *
  * @param {string} reportID
@@ -144,6 +165,8 @@ function fetchChatReportsByIDs(chatList) {
  */
 function updateReportWithNewAction(reportID, reportAction) {
     let currentUserEmail;
+    let ionReportFound = true;
+
     Ion.get(`${IONKEYS.REPORT}_${reportID}`, 'reportID')
         .then((ionReportID) => {
             // This is necessary for local development because there will be pusher events from other engineers with
@@ -157,7 +180,9 @@ function updateReportWithNewAction(reportID, reportAction) {
             // need to fetch it so that we can properly navigate to it. This enables us populate
             // newly created  chats in the LHN without requiring a full refresh of the app.
             if (!ionReportID) {
+                ionReportFound = false;
                 return fetchChatReportsByIDs([reportID])
+                    .then(() => fetchHistory(reportID))
                     .then(() => Ion.get(`${IONKEYS.REPORT_HISTORY}_${reportID}`));
             }
 
@@ -169,7 +194,9 @@ function updateReportWithNewAction(reportID, reportAction) {
         // written by the user). If the action doesn't exist, then update the unread flag on the report so the user
         // knows there is a new comment
         .then((reportHistory) => {
-            if (reportHistory && !reportHistory[reportAction.sequenceNumber]) {
+            // If there was no ionReport found then we cannot check sequence number because the fetchHistory in the
+            // previous block will give us the most up to date information.
+            if (!ionReportFound || (reportHistory && !reportHistory[reportAction.sequenceNumber])) {
                 Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {hasUnread: true});
             }
             return reportHistory || {};
@@ -254,7 +281,7 @@ function fetchAll() {
     let fetchedReports;
 
     // Request each report one at a time to allow individual reports to fail if access to it is prevented by Auth
-    const reportFetchPromises = _.map(CONFIG.REPORT_IDS.split(','), reportID => queueRequest('Get', {
+    const reportFetchPromises = _.map(configReportIDs, reportID => queueRequest('Get', {
         returnValueList: 'reportStuff',
         reportIDList: reportID,
         shouldLoadOptionalKeys: true,
@@ -290,23 +317,6 @@ function fetchAll() {
             return promiseAllSettled(ionPromises);
         })
         .then(() => fetchedReports);
-}
-
-/**
- * Get the history of a report
- *
- * @param {string} reportID
- * @returns {Promise}
- */
-function fetchHistory(reportID) {
-    return queueRequest('Report_GetHistory', {
-        reportID,
-        offset: 0,
-    })
-        .then((data) => {
-            const indexedData = _.indexBy(data.history, 'sequenceNumber');
-            Ion.set(`${IONKEYS.REPORT_HISTORY}_${reportID}`, indexedData);
-        });
 }
 
 /**
