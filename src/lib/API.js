@@ -229,7 +229,7 @@ function request(command, parameters, type = 'post') {
 function processNetworkRequestQueue() {
     if (isOffline) {
         // Two things will bring the app online again...
-        // 1. Pusher reconnecting (see registerSocketEventCallback at the top of this file)
+        // 1. Pusher reconnecting (see registerSocketEventCallback in this file)
         // 2. Getting a 200 response back from the API (happens right below)
 
         // Make a simple request every second to see if the API is online again
