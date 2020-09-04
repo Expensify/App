@@ -4,19 +4,14 @@ import moment from 'moment';
 // eslint-disable-next-line no-unused-vars
 import momentTimzone from 'moment-timezone';
 import Str from './Str';
+import Ion from './Ion';
+import IONKEYS from '../IONKEYS';
 
-// Non-Deprecated Methods
-
-/**
- * Gets the user's stored time-zone NVP
- *
- * @returns {string}
- *
- * @private
- */
-function getTimezone() {
-    return 'America/Los_Angeles';
-}
+let timezone;
+Ion.connect({
+    key: IONKEYS.MY_PERSONAL_DETAILS,
+    callback: val => timezone = val.timezone || 'America/Los_Angeles',
+});
 
 /**
  * Gets the user's stored time-zone NVP and returns a localized
@@ -29,9 +24,6 @@ function getTimezone() {
  * @private
  */
 function getLocalMomentFromTimestamp(timestamp) {
-    // We need a default here for flows where we may not have initialized the TIME_ZONE NVP like generatng PDFs in
-    // printablereport.php
-    const timezone = getTimezone();
     return moment.unix(timestamp).tz(timezone);
 }
 
