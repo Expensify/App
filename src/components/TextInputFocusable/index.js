@@ -3,8 +3,15 @@ import {TextInput} from 'react-native';
 import PropTypes from 'prop-types';
 
 const propTypes = {
+    // Maximum number of lines in the text input
+    maxLines: PropTypes.number,
+
     // The value of the comment box
     value: PropTypes.string.isRequired,
+};
+
+const defaultProps = {
+    maxLines: -1,
 };
 
 /**
@@ -32,6 +39,22 @@ class TextInputFocusable extends React.Component {
     }
 
     /**
+     * Calculates the max number of lines the text input can have
+     *
+     * @param {number} lineHeight
+     * @param {number} paddingTopAndBottom
+     * @param {number} scrollHeight
+     *
+     * @returns {number}
+     */
+    getNumberOfLines(lineHeight, paddingTopAndBottom, scrollHeight) {
+        const maxLines = this.props.maxLines;
+        let newNumberOfLines = Math.ceil((scrollHeight - paddingTopAndBottom) / lineHeight);
+        newNumberOfLines = maxLines <= 0 ? newNumberOfLines : Math.min(newNumberOfLines, maxLines);
+        return newNumberOfLines;
+    }
+
+    /**
      * Check the current scrollHeight of the textarea (minus any padding) and
      * divide by line height to get the total number of rows for the textarea.
      *
@@ -46,7 +69,7 @@ class TextInputFocusable extends React.Component {
         // affected by the previous row setting. If we don't, rows will be added but not removed on backspace/delete.
         this.setState({numberOfLines: 1}, () => {
             this.setState({
-                numberOfLines: Math.ceil((this.textInput.scrollHeight - paddingTopAndBottom) / lineHeight)
+                numberOfLines: this.getNumberOfLines(lineHeight, paddingTopAndBottom, this.textInput.scrollHeight)
             });
         });
     }
@@ -71,5 +94,6 @@ class TextInputFocusable extends React.Component {
 }
 
 TextInputFocusable.propTypes = propTypes;
+TextInputFocusable.defaultProps = defaultProps;
 
 export default TextInputFocusable;
