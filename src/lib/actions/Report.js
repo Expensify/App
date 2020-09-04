@@ -417,23 +417,27 @@ function addAction(reportID, text) {
  * Updates the last read action ID on the report. It optimistically makes the change to the store, and then let's the
  * network layer handle the delayed write.
  *
- * @param {string} accountID
  * @param {number} reportID
  * @param {number} sequenceNumber
  */
-function updateLastReadActionID(accountID, reportID, sequenceNumber) {
-    // Mark the report as not having any unread items
+function updateLastReadActionID(reportID, sequenceNumber) {
+    const currentMaxSequenceNumber = reportMaxSequenceNumbers[reportID];
+
+    if (sequenceNumber <= currentMaxSequenceNumber) {
+        return;
+    }
+
+    // Update the lastReadActionID on the report optimistically
     Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {
         hasUnread: false,
         reportNameValuePairs: {
-            [`lastReadActionID_${accountID}`]: sequenceNumber,
+            [`lastReadActionID_${currentUserAccountID}`]: sequenceNumber,
         }
     });
 
-
-    // Update the lastReadActionID on the report optimistically
+    // Mark the report as not having any unread items
     queueRequest('Report_SetLastReadActionID', {
-        accountID,
+        currentUserAccountID,
         reportID,
         sequenceNumber,
     });
