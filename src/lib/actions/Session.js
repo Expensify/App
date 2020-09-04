@@ -49,8 +49,10 @@ function signIn(login, password, twoFactorAuthCode = '', exitTo, useExpensifyLog
 
 /**
  * Delete login
+ *
  * @param {string} authToken
  * @param {string} login
+ *
  * @returns {Promise}
  */
 function deleteLogin(authToken, login) {
@@ -67,10 +69,9 @@ function deleteLogin(authToken, login) {
  */
 function signOut() {
     deleteLogin(session.authToken, credentials.login)
+        .then(redirectToSignIn)
         .then(Ion.clear)
         .catch(err => Ion.merge(IONKEYS.SESSION, {error: err.message}));
-
-    redirectToSignIn();
 }
 
 export {

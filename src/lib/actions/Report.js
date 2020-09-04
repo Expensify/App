@@ -251,9 +251,12 @@ function fetchChatReports() {
 /**
  * Get all of our reports
  *
+ * @param {boolean} redirectToFirstReport this is set to false when the network reconnect
+ *     code runes
+ *
  * @returns {Promise}
  */
-function fetchAll() {
+function fetchAll(redirectToFirstReport = true) {
     let fetchedReports;
 
     // Request each report one at a time to allow individual reports to fail if access to it is prevented by Auth
@@ -280,8 +283,16 @@ function fetchAll() {
                 return _.isEmpty(report) ? null : _.values(report)[0];
             }));
 
-            // Store the first report ID in Ion
-            Ion.set(IONKEYS.FIRST_REPORT_ID, _.first(_.pluck(fetchedReports, 'reportID')) || 0);
+            // Set the first report ID so that the logged in person can be redirected there
+            // if they are on the home page
+            if (redirectToFirstReport && currentURL === '/') {
+                const firstReportID = _.first(_.pluck(fetchedReports, 'reportID')) || 0;
+
+                // If we're on the home page, then redirect to the first report ID
+                if (firstReportID) {
+                    Ion.set(IONKEYS.APP_REDIRECT_TO, `/${firstReportID}`);
+                }
+            }
 
             _.each(fetchedReports, (report) => {
                 // Merge the data into Ion. Don't use set() here or multiSet() because then that would
@@ -463,7 +474,7 @@ Ion.connect({
 
 // When the app reconnects from being offline, fetch all of the reports and their actions
 onReconnect(() => {
-    fetchAll().then(reports => _.each(reports, report => fetchActions(report.reportID)));
+    fetchAll(false).then(reports => _.each(reports, report => fetchActions(report.reportID)));
 });
 export {
     fetchAll,

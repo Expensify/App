@@ -174,25 +174,6 @@ function getInitialStateFromConnectionID(connectionID) {
 }
 
 /**
- * Get multiple keys of data
- *
- * @param {string[]} keys
- * @returns {Promise}
- */
-function multiGet(keys) {
-    // AsyncStorage returns the data in an array format like:
-    // [ ['@MyApp_user', 'myUserValue'], ['@MyApp_key', 'myKeyValue'] ]
-    // This method will transform the data into a better JSON format like:
-    // {'@MyApp_user': 'myUserValue', '@MyApp_key': 'myKeyValue'}
-    return AsyncStorage.multiGet(keys)
-        .then(arrayOfData => _.reduce(arrayOfData, (finalData, keyValuePair) => ({
-            ...finalData,
-            [keyValuePair[0]]: JSON.parse(keyValuePair[1]),
-        }), {}))
-        .catch(err => console.error(`Unable to get item from persistent storage. Error: ${err}`, keys));
-}
-
-/**
  * Sets multiple keys and values. Example
  * Ion.multiSet({'key1': 'a', 'key2': 'b'});
  *
@@ -243,7 +224,6 @@ const Ion = {
     disconnect,
     set,
     multiSet,
-    multiGet,
     merge,
     clear,
     init,
