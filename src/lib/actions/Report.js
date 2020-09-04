@@ -442,10 +442,10 @@ function handleReportChanged(report) {
     }
 
     if (report && report.reportName === undefined) {
-        fetchChatReportsByIDs([val.reportID]);
+        fetchChatReportsByIDs([report.reportID]);
     }
 
-    reportMaxSequenceNumbers[val.reportID] = val.maxSequenceNumber;
+    reportMaxSequenceNumbers[report.reportID] = report.maxSequenceNumber;
 }
 Ion.connect({
     key: `${IONKEYS.REPORT}_[0-9]+$`,
