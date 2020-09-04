@@ -42,7 +42,7 @@ Ion.connect({
 // When the user's authToken expires we use this login to re-authenticate and get a new authToken
 // and use that new authToken in subsequent API calls
 let credentials;
-Ion.connect({key: IONKEYS.CREDENTIALS, callback: c => credentials = c});
+Ion.connect({key: IONKEYS.CREDENTIALS, callback: ionCredentials => credentials = ionCredentials});
 
 /**
  * @param {string} login
