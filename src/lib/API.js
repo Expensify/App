@@ -50,9 +50,9 @@ Ion.connect({key: IONKEYS.CREDENTIALS, callback: ionCredentials => credentials =
  * @returns {Promise}
  */
 function createLogin(login, password) {
-    // We call createLogin after getting a successful response to the Authenticate request
-    // so it's very unlikely that this will fail with 407 authToken expired which means we
-    // won't need to replay this request and thus we can use xhr instead of request
+    // Using xhr instead of request becasue request has logic to re-try API commands when we get a 407 authToken expired
+    // in the response, and we call CreateLogin after getting a successful resposne to Authenticate so it's unlikely
+    // that we'll get a 407.
     return xhr('CreateLogin', {
         authToken,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
