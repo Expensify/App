@@ -1,26 +1,32 @@
-import _ from 'underscore';
 import Guid from './Guid';
 import Ion from './Ion';
 import IONKEYS from '../IONKEYS';
 
 const clientID = Guid();
 
+// @TODO make all this work by uncommenting code. This will work once
+// there is a cross-platform method for onBeforeUnload
+// See https://github.com/Expensify/ReactNativeChat/issues/413
+// let activeClients;
+Ion.connect({
+    key: IONKEYS.ACTIVE_CLIENTS,
+
+    // callback: val => activeClients = val,
+});
+
 /**
  * Add our client ID to the list of active IDs
  *
  * @returns {Promise}
  */
-const init = () => Ion.merge(IONKEYS.ACTIVE_CLIENTS, {clientID});
+// @TODO need to change this to Ion.merge() once we support multiple tabs
+const init = () => Ion.set(IONKEYS.ACTIVE_CLIENTS, {[clientID]: clientID});
 
 /**
  * Remove this client ID from the array of active client IDs when this client is exited
- *
- * @returns {Promise}
  */
 function removeClient() {
-    return Ion.get(IONKEYS.ACTIVE_CLIENTS)
-        .then(activeClientIDs => _.omit(activeClientIDs, clientID))
-        .then(newActiveClientIDs => Ion.set(IONKEYS.ACTIVE_CLIENTS, newActiveClientIDs));
+    // Ion.set(IONKEYS.ACTIVE_CLIENTS, _.omit(activeClients, clientID));
 }
 
 /**
@@ -29,8 +35,9 @@ function removeClient() {
  * @returns {Promise}
  */
 function isClientTheLeader() {
-    return Ion.get(IONKEYS.ACTIVE_CLIENTS)
-        .then(activeClientIDs => _.first(activeClientIDs) === clientID);
+    return true;
+
+    // return _.first(activeClients) === clientID;
 }
 
 export {
