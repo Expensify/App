@@ -41,12 +41,14 @@ const configReportIDs = CONFIG.REPORT_IDS.split(',').map(Number);
 /**
  * Checks the report to see if there are any unread action items
  *
- * @param {string} accountID
  * @param {object} report
  * @returns {boolean}
  */
-function hasUnreadActions(accountID, report) {
-    const usersLastReadActionID = lodashGet(report, ['reportNameValuePairs', `lastReadActionID_${accountID}`]);
+function hasUnreadActions(report) {
+    const usersLastReadActionID = lodashGet(report, [
+        'reportNameValuePairs',
+        `lastReadActionID_${currentUserAccountID}`,
+    ]);
     if (!usersLastReadActionID || report.reportActionList.length === 0) {
         return false;
     }
@@ -77,7 +79,7 @@ function getSimplifiedReportObject(report) {
         reportID: report.reportID,
         reportName: report.reportName,
         reportNameValuePairs: report.reportNameValuePairs,
-        hasUnread: hasUnreadActions(currentUserAccountID, report),
+        hasUnread: hasUnreadActions(report),
         pinnedReport: configReportIDs.includes(report.reportID),
     };
 }
@@ -158,7 +160,7 @@ function fetchChatReportsByIDs(chatList) {
 function updateReportWithNewAction(reportID, reportAction) {
     // Always merge the reportID into Ion
     // If the report doesn't exist in Ion yet, then all the rest of the data will be filled out
-    // from the code at the top of this file
+    // by handleReportChanged
     Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {
         reportID,
         maxSequenceNumber: reportAction.sequenceNumber,
@@ -427,28 +429,35 @@ function updateLastReadActionID(accountID, reportID, sequenceNumber) {
     });
 }
 
-// When the app reconnects from being offline, fetch all of the reports and their actions
-onReconnect(() => {
-    fetchAll().then(reports => _.each(reports, report => fetchActions(report.reportID)));
-});
+/**
+ * When a report changes in Ion, this fetches the report from the API if the report doesn't have a name
+ * and it keeps track of the max sequence number on the report actions.
+ *
+ * @param {object} report
+ */
+function handleReportChanged(report) {
+    // Nothing can be done without a report ID and it's OK to fail gracefully
+    if (!report.reportID) {
+        return;
+    }
+
+    if (report && report.reportName === undefined) {
+        fetchChatReportsByIDs([val.reportID]);
+    }
+
+    reportMaxSequenceNumbers[val.reportID] = val.maxSequenceNumber;
+}
 
 // Listen for all reports added to Ion and if there is one that doesn't have a name, then
 // fetch that report from the server so that it has all updated information about it
 Ion.connect({
     key: `${IONKEYS.REPORT}_[0-9]+$`,
-    callback: (val) => {
-        // Nothing can be done without a report ID and it's OK to fail gracefully
-        if (!val.reportID) {
-            return;
-        }
+    callback: handleReportChanged
+});
 
-        if (val && val.reportName === undefined) {
-            fetchChatReportsByIDs([val.reportID]);
-        }
-
-        // Keep a local copy of all the max sequence numbers for reports
-        reportMaxSequenceNumbers[val.reportID] = val.maxSequenceNumber;
-    }
+// When the app reconnects from being offline, fetch all of the reports and their actions
+onReconnect(() => {
+    fetchAll().then(reports => _.each(reports, report => fetchActions(report.reportID)));
 });
 export {
     fetchAll,
