@@ -85,7 +85,7 @@ class ReportActionCompose extends React.Component {
                         onKeyPress={this.triggerSubmitShortcut}
                         style={[styles.textInput, styles.textInputCompose, styles.flex4]}
                         value={this.state.comment}
-                        maxLines={16} // This is the same that slack has, but in all honesty we can choose a different value
+                        maxLines={16} // This is the same that slack has
                     />
                     <TouchableOpacity
                         style={[styles.chatItemSubmitButton, styles.buttonSuccess]}
