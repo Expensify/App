@@ -10,6 +10,31 @@ import ChatSwitcherList from './ChatSwitcherList';
 import ChatSwitcherSearchForm from './ChatSwitcherSearchForm';
 import {fetchOrCreateChatReport} from '../../../lib/actions/Report';
 
+const personalDetailsPropTypes = PropTypes.objectOf(PropTypes.shape({
+    // The login of the person (either email or phone number)
+    login: PropTypes.string.isRequired,
+
+    // The URL of the person's avatar (there should already be a default avatarURL if
+    // the person doesn't have their own avatar uploaded yet)
+    avatarURL: PropTypes.string.isRequired,
+
+    // The first name of the person
+    firstName: PropTypes.string,
+
+    // The last name of the person
+    lastName: PropTypes.string,
+
+    // The combination of `${firstName} ${lastName}` (could be an empty string)
+    fullName: PropTypes.string,
+
+    // This is either the user's full name, or their login if full name is an empty string
+    displayName: PropTypes.string.isRequired,
+
+    // Either the user's full name and their login, or just the login if the full name is empty
+    // `${fullName} (${login})`
+    displayNameWithEmail: PropTypes.string.isRequired,
+}));
+
 const propTypes = {
     // A method that is triggered when the TextInput gets focus
     onFocus: PropTypes.func.isRequired,
@@ -22,33 +47,14 @@ const propTypes = {
     // All of the personal details for everyone
     // The keys of this object are the logins of the users, and the values are an object
     // with their details
-    personalDetails: PropTypes.objectOf(PropTypes.shape({
-        // The login of the person (either email or phone number)
-        login: PropTypes.string.isRequired,
+    personalDetails: personalDetailsPropTypes,
 
-        // The URL of the person's avatar (there should already be a default avatarURL if
-        // the person doesn't have their own avatar uploaded yet)
-        avatarURL: PropTypes.string.isRequired,
-
-        // The first name of the person
-        firstName: PropTypes.string,
-
-        // The last name of the person
-        lastName: PropTypes.string,
-
-        // The combination of `${firstName} ${lastName}` (could be an empty string)
-        fullName: PropTypes.string,
-
-        // This is either the user's full name, or their login if full name is an empty string
-        displayName: PropTypes.string.isRequired,
-
-        // Either the user's full name and their login, or just the login if the full name is empty
-        // `${fullName} (${login})`
-        displayNameWithEmail: PropTypes.string.isRequired,
-    })),
+    // The personal details of the person who is currently logged in
+    myPersonalDetails: personalDetailsPropTypes,
 };
 const defaultProps = {
     personalDetails: {},
+    myPersonalDetails: {},
 };
 
 class ChatSwitcherView extends React.Component {
@@ -124,8 +130,7 @@ class ChatSwitcherView extends React.Component {
      * @param {string} option.value
      */
     fetchChatReportAndRedirect(option) {
-        Ion.get(IONKEYS.MY_PERSONAL_DETAILS, 'login')
-            .then(currentLogin => fetchOrCreateChatReport([currentLogin, option.login]))
+        fetchOrCreateChatReport([this.props.myPersonalDetails.login, option.login])
             .then(reportID => Ion.set(IONKEYS.APP_REDIRECT_TO, `/${reportID}`));
         this.reset();
     }
@@ -272,5 +277,8 @@ export default withIon({
         // Exact match for the personal_details key as we don't want
         // my_personal_details to overwrite this value
         key: `^${IONKEYS.PERSONAL_DETAILS}$`,
+    },
+    myPersonalDetails: {
+        key: IONKEYS.MY_PERSONAL_DETAILS,
     },
 })(ChatSwitcherView);
