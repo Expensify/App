@@ -266,12 +266,9 @@ function fetchAll() {
             Ion.set(IONKEYS.FIRST_REPORT_ID, _.first(_.pluck(fetchedReports, 'reportID')) || 0);
 
             _.each(fetchedReports, (report) => {
-                // Store only the absolute bare minimum of data in Ion because space is limited
-                const newReport = getSimplifiedReportObject(report);
-
                 // Merge the data into Ion. Don't use set() here or multiSet() because then that would
                 // overwrite any existing data (like if they have unread messages)
-                Ion.merge(`${IONKEYS.REPORT}_${report.reportID}`, newReport);
+                Ion.merge(`${IONKEYS.REPORT}_${report.reportID}`, getSimplifiedReportObject(report));
             });
 
             return fetchedReports;
@@ -285,10 +282,7 @@ function fetchAll() {
  * @returns {Promise}
  */
 function fetchActions(reportID) {
-    return queueRequest('Report_GetHistory', {
-        reportID,
-        offset: 0,
-    })
+    return queueRequest('Report_GetHistory', {reportID})
         .then((data) => {
             const indexedData = _.indexBy(data.history, 'sequenceNumber');
             const maxSequenceNumber = _.chain(data.history)
