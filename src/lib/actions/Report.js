@@ -57,7 +57,6 @@ function hasUnreadActions(accountID, report) {
     if (!maxSequenceNumber) {
         return false;
     }
-    console.log('unread', maxSequenceNumber, usersLastReadActionID);
 
     // There are unread items if the last one the user has read is less than the highest sequence number we have
     return usersLastReadActionID < maxSequenceNumber;
