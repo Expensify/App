@@ -68,7 +68,7 @@ function hasUnreadActions(report) {
         return true;
     }
 
-    // Find the most recent sequence number from the report history
+    // Find the most recent sequence number from the report actions
     const maxSequenceNumber = reportMaxSequenceNumbers[report.reportID];
 
     if (!maxSequenceNumber) {
