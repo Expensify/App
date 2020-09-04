@@ -1,6 +1,6 @@
 {
   "name": "react-native-chat",
-  "version": "1.0.1-31",
+  "version": "1.0.1-32",
   "author": "Expensify, Inc.",
   "homepage": "https://expensify.com",
   "description": "Expensify Chat",
@@ -33,6 +33,7 @@
     "jquery": "^3.5.1",
     "lodash.get": "^4.4.2",
     "lodash.has": "^4.5.2",
+    "lodash.orderby": "^4.6.0",
     "moment": "^2.27.0",
     "moment-timezone": "^0.5.31",
     "prop-types": "^15.7.2",
