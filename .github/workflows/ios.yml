@@ -1,0 +1,41 @@
+name: Build and Deploy iOS
+
+# This workflow is run when any tag is published
+on:
+    push:
+        tags:
+            - '*'
+
+jobs:
+    build:
+        runs-on: macos-latest
+        steps:
+            - uses: actions/checkout@v2
+            - uses: actions/setup-ruby@v1
+
+            - name: Install bundler
+              run: gem install bundler
+
+            - name: Install gems
+              run: bundle install
+
+            - name: Install node packages
+              run: npm install
+
+            - name: Install cocoapods
+              run: cd ios && pod install
+
+            - name: Decrypt profile
+              run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output chat_expensify_appstore.mobileprovision chat_expensify_appstore.mobileprovision.gpg
+              env:
+                  LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+
+            - name: Decrypt certificate
+              run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output Certificates.p12 Certificates.p12.gpg
+              env:
+                  LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+
+            - name: Run Fastlane
+              run: bundle exec fastlane ios beta
+              env:
+                  FASTLANE_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}

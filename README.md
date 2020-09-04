@@ -12,19 +12,16 @@ This application is built with the following principles.
     1. If there is a feature that simply doesn't exist on all platforms and thus doesn't exist in RN, rather than doing if (platform=iOS) { }, instead write a "shim" library that is implemented with NOOPs on the other platforms.  For example, rather than injecting platform-specific multi-tab code (which can only work on browsers, because it's the only platform with multiple tabs), write a TabManager class that just is NOOP for non-browser platforms.  This encapsulates the platform-specific code into a platform library, rather than sprinkling through the business logic.
     1. Put all platform specific code in a dedicated branch, like /platform, and reject any PR that attempts to put platform-specific code anywhere else.  This maintains a strict separation between business logic and platform code.
 
-## Getting Started
+# Local development
+## Getting started
 1. Install `node` & `npm`: `brew install node`
 2. Install `watchman`: `brew install watchman`
 3. Install dependencies: `npm install`
-4. Run `cp .env.example .env` and edit `.env` to have your local config options (for example, we are curretly hardcoding the pinned chat reports IDs with the `REPORT_IDS` config option).
-
+4. Run `cp .env.example .env` and edit `.env` to have your local config options(for example, we are curretly hardcoding the pinned chat reports IDs with the `REPORT_IDS` config option).
 ## Running the web app 🕸
 * To run a **Development Server**: `npm run web`
 * To build a **production build**: `npm run build`
-* Changes applied to Javascript will be applied automatically
-
-#### Deploying the web app
-* The web app automatically deploys via a GitHub Action in `.github/workflows/main.yml`
+* Changes applied to Javascript will be applied automatically via WebPack as configured in `webpack.dev.js`
 
 ## Running the iOS app 📱
 * To install the iOS dependencies, run: `cd ios/ && pod install`
@@ -42,18 +39,8 @@ This application is built with the following principles.
 * To run a on a **Development Emulator**: `npm run android`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
-#### Deploying the iOS & Android app
-* To install the required tools to deploy, run `bundle install` from the root of this project
-* To deploy the iOS app run: `npm run deploy-ios`
-* The Android app automatically deploys via a GitHub action to: [https://chat.expensify.com/app-release.apk](https://chat.expensify.com/app-release.apk)
-* To build an APK to share run (e.g. via Slack): `Build > Generate Signed Bundle / APK...` from Android Studio
-
-## Running the desktop app 🖥
- * To run the **Development app**, run: `npm run desktop`
- * To build a **production build**, run: `npm run desktop-build`
- 
-#### Deploying the desktop app
- * The desktop app automatically deploys via a GitHub Action in `.github/workflows/desktop.yml`
+## Running the MacOS desktop app 🖥
+ * To run the **Development app**, run: `npm run desktop`, this will start a new Electron process running on your MacOS desktop in the `dist/Mac` folder.
 
 ## Running the tests 🎰
 * To run the **Jest Unit Tests**: `npm run test`
@@ -66,3 +53,31 @@ This application is built with the following principles.
 1. If running on the iOS simulator `⌘D`, or `⌘M` on Android emulator will open the debugging menu. 
 2. This will allow you to attach a debugger in your IDE, React Developer Tools, or your browser. 
 3. For more information on how to attach a debugger, see [React Native Debugging Documentation](https://reactnative.dev/docs/debugging#chrome-developer-tools)
+
+# Deploying 
+##  Continuous deployment / GitHub workflows
+Every PR merged into `master` will kick off the **Create a new version** GitHub workflow defined in `.github/workflows/version.yml`.
+It will look at the current version and increment it by one build version (using [`react-native-version`](https://www.npmjs.com/package/react-native-version)), create a PR with that new version, and tag the version.
+
+The PR will be merged automatically by the GitHub workflow **automerge** to keep the version always up to date.
+
+When a new tag is pushed, it will trigger a deploy of all four clients:
+1. The **web** app automatically deploys via a GitHub Action in `.github/workflows/main.yml`
+2. The **MacOS desktop** app automatically deploys via a GitHub Action in `.github/workflows/desktop.yml`
+3. The **Android** app automatically deploys via a GitHub Action in `.github/workflows/android.yml`
+4. The **iOS** app automatically deploys via a GitHub Action in `.github/workflows/ios.yml`
+
+## Local production build
+Sometimes it might be beneficial to generate a local production version instead of testing on production. Follow the steps below for each client:
+
+## Local production build of the web app
+In order to generate a production web build, run `npm run build`, this will generate a production javascript build in the `dist/` folder.
+
+## Local production build of the MacOS desktop app
+In order to compile a production desktop build, run `npm run desktop-build`, this will generate a production app in the `dist/Mac` folder named `Chat.app`.
+  
+#### Local production build the iOS app
+In order to compile a production iOS build, run `npm run ios-build`, this will generate a `Chat.ipa` in the root directory of this project. 
+
+#### Local production build the Android app
+To build an APK to share run (e.g. via Slack), run `npm run android-build`, this will generate a new APK in the `android/app` folder.
