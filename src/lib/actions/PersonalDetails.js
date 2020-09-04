@@ -5,6 +5,12 @@ import IONKEYS from '../../IONKEYS';
 import md5 from '../md5';
 import CONST from '../../CONST';
 
+let currentUserEmail;
+Ion.connect({
+    key: IONKEYS.SESSION,
+    callback: val => currentUserEmail = val.email;
+});
+
 /**
  * Returns the URL for a user's avatar and handles someone not having any avatar at all
  *
@@ -59,28 +65,16 @@ function formatPersonalDetails(personalDetailsList) {
  * @returns {Promise}
  */
 function fetch() {
-    let currentLogin;
-    let myPersonalDetails;
-    const requestPromise = Ion.get(IONKEYS.SESSION, 'email')
-        .then((login) => {
-            if (!login) {
-                throw Error('No login');
-            }
-
-            currentLogin = login;
-            return queueRequest('Get', {
-                returnValueList: 'personalDetailsList',
-            });
-        })
+    const requestPromise = queueRequest('Get', {
+        returnValueList: 'personalDetailsList',
+    })
         .then((data) => {
             const allPersonalDetails = formatPersonalDetails(data.personalDetailsList);
+            Ion.merge(IONKEYS.PERSONAL_DETAILS, allPersonalDetails);
 
             // Get my personal details so they can be easily accessed and subscribed to on their own key
-            myPersonalDetails = allPersonalDetails[currentLogin] || {};
-
-            return Ion.merge(IONKEYS.PERSONAL_DETAILS, allPersonalDetails);
+            Ion.merge(IONKEYS.MY_PERSONAL_DETAILS, allPersonalDetails[currentUserEmail] || {});
         })
-        .then(() => Ion.merge(IONKEYS.MY_PERSONAL_DETAILS, myPersonalDetails))
         .catch((error) => {
             if (error.message === 'No login') {
                 // eslint-disable-next-line no-console
