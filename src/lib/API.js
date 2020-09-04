@@ -200,7 +200,7 @@ function request(command, parameters, type = 'post') {
                         Ion.multiSet({
                             [IONKEYS.CREDENTIALS]: {},
                             [IONKEYS.SESSION]: {error: error.message},
-                        })
+                        });
                         redirectToSignIn();
                         return Promise.reject();
                     });
@@ -312,8 +312,6 @@ Pusher.registerSocketEventCallback((eventName, data) => {
     }
     setNewOfflineStatus(isCurrentlyOffline);
 });
-
-// PUBLIC
 
 /**
  * Register a callback function to be called when the network reconnects
