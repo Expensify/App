@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import lodashGet from 'lodash.get';
 import Ion from '../Ion';
 import {onReconnect, queueRequest} from '../Network';
 import IONKEYS from '../../IONKEYS';
@@ -60,6 +61,26 @@ function formatPersonalDetails(personalDetailsList) {
 }
 
 /**
+ * Get the timezone of the logged in user
+ *
+ * @returns {Promise}
+ */
+function fetchTimezone() {
+    const requestPromise = queueRequest('Get', {
+        returnValueList: 'nameValuePairs',
+        name: 'timeZone',
+    })
+        .then((data) => {
+            const timezone = lodashGet(data, 'nameValuePairs.timeZone.selected', 'America/Los_Angeles');
+            Ion.merge(IONKEYS.MY_PERSONAL_DETAILS, {timezone});
+        });
+
+    // Refresh the timezone every 30 minutes
+    setTimeout(fetchTimezone, 1000 * 60 * 30);
+    return requestPromise;
+}
+
+/**
  * Get the personal details for our organization
  *
  * @returns {Promise}
@@ -74,6 +95,9 @@ function fetch() {
 
             // Get my personal details so they can be easily accessed and subscribed to on their own key
             Ion.merge(IONKEYS.MY_PERSONAL_DETAILS, allPersonalDetails[currentUserEmail] || {});
+
+            // Get the timezone and put it in Ion
+            fetchTimezone();
         })
         .catch((error) => {
             if (error.message === 'No login') {
@@ -91,41 +115,14 @@ function fetch() {
 }
 
 /**
- * Get the timezone of the logged in user
- *
- * @returns {Promise}
- */
-function fetchTimezone() {
-    const requestPromise = queueRequest('Get', {
-        returnValueList: 'nameValuePairs',
-        name: 'timeZone',
-    })
-        .then((data) => {
-            const timezone = data.nameValuePairs.timeZone.selected || 'America/Los_Angeles';
-            Ion.merge(IONKEYS.MY_PERSONAL_DETAILS, {timezone});
-        });
-
-    // Refresh the timezone every 30 minutes
-    setTimeout(fetchTimezone, 1000 * 60 * 30);
-    return requestPromise;
-}
-
-/**
  * Get personal details for a list of emails.
  *
  * @param {String} emailList
  * @returns {Promise}
  */
 function getForEmails(emailList) {
-    let detailsFormatted;
-    return queueRequest('PersonalDetails_GetForEmails', {
-        emailList,
-    })
-        .then((details) => {
-            detailsFormatted = formatPersonalDetails(details);
-            return Ion.merge(IONKEYS.PERSONAL_DETAILS, detailsFormatted);
-        })
-        .then(() => detailsFormatted);
+    return queueRequest('PersonalDetails_GetForEmails', {emailList})
+        .then(details => Ion.merge(IONKEYS.PERSONAL_DETAILS, formatPersonalDetails(details)));
 }
 
 // When the app reconnects from being offline, fetch all of the personal details
