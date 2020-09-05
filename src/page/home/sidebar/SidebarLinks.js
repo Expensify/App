@@ -115,7 +115,7 @@ export default compose(
         reports: {
             key: `${IONKEYS.REPORT}_[0-9]+$`,
             addAsCollection: true,
-            collectionID: 'reportID',
+            indexBy: 'reportID',
             loader: fetchAll,
         }
     }),
