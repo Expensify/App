@@ -52,8 +52,8 @@ function keyChanged(key, data) {
                 return;
             }
 
-            // Set the state of the react component with either the pathed data, or the data
-            if (mappedComponent.addAsCollection) {
+            // Set the state of the react component with the data
+            if (mappedComponent.indexBy) {
                 // Add the data to an array of existing items
                 mappedComponent.withIonInstance.setState((prevState) => {
                     const collection = prevState[mappedComponent.statePropertyName] || {};
@@ -77,7 +77,6 @@ function keyChanged(key, data) {
  * @param {object} mapping the mapping information to connect Ion to the components state
  * @param {string} mapping.keyPattern
  * @param {string} mapping.statePropertyName the name of the property in the state to connect the data to
- * @param {boolean} [mapping.addAsCollection] rather than setting a single state value, this will add things to an array
  * @param {string} [mapping.indexBy] the name of a property to index the collection by
  * @param {object} [mapping.withIonInstance] whose setState() method will be called with any changed data
  *      This is used by React components to connect to Ion

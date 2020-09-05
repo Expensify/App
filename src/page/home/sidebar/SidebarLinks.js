@@ -114,7 +114,6 @@ export default compose(
     withIon({
         reports: {
             key: `${IONKEYS.REPORT}_[0-9]+$`,
-            addAsCollection: true,
             indexBy: 'reportID',
             loader: fetchAll,
         }
