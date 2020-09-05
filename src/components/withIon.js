@@ -72,7 +72,7 @@ export default function (mapIonToState) {
              *  nothing at mapping.path
              * @param {boolean} [mapping.addAsCollection] rather than setting a single state value, this will add things
              *  to an array
-             * @param {string} [mapping.collectionID] the name of the ID property to use for the collection
+             * @param {string} [mapping.indexBy] the name of the ID property to use for the collection
              * @param {string} [mapping.pathForProps] the statePropertyName can contain the string %DATAFROMPROPS% wich
              *  will be replaced with data from the props matching this path. That way, the component can connect to an
              *  Ion key that uses data from this.props.
@@ -111,12 +111,6 @@ export default function (mapIonToState) {
                 } else {
                     connectionID = Ion.connect(ionConnectionConfig);
                     this.actionConnectionIDs[connectionID] = connectionID;
-                }
-
-                // Pre-fill the state with any data already in the store
-                if (mapping.initWithStoredValues !== false) {
-                    Ion.getInitialStateFromConnectionID(connectionID)
-                        .then(data => this.setState({[statePropertyName]: data}));
                 }
 
                 // Load the data from an API request if necessary

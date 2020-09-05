@@ -57,7 +57,7 @@ function keyChanged(key, data) {
                 // Add the data to an array of existing items
                 mappedComponent.withIonInstance.setState((prevState) => {
                     const collection = prevState[mappedComponent.statePropertyName] || {};
-                    collection[data[mappedComponent.collectionID]] = data;
+                    collection[data[mappedComponent.indexBy]] = data;
                     return {
                         [mappedComponent.statePropertyName]: collection,
                     };
@@ -78,30 +78,68 @@ function keyChanged(key, data) {
  * @param {string} mapping.keyPattern
  * @param {string} mapping.statePropertyName the name of the property in the state to connect the data to
  * @param {boolean} [mapping.addAsCollection] rather than setting a single state value, this will add things to an array
- * @param {string} [mapping.collectionID] the name of the ID property to use for the collection
+ * @param {string} [mapping.indexBy] the name of a property to index the collection by
  * @param {object} [mapping.withIonInstance] whose setState() method will be called with any changed data
  *      This is used by React components to connect to Ion
  * @param {object} [mapping.callback] a method that will be called with changed data
  *      This is used by any non-React code to connect to Ion
+ * @param {boolean} [mapping.initWithStoredValues] If set to false, then no data will be prefilled into the
+ *  component
  * @returns {number} an ID to use when calling disconnect
  */
 function connect(mapping) {
     const connectionID = lastConnectionID++;
-    const connectionMapping = {
+    const config = {
         ...mapping,
         regex: RegExp(mapping.key),
     };
-    callbackToStateMapping[connectionID] = connectionMapping;
+    callbackToStateMapping[connectionID] = config;
 
-    // If the mapping has a callback, trigger it with the existing data
-    // in Ion so it initializes properly
-    // @TODO remove the if statement when this is supported by react components
-    // @TODO need to support full regex key connections for callbacks.
-    //      This would look something like getInitialStateFromConnectionID
-    if (mapping.callback) {
-        get(mapping.key)
-            .then(val => keyChanged(mapping.key, val));
+    if (mapping.initWithStoredValues === false) {
+        return connectionID;
     }
+
+    /**
+     * Sends the data obtained from the keys to the connection. It either:
+     *     - sets state on the withIonInstances
+     *     - triggers the callback function
+     *
+     * @param {*} val
+     * @param {string} [key]
+     */
+    function sendDataToConnection(val, key) {
+        if (config.withIonInstance) {
+            config.withIonInstance.setState({
+                [config.statePropertyName]: val,
+            });
+        } else if (_.isFunction(config.callback)) {
+            config.callback(val, key);
+        }
+    }
+
+    // Get all the data from Ion to initialize the connection with
+    AsyncStorage.getAllKeys()
+        .then((keys) => {
+            // Find all the keys matched by the config regex
+            const matchingKeys = _.filter(keys, key => config.regex.test(key));
+
+            if (matchingKeys.length === 0) {
+                return;
+            }
+
+            if (config.indexBy) {
+                Promise.all(_.map(matchingKeys, key => get(key)))
+                    .then(values => _.reduce(values, (finalObject, value) => ({
+                        ...finalObject,
+                        [value[config.indexBy]]: value,
+                    }), {}))
+                    .then(sendDataToConnection);
+            } else {
+                _.each(matchingKeys, (key) => {
+                    get(key).then(val => sendDataToConnection(val, key));
+                });
+            }
+        });
 
     return connectionID;
 }
@@ -131,30 +169,6 @@ function set(key, val) {
         .then(() => {
             keyChanged(key, val);
         });
-}
-
-/**
- * Returns initial state for a connection config so that stored data
- * is available shortly after the first render.
- *
- * @param {Number} connectionID
- * @return {Promise}
- */
-function getInitialStateFromConnectionID(connectionID) {
-    const config = callbackToStateMapping[connectionID];
-    if (config.addAsCollection) {
-        return AsyncStorage.getAllKeys()
-            .then((keys) => {
-                const regex = RegExp(config.key);
-                const matchingKeys = _.filter(keys, key => regex.test(key));
-                return Promise.all(_.map(matchingKeys, key => get(key)));
-            })
-            .then(values => _.reduce(values, (finalObject, value) => ({
-                ...finalObject,
-                [value[config.collectionID]]: value,
-            }), {}));
-    }
-    return get(config.key);
 }
 
 /**
@@ -211,7 +225,6 @@ const Ion = {
     merge,
     clear,
     init,
-    getInitialStateFromConnectionID,
 };
 
 export default Ion;

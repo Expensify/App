@@ -461,7 +461,7 @@ function updateLastReadActionID(reportID, sequenceNumber) {
  * @param {object} report
  */
 function handleReportChanged(report) {
-    if (report.reportName === undefined) {
+    if (report && report.reportName === undefined) {
         fetchChatReportsByIDs([report.reportID]);
     }
 
