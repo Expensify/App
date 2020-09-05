@@ -50,15 +50,19 @@ class Expensify extends Component {
     }
 
     componentDidMount() {
-        Ion.connect({key: IONKEYS.SESSION, path: 'authToken', callback: this.removeLoadingState});
+        Ion.connect({
+            key: IONKEYS.SESSION,
+            callback: this.removeLoadingState,
+        });
     }
 
     /**
      * When the authToken is updated, the app should remove the loading state and handle the authToken
      *
-     * @param {string} authToken
+     * @param {object} session
+     * @param {string} session.authToken
      */
-    removeLoadingState(authToken) {
+    removeLoadingState({authToken}) {
         this.setState({
             authToken,
             isLoading: false,

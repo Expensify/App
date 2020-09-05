@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import Text from '../../../components/Text';
-import Ion from '../../../lib/Ion';
 import withIon from '../../../components/withIon';
 import {fetchActions, updateLastReadActionID} from '../../../lib/actions/Report';
 import IONKEYS from '../../../IONKEYS';

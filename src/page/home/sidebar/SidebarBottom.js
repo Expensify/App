@@ -25,19 +25,24 @@ const propTypes = {
         avatarURL: PropTypes.string,
     }),
 
-    // Is this person offline?
-    isOffline: PropTypes.bool,
+    // Information about the network
+    network: PropTypes.shape({
+        // Is the network currently offline or not
+        isOffline: PropTypes.bool,
+    })
 };
 
 const defaultProps = {
     myPersonalDetails: {},
-    isOffline: false,
+    network: {
+        isOffline: false,
+    }
 };
 
-const SidebarBottom = ({myPersonalDetails, isOffline, insets}) => {
+const SidebarBottom = ({myPersonalDetails, network, insets}) => {
     const indicatorStyles = [
         styles.statusIndicator,
-        isOffline ? styles.statusIndicatorOffline : styles.statusIndicatorOnline
+        network.isOffline ? styles.statusIndicatorOffline : styles.statusIndicatorOnline
     ];
 
     // On the very first sign in or after clearing storage these
@@ -76,15 +81,9 @@ SidebarBottom.defaultProps = defaultProps;
 SidebarBottom.displayName = 'SidebarBottom';
 
 export default withIon({
-    // Map this.props.userDisplayName to the personal details key in the store and bind it to the displayName property
-    // and load it with data from getPersonalDetails()
     myPersonalDetails: {
         key: IONKEYS.MY_PERSONAL_DETAILS,
         loader: getPersonalDetails,
     },
-    isOffline: {
-        key: IONKEYS.NETWORK,
-        path: 'isOffline',
-        defaultValue: false,
-    },
+    network: {key: IONKEYS.NETWORK},
 })(SidebarBottom);
