@@ -12,7 +12,8 @@ import styles, {getSafeAreaPadding} from '../../style/StyleSheet';
 import Header from './HeaderView';
 import Sidebar from './sidebar/SidebarView';
 import Main from './MainView';
-import {subscribeToReportCommentEvents} from '../../lib/actions/Report';
+import {subscribeToReportCommentEvents, fetchAll as fetchAllReports} from '../../lib/actions/Report';
+import {fetch as fetchPersonalDetails} from '../../lib/actions/PersonalDetails';
 
 const windowSize = Dimensions.get('window');
 const widthBreakPoint = 1000;
@@ -34,6 +35,12 @@ export default class App extends React.Component {
     componentDidMount() {
         // Listen for report comment events
         subscribeToReportCommentEvents();
+
+        // Fetch all the personal details
+        fetchPersonalDetails();
+
+        // Fetch all the reports
+        fetchAllReports();
 
         Dimensions.addEventListener('change', this.toggleHamburgerBasedOnDimensions);
 
@@ -134,4 +141,3 @@ export default class App extends React.Component {
         );
     }
 }
-App.displayName = 'App';

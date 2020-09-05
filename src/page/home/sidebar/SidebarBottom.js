@@ -6,7 +6,6 @@ import Text from '../../../components/Text';
 import AppLinks from './AppLinks';
 import {signOut} from '../../../lib/actions/Session';
 import IONKEYS from '../../../IONKEYS';
-import {fetch as getPersonalDetails} from '../../../lib/actions/PersonalDetails';
 import withIon from '../../../components/withIon';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
 
@@ -83,7 +82,6 @@ SidebarBottom.displayName = 'SidebarBottom';
 export default withIon({
     myPersonalDetails: {
         key: IONKEYS.MY_PERSONAL_DETAILS,
-        loader: getPersonalDetails,
     },
     network: {key: IONKEYS.NETWORK},
 })(SidebarBottom);
