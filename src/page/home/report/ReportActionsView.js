@@ -42,10 +42,11 @@ class ReportActionsView extends React.Component {
 
     componentDidMount() {
         this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
+        fetchActions(this.props.reportID);
     }
 
     componentDidUpdate(prevProps) {
-        const isReportVisible = this.props.reportID === this.props.match.params.reportID;
+        const isReportVisible = this.props.reportID === parseInt(this.props.match.params.reportID, 10);
 
         // When the number of actions change, wait three seconds, then record the max action
         // This will make the unread indicator go away if you receive comments in the same chat you're looking at
@@ -173,8 +174,6 @@ export default compose(
     withIon({
         reportActions: {
             key: `${IONKEYS.REPORT_ACTIONS}_%DATAFROMPROPS%`,
-            loader: fetchActions,
-            loaderParams: ['%DATAFROMPROPS%'],
             pathForProps: 'reportID',
         },
     }),
