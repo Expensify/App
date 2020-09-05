@@ -8,7 +8,6 @@ import Text from '../../../components/Text';
 import SidebarLink from './SidebarLink';
 import withIon from '../../../components/withIon';
 import IONKEYS from '../../../IONKEYS';
-import {fetchAll} from '../../../lib/actions/Report';
 import PageTitleUpdater from '../../../lib/PageTitleUpdater';
 import ChatSwitcherView from './ChatSwitcherView';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
@@ -115,7 +114,6 @@ export default compose(
         reports: {
             key: `${IONKEYS.REPORT}_[0-9]+$`,
             indexBy: 'reportID',
-            loader: fetchAll,
         }
     }),
 )(SidebarLinks);
