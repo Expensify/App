@@ -67,6 +67,7 @@ export default function (mapIonToState) {
              * Takes a single mapping and binds the state of the component to the store
              *
              * @param {object} mapping
+             * @param {string} statePropertyName the name of the state property that Ion will add the data to
              * @param {string} [mapping.indexBy] the name of the ID property to use for the collection
              * @param {string} [mapping.pathForProps] the statePropertyName can contain the string %DATAFROMPROPS% wich
              *  will be replaced with data from the props matching this path. That way, the component can connect to an
@@ -75,12 +76,8 @@ export default function (mapIonToState) {
              *  For example, if a component wants to connect to the Ion key "report_22" and
              *  "22" comes from this.props.match.params.reportID. The statePropertyName would be set to
              *  "report_%DATAFROMPROPS%" and pathForProps would be set to "match.params.reportID"
-             * @param {function} [mapping.loader] a method that will be called after connection to Ion in order to load
-             *  it with data. Typically this will be a method that makes an XHR to load data from the API.
-             * @param {mixed[]} [mapping.loaderParams] An array of params to be passed to the loader method
              * @param {boolean} [mapping.initWithStoredValues] If set to false, then no data will be prefilled into the
              *  component
-             * @param {string} statePropertyName the name of the state property that Ion will add the data to
              */
             connectMappingToIon(mapping, statePropertyName) {
                 const ionConnectionConfig = {
@@ -106,21 +103,6 @@ export default function (mapIonToState) {
                 } else {
                     connectionID = Ion.connect(ionConnectionConfig);
                     this.actionConnectionIDs[connectionID] = connectionID;
-                }
-
-                // Load the data from an API request if necessary
-                if (mapping.loader) {
-                    const paramsForLoaderFunction = _.map(mapping.loaderParams, (loaderParam) => {
-                        // Some params might com from the props data
-                        if (loaderParam === '%DATAFROMPROPS%') {
-                            return lodashGet(this.props, mapping.pathForProps);
-                        }
-                        return loaderParam;
-                    });
-
-                    // Call the loader function and pass it any params. The loader function will take care of putting
-                    // data into Ion
-                    mapping.loader(...paramsForLoaderFunction || []);
                 }
             }
 
