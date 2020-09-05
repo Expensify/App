@@ -39,12 +39,7 @@ function signIn(login, password, twoFactorAuthCode = '', exitTo, useExpensifyLog
         partnerUserSecret: password,
         twoFactorAuthCode,
         exitTo
-    })
-        .catch((err) => {
-            console.error(err);
-            console.debug('[SIGNIN] Request error');
-            return Ion.merge(IONKEYS.SESSION, {error: err.message});
-        });
+    }).catch(err => Ion.merge(IONKEYS.SESSION, {error: err.message}));
 }
 
 /**

@@ -1,4 +1,3 @@
-import lodashGet from 'lodash.get';
 import _ from 'underscore';
 import AsyncStorage from '@react-native-community/async-storage';
 
@@ -27,20 +26,11 @@ const callbackToStateMapping = {};
  * Get some data from the store
  *
  * @param {string} key
- * @param {string} [extraPath] passed to _.get() in order to return just a piece of the localStorage object
- * @param {mixed} [defaultValue] passed to the second param of _.get() in order to specify a default value if the value
- *      we are looking for doesn't exist in the object yet
  * @returns {*}
  */
-function get(key, extraPath, defaultValue) {
+function get(key) {
     return AsyncStorage.getItem(key)
         .then(val => JSON.parse(val))
-        .then((val) => {
-            if (extraPath) {
-                return lodashGet(val, extraPath, defaultValue);
-            }
-            return val;
-        })
         .catch(err => console.error(`Unable to get item from persistent storage. Key: ${key} Error: ${err}`));
 }
 
@@ -54,12 +44,8 @@ function keyChanged(key, data) {
     // Find components that were added with connect() and trigger their setState() method with the new data
     _.each(callbackToStateMapping, (mappedComponent) => {
         if (mappedComponent && mappedComponent.regex.test(key)) {
-            const newValue = mappedComponent.path
-                ? lodashGet(data, mappedComponent.path, mappedComponent.defaultValue)
-                : data || mappedComponent.defaultValue || null;
-
             if (_.isFunction(mappedComponent.callback)) {
-                mappedComponent.callback(newValue, key);
+                mappedComponent.callback(data, key);
             }
 
             if (!mappedComponent.withIonInstance) {
@@ -71,14 +57,14 @@ function keyChanged(key, data) {
                 // Add the data to an array of existing items
                 mappedComponent.withIonInstance.setState((prevState) => {
                     const collection = prevState[mappedComponent.statePropertyName] || {};
-                    collection[newValue[mappedComponent.collectionID]] = newValue;
+                    collection[data[mappedComponent.collectionID]] = data;
                     return {
                         [mappedComponent.statePropertyName]: collection,
                     };
                 });
             } else {
                 mappedComponent.withIonInstance.setState({
-                    [mappedComponent.statePropertyName]: newValue,
+                    [mappedComponent.statePropertyName]: data,
                 });
             }
         }
@@ -90,8 +76,6 @@ function keyChanged(key, data) {
  *
  * @param {object} mapping the mapping information to connect Ion to the components state
  * @param {string} mapping.keyPattern
- * @param {string} [mapping.path] a specific path of the store object to map to the state
- * @param {mixed} [mapping.defaultValue] to return if the there is nothing from the store
  * @param {string} mapping.statePropertyName the name of the property in the state to connect the data to
  * @param {boolean} [mapping.addAsCollection] rather than setting a single state value, this will add things to an array
  * @param {string} [mapping.collectionID] the name of the ID property to use for the collection
@@ -170,7 +154,7 @@ function getInitialStateFromConnectionID(connectionID) {
                 [value[config.collectionID]]: value,
             }), {}));
     }
-    return get(config.key, config.path, config.defaultValue);
+    return get(config.key);
 }
 
 /**

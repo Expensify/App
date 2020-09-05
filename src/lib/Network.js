@@ -10,10 +10,16 @@ import Guid from './Guid';
 import redirectToSignIn from './actions/SignInRedirect';
 
 let authToken;
-Ion.connect({key: IONKEYS.SESSION, path: 'authToken', callback: val => authToken = val});
+Ion.connect({
+    key: IONKEYS.SESSION,
+    callback: val => authToken = val.authToken,
+});
 
 let isOffline;
-Ion.connect({key: IONKEYS.NETWORK, path: 'isOffline', callback: val => isOffline = val});
+Ion.connect({
+    key: IONKEYS.NETWORK,
+    callback: val => isOffline = val.isOffline,
+});
 
 let credentials;
 Ion.connect({key: IONKEYS.CREDENTIALS, callback: val => credentials = val});
