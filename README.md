@@ -2,6 +2,13 @@
 
 # Philosophy
 This application is built with the following principles.
+1. **Data Flow** - Ideally, this is how data flows through the app:
+    1. Server pushes data to the disk of any client
+    1. Disk pushes data to the UI
+    1. UI pushes data to people's brains
+    1. Brain pushes data into UI inputs
+    1. UI inputs pushes data to the server
+    1. Go to 1
 1. **Offline first** 
     - All data that is brought into the app should be stored immediately in Ion which puts the data into persistent storage (eg. localStorage on browser platforms)
     - All data that is displayed, comes from persistent storage (Ion)
@@ -23,13 +30,6 @@ This application is built with the following principles.
     1. If the reason you can't write cross platform code is because there is a bug in ReactNative that is preventing it from working, the correct action is to fix RN and submit a PR upstream -- not to hack around RN bugs with platform-specific code paths.
     1. If there is a feature that simply doesn't exist on all platforms and thus doesn't exist in RN, rather than doing if (platform=iOS) { }, instead write a "shim" library that is implemented with NOOPs on the other platforms.  For example, rather than injecting platform-specific multi-tab code (which can only work on browsers, because it's the only platform with multiple tabs), write a TabManager class that just is NOOP for non-browser platforms.  This encapsulates the platform-specific code into a platform library, rather than sprinkling through the business logic.
     1. Put all platform specific code in a dedicated files and folders, like /platform, and reject any PR that attempts to put platform-specific code anywhere else.  This maintains a strict separation between business logic and platform code.
-1. **Data Flow** - Ideally, this is how data flows through the app:
-    1. Server pushes data to the disk of any client
-    1. Disk pushes data to the UI
-    1. UI pushes data to people's brains
-    1. Brain pushes data into UI inputs
-    1. UI inputs pushes data to the server
-    1. Go to 1
 
 ## Getting Started
 1. Install `node` & `npm`: `brew install node`
