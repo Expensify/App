@@ -1,6 +1,6 @@
 {
   "name": "react-native-chat",
-  "version": "1.0.1-32",
+  "version": "1.0.1-36",
   "author": "Expensify, Inc.",
   "homepage": "https://expensify.com",
   "description": "Expensify Chat",
@@ -13,9 +13,10 @@
     "web": "webpack-dev-server --open --config webpack.dev.js",
     "build": "webpack --config webpack.prod.js",
     "desktop-build": "webpack --config webpack.prod.js && electron-builder --config desktop/electron.config.js --publish always",
+    "ios-build": "fastlane ios build",
+    "android-build": "fastlane android build",
     "test": "jest",
     "lint": "eslint .",
-    "deploy-ios": "npm version prerelease && git push && fastlane ios beta",
     "postversion": "react-native-version",
     "print-version": "echo $npm_package_version"
   },
