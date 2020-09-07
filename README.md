@@ -7,7 +7,7 @@ This application is built with the following principles.
     - All data that is displayed, comes from persistent storage (Ion)
 1. **UI Binds to Ion** 
     - UI components bind to Ion (with `Ion.connect()`) so that any change to the Ion data is automatically reflected in the component by calling setState() with the changed data.
-    - Libraries bind to Ion (with `Ion.connect()`) and use a callback instead of having `setState()` be called
+    - Libraries bind to Ion (with `Ion.connect()`) and use a callback which is triggered with the changed data
     - The UI should be as flexible as possible when it comes to:
         - Incomplete data (always assume data is incomplete or not there)
         - Order of events (all operations can and should happen in parallel rather than in sequence)
