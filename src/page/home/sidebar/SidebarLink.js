@@ -8,8 +8,6 @@ import styles from '../../../style/StyleSheet';
 import withIon from '../../../components/withIon';
 import PressableLink from '../../../components/PressableLink';
 import compose from '../../../lib/compose';
-import Ion from '../../../lib/Ion';
-import {redirect} from '../../../lib/actions/App';
 
 const propTypes = {
     // The ID of the report for this link
@@ -35,11 +33,6 @@ const defaultProps = {
     isUnread: false,
 };
 
-const onClick = (props) => {
-    redirect(props.reportID);
-    props.onLinkClick();
-};
-
 const SidebarLink = (props) => {
     const reportIDInUrl = parseInt(props.match.params.reportID, 10);
     const isReportActive = reportIDInUrl === props.reportID;
@@ -51,7 +44,7 @@ const SidebarLink = (props) => {
 
     return (
         <View style={[styles.sidebarListItem, linkWrapperActiveStyle]}>
-            <PressableLink onClick={() => onClick(props)} to={`/${props.reportID}`} style={linkActiveStyle}>
+            <PressableLink onClick={props.onLinkClick} to={`/${props.reportID}`} style={linkActiveStyle}>
                 <View style={[styles.sidebarLinkInner]}>
                     <Text numberOfLines={1} style={textActiveUnreadStyle}>
                         {props.reportName}
