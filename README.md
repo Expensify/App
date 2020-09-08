@@ -3,28 +3,32 @@
 # Philosophy
 This application is built with the following principles.
 1. **Data Flow** - Ideally, this is how data flows through the app:
-    1. Server pushes data to the disk of any client
-    1. Disk pushes data to the UI
-    1. UI pushes data to people's brains
-    1. Brain pushes data into UI inputs
-    1. UI inputs pushes data to the server
+    1. Server pushes data to the disk of any client (Server -> Pusher event -> Action listening to pusher event -> Ion).
+    1. Disk pushes data to the UI (Ion -> withIon()/connect() -> React component).
+    1. UI pushes data to people's brains (React component -> device screen).
+    1. Brain pushes data into UI inputs (Device input -> React component).
+    1. UI inputs pushes data to the server (React component -> Action -> XHR to server).
     1. Go to 1
 1. **Offline first** 
-    - All data that is brought into the app should be stored immediately in Ion which puts the data into persistent storage (eg. localStorage on browser platforms)
-    - All data that is displayed, comes from persistent storage (Ion)
-1. **UI Binds to Ion** 
-    - UI components bind to Ion (with `Ion.connect()`) so that any change to the Ion data is automatically reflected in the component by calling `setState()` with the changed data.
-    - Libraries bind to Ion (with `Ion.connect()`) and use a callback which is triggered with the changed data
+    - All data that is brought into the app should be stored immediately on disk in persistent storage (eg. localStorage on browser platforms).
+    - All data that is displayed, comes from persistent storage.
+1. **UI Binds to data on disk** 
+    - Ion is a Pub/Sub library to connect the application to the data stored on disk.
+    - UI components bind to Ion (using `withIon()`) and any change to the Ion data is automatically reflected in the component by calling `setState()` with the changed data.
+    - Libraries bind to Ion (with `Ion.connect()`) and use a callback which is triggered with the changed data.
+    - The UI should never call any Ion methods except for `Ion.connect()`. That is the job of Actions (see next section).
+    - The UI always interacts with an Action when something needs to happen (eg. a person inputs data, the UI passes that data to an Action to be processed).
     - The UI should be as flexible as possible when it comes to:
-        - Incomplete data (always assume data is incomplete or not there)
+        - Incomplete or missing data (always assume data is incomplete or not there)
         - Order of events (all operations can and should happen in parallel rather than in sequence)
 1. **Actions manage Ion Data** 
-    - When data needs to be written to or read from the server, this is done through Actions exclusively
-    - Actions should never return data, see the first point. Example:  if the action is `fetchReports()`, it does not return the reports, `fetchReports()` returns nothing. The action makes an XHR, then puts the data into Ion (using `Ion.set()` or `Ion.merge()`).
-    - Actions should favor using `Ion.merge()` over `Ion.set()` so that other values in an object aren't completely overwritten
-    - All Ion operations should happen in parallel and never in sequence
-    - If an Action needs access to Ion data, use a local variable and `Ion.connect()`
-    - Data should be optimistically added to Ion whenever possible without waiting for a server response
+    - When data needs to be written to or read from the server, this is done through Actions only.
+    - Action methods should never return anything (not data or a promise). There are very few exceptions to this. The only time an action is allowed to return a promise or data is for internal use by that action only. Any libraries, actions, or React components that need access to the data from the action should be subscribing to that data with Ion.
+    - Actions should favor using `Ion.merge()` over `Ion.set()` so that other values in an object aren't completely overwritten.
+    - All Ion operations should happen in parallel and never in sequence (eg. don't use the promise of one Ion method to trigger a second Ion method).
+    - The only time Actions should use promises to do operations in sequence is when working with XHRs.
+    - If an Action needs to access data stored on disk, use a local variable and `Ion.connect()`
+    - Data should be optimistically stored on disk whenever possible without waiting for a server response (eg. creating a new comment)
 1. **Cross Platform 99.9999%**
     1. A feature isn't done until it works on all platforms.  Accordingly, don't even bother writing a platform-specific code block because you're just going to need to undo it.
     1. If the reason you can't write cross platform code is because there is a bug in ReactNative that is preventing it from working, the correct action is to fix RN and submit a PR upstream -- not to hack around RN bugs with platform-specific code paths.
