@@ -121,7 +121,7 @@ Actions are responsible for managing what is on disk. This is usually:
 - Handling any business logic with input coming from the UI layer
 
 ### The UI layer
-This layer is soley responsible for:
+This layer is solely responsible for:
 
 - Reflecting exactly the data that is in persistent storage by using `withIon()` to bind to Ion data.
 - Taking user input and passing it to an action
