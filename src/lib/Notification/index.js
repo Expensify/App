@@ -7,6 +7,8 @@ import * as ActiveClientManager from '../ActiveClientManager';
 const EXPENSIFY_ICON_URL = `${CONST.CLOUDFRONT_URL}/images/favicon-2019.png`;
 const DEFAULT_DELAY = 4000;
 
+/* ====== Private Functions ====== */
+
 /**
  * Checks if the user has granted permission to show browser notifications
  *
@@ -119,10 +121,23 @@ function pushReportCommentNotification({reportAction, onClick}) {
     });
 }
 
+/* ====== Public Functions (signatures must match index.native.js) ====== */
+
+/**
+ * See if user notification permissions are set, and ask for permission if not set.
+ *
+ * @returns {Promise}
+ */
+function enableUserNotifications() {
+    return canUseBrowserNotifications();
+}
+
+
 function showCommentNotification({reportAction, onClick}) {
     pushReportCommentNotification({reportAction, onClick});
 }
 
 export default {
+    enableUserNotifications,
     showCommentNotification,
 };
