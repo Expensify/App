@@ -97,6 +97,8 @@
     "globals": {
       "__DEV__": true,
       "WebSocket": {}
-    }
+    },
+    "timers": "fake",
+    "testEnvironment": "jsdom"
   }
 }
