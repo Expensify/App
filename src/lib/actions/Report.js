@@ -10,7 +10,7 @@ import promiseAllSettled from '../promiseAllSettled';
 import ExpensiMark from '../ExpensiMark';
 import Notification from '../Notification';
 import * as PersonalDetails from './PersonalDetails';
-import {redirect} from './App.js'
+import {redirect} from './App';
 
 // List of reportIDs that we define in .env
 const configReportIDs = CONFIG.REPORT_IDS.split(',').map(Number);
