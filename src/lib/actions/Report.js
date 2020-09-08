@@ -183,17 +183,14 @@ function updateReportWithNewAction(reportID, reportAction) {
 
     const previousMaxSequenceNumber = reportMaxSequenceNumbers[reportID];
     const newMaxSequenceNumber = reportAction.sequenceNumber;
+    const hasNewSequenceNumber = newMaxSequenceNumber > previousMaxSequenceNumber;
 
     // Mark the report as unread if there is a new max sequence number
-    if (newMaxSequenceNumber > previousMaxSequenceNumber) {
-        Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {
-            hasUnread: true,
-            maxSequenceNumber: newMaxSequenceNumber,
-        });
-    }
-
+    // Record the new sequence number if there is one
     // Add the action into Ion
     Ion.merge(`${IONKEYS.REPORT_ACTIONS}_${reportID}`, {
+        hasUnread: hasNewSequenceNumber,
+        maxSequenceNumber: hasNewSequenceNumber ? newMaxSequenceNumber : previousMaxSequenceNumber,
         [reportAction.sequenceNumber]: reportAction,
     });
 
