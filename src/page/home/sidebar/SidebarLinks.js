@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
-import orderBy from 'lodash.orderby';
+import lodashOrderBy from 'lodash.orderby';
 import styles from '../../../style/StyleSheet';
 import Text from '../../../components/Text';
 import SidebarLink from './SidebarLink';
@@ -58,7 +58,7 @@ class SidebarLinks extends React.Component {
     render() {
         const {reports, onLinkClick} = this.props;
         const reportIDInUrl = parseInt(this.props.match.params.reportID, 10);
-        const sortedReports = orderBy(this.props.reports, ['pinnedReport', 'reportName'], ['desc', 'asc']);
+        const sortedReports = lodashOrderBy(this.props.reports, ['pinnedReport', 'reportName'], ['desc', 'asc']);
 
         // Filter the reports so that the only reports shown are pinned, unread, and the one matching the URL
         // eslint-disable-next-line max-len
