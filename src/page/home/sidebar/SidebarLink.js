@@ -9,6 +9,7 @@ import withIon from '../../../components/withIon';
 import PressableLink from '../../../components/PressableLink';
 import compose from '../../../lib/compose';
 import Ion from '../../../lib/Ion';
+import {redirect} from '../../../lib/actions/App';
 
 const propTypes = {
     // The ID of the report for this link
@@ -35,7 +36,7 @@ const defaultProps = {
 };
 
 const onClick = (props) => {
-    Ion.set(IONKEYS.APP_REDIRECT_TO, `/${props.reportID}`);
+    redirect(props.reportID);
     props.onLinkClick();
 };
 

@@ -10,6 +10,7 @@ import promiseAllSettled from '../promiseAllSettled';
 import ExpensiMark from '../ExpensiMark';
 import Notification from '../Notification';
 import * as PersonalDetails from './PersonalDetails';
+import {redirect} from './App.js'
 
 // List of reportIDs that we define in .env
 const configReportIDs = CONFIG.REPORT_IDS.split(',').map(Number);
@@ -234,7 +235,7 @@ function updateReportWithNewAction(reportID, reportAction) {
                 reportAction,
                 onClick: () => {
                     // Navigate to this report onClick
-                    Ion.set(IONKEYS.APP_REDIRECT_TO, `/${reportID}`);
+                    redirect(reportID);
                 }
             });
         });
