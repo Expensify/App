@@ -10,7 +10,7 @@ import IONKEYS from '../../IONKEYS';
  */
 function recordCurrentRoute(match, currentRedirectTo) {
     Ion.set(IONKEYS.CURRENT_URL, match.url);
-    if (match.url ===  currentRedirectTo) {
+    if (match.url === currentRedirectTo) {
         Ion.set(IONKEYS.APP_REDIRECT_TO, '');
     }
 }
@@ -19,7 +19,7 @@ function recordCurrentRoute(match, currentRedirectTo) {
 /**
  * Redirect the app to a new page by updating the state in Ion
  *
- * @param url
+ * @param {mixed} url
  */
 function redirect(url) {
     const formattedURL = (typeof url === 'string' && url.startsWith('/')) ? url : `/${url}`;
