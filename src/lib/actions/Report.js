@@ -30,7 +30,7 @@ Ion.connect({
     callback: val => currentURL = val,
 });
 
-// Use a regex pattern here for an exact match so it doesn't also match "my_personal_details"
+// Use a regex pattern here for an exact match so it doesn't also match "myPersonalDetails"
 let personalDetails;
 Ion.connect({
     key: `^${IONKEYS.PERSONAL_DETAILS}$`,
