@@ -41,6 +41,7 @@ This application is built with the following principles.
 3. Install dependencies: `npm install`
 4. Run `cp .env.example .env` and edit `.env` to have your local config options
 
+You can use any IDE or code editing tool for developing on any platform. Use your favorite!
 
 ## Running the web app 🕸
 * To run a **Development Server**: `npm run web`
@@ -90,3 +91,37 @@ This application is built with the following principles.
 1. If running on the iOS simulator `⌘D`, or `⌘M` on Android emulator will open the debugging menu. 
 2. This will allow you to attach a debugger in your IDE, React Developer Tools, or your browser. 
 3. For more information on how to attach a debugger, see [React Native Debugging Documentation](https://reactnative.dev/docs/debugging#chrome-developer-tools)
+
+## Things to know or brush up on before jumping into the code
+1. The major difference between React-Native and React are the [components](https://reactnative.dev/docs/components-and-apis) that are used in the `render()` method. Everything else is exactly the same. If you learn React, you've already learned 98% of React-Native.
+1. The application uses [React-Router](https://reactrouter.com/native/guides/quick-start) for navigating between parts of the app.
+1. [Higher Order Components](https://reactjs.org/docs/higher-order-components.html) are used to connect React components to persistent storage via Ion.
+
+## Structure of the app
+These are the main pieces of the application.
+
+### Ion
+This is a persistent storage solution wrapped in a Pub/Sub library. In general that means:
+
+- Ion stores and retrieves data from persistent storage
+- Data is stored as key/value pairs, where the value can be anything from a single piece of data to a complex object
+- Collections of data are usually not stored as a single key (eg. an array with multiple objects), but as individual keys+ID (eg. `report_1234`, `report_4567`, etc.)
+- Ion allows other code to subscribe to changes in data, and then publishes change events whenever data is changed
+- Anything needing to read Ion data needs to:
+    1. Know what key the data is stored in (for web, you can find this by looking in the JS console > Application > local storage)
+    2. Subscribe to changes of the data for a particular key or set of keys. React components use `withIon()` and non-React libs use `Ion.connect()`.
+    3. Get initialized with the current value of that key from persistent storage (Ion does this automatically as part of the connection process)
+- Subscribing to Ion keys is done using a regex pattern. For example, since all reports are stored as individual keys like `report_1234`, then if code needs to know about all the reports (eg. display a list of them in the nav menu), then it would subscribe to the key pattern `report_[0-9]+$`.
+
+### Actions
+Actions are responsible for managing what is on disk. This is usually:
+
+- Subscribing to Pusher events to receive data from the server that will get put immediately into Ion
+- Making XHRs to request necessary data from the server and then immediately putting that data into Ion
+- Handling any business logic with input coming from the UI layer
+
+### The UI layer
+This layer is soley responsible for:
+
+- Reflecting exactly the data that is in persistent storage by using `withIon()` to bind to Ion data.
+- Taking user input and passing it to an action
