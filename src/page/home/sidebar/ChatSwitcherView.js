@@ -275,7 +275,7 @@ ChatSwitcherView.defaultProps = defaultProps;
 export default withIon({
     personalDetails: {
         // Exact match for the personal_details key as we don't want
-        // my_personal_details to overwrite this value
+        // myPersonalDetails to overwrite this value
         key: `^${IONKEYS.PERSONAL_DETAILS}$`,
     },
     myPersonalDetails: {
