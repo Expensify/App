@@ -89,7 +89,9 @@ class SidebarLinks extends React.Component {
                                 Chats
                             </Text>
                         </View>
-                        {_.map(reportsToDisplay, report => (
+                        {/* A report will not have a report name if it hasn't been fetched from the server yet */}
+                        {/* so nothing is rendered */}
+                        {_.map(reportsToDisplay, report => report.reportName && (
                             <SidebarLink
                                 key={report.reportID}
                                 reportID={report.reportID}
