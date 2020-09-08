@@ -61,6 +61,7 @@ class ReportHistoryItemFragment extends React.PureComponent {
                 return fragment.html !== fragment.text
                     ? (
                         <HTML
+                            textSelectable
                             renderers={this.customRenderers}
                             baseFontStyle={webViewStyles.baseFontStyle}
                             tagsStyles={webViewStyles.tagStyles}
@@ -69,10 +70,13 @@ class ReportHistoryItemFragment extends React.PureComponent {
                             alterNode={this.alterNode}
                         />
                     )
-                    : <Text>{Str.htmlDecode(fragment.text)}</Text>;
+                    : <Text selectable>{Str.htmlDecode(fragment.text)}</Text>;
             case 'TEXT':
                 return (
-                    <Text style={[styles.chatItemMessageHeaderSender]}>
+                    <Text
+                        selectable
+                        style={[styles.chatItemMessageHeaderSender]}
+                    >
                         {Str.htmlDecode(fragment.text)}
                     </Text>
                 );
