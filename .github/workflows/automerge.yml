@@ -1,4 +1,4 @@
-name: automerge
+name: Automerge PR
 
 # This workflow is triggered by a pull request that is labeled
 on:
