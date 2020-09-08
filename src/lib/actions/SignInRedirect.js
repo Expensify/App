@@ -1,7 +1,7 @@
 import Ion from '../Ion';
 import IONKEYS from '../../IONKEYS';
 import ROUTES from '../../ROUTES';
-import {redirect} from './App.js';
+import {redirect} from './App';
 
 /**
  * Redirects to the sign in page and handles adding any exitTo params to the URL.
