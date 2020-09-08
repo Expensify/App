@@ -135,11 +135,11 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.expensifyreactnative.chat"
+        applicationId "com.expensify.chat"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 32
-        versionName "1.0.1-31"
+        versionCode 41
+        versionName "1.0.1-40"
     }
     splits {
         abi {
