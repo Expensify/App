@@ -10,6 +10,7 @@ import * as ActiveClientManager from './lib/ActiveClientManager';
 import IONKEYS from './IONKEYS';
 import withIon from './components/withIon';
 import styles from './style/StyleSheet';
+import Notification from './lib/Notification';
 
 import {
     Route,
@@ -52,7 +53,8 @@ class Expensify extends Component {
         Ion.get(IONKEYS.SESSION, 'authToken', '')
             .then((authToken) => {
                 this.setState({loading: false, authToken});
-            });
+            })
+            .then(() => Notification.enableUserNotifications());
     }
 
     /**
