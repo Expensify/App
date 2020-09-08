@@ -52,7 +52,7 @@ const SidebarBottom = ({myPersonalDetails, isOffline, insets}) => {
             <View style={[styles.sidebarFooterAvatar]}>
                 <Image
                     source={{uri: myPersonalDetails.avatarURL}}
-                    style={[styles.historyItemAvatar]}
+                    style={[styles.actionAvatar]}
                 />
                 <View style={indicatorStyles} />
             </View>

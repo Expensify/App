@@ -2,16 +2,15 @@
  * This is a file containing constants for all the top level keys in our store
  */
 export default {
-    ACTIVE_CLIENT_IDS: 'activeClientIDs',
-    APP_REDIRECT_TO: 'app_redirectTo',
-    CURRENT_URL: 'current_url',
+    ACTIVE_CLIENTS: 'activeClients',
+    APP_REDIRECT_TO: 'appRedirectTo',
+    CURRENT_URL: 'currentURL',
     CREDENTIALS: 'credentials',
-    MY_PERSONAL_DETAILS: 'my_personal_details',
+    FIRST_REPORT_ID: 'firstReportID',
+    MY_PERSONAL_DETAILS: 'myPersonalDetails',
     NETWORK: 'network',
-    PERSONAL_DETAILS: 'personal_details',
+    PERSONAL_DETAILS: 'personalDetails',
     REPORT: 'report',
-    REPORT_ACTION: 'reportAction',
-    REPORT_HISTORY: 'report_history',
-    FIRST_REPORT_ID: 'first_report_id',
+    REPORT_ACTIONS: 'reportActions',
     SESSION: 'session',
 };

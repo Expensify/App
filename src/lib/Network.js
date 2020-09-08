@@ -16,10 +16,10 @@ let isOffline;
 Ion.connect({key: IONKEYS.NETWORK, path: 'isOffline', callback: val => isOffline = val});
 
 let credentials;
-Ion.connect({key: IONKEYS.CREDENTIALS, callback: c => credentials = c});
+Ion.connect({key: IONKEYS.CREDENTIALS, callback: val => credentials = val});
 
 let currentUrl;
-Ion.connect({key: IONKEYS.CURRENT_URL, callback: url => currentUrl = url});
+Ion.connect({key: IONKEYS.CURRENT_URL, callback: val => currentUrl = val});
 
 /**
  * When authTokens expire they will automatically be refreshed.
