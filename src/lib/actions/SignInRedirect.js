@@ -1,6 +1,7 @@
 import Ion from '../Ion';
 import IONKEYS from '../../IONKEYS';
 import ROUTES from '../../ROUTES';
+import {redirect} from './App.js';
 
 /**
  * Redirects to the sign in page and handles adding any exitTo params to the URL.
@@ -24,7 +25,7 @@ function redirectToSignIn() {
             const urlWithExitTo = url === '/'
                 ? ROUTES.SIGNIN
                 : `${ROUTES.SIGNIN}/exitTo${url}`;
-            return Ion.set(IONKEYS.APP_REDIRECT_TO, urlWithExitTo);
+            return redirect(urlWithExitTo);
         });
 }
 
