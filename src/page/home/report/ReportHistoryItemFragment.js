@@ -1,23 +1,16 @@
 import React from 'react';
 import HTML from 'react-native-render-html';
 import {Linking} from 'react-native';
-import PropTypes from 'prop-types';
 import Str from '../../../lib/Str';
 import ReportHistoryFragmentPropTypes from './ReportHistoryFragmentPropTypes';
 import styles, {webViewStyles} from '../../../style/StyleSheet';
 import Text from '../../../components/Text';
 import AnchorForCommentsOnly from '../../../components/AnchorForCommentsOnly';
+import {getAuthToken} from '../../../lib/Network';
 
 const propTypes = {
     // The message fragment needing to be displayed
     fragment: ReportHistoryFragmentPropTypes.isRequired,
-
-    // Current users auth token
-    authToken: PropTypes.string
-};
-
-const defaultProps = {
-    authToken: ''
 };
 
 class ReportHistoryItemFragment extends React.PureComponent {
@@ -55,7 +48,7 @@ class ReportHistoryItemFragment extends React.PureComponent {
 
         // We only want to attach auth tokens to images that come from Expensify attachments
         if (htmlNode.name === 'img' && htmlNode.attribs['data-expensify-source']) {
-            htmlNode.attribs.src = `${node.attribs.src}?authToken=${this.props.authToken}`;
+            htmlNode.attribs.src = `${node.attribs.src}?authToken=${getAuthToken()}`;
             return htmlNode;
         }
     }
@@ -68,6 +61,7 @@ class ReportHistoryItemFragment extends React.PureComponent {
                 return fragment.html !== fragment.text
                     ? (
                         <HTML
+                            textSelectable
                             renderers={this.customRenderers}
                             baseFontStyle={webViewStyles.baseFontStyle}
                             tagsStyles={webViewStyles.tagStyles}
@@ -76,10 +70,13 @@ class ReportHistoryItemFragment extends React.PureComponent {
                             alterNode={this.alterNode}
                         />
                     )
-                    : <Text>{Str.htmlDecode(fragment.text)}</Text>;
+                    : <Text selectable>{Str.htmlDecode(fragment.text)}</Text>;
             case 'TEXT':
                 return (
-                    <Text style={[styles.chatItemMessageHeaderSender]}>
+                    <Text
+                        selectable
+                        style={[styles.chatItemMessageHeaderSender]}
+                    >
                         {Str.htmlDecode(fragment.text)}
                     </Text>
                 );
@@ -104,7 +101,6 @@ class ReportHistoryItemFragment extends React.PureComponent {
 }
 
 ReportHistoryItemFragment.propTypes = propTypes;
-ReportHistoryItemFragment.defaultProps = defaultProps;
 ReportHistoryItemFragment.displayName = 'ReportHistoryItemFragment';
 
 export default ReportHistoryItemFragment;

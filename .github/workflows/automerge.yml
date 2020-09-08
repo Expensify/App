@@ -1,9 +1,12 @@
 name: automerge
+
+# This workflow is triggered by a pull request that is labeled
 on:
     pull_request:
         types:
             - labeled
     status: {}
+
 jobs:
     automerge:
         runs-on: ubuntu-latest
