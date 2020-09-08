@@ -18,10 +18,7 @@ const AppLinks = () => (
         </Anchor>
         <Anchor
             style={[styles.sidebarFooterLink, styles.mr2]}
-
-            // TODO: Move to href="https://play.google.com/apps/internaltest/4700657970395613233" once Android app
-            // is approved see: https://github.com/Expensify/ReactNativeChat/issues/290
-            href="https://chat.expensify.com/app-release.apk"
+            href="https://play.google.com/apps/internaltest/4700657970395613233"
         >
             Android
         </Anchor>
