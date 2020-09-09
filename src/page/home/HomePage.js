@@ -4,7 +4,7 @@ import {
     View,
     Dimensions,
     Animated,
-    Easing
+    Easing,
 } from 'react-native';
 import {SafeAreaInsetsContext, SafeAreaProvider} from 'react-native-safe-area-context';
 import {Route} from '../../lib/Router';
@@ -27,6 +27,7 @@ export default class App extends React.Component {
         };
 
         this.toggleHamburger = this.toggleHamburger.bind(this);
+        this.dismissHamburger = this.dismissHamburger.bind(this);
         this.toggleHamburgerBasedOnDimensions = this.toggleHamburgerBasedOnDimensions.bind(this);
         this.animationTranslateX = new Animated.Value(!this.state.hamburgerShown ? -300 : 0);
     }
@@ -59,22 +60,18 @@ export default class App extends React.Component {
         }
     }
 
-    /**
-     * Method called when we want to toggle the hamburger menu opened and closed
-     * Only changes hamburger state on small screens (e.g. Mobile and mWeb)
-     */
-    toggleHamburger() {
-        if (!this.state.isHamburgerEnabled) {
+    dismissHamburger() {
+        const hamburgerIsShown = this.state.hamburgerShown;
+
+        if (!hamburgerIsShown) {
             return;
         }
 
-        const hamburgerIsShown = this.state.hamburgerShown;
-        const animationFinalValue = hamburgerIsShown ? -300 : 0;
+        this.animateHamburger(hamburgerIsShown);
+    }
 
-        // If the hamburger currently is not shown, we want to immediately make it visible for the animation
-        if (!hamburgerIsShown) {
-            this.setState({hamburgerShown: true});
-        }
+    animateHamburger(hamburgerIsShown) {
+        const animationFinalValue = hamburgerIsShown ? -300 : 0;
 
         Animated.timing(this.animationTranslateX, {
             toValue: animationFinalValue,
@@ -88,6 +85,25 @@ export default class App extends React.Component {
                 this.setState({hamburgerShown: false});
             }
         });
+    }
+
+    /**
+     * Method called when we want to toggle the hamburger menu opened and closed
+     * Only changes hamburger state on small screens (e.g. Mobile and mWeb)
+     */
+    toggleHamburger() {
+        if (!this.state.isHamburgerEnabled) {
+            return;
+        }
+
+        const hamburgerIsShown = this.state.hamburgerShown;
+
+        // If the hamburger currently is not shown, we want to immediately make it visible for the animation
+        if (!hamburgerIsShown) {
+            this.setState({hamburgerShown: true});
+        }
+
+        this.animateHamburger(hamburgerIsShown);
     }
 
     render() {
@@ -119,7 +135,10 @@ export default class App extends React.Component {
                                 >
                                     <Sidebar insets={insets} onLinkClick={this.toggleHamburger} />
                                 </Animated.View>
-                                <View style={[styles.appContent, appContentStyle, styles.flex1, styles.flexColumn]}>
+                                <View
+                                    onTouchStart={this.dismissHamburger}
+                                    style={[styles.appContent, appContentStyle, styles.flex1, styles.flexColumn]}
+                                >
                                     <Header
                                         shouldShowHamburgerButton={this.state.isHamburgerEnabled}
                                         onHamburgerButtonClicked={this.toggleHamburger}
