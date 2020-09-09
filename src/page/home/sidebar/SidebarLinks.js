@@ -13,7 +13,6 @@ import ChatSwitcherView from './ChatSwitcherView';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
 import compose from '../../../lib/compose';
 import {withRouter} from '../../../lib/Router';
-import {redirect} from '../../../lib/actions/App';
 
 const propTypes = {
     // These are from withRouter
