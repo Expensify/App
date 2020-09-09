@@ -8,7 +8,6 @@ import KeyboardShortcut from '../../../lib/KeyboardShortcut';
 import ChatSwitcherList from './ChatSwitcherList';
 import ChatSwitcherSearchForm from './ChatSwitcherSearchForm';
 import {fetchOrCreateChatReport} from '../../../lib/actions/Report';
-import {redirect} from '../../../lib/actions/App';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
