@@ -6,15 +6,19 @@ import TextInputFocusable from '../../../components/TextInputFocusable';
 import sendIcon from '../../../../assets/images/icon-send.png';
 import Ion from '../../../lib/Ion';
 import IONKEYS from '../../../IONKEYS';
-import withIon from '../../../components/withIon';
+import paperClipIcon from '../../../../assets/images/icon-paper-clip.png';
+import CONFIG from '../../../CONFIG';
+import openURLInNewTab from '../../../lib/openURLInNewTab';
 
 const propTypes = {
-    reportID: PropTypes.number.isRequired,
-
     // A method to call when the form is submitted
     onSubmit: PropTypes.func.isRequired,
 
+    // The comment draft left by the user
     draftComment: PropTypes.string.isRequired,
+
+    // The ID of the report actions will be created for
+    reportID: PropTypes.number.isRequired,
 };
 
 class ReportActionCompose extends React.Component {
@@ -84,9 +88,21 @@ class ReportActionCompose extends React.Component {
     }
 
     render() {
+        const href = `${CONFIG.PUSHER.AUTH_URL}/report?reportID=${this.props.reportID}&shouldScrollToLastUnread=true`;
         return (
             <View style={[styles.chatItemCompose]}>
                 <View style={[styles.chatItemComposeBox, styles.flexRow]}>
+                    <TouchableOpacity
+                        onPress={() => openURLInNewTab(href)}
+                        style={[styles.chatItemAttachButton]}
+                        underlayColor={colors.componentBG}
+                    >
+                        <Image
+                            style={[styles.chatItemSubmitButtonIcon]}
+                            resizeMode="contain"
+                            source={paperClipIcon}
+                        />
+                    </TouchableOpacity>
                     <TextInputFocusable
                         multiline
                         textAlignVertical="top"
