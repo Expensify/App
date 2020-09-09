@@ -15,7 +15,7 @@ const propTypes = {
     // A method to call when the form is submitted
     onSubmit: PropTypes.func.isRequired,
 
-    // The draft comment left by the user
+    // The comment left by the user
     comment: PropTypes.string,
 
     // The ID of the report actions will be created for
