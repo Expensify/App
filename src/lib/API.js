@@ -207,6 +207,13 @@ function request(command, parameters, type = 'post') {
                         return Promise.reject();
                     });
             }
+
+            // We can end up here if we have queued up many
+            // requests and have an expired authToken. In these cases,
+            // we just need to requeue the request
+            if (reauthenticating) {
+                return queueRequest(command, parametersWithAuthToken);
+            }
             return responseData;
         })
         .catch(() => {
