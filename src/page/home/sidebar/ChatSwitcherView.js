@@ -8,7 +8,7 @@ import Str from '../../../lib/Str';
 import KeyboardShortcut from '../../../lib/KeyboardShortcut';
 import ChatSwitcherList from './ChatSwitcherList';
 import ChatSwitcherSearchForm from './ChatSwitcherSearchForm';
-import {fetchChatReport} from '../../../lib/actions/Report';
+import {fetchAll, fetchChatReport} from '../../../lib/actions/Report';
 
 const propTypes = {
     // A method that is triggered when the TextInput gets focus
@@ -124,6 +124,7 @@ class ChatSwitcherView extends React.Component {
      * @param {string} option.value
      */
     fetchChatReportAndRedirect(option) {
+        debugger;
         Ion.get(IONKEYS.MY_PERSONAL_DETAILS, 'login')
             .then(currentLogin => fetchChatReport([currentLogin, option.login]))
             .then(reportID => Ion.set(IONKEYS.APP_REDIRECT_TO, `/${reportID}`));
@@ -208,6 +209,15 @@ class ChatSwitcherView extends React.Component {
         // A Set is used here so that duplicate values are automatically removed.
         const matches = new Set();
         const searchOptions = _.values(this.props.personalDetails);
+        const reportOptions = _.filter(_.values(this.props.reports), (reportData) => {
+            return reportData.reportNameValuePairs && reportData.reportNameValuePairs.type === 'expense';
+        });
+        _.each(reportOptions, (element, index) => {
+            reportOptions[index].displayNameWithEmail = element.reportName;
+            reportOptions[index].login = element.reportName;
+        });
+
+        searchOptions.push(...reportOptions);
 
         for (let i = 0; i < matchRegexes.length; i++) {
             if (matches.size < this.maxSearchResults) {
@@ -273,4 +283,21 @@ export default withIon({
         // my_personal_details to overwrite this value
         key: `^${IONKEYS.PERSONAL_DETAILS}$`,
     },
+    reports: {
+        key: `${IONKEYS.REPORT}_[0-9]+$`,
+        addAsCollection: true,
+        collectionID: 'reportID',
+        loader: () => fetchAll().then(() => {
+            // After the reports are loaded for the first time, redirect to the first reportID in the list
+            Ion.multiGet([IONKEYS.CURRENT_URL, IONKEYS.FIRST_REPORT_ID]).then((values) => {
+                const currentURL = values[IONKEYS.CURRENT_URL] || '';
+                const firstReportID = values[IONKEYS.FIRST_REPORT_ID] || 0;
+
+                // If we're on the home page, then redirect to the first report ID
+                if (currentURL === '/' && firstReportID) {
+                    Ion.set(IONKEYS.APP_REDIRECT_TO, `/${firstReportID}`);
+                }
+            });
+        }),
+    }
 })(ChatSwitcherView);
