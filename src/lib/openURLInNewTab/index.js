@@ -1,5 +1,5 @@
 /**
- * On web, the Linking.openURL implementation does not open a URL in a new tab by default. This lib adds that
+ * On web, the Linking.openURL implementation does not open a URL in a new tab by default. This lib allows for that
  * functionality.
  */
 
