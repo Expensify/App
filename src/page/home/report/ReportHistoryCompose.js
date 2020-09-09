@@ -5,8 +5,8 @@ import styles, {colors} from '../../../style/StyleSheet';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 import sendIcon from '../../../../assets/images/icon-send.png';
 import paperClipIcon from '../../../../assets/images/icon-paper-clip.png';
-import TouchableOpacityNewTab from '../../../components/TouchableOpacityNewTab';
 import CONFIG from '../../../CONFIG';
+import openURLInNewTab from '../../../lib/openURLInNewTab';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -83,8 +83,8 @@ class ReportHistoryCompose extends React.Component {
         return (
             <View style={[styles.chatItemCompose]}>
                 <View style={[styles.chatItemComposeBox, styles.flexRow]}>
-                    <TouchableOpacityNewTab
-                        href={href}
+                    <TouchableOpacity
+                        onPress={() => openURLInNewTab(href)}
                         style={[styles.chatItemAttachButton]}
                         underlayColor={colors.componentBG}
                     >
@@ -93,7 +93,7 @@ class ReportHistoryCompose extends React.Component {
                             resizeMode="contain"
                             source={paperClipIcon}
                         />
-                    </TouchableOpacityNewTab>
+                    </TouchableOpacity>
                     <TextInputFocusable
                         multiline
                         textAlignVertical="top"
