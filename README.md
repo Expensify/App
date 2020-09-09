@@ -7,26 +7,27 @@ This application is built with the following principles.
     1. Disk pushes data to the UI (Ion -> withIon()/connect() -> React component).
     1. UI pushes data to people's brains (React component -> device screen).
     1. Brain pushes data into UI inputs (Device input -> React component).
-    1. UI inputs pushes data to the server (React component -> Action -> XHR to server).
+    1. UI inputs push data to the server (React component -> Action -> XHR to server).
     1. Go to 1
 1. **Offline first** 
-    - All data that is brought into the app should be stored immediately on disk in persistent storage (eg. localStorage on browser platforms).
+    - All data that is brought into the app and is necessary to display the app when offline should be stored on disk in persistent storage (eg. localStorage on browser platforms). [AsyncStorage](https://react-native-community.github.io/async-storage/) is a cross-platform abstraction layer that is used to access persistent storage.
     - All data that is displayed, comes from persistent storage.
 1. **UI Binds to data on disk** 
     - Ion is a Pub/Sub library to connect the application to the data stored on disk.
-    - UI components bind to Ion (using `withIon()`) and any change to the Ion data is automatically reflected in the component by calling `setState()` with the changed data.
-    - Libraries bind to Ion (with `Ion.connect()`) and use a callback which is triggered with the changed data.
+    - UI components subscribe to Ion (using `withIon()`) and any change to the Ion data is published to the component by calling `setState()` with the changed data.
+    - Libraries subscribe to Ion (with `Ion.connect()`) and any change to the Ion data is published to the callback callback with the changed data.
     - The UI should never call any Ion methods except for `Ion.connect()`. That is the job of Actions (see next section).
-    - The UI always interacts with an Action when something needs to happen (eg. a person inputs data, the UI passes that data to an Action to be processed).
+    - The UI always triggers an Action when something needs to happen (eg. a person inputs data, the UI triggers an Action with this data).
     - The UI should be as flexible as possible when it comes to:
-        - Incomplete or missing data (always assume data is incomplete or not there)
-        - Order of events (all operations can and should happen in parallel rather than in sequence)
+        - Incomplete or missing data (always assume data is incomplete or not there). For example, when a comment is pushed to the client from a pusher event, it's possible that Ion does not have data for that report yet. That's OK. A partial report object is added to Ion for the report key `report_1234 = {reportID: 1234, hasUnread: true}`. Then there is code that monitors Ion for reports with incomplete data, and calls `fetchChatReportsByIDs(1234)` to get the full data for that report. The UI should be able to gracefully handle the report object not being complete. In this example, the sidebar wouldn't display any report that doesn't have a report name.
+        - The order that actions are done in. All actions should be done in parallel instead of sequence. 
+            - Parallel actions are asynchronous methods that don't return promises. Any number of these actions can be called at one time and it doesn't matter when they complete.
+            - In-Sequence actions are asynchronous methods that return promises. This is necessary when one asynchronous method depends on the results from a previous asynchronous method. Example: Making an XHR to `command=CreateChatReport` which returns a reportID which is used to call `command=Get&rvl=reportStuff`.
 1. **Actions manage Ion Data** 
     - When data needs to be written to or read from the server, this is done through Actions only.
-    - Action methods should never return anything (not data or a promise). There are very few exceptions to this. The only time an action is allowed to return a promise or data is for internal use by that action only. Any libraries, actions, or React components that need access to the data from the action should be subscribing to that data with Ion.
+    - Action methods should never return anything (not data or a promise)
     - Actions should favor using `Ion.merge()` over `Ion.set()` so that other values in an object aren't completely overwritten.
-    - All Ion operations should happen in parallel and never in sequence (eg. don't use the promise of one Ion method to trigger a second Ion method).
-    - The only time Actions should use promises to do operations in sequence is when working with XHRs.
+    - In general, the operations that happen inside an action should be done in parallel and not in sequence ((eg. don't use the promise of one Ion method to trigger a second Ion method). Ion is built so that every operation is done in parallel and it doesn't matter what order they finish in. XHRs on the other hand need to be handled in sequence with promise chains in order to access and act upon the response.
     - If an Action needs to access data stored on disk, use a local variable and `Ion.connect()`
     - Data should be optimistically stored on disk whenever possible without waiting for a server response (eg. creating a new comment)
 1. **Cross Platform 99.9999%**
@@ -93,12 +94,12 @@ This is a persistent storage solution wrapped in a Pub/Sub library. In general t
 
 - Ion stores and retrieves data from persistent storage
 - Data is stored as key/value pairs, where the value can be anything from a single piece of data to a complex object
-- Collections of data are usually not stored as a single key (eg. an array with multiple objects), but as individual keys+ID (eg. `report_1234`, `report_4567`, etc.)
+- Collections of data are usually not stored as a single key (eg. an array with multiple objects), but as individual keys+ID (eg. `report_1234`, `report_4567`, etc.). Store collections as individual keys when a component will bind directly to one of those keys. For example: reports are stored as individual keys because `SidebarLink.js` binds to the individual report keys for each link. However, report actions are stored as an array of objects because nothing binds directly to a single report action.
 - Ion allows other code to subscribe to changes in data, and then publishes change events whenever data is changed
 - Anything needing to read Ion data needs to:
     1. Know what key the data is stored in (for web, you can find this by looking in the JS console > Application > local storage)
     2. Subscribe to changes of the data for a particular key or set of keys. React components use `withIon()` and non-React libs use `Ion.connect()`.
-    3. Get initialized with the current value of that key from persistent storage (Ion does this automatically as part of the connection process)
+    3. Get initialized with the current value of that key from persistent storage (Ion does this by calling `setState()` or triggering the `callback` with the values currently on disk as part of the connection process)
 - Subscribing to Ion keys is done using a regex pattern. For example, since all reports are stored as individual keys like `report_1234`, then if code needs to know about all the reports (eg. display a list of them in the nav menu), then it would subscribe to the key pattern `report_[0-9]+$`.
 
 ### Actions
