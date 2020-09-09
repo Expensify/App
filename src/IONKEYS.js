@@ -12,5 +12,6 @@ export default {
     PERSONAL_DETAILS: 'personalDetails',
     REPORT: 'report',
     REPORT_ACTIONS: 'reportActions',
+    REPORT_DRAFT_COMMENT: 'reportDraftComment',
     SESSION: 'session',
 };

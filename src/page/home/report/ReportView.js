@@ -6,6 +6,8 @@ import ReportActionCompose from './ReportActionCompose';
 import {addAction} from '../../../lib/actions/Report';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
 import styles from '../../../style/StyleSheet';
+import withIon from '../../../components/withIon';
+import IONKEYS from '../../../IONKEYS';
 
 const propTypes = {
     // The ID of the report actions will be created for
@@ -13,6 +15,12 @@ const propTypes = {
 
     // Whether or not this report is the one that is currently being viewed
     isActiveReport: PropTypes.bool.isRequired,
+
+    draftComment: PropTypes.string,
+};
+
+const defaultProps = {
+    draftComment: '',
 };
 
 // This is a PureComponent so that it only re-renders when the reportID changes or when the report changes from
@@ -28,6 +36,8 @@ class ReportView extends React.PureComponent {
 
                 {shouldShowComposeForm && (
                     <ReportActionCompose
+                        reportID={this.props.reportID}
+                        draftComment={this.props.draftComment}
                         onSubmit={text => addAction(this.props.reportID, text)}
                     />
                 )}
@@ -39,5 +49,11 @@ class ReportView extends React.PureComponent {
 }
 
 ReportView.propTypes = propTypes;
+ReportView.defaultProps = defaultProps;
 
-export default ReportView;
+export default withIon({
+    draftComment: {
+        key: `${IONKEYS.REPORT_DRAFT_COMMENT}_%DATAFROMPROPS%`,
+        pathForProps: 'reportID',
+    },
+})(ReportView);

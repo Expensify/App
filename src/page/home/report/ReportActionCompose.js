@@ -4,10 +4,17 @@ import {View, Image, TouchableOpacity} from 'react-native';
 import styles, {colors} from '../../../style/StyleSheet';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 import sendIcon from '../../../../assets/images/icon-send.png';
+import Ion from '../../../lib/Ion';
+import IONKEYS from '../../../IONKEYS';
+import withIon from '../../../components/withIon';
 
 const propTypes = {
+    reportID: PropTypes.number.isRequired,
+
     // A method to call when the form is submitted
     onSubmit: PropTypes.func.isRequired,
+
+    draftComment: PropTypes.string.isRequired,
 };
 
 class ReportActionCompose extends React.Component {
@@ -20,8 +27,12 @@ class ReportActionCompose extends React.Component {
         this.submitForm = this.submitForm.bind(this);
 
         this.state = {
-            comment: '',
+            comment: this.props.draftComment,
         };
+    }
+
+    componentWillUnmount() {
+        Ion.set(`${IONKEYS.REPORT_DRAFT_COMMENT}_${this.props.reportID}`, this.state.comment);
     }
 
     /**
