@@ -311,7 +311,7 @@ function fetchAll(shouldRedirectToFirstReport = true, shouldFetchActions = false
 
                 // If we're on the home page, then redirect to the first report ID
                 if (firstReportID) {
-                    Ion.merge(IONKEYS.APP_REDIRECT_TO, `/${firstReportID}`);
+                    redirect(`/${firstReportID}`);
                 }
             }
 
@@ -364,8 +364,8 @@ function fetchOrCreateChatReport(participants) {
             // overwrite any existing data (like if they have unread messages)
             Ion.merge(`${IONKEYS.REPORT}_${reportID}`, newReport);
 
-            // Redirec the logged in person to the new report
-            Ion.merge(IONKEYS.APP_REDIRECT_TO, `/${reportID}`);
+            // Redirect the logged in person to the new report
+            redirect(`/${reportID}`);
         });
 }
 
