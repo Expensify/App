@@ -10,6 +10,7 @@ import promiseAllSettled from '../promiseAllSettled';
 import ExpensiMark from '../ExpensiMark';
 import Notification from '../Notification';
 import * as PersonalDetails from './PersonalDetails';
+import {redirect} from './App';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -211,12 +212,13 @@ function updateReportWithNewAction(reportID, reportAction) {
         return;
     }
 
+
     console.debug('[NOTIFICATION] Creating notification');
     Notification.showCommentNotification({
         reportAction,
         onClick: () => {
             // Navigate to this report onClick
-            Ion.set(IONKEYS.APP_REDIRECT_TO, `/${reportID}`);
+            redirect(reportID);
         }
     });
 }
