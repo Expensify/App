@@ -10,7 +10,7 @@ const clientID = Guid();
  *
  * @returns {Promise}
  */
-const init = () => Ion.merge(IONKEYS.ACTIVE_CLIENT_IDS, {clientID});
+const init = () => Ion.merge(IONKEYS.ACTIVE_CLIENTS, {clientID});
 
 /**
  * Remove this client ID from the array of active client IDs when this client is exited
@@ -18,9 +18,9 @@ const init = () => Ion.merge(IONKEYS.ACTIVE_CLIENT_IDS, {clientID});
  * @returns {Promise}
  */
 function removeClient() {
-    return Ion.get(IONKEYS.ACTIVE_CLIENT_IDS)
+    return Ion.get(IONKEYS.ACTIVE_CLIENTS)
         .then(activeClientIDs => _.omit(activeClientIDs, clientID))
-        .then(newActiveClientIDs => Ion.set(IONKEYS.ACTIVE_CLIENT_IDS, newActiveClientIDs));
+        .then(newActiveClientIDs => Ion.set(IONKEYS.ACTIVE_CLIENTS, newActiveClientIDs));
 }
 
 /**
@@ -29,7 +29,7 @@ function removeClient() {
  * @returns {Promise}
  */
 function isClientTheLeader() {
-    return Ion.get(IONKEYS.ACTIVE_CLIENT_IDS)
+    return Ion.get(IONKEYS.ACTIVE_CLIENTS)
         .then(activeClientIDs => _.first(activeClientIDs) === clientID);
 }
 

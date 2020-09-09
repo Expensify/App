@@ -3,66 +3,7 @@ import NetInfo from '@react-native-community/netinfo';
 import * as path from 'path';
 import Ion from './Ion';
 import CONFIG from '../CONFIG';
-import * as Pusher from './Pusher/pusher';
 import IONKEYS from '../IONKEYS';
-import ROUTES from '../ROUTES';
-import Str from './Str';
-import Guid from './Guid';
-import redirectToSignIn from './actions/SignInRedirect';
-
-let authToken;
-Ion.connect({key: IONKEYS.SESSION, path: 'authToken', callback: val => authToken = val});
-
-let isOffline;
-Ion.connect({key: IONKEYS.NETWORK, path: 'isOffline', callback: val => isOffline = val});
-
-let credentials;
-Ion.connect({key: IONKEYS.CREDENTIALS, callback: c => credentials = c});
-
-let currentUrl;
-Ion.connect({key: IONKEYS.CURRENT_URL, callback: url => currentUrl = url});
-
-/**
- * When authTokens expire they will automatically be refreshed.
- * The authorizer helps make sure that we are always passing the
- * current valid token to generate the signed auth response
- * needed to subscribe to Pusher channels.
- */
-Pusher.registerCustomAuthorizer((channel, {authEndpoint}) => ({
-    authorize: (socketID, callback) => {
-        console.debug('[Network] Attempting to authorize Pusher');
-
-        const formData = new FormData();
-        formData.append('socket_id', socketID);
-        formData.append('channel_name', channel.name);
-        formData.append('authToken', authToken);
-
-        return fetch(authEndpoint, {
-            method: 'POST',
-            body: formData,
-        })
-            .then(authResponse => authResponse.json())
-            .then(data => callback(null, data))
-            .catch((err) => {
-                console.debug('[Network] Failed to authorize Pusher');
-                callback(new Error(`Error calling auth endpoint: ${err}`));
-            });
-    },
-}));
-
-// Initialize the pusher connection
-Pusher.init();
-
-// Indicates if we're in the process of re-authenticating. When an API call returns jsonCode 407 indicating that the
-// authToken expired, we set this to true, pause all API calls, re-authenticate, and then use the authToken fromm the
-// response in the subsequent API calls
-let reauthenticating = false;
-
-// Queue for network requests so we don't lose actions done by the user while offline
-let networkRequestQueue = [];
-
-// Holds all of the callbacks that need to be triggered when the network reconnects
-const reconnectionCallbacks = [];
 
 /**
  * Called when the offline status of the app changes and if the network is "reconnecting" (going from offline to online)
@@ -70,10 +11,7 @@ const reconnectionCallbacks = [];
  *
  * @param {boolean} isCurrentlyOffline
  */
-function setNewOfflineStatus(isCurrentlyOffline) {
-    if (isOffline && !isCurrentlyOffline) {
-        _.each(reconnectionCallbacks, callback => callback());
-    }
+function setOfflineStatus(isCurrentlyOffline) {
     Ion.merge(IONKEYS.NETWORK, {isOffline: isCurrentlyOffline});
 }
 
@@ -81,83 +19,8 @@ function setNewOfflineStatus(isCurrentlyOffline) {
 // whether a user has internet connectivity or not. This is more reliable
 // than the Pusher `disconnected` event which takes about 10-15 seconds to emit
 NetInfo.addEventListener((state) => {
-    setNewOfflineStatus(!state.isConnected);
+    setOfflineStatus(!state.isConnected);
 });
-
-/**
- * Events that happen on the pusher socket are used to determine if the app is online or offline. The offline setting
- * is stored in Ion so the rest of the app has access to it.
- *
- * @params {string} eventName,
- * @params {object} data
- */
-Pusher.registerSocketEventCallback((eventName, data) => {
-    let isCurrentlyOffline = false;
-    switch (eventName) {
-        case 'connected':
-            isCurrentlyOffline = false;
-            break;
-        case 'disconnected':
-            isCurrentlyOffline = true;
-            break;
-        case 'state_change':
-            if (data.current === 'connecting' || data.current === 'unavailable') {
-                isCurrentlyOffline = true;
-            }
-            break;
-        default:
-            break;
-    }
-    setNewOfflineStatus(isCurrentlyOffline);
-});
-
-/**
- * Adds a request to networkRequestQueue
- *
- * @param {string} command
- * @param {mixed} data
- * @returns {Promise}
- */
-function queueRequest(command, data) {
-    return new Promise((resolve) => {
-        // Add the write request to a queue of actions to perform
-        networkRequestQueue.push({
-            command,
-            data,
-            callback: resolve,
-        });
-
-        // Try to fire off the request as soon as it's queued so we don't add a delay to every queued command
-        // eslint-disable-next-line no-use-before-define
-        processNetworkRequestQueue();
-    });
-}
-
-/**
- * Sets API data in the store when we make a successful "Authenticate"/"CreateLogin" request
- *
- * @param {object} data
- * @param {string} exitTo
- * @returns {Promise}
- */
-function setSuccessfulSignInData(data, exitTo) {
-    let redirectTo;
-
-    if (exitTo && exitTo[0] === '/') {
-        redirectTo = exitTo;
-    } else if (exitTo) {
-        redirectTo = `/${exitTo}`;
-    } else {
-        redirectTo = ROUTES.HOME;
-    }
-
-    return Ion.multiSet({
-        // The response from Authenticate includes requestID, jsonCode, etc
-        // but we only care about setting these three values in Ion
-        [IONKEYS.SESSION]: _.pick(data, 'authToken', 'accountID', 'email'),
-        [IONKEYS.APP_REDIRECT_TO]: redirectTo,
-    });
-}
 
 /**
  * Makes XHR request
@@ -168,11 +31,6 @@ function setSuccessfulSignInData(data, exitTo) {
  */
 function xhr(command, data, type = 'post') {
     const formData = new FormData();
-
-    // If we're calling Authenticate we don't need an authToken, so let's not send "undefined"
-    if (command !== 'Authenticate') {
-        formData.append('authToken', authToken);
-    }
     _.each(data, (val, key) => formData.append(key, val));
 
     return fetch(`${CONFIG.EXPENSIFY.API_ROOT}command=${command}`, {
@@ -184,13 +42,7 @@ function xhr(command, data, type = 'post') {
         // This will catch any HTTP network errors (like 404s and such), not to be confused with jsonCode which this
         // does NOT catch
         .catch(() => {
-            setNewOfflineStatus(true);
-
-            // If the request failed, we need to put the request object back into the queue as long as there is no
-            // doNotRetry option set in the data
-            if (data.doNotRetry !== true) {
-                queueRequest(command, data);
-            }
+            setOfflineStatus(true);
 
             // Throw a new error to prevent any other `then()` in the promise chain from being triggered (until another
             // catch() happens
@@ -394,9 +246,7 @@ function getAuthToken() {
 
 export {
     download,
-    getAuthToken,
     isOnline,
-    onReconnect,
-    queueRequest,
-    request,
+    xhr,
+    setOfflineStatus,
 };
