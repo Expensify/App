@@ -26,7 +26,7 @@ function redirectToSignIn() {
     const urlWithExitTo = currentURL === '/'
         ? ROUTES.SIGNIN
         : `${ROUTES.SIGNIN}/exitTo${currentURL}`;
-    Ion.set(IONKEYS.APP_REDIRECT_TO, urlWithExitTo);
+    Ion.merge(IONKEYS.APP_REDIRECT_TO, urlWithExitTo);
 }
 
 export default redirectToSignIn;

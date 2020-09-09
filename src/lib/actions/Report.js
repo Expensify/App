@@ -158,9 +158,8 @@ function fetchChatReportsByIDs(chatList) {
                     newReport.reportName = getChatReportName(report.sharedReportList);
                 }
 
-                // Merge the data into Ion. Don't use set() here or multiSet() because then that would
-                // overwrite any existing data (like if they have unread messages)
-                return Ion.merge(`${IONKEYS.REPORT}_${report.reportID}`, newReport);
+                // Merge the data into Ion
+                Ion.merge(`${IONKEYS.REPORT}_${report.reportID}`, newReport);
             });
 
             return Promise.all(ionPromises);
@@ -188,10 +187,13 @@ function updateReportWithNewAction(reportID, reportAction) {
 
     // Mark the report as unread if there is a new max sequence number
     // Record the new sequence number if there is one
-    // Add the action into Ion
-    Ion.merge(`${IONKEYS.REPORT_ACTIONS}_${reportID}`, {
+    Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {
         hasUnread: hasNewSequenceNumber,
         maxSequenceNumber: hasNewSequenceNumber ? newMaxSequenceNumber : previousMaxSequenceNumber,
+    });
+
+    // Add the action into Ion
+    Ion.merge(`${IONKEYS.REPORT_ACTIONS}_${reportID}`, {
         [reportAction.sequenceNumber]: reportAction,
     });
 
@@ -214,7 +216,7 @@ function updateReportWithNewAction(reportID, reportAction) {
         reportAction,
         onClick: () => {
             // Navigate to this report onClick
-            Ion.set(IONKEYS.APP_REDIRECT_TO, `/${reportID}`);
+            Ion.merge(IONKEYS.APP_REDIRECT_TO, `/${reportID}`);
         }
     });
 }
@@ -261,7 +263,7 @@ function fetchActions(reportID) {
                 .pluck('sequenceNumber')
                 .max()
                 .value();
-            Ion.set(`${IONKEYS.REPORT_ACTIONS}_${reportID}`, indexedData);
+            Ion.merge(`${IONKEYS.REPORT_ACTIONS}_${reportID}`, indexedData);
             Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {maxSequenceNumber});
         });
 }
@@ -307,7 +309,7 @@ function fetchAll(shouldRedirectToFirstReport = true, shouldFetchActions = false
 
                 // If we're on the home page, then redirect to the first report ID
                 if (firstReportID) {
-                    Ion.set(IONKEYS.APP_REDIRECT_TO, `/${firstReportID}`);
+                    Ion.merge(IONKEYS.APP_REDIRECT_TO, `/${firstReportID}`);
                 }
             }
 
@@ -361,7 +363,7 @@ function fetchOrCreateChatReport(participants) {
             Ion.merge(`${IONKEYS.REPORT}_${reportID}`, newReport);
 
             // Redirec the logged in person to the new report
-            Ion.set(IONKEYS.APP_REDIRECT_TO, `/${reportID}`);
+            Ion.merge(IONKEYS.APP_REDIRECT_TO, `/${reportID}`);
         });
 }
 
