@@ -3,12 +3,6 @@ import * as API from '../API';
 import IONKEYS from '../../IONKEYS';
 import redirectToSignIn from './SignInRedirect';
 
-let session;
-Ion.connect({
-    key: IONKEYS.SESSION,
-    callback: val => session = val,
-});
-
 let credentials;
 Ion.connect({
     key: IONKEYS.CREDENTIALS,
@@ -41,7 +35,6 @@ function signIn(partnerUserID, partnerUserSecret, twoFactorAuthCode = '', exitTo
 function signOut() {
     redirectToSignIn();
     API.deleteLogin({
-        authToken: session.authToken,
         partnerUserID: credentials.login
     });
     Ion.clear();

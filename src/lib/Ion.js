@@ -122,7 +122,9 @@ function connect(mapping) {
             // Find all the keys matched by the config regex
             const matchingKeys = _.filter(keys, key => config.regex.test(key));
 
+            // If the key being connected to does not exist, initialize the value with null
             if (matchingKeys.length === 0) {
+                sendDataToConnection(null, config.key);
                 return;
             }
 
