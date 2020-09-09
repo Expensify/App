@@ -47,9 +47,17 @@ const propTypes = {
         // `${fullName} (${login})`
         displayNameWithEmail: PropTypes.string.isRequired,
     })),
+
+    // All reports that have been shared with the user
+    reports: PropTypes.objectOf(PropTypes.shape({
+        reportID: PropTypes.number,
+        reportName: PropTypes.string,
+        hasUnread: PropTypes.bool,
+    })),
 };
 const defaultProps = {
     personalDetails: {},
+    reports: {},
 };
 
 class ChatSwitcherView extends React.Component {
@@ -215,15 +223,13 @@ class ChatSwitcherView extends React.Component {
         const searchOptions = _.values(this.props.personalDetails);
 
         // Get a list of all group chats shared with us
-        const reportOptions = _.filter(_.values(this.props.reports), (reportData) => {
-            return reportData.reportNameValuePairs && reportData.reportNameValuePairs.type === 'expense';
-        });
+        const reportOptions = _.filter(_.values(this.props.reports), reportData => reportData.reportNameValuePairs && reportData.reportNameValuePairs.type === 'expense');
 
         // Update the report objects to have the expected fields (the ones that personalDetails have)
         _.each(reportOptions, (element, index) => {
             reportOptions[index].displayNameWithEmail = element.reportName;
             reportOptions[index].login = element.reportName;
-            reportOptions[index].avatarURL = `https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_2.png`;
+            reportOptions[index].avatarURL = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_2.png';
         });
 
         searchOptions.push(...reportOptions);
