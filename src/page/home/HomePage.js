@@ -4,7 +4,7 @@ import {
     View,
     Dimensions,
     Animated,
-    Easing,
+    Easing
 } from 'react-native';
 import {SafeAreaInsetsContext, SafeAreaProvider} from 'react-native-safe-area-context';
 import {Route} from '../../lib/Router';
