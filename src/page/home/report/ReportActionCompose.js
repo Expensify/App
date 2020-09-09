@@ -14,7 +14,7 @@ const propTypes = {
     // A method to call when the form is submitted
     onSubmit: PropTypes.func.isRequired,
 
-    // The comment draft left by the user
+    // The draft comment left by the user
     draftComment: PropTypes.string.isRequired,
 
     // The ID of the report actions will be created for
@@ -36,6 +36,8 @@ class ReportActionCompose extends React.Component {
     }
 
     componentWillUnmount() {
+        // When we switch out of the current report save the draft in Ion so that when the user switches back we can
+        // load it in the UI.
         Ion.set(`${IONKEYS.REPORT_DRAFT_COMMENT}_${this.props.reportID}`, this.state.comment);
     }
 
