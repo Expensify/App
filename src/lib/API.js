@@ -156,13 +156,6 @@ function request(command, parameters, type = 'post') {
                     createLogin(Str.generateDeviceLoginID(), Guid());
                 }
                 return response;
-            })
-            .catch(() => {
-                // If the request failed, we need to put the request object back into the queue as long as there is no
-                // doNotRetry option set in the parameters
-                if (parameters.doNotRetry !== true) {
-                    queueRequest(command, parameters);
-                }
             });
     }
 
