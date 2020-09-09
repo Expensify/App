@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
+import orderBy from 'lodash.orderby';
 import styles from '../../../style/StyleSheet';
 import Text from '../../../components/Text';
 import SidebarLink from './SidebarLink';
@@ -12,8 +13,14 @@ import Ion from '../../../lib/Ion';
 import PageTitleUpdater from '../../../lib/PageTitleUpdater';
 import ChatSwitcherView from './ChatSwitcherView';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
+import compose from '../../../lib/compose';
+import {withRouter} from '../../../lib/Router';
 
 const propTypes = {
+    // These are from withRouter
+    // eslint-disable-next-line react/forbid-prop-types
+    match: PropTypes.object.isRequired,
+
     // A function to call when the chat switcher is blurred
     onChatSwitcherBlur: PropTypes.func.isRequired,
 
@@ -50,6 +57,12 @@ class SidebarLinks extends React.Component {
 
     render() {
         const {reports, onLinkClick} = this.props;
+        const reportIDInUrl = parseInt(this.props.match.params.reportID, 10);
+        const sortedReports = orderBy(this.props.reports, ['pinnedReport', 'reportName'], ['desc', 'asc']);
+
+        // Filter the reports so that the only reports shown are pinned, unread, and the one matching the URL
+        // eslint-disable-next-line max-len
+        const reportsToDisplay = _.filter(sortedReports, report => (report.pinnedReport || report.hasUnread || report.reportID === reportIDInUrl));
 
         // Updates the page title to indicate there are unread reports
         PageTitleUpdater(_.any(reports, report => report.hasUnread));
@@ -76,11 +89,14 @@ class SidebarLinks extends React.Component {
                                 Chats
                             </Text>
                         </View>
-                        {_.map(reports, report => (
+                        {/* A report will not have a report name if it hasn't been fetched from the server yet */}
+                        {/* so nothing is rendered */}
+                        {_.map(reportsToDisplay, report => report.reportName && (
                             <SidebarLink
                                 key={report.reportID}
                                 reportID={report.reportID}
                                 reportName={report.reportName}
+                                hasUnread={report.hasUnread}
                                 onLinkClick={onLinkClick}
                             />
                         ))}
@@ -94,22 +110,25 @@ class SidebarLinks extends React.Component {
 SidebarLinks.propTypes = propTypes;
 SidebarLinks.defaultProps = defaultProps;
 
-export default withIon({
-    reports: {
-        key: `${IONKEYS.REPORT}_[0-9]+$`,
-        addAsCollection: true,
-        collectionID: 'reportID',
-        loader: () => fetchAll().then(() => {
-            // After the reports are loaded for the first time, redirect to the first reportID in the list
-            Ion.multiGet([IONKEYS.CURRENT_URL, IONKEYS.FIRST_REPORT_ID]).then((values) => {
-                const currentURL = values[IONKEYS.CURRENT_URL] || '';
-                const firstReportID = values[IONKEYS.FIRST_REPORT_ID] || 0;
+export default compose(
+    withRouter,
+    withIon({
+        reports: {
+            key: `${IONKEYS.REPORT}_[0-9]+$`,
+            addAsCollection: true,
+            collectionID: 'reportID',
+            loader: () => fetchAll().then(() => {
+                // After the reports are loaded for the first time, redirect to the first reportID in the list
+                Ion.multiGet([IONKEYS.CURRENT_URL, IONKEYS.FIRST_REPORT_ID]).then((values) => {
+                    const currentURL = values[IONKEYS.CURRENT_URL] || '';
+                    const firstReportID = values[IONKEYS.FIRST_REPORT_ID] || 0;
 
-                // If we're on the home page, then redirect to the first report ID
-                if (currentURL === '/' && firstReportID) {
-                    Ion.set(IONKEYS.APP_REDIRECT_TO, `/${firstReportID}`);
-                }
-            });
-        }),
-    },
-})(SidebarLinks);
+                    // If we're on the home page, then redirect to the first report ID
+                    if (currentURL === '/' && firstReportID) {
+                        Ion.set(IONKEYS.APP_REDIRECT_TO, `/${firstReportID}`);
+                    }
+                });
+            }),
+        }
+    }),
+)(SidebarLinks);

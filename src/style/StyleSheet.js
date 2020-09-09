@@ -159,11 +159,11 @@ const styles = {
         color: colors.textReversed,
     },
 
-    // History Items
-    historyItemAvatarWrapper: {
+    // Actions
+    actionAvatarWrapper: {
         width: 40,
     },
-    historyItemAvatar: {
+    actionAvatar: {
         borderRadius: 20,
         height: 40,
         width: 40,
