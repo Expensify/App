@@ -20,12 +20,10 @@ download('version.json')
                         if (window.visibilityState === 'hidden') {
                             // Page is hidden, refresh immediately
                             window.location.reload(true);
-                        } else {
+                        } else if (window.confirm('Refresh the page to get the latest updates!')) {
                             // TODO: Notify user in a less invasive way that they should refresh the page (i.e: Growl)
                             // Prompt user to refresh the page
-                            if (window.confirm('Refresh the page to get the latest updates!')) {
-                                window.location.reload(true);
-                            }
+                            window.location.reload(true);
                         }
                     }
                 });
