@@ -2,7 +2,7 @@ import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import Ion from '../Ion';
-import {queueRequest, onReconnect} from '../Network';
+import {queueRequest, onReconnect} from '../API';
 import IONKEYS from '../../IONKEYS';
 import CONFIG from '../../CONFIG';
 import * as Pusher from '../Pusher/pusher';
@@ -239,7 +239,9 @@ function subscribeToReportCommentEvents() {
  * @returns {Promise}
  */
 function fetchChatReports() {
-    return queueRequest('Get', {returnValueList: 'chatList'})
+    return queueRequest('Get', {
+        returnValueList: 'chatList',
+    })
 
         // The string cast below is necessary as Get rvl='chatList' may return an int
         .then(({chatList}) => fetchChatReportsByIDs(String(chatList).split(',')));
