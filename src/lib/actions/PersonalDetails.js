@@ -62,11 +62,9 @@ function formatPersonalDetails(personalDetailsList) {
 
 /**
  * Get the timezone of the logged in user
- *
- * @returns {Promise}
  */
 function fetchTimezone() {
-    const requestPromise = queueRequest('Get', {
+    queueRequest('Get', {
         returnValueList: 'nameValuePairs',
         name: 'timeZone',
     })
@@ -77,16 +75,13 @@ function fetchTimezone() {
 
     // Refresh the timezone every 30 minutes
     setTimeout(fetchTimezone, 1000 * 60 * 30);
-    return requestPromise;
 }
 
 /**
  * Get the personal details for our organization
- *
- * @returns {Promise}
  */
 function fetch() {
-    const requestPromise = queueRequest('Get', {
+    queueRequest('Get', {
         returnValueList: 'personalDetailsList',
     })
         .then((data) => {
@@ -111,17 +106,15 @@ function fetch() {
 
     // Refresh the personal details every 30 minutes
     setTimeout(fetch, 1000 * 60 * 30);
-    return requestPromise;
 }
 
 /**
  * Get personal details for a list of emails.
  *
  * @param {String} emailList
- * @returns {Promise}
  */
 function getForEmails(emailList) {
-    return queueRequest('PersonalDetails_GetForEmails', {emailList})
+    queueRequest('PersonalDetails_GetForEmails', {emailList})
         .then(details => Ion.merge(IONKEYS.PERSONAL_DETAILS, formatPersonalDetails(details)));
 }
 

@@ -16,12 +16,9 @@ Ion.connect({
  * @param {string} partnerUserSecret
  * @param {string} twoFactorAuthCode
  * @param {string} exitTo
- * @param {boolean} useExpensifyLogin
- *
- * @returns {Promise}
  */
 function signIn(partnerUserID, partnerUserSecret, twoFactorAuthCode = '', exitTo) {
-    return API.authenticate({
+    API.authenticate({
         partnerUserID,
         partnerUserSecret,
         twoFactorAuthCode,
