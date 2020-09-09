@@ -12,7 +12,7 @@ AppRegistry.registerComponent(appName, () => App);
 
 // When app loads, get current version
 download('version.json')
-    .then(currentVersion => {
+    .then((currentVersion) => {
         checkForUpdates(() => {
             download('version.json')
                 .then((newVersion) => {
@@ -28,6 +28,6 @@ download('version.json')
                             }
                         }
                     }
-                })
-        })
-    })
+                });
+        });
+    });
