@@ -86,7 +86,6 @@ function fetch() {
     })
         .then((data) => {
             const allPersonalDetails = formatPersonalDetails(data.personalDetailsList);
-            console.log(2, allPersonalDetails);
             Ion.merge(IONKEYS.PERSONAL_DETAILS, allPersonalDetails);
 
             // Get my personal details so they can be easily accessed and subscribed to on their own key
@@ -119,7 +118,6 @@ function getForEmails(emailList) {
         .then((data) => {
             const details = _.omit(data, ['jsonCode', 'requestID']);
             const formattedDetails = formatPersonalDetails(details);
-            console.log(1, formattedDetails);
             Ion.merge(IONKEYS.PERSONAL_DETAILS, formattedDetails);
         });
 }
