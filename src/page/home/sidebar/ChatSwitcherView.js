@@ -125,10 +125,13 @@ class ChatSwitcherView extends React.Component {
      * @param {string} option.value
      */
     fetchChatReportAndRedirect(option) {
-        debugger;
-        Ion.get(IONKEYS.MY_PERSONAL_DETAILS, 'login')
-            .then(currentLogin => fetchOrCreateChatReport([currentLogin, option.login]))
-            .then(reportID => redirect(reportID));
+        if (option.reportID) {
+            redirect(option.reportID);
+        } else {
+            Ion.get(IONKEYS.MY_PERSONAL_DETAILS, 'login')
+                .then(currentLogin => fetchOrCreateChatReport([currentLogin, option.login]))
+                .then(reportID => redirect(reportID));
+        }
         this.reset();
     }
 
@@ -210,12 +213,17 @@ class ChatSwitcherView extends React.Component {
         // A Set is used here so that duplicate values are automatically removed.
         const matches = new Set();
         const searchOptions = _.values(this.props.personalDetails);
+
+        // Get a list of all group chats shared with us
         const reportOptions = _.filter(_.values(this.props.reports), (reportData) => {
             return reportData.reportNameValuePairs && reportData.reportNameValuePairs.type === 'expense';
         });
+
+        // Update the report objects to have the expected fields (the ones that personalDetails have)
         _.each(reportOptions, (element, index) => {
             reportOptions[index].displayNameWithEmail = element.reportName;
             reportOptions[index].login = element.reportName;
+            reportOptions[index].avatarURL = `https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_2.png`;
         });
 
         searchOptions.push(...reportOptions);
