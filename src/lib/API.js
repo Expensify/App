@@ -235,7 +235,7 @@ function processNetworkRequestQueue() {
         // 2. Getting a 200 response back from the API (happens right below)
 
         // Make a simple request every second to see if the API is online again
-        xhr('Get')
+        xhr('Get', {doNotRetry: true})
             .then(() => setOfflineStatus(false));
         return;
     }
