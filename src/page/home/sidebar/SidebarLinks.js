@@ -15,6 +15,7 @@ import ChatSwitcherView from './ChatSwitcherView';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
 import compose from '../../../lib/compose';
 import {withRouter} from '../../../lib/Router';
+import {redirect} from '../../../lib/actions/App';
 
 const propTypes = {
     // These are from withRouter
@@ -125,7 +126,7 @@ export default compose(
 
                     // If we're on the home page, then redirect to the first report ID
                     if (currentURL === '/' && firstReportID) {
-                        Ion.set(IONKEYS.APP_REDIRECT_TO, `/${firstReportID}`);
+                        redirect(firstReportID);
                     }
                 });
             }),
