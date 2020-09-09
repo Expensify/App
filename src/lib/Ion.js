@@ -75,7 +75,7 @@ function keyChanged(key, data) {
  * Subscribes a react component's state directly to a store key
  *
  * @param {object} mapping the mapping information to connect Ion to the components state
- * @param {string} mapping.keyPattern
+ * @param {string} mapping.key
  * @param {string} mapping.statePropertyName the name of the property in the state to connect the data to
  * @param {string} [mapping.indexBy] the name of a property to index the collection by
  * @param {object} [mapping.withIonInstance] whose setState() method will be called with any changed data
@@ -120,7 +120,7 @@ function connect(mapping) {
     AsyncStorage.getAllKeys()
         .then((keys) => {
             // Find all the keys matched by the config regex
-            const matchingKeys = _.filter(keys, key => config.regex.test(key));
+            const matchingKeys = _.filter(keys, config.regex.test);
 
             // If the key being connected to does not exist, initialize the value with null
             if (matchingKeys.length === 0) {

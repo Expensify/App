@@ -35,7 +35,6 @@ class ReportActionsView extends React.Component {
     constructor(props) {
         super(props);
 
-        this.recordlastReadActionID = _.debounce(this.recordlastReadActionID.bind(this), 1000, true);
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
         this.recordMaxAction = this.recordMaxAction.bind(this);
     }
@@ -111,17 +110,8 @@ class ReportActionsView extends React.Component {
             .pluck('sequenceNumber')
             .max()
             .value();
-        this.recordlastReadActionID(maxVisibleSequenceNumber);
-    }
 
-    /**
-     * Takes a max seqNum and if it's greater than the last read action, then make a request to the API to
-     * update the report
-     *
-     * @param {number} maxSequenceNumber
-     */
-    recordlastReadActionID(maxSequenceNumber) {
-        updateLastReadActionID(this.props.reportID, maxSequenceNumber);
+        updateLastReadActionID(this.props.reportID, maxVisibleSequenceNumber);
     }
 
     /**

@@ -250,12 +250,12 @@ function fetchChatReports() {
 /**
  * Get all of our reports
  *
- * @param {boolean} redirectToFirstReport this is set to false when the network reconnect
- *     code runes
+ * @param {boolean} shouldRedirectToFirstReport this is set to false when the network reconnect
+ *     code runs
  *
  * @returns {Promise}
  */
-function fetchAll(redirectToFirstReport = true) {
+function fetchAll(shouldRedirectToFirstReport = true) {
     let fetchedReports;
 
     // Request each report one at a time to allow individual reports to fail if access to it is prevented by Auth
@@ -284,8 +284,8 @@ function fetchAll(redirectToFirstReport = true) {
 
             // Set the first report ID so that the logged in person can be redirected there
             // if they are on the home page
-            if (redirectToFirstReport && currentURL === '/') {
-                const firstReportID = _.first(_.pluck(fetchedReports, 'reportID')) || 0;
+            if (shouldRedirectToFirstReport && currentURL === '/') {
+                const firstReportID = _.first(_.pluck(fetchedReports, 'reportID'));
 
                 // If we're on the home page, then redirect to the first report ID
                 if (firstReportID) {
@@ -464,6 +464,8 @@ function handleReportChanged(report) {
         return;
     }
 
+    // A report can be missing a name if a comment is received via pusher event
+    // and the report does not yet exist in Ion (eg. a new DM created with the logged in person)
     if (report.reportName === undefined) {
         fetchChatReportsByIDs([report.reportID]);
     }
