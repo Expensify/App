@@ -21,20 +21,22 @@ let networkRequestQueue = [];
 let reauthenticating = false;
 
 let authToken;
-Ion.connect({key: IONKEYS.SESSION, path: 'authToken', callback: val => authToken = val});
+Ion.connect({
+    key: IONKEYS.SESSION,
+    callback: val => authToken = val ? val.authToken : null,
+});
 
-// We susbcribe to changes to the online/offline status of the network to determine when we should fire off API calls
-// vs queueing them for later. When going reconnecting, ie, going from offline to online, we fire off all the API calls
-// that we have in the queue
+// We subscribe to changes to the online/offline status of the network to determine when we should fire off API calls
+// vs queueing them for later. When reconnecting, ie, going from offline to online, all the reconnection callbacks
+// are triggered (this is usually Actions that need to re-download data from the server)
 let isOffline;
 Ion.connect({
     key: IONKEYS.NETWORK,
-    path: 'isOffline',
-    callback: (isCurrentlyOffline) => {
-        if (isOffline && !isCurrentlyOffline) {
+    callback: (val) => {
+        if (isOffline && !val.isOffline) {
             _.each(reconnectionCallbacks, callback => callback());
         }
-        isOffline = isCurrentlyOffline;
+        isOffline = val && val.isOffline;
     }
 });
 
@@ -42,7 +44,10 @@ Ion.connect({
 // When the user's authToken expires we use this login to re-authenticate and get a new authToken
 // and use that new authToken in subsequent API calls
 let credentials;
-Ion.connect({key: IONKEYS.CREDENTIALS, callback: ionCredentials => credentials = ionCredentials});
+Ion.connect({
+    key: IONKEYS.CREDENTIALS,
+    callback: ionCredentials => credentials = ionCredentials,
+});
 
 /**
  * @param {string} login

@@ -62,9 +62,9 @@ class Expensify extends Component {
      * @param {object} session
      * @param {string} session.authToken
      */
-    removeLoadingState({authToken}) {
+    removeLoadingState(session) {
         this.setState({
-            authToken,
+            authToken: session ? session.authToken : null,
             isLoading: false,
         });
     }

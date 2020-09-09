@@ -10,7 +10,7 @@ import IONKEYS from '../IONKEYS';
 let timezone;
 Ion.connect({
     key: IONKEYS.MY_PERSONAL_DETAILS,
-    callback: val => timezone = val.timezone || 'America/Los_Angeles',
+    callback: val => timezone = val ? val.timezone : 'America/Los_Angeles',
 });
 
 /**
