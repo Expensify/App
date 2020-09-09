@@ -6,7 +6,7 @@ import {AppRegistry} from 'react-native';
 import App from './src/App';
 import {name as appName} from './app.json';
 import checkForUpdates from './src/lib/checkForUpdates';
-import {download, isOnline} from './src/lib/Network';
+import {download} from './src/lib/Network';
 
 AppRegistry.registerComponent(appName, () => App);
 
@@ -36,7 +36,7 @@ download('version.json')
             // That way, it will auto-update silently when they minimize the page,
             // and we don't bug the user any more than necessary :)
             window.addEventListener('visibilitychange', () => {
-                if (window.visibilityState === 'hidden' && isOnline()) {
+                if (window.visibilityState === 'hidden') {
                     webUpdate(currentVersion);
                 }
             });
