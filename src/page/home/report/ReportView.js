@@ -16,6 +16,7 @@ const propTypes = {
     // Whether or not this report is the one that is currently being viewed
     isActiveReport: PropTypes.bool.isRequired,
 
+    // The draft comment left by the user
     draftComment: PropTypes.string,
 };
 
@@ -36,9 +37,8 @@ class ReportView extends React.PureComponent {
 
                 {shouldShowComposeForm && (
                     <ReportActionCompose
-                        reportID={this.props.reportID}
-                        draftComment={this.props.draftComment}
                         onSubmit={text => addAction(this.props.reportID, text)}
+                        draftComment={this.props.draftComment}
                         reportID={this.props.reportID}
                     />
                 )}
