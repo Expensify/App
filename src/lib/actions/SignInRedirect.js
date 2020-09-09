@@ -1,6 +1,7 @@
 import Ion from '../Ion';
 import IONKEYS from '../../IONKEYS';
 import ROUTES from '../../ROUTES';
+import {redirect} from './App';
 
 let currentURL;
 Ion.connect({
@@ -26,7 +27,7 @@ function redirectToSignIn() {
     const urlWithExitTo = currentURL === '/'
         ? ROUTES.SIGNIN
         : `${ROUTES.SIGNIN}/exitTo${currentURL}`;
-    Ion.merge(IONKEYS.APP_REDIRECT_TO, urlWithExitTo);
+    redirect(urlWithExitTo);
 }
 
 export default redirectToSignIn;
