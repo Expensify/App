@@ -1,9 +1,9 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import ReportHistoryView from './ReportHistoryView';
-import ReportHistoryCompose from './ReportHistoryCompose';
-import {addHistoryItem} from '../../../lib/actions/Report';
+import ReportActionView from './ReportActionsView';
+import ReportActionCompose from './ReportActionCompose';
+import {addAction} from '../../../lib/actions/Report';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
 import styles from '../../../style/StyleSheet';
 
@@ -24,12 +24,11 @@ class ReportView extends React.PureComponent {
         const shouldShowComposeForm = this.props.isActiveReport;
         return (
             <View style={[styles.chatContent]}>
-                <ReportHistoryView reportID={this.props.reportID} />
+                <ReportActionView reportID={this.props.reportID} />
 
                 {shouldShowComposeForm && (
-                    <ReportHistoryCompose
-                        reportID={this.props.reportID}
-                        onSubmit={addHistoryItem}
+                    <ReportActionCompose
+                        onSubmit={text => addAction(this.props.reportID, text)}
                     />
                 )}
 

@@ -1,13 +1,13 @@
 import PropTypes from 'prop-types';
 
-import HistoryFragmentPropTypes from './ReportHistoryFragmentPropTypes';
+import ReportActionFragmentPropTypes from './ReportActionFragmentPropTypes';
 
 export default {
     // Name of the action e.g. ADDCOMMENT
     actionName: PropTypes.string.isRequired,
 
     // Person who created the action
-    person: PropTypes.arrayOf(HistoryFragmentPropTypes).isRequired,
+    person: PropTypes.arrayOf(ReportActionFragmentPropTypes).isRequired,
 
     // ID of the report action
     sequenceNumber: PropTypes.number.isRequired,
@@ -15,6 +15,6 @@ export default {
     // Unix timestamp
     timestamp: PropTypes.number.isRequired,
 
-    // report history message
-    message: PropTypes.arrayOf(HistoryFragmentPropTypes).isRequired,
+    // report action message
+    message: PropTypes.arrayOf(ReportActionFragmentPropTypes).isRequired,
 };
