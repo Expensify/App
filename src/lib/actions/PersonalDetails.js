@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import Ion from '../Ion';
-import {onReconnect, queueRequest} from '../Network';
+import {onReconnect, queueRequest} from '../API';
 import IONKEYS from '../../IONKEYS';
 import md5 from '../md5';
 import CONST from '../../CONST';

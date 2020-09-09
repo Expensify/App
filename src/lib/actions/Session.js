@@ -1,7 +1,6 @@
 import Ion from '../Ion';
-import {request} from '../Network';
+import * as API from '../API';
 import IONKEYS from '../../IONKEYS';
-import CONFIG from '../../CONFIG';
 import redirectToSignIn from './SignInRedirect';
 
 let session;
@@ -19,54 +18,33 @@ Ion.connect({
 /**
  * Sign in with the API
  *
- * @param {string} login
- * @param {string} password
+ * @param {string} partnerUserID
+ * @param {string} partnerUserSecret
  * @param {string} twoFactorAuthCode
  * @param {string} exitTo
  * @param {boolean} useExpensifyLogin
  *
  * @returns {Promise}
  */
-function signIn(login, password, twoFactorAuthCode = '', exitTo, useExpensifyLogin = true) {
-    console.debug('[SIGNIN] Authenticating with login type:', useExpensifyLogin ? 'expensify' : 'device');
-    return request('Authenticate', {
-        // When authenticating for the first time, we pass useExpensifyLogin as true so we check for credentials for
-        // the expensify partnerID to let users authenticate with their expensify user and password.
-        useExpensifyLogin,
-        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-        partnerUserID: login,
-        partnerUserSecret: password,
+function signIn(partnerUserID, partnerUserSecret, twoFactorAuthCode = '', exitTo) {
+    return API.authenticate({
+        partnerUserID,
+        partnerUserSecret,
         twoFactorAuthCode,
         exitTo
-    }).catch(err => Ion.merge(IONKEYS.SESSION, {error: err.message}));
+    });
 }
 
 /**
- * Delete login
- *
- * @param {string} authToken
- * @param {string} login
- *
- * @returns {Promise}
- */
-function deleteLogin(authToken, login) {
-    return request('DeleteLogin', {
-        authToken,
-        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-        partnerUserID: login,
-    }).catch(err => Ion.merge(IONKEYS.SESSION, {error: err.message}));
-}
-
-/**
- * Sign out of our application
+ * Clears the Ion store and redirects user to the sign in page
  */
 function signOut() {
-    deleteLogin(session.authToken, credentials.login)
-        .then(redirectToSignIn)
-        .then(Ion.clear)
-        .catch(err => Ion.merge(IONKEYS.SESSION, {error: err.message}));
+    redirectToSignIn();
+    API.deleteLogin({
+        authToken: session.authToken,
+        partnerUserID: credentials.login
+    });
+    Ion.clear();
 }
 
 export {

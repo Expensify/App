@@ -6,7 +6,7 @@ import ReportActionFragmentPropTypes from './ReportActionFragmentPropTypes';
 import styles, {webViewStyles} from '../../../style/StyleSheet';
 import Text from '../../../components/Text';
 import AnchorForCommentsOnly from '../../../components/AnchorForCommentsOnly';
-import {getAuthToken} from '../../../lib/Network';
+import {getAuthToken} from '../../../lib/API';
 
 const propTypes = {
     // The message fragment needing to be displayed

@@ -85,11 +85,7 @@ class Expensify extends Component {
                 <View style={styles.genericView} />
             );
         }
-
-        const redirectTo = !this.state.authToken
-            ? ROUTES.SIGNIN
-            : this.props.redirectTo;
-
+        const redirectTo = !this.state.authToken ? ROUTES.SIGNIN : this.props.redirectTo;
         return (
 
             // TODO: Mobile does not support Beforeunload
