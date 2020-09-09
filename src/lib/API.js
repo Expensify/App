@@ -8,6 +8,7 @@ import ROUTES from '../ROUTES';
 import Str from './Str';
 import Guid from './Guid';
 import redirectToSignIn from './actions/SignInRedirect';
+import {redirect} from './actions/App';
 
 // Holds all of the callbacks that need to be triggered when the network reconnects
 const reconnectionCallbacks = [];
@@ -96,7 +97,6 @@ function queueRequest(command, data) {
  *
  * @param {object} data
  * @param {string} exitTo
- * @returns {Promise}
  */
 function setSuccessfulSignInData(data, exitTo) {
     let redirectTo;
@@ -108,12 +108,8 @@ function setSuccessfulSignInData(data, exitTo) {
     } else {
         redirectTo = ROUTES.HOME;
     }
-    return Ion.multiSet({
-        // The response from Authenticate includes requestID, jsonCode, etc
-        // but we only care about setting these three values in Ion
-        [IONKEYS.SESSION]: _.pick(data, 'authToken', 'accountID', 'email'),
-        [IONKEYS.APP_REDIRECT_TO]: redirectTo,
-    });
+    redirect(redirectTo);
+    Ion.merge(IONKEYS.SESSION, _.pick(data, 'authToken', 'accountID', 'email'));
 }
 
 /**
