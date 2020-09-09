@@ -1,6 +1,5 @@
 import _ from 'underscore';
 import NetInfo from '@react-native-community/netinfo';
-import * as path from 'path';
 import Ion from './Ion';
 import CONFIG from '../CONFIG';
 import IONKEYS from '../IONKEYS';
@@ -53,12 +52,12 @@ function xhr(command, data, type = 'post') {
 /**
  * Just download a file from the web server.
  *
- * @param {String} relativePath From the website root, NOT the API root.
+ * @param {String} relativePath From the website root, NOT the API root. (no leading slash, ., or ..)
  * @returns {Promise<Response>}
  */
 function download(relativePath) {
-    const siteRoot = CONFIG.EXPENSIFY.API_ROOT.slice(0, CONFIG.EXPENSIFY.API_ROOT.lastIndexOf('/'));
-    return fetch(path.join(siteRoot, relativePath))
+    const siteRoot = CONFIG.EXPENSIFY.API_ROOT.slice(0, CONFIG.EXPENSIFY.API_ROOT.lastIndexOf('/') + 1);
+    return fetch(`${siteRoot}${relativePath.slice(relativePath.indexOf('/') + 1)}`)
         .then(response => response.json())
         .catch(() => {
             setOfflineStatus(true);
