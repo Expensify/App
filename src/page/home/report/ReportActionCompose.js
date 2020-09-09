@@ -11,6 +11,9 @@ import openURLInNewTab from '../../../lib/openURLInNewTab';
 const propTypes = {
     // A method to call when the form is submitted
     onSubmit: PropTypes.func.isRequired,
+
+    // The ID of the report actions will be created for
+    reportID: PropTypes.number.isRequired,
 };
 
 class ReportActionCompose extends React.Component {
