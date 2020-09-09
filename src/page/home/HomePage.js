@@ -60,6 +60,11 @@ export default class App extends React.Component {
         }
     }
 
+    /**
+     * Method called when we want to dismiss the hamburger menu,
+     * will not do anything if it already closed
+     * Only changes hamburger state on small screens (e.g. Mobile and mWeb)
+     */
     dismissHamburger() {
         const hamburgerIsShown = this.state.hamburgerShown;
 
@@ -70,6 +75,11 @@ export default class App extends React.Component {
         this.animateHamburger(hamburgerIsShown);
     }
 
+    /**
+     * Animates the Hamburger menu in and out.
+     *
+     * @param {Boolean} hamburgerIsShown
+     */
     animateHamburger(hamburgerIsShown) {
         const animationFinalValue = hamburgerIsShown ? -300 : 0;
 
