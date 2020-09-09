@@ -12,13 +12,13 @@ const AppLinks = () => (
         </Anchor>
         <Anchor
             style={[styles.sidebarFooterLink, styles.mr2]}
-            href="https://testflight.apple.com/join/vBYbMRQG"
+            href="https://testflight.apple.com/join/ucuXr4g5"
         >
             iOS
         </Anchor>
         <Anchor
             style={[styles.sidebarFooterLink, styles.mr2]}
-            href="https://chat.expensify.com/app-release.apk"
+            href="https://play.google.com/apps/internaltest/4700657970395613233"
         >
             Android
         </Anchor>
