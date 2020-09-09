@@ -14,9 +14,9 @@ Ion.connect({
  * @param {object} match
  */
 function recordCurrentRoute({match}) {
-    Ion.set(IONKEYS.CURRENT_URL, match.url);
+    Ion.merge(IONKEYS.CURRENT_URL, match.url);
     if (match.url === currentRedirectTo) {
-        Ion.set(IONKEYS.APP_REDIRECT_TO, '');
+        Ion.merge(IONKEYS.APP_REDIRECT_TO, '');
     }
 }
 
