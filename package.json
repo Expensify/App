@@ -61,6 +61,8 @@
     "@babel/preset-react": "^7.10.4",
     "@babel/runtime": "^7.11.2",
     "@react-native-community/eslint-config": "^2.0.0",
+    "@testing-library/jest-native": "^3.4.2",
+    "@testing-library/react-native": "^7.0.2",
     "babel-eslint": "^10.1.0",
     "babel-jest": "^26.2.2",
     "babel-loader": "^8.1.0",
@@ -92,13 +94,22 @@
     "transformIgnorePatterns": [
       "node_modules/(?!react-native)/"
     ],
-    "testPathIgnorePatterns": ["<rootDir>/node_modules/", "<rootDir>/tests/mocks/"],
-    "testMatch": ["**/tests/**/*.[jt]s?(x)", "**/?(*.)+(spec|test).[jt]s?(x)"],
+    "testPathIgnorePatterns": [
+      "<rootDir>/node_modules/",
+      "<rootDir>/tests/mocks/"
+    ],
+    "testMatch": [
+      "**/tests/**/*.[jt]s?(x)",
+      "**/?(*.)+(spec|test).[jt]s?(x)"
+    ],
     "globals": {
       "__DEV__": true,
       "WebSocket": {}
     },
     "timers": "fake",
-    "testEnvironment": "jsdom"
+    "testEnvironment": "jsdom",
+    "setupFilesAfterEnv": [
+      "@testing-library/jest-native/extend-expect"
+    ]
   }
 }

@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
-import orderBy from 'lodash.orderby';
+import orderBy from 'lodash.orderBy';
 import styles from '../../../style/StyleSheet';
 import Text from '../../../components/Text';
 import SidebarLink from './SidebarLink';
