@@ -166,7 +166,16 @@ function request(command, parameters, type = 'post') {
     // re-authenticate to get a fresh authToken and make the original http request again
     return xhr(command, parametersWithAuthToken, type)
         .then((responseData) => {
-            if (!reauthenticating && responseData.jsonCode === 407 && parametersWithAuthToken.doNotRetry !== true) {
+            // We can end up here if we have queued up many
+            // requests and have an expired authToken. In these cases,
+            // we just need to requeue the request
+            if (reauthenticating) {
+                return queueRequest(command, parametersWithAuthToken);
+            }
+
+            // If we're not re-authenticating and we get 407 (authToken expired)
+            // we re-authenticate and then re-try the original request
+            if (responseData.jsonCode === 407 && parametersWithAuthToken.doNotRetry !== true) {
                 reauthenticating = true;
                 return xhr('Authenticate', {
                     useExpensifyLogin: false,
@@ -197,13 +206,6 @@ function request(command, parameters, type = 'post') {
                         redirectToSignIn();
                         return Promise.reject();
                     });
-            }
-
-            // We can end up here if we have queued up many
-            // requests and have an expired authToken. In these cases,
-            // we just need to requeue the request
-            if (reauthenticating) {
-                return queueRequest(command, parametersWithAuthToken);
             }
             return responseData;
         })
