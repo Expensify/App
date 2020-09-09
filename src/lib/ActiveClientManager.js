@@ -29,8 +29,10 @@ function removeClient() {
  * @returns {Promise}
  */
 function isClientTheLeader() {
+    // At the moment activeClients only has 1 value i.e., the latest clientID so let's compare if
+    // the latest matches the current browsers clientID.
     return Ion.get(IONKEYS.ACTIVE_CLIENTS)
-        .then(activeClientIDs => _.first(activeClientIDs) === clientID);
+        .then(activeClients => activeClients.clientID === clientID);
 }
 
 export {
