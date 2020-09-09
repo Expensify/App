@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import {recordCurrentRoute} from './lib/actions/App';
 
 // import {Beforeunload} from 'react-beforeunload';
 import SignInPage from './page/SignInPage';
@@ -40,7 +41,6 @@ class Expensify extends Component {
         // Initialize this client as being an active client
         ActiveClientManager.init();
 
-        this.recordCurrentRoute = this.recordCurrentRoute.bind(this);
         this.removeLoadingState = this.removeLoadingState.bind(this);
 
         this.state = {
@@ -65,15 +65,6 @@ class Expensify extends Component {
         });
     }
 
-    /**
-     * Keep the current route match stored in Ion so other libs can access it
-     *
-     * @param {object} params.match
-     */
-    recordCurrentRoute({match}) {
-        Ion.set(IONKEYS.CURRENT_URL, match.url);
-    }
-
     render() {
         // Until the authToken has been initialized from Ion, display a blank page
         if (this.state.isLoading) {
@@ -81,11 +72,7 @@ class Expensify extends Component {
                 <View style={styles.genericView} />
             );
         }
-
-        const redirectTo = !this.state.authToken
-            ? ROUTES.SIGNIN
-            : this.props.redirectTo;
-
+        const redirectTo = !this.state.authToken ? ROUTES.SIGNIN : this.props.redirectTo;
         return (
 
             // TODO: Mobile does not support Beforeunload
@@ -94,7 +81,7 @@ class Expensify extends Component {
                 {/* If there is ever a property for redirecting, we do the redirect here */}
                 {/* Leave this as a ternary or else iOS throws an error about text not being wrapped in <Text> */}
                 {redirectTo ? <Redirect to={redirectTo} /> : null}
-                <Route path="*" render={this.recordCurrentRoute} />
+                <Route path="*" render={recordCurrentRoute} />
 
                 <Switch>
                     <Route path={['/signin/exitTo/:exitTo*', '/signin']} component={SignInPage} />
