@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
-import orderBy from 'lodash.orderby';
+import lodashOrderby from 'lodash.orderby';
 import styles from '../../../style/StyleSheet';
 import Text from '../../../components/Text';
 import SidebarLink from './SidebarLink';
@@ -58,7 +58,7 @@ class SidebarLinks extends React.Component {
     render() {
         const {reports, onLinkClick} = this.props;
         const reportIDInUrl = parseInt(this.props.match.params.reportID, 10);
-        const sortedReports = orderBy(this.props.reports, ['pinnedReport', 'reportName'], ['desc', 'asc']);
+        const sortedReports = lodashOrderby(this.props.reports, ['pinnedReport', 'reportName'], ['desc', 'asc']);
 
         // Filter the reports so that the only reports shown are pinned, unread, and the one matching the URL
         // eslint-disable-next-line max-len
@@ -89,7 +89,9 @@ class SidebarLinks extends React.Component {
                                 Chats
                             </Text>
                         </View>
-                        {_.map(reportsToDisplay, report => (
+                        {/* A report will not have a report name if it hasn't been fetched from the server yet */}
+                        {/* so nothing is rendered */}
+                        {_.map(reportsToDisplay, report => report.reportName && (
                             <SidebarLink
                                 key={report.reportID}
                                 reportID={report.reportID}
