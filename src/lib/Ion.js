@@ -120,7 +120,7 @@ function connect(mapping) {
     AsyncStorage.getAllKeys()
         .then((keys) => {
             // Find all the keys matched by the config regex
-            const matchingKeys = _.filter(keys, config.regex.test);
+            const matchingKeys = _.filter(keys, config.regex.test.bind(config.regex));
 
             // If the key being connected to does not exist, initialize the value with null
             if (matchingKeys.length === 0) {

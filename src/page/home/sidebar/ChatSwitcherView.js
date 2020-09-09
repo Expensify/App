@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import withIon from '../../../components/withIon';
-import Ion from '../../../lib/Ion';
 import IONKEYS from '../../../IONKEYS';
 import Str from '../../../lib/Str';
 import KeyboardShortcut from '../../../lib/KeyboardShortcut';
@@ -130,8 +129,7 @@ class ChatSwitcherView extends React.Component {
      * @param {string} option.value
      */
     fetchChatReportAndRedirect(option) {
-        fetchOrCreateChatReport([this.props.myPersonalDetails.login, option.login])
-            .then(reportID => Ion.set(IONKEYS.APP_REDIRECT_TO, `/${reportID}`));
+        fetchOrCreateChatReport([this.props.myPersonalDetails.login, option.login]);
         this.reset();
     }
 

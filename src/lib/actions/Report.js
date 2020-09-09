@@ -43,6 +43,7 @@ Ion.connect({
     callback: val => myPersonalDetails = val,
 });
 
+// Keeps track of the max sequence number for each report
 const reportMaxSequenceNumbers = {};
 
 // List of reportIDs that we define in .env
@@ -119,7 +120,7 @@ function getChatReportName(sharedReportList) {
  * chat report IDs
  *
  * @param {Array} chatList
- * @return {Promise}
+ * @return {Promise} only used internally when fetchAll() is called
  */
 function fetchChatReportsByIDs(chatList) {
     let fetchedReports;
@@ -236,7 +237,7 @@ function subscribeToReportCommentEvents() {
  * Get all chat reports and provide the proper report name
  * by fetching sharedReportList and personalDetails
  *
- * @returns {Promise}
+ * @returns {Promise} only used internally when fetchAll() is called
  */
 function fetchChatReports() {
     return queueRequest('Get', {
@@ -248,14 +249,31 @@ function fetchChatReports() {
 }
 
 /**
+ * Get the actions of a report
+ *
+ * @param {number} reportID
+ */
+function fetchActions(reportID) {
+    queueRequest('Report_GetHistory', {reportID})
+        .then((data) => {
+            const indexedData = _.indexBy(data.history, 'sequenceNumber');
+            const maxSequenceNumber = _.chain(data.history)
+                .pluck('sequenceNumber')
+                .max()
+                .value();
+            Ion.set(`${IONKEYS.REPORT_ACTIONS}_${reportID}`, indexedData);
+            Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {maxSequenceNumber});
+        });
+}
+
+/**
  * Get all of our reports
  *
  * @param {boolean} shouldRedirectToFirstReport this is set to false when the network reconnect
  *     code runs
- *
- * @returns {Promise}
+ * @param {boolean} shouldFetchActions whether or not the actions of the reports should also be fetched
  */
-function fetchAll(shouldRedirectToFirstReport = true) {
+function fetchAll(shouldRedirectToFirstReport = true, shouldFetchActions = false) {
     let fetchedReports;
 
     // Request each report one at a time to allow individual reports to fail if access to it is prevented by Auth
@@ -271,7 +289,7 @@ function fetchAll(shouldRedirectToFirstReport = true) {
     // parallel
     reportFetchPromises.push(fetchChatReports());
 
-    return promiseAllSettled(reportFetchPromises)
+    promiseAllSettled(reportFetchPromises)
         .then((data) => {
             fetchedReports = _.compact(_.map(data, (promiseResult) => {
                 // Grab the report from the promise result which stores it in the `value` key
@@ -297,28 +315,11 @@ function fetchAll(shouldRedirectToFirstReport = true) {
                 // Merge the data into Ion. Don't use set() here or multiSet() because then that would
                 // overwrite any existing data (like if they have unread messages)
                 Ion.merge(`${IONKEYS.REPORT}_${report.reportID}`, getSimplifiedReportObject(report));
+
+                if (shouldFetchActions) {
+                    fetchActions(report.reportID);
+                }
             });
-
-            return fetchedReports;
-        });
-}
-
-/**
- * Get the actions of a report
- *
- * @param {number} reportID
- * @returns {Promise}
- */
-function fetchActions(reportID) {
-    return queueRequest('Report_GetHistory', {reportID})
-        .then((data) => {
-            const indexedData = _.indexBy(data.history, 'sequenceNumber');
-            const maxSequenceNumber = _.chain(data.history)
-                .pluck('sequenceNumber')
-                .max()
-                .value();
-            Ion.set(`${IONKEYS.REPORT_ACTIONS}_${reportID}`, indexedData);
-            Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {maxSequenceNumber});
         });
 }
 
@@ -327,12 +328,11 @@ function fetchActions(reportID) {
  * set of participants
  *
  * @param {string[]} participants
- * @returns {Promise} resolves with reportID
  */
 function fetchOrCreateChatReport(participants) {
     let reportID;
 
-    return queueRequest('CreateChatReport', {
+    queueRequest('CreateChatReport', {
         emailList: participants.join(','),
     })
 
@@ -360,8 +360,8 @@ function fetchOrCreateChatReport(participants) {
             // overwrite any existing data (like if they have unread messages)
             Ion.merge(`${IONKEYS.REPORT}_${reportID}`, newReport);
 
-            // Return the reportID as the final return value
-            return reportID;
+            // Redirec the logged in person to the new report
+            Ion.set(IONKEYS.APP_REDIRECT_TO, `/${reportID}`);
         });
 }
 
@@ -470,6 +470,7 @@ function handleReportChanged(report) {
         fetchChatReportsByIDs([report.reportID]);
     }
 
+    // Store the max sequence number for each report
     reportMaxSequenceNumbers[report.reportID] = report.maxSequenceNumber;
 }
 Ion.connect({
@@ -479,7 +480,7 @@ Ion.connect({
 
 // When the app reconnects from being offline, fetch all of the reports and their actions
 onReconnect(() => {
-    fetchAll(false).then(reports => _.each(reports, report => fetchActions(report.reportID)));
+    fetchAll(false, true);
 });
 export {
     fetchAll,
