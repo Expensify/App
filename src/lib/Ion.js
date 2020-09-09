@@ -207,14 +207,23 @@ function clear() {
  * Merge a new value into an existing value at a key
  *
  * @param {string} key
- * @param {string} val
- * @returns {Promise}
+ * @param {*} val
  */
 function merge(key, val) {
-    return AsyncStorage.mergeItem(key, JSON.stringify(val))
-        .then(() => get(key))
-        .then((newObject) => {
-            keyChanged(key, newObject);
+    // Values that are objects can be merged into storage
+    if (_.isObject(val)) {
+        AsyncStorage.mergeItem(key, JSON.stringify(val))
+            .then(() => get(key))
+            .then((newObject) => {
+                keyChanged(key, newObject);
+            });
+        return;
+    }
+
+    // Anything else (strings and numbers) need to be set into storage
+    AsyncStorage.setItem(key, JSON.stringify(val))
+        .then(() => {
+            keyChanged(key, val);
         });
 }
 

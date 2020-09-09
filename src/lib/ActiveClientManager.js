@@ -19,7 +19,8 @@ Ion.connect({
  *
  * @returns {Promise}
  */
-// @TODO need to change this to Ion.merge() once we support multiple tabs
+// @TODO need to change this to Ion.merge() once we support multiple tabs since there is now way to remove
+// clientIDs from this yet
 const init = () => Ion.set(IONKEYS.ACTIVE_CLIENTS, {[clientID]: clientID});
 
 /**

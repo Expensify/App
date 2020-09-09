@@ -75,7 +75,7 @@ class Expensify extends Component {
      * @param {object} params.match
      */
     recordCurrentRoute({match}) {
-        Ion.set(IONKEYS.CURRENT_URL, match.url);
+        Ion.merge(IONKEYS.CURRENT_URL, match.url);
     }
 
     render() {

@@ -86,6 +86,7 @@ function fetch() {
     })
         .then((data) => {
             const allPersonalDetails = formatPersonalDetails(data.personalDetailsList);
+            console.log(2, allPersonalDetails);
             Ion.merge(IONKEYS.PERSONAL_DETAILS, allPersonalDetails);
 
             // Get my personal details so they can be easily accessed and subscribed to on their own key
@@ -115,7 +116,12 @@ function fetch() {
  */
 function getForEmails(emailList) {
     queueRequest('PersonalDetails_GetForEmails', {emailList})
-        .then(details => Ion.merge(IONKEYS.PERSONAL_DETAILS, formatPersonalDetails(details)));
+        .then((data) => {
+            const details = _.omit(data, ['jsonCode', 'requestID']);
+            const formattedDetails = formatPersonalDetails(details);
+            console.log(1, formattedDetails);
+            Ion.merge(IONKEYS.PERSONAL_DETAILS, formattedDetails);
+        });
 }
 
 // When the app reconnects from being offline, fetch all of the personal details

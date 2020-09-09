@@ -65,7 +65,7 @@ function createLogin(login, password) {
         partnerUserID: login,
         partnerUserSecret: password,
     })
-        .then(() => Ion.set(IONKEYS.CREDENTIALS, {login, password}))
+        .then(() => Ion.merge(IONKEYS.CREDENTIALS, {login, password}))
         .catch(err => Ion.merge(IONKEYS.SESSION, {error: err}));
 }
 
@@ -362,7 +362,7 @@ function authenticate(parameters) {
         .catch((err) => {
             console.error(err);
             console.debug('[SIGNIN] Request error');
-            return Ion.merge(IONKEYS.SESSION, {error: err.message});
+            Ion.merge(IONKEYS.SESSION, {error: err.message});
         });
 }
 
