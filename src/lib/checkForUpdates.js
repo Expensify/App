@@ -7,10 +7,7 @@ const UPDATE_INTERVAL = 1000 * 60 * 60;
 let isOnline;
 Ion.connect({
     key: IONKEYS.NETWORK,
-    path: 'isOffline',
-    callback: (isCurrentlyOffline) => {
-        isOnline = !isCurrentlyOffline;
-    }
+    callback: network => isOnline = !network.isOffline,
 });
 
 /**
