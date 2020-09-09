@@ -39,6 +39,7 @@ class ReportView extends React.PureComponent {
                         reportID={this.props.reportID}
                         draftComment={this.props.draftComment}
                         onSubmit={text => addAction(this.props.reportID, text)}
+                        reportID={this.props.reportID}
                     />
                 )}
 
