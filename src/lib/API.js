@@ -198,7 +198,7 @@ function request(command, parameters, type = 'post') {
                         parametersWithAuthToken.authToken = response.authToken;
 
                         // Update authToken in Ion store otherwise subsequent API calls will use the expired one
-                        setSuccessfulSignInData(response);
+                        Ion.set(IONKEYS.SESSION, _.pick(response, 'authToken'));
                         return response;
                     })
                     .then(() => xhr(command, parametersWithAuthToken, type))
