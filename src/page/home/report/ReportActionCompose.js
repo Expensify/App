@@ -35,6 +35,10 @@ class ReportActionCompose extends React.Component {
         this.submitForm = this.submitForm.bind(this);
         this.triggerSubmitShortcut = this.triggerSubmitShortcut.bind(this);
         this.submitForm = this.submitForm.bind(this);
+
+        this.state = {
+            comment: this.props.comment || ''
+        };
     }
 
     /**
@@ -43,6 +47,8 @@ class ReportActionCompose extends React.Component {
      * @param {string} newComment
      */
     updateComment(newComment) {
+        this.moveCursorToEnd = false;
+        this.setState({comment: newComment});
         saveReportComment(this.props.reportID, newComment || '');
     }
 
@@ -83,6 +89,8 @@ class ReportActionCompose extends React.Component {
 
     render() {
         const href = `${CONFIG.PUSHER.AUTH_URL}/report?reportID=${this.props.reportID}&shouldScrollToLastUnread=true`;
+        const check = this.state.comment;
+        const comment = this.props.comment;
         return (
             <View style={[styles.chatItemCompose]}>
                 <View style={[styles.chatItemComposeBox, styles.flexRow]}>
@@ -105,7 +113,7 @@ class ReportActionCompose extends React.Component {
                         onChangeText={this.updateComment}
                         onKeyPress={this.triggerSubmitShortcut}
                         style={[styles.textInput, styles.textInputCompose, styles.flex4]}
-                        value={this.props.comment || ''}
+                        value={comment}
                         maxLines={16} // This is the same that slack has
                     />
                     <TouchableOpacity

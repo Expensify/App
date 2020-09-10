@@ -76,10 +76,6 @@ class TextInputFocusable extends React.Component {
 
     focusInput() {
         this.textInput.focus();
-        if (this.props.value) {
-            this.textInput.selectionStart = this.props.value.length;
-            this.textInput.selectionEnd = this.props.value.length;
-        }
     }
 
     render() {
