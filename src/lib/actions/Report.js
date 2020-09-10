@@ -368,14 +368,16 @@ function fetchChatReport(participants) {
  *
  * @param {string} reportID
  * @param {string} reportComment
+ * @param {Object} file
  * @returns {Promise}
  */
-function addHistoryItem(reportID, reportComment) {
+function addHistoryItem(reportID, reportComment, file) {
     const historyKey = `${IONKEYS.REPORT_HISTORY}_${reportID}`;
 
     // Convert the comment from MD into HTML because that's how it is stored in the database
     const parser = new ExpensiMark();
     const htmlComment = parser.replace(reportComment);
+    const isAttachment = _.isEmpty(reportComment) && file !== undefined;
 
     return Ion.multiGet([historyKey, IONKEYS.SESSION, IONKEYS.PERSONAL_DETAILS])
         .then((values) => {
@@ -410,10 +412,11 @@ function addHistoryItem(reportID, reportComment) {
                     message: [
                         {
                             type: 'COMMENT',
-                            html: htmlComment,
+                            html: isAttachment ? 'Uploading Attachment...' : htmlComment,
 
                             // Remove HTML from text when applying optimistic offline comment
-                            text: htmlComment.replace(/<[^>]*>?/gm, ''),
+                            text: isAttachment ? 'Uploading Attachment...'
+                                : htmlComment.replace(/<[^>]*>?/gm, ''),
                         }
                     ],
                     isFirstItem: false,
@@ -424,6 +427,7 @@ function addHistoryItem(reportID, reportComment) {
         .then(() => queueRequest('Report_AddComment', {
             reportID,
             reportComment: htmlComment,
+            file
         }));
 }
 

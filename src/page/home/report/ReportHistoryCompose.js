@@ -6,6 +6,7 @@ import TextInputFocusable from '../../../components/TextInputFocusable';
 import sendIcon from '../../../../assets/images/icon-send.png';
 import paperClipIcon from '../../../../assets/images/icon-paper-clip.png';
 import ImagePicker from '../../../lib/ImagePicker';
+import {addHistoryItem} from '../../../lib/actions/Report';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -40,18 +41,25 @@ class ReportHistoryCompose extends React.Component {
             e.preventDefault();
         }
 
-        ImagePicker.showImagePicker((response) => {
+        const reportID = this.props.reportID;
+        const options = {
+            storageOptions: {
+                skipBackup: true,
+                path: 'images',
+                cameraRoll: true,
+            },
+        };
+        ImagePicker.showImagePicker(options, (response) => {
             console.log('Response = ', response);
 
             if (response.didCancel) {
                 console.log('User cancelled image picker');
             } else if (response.error) {
                 console.log('ImagePicker Error: ', response.error);
-            } else if (response.customButton) {
-                console.log('User tapped custom button: ', response.customButton);
             } else {
-                const source = {uri: response.uri};
-                console.log('Source: ', source);
+                console.log('Response: ', response);
+                response.uri = response.uri.replace('file://', '');
+                addHistoryItem(reportID, '', response);
 
                 // You can also display the image using data:
                 // const source = { uri: 'data:image/jpeg;base64,' + response.data };

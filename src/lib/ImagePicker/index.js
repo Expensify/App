@@ -8,7 +8,7 @@ const input = document.createElement('input');
 input.type = 'file';
 
 const ImagePicker = {
-    showImagePicker(callback) {
+    showImagePicker(options, callback) {
         const {files} = input;
         if (files) {
             Array.prototype.forEach.call(files, this.removeUri);
@@ -38,10 +38,7 @@ const ImagePicker = {
                         });
                     }
 
-                    self.addUri(files[0]);
-                    resolve({
-                        uri: files[0].uri
-                    });
+                    resolve(self.addUri(files[0]));
                 }, 500);
             }
 
