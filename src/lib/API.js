@@ -351,9 +351,6 @@ function authenticate(parameters) {
         twoFactorAuthCode: parameters.twoFactorAuthCode,
         exitTo: parameters.exitTo,
     })
-        .then((response) => {
-            setSuccessfulSignInData(response, parameters.exitTo);
-        })
         .catch((err) => {
             console.error(err);
             console.debug('[SIGNIN] Request error');
