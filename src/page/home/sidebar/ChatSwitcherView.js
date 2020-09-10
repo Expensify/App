@@ -302,17 +302,5 @@ export default withIon({
         key: `${IONKEYS.REPORT}_[0-9]+$`,
         addAsCollection: true,
         collectionID: 'reportID',
-        loader: () => fetchAll().then(() => {
-            // After the reports are loaded for the first time, redirect to the first reportID in the list
-            Ion.multiGet([IONKEYS.CURRENT_URL, IONKEYS.FIRST_REPORT_ID]).then((values) => {
-                const currentURL = values[IONKEYS.CURRENT_URL] || '';
-                const firstReportID = values[IONKEYS.FIRST_REPORT_ID] || 0;
-
-                // If we're on the home page, then redirect to the first report ID
-                if (currentURL === '/' && firstReportID) {
-                    Ion.set(IONKEYS.APP_REDIRECT_TO, `/${firstReportID}`);
-                }
-            });
-        }),
     }
 })(ChatSwitcherView);
