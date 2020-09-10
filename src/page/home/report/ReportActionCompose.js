@@ -4,16 +4,27 @@ import {View, Image, TouchableOpacity} from 'react-native';
 import styles, {colors} from '../../../style/StyleSheet';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 import sendIcon from '../../../../assets/images/icon-send.png';
+import IONKEYS from '../../../IONKEYS';
 import paperClipIcon from '../../../../assets/images/icon-paper-clip.png';
 import CONFIG from '../../../CONFIG';
 import openURLInNewTab from '../../../lib/openURLInNewTab';
+import withIon from '../../../components/withIon';
+import {saveReportComment} from '../../../lib/actions/Report';
+
 
 const propTypes = {
     // A method to call when the form is submitted
     onSubmit: PropTypes.func.isRequired,
 
+    // The comment left by the user
+    comment: PropTypes.string,
+
     // The ID of the report actions will be created for
     reportID: PropTypes.number.isRequired,
+};
+
+const defaultProps = {
+    comment: '',
 };
 
 class ReportActionCompose extends React.Component {
@@ -24,21 +35,15 @@ class ReportActionCompose extends React.Component {
         this.submitForm = this.submitForm.bind(this);
         this.triggerSubmitShortcut = this.triggerSubmitShortcut.bind(this);
         this.submitForm = this.submitForm.bind(this);
-
-        this.state = {
-            comment: '',
-        };
     }
 
     /**
-     * Update the value of the comment input in the state
+     * Update the value of the comment in Ion
      *
      * @param {string} newComment
      */
     updateComment(newComment) {
-        this.setState({
-            comment: newComment,
-        });
+        saveReportComment(this.props.reportID, newComment || '');
     }
 
     /**
@@ -64,7 +69,7 @@ class ReportActionCompose extends React.Component {
             e.preventDefault();
         }
 
-        const trimmedComment = this.state.comment.trim();
+        const trimmedComment = this.props.comment.trim();
 
         // Don't submit empty comments
         // @TODO show an error in the UI
@@ -73,9 +78,7 @@ class ReportActionCompose extends React.Component {
         }
 
         this.props.onSubmit(trimmedComment);
-        this.setState({
-            comment: '',
-        });
+        this.updateComment('');
     }
 
     render() {
@@ -102,7 +105,7 @@ class ReportActionCompose extends React.Component {
                         onChangeText={this.updateComment}
                         onKeyPress={this.triggerSubmitShortcut}
                         style={[styles.textInput, styles.textInputCompose, styles.flex4]}
-                        value={this.state.comment}
+                        value={this.props.comment || ''}
                         maxLines={16} // This is the same that slack has
                     />
                     <TouchableOpacity
@@ -122,5 +125,11 @@ class ReportActionCompose extends React.Component {
     }
 }
 ReportActionCompose.propTypes = propTypes;
+ReportActionCompose.defaultProps = defaultProps;
 
-export default ReportActionCompose;
+export default withIon({
+    comment: {
+        key: `${IONKEYS.REPORT_DRAFT_COMMENT}_%DATAFROMPROPS%`,
+        pathForProps: 'reportID',
+    },
+})(ReportActionCompose);
