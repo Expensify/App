@@ -29,6 +29,7 @@ class ReportView extends React.PureComponent {
                 {shouldShowComposeForm && (
                     <ReportActionCompose
                         onSubmit={text => addAction(this.props.reportID, text)}
+                        reportID={this.props.reportID}
                     />
                 )}
 
