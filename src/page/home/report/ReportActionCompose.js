@@ -38,12 +38,12 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
-     * Update the value of the comment input in the state
+     * Update the value of the comment in Ion
      *
      * @param {string} newComment
      */
     updateComment(newComment) {
-        saveReportComment(newComment);
+        saveReportComment(newComment, this.props.reportID);
     }
 
     /**
