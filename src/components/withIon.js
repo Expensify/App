@@ -46,11 +46,11 @@ export default function (mapIonToState) {
                 // If any of the mappings use data from the props, then when the props change, all the
                 // connections need to be reconnected with the new props
                 _.each(mapIonToState, (mapping, propertyName) => {
-                    if (lodashHas(mapping, 'pathForProps')) {
-                        const prevPropsData = lodashGet(prevProps, mapping.pathForProps);
-                        const currentPropsData = lodashGet(this.props, mapping.pathForProps);
-                        if (prevPropsData !== currentPropsData) {
-                            Ion.disconnect(this.activeConnectionIDsWithPropsData[mapping.pathForProps]);
+                    if (_.isFunction(mapping.key)) {
+                        const previousKey = mapping.key(prevProps);
+                        const newKey = mapping.key(this.props);
+                        if (previousKey !== newKey) {
+                            Ion.disconnect(this.activeConnectionIDsWithPropsData[previousKey]);
                             this.connectMappingToIon(mapping, propertyName, this.wrappedComponent);
                         }
                     }
@@ -73,15 +73,6 @@ export default function (mapIonToState) {
              * @param {boolean} [mapping.addAsCollection] rather than setting a single state value, this will add things
              *  to an array
              * @param {string} [mapping.collectionID] the name of the ID property to use for the collection
-             * @param {string} [mapping.pathForProps] the statePropertyName can contain the string %DATAFROMPROPS% wich
-             *  will be replaced with data from the props matching this path. That way, the component can connect to an
-             *  Ion key that uses data from this.props.
-             *
-             *  For example, if a component wants to connect to the Ion key "report_22" and
-             *  "22" comes from this.props.match.params.reportID. The statePropertyName would be set to
-             *  "report_%DATAFROMPROPS%" and pathForProps would be set to "match.params.reportID"
-             * @param {function} [mapping.loader] a method that will be called after connection to Ion in order to load
-             *  it with data. Typically this will be a method that makes an XHR to load data from the API.
              * @param {mixed[]} [mapping.loaderParams] An array of params to be passed to the loader method
              * @param {boolean} [mapping.initWithStoredValues] If set to false, then no data will be prefilled into the
              *  component
@@ -97,17 +88,14 @@ export default function (mapIonToState) {
                 let connectionID;
 
                 // Connect to Ion and keep track of the connectionID
-                if (mapping.pathForProps) {
-                    // If there is a path for props data, then the data needs to be pulled out of props and parsed
-                    // into the key
-                    const dataFromProps = lodashGet(this.props, mapping.pathForProps);
-                    const keyWithPropsData = mapping.key.replace('%DATAFROMPROPS%', dataFromProps);
-                    ionConnectionConfig.key = keyWithPropsData;
+                if (_.isFunction(mapping.key)) {
+                    const keyFromProps = mapping.key(this.props);
+                    ionConnectionConfig.key = keyFromProps;
 
                     // Store the connectionID with a key that is unique to the data coming from the props which allows
                     // it to be easily reconnected to when the props change
                     connectionID = Ion.connect(ionConnectionConfig);
-                    this.activeConnectionIDsWithPropsData[mapping.pathForProps] = connectionID;
+                    this.activeConnectionIDsWithPropsData[keyFromProps] = connectionID;
                 } else {
                     connectionID = Ion.connect(ionConnectionConfig);
                     this.actionConnectionIDs[connectionID] = connectionID;
@@ -117,21 +105,6 @@ export default function (mapIonToState) {
                 if (mapping.initWithStoredValues !== false) {
                     Ion.getInitialStateFromConnectionID(connectionID)
                         .then(data => this.setState({[statePropertyName]: data}));
-                }
-
-                // Load the data from an API request if necessary
-                if (mapping.loader) {
-                    const paramsForLoaderFunction = _.map(mapping.loaderParams, (loaderParam) => {
-                        // Some params might com from the props data
-                        if (loaderParam === '%DATAFROMPROPS%') {
-                            return lodashGet(this.props, mapping.pathForProps);
-                        }
-                        return loaderParam;
-                    });
-
-                    // Call the loader function and pass it any params. The loader function will take care of putting
-                    // data into Ion
-                    mapping.loader(...paramsForLoaderFunction || []);
                 }
             }
 

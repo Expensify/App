@@ -180,15 +180,11 @@ class ReportActionsView extends React.Component {
 ReportActionsView.propTypes = propTypes;
 ReportActionsView.defaultProps = defaultProps;
 
-const key = `${IONKEYS.REPORT_ACTIONS}_%DATAFROMPROPS%`;
 export default compose(
     withRouter,
     withIon({
         reportActions: {
-            key,
-            loader: fetchActions,
-            loaderParams: ['%DATAFROMPROPS%'],
-            pathForProps: 'reportID',
+            key: ({reportID}) => `${IONKEYS.REPORT_ACTIONS}_${reportID}`,
         },
     }),
 )(ReportActionsView);
