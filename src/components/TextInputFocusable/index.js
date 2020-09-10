@@ -6,8 +6,8 @@ const propTypes = {
     // Maximum number of lines in the text input
     maxLines: PropTypes.number,
 
-    // The value of the comment box
-    value: PropTypes.string.isRequired,
+    // The default value of the comment box
+    defaultValue: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
@@ -33,8 +33,13 @@ class TextInputFocusable extends React.Component {
     componentDidUpdate(prevProps) {
         this.focusInput();
 
-        if (prevProps.value !== this.props.value) {
+        if (prevProps.defaultValue !== this.props.defaultValue) {
             this.updateNumberOfLines();
+
+            if (this.props.defaultValue) {
+                this.textInput.selectionStart = this.props.defaultValue.length;
+                this.textInput.selectionEnd = this.props.defaultValue.length;
+            }
         }
     }
 
