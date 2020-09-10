@@ -1,67 +1,52 @@
-/**
- * Trick for getting file selector cancel using `body.onfocus` event found at
- * http://trishulgoel.com/handle-cancel-click-on-file-input/
- */
+// Implementation adapted from https://github.com/QuantumBA/foqum-react-native-document-picker/blob/master/web/index.js
+
+import _ from 'underscore';
 
 const {body} = document;
 const input = document.createElement('input');
 input.type = 'file';
 
+/**
+ * Sets the URI value on the file
+ *
+ * @param {object} file
+ * @returns {object}
+ */
+function addUri(file) {
+    const newFile = file;
+    newFile.uri = URL.createObjectURL(file);
+
+    return newFile;
+}
+
 const ImagePicker = {
     showImagePicker(options, callback) {
         const {files} = input;
+
+        // Clear previously saved files
         if (files) {
-            Array.prototype.forEach.call(files, this.removeUri);
+            input.value = '';
         }
 
-        this.showImagePickerWrapper()
-            .then((result) => {
-                callback(result);
-            })
-            .catch((result) => {
-                callback(result);
+        function onfocus() {
+            body.removeEventListener('focus', onfocus, true);
+
+            _.delay(() => {
+                const inputFiles = input.files;
+                if (!inputFiles.length) {
+                    callback({
+                        didCancel: true
+                    });
+                    return;
+                }
+
+                callback(addUri(inputFiles[0]));
             });
-    },
+        }
 
-    showImagePickerWrapper() {
-        const self = this;
-        const promise = new Promise((resolve, reject) => {
-            function onfocus() {
-                body.removeEventListener('focus', onfocus, true);
-
-                setTimeout(() => {
-                    const {files} = input;
-                    if (!files.length) {
-                        // eslint-disable-next-line prefer-promise-reject-errors
-                        return reject({
-                            didCancel: true
-                        });
-                    }
-
-                    resolve(self.addUri(files[0]));
-                }, 500);
-            }
-
-            body.addEventListener('focus', onfocus, true);
-        });
-
+        body.addEventListener('focus', onfocus, true);
         input.click();
-
-        return promise;
-    },
-
-    addUri(file) {
-        const newFile = file;
-        newFile.uri = URL.createObjectURL(file);
-
-        return newFile;
-    },
-
-    removeUri(file) {
-        URL.revokeObjectURL(file.uri);
-
-        delete file.uri;
-    },
+    }
 };
 
 export default ImagePicker;
