@@ -70,6 +70,10 @@ class ReportActionCompose extends React.Component {
             e.preventDefault();
         }
 
+        if (!this.props.comment) {
+            return;
+        }
+
         const trimmedComment = this.props.comment.trim();
 
         // Don't submit empty comments
@@ -79,6 +83,7 @@ class ReportActionCompose extends React.Component {
         }
 
         this.props.onSubmit(trimmedComment);
+        this.textInput.clear();
         this.updateComment('');
     }
 
@@ -102,8 +107,9 @@ class ReportActionCompose extends React.Component {
                         multiline
                         textAlignVertical="top"
                         placeholder="Write something..."
+                        ref={el => this.textInput = el}
                         placeholderTextColor={colors.textSupporting}
-                        onChangeText={_.debounce(this.updateComment, 1000)}
+                        onChangeText={this.updateComment}
                         onKeyPress={this.triggerSubmitShortcut}
                         style={[styles.textInput, styles.textInputCompose, styles.flex4]}
                         defaultValue={this.props.comment || ''}
