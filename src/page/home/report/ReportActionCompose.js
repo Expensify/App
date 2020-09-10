@@ -6,7 +6,7 @@ import TextInputFocusable from '../../../components/TextInputFocusable';
 import sendIcon from '../../../../assets/images/icon-send.png';
 import paperClipIcon from '../../../../assets/images/icon-paper-clip.png';
 import ImagePicker from '../../../lib/ImagePicker';
-import {addHistoryItem} from '../../../lib/actions/Report';
+import {addAction} from '../../../lib/actions/Report';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -16,7 +16,7 @@ const propTypes = {
     reportID: PropTypes.number.isRequired,
 };
 
-class ReportHistoryCompose extends React.Component {
+class ReportActionCompose extends React.Component {
     constructor(props) {
         super(props);
 
@@ -59,7 +59,7 @@ class ReportHistoryCompose extends React.Component {
             } else {
                 console.log('Response: ', response);
                 response.uri = response.uri.replace('file://', '');
-                addHistoryItem(reportID, '', response);
+                addAction(reportID, '', response);
 
                 // You can also display the image using data:
                 // const source = { uri: 'data:image/jpeg;base64,' + response.data };
@@ -101,7 +101,7 @@ class ReportHistoryCompose extends React.Component {
             return;
         }
 
-        this.props.onSubmit(this.props.reportID, trimmedComment);
+        this.props.onSubmit(trimmedComment);
         this.setState({
             comment: '',
         });
@@ -142,6 +142,7 @@ class ReportHistoryCompose extends React.Component {
                         onKeyPress={this.triggerSubmitShortcut}
                         style={[styles.textInput, styles.textInputCompose, styles.flex4]}
                         value={this.state.comment}
+                        maxLines={16} // This is the same that slack has
                     />
                     <TouchableOpacity
                         style={[styles.chatItemSubmitButton, styles.buttonSuccess]}
@@ -159,6 +160,6 @@ class ReportHistoryCompose extends React.Component {
         );
     }
 }
-ReportHistoryCompose.propTypes = propTypes;
+ReportActionCompose.propTypes = propTypes;
 
-export default ReportHistoryCompose;
+export default ReportActionCompose;

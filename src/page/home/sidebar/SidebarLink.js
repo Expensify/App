@@ -14,7 +14,7 @@ const propTypes = {
     reportID: PropTypes.number.isRequired,
 
     // The name of the report to use as the text for this link
-    reportName: PropTypes.string.isRequired,
+    reportName: PropTypes.string,
 
     // These are from withRouter
     // eslint-disable-next-line react/forbid-prop-types
@@ -31,16 +31,18 @@ const propTypes = {
 
 const defaultProps = {
     isUnread: false,
+    reportName: '',
 };
 
 const SidebarLink = (props) => {
-    const paramsReportID = parseInt(props.match.params.reportID, 10);
-    const isReportActive = paramsReportID === props.reportID;
+    const reportIDInUrl = parseInt(props.match.params.reportID, 10);
+    const isReportActive = reportIDInUrl === props.reportID;
     const linkWrapperActiveStyle = isReportActive && styles.sidebarLinkWrapperActive;
     const linkActiveStyle = isReportActive ? styles.sidebarLinkActive : styles.sidebarLink;
     const textActiveStyle = isReportActive ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textActiveUnreadStyle = props.isUnread
         ? [textActiveStyle, styles.sidebarLinkTextUnread] : [textActiveStyle];
+
     return (
         <View style={[styles.sidebarListItem, linkWrapperActiveStyle]}>
             <PressableLink onClick={props.onLinkClick} to={`/${props.reportID}`} style={linkActiveStyle}>
