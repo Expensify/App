@@ -64,10 +64,9 @@ export default compose(
     withRouter,
     withIon({
         isUnread: {
-            key: `${IONKEYS.REPORT}_%DATAFROMPROPS%`,
+            key: ({reportID}) => `${IONKEYS.REPORT}_${reportID}`,
             path: 'hasUnread',
             defaultValue: false,
-            pathForProps: 'reportID',
         }
     }),
 )(SidebarLink);

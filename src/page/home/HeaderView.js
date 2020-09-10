@@ -59,12 +59,9 @@ export default compose(
     withIon({
         // Map this.props.reportName to the data for a specific report in the store,
         // and bind it to the reportName property.
-        // It uses the data returned from the props path (ie. the reportID) to replace %DATAFROMPROPS% in the key it
-        // binds to
         reportName: {
-            key: `${IONKEYS.REPORT}_%DATAFROMPROPS%`,
+            key: ({match}) => `${IONKEYS.REPORT}_${match.params.reportID}`,
             path: 'reportName',
-            pathForProps: 'match.params.reportID',
         },
     }),
 )(HeaderView);
