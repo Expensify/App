@@ -94,15 +94,7 @@ function fetch() {
             // Get the timezone and put it in Ion
             fetchTimezone();
         })
-        .catch((error) => {
-            if (error.message === 'No login') {
-                // eslint-disable-next-line no-console
-                console.info('No email in store, not fetching personal details.');
-                return;
-            }
-
-            console.error('Error fetching personal details', error);
-        });
+        .catch(error => console.error('Error fetching personal details', error));
 
     // Refresh the personal details every 30 minutes
     setTimeout(fetch, 1000 * 60 * 30);

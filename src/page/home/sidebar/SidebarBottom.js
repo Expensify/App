@@ -47,7 +47,7 @@ const SidebarBottom = ({myPersonalDetails, network, insets}) => {
     // On the very first sign in or after clearing storage these
     // details will not be present on the first render so we'll just
     // return nothing for now.
-    if (!myPersonalDetails) {
+    if (!myPersonalDetails || _.isEmpty(myPersonalDetails)) {
         return null;
     }
 

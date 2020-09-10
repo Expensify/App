@@ -45,7 +45,7 @@ const HeaderView = props => (
                 />
             </TouchableOpacity>
             )}
-            {props.report && props.report.reportName ? (
+            {props.report.reportName ? (
                 <Text numberOfLines={2} style={[styles.navText]}>
                     {props.report.reportName}
                 </Text>

@@ -49,11 +49,14 @@ const propTypes = {
     personalDetails: PropTypes.objectOf(personalDetailsPropTypes),
 
     // The personal details of the person who is currently logged in
-    myPersonalDetails: personalDetailsPropTypes,
+    session: PropTypes.shape({
+        // The email of the person who is currently logged in
+        email: PropTypes.string.isRequired,
+    }),
 };
 const defaultProps = {
     personalDetails: {},
-    myPersonalDetails: null,
+    session: null,
 };
 
 class ChatSwitcherView extends React.Component {
@@ -129,7 +132,7 @@ class ChatSwitcherView extends React.Component {
      * @param {string} option.value
      */
     fetchChatReportAndRedirect(option) {
-        fetchOrCreateChatReport([this.props.myPersonalDetails.login, option.login]);
+        fetchOrCreateChatReport([this.props.session.email, option.login]);
         this.reset();
     }
 
@@ -276,7 +279,7 @@ export default withIon({
         // myPersonalDetails to overwrite this value
         key: `^${IONKEYS.PERSONAL_DETAILS}$`,
     },
-    myPersonalDetails: {
-        key: IONKEYS.MY_PERSONAL_DETAILS,
+    session: {
+        key: IONKEYS.SESSION,
     },
 })(ChatSwitcherView);

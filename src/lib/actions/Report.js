@@ -336,6 +336,10 @@ function fetchAll(shouldRedirectToFirstReport = true, shouldFetchActions = false
 function fetchOrCreateChatReport(participants) {
     let reportID;
 
+    if (participants.length < 2) {
+        throw new Error('fetchOrCreateChatReport() must have at least two participants');
+    }
+
     queueRequest('CreateChatReport', {
         emailList: participants.join(','),
     })
@@ -451,7 +455,7 @@ function updateLastReadActionID(reportID, sequenceNumber) {
 
     // Mark the report as not having any unread items
     queueRequest('Report_SetLastReadActionID', {
-        currentUserAccountID,
+        accountID: currentUserAccountID,
         reportID,
         sequenceNumber,
     });
