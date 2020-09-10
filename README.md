@@ -3,7 +3,7 @@
 # Philosophy
 This application is built with the following principles.
 1. **Data Flow** - Ideally, this is how data flows through the app:
-    1. Server pushes data to the disk of any client (Server -> Pusher event -> Action listening to pusher event -> Ion).
+    1. Server pushes data to the disk of any client (Server -> Pusher event -> Action listening to pusher event -> Ion). Currently the code only does this with report comments. Until we make more server changes, this steps is actually done by the client requesting data from the server via XHR and then storing the response in Ion.
     1. Disk pushes data to the UI (Ion -> withIon()/connect() -> React component).
     1. UI pushes data to people's brains (React component -> device screen).
     1. Brain pushes data into UI inputs (Device input -> React component).
@@ -29,7 +29,13 @@ This application is built with the following principles.
     - Actions should favor using `Ion.merge()` over `Ion.set()` so that other values in an object aren't completely overwritten.
     - In general, the operations that happen inside an action should be done in parallel and not in sequence ((eg. don't use the promise of one Ion method to trigger a second Ion method). Ion is built so that every operation is done in parallel and it doesn't matter what order they finish in. XHRs on the other hand need to be handled in sequence with promise chains in order to access and act upon the response.
     - If an Action needs to access data stored on disk, use a local variable and `Ion.connect()`
-    - Data should be optimistically stored on disk whenever possible without waiting for a server response (eg. creating a new comment)
+    - Data should be optimistically stored on disk whenever possible without waiting for a server response. Example of creating a new optimistic comment:
+        1. user adds a comment 
+        2. comment is shown in the UI (by mocking the expected response from the server) 
+        3. comment is created in the server 
+        4. server responds 
+        5. UI updates with data from the server
+        
 1. **Cross Platform 99.9999%**
     1. A feature isn't done until it works on all platforms.  Accordingly, don't even bother writing a platform-specific code block because you're just going to need to undo it.
     1. If the reason you can't write cross platform code is because there is a bug in ReactNative that is preventing it from working, the correct action is to fix RN and submit a PR upstream -- not to hack around RN bugs with platform-specific code paths.
