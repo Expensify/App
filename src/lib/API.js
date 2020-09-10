@@ -193,6 +193,12 @@ function request(command, parameters, type = 'post') {
                         if (response.jsonCode !== 200) {
                             throw new Error(response.message);
                         }
+
+                        // Update the authToken that will be used to retry the command since the one we have is expired
+                        parametersWithAuthToken.authToken = response.authToken;
+
+                        // Update authToken in Ion store otherwise subsequent API calls will use the expired one
+                        setSuccessfulSignInData(response);
                         return response;
                     })
                     .then(() => xhr(command, parametersWithAuthToken, type))
