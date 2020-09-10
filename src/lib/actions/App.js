@@ -15,7 +15,7 @@ Ion.connect({
  */
 function redirect(url) {
     const formattedURL = (typeof url === 'string' && url.startsWith('/')) ? url : `/${url}`;
-    Ion.set(IONKEYS.APP_REDIRECT_TO, formattedURL);
+    Ion.merge(IONKEYS.APP_REDIRECT_TO, formattedURL);
 }
 
 /**
@@ -27,7 +27,7 @@ function redirect(url) {
 function recordCurrentRoute({match}) {
     Ion.merge(IONKEYS.CURRENT_URL, match.url);
     if (match.url === currentRedirectTo) {
-        Ion.set(IONKEYS.APP_REDIRECT_TO, null);
+        Ion.merge(IONKEYS.APP_REDIRECT_TO, null);
     }
 }
 

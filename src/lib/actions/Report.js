@@ -461,7 +461,7 @@ function updateLastReadActionID(reportID, sequenceNumber) {
  * @param {string} comment
  */
 function saveReportComment(reportID, comment) {
-    Ion.set(`${IONKEYS.REPORT_DRAFT_COMMENT}_${reportID}`, comment);
+    Ion.merge(`${IONKEYS.REPORT_DRAFT_COMMENT}_${reportID}`, comment);
 }
 
 /**
