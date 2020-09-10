@@ -99,6 +99,8 @@ class SidebarLinks extends React.Component {
                                 reportName={report.reportName}
                                 hasUnread={report.hasUnread}
                                 onLinkClick={onLinkClick}
+                                isPinned={report.pinnedReport}
+                                canModifyPin={report.canModifyPin}
                             />
                         ))}
                     </View>

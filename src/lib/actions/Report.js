@@ -97,6 +97,7 @@ function getSimplifiedReportObject(report) {
         reportNameValuePairs: report.reportNameValuePairs,
         hasUnread: hasUnreadActions(report),
         pinnedReport: configReportIDs.includes(report.reportID),
+        canModifyPin: !configReportIDs.includes(report.reportID),
     };
 }
 
@@ -444,6 +445,23 @@ function updateLastReadActionID(accountID, reportID, sequenceNumber) {
 }
 
 /**
+ *
+ * @param {string} reportID
+ * @param {boolean} isPinned
+ */
+function togglePinnedState(reportID, isPinned) {
+    debugger;
+    if (configReportIDs.includes(reportID)) {
+        // We don't allow unpinning reports defined in .env
+        return;
+    }
+
+    Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {
+        pinnedReport: !isPinned,
+    });
+}
+
+/**
  * Saves the comment left by the user as they are typing. By saving this data the user can switch between chats, close
  * tab, refresh etc without worrying about loosing what they typed out.
  *
@@ -484,4 +502,5 @@ export {
     updateLastReadActionID,
     subscribeToReportCommentEvents,
     saveReportComment,
+    togglePinnedState,
 };
