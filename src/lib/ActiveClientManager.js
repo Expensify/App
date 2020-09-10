@@ -38,7 +38,7 @@ function removeClient() {
 function isClientTheLeader() {
     // At the moment activeClients only has 1 value i.e., the latest clientID so let's compare if
     // the latest matches the current browsers clientID.
-    return activeClients.clientID === clientID;
+    return activeClients[clientID] === clientID;
 }
 
 export {
