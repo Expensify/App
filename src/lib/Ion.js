@@ -72,6 +72,28 @@ function keyChanged(key, data) {
 }
 
 /**
+ * Sends the data obtained from the keys to the connection. It either:
+ *     - sets state on the withIonInstances
+ *     - triggers the callback function
+ *
+ * @param {object} config
+ * @param {object} [config.withIonInstance]
+ * @param {string} [config.statePropertyName]
+ * @param {function} [config.callback]
+ * @param {*} val
+ * @param {string} [key]
+ */
+function sendDataToConnection(config, val, key) {
+    if (config.withIonInstance) {
+        config.withIonInstance.setState({
+            [config.statePropertyName]: val,
+        });
+    } else if (_.isFunction(config.callback)) {
+        config.callback(val, key);
+    }
+}
+
+/**
  * Subscribes a react component's state directly to a store key
  *
  * @param {object} mapping the mapping information to connect Ion to the components state
@@ -98,24 +120,6 @@ function connect(mapping) {
         return connectionID;
     }
 
-    /**
-     * Sends the data obtained from the keys to the connection. It either:
-     *     - sets state on the withIonInstances
-     *     - triggers the callback function
-     *
-     * @param {*} val
-     * @param {string} [key]
-     */
-    function sendDataToConnection(val, key) {
-        if (config.withIonInstance) {
-            config.withIonInstance.setState({
-                [config.statePropertyName]: val,
-            });
-        } else if (_.isFunction(config.callback)) {
-            config.callback(val, key);
-        }
-    }
-
     // Get all the data from Ion to initialize the connection with
     AsyncStorage.getAllKeys()
         .then((keys) => {
@@ -124,7 +128,7 @@ function connect(mapping) {
 
             // If the key being connected to does not exist, initialize the value with null
             if (matchingKeys.length === 0) {
-                sendDataToConnection(null, config.key);
+                sendDataToConnection(config, null, config.key);
                 return;
             }
 
@@ -134,10 +138,10 @@ function connect(mapping) {
                         ...finalObject,
                         [value[config.indexBy]]: value,
                     }), {}))
-                    .then(sendDataToConnection);
+                    .then(val => sendDataToConnection(config, val));
             } else {
                 _.each(matchingKeys, (key) => {
-                    get(key).then(val => sendDataToConnection(val, key));
+                    get(key).then(val => sendDataToConnection(config, val, key));
                 });
             }
         });
