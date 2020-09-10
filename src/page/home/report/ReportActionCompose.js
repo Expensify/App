@@ -49,6 +49,7 @@ class ReportActionCompose extends React.Component {
                 cameraRoll: true,
             },
         };
+
         ImagePicker.showImagePicker(options, (response) => {
             console.log('Response = ', response);
 
