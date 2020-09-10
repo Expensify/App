@@ -1,6 +1,7 @@
 import React from 'react';
 import {Image, View} from 'react-native';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import styles, {getSafeAreaMargins} from '../../../style/StyleSheet';
 import Text from '../../../components/Text';
 import AppLinks from './AppLinks';
