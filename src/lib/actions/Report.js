@@ -448,7 +448,7 @@ function updateLastReadActionID(accountID, reportID, sequenceNumber) {
  * tab, refresh etc without worrying about loosing what they typed out.
  *
  * @param {string} comment
- * @param {number} comment
+ * @param {number} reportID
  */
 function saveReportComment(comment, reportID) {
     Ion.set(`${IONKEYS.REPORT_DRAFT_COMMENT}_${reportID}`, comment || '');
