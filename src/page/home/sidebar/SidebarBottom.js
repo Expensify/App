@@ -1,12 +1,12 @@
 import React from 'react';
-import {Image, View} from 'react-native';
+import {Image, View, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import styles, {getSafeAreaMargins} from '../../../style/StyleSheet';
 import Text from '../../../components/Text';
 import AppLinks from './AppLinks';
 import {signOut} from '../../../lib/actions/Session';
 import IONKEYS from '../../../IONKEYS';
-import {fetch as getPersonalDetails} from '../../../lib/actions/PersonalDetails';
 import withIon from '../../../components/withIon';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
 
@@ -25,25 +25,28 @@ const propTypes = {
         avatarURL: PropTypes.string,
     }),
 
-    // Is this person offline?
-    isOffline: PropTypes.bool,
+    // Information about the network
+    network: PropTypes.shape({
+        // Is the network currently offline or not
+        isOffline: PropTypes.bool,
+    })
 };
 
 const defaultProps = {
     myPersonalDetails: {},
-    isOffline: false,
+    network: null,
 };
 
-const SidebarBottom = ({myPersonalDetails, isOffline, insets}) => {
+const SidebarBottom = ({myPersonalDetails, network, insets}) => {
     const indicatorStyles = [
         styles.statusIndicator,
-        isOffline ? styles.statusIndicatorOffline : styles.statusIndicatorOnline
+        network && network.isOffline ? styles.statusIndicatorOffline : styles.statusIndicatorOnline
     ];
 
     // On the very first sign in or after clearing storage these
     // details will not be present on the first render so we'll just
     // return nothing for now.
-    if (!myPersonalDetails) {
+    if (!myPersonalDetails || _.isEmpty(myPersonalDetails)) {
         return null;
     }
 
@@ -54,7 +57,7 @@ const SidebarBottom = ({myPersonalDetails, isOffline, insets}) => {
                     source={{uri: myPersonalDetails.avatarURL}}
                     style={[styles.actionAvatar]}
                 />
-                <View style={indicatorStyles} />
+                <View style={StyleSheet.flatten(indicatorStyles)} />
             </View>
             <View style={[styles.flexColumn]}>
                 {myPersonalDetails.displayName && (
@@ -76,15 +79,8 @@ SidebarBottom.defaultProps = defaultProps;
 SidebarBottom.displayName = 'SidebarBottom';
 
 export default withIon({
-    // Map this.props.userDisplayName to the personal details key in the store and bind it to the displayName property
-    // and load it with data from getPersonalDetails()
     myPersonalDetails: {
         key: IONKEYS.MY_PERSONAL_DETAILS,
-        loader: getPersonalDetails,
     },
-    isOffline: {
-        key: IONKEYS.NETWORK,
-        path: 'isOffline',
-        defaultValue: false,
-    },
+    network: {key: IONKEYS.NETWORK},
 })(SidebarBottom);
