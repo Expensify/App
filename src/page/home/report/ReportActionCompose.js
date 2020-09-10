@@ -43,7 +43,7 @@ class ReportActionCompose extends React.Component {
      * @param {string} newComment
      */
     updateComment(newComment) {
-        saveReportComment(newComment, this.props.reportID);
+        saveReportComment(this.props.reportID, newComment || '');
     }
 
     /**
