@@ -454,6 +454,17 @@ function updateLastReadActionID(reportID, sequenceNumber) {
 }
 
 /**
+ * Saves the comment left by the user as they are typing. By saving this data the user can switch between chats, close
+ * tab, refresh etc without worrying about loosing what they typed out.
+ *
+ * @param {number} reportID
+ * @param {string} comment
+ */
+function saveReportComment(reportID, comment) {
+    Ion.set(`${IONKEYS.REPORT_DRAFT_COMMENT}_${reportID}`, comment);
+}
+
+/**
  * When a report changes in Ion, this fetches the report from the API if the report doesn't have a name
  * and it keeps track of the max sequence number on the report actions.
  *
@@ -489,4 +500,5 @@ export {
     addAction,
     updateLastReadActionID,
     subscribeToReportCommentEvents,
+    saveReportComment,
 };
