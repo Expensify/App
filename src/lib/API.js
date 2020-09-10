@@ -145,17 +145,18 @@ function request(command, parameters, type = 'post') {
                     })
                         .then(redirectToSignIn);
                 }
-                setSuccessfulSignInData(response, parameters.exitTo);
-                return response;
+
+                // We need to return the promise from setSuccessfulSignInData to ensure the authToken is updated before
+                // we try to create a login below
+                return setSuccessfulSignInData(response, parameters.exitTo);
             })
-            .then((response) => {
+            .then(() => {
                 // If Expensify login, it's the users first time signing in and we need to
                 // create a login for the user
                 if (parameters.useExpensifyLogin) {
                     console.debug('[SIGNIN] Creating a login');
                     createLogin(Str.generateDeviceLoginID(), Guid());
                 }
-                return response;
             });
     }
 
