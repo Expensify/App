@@ -447,11 +447,11 @@ function updateLastReadActionID(accountID, reportID, sequenceNumber) {
  * Saves the comment left by the user as they are typing. By saving this data the user can switch between chats, close
  * tab, refresh etc without worrying about loosing what they typed out.
  *
- * @param {string} comment
  * @param {number} reportID
+ * @param {string} comment
  */
-function saveReportComment(comment, reportID) {
-    Ion.set(`${IONKEYS.REPORT_DRAFT_COMMENT}_${reportID}`, comment || '');
+function saveReportComment(reportID, comment) {
+    Ion.set(`${IONKEYS.REPORT_DRAFT_COMMENT}_${reportID}`, comment);
 }
 
 /**
