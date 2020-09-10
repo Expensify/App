@@ -7,9 +7,17 @@ import IONKEYS from '../../IONKEYS';
 import withIon from '../../components/withIon';
 import {withRouter} from '../../lib/Router';
 import LHNToggle from '../../../assets/images/icon-menu-toggle.png';
+import starActive from '../../../assets/images/star-active.png';
+import starInactive from '../../../assets/images/star-inactive.png';
 import compose from '../../lib/compose';
+import PressableLink from '../../components/PressableLink';
+import {togglePinnedState} from '../../lib/actions/Report';
 
 const propTypes = {
+    // This comes from withRouter
+    // eslint-disable-next-line react/forbid-prop-types
+    match: PropTypes.object.isRequired,
+
     // Toggles the hamburger menu open and closed
     onHamburgerButtonClicked: PropTypes.func.isRequired,
 
@@ -20,31 +28,46 @@ const propTypes = {
 
     // Name of the report (if we have one)
     reportName: PropTypes.string,
+
+    // Name of the report (if we have one)
+    isPinned: PropTypes.bool,
 };
 
 const defaultProps = {
     reportName: null,
+    isPinned: false,
 };
 
 const HeaderView = props => (
     <View style={[styles.appContentHeader]}>
         <View style={[styles.appContentHeaderTitle]}>
             {props.shouldShowHamburgerButton && (
-            <TouchableOpacity
-                onPress={props.onHamburgerButtonClicked}
-                style={[styles.LHNToggle]}
-            >
-                <Image
-                    resizeMode="contain"
-                    style={[styles.LHNToggleIcon]}
-                    source={LHNToggle}
-                />
-            </TouchableOpacity>
+                <TouchableOpacity
+                    onPress={props.onHamburgerButtonClicked}
+                    style={[styles.LHNToggle]}
+                >
+                    <Image
+                        resizeMode="contain"
+                        style={[styles.LHNToggleIcon]}
+                        source={LHNToggle}
+                    />
+                </TouchableOpacity>
             )}
             {props.reportName && (
-                <Text numberOfLines={2} style={[styles.navText]}>
-                    {props.reportName}
-                </Text>
+                <>
+                    <TouchableOpacity
+                        onPress={() => togglePinnedState(parseInt(props.match.params.reportID, 10), props.isPinned)}
+                    >
+                        <Image
+                            resizeMode="contain"
+                            source={props.isPinned ? starActive : starInactive}
+                            style={[styles.reportPinIcon]}
+                        />
+                    </TouchableOpacity>
+                    <Text numberOfLines={2} style={[styles.navText]}>
+                        {props.reportName}
+                    </Text>
+                </>
             )}
         </View>
     </View>
@@ -66,5 +89,10 @@ export default compose(
             path: 'reportName',
             pathForProps: 'match.params.reportID',
         },
+        isPinned: {
+            key: `${IONKEYS.REPORT}_%DATAFROMPROPS%`,
+            path: 'pinnedReport',
+            pathForProps: 'match.params.reportID',
+        }
     }),
 )(HeaderView);
