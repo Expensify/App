@@ -366,6 +366,7 @@ function deleteLogin(parameters) {
         partnerUserID: parameters.partnerUserID,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+        doNotRetry: true,
     })
         .catch(err => Ion.merge(IONKEYS.SESSION, {error: err.message}));
 }
