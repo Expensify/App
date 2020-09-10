@@ -290,9 +290,6 @@ Pusher.registerCustomAuthorizer((channel, {authEndpoint}) => ({
     },
 }));
 
-// Initialize the pusher connection
-Pusher.init();
-
 /**
  * Events that happen on the pusher socket are used to determine if the app is online or offline. The offline setting
  * is stored in Ion so the rest of the app has access to it.
