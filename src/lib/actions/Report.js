@@ -96,7 +96,7 @@ function getSimplifiedReportObject(report) {
         reportID: report.reportID,
         reportName: report.reportName,
         reportNameValuePairs: report.reportNameValuePairs,
-        hasUnread: hasUnreadActions(report),
+        isUnread: hasUnreadActions(report),
         pinnedReport: configReportIDs.includes(report.reportID),
     };
 }
@@ -174,23 +174,17 @@ function fetchChatReportsByIDs(chatList) {
  * @param {object} reportAction
  */
 function updateReportWithNewAction(reportID, reportAction) {
+    const previousMaxSequenceNumber = reportMaxSequenceNumbers[reportID];
+    const newMaxSequenceNumber = reportAction.sequenceNumber;
+    const hasNewSequenceNumber = newMaxSequenceNumber > previousMaxSequenceNumber;
+
     // Always merge the reportID into Ion
     // If the report doesn't exist in Ion yet, then all the rest of the data will be filled out
     // by handleReportChanged
     Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {
         reportID,
+        isUnread: hasNewSequenceNumber,
         maxSequenceNumber: reportAction.sequenceNumber,
-    });
-
-    const previousMaxSequenceNumber = reportMaxSequenceNumbers[reportID];
-    const newMaxSequenceNumber = reportAction.sequenceNumber;
-    const hasNewSequenceNumber = newMaxSequenceNumber > previousMaxSequenceNumber;
-
-    // Mark the report as unread if there is a new max sequence number
-    // Record the new sequence number if there is one
-    Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {
-        hasUnread: hasNewSequenceNumber,
-        maxSequenceNumber: hasNewSequenceNumber ? newMaxSequenceNumber : previousMaxSequenceNumber,
     });
 
     // Add the action into Ion
@@ -211,7 +205,6 @@ function updateReportWithNewAction(reportID, reportAction) {
         console.debug('[NOTIFICATION] No notification because it was a comment for the current report');
         return;
     }
-
 
     console.debug('[NOTIFICATION] Creating notification');
     Notification.showCommentNotification({
@@ -440,14 +433,13 @@ function addAction(reportID, text) {
  */
 function updateLastReadActionID(reportID, sequenceNumber) {
     const currentMaxSequenceNumber = reportMaxSequenceNumbers[reportID];
-
-    if (sequenceNumber <= currentMaxSequenceNumber) {
+    if (sequenceNumber < currentMaxSequenceNumber) {
         return;
     }
 
     // Update the lastReadActionID on the report optimistically
     Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {
-        hasUnread: false,
+        isUnread: false,
         reportNameValuePairs: {
             [`lastReadActionID_${currentUserAccountID}`]: sequenceNumber,
         }
