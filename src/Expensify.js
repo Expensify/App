@@ -88,8 +88,17 @@ class Expensify extends Component {
                 <Route path="*" render={recordCurrentRoute} />
 
                 <Switch>
+                    <Route
+                        exact
+                        path="/"
+                        render={() => (
+                            this.state.authToken
+                                ? <Redirect to="/home" />
+                                : <Redirect to="/signin" />
+                        )}
+                    />
                     <Route path={['/signin/exitTo/:exitTo*', '/signin']} component={SignInPage} />
-                    <Route path="/" component={HomePage} />
+                    <Route path={['/home', '/']} component={HomePage} />
                 </Switch>
             </Router>
 
