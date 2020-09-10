@@ -146,23 +146,17 @@ function request(command, parameters, type = 'post') {
                     })
                         .then(redirectToSignIn);
                 }
-                setSuccessfulSignInData(response, parameters.exitTo);
-                return response;
+
+                // We need to return the promise from setSuccessfulSignInData to ensure the authToken is updated before
+                // we try to create a login below
+                return setSuccessfulSignInData(response, parameters.exitTo);
             })
-            .then((response) => {
+            .then(() => {
                 // If Expensify login, it's the users first time signing in and we need to
                 // create a login for the user
                 if (parameters.useExpensifyLogin) {
                     console.debug('[SIGNIN] Creating a login');
                     createLogin(Str.generateDeviceLoginID(), Guid());
-                }
-                return response;
-            })
-            .catch(() => {
-                // If the request failed, we need to put the request object back into the queue as long as there is no
-                // doNotRetry option set in the parameters
-                if (parameters.doNotRetry !== true) {
-                    queueRequest(command, parameters);
                 }
             });
     }
@@ -174,7 +168,16 @@ function request(command, parameters, type = 'post') {
     // re-authenticate to get a fresh authToken and make the original http request again
     return xhr(command, parametersWithAuthToken, type)
         .then((responseData) => {
-            if (!reauthenticating && responseData.jsonCode === 407 && parametersWithAuthToken.doNotRetry !== true) {
+            // We can end up here if we have queued up many
+            // requests and have an expired authToken. In these cases,
+            // we just need to requeue the request
+            if (reauthenticating) {
+                return queueRequest(command, parametersWithAuthToken);
+            }
+
+            // If we're not re-authenticating and we get 407 (authToken expired)
+            // we re-authenticate and then re-try the original request
+            if (responseData.jsonCode === 407 && parametersWithAuthToken.doNotRetry !== true) {
                 reauthenticating = true;
                 return xhr('Authenticate', {
                     useExpensifyLogin: false,
@@ -193,6 +196,11 @@ function request(command, parameters, type = 'post') {
                             throw new Error(response.message);
                         }
 
+                        // Update the authToken that will be used to retry the command since the one we have is expired
+                        parametersWithAuthToken.authToken = response.authToken;
+
+                        // Update authToken in Ion store otherwise subsequent API calls will use the expired one
+                        Ion.merge(IONKEYS.SESSION, _.pick(response, 'authToken'));
                         return response;
                     })
                     .then(() => xhr(command, parametersWithAuthToken, type))
@@ -205,13 +213,6 @@ function request(command, parameters, type = 'post') {
                         redirectToSignIn();
                         return Promise.reject();
                     });
-            }
-
-            // We can end up here if we have queued up many
-            // requests and have an expired authToken. In these cases,
-            // we just need to requeue the request
-            if (reauthenticating) {
-                return queueRequest(command, parametersWithAuthToken);
             }
             return responseData;
         })
@@ -352,9 +353,6 @@ function authenticate(parameters) {
         twoFactorAuthCode: parameters.twoFactorAuthCode,
         exitTo: parameters.exitTo,
     })
-        .then((response) => {
-            setSuccessfulSignInData(response, parameters.exitTo);
-        })
         .catch((err) => {
             console.error(err);
             console.debug('[SIGNIN] Request error');
@@ -373,6 +371,7 @@ function deleteLogin(parameters) {
         partnerUserID: parameters.partnerUserID,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+        doNotRetry: true,
     })
         .catch(err => Ion.merge(IONKEYS.SESSION, {error: err.message}));
 }
