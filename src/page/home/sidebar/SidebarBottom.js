@@ -1,5 +1,5 @@
 import React from 'react';
-import {Image, View} from 'react-native';
+import {Image, View, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles, {getSafeAreaMargins} from '../../../style/StyleSheet';
@@ -57,7 +57,7 @@ const SidebarBottom = ({myPersonalDetails, network, insets}) => {
                     source={{uri: myPersonalDetails.avatarURL}}
                     style={[styles.actionAvatar]}
                 />
-                <View style={indicatorStyles} />
+                <View style={StyleSheet.flatten(indicatorStyles)} />
             </View>
             <View style={[styles.flexColumn]}>
                 {myPersonalDetails.displayName && (
