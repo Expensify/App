@@ -7,11 +7,11 @@ const clientID = Guid();
 // @TODO make all this work by uncommenting code. This will work once
 // there is a cross-platform method for onBeforeUnload
 // See https://github.com/Expensify/ReactNativeChat/issues/413
-// let activeClients;
+let activeClients;
 Ion.connect({
     key: IONKEYS.ACTIVE_CLIENTS,
 
-    // callback: val => activeClients = val,
+    callback: val => activeClients = val,
 });
 
 /**
@@ -33,12 +33,12 @@ function removeClient() {
 /**
  * Checks if the current client is the leader (the first one in the list of active clients)
  *
- * @returns {Promise}
+ * @returns {boolean}
  */
 function isClientTheLeader() {
-    return true;
-
-    // return _.first(activeClients) === clientID;
+    // At the moment activeClients only has 1 value i.e., the latest clientID so let's compare if
+    // the latest matches the current browsers clientID.
+    return activeClients.clientID === clientID;
 }
 
 export {
