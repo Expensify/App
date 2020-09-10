@@ -27,7 +27,7 @@ function redirect(url) {
 function recordCurrentRoute({match}) {
     Ion.merge(IONKEYS.CURRENT_URL, match.url);
     if (match.url === currentRedirectTo) {
-        redirect('');
+        Ion.set(IONKEYS.APP_REDIRECT_TO, null);
     }
 }
 
