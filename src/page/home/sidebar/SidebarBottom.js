@@ -34,15 +34,13 @@ const propTypes = {
 
 const defaultProps = {
     myPersonalDetails: {},
-    network: {
-        isOffline: false,
-    }
+    network: null,
 };
 
 const SidebarBottom = ({myPersonalDetails, network, insets}) => {
     const indicatorStyles = [
         styles.statusIndicator,
-        network.isOffline ? styles.statusIndicatorOffline : styles.statusIndicatorOnline
+        network && network.isOffline ? styles.statusIndicatorOffline : styles.statusIndicatorOnline
     ];
 
     // On the very first sign in or after clearing storage these
