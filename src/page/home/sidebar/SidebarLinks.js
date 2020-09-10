@@ -113,6 +113,7 @@ export default compose(
     withIon({
         reports: {
             key: `${IONKEYS.REPORT}_[0-9]+$`,
+            indexBy: 'reportID',
         }
     }),
 )(SidebarLinks);
