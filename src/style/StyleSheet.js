@@ -159,11 +159,11 @@ const styles = {
         color: colors.textReversed,
     },
 
-    // History Items
-    historyItemAvatarWrapper: {
+    // Actions
+    actionAvatarWrapper: {
         width: 40,
     },
-    historyItemAvatar: {
+    actionAvatar: {
         borderRadius: 20,
         height: 40,
         width: 40,
@@ -188,7 +188,7 @@ const styles = {
         borderWidth: 1,
         color: colors.textReversed,
         padding: 12,
-        outline: 'none',
+        outlineWidth: 0,
     },
 
     textInputReversedFocus: {
@@ -545,7 +545,7 @@ const styles = {
     textInputCompose: {
         borderWidth: 0,
         borderRadius: 0,
-        outline: 0,
+        outlineWidth: 0,
         height: 'auto',
         minHeight: 38,
         paddingTop: 10,

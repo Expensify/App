@@ -9,13 +9,13 @@ const propTypes = {
     timestamp: PropTypes.number.isRequired,
 };
 
-const ReportHistoryItemDate = props => (
+const ReportActionItemDate = props => (
     <Text style={[styles.chatItemMessageHeaderTimestamp]}>
         {DateUtils.timestampToDateTime(props.timestamp)}
     </Text>
 );
 
-ReportHistoryItemDate.propTypes = propTypes;
-ReportHistoryItemDate.displayName = 'ReportHistoryItemDate';
+ReportActionItemDate.propTypes = propTypes;
+ReportActionItemDate.displayName = 'ReportActionItemDate';
 
-export default ReportHistoryItemDate;
+export default ReportActionItemDate;
