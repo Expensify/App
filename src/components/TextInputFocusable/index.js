@@ -35,11 +35,6 @@ class TextInputFocusable extends React.Component {
 
         if (prevProps.defaultValue !== this.props.defaultValue) {
             this.updateNumberOfLines();
-
-            if (this.props.defaultValue) {
-                this.textInput.selectionStart = this.props.defaultValue.length;
-                this.textInput.selectionEnd = this.props.defaultValue.length;
-            }
         }
     }
 
@@ -81,6 +76,13 @@ class TextInputFocusable extends React.Component {
 
     focusInput() {
         this.textInput.focus();
+    }
+
+    /**
+     * Clears the input
+     */
+    clear() {
+        this.textInput.clear();
     }
 
     render() {
