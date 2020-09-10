@@ -56,6 +56,10 @@ Ion.connect({
  * @returns {Promise}
  */
 function createLogin(login, password) {
+    if (!authToken) {
+        throw new Error('createLogin() can\'t be called when there is no authToken');
+    }
+
     // Using xhr instead of request becasue request has logic to re-try API commands when we get a 407 authToken expired
     // in the response, and we call CreateLogin after getting a successful resposne to Authenticate so it's unlikely
     // that we'll get a 407.
@@ -149,7 +153,8 @@ function request(command, parameters, type = 'post') {
 
                 // We need to return the promise from setSuccessfulSignInData to ensure the authToken is updated before
                 // we try to create a login below
-                return setSuccessfulSignInData(response, parameters.exitTo);
+                setSuccessfulSignInData(response, parameters.exitTo);
+                authToken = response.authToken;
             })
             .then(() => {
                 // If Expensify login, it's the users first time signing in and we need to
