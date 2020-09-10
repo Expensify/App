@@ -3,7 +3,6 @@ import * as API from '../API';
 import IONKEYS from '../../IONKEYS';
 import redirectToSignIn from './SignInRedirect';
 import * as Pusher from '../Pusher/pusher';
-import {subscribeToReportCommentEvents} from './Report';
 
 let credentials;
 Ion.connect({
