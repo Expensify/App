@@ -4,12 +4,13 @@ import {View, Image, TouchableOpacity} from 'react-native';
 import styles, {colors} from '../../../style/StyleSheet';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 import sendIcon from '../../../../assets/images/icon-send.png';
-import Ion from '../../../lib/Ion';
 import IONKEYS from '../../../IONKEYS';
 import paperClipIcon from '../../../../assets/images/icon-paper-clip.png';
 import CONFIG from '../../../CONFIG';
 import openURLInNewTab from '../../../lib/openURLInNewTab';
 import withIon from '../../../components/withIon';
+import {saveReportComment} from '../../../lib/actions/Report';
+
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -42,7 +43,7 @@ class ReportActionCompose extends React.Component {
      * @param {string} newComment
      */
     updateComment(newComment) {
-        Ion.set(`${IONKEYS.REPORT_DRAFT_COMMENT}_${this.props.reportID}`, newComment || '');
+        saveReportComment(newComment);
     }
 
     /**
