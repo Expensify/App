@@ -1,7 +1,6 @@
 import React from 'react';
 import HTML from 'react-native-render-html';
-import {Linking} from 'react-native';
-import {View, ActivityIndicator} from 'react-native-web';
+import {Linking, ActivityIndicator, View} from 'react-native';
 import Str from '../../../lib/Str';
 import ReportActionFragmentPropTypes from './ReportActionFragmentPropTypes';
 import styles, {webViewStyles, colors} from '../../../style/StyleSheet';
