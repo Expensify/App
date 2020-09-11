@@ -5,8 +5,6 @@
  */
 import React from 'react';
 import _ from 'underscore';
-import lodashGet from 'lodash.get';
-import lodashHas from 'lodash.has';
 import Ion from '../lib/Ion';
 
 /**
