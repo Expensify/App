@@ -65,21 +65,19 @@ class ReportActionsView extends React.Component {
      * Also checks to ensure that the comment is not too old to
      * be considered part of the same comment
      *
+     * @param {Array} sortedReportAction - list of all the actions already sorted by SequenceNumber
      * @param {Number} actionIndex - index of the comment item in state to check
      *
      * @return {Boolean}
      */
-    // eslint-disable-next-line
-    isConsecutiveActionMadeByPreviousActor(actionIndex) {
-        const reportActions = lodashGet(this.props, 'reportActions', {});
-
+    isConsecutiveActionMadeByPreviousActor(sortedReportAction, actionIndex) {
         // This is the created action and the very first action so it cannot be a consecutive comment.
         if (actionIndex === 0) {
             return false;
         }
 
-        const previousAction = reportActions[actionIndex - 1];
-        const currentAction = reportActions[actionIndex];
+        const previousAction = sortedReportAction[actionIndex - 1];
+        const currentAction = sortedReportAction[actionIndex];
 
         // It's OK for there to be no previous action, and in that case, false will be returned
         // so that the comment isn't grouped
@@ -135,6 +133,7 @@ class ReportActionsView extends React.Component {
             );
         }
 
+        const sortedReportAction = _.chain(this.props.reportActions).sortBy('sequenceNumber');
         return (
             <ScrollView
                 ref={(el) => {
@@ -144,11 +143,11 @@ class ReportActionsView extends React.Component {
                 bounces={false}
                 contentContainerStyle={[styles.chatContentScrollView]}
             >
-                {_.chain(this.props.reportActions).sortBy('sequenceNumber').map((item, index) => (
+                {sortedReportAction.map((item, index) => (
                     <ReportActionItem
                         key={item.sequenceNumber}
                         action={item}
-                        displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
+                        displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(sortedReportAction.value(), index)}
                     />
                 )).value()}
             </ScrollView>
