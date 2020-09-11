@@ -410,7 +410,7 @@ function addAction(reportID, text, file) {
                 }
             ],
             isFirstItem: false,
-            isAttachmentPlaceHolder: false,
+            isAttachment,
         }
     });
 

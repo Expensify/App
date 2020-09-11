@@ -41,7 +41,7 @@ const ImagePicker = {
                 }
 
                 callback(addUri(inputFiles[0]));
-            });
+            }, 500);
         }
 
         body.addEventListener('focus', onfocus, true);
