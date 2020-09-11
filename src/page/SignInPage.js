@@ -25,12 +25,15 @@ const propTypes = {
 
     /* Ion Props */
 
-    // Error to display when there is a session error returned
-    error: PropTypes.string,
+    // The session of the logged in person
+    session: PropTypes.shape({
+        // Error to display when there is a session error returned
+        error: PropTypes.string,
+    }),
 };
 
 const defaultProps = {
-    error: null,
+    session: null,
 };
 
 class App extends Component {
@@ -114,9 +117,9 @@ class App extends Component {
                             >
                                 <Text style={[styles.buttonText, styles.buttonSuccessText]}>Log In</Text>
                             </TouchableOpacity>
-                            {this.props.error && (
+                            {this.props.session && this.props.session.error && (
                                 <Text style={[styles.formError]}>
-                                    {this.props.error}
+                                    {this.props.session.error}
                                 </Text>
                             )}
                         </View>
@@ -133,7 +136,6 @@ App.defaultProps = defaultProps;
 export default compose(
     withRouter,
     withIon({
-        // Bind this.props.error to the error in the session object
-        error: {key: IONKEYS.SESSION, path: 'error', defaultValue: null},
+        session: {key: IONKEYS.SESSION},
     })
 )(App);

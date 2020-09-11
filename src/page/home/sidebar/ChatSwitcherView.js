@@ -2,13 +2,37 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import withIon from '../../../components/withIon';
-import Ion from '../../../lib/Ion';
 import IONKEYS from '../../../IONKEYS';
 import Str from '../../../lib/Str';
 import KeyboardShortcut from '../../../lib/KeyboardShortcut';
 import ChatSwitcherList from './ChatSwitcherList';
 import ChatSwitcherSearchForm from './ChatSwitcherSearchForm';
 import {fetchOrCreateChatReport} from '../../../lib/actions/Report';
+
+const personalDetailsPropTypes = PropTypes.shape({
+    // The login of the person (either email or phone number)
+    login: PropTypes.string.isRequired,
+
+    // The URL of the person's avatar (there should already be a default avatarURL if
+    // the person doesn't have their own avatar uploaded yet)
+    avatarURL: PropTypes.string.isRequired,
+
+    // The first name of the person
+    firstName: PropTypes.string,
+
+    // The last name of the person
+    lastName: PropTypes.string,
+
+    // The combination of `${firstName} ${lastName}` (could be an empty string)
+    fullName: PropTypes.string,
+
+    // This is either the user's full name, or their login if full name is an empty string
+    displayName: PropTypes.string.isRequired,
+
+    // Either the user's full name and their login, or just the login if the full name is empty
+    // `${fullName} (${login})`
+    displayNameWithEmail: PropTypes.string.isRequired,
+});
 
 const propTypes = {
     // A method that is triggered when the TextInput gets focus
@@ -22,33 +46,17 @@ const propTypes = {
     // All of the personal details for everyone
     // The keys of this object are the logins of the users, and the values are an object
     // with their details
-    personalDetails: PropTypes.objectOf(PropTypes.shape({
-        // The login of the person (either email or phone number)
-        login: PropTypes.string.isRequired,
+    personalDetails: PropTypes.objectOf(personalDetailsPropTypes),
 
-        // The URL of the person's avatar (there should already be a default avatarURL if
-        // the person doesn't have their own avatar uploaded yet)
-        avatarURL: PropTypes.string.isRequired,
-
-        // The first name of the person
-        firstName: PropTypes.string,
-
-        // The last name of the person
-        lastName: PropTypes.string,
-
-        // The combination of `${firstName} ${lastName}` (could be an empty string)
-        fullName: PropTypes.string,
-
-        // This is either the user's full name, or their login if full name is an empty string
-        displayName: PropTypes.string.isRequired,
-
-        // Either the user's full name and their login, or just the login if the full name is empty
-        // `${fullName} (${login})`
-        displayNameWithEmail: PropTypes.string.isRequired,
-    })),
+    // The personal details of the person who is currently logged in
+    session: PropTypes.shape({
+        // The email of the person who is currently logged in
+        email: PropTypes.string.isRequired,
+    }),
 };
 const defaultProps = {
     personalDetails: {},
+    session: null,
 };
 
 class ChatSwitcherView extends React.Component {
@@ -124,9 +132,7 @@ class ChatSwitcherView extends React.Component {
      * @param {string} option.value
      */
     fetchChatReportAndRedirect(option) {
-        Ion.get(IONKEYS.MY_PERSONAL_DETAILS, 'login')
-            .then(currentLogin => fetchOrCreateChatReport([currentLogin, option.login]))
-            .then(reportID => Ion.set(IONKEYS.APP_REDIRECT_TO, `/${reportID}`));
+        fetchOrCreateChatReport([this.props.session.email, option.login]);
         this.reset();
     }
 
@@ -270,7 +276,10 @@ ChatSwitcherView.defaultProps = defaultProps;
 export default withIon({
     personalDetails: {
         // Exact match for the personal_details key as we don't want
-        // my_personal_details to overwrite this value
+        // myPersonalDetails to overwrite this value
         key: `^${IONKEYS.PERSONAL_DETAILS}$`,
+    },
+    session: {
+        key: IONKEYS.SESSION,
     },
 })(ChatSwitcherView);
