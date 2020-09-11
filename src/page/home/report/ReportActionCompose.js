@@ -72,7 +72,6 @@ class ReportActionCompose extends React.Component {
         const trimmedComment = this.props.comment.trim();
 
         // Don't submit empty comments
-        // @TODO show an error in the UI
         if (!trimmedComment) {
             return;
         }
