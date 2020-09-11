@@ -3,6 +3,9 @@ import {TextInput} from 'react-native';
 import PropTypes from 'prop-types';
 
 const propTypes = {
+    // A ref to forward to the text input
+    forwardedRef: PropTypes.func.isRequired,
+
     // Maximum number of lines in the text input
     maxLines: PropTypes.number,
 
@@ -78,13 +81,6 @@ class TextInputFocusable extends React.Component {
         this.textInput.focus();
     }
 
-    /**
-     * Clears the input
-     */
-    clear() {
-        this.textInput.clear();
-    }
-
     render() {
         return (
             <TextInput
@@ -103,4 +99,7 @@ class TextInputFocusable extends React.Component {
 TextInputFocusable.propTypes = propTypes;
 TextInputFocusable.defaultProps = defaultProps;
 
-export default TextInputFocusable;
+export default React.forwardRef((props, ref) => (
+    /* eslint-disable-next-line react/jsx-props-no-spreading */
+    <TextInputFocusable {...props} forwardedRef={ref} />
+));
