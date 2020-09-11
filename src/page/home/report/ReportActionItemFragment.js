@@ -1,9 +1,10 @@
 import React from 'react';
 import HTML from 'react-native-render-html';
 import {Linking} from 'react-native';
+import {View, ActivityIndicator} from 'react-native-web';
 import Str from '../../../lib/Str';
 import ReportActionFragmentPropTypes from './ReportActionFragmentPropTypes';
-import styles, {webViewStyles} from '../../../style/StyleSheet';
+import styles, {webViewStyles, colors} from '../../../style/StyleSheet';
 import Text from '../../../components/Text';
 import AnchorForCommentsOnly from '../../../components/AnchorForCommentsOnly';
 import {getAuthToken} from '../../../lib/API';
@@ -57,6 +58,19 @@ class ReportActionItemFragment extends React.PureComponent {
         const {fragment} = this.props;
         switch (fragment.type) {
             case 'COMMENT':
+                // If this is an attachment placeholder, return the placeholder component
+                if (this.props.isAttachment && fragment.html === fragment.text) {
+                    return (
+                        <View style={[styles.chatItemAttachmentPlaceholder]}>
+                            <ActivityIndicator
+                                size="large"
+                                color={colors.textSupporting}
+                                style={[styles.h100p]}
+                            />
+                        </View>
+                    );
+                }
+
                 // Only render HTML if we have html in the fragment
                 return fragment.html !== fragment.text
                     ? (
