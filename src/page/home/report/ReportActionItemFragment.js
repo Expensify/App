@@ -1,6 +1,6 @@
 import React from 'react';
 import HTML from 'react-native-render-html';
-import {Linking} from 'react-native';
+import {Linking, Platform} from 'react-native';
 import Str from '../../../lib/Str';
 import ReportActionFragmentPropTypes from './ReportActionFragmentPropTypes';
 import styles, {webViewStyles} from '../../../style/StyleSheet';
@@ -61,7 +61,9 @@ class ReportActionItemFragment extends React.PureComponent {
                 return fragment.html !== fragment.text
                     ? (
                         <HTML
-                            textSelectable
+
+                            // HACK - Android selection causes performance issues, temporarily disable it until we fix
+                            textSelectable={Platform.OS !== 'android'}
                             renderers={this.customRenderers}
                             baseFontStyle={webViewStyles.baseFontStyle}
                             tagsStyles={webViewStyles.tagStyles}
@@ -70,11 +72,21 @@ class ReportActionItemFragment extends React.PureComponent {
                             alterNode={this.alterNode}
                         />
                     )
-                    : <Text selectable>{Str.htmlDecode(fragment.text)}</Text>;
+                    : (
+                        <Text
+
+                            // HACK - Android selection causes performance issues, temporarily disable it until we fix
+                            selectable={Platform.OS !== 'android'}
+                        >
+                            {Str.htmlDecode(fragment.text)}
+                        </Text>
+                    );
             case 'TEXT':
                 return (
                     <Text
-                        selectable
+
+                        // HACK - Android selection causes performance issues, temporarily disable it until we fix
+                        selectable={Platform.OS !== 'android'}
                         style={[styles.chatItemMessageHeaderSender]}
                     >
                         {Str.htmlDecode(fragment.text)}

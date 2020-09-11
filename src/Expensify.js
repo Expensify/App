@@ -50,17 +50,21 @@ class Expensify extends Component {
     }
 
     componentDidMount() {
-        Ion.connect({key: IONKEYS.SESSION, path: 'authToken', callback: this.removeLoadingState});
+        Ion.connect({
+            key: IONKEYS.SESSION,
+            callback: this.removeLoadingState,
+        });
     }
 
     /**
      * When the authToken is updated, the app should remove the loading state and handle the authToken
      *
-     * @param {string} authToken
+     * @param {object} session
+     * @param {string} session.authToken
      */
-    removeLoadingState(authToken) {
+    removeLoadingState(session) {
         this.setState({
-            authToken,
+            authToken: session ? session.authToken : null,
             isLoading: false,
         });
     }
@@ -84,8 +88,17 @@ class Expensify extends Component {
                 <Route path="*" render={recordCurrentRoute} />
 
                 <Switch>
+                    <Route
+                        exact
+                        path="/"
+                        render={() => (
+                            this.state.authToken
+                                ? <Redirect to="/home" />
+                                : <Redirect to="/signin" />
+                        )}
+                    />
                     <Route path={['/signin/exitTo/:exitTo*', '/signin']} component={SignInPage} />
-                    <Route path="/" component={HomePage} />
+                    <Route path={['/home', '/']} component={HomePage} />
                 </Switch>
             </Router>
 

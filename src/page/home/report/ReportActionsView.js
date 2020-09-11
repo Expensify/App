@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import Text from '../../../components/Text';
-import Ion from '../../../lib/Ion';
 import withIon from '../../../components/withIon';
 import {fetchActions, updateLastReadActionID} from '../../../lib/actions/Report';
 import IONKEYS from '../../../IONKEYS';
@@ -36,17 +35,17 @@ class ReportActionsView extends React.Component {
     constructor(props) {
         super(props);
 
-        this.recordlastReadActionID = _.debounce(this.recordlastReadActionID.bind(this), 1000, true);
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
         this.recordMaxAction = this.recordMaxAction.bind(this);
     }
 
     componentDidMount() {
         this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
+        fetchActions(this.props.reportID);
     }
 
     componentDidUpdate(prevProps) {
-        const isReportVisible = this.props.reportID === this.props.match.params.reportID;
+        const isReportVisible = this.props.reportID === parseInt(this.props.match.params.reportID, 10);
 
         // When the number of actions change, wait three seconds, then record the max action
         // This will make the unread indicator go away if you receive comments in the same chat you're looking at
@@ -111,28 +110,8 @@ class ReportActionsView extends React.Component {
             .pluck('sequenceNumber')
             .max()
             .value();
-        this.recordlastReadActionID(maxVisibleSequenceNumber);
-    }
 
-    /**
-     * Takes a max seqNum and if it's greater than the last read action, then make a request to the API to
-     * update the report
-     *
-     * @param {number} maxSequenceNumber
-     */
-    recordlastReadActionID(maxSequenceNumber) {
-        let myAccountID;
-        Ion.get(IONKEYS.SESSION, 'accountID')
-            .then((accountID) => {
-                myAccountID = accountID;
-                const path = `reportNameValuePairs.lastReadActionID_${accountID}`;
-                return Ion.get(`${IONKEYS.REPORT}_${this.props.reportID}`, path, 0);
-            })
-            .then((lastReadActionID) => {
-                if (maxSequenceNumber > lastReadActionID) {
-                    updateLastReadActionID(myAccountID, this.props.reportID, maxSequenceNumber);
-                }
-            });
+        updateLastReadActionID(this.props.reportID, maxVisibleSequenceNumber);
     }
 
     /**
