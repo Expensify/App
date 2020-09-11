@@ -125,12 +125,13 @@ function connect(mapping) {
                 return;
             }
 
-            // Currently, if a callback or react component is subscribing to a regex key
-            // and multiple keys match that regex,
-            // a data change will be published to the callback or react component for EACH
-            // matching key. In the future, this should be refactored so that identical
-            // React components or callbacks should only have a single data change published
-            // to them.
+            if (matchingKeys.length > 1 && config.withIonInstance && !config.indexBy) {
+                // eslint-disable-next-line no-console
+                console.warning(`It looks like a React component subscribed to multiple Ion keys without 
+                providing an 'indexBy' option. This will result in undefined behavior. The best thing to do is 
+                provide an 'indexBy' value, or use a more specific regex that will only match a single Ion key.`);
+            }
+
             if (config.indexBy) {
                 Promise.all(_.map(matchingKeys, key => get(key)))
                     .then(values => _.reduce(values, (finalObject, value) => ({
