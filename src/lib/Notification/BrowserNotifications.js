@@ -1,8 +1,6 @@
 // Web and desktop implementation only. Do not import for direct use. Use Notification.
-
 import Str from '../Str';
 import CONST from '../../CONST';
-import * as ActiveClientManager from '../ActiveClientManager';
 
 const EXPENSIFY_ICON_URL = `${CONST.CLOUDFRONT_URL}/images/favicon-2019.png`;
 const DEFAULT_DELAY = 4000;
@@ -105,11 +103,6 @@ export default {
      * @param {Function} params.onClick
      */
     pushReportCommentNotification({reportAction, onClick}) {
-        if (!ActiveClientManager.isClientTheLeader()) {
-            console.debug('[BrowserNotifications] Skipping notification because this client is not the leader');
-            return;
-        }
-
         const {person, message} = reportAction;
         const plainTextPerson = Str.htmlDecode(person.map(f => f.text).join());
 
