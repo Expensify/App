@@ -65,6 +65,8 @@ export default function (mapIonToState) {
              * Takes a single mapping and binds the state of the component to the store
              *
              * @param {object} mapping
+             * @param {string|function} mapping.key key to connect to. can be a string or a function that takes this.props
+             * as an argument and returns a string
              * @param {string} statePropertyName the name of the state property that Ion will add the data to
              * @param {string} [mapping.indexBy] the name of the ID property to use for the collection
              * @param {boolean} [mapping.initWithStoredValues] If set to false, then no data will be prefilled into the
