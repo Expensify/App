@@ -1,6 +1,7 @@
 import React from 'react';
 import HTML from 'react-native-render-html';
 import {Linking, ActivityIndicator, View} from 'react-native';
+import PropTypes from 'prop-types';
 import Str from '../../../lib/Str';
 import ReportActionFragmentPropTypes from './ReportActionFragmentPropTypes';
 import styles, {webViewStyles, colors} from '../../../style/StyleSheet';
@@ -11,6 +12,13 @@ import {getAuthToken} from '../../../lib/API';
 const propTypes = {
     // The message fragment needing to be displayed
     fragment: ReportActionFragmentPropTypes.isRequired,
+
+    // Is this fragment an attachment?
+    isAttachment: PropTypes.bool,
+};
+
+const defaultProps = {
+    isAttachment: false
 };
 
 class ReportActionItemFragment extends React.PureComponent {
@@ -114,6 +122,7 @@ class ReportActionItemFragment extends React.PureComponent {
 }
 
 ReportActionItemFragment.propTypes = propTypes;
+ReportActionItemFragment.defaultProps = defaultProps;
 ReportActionItemFragment.displayName = 'ReportActionItemFragment';
 
 export default ReportActionItemFragment;
