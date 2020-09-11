@@ -25,12 +25,17 @@ const propTypes = {
 
     /* Ion Props */
 
-    // Does the report for this link have unread comments?
-    isUnread: PropTypes.bool,
+    // The report object for this link
+    report: PropTypes.shape({
+        // Does the report for this link have unread comments?
+        isUnread: PropTypes.bool,
+    }),
 };
 
 const defaultProps = {
-    isUnread: false,
+    report: {
+        isUnread: false,
+    },
     reportName: '',
 };
 
@@ -40,7 +45,7 @@ const SidebarLink = (props) => {
     const linkWrapperActiveStyle = isReportActive && styles.sidebarLinkWrapperActive;
     const linkActiveStyle = isReportActive ? styles.sidebarLinkActive : styles.sidebarLink;
     const textActiveStyle = isReportActive ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
-    const textActiveUnreadStyle = props.isUnread
+    const textActiveUnreadStyle = props.report.isUnread
         ? [textActiveStyle, styles.sidebarLinkTextUnread] : [textActiveStyle];
 
     return (
@@ -63,10 +68,8 @@ SidebarLink.defaultProps = defaultProps;
 export default compose(
     withRouter,
     withIon({
-        isUnread: {
+        report: {
             key: `${IONKEYS.REPORT}_%DATAFROMPROPS%`,
-            path: 'hasUnread',
-            defaultValue: false,
             pathForProps: 'reportID',
         }
     }),

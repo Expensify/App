@@ -4,16 +4,25 @@ import {View, Image, TouchableOpacity} from 'react-native';
 import styles, {colors} from '../../../style/StyleSheet';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 import sendIcon from '../../../../assets/images/icon-send.png';
+import IONKEYS from '../../../IONKEYS';
 import paperClipIcon from '../../../../assets/images/icon-paper-clip.png';
 import ImagePicker from '../../../lib/ImagePicker';
-import {addAction} from '../../../lib/actions/Report';
+import withIon from '../../../components/withIon';
+import {addAction, saveReportComment} from '../../../lib/actions/Report';
 
 const propTypes = {
     // A method to call when the form is submitted
     onSubmit: PropTypes.func.isRequired,
 
+    // The comment left by the user
+    comment: PropTypes.string,
+
     // The ID of the report actions will be created for
     reportID: PropTypes.number.isRequired,
+};
+
+const defaultProps = {
+    comment: '',
 };
 
 class ReportActionCompose extends React.Component {
@@ -25,10 +34,6 @@ class ReportActionCompose extends React.Component {
         this.triggerSubmitShortcut = this.triggerSubmitShortcut.bind(this);
         this.submitForm = this.submitForm.bind(this);
         this.onAttachmentButtonTapped = this.onAttachmentButtonTapped.bind(this);
-
-        this.state = {
-            comment: '',
-        };
     }
 
     /**
@@ -60,6 +65,15 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
+     * Update the value of the comment in Ion
+     *
+     * @param {string} newComment
+     */
+    updateComment(newComment) {
+        saveReportComment(this.props.reportID, newComment || '');
+    }
+
+    /**
      * Listens for the keyboard shortcut and submits
      * the form when we have enter
      *
@@ -82,7 +96,7 @@ class ReportActionCompose extends React.Component {
             e.preventDefault();
         }
 
-        const trimmedComment = this.state.comment.trim();
+        const trimmedComment = this.props.comment.trim();
 
         // Don't submit empty comments
         // @TODO show an error in the UI
@@ -91,20 +105,7 @@ class ReportActionCompose extends React.Component {
         }
 
         this.props.onSubmit(trimmedComment);
-        this.setState({
-            comment: '',
-        });
-    }
-
-    /**
-     * Update the value of the comment input in the state
-     *
-     * @param {string} newComment
-     */
-    updateComment(newComment) {
-        this.setState({
-            comment: newComment,
-        });
+        this.updateComment('');
     }
 
     render() {
@@ -130,7 +131,7 @@ class ReportActionCompose extends React.Component {
                         onChangeText={this.updateComment}
                         onKeyPress={this.triggerSubmitShortcut}
                         style={[styles.textInput, styles.textInputCompose, styles.flex4]}
-                        value={this.state.comment}
+                        value={this.props.comment || ''}
                         maxLines={16} // This is the same that slack has
                     />
                     <TouchableOpacity
@@ -150,5 +151,11 @@ class ReportActionCompose extends React.Component {
     }
 }
 ReportActionCompose.propTypes = propTypes;
+ReportActionCompose.defaultProps = defaultProps;
 
-export default ReportActionCompose;
+export default withIon({
+    comment: {
+        key: `${IONKEYS.REPORT_DRAFT_COMMENT}_%DATAFROMPROPS%`,
+        pathForProps: 'reportID',
+    },
+})(ReportActionCompose);
