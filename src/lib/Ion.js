@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import AsyncStorage from '@react-native-community/async-storage';
+import Str from './Str';
 
 // Keeps track of the last connectionID that was used so we can keep incrementing it
 let lastConnectionID = 0;
@@ -35,40 +36,72 @@ function get(key) {
 }
 
 /**
- * When a key change happens, search for any callbacks matching the regex pattern and trigger those callbacks
+ * Takes a key from a subscriber and a key from Ion
+ * and returns true if we have a collection key or item.
+ *
+ * @param {string} configKey
+ * @param {string} key
+ * @returns {boolean}
+ */
+function isKeyMatch(configKey, key) {
+    return key === configKey || Str.startsWith(key, `${configKey}_`);
+}
+
+/**
+ * Returns an object collection for all keys stored in Ion that match
+ * the provided key. Said another way, this will return an exact snapshot of
+ * the current Ion storage state, but with only the keys we want to know about.
+ *
+ * e.g. if we pass 'report' this would match on 'report_42', 'report_43',
+ * etc and our final object would be:
+ *
+ * {report_42: {...}, report_43: {...}}
+ *
+ * If only a single key matches (not a collection) then we return:
+ *
+ * {personalDetails: {...}}
+ *
+ * @param {string} configKey
+ * @returns {object}
+ */
+function getCollection(configKey) {
+    return AsyncStorage.getAllKeys()
+        .then((keys) => {
+            // Find all the keys matched by the config regex
+            const matchingKeys = _.filter(keys, key => isKeyMatch(configKey, key));
+
+            // If the key being connected to does not exist, initialize the value with null
+            if (matchingKeys.length === 0) {
+                return Promise.resolve(null);
+            }
+
+            // Get the values and send each one back to the subscriber callback or component
+            return Promise.all(_.map(matchingKeys, key => get(key)))
+                .then(values => _.reduce(values, (finalObject, value, i) => ({
+                    ...finalObject,
+                    [matchingKeys[i]]: value,
+                }), {}));
+        });
+}
+
+/**
+ * When a key change happens, search for any callbacks matching the key or collection key and trigger those callbacks
  *
  * @param {string} key
  * @param {mixed} data
  */
-function keyChanged(key, data) {
-    // Find components that were added with connect() and trigger their setState() method with the new data
-    _.each(callbackToStateMapping, (mappedComponent) => {
-        if (mappedComponent && mappedComponent.regex.test(key)) {
-            if (_.isFunction(mappedComponent.callback)) {
-                mappedComponent.callback(data, key);
-            }
-
-            if (!mappedComponent.withIonInstance) {
-                return;
-            }
-
-            // Set the state of the react component with the data
-            if (mappedComponent.indexBy) {
-                // Add the data to an array of existing items
-                mappedComponent.withIonInstance.setState((prevState) => {
-                    const collection = prevState[mappedComponent.statePropertyName] || {};
-                    collection[data[mappedComponent.indexBy]] = data;
-                    return {
-                        [mappedComponent.statePropertyName]: collection,
-                    };
-                });
-            } else {
-                mappedComponent.withIonInstance.setState({
-                    [mappedComponent.statePropertyName]: data,
-                });
-            }
-        }
-    });
+function keyChanged(key, item) {
+    getCollection(key)
+        .then((collection) => {
+            // Find components that were added with connect() and trigger their setState() method with the new data
+            _.each(callbackToStateMapping, (subscriber) => {
+                // If the subscriber is explicitly subscribing to this key or the key is
+                // collection key then get the data and return it to the subscriber.
+                if (subscriber && isKeyMatch(subscriber.key, key)) {
+                    sendDataToConnection(subscriber, collection, key, item);
+                }
+            });
+        });
 }
 
 /**
@@ -80,17 +113,27 @@ function keyChanged(key, data) {
  * @param {object} [config.withIonInstance]
  * @param {string} [config.statePropertyName]
  * @param {function} [config.callback]
- * @param {*} val
+ * @param {object|null} val
  * @param {string} [key]
  */
-function sendDataToConnection(config, val, key) {
-    if (config.withIonInstance) {
-        config.withIonInstance.setState({
-            [config.statePropertyName]: val,
-        });
-    } else if (_.isFunction(config.callback)) {
-        config.callback(val, key);
+function sendDataToConnection(config, collection, key, item) {
+    let valueToSend = collection;
+
+    if (_.size(collection) === 1 && collection[key]) {
+        valueToSend = collection[key];
     }
+
+    if (_.isFunction(config.callback)) {
+        config.callback(valueToSend, item);
+    }
+
+    if (!config.withIonInstance) {
+        return;
+    }
+
+    config.withIonInstance.setState({
+        [config.statePropertyName]: valueToSend,
+    });
 }
 
 /**
@@ -99,7 +142,6 @@ function sendDataToConnection(config, val, key) {
  * @param {object} mapping the mapping information to connect Ion to the components state
  * @param {string} mapping.key
  * @param {string} mapping.statePropertyName the name of the property in the state to connect the data to
- * @param {string} [mapping.indexBy] the name of a property to index the collection by
  * @param {object} [mapping.withIonInstance] whose setState() method will be called with any changed data
  *      This is used by React components to connect to Ion
  * @param {object} [mapping.callback] a method that will be called with changed data
@@ -120,38 +162,8 @@ function connect(mapping) {
         return connectionID;
     }
 
-    // Get all the data from Ion to initialize the connection with
-    AsyncStorage.getAllKeys()
-        .then((keys) => {
-            // Find all the keys matched by the config regex
-            const matchingKeys = _.filter(keys, config.regex.test.bind(config.regex));
-
-            // If the key being connected to does not exist, initialize the value with null
-            if (matchingKeys.length === 0) {
-                sendDataToConnection(config, null, config.key);
-                return;
-            }
-
-            // Currently, if a callback or react component is subscribing to a regex key
-            // and multiple keys match that regex,
-            // a data change will be published to the callback or react component for EACH
-            // matching key. In the future, this should be refactored so that identical
-            // React components or callbacks should only have a single data change published
-            // to them.
-            if (config.indexBy) {
-                Promise.all(_.map(matchingKeys, key => get(key)))
-                    .then(values => _.reduce(values, (finalObject, value) => ({
-                        ...finalObject,
-                        [value[config.indexBy]]: value,
-                    }), {}))
-                    .then(val => sendDataToConnection(config, val));
-            } else {
-                _.each(matchingKeys, (key) => {
-                    get(key).then(val => sendDataToConnection(config, val, key));
-                });
-            }
-        });
-
+    // Get collection data from Ion to initialize the connection with
+    getCollection(config.key).then(val => sendDataToConnection(config, val));
     return connectionID;
 }
 

@@ -34,7 +34,7 @@ Ion.connect({
 // Use a regex pattern here for an exact match so it doesn't also match "myPersonalDetails"
 let personalDetails;
 Ion.connect({
-    key: `^${IONKEYS.PERSONAL_DETAILS}$`,
+    key: IONKEYS.PERSONAL_DETAILS,
     callback: val => personalDetails = val,
 });
 
@@ -468,9 +468,10 @@ function saveReportComment(reportID, comment) {
  * When a report changes in Ion, this fetches the report from the API if the report doesn't have a name
  * and it keeps track of the max sequence number on the report actions.
  *
+ * @param {object} reportCollection - unused
  * @param {object} report
  */
-function handleReportChanged(report) {
+function handleReportChanged(reportCollection, report) {
     if (!report) {
         return;
     }
@@ -485,7 +486,7 @@ function handleReportChanged(report) {
     reportMaxSequenceNumbers[report.reportID] = report.maxSequenceNumber;
 }
 Ion.connect({
-    key: `${IONKEYS.REPORT}_[0-9]+$`,
+    key: IONKEYS.REPORT,
     callback: handleReportChanged
 });
 
