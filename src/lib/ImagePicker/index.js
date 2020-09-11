@@ -46,7 +46,20 @@ const ImagePicker = {
 
         body.addEventListener('focus', onfocus, true);
         input.click();
-    }
+    },
+
+    /**
+     *
+     * The data returned from `showImagePicker` is different on web and mobile, so use this function to ensure the
+     * data we send to the xhr will be handled properly by the API. On web, we just want to send the file data returned
+     * from the input.
+     *
+     * @param {object} fileData
+     * @returns {object}
+     */
+    getDataForUpload(fileData) {
+        return fileData;
+    },
 };
 
 export default ImagePicker;

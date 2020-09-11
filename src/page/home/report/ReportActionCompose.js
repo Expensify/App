@@ -59,14 +59,7 @@ class ReportActionCompose extends React.Component {
             } else if (response.error) {
                 console.log('ImagePicker Error: ', response.error);
             } else {
-                // TODO: make this work nicely w/ the web shim
-                addAction(reportID, '', {
-                    // TODO: test if null name was causing empty response
-                    name: 'uploaded_image',
-                    type: response.type,
-                    uri: response.uri.replace('file://', ''),
-                    data: response.data
-                });
+                addAction(reportID, '', ImagePicker.getDataForUpload(response));
             }
         });
     }
