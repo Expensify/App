@@ -220,7 +220,7 @@ function clear() {
  * @param {*} val
  */
 function merge(key, val) {
-    // Values that are objects can be merged into storage
+    // Values that are objects or arrays are merged into storage
     if (_.isObject(val)) {
         AsyncStorage.mergeItem(key, JSON.stringify(val))
             .then(() => get(key))
@@ -231,7 +231,7 @@ function merge(key, val) {
     }
 
     // Anything else (strings and numbers) need to be set into storage
-    AsyncStorage.setItem(key, JSON.stringify(val))
+    AsyncStorage.setItem(key, val)
         .then(() => {
             keyChanged(key, val);
         });

@@ -159,7 +159,6 @@ function fetchChatReportsByIDs(chatList) {
                     newReport.reportName = getChatReportName(report.sharedReportList);
                 }
 
-                // Merge the data into Ion
                 Ion.merge(`${IONKEYS.REPORT}_${report.reportID}`, newReport);
             });
 

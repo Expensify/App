@@ -88,7 +88,7 @@ function fetch() {
             const allPersonalDetails = formatPersonalDetails(data.personalDetailsList);
             Ion.merge(IONKEYS.PERSONAL_DETAILS, allPersonalDetails);
 
-            // Get my personal details so they can be easily accessed and subscribed to on their own key
+            // Set my personal details so they can be easily accessed and subscribed to on their own key
             Ion.merge(IONKEYS.MY_PERSONAL_DETAILS, allPersonalDetails[currentUserEmail] || {});
 
             // Get the timezone and put it in Ion
@@ -96,7 +96,9 @@ function fetch() {
         })
         .catch(error => console.error('Error fetching personal details', error));
 
-    // Refresh the personal details every 30 minutes
+    // Refresh the personal details every 30 minutes because there is no
+    // pusher event that sends updated personal details data yet
+    // See https://github.com/Expensify/ReactNativeChat/issues/468
     setTimeout(fetch, 1000 * 60 * 30);
 }
 
@@ -108,9 +110,8 @@ function fetch() {
 function getForEmails(emailList) {
     queueRequest('PersonalDetails_GetForEmails', {emailList})
         .then((data) => {
-            const details = _.omit(data, ['jsonCode', 'requestID']);
-            const formattedDetails = formatPersonalDetails(details);
-            Ion.merge(IONKEYS.PERSONAL_DETAILS, formattedDetails);
+            const details = _.pick(data, emailList.split(','));
+            Ion.merge(IONKEYS.PERSONAL_DETAILS, formatPersonalDetails(details));
         });
 }
 
