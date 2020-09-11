@@ -8,7 +8,7 @@ import Str from '../../../lib/Str';
 import KeyboardShortcut from '../../../lib/KeyboardShortcut';
 import ChatSwitcherList from './ChatSwitcherList';
 import ChatSwitcherSearchForm from './ChatSwitcherSearchForm';
-import {fetchAll, fetchOrCreateChatReport} from '../../../lib/actions/Report';
+import {fetchOrCreateChatReport} from '../../../lib/actions/Report';
 import {redirect} from '../../../lib/actions/App';
 
 const propTypes = {
@@ -222,13 +222,20 @@ class ChatSwitcherView extends React.Component {
         const matches = new Set();
         const searchOptions = _.values(this.props.personalDetails);
 
+        // Update the personal details options to have generic names for their properties
+        _.each(searchOptions, (element, index) => {
+            searchOptions[index].text = element.fullName;
+            searchOptions[index].alternateText = element.login;
+            searchOptions[index].searchText = element.displayNameWithEmail;
+        });
+
         // Get a list of all group chats shared with us
         const reportOptions = _.filter(_.values(this.props.reports), reportData => reportData.reportNameValuePairs && reportData.reportNameValuePairs.type === 'expense');
 
-        // Update the report objects to have the expected fields (the ones that personalDetails have)
+        // Update the report objects to have generic names for their properties
         _.each(reportOptions, (element, index) => {
-            reportOptions[index].displayNameWithEmail = element.reportName;
-            reportOptions[index].login = element.reportName;
+            reportOptions[index].alternateText = element.reportName;
+            reportOptions[index].searchText = element.reportName;
             reportOptions[index].avatarURL = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_2.png';
         });
 
@@ -238,7 +245,7 @@ class ChatSwitcherView extends React.Component {
             if (matches.size < this.maxSearchResults) {
                 for (let j = 0; j < searchOptions.length; j++) {
                     const option = searchOptions[j];
-                    const valueToSearch = option.displayNameWithEmail.replace(new RegExp(/&nbsp;/g), '');
+                    const valueToSearch = option.searchText.replace(new RegExp(/&nbsp;/g), '');
                     const isMatch = matchRegexes[i].test(valueToSearch);
 
                     // Make sure we don't include the same option twice (automatically handled be using a `Set`)
