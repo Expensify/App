@@ -33,7 +33,7 @@ class ReportActionCompose extends React.Component {
         this.submitForm = this.submitForm.bind(this);
         this.triggerSubmitShortcut = this.triggerSubmitShortcut.bind(this);
         this.submitForm = this.submitForm.bind(this);
-        this.onAttachmentButtonTapped = this.onAttachmentButtonTapped.bind(this);
+        this.showAttachmentPicker = this.showAttachmentPicker.bind(this);
     }
 
     /**
@@ -41,7 +41,7 @@ class ReportActionCompose extends React.Component {
      *
      * @param {SyntheticEvent} [e]
      */
-    onAttachmentButtonTapped(e) {
+    showAttachmentPicker(e) {
         e.preventDefault();
 
         const options = {
@@ -113,7 +113,7 @@ class ReportActionCompose extends React.Component {
             <View style={[styles.chatItemCompose]}>
                 <View style={[styles.chatItemComposeBox, styles.flexRow]}>
                     <TouchableOpacity
-                        onPress={this.onAttachmentButtonTapped}
+                        onPress={this.showAttachmentPicker}
                         style={[styles.chatItemAttachButton]}
                         underlayColor={colors.componentBG}
                     >
