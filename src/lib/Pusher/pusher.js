@@ -22,9 +22,14 @@ function callSocketEventCallbacks(eventName, data) {
  * @param {String} appKey
  * @param {Object} [params]
  * @public
+ * @returns {Promise} resolves when Pusher has connected
  */
 function init(appKey, params) {
-    if (!socket) {
+    return new Promise((resolve) => {
+        if (socket) {
+            return resolve();
+        }
+
         // Use this for debugging
         // Pusher.log = (message) => {
         //     if (window.console && window.console.log) {
@@ -62,6 +67,7 @@ function init(appKey, params) {
         socket.connection.bind('connected', () => {
             console.debug('[Pusher] connected');
             callSocketEventCallbacks('connected');
+            resolve();
         });
 
         socket.connection.bind('disconnected', () => {
@@ -73,7 +79,7 @@ function init(appKey, params) {
             console.debug('[Pusher] state changed', states);
             callSocketEventCallbacks('state_change', states);
         });
-    }
+    });
 }
 
 /**
@@ -171,7 +177,7 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}, isChun
  */
 function subscribe(channelName, eventName, eventCallback = () => {}, isChunked = false) {
     return new Promise((resolve, reject) => {
-    // We cannot call subscribe() before init(). Prevent any attempt to do this on dev.
+        // We cannot call subscribe() before init(). Prevent any attempt to do this on dev.
         if (!socket) {
             throw new Error(`[Pusher] instance not found. Pusher.subscribe()
             most likely has been called before Pusher.init()`);
@@ -340,6 +346,22 @@ function registerCustomAuthorizer(authorizer) {
     customAuthorizer = authorizer;
 }
 
+/**
+ * Disconnect from Pusher
+ */
+function disconnect() {
+    socket.disconnect();
+    socket = null;
+}
+
+/**
+ * Disconnect and Re-Connect Pusher
+ */
+function reconnect() {
+    socket.disconnect();
+    socket.connect();
+}
+
 if (window) {
     /**
      * Pusher socket for debugging purposes
@@ -361,4 +383,6 @@ export {
     sendChunkedEvent,
     registerSocketEventCallback,
     registerCustomAuthorizer,
+    disconnect,
+    reconnect,
 };
