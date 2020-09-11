@@ -1,38 +1,12 @@
 import _ from 'underscore';
 import AsyncStorage from '@react-native-community/async-storage';
+import StorageEvent from './StorageEvent';
 
 // Keeps track of the last connectionID that was used so we can keep incrementing it
 let lastConnectionID = 0;
 
-/**
- * Initialize the store with actions and listening for storage events
- */
-function init() {
-    // Subscribe to the storage event so changes to local storage can be captured
-    // TODO: Refactor window events
-    // window.addEventListener('storage', (e) => {
-    //   try {
-    //     keyChanged(e.key, JSON.parse(e.newValue));
-    //   } catch (e) {
-    //     console.error(`Could not parse value from local storage. Key: ${e.key}`);
-    //   }
-    // });
-}
-
 // Holds a mapping of all the react components that want their state subscribed to a store key
 const callbackToStateMapping = {};
-
-/**
- * Get some data from the store
- *
- * @param {string} key
- * @returns {*}
- */
-function get(key) {
-    return AsyncStorage.getItem(key)
-        .then(val => JSON.parse(val))
-        .catch(err => console.error(`Unable to get item from persistent storage. Key: ${key} Error: ${err}`));
-}
 
 /**
  * When a key change happens, search for any callbacks matching the regex pattern and trigger those callbacks
@@ -69,6 +43,25 @@ function keyChanged(key, data) {
             }
         }
     });
+}
+
+/**
+ * Initialize the store with actions and listening for storage events
+ */
+function init() {
+    StorageEvent((key, newValue) => keyChanged(key, newValue));
+}
+
+/**
+ * Get some data from the store
+ *
+ * @param {string} key
+ * @returns {*}
+ */
+function get(key) {
+    return AsyncStorage.getItem(key)
+        .then(val => JSON.parse(val))
+        .catch(err => console.error(`Unable to get item from persistent storage. Key: ${key} Error: ${err}`));
 }
 
 /**
@@ -221,7 +214,7 @@ function clear() {
  */
 function merge(key, val) {
     // Values that are objects or arrays are merged into storage
-    if (_.isObject(val)) {
+    if (_.isObject(val) || _.isArray(val)) {
         AsyncStorage.mergeItem(key, JSON.stringify(val))
             .then(() => get(key))
             .then((newObject) => {
@@ -231,7 +224,7 @@ function merge(key, val) {
     }
 
     // Anything else (strings and numbers) need to be set into storage
-    AsyncStorage.setItem(key, val)
+    AsyncStorage.setItem(key, JSON.stringify(val))
         .then(() => {
             keyChanged(key, val);
         });

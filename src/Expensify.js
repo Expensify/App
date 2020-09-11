@@ -2,8 +2,7 @@ import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {recordCurrentRoute} from './lib/actions/App';
-
-// import {Beforeunload} from 'react-beforeunload';
+import Beforeunload from './components/Beforeunload';
 import SignInPage from './page/SignInPage';
 import HomePage from './page/home/HomePage';
 import Ion from './lib/Ion';
@@ -78,31 +77,28 @@ class Expensify extends Component {
         }
         const redirectTo = !this.state.authToken ? ROUTES.SIGNIN : this.props.redirectTo;
         return (
+            <Beforeunload onBeforeunload={ActiveClientManager.removeClient}>
+                <Router>
+                    {/* If there is ever a property for redirecting, we do the redirect here */}
+                    {/* Leave this as a ternary or else iOS throws an error about text not being wrapped in <Text> */}
+                    {redirectTo ? <Redirect to={redirectTo} /> : null}
+                    <Route path="*" render={recordCurrentRoute} />
 
-            // TODO: Mobile does not support Beforeunload
-            // <Beforeunload onBeforeunload={ActiveClientManager.removeClient}>
-            <Router>
-                {/* If there is ever a property for redirecting, we do the redirect here */}
-                {/* Leave this as a ternary or else iOS throws an error about text not being wrapped in <Text> */}
-                {redirectTo ? <Redirect to={redirectTo} /> : null}
-                <Route path="*" render={recordCurrentRoute} />
-
-                <Switch>
-                    <Route
-                        exact
-                        path="/"
-                        render={() => (
-                            this.state.authToken
-                                ? <Redirect to="/home" />
-                                : <Redirect to="/signin" />
-                        )}
-                    />
-                    <Route path={['/signin/exitTo/:exitTo*', '/signin']} component={SignInPage} />
-                    <Route path={['/home', '/']} component={HomePage} />
-                </Switch>
-            </Router>
-
-        // </Beforeunload>
+                    <Switch>
+                        <Route
+                            exact
+                            path="/"
+                            render={() => (
+                                this.state.authToken
+                                    ? <Redirect to="/home" />
+                                    : <Redirect to="/signin" />
+                            )}
+                        />
+                        <Route path={['/signin/exitTo/:exitTo*', '/signin']} component={SignInPage} />
+                        <Route path={['/home', '/']} component={HomePage} />
+                    </Switch>
+                </Router>
+            </Beforeunload>
         );
     }
 }
