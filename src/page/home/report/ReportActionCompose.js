@@ -37,30 +37,25 @@ class ReportActionCompose extends React.Component {
      * @param {SyntheticEvent} [e]
      */
     onAttachmentButtonTapped(e) {
-        if (e) {
-            e.preventDefault();
-        }
+        e.preventDefault();
 
-        const reportID = this.props.reportID;
         const options = {
             storageOptions: {
                 skipBackup: true,
-                path: 'images',
-                cameraRoll: true,
-                waitUntilSaved: true
             },
         };
 
         ImagePicker.showImagePicker(options, (response) => {
-            //console.log('Response = ', response);
-
             if (response.didCancel) {
-                console.log('User cancelled image picker');
-            } else if (response.error) {
-                console.log('ImagePicker Error: ', response.error);
-            } else {
-                addAction(reportID, '', ImagePicker.getDataForUpload(response));
+                return;
             }
+
+            if (response.error) {
+                console.error(`Error occurred picking image: ${response.error}`);
+                return;
+            }
+
+            addAction(this.props.reportID, '', ImagePicker.getDataForUpload(response));
         });
     }
 
