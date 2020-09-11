@@ -417,8 +417,7 @@ function addAction(reportID, text, file) {
     queueRequest('Report_AddComment', {
         reportID,
         reportComment: htmlComment,
-        // TODO: get working w/o base64image key
-        base64image: file
+        file
     });
 }
 
