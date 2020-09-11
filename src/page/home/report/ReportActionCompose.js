@@ -89,8 +89,6 @@ class ReportActionCompose extends React.Component {
             e.preventDefault();
         }
 
-        // Let's get the data directly from textInput because saving the data in Ion report comment is asynchronous
-        // so if we refer this.props.comment here we won't get the most recent value if the user types fast.
         const trimmedComment = this.comment.trim();
 
         // Don't submit empty comments
