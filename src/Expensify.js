@@ -70,6 +70,7 @@ class Expensify extends Component {
     }
 
     render() {
+        console.log(this.props);
         // Until the authToken has been initialized from Ion, display a blank page
         if (this.state.isLoading) {
             return (
