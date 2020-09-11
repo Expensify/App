@@ -79,8 +79,7 @@ export default compose(
     withIon({
         reports: {
             key: `${IONKEYS.REPORT}_[0-9]+$`,
-            addAsCollection: true,
-            collectionID: 'reportID',
+            indexBy: 'reportID',
         },
     }),
 )(MainView);

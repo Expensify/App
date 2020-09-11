@@ -1,4 +1,3 @@
-import lodashGet from 'lodash.get';
 import _ from 'underscore';
 import AsyncStorage from '@react-native-community/async-storage';
 
@@ -27,20 +26,11 @@ const callbackToStateMapping = {};
  * Get some data from the store
  *
  * @param {string} key
- * @param {string} [extraPath] passed to _.get() in order to return just a piece of the localStorage object
- * @param {mixed} [defaultValue] passed to the second param of _.get() in order to specify a default value if the value
- *      we are looking for doesn't exist in the object yet
  * @returns {*}
  */
-function get(key, extraPath, defaultValue) {
+function get(key) {
     return AsyncStorage.getItem(key)
         .then(val => JSON.parse(val))
-        .then((val) => {
-            if (extraPath) {
-                return lodashGet(val, extraPath, defaultValue);
-            }
-            return val;
-        })
         .catch(err => console.error(`Unable to get item from persistent storage. Key: ${key} Error: ${err}`));
 }
 
@@ -54,31 +44,27 @@ function keyChanged(key, data) {
     // Find components that were added with connect() and trigger their setState() method with the new data
     _.each(callbackToStateMapping, (mappedComponent) => {
         if (mappedComponent && mappedComponent.regex.test(key)) {
-            const newValue = mappedComponent.path
-                ? lodashGet(data, mappedComponent.path, mappedComponent.defaultValue)
-                : data || mappedComponent.defaultValue || null;
-
             if (_.isFunction(mappedComponent.callback)) {
-                mappedComponent.callback(newValue, key);
+                mappedComponent.callback(data, key);
             }
 
             if (!mappedComponent.withIonInstance) {
                 return;
             }
 
-            // Set the state of the react component with either the pathed data, or the data
-            if (mappedComponent.addAsCollection) {
+            // Set the state of the react component with the data
+            if (mappedComponent.indexBy) {
                 // Add the data to an array of existing items
                 mappedComponent.withIonInstance.setState((prevState) => {
                     const collection = prevState[mappedComponent.statePropertyName] || {};
-                    collection[newValue[mappedComponent.collectionID]] = newValue;
+                    collection[data[mappedComponent.indexBy]] = data;
                     return {
                         [mappedComponent.statePropertyName]: collection,
                     };
                 });
             } else {
                 mappedComponent.withIonInstance.setState({
-                    [mappedComponent.statePropertyName]: newValue,
+                    [mappedComponent.statePropertyName]: data,
                 });
             }
         }
@@ -86,38 +72,85 @@ function keyChanged(key, data) {
 }
 
 /**
+ * Sends the data obtained from the keys to the connection. It either:
+ *     - sets state on the withIonInstances
+ *     - triggers the callback function
+ *
+ * @param {object} config
+ * @param {object} [config.withIonInstance]
+ * @param {string} [config.statePropertyName]
+ * @param {function} [config.callback]
+ * @param {*} val
+ * @param {string} [key]
+ */
+function sendDataToConnection(config, val, key) {
+    if (config.withIonInstance) {
+        config.withIonInstance.setState({
+            [config.statePropertyName]: val,
+        });
+    } else if (_.isFunction(config.callback)) {
+        config.callback(val, key);
+    }
+}
+
+/**
  * Subscribes a react component's state directly to a store key
  *
  * @param {object} mapping the mapping information to connect Ion to the components state
- * @param {string} mapping.keyPattern
- * @param {string} [mapping.path] a specific path of the store object to map to the state
- * @param {mixed} [mapping.defaultValue] to return if the there is nothing from the store
+ * @param {string} mapping.key
  * @param {string} mapping.statePropertyName the name of the property in the state to connect the data to
- * @param {boolean} [mapping.addAsCollection] rather than setting a single state value, this will add things to an array
- * @param {string} [mapping.collectionID] the name of the ID property to use for the collection
+ * @param {string} [mapping.indexBy] the name of a property to index the collection by
  * @param {object} [mapping.withIonInstance] whose setState() method will be called with any changed data
  *      This is used by React components to connect to Ion
  * @param {object} [mapping.callback] a method that will be called with changed data
  *      This is used by any non-React code to connect to Ion
+ * @param {boolean} [mapping.initWithStoredValues] If set to false, then no data will be prefilled into the
+ *  component
  * @returns {number} an ID to use when calling disconnect
  */
 function connect(mapping) {
     const connectionID = lastConnectionID++;
-    const connectionMapping = {
+    const config = {
         ...mapping,
         regex: RegExp(mapping.key),
     };
-    callbackToStateMapping[connectionID] = connectionMapping;
+    callbackToStateMapping[connectionID] = config;
 
-    // If the mapping has a callback, trigger it with the existing data
-    // in Ion so it initializes properly
-    // @TODO remove the if statement when this is supported by react components
-    // @TODO need to support full regex key connections for callbacks.
-    //      This would look something like getInitialStateFromConnectionID
-    if (mapping.callback) {
-        get(mapping.key)
-            .then(val => keyChanged(mapping.key, val));
+    if (mapping.initWithStoredValues === false) {
+        return connectionID;
     }
+
+    // Get all the data from Ion to initialize the connection with
+    AsyncStorage.getAllKeys()
+        .then((keys) => {
+            // Find all the keys matched by the config regex
+            const matchingKeys = _.filter(keys, config.regex.test.bind(config.regex));
+
+            // If the key being connected to does not exist, initialize the value with null
+            if (matchingKeys.length === 0) {
+                sendDataToConnection(config, null, config.key);
+                return;
+            }
+
+            // Currently, if a callback or react component is subscribing to a regex key
+            // and multiple keys match that regex,
+            // a data change will be published to the callback or react component for EACH
+            // matching key. In the future, this should be refactored so that identical
+            // React components or callbacks should only have a single data change published
+            // to them.
+            if (config.indexBy) {
+                Promise.all(_.map(matchingKeys, key => get(key)))
+                    .then(values => _.reduce(values, (finalObject, value) => ({
+                        ...finalObject,
+                        [value[config.indexBy]]: value,
+                    }), {}))
+                    .then(val => sendDataToConnection(config, val));
+            } else {
+                _.each(matchingKeys, (key) => {
+                    get(key).then(val => sendDataToConnection(config, val, key));
+                });
+            }
+        });
 
     return connectionID;
 }
@@ -147,49 +180,6 @@ function set(key, val) {
         .then(() => {
             keyChanged(key, val);
         });
-}
-
-/**
- * Returns initial state for a connection config so that stored data
- * is available shortly after the first render.
- *
- * @param {Number} connectionID
- * @return {Promise}
- */
-function getInitialStateFromConnectionID(connectionID) {
-    const config = callbackToStateMapping[connectionID];
-    if (config.addAsCollection) {
-        return AsyncStorage.getAllKeys()
-            .then((keys) => {
-                const regex = RegExp(config.key);
-                const matchingKeys = _.filter(keys, key => regex.test(key));
-                return Promise.all(_.map(matchingKeys, key => get(key)));
-            })
-            .then(values => _.reduce(values, (finalObject, value) => ({
-                ...finalObject,
-                [value[config.collectionID]]: value,
-            }), {}));
-    }
-    return get(config.key, config.path, config.defaultValue);
-}
-
-/**
- * Get multiple keys of data
- *
- * @param {string[]} keys
- * @returns {Promise}
- */
-function multiGet(keys) {
-    // AsyncStorage returns the data in an array format like:
-    // [ ['@MyApp_user', 'myUserValue'], ['@MyApp_key', 'myKeyValue'] ]
-    // This method will transform the data into a better JSON format like:
-    // {'@MyApp_user': 'myUserValue', '@MyApp_key': 'myKeyValue'}
-    return AsyncStorage.multiGet(keys)
-        .then(arrayOfData => _.reduce(arrayOfData, (finalData, keyValuePair) => ({
-            ...finalData,
-            [keyValuePair[0]]: JSON.parse(keyValuePair[1]),
-        }), {}))
-        .catch(err => console.error(`Unable to get item from persistent storage. Error: ${err}`, keys));
 }
 
 /**
@@ -227,14 +217,23 @@ function clear() {
  * Merge a new value into an existing value at a key
  *
  * @param {string} key
- * @param {string} val
- * @returns {Promise}
+ * @param {*} val
  */
 function merge(key, val) {
-    return AsyncStorage.mergeItem(key, JSON.stringify(val))
-        .then(() => get(key))
-        .then((newObject) => {
-            keyChanged(key, newObject);
+    // Values that are objects can be merged into storage
+    if (_.isObject(val)) {
+        AsyncStorage.mergeItem(key, JSON.stringify(val))
+            .then(() => get(key))
+            .then((newObject) => {
+                keyChanged(key, newObject);
+            });
+        return;
+    }
+
+    // Anything else (strings and numbers) need to be set into storage
+    AsyncStorage.setItem(key, JSON.stringify(val))
+        .then(() => {
+            keyChanged(key, val);
         });
 }
 
@@ -243,12 +242,9 @@ const Ion = {
     disconnect,
     set,
     multiSet,
-    get,
-    multiGet,
     merge,
     clear,
     init,
-    getInitialStateFromConnectionID,
 };
 
 export default Ion;

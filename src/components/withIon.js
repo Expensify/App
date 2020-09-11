@@ -67,16 +67,10 @@ export default function (mapIonToState) {
              * Takes a single mapping and binds the state of the component to the store
              *
              * @param {object} mapping
-             * @param {string} [mapping.path] a specific path of the store object to map to the state
-             * @param {mixed} [mapping.defaultValue] Used in conjunction with mapping.path to return if the there is
-             *  nothing at mapping.path
-             * @param {boolean} [mapping.addAsCollection] rather than setting a single state value, this will add things
-             *  to an array
-             * @param {string} [mapping.collectionID] the name of the ID property to use for the collection
-             * @param {mixed[]} [mapping.loaderParams] An array of params to be passed to the loader method
+             * @param {string} statePropertyName the name of the state property that Ion will add the data to
+             * @param {string} [mapping.indexBy] the name of the ID property to use for the collection
              * @param {boolean} [mapping.initWithStoredValues] If set to false, then no data will be prefilled into the
              *  component
-             * @param {string} statePropertyName the name of the state property that Ion will add the data to
              */
             connectMappingToIon(mapping, statePropertyName) {
                 const ionConnectionConfig = {
@@ -99,12 +93,6 @@ export default function (mapIonToState) {
                 } else {
                     connectionID = Ion.connect(ionConnectionConfig);
                     this.actionConnectionIDs[connectionID] = connectionID;
-                }
-
-                // Pre-fill the state with any data already in the store
-                if (mapping.initWithStoredValues !== false) {
-                    Ion.getInitialStateFromConnectionID(connectionID)
-                        .then(data => this.setState({[statePropertyName]: data}));
                 }
             }
 
