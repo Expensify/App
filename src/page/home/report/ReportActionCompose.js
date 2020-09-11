@@ -47,26 +47,26 @@ class ReportActionCompose extends React.Component {
                 skipBackup: true,
                 path: 'images',
                 cameraRoll: true,
+                waitUntilSaved: true
             },
         };
 
         ImagePicker.showImagePicker(options, (response) => {
-            console.log('Response = ', response);
+            //console.log('Response = ', response);
 
             if (response.didCancel) {
                 console.log('User cancelled image picker');
             } else if (response.error) {
                 console.log('ImagePicker Error: ', response.error);
             } else {
-                console.log('Response: ', response);
-                response.uri = response.uri.replace('file://', '');
-                addAction(reportID, '', response);
-
-                // You can also display the image using data:
-                // const source = { uri: 'data:image/jpeg;base64,' + response.data };
-                // this.setState({
-                //     avatarSource: source,
-                // });
+                // TODO: make this work nicely w/ the web shim
+                addAction(reportID, '', {
+                    // TODO: test if null name was causing empty response
+                    name: 'uploaded_image',
+                    type: response.type,
+                    uri: response.uri.replace('file://', ''),
+                    data: response.data
+                });
             }
         });
     }
