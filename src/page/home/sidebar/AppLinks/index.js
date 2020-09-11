@@ -17,7 +17,7 @@ const AppLinks = () => (
         )}
         {Platform.OS !== 'web' && (
             <Text
-                style={[styles.sidebarFooterLink, style.mr2]}
+                style={[styles.sidebarFooterLink, styles.mr2]}
                 onPress={() => openURLInNewTab('https://chat.expensify.com')}
             >
                 Web
