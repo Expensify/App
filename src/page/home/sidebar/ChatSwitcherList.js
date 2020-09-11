@@ -15,14 +15,14 @@ const propTypes = {
 
     // An array of options to allow the user to choose from
     options: PropTypes.arrayOf(PropTypes.shape({
-        // The login of a person (either email or phone number)
-        login: PropTypes.string.isRequired,
+        // The full name of the user if available
+        text: PropTypes.string.isRequired,
+
+        // The login (email/phone number) of the user, or the name of the chat room
+        alternateText: PropTypes.string.isRequired,
 
         // The URL of the person's avatar
         avatarURL: PropTypes.string.isRequired,
-
-        // The full name of the person (first + last), could be empty
-        fullName: PropTypes.string,
     })),
 
     // A function that is called when an option is selected. Selected option is passed as a param
@@ -41,7 +41,7 @@ const ChatSwitcherList = ({focusedIndex, options, onSelect}) => (
                 : styles.sidebarLinkText;
             return (
                 <TouchableOpacity
-                    key={option.login}
+                    key={option.alternateText}
                     onPress={() => onSelect(option)}
                 >
                     <View
@@ -60,17 +60,17 @@ const ChatSwitcherList = ({focusedIndex, options, onSelect}) => (
                             />
                         </View>
                         <View style={[styles.flex1]}>
-                            {option.fullName === '' ? (
+                            {option.text === '' ? (
                                 <Text style={[textStyle, styles.h3]} numberOfLines={1}>
-                                    {option.login}
+                                    {option.alternateText}
                                 </Text>
                             ) : (
                                 <>
                                     <Text style={[textStyle, styles.h3]} numberOfLines={1}>
-                                        {option.fullName}
+                                        {option.text}
                                     </Text>
                                     <Text style={[textStyle, styles.textMicro]} numberOfLines={1}>
-                                        {option.login}
+                                        {option.alternateText}
                                     </Text>
                                 </>
                             )}
