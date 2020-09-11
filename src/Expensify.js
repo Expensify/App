@@ -30,7 +30,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    redirectTo: '',
+    redirectTo: ROUTES.HOME,
 };
 
 class Expensify extends Component {
@@ -81,9 +81,22 @@ class Expensify extends Component {
                 <View style={styles.genericView} />
             );
         }
-        const redirectTo = !this.state.authToken ? ROUTES.SIGNIN : this.props.redirectTo;
-        return (
 
+        console.log(`this.state.authToken: ${this.state.authToken}`);
+        if (this.state.authToken === undefined) {
+            console.log('will got to login');
+            return (
+                <Router>
+                    <Redirect to={ROUTES.SIGNIN} />
+                    <Route path={[ROUTES.SIGNIN]} render={this.recordCurrentRoute} component={SignInPage} />
+                </Router>
+            );
+        }
+
+        console.log('will got to home page before' + this.props.redirectTo);
+        const redirectTo = !this.state.authToken ? ROUTES.SIGNIN : this.props.redirectTo;
+        console.log('will got to home page after' + redirectTo);
+        return (
             // TODO: Mobile does not support Beforeunload
             // <Beforeunload onBeforeunload={ActiveClientManager.removeClient}>
             <Router>

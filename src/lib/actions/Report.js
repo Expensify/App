@@ -225,6 +225,7 @@ function updateReportWithNewAction(reportID, reportAction) {
  * Initialize our pusher subscriptions to listen for new report comments
  */
 function subscribeToReportCommentEvents() {
+    console.log(`private-user-accountID-${currentUserAccountID}`);
     const pusherChannelName = `private-user-accountID-${currentUserAccountID}`;
     if (Pusher.isSubscribed(pusherChannelName) || Pusher.isAlreadySubscribing(pusherChannelName)) {
         return;
