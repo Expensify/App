@@ -31,6 +31,7 @@ const ImagePicker = {
         function onfocus() {
             body.removeEventListener('focus', onfocus, true);
 
+            // Add a 500 millisecond delay here to ensure input.files is set before checking it
             _.delay(() => {
                 const inputFiles = input.files;
                 if (!inputFiles.length) {
