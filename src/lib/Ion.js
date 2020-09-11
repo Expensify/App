@@ -44,7 +44,8 @@ function get(key) {
  * @returns {boolean}
  */
 function isKeyMatch(configKey, key) {
-    return key === configKey || Str.startsWith(key, `${configKey}_`);
+    const ionCollectionKey = _.first(configKey.split('_'));
+    return key === ionCollectionKey || Str.startsWith(key, `${ionCollectionKey}_`);
 }
 
 /**
@@ -94,15 +95,15 @@ function getCollection(configKey) {
  * @param {string} [config.statePropertyName]
  * @param {function} [config.callback]
  * @param {object|null} collection
- * @param {string} key
  * @param {*} item - the original data that updated vs. a collection
  */
-function sendDataToConnection(config, collection, key, item) {
-    console.log(key);
+function sendDataToConnection(config, collection, item) {
     let valueToSend = collection;
 
-    if (_.size(collection) === 1 && collection[key]) {
-        valueToSend = collection[key];
+    // If the key in our config is in the collection return
+    // it's value rather than the entire collection
+    if (collection && collection[config.key]) {
+        valueToSend = collection[config.key];
     }
 
     if (_.isFunction(config.callback)) {
@@ -132,7 +133,7 @@ function keyChanged(key, item) {
                 // If the subscriber is explicitly subscribing to this key or the key is
                 // collection key then get the data and return it to the subscriber.
                 if (subscriber && isKeyMatch(subscriber.key, key)) {
-                    sendDataToConnection(subscriber, collection, key, item);
+                    sendDataToConnection(subscriber, collection, item);
                 }
             });
         });
@@ -161,7 +162,7 @@ function connect(mapping) {
     }
 
     // Get collection data from Ion to initialize the connection with
-    getCollection(mapping.key).then(val => sendDataToConnection(mapping, val, mapping.key));
+    getCollection(mapping.key).then(val => sendDataToConnection(mapping, val));
     return connectionID;
 }
 
