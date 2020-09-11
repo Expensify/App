@@ -24,11 +24,6 @@ class TextInputFocusable extends React.Component {
     }
 
     render() {
-        console.debug('test1');
-        if (this.textInput) {
-            console.debug(`test2 ${this.textInput.value}`);
-        }
-
         return (
             <TextInput
                 ref={el => this.textInput = el}
