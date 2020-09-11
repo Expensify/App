@@ -41,6 +41,8 @@ class ReportActionCompose extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        // The first time the component loads the props is emptry and the next time it may contain value.
+        // If it does let's update this.comment so that it matches the defaultValue that we show in textInput.
         if (this.props.comment && prevProps.comment === '' && prevProps.comment !== this.props.comment) {
             this.comment = this.props.comment;
         }
