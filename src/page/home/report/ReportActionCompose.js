@@ -32,7 +32,7 @@ class ReportActionCompose extends React.Component {
     constructor(props) {
         super(props);
 
-        this.updateComment = this.updateComment.bind(this);
+        this.updateComment = _.debounce(this.updateComment.bind(this), 1000, false);
         this.submitForm = this.submitForm.bind(this);
         this.triggerSubmitShortcut = this.triggerSubmitShortcut.bind(this);
         this.submitForm = this.submitForm.bind(this);
@@ -70,11 +70,9 @@ class ReportActionCompose extends React.Component {
             e.preventDefault();
         }
 
-        if (!this.props.comment) {
-            return;
-        }
-
-        const trimmedComment = this.props.comment.trim();
+        // Let's get the data directly from textInput because saving the data in Ion report comment is asynchronous
+        // so if we refer this.props.comment here we won't get the most recent value if the user types fast.
+        const trimmedComment = this.textInput.value.trim();
 
         // Don't submit empty comments
         // @TODO show an error in the UI

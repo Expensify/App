@@ -1,6 +1,7 @@
 import React from 'react';
 import {TextInput} from 'react-native';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 
 const propTypes = {
     // A ref to forward to the text input
@@ -31,6 +32,14 @@ class TextInputFocusable extends React.Component {
 
     componentDidMount() {
         this.focusInput();
+
+        // This callback prop is used by the parent component using the constructor to
+        // get a ref to the inner textInput element e.g. if we do
+        // <constructor ref={el => this.textInput = el} /> this will not
+        // return a ref to the component, but rather the HTML element by default
+        if (this.props.forwardedRef && _.isFunction(this.props.forwardedRef)) {
+            this.props.forwardedRef(this.textInput);
+        }
     }
 
     componentDidUpdate(prevProps) {
