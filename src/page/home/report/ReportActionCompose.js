@@ -32,10 +32,28 @@ class ReportActionCompose extends React.Component {
     constructor(props) {
         super(props);
 
-        this.updateComment = _.debounce(this.updateComment.bind(this), 1000, false);
+        this.updateComment = this.updateComment.bind(this);
+        this.debouncedSaveReportComment = _.debounce(this.debouncedSaveReportComment.bind(this), 1000, false);
         this.submitForm = this.submitForm.bind(this);
         this.triggerSubmitShortcut = this.triggerSubmitShortcut.bind(this);
         this.submitForm = this.submitForm.bind(this);
+        this.comment = '';
+    }
+
+    componentDidUpdate(prevProps) {
+        if (this.props.comment && prevProps.comment === '' && prevProps.comment !== this.props.comment) {
+            this.comment = this.props.comment;
+        }
+    }
+
+    /**
+     * Save our report comment in Ion. We debounce this method in the constructor so that it's not called too often
+     * to update Ion and re-render this component.
+     *
+     * @param {string} comment
+     */
+    debouncedSaveReportComment(comment) {
+        saveReportComment(this.props.reportID, comment || '');
     }
 
     /**
@@ -44,7 +62,8 @@ class ReportActionCompose extends React.Component {
      * @param {string} newComment
      */
     updateComment(newComment) {
-        saveReportComment(this.props.reportID, newComment || '');
+        this.comment = newComment;
+        this.debouncedSaveReportComment(newComment);
     }
 
     /**
@@ -72,7 +91,7 @@ class ReportActionCompose extends React.Component {
 
         // Let's get the data directly from textInput because saving the data in Ion report comment is asynchronous
         // so if we refer this.props.comment here we won't get the most recent value if the user types fast.
-        const trimmedComment = this.textInput.value.trim();
+        const trimmedComment = this.comment.trim();
 
         // Don't submit empty comments
         // @TODO show an error in the UI
