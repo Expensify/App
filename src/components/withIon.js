@@ -67,10 +67,22 @@ export default function (mapIonToState) {
                 _.each(this.activeConnectionIDsWithPropsData, Ion.disconnect);
             }
 
-            propsDidLoad() {
-                if (_.size(this.actionConnectionIDs) + _.size(this.activeConnectionIDsWithPropsData) === _.size(mapIonToState)) {
-                    this.setState({loading: false});
+            /**
+             * Compares the total number of connections with the total
+             * number of Ion keys mapped to state. When we have them all
+             * we are ready to render the component.
+             */
+            checkAndUpdateLoading() {
+                const totalConnectionSize = _.size({
+                    ...this.actionConnectionIDs,
+                    ...this.activeConnectionIDsWithPropsData
+                });
+
+                if (totalConnectionSize !== _.size(mapIonToState)) {
+                    return;
                 }
+
+                this.setState({loading: false});
             }
 
             /**
@@ -107,15 +119,15 @@ export default function (mapIonToState) {
                     // Store the connectionID with a key that is unique to the data coming from the props which allows
                     // it to be easily reconnected to when the props change
                     Ion.connect(ionConnectionConfig)
-                        .then(connectionID => {
+                        .then((connectionID) => {
                             this.activeConnectionIDsWithPropsData[mapping.pathForProps] = connectionID;
-                            this.propsDidLoad();
+                            this.checkAndUpdateLoading();
                         });
                 } else {
                     Ion.connect(ionConnectionConfig)
-                        .then(connectionID => {
+                        .then((connectionID) => {
                             this.actionConnectionIDs[connectionID] = connectionID;
-                            this.propsDidLoad();
+                            this.checkAndUpdateLoading();
                         });
                 }
             }
