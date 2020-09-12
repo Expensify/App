@@ -76,7 +76,7 @@ function getCollection(configKey) {
                 return Promise.resolve(null);
             }
 
-            // Get the values and send each one back to the subscriber callback or component
+            // Get the values and build a collection with each key/value
             return Promise.all(_.map(matchingKeys, key => get(key)))
                 .then(values => _.reduce(values, (finalObject, value, i) => ({
                     ...finalObject,
