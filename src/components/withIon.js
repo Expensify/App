@@ -68,7 +68,6 @@ export default function (mapIonToState) {
              *
              * @param {object} mapping
              * @param {string} statePropertyName the name of the state property that Ion will add the data to
-             * @param {string} [mapping.indexBy] the name of the ID property to use for the collection
              * @param {string} [mapping.pathForProps] the statePropertyName can contain the string %DATAFROMPROPS% wich
              *  will be replaced with data from the props matching this path. That way, the component can connect to an
              *  Ion key that uses data from this.props.
