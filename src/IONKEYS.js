@@ -10,8 +10,10 @@ export default {
     MY_PERSONAL_DETAILS: 'myPersonalDetails',
     NETWORK: 'network',
     PERSONAL_DETAILS: 'personalDetails',
+    SESSION: 'session',
+
+    // Collection Keys
     REPORT: 'report',
     REPORT_ACTIONS: 'reportActions',
     REPORT_DRAFT_COMMENT: 'reportDraftComment',
-    SESSION: 'session',
 };
