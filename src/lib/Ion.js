@@ -117,11 +117,11 @@ function connect(mapping) {
     callbackToStateMapping[connectionID] = config;
 
     if (mapping.initWithStoredValues === false) {
-        return connectionID;
+        return Promise.resolve(connectionID);
     }
 
     // Get all the data from Ion to initialize the connection with
-    AsyncStorage.getAllKeys()
+    return AsyncStorage.getAllKeys()
         .then((keys) => {
             // Find all the keys matched by the config regex
             const matchingKeys = _.filter(keys, config.regex.test.bind(config.regex));
@@ -139,20 +139,17 @@ function connect(mapping) {
             // React components or callbacks should only have a single data change published
             // to them.
             if (config.indexBy) {
-                Promise.all(_.map(matchingKeys, key => get(key)))
+                return Promise.all(_.map(matchingKeys, key => get(key)))
                     .then(values => _.reduce(values, (finalObject, value) => ({
                         ...finalObject,
                         [value[config.indexBy]]: value,
                     }), {}))
                     .then(val => sendDataToConnection(config, val));
-            } else {
-                _.each(matchingKeys, (key) => {
-                    get(key).then(val => sendDataToConnection(config, val, key));
-                });
             }
-        });
 
-    return connectionID;
+            return Promise.all(_.map(matchingKeys, key => get(key).then(val => sendDataToConnection(config, val, key))));
+        })
+        .then(() => connectionID);
 }
 
 /**

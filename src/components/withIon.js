@@ -33,6 +33,10 @@ export default function (mapIonToState) {
                 // this.props. These are stored differently because anytime the props change, the component has to be
                 // reconnected to Ion with the new props.
                 this.activeConnectionIDsWithPropsData = {};
+
+                this.state = {
+                    loading: true,
+                };
             }
 
             componentDidMount() {
@@ -63,6 +67,12 @@ export default function (mapIonToState) {
                 _.each(this.activeConnectionIDsWithPropsData, Ion.disconnect);
             }
 
+            propsDidLoad() {
+                if (_.size(this.actionConnectionIDs) + _.size(this.activeConnectionIDsWithPropsData) === _.size(mapIonToState)) {
+                    this.setState({loading: false});
+                }
+            }
+
             /**
              * Takes a single mapping and binds the state of the component to the store
              *
@@ -86,8 +96,6 @@ export default function (mapIonToState) {
                     withIonInstance: this,
                 };
 
-                let connectionID;
-
                 // Connect to Ion and keep track of the connectionID
                 if (mapping.pathForProps) {
                     // If there is a path for props data, then the data needs to be pulled out of props and parsed
@@ -98,15 +106,31 @@ export default function (mapIonToState) {
 
                     // Store the connectionID with a key that is unique to the data coming from the props which allows
                     // it to be easily reconnected to when the props change
-                    connectionID = Ion.connect(ionConnectionConfig);
-                    this.activeConnectionIDsWithPropsData[mapping.pathForProps] = connectionID;
+                    Ion.connect(ionConnectionConfig)
+                        .then(connectionID => {
+                            this.activeConnectionIDsWithPropsData[mapping.pathForProps] = connectionID;
+                            this.propsDidLoad();
+                        });
                 } else {
-                    connectionID = Ion.connect(ionConnectionConfig);
-                    this.actionConnectionIDs[connectionID] = connectionID;
+                    Ion.connect(ionConnectionConfig)
+                        .then(connectionID => {
+                            this.actionConnectionIDs[connectionID] = connectionID;
+                            this.propsDidLoad();
+                        });
                 }
             }
 
             render() {
+                if (this.state.loading) {
+                    return null;
+                }
+
+                const stateToPass = {
+                    ...this.state,
+                };
+
+                delete stateToPass.loading;
+
                 // Spreading props and state is necessary in an HOC where the data cannot be predicted
                 return (
                     <WrappedComponent
