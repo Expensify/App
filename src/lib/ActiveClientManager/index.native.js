@@ -8,11 +8,9 @@ function removeClient() {}
 function isClientTheLeader() {
     return true;
 }
-function addStorageEventListener() {}
 
 export {
     init,
     removeClient,
-    isClientTheLeader,
-    addStorageEventListener,
+    isClientTheLeader
 };
