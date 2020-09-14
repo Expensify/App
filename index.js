@@ -26,19 +26,22 @@ function webUpdate(currentVersion) {
         });
 }
 
+const webUpdater = currentVersion => ({
+    init: () => {
+        // We want to check for updates and refresh the page if necessary when the app is backgrounded.
+        // That way, it will auto-update silently when they minimize the page,
+        // and we don't bug the user any more than necessary :)
+        window.addEventListener('visibilitychange', () => {
+            if (window.visibilityState === 'hidden') {
+                webUpdate(currentVersion);
+            }
+        });
+    },
+    update: webUpdate(currentVersion),
+});
+
 // When app loads, get current version
 download('version.json')
     .then((currentVersion) => {
-        checkForUpdates(() => {
-            webUpdate(currentVersion);
-        }, () => {
-            // We want to check for updates and refresh the page if necessary when the app is backgrounded.
-            // That way, it will auto-update silently when they minimize the page,
-            // and we don't bug the user any more than necessary :)
-            window.addEventListener('visibilitychange', () => {
-                if (window.visibilityState === 'hidden') {
-                    webUpdate(currentVersion);
-                }
-            });
-        });
+        checkForUpdates(webUpdater(currentVersion));
     });

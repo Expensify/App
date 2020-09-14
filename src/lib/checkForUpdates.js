@@ -13,17 +13,20 @@ Ion.connect({
 /**
  * Check for updates every hour, and perform and platform-specific update if there is a network connection.
  *
- * @param {Function} platformSpecificUpdate
- * @param {Function} platformSpecificInitializer
+ * @param {Object} platformSpecificUpdater
+ * @param {Function} platformSpecificUpdater.update
+ * @param {?Function} platformSpecificUpdater.init
  */
-export default function (platformSpecificUpdate, platformSpecificInitializer = () => {}) {
-    platformSpecificInitializer();
+export default function (platformSpecificUpdater) {
+    if (platformSpecificUpdater.init) {
+        platformSpecificUpdater.init();
+    }
 
     // Check for updates every hour
     setInterval(() => {
         // We only want to attempt updates if we're online
         if (isOnline) {
-            platformSpecificUpdate();
+            platformSpecificUpdater.update();
         }
     }, UPDATE_INTERVAL);
 }

@@ -63,7 +63,7 @@ const mainWindow = (() => {
         .then(browserWindow => loadURL(browserWindow))
 
         // Check for a new version of the app on launch
-        .then(() => checkForUpdates(autoUpdater.checkForUpdatesAndNotify));
+        .then(() => checkForUpdates({update: autoUpdater.checkForUpdatesAndNotify}));
 });
 
 mainWindow().then(window => window);
