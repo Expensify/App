@@ -112,7 +112,7 @@ export default compose(
     withRouter,
     withIon({
         reports: {
-            key: IONKEYS.REPORT,
+            key: IONKEYS.COLLECTION.REPORT,
         }
     }),
 )(SidebarLinks);

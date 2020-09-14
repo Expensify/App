@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import AsyncStorage from '@react-native-community/async-storage';
 import Str from './Str';
+import IONKEYS from '../IONKEYS';
 
 // Keeps track of the last connectionID that was used so we can keep incrementing it
 let lastConnectionID = 0;
@@ -49,43 +50,6 @@ function isKeyMatch(configKey, key) {
 }
 
 /**
- * Returns an object collection for all keys stored in Ion that match
- * the provided key. Said another way, this will return an exact snapshot of
- * the current Ion storage state, but with only the keys we want to know about.
- *
- * e.g. if we pass 'report' this would match on 'report_42', 'report_43',
- * etc and our final object would be:
- *
- * {report_42: {...}, report_43: {...}}
- *
- * If only a single key matches (not a collection) then we return:
- *
- * {personalDetails: {...}}
- *
- * @param {string} configKey
- * @returns {object}
- */
-function getCollection(configKey) {
-    return AsyncStorage.getAllKeys()
-        .then((keys) => {
-            // Find all the keys matched by the config key
-            const matchingKeys = _.filter(keys, key => isKeyMatch(configKey, key));
-
-            // If the key being connected to does not exist, initialize the value with null
-            if (matchingKeys.length === 0) {
-                return Promise.resolve(null);
-            }
-
-            // Get the values and build a collection with each key/value
-            return Promise.all(_.map(matchingKeys, key => get(key)))
-                .then(values => _.reduce(values, (finalObject, value, i) => ({
-                    ...finalObject,
-                    [matchingKeys[i]]: value,
-                }), {}));
-        });
-}
-
-/**
  * Sends the data obtained from the keys to the connection. It either:
  *     - sets state on the withIonInstances
  *     - triggers the callback function
@@ -94,20 +58,11 @@ function getCollection(configKey) {
  * @param {object} [config.withIonInstance]
  * @param {string} [config.statePropertyName]
  * @param {function} [config.callback]
- * @param {object|null} collection
- * @param {*} item - the original data that updated vs. a collection
+ * @param {*|null} data
  */
-function sendDataToConnection(config, collection, item) {
-    let valueToSend = collection;
-
-    // If the key in our config is in the collection return
-    // it's value rather than the entire collection
-    if (collection && collection[config.key]) {
-        valueToSend = collection[config.key];
-    }
-
+function sendDataToConnection(config, data) {
     if (_.isFunction(config.callback)) {
-        config.callback(valueToSend, item);
+        config.callback(data);
     }
 
     if (!config.withIonInstance) {
@@ -115,28 +70,53 @@ function sendDataToConnection(config, collection, item) {
     }
 
     config.withIonInstance.setState({
-        [config.statePropertyName]: valueToSend,
+        [config.statePropertyName]: data,
     });
+}
+
+/**
+ * Checks to see if the a subscriber's supplied key
+ * is associated with a collection of keys.
+ *
+ * @param {String} key
+ * @returns {Boolean}
+ */
+function isCollectionKey(key) {
+    return !_.isUndefined(IONKEYS.COLLECTION[key]);
 }
 
 /**
  * When a key change happens, search for any callbacks matching the key or collection key and trigger those callbacks
  *
  * @param {string} key
- * @param {mixed} item
+ * @param {mixed} data
  */
-function keyChanged(key, item) {
-    getCollection(key)
-        .then((collection) => {
-            // Find components that were added with connect() and trigger their setState() method with the new data
-            _.each(callbackToStateMapping, (subscriber) => {
-                // If the subscriber is explicitly subscribing to this key or the key is
-                // collection key then get the data and return it to the subscriber.
-                if (subscriber && isKeyMatch(subscriber.key, key)) {
-                    sendDataToConnection(subscriber, collection, item);
-                }
+function keyChanged(key, data) {
+    // Find components that were added with connect() and trigger their setState() method with the new data
+    _.each(callbackToStateMapping, (mappedComponent) => {
+        if (mappedComponent && isKeyMatch(mappedComponent.key, key)) {
+            if (_.isFunction(mappedComponent.callback)) {
+                mappedComponent.callback(data, key);
+            }
+        }
+
+        if (!mappedComponent.withIonInstance) {
+            return;
+        }
+
+        // Check if we are subscribing to a collection key and add this item as a collection
+        if (isCollectionKey(mappedComponent.key)) {
+            mappedComponent.withIonInstance.setState((prevState) => {
+                const collection = prevState[mappedComponent.statePropertyName] || {};
+                collection[key] = data;
+                return {[mappedComponent.statePropertyName]: collection};
             });
-        });
+        } else {
+            mappedComponent.withIonInstance.setState({
+                [mappedComponent.statePropertyName]: data,
+            });
+        }
+    });
 }
 
 /**
@@ -161,8 +141,36 @@ function connect(mapping) {
         return connectionID;
     }
 
-    // Get collection data from Ion to initialize the connection with
-    getCollection(mapping.key).then(val => sendDataToConnection(mapping, val));
+    AsyncStorage.getAllKeys()
+        .then((keys) => {
+            // Find all the keys matched by the config key
+            const matchingKeys = _.filter(keys, key => isKeyMatch(mapping.key, key));
+
+            // If the key being connected to does not exist, initialize the value with null
+            if (matchingKeys.length === 0) {
+                sendDataToConnection(mapping, null);
+                return;
+            }
+
+            // When using a callback subscriber we will trigger the callback
+            // for each key we find. It's up to the subscriber to know whether
+            // to expect a single key or multiple keys in the case of a collection.
+            // React components are an exception since we'll want to send their
+            // initial data as a single object when using collection keys.
+            if (mapping.callback) {
+                _.each(keys, key => get(key).then(val => sendDataToConnection(mapping, val)));
+            } else if (isCollectionKey(mapping.key)) {
+                Promise.all(_.map(matchingKeys, key => get(key)))
+                    .then(values => _.reduce(values, (finalObject, value, i) => ({
+                        ...finalObject,
+                        [matchingKeys[i]]: value,
+                    }), {}))
+                    .then(val => sendDataToConnection(mapping, val));
+            } else {
+                // There should be only one key at this point
+                get(matchingKeys[0]).then(val => sendDataToConnection(mapping, val));
+            }
+        });
     return connectionID;
 }
 
