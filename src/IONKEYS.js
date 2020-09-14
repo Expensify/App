@@ -13,7 +13,9 @@ export default {
     SESSION: 'session',
 
     // Collection Keys
-    REPORT: 'report_',
-    REPORT_ACTIONS: 'reportActions_',
-    REPORT_DRAFT_COMMENT: 'reportDraftComment_',
+    COLLECTION: {
+        REPORT: 'report_',
+        REPORT_ACTIONS: 'reportActions_',
+        REPORT_DRAFT_COMMENT: 'reportDraftComment_',
+    }
 };

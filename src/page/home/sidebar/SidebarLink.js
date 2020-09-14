@@ -69,7 +69,7 @@ export default compose(
     withRouter,
     withIon({
         report: {
-            key: `${IONKEYS.REPORT}%DATAFROMPROPS%`,
+            key: `${IONKEYS.COLLECTION.REPORT}%DATAFROMPROPS%`,
             pathForProps: 'reportID',
         }
     }),
