@@ -37,6 +37,8 @@ class ReportActionsView extends React.Component {
 
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
         this.recordMaxAction = this.recordMaxAction.bind(this);
+
+        this.sortedReportActions = _.chain(props.reportActions).sortBy('sequenceNumber');
     }
 
     componentDidMount() {
@@ -46,6 +48,8 @@ class ReportActionsView extends React.Component {
 
     componentDidUpdate(prevProps) {
         const isReportVisible = this.props.reportID === parseInt(this.props.match.params.reportID, 10);
+
+        this.sortedReportActions = _.chain(this.props.reportActions).sortBy('sequenceNumber');
 
         // When the number of actions change, wait three seconds, then record the max action
         // This will make the unread indicator go away if you receive comments in the same chat you're looking at
@@ -65,19 +69,18 @@ class ReportActionsView extends React.Component {
      * Also checks to ensure that the comment is not too old to
      * be considered part of the same comment
      *
-     * @param {Array} sortedReportAction - list of all the actions already sorted by SequenceNumber
      * @param {Number} actionIndex - index of the comment item in state to check
      *
      * @return {Boolean}
      */
-    isConsecutiveActionMadeByPreviousActor(sortedReportAction, actionIndex) {
+    isConsecutiveActionMadeByPreviousActor(actionIndex) {
         // This is the created action and the very first action so it cannot be a consecutive comment.
         if (actionIndex === 0) {
             return false;
         }
 
-        const previousAction = sortedReportAction[actionIndex - 1];
-        const currentAction = sortedReportAction[actionIndex];
+        const previousAction = this.sortedReportActions.value()[actionIndex - 1];
+        const currentAction = this.sortedReportActions.value()[actionIndex];
 
         // It's OK for there to be no previous action, and in that case, false will be returned
         // so that the comment isn't grouped
@@ -133,7 +136,6 @@ class ReportActionsView extends React.Component {
             );
         }
 
-        const sortedReportAction = _.chain(this.props.reportActions).sortBy('sequenceNumber');
         return (
             <ScrollView
                 ref={(el) => {
@@ -143,11 +145,11 @@ class ReportActionsView extends React.Component {
                 bounces={false}
                 contentContainerStyle={[styles.chatContentScrollView]}
             >
-                {sortedReportAction.map((item, index) => (
+                {this.sortedReportActions.map((item, index) => (
                     <ReportActionItem
                         key={item.sequenceNumber}
                         action={item}
-                        displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(sortedReportAction.value(), index)}
+                        displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
                     />
                 )).value()}
             </ScrollView>
