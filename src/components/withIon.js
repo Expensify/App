@@ -120,11 +120,9 @@ export default function (mapIonToState) {
                     return null;
                 }
 
-                const stateToPass = {
-                    ...this.state,
-                };
-
-                delete stateToPass.loading;
+                // Remove any internal state properties used by withIon
+                // that should not be passed to a wrapped component.
+                const stateToPass = _.omit(this.state, 'loading');
 
                 // Spreading props and state is necessary in an HOC where the data cannot be predicted
                 return (
@@ -132,7 +130,7 @@ export default function (mapIonToState) {
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...this.props}
                         // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...this.state}
+                        {...stateToPass}
                     />
                 );
             }
