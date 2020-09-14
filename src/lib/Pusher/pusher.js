@@ -354,6 +354,14 @@ function disconnect() {
     socket = null;
 }
 
+/**
+ * Disconnect and Re-Connect Pusher
+ */
+function reconnect() {
+    socket.disconnect();
+    socket.connect();
+}
+
 if (window) {
     /**
      * Pusher socket for debugging purposes
@@ -376,4 +384,5 @@ export {
     registerSocketEventCallback,
     registerCustomAuthorizer,
     disconnect,
+    reconnect,
 };
