@@ -226,7 +226,7 @@ class ChatSwitcherView extends React.Component {
         // A Set is used here so that duplicate values are automatically removed.
         const matches = new Set();
         const searchOptions = _.values(this.props.personalDetails);
-        
+
         // Update the personal details options to have generic names for their properties
         _.each(searchOptions, (element, index) => {
             searchOptions[index].text = element.fullName;
