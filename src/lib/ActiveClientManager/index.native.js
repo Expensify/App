@@ -4,13 +4,11 @@
  */
 
 function init() {}
-function removeClient() {}
 function isClientTheLeader() {
     return true;
 }
 
 export {
     init,
-    removeClient,
     isClientTheLeader
 };
