@@ -13,17 +13,18 @@ Ion.connect({
 });
 
 /**
- * Add our client ID to the list of active IDs
- */
-function init() {
-    Ion.merge(IONKEYS.ACTIVE_CLIENTS, [clientID]);
-}
-
-/**
  * Remove this client ID from the list of active client IDs when this client is exited
  */
 function removeClient() {
     Ion.set(IONKEYS.ACTIVE_CLIENTS, _.without(activeClients, clientID));
+}
+
+/**
+ * Add our client ID to the list of active IDs
+ */
+function init() {
+    Ion.merge(IONKEYS.ACTIVE_CLIENTS, [clientID]);
+    window.addEventListener('beforeunload', removeClient);
 }
 
 /**
@@ -37,6 +38,5 @@ function isClientTheLeader() {
 
 export {
     init,
-    removeClient,
     isClientTheLeader
 };
