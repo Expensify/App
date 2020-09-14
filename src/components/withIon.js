@@ -60,8 +60,10 @@ export default function (mapIonToState) {
                     }
                 });
 
-                if (this.state.loading && _.every(_.keys(mapIonToState), (key) => this.state[key])) {
-                    // Make sure each Ion key we requested has been set to state with a value of some kind
+                // Make sure each Ion key we requested has been set to state with a value of some kind.
+                // We are doing this so that the wrapped component will only render when all the data
+                // it needs is available to it.
+                if (this.state.loading && _.every(_.keys(mapIonToState), key => this.state[key])) {
                     this.setState({loading: false});
                 }
             }
