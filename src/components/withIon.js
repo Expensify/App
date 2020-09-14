@@ -80,7 +80,7 @@ export default function (mapIonToState) {
                 }
 
                 // Filter all keys by those which we do want to init with stored values
-                // since key's that are configured to not init with stored values will
+                // since keys that are configured to not init with stored values will
                 // never appear on state when the component mounts - only after they update
                 // organically.
                 const requiredKeysForInit = _.chain(mapIonToState)
@@ -93,7 +93,7 @@ export default function (mapIonToState) {
                     .keys()
                     .value();
 
-                // All state keys should must exist and should at least be null
+                // All state keys should exist and at least have a value of null
                 if (_.every(requiredKeysForInit, key => !_.isUndefined(this.state[key]))) {
                     this.setState({loading: false});
                 }
@@ -148,7 +148,7 @@ export default function (mapIonToState) {
                 }
 
                 // Remove any internal state properties used by withIon
-                // that should not be passed to a wrapped component.
+                // that should not be passed to a wrapped component
                 const stateToPass = _.omit(this.state, 'loading');
 
                 // Spreading props and state is necessary in an HOC where the data cannot be predicted
