@@ -117,7 +117,7 @@ function connect(mapping) {
     callbackToStateMapping[connectionID] = config;
 
     if (mapping.initWithStoredValues === false) {
-        connectionID;
+        return connectionID;
     }
 
     // Get all the data from Ion to initialize the connection with
@@ -146,11 +146,11 @@ function connect(mapping) {
                     }), {}))
                     .then(val => sendDataToConnection(config, val));
                 return;
+            } else {
+                _.each(matchingKeys, (key) => {
+                    get(key).then(val => sendDataToConnection(config, val, key));
+                });
             }
-
-            _.each(matchingKeys, (key) => {
-                get(key).then(val => sendDataToConnection(config, val, key));
-            });
         });
 
     return connectionID;
