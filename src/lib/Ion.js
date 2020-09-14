@@ -145,7 +145,6 @@ function connect(mapping) {
                         [value[config.indexBy]]: value,
                     }), {}))
                     .then(val => sendDataToConnection(config, val));
-                return;
             } else {
                 _.each(matchingKeys, (key) => {
                     get(key).then(val => sendDataToConnection(config, val, key));
