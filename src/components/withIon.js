@@ -59,30 +59,17 @@ export default function (mapIonToState) {
                         }
                     }
                 });
+
+                if (this.state.loading && _.every(_.keys(mapIonToState), (key) => this.state[key])) {
+                    // Make sure each Ion key we requested has been set to state with a value of some kind
+                    this.setState({loading: false});
+                }
             }
 
             componentWillUnmount() {
                 // Disconnect everything from Ion
                 _.each(this.actionConnectionIDs, Ion.disconnect);
                 _.each(this.activeConnectionIDsWithPropsData, Ion.disconnect);
-            }
-
-            /**
-             * Compares the total number of connections with the total
-             * number of Ion keys mapped to state. When we have them all
-             * we are ready to render the component.
-             */
-            checkAndUpdateLoading() {
-                const totalConnectionSize = _.size({
-                    ...this.actionConnectionIDs,
-                    ...this.activeConnectionIDsWithPropsData
-                });
-
-                if (totalConnectionSize !== _.size(mapIonToState)) {
-                    return;
-                }
-
-                this.setState({loading: false});
             }
 
             /**
@@ -108,6 +95,8 @@ export default function (mapIonToState) {
                     withIonInstance: this,
                 };
 
+                let connectionID;
+
                 // Connect to Ion and keep track of the connectionID
                 if (mapping.pathForProps) {
                     // If there is a path for props data, then the data needs to be pulled out of props and parsed
@@ -118,17 +107,11 @@ export default function (mapIonToState) {
 
                     // Store the connectionID with a key that is unique to the data coming from the props which allows
                     // it to be easily reconnected to when the props change
-                    Ion.connect(ionConnectionConfig)
-                        .then((connectionID) => {
-                            this.activeConnectionIDsWithPropsData[mapping.pathForProps] = connectionID;
-                            this.checkAndUpdateLoading();
-                        });
+                    connectionID = Ion.connect(ionConnectionConfig);
+                    this.activeConnectionIDsWithPropsData[mapping.pathForProps] = connectionID;
                 } else {
-                    Ion.connect(ionConnectionConfig)
-                        .then((connectionID) => {
-                            this.actionConnectionIDs[connectionID] = connectionID;
-                            this.checkAndUpdateLoading();
-                        });
+                    connectionID = Ion.connect(ionConnectionConfig);
+                    this.actionConnectionIDs[connectionID] = connectionID;
                 }
             }
 
