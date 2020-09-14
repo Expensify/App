@@ -84,12 +84,7 @@ export default function (mapIonToState) {
                 // never appear on state when the component mounts - only after they update
                 // organically.
                 const requiredKeysForInit = _.chain(mapIonToState)
-                    .reduce((prev, curr, key) => {
-                        if (curr.initWithStoredValues === false) {
-                            return prev;
-                        }
-                        return ({...prev, [key]: curr});
-                    }, {})
+                    .omit(config => config.initWithStoredValues === false)
                     .keys()
                     .value();
 
