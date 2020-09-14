@@ -127,7 +127,7 @@ function connect(mapping) {
 
             if (matchingKeys.length > 1 && config.withIonInstance && !config.indexBy) {
                 // eslint-disable-next-line no-console
-                console.warning(`It looks like a React component subscribed to multiple Ion keys without 
+                console.warn(`It looks like a React component subscribed to multiple Ion keys without 
                 providing an 'indexBy' option. This will result in undefined behavior. The best thing to do is 
                 provide an 'indexBy' value, or use a more specific regex that will only match a single Ion key.`);
             }
@@ -214,7 +214,23 @@ function clear() {
  * @param {*} val
  */
 function merge(key, val) {
-    // Values that are objects or arrays are merged into storage
+    // Arrays need to be manually merged because the AsyncStorage behavior
+    // is not desired when merging arrays. `AsyncStorage.mergeItem('test', [1]);
+    // will result in `{0: 1}` being set in storage, when `[1]` is what is expected
+    if (_.isArray(val)) {
+        let newArray;
+        get(key)
+            .then((prevVal) => {
+                newArray = [...prevVal, ...val];
+                return AsyncStorage.setItem(key, JSON.stringify(newArray));
+            })
+            .then(() => {
+                keyChanged(key, newArray);
+            });
+        return;
+    }
+
+    // Values that are objects are merged normally into storage
     if (_.isObject(val)) {
         AsyncStorage.mergeItem(key, JSON.stringify(val))
             .then(() => get(key))

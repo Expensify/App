@@ -16,14 +16,14 @@ Ion.connect({
  * Add our client ID to the list of active IDs
  */
 function init() {
-    Ion.merge(IONKEYS.ACTIVE_CLIENTS, {[clientID]: clientID});
+    Ion.merge(IONKEYS.ACTIVE_CLIENTS, [clientID]);
 }
 
 /**
- * Remove this client ID from the array of active client IDs when this client is exited
+ * Remove this client ID from the list of active client IDs when this client is exited
  */
 function removeClient() {
-    Ion.set(IONKEYS.ACTIVE_CLIENTS, _.omit(activeClients, clientID));
+    Ion.set(IONKEYS.ACTIVE_CLIENTS, _.without(activeClients, clientID));
 }
 
 /**
@@ -32,7 +32,7 @@ function removeClient() {
  * @returns {boolean}
  */
 function isClientTheLeader() {
-    return _.first(_.keys(activeClients)) === clientID;
+    return _.first(activeClients) === clientID;
 }
 
 export {
