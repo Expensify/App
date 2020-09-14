@@ -4,8 +4,10 @@
  *
  * @param {function} callback
  */
-export default (callback) => {
+function addStoreEventHandler(callback) {
     window.addEventListener('storage', (e) => {
         callback(e.key, JSON.parse(e.newValue));
     });
-};
+}
+
+export default addStoreEventHandler;

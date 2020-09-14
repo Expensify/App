@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import AsyncStorage from '@react-native-community/async-storage';
-import StorageEvent from './StorageEvent';
+import addStoreEventHandler from './StorageEvent';
 
 // Keeps track of the last connectionID that was used so we can keep incrementing it
 let lastConnectionID = 0;
@@ -49,7 +49,7 @@ function keyChanged(key, data) {
  * Initialize the store with actions and listening for storage events
  */
 function init() {
-    StorageEvent((key, newValue) => keyChanged(key, newValue));
+    addStoreEventHandler((key, newValue) => keyChanged(key, newValue));
 }
 
 /**
@@ -215,7 +215,7 @@ function clear() {
  */
 function merge(key, val) {
     // Values that are objects or arrays are merged into storage
-    if (_.isObject(val) || _.isArray(val)) {
+    if (_.isObject(val)) {
         AsyncStorage.mergeItem(key, JSON.stringify(val))
             .then(() => get(key))
             .then((newObject) => {
