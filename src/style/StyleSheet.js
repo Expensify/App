@@ -222,6 +222,7 @@ const styles = {
 
     genericView: {
         backgroundColor: colors.heading,
+        height: '100%',
     },
 
     signInPageInner: {
