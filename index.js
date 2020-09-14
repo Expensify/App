@@ -37,7 +37,7 @@ const webUpdater = currentVersion => ({
             }
         });
     },
-    update: webUpdate(currentVersion),
+    update: () => webUpdate(currentVersion),
 });
 
 // When app loads, get current version
