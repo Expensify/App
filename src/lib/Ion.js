@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import AsyncStorage from '@react-native-community/async-storage';
-import addStoreEventHandler from './StorageEvent';
+import addStorageEventHandler from './addStorageEventHandler';
 
 // Keeps track of the last connectionID that was used so we can keep incrementing it
 let lastConnectionID = 0;
@@ -49,7 +49,7 @@ function keyChanged(key, data) {
  * Initialize the store with actions and listening for storage events
  */
 function init() {
-    addStoreEventHandler((key, newValue) => keyChanged(key, newValue));
+    addStorageEventHandler((key, newValue) => keyChanged(key, newValue));
 }
 
 /**
