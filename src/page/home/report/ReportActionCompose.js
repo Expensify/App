@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View, Image, TouchableOpacity} from 'react-native';
+import _ from 'underscore';
 import styles, {colors} from '../../../style/StyleSheet';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 import sendIcon from '../../../../assets/images/icon-send.png';
@@ -32,9 +33,29 @@ class ReportActionCompose extends React.Component {
         super(props);
 
         this.updateComment = this.updateComment.bind(this);
+        this.debouncedSaveReportComment = _.debounce(this.debouncedSaveReportComment.bind(this), 1000, false);
         this.submitForm = this.submitForm.bind(this);
         this.triggerSubmitShortcut = this.triggerSubmitShortcut.bind(this);
         this.submitForm = this.submitForm.bind(this);
+        this.comment = '';
+    }
+
+    componentDidUpdate(prevProps) {
+        // The first time the component loads the props is empty and the next time it may contain value.
+        // If it does let's update this.comment so that it matches the defaultValue that we show in textInput.
+        if (this.props.comment && prevProps.comment === '' && prevProps.comment !== this.props.comment) {
+            this.comment = this.props.comment;
+        }
+    }
+
+    /**
+     * Save our report comment in Ion. We debounce this method in the constructor so that it's not called too often
+     * to update Ion and re-render this component.
+     *
+     * @param {string} comment
+     */
+    debouncedSaveReportComment(comment) {
+        saveReportComment(this.props.reportID, comment || '');
     }
 
     /**
@@ -43,7 +64,8 @@ class ReportActionCompose extends React.Component {
      * @param {string} newComment
      */
     updateComment(newComment) {
-        saveReportComment(this.props.reportID, newComment || '');
+        this.comment = newComment;
+        this.debouncedSaveReportComment(newComment);
     }
 
     /**
@@ -69,7 +91,7 @@ class ReportActionCompose extends React.Component {
             e.preventDefault();
         }
 
-        const trimmedComment = this.props.comment.trim();
+        const trimmedComment = this.comment.trim();
 
         // Don't submit empty comments
         // @TODO show an error in the UI
@@ -78,6 +100,7 @@ class ReportActionCompose extends React.Component {
         }
 
         this.props.onSubmit(trimmedComment);
+        this.textInput.clear();
         this.updateComment('');
     }
 
@@ -101,11 +124,12 @@ class ReportActionCompose extends React.Component {
                         multiline
                         textAlignVertical="top"
                         placeholder="Write something..."
+                        ref={el => this.textInput = el}
                         placeholderTextColor={colors.textSupporting}
                         onChangeText={this.updateComment}
                         onKeyPress={this.triggerSubmitShortcut}
                         style={[styles.textInput, styles.textInputCompose, styles.flex4]}
-                        value={this.props.comment || ''}
+                        defaultValue={this.props.comment || ''}
                         maxLines={16} // This is the same that slack has
                     />
                     <TouchableOpacity
