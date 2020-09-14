@@ -236,7 +236,6 @@ class ChatSwitcherView extends React.Component {
         _.each(reportOptions, (element, index) => {
             reportOptions[index].alternateText = element.reportName;
             reportOptions[index].searchText = element.reportName;
-            reportOptions[index].avatarURL = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_2.png';
         });
 
         searchOptions.push(...reportOptions);
