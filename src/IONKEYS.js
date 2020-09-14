@@ -13,7 +13,7 @@ export default {
     SESSION: 'session',
 
     // Collection Keys
-    REPORT: 'report',
-    REPORT_ACTIONS: 'reportActions',
-    REPORT_DRAFT_COMMENT: 'reportDraftComment',
+    REPORT: 'report_',
+    REPORT_ACTIONS: 'reportActions_',
+    REPORT_DRAFT_COMMENT: 'reportDraftComment_',
 };
