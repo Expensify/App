@@ -44,6 +44,7 @@ export default function (mapIonToState) {
                 _.each(mapIonToState, (mapping, propertyName) => {
                     this.connectMappingToIon(mapping, propertyName, this.wrappedComponent);
                 });
+                this.checkAndUpdateLoading();
             }
 
             componentDidUpdate(prevProps) {
@@ -59,19 +60,36 @@ export default function (mapIonToState) {
                         }
                     }
                 });
-
-                // Make sure each Ion key we requested has been set to state with a value of some kind.
-                // We are doing this so that the wrapped component will only render when all the data
-                // it needs is available to it.
-                if (this.state.loading && _.every(_.keys(mapIonToState), key => this.state[key])) {
-                    this.setState({loading: false});
-                }
+                this.checkAndUpdateLoading();
             }
 
             componentWillUnmount() {
                 // Disconnect everything from Ion
                 _.each(this.actionConnectionIDs, Ion.disconnect);
                 _.each(this.activeConnectionIDsWithPropsData, Ion.disconnect);
+            }
+
+            /**
+             * Makes sure each Ion key we requested has been set to state with a value of some kind.
+             * We are doing this so that the wrapped component will only render when all the data
+             * it needs is available to it.
+             */
+            checkAndUpdateLoading() {
+                if (this.state.loading) {
+                    const requiredKeysForInit = _.chain(mapIonToState)
+                        .reduce((prev, curr, key) => {
+                            if (curr.initWithStoredValues === false) {
+                                return prev;
+                            }
+                            return ({...prev, [key]: curr});
+                        }, {})
+                        .keys()
+                        .value();
+
+                    if (_.every(requiredKeysForInit, key => !_.isUndefined(this.state[key]))) {
+                        this.setState({loading: false});
+                    }
+                }
             }
 
             /**
