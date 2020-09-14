@@ -8,6 +8,7 @@ import KeyboardShortcut from '../../../lib/KeyboardShortcut';
 import ChatSwitcherList from './ChatSwitcherList';
 import ChatSwitcherSearchForm from './ChatSwitcherSearchForm';
 import {fetchOrCreateChatReport} from '../../../lib/actions/Report';
+import {redirect} from '../../../lib/actions/App';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -49,10 +50,10 @@ const propTypes = {
     personalDetails: PropTypes.objectOf(personalDetailsPropTypes),
 
     // All reports that have been shared with the user
-    reports: PropTypes.objectOf(PropTypes.shape({
+    reports: PropTypes.shape({
         reportID: PropTypes.number,
         reportName: PropTypes.string,
-    })),
+    }),
 
     // The personal details of the person who is currently logged in
     session: PropTypes.shape({
@@ -225,7 +226,7 @@ class ChatSwitcherView extends React.Component {
         // A Set is used here so that duplicate values are automatically removed.
         const matches = new Set();
         const searchOptions = _.values(this.props.personalDetails);
-
+        
         // Update the personal details options to have generic names for their properties
         _.each(searchOptions, (element, index) => {
             searchOptions[index].text = element.fullName;
@@ -310,8 +311,7 @@ export default withIon({
     },
     reports: {
         key: `${IONKEYS.REPORT}_[0-9]+$`,
-        addAsCollection: true,
-        collectionID: 'reportID',
+        indexBy: 'reportID',
     },
     session: {
         key: IONKEYS.SESSION,
