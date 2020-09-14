@@ -56,8 +56,14 @@ function xhr(command, data, type = 'post') {
  * @returns {Promise<Response>}
  */
 function download(relativePath) {
-    const siteRoot = CONFIG.EXPENSIFY.API_ROOT.slice(0, CONFIG.EXPENSIFY.API_ROOT.lastIndexOf('/') + 1);
-    return fetch(`${siteRoot}${relativePath.slice(relativePath.indexOf('/') + 1)}`)
+    const siteRoot = CONFIG.EXPENSIFY.SITE_ROOT;
+
+    // Strip leading slashes and periods from relative path, if present
+    const strippedRelativePath = relativePath.charAt(0) === '/' || relativePath.charAt(0) === '.'
+        ? relativePath.slice(relativePath.indexOf('/') + 1)
+        : relativePath;
+
+    return fetch(`${siteRoot}${strippedRelativePath}`)
         .then(response => response.json())
         .catch(() => {
             setOfflineStatus(true);
