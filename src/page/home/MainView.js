@@ -26,6 +26,11 @@ const defaultProps = {
     reports: {},
 };
 
+// This is a PureComponent because since this method is connected to an Ion collection,
+// it has setState() called on it anytime a single report in the collection changes. When
+// reports are first fetched, this component is rendered n times (where n is the number of reports).
+// By switching to a PureComponent, it will only re-render if the props change which is
+// much more performant.
 class MainView extends React.PureComponent {
     constructor(props) {
         super(props);
