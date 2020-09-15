@@ -71,7 +71,7 @@ function download(relativePath) {
     const siteRoot = CONFIG.EXPENSIFY.SITE_ROOT;
 
     // Strip leading slashes and periods from relative path, if present
-    const strippedRelativePath = _.startsWith(relativePath, '/') || _.startsWith(relativePath, '.')
+    const strippedRelativePath = relativePath.charAt(0) === '/' || relativePath.charAt(0) === '.'
         ? relativePath.slice(relativePath.indexOf('/') + 1)
         : relativePath;
 
