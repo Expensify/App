@@ -106,20 +106,16 @@ function keyChanged(key, data) {
  * @param {object} [config.withIonInstance]
  * @param {string} [config.statePropertyName]
  * @param {function} [config.callback]
- * @param {*|null} data
+ * @param {*|null} val
  */
-function sendDataToConnection(config, data) {
-    if (_.isFunction(config.callback)) {
-        config.callback(data);
+function sendDataToConnection(config, val) {
+    if (config.withIonInstance) {
+        config.withIonInstance.setState({
+            [config.statePropertyName]: val,
+        });
+    } else if (_.isFunction(config.callback)) {
+        config.callback(val);
     }
-
-    if (!config.withIonInstance) {
-        return;
-    }
-
-    config.withIonInstance.setState({
-        [config.statePropertyName]: data,
-    });
 }
 
 /**
