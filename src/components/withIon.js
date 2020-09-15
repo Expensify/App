@@ -31,6 +31,10 @@ export default function (mapIonToState) {
                 // this.props. These are stored differently because anytime the props change, the component has to be
                 // reconnected to Ion with the new props.
                 this.activeConnectionIDsWithPropsData = {};
+
+                this.state = {
+                    loading: true,
+                };
             }
 
             componentDidMount() {
@@ -38,6 +42,7 @@ export default function (mapIonToState) {
                 _.each(mapIonToState, (mapping, propertyName) => {
                     this.connectMappingToIon(mapping, propertyName, this.wrappedComponent);
                 });
+                this.checkAndUpdateLoading();
             }
 
             componentDidUpdate(prevProps) {
@@ -53,12 +58,38 @@ export default function (mapIonToState) {
                         }
                     }
                 });
+                this.checkAndUpdateLoading();
             }
 
             componentWillUnmount() {
                 // Disconnect everything from Ion
                 _.each(this.actionConnectionIDs, Ion.disconnect);
                 _.each(this.activeConnectionIDsWithPropsData, Ion.disconnect);
+            }
+
+            /**
+             * Makes sure each Ion key we requested has been set to state with a value of some kind.
+             * We are doing this so that the wrapped component will only render when all the data
+             * it needs is available to it.
+             */
+            checkAndUpdateLoading() {
+                if (!this.state.loading) {
+                    return;
+                }
+
+                // Filter all keys by those which we do want to init with stored values
+                // since keys that are configured to not init with stored values will
+                // never appear on state when the component mounts - only after they update
+                // organically.
+                const requiredKeysForInit = _.chain(mapIonToState)
+                    .omit(config => config.initWithStoredValues === false)
+                    .keys()
+                    .value();
+
+                // All state keys should exist and at least have a value of null
+                if (_.every(requiredKeysForInit, key => !_.isUndefined(this.state[key]))) {
+                    this.setState({loading: false});
+                }
             }
 
             /**
@@ -97,13 +128,21 @@ export default function (mapIonToState) {
             }
 
             render() {
+                if (this.state.loading) {
+                    return null;
+                }
+
+                // Remove any internal state properties used by withIon
+                // that should not be passed to a wrapped component
+                const stateToPass = _.omit(this.state, 'loading');
+
                 // Spreading props and state is necessary in an HOC where the data cannot be predicted
                 return (
                     <WrappedComponent
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...this.props}
                         // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...this.state}
+                        {...stateToPass}
                     />
                 );
             }
