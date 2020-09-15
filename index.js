@@ -10,6 +10,12 @@ import {download} from './src/lib/Network';
 
 AppRegistry.registerComponent(appName, () => App);
 
+/**
+ * Download the latest app version from the server, and if it is different than the current one,
+ * then refresh. If the page is visibile, prompt the user to refresh.
+ *
+ * @param {String} currentVersion
+ */
 function webUpdate(currentVersion) {
     download('version.json')
         .then((newVersion) => {
@@ -17,15 +23,24 @@ function webUpdate(currentVersion) {
                 if (window.visibilityState === 'hidden') {
                     // Page is hidden, refresh immediately
                     window.location.reload(true);
-                } else if (window.confirm('Refresh the page to get the latest updates!')) {
+                    return;
+                }
+
+                // Prompt user to refresh the page
+                if (window.confirm('Refresh the page to get the latest updates!')) {
                     // TODO: Notify user in a less invasive way that they should refresh the page (i.e: Growl)
-                    // Prompt user to refresh the page
                     window.location.reload(true);
                 }
             }
         });
 }
 
+/**
+ * Create an object whose shape reflects the callbacks used in checkForUpdates.
+ *
+ * @param {String} currentVersion The version of the app that is currently running.
+ * @returns {{init: Function, update: Function}}
+ */
 const webUpdater = currentVersion => ({
     init: () => {
         // We want to check for updates and refresh the page if necessary when the app is backgrounded.
