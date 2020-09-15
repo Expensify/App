@@ -8,6 +8,7 @@ import IONKEYS from '../../IONKEYS';
 import styles from '../../style/StyleSheet';
 import {withRouter} from '../../lib/Router';
 import compose from '../../lib/compose';
+import withBatchedRendering from '../../components/withBatchedRendering';
 
 const propTypes = {
     // This comes from withRouter
@@ -17,13 +18,13 @@ const propTypes = {
     /* Ion Props */
 
     // List of reports to display
-    reports: PropTypes.objectOf(PropTypes.shape({
+    itemsToRender: PropTypes.arrayOf(PropTypes.shape({
         reportID: PropTypes.number,
     })),
 };
 
 const defaultProps = {
-    reports: {},
+    itemsToRender: {},
 };
 
 // This is a PureComponent because since this method is connected to an Ion collection,
@@ -32,40 +33,6 @@ const defaultProps = {
 // By switching to a PureComponent, it will only re-render if the props change which is
 // much more performant.
 class MainView extends React.PureComponent {
-    constructor(props) {
-        super(props);
-        this.areFirstReportsRendered = false;
-        this.areAllReportsRendered = false;
-        this.reportsToRender = null;
-    }
-
-    /**
-     * This is an optimized method for rendering reports so that not too many
-     * things are rendered on the first load of the page
-     */
-    componentDidUpdate() {
-        // If all reports have been rendered, that's good, there is nothing additional to do
-        if (this.areAllReportsRendered) {
-            return;
-        }
-
-        // The first reports that get rendered are the ones that are unread, pinned, or matching the URL
-        if (!this.areFirstReportsRendered) {
-            this.areFirstReportsRendered = true;
-            this.reportsToRender = _.filter(this.props.reports, report => report.isUnread || report.pinnedReport || this.isReportIDMatchingURL(report.reportID));
-            this.forceUpdate();
-            return;
-        }
-
-        // After the first reports are rendered, then the rest of the reports are rendered
-        // after a brief delay to give the UI thread some breathing room
-        if (!this.areAllReportsRendered) {
-            this.areAllReportsRendered = true;
-            this.reportsToRender = this.props.reports;
-            setTimeout(() => this.forceUpdate(), 5000);
-        }
-    }
-
     /**
      * Looks to see if the reportID matches the report ID in the URL because that
      * report needs to be the one that is visible while all the other reports are hidden
@@ -80,13 +47,13 @@ class MainView extends React.PureComponent {
     }
 
     render() {
-        if (!_.size(this.reportsToRender)) {
+        if (!_.size(this.props.itemsToRender)) {
             return null;
         }
 
         // The styles for each of our report views. Basically, they are all hidden except for the one matching the
         // reportID in the URL
-        const reportStyles = _.reduce(this.reportsToRender, (memo, report) => {
+        const reportStyles = _.reduce(this.props.itemsToRender, (memo, report) => {
             const finalData = {...memo};
             let reportStyle;
 
@@ -102,7 +69,7 @@ class MainView extends React.PureComponent {
 
         return (
             <>
-                {_.map(this.reportsToRender, report => report.reportName && (
+                {_.map(this.props.itemsToRender, report => report.reportName && (
                     <View
                         key={report.reportID}
                         style={reportStyles[report.reportID]}
@@ -128,5 +95,22 @@ export default compose(
             key: `${IONKEYS.REPORT}_[0-9]+$`,
             indexBy: 'reportID',
         },
+    }),
+    withBatchedRendering((currentBatch, props) => {
+        if (!props.reports) {
+            return false;
+        }
+
+        // The first reports that get rendered are the ones that are unread, pinned, or matching the URL
+        if (currentBatch === 0) {
+            const reportIDInURL = parseInt(props.match.params.reportID, 10);
+
+            // eslint-disable-next-line max-len
+            return _.filter(props.reports, report => report.isUnread || report.pinnedReport || report.reportID === reportIDInURL);
+        }
+
+        // After the first reports are rendered, then the rest of the reports are rendered
+        // after a brief delay to give the UI thread some breathing room
+        return _.values(props.reports);
     }),
 )(MainView);

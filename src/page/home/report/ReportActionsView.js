@@ -12,6 +12,7 @@ import styles from '../../../style/StyleSheet';
 import {withRouter} from '../../../lib/Router';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import compose from '../../../lib/compose';
+import withBatchedRendering from '../../../components/withBatchedRendering';
 
 const propTypes = {
     // These are from withRouter
@@ -24,20 +25,16 @@ const propTypes = {
     /* Ion Props */
 
     // Array of report actions for this report
-    reportActions: PropTypes.PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
+    itemsToRender: PropTypes.PropTypes.arrayOf(PropTypes.shape(ReportActionPropTypes)),
 };
 
 const defaultProps = {
-    reportActions: {},
+    itemsToRender: {},
 };
 
 class ReportActionsView extends React.Component {
     constructor(props) {
         super(props);
-
-        this.areFirstActionsRendered = false;
-        this.areAllActionsRendered = false;
-        this.actionsToRender = null;
 
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
         this.recordMaxAction = this.recordMaxAction.bind(this);
@@ -53,30 +50,8 @@ class ReportActionsView extends React.Component {
 
         // When the number of actions change, wait three seconds, then record the max action
         // This will make the unread indicator go away if you receive comments in the same chat you're looking at
-        if (isReportVisible && _.size(prevProps.reportActions) !== _.size(this.props.reportActions)) {
+        if (isReportVisible && _.size(prevProps.itemsToRender) !== _.size(this.props.itemsToRender)) {
             setTimeout(this.recordMaxAction, 3000);
-        }
-
-        // If all report actions have been rendered, that's good, there is nothing additional to do
-        if (this.areAllActionsRendered) {
-            return;
-        }
-
-        // Render the first 100 (most recent) report actions first
-        if (!this.areFirstActionsRendered) {
-            this.areFirstActionsRendered = true;
-            const sortedReportActions = _.sortBy(this.props.reportActions, 'sequenceNumber');
-            this.actionsToRender = _.first(sortedReportActions, 5);
-            this.forceUpdate();
-            return;
-        }
-
-        // After the first reports are rendered, then the rest of the reports are rendered
-        // after a brief delay to give the UI thread some breathing room
-        if (!this.areAllActionsRendered) {
-            this.areAllActionsRendered = true;
-            this.actionsToRender = _.sortBy(this.props.reportActions, 'sequenceNumber');
-            setTimeout(() => this.forceUpdate(), 5000);
         }
     }
 
@@ -97,7 +72,7 @@ class ReportActionsView extends React.Component {
      */
     // eslint-disable-next-line
     isConsecutiveActionMadeByPreviousActor(actionIndex) {
-        const reportActions = lodashGet(this.props, 'reportActions', {});
+        const reportActions = lodashGet(this.props, 'itemsToRender', {});
 
         // This is the created action and the very first action so it cannot be a consecutive comment.
         if (actionIndex === 0) {
@@ -131,7 +106,7 @@ class ReportActionsView extends React.Component {
      * action when scrolled
      */
     recordMaxAction() {
-        const reportActions = lodashGet(this.props, 'reportActions', {});
+        const reportActions = lodashGet(this.props, 'itemsToRender', {});
         const maxVisibleSequenceNumber = _.chain(reportActions)
             .pluck('sequenceNumber')
             .max()
@@ -153,7 +128,7 @@ class ReportActionsView extends React.Component {
     }
 
     render() {
-        if (!_.size(this.actionsToRender)) {
+        if (!_.size(this.props.itemsToRender)) {
             return (
                 <View style={[styles.chatContent, styles.chatContentEmpty]}>
                     <Text style={[styles.textP]}>Be the first person to comment!</Text>
@@ -170,7 +145,7 @@ class ReportActionsView extends React.Component {
                 bounces={false}
                 contentContainerStyle={[styles.chatContentScrollView]}
             >
-                {_.map(this.actionsToRender, (item, index) => (
+                {_.map(this.props.itemsToRender, (item, index) => (
                     <ReportActionItem
                         key={item.sequenceNumber}
                         action={item}
@@ -193,4 +168,19 @@ export default compose(
             pathForProps: 'reportID',
         },
     }),
+    withBatchedRendering((currentBatch, props) => {
+        if (!props.reportActions) {
+            return false;
+        }
+
+        // Render the last 100 (most recent) report actions first
+        if (currentBatch === 0) {
+            const sortedReportActions = _.sortBy(props.reportActions, 'sequenceNumber');
+            return _.last(sortedReportActions, 100);
+        }
+
+        // After the first reports are rendered, then the rest of the reports are rendered
+        // after a brief delay to give the UI thread some breathing room
+        return _.sortBy(_.values(props.reportActions), 'sequenceNumber');
+    })
 )(ReportActionsView);
