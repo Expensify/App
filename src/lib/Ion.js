@@ -109,7 +109,9 @@ function keyChanged(key, data) {
                 mappedComponent.withIonInstance.setState((prevState) => {
                     const collection = prevState[mappedComponent.statePropertyName] || {};
                     collection[key] = data;
-                    return {[mappedComponent.statePropertyName]: collection};
+                    return {
+                        [mappedComponent.statePropertyName]: collection,
+                    };
                 });
             } else {
                 mappedComponent.withIonInstance.setState({
@@ -158,9 +160,7 @@ function connect(mapping) {
             // to expect a single key or multiple keys in the case of a collection.
             // React components are an exception since we'll want to send their
             // initial data as a single object when using collection keys.
-            if (mapping.callback) {
-                _.each(matchingKeys, key => get(key).then(val => sendDataToConnection(mapping, val)));
-            } else if (isCollectionKey(mapping.key)) {
+            if (mapping.withIonInstance && isCollectionKey(mapping.key)) {
                 Promise.all(_.map(matchingKeys, key => get(key)))
                     .then(values => _.reduce(values, (finalObject, value, i) => ({
                         ...finalObject,
@@ -168,8 +168,9 @@ function connect(mapping) {
                     }), {}))
                     .then(val => sendDataToConnection(mapping, val));
             } else {
-                // There should be only one key at this point
-                get(matchingKeys[0]).then(val => sendDataToConnection(mapping, val));
+                _.each(matchingKeys, key => {
+                    get(key).then(val => sendDataToConnection(mapping, val));
+                });
             }
         });
 
