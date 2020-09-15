@@ -5,8 +5,6 @@
  */
 import React from 'react';
 import _ from 'underscore';
-import lodashGet from 'lodash.get';
-import lodashHas from 'lodash.has';
 import Ion from '../lib/Ion';
 
 /**
@@ -46,11 +44,11 @@ export default function (mapIonToState) {
                 // If any of the mappings use data from the props, then when the props change, all the
                 // connections need to be reconnected with the new props
                 _.each(mapIonToState, (mapping, propertyName) => {
-                    if (lodashHas(mapping, 'pathForProps')) {
-                        const prevPropsData = lodashGet(prevProps, mapping.pathForProps);
-                        const currentPropsData = lodashGet(this.props, mapping.pathForProps);
-                        if (prevPropsData !== currentPropsData) {
-                            Ion.disconnect(this.activeConnectionIDsWithPropsData[mapping.pathForProps]);
+                    if (_.isFunction(mapping.key)) {
+                        const previousKey = mapping.key(prevProps);
+                        const newKey = mapping.key(this.props);
+                        if (previousKey !== newKey) {
+                            Ion.disconnect(this.activeConnectionIDsWithPropsData[previousKey]);
                             this.connectMappingToIon(mapping, propertyName, this.wrappedComponent);
                         }
                     }
@@ -67,15 +65,10 @@ export default function (mapIonToState) {
              * Takes a single mapping and binds the state of the component to the store
              *
              * @param {object} mapping
+             * @param {string|function} mapping.key key to connect to. can be a string or a function that takes this.props
+             * as an argument and returns a string
              * @param {string} statePropertyName the name of the state property that Ion will add the data to
              * @param {string} [mapping.indexBy] the name of the ID property to use for the collection
-             * @param {string} [mapping.pathForProps] the statePropertyName can contain the string %DATAFROMPROPS% wich
-             *  will be replaced with data from the props matching this path. That way, the component can connect to an
-             *  Ion key that uses data from this.props.
-             *
-             *  For example, if a component wants to connect to the Ion key "report_22" and
-             *  "22" comes from this.props.match.params.reportID. The statePropertyName would be set to
-             *  "report_%DATAFROMPROPS%" and pathForProps would be set to "match.params.reportID"
              * @param {boolean} [mapping.initWithStoredValues] If set to false, then no data will be prefilled into the
              *  component
              */
@@ -89,17 +82,14 @@ export default function (mapIonToState) {
                 let connectionID;
 
                 // Connect to Ion and keep track of the connectionID
-                if (mapping.pathForProps) {
-                    // If there is a path for props data, then the data needs to be pulled out of props and parsed
-                    // into the key
-                    const dataFromProps = lodashGet(this.props, mapping.pathForProps);
-                    const keyWithPropsData = mapping.key.replace('%DATAFROMPROPS%', dataFromProps);
-                    ionConnectionConfig.key = keyWithPropsData;
+                if (_.isFunction(mapping.key)) {
+                    const keyFromProps = mapping.key(this.props);
+                    ionConnectionConfig.key = keyFromProps;
 
                     // Store the connectionID with a key that is unique to the data coming from the props which allows
                     // it to be easily reconnected to when the props change
                     connectionID = Ion.connect(ionConnectionConfig);
-                    this.activeConnectionIDsWithPropsData[mapping.pathForProps] = connectionID;
+                    this.activeConnectionIDsWithPropsData[keyFromProps] = connectionID;
                 } else {
                     connectionID = Ion.connect(ionConnectionConfig);
                     this.actionConnectionIDs[connectionID] = connectionID;
