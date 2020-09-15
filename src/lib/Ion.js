@@ -37,19 +37,6 @@ function get(key) {
 }
 
 /**
- * Takes a key from a subscriber and a key from Ion
- * and returns true if we have a collection key or item.
- *
- * @param {string} configKey
- * @param {string} key
- * @returns {boolean}
- */
-function isKeyMatch(configKey, key) {
-    const ionCollectionKey = _.first(configKey.split('_'));
-    return key === ionCollectionKey || Str.startsWith(key, `${ionCollectionKey}_`);
-}
-
-/**
  * Sends the data obtained from the keys to the connection. It either:
  *     - sets state on the withIonInstances
  *     - triggers the callback function
@@ -83,6 +70,20 @@ function sendDataToConnection(config, data) {
  */
 function isCollectionKey(key) {
     return _.contains(_.values(IONKEYS.COLLECTION), key);
+}
+
+/**
+ * Checks to see if a given key matches with the
+ * configured key of our connected subscriber
+ *
+ * @param {String} configKey
+ * @param {String} key
+ * @return {Boolean}
+ */
+function isKeyMatch(configKey, key) {
+    return isCollectionKey(configKey)
+        ? Str.startsWith(key, configKey)
+        : configKey === key;
 }
 
 /**
