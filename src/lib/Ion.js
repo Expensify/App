@@ -37,31 +37,6 @@ function get(key) {
 }
 
 /**
- * Sends the data obtained from the keys to the connection. It either:
- *     - sets state on the withIonInstances
- *     - triggers the callback function
- *
- * @param {object} config
- * @param {object} [config.withIonInstance]
- * @param {string} [config.statePropertyName]
- * @param {function} [config.callback]
- * @param {*|null} data
- */
-function sendDataToConnection(config, data) {
-    if (_.isFunction(config.callback)) {
-        config.callback(data);
-    }
-
-    if (!config.withIonInstance) {
-        return;
-    }
-
-    config.withIonInstance.setState({
-        [config.statePropertyName]: data,
-    });
-}
-
-/**
  * Checks to see if the a subscriber's supplied key
  * is associated with a collection of keys.
  *
@@ -119,6 +94,31 @@ function keyChanged(key, data) {
                 });
             }
         }
+    });
+}
+
+/**
+ * Sends the data obtained from the keys to the connection. It either:
+ *     - sets state on the withIonInstances
+ *     - triggers the callback function
+ *
+ * @param {object} config
+ * @param {object} [config.withIonInstance]
+ * @param {string} [config.statePropertyName]
+ * @param {function} [config.callback]
+ * @param {*|null} data
+ */
+function sendDataToConnection(config, data) {
+    if (_.isFunction(config.callback)) {
+        config.callback(data);
+    }
+
+    if (!config.withIonInstance) {
+        return;
+    }
+
+    config.withIonInstance.setState({
+        [config.statePropertyName]: data,
     });
 }
 
