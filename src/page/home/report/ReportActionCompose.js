@@ -111,6 +111,10 @@ class ReportActionCompose extends React.Component {
     showAttachmentPicker(e) {
         e.preventDefault();
 
+        /**
+         * See https://github.com/react-native-community/react-native-image-picker/blob/master/docs/Reference.md#options
+         * for option definitions
+         */
         const options = {
             storageOptions: {
                 skipBackup: true,
