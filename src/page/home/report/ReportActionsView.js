@@ -38,7 +38,7 @@ class ReportActionsView extends React.Component {
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
         this.recordMaxAction = this.recordMaxAction.bind(this);
 
-        this.sortedReportActions = _.chain(props.reportActions).sortBy('sequenceNumber');
+        this.updateSortedReportActions();
     }
 
     componentDidMount() {
@@ -49,7 +49,7 @@ class ReportActionsView extends React.Component {
     componentDidUpdate(prevProps) {
         const isReportVisible = this.props.reportID === parseInt(this.props.match.params.reportID, 10);
 
-        this.sortedReportActions = _.chain(this.props.reportActions).sortBy('sequenceNumber');
+        this.updateSortedReportActions();
 
         // When the number of actions change, wait three seconds, then record the max action
         // This will make the unread indicator go away if you receive comments in the same chat you're looking at
@@ -60,6 +60,13 @@ class ReportActionsView extends React.Component {
 
     componentWillUnmount() {
         this.keyboardEvent.remove();
+    }
+
+    /**
+     * Updates and sorts the report actions by sequence number
+     */
+    updateSortedReportActions() {
+        this.sortedReportActions = _.chain(this.props.reportActions).sortBy('sequenceNumber');
     }
 
     /**
