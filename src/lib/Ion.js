@@ -68,29 +68,29 @@ function isKeyMatch(configKey, key) {
  * @param {mixed} data
  */
 function keyChanged(key, data) {
-    // Find components that were added with connect() and trigger their setState() method with the new data
-    _.each(callbackToStateMapping, (mappedComponent) => {
-        if (mappedComponent && isKeyMatch(mappedComponent.key, key)) {
-            if (_.isFunction(mappedComponent.callback)) {
-                mappedComponent.callback(data, key);
+    // Find all subscribers that were added with connect() and trigger the callback or setState() with the new data
+    _.each(callbackToStateMapping, (subscriber) => {
+        if (subscriber && isKeyMatch(subscriber.key, key)) {
+            if (_.isFunction(subscriber.callback)) {
+                subscriber.callback(data, key);
             }
 
-            if (!mappedComponent.withIonInstance) {
+            if (!subscriber.withIonInstance) {
                 return;
             }
 
             // Check if we are subscribing to a collection key and add this item as a collection
-            if (isCollectionKey(mappedComponent.key)) {
-                mappedComponent.withIonInstance.setState((prevState) => {
-                    const collection = prevState[mappedComponent.statePropertyName] || {};
+            if (isCollectionKey(subscriber.key)) {
+                subscriber.withIonInstance.setState((prevState) => {
+                    const collection = prevState[subscriber.statePropertyName] || {};
                     collection[key] = data;
                     return {
-                        [mappedComponent.statePropertyName]: collection,
+                        [subscriber.statePropertyName]: collection,
                     };
                 });
             } else {
-                mappedComponent.withIonInstance.setState({
-                    [mappedComponent.statePropertyName]: data,
+                subscriber.withIonInstance.setState({
+                    [subscriber.statePropertyName]: data,
                 });
             }
         }
