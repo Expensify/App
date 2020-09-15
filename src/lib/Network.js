@@ -22,19 +22,18 @@ NetInfo.addEventListener((state) => {
 });
 
 /**
- * Makes XHR request
- * @param {String} command the name of the API command
- * @param {Object} data parameters for the API command
- * @param {String} type HTTP request type (get/post)
- * @returns {Promise}
+ * Send an HTTP request, and attempt to resolve the json response.
+ * If there is a network error, we'll set the application offline.
+ *
+ * @param {String} url
+ * @param {String} method
+ * @param {Object} body
+ * @returns {Promise<Response | void>}
  */
-function xhr(command, data, type = 'post') {
-    const formData = new FormData();
-    _.each(data, (val, key) => formData.append(key, val));
-
-    return fetch(`${CONFIG.EXPENSIFY.API_ROOT}command=${command}`, {
-        method: type,
-        body: formData,
+function processHTTPRequest(url, method = 'get', body = null) {
+    return fetch(url, {
+        method,
+        body
     })
         .then(response => response.json())
 
@@ -47,6 +46,19 @@ function xhr(command, data, type = 'post') {
             // catch() happens
             throw new Error('API is offline');
         });
+}
+
+/**
+ * Makes XHR request
+ * @param {String} command the name of the API command
+ * @param {Object} data parameters for the API command
+ * @param {String} type HTTP request type (get/post)
+ * @returns {Promise}
+ */
+function xhr(command, data, type = 'post') {
+    const formData = new FormData();
+    _.each(data, (val, key) => formData.append(key, val));
+    return processHTTPRequest(`${CONFIG.EXPENSIFY.API_ROOT}command=${command}`, type, formData);
 }
 
 /**
@@ -63,12 +75,7 @@ function download(relativePath) {
         ? relativePath.slice(relativePath.indexOf('/') + 1)
         : relativePath;
 
-    return fetch(`${siteRoot}${strippedRelativePath}`)
-        .then(response => response.json())
-        .catch(() => {
-            setOfflineStatus(true);
-            throw new Error('API is offline');
-        });
+    return processHTTPRequest(`${siteRoot}${strippedRelativePath}`);
 }
 
 export {
