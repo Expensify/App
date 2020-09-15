@@ -82,7 +82,7 @@ function sendDataToConnection(config, data) {
  * @returns {Boolean}
  */
 function isCollectionKey(key) {
-    return !_.isUndefined(IONKEYS.COLLECTION[key]);
+    return _.contains(_.values(IONKEYS.COLLECTION), key);
 }
 
 /**
@@ -98,23 +98,23 @@ function keyChanged(key, data) {
             if (_.isFunction(mappedComponent.callback)) {
                 mappedComponent.callback(data, key);
             }
-        }
 
-        if (!mappedComponent.withIonInstance) {
-            return;
-        }
+            if (!mappedComponent.withIonInstance) {
+                return;
+            }
 
-        // Check if we are subscribing to a collection key and add this item as a collection
-        if (isCollectionKey(mappedComponent.key)) {
-            mappedComponent.withIonInstance.setState((prevState) => {
-                const collection = prevState[mappedComponent.statePropertyName] || {};
-                collection[key] = data;
-                return {[mappedComponent.statePropertyName]: collection};
-            });
-        } else {
-            mappedComponent.withIonInstance.setState({
-                [mappedComponent.statePropertyName]: data,
-            });
+            // Check if we are subscribing to a collection key and add this item as a collection
+            if (isCollectionKey(mappedComponent.key)) {
+                mappedComponent.withIonInstance.setState((prevState) => {
+                    const collection = prevState[mappedComponent.statePropertyName] || {};
+                    collection[key] = data;
+                    return {[mappedComponent.statePropertyName]: collection};
+                });
+            } else {
+                mappedComponent.withIonInstance.setState({
+                    [mappedComponent.statePropertyName]: data,
+                });
+            }
         }
     });
 }
@@ -158,7 +158,7 @@ function connect(mapping) {
             // React components are an exception since we'll want to send their
             // initial data as a single object when using collection keys.
             if (mapping.callback) {
-                _.each(keys, key => get(key).then(val => sendDataToConnection(mapping, val)));
+                _.each(matchingKeys, key => get(key).then(val => sendDataToConnection(mapping, val)));
             } else if (isCollectionKey(mapping.key)) {
                 Promise.all(_.map(matchingKeys, key => get(key)))
                     .then(values => _.reduce(values, (finalObject, value, i) => ({
@@ -171,6 +171,7 @@ function connect(mapping) {
                 get(matchingKeys[0]).then(val => sendDataToConnection(mapping, val));
             }
         });
+
     return connectionID;
 }
 
