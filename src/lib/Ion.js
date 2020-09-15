@@ -164,7 +164,7 @@ function connect(mapping) {
                     }), {}))
                     .then(val => sendDataToConnection(mapping, val));
             } else {
-                _.each(matchingKeys, key => {
+                _.each(matchingKeys, (key) => {
                     get(key).then(val => sendDataToConnection(mapping, val));
                 });
             }
