@@ -168,10 +168,6 @@ export default compose(
         },
     }),
     withBatchedRendering((currentBatch, props) => {
-        if (!props.reportActions) {
-            return false;
-        }
-
         // Render the last 100 (most recent) report actions first
         if (currentBatch === 0) {
             const sortedReportActions = _.sortBy(props.reportActions, 'sequenceNumber');

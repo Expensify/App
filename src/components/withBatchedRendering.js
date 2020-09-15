@@ -35,12 +35,6 @@ export default function (batchCallback, batchesToRender = 2, batchRenderDelay = 
                         : batchRenderDelay;
                     const items = batchCallback(this.batchesRendered, this.props);
 
-                    // If the batchCallback returned false, then the props to get the items
-                    // from didn't exist from Ion yet
-                    if (items === false) {
-                        return;
-                    }
-
                     setTimeout(() => {
                         this.setState({
                             itemsToRender: items,

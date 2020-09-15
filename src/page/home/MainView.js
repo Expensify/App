@@ -97,10 +97,6 @@ export default compose(
         },
     }),
     withBatchedRendering((currentBatch, props) => {
-        if (!props.reports) {
-            return false;
-        }
-
         // The first reports that get rendered are the ones that are unread, pinned, or matching the URL
         if (currentBatch === 0) {
             const reportIDInURL = parseInt(props.match.params.reportID, 10);
