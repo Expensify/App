@@ -35,6 +35,10 @@ class ReportActionsView extends React.Component {
     constructor(props) {
         super(props);
 
+        this.areFirstActionsRendered = false;
+        this.areAllActionsRendered = false;
+        this.actionsToRender = null;
+
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
         this.recordMaxAction = this.recordMaxAction.bind(this);
     }
@@ -51,6 +55,28 @@ class ReportActionsView extends React.Component {
         // This will make the unread indicator go away if you receive comments in the same chat you're looking at
         if (isReportVisible && _.size(prevProps.reportActions) !== _.size(this.props.reportActions)) {
             setTimeout(this.recordMaxAction, 3000);
+        }
+
+        // If all report actions have been rendered, that's good, there is nothing additional to do
+        if (this.areAllActionsRendered) {
+            return;
+        }
+
+        // Render the first 100 (most recent) report actions first
+        if (!this.areFirstActionsRendered) {
+            this.areFirstActionsRendered = true;
+            const sortedReportActions = _.sortBy(this.props.reportActions, 'sequenceNumber');
+            this.actionsToRender = _.first(sortedReportActions, 5);
+            this.forceUpdate();
+            return;
+        }
+
+        // After the first reports are rendered, then the rest of the reports are rendered
+        // after a brief delay to give the UI thread some breathing room
+        if (!this.areAllActionsRendered) {
+            this.areAllActionsRendered = true;
+            this.actionsToRender = _.sortBy(this.props.reportActions, 'sequenceNumber');
+            setTimeout(() => this.forceUpdate(), 5000);
         }
     }
 
@@ -127,7 +153,7 @@ class ReportActionsView extends React.Component {
     }
 
     render() {
-        if (!_.size(this.props.reportActions)) {
+        if (!_.size(this.actionsToRender)) {
             return (
                 <View style={[styles.chatContent, styles.chatContentEmpty]}>
                     <Text style={[styles.textP]}>Be the first person to comment!</Text>
@@ -144,13 +170,13 @@ class ReportActionsView extends React.Component {
                 bounces={false}
                 contentContainerStyle={[styles.chatContentScrollView]}
             >
-                {_.chain(this.props.reportActions).sortBy('sequenceNumber').map((item, index) => (
+                {_.map(this.actionsToRender, (item, index) => (
                     <ReportActionItem
                         key={item.sequenceNumber}
                         action={item}
                         displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
                     />
-                )).value()}
+                ))}
             </ScrollView>
         );
     }
