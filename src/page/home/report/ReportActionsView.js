@@ -164,7 +164,7 @@ export default compose(
     withRouter,
     withIon({
         reportActions: {
-            key: ({reportID}) => `${IONKEYS.REPORT_ACTIONS}_${reportID}`,
+            key: ({reportID}) => `${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
         },
     }),
     withBatchedRendering((currentBatch, props) => {
