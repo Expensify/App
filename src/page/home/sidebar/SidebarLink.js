@@ -23,7 +23,7 @@ const propTypes = {
     // Toggles the hamburger menu open and closed
     onLinkClick: PropTypes.func.isRequired,
 
-    /* Ion Props */
+    /* From withIon() */
 
     // The report object for this link
     report: PropTypes.shape({

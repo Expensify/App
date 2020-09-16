@@ -23,7 +23,7 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     match: PropTypes.object.isRequired,
 
-    /* Ion Props */
+    /* From withIon() */
 
     // The session of the logged in person
     session: PropTypes.shape({
