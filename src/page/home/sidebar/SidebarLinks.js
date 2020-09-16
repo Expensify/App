@@ -31,7 +31,7 @@ const propTypes = {
     // Safe area insets required for mobile devices margins
     insets: SafeAreaInsetPropTypes.isRequired,
 
-    /* Ion Props */
+    /* From withIon() */
 
     // List of reports
     reports: PropTypes.objectOf(PropTypes.shape({
@@ -112,8 +112,7 @@ export default compose(
     withRouter,
     withIon({
         reports: {
-            key: `${IONKEYS.REPORT}_[0-9]+$`,
-            indexBy: 'reportID',
+            key: IONKEYS.COLLECTION.REPORT,
         }
     }),
 )(SidebarLinks);

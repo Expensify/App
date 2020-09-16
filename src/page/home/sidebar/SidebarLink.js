@@ -23,7 +23,7 @@ const propTypes = {
     // Toggles the hamburger menu open and closed
     onLinkClick: PropTypes.func.isRequired,
 
-    /* Ion Props */
+    /* From withIon() */
 
     // The report object for this link
     report: PropTypes.shape({
@@ -69,7 +69,7 @@ export default compose(
     withRouter,
     withIon({
         report: {
-            key: ({reportID}) => `${IONKEYS.REPORT}_${reportID}`,
+            key: ({reportID}) => `${IONKEYS.COLLECTION.REPORT}${reportID}`,
         },
     }),
 )(SidebarLink);

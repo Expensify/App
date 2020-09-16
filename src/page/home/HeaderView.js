@@ -16,7 +16,7 @@ const propTypes = {
     // Decides whether we should show the hamburger menu button
     shouldShowHamburgerButton: PropTypes.bool.isRequired,
 
-    /* Ion Props */
+    /* From withIon() */
     // The report currently being looked at
     report: PropTypes.shape({
         // Name of the report
@@ -60,7 +60,7 @@ export default compose(
     withRouter,
     withIon({
         report: {
-            key: ({match}) => `${IONKEYS.REPORT}_${match.params.reportID}`,
+            key: ({match}) => `${IONKEYS.COLLECTION.REPORT}${match.params.reportID}`,
         },
     }),
 )(HeaderView);

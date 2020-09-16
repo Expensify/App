@@ -41,7 +41,7 @@ const propTypes = {
     // A method that is triggered when the TextInput loses focus
     onBlur: PropTypes.func.isRequired,
 
-    /* Ion Props */
+    /* From withIon() */
 
     // All of the personal details for everyone
     // The keys of this object are the logins of the users, and the values are an object
@@ -275,9 +275,7 @@ ChatSwitcherView.defaultProps = defaultProps;
 
 export default withIon({
     personalDetails: {
-        // Exact match for the personal_details key as we don't want
-        // myPersonalDetails to overwrite this value
-        key: `^${IONKEYS.PERSONAL_DETAILS}$`,
+        key: IONKEYS.PERSONAL_DETAILS,
     },
     session: {
         key: IONKEYS.SESSION,
