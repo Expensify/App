@@ -4,6 +4,7 @@
  * then all other reports are rendered in the second batch
  */
 import React from 'react';
+import _ from 'underscore';
 
 /**
  * Returns the display name of a component
@@ -15,33 +16,26 @@ function getDisplayName(component) {
     return component.displayName || component.name || 'Component';
 }
 
-export default function (batchCallback, batchesToRender = 2, batchRenderDelay = 5000) {
+export default function (batches) {
     return (WrappedComponent) => {
         class withBatchedRendering extends React.Component {
             constructor(props) {
                 super(props);
-
-                this.batchesRendered = 0;
 
                 this.state = {
                     itemsToRender: null,
                 };
             }
 
-            componentDidUpdate() {
-                if (this.batchesRendered < batchesToRender) {
-                    const renderDelay = this.batchesRendered === 0
-                        ? 0
-                        : batchRenderDelay;
-                    const items = batchCallback(this.batchesRendered, this.props);
-
+            componentDidMount() {
+                console.log(this);
+                _.each(batches(this.props), (batch) => {
                     setTimeout(() => {
                         this.setState({
-                            itemsToRender: items,
+                            itemsToRender: batch.items,
                         });
-                    }, renderDelay);
-                    this.batchesRendered++;
-                }
+                    }, batch.delay || 0);
+                });
             }
 
             render() {

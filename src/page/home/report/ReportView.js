@@ -15,6 +15,7 @@ const propTypes = {
     isActiveReport: PropTypes.bool.isRequired,
 
     // These are styles to apply to the report view
+    // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.any.isRequired,
 };
 

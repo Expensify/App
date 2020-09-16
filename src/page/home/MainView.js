@@ -1,5 +1,4 @@
 import React from 'react';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ReportView from './report/ReportView';
@@ -18,7 +17,7 @@ const propTypes = {
     /* Ion Props */
 
     // List of reports to display
-    itemsToRender: PropTypes.arrayOf(PropTypes.shape({
+    itemsToRender: PropTypes.objectOf(PropTypes.shape({
         reportID: PropTypes.number,
     })),
 };
@@ -93,17 +92,12 @@ export default compose(
             key: IONKEYS.COLLECTION.REPORT,
         },
     }),
-    withBatchedRendering((currentBatch, props) => {
-        // The first reports that get rendered are the ones that are unread, pinned, or matching the URL
-        if (currentBatch === 0) {
-            const reportIDInURL = parseInt(props.match.params.reportID, 10);
-
-            // eslint-disable-next-line max-len
-            return _.filter(props.reports, report => report.isUnread || report.pinnedReport || report.reportID === reportIDInURL);
-        }
-
-        // After the first reports are rendered, then the rest of the reports are rendered
-        // after a brief delay to give the UI thread some breathing room
-        return _.values(props.reports);
+    withBatchedRendering((props) => {
+        const reportIDInURL = parseInt(props.match.params.reportID, 10);
+        const isReportVisible = report => report.isUnread || report.pinnedReport || report.reportID === reportIDInURL;
+        return [
+            {items: _.pick(props.reports, isReportVisible), delay: 0},
+            {items: props.reports, delay: 5000},
+        ];
     }),
 )(MainView);
