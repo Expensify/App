@@ -2,7 +2,6 @@ import React from 'react';
 import {View, ScrollView, Keyboard} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import lodashGet from 'lodash.get';
 import Text from '../../../components/Text';
 import withIon from '../../../components/withIon';
 import {fetchActions, updateLastReadActionID} from '../../../lib/actions/Report';
@@ -15,20 +14,24 @@ import compose from '../../../lib/compose';
 import withBatchedRendering from '../../../components/withBatchedRendering';
 
 const propTypes = {
-    // These are from withRouter
-    // eslint-disable-next-line react/forbid-prop-types
-    match: PropTypes.object.isRequired,
-
     // The ID of the report actions will be created for
     reportID: PropTypes.number.isRequired,
 
-    /* Ion Props */
+    /* From withRouter() */
+    // eslint-disable-next-line react/forbid-prop-types
+    match: PropTypes.object.isRequired,
 
-    // Array of report actions for this report
-    itemsToRender: PropTypes.PropTypes.arrayOf(PropTypes.shape(ReportActionPropTypes)),
+    /* From withIon() */
+    // All of the report actions for this report
+    reportActions: PropTypes.PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
+
+    /* From withBatchedRendering() */
+    // The specific items that need to be rendered
+    itemsToRender: PropTypes.PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
 };
 
 const defaultProps = {
+    reportActions: {},
     itemsToRender: {},
 };
 
@@ -72,7 +75,7 @@ class ReportActionsView extends React.Component {
      */
     // eslint-disable-next-line
     isConsecutiveActionMadeByPreviousActor(actionIndex) {
-        const reportActions = lodashGet(this.props, 'itemsToRender', {});
+        const {reportActions} = this.props;
 
         // This is the created action and the very first action so it cannot be a consecutive comment.
         if (actionIndex === 0) {
@@ -106,7 +109,7 @@ class ReportActionsView extends React.Component {
      * action when scrolled
      */
     recordMaxAction() {
-        const reportActions = lodashGet(this.props, 'itemsToRender', {});
+        const {reportActions} = this.props;
         const maxVisibleSequenceNumber = _.chain(reportActions)
             .pluck('sequenceNumber')
             .max()
@@ -128,7 +131,7 @@ class ReportActionsView extends React.Component {
     }
 
     render() {
-        if (!_.size(this.props.itemsToRender)) {
+        if (!_.size(this.props.reportActions)) {
             return (
                 <View style={[styles.chatContent, styles.chatContentEmpty]}>
                     <Text style={[styles.textP]}>Be the first person to comment!</Text>
@@ -170,8 +173,8 @@ export default compose(
     withBatchedRendering((props) => {
         const sortedReportActions = _.sortBy(props.reportActions, 'sequenceNumber');
         return [
-            {items: _.last(sortedReportActions, 100), delay: 0},
-            {items: sortedReportActions, delay: 5000},
+            {items: _.chain(sortedReportActions).last(100).indexBy('reportID').value(), delay: 0},
+            {items: _.indexBy(sortedReportActions, 'reportID'), delay: 7000},
         ];
     }),
 )(ReportActionsView);

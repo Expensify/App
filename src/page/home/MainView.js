@@ -2,11 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ReportView from './report/ReportView';
-import withIon from '../../components/withIon';
 import IONKEYS from '../../IONKEYS';
 import styles from '../../style/StyleSheet';
 import {withRouter} from '../../lib/Router';
 import compose from '../../lib/compose';
+import withIon from '../../components/withIon';
 import withBatchedRendering from '../../components/withBatchedRendering';
 
 const propTypes = {
@@ -14,15 +14,22 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     match: PropTypes.object.isRequired,
 
-    /* Ion Props */
+    /* From withIon() */
+    // The reports from Ion that exist and will have a view rendered for them
+    // eslint-disable-next-line react/no-unused-prop-types
+    reports: PropTypes.objectOf(PropTypes.shape({
+        reportID: PropTypes.number,
+    })),
 
-    // List of reports to display
-    itemsToRender: PropTypes.objectOf(PropTypes.shape({
+    /* From withBatchedRendering() */
+    // The specific items that need to be rendered
+    itemsToRender: PropTypes.PropTypes.objectOf(PropTypes.shape({
         reportID: PropTypes.number,
     })),
 };
 
 const defaultProps = {
+    reports: {},
     itemsToRender: {},
 };
 

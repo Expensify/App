@@ -28,7 +28,6 @@ export default function (batches) {
             }
 
             componentDidMount() {
-                console.log(this);
                 _.each(batches(this.props), (batch) => {
                     setTimeout(() => {
                         this.setState({
