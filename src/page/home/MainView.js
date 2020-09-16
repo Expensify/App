@@ -71,15 +71,12 @@ class MainView extends React.PureComponent {
         return (
             <>
                 {_.map(this.props.itemsToRender, report => report.reportName && (
-                    <View
+                    <ReportView
                         key={report.reportID}
                         style={reportStyles[report.reportID]}
-                    >
-                        <ReportView
-                            reportID={report.reportID}
-                            isActiveReport={this.isReportIDMatchingURL(report.reportID)}
-                        />
-                    </View>
+                        reportID={report.reportID}
+                        isActiveReport={this.isReportIDMatchingURL(report.reportID)}
+                    />
                 ))}
             </>
         );
