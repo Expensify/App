@@ -32,10 +32,9 @@ Ion.connect({
     callback: val => currentURL = val,
 });
 
-// Use a regex pattern here for an exact match so it doesn't also match "myPersonalDetails"
 let personalDetails;
 Ion.connect({
-    key: `^${IONKEYS.PERSONAL_DETAILS}$`,
+    key: IONKEYS.PERSONAL_DETAILS,
     callback: val => personalDetails = val,
 });
 
@@ -160,7 +159,8 @@ function fetchChatReportsByIDs(chatList) {
                     newReport.reportName = getChatReportName(report.sharedReportList);
                 }
 
-                Ion.merge(`${IONKEYS.REPORT}_${report.reportID}`, newReport);
+                // Merge the data into Ion
+                Ion.merge(`${IONKEYS.COLLECTION.REPORT}${report.reportID}`, newReport);
             });
 
             return Promise.all(ionPromises);
@@ -181,14 +181,14 @@ function updateReportWithNewAction(reportID, reportAction) {
     // Always merge the reportID into Ion
     // If the report doesn't exist in Ion yet, then all the rest of the data will be filled out
     // by handleReportChanged
-    Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {
+    Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {
         reportID,
         isUnread: hasNewSequenceNumber,
         maxSequenceNumber: reportAction.sequenceNumber,
     });
 
     // Add the action into Ion
-    Ion.merge(`${IONKEYS.REPORT_ACTIONS}_${reportID}`, {
+    Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         [reportAction.sequenceNumber]: reportAction,
     });
 
@@ -263,8 +263,8 @@ function fetchActions(reportID) {
                 .pluck('sequenceNumber')
                 .max()
                 .value();
-            Ion.merge(`${IONKEYS.REPORT_ACTIONS}_${reportID}`, indexedData);
-            Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {maxSequenceNumber});
+            Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, indexedData);
+            Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {maxSequenceNumber});
         });
 }
 
@@ -316,7 +316,7 @@ function fetchAll(shouldRedirectToFirstReport = true, shouldFetchActions = false
             _.each(fetchedReports, (report) => {
                 // Merge the data into Ion. Don't use set() here or multiSet() because then that would
                 // overwrite any existing data (like if they have unread messages)
-                Ion.merge(`${IONKEYS.REPORT}_${report.reportID}`, getSimplifiedReportObject(report));
+                Ion.merge(`${IONKEYS.COLLECTION.REPORT}${report.reportID}`, getSimplifiedReportObject(report));
 
                 if (shouldFetchActions) {
                     fetchActions(report.reportID);
@@ -364,7 +364,7 @@ function fetchOrCreateChatReport(participants) {
 
             // Merge the data into Ion. Don't use set() here or multiSet() because then that would
             // overwrite any existing data (like if they have unread messages)
-            Ion.merge(`${IONKEYS.REPORT}_${reportID}`, newReport);
+            Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, newReport);
 
             // Redirect the logged in person to the new report
             redirect(`/${reportID}`);
@@ -378,7 +378,7 @@ function fetchOrCreateChatReport(participants) {
  * @param {string} text
  */
 function addAction(reportID, text) {
-    const actionKey = `${IONKEYS.REPORT_ACTIONS}_${reportID}`;
+    const actionKey = `${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
 
     // Convert the comment from MD into HTML because that's how it is stored in the database
     const parser = new ExpensiMark();
@@ -389,7 +389,7 @@ function addAction(reportID, text) {
     const newSequenceNumber = highestSequenceNumber + 1;
 
     // Update the report in Ion to have the new sequence number
-    Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {
+    Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {
         maxSequenceNumber: newSequenceNumber,
     });
 
@@ -443,7 +443,7 @@ function updateLastReadActionID(reportID, sequenceNumber) {
     }
 
     // Update the lastReadActionID on the report optimistically
-    Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {
+    Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {
         isUnread: false,
         reportNameValuePairs: {
             [`lastReadActionID_${currentUserAccountID}`]: sequenceNumber,
@@ -466,7 +466,7 @@ function updateLastReadActionID(reportID, sequenceNumber) {
  * @param {string} comment
  */
 function saveReportComment(reportID, comment) {
-    Ion.merge(`${IONKEYS.REPORT_DRAFT_COMMENT}_${reportID}`, comment);
+    Ion.merge(`${IONKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, comment);
 }
 
 /**
@@ -490,7 +490,7 @@ function handleReportChanged(report) {
     reportMaxSequenceNumbers[report.reportID] = report.maxSequenceNumber;
 }
 Ion.connect({
-    key: `${IONKEYS.REPORT}_[0-9]+$`,
+    key: IONKEYS.COLLECTION.REPORT,
     callback: handleReportChanged
 });
 
