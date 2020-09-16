@@ -239,7 +239,8 @@ function merge(key, val) {
         let newArray;
         get(key)
             .then((prevVal) => {
-                newArray = [...prevVal, ...val];
+                const previousValue = prevVal || [];
+                newArray = [...previousValue, ...val];
                 return AsyncStorage.setItem(key, JSON.stringify(newArray));
             })
             .then(() => {
