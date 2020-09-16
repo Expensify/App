@@ -24,8 +24,7 @@ const propTypes = {
     /* From withBatchedRendering() */
     // The specific items that need to be rendered
     itemsToRender: PropTypes.PropTypes.objectOf(PropTypes.shape({
-        reportID: PropTypes.number.isRequired,
-        isReportIDInURL: PropTypes.bool,
+        reportID: PropTypes.number,
     })),
 };
 
@@ -82,7 +81,7 @@ class MainView extends React.PureComponent {
                         key={report.reportID}
                         style={reportStyles[report.reportID]}
                         reportID={report.reportID}
-                        showComposeForm={report.isReportIDInURL || false}
+                        isActiveReport={this.isReportIDMatchingURL(report.reportID)}
                     />
                 ))}
             </>
@@ -105,7 +104,8 @@ export default compose(
     // The first batch are all the reports that are visible in the LHN.
     // The second batch are all the reports.
     withBatchedRendering((props) => {
-        const isReportVisible = report => report.isUnread || report.isPinned || report.isReportIDInURL;
+        const reportIDInURL = parseInt(props.match.params.reportID, 10);
+        const isReportVisible = report => report.isUnread || report.pinnedReport || report.reportID === reportIDInURL;
         return [
             {items: _.pick(props.reports, isReportVisible), delay: 0},
             {items: props.reports, delay: 5000},

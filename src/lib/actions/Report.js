@@ -27,14 +27,8 @@ Ion.connect({
 
 let currentURL;
 Ion.connect({
-    key: IONKEYS.URL.CURRENT,
+    key: IONKEYS.CURRENT_URL,
     callback: val => currentURL = val,
-});
-
-let currentReportIDInURL;
-Ion.connect({
-    key: IONKEYS.URL.PARAMS,
-    callback: val => currentReportIDInURL = parseInt(val.reportID, 10),
 });
 
 let personalDetails;
@@ -101,9 +95,8 @@ function getSimplifiedReportObject(report) {
         reportID: report.reportID,
         reportName: report.reportName,
         reportNameValuePairs: report.reportNameValuePairs,
-        isReportIDInURL: currentReportIDInURL === report.reportID,
         isUnread: hasUnreadActions(report),
-        isPinned: configReportIDs.includes(report.reportID),
+        pinnedReport: configReportIDs.includes(report.reportID),
     };
 }
 
@@ -204,8 +197,10 @@ function updateReportWithNewAction(reportID, reportAction) {
         return;
     }
 
+    const currentReportID = Number(lodashGet(currentURL.split('/'), [1], 0));
+
     // If we are currently viewing this report do not show a notification.
-    if (reportID === currentReportIDInURL) {
+    if (reportID === currentReportID) {
         console.debug('[NOTIFICATION] No notification because it was a comment for the current report');
         return;
     }

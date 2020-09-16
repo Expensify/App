@@ -5,7 +5,7 @@ import {redirect} from './App';
 
 let currentURL;
 Ion.connect({
-    key: IONKEYS.URL.CURRENT,
+    key: IONKEYS.CURRENT_URL,
     callback: val => currentURL = val,
 });
 

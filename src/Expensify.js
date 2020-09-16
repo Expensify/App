@@ -85,7 +85,7 @@ class Expensify extends Component {
                 {/* If there is ever a property for redirecting, we do the redirect here */}
                 {/* Leave this as a ternary or else iOS throws an error about text not being wrapped in <Text> */}
                 {redirectTo ? <Redirect to={redirectTo} /> : null}
-                <Route path={['/:reportID?', '*']} render={recordCurrentRoute} />
+                <Route path="*" render={recordCurrentRoute} />
 
                 <Switch>
                     <Route
