@@ -170,6 +170,10 @@ export default compose(
             key: ({reportID}) => `${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
         },
     }),
+
+    // The rendering of report actions happens in batches.
+    // The first batch of actions is limited to the 100 most recent actions.
+    // The second batch is all of the rest of the actions.
     withBatchedRendering((props) => {
         const sortedReportActions = _.sortBy(props.reportActions, 'sequenceNumber');
         return [
