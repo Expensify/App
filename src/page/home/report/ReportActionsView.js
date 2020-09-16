@@ -177,8 +177,8 @@ export default compose(
     withBatchedRendering((props) => {
         const sortedReportActions = _.sortBy(props.reportActions, 'sequenceNumber');
         return [
-            {items: _.chain(sortedReportActions).last(100).indexBy('reportID').value(), delay: 0},
-            {items: _.indexBy(sortedReportActions, 'reportID'), delay: 7000},
+            {items: _.chain(sortedReportActions).last(100).indexBy('sequenceNumber').value(), delay: 0},
+            {items: _.indexBy(sortedReportActions, 'sequenceNumber'), delay: 7000},
         ];
     }),
 )(ReportActionsView);
