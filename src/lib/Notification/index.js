@@ -22,7 +22,7 @@ function canUseBrowserNotifications() {
         // Check if they previously granted or denied us access to send a notification
         const permissionGranted = Notification.permission === 'granted';
 
-        if (permissionGranted || Notification.permisson === 'denied') {
+        if (permissionGranted || Notification.permission === 'denied') {
             return resolve(permissionGranted);
         }
 
