@@ -1,5 +1,3 @@
-// Web and desktop implementation only
-
 import Str from '../Str';
 import CONST from '../../CONST';
 import * as ActiveClientManager from '../ActiveClientManager';
