@@ -1,6 +1,6 @@
 {
   "name": "react-native-chat",
-  "version": "1.0.1-50",
+  "version": "1.0.1-56",
   "author": "Expensify, Inc.",
   "homepage": "https://expensify.com",
   "description": "Expensify Chat",
@@ -8,6 +8,7 @@
   "scripts": {
     "android": "react-native run-android",
     "ios": "react-native run-ios",
+    "ipad": "react-native run-ios --simulator=\"iPad Pro (12.9-inch) (4th generation)\"",
     "desktop": "webpack --config webpack.dev.js && electron main.js",
     "start": "react-native start",
     "web": "webpack-dev-server --open --config webpack.dev.js",
