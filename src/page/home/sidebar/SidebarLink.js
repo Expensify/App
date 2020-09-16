@@ -69,7 +69,7 @@ export default compose(
     withRouter,
     withIon({
         report: {
-            key: ({reportID}) => `${IONKEYS.REPORT}_${reportID}`,
+            key: ({reportID}) => `${IONKEYS.COLLECTION.REPORT}${reportID}`,
         },
     }),
 )(SidebarLink);

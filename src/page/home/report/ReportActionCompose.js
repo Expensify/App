@@ -153,6 +153,6 @@ ReportActionCompose.defaultProps = defaultProps;
 
 export default withIon({
     comment: {
-        key: ({reportID}) => `${IONKEYS.REPORT_DRAFT_COMMENT}_${reportID}`,
+        key: ({reportID}) => `${IONKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
     },
 })(ReportActionCompose);
