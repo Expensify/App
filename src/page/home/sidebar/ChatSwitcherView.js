@@ -225,25 +225,34 @@ class ChatSwitcherView extends React.Component {
         // duplicate options to the list (because one option can match multiple regex patterns).
         // A Set is used here so that duplicate values are automatically removed.
         const matches = new Set();
-        const searchOptions = _.values(this.props.personalDetails);
 
-        // Update the personal details options to have generic names for their properties
-        _.each(searchOptions, (element, index) => {
-            searchOptions[index].text = element.fullName;
-            searchOptions[index].alternateText = element.login;
-            searchOptions[index].searchText = element.displayNameWithEmail;
-        });
+        // Get a list of all users we can send messages to and make their details generic
+        const personalDetailOptions = _.chain(this.props.personalDetails)
+            .values()
+            .map(personalDetail => ({
+                text: personalDetail.fullName,
+                alternateText: personalDetail.login,
+                searchText: personalDetail.displayNameWithEmail,
+                avatarURL: personalDetail.avatarURL,
+                login: personalDetail.login,
+            }))
+            .value();
 
-        // Get a list of all group chats shared with us
-        const reportOptions = _.filter(_.values(this.props.reports), reportData => reportData.reportNameValuePairs && reportData.reportNameValuePairs.type === 'expense');
+        // Get a list of all reports we can send messages to
+        // Filter the reports to only group chats
+        // Make the report details generic
+        const reportOptions = _.chain(this.props.reports)
+            .values()
+            .filter(report => report.reportNameValuePairs && report.reportNameValuePairs.type === 'expense')
+            .map(report => ({
+                text: '',
+                alternateText: report.reportName,
+                searchText: report.reportName,
+                reportID: report.reportID,
+            }))
+            .value();
 
-        // Update the report objects to have generic names for their properties
-        _.each(reportOptions, (element, index) => {
-            reportOptions[index].alternateText = element.reportName;
-            reportOptions[index].searchText = element.reportName;
-        });
-
-        searchOptions.push(...reportOptions);
+        const searchOptions = _.union(personalDetailOptions, reportOptions);
 
         for (let i = 0; i < matchRegexes.length; i++) {
             if (matches.size < this.maxSearchResults) {
