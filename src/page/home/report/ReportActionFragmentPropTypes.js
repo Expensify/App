@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 
 export default PropTypes.shape({
-    // The type of the history fragment. Used to render a corresponding component
+    // The type of the action item fragment. Used to render a corresponding component
     type: PropTypes.string.isRequired,
 
     // The text content of the fragment.

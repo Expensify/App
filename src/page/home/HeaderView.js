@@ -17,13 +17,15 @@ const propTypes = {
     shouldShowHamburgerButton: PropTypes.bool.isRequired,
 
     /* Ion Props */
-
-    // Name of the report (if we have one)
-    reportName: PropTypes.string,
+    // The report currently being looked at
+    report: PropTypes.shape({
+        // Name of the report
+        reportName: PropTypes.string,
+    }),
 };
 
 const defaultProps = {
-    reportName: null,
+    report: null,
 };
 
 const HeaderView = props => (
@@ -41,11 +43,11 @@ const HeaderView = props => (
                 />
             </TouchableOpacity>
             )}
-            {props.reportName && (
+            {props.report && props.report.reportName ? (
                 <Text numberOfLines={2} style={[styles.navText]}>
-                    {props.reportName}
+                    {props.report.reportName}
                 </Text>
-            )}
+            ) : null}
         </View>
     </View>
 );
@@ -57,14 +59,8 @@ HeaderView.defaultProps = defaultProps;
 export default compose(
     withRouter,
     withIon({
-        // Map this.props.reportName to the data for a specific report in the store,
-        // and bind it to the reportName property.
-        // It uses the data returned from the props path (ie. the reportID) to replace %DATAFROMPROPS% in the key it
-        // binds to
-        reportName: {
-            key: `${IONKEYS.REPORT}_%DATAFROMPROPS%`,
-            path: 'reportName',
-            pathForProps: 'match.params.reportID',
+        report: {
+            key: ({match}) => `${IONKEYS.COLLECTION.REPORT}${match.params.reportID}`,
         },
     }),
 )(HeaderView);
