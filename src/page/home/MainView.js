@@ -27,11 +27,12 @@ const defaultProps = {
     itemsToRender: {},
 };
 
-// This is a PureComponent because since this method is connected to an Ion collection,
-// it has setState() called on it anytime a single report in the collection changes. When
-// reports are first fetched, this component is rendered n times (where n is the number of reports).
-// By switching to a PureComponent, it will only re-render if the props change which is
-// much more performant.
+// Since this component is connected to an Ion collection, it's props are updated anytime a single report
+// in the collection changes.
+// When reports are first fetched, this component is rendered n times (where n is the number of reports).
+// There are only two pieces of data this component cares about:
+// - reportID comes from the collection and is used to render ReportView, this data will never change after first render
+// - match.params.reportID comes from React Router and will change anytime a report is selected from LHN
 class MainView extends React.PureComponent {
     /**
      * Looks to see if the reportID matches the report ID in the URL because that
