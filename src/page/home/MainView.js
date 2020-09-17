@@ -103,12 +103,22 @@ export default compose(
     // The rendering of report views is done in batches.
     // The first batch are all the reports that are visible in the LHN.
     // The second batch are all the reports.
-    withBatchedRendering('reports', (props) => {
-        const reportIDInURL = parseInt(props.match.params.reportID, 10);
-        const isReportVisible = report => report.isUnread || report.pinnedReport || report.reportID === reportIDInURL;
-        return [
-            {items: _.pick(props.reports, isReportVisible), delay: 0},
-            {items: props.reports, delay: 5000},
-        ];
-    }),
+    withBatchedRendering('reports', [
+        {
+            items: (props) => {
+                const reportIDInURL = parseInt(props.match.params.reportID, 10);
+                const isReportVisible = report => (
+                    report.isUnread
+                    || report.pinnedReport
+                    || report.reportID === reportIDInURL
+                );
+                return _.pick(props.reports, isReportVisible);
+            },
+            delay: 0,
+        },
+        {
+            items: props => props.reports,
+            delay: 5000,
+        },
+    ]),
 )(MainView);
