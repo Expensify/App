@@ -28,10 +28,10 @@ export default function (propNameToBatch, batches) {
             }
 
             componentDidMount() {
-                _.each(batches(this.props), (batch) => {
+                _.each(batches, (batch) => {
                     setTimeout(() => {
                         this.setState({
-                            itemsToRender: batch.items,
+                            itemsToRender: batch.items(this.props),
                         });
                     }, batch.delay || 0);
                 });
@@ -39,6 +39,7 @@ export default function (propNameToBatch, batches) {
 
             componentDidUpdate(prevProps) {
                 if (_.size(prevProps[propNameToBatch]) !== _.size(this.props[propNameToBatch])) {
+                    // eslint-disable-next-line react/no-did-update-set-state
                     this.setState({
                         itemsToRender: this.props[propNameToBatch],
                     });

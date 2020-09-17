@@ -39,6 +39,9 @@ const defaultProps = {
 // There are only two pieces of data this component cares about:
 // - reportID comes from the collection and is used to render ReportView, this data will never change after first render
 // - match.params.reportID comes from React Router and will change anytime a report is selected from LHN
+// Using PureComponent will ensure this component only re-renders if a new report is added to the collection.
+// PureComponent shallowly compares props. This means changes to individual reports will not cause a re-render,
+// but the addition or removal of a report will cause a render.
 class MainView extends React.PureComponent {
     /**
      * Looks to see if the reportID matches the report ID in the URL because that
@@ -103,12 +106,22 @@ export default compose(
     // The rendering of report views is done in batches.
     // The first batch are all the reports that are visible in the LHN.
     // The second batch are all the reports.
-    withBatchedRendering('reports', (props) => {
-        const reportIDInURL = parseInt(props.match.params.reportID, 10);
-        const isReportVisible = report => report.isUnread || report.pinnedReport || report.reportID === reportIDInURL;
-        return [
-            {items: _.pick(props.reports, isReportVisible), delay: 0},
-            {items: props.reports, delay: 5000},
-        ];
-    }),
+    withBatchedRendering('reports', [
+        {
+            items: (props) => {
+                const reportIDInURL = parseInt(props.match.params.reportID, 10);
+                const isReportVisible = report => (
+                    report.isUnread
+                    || report.pinnedReport
+                    || report.reportID === reportIDInURL
+                );
+                return _.pick(props.reports, isReportVisible);
+            },
+            delay: 0,
+        },
+        {
+            items: props => props.reports,
+            delay: 5000,
+        },
+    ]),
 )(MainView);
