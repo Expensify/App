@@ -1,19 +1,19 @@
 import React from 'react';
 import HTML from 'react-native-render-html';
-import {Linking} from 'react-native';
+import {Linking, Platform} from 'react-native';
 import Str from '../../../lib/Str';
-import ReportHistoryFragmentPropTypes from './ReportHistoryFragmentPropTypes';
+import ReportActionFragmentPropTypes from './ReportActionFragmentPropTypes';
 import styles, {webViewStyles} from '../../../style/StyleSheet';
 import Text from '../../../components/Text';
 import AnchorForCommentsOnly from '../../../components/AnchorForCommentsOnly';
-import {getAuthToken} from '../../../lib/Network';
+import {getAuthToken} from '../../../lib/API';
 
 const propTypes = {
     // The message fragment needing to be displayed
-    fragment: ReportHistoryFragmentPropTypes.isRequired,
+    fragment: ReportActionFragmentPropTypes.isRequired,
 };
 
-class ReportHistoryItemFragment extends React.PureComponent {
+class ReportActionItemFragment extends React.PureComponent {
     constructor(props) {
         super(props);
 
@@ -61,6 +61,9 @@ class ReportHistoryItemFragment extends React.PureComponent {
                 return fragment.html !== fragment.text
                     ? (
                         <HTML
+
+                            // HACK - Android selection causes performance issues, temporarily disable it until we fix
+                            textSelectable={Platform.OS !== 'android'}
                             renderers={this.customRenderers}
                             baseFontStyle={webViewStyles.baseFontStyle}
                             tagsStyles={webViewStyles.tagStyles}
@@ -69,10 +72,23 @@ class ReportHistoryItemFragment extends React.PureComponent {
                             alterNode={this.alterNode}
                         />
                     )
-                    : <Text>{Str.htmlDecode(fragment.text)}</Text>;
+                    : (
+                        <Text
+
+                            // HACK - Android selection causes performance issues, temporarily disable it until we fix
+                            selectable={Platform.OS !== 'android'}
+                        >
+                            {Str.htmlDecode(fragment.text)}
+                        </Text>
+                    );
             case 'TEXT':
                 return (
-                    <Text style={[styles.chatItemMessageHeaderSender]}>
+                    <Text
+
+                        // HACK - Android selection causes performance issues, temporarily disable it until we fix
+                        selectable={Platform.OS !== 'android'}
+                        style={[styles.chatItemMessageHeaderSender]}
+                    >
                         {Str.htmlDecode(fragment.text)}
                     </Text>
                 );
@@ -96,7 +112,7 @@ class ReportHistoryItemFragment extends React.PureComponent {
     }
 }
 
-ReportHistoryItemFragment.propTypes = propTypes;
-ReportHistoryItemFragment.displayName = 'ReportHistoryItemFragment';
+ReportActionItemFragment.propTypes = propTypes;
+ReportActionItemFragment.displayName = 'ReportActionItemFragment';
 
-export default ReportHistoryItemFragment;
+export default ReportActionItemFragment;

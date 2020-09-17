@@ -78,9 +78,7 @@ export default compose(
     withRouter,
     withIon({
         reports: {
-            key: `${IONKEYS.REPORT}_[0-9]+$`,
-            addAsCollection: true,
-            collectionID: 'reportID',
+            key: IONKEYS.COLLECTION.REPORT,
         },
     }),
 )(MainView);

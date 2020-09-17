@@ -159,11 +159,11 @@ const styles = {
         color: colors.textReversed,
     },
 
-    // History Items
-    historyItemAvatarWrapper: {
+    // Actions
+    actionAvatarWrapper: {
         width: 40,
     },
-    historyItemAvatar: {
+    actionAvatar: {
         borderRadius: 20,
         height: 40,
         width: 40,
@@ -188,7 +188,7 @@ const styles = {
         borderWidth: 1,
         color: colors.textReversed,
         padding: 12,
-        outline: 'none',
+        outlineWidth: 0,
     },
 
     textInputReversedFocus: {
@@ -222,6 +222,7 @@ const styles = {
 
     genericView: {
         backgroundColor: colors.heading,
+        height: '100%',
     },
 
     signInPageInner: {
@@ -544,10 +545,14 @@ const styles = {
 
     textInputCompose: {
         borderWidth: 0,
-        outline: 0,
+        borderRadius: 0,
+        outlineWidth: 0,
         height: 'auto',
         minHeight: 38,
-        padding: 10,
+        paddingTop: 10,
+        paddingRight: 8,
+        paddingBottom: 10,
+        paddingLeft: 8,
     },
 
     chatItemSubmitButton: {
@@ -565,6 +570,18 @@ const styles = {
     chatItemSubmitButtonIcon: {
         height: 20,
         width: 20,
+    },
+
+    chatItemAttachButton: {
+        alignItems: 'center',
+        alignSelf: 'flex-end',
+        borderRightColor: colors.border,
+        borderRightWidth: 1,
+        height: 26,
+        marginBottom: 6,
+        marginTop: 6,
+        justifyContent: 'center',
+        width: 39,
     },
 
     chatSwitcherInputClear: {
