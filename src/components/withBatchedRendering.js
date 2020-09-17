@@ -16,7 +16,7 @@ function getDisplayName(component) {
     return component.displayName || component.name || 'Component';
 }
 
-export default function (batches) {
+export default function (propNameToBatch, batches) {
     return (WrappedComponent) => {
         class withBatchedRendering extends React.Component {
             constructor(props) {
@@ -35,6 +35,14 @@ export default function (batches) {
                         });
                     }, batch.delay || 0);
                 });
+            }
+
+            componentDidUpdate(prevProps) {
+                if (_.size(prevProps[propNameToBatch]) !== _.size(this.props[propNameToBatch])) {
+                    this.setState({
+                        itemsToRender: this.props[propNameToBatch],
+                    });
+                }
             }
 
             render() {
