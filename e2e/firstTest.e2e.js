@@ -4,6 +4,6 @@ describe('Example', () => {
     });
 
     it('should have Log In screen', async () => {
-        await expect(element(by.id('Log In'))).toBeVisible();
+        await expect(element(by.text('Log In'))).toBeVisible();
     });
 });
