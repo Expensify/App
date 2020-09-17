@@ -1,30 +1,28 @@
 import React from 'react';
 import styles from '../../../style/StyleSheet';
-import Anchor from '../../../components/Anchor';
+import openURLInNewTab from '../../../lib/openURLInNewTab';
+import Text from '../../../components/Text';
 
 const AppLinks = () => (
     <>
-        <Anchor
+        <Text
             style={[styles.sidebarFooterLink, styles.mr2]}
-            href="https://chat.expensify.com/Chat.dmg"
+            onPress={() => openURLInNewTab('https://chat.expensify.com/Chat.dmg')}
         >
             Desktop
-        </Anchor>
-        <Anchor
+        </Text>
+        <Text
             style={[styles.sidebarFooterLink, styles.mr2]}
-            href="https://testflight.apple.com/join/ucuXr4g5"
+            onPress={() => openURLInNewTab('https://testflight.apple.com/join/ucuXr4g5')}
         >
             iOS
-        </Anchor>
-        <Anchor
+        </Text>
+        <Text
             style={[styles.sidebarFooterLink, styles.mr2]}
-
-            // TODO: Move to href="https://play.google.com/apps/internaltest/4700657970395613233" once Android app
-            // is approved see: https://github.com/Expensify/ReactNativeChat/issues/290
-            href="https://chat.expensify.com/app-release.apk"
+            onPress={() => openURLInNewTab('https://play.google.com/apps/internaltest/4700657970395613233')}
         >
             Android
-        </Anchor>
+        </Text>
     </>
 );
 
