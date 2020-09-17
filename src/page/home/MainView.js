@@ -39,6 +39,9 @@ const defaultProps = {
 // There are only two pieces of data this component cares about:
 // - reportID comes from the collection and is used to render ReportView, this data will never change after first render
 // - match.params.reportID comes from React Router and will change anytime a report is selected from LHN
+// Using PureComponent will ensure this component only re-renders if a new report is added to the collection.
+// PureComponent shallowly compares props. This means changes to individual reports will not cause a re-render,
+// but the addition or removal of a report will cause a render.
 class MainView extends React.PureComponent {
     /**
      * Looks to see if the reportID matches the report ID in the URL because that
