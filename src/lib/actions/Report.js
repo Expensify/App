@@ -298,10 +298,9 @@ function fetchAll(shouldRedirectToFirstReport = true, shouldFetchActions = false
 
             // Set the first report ID so that the logged in person can be redirected there
             // if they are on the home page
-            if (shouldRedirectToFirstReport && currentURL === '/') {
+            if (shouldRedirectToFirstReport && (currentURL === '/' || currentURL === '/home')) {
                 const firstReportID = _.first(_.pluck(fetchedReports, 'reportID'));
 
-                // If we're on the home page, then redirect to the first report ID
                 if (firstReportID) {
                     redirect(`/${firstReportID}`);
                 }
