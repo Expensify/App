@@ -170,11 +170,15 @@ export default compose(
             key: ({reportID}) => `${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
         },
     }),
-    withBatchedRendering((props) => {
+
+    // The rendering of report actions happens in batches.
+    // The first batch of actions is limited to the 100 most recent actions.
+    // The second batch is all of the rest of the actions.
+    withBatchedRendering('reportActions', (props) => {
         const sortedReportActions = _.sortBy(props.reportActions, 'sequenceNumber');
         return [
-            {items: _.chain(sortedReportActions).last(100).indexBy('reportID').value(), delay: 0},
-            {items: _.indexBy(sortedReportActions, 'reportID'), delay: 7000},
+            {items: _.chain(sortedReportActions).last(100).indexBy('sequenceNumber').value(), delay: 0},
+            {items: _.indexBy(sortedReportActions, 'sequenceNumber'), delay: 1000},
         ];
     }),
 )(ReportActionsView);

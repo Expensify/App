@@ -99,7 +99,11 @@ export default compose(
             key: IONKEYS.COLLECTION.REPORT,
         },
     }),
-    withBatchedRendering((props) => {
+
+    // The rendering of report views is done in batches.
+    // The first batch are all the reports that are visible in the LHN.
+    // The second batch are all the reports.
+    withBatchedRendering('reports', (props) => {
         const reportIDInURL = parseInt(props.match.params.reportID, 10);
         const isReportVisible = report => report.isUnread || report.pinnedReport || report.reportID === reportIDInURL;
         return [
