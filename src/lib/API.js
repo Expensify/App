@@ -318,7 +318,13 @@ Pusher.registerSocketEventCallback((eventName, data) => {
             isCurrentlyOffline = true;
             break;
         case 'state_change':
-            if (data.current === 'connecting' || data.current === 'unavailable') {
+            if (data.current === 'failed') {
+                // WebSockets are not natively available. In this case,
+                // we should not let Pusher influence the offline state of the app.
+                return;
+            }
+
+            if (data.current === 'disconnected' || data.current === 'connecting' || data.current === 'unavailable') {
                 isCurrentlyOffline = true;
             }
             break;
