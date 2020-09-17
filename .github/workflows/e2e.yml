@@ -34,7 +34,7 @@ jobs:
           - name: Install brew depdencies
             run: |
               brew tap wix/brew
-              brew install applesimutils xcpretty
+              brew install applesimutils
 
           - name: Build tests
             run: detox build
