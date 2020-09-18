@@ -190,6 +190,10 @@ function subscribe(channelName, eventName, eventCallback = () => {}, isChunked =
             channel = socket.subscribe(channelName);
             channel.bind('pusher:subscription_succeeded', () => {
                 bindEventToChannel(channel, eventName, eventCallback, isChunked);
+
+                // Remove this event subscriber so we do not bind another
+                // event with each reconnect attempt
+                channel.unbind('pusher:subscription_succeeded');
                 resolve();
             });
 
