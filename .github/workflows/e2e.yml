@@ -40,4 +40,4 @@ jobs:
             run: detox build
 
           - name: Run tests
-            run: detox test
+            run: detox test --loglevel trace --cleanup
