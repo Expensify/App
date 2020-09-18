@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import Str from '../Str';
 import Pusher from './library';
 import CONFIG from '../../CONFIG';
 
@@ -191,6 +190,10 @@ function subscribe(channelName, eventName, eventCallback = () => {}, isChunked =
             channel = socket.subscribe(channelName);
             channel.bind('pusher:subscription_succeeded', () => {
                 bindEventToChannel(channel, eventName, eventCallback, isChunked);
+
+                // Remove this event subscriber so we do not bind another
+                // event with each reconnect attempt
+                channel.unbind('pusher:subscription_succeeded');
                 resolve();
             });
 
@@ -359,40 +362,8 @@ function disconnect() {
  * Disconnect and Re-Connect Pusher
  */
 function reconnect() {
-    // A standard disconnect and connect will result in
-    // multiple event callbacks (possible Pusher bug).
-    // In order to re-bind our reportCommment event cleanly
-    // we must save a reference to them then disconnect,
-    // connect, and re-bind them manually.
     socket.disconnect();
-
-    // Find the callback in Pusher's event map and save it
-    let commentCallback;
-    _.each(socket.allChannels(), (channel) => {
-        if (channel.name === Str.startsWith(channel.name, 'private-user-accountID')) {
-            // eslint-disable-next-line no-underscore-dangle
-            const reportCommentCallbacks = channel.callbacks._callbacks._reportComment;
-            if (reportCommentCallbacks) {
-                const [firstReportCommentCallback] = reportCommentCallbacks;
-                commentCallback = firstReportCommentCallback.fn;
-            }
-        }
-    });
-
     socket.connect();
-
-    // If we have a callback saved then we must manually unbind
-    // that event AFTER we have connected. Pusher will create
-    // n duplicate event callbacks for each call to socket.connect().
-    // This seems like a bug with Pusher's library.
-    if (commentCallback) {
-        _.each(socket.allChannels(), (channel) => {
-            if (channel.name === Str.startsWith(channel.name, 'private-user-accountID')) {
-                channel.unbind('reportComment');
-                channel.bind('reportComment', commentCallback);
-            }
-        });
-    }
 }
 
 if (window) {
