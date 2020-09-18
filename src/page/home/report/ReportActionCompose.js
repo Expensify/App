@@ -183,7 +183,6 @@ ReportActionCompose.defaultProps = defaultProps;
 
 export default withIon({
     comment: {
-        key: `${IONKEYS.REPORT_DRAFT_COMMENT}_%DATAFROMPROPS%`,
-        pathForProps: 'reportID',
+        key: ({reportID}) => `${IONKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
     },
 })(ReportActionCompose);
