@@ -106,7 +106,7 @@ class ReportActionCompose extends React.Component {
     /**
      * Handle the attachment icon being tapped
      *
-     * @param {SyntheticEvent} [e]
+     * @param {SyntheticEvent} e
      */
     showAttachmentPicker(e) {
         e.preventDefault();
