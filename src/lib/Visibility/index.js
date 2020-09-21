@@ -4,11 +4,10 @@ const ipcRenderer = window.require ? window.require('electron').ipcRenderer : nu
 
 /**
  * Detects whether the app is visible or not. Electron supports
- * document.visibilityState, but switching to another app does not
- * always trigger a state of hidden so we ask the main process synchronously
- * whether the BrowserWindow.isFocused()
- *
- * See: https://github.com/electron/electron/issues/8664
+ * document.visibilityState, but switching to another app while
+ * Electron is partially occluded will not trigger a state of hidden
+ * so we ask the main process synchronously whether the
+ * BrowserWindow.isFocused()
  *
  * @returns {Boolean}
  */
