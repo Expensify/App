@@ -43,10 +43,6 @@ class ReportActionsView extends React.Component {
         fetchActions(this.props.reportID);
     }
 
-    componentDidUpdate(prevProps) {
-        const isReportVisible = this.props.reportID === parseInt(this.props.match.params.reportID, 10);
-    }
-
     componentWillUnmount() {
         this.keyboardEvent.remove();
     }
