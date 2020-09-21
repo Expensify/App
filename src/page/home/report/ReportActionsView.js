@@ -49,8 +49,6 @@ class ReportActionsView extends React.Component {
     componentDidUpdate(prevProps) {
         const isReportVisible = this.props.reportID === parseInt(this.props.match.params.reportID, 10);
 
-        this.updateSortedReportActions();
-
         // When the number of actions change, wait three seconds, then record the max action
         // This will make the unread indicator go away if you receive comments in the same chat you're looking at
         if (isReportVisible && _.size(prevProps.reportActions) !== _.size(this.props.reportActions)) {
@@ -66,7 +64,7 @@ class ReportActionsView extends React.Component {
      * Updates and sorts the report actions by sequence number
      */
     updateSortedReportActions() {
-        this.sortedReportActions = _.chain(this.props.reportActions).sortBy('sequenceNumber');
+        this.sortedReportActions = _.chain(this.props.reportActions).sortBy('sequenceNumber').value();
     }
 
     /**
@@ -86,8 +84,8 @@ class ReportActionsView extends React.Component {
             return false;
         }
 
-        const previousAction = this.sortedReportActions.value()[actionIndex - 1];
-        const currentAction = this.sortedReportActions.value()[actionIndex];
+        const previousAction = this.sortedReportActions[actionIndex - 1];
+        const currentAction = this.sortedReportActions[actionIndex];
 
         // It's OK for there to be no previous action, and in that case, false will be returned
         // so that the comment isn't grouped
@@ -143,6 +141,7 @@ class ReportActionsView extends React.Component {
             );
         }
 
+        this.updateSortedReportActions();
         return (
             <ScrollView
                 ref={(el) => {
@@ -152,13 +151,13 @@ class ReportActionsView extends React.Component {
                 bounces={false}
                 contentContainerStyle={[styles.chatContentScrollView]}
             >
-                {this.sortedReportActions.map((item, index) => (
+                {_.map(this.sortedReportActions, (item, index) => (
                     <ReportActionItem
                         key={item.sequenceNumber}
                         action={item}
                         displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
                     />
-                )).value()}
+                ))}
             </ScrollView>
         );
     }
