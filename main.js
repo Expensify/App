@@ -1,4 +1,9 @@
-const {app, BrowserWindow, shell} = require('electron');
+const {
+    app,
+    BrowserWindow,
+    shell,
+    ipcMain
+} = require('electron');
 const serve = require('electron-serve');
 const contextMenu = require('electron-context-menu');
 const {autoUpdater} = require('electron-updater');
@@ -55,6 +60,12 @@ const mainWindow = (() => {
                 // and open every other protocol in the browser
                 e.preventDefault();
                 return shell.openExternal(url);
+            });
+
+            ipcMain.on('request-visibility', (event) => {
+                // This is how synchronous messages work in Electron
+                // eslint-disable-next-line no-param-reassign
+                event.returnValue = browserWindow.isFocused();
             });
 
             return browserWindow;
