@@ -11,6 +11,7 @@ import ExpensiMark from '../ExpensiMark';
 import Notification from '../Notification';
 import * as PersonalDetails from './PersonalDetails';
 import {redirect} from './App';
+import Visibility from '../Visibility';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -200,7 +201,7 @@ function updateReportWithNewAction(reportID, reportAction) {
     const currentReportID = Number(lodashGet(currentURL.split('/'), [1], 0));
 
     // If we are currently viewing this report do not show a notification.
-    if (reportID === currentReportID) {
+    if (reportID === currentReportID && Visibility.isVisible()) {
         console.debug('[NOTIFICATION] No notification because it was a comment for the current report');
         return;
     }
