@@ -9,6 +9,7 @@ const colors = {
     black: '#000000',
     blue: '#2EAAE2',
     border: '#ECECEC',
+    borderLight: '#E0E0E0',
     green: '#2ECB70',
     heading: '#37444C',
     icon: '#C6C9CA',
@@ -582,6 +583,17 @@ const styles = {
         marginTop: 6,
         justifyContent: 'center',
         width: 39,
+    },
+
+    chatItemAttachmentPlaceholder: {
+        backgroundColor: colors.border,
+        borderColor: colors.borderLight,
+        borderWidth: 1,
+        borderRadius: 8,
+        height: 150,
+        textAlign: 'center',
+        verticalAlign: 'middle',
+        width: 200,
     },
 
     chatSwitcherInputClear: {
