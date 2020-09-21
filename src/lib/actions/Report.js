@@ -369,13 +369,15 @@ function fetchOrCreateChatReport(participants) {
  *
  * @param {number} reportID
  * @param {string} text
+ * @param {object} file
  */
-function addAction(reportID, text) {
+function addAction(reportID, text, file) {
     const actionKey = `${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
 
     // Convert the comment from MD into HTML because that's how it is stored in the database
     const parser = new ExpensiMark();
     const htmlComment = parser.replace(text);
+    const isAttachment = _.isEmpty(text) && file !== undefined;
 
     // The new sequence number will be one higher than the highest
     let highestSequenceNumber = reportMaxSequenceNumbers[reportID] || 0;
@@ -405,20 +407,22 @@ function addAction(reportID, text) {
             message: [
                 {
                     type: 'COMMENT',
-                    html: htmlComment,
+                    html: isAttachment ? 'Uploading Attachment...' : htmlComment,
 
                     // Remove HTML from text when applying optimistic offline comment
-                    text: htmlComment.replace(/<[^>]*>?/gm, ''),
+                    text: isAttachment ? 'Uploading Attachment...'
+                        : htmlComment.replace(/<[^>]*>?/gm, ''),
                 }
             ],
             isFirstItem: false,
-            isAttachmentPlaceHolder: false,
+            isAttachment,
         }
     });
 
     queueRequest('Report_AddComment', {
         reportID,
         reportComment: htmlComment,
+        file
     });
 }
 
