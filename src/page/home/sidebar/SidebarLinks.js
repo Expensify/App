@@ -36,7 +36,7 @@ const propTypes = {
     reports: PropTypes.objectOf(PropTypes.shape({
         reportID: PropTypes.number,
         reportName: PropTypes.string,
-        isUnread: PropTypes.bool,
+        unreadActionCount: PropTypes.number,
     })),
 };
 const defaultProps = {
@@ -59,7 +59,7 @@ class SidebarLinks extends React.Component {
 
         // Filter the reports so that the only reports shown are pinned, unread, and the one matching the URL
         // eslint-disable-next-line max-len
-        const reportsToDisplay = _.filter(sortedReports, report => (report.pinnedReport || report.isUnread || report.reportID === reportIDInUrl));
+        const reportsToDisplay = _.filter(sortedReports, report => (report.pinnedReport || (report.unreadActionCount > 0) || report.reportID === reportIDInUrl));
 
         return (
             <View style={[styles.flex1, {marginTop: this.props.insets.top}]}>
@@ -90,7 +90,7 @@ class SidebarLinks extends React.Component {
                                 key={report.reportID}
                                 reportID={report.reportID}
                                 reportName={report.reportName}
-                                isUnread={report.isUnread}
+                                isUnread={report.unreadActionCount > 0}
                                 onLinkClick={onLinkClick}
                             />
                         ))}

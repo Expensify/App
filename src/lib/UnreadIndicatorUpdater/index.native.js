@@ -3,4 +3,5 @@
  */
 export default {
     init: () => {},
+    destroy: () => {},
 };

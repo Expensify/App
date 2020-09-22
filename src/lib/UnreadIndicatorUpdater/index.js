@@ -11,7 +11,8 @@ import CONFIG from '../../CONFIG';
 // communicate with the main Electron process in main.js
 const ipcRenderer = window.require ? window.require('electron').ipcRenderer : null;
 
-const reportMap = {};
+// Stash the unread action counts for each report
+const unreadActionCounts = {};
 
 /**
  * Updates the title and favicon of the current browser tab
@@ -20,7 +21,7 @@ const reportMap = {};
  * @param {boolean} hasUnread
  */
 function updatePageTitleAndUnreadCount() {
-    const totalCount = _.reduce(reportMap, (total, report) => total + ((report && report.unreadActionCount) || 0), 0);
+    const totalCount = _.reduce(unreadActionCounts, (total, reportCount) => total + reportCount, 0);
     const hasUnread = totalCount > 0;
     document.title = hasUnread ? `(NEW!) ${CONFIG.SITE_TITLE}` : CONFIG.SITE_TITLE;
     document.getElementById('favicon').href = hasUnread ? CONFIG.FAVICON.UNREAD : CONFIG.FAVICON.DEFAULT;
@@ -32,18 +33,34 @@ function updatePageTitleAndUnreadCount() {
     }
 }
 
-Ion.connect({
-    key: IONKEYS.COLLECTION.REPORT,
-    callback: (report) => {
-        if (!report || !report.reportID) {
-            return;
-        }
+let connectionID;
 
-        reportMap[report.reportID] = report;
-        updatePageTitleAndUnreadCount();
-    }
-});
+/**
+ * Bind to the report collection key and update
+ * the title and unread count indicators
+ */
+function init() {
+    connectionID = Ion.connect({
+        key: IONKEYS.COLLECTION.REPORT,
+        callback: (report) => {
+            if (!report || !report.reportID) {
+                return;
+            }
+
+            unreadActionCounts[report.reportID] = report.unreadActionCount || 0;
+            updatePageTitleAndUnreadCount();
+        }
+    });
+}
+
+/**
+ * Remove the subscription callback when we no longer need it.
+ */
+function destroy() {
+    Ion.disconnect(connectionID);
+}
 
 export default {
-    init: () => {},
+    init,
+    destroy,
 };

@@ -102,7 +102,6 @@ function getSimplifiedReportObject(report) {
         reportName: report.reportName,
         reportNameValuePairs: report.reportNameValuePairs,
         unreadActionCount,
-        isUnread: unreadActionCount > 0,
         pinnedReport: configReportIDs.includes(report.reportID),
     };
 }
@@ -180,9 +179,7 @@ function fetchChatReportsByIDs(chatList) {
  * @param {object} reportAction
  */
 function updateReportWithNewAction(reportID, reportAction) {
-    const previousMaxSequenceNumber = reportMaxSequenceNumbers[reportID];
     const newMaxSequenceNumber = reportAction.sequenceNumber;
-    const hasNewSequenceNumber = newMaxSequenceNumber > previousMaxSequenceNumber;
 
     // Always merge the reportID into Ion
     // If the report doesn't exist in Ion yet, then all the rest of the data will be filled out
@@ -190,7 +187,6 @@ function updateReportWithNewAction(reportID, reportAction) {
     Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {
         reportID,
         unreadActionCount: newMaxSequenceNumber - (lastReadActionIDs[reportID] || 0),
-        isUnread: hasNewSequenceNumber,
         maxSequenceNumber: reportAction.sequenceNumber,
     });
 
@@ -451,7 +447,6 @@ function updateLastReadActionID(reportID, sequenceNumber) {
 
     // Update the lastReadActionID on the report optimistically
     Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {
-        isUnread: false,
         unreadActionCount: 0,
         reportNameValuePairs: {
             [`lastReadActionID_${currentUserAccountID}`]: sequenceNumber,
