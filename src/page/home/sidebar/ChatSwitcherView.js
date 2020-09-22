@@ -104,6 +104,28 @@ class ChatSwitcherView extends React.Component {
     }
 
     /**
+     * Fetch the chat report and then redirect to the new report
+     *
+     * @param {object} option
+     * @param {string} option.login
+     */
+    onUserSelected(option) {
+        fetchOrCreateChatReport([this.props.session.email, option.login]);
+        this.reset();
+    }
+
+    /**
+     * Fetch the chat report and then redirect to the new report
+     *
+     * @param {object} option
+     * @param {string} option.reportID
+     */
+    onReportSelected(option) {
+        redirect(option.reportID);
+        this.reset();
+    }
+
+    /**
      * Reset the component to it's default state and blur the input
      *
      * @param {boolean} blurAfterReset
@@ -133,28 +155,6 @@ class ChatSwitcherView extends React.Component {
             isLogoVisible: false,
             isClearButtonVisible: true,
         });
-    }
-
-    /**
-     * Fetch the chat report and then redirect to the new report
-     *
-     * @param {object} option
-     * @param {string} option.login
-     */
-    onUserSelected(option) {
-        fetchOrCreateChatReport([this.props.session.email, option.login]);
-        this.reset();
-    }
-
-    /**
-     * Fetch the chat report and then redirect to the new report
-     *
-     * @param {object} option
-     * @param {string} option.reportID
-     */
-    onReportSelected(option) {
-        redirect(option.reportID);
-        this.reset();
     }
 
     /**
