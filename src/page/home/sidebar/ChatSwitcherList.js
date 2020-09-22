@@ -8,7 +8,6 @@ import {
     View
 } from 'react-native';
 import styles from '../../../style/StyleSheet';
-import CONFIG from '../../../CONFIG';
 
 const propTypes = {
     // The index of the option that is currently in focus
@@ -40,7 +39,6 @@ const ChatSwitcherList = ({focusedIndex, options, onSelect}) => (
             const textStyle = optionIsFocused
                 ? styles.sidebarLinkActiveText
                 : styles.sidebarLinkText;
-            const avatarURL = option.avatarURL ? option.avatarURL : CONFIG.FAVICON.DEFAULT;
             return (
                 <TouchableOpacity
                     key={option.alternateText}
@@ -57,7 +55,7 @@ const ChatSwitcherList = ({focusedIndex, options, onSelect}) => (
                     >
                         <View style={[styles.chatSwitcherAvatar, styles.mr2]}>
                             <Image
-                                source={{uri: avatarURL}}
+                                source={{uri: option.icon}}
                                 style={[styles.chatSwitcherAvatarImage]}
                             />
                         </View>
