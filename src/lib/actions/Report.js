@@ -32,12 +32,6 @@ Ion.connect({
     callback: val => currentURL = val,
 });
 
-let personalDetails;
-Ion.connect({
-    key: IONKEYS.PERSONAL_DETAILS,
-    callback: val => personalDetails = val,
-});
-
 let myPersonalDetails;
 Ion.connect({
     key: IONKEYS.MY_PERSONAL_DETAILS,
@@ -111,7 +105,7 @@ function getChatReportName(sharedReportList) {
     return _.chain(sharedReportList)
         .map(participant => participant.email)
         .filter(participant => participant !== currentUserEmail)
-        .map(participant => lodashGet(personalDetails, [participant, 'firstName']) || participant)
+        .map(participant => PersonalDetails.getDisplayName(participant))
         .value()
         .join(', ');
 }
