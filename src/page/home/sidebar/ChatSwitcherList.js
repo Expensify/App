@@ -15,10 +15,10 @@ const propTypes = {
 
     // An array of options to allow the user to choose from
     options: PropTypes.arrayOf(PropTypes.shape({
-        // The full name of the user if available
+        // The full name of the user if available, otherwise the login (email/phone number) of the user
         text: PropTypes.string.isRequired,
 
-        // The login (email/phone number) of the user, or the name of the chat room
+        // The login of the user, or the name of the chat room
         alternateText: PropTypes.string.isRequired,
 
         // The URL of the person's avatar
@@ -60,7 +60,7 @@ const ChatSwitcherList = ({focusedIndex, options}) => (
                             />
                         </View>
                         <View style={[styles.flex1]}>
-                            {option.text === '' ? (
+                            {option.text === option.alternateText ? (
                                 <Text style={[textStyle, styles.h3]} numberOfLines={1}>
                                     {option.alternateText}
                                 </Text>
