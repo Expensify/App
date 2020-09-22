@@ -17,9 +17,6 @@ const personalDetailsPropTypes = PropTypes.shape({
     // the person doesn't have their own avatar uploaded yet)
     avatarURL: PropTypes.string.isRequired,
 
-    // The combination of `${firstName} ${lastName}` (could be an empty string)
-    fullName: PropTypes.string,
-
     // This is either the user's full name, or their login if full name is an empty string
     displayName: PropTypes.string.isRequired,
 });
