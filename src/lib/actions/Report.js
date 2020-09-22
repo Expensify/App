@@ -32,12 +32,6 @@ Ion.connect({
     callback: val => currentURL = val,
 });
 
-let personalDetails;
-Ion.connect({
-    key: IONKEYS.PERSONAL_DETAILS,
-    callback: val => personalDetails = val,
-});
-
 let myPersonalDetails;
 Ion.connect({
     key: IONKEYS.MY_PERSONAL_DETAILS,
@@ -102,23 +96,6 @@ function getSimplifiedReportObject(report) {
 }
 
 /**
- * Returns the name to display for a chat report participant
- *
- * @param {string} login
- * @returns {string}
- */
-function getChatParticipantDisplayName(login) {
-    if (!personalDetails[login]) {
-        return login;
-    }
-
-    const firstName = lodashGet(personalDetails, [login, 'firstName'], '');
-    const lastName = lodashGet(personalDetails, [login, 'lastName'], '');
-
-    return (`${firstName} ${lastName}`).trim() || login;
-}
-
-/**
  * Returns a generated report title based on the participants
  *
  * @param {array} sharedReportList
@@ -128,7 +105,7 @@ function getChatReportName(sharedReportList) {
     return _.chain(sharedReportList)
         .map(participant => participant.email)
         .filter(participant => participant !== currentUserEmail)
-        .map(participant => getChatParticipantDisplayName(participant))
+        .map(participant => PersonalDetails.getDisplayName(participant))
         .value()
         .join(', ');
 }
