@@ -76,8 +76,8 @@ class ChatSwitcherView extends React.Component {
 
         this.handleKeyPress = this.handleKeyPress.bind(this);
         this.reset = this.reset.bind(this);
-        this.onUserSelected = this.onUserSelected.bind(this);
-        this.onReportSelected = this.onReportSelected.bind(this);
+        this.selectUser = this.selectUser.bind(this);
+        this.selectReport = this.selectReport.bind(this);
         this.triggerOnFocusCallback = this.triggerOnFocusCallback.bind(this);
         this.updateSearch = this.updateSearch.bind(this);
 
@@ -109,7 +109,7 @@ class ChatSwitcherView extends React.Component {
      * @param {object} option
      * @param {string} option.login
      */
-    onUserSelected(option) {
+    selectUser(option) {
         fetchOrCreateChatReport([this.props.session.email, option.login]);
         this.reset();
     }
@@ -120,7 +120,7 @@ class ChatSwitcherView extends React.Component {
      * @param {object} option
      * @param {string} option.reportID
      */
-    onReportSelected(option) {
+    selectReport(option) {
         redirect(option.reportID);
         this.reset();
     }
@@ -244,7 +244,7 @@ class ChatSwitcherView extends React.Component {
                 searchText: personalDetail.displayNameWithEmail,
                 icon: personalDetail.avatarURL,
                 login: personalDetail.login,
-                callback: this.onUserSelected,
+                callback: this.selectUser,
             }))
             .value();
 
@@ -260,7 +260,7 @@ class ChatSwitcherView extends React.Component {
                 searchText: report.reportName,
                 reportID: report.reportID,
                 icon: CONFIG.FAVICON.DEFAULT,
-                callback: this.onReportSelected,
+                callback: this.selectReport,
             }))
             .value();
 
