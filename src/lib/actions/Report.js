@@ -447,7 +447,7 @@ function updateLastReadActionID(reportID, sequenceNumber) {
         return;
     }
 
-    lastReadActionIDs[reportID] = 0;
+    lastReadActionIDs[reportID] = sequenceNumber;
 
     // Update the lastReadActionID on the report optimistically
     Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {
