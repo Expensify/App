@@ -544,6 +544,14 @@ const styles = {
         minHeight: 40,
     },
 
+    chatItemComposeBoxFocused: {
+        backgroundColor: colors.componentBG,
+        borderWidth: 1,
+        borderColor: colors.blue,
+        borderRadius: 8,
+        minHeight: 40,
+    },
+
     textInputCompose: {
         borderWidth: 0,
         borderRadius: 0,

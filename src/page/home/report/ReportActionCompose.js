@@ -36,7 +36,9 @@ class ReportActionCompose extends React.Component {
         this.triggerSubmitShortcut = this.triggerSubmitShortcut.bind(this);
         this.submitForm = this.submitForm.bind(this);
         this.showAttachmentPicker = this.showAttachmentPicker.bind(this);
+        this.focusTextInput = this.focusTextInput.bind(this);
         this.comment = '';
+        this.state = {isFocused: false};
     }
 
     componentDidUpdate(prevProps) {
@@ -45,6 +47,10 @@ class ReportActionCompose extends React.Component {
         if (this.props.comment && prevProps.comment === '' && prevProps.comment !== this.props.comment) {
             this.comment = this.props.comment;
         }
+    }
+
+    focusTextInput(shouldHighlight) {
+        this.setState({isFocused: shouldHighlight});
     }
 
     /**
@@ -138,7 +144,7 @@ class ReportActionCompose extends React.Component {
     render() {
         return (
             <View style={[styles.chatItemCompose]}>
-                <View style={[styles.chatItemComposeBox, styles.flexRow]}>
+                <View style={[this.state.isFocused ? styles.chatItemComposeBoxFocused : styles.chatItemComposeBox, styles.flexRow]}>
                     <TouchableOpacity
                         onPress={this.showAttachmentPicker}
                         style={[styles.chatItemAttachButton]}
@@ -161,6 +167,8 @@ class ReportActionCompose extends React.Component {
                         style={[styles.textInput, styles.textInputCompose, styles.flex4]}
                         defaultValue={this.props.comment || ''}
                         maxLines={16} // This is the same that slack has
+                        onFocus={() => this.focusTextInput(true)}
+                        onBlur={() => this.focusTextInput(false)}
                     />
                     <TouchableOpacity
                         style={[styles.chatItemSubmitButton, styles.buttonSuccess]}
