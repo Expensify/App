@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import Ion from '../Ion';
 import IONKEYS from '../../IONKEYS';
+import ELECTRON_EVENTS from '../../../desktop/ELECTRON_EVENTS';
 
 /**
  * Web browsers have a tab title and favicon which can be updated to show there are unread comments
@@ -29,7 +30,7 @@ function updatePageTitleAndUnreadCount() {
     if (ipcRenderer) {
         // Ask the main Electron process to update our
         // badge count in the Mac OS dock icon
-        ipcRenderer.send('request-update-badge-count', totalCount);
+        ipcRenderer.send(ELECTRON_EVENTS.REQUEST_UPDATE_BADGE_COUNT, totalCount);
     }
 }
 
