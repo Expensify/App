@@ -219,7 +219,9 @@ class ChatSwitcherView extends React.Component {
             if (matches.size < this.maxSearchResults) {
                 for (let j = 0; j < searchOptions.length; j++) {
                     const option = searchOptions[j];
-                    const valueToSearch = option.displayNameWithEmail.replace(new RegExp(/&nbsp;/g), '');
+                    const displayNameWithEmail = option.displayName === option.login ? option.login
+                        : `${option.displayName} ${option.login}`;
+                    const valueToSearch = displayNameWithEmail.replace(new RegExp(/&nbsp;/g), '');
                     const isMatch = matchRegexes[i].test(valueToSearch);
 
                     // Make sure we don't include the same option twice (automatically handled be using a `Set`)
