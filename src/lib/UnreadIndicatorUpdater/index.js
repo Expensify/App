@@ -18,10 +18,8 @@ const unreadActionCounts = {};
 /**
  * Updates the title and favicon of the current browser tab
  * and Mac OS dock icon with an unread indicator.
- *
- * @param {boolean} hasUnread
  */
-function updatePageTitleAndUnreadCount() {
+const throttledUpdatePageTitleAndUnreadCount = _.throttle(() => {
     const totalCount = _.reduce(unreadActionCounts, (total, reportCount) => total + reportCount, 0);
     const hasUnread = totalCount > 0;
     document.title = hasUnread ? `(NEW!) ${CONFIG.SITE_TITLE}` : CONFIG.SITE_TITLE;
@@ -32,7 +30,7 @@ function updatePageTitleAndUnreadCount() {
         // badge count in the Mac OS dock icon
         ipcRenderer.send(ELECTRON_EVENTS.REQUEST_UPDATE_BADGE_COUNT, totalCount);
     }
-}
+}, 1000, {leading: false});
 
 let connectionID;
 
@@ -49,7 +47,7 @@ function init() {
             }
 
             unreadActionCounts[report.reportID] = report.unreadActionCount || 0;
-            updatePageTitleAndUnreadCount();
+            throttledUpdatePageTitleAndUnreadCount();
         }
     });
 }
