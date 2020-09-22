@@ -313,6 +313,7 @@ function fetchAll(shouldRedirectToFirstReport = true, shouldFetchActions = false
                 Ion.merge(`${IONKEYS.COLLECTION.REPORT}${report.reportID}`, getSimplifiedReportObject(report));
 
                 if (shouldFetchActions) {
+                    console.debug(`[RECONNECT] Fetching report actions for report ${report.reportID}`);
                     fetchActions(report.reportID);
                 }
             });
