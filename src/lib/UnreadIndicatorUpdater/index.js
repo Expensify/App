@@ -19,7 +19,6 @@ const reportMap = {};
  *
  * @param {boolean} hasUnread
  */
-
 function updatePageTitleAndUnreadCount() {
     const totalCount = _.reduce(reportMap, (total, report) => total + ((report && report.unreadActionCount) || 0), 0);
     const hasUnread = totalCount > 0;
