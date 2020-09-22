@@ -536,18 +536,17 @@ const styles = {
         display: 'flex',
     },
 
+    chatItemComposeBoxColour: {
+        borderColor: colors.border,
+    },
+
+    chatItemComposeBoxFocusedColour: {
+        borderColor: colors.blue,
+    },
+
     chatItemComposeBox: {
         backgroundColor: colors.componentBG,
         borderWidth: 1,
-        borderColor: colors.border,
-        borderRadius: 8,
-        minHeight: 40,
-    },
-
-    chatItemComposeBoxFocused: {
-        backgroundColor: colors.componentBG,
-        borderWidth: 1,
-        borderColor: colors.blue,
         borderRadius: 8,
         minHeight: 40,
     },

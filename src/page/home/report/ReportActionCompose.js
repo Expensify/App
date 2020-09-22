@@ -144,7 +144,12 @@ class ReportActionCompose extends React.Component {
     render() {
         return (
             <View style={[styles.chatItemCompose]}>
-                <View style={[this.state.isFocused ? styles.chatItemComposeBoxFocused : styles.chatItemComposeBox, styles.flexRow]}>
+                <View style={[
+                    this.state.isFocused ? styles.chatItemComposeBoxFocusedColour : styles.chatItemComposeBoxColour,
+                    styles.chatItemComposeBox,
+                    styles.flexRow
+                ]}
+                >
                     <TouchableOpacity
                         onPress={this.showAttachmentPicker}
                         style={[styles.chatItemAttachButton]}
