@@ -102,6 +102,23 @@ function getSimplifiedReportObject(report) {
 }
 
 /**
+ * Returns the name to display for a chat report participant
+ *
+ * @param {string} login
+ * @returns {string}
+ */
+function getChatParticipantDisplayName(login) {
+    if (!personalDetails[login]) {
+        return login;
+    }
+
+    const firstName = lodashGet(personalDetails, [login, 'firstName'], '');
+    const lastName = lodashGet(personalDetails, [login, 'lastName'], '');
+
+    return (`${firstName} ${lastName}`).trim() || login;
+}
+
+/**
  * Returns a generated report title based on the participants
  *
  * @param {array} sharedReportList
@@ -111,9 +128,7 @@ function getChatReportName(sharedReportList) {
     return _.chain(sharedReportList)
         .map(participant => participant.email)
         .filter(participant => participant !== currentUserEmail)
-        .map(participant => (
-            `${lodashGet(personalDetails, [participant, 'firstName'], '')} ${
-                lodashGet(personalDetails, [participant, 'lastName'], '')}`).trim() || participant)
+        .map(participant => getChatParticipantDisplayName(participant))
         .value()
         .join(', ');
 }
