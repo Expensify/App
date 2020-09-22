@@ -61,21 +61,13 @@ function formatPersonalDetails(personalDetailsList) {
     return _.reduce(personalDetailsList, (finalObject, personalDetailsResponse, login) => {
         // Form the details into something that has all the data in an easy to use format.
         const avatarURL = getAvatar(personalDetailsResponse, login);
-        const firstName = personalDetailsResponse.firstName || '';
-        const lastName = personalDetailsResponse.lastName || '';
-        const fullName = `${firstName} ${lastName}`.trim();
         const displayName = getDisplayName(login, personalDetailsResponse);
-        const displayNameWithEmail = fullName === '' ? login : `${fullName} (${login})`;
         return {
             ...finalObject,
             [login]: {
                 login,
                 avatarURL,
-                firstName,
-                lastName,
-                fullName,
                 displayName,
-                displayNameWithEmail,
             }
         };
     }, {});
