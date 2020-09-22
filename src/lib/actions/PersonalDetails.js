@@ -12,16 +12,22 @@ Ion.connect({
     callback: val => currentUserEmail = val ? val.email : null,
 });
 
+let personalDetails;
+Ion.connect({
+    key: IONKEYS.PERSONAL_DETAILS,
+    callback: val => personalDetails = val,
+});
+
 /**
  * Returns the URL for a user's avatar and handles someone not having any avatar at all
  *
- * @param {object} personalDetails
+ * @param {object} personalDetail
  * @param {string} login
  * @returns {string}
  */
-function getAvatar(personalDetails, login) {
-    if (personalDetails && personalDetails.avatar) {
-        return personalDetails.avatar.replace(/&d=404$/, '');
+function getAvatar(personalDetail, login) {
+    if (personalDetail && personalDetail.avatar) {
+        return personalDetail.avatar.replace(/&d=404$/, '');
     }
 
     // There are 8 possible default avatars, so we choose which one this user has based
@@ -31,19 +37,39 @@ function getAvatar(personalDetails, login) {
 }
 
 /**
+ * Returns the displayName for a user
+ *
+ * @param {string} login
+ * @param {object} [personalDetail]
+ * @returns {string}
+ */
+function getDisplayName(login, personalDetail) {
+    const userDetails = personalDetail || personalDetails[login];
+
+    if (!userDetails) {
+        return login;
+    }
+
+    const firstName = userDetails.firstName || '';
+    const lastName = userDetails.lastName || '';
+
+    return (`${firstName} ${lastName}`).trim() || login;
+}
+
+/**
  * Format personal details
  *
  * @param {Object} personalDetailsList
  * @return {Object}
  */
 function formatPersonalDetails(personalDetailsList) {
-    return _.reduce(personalDetailsList, (finalObject, personalDetails, login) => {
+    return _.reduce(personalDetailsList, (finalObject, personalDetailsResponse, login) => {
         // Form the details into something that has all the data in an easy to use format.
-        const avatarURL = getAvatar(personalDetails, login);
-        const firstName = personalDetails.firstName || '';
-        const lastName = personalDetails.lastName || '';
+        const avatarURL = getAvatar(personalDetailsResponse, login);
+        const firstName = personalDetailsResponse.firstName || '';
+        const lastName = personalDetailsResponse.lastName || '';
         const fullName = `${firstName} ${lastName}`.trim();
-        const displayName = fullName === '' ? login : fullName;
+        const displayName = getDisplayName(login, personalDetailsResponse);
         const displayNameWithEmail = fullName === '' ? login : `${fullName} (${login})`;
         return {
             ...finalObject,
@@ -121,4 +147,5 @@ export {
     fetch,
     fetchTimezone,
     getForEmails,
+    getDisplayName,
 };
