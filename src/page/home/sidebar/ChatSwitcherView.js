@@ -8,6 +8,8 @@ import KeyboardShortcut from '../../../lib/KeyboardShortcut';
 import ChatSwitcherList from './ChatSwitcherList';
 import ChatSwitcherSearchForm from './ChatSwitcherSearchForm';
 import {fetchOrCreateChatReport} from '../../../lib/actions/Report';
+import {redirect} from '../../../lib/actions/App';
+import CONFIG from '../../../CONFIG';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -48,6 +50,12 @@ const propTypes = {
     // with their details
     personalDetails: PropTypes.objectOf(personalDetailsPropTypes),
 
+    // All reports that have been shared with the user
+    reports: PropTypes.shape({
+        reportID: PropTypes.number,
+        reportName: PropTypes.string,
+    }),
+
     // The personal details of the person who is currently logged in
     session: PropTypes.shape({
         // The email of the person who is currently logged in
@@ -56,6 +64,7 @@ const propTypes = {
 };
 const defaultProps = {
     personalDetails: {},
+    reports: {},
     session: null,
 };
 
@@ -67,7 +76,8 @@ class ChatSwitcherView extends React.Component {
 
         this.handleKeyPress = this.handleKeyPress.bind(this);
         this.reset = this.reset.bind(this);
-        this.fetchChatReportAndRedirect = this.fetchChatReportAndRedirect.bind(this);
+        this.selectUser = this.selectUser.bind(this);
+        this.selectReport = this.selectReport.bind(this);
         this.triggerOnFocusCallback = this.triggerOnFocusCallback.bind(this);
         this.updateSearch = this.updateSearch.bind(this);
 
@@ -91,6 +101,28 @@ class ChatSwitcherView extends React.Component {
 
     componentWillUnmount() {
         KeyboardShortcut.unsubscribe('K');
+    }
+
+    /**
+     * Fetch the chat report and then redirect to the new report
+     *
+     * @param {object} option
+     * @param {string} option.login
+     */
+    selectUser(option) {
+        fetchOrCreateChatReport([this.props.session.email, option.login]);
+        this.reset();
+    }
+
+    /**
+     * Fetch the chat report and then redirect to the new report
+     *
+     * @param {object} option
+     * @param {string} option.reportID
+     */
+    selectReport(option) {
+        redirect(option.reportID);
+        this.reset();
     }
 
     /**
@@ -123,17 +155,6 @@ class ChatSwitcherView extends React.Component {
             isLogoVisible: false,
             isClearButtonVisible: true,
         });
-    }
-
-    /**
-     * Fetch the chat report and then redirect to the new report
-     *
-     * @param {object} option
-     * @param {string} option.value
-     */
-    fetchChatReportAndRedirect(option) {
-        fetchOrCreateChatReport([this.props.session.email, option.login]);
-        this.reset();
     }
 
     /**
@@ -213,13 +234,43 @@ class ChatSwitcherView extends React.Component {
         // duplicate options to the list (because one option can match multiple regex patterns).
         // A Set is used here so that duplicate values are automatically removed.
         const matches = new Set();
-        const searchOptions = _.values(this.props.personalDetails);
+
+        // Get a list of all users we can send messages to and make their details generic
+        const personalDetailOptions = _.chain(this.props.personalDetails)
+            .values()
+            .map(personalDetail => ({
+                text: personalDetail.fullName,
+                alternateText: personalDetail.login,
+                searchText: personalDetail.displayNameWithEmail,
+                icon: personalDetail.avatarURL,
+                login: personalDetail.login,
+                callback: this.selectUser,
+            }))
+            .value();
+
+        // Get a list of all reports we can send messages to
+        // Filter the reports to only group chats
+        // Make the report details generic
+        const reportOptions = _.chain(this.props.reports)
+            .values()
+            .filter(report => report.reportNameValuePairs && report.reportNameValuePairs.type === 'expense')
+            .map(report => ({
+                text: '',
+                alternateText: report.reportName,
+                searchText: report.reportName,
+                reportID: report.reportID,
+                icon: CONFIG.FAVICON.DEFAULT,
+                callback: this.selectReport,
+            }))
+            .value();
+
+        const searchOptions = _.union(personalDetailOptions, reportOptions);
 
         for (let i = 0; i < matchRegexes.length; i++) {
             if (matches.size < this.maxSearchResults) {
                 for (let j = 0; j < searchOptions.length; j++) {
                     const option = searchOptions[j];
-                    const valueToSearch = option.displayNameWithEmail.replace(new RegExp(/&nbsp;/g), '');
+                    const valueToSearch = option.searchText.replace(new RegExp(/&nbsp;/g), '');
                     const isMatch = matchRegexes[i].test(valueToSearch);
 
                     // Make sure we don't include the same option twice (automatically handled be using a `Set`)
@@ -261,7 +312,6 @@ class ChatSwitcherView extends React.Component {
                 />
 
                 <ChatSwitcherList
-                    onSelect={this.fetchChatReportAndRedirect}
                     focusedIndex={this.state.focusedIndex}
                     options={this.state.options}
                 />
@@ -276,6 +326,10 @@ ChatSwitcherView.defaultProps = defaultProps;
 export default withIon({
     personalDetails: {
         key: IONKEYS.PERSONAL_DETAILS,
+    },
+    reports: {
+        key: `${IONKEYS.REPORT}_[0-9]+$`,
+        indexBy: 'reportID',
     },
     session: {
         key: IONKEYS.SESSION,
