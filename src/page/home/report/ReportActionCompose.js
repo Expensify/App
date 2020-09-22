@@ -49,6 +49,11 @@ class ReportActionCompose extends React.Component {
         }
     }
 
+    /**
+     * updates the Highlight state of the composer
+     *
+     * @param {boolean} shouldHighlight
+     */
     focusTextInput(shouldHighlight) {
         this.setState({isFocused: shouldHighlight});
     }
