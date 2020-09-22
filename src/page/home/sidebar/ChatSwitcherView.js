@@ -76,7 +76,8 @@ class ChatSwitcherView extends React.Component {
 
         this.handleKeyPress = this.handleKeyPress.bind(this);
         this.reset = this.reset.bind(this);
-        this.fetchChatReportAndRedirect = this.fetchChatReportAndRedirect.bind(this);
+        this.onUserSelected = this.onUserSelected.bind(this);
+        this.onReportSelected = this.onReportSelected.bind(this);
         this.triggerOnFocusCallback = this.triggerOnFocusCallback.bind(this);
         this.updateSearch = this.updateSearch.bind(this);
 
@@ -138,14 +139,21 @@ class ChatSwitcherView extends React.Component {
      * Fetch the chat report and then redirect to the new report
      *
      * @param {object} option
-     * @param {string} option.value
+     * @param {string} option.login
      */
-    fetchChatReportAndRedirect(option) {
-        if (option.reportID) {
-            redirect(option.reportID);
-        } else {
-            fetchOrCreateChatReport([this.props.session.email, option.login]);
-        }
+    onUserSelected(option) {
+        fetchOrCreateChatReport([this.props.session.email, option.login]);
+        this.reset();
+    }
+
+    /**
+     * Fetch the chat report and then redirect to the new report
+     *
+     * @param {object} option
+     * @param {string} option.reportID
+     */
+    onReportSelected(option) {
+        redirect(option.reportID);
         this.reset();
     }
 
@@ -236,6 +244,7 @@ class ChatSwitcherView extends React.Component {
                 searchText: personalDetail.displayNameWithEmail,
                 icon: personalDetail.avatarURL,
                 login: personalDetail.login,
+                callback: this.onUserSelected,
             }))
             .value();
 
@@ -251,6 +260,7 @@ class ChatSwitcherView extends React.Component {
                 searchText: report.reportName,
                 reportID: report.reportID,
                 icon: CONFIG.FAVICON.DEFAULT,
+                callback: this.onReportSelected,
             }))
             .value();
 
@@ -302,7 +312,6 @@ class ChatSwitcherView extends React.Component {
                 />
 
                 <ChatSwitcherList
-                    onSelect={this.fetchChatReportAndRedirect}
                     focusedIndex={this.state.focusedIndex}
                     options={this.state.options}
                 />

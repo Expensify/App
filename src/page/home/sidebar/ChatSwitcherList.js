@@ -23,16 +23,16 @@ const propTypes = {
 
         // The URL of the person's avatar
         avatarURL: PropTypes.string,
-    })),
 
-    // A function that is called when an option is selected. Selected option is passed as a param
-    onSelect: PropTypes.func.isRequired,
+        // A function that is called when an option is selected. Selected option is passed as a param
+        callback: PropTypes.func.isRequired,
+    })),
 };
 const defaultProps = {
     options: [],
 };
 
-const ChatSwitcherList = ({focusedIndex, options, onSelect}) => (
+const ChatSwitcherList = ({focusedIndex, options}) => (
     <View style={[styles.chatSwitcherItemList]}>
         {options.length > 0 && _.map(options, (option, i) => {
             const optionIsFocused = i === focusedIndex;
@@ -42,7 +42,7 @@ const ChatSwitcherList = ({focusedIndex, options, onSelect}) => (
             return (
                 <TouchableOpacity
                     key={option.alternateText}
-                    onPress={() => onSelect(option)}
+                    onPress={() => option.callback(option)}
                 >
                     <View
                         style={[
