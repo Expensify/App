@@ -15,24 +15,24 @@ const propTypes = {
 
     // An array of options to allow the user to choose from
     options: PropTypes.arrayOf(PropTypes.shape({
-        // The login of a person (either email or phone number)
-        login: PropTypes.string.isRequired,
+        // The full name of the user if available
+        text: PropTypes.string.isRequired,
+
+        // The login (email/phone number) of the user, or the name of the chat room
+        alternateText: PropTypes.string.isRequired,
 
         // The URL of the person's avatar
-        avatarURL: PropTypes.string.isRequired,
+        avatarURL: PropTypes.string,
 
-        // The full name of the person (first + last), could be empty
-        fullName: PropTypes.string,
+        // A function that is called when an option is selected. Selected option is passed as a param
+        callback: PropTypes.func.isRequired,
     })),
-
-    // A function that is called when an option is selected. Selected option is passed as a param
-    onSelect: PropTypes.func.isRequired,
 };
 const defaultProps = {
     options: [],
 };
 
-const ChatSwitcherList = ({focusedIndex, options, onSelect}) => (
+const ChatSwitcherList = ({focusedIndex, options}) => (
     <View style={[styles.chatSwitcherItemList]}>
         {options.length > 0 && _.map(options, (option, i) => {
             const optionIsFocused = i === focusedIndex;
@@ -41,8 +41,8 @@ const ChatSwitcherList = ({focusedIndex, options, onSelect}) => (
                 : styles.sidebarLinkText;
             return (
                 <TouchableOpacity
-                    key={option.login}
-                    onPress={() => onSelect(option)}
+                    key={option.alternateText}
+                    onPress={() => option.callback(option)}
                 >
                     <View
                         style={[
@@ -55,22 +55,22 @@ const ChatSwitcherList = ({focusedIndex, options, onSelect}) => (
                     >
                         <View style={[styles.chatSwitcherAvatar, styles.mr2]}>
                             <Image
-                                source={{uri: option.avatarURL}}
+                                source={{uri: option.icon}}
                                 style={[styles.chatSwitcherAvatarImage]}
                             />
                         </View>
                         <View style={[styles.flex1]}>
-                            {option.fullName === '' ? (
+                            {option.text === '' ? (
                                 <Text style={[textStyle, styles.h3]} numberOfLines={1}>
-                                    {option.login}
+                                    {option.alternateText}
                                 </Text>
                             ) : (
                                 <>
                                     <Text style={[textStyle, styles.h3]} numberOfLines={1}>
-                                        {option.fullName}
+                                        {option.text}
                                     </Text>
                                     <Text style={[textStyle, styles.textMicro]} numberOfLines={1}>
-                                        {option.login}
+                                        {option.alternateText}
                                     </Text>
                                 </>
                             )}
