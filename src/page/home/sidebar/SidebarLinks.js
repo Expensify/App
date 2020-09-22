@@ -92,6 +92,7 @@ class SidebarLinks extends React.Component {
                                 reportName={report.reportName}
                                 isUnread={report.unreadActionCount > 0}
                                 onLinkClick={onLinkClick}
+                                isActiveReport={report.reportID === reportIDInUrl}
                             />
                         ))}
                     </View>
