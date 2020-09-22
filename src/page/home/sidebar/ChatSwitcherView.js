@@ -9,6 +9,7 @@ import ChatSwitcherList from './ChatSwitcherList';
 import ChatSwitcherSearchForm from './ChatSwitcherSearchForm';
 import {fetchOrCreateChatReport} from '../../../lib/actions/Report';
 import {redirect} from '../../../lib/actions/App';
+import CONFIG from '../../../CONFIG';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -233,7 +234,7 @@ class ChatSwitcherView extends React.Component {
                 text: personalDetail.fullName,
                 alternateText: personalDetail.login,
                 searchText: personalDetail.displayNameWithEmail,
-                avatarURL: personalDetail.avatarURL,
+                icon: personalDetail.avatarURL,
                 login: personalDetail.login,
             }))
             .value();
@@ -249,6 +250,7 @@ class ChatSwitcherView extends React.Component {
                 alternateText: report.reportName,
                 searchText: report.reportName,
                 reportID: report.reportID,
+                icon: CONFIG.FAVICON.DEFAULT,
             }))
             .value();
 
