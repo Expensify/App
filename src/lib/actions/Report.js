@@ -56,29 +56,27 @@ const configReportIDs = CONFIG.REPORT_IDS.split(',').map(Number);
  * @param {object} report
  * @returns {boolean}
  */
-function hasUnreadActions(report) {
+function getUnreadActionCount(report) {
     const usersLastReadActionID = lodashGet(report, [
         'reportNameValuePairs',
         `lastReadActionID_${currentUserAccountID}`,
     ]);
 
     if (report.reportActionList.length === 0) {
-        return false;
+        return 0;
     }
 
     if (!usersLastReadActionID) {
-        return true;
+        return report.reportActionList.length;
     }
 
     // Find the most recent sequence number from the report actions
     const maxSequenceNumber = reportMaxSequenceNumbers[report.reportID];
 
-    if (!maxSequenceNumber) {
-        return false;
-    }
-
-    // There are unread items if the last one the user has read is less than the highest sequence number we have
-    return usersLastReadActionID < maxSequenceNumber;
+    // There are unread items if the last one the user has read is less
+    // than the highest sequence number we have.
+    const unreadActionCount = (maxSequenceNumber || report.reportActionList.length) - usersLastReadActionID;
+    return unreadActionCount > 0 ? unreadActionCount : 0;
 }
 
 /**
@@ -92,11 +90,13 @@ function hasUnreadActions(report) {
  * @returns {object}
  */
 function getSimplifiedReportObject(report) {
+    const unreadActionCount = getUnreadActionCount(report);
     return {
         reportID: report.reportID,
         reportName: report.reportName,
         reportNameValuePairs: report.reportNameValuePairs,
-        isUnread: hasUnreadActions(report),
+        unreadActionCount,
+        isUnread: unreadActionCount > 0,
         pinnedReport: configReportIDs.includes(report.reportID),
     };
 }
@@ -183,6 +183,7 @@ function updateReportWithNewAction(reportID, reportAction) {
     // by handleReportChanged
     Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {
         reportID,
+        unreadActionCount: newMaxSequenceNumber - previousMaxSequenceNumber,
         isUnread: hasNewSequenceNumber,
         maxSequenceNumber: reportAction.sequenceNumber,
     });
@@ -443,6 +444,7 @@ function updateLastReadActionID(reportID, sequenceNumber) {
     // Update the lastReadActionID on the report optimistically
     Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {
         isUnread: false,
+        unreadActionCount: 0,
         reportNameValuePairs: {
             [`lastReadActionID_${currentUserAccountID}`]: sequenceNumber,
         }

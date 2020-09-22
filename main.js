@@ -68,6 +68,10 @@ const mainWindow = (() => {
                 event.returnValue = browserWindow.isFocused();
             });
 
+            ipcMain.on('request-update-badge-count', (event, totalCount) => {
+                app.setBadgeCount(totalCount);
+            });
+
             return browserWindow;
         })
 

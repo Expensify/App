@@ -15,6 +15,7 @@ import Main from './MainView';
 import {subscribeToReportCommentEvents, fetchAll as fetchAllReports} from '../../lib/actions/Report';
 import {fetch as fetchPersonalDetails} from '../../lib/actions/PersonalDetails';
 import * as Pusher from '../../lib/Pusher/pusher';
+import UnreadIndicatorUpdater from '../../lib/UnreadIndicatorUpdater';
 
 const windowSize = Dimensions.get('window');
 const widthBreakPoint = 1000;
@@ -42,6 +43,8 @@ export default class App extends React.Component {
 
         // Fetch all the reports
         fetchAllReports();
+
+        UnreadIndicatorUpdater.init();
 
         Dimensions.addEventListener('change', this.toggleHamburgerBasedOnDimensions);
 
