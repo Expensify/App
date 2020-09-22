@@ -1,4 +1,8 @@
-import {UrbanAirship} from 'urbanairship-react-native';
+import {UrbanAirship, NotificationOptionsIOS} from 'urbanairship-react-native';
+import _ from 'underscore';
+
+// By default, we set all foreground push notification options to true (only relevant to iOS)
+const foregroundPresentationOptions = _.mapObject(_.invert(NotificationOptionsIOS), () => true);
 
 /* ====== Public Functions (signatures must match index.js) ====== */
 
@@ -8,6 +12,7 @@ import {UrbanAirship} from 'urbanairship-react-native';
  * @returns {Promise}
  */
 function enableUserNotifications() {
+    UrbanAirship.setForegroundPresentationOptions(foregroundPresentationOptions);
     return UrbanAirship.enableUserPushNotifications();
 }
 
