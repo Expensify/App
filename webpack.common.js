@@ -48,6 +48,7 @@ module.exports = {
                 loader: 'eslint-loader',
                 exclude: /node_modules|\.native.js$/,
                 options: {
+                    cache: false,
                     emitWarning: true,
                 },
             },
