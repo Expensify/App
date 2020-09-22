@@ -21,8 +21,8 @@ const propTypes = {
         // The URL of the person's avatar
         avatarURL: PropTypes.string.isRequired,
 
-        // The full name of the person (first + last), could be empty
-        fullName: PropTypes.string,
+        // This is either the user's full name, or their login if full name is an empty string
+        displayName: PropTypes.string.isRequired,
     })),
 
     // A function that is called when an option is selected. Selected option is passed as a param
@@ -60,14 +60,14 @@ const ChatSwitcherList = ({focusedIndex, options, onSelect}) => (
                             />
                         </View>
                         <View style={[styles.flex1]}>
-                            {option.fullName === '' ? (
+                            {option.displayName === option.login ? (
                                 <Text style={[textStyle, styles.h3]} numberOfLines={1}>
                                     {option.login}
                                 </Text>
                             ) : (
                                 <>
                                     <Text style={[textStyle, styles.h3]} numberOfLines={1}>
-                                        {option.fullName}
+                                        {option.displayName}
                                     </Text>
                                     <Text style={[textStyle, styles.textMicro]} numberOfLines={1}>
                                         {option.login}
