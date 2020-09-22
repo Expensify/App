@@ -111,7 +111,9 @@ function getChatReportName(sharedReportList) {
     return _.chain(sharedReportList)
         .map(participant => participant.email)
         .filter(participant => participant !== currentUserEmail)
-        .map(participant => lodashGet(personalDetails, [participant, 'firstName']) || participant)
+        .map(participant => (
+            `${lodashGet(personalDetails, [participant, 'firstName'], '')} ${
+                lodashGet(personalDetails, [participant, 'lastName'], '')}`).trim() || participant)
         .value()
         .join(', ');
 }
