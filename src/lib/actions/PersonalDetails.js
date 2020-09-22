@@ -45,11 +45,6 @@ function getAvatar(personalDetail, login) {
  */
 function getDisplayName(login, personalDetail) {
     const userDetails = personalDetail || personalDetails[login];
-
-    if (!userDetails) {
-        return login;
-    }
-
     const firstName = userDetails.firstName || '';
     const lastName = userDetails.lastName || '';
 
