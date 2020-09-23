@@ -1,16 +1,7 @@
 import _ from 'underscore';
 import Ion from '../Ion';
 import IONKEYS from '../../IONKEYS';
-import ELECTRON_EVENTS from '../../../desktop/ELECTRON_EVENTS';
-
-/**
- * Web browsers have a tab title and favicon which can be updated to show there are unread comments
- */
-import CONFIG from '../../CONFIG';
-
-// We conditionally import the ipcRenderer here so that we can
-// communicate with the main Electron process in main.js
-const ipcRenderer = window.require ? window.require('electron').ipcRenderer : null;
+import updateUnread from './updateUnread';
 
 // Stash the unread action counts for each report
 const unreadActionCounts = {};
@@ -21,15 +12,7 @@ const unreadActionCounts = {};
  */
 const throttledUpdatePageTitleAndUnreadCount = _.throttle(() => {
     const totalCount = _.reduce(unreadActionCounts, (total, reportCount) => total + reportCount, 0);
-    const hasUnread = totalCount > 0;
-    document.title = hasUnread ? `(NEW!) ${CONFIG.SITE_TITLE}` : CONFIG.SITE_TITLE;
-    document.getElementById('favicon').href = hasUnread ? CONFIG.FAVICON.UNREAD : CONFIG.FAVICON.DEFAULT;
-
-    if (ipcRenderer) {
-        // Ask the main Electron process to update our
-        // badge count in the Mac OS dock icon
-        ipcRenderer.send(ELECTRON_EVENTS.REQUEST_UPDATE_BADGE_COUNT, totalCount);
-    }
+    updateUnread(totalCount);
 }, 1000, {leading: false});
 
 let connectionID;
