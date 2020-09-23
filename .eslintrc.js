@@ -12,7 +12,7 @@ module.exports = {
             node: {
                 extensions: [
                     '.js',
-                    '.browser.js',
+                    '.website.js',
                     '.desktop.js',
                     '.native.js',
                     '.ios.js',
