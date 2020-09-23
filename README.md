@@ -15,7 +15,7 @@ This application is built with the following principles.
 1. **UI Binds to data on disk** 
     - Ion is a Pub/Sub library to connect the application to the data stored on disk.
     - UI components subscribe to Ion (using `withIon()`) and any change to the Ion data is published to the component by calling `setState()` with the changed data.
-    - Libraries subscribe to Ion (with `Ion.connect()`) and any change to the Ion data is published to the callback callback with the changed data.
+    - Libraries subscribe to Ion (with `Ion.connect()`) and any change to the Ion data is published to the callback with the changed data.
     - The UI should never call any Ion methods except for `Ion.connect()`. That is the job of Actions (see next section).
     - The UI always triggers an Action when something needs to happen (eg. a person inputs data, the UI triggers an Action with this data).
     - The UI should be as flexible as possible when it comes to:
@@ -27,7 +27,7 @@ This application is built with the following principles.
     - When data needs to be written to or read from the server, this is done through Actions only.
     - Public action methods should never return anything (not data or a promise). This is done to ensure that action methods can be called in parallel with no dependency on other methods (see discussion above).
     - Actions should favor using `Ion.merge()` over `Ion.set()` so that other values in an object aren't completely overwritten.
-    - In general, the operations that happen inside an action should be done in parallel and not in sequence ((eg. don't use the promise of one Ion method to trigger a second Ion method). Ion is built so that every operation is done in parallel and it doesn't matter what order they finish in. XHRs on the other hand need to be handled in sequence with promise chains in order to access and act upon the response.
+    - In general, the operations that happen inside an action should be done in parallel and not in sequence (eg. don't use the promise of one Ion method to trigger a second Ion method). Ion is built so that every operation is done in parallel and it doesn't matter what order they finish in. XHRs on the other hand need to be handled in sequence with promise chains in order to access and act upon the response.
     - If an Action needs to access data stored on disk, use a local variable and `Ion.connect()`
     - Data should be optimistically stored on disk whenever possible without waiting for a server response. Example of creating a new optimistic comment:
         1. user adds a comment 

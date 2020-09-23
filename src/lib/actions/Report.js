@@ -11,6 +11,7 @@ import ExpensiMark from '../ExpensiMark';
 import Notification from '../Notification';
 import * as PersonalDetails from './PersonalDetails';
 import {redirect} from './App';
+import * as ActiveClientManager from '../ActiveClientManager';
 import Visibility from '../Visibility';
 
 let currentUserEmail;
@@ -185,6 +186,11 @@ function updateReportWithNewAction(reportID, reportAction) {
     Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         [reportAction.sequenceNumber]: reportAction,
     });
+
+    if (!ActiveClientManager.isClientTheLeader()) {
+        console.debug('[NOTIFICATION] Skipping notification because this client is not the leader');
+        return;
+    }
 
     // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
     if (reportAction.actorEmail === currentUserEmail) {
