@@ -8,11 +8,11 @@
   "scripts": {
     "android": "react-native run-android",
     "ios": "react-native run-ios",
-    "desktop": "webpack --config webpack.dev.js && electron main.js",
+    "desktop": "webpack --config webpack.dev.js --platform desktop && electron main.js",
     "start": "react-native start",
     "web": "webpack-dev-server --open --config webpack.dev.js",
     "build": "webpack --config webpack.prod.js",
-    "desktop-build": "webpack --config webpack.prod.js && electron-builder --config desktop/electron.config.js --publish always",
+    "desktop-build": "webpack --config webpack.prod.js --platform desktop && electron-builder --config desktop/electron.config.js --publish always",
     "ios-build": "fastlane ios build",
     "android-build": "fastlane android build",
     "test": "jest",
