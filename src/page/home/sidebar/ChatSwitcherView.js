@@ -318,8 +318,7 @@ export default withIon({
         key: IONKEYS.PERSONAL_DETAILS,
     },
     reports: {
-        key: `${IONKEYS.REPORT}_[0-9]+$`,
-        indexBy: 'reportID',
+        key: IONKEYS.COLLECTION.REPORT
     },
     session: {
         key: IONKEYS.SESSION,
