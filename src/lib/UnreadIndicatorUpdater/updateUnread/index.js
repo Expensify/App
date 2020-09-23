@@ -1,4 +1,4 @@
-import ELECTRON_EVENTS from '../../../desktop/ELECTRON_EVENTS';
+import ELECTRON_EVENTS from '../../../../desktop/ELECTRON_EVENTS';
 
 // We conditionally import the ipcRenderer here so that we can
 // communicate with the main Electron process in main.js
@@ -7,7 +7,7 @@ const ipcRenderer = window.require ? window.require('electron').ipcRenderer : nu
 /**
  * Web browsers have a tab title and favicon which can be updated to show there are unread comments
  */
-import CONFIG from '../../CONFIG';
+import CONFIG from '../../../CONFIG';
 
 function updateUnread() {
     const hasUnread = totalCount > 0;
