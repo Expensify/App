@@ -96,10 +96,10 @@ You can use any IDE or code editing tool for developing on any platform. Use you
 In most cases, the code written for this repo should be platform-independent. In such cases, each module should have a single file, `index.js`, which defines the module's exports. There are, however, some cases in which a feature is intrinsically tied to the underlying platform. In such cases, the following file extensions can be used to export platform-specific code from a module:
 - Mobile => `index.native.js`
 - iOS/Android => `index.ios.js`/`index.android.js`
-- Web => `index.browser.js`
+- Web => `index.website.js`
 - Desktop => `index.desktop.js`
 
-Note that `index.js` should be the default. i.e: If you have mobile-specific implementation in `index.native.js`, then the desktop/web implementation can be contained in a shared `index.js`. Furthermore, `index.native.js` should not be included in the same module as `index.ios.js` or `index.android.js`, nor should `index.js` be included in the same module as `index.browser.js` or `index.desktop.js`.
+Note that `index.js` should be the default. i.e: If you have mobile-specific implementation in `index.native.js`, then the desktop/web implementation can be contained in a shared `index.js`. Furthermore, `index.native.js` should not be included in the same module as `index.ios.js` or `index.android.js`, nor should `index.js` be included in the same module as `index.website.js` or `index.desktop.js`.
 
 ## Structure of the app
 These are the main pieces of the application.
