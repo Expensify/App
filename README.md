@@ -41,11 +41,6 @@ This application is built with the following principles.
     1. If the reason you can't write cross platform code is because there is a bug in ReactNative that is preventing it from working, the correct action is to fix RN and submit a PR upstream -- not to hack around RN bugs with platform-specific code paths.
     1. If there is a feature that simply doesn't exist on all platforms and thus doesn't exist in RN, rather than doing if (platform=iOS) { }, instead write a "shim" library that is implemented with NOOPs on the other platforms.  For example, rather than injecting platform-specific multi-tab code (which can only work on browsers, because it's the only platform with multiple tabs), write a TabManager class that just is NOOP for non-browser platforms.  This encapsulates the platform-specific code into a platform library, rather than sprinkling through the business logic.
     1. Put all platform specific code in dedicated files and folders, like /platform, and reject any PR that attempts to put platform-specific code anywhere else.  This maintains a strict separation between business logic and platform code.
-    1. Within a module, the following files can be used to export platform-specific code _only when necessary_:
-        - Mobile => `index.native.js`
-        - iOS/Android => `index.ios.js`/`index.android.js`
-        - Web => `index.browser.js`
-        - Desktop => `index.desktop.js`
 
 # Local development
 ## Getting started
@@ -96,6 +91,15 @@ You can use any IDE or code editing tool for developing on any platform. Use you
 1. The major difference between React-Native and React are the [components](https://reactnative.dev/docs/components-and-apis) that are used in the `render()` method. Everything else is exactly the same. If you learn React, you've already learned 98% of React-Native.
 1. The application uses [React-Router](https://reactrouter.com/native/guides/quick-start) for navigating between parts of the app.
 1. [Higher Order Components](https://reactjs.org/docs/higher-order-components.html) are used to connect React components to persistent storage via Ion.
+
+## Platform-Specific File Extensions
+In most cases, the code written for this repo should be platform-independent. In such cases, each module should have a single file, `index.js`, which defines the module's exports. There are, however, some cases in which a feature is intrinsically tied to the underlying platform. In such cases, the following file extensions can be used to export platform-specific code from a module:
+- Mobile => `index.native.js`
+- iOS/Android => `index.ios.js`/`index.android.js`
+- Web => `index.browser.js`
+- Desktop => `index.desktop.js`
+
+Note that `index.js` should be the default. i.e: If you have mobile-specific implementation in `index.native.js`, then the desktop/web implementation can be contained in a shared `index.js`. Furthermore, `index.native.js` should not be included in the same module as `index.ios.js` or `index.android.js`, nor should `index.js` be included in the same module as `index.browser.js` or `index.desktop.js`.
 
 ## Structure of the app
 These are the main pieces of the application.
