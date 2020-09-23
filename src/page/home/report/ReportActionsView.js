@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, ScrollView, Keyboard} from 'react-native';
+import {View, Keyboard} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
@@ -12,6 +12,7 @@ import styles from '../../../style/StyleSheet';
 import {withRouter} from '../../../lib/Router';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import compose from '../../../lib/compose';
+import InvertedFlatList from '../../../components/InvertedFlatList';
 
 const propTypes = {
     // These are from withRouter
@@ -126,6 +127,17 @@ class ReportActionsView extends React.Component {
         this.recordMaxAction();
     }
 
+    /**
+     * Converts items into array of objects for the FlatList
+     *
+     * @returns {Array}
+     */
+    getItems() {
+        return _.sortBy(this.props.reportActions, 'sequenceNumber')
+            .map((item, index) => ({action: item, index}))
+            .reverse();
+    }
+
     render() {
         if (!_.size(this.props.reportActions)) {
             return (
@@ -134,24 +146,28 @@ class ReportActionsView extends React.Component {
                 </View>
             );
         }
-
+        const data = this.getItems();
         return (
-            <ScrollView
-                ref={(el) => {
-                    this.actionListElement = el;
-                }}
-                onContentSizeChange={this.scrollToListBottom}
+            <InvertedFlatList
+                ref={el => this.actionListElement = el}
+                data={data}
+                renderItem={({
+                    item,
+                    index,
+                    onLayout,
+                    needsLayoutCalculation,
+                }) => (
+                    <ReportActionItem
+                        action={item.action}
+                        displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
+                        onLayout={onLayout}
+                        needsLayoutCalculation={needsLayoutCalculation}
+                    />
+                )}
                 bounces={false}
                 contentContainerStyle={[styles.chatContentScrollView]}
-            >
-                {_.chain(this.props.reportActions).sortBy('sequenceNumber').map((item, index) => (
-                    <ReportActionItem
-                        key={item.sequenceNumber}
-                        action={item}
-                        displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
-                    />
-                )).value()}
-            </ScrollView>
+                keyExtractor={item => `${item.action.sequenceNumber}`}
+            />
         );
     }
 }

@@ -12,12 +12,24 @@ const propTypes = {
 
     // Should the comment have the appearance of being grouped with the previous comment?
     displayAsGroup: PropTypes.bool.isRequired,
+
+    // Used to tell this component that we want it to call onLayout when it renders
+    needsLayoutCalculation: PropTypes.bool,
+
+    // Called when the view layout completes
+    onLayout: PropTypes.func,
+};
+
+const defaultProps = {
+    needsLayoutCalculation: false,
+    onLayout: () => {},
 };
 
 class ReportActionItem extends React.Component {
     shouldComponentUpdate(nextProps) {
         // This component should only render if the action's sequenceNumber or displayAsGroup props change
-        return nextProps.displayAsGroup !== this.props.displayAsGroup
+        return nextProps.needsLayoutCalculation !== this.props.needsLayoutCalculation
+            || nextProps.displayAsGroup !== this.props.displayAsGroup
             || !_.isEqual(nextProps.action, this.props.action);
     }
 
@@ -28,7 +40,10 @@ class ReportActionItem extends React.Component {
         }
 
         return (
-            <View>
+            <View
+                style={{opacity: this.props.needsLayoutCalculation ? 0 : 1}}
+                onLayout={this.props.onLayout}
+            >
                 {!displayAsGroup && <ReportActionItemSingle action={action} />}
                 {displayAsGroup && <ReportActionItemGrouped action={action} />}
             </View>
@@ -37,5 +52,6 @@ class ReportActionItem extends React.Component {
 }
 
 ReportActionItem.propTypes = propTypes;
+ReportActionItem.defaultProps = defaultProps;
 
 export default ReportActionItem;
