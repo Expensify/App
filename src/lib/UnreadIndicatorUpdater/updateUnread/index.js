@@ -9,7 +9,6 @@ import CONFIG from '../../../CONFIG';
 // communicate with the main Electron process in main.js
 const ipcRenderer = window.require ? window.require('electron').ipcRenderer : null;
 
-
 /**
  * Set the App Icon badge on desktop and page title on web
  *
