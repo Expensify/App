@@ -3,6 +3,21 @@ const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 
+/**
+ * Take the logical union of an arbitrary number of regexes
+ * (duplicated from RegexUtils because we can't use ES6 modules here)
+ *
+ * @param {...RegExp} regexes
+ * @returns {RegExp}
+ */
+function regexUnion(...regexes) {
+    return new RegExp(regexes.map(regex => regex.source).join('|'));
+}
+
+const platformIndex = process.argv.findIndex(arg => arg === '--platform');
+const platform = (platformIndex > 0) ? process.argv[platformIndex + 1] : 'web';
+const platformExclude = platform === 'web' ? new RegExp(/\.desktop\.js$/) : new RegExp(/\.webify\.js$/);
+
 module.exports = {
     entry: {
         app: './web/index.js',
@@ -41,12 +56,18 @@ module.exports = {
                  * You can remove something from this list if it doesn't use "react-native" as an import and it doesn't
                  * use JSX/JS that needs to be transformed by babel.
                  */
-                exclude: /node_modules\/(?!(react-native-render-html|react-native-webview)\/).*|\.native.js$/,
+                exclude: regexUnion(
+                    /node_modules\/(?!(react-native-render-html|react-native-webview)\/).*|\.native\.js$/,
+                    platformExclude
+                ),
             },
             {
                 test: /\.js$/,
                 loader: 'eslint-loader',
-                exclude: /node_modules|\.native.js$/,
+                exclude: regexUnion(
+                    /node_modules|\.native\.js$/,
+                    platformExclude
+                ),
                 options: {
                     cache: true,
                     emitWarning: true,
@@ -72,6 +93,6 @@ module.exports = {
 
         // React Native libraries may have web-specific module implementations that appear with the extension `.web.js`
         // without this, web will try to use native implementations and break in not very obvious ways
-        extensions: ['.web.js', '.js'],
+        extensions: ['.web.js', '.js', (platform === 'web') ? '.webify.js' : '.desktop.js'],
     },
 };
