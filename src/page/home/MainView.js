@@ -25,51 +25,25 @@ const propTypes = {
 const defaultProps = {
     reports: {},
 };
+const MainView = (props) => {
+    const reportIDInURL = parseInt(props.match.params.reportID, 10);
 
-class MainView extends React.Component {
-    render() {
-        if (!_.size(this.props.reports)) {
-            return null;
-        }
-
-        const reportIDInURL = parseInt(this.props.match.params.reportID, 10);
-
-        // The styles for each of our reports. Basically, they are all hidden except for the one matching the
-        // reportID in the URL
-        let activeReportID;
-        const reportStyles = _.reduce(this.props.reports, (memo, report) => {
-            const isActiveReport = reportIDInURL === report.reportID;
-            const finalData = {...memo};
-            let reportStyle;
-
-            if (isActiveReport) {
-                activeReportID = report.reportID;
-                reportStyle = [styles.dFlex, styles.flex1];
-            } else {
-                reportStyle = [styles.dNone];
-            }
-
-            finalData[report.reportID] = [reportStyle];
-            return finalData;
-        }, {});
-
-        return (
-            <>
-                {_.map(this.props.reports, report => (
-                    <View
-                        key={report.reportID}
-                        style={reportStyles[report.reportID]}
-                    >
-                        <ReportView
-                            reportID={report.reportID}
-                            isActiveReport={report.reportID === activeReportID}
-                        />
-                    </View>
-                ))}
-            </>
-        );
+    if (!_.size(props.reports) || !reportIDInURL) {
+        return null;
     }
-}
+
+    return (
+        <View
+            key={reportIDInURL}
+            style={[styles.dFlex, styles.flex1]}
+        >
+            <ReportView
+                reportID={reportIDInURL}
+                isActiveReport
+            />
+        </View>
+    );
+};
 
 MainView.propTypes = propTypes;
 MainView.defaultProps = defaultProps;
