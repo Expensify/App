@@ -4,7 +4,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const RegexUtils = require('./src/lib/RegexUtils');
 
-// Check for a --platform command line argument.
+// Check for a --platform command line argument (default to 'web')
 // If it is 'web', we want to ignore .desktop.js files, and if it is 'desktop', we want to ignore .browser.js files.
 const platformIndex = process.argv.findIndex(arg => arg === '--platform');
 const platform = (platformIndex > 0) ? process.argv[platformIndex + 1] : 'web';
