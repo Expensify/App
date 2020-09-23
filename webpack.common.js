@@ -4,9 +4,11 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const RegexUtils = require('./src/lib/RegexUtils');
 
+// Check for a --platform command line argument.
+// If it is 'web', we want to ignore .desktop.js files, and if it is 'desktop', we want to ignore .browser.js files.
 const platformIndex = process.argv.findIndex(arg => arg === '--platform');
 const platform = (platformIndex > 0) ? process.argv[platformIndex + 1] : 'web';
-const platformExclude = platform === 'web' ? new RegExp(/\.desktop\.js$/) : new RegExp(/\.webify\.js$/);
+const platformExclude = platform === 'web' ? new RegExp(/\.desktop\.js$/) : new RegExp(/\.browser\.js$/);
 
 module.exports = {
     entry: {
@@ -83,8 +85,8 @@ module.exports = {
 
         // React Native libraries may have web-specific module implementations that appear with the extension `.web.js`
         // without this, web will try to use native implementations and break in not very obvious ways.
-        // This is also why we have to use .webify.js for our own web-specific files...
+        // This is also why we have to use .browser.js for our own web-specific files...
         // Because desktop also relies on "web-specific" module implementations
-        extensions: ['.web.js', '.js', (platform === 'web') ? '.webify.js' : '.desktop.js'],
+        extensions: ['.web.js', '.js', (platform === 'web') ? '.browser.js' : '.desktop.js'],
     },
 };

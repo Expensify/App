@@ -12,7 +12,7 @@ module.exports = {
             node: {
                 extensions: [
                     '.js',
-                    '.webify.js',
+                    '.browser.js',
                     '.desktop.js',
                     '.native.js',
                     '.ios.js',
