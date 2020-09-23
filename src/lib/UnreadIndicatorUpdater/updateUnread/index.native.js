@@ -7,7 +7,6 @@ import PushNotificationIOS from '@react-native-community/push-notification-ios';
  * @param {Number} totalCount
  */
 function updateUnread(totalCount) {
-    console.log('setting the application badge number: ', totalCount);
     PushNotificationIOS.setApplicationIconBadgeNumber(totalCount);
 }
 
