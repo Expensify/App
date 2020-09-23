@@ -152,11 +152,13 @@ class ChatSwitcherView extends React.Component {
      */
     handleKeyPress(e) {
         let newFocusedIndex;
+        let option;
 
         switch (e.key) {
             case 'Enter':
-                // Select the focused option
-                this.fetchChatReportAndRedirect(this.state.options[this.state.focusedIndex]);
+                // Call the selected option's callback and pass the option itself
+                option = this.state.options[this.state.focusedIndex];
+                option.callback(option);
                 e.preventDefault();
                 break;
 
@@ -316,8 +318,7 @@ export default withIon({
         key: IONKEYS.PERSONAL_DETAILS,
     },
     reports: {
-        key: `${IONKEYS.REPORT}_[0-9]+$`,
-        indexBy: 'reportID',
+        key: IONKEYS.COLLECTION.REPORT
     },
     session: {
         key: IONKEYS.SESSION,
