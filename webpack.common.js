@@ -2,7 +2,6 @@ const path = require('path');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
-const RegexUtils = require('./src/lib/RegexUtils');
 
 // Check for a --platform command line argument (default to 'web')
 // If it is 'web', we want to ignore .desktop.js files, and if it is 'desktop', we want to ignore .browser.js files.
@@ -48,18 +47,18 @@ module.exports = {
                  * You can remove something from this list if it doesn't use "react-native" as an import and it doesn't
                  * use JSX/JS that needs to be transformed by babel.
                  */
-                exclude: RegexUtils.union(
+                exclude: [
                     /node_modules\/(?!(react-native-render-html|react-native-webview)\/).*|\.native\.js$/,
                     platformExclude
-                ),
+                ],
             },
             {
                 test: /\.js$/,
                 loader: 'eslint-loader',
-                exclude: RegexUtils.union(
+                exclude: [
                     /node_modules|\.native\.js$/,
                     platformExclude
-                ),
+                ],
                 options: {
                     cache: false,
                     emitWarning: true,

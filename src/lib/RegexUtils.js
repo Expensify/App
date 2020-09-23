@@ -7,4 +7,6 @@ function union(...regexes) {
     return new RegExp(regexes.map(regex => regex.source).join('|'));
 }
 
-module.exports = {union};
+export default {
+    union,
+};
