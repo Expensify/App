@@ -37,6 +37,8 @@ class ReportActionsView extends React.Component {
 
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
         this.recordMaxAction = this.recordMaxAction.bind(this);
+
+        this.updateSortedReportActions();
     }
 
     componentDidMount() {
@@ -59,6 +61,13 @@ class ReportActionsView extends React.Component {
     }
 
     /**
+     * Updates and sorts the report actions by sequence number
+     */
+    updateSortedReportActions() {
+        this.sortedReportActions = _.chain(this.props.reportActions).sortBy('sequenceNumber').value();
+    }
+
+    /**
      * Returns true when the report action immediately before the
      * specified index is a comment made by the same actor who who
      * is leaving a comment in the action at the specified index.
@@ -69,17 +78,14 @@ class ReportActionsView extends React.Component {
      *
      * @return {Boolean}
      */
-    // eslint-disable-next-line
     isConsecutiveActionMadeByPreviousActor(actionIndex) {
-        const reportActions = lodashGet(this.props, 'reportActions', {});
-
         // This is the created action and the very first action so it cannot be a consecutive comment.
         if (actionIndex === 0) {
             return false;
         }
 
-        const previousAction = reportActions[actionIndex - 1];
-        const currentAction = reportActions[actionIndex];
+        const previousAction = this.sortedReportActions[actionIndex - 1];
+        const currentAction = this.sortedReportActions[actionIndex];
 
         // It's OK for there to be no previous action, and in that case, false will be returned
         // so that the comment isn't grouped
@@ -135,6 +141,7 @@ class ReportActionsView extends React.Component {
             );
         }
 
+        this.updateSortedReportActions();
         return (
             <ScrollView
                 ref={(el) => {
@@ -144,13 +151,13 @@ class ReportActionsView extends React.Component {
                 bounces={false}
                 contentContainerStyle={[styles.chatContentScrollView]}
             >
-                {_.chain(this.props.reportActions).sortBy('sequenceNumber').map((item, index) => (
+                {_.map(this.sortedReportActions, (item, index) => (
                     <ReportActionItem
                         key={item.sequenceNumber}
                         action={item}
                         displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
                     />
-                )).value()}
+                ))}
             </ScrollView>
         );
     }
@@ -163,8 +170,7 @@ export default compose(
     withRouter,
     withIon({
         reportActions: {
-            key: `${IONKEYS.REPORT_ACTIONS}_%DATAFROMPROPS%`,
-            pathForProps: 'reportID',
+            key: ({reportID}) => `${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
         },
     }),
 )(ReportActionsView);

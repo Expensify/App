@@ -15,6 +15,7 @@ const ReportActionItemMessage = ({action}) => (
             <ReportActionItemFragment
                 key={_.uniqueId('actionFragment', action.sequenceNumber)}
                 fragment={fragment}
+                isAttachment={action.isAttachment}
             />
         ))}
     </>

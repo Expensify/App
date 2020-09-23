@@ -72,6 +72,19 @@ const Str = {
     escapeForRegExp(string) {
         return string.replace(/[-[\]/{}()*+?.\\^$|]/g, '\\$&');
     },
+
+    /**
+     * Returns true if the haystack begins with the needle
+     *
+     * @param {String} haystack  The full string to be searched
+     * @param {String} needle    The case-sensitive string to search for
+     * @return {Boolean} Retruns true if the haystack starts with the needle.
+     */
+    startsWith(haystack, needle) {
+        return _.isString(haystack)
+            && _.isString(needle)
+            && haystack.substring(0, needle.length) === needle;
+    },
 };
 
 export default Str;

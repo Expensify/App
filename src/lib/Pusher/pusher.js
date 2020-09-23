@@ -39,7 +39,7 @@ function init(appKey, params) {
 
         const options = {
             cluster: CONFIG.PUSHER.CLUSTER,
-            authEndpoint: `${CONFIG.PUSHER.AUTH_URL}/api.php?command=Push_Authenticate`,
+            authEndpoint: `${CONFIG.EXPENSIFY.API_ROOT}command=Push_Authenticate`,
         };
 
         if (customAuthorizer) {
@@ -190,6 +190,10 @@ function subscribe(channelName, eventName, eventCallback = () => {}, isChunked =
             channel = socket.subscribe(channelName);
             channel.bind('pusher:subscription_succeeded', () => {
                 bindEventToChannel(channel, eventName, eventCallback, isChunked);
+
+                // Remove this event subscriber so we do not bind another
+                // event with each reconnect attempt
+                channel.unbind('pusher:subscription_succeeded');
                 resolve();
             });
 
@@ -354,6 +358,14 @@ function disconnect() {
     socket = null;
 }
 
+/**
+ * Disconnect and Re-Connect Pusher
+ */
+function reconnect() {
+    socket.disconnect();
+    socket.connect();
+}
+
 if (window) {
     /**
      * Pusher socket for debugging purposes
@@ -376,4 +388,5 @@ export {
     registerSocketEventCallback,
     registerCustomAuthorizer,
     disconnect,
+    reconnect,
 };

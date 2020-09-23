@@ -69,7 +69,7 @@ module.exports = {
                     platformExclude
                 ),
                 options: {
-                    cache: true,
+                    cache: false,
                     emitWarning: true,
                 },
             },
