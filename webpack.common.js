@@ -92,7 +92,9 @@ module.exports = {
         },
 
         // React Native libraries may have web-specific module implementations that appear with the extension `.web.js`
-        // without this, web will try to use native implementations and break in not very obvious ways
+        // without this, web will try to use native implementations and break in not very obvious ways.
+        // This is also why we have to use .webify.js for our own web-specific files...
+        // Because desktop also relies on "web-specific" module implementations
         extensions: ['.web.js', '.js', (platform === 'web') ? '.webify.js' : '.desktop.js'],
     },
 };
