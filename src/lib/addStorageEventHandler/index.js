@@ -6,7 +6,13 @@
  */
 function addStorageEventHandler(callback) {
     window.addEventListener('storage', (e) => {
-        callback(e.key, JSON.parse(e.newValue));
+        let newValue;
+        try {
+            newValue = JSON.parse(e.newValue);
+        } catch (err) {
+            console.error('Could not parse the newValue of the storage event', err, e);
+        }
+        callback(e.key, JSON.parse(newValue));
     });
 }
 
