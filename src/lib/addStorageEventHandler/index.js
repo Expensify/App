@@ -12,7 +12,7 @@ function addStorageEventHandler(callback) {
         } catch (err) {
             console.error('Could not parse the newValue of the storage event', err, e);
         }
-        callback(e.key, JSON.parse(newValue));
+        callback(e.key, newValue);
     });
 }
 
