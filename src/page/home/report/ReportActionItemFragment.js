@@ -1,9 +1,12 @@
 import React from 'react';
 import HTML from 'react-native-render-html';
-import {Linking, Platform} from 'react-native';
+import {
+    Linking, ActivityIndicator, View, Platform
+} from 'react-native';
+import PropTypes from 'prop-types';
 import Str from '../../../lib/Str';
 import ReportActionFragmentPropTypes from './ReportActionFragmentPropTypes';
-import styles, {webViewStyles} from '../../../style/StyleSheet';
+import styles, {webViewStyles, colors} from '../../../style/StyleSheet';
 import Text from '../../../components/Text';
 import AnchorForCommentsOnly from '../../../components/AnchorForCommentsOnly';
 import {getAuthToken} from '../../../lib/API';
@@ -11,6 +14,13 @@ import {getAuthToken} from '../../../lib/API';
 const propTypes = {
     // The message fragment needing to be displayed
     fragment: ReportActionFragmentPropTypes.isRequired,
+
+    // Is this fragment an attachment?
+    isAttachment: PropTypes.bool,
+};
+
+const defaultProps = {
+    isAttachment: false
 };
 
 class ReportActionItemFragment extends React.PureComponent {
@@ -57,6 +67,19 @@ class ReportActionItemFragment extends React.PureComponent {
         const {fragment} = this.props;
         switch (fragment.type) {
             case 'COMMENT':
+                // If this is an attachment placeholder, return the placeholder component
+                if (this.props.isAttachment && fragment.html === fragment.text) {
+                    return (
+                        <View style={[styles.chatItemAttachmentPlaceholder]}>
+                            <ActivityIndicator
+                                size="large"
+                                color={colors.textSupporting}
+                                style={[styles.h100p]}
+                            />
+                        </View>
+                    );
+                }
+
                 // Only render HTML if we have html in the fragment
                 return fragment.html !== fragment.text
                     ? (
@@ -113,6 +136,7 @@ class ReportActionItemFragment extends React.PureComponent {
 }
 
 ReportActionItemFragment.propTypes = propTypes;
+ReportActionItemFragment.defaultProps = defaultProps;
 ReportActionItemFragment.displayName = 'ReportActionItemFragment';
 
 export default ReportActionItemFragment;

@@ -1,16 +1,15 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View, Image, TouchableOpacity} from 'react-native';
+import _ from 'underscore';
 import styles, {colors} from '../../../style/StyleSheet';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 import sendIcon from '../../../../assets/images/icon-send.png';
 import IONKEYS from '../../../IONKEYS';
 import paperClipIcon from '../../../../assets/images/icon-paper-clip.png';
-import CONFIG from '../../../CONFIG';
-import openURLInNewTab from '../../../lib/openURLInNewTab';
+import ImagePicker from '../../../lib/ImagePicker';
 import withIon from '../../../components/withIon';
-import {saveReportComment} from '../../../lib/actions/Report';
-
+import {addAction, saveReportComment} from '../../../lib/actions/Report';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -32,9 +31,30 @@ class ReportActionCompose extends React.Component {
         super(props);
 
         this.updateComment = this.updateComment.bind(this);
+        this.debouncedSaveReportComment = _.debounce(this.debouncedSaveReportComment.bind(this), 1000, false);
         this.submitForm = this.submitForm.bind(this);
         this.triggerSubmitShortcut = this.triggerSubmitShortcut.bind(this);
         this.submitForm = this.submitForm.bind(this);
+        this.showAttachmentPicker = this.showAttachmentPicker.bind(this);
+        this.comment = '';
+    }
+
+    componentDidUpdate(prevProps) {
+        // The first time the component loads the props is empty and the next time it may contain value.
+        // If it does let's update this.comment so that it matches the defaultValue that we show in textInput.
+        if (this.props.comment && prevProps.comment === '' && prevProps.comment !== this.props.comment) {
+            this.comment = this.props.comment;
+        }
+    }
+
+    /**
+     * Save our report comment in Ion. We debounce this method in the constructor so that it's not called too often
+     * to update Ion and re-render this component.
+     *
+     * @param {string} comment
+     */
+    debouncedSaveReportComment(comment) {
+        saveReportComment(this.props.reportID, comment || '');
     }
 
     /**
@@ -43,7 +63,8 @@ class ReportActionCompose extends React.Component {
      * @param {string} newComment
      */
     updateComment(newComment) {
-        saveReportComment(this.props.reportID, newComment || '');
+        this.comment = newComment;
+        this.debouncedSaveReportComment(newComment);
     }
 
     /**
@@ -69,7 +90,7 @@ class ReportActionCompose extends React.Component {
             e.preventDefault();
         }
 
-        const trimmedComment = this.props.comment.trim();
+        const trimmedComment = this.comment.trim();
 
         // Don't submit empty comments
         // @TODO show an error in the UI
@@ -78,16 +99,48 @@ class ReportActionCompose extends React.Component {
         }
 
         this.props.onSubmit(trimmedComment);
+        this.textInput.clear();
         this.updateComment('');
     }
 
+    /**
+     * Handle the attachment icon being tapped
+     *
+     * @param {SyntheticEvent} e
+     */
+    showAttachmentPicker(e) {
+        e.preventDefault();
+
+        /**
+         * See https://github.com/react-native-community/react-native-image-picker/blob/master/docs/Reference.md#options
+         * for option definitions
+         */
+        const options = {
+            storageOptions: {
+                skipBackup: true,
+            },
+        };
+
+        ImagePicker.showImagePicker(options, (response) => {
+            if (response.didCancel) {
+                return;
+            }
+
+            if (response.error) {
+                console.error(`Error occurred picking image: ${response.error}`);
+                return;
+            }
+
+            addAction(this.props.reportID, '', ImagePicker.getDataForUpload(response));
+        });
+    }
+
     render() {
-        const href = `${CONFIG.PUSHER.AUTH_URL}/report?reportID=${this.props.reportID}&shouldScrollToLastUnread=true`;
         return (
             <View style={[styles.chatItemCompose]}>
                 <View style={[styles.chatItemComposeBox, styles.flexRow]}>
                     <TouchableOpacity
-                        onPress={() => openURLInNewTab(href)}
+                        onPress={this.showAttachmentPicker}
                         style={[styles.chatItemAttachButton]}
                         underlayColor={colors.componentBG}
                     >
@@ -101,11 +154,12 @@ class ReportActionCompose extends React.Component {
                         multiline
                         textAlignVertical="top"
                         placeholder="Write something..."
+                        ref={el => this.textInput = el}
                         placeholderTextColor={colors.textSupporting}
                         onChangeText={this.updateComment}
                         onKeyPress={this.triggerSubmitShortcut}
                         style={[styles.textInput, styles.textInputCompose, styles.flex4]}
-                        value={this.props.comment || ''}
+                        defaultValue={this.props.comment || ''}
                         maxLines={16} // This is the same that slack has
                     />
                     <TouchableOpacity
@@ -129,7 +183,6 @@ ReportActionCompose.defaultProps = defaultProps;
 
 export default withIon({
     comment: {
-        key: `${IONKEYS.REPORT_DRAFT_COMMENT}_%DATAFROMPROPS%`,
-        pathForProps: 'reportID',
+        key: ({reportID}) => `${IONKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
     },
 })(ReportActionCompose);

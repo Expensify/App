@@ -112,8 +112,7 @@ export default compose(
     withRouter,
     withIon({
         reports: {
-            key: `${IONKEYS.REPORT}_[0-9]+$`,
-            indexBy: 'reportID',
+            key: IONKEYS.COLLECTION.REPORT,
         }
     }),
 )(SidebarLinks);
