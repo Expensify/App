@@ -7,4 +7,18 @@ module.exports = {
     env: {
         jest: true
     },
+    settings: {
+        'import/resolver': {
+            node: {
+                extensions: [
+                    '.js',
+                    '.webify.js',
+                    '.desktop.js',
+                    '.native.js',
+                    '.ios.js',
+                    '.android.js',
+                ]
+            }
+        }
+    }
 };

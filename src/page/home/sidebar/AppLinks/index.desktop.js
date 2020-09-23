@@ -1,5 +1,4 @@
 import React from 'react';
-import {Platform} from 'react-native';
 
 import styles from '../../../../style/StyleSheet';
 import openURLInNewTab from '../../../../lib/openURLInNewTab';
