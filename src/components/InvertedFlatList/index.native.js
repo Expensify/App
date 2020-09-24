@@ -6,6 +6,7 @@ import {FlatList} from 'react-native';
  */
 export default forwardRef((props, forwardedRef) => (
     <FlatList
+        // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         data={props.data.slice().reverse()}
         ref={forwardedRef}
