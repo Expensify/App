@@ -6,32 +6,35 @@ const ReactWindowContext = createContext({});
 const MINIMUM_ROW_HEIGHT = 42;
 
 /**
- * This is the inner most
+ * This is the innermost element and we are passing it as a custom
+ * component so that we can overwrite some styles and simulate
+ * an inverse FlatList with items starting from the bottom of the
+ * scroll position. react-window has no "reverse" feature so we've
+ * built something similar around the existing API.
  */
-const innerElement = forwardRef((props, ref) => {
-    return (
-        <ReactWindowContext.Consumer>
-            {({dimensions}) => {
-                const innerHeight = props.style.height;
-                const top = dimensions.top || 0;
-                const height = dimensions.height || 0;
-                const difference = height - top - innerHeight;
+const innerElement = forwardRef((props, ref) => (
+    <ReactWindowContext.Consumer>
+        {({dimensions}) => {
+            const innerHeight = props.style.height;
+            const top = dimensions.top || 0;
+            const height = dimensions.height || 0;
+            const difference = height - top - innerHeight;
 
-                return (
-                    <div
-                        {...props}
-                        ref={ref}
-                        style={{
-                            ...props.style,
-                            position: 'relative',
-                            marginTop: difference > 0 ? difference : 0,
-                        }}
-                    />
-                );
-            }}
-        </ReactWindowContext.Consumer>
-    );
-});
+            return (
+                <div
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...props}
+                    ref={ref}
+                    style={{
+                        ...props.style,
+                        position: 'relative',
+                        marginTop: difference > 0 ? difference : 0,
+                    }}
+                />
+            );
+        }}
+    </ReactWindowContext.Consumer>
+));
 
 /**
  * This component is an alternate implementation of FlatList for web.
@@ -56,7 +59,11 @@ class InvertedFlatList extends React.Component {
         // Set the height of the list after the component mounts
         // and then scroll to the bottom.
         this.setState({listHeight: this.list.offsetHeight}, () => {
-            this.listRef.scrollToItem(this.props.data.length, 'auto');
+            this.scrollToEnd();
+        });
+
+        this.props.forwardedRef({
+            scrollToEnd: () => this.scrollToEnd(),
         });
     }
 
@@ -71,6 +78,13 @@ class InvertedFlatList extends React.Component {
      */
     getSize(index) {
         return this.sizeMap[index] || MINIMUM_ROW_HEIGHT;
+    }
+
+    /**
+     * Scroll to end implementation for web.
+     */
+    scrollToEnd() {
+        this.listRef.scrollToItem(this.props.data.length - 1, 'end');
     }
 
     render() {
@@ -105,6 +119,10 @@ class InvertedFlatList extends React.Component {
                                             this.listRef.resetAfterIndex(0);
                                         }
                                     },
+
+                                    // Minimum row height is a magic number. In the event that we
+                                    // have a row that is the exact same size we will get caught in
+                                    // an infinite loop. Do not set row heights to this!
                                     needsLayoutCalculation: style.height === MINIMUM_ROW_HEIGHT,
                                 })}
                             </div>
