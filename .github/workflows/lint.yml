@@ -20,3 +20,13 @@ jobs:
             - run: npm run lint
               env:
                   CI: true
+            - name: Job failed Slack notification
+              uses: rtCamp/action-slack-notify@master
+              env:
+                  SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+                  SLACK_CHANNEL: "#andrew-test"
+                  SLACK_USERNAME: "Botify"
+                  SLACK_ICON: "https://s3-us-west-2.amazonaws.com/slack-files2/avatars/2017-07-19/214290201728_e3b6a20b1b2cb3145d6f_72.png"
+                  SLACK_COLOR: "#DB4545"
+                  SLACK_TITLE: "$GITHUB_WORKFLOW Failed"
+                  SLACK_MESSAGE: "GitHub Action: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/runs/$GITHUB_RUN_NUMBER"
