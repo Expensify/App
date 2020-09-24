@@ -31,9 +31,6 @@ const propTypes = {
     // Safe area insets required for mobile devices margins
     insets: SafeAreaInsetPropTypes.isRequired,
 
-    // A function to call when the chat switcher is blurred
-    onChatSwitcherSelected: PropTypes.func.isRequired,
-
     /* Ion Props */
 
     // List of reports
