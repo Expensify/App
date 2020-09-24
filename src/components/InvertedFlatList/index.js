@@ -1,16 +1,17 @@
-import React, {forwardRef, createContext} from 'react';
+import React, {forwardRef, createContext, Component} from 'react';
 import {View} from 'react-native';
 import {VariableSizeList} from 'react-window';
+import styles from '../../style/StyleSheet';
 
 const ReactWindowContext = createContext({});
-const MINIMUM_ROW_HEIGHT = 42;
+const DEFAULT_ROW_HEIGHT = 42;
 
 /**
  * This is the innermost element and we are passing it as a custom
  * component so that we can overwrite some styles and simulate
  * an inverse FlatList with items starting from the bottom of the
- * scroll position. react-window has no "reverse" feature so we've
- * built something similar around the existing API.
+ * scroll position by adding additional margin. react-window has no
+ * inverted feature so this works around the existing API.
  */
 const innerElement = forwardRef((props, ref) => (
     <ReactWindowContext.Consumer>
@@ -37,22 +38,22 @@ const innerElement = forwardRef((props, ref) => (
 ));
 
 /**
- * This component is an alternate implementation of FlatList for web.
- * FlatList with an inverted prop does not work correctly on web but
- * works fine for mobile so we are using react-window here to create
- * our inverted list scroller so eke out extra performance on web.
+ * This component is a recreation of FlatList for web.
+ * FlatList when used with an "inverted" prop does not work
+ * correctly on web but works fine for mobile so we are
+ * using react-window here to create our inverted list
+ * scroller to improve performance on web.
  */
-class InvertedFlatList extends React.Component {
+class InvertedFlatList extends Component {
     constructor(props) {
         super(props);
 
-        this.sizeMap = {};
-
-        this.state = {
-            listHeight: 0,
-        };
-
         this.getSize = this.getSize.bind(this);
+
+        // Stores each item's computed height after it renders
+        // once and is reference for the life of the component
+        this.sizeMap = {};
+        this.state = {listHeight: 0};
     }
 
     componentDidMount() {
@@ -62,26 +63,37 @@ class InvertedFlatList extends React.Component {
             this.scrollToEnd();
         });
 
+        // This allows us to call this.listRef.scrollToEnd() from
+        // the parent component where this will be used.
         this.props.forwardedRef({
             scrollToEnd: () => this.scrollToEnd(),
         });
     }
 
     shouldComponentUpdate(prevProps, prevState) {
+        // We only need to update when the data length changes
+        // or the list height changes (since we are calculating the
+        // height on the first render pass)
         return prevProps.data.length !== this.props.data.length
             || prevState.listHeight !== this.state.listHeight;
     }
 
     /**
+     * Returns a previously recorded size or the default.
+     *
+     * The default is not a minimum, but the initial height
+     * to pass to react-window so that we can calculate and
+     * cache the actual height.
+     *
      * @param {Number} index
      * @returns {Number}
      */
     getSize(index) {
-        return this.sizeMap[index] || MINIMUM_ROW_HEIGHT;
+        return this.sizeMap[index] || DEFAULT_ROW_HEIGHT;
     }
 
     /**
-     * Scroll to end implementation for web.
+     * ScrollToEnd implementation. Similar to FlatListInstance.scrollToEnd()
      */
     scrollToEnd() {
         this.listRef.scrollToItem(this.props.data.length - 1, 'end');
@@ -90,10 +102,13 @@ class InvertedFlatList extends React.Component {
     render() {
         return (
             <ReactWindowContext.Provider
+                // These values are passed via context as there seems to
+                // be no way to pass additional props to the innerElement
+                // controlled by react-window
                 value={{dimensions: this.list ? this.list.getBoundingClientRect() : {}}}
             >
                 <View
-                    style={{flex: 1}}
+                    style={styles.flex1}
                     ref={el => this.list = el}
                 >
                     <VariableSizeList
@@ -108,22 +123,28 @@ class InvertedFlatList extends React.Component {
                         innerElementType={innerElement}
                     >
                         {({index, style}) => (
+                            // Do not modify  or remove these styles they are
+                            // required by react-window to function correctly
                             <div style={style}>
                                 {this.props.renderItem({
                                     item: this.props.data[index],
                                     index,
                                     onLayout: ({nativeEvent}) => {
+                                        const computedHeight = nativeEvent.layout.height;
+                                        if (computedHeight === DEFAULT_ROW_HEIGHT) {
+                                            throw new Error('InvertedFlatList rendered row height equal to the constant default height.');
+                                        }
                                         const prevSize = this.sizeMap[index] || 0;
-                                        if (prevSize !== nativeEvent.layout.height) {
-                                            this.sizeMap[index] = nativeEvent.layout.height;
+                                        if (prevSize !== computedHeight) {
+                                            this.sizeMap[index] = computedHeight;
                                             this.listRef.resetAfterIndex(0);
                                         }
                                     },
 
-                                    // Minimum row height is a magic number. In the event that we
+                                    // Default row height is a magic number. In the event that we
                                     // have a row that is the exact same size we will get caught in
-                                    // an infinite loop. Do not set row heights to this!
-                                    needsLayoutCalculation: style.height === MINIMUM_ROW_HEIGHT,
+                                    // an infinite loop. Avoid setting row heights to this.
+                                    needsLayoutCalculation: style.height === DEFAULT_ROW_HEIGHT,
                                 })}
                             </div>
                         )}
