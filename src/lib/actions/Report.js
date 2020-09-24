@@ -11,6 +11,7 @@ import ExpensiMark from '../ExpensiMark';
 import Notification from '../Notification';
 import * as PersonalDetails from './PersonalDetails';
 import {redirect} from './App';
+import * as ActiveClientManager from '../ActiveClientManager';
 import Visibility from '../Visibility';
 
 let currentUserEmail;
@@ -30,12 +31,6 @@ let currentURL;
 Ion.connect({
     key: IONKEYS.CURRENT_URL,
     callback: val => currentURL = val,
-});
-
-let personalDetails;
-Ion.connect({
-    key: IONKEYS.PERSONAL_DETAILS,
-    callback: val => personalDetails = val,
 });
 
 let myPersonalDetails;
@@ -116,7 +111,7 @@ function getChatReportName(sharedReportList) {
     return _.chain(sharedReportList)
         .map(participant => participant.email)
         .filter(participant => participant !== currentUserEmail)
-        .map(participant => lodashGet(personalDetails, [participant, 'firstName']) || participant)
+        .map(participant => PersonalDetails.getDisplayName(participant))
         .value()
         .join(', ');
 }
@@ -194,6 +189,11 @@ function updateReportWithNewAction(reportID, reportAction) {
     Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         [reportAction.sequenceNumber]: reportAction,
     });
+
+    if (!ActiveClientManager.isClientTheLeader()) {
+        console.debug('[NOTIFICATION] Skipping notification because this client is not the leader');
+        return;
+    }
 
     // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
     if (reportAction.actorEmail === currentUserEmail) {
@@ -316,6 +316,7 @@ function fetchAll(shouldRedirectToFirstReport = true, shouldFetchActions = false
                 Ion.merge(`${IONKEYS.COLLECTION.REPORT}${report.reportID}`, getSimplifiedReportObject(report));
 
                 if (shouldFetchActions) {
+                    console.debug(`[RECONNECT] Fetching report actions for report ${report.reportID}`);
                     fetchActions(report.reportID);
                 }
             });

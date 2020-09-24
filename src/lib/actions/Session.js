@@ -32,11 +32,16 @@ function signIn(partnerUserID, partnerUserSecret, twoFactorAuthCode = '', exitTo
  */
 function signOut() {
     redirectToSignIn();
-    API.deleteLogin({
-        partnerUserID: credentials && credentials.login
-    });
     Ion.clear();
     Pusher.disconnect();
+
+    if (!credentials || !credentials.login) {
+        return;
+    }
+
+    API.deleteLogin({
+        partnerUserID: credentials.login
+    });
 }
 
 export {
