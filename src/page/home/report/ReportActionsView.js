@@ -73,23 +73,12 @@ class ReportActionsView extends React.Component {
     // eslint-disable-next-line
     isConsecutiveActionMadeByPreviousActor(actionIndex) {
         const reportActions = lodashGet(this.props, 'reportActions', {});
-
-        // This is the created action and the very first action so it cannot be a consecutive comment.
-        if (actionIndex === 0) {
-            return false;
-        }
-
         const previousAction = reportActions[actionIndex - 1];
         const currentAction = reportActions[actionIndex];
 
         // It's OK for there to be no previous action, and in that case, false will be returned
         // so that the comment isn't grouped
         if (!currentAction || !previousAction) {
-            return false;
-        }
-
-        // Only comments that follow other comments are consecutive
-        if (previousAction.actionName !== 'ADDCOMMENT' || currentAction.actionName !== 'ADDCOMMENT') {
             return false;
         }
 
