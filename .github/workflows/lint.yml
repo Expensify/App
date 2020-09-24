@@ -41,7 +41,7 @@ jobs:
                       channel: '#andrew-test',
                       attachments: [{
                         color: "#DB4545",
-                        pretext: `${github.repository} failed on ${github.workflow} workflow 💥`,
+                        pretext: `${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
                         text: `${process.env.AS_WORKFLOW}\n${process.env.AS_JOB} (${process.env.AS_COMMIT}) of ${process.env.AS_REPO}@${process.env.AS_REF} by ${process.env.AS_AUTHOR} succeeded in ${process.env.AS_TOOK}`,
                       }]
                     }
