@@ -58,10 +58,6 @@ class ReportActionItemFragment extends React.PureComponent {
 
         // We only want to attach auth tokens to images that come from Expensify attachments
         if (htmlNode.name === 'img' && htmlNode.attribs['data-expensify-source']) {
-            // Remove the '320.jpg' ending from image attachments to view the full size image
-            htmlNode.attribs.src = htmlNode.attribs.src.endsWith('.320.jpg')
-                ? htmlNode.attribs.src.substring(0, htmlNode.attribs.src.lastIndexOf('.320.jpg'))
-                : htmlNode.attribs.src;
             htmlNode.attribs.src = `${node.attribs.src}?authToken=${getAuthToken()}`;
             return htmlNode;
         }
@@ -70,7 +66,7 @@ class ReportActionItemFragment extends React.PureComponent {
     render() {
         const {fragment} = this.props;
         const windowWidth = Dimensions.get('window').width;
-        const maxImageWidth = windowWidth > widthBreakPoint ? windowWidth / 4 : windowWidth / 1.5;
+        const maxImageWidth = windowWidth > widthBreakPoint ? windowWidth / 2 : windowWidth / 1.5;
         switch (fragment.type) {
             case 'COMMENT':
                 // If this is an attachment placeholder, return the placeholder component
