@@ -81,6 +81,7 @@ class ChatSwitcherView extends React.Component {
         // Listen for the Command+K key being pressed so the focus can be given to the chat switcher
         KeyboardShortcut.subscribe('K', () => {
             if (this.textInput) {
+                this.props.onFocus();
                 this.textInput.focus();
             }
         }, ['meta'], true);
