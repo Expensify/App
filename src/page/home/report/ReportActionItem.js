@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ReportActionItemSingle from './ReportActionItemSingle';
@@ -27,7 +27,7 @@ const defaultProps = {
     onLayout: () => {},
 };
 
-class ReportActionItem extends React.Component {
+class ReportActionItem extends Component {
     shouldComponentUpdate(nextProps) {
         // Allow this component to update if the needsLayoutCalculation prop changes
         // so we can make the component visible.
@@ -40,13 +40,13 @@ class ReportActionItem extends React.Component {
             return true;
         }
 
-        // If the action's sequenceNumber changes then we'll update it
-        return nextProps.action.sequenceNumber !== this.props.action.sequenceNumber;
+        // If the item sequenceNumber changes then we'll update it
+        return this.props.action.sequenceNumber !== nextProps.action.sequenceNumber;
     }
 
     render() {
         const {action, displayAsGroup} = this.props;
-        const viewStyle = this.props.needsLayoutCalculation ? [styles.opacity0] : [styles.opacity1];
+        const viewStyle = this.props.needsLayoutCalculation ? styles.opacity0 : styles.opacity1;
         return (
             <View
                 style={viewStyle}
