@@ -102,6 +102,7 @@ class InvertedFlatList extends Component {
     render() {
         return (
             <ReactWindowContext.Provider
+
                 // These values are passed via context as there seems to
                 // be no way to pass additional props to the innerElement
                 // controlled by react-window
@@ -123,6 +124,7 @@ class InvertedFlatList extends Component {
                         innerElementType={innerElement}
                     >
                         {({index, style}) => (
+
                             // Do not modify or remove these styles they are
                             // required by react-window to function correctly
                             <div style={style}>
@@ -134,10 +136,13 @@ class InvertedFlatList extends Component {
                                         if (computedHeight === DEFAULT_ROW_HEIGHT) {
                                             throw new Error('InvertedFlatList rendered row height equal to the constant default height.');
                                         }
+
+                                        // Check out previous size against the computedHeight returned when
+                                        // our renderItem layouts. If there's any difference then we reset
                                         const prevSize = this.sizeMap[index] || 0;
                                         if (prevSize !== computedHeight) {
                                             this.sizeMap[index] = computedHeight;
-                                            this.listRef.resetAfterIndex(0);
+                                            this.listRef.resetAfterIndex(index);
                                         }
                                     },
 
