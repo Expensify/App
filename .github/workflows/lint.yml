@@ -20,29 +20,17 @@ jobs:
             - run: npm run lint
               env:
                   CI: true
-            - name: Job failed Slack notification
-              uses: rtCamp/action-slack-notify@master
-              env:
-                  SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-                  SLACK_CHANNEL: "#andrew-test"
-                  SLACK_USERNAME: "Botify"
-                  SLACK_ICON: "https://s3-us-west-2.amazonaws.com/slack-files2/avatars/2017-07-19/214290201728_e3b6a20b1b2cb3145d6f_72.png"
-                  SLACK_COLOR: "#DB4545"
-                  SLACK_TITLE: 💥 ${{ github.repository }} failed on ${{ github.workflow }} workflow 💥
-                  SLACK_MESSAGE: "_Someone should look into this_"
 
             - uses: 8398a7/action-slack@v3
+              name: Job failed Slack notification
               with:
                    status: custom
-                   fields: workflow,job,commit,repo,ref,author,took
+                   fields: workflow, repo
                    custom_payload: |
                     {
-                      username: 'Botify',
-                      channel: '#andrew-test',
                       attachments: [{
                         color: "#DB4545",
-                        pretext: `${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
-                        text: `${process.env.AS_WORKFLOW}\n${process.env.AS_JOB} (${process.env.AS_COMMIT}) of ${process.env.AS_REPO}@${process.env.AS_REF} by ${process.env.AS_AUTHOR} succeeded in ${process.env.AS_TOOK}`,
+                        text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
                       }]
                     }
               env:
