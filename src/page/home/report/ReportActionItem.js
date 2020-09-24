@@ -1,10 +1,10 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import ReportActionItemGrouped from './ReportActionItemGrouped';
+import styles from '../../../style/StyleSheet';
 
 const propTypes = {
     // All the data of the action item
@@ -13,7 +13,9 @@ const propTypes = {
     // Should the comment have the appearance of being grouped with the previous comment?
     displayAsGroup: PropTypes.bool.isRequired,
 
-    // Used to tell this component that we want it to call onLayout when it renders
+    // This is a performance feature used to tell this component that we want it
+    // to call onLayout when it renders. We need this so that we can calculate the size of
+    // this component and pass it to our InvertedFlatList implementation.
     needsLayoutCalculation: PropTypes.bool,
 
     // Called when the view layout completes
@@ -27,17 +29,27 @@ const defaultProps = {
 
 class ReportActionItem extends React.Component {
     shouldComponentUpdate(nextProps) {
-        // This component should only render if the action's sequenceNumber or displayAsGroup props change
-        return nextProps.needsLayoutCalculation !== this.props.needsLayoutCalculation
-            || nextProps.displayAsGroup !== this.props.displayAsGroup
-            || !_.isEqual(nextProps.action, this.props.action);
+        // Allow this component to update if the needsLayoutCalculation prop changes
+        // so we can make the component visible.
+        if (nextProps.needsLayoutCalculation !== this.props.needsLayoutCalculation) {
+            return true;
+        }
+
+        // If the grouping changes then we want to update the UI
+        if (nextProps.displayAsGroup !== this.props.displayAsGroup) {
+            return true;
+        }
+
+        // If the action's sequenceNumber changes then we'll update it
+        return nextProps.action.sequenceNumber !== this.props.action.sequenceNumber;
     }
 
     render() {
         const {action, displayAsGroup} = this.props;
+        const viewStyle = this.props.needsLayoutCalculation ? [styles.opacity0] : [styles.opacity1];
         return (
             <View
-                style={{opacity: this.props.needsLayoutCalculation ? 0 : 1}}
+                style={viewStyle}
                 onLayout={this.props.onLayout}
             >
                 {!displayAsGroup && <ReportActionItemSingle action={action} />}
