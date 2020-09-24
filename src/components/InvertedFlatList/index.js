@@ -4,7 +4,7 @@ import {VariableSizeList} from 'react-window';
 import styles from '../../style/StyleSheet';
 
 const ReactWindowContext = createContext({});
-const DEFAULT_ROW_HEIGHT = 42;
+const INITIAL_ROW_HEIGHT = 42;
 
 /**
  * This is the innermost element and we are passing it as a custom
@@ -20,7 +20,6 @@ const innerElement = forwardRef((props, ref) => (
             const top = dimensions.top || 0;
             const height = dimensions.height || 0;
             const difference = height - top - innerHeight;
-
             return (
                 <div
                     // eslint-disable-next-line react/jsx-props-no-spreading
@@ -53,6 +52,7 @@ class InvertedFlatList extends Component {
         // Stores each item's computed height after it renders
         // once and is reference for the life of the component
         this.sizeMap = {};
+        this.didLayout = {};
         this.state = {listHeight: 0};
     }
 
@@ -89,14 +89,22 @@ class InvertedFlatList extends Component {
      * @returns {Number}
      */
     getSize(index) {
-        return this.sizeMap[index] || DEFAULT_ROW_HEIGHT;
+        return this.sizeMap[index] || INITIAL_ROW_HEIGHT;
     }
 
     /**
      * ScrollToEnd implementation. Similar to FlatListInstance.scrollToEnd()
      */
     scrollToEnd() {
-        this.listRef.scrollToItem(this.props.data.length - 1, 'end');
+        // This bit of inception is to fix accurate scrolling to end.
+        // Just one scroll will get us to the bottom but new items will
+        // render offsetting the scroll position so we need to scroll once more.
+        setTimeout(() => {
+            this.outerRef.scrollTo({top: this.outerRef.scrollHeight});
+            setTimeout(() => {
+                this.outerRef.scrollTo({top: this.outerRef.scrollHeight});
+            }, 300);
+        }, 300);
     }
 
     render() {
@@ -133,23 +141,15 @@ class InvertedFlatList extends Component {
                                     index,
                                     onLayout: ({nativeEvent}) => {
                                         const computedHeight = nativeEvent.layout.height;
-                                        if (computedHeight === DEFAULT_ROW_HEIGHT) {
-                                            throw new Error('InvertedFlatList rendered row height equal to the constant default height.');
+                                        if (this.didLayout[index]) {
+                                            return;
                                         }
 
-                                        // Check out previous size against the computedHeight returned when
-                                        // our renderItem layouts. If there's any difference then we reset
-                                        const prevSize = this.sizeMap[index] || 0;
-                                        if (prevSize !== computedHeight) {
-                                            this.sizeMap[index] = computedHeight;
-                                            this.listRef.resetAfterIndex(index);
-                                        }
+                                        this.sizeMap[index] = computedHeight;
+                                        this.listRef.resetAfterIndex(index);
+                                        this.didLayout[index] = true;
                                     },
-
-                                    // Default row height is a magic number. In the event that we
-                                    // have a row that is the exact same size we will get caught in
-                                    // an infinite loop. Avoid setting row heights to this.
-                                    needsLayoutCalculation: style.height === DEFAULT_ROW_HEIGHT,
+                                    needsLayoutCalculation: !this.didLayout[index],
                                 })}
                             </div>
                         )}
