@@ -123,7 +123,7 @@ class InvertedFlatList extends Component {
                         innerElementType={innerElement}
                     >
                         {({index, style}) => (
-                            // Do not modify  or remove these styles they are
+                            // Do not modify or remove these styles they are
                             // required by react-window to function correctly
                             <div style={style}>
                                 {this.props.renderItem({
