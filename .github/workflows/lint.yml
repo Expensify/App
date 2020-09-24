@@ -28,5 +28,4 @@ jobs:
                   SLACK_USERNAME: "Botify"
                   SLACK_ICON: "https://s3-us-west-2.amazonaws.com/slack-files2/avatars/2017-07-19/214290201728_e3b6a20b1b2cb3145d6f_72.png"
                   SLACK_COLOR: "#DB4545"
-                  SLACK_TITLE: $GITHUB_WORKFLOW Failed
-                  SLACK_MESSAGE: "GitHub Action: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/runs/$GITHUB_RUN_NUMBER"
+                  SLACK_TITLE: 💥 ${{ github.repository }} failed to deploy on ${{ github.workflow }} workflow 💥
