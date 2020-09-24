@@ -48,14 +48,19 @@ jobs:
                     pr_label: "automerge"
                     github_token: ${{ secrets.BOTIFY_TOKEN }}
 
-#            - name: Job failed Slack notification
-#              if: ${{ failure() }}
-#              uses: rtCamp/action-slack-notify@master
-#              env:
-#                  SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-#                  SLACK_CHANNEL: "#andrew-test"
-#                  SLACK_USERNAME: "Botify"
-#                  SLACK_ICON: "https://s3-us-west-2.amazonaws.com/slack-files2/avatars/2017-07-19/214290201728_e3b6a20b1b2cb3145d6f_72.png"
-#                  SLACK_COLOR: "#DB4545"
-#                  SLACK_TITLE: "$GITHUB_WORKFLOW Failed"
-#                  SLACK_MESSAGE: "GitHub Action: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/runs/$GITHUB_RUN_NUMBER"
+            - uses: 8398a7/action-slack@v3
+              name: Job failed Slack notification
+              if: ${{ failure() }}
+              with:
+                    status: custom
+                    fields: workflow, repo
+                    custom_payload: |
+                        {
+                          attachments: [{
+                            color: "#DB4545",
+                            text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
+                          }]
+                        }
+              env:
+                    GITHUB_TOKEN: ${{ github.token }}
+                    SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
