@@ -1,10 +1,21 @@
 import React from 'react';
 import {TextInput} from 'react-native';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 
 const propTypes = {
-    // The value of the comment box
-    value: PropTypes.string.isRequired,
+    // A ref to forward to the text input
+    forwardedRef: PropTypes.func.isRequired,
+
+    // Maximum number of lines in the text input
+    maxLines: PropTypes.number,
+
+    // The default value of the comment box
+    defaultValue: PropTypes.string.isRequired,
+};
+
+const defaultProps = {
+    maxLines: -1,
 };
 
 /**
@@ -21,14 +32,38 @@ class TextInputFocusable extends React.Component {
 
     componentDidMount() {
         this.focusInput();
+
+        // This callback prop is used by the parent component using the constructor to
+        // get a ref to the inner textInput element e.g. if we do
+        // <constructor ref={el => this.textInput = el} /> this will not
+        // return a ref to the component, but rather the HTML element by default
+        if (this.props.forwardedRef && _.isFunction(this.props.forwardedRef)) {
+            this.props.forwardedRef(this.textInput);
+        }
     }
 
     componentDidUpdate(prevProps) {
         this.focusInput();
 
-        if (prevProps.value !== this.props.value) {
+        if (prevProps.defaultValue !== this.props.defaultValue) {
             this.updateNumberOfLines();
         }
+    }
+
+    /**
+     * Calculates the max number of lines the text input can have
+     *
+     * @param {number} lineHeight
+     * @param {number} paddingTopAndBottom
+     * @param {number} scrollHeight
+     *
+     * @returns {number}
+     */
+    getNumberOfLines(lineHeight, paddingTopAndBottom, scrollHeight) {
+        const maxLines = this.props.maxLines;
+        let newNumberOfLines = Math.ceil((scrollHeight - paddingTopAndBottom) / lineHeight);
+        newNumberOfLines = maxLines <= 0 ? newNumberOfLines : Math.min(newNumberOfLines, maxLines);
+        return newNumberOfLines;
     }
 
     /**
@@ -46,7 +81,7 @@ class TextInputFocusable extends React.Component {
         // affected by the previous row setting. If we don't, rows will be added but not removed on backspace/delete.
         this.setState({numberOfLines: 1}, () => {
             this.setState({
-                numberOfLines: Math.ceil((this.textInput.scrollHeight - paddingTopAndBottom) / lineHeight)
+                numberOfLines: this.getNumberOfLines(lineHeight, paddingTopAndBottom, this.textInput.scrollHeight)
             });
         });
     }
@@ -71,5 +106,9 @@ class TextInputFocusable extends React.Component {
 }
 
 TextInputFocusable.propTypes = propTypes;
+TextInputFocusable.defaultProps = defaultProps;
 
-export default TextInputFocusable;
+export default React.forwardRef((props, ref) => (
+    /* eslint-disable-next-line react/jsx-props-no-spreading */
+    <TextInputFocusable {...props} forwardedRef={ref} />
+));

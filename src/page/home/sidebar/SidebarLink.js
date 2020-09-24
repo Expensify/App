@@ -14,7 +14,7 @@ const propTypes = {
     reportID: PropTypes.number.isRequired,
 
     // The name of the report to use as the text for this link
-    reportName: PropTypes.string.isRequired,
+    reportName: PropTypes.string,
 
     // These are from withRouter
     // eslint-disable-next-line react/forbid-prop-types
@@ -25,22 +25,29 @@ const propTypes = {
 
     /* Ion Props */
 
-    // Does the report for this link have unread comments?
-    isUnread: PropTypes.bool,
+    // The report object for this link
+    report: PropTypes.shape({
+        // Does the report for this link have unread comments?
+        isUnread: PropTypes.bool,
+    }),
 };
 
 const defaultProps = {
-    isUnread: false,
+    report: {
+        isUnread: false,
+    },
+    reportName: '',
 };
 
 const SidebarLink = (props) => {
-    const paramsReportID = parseInt(props.match.params.reportID, 10);
-    const isReportActive = paramsReportID === props.reportID;
+    const reportIDInUrl = parseInt(props.match.params.reportID, 10);
+    const isReportActive = reportIDInUrl === props.reportID;
     const linkWrapperActiveStyle = isReportActive && styles.sidebarLinkWrapperActive;
     const linkActiveStyle = isReportActive ? styles.sidebarLinkActive : styles.sidebarLink;
     const textActiveStyle = isReportActive ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
-    const textActiveUnreadStyle = props.isUnread
+    const textActiveUnreadStyle = props.report.isUnread
         ? [textActiveStyle, styles.sidebarLinkTextUnread] : [textActiveStyle];
+
     return (
         <View style={[styles.sidebarListItem, linkWrapperActiveStyle]}>
             <PressableLink onClick={props.onLinkClick} to={`/${props.reportID}`} style={linkActiveStyle}>
@@ -61,11 +68,8 @@ SidebarLink.defaultProps = defaultProps;
 export default compose(
     withRouter,
     withIon({
-        isUnread: {
-            key: `${IONKEYS.REPORT}_%DATAFROMPROPS%`,
-            path: 'hasUnread',
-            defaultValue: false,
-            pathForProps: 'reportID',
-        }
+        report: {
+            key: ({reportID}) => `${IONKEYS.COLLECTION.REPORT}${reportID}`,
+        },
     }),
 )(SidebarLink);

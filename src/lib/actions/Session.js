@@ -1,66 +1,47 @@
 import Ion from '../Ion';
-import {request} from '../Network';
+import * as API from '../API';
 import IONKEYS from '../../IONKEYS';
-import CONFIG from '../../CONFIG';
 import redirectToSignIn from './SignInRedirect';
+import * as Pusher from '../Pusher/pusher';
+
+let credentials;
+Ion.connect({
+    key: IONKEYS.CREDENTIALS,
+    callback: val => credentials = val,
+});
 
 /**
  * Sign in with the API
  *
- * @param {string} login
- * @param {string} password
+ * @param {string} partnerUserID
+ * @param {string} partnerUserSecret
  * @param {string} twoFactorAuthCode
  * @param {string} exitTo
- * @param {boolean} useExpensifyLogin
- *
- * @returns {Promise}
  */
-function signIn(login, password, twoFactorAuthCode = '', exitTo, useExpensifyLogin = true) {
-    console.debug('[SIGNIN] Authenticating with login type:', useExpensifyLogin ? 'expensify' : 'device');
-    return request('Authenticate', {
-        // When authenticating for the first time, we pass useExpensifyLogin as true so we check for credentials for
-        // the expensify partnerID to let users authenticate with their expensify user and password.
-        useExpensifyLogin,
-        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-        partnerUserID: login,
-        partnerUserSecret: password,
+function signIn(partnerUserID, partnerUserSecret, twoFactorAuthCode = '', exitTo) {
+    API.authenticate({
+        partnerUserID,
+        partnerUserSecret,
         twoFactorAuthCode,
         exitTo
-    })
-        .catch((err) => {
-            console.error(err);
-            console.debug('[SIGNIN] Request error');
-            return Ion.merge(IONKEYS.SESSION, {error: err.message});
-        });
+    });
 }
 
 /**
- * Delete login
- * @param {string} authToken
- * @param {string} login
- * @returns {Promise}
- */
-function deleteLogin(authToken, login) {
-    return request('DeleteLogin', {
-        authToken,
-        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-        partnerUserID: login,
-    }).catch(err => Ion.merge(IONKEYS.SESSION, {error: err.message}));
-}
-
-/**
- * Sign out of our application
- *
- * @returns {Promise}
+ * Clears the Ion store and redirects user to the sign in page
  */
 function signOut() {
-    return redirectToSignIn()
-        .then(() => Ion.multiGet([IONKEYS.SESSION, IONKEYS.CREDENTIALS]))
-        .then(data => deleteLogin(data.session.authToken, data.credentials.login))
-        .then(Ion.clear)
-        .catch(err => Ion.merge(IONKEYS.SESSION, {error: err.message}));
+    redirectToSignIn();
+    Ion.clear();
+    Pusher.disconnect();
+
+    if (!credentials || !credentials.login) {
+        return;
+    }
+
+    API.deleteLogin({
+        partnerUserID: credentials.login
+    });
 }
 
 export {
