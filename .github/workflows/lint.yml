@@ -29,4 +29,4 @@ jobs:
                   SLACK_ICON: "https://s3-us-west-2.amazonaws.com/slack-files2/avatars/2017-07-19/214290201728_e3b6a20b1b2cb3145d6f_72.png"
                   SLACK_COLOR: "#DB4545"
                   SLACK_TITLE: 💥 ${{ github.repository }} failed on ${{ github.workflow }} workflow 💥
-                  SLACK_MESSAGE: ""
+                  SLACK_MESSAGE: "_Someone should look into this_"
