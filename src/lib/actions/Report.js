@@ -8,7 +8,7 @@ import CONFIG from '../../CONFIG';
 import * as Pusher from '../Pusher/pusher';
 import promiseAllSettled from '../promiseAllSettled';
 import ExpensiMark from '../ExpensiMark';
-import Notification from '../Notification';
+import BrowserNotification from '../Notification/BrowserNotification';
 import * as PersonalDetails from './PersonalDetails';
 import {redirect} from './App';
 
@@ -206,7 +206,7 @@ function updateReportWithNewAction(reportID, reportAction) {
     }
 
     console.debug('[NOTIFICATION] Creating notification');
-    Notification.showCommentNotification({
+    BrowserNotification.showCommentNotification({
         reportAction,
         onClick: () => {
             // Navigate to this report onClick
