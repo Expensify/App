@@ -1,6 +1,6 @@
-import Str from '../Str';
-import CONST from '../../CONST';
-import * as ActiveClientManager from '../ActiveClientManager';
+import Str from '../../Str';
+import CONST from '../../../CONST';
+import * as ActiveClientManager from '../../ActiveClientManager';
 
 const EXPENSIFY_ICON_URL = `${CONST.CLOUDFRONT_URL}/images/favicon-2019.png`;
 const DEFAULT_DELAY = 4000;
@@ -119,23 +119,12 @@ function pushReportCommentNotification({reportAction, onClick}) {
     });
 }
 
-/* ====== Public Functions (signatures must match index.native.js) ====== */
-
-/**
- * See if user notification permissions are set, and ask for permission if not set.
- *
- * @returns {Promise}
- */
-function enableUserNotifications() {
-    return canUseBrowserNotifications();
-}
-
+/* ====== Public Functions ====== */
 
 function showCommentNotification({reportAction, onClick}) {
     pushReportCommentNotification({reportAction, onClick});
 }
 
 export default {
-    enableUserNotifications,
     showCommentNotification,
 };
