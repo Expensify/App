@@ -40,6 +40,8 @@ jobs:
               env:
                   FASTLANE_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
 
+            # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
+            # the other workflows with the same change
             - uses: 8398a7/action-slack@v3
               name: Job failed Slack notification
               if: ${{ failure() }}
