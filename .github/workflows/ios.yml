@@ -39,3 +39,20 @@ jobs:
               run: bundle exec fastlane ios beta
               env:
                   FASTLANE_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+
+            - uses: 8398a7/action-slack@v3
+              name: Job failed Slack notification
+              if: ${{ failure() }}
+              with:
+                  status: custom
+                  fields: workflow, repo
+                  custom_payload: |
+                      {
+                        attachments: [{
+                          color: "#DB4545",
+                          text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
+                        }]
+                      }
+              env:
+                  GITHUB_TOKEN: ${{ github.token }}
+                  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
