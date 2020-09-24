@@ -1,4 +1,5 @@
 import React, {forwardRef, createContext, Component} from 'react';
+import _ from 'underscore';
 import {View} from 'react-native';
 import {VariableSizeList} from 'react-window';
 import styles from '../../style/StyleSheet';
@@ -53,15 +54,12 @@ class InvertedFlatList extends Component {
         // once and is reference for the life of the component
         this.sizeMap = {};
         this.didLayout = {};
-        this.state = {listHeight: 0};
     }
 
     componentDidMount() {
         // Set the height of the list after the component mounts
         // and then scroll to the bottom.
-        this.setState({listHeight: this.list.offsetHeight}, () => {
-            this.scrollToEnd();
-        });
+        this.scrollToEnd();
 
         // This allows us to call this.listRef.scrollToEnd() from
         // the parent component where this will be used.
@@ -70,12 +68,12 @@ class InvertedFlatList extends Component {
         });
     }
 
-    shouldComponentUpdate(prevProps, prevState) {
-        // We only need to update when the data length changes
-        // or the list height changes (since we are calculating the
-        // height on the first render pass)
-        return prevProps.data.length !== this.props.data.length
-            || prevState.listHeight !== this.state.listHeight;
+    componentDidUpdate(prevProps) {
+        if (!prevProps.isInView && this.props.isInView) {
+            this.setState({didRender: false}, () => {
+                this.scrollToEnd();
+            });
+        }
     }
 
     /**
@@ -117,11 +115,11 @@ class InvertedFlatList extends Component {
                 value={{dimensions: this.list ? this.list.getBoundingClientRect() : {}}}
             >
                 <View
-                    style={styles.flex1}
+                    style={[styles.flex1]}
                     ref={el => this.list = el}
                 >
                     <VariableSizeList
-                        height={this.state.listHeight}
+                        height={this.props.height || 0}
                         itemCount={this.props.data.length}
                         itemSize={this.getSize}
                         width="100%"

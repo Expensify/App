@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Keyboard} from 'react-native';
+import {View, Keyboard, ActivityIndicator} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
@@ -8,17 +8,11 @@ import withIon from '../../../components/withIon';
 import {fetchActions, updateLastReadActionID} from '../../../lib/actions/Report';
 import IONKEYS from '../../../IONKEYS';
 import ReportActionItem from './ReportActionItem';
-import styles from '../../../style/StyleSheet';
-import {withRouter} from '../../../lib/Router';
+import styles, {colors} from '../../../style/StyleSheet';
 import ReportActionPropTypes from './ReportActionPropTypes';
-import compose from '../../../lib/compose';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 
 const propTypes = {
-    // These are from withRouter
-    // eslint-disable-next-line react/forbid-prop-types
-    match: PropTypes.object.isRequired,
-
     // The ID of the report actions will be created for
     reportID: PropTypes.number.isRequired,
 
@@ -46,11 +40,9 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        const isReportVisible = this.props.reportID === parseInt(this.props.match.params.reportID, 10);
-
         // When the number of actions change, wait three seconds, then record the max action
         // This will make the unread indicator go away if you receive comments in the same chat you're looking at
-        if (isReportVisible && _.size(prevProps.reportActions) !== _.size(this.props.reportActions)) {
+        if (this.props.isActiveReport && _.size(prevProps.reportActions) !== _.size(this.props.reportActions)) {
             setTimeout(this.recordMaxAction, 3000);
         }
     }
@@ -128,7 +120,17 @@ class ReportActionsView extends React.Component {
     }
 
     render() {
+        // Comments have not loaded at all yet show a loading spinner
         if (!_.size(this.props.reportActions)) {
+            return (
+                <View style={[styles.chatContent, styles.chatContentEmpty]}>
+                    <ActivityIndicator color={colors.icon} />
+                </View>
+            );
+        }
+
+        // If we only have the created action then no one has left a comment
+        if (_.size(this.props.reportActions) === 1) {
             return (
                 <View style={[styles.chatContent, styles.chatContentEmpty]}>
                     <Text style={[styles.textP]}>Be the first person to comment!</Text>
@@ -140,6 +142,7 @@ class ReportActionsView extends React.Component {
             <InvertedFlatList
                 ref={el => this.actionListElement = el}
                 data={data}
+                height={this.props.height}
                 renderItem={({
                     item,
                     index,
@@ -156,6 +159,7 @@ class ReportActionsView extends React.Component {
                 bounces={false}
                 contentContainerStyle={[styles.chatContentScrollView]}
                 keyExtractor={item => `${item.action.sequenceNumber}`}
+                isInView={this.props.isActiveReport}
             />
         );
     }
@@ -164,11 +168,8 @@ class ReportActionsView extends React.Component {
 ReportActionsView.propTypes = propTypes;
 ReportActionsView.defaultProps = defaultProps;
 
-export default compose(
-    withRouter,
-    withIon({
-        reportActions: {
-            key: ({reportID}) => `${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-        },
-    }),
-)(ReportActionsView);
+export default withIon({
+    reportActions: {
+        key: ({reportID}) => `${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+    },
+})(ReportActionsView);
