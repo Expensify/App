@@ -66,7 +66,7 @@ const mainWindow = (() => {
             let quitting = false;
 
             // Closing the chat window should just hide it (vs. fully quitting the application)
-            browserWindow.on("close", (evt) => {
+            browserWindow.on('close', (evt) => {
                 if (!quitting) {
                     evt.preventDefault();
                     browserWindow.minimize();
