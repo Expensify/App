@@ -1,14 +1,14 @@
 import _ from 'underscore';
 import Ion from '../Ion';
 import IONKEYS from '../../IONKEYS';
-import updateUnread from './updateUnread';
+import updateUnread from './updateUnread/index.website';
 
 // Stash the unread action counts for each report
 const unreadActionCounts = {};
 
 /**
  * Updates the title and favicon of the current browser tab
- * and Mac OS dock icon with an unread indicator.
+ * and Mac OS or iOS dock icon with an unread indicator.
  */
 const throttledUpdatePageTitleAndUnreadCount = _.throttle(() => {
     const totalCount = _.reduce(unreadActionCounts, (total, reportCount) => total + reportCount, 0);
