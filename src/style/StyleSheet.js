@@ -118,6 +118,14 @@ const styles = {
         display: 'none',
     },
 
+    opacity1: {
+        opacity: 1,
+    },
+
+    opacity0: {
+        opacity: 0,
+    },
+
     textP: {
         color: colors.text,
         fontSize: 15,

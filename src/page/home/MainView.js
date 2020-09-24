@@ -34,7 +34,6 @@ const MainView = (props) => {
 
     return (
         <View
-            key={reportIDInURL}
             style={[styles.dFlex, styles.flex1]}
         >
             <ReportView
