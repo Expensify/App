@@ -1,8 +1,7 @@
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-
-// import {Beforeunload} from 'react-beforeunload';
+import {recordCurrentRoute} from './lib/actions/App';
 import SignInPage from './page/SignInPage';
 import HomePage from './page/home/HomePage';
 import Ion from './lib/Ion';
@@ -40,7 +39,6 @@ class Expensify extends Component {
         // Initialize this client as being an active client
         ActiveClientManager.init();
 
-        this.recordCurrentRoute = this.recordCurrentRoute.bind(this);
         this.removeLoadingState = this.removeLoadingState.bind(this);
 
         this.state = {
@@ -50,28 +48,23 @@ class Expensify extends Component {
     }
 
     componentDidMount() {
-        Ion.connect({key: IONKEYS.SESSION, path: 'authToken', callback: this.removeLoadingState});
+        Ion.connect({
+            key: IONKEYS.SESSION,
+            callback: this.removeLoadingState,
+        });
     }
 
     /**
      * When the authToken is updated, the app should remove the loading state and handle the authToken
      *
-     * @param {string} authToken
+     * @param {object} session
+     * @param {string} session.authToken
      */
-    removeLoadingState(authToken) {
+    removeLoadingState(session) {
         this.setState({
-            authToken,
+            authToken: session ? session.authToken : null,
             isLoading: false,
         });
-    }
-
-    /**
-     * Keep the current route match stored in Ion so other libs can access it
-     *
-     * @param {object} params.match
-     */
-    recordCurrentRoute({match}) {
-        Ion.set(IONKEYS.CURRENT_URL, match.url);
     }
 
     render() {
@@ -81,28 +74,28 @@ class Expensify extends Component {
                 <View style={styles.genericView} />
             );
         }
-
-        const redirectTo = !this.state.authToken
-            ? ROUTES.SIGNIN
-            : this.props.redirectTo;
-
+        const redirectTo = !this.state.authToken ? ROUTES.SIGNIN : this.props.redirectTo;
         return (
-
-            // TODO: Mobile does not support Beforeunload
-            // <Beforeunload onBeforeunload={ActiveClientManager.removeClient}>
             <Router>
                 {/* If there is ever a property for redirecting, we do the redirect here */}
                 {/* Leave this as a ternary or else iOS throws an error about text not being wrapped in <Text> */}
                 {redirectTo ? <Redirect to={redirectTo} /> : null}
-                <Route path="*" render={this.recordCurrentRoute} />
+                <Route path="*" render={recordCurrentRoute} />
 
                 <Switch>
+                    <Route
+                        exact
+                        path="/"
+                        render={() => (
+                            this.state.authToken
+                                ? <Redirect to="/home" />
+                                : <Redirect to="/signin" />
+                        )}
+                    />
                     <Route path={['/signin/exitTo/:exitTo*', '/signin']} component={SignInPage} />
-                    <Route path="/" component={HomePage} />
+                    <Route path={['/home', '/']} component={HomePage} />
                 </Switch>
             </Router>
-
-        // </Beforeunload>
         );
     }
 }

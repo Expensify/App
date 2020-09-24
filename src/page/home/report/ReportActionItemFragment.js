@@ -1,19 +1,29 @@
 import React from 'react';
 import HTML from 'react-native-render-html';
-import {Linking, Dimensions} from 'react-native';
+import {
+    Linking, ActivityIndicator, View, Platform, Dimensions
+} from 'react-native';
+import PropTypes from 'prop-types';
 import Str from '../../../lib/Str';
-import ReportHistoryFragmentPropTypes from './ReportHistoryFragmentPropTypes';
-import styles, {webViewStyles, widthBreakPoint} from '../../../style/StyleSheet';
+import ReportActionFragmentPropTypes from './ReportActionFragmentPropTypes';
+import styles, {webViewStyles, colors, widthBreakPoint} from '../../../style/StyleSheet';
 import Text from '../../../components/Text';
 import AnchorForCommentsOnly from '../../../components/AnchorForCommentsOnly';
-import {getAuthToken} from '../../../lib/Network';
+import {getAuthToken} from '../../../lib/API';
 
 const propTypes = {
     // The message fragment needing to be displayed
-    fragment: ReportHistoryFragmentPropTypes.isRequired,
+    fragment: ReportActionFragmentPropTypes.isRequired,
+
+    // Is this fragment an attachment?
+    isAttachment: PropTypes.bool,
 };
 
-class ReportHistoryItemFragment extends React.PureComponent {
+const defaultProps = {
+    isAttachment: false
+};
+
+class ReportActionItemFragment extends React.PureComponent {
     constructor(props) {
         super(props);
 
@@ -63,10 +73,26 @@ class ReportHistoryItemFragment extends React.PureComponent {
         const maxImageWidth = windowWidth > widthBreakPoint ? windowWidth / 4 : windowWidth / 1.5;
         switch (fragment.type) {
             case 'COMMENT':
+                // If this is an attachment placeholder, return the placeholder component
+                if (this.props.isAttachment && fragment.html === fragment.text) {
+                    return (
+                        <View style={[styles.chatItemAttachmentPlaceholder]}>
+                            <ActivityIndicator
+                                size="large"
+                                color={colors.textSupporting}
+                                style={[styles.h100p]}
+                            />
+                        </View>
+                    );
+                }
+
                 // Only render HTML if we have html in the fragment
                 return fragment.html !== fragment.text
                     ? (
                         <HTML
+
+                            // HACK - Android selection causes performance issues, temporarily disable it until we fix
+                            textSelectable={Platform.OS !== 'android'}
                             renderers={this.customRenderers}
                             baseFontStyle={webViewStyles.baseFontStyle}
                             tagsStyles={webViewStyles.tagStyles}
@@ -77,10 +103,23 @@ class ReportHistoryItemFragment extends React.PureComponent {
                             imagesInitialDimensions={{width: maxImageWidth}}
                         />
                     )
-                    : <Text>{Str.htmlDecode(fragment.text)}</Text>;
+                    : (
+                        <Text
+
+                            // HACK - Android selection causes performance issues, temporarily disable it until we fix
+                            selectable={Platform.OS !== 'android'}
+                        >
+                            {Str.htmlDecode(fragment.text)}
+                        </Text>
+                    );
             case 'TEXT':
                 return (
-                    <Text style={[styles.chatItemMessageHeaderSender]}>
+                    <Text
+
+                        // HACK - Android selection causes performance issues, temporarily disable it until we fix
+                        selectable={Platform.OS !== 'android'}
+                        style={[styles.chatItemMessageHeaderSender]}
+                    >
                         {Str.htmlDecode(fragment.text)}
                     </Text>
                 );
@@ -104,7 +143,8 @@ class ReportHistoryItemFragment extends React.PureComponent {
     }
 }
 
-ReportHistoryItemFragment.propTypes = propTypes;
-ReportHistoryItemFragment.displayName = 'ReportHistoryItemFragment';
+ReportActionItemFragment.propTypes = propTypes;
+ReportActionItemFragment.defaultProps = defaultProps;
+ReportActionItemFragment.displayName = 'ReportActionItemFragment';
 
-export default ReportHistoryItemFragment;
+export default ReportActionItemFragment;

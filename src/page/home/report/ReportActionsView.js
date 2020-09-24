@@ -4,44 +4,67 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import Text from '../../../components/Text';
-import Ion from '../../../lib/Ion';
 import withIon from '../../../components/withIon';
-import {fetchHistory, updateLastReadActionID} from '../../../lib/actions/Report';
+import {fetchActions, updateLastReadActionID} from '../../../lib/actions/Report';
 import IONKEYS from '../../../IONKEYS';
-import ReportHistoryItem from './ReportHistoryItem';
+import ReportActionItem from './ReportActionItem';
 import styles from '../../../style/StyleSheet';
 import {withRouter} from '../../../lib/Router';
-import ReportHistoryPropsTypes from './ReportHistoryPropsTypes';
+import ReportActionPropTypes from './ReportActionPropTypes';
 import compose from '../../../lib/compose';
 
 const propTypes = {
+    // These are from withRouter
+    // eslint-disable-next-line react/forbid-prop-types
+    match: PropTypes.object.isRequired,
+
     // The ID of the report actions will be created for
     reportID: PropTypes.number.isRequired,
 
     /* Ion Props */
 
-    // Array of report history items for this report
-    reportHistory: PropTypes.PropTypes.objectOf(PropTypes.shape(ReportHistoryPropsTypes)),
+    // Array of report actions for this report
+    reportActions: PropTypes.PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
 };
 
 const defaultProps = {
-    reportHistory: {},
+    reportActions: {},
 };
 
-class ReportHistoryView extends React.Component {
+class ReportActionsView extends React.Component {
     constructor(props) {
         super(props);
 
-        this.recordlastReadActionID = _.debounce(this.recordlastReadActionID.bind(this), 1000, true);
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
+        this.recordMaxAction = this.recordMaxAction.bind(this);
+
+        this.updateSortedReportActions();
     }
 
     componentDidMount() {
         this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
+        fetchActions(this.props.reportID);
+    }
+
+    componentDidUpdate(prevProps) {
+        const isReportVisible = this.props.reportID === parseInt(this.props.match.params.reportID, 10);
+
+        // When the number of actions change, wait three seconds, then record the max action
+        // This will make the unread indicator go away if you receive comments in the same chat you're looking at
+        if (isReportVisible && _.size(prevProps.reportActions) !== _.size(this.props.reportActions)) {
+            setTimeout(this.recordMaxAction, 3000);
+        }
     }
 
     componentWillUnmount() {
         this.keyboardEvent.remove();
+    }
+
+    /**
+     * Updates and sorts the report actions by sequence number
+     */
+    updateSortedReportActions() {
+        this.sortedReportActions = _.chain(this.props.reportActions).sortBy('sequenceNumber').value();
     }
 
     /**
@@ -51,21 +74,18 @@ class ReportHistoryView extends React.Component {
      * Also checks to ensure that the comment is not too old to
      * be considered part of the same comment
      *
-     * @param {Number} historyItemIndex - index of the comment item in state to check
+     * @param {Number} actionIndex - index of the comment item in state to check
      *
      * @return {Boolean}
      */
-    // eslint-disable-next-line
-    isConsecutiveHistoryItemMadeByPreviousActor(historyItemIndex) {
-        const reportHistory = lodashGet(this.props, 'reportHistory', {});
-
+    isConsecutiveActionMadeByPreviousActor(actionIndex) {
         // This is the created action and the very first action so it cannot be a consecutive comment.
-        if (historyItemIndex === 0) {
+        if (actionIndex === 0) {
             return false;
         }
 
-        const previousAction = reportHistory[historyItemIndex - 1];
-        const currentAction = reportHistory[historyItemIndex];
+        const previousAction = this.sortedReportActions[actionIndex - 1];
+        const currentAction = this.sortedReportActions[actionIndex];
 
         // It's OK for there to be no previous action, and in that case, false will be returned
         // so that the comment isn't grouped
@@ -91,49 +111,29 @@ class ReportHistoryView extends React.Component {
      * action when scrolled
      */
     recordMaxAction() {
-        const reportHistory = lodashGet(this.props, 'reportHistory', {});
-        const maxVisibleSequenceNumber = _.chain(reportHistory)
+        const reportActions = lodashGet(this.props, 'reportActions', {});
+        const maxVisibleSequenceNumber = _.chain(reportActions)
             .pluck('sequenceNumber')
             .max()
             .value();
-        this.recordlastReadActionID(maxVisibleSequenceNumber);
-    }
 
-    /**
-     * Takes a max seqNum and if it's greater than the last read action, then make a request to the API to
-     * update the report
-     *
-     * @param {number} maxSequenceNumber
-     */
-    recordlastReadActionID(maxSequenceNumber) {
-        let myAccountID;
-        Ion.get(IONKEYS.SESSION, 'accountID')
-            .then((accountID) => {
-                myAccountID = accountID;
-                const path = `reportNameValuePairs.lastReadActionID_${accountID}`;
-                return Ion.get(`${IONKEYS.REPORT}_${this.props.reportID}`, path, 0);
-            })
-            .then((lastReadActionID) => {
-                if (maxSequenceNumber > lastReadActionID) {
-                    updateLastReadActionID(myAccountID, this.props.reportID, maxSequenceNumber);
-                }
-            });
+        updateLastReadActionID(this.props.reportID, maxVisibleSequenceNumber);
     }
 
     /**
      * This function is triggered from the ref callback for the scrollview. That way it can be scrolled once all the
-     * items have been rendered. If the number of items in our history have changed since it was last rendered, then
+     * items have been rendered. If the number of actions has changed since it was last rendered, then
      * scroll the list to the end.
      */
     scrollToListBottom() {
-        if (this.historyListElement) {
-            this.historyListElement.scrollToEnd({animated: false});
+        if (this.actionListElement) {
+            this.actionListElement.scrollToEnd({animated: false});
         }
         this.recordMaxAction();
     }
 
     render() {
-        if (!_.size(this.props.reportHistory)) {
+        if (!_.size(this.props.reportActions)) {
             return (
                 <View style={[styles.chatContent, styles.chatContentEmpty]}>
                     <Text style={[styles.textP]}>Be the first person to comment!</Text>
@@ -141,39 +141,36 @@ class ReportHistoryView extends React.Component {
             );
         }
 
+        this.updateSortedReportActions();
         return (
             <ScrollView
                 ref={(el) => {
-                    this.historyListElement = el;
+                    this.actionListElement = el;
                 }}
                 onContentSizeChange={this.scrollToListBottom}
                 bounces={false}
                 contentContainerStyle={[styles.chatContentScrollView]}
             >
-                {_.chain(this.props.reportHistory).sortBy('sequenceNumber').map((item, index) => (
-                    <ReportHistoryItem
+                {_.map(this.sortedReportActions, (item, index) => (
+                    <ReportActionItem
                         key={item.sequenceNumber}
-                        historyItem={item}
-                        displayAsGroup={this.isConsecutiveHistoryItemMadeByPreviousActor(index)}
+                        action={item}
+                        displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
                     />
-                )).value()}
+                ))}
             </ScrollView>
         );
     }
 }
 
-ReportHistoryView.propTypes = propTypes;
-ReportHistoryView.defaultProps = defaultProps;
+ReportActionsView.propTypes = propTypes;
+ReportActionsView.defaultProps = defaultProps;
 
-const key = `${IONKEYS.REPORT_HISTORY}_%DATAFROMPROPS%`;
 export default compose(
     withRouter,
     withIon({
-        reportHistory: {
-            key,
-            loader: fetchHistory,
-            loaderParams: ['%DATAFROMPROPS%'],
-            pathForProps: 'reportID',
+        reportActions: {
+            key: ({reportID}) => `${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
         },
     }),
-)(ReportHistoryView);
+)(ReportActionsView);

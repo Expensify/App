@@ -1,4 +1,9 @@
-const {app, BrowserWindow, shell} = require('electron');
+const {
+    app,
+    BrowserWindow,
+    shell,
+    ipcMain
+} = require('electron');
 const serve = require('electron-serve');
 const contextMenu = require('electron-context-menu');
 const {autoUpdater} = require('electron-updater');
@@ -55,6 +60,26 @@ const mainWindow = (() => {
                 // and open every other protocol in the browser
                 e.preventDefault();
                 return shell.openExternal(url);
+            });
+
+            // Flag to determine is user is trying to quit the whole application altogether
+            let quitting = false;
+
+            // Closing the chat window should just hide it (vs. fully quitting the application)
+            browserWindow.on('close', (evt) => {
+                if (!quitting) {
+                    evt.preventDefault();
+                    browserWindow.minimize();
+                }
+            });
+
+            app.on('before-quit', () => quitting = true);
+            app.on('activate', () => browserWindow.show());
+
+            ipcMain.on('request-visibility', (event) => {
+                // This is how synchronous messages work in Electron
+                // eslint-disable-next-line no-param-reassign
+                event.returnValue = browserWindow.isFocused();
             });
 
             return browserWindow;
