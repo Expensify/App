@@ -3,6 +3,12 @@ const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 
+// Check for a --platform command line argument (default to 'web')
+// If it is 'web', we want to ignore .desktop.js files, and if it is 'desktop', we want to ignore .website.js files.
+const platformIndex = process.argv.findIndex(arg => arg === '--platform');
+const platform = (platformIndex > 0) ? process.argv[platformIndex + 1] : 'web';
+const platformExclude = platform === 'web' ? new RegExp(/\.desktop\.js$/) : new RegExp(/\.website\.js$/);
+
 module.exports = {
     entry: {
         app: './web/index.js',
@@ -41,12 +47,18 @@ module.exports = {
                  * You can remove something from this list if it doesn't use "react-native" as an import and it doesn't
                  * use JSX/JS that needs to be transformed by babel.
                  */
-                exclude: /node_modules\/(?!(react-native-render-html|react-native-webview)\/).*|\.native.js$/,
+                exclude: [
+                    /node_modules\/(?!(react-native-render-html|react-native-webview)\/).*|\.native\.js$/,
+                    platformExclude
+                ],
             },
             {
                 test: /\.js$/,
                 loader: 'eslint-loader',
-                exclude: /node_modules|\.native.js$/,
+                exclude: [
+                    /node_modules|\.native\.js$/,
+                    platformExclude
+                ],
                 options: {
                     cache: false,
                     emitWarning: true,
@@ -71,7 +83,9 @@ module.exports = {
         },
 
         // React Native libraries may have web-specific module implementations that appear with the extension `.web.js`
-        // without this, web will try to use native implementations and break in not very obvious ways
-        extensions: ['.web.js', '.js'],
+        // without this, web will try to use native implementations and break in not very obvious ways.
+        // This is also why we have to use .website.js for our own web-specific files...
+        // Because desktop also relies on "web-specific" module implementations
+        extensions: ['.web.js', '.js', (platform === 'web') ? '.website.js' : '.desktop.js'],
     },
 };
