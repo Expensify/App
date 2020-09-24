@@ -134,8 +134,8 @@ class ReportActionsView extends React.Component {
      */
     getItems() {
         return _.sortBy(this.props.reportActions, 'sequenceNumber')
-            .map((item, index) => ({action: item, index}))
-            .reverse();
+            .filter(action => action.actionName === 'ADDCOMMENT')
+            .map((item, index) => ({action: item, index}));
     }
 
     render() {

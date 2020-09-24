@@ -1,8 +1,37 @@
-import _ from 'underscore';
-import React, {forwardRef} from 'react';
+import React, {forwardRef, createContext} from 'react';
 import {View} from 'react-native';
-import {VariableSizeList} from 'react-window-reversed';
+import {VariableSizeList} from 'react-window';
 
+const ReactWindowContext = createContext({});
+const MINIMUM_ROW_HEIGHT = 42;
+
+/**
+ * This is the inner most
+ */
+const innerElement = forwardRef((props, ref) => {
+    return (
+        <ReactWindowContext.Consumer>
+            {({dimensions}) => {
+                const innerHeight = props.style.height;
+                const top = dimensions.top || 0;
+                const height = dimensions.height || 0;
+                const difference = height - top - innerHeight;
+
+                return (
+                    <div
+                        {...props}
+                        ref={ref}
+                        style={{
+                            ...props.style,
+                            position: 'relative',
+                            marginTop: difference > 0 ? difference : 0,
+                        }}
+                    />
+                );
+            }}
+        </ReactWindowContext.Consumer>
+    );
+});
 
 /**
  * This component is an alternate implementation of FlatList for web.
@@ -24,14 +53,10 @@ class InvertedFlatList extends React.Component {
     }
 
     componentDidMount() {
+        // Set the height of the list after the component mounts
+        // and then scroll to the bottom.
         this.setState({listHeight: this.list.offsetHeight}, () => {
-            // This is unfortunate, but it's really difficult to tell when the initial
-            // set of items have rendered and until then there's no guarantee that we
-            // will scroll to the exact bottom of the list due to how the programmatic
-            // scroll in react-window works.
-
-            // eslint-disable-next-line no-underscore-dangle
-            _.defer(() => this.listRef._outerRef.scrollTo({top: this.listRef._outerRef.scrollHeight}), 0);
+            this.listRef.scrollToItem(this.props.data.length, 'auto');
         });
     }
 
@@ -41,53 +66,52 @@ class InvertedFlatList extends React.Component {
     }
 
     /**
-     * @TODO this shouldn't really be specific to report actions
-     *
      * @param {Number} index
      * @returns {Number}
      */
     getSize(index) {
-        const {action} = this.props.data[index];
-        if (action.actionName !== 'ADDCOMMENT') {
-            return 0;
-        }
-
-        return this.sizeMap[index] || 42;
+        return this.sizeMap[index] || MINIMUM_ROW_HEIGHT;
     }
 
     render() {
         return (
-            <View
-                style={{flex: 1}}
-                ref={el => this.list = el}
+            <ReactWindowContext.Provider
+                value={{dimensions: this.list ? this.list.getBoundingClientRect() : {}}}
             >
-                <VariableSizeList
-                    height={this.state.listHeight}
-                    itemCount={this.props.data.length}
-                    itemSize={this.getSize}
-                    width="100%"
-                    ref={el => this.listRef = el}
-                    overscanCount={5}
-                    reversed
+                <View
+                    style={{flex: 1}}
+                    ref={el => this.list = el}
                 >
-                    {({index, style}) => (
-                        <div style={style}>
-                            {this.props.renderItem({
-                                item: this.props.data[index],
-                                index,
-                                onLayout: ({nativeEvent}) => {
-                                    const prevSize = this.sizeMap[index] || 0;
-                                    if (prevSize !== nativeEvent.layout.height) {
-                                        this.sizeMap[index] = nativeEvent.layout.height;
-                                        this.listRef.resetAfterIndex(0);
-                                    }
-                                },
-                                needsLayoutCalculation: style.height === 42,
-                            })}
-                        </div>
-                    )}
-                </VariableSizeList>
-            </View>
+                    <VariableSizeList
+                        height={this.state.listHeight}
+                        itemCount={this.props.data.length}
+                        itemSize={this.getSize}
+                        width="100%"
+                        ref={el => this.listRef = el}
+                        overscanCount={1}
+                        innerRef={el => this.innerRef = el}
+                        outerRef={el => this.outerRef = el}
+                        innerElementType={innerElement}
+                    >
+                        {({index, style}) => (
+                            <div style={style}>
+                                {this.props.renderItem({
+                                    item: this.props.data[index],
+                                    index,
+                                    onLayout: ({nativeEvent}) => {
+                                        const prevSize = this.sizeMap[index] || 0;
+                                        if (prevSize !== nativeEvent.layout.height) {
+                                            this.sizeMap[index] = nativeEvent.layout.height;
+                                            this.listRef.resetAfterIndex(0);
+                                        }
+                                    },
+                                    needsLayoutCalculation: style.height === MINIMUM_ROW_HEIGHT,
+                                })}
+                            </div>
+                        )}
+                    </VariableSizeList>
+                </View>
+            </ReactWindowContext.Provider>
         );
     }
 }
