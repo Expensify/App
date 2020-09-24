@@ -35,10 +35,6 @@ class ReportActionItem extends React.Component {
 
     render() {
         const {action, displayAsGroup} = this.props;
-        if (action.actionName !== 'ADDCOMMENT') {
-            return null;
-        }
-
         return (
             <View
                 style={{opacity: this.props.needsLayoutCalculation ? 0 : 1}}

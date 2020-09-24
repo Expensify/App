@@ -7,7 +7,7 @@ import {FlatList} from 'react-native';
 export default forwardRef((props, forwardedRef) => (
     <FlatList
         {...props}
-        data={props.data}
+        data={props.data.slice().reverse()}
         ref={forwardedRef}
         inverted
     />
