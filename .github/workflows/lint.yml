@@ -38,7 +38,7 @@ jobs:
                    custom_payload: |
                     {
                       username: 'Botify',
-                      channel: '#andrew-test'
+                      channel: '#andrew-test',
                       attachments: [{
                         color: "#DB4545",
                         pretext: `${github.repository} failed on ${github.workflow} workflow 💥`,
