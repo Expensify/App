@@ -30,3 +30,21 @@ jobs:
                   SLACK_COLOR: "#DB4545"
                   SLACK_TITLE: 💥 ${{ github.repository }} failed on ${{ github.workflow }} workflow 💥
                   SLACK_MESSAGE: "_Someone should look into this_"
+
+            - uses: 8398a7/action-slack@v3
+              with:
+                   status: custom
+                   fields: workflow,job,commit,repo,ref,author,took
+                   custom_payload: |
+                    {
+                      username: 'Botify',
+                      channel: '#andrew-test'
+                      attachments: [{
+                        color: "#DB4545",
+                        pretext: `${github.repository} failed on ${github.workflow} workflow 💥`
+                        text: `${process.env.AS_WORKFLOW}\n${process.env.AS_JOB} (${process.env.AS_COMMIT}) of ${process.env.AS_REPO}@${process.env.AS_REF} by ${process.env.AS_AUTHOR} succeeded in ${process.env.AS_TOOK}`,
+                      }]
+                    }
+              env:
+                   GITHUB_TOKEN: ${{ github.token }}
+                   SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
