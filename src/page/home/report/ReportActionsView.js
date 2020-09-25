@@ -33,9 +33,9 @@ class ReportActionsView extends React.Component {
     constructor(props) {
         super(props);
 
+        this.renderItem = this.renderItem.bind(this);
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
         this.recordMaxAction = this.recordMaxAction.bind(this);
-
         this.sortedReportActions = this.updateSortedReportActions();
     }
 
@@ -123,6 +123,36 @@ class ReportActionsView extends React.Component {
         this.recordMaxAction();
     }
 
+    /**
+     * Do not move this or make it an anonymous function it is a method
+     * so it will not be recreated each time we render an item
+     *
+     * See: https://reactnative.dev/docs/optimizing-flatlist-configuration#avoid-anonymous-function-on-renderitem
+     *
+     * @param {Object} args
+     * @param {Object} args.item
+     * @param {Number} args.index
+     * @param {Function} args.onLayout
+     * @param {Boolean} args.needsLayoutCalculation
+     *
+     * @returns {React.Component}
+     */
+    renderItem({
+        item,
+        index,
+        onLayout,
+        needsLayoutCalculation
+    }) {
+        return (
+            <ReportActionItem
+                action={item.action}
+                displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
+                onLayout={onLayout}
+                needsLayoutCalculation={needsLayoutCalculation}
+            />
+        );
+    }
+
     render() {
         // Comments have not loaded at all yet show a loading spinner
         if (!_.size(this.props.reportActions)) {
@@ -147,22 +177,14 @@ class ReportActionsView extends React.Component {
             <InvertedFlatList
                 ref={el => this.actionListElement = el}
                 data={this.sortedReportActions}
-                renderItem={({
-                    item,
-                    index,
-                    onLayout,
-                    needsLayoutCalculation,
-                }) => (
-                    <ReportActionItem
-                        action={item.action}
-                        displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
-                        onLayout={onLayout}
-                        needsLayoutCalculation={needsLayoutCalculation}
-                    />
-                )}
+                renderItem={this.renderItem}
                 bounces={false}
                 contentContainerStyle={[styles.chatContentScrollView]}
                 keyExtractor={item => `${item.action.sequenceNumber}`}
+                maxToRenderPerBatch={20}
+                updateCellsBatchingPeriod={25}
+                initialNumToRender={1}
+                windowSize={10}
             />
         );
     }
