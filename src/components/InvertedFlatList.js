@@ -1,8 +1,7 @@
 import React, {forwardRef, Component} from 'react';
-import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import PropTypes from 'prop-types';
-import {FlatList} from 'react-native';
+import {FlatList, View} from 'react-native';
 
 const INITIAL_ROW_HEIGHT = 42;
 
@@ -35,6 +34,25 @@ class InvertedFlatList extends Component {
         this.sizeMap = {};
     }
 
+    /**
+     * Measure an item and return the cache the offset and length.
+     *
+     * @param {React.NativeSyntheticEvent} nativeEvent
+     * @param {Number} index
+     */
+    measureItemLayout(nativeEvent, index) {
+        const computedHeight = nativeEvent.layout.height;
+        if (this.sizeMap[index]) {
+            return;
+        }
+        const prevHeight = lodashGet(this.sizeMap, [index - 1, 'height'], 0);
+        const prevOffset = lodashGet(this.sizeMap, [index - 1, 'offset'], 0);
+        this.sizeMap[index] = {
+            length: computedHeight,
+            offset: prevOffset + prevHeight,
+        };
+    }
+
     render() {
         return (
             <FlatList
@@ -50,23 +68,11 @@ class InvertedFlatList extends Component {
                         index
                     };
                 }}
-                renderItem={({item, index}) => this.props.renderItem({
-                    item,
-                    index,
-                    onLayout: ({nativeEvent}) => {
-                        const computedHeight = nativeEvent.layout.height;
-                        if (this.sizeMap[index]) {
-                            return;
-                        }
-                        const prevHeight = lodashGet(this.sizeMap, [index - 1, 'height'], 0);
-                        const prevOffset = lodashGet(this.sizeMap, [index - 1, 'offset'], 0);
-                        this.sizeMap[index] = {
-                            length: computedHeight,
-                            offset: prevOffset + prevHeight,
-                        };
-                    },
-                    needsLayoutCalculation: _.isUndefined(this.sizeMap[index]),
-                })}
+                renderItem={({item, index}) => (
+                    <View onLayout={({nativeEvent}) => this.measureItemLayout(nativeEvent, index)}>
+                        {this.props.renderItem({item, index})}
+                    </View>
+                )}
             />
         );
     }
