@@ -13,6 +13,8 @@ import PushNotification from '../Notification/PushNotification';
 import NotificationType from '../Notification/NotificationType';
 import * as PersonalDetails from './PersonalDetails';
 import {redirect} from './App';
+import * as ActiveClientManager from '../ActiveClientManager';
+import Visibility from '../Visibility';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -31,12 +33,6 @@ let currentURL;
 Ion.connect({
     key: IONKEYS.CURRENT_URL,
     callback: val => currentURL = val,
-});
-
-let personalDetails;
-Ion.connect({
-    key: IONKEYS.PERSONAL_DETAILS,
-    callback: val => personalDetails = val,
 });
 
 let myPersonalDetails;
@@ -112,7 +108,7 @@ function getChatReportName(sharedReportList) {
     return _.chain(sharedReportList)
         .map(participant => participant.email)
         .filter(participant => participant !== currentUserEmail)
-        .map(participant => lodashGet(personalDetails, [participant, 'firstName']) || participant)
+        .map(participant => PersonalDetails.getDisplayName(participant))
         .value()
         .join(', ');
 }
@@ -193,6 +189,11 @@ function updateReportWithNewAction(reportID, reportAction) {
         [reportAction.sequenceNumber]: reportAction,
     });
 
+    if (!ActiveClientManager.isClientTheLeader()) {
+        console.debug('[LOCAL_NOTIFICATION] Skipping notification because this client is not the leader');
+        return;
+    }
+
     // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
     if (reportAction.actorEmail === currentUserEmail) {
         console.debug('[LOCAL_NOTIFICATION] No notification because comment is from the currently logged in user');
@@ -202,7 +203,7 @@ function updateReportWithNewAction(reportID, reportAction) {
     const currentReportID = Number(lodashGet(currentURL.split('/'), [1], 0));
 
     // If we are currently viewing this report do not show a notification.
-    if (reportID === currentReportID) {
+    if (reportID === currentReportID && Visibility.isVisible()) {
         console.debug('[LOCAL_NOTIFICATION] No notification because it was a comment for the current report');
         return;
     }
@@ -305,10 +306,9 @@ function fetchAll(shouldRedirectToFirstReport = true, shouldFetchActions = false
 
             // Set the first report ID so that the logged in person can be redirected there
             // if they are on the home page
-            if (shouldRedirectToFirstReport && currentURL === '/') {
+            if (shouldRedirectToFirstReport && (currentURL === '/' || currentURL === '/home')) {
                 const firstReportID = _.first(_.pluck(fetchedReports, 'reportID'));
 
-                // If we're on the home page, then redirect to the first report ID
                 if (firstReportID) {
                     redirect(`/${firstReportID}`);
                 }
@@ -320,6 +320,7 @@ function fetchAll(shouldRedirectToFirstReport = true, shouldFetchActions = false
                 Ion.merge(`${IONKEYS.COLLECTION.REPORT}${report.reportID}`, getSimplifiedReportObject(report));
 
                 if (shouldFetchActions) {
+                    console.debug(`[RECONNECT] Fetching report actions for report ${report.reportID}`);
                     fetchActions(report.reportID);
                 }
             });
@@ -377,13 +378,15 @@ function fetchOrCreateChatReport(participants) {
  *
  * @param {number} reportID
  * @param {string} text
+ * @param {object} file
  */
-function addAction(reportID, text) {
+function addAction(reportID, text, file) {
     const actionKey = `${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
 
     // Convert the comment from MD into HTML because that's how it is stored in the database
     const parser = new ExpensiMark();
     const htmlComment = parser.replace(text);
+    const isAttachment = _.isEmpty(text) && file !== undefined;
 
     // The new sequence number will be one higher than the highest
     let highestSequenceNumber = reportMaxSequenceNumbers[reportID] || 0;
@@ -413,20 +416,22 @@ function addAction(reportID, text) {
             message: [
                 {
                     type: 'COMMENT',
-                    html: htmlComment,
+                    html: isAttachment ? 'Uploading Attachment...' : htmlComment,
 
                     // Remove HTML from text when applying optimistic offline comment
-                    text: htmlComment.replace(/<[^>]*>?/gm, ''),
+                    text: isAttachment ? 'Uploading Attachment...'
+                        : htmlComment.replace(/<[^>]*>?/gm, ''),
                 }
             ],
             isFirstItem: false,
-            isAttachmentPlaceHolder: false,
+            isAttachment,
         }
     });
 
     queueRequest('Report_AddComment', {
         reportID,
         reportComment: htmlComment,
+        file
     });
 }
 

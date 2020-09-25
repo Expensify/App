@@ -7,11 +7,9 @@ import TextInputFocusable from '../../../components/TextInputFocusable';
 import sendIcon from '../../../../assets/images/icon-send.png';
 import IONKEYS from '../../../IONKEYS';
 import paperClipIcon from '../../../../assets/images/icon-paper-clip.png';
-import CONFIG from '../../../CONFIG';
-import openURLInNewTab from '../../../lib/openURLInNewTab';
+import ImagePicker from '../../../lib/ImagePicker';
 import withIon from '../../../components/withIon';
-import {saveReportComment} from '../../../lib/actions/Report';
-
+import {addAction, saveReportComment} from '../../../lib/actions/Report';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -37,6 +35,7 @@ class ReportActionCompose extends React.Component {
         this.submitForm = this.submitForm.bind(this);
         this.triggerSubmitShortcut = this.triggerSubmitShortcut.bind(this);
         this.submitForm = this.submitForm.bind(this);
+        this.showAttachmentPicker = this.showAttachmentPicker.bind(this);
         this.comment = '';
     }
 
@@ -94,7 +93,6 @@ class ReportActionCompose extends React.Component {
         const trimmedComment = this.comment.trim();
 
         // Don't submit empty comments
-        // @TODO show an error in the UI
         if (!trimmedComment) {
             return;
         }
@@ -104,13 +102,44 @@ class ReportActionCompose extends React.Component {
         this.updateComment('');
     }
 
+    /**
+     * Handle the attachment icon being tapped
+     *
+     * @param {SyntheticEvent} e
+     */
+    showAttachmentPicker(e) {
+        e.preventDefault();
+
+        /**
+         * See https://github.com/react-native-community/react-native-image-picker/blob/master/docs/Reference.md#options
+         * for option definitions
+         */
+        const options = {
+            storageOptions: {
+                skipBackup: true,
+            },
+        };
+
+        ImagePicker.showImagePicker(options, (response) => {
+            if (response.didCancel) {
+                return;
+            }
+
+            if (response.error) {
+                console.error(`Error occurred picking image: ${response.error}`);
+                return;
+            }
+
+            addAction(this.props.reportID, '', ImagePicker.getDataForUpload(response));
+        });
+    }
+
     render() {
-        const href = `${CONFIG.PUSHER.AUTH_URL}/report?reportID=${this.props.reportID}&shouldScrollToLastUnread=true`;
         return (
             <View style={[styles.chatItemCompose]}>
                 <View style={[styles.chatItemComposeBox, styles.flexRow]}>
                     <TouchableOpacity
-                        onPress={() => openURLInNewTab(href)}
+                        onPress={this.showAttachmentPicker}
                         style={[styles.chatItemAttachButton]}
                         underlayColor={colors.componentBG}
                     >

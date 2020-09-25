@@ -1,6 +1,5 @@
 import Str from '../../Str';
 import CONST from '../../../CONST';
-import * as ActiveClientManager from '../../ActiveClientManager';
 
 const EXPENSIFY_ICON_URL = `${CONST.CLOUDFRONT_URL}/images/favicon-2019.png`;
 const DEFAULT_DELAY = 4000;
@@ -93,20 +92,20 @@ function push({
 }
 
 /**
- * Create a report comment notification
- *
- * @param {Object} params
- * @param {Object} params.reportAction
- * @param {Function} params.onClick
+ * LocalNotification
+ * @namespace
  */
-function pushReportCommentNotification({reportAction, onClick}) {
-    if (!ActiveClientManager.isClientTheLeader()) {
-        console.debug('[LocalNotifications] Skipping notification because this client is not the leader');
-        return;
-    }
-
-    const {person, message} = reportAction;
-    const plainTextPerson = Str.htmlDecode(person.map(f => f.text).join());
+export default {
+    /**
+     * Create a report comment notification
+     *
+     * @param {Object} params
+     * @param {Object} params.reportAction
+     * @param {Function} params.onClick
+     */
+    pushReportCommentNotification({reportAction, onClick}) {
+        const {person, message} = reportAction;
+        const plainTextPerson = Str.htmlDecode(person.map(f => f.text).join());
 
     // Specifically target the comment part of the message
     const plainTextMessage = Str.htmlDecode((message.find(f => f.type === 'COMMENT') || {}).text);
@@ -117,14 +116,4 @@ function pushReportCommentNotification({reportAction, onClick}) {
         delay: 0,
         onClick,
     });
-}
-
-/* ====== Public Functions ====== */
-
-function showCommentNotification({reportAction, onClick}) {
-    pushReportCommentNotification({reportAction, onClick});
-}
-
-export default {
-    showCommentNotification,
 };
