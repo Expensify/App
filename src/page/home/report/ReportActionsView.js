@@ -35,6 +35,8 @@ class ReportActionsView extends React.Component {
 
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
         this.recordMaxAction = this.recordMaxAction.bind(this);
+
+        this.sortedReportActions = this.updateSortedReportActions();
     }
 
     componentDidMount() {
@@ -55,6 +57,18 @@ class ReportActionsView extends React.Component {
     }
 
     /**
+     * Updates and sorts the report actions by sequence number
+     */
+    updateSortedReportActions() {
+        this.sortedReportActions = _.chain(this.props.reportActions)
+            .sortBy('sequenceNumber')
+            .filter(action => action.actionName === 'ADDCOMMENT')
+            .map((item, index) => ({action: item, index}))
+            .value()
+            .reverse();
+    }
+
+    /**
      * Returns true when the report action immediately before the
      * specified index is a comment made by the same actor who who
      * is leaving a comment in the action at the specified index.
@@ -65,11 +79,9 @@ class ReportActionsView extends React.Component {
      *
      * @return {Boolean}
      */
-    // eslint-disable-next-line
     isConsecutiveActionMadeByPreviousActor(actionIndex) {
-        const reportActions = lodashGet(this.props, 'reportActions', {});
-        const previousAction = reportActions[actionIndex - 1];
-        const currentAction = reportActions[actionIndex];
+        const previousAction = this.sortedReportActions[actionIndex - 1];
+        const currentAction = this.sortedReportActions[actionIndex];
 
         // It's OK for there to be no previous action, and in that case, false will be returned
         // so that the comment isn't grouped
@@ -111,18 +123,6 @@ class ReportActionsView extends React.Component {
         this.recordMaxAction();
     }
 
-    /**
-     * Converts items into array of objects for the FlatList
-     *
-     * @returns {Array}
-     */
-    getItems() {
-        return _.sortBy(this.props.reportActions, 'sequenceNumber')
-            .filter(action => action.actionName === 'ADDCOMMENT')
-            .map((item, index) => ({action: item, index}))
-            .reverse();
-    }
-
     render() {
         // Comments have not loaded at all yet show a loading spinner
         if (!_.size(this.props.reportActions)) {
@@ -141,11 +141,12 @@ class ReportActionsView extends React.Component {
                 </View>
             );
         }
-        const data = this.getItems();
+
+        this.updateSortedReportActions();
         return (
             <InvertedFlatList
                 ref={el => this.actionListElement = el}
-                data={data}
+                data={this.sortedReportActions}
                 renderItem={({
                     item,
                     index,

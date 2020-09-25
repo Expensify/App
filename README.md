@@ -15,7 +15,7 @@ This application is built with the following principles.
 1. **UI Binds to data on disk** 
     - Ion is a Pub/Sub library to connect the application to the data stored on disk.
     - UI components subscribe to Ion (using `withIon()`) and any change to the Ion data is published to the component by calling `setState()` with the changed data.
-    - Libraries subscribe to Ion (with `Ion.connect()`) and any change to the Ion data is published to the callback callback with the changed data.
+    - Libraries subscribe to Ion (with `Ion.connect()`) and any change to the Ion data is published to the callback with the changed data.
     - The UI should never call any Ion methods except for `Ion.connect()`. That is the job of Actions (see next section).
     - The UI always triggers an Action when something needs to happen (eg. a person inputs data, the UI triggers an Action with this data).
     - The UI should be as flexible as possible when it comes to:
@@ -27,7 +27,7 @@ This application is built with the following principles.
     - When data needs to be written to or read from the server, this is done through Actions only.
     - Public action methods should never return anything (not data or a promise). This is done to ensure that action methods can be called in parallel with no dependency on other methods (see discussion above).
     - Actions should favor using `Ion.merge()` over `Ion.set()` so that other values in an object aren't completely overwritten.
-    - In general, the operations that happen inside an action should be done in parallel and not in sequence ((eg. don't use the promise of one Ion method to trigger a second Ion method). Ion is built so that every operation is done in parallel and it doesn't matter what order they finish in. XHRs on the other hand need to be handled in sequence with promise chains in order to access and act upon the response.
+    - In general, the operations that happen inside an action should be done in parallel and not in sequence (eg. don't use the promise of one Ion method to trigger a second Ion method). Ion is built so that every operation is done in parallel and it doesn't matter what order they finish in. XHRs on the other hand need to be handled in sequence with promise chains in order to access and act upon the response.
     - If an Action needs to access data stored on disk, use a local variable and `Ion.connect()`
     - Data should be optimistically stored on disk whenever possible without waiting for a server response. Example of creating a new optimistic comment:
         1. user adds a comment 
@@ -91,6 +91,15 @@ You can use any IDE or code editing tool for developing on any platform. Use you
 1. The major difference between React-Native and React are the [components](https://reactnative.dev/docs/components-and-apis) that are used in the `render()` method. Everything else is exactly the same. If you learn React, you've already learned 98% of React-Native.
 1. The application uses [React-Router](https://reactrouter.com/native/guides/quick-start) for navigating between parts of the app.
 1. [Higher Order Components](https://reactjs.org/docs/higher-order-components.html) are used to connect React components to persistent storage via Ion.
+
+## Platform-Specific File Extensions
+In most cases, the code written for this repo should be platform-independent. In such cases, each module should have a single file, `index.js`, which defines the module's exports. There are, however, some cases in which a feature is intrinsically tied to the underlying platform. In such cases, the following file extensions can be used to export platform-specific code from a module:
+- Mobile => `index.native.js`
+- iOS/Android => `index.ios.js`/`index.android.js`
+- Web => `index.website.js`
+- Desktop => `index.desktop.js`
+
+Note that `index.js` should be the default. i.e: If you have mobile-specific implementation in `index.native.js`, then the desktop/web implementation can be contained in a shared `index.js`. Furthermore, `index.native.js` should not be included in the same module as `index.ios.js` or `index.android.js`, nor should `index.js` be included in the same module as `index.website.js` or `index.desktop.js`.
 
 ## Structure of the app
 These are the main pieces of the application.
