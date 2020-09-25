@@ -1,5 +1,4 @@
 import React, {forwardRef, Component} from 'react';
-import lodashGet from 'lodash.get';
 import PropTypes from 'prop-types';
 import {FlatList, View} from 'react-native';
 
@@ -12,10 +11,8 @@ const propTypes = {
     // Ref to the underlying FlatList component
     innerRef: PropTypes.func.isRequired,
 
-    // Similar to FlatList renderItem however also
-    // passed an onLayout and needsLayoutCalculation
-    // property that must be implemented by the component
-    // being rendered
+    // Same as FlatList although we wrap it in a measuring helper
+    // before passing to the actual FlatList component
     renderItem: PropTypes.func.isRequired,
 };
 
@@ -31,14 +28,32 @@ class InvertedFlatList extends Component {
         this.getItemLayout = this.getItemLayout.bind(this);
 
         // Stores each item's computed height and offset after it
-        // renders once and is referenced for the life of the component.
+        // renders once and is then referenced for the life of this component.
         // This is essential to getting FlatList inverted to work on web
-        // and also enables more predictable scrolling on mobile.
+        // and also enables more predictable scrolling on native platforms.
         this.sizeMap = {};
     }
 
     /**
-     * Measure an item and return the cache the offset and length.
+     * Return default or previously cached height for
+     * a renderItem row
+     *
+     * @param {*} data
+     * @param {Number} index
+     *
+     * @return {Object}
+     */
+    getItemLayout(data, index) {
+        const size = this.sizeMap[index] || {};
+        return {
+            length: size.length || INITIAL_ROW_HEIGHT,
+            offset: size.offset || (INITIAL_ROW_HEIGHT * index),
+            index
+        };
+    }
+
+    /**
+     * Measure item and cache the returned offset and length
      *
      * @param {React.NativeSyntheticEvent} nativeEvent
      * @param {Number} index
@@ -48,11 +63,9 @@ class InvertedFlatList extends Component {
         if (this.sizeMap[index]) {
             return;
         }
-        const prevHeight = lodashGet(this.sizeMap, [index - 1, 'height'], 0);
-        const prevOffset = lodashGet(this.sizeMap, [index - 1, 'offset'], 0);
         this.sizeMap[index] = {
             length: computedHeight,
-            offset: prevOffset + prevHeight,
+            offset: 0,
         };
     }
 
@@ -73,24 +86,6 @@ class InvertedFlatList extends Component {
                 {this.props.renderItem({item, index})}
             </View>
         );
-    }
-
-    /**
-     * Return default or previously cached height for
-     * a renderItem row
-     *
-     * @param {*} data
-     * @param {Number} index
-     *
-     * @return {Object}
-     */
-    getItemLayout(data, index) {
-        const size = this.sizeMap[index] || {};
-        return {
-            length: size.length || INITIAL_ROW_HEIGHT,
-            offset: size.offset || (INITIAL_ROW_HEIGHT * index),
-            index
-        };
     }
 
     render() {
