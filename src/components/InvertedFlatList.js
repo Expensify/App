@@ -28,15 +28,17 @@ class InvertedFlatList extends Component {
     constructor(props) {
         super(props);
 
-        // Stores each item's computed height after it renders
-        // once and is reference for the life of the component
+        // Stores each item's computed height and offset after it
+        // renders once and is referenced for the life of the component.
+        // This is essential to getting FlatList inverted to work on web
+        // and also enables more predictable scrolling on mobile.
         this.sizeMap = {};
     }
 
     render() {
         return (
             <FlatList
-                // eslint-disable-next-line
+                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...this.props}
                 ref={this.props.innerRef}
                 inverted
