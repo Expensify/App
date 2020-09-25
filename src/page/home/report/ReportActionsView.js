@@ -16,10 +16,13 @@ const propTypes = {
     // The ID of the report actions will be created for
     reportID: PropTypes.number.isRequired,
 
+    // Is this report currently in view?
+    isActiveReport: PropTypes.bool.isRequired,
+
     /* Ion Props */
 
     // Array of report actions for this report
-    reportActions: PropTypes.PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
+    reportActions: PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
 };
 
 const defaultProps = {
@@ -143,7 +146,6 @@ class ReportActionsView extends React.Component {
             <InvertedFlatList
                 ref={el => this.actionListElement = el}
                 data={data}
-                height={this.props.height}
                 renderItem={({
                     item,
                     index,
@@ -160,7 +162,6 @@ class ReportActionsView extends React.Component {
                 bounces={false}
                 contentContainerStyle={[styles.chatContentScrollView]}
                 keyExtractor={item => `${item.action.sequenceNumber}`}
-                isInView={this.props.isActiveReport}
             />
         );
     }

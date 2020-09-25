@@ -27,7 +27,6 @@ class ReportView extends React.PureComponent {
                 <ReportActionView
                     reportID={this.props.reportID}
                     isActiveReport={this.props.isActiveReport}
-                    height={this.props.height}
                 />
 
                 {shouldShowComposeForm && (
