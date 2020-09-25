@@ -17,7 +17,7 @@ const InvertedFlatList = (props) => {
     }, []);
 
     useEffect(() => {
-        props.forwardedRef(ref);
+        props.forwardedRef(ref.current);
     }, []);
 
     useEffect(() => {
