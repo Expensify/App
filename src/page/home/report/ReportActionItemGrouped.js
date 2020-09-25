@@ -16,9 +16,7 @@ class ReportActionItemGrouped extends React.PureComponent {
         return (
             <View style={[styles.chatItem]}>
                 <View style={[styles.chatItemRightGrouped]}>
-                    <View style={[styles.chatItemMessage]}>
-                        <ReportActionItemMessage action={action} />
-                    </View>
+                    <ReportActionItemMessage action={action} />
                 </View>
             </View>
         );
