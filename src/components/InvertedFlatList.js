@@ -27,8 +27,8 @@ class InvertedFlatList extends Component {
         this.renderItem = this.renderItem.bind(this);
         this.getItemLayout = this.getItemLayout.bind(this);
 
-        // Stores each item's computed height and offset after it
-        // renders once and is then referenced for the life of this component.
+        // Stores each item's computed height after it renders
+        // once and is then referenced for the life of this component.
         // This is essential to getting FlatList inverted to work on web
         // and also enables more predictable scrolling on native platforms.
         this.sizeMap = {};
@@ -47,13 +47,13 @@ class InvertedFlatList extends Component {
         const size = this.sizeMap[index] || {};
         return {
             length: size.length || INITIAL_ROW_HEIGHT,
-            offset: size.offset || (INITIAL_ROW_HEIGHT * index),
+            offset: INITIAL_ROW_HEIGHT * index,
             index
         };
     }
 
     /**
-     * Measure item and cache the returned offset and length
+     * Measure item and cache the returned length (a.k.a. height)
      *
      * @param {React.NativeSyntheticEvent} nativeEvent
      * @param {Number} index
@@ -65,7 +65,6 @@ class InvertedFlatList extends Component {
         }
         this.sizeMap[index] = {
             length: computedHeight,
-            offset: 0,
         };
     }
 
