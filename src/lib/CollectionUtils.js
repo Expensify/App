@@ -1,7 +1,7 @@
 import _ from 'underscore';
 
 /**
- * Return the highest item in a numberd collection
+ * Return the highest item in a numbered collection
  *
  * e.g. {1: '1', 2: '2', 3: '3'} -> '3'
  *
