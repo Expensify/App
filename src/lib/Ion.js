@@ -28,7 +28,7 @@ const callbackToStateMapping = {};
  * Get some data from the store
  *
  * @param {string} key
- * @returns {*}
+ * @returns {Promise<*>}
  */
 function get(key) {
     return AsyncStorage.getItem(key)
@@ -224,11 +224,37 @@ function multiSet(data) {
 
 /**
  * Clear out all the data in the store
- *
- * @returns {Promise}
  */
 function clear() {
-    return AsyncStorage.clear();
+    // Perform a depth-first search of all the IONKEYS,
+    // and collect all the keys whose values are NOT null or undefined
+    const currentKeySet = (
+        function dfs(obj, parentKey = '', keySet = []) {
+            return _.map(Object.keys(obj), key => get(key)
+                .then((val) => {
+                    if (typeof val === 'object') {
+                        keySet.concat(dfs(val, `${parentKey}.${key}`, keySet));
+                    } else if (val !== null && val !== undefined) {
+                        keySet.push(key);
+                    }
+                    return keySet;
+                }));
+        }
+    )(IONKEYS);
+
+    // Await all the keys from Ion.get
+    Promise.all(currentKeySet)
+        .then((keys) => {
+            // Then clear the store
+            AsyncStorage.clear();
+            return keys;
+        })
+        .then((keys) => {
+            // Then notify all the relevant subscribers that their underlying Ion data has been deleted
+            _.each(keys, (key) => {
+                keyChanged(key, undefined);
+            });
+        });
 }
 
 /**
