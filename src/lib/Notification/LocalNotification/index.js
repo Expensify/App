@@ -8,13 +8,13 @@ const DEFAULT_DELAY = 4000;
 /* ====== Private Functions ====== */
 
 /**
- * Checks if the user has granted permission to show browser notifications
+ * Checks if the user has granted permission to show local notifications
  *
  * @return {Promise}
  */
-function canUseBrowserNotifications() {
+function canUseLocalNotifications() {
     return new Promise((resolve) => {
-        // They have no browser notifications so we can't use this feature
+        // They have no local notifications so we can't use this feature
         if (!window.Notification) {
             return resolve(false);
         }
@@ -26,7 +26,7 @@ function canUseBrowserNotifications() {
             return resolve(permissionGranted);
         }
 
-        // Check their global preferences for browser notifications and ask permission if they have none
+        // Check their global preferences for local notifications and ask permission if they have none
         Notification.requestPermission()
             .then((status) => {
                 resolve(status === 'granted');
@@ -35,7 +35,7 @@ function canUseBrowserNotifications() {
 }
 
 /**
- * Light abstraction around browser push notifications.
+ * Light abstraction around local push notifications.
  * Checks for permission before determining whether to send.
  *
  * @param {Object} params
@@ -58,10 +58,10 @@ function push({
 }) {
     return new Promise((resolve) => {
         if (!title || !body) {
-            throw new Error('BrowserNotification must include title and body parameter.');
+            throw new Error('LocalNotification must include title and body parameter.');
         }
 
-        canUseBrowserNotifications().then((canUseNotifications) => {
+        canUseLocalNotifications().then((canUseNotifications) => {
             if (!canUseNotifications) {
                 resolve();
                 return;
@@ -101,7 +101,7 @@ function push({
  */
 function pushReportCommentNotification({reportAction, onClick}) {
     if (!ActiveClientManager.isClientTheLeader()) {
-        console.debug('[BrowserNotifications] Skipping notification because this client is not the leader');
+        console.debug('[LocalNotifications] Skipping notification because this client is not the leader');
         return;
     }
 
