@@ -54,10 +54,7 @@ class MainView extends Component {
         }, {});
 
         return (
-            <View
-                style={styles.flex1}
-                ref={el => this.mainView = el}
-            >
+            <>
                 {_.map(this.props.reports, report => (
                     <View
                         key={report.reportID}
@@ -66,11 +63,10 @@ class MainView extends Component {
                         <ReportView
                             reportID={report.reportID}
                             isActiveReport={report.reportID === activeReportID}
-                            height={this.mainView ? this.mainView.offsetHeight : 0}
                         />
                     </View>
                 ))}
-            </View>
+            </>
         );
     }
 }
