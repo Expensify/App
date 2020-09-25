@@ -28,17 +28,11 @@ const defaultProps = {
 
 class MainView extends Component {
     render() {
-        const reportIDInURL = parseInt(this.props.match.params.reportID, 10);
-
-        if (!_.size(this.props.reports) || !reportIDInURL) {
-            return null;
-        }
-
         // The styles for each of our reports. Basically, they are all hidden except for the one matching the
         // reportID in the URL
         let activeReportID;
         const reportStyles = _.reduce(this.props.reports, (memo, report) => {
-            const isActiveReport = reportIDInURL === report.reportID;
+            const isActiveReport = parseInt(this.props.match.params.reportID, 10) === report.reportID;
             const finalData = {...memo};
             let reportStyle;
 
