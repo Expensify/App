@@ -1,7 +1,5 @@
-import React from 'react';
-import {View} from 'react-native';
+import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import ReportActionItemGrouped from './ReportActionItemGrouped';
@@ -14,24 +12,19 @@ const propTypes = {
     displayAsGroup: PropTypes.bool.isRequired,
 };
 
-class ReportActionItem extends React.Component {
+class ReportActionItem extends Component {
     shouldComponentUpdate(nextProps) {
-        // This component should only render if the action's sequenceNumber or displayAsGroup props change
-        return nextProps.displayAsGroup !== this.props.displayAsGroup
-            || !_.isEqual(nextProps.action, this.props.action);
+        // If the grouping changes then we want to update the UI
+        return nextProps.displayAsGroup !== this.props.displayAsGroup;
     }
 
     render() {
-        const {action, displayAsGroup} = this.props;
-        if (action.actionName !== 'ADDCOMMENT') {
-            return null;
-        }
-
         return (
-            <View>
-                {!displayAsGroup && <ReportActionItemSingle action={action} />}
-                {displayAsGroup && <ReportActionItemGrouped action={action} />}
-            </View>
+            <>
+                {!this.props.displayAsGroup
+                    ? <ReportActionItemSingle action={this.props.action} />
+                    : <ReportActionItemGrouped action={this.props.action} />}
+            </>
         );
     }
 }

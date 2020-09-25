@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -26,19 +26,13 @@ const defaultProps = {
     reports: {},
 };
 
-class MainView extends React.Component {
+class MainView extends Component {
     render() {
-        if (!_.size(this.props.reports)) {
-            return null;
-        }
-
-        const reportIDInURL = parseInt(this.props.match.params.reportID, 10);
-
         // The styles for each of our reports. Basically, they are all hidden except for the one matching the
         // reportID in the URL
         let activeReportID;
         const reportStyles = _.reduce(this.props.reports, (memo, report) => {
-            const isActiveReport = reportIDInURL === report.reportID;
+            const isActiveReport = parseInt(this.props.match.params.reportID, 10) === report.reportID;
             const finalData = {...memo};
             let reportStyle;
 
