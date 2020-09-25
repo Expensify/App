@@ -178,14 +178,9 @@ class ReportActionsView extends React.Component {
                 ref={el => this.actionListElement = el}
                 data={this.sortedReportActions}
                 renderItem={this.renderItem}
-                bounces={false}
                 contentContainerStyle={[styles.chatContentScrollView]}
                 keyExtractor={item => `${item.action.sequenceNumber}`}
                 initialRowHeight={32}
-                maxToRenderPerBatch={20}
-                updateCellsBatchingPeriod={25}
-                initialNumToRender={50}
-                windowSize={10}
             />
         );
     }
