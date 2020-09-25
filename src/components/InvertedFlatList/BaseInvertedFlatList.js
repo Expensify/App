@@ -2,13 +2,11 @@ import _ from 'underscore';
 import React, {forwardRef, Component} from 'react';
 import PropTypes from 'prop-types';
 import {FlatList, View} from 'react-native';
+import {lastItem} from '../../lib/CollectionUtils';
 
 const propTypes = {
     // Same as FlatList can be any array of anything
     data: PropTypes.arrayOf(PropTypes.any),
-
-    // Ref to the underlying FlatList component
-    innerRef: PropTypes.func.isRequired,
 
     // Same as FlatList although we wrap it in a measuring helper
     // before passing to the actual FlatList component
@@ -24,7 +22,7 @@ const defaultProps = {
     data: [],
 };
 
-class InvertedFlatList extends Component {
+class BaseInvertedFlatList extends Component {
     constructor(props) {
         super(props);
 
@@ -66,8 +64,7 @@ class InvertedFlatList extends Component {
         // If we don't have a size yet means we haven't measured this
         // item yet. However, we can still calculate the offset by looking
         // at the last size we have recorded (if any)
-        const lastMeasuredIndex = _.last(_.keys(this.sizeMap)) || 0;
-        const lastMeasuredItem = this.sizeMap[lastMeasuredIndex];
+        const lastMeasuredItem = lastItem(this.sizeMap);
 
         return {
             // We haven't measured this so we must return the minimum row height
@@ -145,10 +142,10 @@ class InvertedFlatList extends Component {
     }
 }
 
-InvertedFlatList.propTypes = propTypes;
-InvertedFlatList.defaultProps = defaultProps;
+BaseInvertedFlatList.propTypes = propTypes;
+BaseInvertedFlatList.defaultProps = defaultProps;
 
 export default forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading
-    <InvertedFlatList {...props} innerRef={ref} />
+    <BaseInvertedFlatList {...props} innerRef={ref} />
 ));
