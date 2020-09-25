@@ -1,4 +1,5 @@
 import ELECTRON_EVENTS from '../../../../desktop/ELECTRON_EVENTS';
+
 const ipcRenderer = window.require('electron').ipcRenderer;
 
 /**
