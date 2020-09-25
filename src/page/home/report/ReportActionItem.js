@@ -15,20 +15,15 @@ const propTypes = {
 class ReportActionItem extends Component {
     shouldComponentUpdate(nextProps) {
         // If the grouping changes then we want to update the UI
-        if (nextProps.displayAsGroup !== this.props.displayAsGroup) {
-            return true;
-        }
-
-        // If the item sequenceNumber changes then we'll update it
-        return this.props.action.sequenceNumber !== nextProps.action.sequenceNumber;
+        return nextProps.displayAsGroup !== this.props.displayAsGroup;
     }
 
     render() {
-        const {action, displayAsGroup} = this.props;
         return (
             <>
-                {!displayAsGroup && <ReportActionItemSingle action={action} />}
-                {displayAsGroup && <ReportActionItemGrouped action={action} />}
+                {!this.props.displayAsGroup
+                    ? <ReportActionItemSingle action={this.props.action} />
+                    : <ReportActionItemGrouped action={this.props.action} />}
             </>
         );
     }

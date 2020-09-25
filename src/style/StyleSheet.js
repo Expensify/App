@@ -161,11 +161,9 @@ const styles = {
     },
 
     // Actions
-    actionAvatarWrapper: {
-        width: 40,
-    },
     actionAvatar: {
         borderRadius: 20,
+        marginRight: 8,
         height: 40,
         width: 40,
     },
@@ -471,12 +469,6 @@ const styles = {
         paddingBottom: 8,
         paddingLeft: 20,
         paddingRight: 20,
-    },
-
-    chatItemLeft: {
-        display: 'flex',
-        flexShrink: 0,
-        marginRight: 8,
     },
 
     chatItemRightGrouped: {
