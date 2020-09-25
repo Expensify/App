@@ -80,7 +80,7 @@ class ReportActionsView extends React.Component {
      * @return {Boolean}
      */
     isConsecutiveActionMadeByPreviousActor(actionIndex) {
-        const previousAction = this.sortedReportActions[actionIndex - 1];
+        const previousAction = this.sortedReportActions[actionIndex + 1];
         const currentAction = this.sortedReportActions[actionIndex];
 
         // It's OK for there to be no previous action, and in that case, false will be returned
@@ -90,11 +90,11 @@ class ReportActionsView extends React.Component {
         }
 
         // Comments are only grouped if they happen within 5 minutes of each other
-        if (currentAction.timestamp - previousAction.timestamp > 300) {
+        if (currentAction.action.timestamp - previousAction.action.timestamp > 300) {
             return false;
         }
 
-        return currentAction.actorEmail === previousAction.actorEmail;
+        return currentAction.action.actorEmail === previousAction.action.actorEmail;
     }
 
     /**
