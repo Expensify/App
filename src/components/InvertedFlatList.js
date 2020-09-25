@@ -2,8 +2,6 @@ import React, {forwardRef, Component} from 'react';
 import PropTypes from 'prop-types';
 import {FlatList, View} from 'react-native';
 
-const INITIAL_ROW_HEIGHT = 42;
-
 const propTypes = {
     // Same as FlatList can be any array of anything
     data: PropTypes.arrayOf(PropTypes.any),
@@ -14,6 +12,11 @@ const propTypes = {
     // Same as FlatList although we wrap it in a measuring helper
     // before passing to the actual FlatList component
     renderItem: PropTypes.func.isRequired,
+
+    // This must be set to the minimum size of one of the
+    // renderItem rows. Web will have issues with FlatList
+    // if this is inaccurate.
+    initialRowHeight: PropTypes.number.isRequired,
 };
 
 const defaultProps = {
@@ -34,6 +37,11 @@ class InvertedFlatList extends Component {
         this.sizeMap = {};
     }
 
+    shouldComponentUpdate(prevProps) {
+        // The FlatList itself should only re-render if items are added
+        return prevProps.data.length !== this.props.data.length;
+    }
+
     /**
      * Return default or previously cached height for
      * a renderItem row
@@ -46,8 +54,8 @@ class InvertedFlatList extends Component {
     getItemLayout(data, index) {
         const size = this.sizeMap[index] || {};
         return {
-            length: size.length || INITIAL_ROW_HEIGHT,
-            offset: INITIAL_ROW_HEIGHT * index,
+            length: size.length || this.props.initialRowHeight,
+            offset: this.props.initialRowHeight * index,
             index
         };
     }

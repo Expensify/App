@@ -181,6 +181,7 @@ class ReportActionsView extends React.Component {
                 bounces={false}
                 contentContainerStyle={[styles.chatContentScrollView]}
                 keyExtractor={item => `${item.action.sequenceNumber}`}
+                initialRowHeight={32}
                 maxToRenderPerBatch={20}
                 updateCellsBatchingPeriod={25}
                 initialNumToRender={50}
