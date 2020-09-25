@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Keyboard, ActivityIndicator} from 'react-native';
+import {View, Keyboard} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
@@ -8,7 +8,7 @@ import withIon from '../../../components/withIon';
 import {fetchActions, updateLastReadActionID} from '../../../lib/actions/Report';
 import IONKEYS from '../../../IONKEYS';
 import ReportActionItem from './ReportActionItem';
-import styles, {colors} from '../../../style/StyleSheet';
+import styles from '../../../style/StyleSheet';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 
@@ -154,13 +154,9 @@ class ReportActionsView extends React.Component {
     }
 
     render() {
-        // Comments have not loaded at all yet show a loading spinner
+        // Comments have not loaded at all yet do nothing
         if (!_.size(this.props.reportActions)) {
-            return (
-                <View style={[styles.chatContent, styles.chatContentEmpty]}>
-                    <ActivityIndicator color={colors.icon} />
-                </View>
-            );
+            return null;
         }
 
         // If we only have the created action then no one has left a comment
