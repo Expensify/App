@@ -1,3 +1,4 @@
+import {AppState} from 'react-native';
 import {UrbanAirship, EventType} from 'urbanairship-react-native';
 import Ion from '../../Ion';
 import IONKEYS from '../../../IONKEYS';
@@ -17,8 +18,13 @@ function setupPushNotificationCallbacks() {
             payload: ${notification.payload}
         }`);
 
+        // If app is in foreground,  we'll assume pusher is connected so we'll ignore this push notification
+        if (AppState.currentState === 'active') {
+            console.debug('[PUSH_NOTIFICATION] App is in foreground, ignoring push notification.');
+            return;
+        }
         if (!notification.payload.type) {
-            console.debug('[PUSH_NOTIFICATION] Notification of unknown type received...ignoring.');
+            console.debug('[PUSH_NOTIFICATION] Notification of unknown type received, ignoring.');
             return;
         }
         if (!notificationTypeActionMap[notification.payload.type]) {
