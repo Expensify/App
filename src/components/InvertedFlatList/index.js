@@ -4,7 +4,13 @@ import React, {
     useCallback,
     forwardRef
 } from 'react';
+import PropTypes from 'prop-types';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
+
+const propTypes = {
+    // Passed via forwardRef so we can access the FlatList ref
+    innerRef: PropTypes.ref.isRequired,
+};
 
 // This is copied from https://codesandbox.io/s/react-native-dsyse
 // It's a HACK alert since FlatList has inverted scrolling on web
@@ -17,7 +23,7 @@ const InvertedFlatList = (props) => {
     }, []);
 
     useEffect(() => {
-        props.forwardedRef(ref);
+        props.innerRef(ref.current);
     }, []);
 
     useEffect(() => {
@@ -52,7 +58,9 @@ const InvertedFlatList = (props) => {
     );
 };
 
+InvertedFlatList.propTypes = propTypes;
+
 export default forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading
-    <InvertedFlatList {...props} forwardedRef={ref} />
+    <InvertedFlatList {...props} innerRef={ref} />
 ));
