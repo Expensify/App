@@ -104,6 +104,12 @@ class InvertedFlatList extends Component {
                 inverted
                 renderItem={this.renderItem}
                 getItemLayout={this.getItemLayout}
+                removeClippedSubviews
+                initialNumToRender={10}
+                maxToRenderPerBatch={10}
+                updateCellsBatchingPeriod={50}
+                windowSize={20}
+                bounces={false}
             />
         );
     }
