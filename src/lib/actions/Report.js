@@ -9,6 +9,8 @@ import * as Pusher from '../Pusher/pusher';
 import promiseAllSettled from '../promiseAllSettled';
 import ExpensiMark from '../ExpensiMark';
 import BrowserNotification from '../Notification/BrowserNotification';
+import PushNotification from '../Notification/PushNotification';
+import NotificationType from '../Notification/NotificationType';
 import * as PersonalDetails from './PersonalDetails';
 import {redirect} from './App';
 
@@ -193,7 +195,7 @@ function updateReportWithNewAction(reportID, reportAction) {
 
     // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
     if (reportAction.actorEmail === currentUserEmail) {
-        console.debug('[NOTIFICATION] No notification because comment is from the currently logged in user');
+        console.debug('[BROWSER_NOTIFICATION] No notification because comment is from the currently logged in user');
         return;
     }
 
@@ -201,11 +203,11 @@ function updateReportWithNewAction(reportID, reportAction) {
 
     // If we are currently viewing this report do not show a notification.
     if (reportID === currentReportID) {
-        console.debug('[NOTIFICATION] No notification because it was a comment for the current report');
+        console.debug('[BROWSER_NOTIFICATION] No notification because it was a comment for the current report');
         return;
     }
 
-    console.debug('[NOTIFICATION] Creating notification');
+    console.debug('[BROWSER_NOTIFICATION] Creating notification');
     BrowserNotification.showCommentNotification({
         reportAction,
         onClick: () => {
@@ -224,8 +226,13 @@ function subscribeToReportCommentEvents() {
         return;
     }
 
-    Pusher.subscribe(pusherChannelName, 'reportComment', (pushJSON) => {
+    Pusher.subscribe(pusherChannelName, NotificationType.REPORT.COMMENT, (pushJSON) => {
         updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
+    });
+
+    PushNotification.bindActionToPushNotification(NotificationType.REPORT.COMMENT, (payload) => {
+        const {reportID, reportAction} = payload;
+        updateReportWithNewAction(reportID, reportAction);
     });
 }
 
