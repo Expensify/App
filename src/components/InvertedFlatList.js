@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React, {forwardRef, Component} from 'react';
 import PropTypes from 'prop-types';
 import {FlatList, View} from 'react-native';
@@ -52,10 +53,32 @@ class InvertedFlatList extends Component {
      * @return {Object}
      */
     getItemLayout(data, index) {
-        const size = this.sizeMap[index] || {};
+        const size = this.sizeMap[index];
+
+        if (size) {
+            return {
+                length: size.length,
+                offset: size.offset,
+                index,
+            };
+        }
+
+        // If we don't have a size yet means we haven't measured this
+        // item yet. However, we can still calculate the offset by looking
+        // at the last size we have recorded (if any)
+        const lastMeasuredIndex = _.last(_.keys(this.sizeMap)) || 0;
+        const lastMeasuredItem = this.sizeMap[lastMeasuredIndex];
+
         return {
-            length: size.length || this.props.initialRowHeight,
-            offset: this.props.initialRowHeight * index,
+            // We haven't measured this so we must return the minimum row height
+            length: this.props.initialRowHeight,
+
+            // Offset will either be based on the lastMeasuredItem or the index +
+            // initialRowHeight since we can only assume that all previous items
+            // have not yet been measured
+            offset: _.isUndefined(lastMeasuredItem)
+                ? this.props.initialRowHeight * index
+                : lastMeasuredItem.offset + this.props.initialRowHeight,
             index
         };
     }
@@ -68,11 +91,22 @@ class InvertedFlatList extends Component {
      */
     measureItemLayout(nativeEvent, index) {
         const computedHeight = nativeEvent.layout.height;
+
+        // We've already measured this item so we don't need to
+        // measure it again.
         if (this.sizeMap[index]) {
             return;
         }
+
+        const previousItem = this.sizeMap[index - 1] || {};
+
+        // If there is no previousItem this can mean we haven't yet measured
+        // the previous item or that we are at index 0 and there is no previousItem
+        const previousLength = previousItem.length || 0;
+        const previousOffset = previousItem.offset || 0;
         this.sizeMap[index] = {
             length: computedHeight,
+            offset: previousLength + previousOffset,
         };
     }
 
@@ -105,10 +139,6 @@ class InvertedFlatList extends Component {
                 renderItem={this.renderItem}
                 getItemLayout={this.getItemLayout}
                 removeClippedSubviews
-                initialNumToRender={10}
-                maxToRenderPerBatch={10}
-                updateCellsBatchingPeriod={50}
-                windowSize={20}
                 bounces={false}
             />
         );
