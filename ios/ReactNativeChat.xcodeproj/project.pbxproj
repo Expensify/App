@@ -13,6 +13,9 @@
 		13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.m */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
+		1E9742CC251E58EE00DE193F /* GTAmericaExp-BdIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 1E9742C9251E58EE00DE193F /* GTAmericaExp-BdIt.otf */; };
+		1E9742CD251E58EE00DE193F /* GTAmericaExp-RgIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 1E9742CA251E58EE00DE193F /* GTAmericaExp-RgIt.otf */; };
+		1E9742CE251E58EE00DE193F /* GTAmericaExp-MdIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 1E9742CB251E58EE00DE193F /* GTAmericaExp-MdIt.otf */; };
 		347C4A976B972BC7A903F97D /* libPods-ReactNativeChat.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6ABF95746519766B23B4E2D0 /* libPods-ReactNativeChat.a */; };
 		4912B60FA66C4604A56AD575 /* GTAmericaExp-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = 8C7003903C1E4957824899BB /* GTAmericaExp-Regular.otf */; };
 		49F157C845CE4D56AA72B80E /* GTAmericaExp-Light.otf in Resources */ = {isa = PBXBuildFile; fileRef = 67D5C3A6A7FA417C8A853FC1 /* GTAmericaExp-Light.otf */; };
@@ -43,6 +46,9 @@
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = ReactNativeChat/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = ReactNativeChat/main.m; sourceTree = "<group>"; };
 		1CFBC073CF30A72CCF109A40 /* Pods-ReactNativeChat-ReactNativeChatTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ReactNativeChat-ReactNativeChatTests.release.xcconfig"; path = "Target Support Files/Pods-ReactNativeChat-ReactNativeChatTests/Pods-ReactNativeChat-ReactNativeChatTests.release.xcconfig"; sourceTree = "<group>"; };
+		1E9742C9251E58EE00DE193F /* GTAmericaExp-BdIt.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "GTAmericaExp-BdIt.otf"; sourceTree = "<group>"; };
+		1E9742CA251E58EE00DE193F /* GTAmericaExp-RgIt.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "GTAmericaExp-RgIt.otf"; sourceTree = "<group>"; };
+		1E9742CB251E58EE00DE193F /* GTAmericaExp-MdIt.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "GTAmericaExp-MdIt.otf"; sourceTree = "<group>"; };
 		67D5C3A6A7FA417C8A853FC1 /* GTAmericaExp-Light.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-Light.otf"; path = "../assets/fonts/GTAmericaExp-Light.otf"; sourceTree = "<group>"; };
 		6ABF95746519766B23B4E2D0 /* libPods-ReactNativeChat.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ReactNativeChat.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = ReactNativeChat/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -155,6 +161,9 @@
 		A9EA265D209D4558995C9BD4 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				1E9742C9251E58EE00DE193F /* GTAmericaExp-BdIt.otf */,
+				1E9742CB251E58EE00DE193F /* GTAmericaExp-MdIt.otf */,
+				1E9742CA251E58EE00DE193F /* GTAmericaExp-RgIt.otf */,
 				A5AAD008CBD84A6CAEB9AC97 /* GTAmericaExp-Bold.otf */,
 				67D5C3A6A7FA417C8A853FC1 /* GTAmericaExp-Light.otf */,
 				AE65058949E14DA5A2D5435D /* GTAmericaExp-Medium.otf */,
@@ -275,8 +284,11 @@
 				11FA3546D54246CD8F819152 /* GTAmericaExp-Bold.otf in Resources */,
 				49F157C845CE4D56AA72B80E /* GTAmericaExp-Light.otf in Resources */,
 				CC07911F22C2437DA6708BD2 /* GTAmericaExp-Medium.otf in Resources */,
+				1E9742CE251E58EE00DE193F /* GTAmericaExp-MdIt.otf in Resources */,
 				4912B60FA66C4604A56AD575 /* GTAmericaExp-Regular.otf in Resources */,
+				1E9742CC251E58EE00DE193F /* GTAmericaExp-BdIt.otf in Resources */,
 				7F7721B764D444D6861A9B39 /* GTAmericaExp-Thin.otf in Resources */,
+				1E9742CD251E58EE00DE193F /* GTAmericaExp-RgIt.otf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
