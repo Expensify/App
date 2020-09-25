@@ -11,6 +11,7 @@ import ReportActionItem from './ReportActionItem';
 import styles from '../../../style/StyleSheet';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import InvertedFlatList from '../../../components/InvertedFlatList';
+import {lastItem} from '../../../lib/CollectionUtils';
 
 const propTypes = {
     // The ID of the report actions will be created for
@@ -45,10 +46,18 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        // When the number of actions change, wait three seconds, then record the max action
-        // This will make the unread indicator go away if you receive comments in the same chat you're looking at
-        if (this.props.isActiveReport && _.size(prevProps.reportActions) !== _.size(this.props.reportActions)) {
-            setTimeout(this.recordMaxAction, 3000);
+        if (_.size(prevProps.reportActions) !== _.size(this.props.reportActions)) {
+            // If a new comment is added and it's from the current user scroll to the bottom otherwise
+            // leave the user positioned where they are now in the list.
+            if (lastItem(this.props.reportActions).actorEmail === this.props.session.email) {
+                this.scrollToListBottom();
+            }
+
+            // When the number of actions change, wait three seconds, then record the max action
+            // This will make the unread indicator go away if you receive comments in the same chat you're looking at
+            if (this.props.isActiveReport) {
+                setTimeout(this.recordMaxAction, 3000);
+            }
         }
     }
 
@@ -188,5 +197,8 @@ ReportActionsView.defaultProps = defaultProps;
 export default withIon({
     reportActions: {
         key: ({reportID}) => `${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+    },
+    session: {
+        key: IONKEYS.SESSION,
     },
 })(ReportActionsView);
