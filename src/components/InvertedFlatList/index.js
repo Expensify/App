@@ -1,4 +1,9 @@
-import React, {useEffect, useRef, useCallback, forwardRef} from "react";
+import React, {
+    useEffect,
+    useRef,
+    useCallback,
+    forwardRef
+} from 'react';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
 
 // This is copied from https://codesandbox.io/s/react-native-dsyse
@@ -6,7 +11,7 @@ import BaseInvertedFlatList from './BaseInvertedFlatList';
 const InvertedFlatList = (props) => {
     const ref = useRef(null);
 
-    const invertedWheelEvent = useCallback(e => {
+    const invertedWheelEvent = useCallback((e) => {
         ref.current.getScrollableNode().scrollTop -= e.deltaY;
         e.preventDefault();
     }, []);
@@ -20,12 +25,12 @@ const InvertedFlatList = (props) => {
         if (currentRef != null) {
             currentRef
                 .getScrollableNode()
-                .addEventListener("wheel", invertedWheelEvent);
+                .addEventListener('wheel', invertedWheelEvent);
 
             currentRef.setNativeProps({
                 style: {
-                    transform: "translate3d(0,0,0) scaleY(-1)"
-                }
+                    transform: 'translate3d(0,0,0) scaleY(-1)'
+                },
             });
         }
 
@@ -33,13 +38,14 @@ const InvertedFlatList = (props) => {
             if (currentRef != null) {
                 currentRef
                     .getScrollableNode()
-                    .removeEventListener("wheel", invertedWheelEvent);
+                    .removeEventListener('wheel', invertedWheelEvent);
             }
         };
     }, [ref, invertedWheelEvent]);
 
     return (
         <BaseInvertedFlatList
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}
         />
@@ -47,5 +53,6 @@ const InvertedFlatList = (props) => {
 };
 
 export default forwardRef((props, ref) => (
+    // eslint-disable-next-line react/jsx-props-no-spreading
     <InvertedFlatList {...props} forwardedRef={ref} />
 ));
