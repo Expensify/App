@@ -27,6 +27,9 @@ class InvertedFlatList extends Component {
     constructor(props) {
         super(props);
 
+        this.renderItem = this.renderItem.bind(this);
+        this.getItemLayout = this.getItemLayout.bind(this);
+
         // Stores each item's computed height and offset after it
         // renders once and is referenced for the life of the component.
         // This is essential to getting FlatList inverted to work on web
@@ -53,6 +56,43 @@ class InvertedFlatList extends Component {
         };
     }
 
+    /**
+     * Render item method wraps the real itm to render in a
+     * View component so we can attach an onLayout handler and
+     * measure it when it renders.
+     *
+     * @param {Object} params
+     * @param {Object} params.item
+     * @param {Number} params.index
+     *
+     * @return {React.Component}
+     */
+    renderItem({item, index}) {
+        return (
+            <View onLayout={({nativeEvent}) => this.measureItemLayout(nativeEvent, index)}>
+                {this.props.renderItem({item, index})}
+            </View>
+        );
+    }
+
+    /**
+     * Return default or previously cached height for
+     * a renderItem row
+     *
+     * @param {*} data
+     * @param {Number} index
+     *
+     * @return {Object}
+     */
+    getItemLayout(data, index) {
+        const size = this.sizeMap[index] || {};
+        return {
+            length: size.length || INITIAL_ROW_HEIGHT,
+            offset: size.offset || (INITIAL_ROW_HEIGHT * index),
+            index
+        };
+    }
+
     render() {
         return (
             <FlatList
@@ -60,19 +100,8 @@ class InvertedFlatList extends Component {
                 {...this.props}
                 ref={this.props.innerRef}
                 inverted
-                getItemLayout={(data, index) => {
-                    const size = this.sizeMap[index] || {};
-                    return {
-                        length: size.length || INITIAL_ROW_HEIGHT,
-                        offset: size.offset || (INITIAL_ROW_HEIGHT * index),
-                        index
-                    };
-                }}
-                renderItem={({item, index}) => (
-                    <View onLayout={({nativeEvent}) => this.measureItemLayout(nativeEvent, index)}>
-                        {this.props.renderItem({item, index})}
-                    </View>
-                )}
+                renderItem={this.renderItem}
+                getItemLayout={this.getItemLayout}
             />
         );
     }
