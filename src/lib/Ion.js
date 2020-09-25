@@ -243,7 +243,7 @@ function clear() {
     )(IONKEYS);
 
     // Await all the keys from Ion.get
-    Promise.all(currentKeySet)
+    Promise.allSettled(currentKeySet)
         .then((keys) => {
             // Then clear the store
             AsyncStorage.clear();
