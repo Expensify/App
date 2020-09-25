@@ -69,7 +69,7 @@ class InvertedFlatList extends Component {
     }
 
     /**
-     * Render item method wraps the real itm to render in a
+     * Render item method wraps the prop renderItem to render in a
      * View component so we can attach an onLayout handler and
      * measure it when it renders.
      *
