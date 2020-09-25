@@ -183,7 +183,7 @@ class ReportActionsView extends React.Component {
                 keyExtractor={item => `${item.action.sequenceNumber}`}
                 maxToRenderPerBatch={20}
                 updateCellsBatchingPeriod={25}
-                initialNumToRender={1}
+                initialNumToRender={50}
                 windowSize={10}
             />
         );
