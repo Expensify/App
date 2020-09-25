@@ -512,8 +512,8 @@ SPEC CHECKSUMS:
   React-RCTText: 1b6773e776e4b33f90468c20fe3b16ca3e224bb8
   React-RCTVibration: 4d2e726957f4087449739b595f107c0d4b6c2d2d
   ReactCommon: a0a1edbebcac5e91338371b72ffc66aa822792ce
-  RNCAsyncStorage: d059c3ee71738c39834a627476322a5a8cd5bf36
-  urbanairship-react-native: 87a82abfbc182a854f66eb7fd25198ce62e95a54
+  RNCAsyncStorage: db711e29e5e0500d9bd21aa0c2e397efa45302b1
+  urbanairship-react-native: fa123940041a6a13ab7dac192e32833c53754f00
   Yoga: 7740b94929bbacbddda59bf115b5317e9a161598
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
