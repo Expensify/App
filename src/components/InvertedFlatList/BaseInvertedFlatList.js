@@ -130,8 +130,10 @@ class BaseInvertedFlatList extends Component {
                 inverted
                 renderItem={this.renderItem}
                 getItemLayout={this.getItemLayout}
-                removeClippedSubviews
                 bounces={false}
+                removeClippedSubviews
+                maxToRenderPerBatch={15}
+                updateCellsBatchingPeriod={40}
             />
         );
     }
