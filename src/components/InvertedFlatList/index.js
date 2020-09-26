@@ -9,7 +9,7 @@ import BaseInvertedFlatList from './BaseInvertedFlatList';
 
 const propTypes = {
     // Passed via forwardRef so we can access the FlatList ref
-    innerRef: PropTypes.ref.isRequired,
+    innerRef: PropTypes.func.isRequired,
 };
 
 // This is copied from https://codesandbox.io/s/react-native-dsyse
