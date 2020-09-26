@@ -12,7 +12,7 @@ const propTypes = {
     displayAsGroup: PropTypes.bool.isRequired,
 };
 
-const ReportActionItem = (props) => (
+const ReportActionItem = props => (
     <>
         {!props.displayAsGroup
             ? <ReportActionItemSingle action={props.action} />
