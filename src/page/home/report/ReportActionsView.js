@@ -34,6 +34,7 @@ const propTypes = {
 
 const defaultProps = {
     reportActions: {},
+    session: {},
 };
 
 class ReportActionsView extends React.Component {

@@ -18,7 +18,10 @@ const propTypes = {
     initialRowHeight: PropTypes.number.isRequired,
 
     // Passed via forwardRef so we can access the FlatList ref
-    innerRef: PropTypes.ref.isRequired,
+    innerRef: PropTypes.oneOfType([
+        PropTypes.func,
+        PropTypes.shape({current: PropTypes.instanceOf(FlatList)})
+    ]).isRequired,
 };
 
 const defaultProps = {
