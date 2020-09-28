@@ -28,7 +28,6 @@ function webUpdate(currentVersion) {
 
                 // Prompt user to refresh the page
                 if (window.confirm('Refresh the page to get the latest updates!')) {
-                    // TODO: Notify user in a less invasive way that they should refresh the page (i.e: Growl)
                     window.location.reload(true);
                 }
             }
