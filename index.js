@@ -17,7 +17,8 @@ AppRegistry.registerComponent(appName, () => App);
  * @param {String} currentVersion
  */
 function webUpdate(currentVersion) {
-    download('version.json')
+    download('version.txt')
+        .then(response => response.text())
         .then((newVersion) => {
             if (newVersion !== currentVersion) {
                 if (window.visibilityState === 'hidden') {
@@ -56,6 +57,7 @@ const webUpdater = currentVersion => ({
 
 // When app loads, get current version
 download('version.json')
+    .then(response => response.text())
     .then((currentVersion) => {
         checkForUpdates(webUpdater(currentVersion));
     });

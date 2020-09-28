@@ -23,6 +23,7 @@ module.exports = {
             patterns: [
                 {from: 'web/favicon.png'},
                 {from: 'web/favicon-unread.png'},
+                {from: 'web/version.txt'},
             ],
         }),
     ],

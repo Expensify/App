@@ -34,6 +34,9 @@ jobs:
             - name: Generate version
               run: npm version prerelease -m "Update version to %s"
 
+            - name: Save new version
+              run: npm run print-version --silent > web/version.txt
+
             - name: Push new version
               run: git push --set-upstream origin version-bump-${{ github.sha }}
 
