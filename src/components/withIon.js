@@ -11,7 +11,7 @@ import lodashHas from 'lodash.has';
 import getDisplayName from '../lib/getDisplayName';
 import Ion from '../lib/Ion';
 
-export default function (mapIonToProps) {
+export default function (mapIonToState) {
     return (WrappedComponent) => {
         class withIon extends React.Component {
             constructor(props) {
@@ -29,7 +29,7 @@ export default function (mapIonToProps) {
 
             componentDidMount() {
                 // Subscribe each of the state properties to the proper Ion key
-                _.each(mapIonToProps, (mapping, propertyName) => {
+                _.each(mapIonToState, (mapping, propertyName) => {
                     this.connectMappingToIon(mapping, propertyName, this.wrappedComponent);
                 });
             }
@@ -37,7 +37,7 @@ export default function (mapIonToProps) {
             componentDidUpdate(prevProps) {
                 // If any of the mappings use data from the props, then when the props change, all the
                 // connections need to be reconnected with the new props
-                _.each(mapIonToProps, (mapping, propertyName) => {
+                _.each(mapIonToState, (mapping, propertyName) => {
                     if (lodashHas(mapping, 'pathForProps')) {
                         const prevPropsData = lodashGet(prevProps, mapping.pathForProps);
                         const currentPropsData = lodashGet(this.props, mapping.pathForProps);
