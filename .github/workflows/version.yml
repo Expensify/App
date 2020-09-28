@@ -35,7 +35,10 @@ jobs:
               run: npm version prerelease -m "Update version to %s"
 
             - name: Save new version
-              run: npm run print-version --silent > web/version.txt
+              run: |
+                npm run print-version --silent > web/version.txt
+                git add web/version.txt
+                git commit -m "Save updated version to file"
 
             - name: Push new version
               run: git push --set-upstream origin version-bump-${{ github.sha }}
