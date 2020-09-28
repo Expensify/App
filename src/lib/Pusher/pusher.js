@@ -22,9 +22,14 @@ function callSocketEventCallbacks(eventName, data) {
  * @param {String} appKey
  * @param {Object} [params]
  * @public
+ * @returns {Promise} resolves when Pusher has connected
  */
 function init(appKey, params) {
-    if (!socket) {
+    return new Promise((resolve) => {
+        if (socket) {
+            return resolve();
+        }
+
         // Use this for debugging
         // Pusher.log = (message) => {
         //     if (window.console && window.console.log) {
@@ -34,7 +39,7 @@ function init(appKey, params) {
 
         const options = {
             cluster: CONFIG.PUSHER.CLUSTER,
-            authEndpoint: `${CONFIG.PUSHER.AUTH_URL}/api.php?command=Push_Authenticate`,
+            authEndpoint: `${CONFIG.EXPENSIFY.API_ROOT}command=Push_Authenticate`,
         };
 
         if (customAuthorizer) {
@@ -62,6 +67,7 @@ function init(appKey, params) {
         socket.connection.bind('connected', () => {
             console.debug('[Pusher] connected');
             callSocketEventCallbacks('connected');
+            resolve();
         });
 
         socket.connection.bind('disconnected', () => {
@@ -73,7 +79,7 @@ function init(appKey, params) {
             console.debug('[Pusher] state changed', states);
             callSocketEventCallbacks('state_change', states);
         });
-    }
+    });
 }
 
 /**
@@ -171,7 +177,7 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}, isChun
  */
 function subscribe(channelName, eventName, eventCallback = () => {}, isChunked = false) {
     return new Promise((resolve, reject) => {
-    // We cannot call subscribe() before init(). Prevent any attempt to do this on dev.
+        // We cannot call subscribe() before init(). Prevent any attempt to do this on dev.
         if (!socket) {
             throw new Error(`[Pusher] instance not found. Pusher.subscribe()
             most likely has been called before Pusher.init()`);
@@ -184,6 +190,10 @@ function subscribe(channelName, eventName, eventCallback = () => {}, isChunked =
             channel = socket.subscribe(channelName);
             channel.bind('pusher:subscription_succeeded', () => {
                 bindEventToChannel(channel, eventName, eventCallback, isChunked);
+
+                // Remove this event subscriber so we do not bind another
+                // event with each reconnect attempt
+                channel.unbind('pusher:subscription_succeeded');
                 resolve();
             });
 
@@ -340,6 +350,22 @@ function registerCustomAuthorizer(authorizer) {
     customAuthorizer = authorizer;
 }
 
+/**
+ * Disconnect from Pusher
+ */
+function disconnect() {
+    socket.disconnect();
+    socket = null;
+}
+
+/**
+ * Disconnect and Re-Connect Pusher
+ */
+function reconnect() {
+    socket.disconnect();
+    socket.connect();
+}
+
 if (window) {
     /**
      * Pusher socket for debugging purposes
@@ -361,4 +387,6 @@ export {
     sendChunkedEvent,
     registerSocketEventCallback,
     registerCustomAuthorizer,
+    disconnect,
+    reconnect,
 };

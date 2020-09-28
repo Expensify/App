@@ -1,6 +1,8 @@
 import React from 'react';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import styles from '../../../style/StyleSheet';
 import ReportActionItemFragment from './ReportActionItemFragment';
 import ReportActionPropTypes from './ReportActionPropTypes';
 
@@ -10,14 +12,15 @@ const propTypes = {
 };
 
 const ReportActionItemMessage = ({action}) => (
-    <>
-        {_.map(_.compact(action.message), fragment => (
+    <View style={[styles.chatItemMessage]}>
+        {_.map(_.compact(action.message), (fragment, index) => (
             <ReportActionItemFragment
-                key={_.uniqueId('actionFragment', action.sequenceNumber)}
+                key={`actionFragment-${action.sequenceNumber}-${index}`}
                 fragment={fragment}
+                isAttachment={action.isAttachment}
             />
         ))}
-    </>
+    </View>
 );
 
 ReportActionItemMessage.propTypes = propTypes;

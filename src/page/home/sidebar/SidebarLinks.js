@@ -8,14 +8,11 @@ import Text from '../../../components/Text';
 import SidebarLink from './SidebarLink';
 import withIon from '../../../components/withIon';
 import IONKEYS from '../../../IONKEYS';
-import {fetchAll} from '../../../lib/actions/Report';
-import Ion from '../../../lib/Ion';
 import PageTitleUpdater from '../../../lib/PageTitleUpdater';
 import ChatSwitcherView from './ChatSwitcherView';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
 import compose from '../../../lib/compose';
 import {withRouter} from '../../../lib/Router';
-import {redirect} from '../../../lib/actions/App';
 
 const propTypes = {
     // These are from withRouter
@@ -40,7 +37,7 @@ const propTypes = {
     reports: PropTypes.objectOf(PropTypes.shape({
         reportID: PropTypes.number,
         reportName: PropTypes.string,
-        hasUnread: PropTypes.bool,
+        isUnread: PropTypes.bool,
     })),
 };
 const defaultProps = {
@@ -63,10 +60,10 @@ class SidebarLinks extends React.Component {
 
         // Filter the reports so that the only reports shown are pinned, unread, and the one matching the URL
         // eslint-disable-next-line max-len
-        const reportsToDisplay = _.filter(sortedReports, report => (report.pinnedReport || report.hasUnread || report.reportID === reportIDInUrl));
+        const reportsToDisplay = _.filter(sortedReports, report => (report.pinnedReport || report.isUnread || report.reportID === reportIDInUrl));
 
         // Updates the page title to indicate there are unread reports
-        PageTitleUpdater(_.any(reports, report => report.hasUnread));
+        PageTitleUpdater(_.any(reports, report => report.isUnread));
 
         return (
             <View style={[styles.flex1, {marginTop: this.props.insets.top}]}>
@@ -97,7 +94,7 @@ class SidebarLinks extends React.Component {
                                 key={report.reportID}
                                 reportID={report.reportID}
                                 reportName={report.reportName}
-                                hasUnread={report.hasUnread}
+                                isUnread={report.isUnread}
                                 onLinkClick={onLinkClick}
                             />
                         ))}
@@ -115,21 +112,7 @@ export default compose(
     withRouter,
     withIon({
         reports: {
-            key: `${IONKEYS.REPORT}_[0-9]+$`,
-            addAsCollection: true,
-            collectionID: 'reportID',
-            loader: () => fetchAll().then(() => {
-                // After the reports are loaded for the first time, redirect to the first reportID in the list
-                Ion.multiGet([IONKEYS.CURRENT_URL, IONKEYS.FIRST_REPORT_ID]).then((values) => {
-                    const currentURL = values[IONKEYS.CURRENT_URL] || '';
-                    const firstReportID = values[IONKEYS.FIRST_REPORT_ID] || 0;
-
-                    // If we're on the home page, then redirect to the first report ID
-                    if (currentURL === '/' && firstReportID) {
-                        redirect(firstReportID);
-                    }
-                });
-            }),
+            key: IONKEYS.COLLECTION.REPORT,
         }
     }),
 )(SidebarLinks);

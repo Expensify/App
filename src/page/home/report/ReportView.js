@@ -24,11 +24,15 @@ class ReportView extends React.PureComponent {
         const shouldShowComposeForm = this.props.isActiveReport;
         return (
             <View style={[styles.chatContent]}>
-                <ReportActionView reportID={this.props.reportID} />
+                <ReportActionView
+                    reportID={this.props.reportID}
+                    isActiveReport={this.props.isActiveReport}
+                />
 
                 {shouldShowComposeForm && (
                     <ReportActionCompose
                         onSubmit={text => addAction(this.props.reportID, text)}
+                        reportID={this.props.reportID}
                     />
                 )}
 

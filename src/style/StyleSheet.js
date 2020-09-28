@@ -9,6 +9,7 @@ const colors = {
     black: '#000000',
     blue: '#2EAAE2',
     border: '#ECECEC',
+    borderLight: '#E0E0E0',
     green: '#2ECB70',
     heading: '#37444C',
     icon: '#C6C9CA',
@@ -160,11 +161,9 @@ const styles = {
     },
 
     // Actions
-    actionAvatarWrapper: {
-        width: 40,
-    },
     actionAvatar: {
         borderRadius: 20,
+        marginRight: 8,
         height: 40,
         width: 40,
     },
@@ -188,7 +187,7 @@ const styles = {
         borderWidth: 1,
         color: colors.textReversed,
         padding: 12,
-        outline: 'none',
+        outlineWidth: 0,
     },
 
     textInputReversedFocus: {
@@ -222,6 +221,7 @@ const styles = {
 
     genericView: {
         backgroundColor: colors.heading,
+        height: '100%',
     },
 
     signInPageInner: {
@@ -450,7 +450,7 @@ const styles = {
 
     chatContentScrollView: {
         flexGrow: 1,
-        justifyContent: 'flex-end',
+        justifyContent: 'flex-start',
         paddingVertical: 16,
     },
 
@@ -469,12 +469,6 @@ const styles = {
         paddingBottom: 8,
         paddingLeft: 20,
         paddingRight: 20,
-    },
-
-    chatItemLeft: {
-        display: 'flex',
-        flexShrink: 0,
-        marginRight: 8,
     },
 
     chatItemRightGrouped: {
@@ -544,10 +538,14 @@ const styles = {
 
     textInputCompose: {
         borderWidth: 0,
-        outline: 0,
+        borderRadius: 0,
+        outlineWidth: 0,
         height: 'auto',
         minHeight: 38,
-        padding: 10,
+        paddingTop: 10,
+        paddingRight: 8,
+        paddingBottom: 10,
+        paddingLeft: 8,
     },
 
     chatItemSubmitButton: {
@@ -565,6 +563,29 @@ const styles = {
     chatItemSubmitButtonIcon: {
         height: 20,
         width: 20,
+    },
+
+    chatItemAttachButton: {
+        alignItems: 'center',
+        alignSelf: 'flex-end',
+        borderRightColor: colors.border,
+        borderRightWidth: 1,
+        height: 26,
+        marginBottom: 6,
+        marginTop: 6,
+        justifyContent: 'center',
+        width: 39,
+    },
+
+    chatItemAttachmentPlaceholder: {
+        backgroundColor: colors.border,
+        borderColor: colors.borderLight,
+        borderWidth: 1,
+        borderRadius: 8,
+        height: 150,
+        textAlign: 'center',
+        verticalAlign: 'middle',
+        width: 200,
     },
 
     chatSwitcherInputClear: {

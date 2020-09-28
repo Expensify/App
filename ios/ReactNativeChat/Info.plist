@@ -21,7 +21,7 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>45</string>
+	<string>78</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false />
 	<key>LSRequiresIPhoneOS</key>
@@ -48,8 +48,14 @@
 			</dict>
 		</dict>
 	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>Your camera is used to create chat attachments.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string />
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Your camera roll is used to store chat attachments.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Your photos are used to create chat attachments.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>GTAmericaExp-Bold.otf</string>
@@ -69,6 +75,7 @@
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false />

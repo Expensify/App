@@ -12,7 +12,9 @@ import styles, {getSafeAreaPadding} from '../../style/StyleSheet';
 import Header from './HeaderView';
 import Sidebar from './sidebar/SidebarView';
 import Main from './MainView';
-import {subscribeToReportCommentEvents} from '../../lib/actions/Report';
+import {subscribeToReportCommentEvents, fetchAll as fetchAllReports} from '../../lib/actions/Report';
+import {fetch as fetchPersonalDetails} from '../../lib/actions/PersonalDetails';
+import * as Pusher from '../../lib/Pusher/pusher';
 
 const windowSize = Dimensions.get('window');
 const widthBreakPoint = 1000;
@@ -28,13 +30,19 @@ export default class App extends React.Component {
 
         this.toggleHamburger = this.toggleHamburger.bind(this);
         this.dismissHamburger = this.dismissHamburger.bind(this);
+        this.showHamburger = this.showHamburger.bind(this);
         this.toggleHamburgerBasedOnDimensions = this.toggleHamburgerBasedOnDimensions.bind(this);
         this.animationTranslateX = new Animated.Value(!this.state.hamburgerShown ? -300 : 0);
     }
 
     componentDidMount() {
-        // Listen for report comment events
-        subscribeToReportCommentEvents();
+        Pusher.init().then(subscribeToReportCommentEvents);
+
+        // Fetch all the personal details
+        fetchPersonalDetails();
+
+        // Fetch all the reports
+        fetchAllReports();
 
         Dimensions.addEventListener('change', this.toggleHamburgerBasedOnDimensions);
 
@@ -66,13 +74,24 @@ export default class App extends React.Component {
      * Only changes hamburger state on small screens (e.g. Mobile and mWeb)
      */
     dismissHamburger() {
-        const hamburgerIsShown = this.state.hamburgerShown;
-
-        if (!hamburgerIsShown) {
+        if (!this.state.hamburgerShown) {
             return;
         }
 
-        this.animateHamburger(hamburgerIsShown);
+        this.animateHamburger(true);
+    }
+
+    /**
+     * Method called when we want to show the hamburger menu,
+     * will not do anything if it already open
+     * Only changes hamburger state on smaller screens (e.g. Mobile and mWeb)
+     */
+    showHamburger() {
+        if (this.state.hamburgerShown) {
+            return;
+        }
+
+        this.toggleHamburger();
     }
 
     /**
@@ -143,7 +162,11 @@ export default class App extends React.Component {
                                         transform: [{translateX: this.animationTranslateX}]
                                     }]}
                                 >
-                                    <Sidebar insets={insets} onLinkClick={this.toggleHamburger} />
+                                    <Sidebar
+                                        insets={insets}
+                                        onLinkClick={this.toggleHamburger}
+                                        onChatSwitcherFocus={this.showHamburger}
+                                    />
                                 </Animated.View>
                                 <View
                                     onTouchStart={this.dismissHamburger}
@@ -163,4 +186,3 @@ export default class App extends React.Component {
         );
     }
 }
-App.displayName = 'App';

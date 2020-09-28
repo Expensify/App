@@ -1,8 +1,6 @@
 // Web and desktop implementation only. Do not import for direct use. Use Notification.
-
 import Str from '../Str';
 import CONST from '../../CONST';
-import * as ActiveClientManager from '../ActiveClientManager';
 
 const EXPENSIFY_ICON_URL = `${CONST.CLOUDFRONT_URL}/images/favicon-2019.png`;
 const DEFAULT_DELAY = 4000;
@@ -22,7 +20,7 @@ function canUseBrowserNotifications() {
         // Check if they previously granted or denied us access to send a notification
         const permissionGranted = Notification.permission === 'granted';
 
-        if (permissionGranted || Notification.permisson === 'denied') {
+        if (permissionGranted || Notification.permission === 'denied') {
             return resolve(permissionGranted);
         }
 
@@ -105,25 +103,17 @@ export default {
      * @param {Function} params.onClick
      */
     pushReportCommentNotification({reportAction, onClick}) {
-        ActiveClientManager.isClientTheLeader()
-            .then((isClientTheLeader) => {
-                if (!isClientTheLeader) {
-                    return;
-                }
+        const {person, message} = reportAction;
+        const plainTextPerson = Str.htmlDecode(person.map(f => f.text).join());
 
-                const {person, message} = reportAction;
+        // Specifically target the comment part of the message
+        const plainTextMessage = Str.htmlDecode((message.find(f => f.type === 'COMMENT') || {}).text);
 
-                const plainTextPerson = Str.htmlDecode(person.map(f => f.text).join());
-
-                // Specifically target the comment part of the message
-                const plainTextMessage = Str.htmlDecode((message.find(f => f.type === 'COMMENT') || {}).text);
-
-                push({
-                    title: `New message from ${plainTextPerson}`,
-                    body: plainTextMessage,
-                    delay: 0,
-                    onClick,
-                });
-            });
+        push({
+            title: `New message from ${plainTextPerson}`,
+            body: plainTextMessage,
+            delay: 0,
+            onClick,
+        });
     },
 };

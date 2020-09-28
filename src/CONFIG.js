@@ -13,7 +13,6 @@ export default {
     IS_IN_PRODUCTION: Platform.OS === 'web' ? process.env.NODE_ENV === 'production' : !__DEV__,
     PUSHER: {
         APP_KEY: Config.PUSHER_APP_KEY,
-        AUTH_URL: Config.PUSHER_AUTH_URL,
         CLUSTER: 'mt1',
     },
     REPORT_IDS: Config.REPORT_IDS,

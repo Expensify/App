@@ -1,13 +1,17 @@
 import React from 'react';
 import {TextInput} from 'react-native';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 
 const propTypes = {
+    // A ref to forward to the text input
+    forwardedRef: PropTypes.func.isRequired,
+
     // Maximum number of lines in the text input
     maxLines: PropTypes.number,
 
-    // The value of the comment box
-    value: PropTypes.string.isRequired,
+    // The default value of the comment box
+    defaultValue: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
@@ -28,12 +32,20 @@ class TextInputFocusable extends React.Component {
 
     componentDidMount() {
         this.focusInput();
+
+        // This callback prop is used by the parent component using the constructor to
+        // get a ref to the inner textInput element e.g. if we do
+        // <constructor ref={el => this.textInput = el} /> this will not
+        // return a ref to the component, but rather the HTML element by default
+        if (this.props.forwardedRef && _.isFunction(this.props.forwardedRef)) {
+            this.props.forwardedRef(this.textInput);
+        }
     }
 
     componentDidUpdate(prevProps) {
         this.focusInput();
 
-        if (prevProps.value !== this.props.value) {
+        if (prevProps.defaultValue !== this.props.defaultValue) {
             this.updateNumberOfLines();
         }
     }
@@ -96,4 +108,7 @@ class TextInputFocusable extends React.Component {
 TextInputFocusable.propTypes = propTypes;
 TextInputFocusable.defaultProps = defaultProps;
 
-export default TextInputFocusable;
+export default React.forwardRef((props, ref) => (
+    /* eslint-disable-next-line react/jsx-props-no-spreading */
+    <TextInputFocusable {...props} forwardedRef={ref} />
+));
