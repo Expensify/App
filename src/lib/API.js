@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import {AppState} from 'react-native';
 import Ion from './Ion';
 import IONKEYS from '../IONKEYS';
 import {xhr, setOfflineStatus} from './Network';
@@ -10,6 +9,7 @@ import Str from './Str';
 import Guid from './Guid';
 import redirectToSignIn from './actions/SignInRedirect';
 import {redirect} from './actions/App';
+import Activity from './Activity';
 
 // Holds all of the callbacks that need to be triggered when the network reconnects
 const reconnectionCallbacks = [];
@@ -53,10 +53,12 @@ Ion.connect({
 // for a few minutes, but eventually disconnects causing a delay when the app
 // returns from the background. So, if we are returning from the background
 // and we are online we should trigger our reconnection callbacks.
-AppState.addEventListener('change', (state) => {
-    if (state === 'active' && !isOffline) {
-        triggerReconnectionCallbacks();
+Activity.registerOnAppBecameActiveCallback(() => {
+    if (isOffline) {
+        return;
     }
+
+    triggerReconnectionCallbacks();
 });
 
 // When the user authenticates for the first time we create a login and store credentials in Ion.
