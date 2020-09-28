@@ -22,28 +22,21 @@ class ReportActionItemSingle extends React.PureComponent {
             : action.avatar;
         return (
             <View style={[styles.chatItem]}>
-                <View style={[styles.chatItemLeft]}>
-                    <View style={[styles.actionAvatarWrapper]}>
-                        <Image
-                            source={{uri: avatarUrl}}
-                            style={[styles.actionAvatar]}
-                        />
-                    </View>
-                </View>
+                <Image
+                    source={{uri: avatarUrl}}
+                    style={[styles.actionAvatar]}
+                />
                 <View style={[styles.chatItemRight]}>
                     <View style={[styles.chatItemMessageHeader]}>
-                        {action.person.map(fragment => (
-                            <View key={_.uniqueId('person-', action.sequenceNumber)}>
-                                <ReportActionItemFragment fragment={fragment} />
-                            </View>
+                        {_.map(action.person, (fragment, index) => (
+                            <ReportActionItemFragment
+                                key={`person-${action.sequenceNumber}-${index}`}
+                                fragment={fragment}
+                            />
                         ))}
-                        <View>
-                            <ReportActionItemDate timestamp={action.timestamp} />
-                        </View>
+                        <ReportActionItemDate timestamp={action.timestamp} />
                     </View>
-                    <View style={[styles.chatItemMessage]}>
-                        <ReportActionItemMessage action={action} />
-                    </View>
+                    <ReportActionItemMessage action={action} />
                 </View>
             </View>
         );
