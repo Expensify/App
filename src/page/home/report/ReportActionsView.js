@@ -65,6 +65,13 @@ class ReportActionsView extends React.Component {
             if (this.props.isActiveReport) {
                 setTimeout(this.recordMaxAction, 3000);
             }
+
+            return;
+        }
+
+        // If we are switching from not active to active report then mark comments as read
+        if (!prevProps.isActiveReport && this.props.isActiveReport) {
+            this.recordMaxAction();
         }
     }
 
