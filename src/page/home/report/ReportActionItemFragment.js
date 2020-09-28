@@ -1,12 +1,12 @@
 import React from 'react';
 import HTML from 'react-native-render-html';
 import {
-    Linking, ActivityIndicator, View, Platform, Dimensions
+    Linking, ActivityIndicator, View, Platform
 } from 'react-native';
 import PropTypes from 'prop-types';
 import Str from '../../../lib/Str';
 import ReportActionFragmentPropTypes from './ReportActionFragmentPropTypes';
-import styles, {webViewStyles, colors, widthBreakPoint} from '../../../style/StyleSheet';
+import styles, {webViewStyles, colors} from '../../../style/StyleSheet';
 import Text from '../../../components/Text';
 import AnchorForCommentsOnly from '../../../components/AnchorForCommentsOnly';
 import {getAuthToken} from '../../../lib/API';
@@ -65,8 +65,7 @@ class ReportActionItemFragment extends React.PureComponent {
 
     render() {
         const {fragment} = this.props;
-        const windowWidth = Dimensions.get('window').width;
-        const maxImageWidth = windowWidth > widthBreakPoint ? windowWidth / 2 : windowWidth / 1.5;
+        const maxImageWidth = 512;
         switch (fragment.type) {
             case 'COMMENT':
                 // If this is an attachment placeholder, return the placeholder component
