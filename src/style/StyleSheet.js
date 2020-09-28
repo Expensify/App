@@ -655,6 +655,7 @@ const webViewStyles = {
     tagStyles: {
         em: {
             fontStyle: 'italic',
+            fontFamily: fontFamily.GTA_ITALIC,
         },
 
         del: {
