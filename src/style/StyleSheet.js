@@ -671,6 +671,12 @@ const webViewStyles = {
 
         a: {
             color: colors.blue
+        },
+
+        img: {
+            borderColor: colors.border,
+            borderRadius: 8,
+            borderWidth: 1,
         }
     },
 
