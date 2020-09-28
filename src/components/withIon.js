@@ -5,8 +5,6 @@
  */
 import React from 'react';
 import _ from 'underscore';
-import lodashGet from 'lodash.get';
-import lodashHas from 'lodash.has';
 
 import getDisplayName from '../lib/getDisplayName';
 import Ion from '../lib/Ion';
