@@ -24,10 +24,17 @@ const propTypes = {
 
     // Array of report actions for this report
     reportActions: PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
+
+    // The session of the logged in person
+    session: PropTypes.shape({
+        // Email of the logged in person
+        email: PropTypes.string,
+    }),
 };
 
 const defaultProps = {
     reportActions: {},
+    session: {},
 };
 
 class ReportActionsView extends React.Component {

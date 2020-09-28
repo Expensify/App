@@ -16,6 +16,12 @@ const propTypes = {
     // renderItem rows. Web will have issues with FlatList
     // if this is inaccurate.
     initialRowHeight: PropTypes.number.isRequired,
+
+    // Passed via forwardRef so we can access the FlatList ref
+    innerRef: PropTypes.oneOfType([
+        PropTypes.func,
+        PropTypes.shape({current: PropTypes.instanceOf(FlatList)})
+    ]).isRequired,
 };
 
 const defaultProps = {
