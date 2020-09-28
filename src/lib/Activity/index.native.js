@@ -6,7 +6,7 @@ AppState.addEventListener('change', (state) => {
     if (state === 'active') {
         onAppBecameActiveCallback();
     }
-})
+});
 
 /**
  * Register active state change callback
