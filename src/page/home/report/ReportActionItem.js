@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionPropTypes from './ReportActionPropTypes';
@@ -12,22 +12,13 @@ const propTypes = {
     displayAsGroup: PropTypes.bool.isRequired,
 };
 
-class ReportActionItem extends Component {
-    shouldComponentUpdate(nextProps) {
-        // If the grouping changes then we want to update the UI
-        return nextProps.displayAsGroup !== this.props.displayAsGroup;
-    }
-
-    render() {
-        return (
-            <>
-                {!this.props.displayAsGroup
-                    ? <ReportActionItemSingle action={this.props.action} />
-                    : <ReportActionItemGrouped action={this.props.action} />}
-            </>
-        );
-    }
-}
+const ReportActionItem = props => (
+    <>
+        {!props.displayAsGroup
+            ? <ReportActionItemSingle action={props.action} />
+            : <ReportActionItemGrouped action={props.action} />}
+    </>
+);
 
 ReportActionItem.propTypes = propTypes;
 

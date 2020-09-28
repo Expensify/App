@@ -14,35 +14,31 @@ const propTypes = {
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
 };
 
-class ReportActionItemSingle extends React.PureComponent {
-    render() {
-        const {action} = this.props;
-        const avatarUrl = action.automatic
-            ? `${CONST.CLOUDFRONT_URL}/images/icons/concierge_2019.svg`
-            : action.avatar;
-        return (
-            <View style={[styles.chatItem]}>
-                <Image
-                    source={{uri: avatarUrl}}
-                    style={[styles.actionAvatar]}
-                />
-                <View style={[styles.chatItemRight]}>
-                    <View style={[styles.chatItemMessageHeader]}>
-                        {_.map(action.person, (fragment, index) => (
-                            <ReportActionItemFragment
-                                key={`person-${action.sequenceNumber}-${index}`}
-                                fragment={fragment}
-                            />
-                        ))}
-                        <ReportActionItemDate timestamp={action.timestamp} />
-                    </View>
-                    <ReportActionItemMessage action={action} />
+const ReportActionItemSingle = ({action}) => {
+    const avatarUrl = action.automatic
+        ? `${CONST.CLOUDFRONT_URL}/images/icons/concierge_2019.svg`
+        : action.avatar;
+    return (
+        <View style={[styles.chatItem]}>
+            <Image
+                source={{uri: avatarUrl}}
+                style={[styles.actionAvatar]}
+            />
+            <View style={[styles.chatItemRight]}>
+                <View style={[styles.chatItemMessageHeader]}>
+                    {_.map(action.person, (fragment, index) => (
+                        <ReportActionItemFragment
+                            key={`person-${action.sequenceNumber}-${index}`}
+                            fragment={fragment}
+                        />
+                    ))}
+                    <ReportActionItemDate timestamp={action.timestamp} />
                 </View>
+                <ReportActionItemMessage action={action} />
             </View>
-        );
-    }
-}
+        </View>
+    );
+};
 
 ReportActionItemSingle.propTypes = propTypes;
-
 export default ReportActionItemSingle;
