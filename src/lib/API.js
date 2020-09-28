@@ -28,6 +28,13 @@ Ion.connect({
     callback: val => authToken = val ? val.authToken : null,
 });
 
+/**
+ * Loop over all reconnection callbacks and fire each one
+ */
+function triggerReconnectionCallbacks() {
+    _.each(reconnectionCallbacks, callback => callback());
+}
+
 // We subscribe to changes to the online/offline status of the network to determine when we should fire off API calls
 // vs queueing them for later. When reconnecting, ie, going from offline to online, all the reconnection callbacks
 // are triggered (this is usually Actions that need to re-download data from the server)
@@ -36,7 +43,7 @@ Ion.connect({
     key: IONKEYS.NETWORK,
     callback: (val) => {
         if (isOffline && !val.isOffline) {
-            _.each(reconnectionCallbacks, callback => callback());
+            triggerReconnectionCallbacks();
         }
         isOffline = val && val.isOffline;
     }
@@ -48,7 +55,7 @@ Ion.connect({
 // and we are online we should trigger our reconnection callbacks.
 AppState.addEventListener('change', (state) => {
     if (state === 'active' && !isOffline) {
-        _.each(reconnectionCallbacks, callback => callback());
+        triggerReconnectionCallbacks();
     }
 });
 
