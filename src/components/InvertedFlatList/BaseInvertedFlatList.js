@@ -42,11 +42,6 @@ class BaseInvertedFlatList extends Component {
         this.sizeMap = {};
     }
 
-    shouldComponentUpdate(prevProps) {
-        // The FlatList itself should only re-render if items are added
-        return prevProps.data.length !== this.props.data.length;
-    }
-
     /**
      * Return default or previously cached height for
      * a renderItem row
@@ -141,8 +136,10 @@ class BaseInvertedFlatList extends Component {
                 inverted
                 renderItem={this.renderItem}
                 getItemLayout={this.getItemLayout}
-                removeClippedSubviews
                 bounces={false}
+                removeClippedSubviews
+                maxToRenderPerBatch={15}
+                updateCellsBatchingPeriod={40}
             />
         );
     }
