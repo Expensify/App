@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import {AppState} from 'react-native';
 import Ion from './Ion';
 import IONKEYS from '../IONKEYS';
 import {xhr, setOfflineStatus} from './Network';
@@ -38,6 +39,16 @@ Ion.connect({
             _.each(reconnectionCallbacks, callback => callback());
         }
         isOffline = val && val.isOffline;
+    }
+});
+
+// When the app is in the background Pusher can still receive realtime updates
+// for a few minutes, but eventually disconnects causing a delay when the app
+// returns from the background. So, if we are returning from the background
+// and we are online we should trigger our reconnection callbacks.
+AppState.addEventListener('change', (state) => {
+    if (state === 'active' && !isOffline) {
+        _.each(reconnectionCallbacks, callback => callback());
     }
 });
 
