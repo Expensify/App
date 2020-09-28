@@ -13,6 +13,7 @@ import * as PersonalDetails from './PersonalDetails';
 import {redirect} from './App';
 import * as ActiveClientManager from '../ActiveClientManager';
 import Visibility from '../Visibility';
+import {lastItem} from '../../lib/CollectionUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -41,6 +42,9 @@ Ion.connect({
 
 // Keeps track of the max sequence number for each report
 const reportMaxSequenceNumbers = {};
+
+// Keeps track of the last
+const lastStoredActionIDs = {};
 
 // List of reportIDs that we define in .env
 const configReportIDs = CONFIG.REPORT_IDS.split(',').map(Number);
@@ -251,7 +255,7 @@ function fetchChatReports() {
  * @param {number} reportID
  */
 function fetchActions(reportID) {
-    queueRequest('Report_GetHistory', {reportID})
+    queueRequest('Report_GetHistory', {reportID, offset: lastStoredActionIDs[reportID]})
         .then((data) => {
             const indexedData = _.indexBy(data.history, 'sequenceNumber');
             const maxSequenceNumber = _.chain(data.history)
@@ -491,6 +495,14 @@ function handleReportChanged(report) {
 Ion.connect({
     key: IONKEYS.COLLECTION.REPORT,
     callback: handleReportChanged
+});
+Ion.connect({
+    key: IONKEYS.COLLECTION.REPORT_ACTIONS,
+    callback: (data, key) => {
+        // Save the hightes stored reportAction IDs that we have
+        const reportID = _.last(key.split('_'));
+        lastStoredActionIDs[reportID] = lastItem(data).sequenceNumber;
+    },
 });
 
 // When the app reconnects from being offline, fetch all of the reports and their actions
