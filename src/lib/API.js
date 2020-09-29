@@ -76,7 +76,7 @@ function createLogin(login, password) {
             }
             Ion.merge(IONKEYS.CREDENTIALS, {login, password});
         })
-        .catch(err => Ion.merge(IONKEYS.SESSION, {error: err.message}));
+        .catch(error => Ion.merge(IONKEYS.SESSION, {error: error.message}));
 }
 
 /**
@@ -165,7 +165,7 @@ function request(command, parameters, type = 'post') {
                     return createLogin(Str.generateDeviceLoginID(), Guid());
                 }
             })
-            .catch(err => Ion.merge(IONKEYS.SESSION, {error: err.message}));
+            .catch(error => Ion.merge(IONKEYS.SESSION, {error: error.message}));
     }
 
     // Add authToken automatically to all commands
@@ -291,10 +291,10 @@ Pusher.registerCustomAuthorizer((channel, {authEndpoint}) => ({
         })
             .then(authResponse => authResponse.json())
             .then(data => callback(null, data))
-            .catch((err) => {
+            .catch((error) => {
                 reconnectToPusher();
                 console.debug('[Network] Failed to authorize Pusher');
-                callback(new Error(`Error calling auth endpoint: ${err.message}`));
+                callback(new Error(`Error calling auth endpoint: ${error.message}`));
             });
     },
 }));
@@ -373,10 +373,10 @@ function authenticate(parameters) {
         twoFactorAuthCode: parameters.twoFactorAuthCode,
         exitTo: parameters.exitTo,
     })
-        .catch((err) => {
-            console.error(err);
+        .catch((error) => {
+            console.error(error);
             console.debug('[SIGNIN] Request error');
-            Ion.merge(IONKEYS.SESSION, {error: err.message});
+            Ion.merge(IONKEYS.SESSION, {error: error.message});
         });
 }
 
@@ -393,7 +393,7 @@ function deleteLogin(parameters) {
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         doNotRetry: true,
     })
-        .catch(err => Ion.merge(IONKEYS.SESSION, {error: err.message}));
+        .catch(error => Ion.merge(IONKEYS.SESSION, {error: error.message}));
 }
 
 export {
