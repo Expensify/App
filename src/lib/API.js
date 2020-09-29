@@ -165,7 +165,7 @@ function request(command, parameters, type = 'post') {
                     return createLogin(Str.generateDeviceLoginID(), Guid());
                 }
             })
-            .catch(err => Ion.merge(IONKEYS.SESSION, {error: err}));
+            .catch(err => Ion.merge(IONKEYS.SESSION, {error: err.message}));
     }
 
     // Add authToken automatically to all commands
@@ -294,7 +294,7 @@ Pusher.registerCustomAuthorizer((channel, {authEndpoint}) => ({
             .catch((err) => {
                 reconnectToPusher();
                 console.debug('[Network] Failed to authorize Pusher');
-                callback(new Error(`Error calling auth endpoint: ${err}`));
+                callback(new Error(`Error calling auth endpoint: ${err.message}`));
             });
     },
 }));
