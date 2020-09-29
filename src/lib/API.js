@@ -72,7 +72,7 @@ function createLogin(login, password) {
     })
         .then((response) => {
             if (response.jsonCode !== 200) {
-                throw new Error(response.message);
+                console.debug('Failed creating login, re-authentication will fail');
             }
             Ion.merge(IONKEYS.CREDENTIALS, {login, password});
         });
@@ -153,14 +153,13 @@ function request(command, parameters, type = 'post') {
 
                 // Update the authToken so it's used in the call to  createLogin below
                 authToken = response.authToken;
-                return response;
+                return setSuccessfulSignInData(response, parameters.exitTo);
             })
-            .then((response) => {
+            .then(() => {
                 // If Expensify login, it's the users first time signing in and we need to
                 // create a login for the user
                 if (parameters.useExpensifyLogin) {
-                    return createLogin(Str.generateDeviceLoginID(), Guid())
-                        .then(() => setSuccessfulSignInData(response, parameters.exitTo));
+                    return createLogin(Str.generateDeviceLoginID(), Guid());
                 }
             })
             .catch(error => Ion.merge(IONKEYS.SESSION, {error: error.message}));
