@@ -49,7 +49,11 @@ class MainView extends Component {
             return finalData;
         }, {});
 
-        const reportsToDisplay = _.filter(this.props.reports, report => (report.pinnedReport || report.isUnread || report.reportID === reportIDInUrl));
+        const reportsToDisplay = _.filter(this.props.reports, report => (
+            report.pinnedReport
+                || report.isUnread
+                || report.reportID === reportIDInUrl
+        ));
         return (
             <>
                 {_.map(reportsToDisplay, report => (
