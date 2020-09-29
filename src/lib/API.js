@@ -70,7 +70,17 @@ function createLogin(login, password) {
         partnerUserID: login,
         partnerUserSecret: password,
     })
-        .then(() => Ion.merge(IONKEYS.CREDENTIALS, {login, password}))
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                redirectToSignIn();
+
+                // redirectToSignIn clears the Ion store, so we set the error after that call
+                return Ion.multiSet({
+                    [IONKEYS.SESSION]: {error: response.message},
+                });
+            }
+            Ion.merge(IONKEYS.CREDENTIALS, {login, password});
+        })
         .catch(err => Ion.merge(IONKEYS.SESSION, {error: err}));
 }
 
@@ -144,11 +154,13 @@ function request(command, parameters, type = 'post') {
                 // an expensify login or the login credentials we created after the initial authentication.
                 // In both cases, we need the user to sign in again with their expensify credentials
                 if (response.jsonCode !== 200) {
+                    redirectToSignIn();
+
+                    // redirectToSignIn clears the Ion store, so we set the error after that call
                     return Ion.multiSet({
                         [IONKEYS.CREDENTIALS]: {},
                         [IONKEYS.SESSION]: {error: response.message},
-                    })
-                        .then(redirectToSignIn);
+                    });
                 }
 
                 // We need to return the promise from setSuccessfulSignInData to ensure the authToken is updated before
@@ -161,9 +173,10 @@ function request(command, parameters, type = 'post') {
                 // create a login for the user
                 if (parameters.useExpensifyLogin) {
                     console.debug('[SIGNIN] Creating a login');
-                    createLogin(Str.generateDeviceLoginID(), Guid());
+                    return createLogin(Str.generateDeviceLoginID(), Guid());
                 }
-            });
+            })
+            .catch(err => Ion.merge(IONKEYS.SESSION, {error: err}));
     }
 
     // Add authToken automatically to all commands
@@ -211,11 +224,12 @@ function request(command, parameters, type = 'post') {
                     .then(() => xhr(command, parametersWithAuthToken, type))
                     .catch((error) => {
                         reauthenticating = false;
+                        redirectToSignIn();
+
+                        // redirectToSignIn clears the Ion store, so we set the error after that call
                         Ion.multiSet({
-                            [IONKEYS.CREDENTIALS]: {},
                             [IONKEYS.SESSION]: {error: error.message},
                         });
-                        redirectToSignIn();
                         return Promise.reject();
                     });
             }
