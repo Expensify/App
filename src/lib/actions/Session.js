@@ -32,7 +32,6 @@ function signIn(partnerUserID, partnerUserSecret, twoFactorAuthCode = '', exitTo
  */
 function signOut() {
     redirectToSignIn();
-    Ion.clear();
     Pusher.disconnect();
 
     if (!credentials || !credentials.login) {
