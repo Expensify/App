@@ -7,8 +7,10 @@ import {
     TextInput,
     Image,
     View,
+    ActivityIndicator,
 } from 'react-native';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import CONFIG from '../CONFIG';
 import compose from '../lib/compose';
 import {withRouter} from '../lib/Router';
@@ -29,6 +31,9 @@ const propTypes = {
     session: PropTypes.shape({
         // Error to display when there is a session error returned
         error: PropTypes.string,
+
+        // Stores if we are currently making a authentication request
+        loading: PropTypes.bool,
     }),
 };
 
@@ -59,6 +64,9 @@ class App extends Component {
      * Sign into the application when the form is submitted
      */
     submitForm() {
+        if (this.props.session.loading) {
+            return;
+        }
         signIn(this.state.login, this.state.password, this.state.twoFactorAuthCode, this.props.match.params.exitTo);
     }
 
@@ -114,10 +122,15 @@ class App extends Component {
                                 style={[styles.button, styles.buttonSuccess, styles.mb4]}
                                 onPress={this.submitForm}
                                 underlayColor={colors.componentBG}
+                                disabled={this.props.session && this.props.session.loading}
                             >
-                                <Text style={[styles.buttonText, styles.buttonSuccessText]}>Log In</Text>
+                                {this.props.session && this.props.session.loading === true ? (
+                                    <ActivityIndicator color={colors.textReversed} />
+                                ) : (
+                                    <Text style={[styles.buttonText, styles.buttonSuccessText]}>Log In</Text>
+                                )}
                             </TouchableOpacity>
-                            {this.props.session && this.props.session.error && (
+                            {this.props.session && !_.isEmpty(this.props.session.error) && (
                                 <Text style={[styles.formError]}>
                                     {this.props.session.error}
                                 </Text>
