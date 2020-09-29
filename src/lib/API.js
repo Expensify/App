@@ -414,10 +414,23 @@ function setLastReadActionID(parameters) {
     });
 }
 
+/**
+ * @param {object} parameters
+ * @param {number} parameters.reportID
+ * @returns {Promise}
+ */
+function getReportHistory(parameters) {
+    return queueRequest('Report_GetHistory', {
+        authToken,
+        reportID: parameters.reportID,
+    });
+}
+
 export {
     authenticate,
     deleteLogin,
     getAuthToken,
+    getReportHistory,
     onReconnect,
     queueRequest,
     setLastReadActionID,
