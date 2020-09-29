@@ -23,6 +23,7 @@ Ion.connect({
         if (val) {
             currentUserEmail = val.email;
             currentUserAccountID = val.accountID;
+            Pusher.init().then(subscribeToReportCommentEvents);
         }
     }
 });
@@ -220,6 +221,11 @@ function updateReportWithNewAction(reportID, reportAction) {
  * Initialize our pusher subscriptions to listen for new report comments
  */
 function subscribeToReportCommentEvents() {
+    // If we don't have the user's accountID yet we can't subscribe so return early
+    if (!currentUserAccountID) {
+        return;
+    }
+
     const pusherChannelName = `private-user-accountID-${currentUserAccountID}`;
     if (Pusher.isSubscribed(pusherChannelName) || Pusher.isAlreadySubscribing(pusherChannelName)) {
         return;

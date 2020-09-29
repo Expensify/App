@@ -36,8 +36,6 @@ export default class App extends React.Component {
     }
 
     componentDidMount() {
-        Pusher.init().then(subscribeToReportCommentEvents);
-
         // Fetch all the personal details
         fetchPersonalDetails();
 
