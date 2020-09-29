@@ -101,15 +101,14 @@ function init() {
  * @param {string} [config.statePropertyName]
  * @param {function} [config.callback]
  * @param {*|null} val
- * @param {string} [key] used for collection keys
  */
-function sendDataToConnection(config, val, key) {
+function sendDataToConnection(config, val) {
     if (config.withIonInstance) {
         config.withIonInstance.setState({
             [config.statePropertyName]: val,
         });
     } else if (_.isFunction(config.callback)) {
-        config.callback(val, key);
+        config.callback(val);
     }
 }
 
@@ -160,7 +159,7 @@ function connect(mapping) {
                     .then(val => sendDataToConnection(mapping, val));
             } else {
                 _.each(matchingKeys, (key) => {
-                    get(key).then(val => sendDataToConnection(mapping, val, key));
+                    get(key).then(val => sendDataToConnection(mapping, val));
                 });
             }
         });
