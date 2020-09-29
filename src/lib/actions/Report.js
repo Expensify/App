@@ -1,13 +1,13 @@
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
+import ExpensiMark from '../ExpensiMark';
 import Ion from '../Ion';
 import {queueRequest, onReconnect} from '../API';
 import IONKEYS from '../../IONKEYS';
 import CONFIG from '../../CONFIG';
 import * as Pusher from '../Pusher/pusher';
 import promiseAllSettled from '../promiseAllSettled';
-import ExpensiMark from '../ExpensiMark';
 import Notification from '../Notification';
 import * as PersonalDetails from './PersonalDetails';
 import {redirect} from './App';
