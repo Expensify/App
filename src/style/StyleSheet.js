@@ -3,8 +3,6 @@ import fontFamily from './fontFamily';
 
 const safeInsertPercentage = 0.7;
 
-const widthBreakPoint = 1000;
-
 const colors = {
     componentBG: '#FFFFFF',
     background: '#FAFAFA',
@@ -710,5 +708,5 @@ function getSafeAreaMargins(insets) {
 
 export default styles;
 export {
-    getSafeAreaPadding, getSafeAreaMargins, colors, webViewStyles, widthBreakPoint
+    getSafeAreaPadding, getSafeAreaMargins, colors, webViewStyles
 };
