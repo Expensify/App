@@ -8,7 +8,6 @@ import ROUTES from '../ROUTES';
 import Str from './Str';
 import Guid from './Guid';
 import redirectToSignIn from './actions/SignInRedirect';
-import {redirect} from './actions/App';
 
 // Holds all of the callbacks that need to be triggered when the network reconnects
 const reconnectionCallbacks = [];
@@ -112,8 +111,10 @@ function setSuccessfulSignInData(data, exitTo) {
     } else {
         redirectTo = ROUTES.HOME;
     }
-    redirect(redirectTo);
-    Ion.merge(IONKEYS.SESSION, _.pick(data, 'authToken', 'accountID', 'email'));
+    Ion.multiSet({
+        [IONKEYS.SESSION]: _.pick(data, 'authToken', 'accountID', 'email'),
+        [IONKEYS.APP_REDIRECT_TO]: redirectTo
+    });
 }
 
 /**

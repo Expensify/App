@@ -12,8 +12,9 @@ import styles, {getSafeAreaPadding} from '../../style/StyleSheet';
 import Header from './HeaderView';
 import Sidebar from './sidebar/SidebarView';
 import Main from './MainView';
-import {fetchAll as fetchAllReports} from '../../lib/actions/Report';
+import {subscribeToReportCommentEvents, fetchAll as fetchAllReports} from '../../lib/actions/Report';
 import {fetch as fetchPersonalDetails} from '../../lib/actions/PersonalDetails';
+import * as Pusher from '../../lib/Pusher/pusher';
 
 const windowSize = Dimensions.get('window');
 const widthBreakPoint = 1000;
@@ -35,6 +36,8 @@ export default class App extends React.Component {
     }
 
     componentDidMount() {
+        Pusher.init().then(subscribeToReportCommentEvents);
+
         // Fetch all the personal details
         fetchPersonalDetails();
 
