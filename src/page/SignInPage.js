@@ -32,7 +32,7 @@ const propTypes = {
         // Error to display when there is a session error returned
         error: PropTypes.string,
 
-        // Stores if we are currently making a authentication request
+        // Stores if we are currently making an authentication request
         loading: PropTypes.bool,
     }),
 };
@@ -71,6 +71,7 @@ class App extends Component {
     }
 
     render() {
+        const isLoading = this.props.session && this.props.session.loading;
         return (
             <>
                 <StatusBar />
@@ -122,9 +123,9 @@ class App extends Component {
                                 style={[styles.button, styles.buttonSuccess, styles.mb4]}
                                 onPress={this.submitForm}
                                 underlayColor={colors.componentBG}
-                                disabled={this.props.session && this.props.session.loading}
+                                disabled={isLoading}
                             >
-                                {this.props.session && this.props.session.loading === true ? (
+                                {isLoading ? (
                                     <ActivityIndicator color={colors.textReversed} />
                                 ) : (
                                     <Text style={[styles.buttonText, styles.buttonSuccessText]}>Log In</Text>

@@ -263,7 +263,8 @@ function merge(key, val) {
  * Initialize the store with actions and listening for storage events
  */
 function init() {
-    merge(IONKEYS.SESSION, {loading: false});
+    // Clear any loading and error messages so they do not appear on app startup
+    merge(IONKEYS.SESSION, {loading: false, error: ''});
     addStorageEventHandler((key, newValue) => keyChanged(key, newValue));
 }
 
