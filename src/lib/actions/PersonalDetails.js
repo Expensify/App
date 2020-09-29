@@ -86,7 +86,7 @@ function formatPersonalDetails(personalDetailsList) {
  * Get the timezone of the logged in user
  */
 function fetchTimezone() {
-    API.queueRequest('Get', {
+    API.get({
         returnValueList: 'nameValuePairs',
         name: 'timeZone',
     })
@@ -103,7 +103,7 @@ function fetchTimezone() {
  * Get the personal details for our organization
  */
 function fetch() {
-    API.queueRequest('Get', {
+    API.get({
         returnValueList: 'personalDetailsList',
     })
         .then((data) => {
