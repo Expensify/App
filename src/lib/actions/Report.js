@@ -333,7 +333,7 @@ function fetchOrCreateChatReport(participants) {
         throw new Error('fetchOrCreateChatReport() must have at least two participants');
     }
 
-    API.queueRequest('CreateChatReport', {
+    API.createChatReport({
         emailList: participants.join(','),
     })
 
