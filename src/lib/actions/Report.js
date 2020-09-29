@@ -120,7 +120,7 @@ function getChatReportName(sharedReportList) {
  */
 function fetchChatReportsByIDs(chatList) {
     let fetchedReports;
-    return API.queueRequest('Get', {
+    return API.get({
         returnValueList: 'reportStuff',
         reportIDList: chatList.join(','),
         shouldLoadOptionalKeys: true,
@@ -237,7 +237,7 @@ function subscribeToReportCommentEvents() {
  * @returns {Promise} only used internally when fetchAll() is called
  */
 function fetchChatReports() {
-    return API.queueRequest('Get', {
+    return API.get({
         returnValueList: 'chatList',
     })
 
@@ -274,7 +274,7 @@ function fetchAll(shouldRedirectToFirstReport = true, shouldFetchActions = false
     let fetchedReports;
 
     // Request each report one at a time to allow individual reports to fail if access to it is prevented by Auth
-    const reportFetchPromises = _.map(configReportIDs, reportID => API.queueRequest('Get', {
+    const reportFetchPromises = _.map(configReportIDs, reportID => API.get({
         returnValueList: 'reportStuff',
         reportIDList: reportID,
         shouldLoadOptionalKeys: true,
@@ -342,7 +342,7 @@ function fetchOrCreateChatReport(participants) {
             reportID = data.reportID;
 
             // Make a request to get all the information about the report
-            return API.queueRequest('Get', {
+            return API.get({
                 returnValueList: 'reportStuff',
                 reportIDList: reportID,
                 shouldLoadOptionalKeys: true,
