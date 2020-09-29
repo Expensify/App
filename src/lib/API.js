@@ -486,6 +486,5 @@ export {
     getPersonalDetails,
     getReportHistory,
     onReconnect,
-    queueRequest,
     setLastReadActionID,
 };
