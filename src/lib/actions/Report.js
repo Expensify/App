@@ -251,7 +251,7 @@ function fetchChatReports() {
  * @param {number} reportID
  */
 function fetchActions(reportID) {
-    API.queueRequest('Report_GetHistory', {reportID})
+    API.getReportHistory({reportID})
         .then((data) => {
             const indexedData = _.indexBy(data.history, 'sequenceNumber');
             const maxSequenceNumber = _.chain(data.history)
@@ -497,6 +497,7 @@ Ion.connect({
 API.onReconnect(() => {
     fetchAll(false, true);
 });
+
 export {
     fetchAll,
     fetchActions,
