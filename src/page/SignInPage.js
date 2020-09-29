@@ -64,7 +64,7 @@ class App extends Component {
      * Sign into the application when the form is submitted
      */
     submitForm() {
-        if (this.props.session.loading) {
+        if (this.props.session && this.props.session.loading) {
             return;
         }
         signIn(this.state.login, this.state.password, this.state.twoFactorAuthCode, this.props.match.params.exitTo);
