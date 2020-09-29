@@ -309,32 +309,11 @@ Pusher.registerCustomAuthorizer((channel, {authEndpoint}) => ({
  * @params {object} data
  */
 Pusher.registerSocketEventCallback((eventName, data) => {
-    let isCurrentlyOffline = false;
     switch (eventName) {
-        case 'connected':
-            isCurrentlyOffline = false;
-            break;
-        case 'disconnected':
-            isCurrentlyOffline = true;
-            break;
-        case 'state_change':
-            if (data.current === 'failed') {
-                // WebSockets are not natively available. In this case,
-                // we should not let Pusher influence the offline state of the app.
-                return;
-            }
-
-            if (data.current === 'disconnected' || data.current === 'connecting' || data.current === 'unavailable') {
-                isCurrentlyOffline = true;
-            }
-            break;
         case 'error':
             reconnectToPusher();
             break;
-        default:
-            break;
     }
-    setOfflineStatus(isCurrentlyOffline);
 });
 
 /**
