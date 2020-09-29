@@ -450,7 +450,7 @@ function updateLastReadActionID(reportID, sequenceNumber) {
     });
 
     // Mark the report as not having any unread items
-    API.queueRequest('Report_SetLastReadActionID', {
+    API.setLastReadActionID({
         accountID: currentUserAccountID,
         reportID,
         sequenceNumber,

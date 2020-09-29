@@ -398,10 +398,27 @@ function deleteLogin(parameters) {
         .catch(err => Ion.merge(IONKEYS.SESSION, {error: err.message}));
 }
 
+/**
+ * @param {object} parameters
+ * @param {number} parameters.accountID
+ * @param {number} parameters.reportID
+ * @param {number} parameters.sequenceNumber
+ * @returns {Promise}
+ */
+function setLastReadActionID(parameters) {
+    return queueRequest('Report_SetLastReadActionID', {
+        authToken,
+        accountID: parameters.accountID,
+        reportID: parameters.reportID,
+        sequenceNumber: parameters.sequenceNumber,
+    });
+}
+
 export {
     authenticate,
     deleteLogin,
     getAuthToken,
     onReconnect,
     queueRequest,
+    setLastReadActionID,
 };
