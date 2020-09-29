@@ -1,11 +1,16 @@
+/* eslint-disable max-len */
 import ExpensiMark from '../src/lib/ExpensiMark';
 
 const parser = new ExpensiMark();
 
 // Words wrapped in * successfully replaced with <strong></strong>
 test('Test bold markdown replacement', () => {
-    const boldTestStartString = 'This is a *sentence,* and it has some *punctuation, words, and spaces*. *test* * testing* test*test*test.';
-    expect(parser.replace(boldTestStartString)).toBe('This is a <strong>sentence,</strong> and it has some <strong>punctuation, words, and spaces</strong>. <strong>test</strong> <strong> testing</strong> test*test*test.');
+    const boldTestStartString = 'This is a *sentence,* and it has some *punctuation, words, and spaces*. '
+        + '*test* * testing* test*test*test.';
+    const boldTestReplacedString = 'This is a <strong>sentence,</strong> and it has some <strong>punctuation, words, and spaces</strong>. '
+        + '<strong>test</strong> <strong> testing</strong> test*test*test.';
+
+    expect(parser.replace(boldTestStartString)).toBe(boldTestReplacedString);
 });
 
 // Words wrapped in _ successfully replaced with <em></em>
@@ -67,7 +72,7 @@ test('Test inline code blocks', () => {
 test('Test code fencing with ExpensiMark syntax inside', () => {
     const codeFenceExample = '```\nThis is how you can write ~strikethrough~, *bold*, _italics_, and [links](https://www.expensify.com)\n```';
     expect(parser.replace(codeFenceExample)).toBe('<pre>This&nbsp;is&nbsp;how&nbsp;you&nbsp;can&nbsp;write&nbsp;~strikethrough~,&nbsp;*bold*,&nbsp;_italics_,&nbsp;and&nbsp;[links](https://www.expensify.com)</pre>');
-})
+});
 
 test('Test combination replacements', () => {
     const urlTestStartString = '<em>Here</em> is a _combination test_ that <marquee>sees</marquee> if ~https://www.example.com~ https://otherexample.com links get rendered first followed by *other markup* or if _*two work together*_ as well. This sentence also has a newline \n Yep just had one.';
@@ -84,42 +89,41 @@ test('Test wrapped URLs', () => {
 });
 
 test('Test url replacements', () => {
-    const urlTestStartString = 'Testing ' +
-        'test.com ' +
-        'test again ' +
-        'http://test.com/test ' +
-        'www.test.com ' +
-        'https://www.test.com ' +
-        'http://test.com)';
+    const urlTestStartString = 'Testing '
+        + 'test.com '
+        + 'test again '
+        + 'http://test.com/test '
+        + 'www.test.com '
+        + 'https://www.test.com '
+        + 'http://test.com)';
 
-    const urlTestReplacedString = 'Testing ' +
-        'test.com ' +
-        'test again ' +
-        '<a href="http://test.com/test" target="_blank">http://test.com/test</a> ' +
-        '<a href="www.test.com" target="_blank">www.test.com</a> ' +
-        '<a href="https://www.test.com" target="_blank">https://www.test.com</a> ' +
-        '<a href="http://test.com" target="_blank">http://test.com</a>)';
+    const urlTestReplacedString = 'Testing '
+        + 'test.com '
+        + 'test again '
+        + '<a href="http://test.com/test" target="_blank">http://test.com/test</a> '
+        + '<a href="www.test.com" target="_blank">www.test.com</a> '
+        + '<a href="https://www.test.com" target="_blank">https://www.test.com</a> '
+        + '<a href="http://test.com" target="_blank">http://test.com</a>)';
 
     expect(parser.replace(urlTestStartString)).toBe(urlTestReplacedString);
 });
 
 test('Test markdown style link with various styles', () => {
-    const testString =
-        'Go to ~[Expensify](https://www.expensify.com)~ ' +
-         '_[Expensify](https://www.expensify.com)_ ' +
-         '*[Expensify](https://www.expensify.com)* ' +
-         '[Expensify!](https://www.expensify.com) ' +
-         '[Expensify?](https://www.expensify.com) ' +
-         '[Expensify](https://www.expensify-test.com) ' +
-        '[Expensify](https://www.expensify.com/settings?param={%22section%22:%22account%22})';
+    const testString = 'Go to ~[Expensify](https://www.expensify.com)~ '
+        + '_[Expensify](https://www.expensify.com)_ '
+        + '*[Expensify](https://www.expensify.com)* '
+        + '[Expensify!](https://www.expensify.com) '
+        + '[Expensify?](https://www.expensify.com) '
+        + '[Expensify](https://www.expensify-test.com) '
+        + '[Expensify](https://www.expensify.com/settings?param={%22section%22:%22account%22})';
 
-    const resultString = 'Go to <del><a href="https://www.expensify.com" target="_blank">Expensify</a></del> ' +
-        '<em><a href="https://www.expensify.com" target="_blank">Expensify</a></em> ' +
-        '<strong><a href="https://www.expensify.com" target="_blank">Expensify</a></strong> ' +
-        '<a href="https://www.expensify.com" target="_blank">Expensify!</a> ' +
-        '<a href="https://www.expensify.com" target="_blank">Expensify?</a> ' +
-        '<a href="https://www.expensify-test.com" target="_blank">Expensify</a> ' +
-        '<a href="https://www.expensify.com/settings?param={%22section%22:%22account%22}" target="_blank">Expensify</a>';
+    const resultString = 'Go to <del><a href="https://www.expensify.com" target="_blank">Expensify</a></del> '
+        + '<em><a href="https://www.expensify.com" target="_blank">Expensify</a></em> '
+        + '<strong><a href="https://www.expensify.com" target="_blank">Expensify</a></strong> '
+        + '<a href="https://www.expensify.com" target="_blank">Expensify!</a> '
+        + '<a href="https://www.expensify.com" target="_blank">Expensify?</a> '
+        + '<a href="https://www.expensify-test.com" target="_blank">Expensify</a> '
+        + '<a href="https://www.expensify.com/settings?param={%22section%22:%22account%22}" target="_blank">Expensify</a>';
 
     expect(parser.replace(testString)).toBe(resultString);
 });
