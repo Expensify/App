@@ -421,7 +421,7 @@ function addAction(reportID, text, file) {
         }
     });
 
-    API.queueRequest('Report_AddComment', {
+    API.addReportComment({
         reportID,
         reportComment: htmlComment,
         file
