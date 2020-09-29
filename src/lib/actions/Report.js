@@ -16,6 +16,16 @@ import Visibility from '../Visibility';
 
 let currentUserEmail;
 let currentUserAccountID;
+Ion.connect({
+    key: IONKEYS.SESSION,
+    callback: (val) => {
+        // When signed out, val is undefined
+        if (val) {
+            currentUserEmail = val.email;
+            currentUserAccountID = val.accountID;
+        }
+    }
+});
 
 let currentURL;
 Ion.connect({
@@ -224,18 +234,6 @@ function subscribeToReportCommentEvents() {
         updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
     });
 }
-
-Ion.connect({
-    key: IONKEYS.SESSION,
-    callback: (val) => {
-        // When signed out, val is undefined
-        if (val) {
-            currentUserEmail = val.email;
-            currentUserAccountID = val.accountID;
-            Pusher.init().then(subscribeToReportCommentEvents);
-        }
-    }
-});
 
 /**
  * Get all chat reports and provide the proper report name
