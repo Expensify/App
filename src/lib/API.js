@@ -72,11 +72,10 @@ function createLogin(login, password) {
     })
         .then((response) => {
             if (response.jsonCode !== 200) {
-                return redirectToSignIn(response.message);
+                throw new Error(response.message);
             }
             Ion.merge(IONKEYS.CREDENTIALS, {login, password});
-        })
-        .catch(error => Ion.merge(IONKEYS.SESSION, {error: error.message}));
+        });
 }
 
 /**
@@ -149,20 +148,19 @@ function request(command, parameters, type = 'post') {
                 // an expensify login or the login credentials we created after the initial authentication.
                 // In both cases, we need the user to sign in again with their expensify credentials
                 if (response.jsonCode !== 200) {
-                    return redirectToSignIn(response.message);
+                    throw new Error(response.message);
                 }
 
-                // We need to return the promise from setSuccessfulSignInData to ensure the authToken is updated before
-                // we try to create a login below
-                setSuccessfulSignInData(response, parameters.exitTo);
+                // Update the authToken so it's used in the call to  createLogin below
                 authToken = response.authToken;
+                return response;
             })
-            .then(() => {
+            .then((response) => {
                 // If Expensify login, it's the users first time signing in and we need to
                 // create a login for the user
                 if (parameters.useExpensifyLogin) {
-                    console.debug('[SIGNIN] Creating a login');
-                    return createLogin(Str.generateDeviceLoginID(), Guid());
+                    return createLogin(Str.generateDeviceLoginID(), Guid())
+                        .then(() => setSuccessfulSignInData(response, parameters.exitTo));
                 }
             })
             .catch(error => Ion.merge(IONKEYS.SESSION, {error: error.message}));
