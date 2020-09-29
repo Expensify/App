@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import addStorageEventHandler from './addStorageEventHandler';
 import Str from './Str';
 import IONKEYS from '../IONKEYS';
+import promiseAllSettled from './promiseAllSettled';
 
 // Keeps track of the last connectionID that was used so we can keep incrementing it
 let lastConnectionID = 0;
@@ -224,11 +225,11 @@ function clear() {
     // and collect all the keys whose values are NOT null or undefined
     const currentKeySet = (
         function dfs(obj, parentKey = '', keySet = []) {
-            return _.map(Object.keys(obj), key => get(key)
-                .then((val) => {
-                    if (typeof val === 'object') {
-                        keySet.concat(dfs(val, `${parentKey}.${key}`, keySet));
-                    } else if (val !== null && val !== undefined) {
+            return _.map(obj, (value, key) => get(value)
+                .then((ionValue) => {
+                    if (typeof value === 'object') {
+                        keySet.concat(dfs(value, `${parentKey}.${key}`, keySet));
+                    } else if (ionValue !== null && ionValue !== undefined) {
                         keySet.push(key);
                     }
                     return keySet;
@@ -237,7 +238,10 @@ function clear() {
     )(IONKEYS);
 
     // Await all the keys from Ion.get
-    Promise.allSettled(currentKeySet)
+    promiseAllSettled(currentKeySet)
+        .then(promiseSet => _.filter(promiseSet, promise => promise.status === 'fulfilled'))
+        .then(promiseResults => _.map(promiseResults, promiseResult => promiseResult.value))
+        .then(keySet => _.union(...keySet))
         .then((keys) => {
             // Then clear the store
             AsyncStorage.clear();
