@@ -464,6 +464,18 @@ function get(parameters) {
     });
 }
 
+/**
+ * @param {object} parameters
+ * @param {string} parameters.emailList
+ * @returns {Promise}
+ */
+function getPersonalDetails(parameters) {
+    return queueRequest('Get', {
+        authToken,
+        emailList: parameters.emailList,
+    });
+}
+
 export {
     authenticate,
     addReportComment,
@@ -471,6 +483,7 @@ export {
     deleteLogin,
     get,
     getAuthToken,
+    getPersonalDetails,
     getReportHistory,
     onReconnect,
     queueRequest,
