@@ -312,6 +312,8 @@ Pusher.registerSocketEventCallback((eventName) => {
         case 'error':
             reconnectToPusher();
             break;
+        default:
+            break;
     }
 });
 
