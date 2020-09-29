@@ -32,13 +32,16 @@ jobs:
               run: git checkout -b version-bump-${{ github.sha }}
 
             - name: Generate version
-              run: npm version prerelease -m "Update version to %s"
+              run: npm --no-git-tag-version version prerelease
 
             - name: Save new version
               run: |
-                npm run print-version --silent > web/version.txt
-                git add web/version.txt
-                git commit -m "Save version $(cat web/version.txt) to file"
+                echo '::set-env name=UPDATED_VERSION::$(npm run print-version --silent)'
+                echo '::set-env name=COMMIT_MESSAGE::"Update version to $UPDATED_VERSION"'
+                echo $UPDATED_VERSION > web/version.txt
+                git add package.json package-lock.json web/version.txt
+                git tag -a $UPDATED_VERSION -m $COMMIT_MESSAGE
+                git commit -m $COMMIT_MESSAGE
 
             - name: Push new version
               run: git push --set-upstream origin version-bump-${{ github.sha }}
