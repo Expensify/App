@@ -76,7 +76,7 @@ function createLogin(login, password) {
             }
             Ion.merge(IONKEYS.CREDENTIALS, {login, password});
         })
-        .catch(err => Ion.merge(IONKEYS.SESSION, {error: err}));
+        .catch(err => Ion.merge(IONKEYS.SESSION, {error: err.message}));
 }
 
 /**
