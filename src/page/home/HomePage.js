@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import {SafeAreaInsetsContext, SafeAreaProvider} from 'react-native-safe-area-context';
 import {Route} from '../../lib/Router';
-import styles, {getSafeAreaPadding, widthBreakPoint} from '../../style/StyleSheet';
+import styles, {getSafeAreaPadding} from '../../style/StyleSheet';
 import Header from './HeaderView';
 import Sidebar from './sidebar/SidebarView';
 import Main from './MainView';
@@ -17,6 +17,7 @@ import {fetch as fetchPersonalDetails} from '../../lib/actions/PersonalDetails';
 import * as Pusher from '../../lib/Pusher/pusher';
 
 const windowSize = Dimensions.get('window');
+const widthBreakPoint = 1000;
 
 export default class App extends React.Component {
     constructor(props) {
