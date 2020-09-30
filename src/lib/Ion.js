@@ -225,15 +225,15 @@ function clear() {
     // and collect all the keys whose values are NOT null or undefined
     const currentKeySet = (
         function dfs(obj, parentKey = '', keySet = []) {
-            return _.map(obj, (value, key) => get(value)
-                .then((ionValue) => {
-                    if (typeof value === 'object') {
-                        keySet.concat(dfs(value, `${parentKey}.${key}`, keySet));
-                    } else if (ionValue !== null && ionValue !== undefined) {
-                        keySet.push(key);
-                    }
-                    return keySet;
-                }));
+            return _.map(obj, (value, key) => typeof value === 'object'
+                ? keySet.concat(dfs(value, `${parentKey}.${key}`, keySet))
+                : get(value)
+                    .then((ionValue) => {
+                        if (ionValue !== null && ionValue !== undefined) {
+                            keySet.push(key);
+                        }
+                        return keySet;
+                    }));
         }
     )(IONKEYS);
 
