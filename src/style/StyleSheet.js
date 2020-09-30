@@ -659,6 +659,7 @@ const styles = {
     chatSwitcherItemText: {
         color: colors.text,
     },
+    
     chatSwitcherItemFocused: {
         backgroundColor: colors.blue,
         borderRadius: 8,
