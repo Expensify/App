@@ -16,6 +16,12 @@ const propTypes = {
     // renderItem rows. Web will have issues with FlatList
     // if this is inaccurate.
     initialRowHeight: PropTypes.number.isRequired,
+
+    // Passed via forwardRef so we can access the FlatList ref
+    innerRef: PropTypes.oneOfType([
+        PropTypes.func,
+        PropTypes.shape({current: PropTypes.instanceOf(FlatList)})
+    ]).isRequired,
 };
 
 const defaultProps = {
@@ -34,11 +40,6 @@ class BaseInvertedFlatList extends Component {
         // This is essential to getting FlatList inverted to work on web
         // and also enables more predictable scrolling on native platforms.
         this.sizeMap = {};
-    }
-
-    shouldComponentUpdate(prevProps) {
-        // The FlatList itself should only re-render if items are added
-        return prevProps.data.length !== this.props.data.length;
     }
 
     /**
@@ -135,8 +136,10 @@ class BaseInvertedFlatList extends Component {
                 inverted
                 renderItem={this.renderItem}
                 getItemLayout={this.getItemLayout}
-                removeClippedSubviews
                 bounces={false}
+                removeClippedSubviews
+                maxToRenderPerBatch={15}
+                updateCellsBatchingPeriod={40}
             />
         );
     }

@@ -24,10 +24,17 @@ const propTypes = {
 
     // Array of report actions for this report
     reportActions: PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
+
+    // The session of the logged in person
+    session: PropTypes.shape({
+        // Email of the logged in person
+        email: PropTypes.string,
+    }),
 };
 
 const defaultProps = {
     reportActions: {},
+    session: {},
 };
 
 class ReportActionsView extends React.Component {
@@ -58,6 +65,13 @@ class ReportActionsView extends React.Component {
             if (this.props.isActiveReport) {
                 setTimeout(this.recordMaxAction, 3000);
             }
+
+            return;
+        }
+
+        // If we are switching from not active to active report then mark comments as read
+        if (!prevProps.isActiveReport && this.props.isActiveReport) {
+            this.recordMaxAction();
         }
     }
 
