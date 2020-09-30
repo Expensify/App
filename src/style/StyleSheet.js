@@ -14,6 +14,7 @@ const colors = {
     heading: '#37444C',
     icon: '#C6C9CA',
     text: '#4A5960',
+    textBackground: '#F0F0F0',
     textReversed: '#FFFFFF',
     textSupporting: '#7D8B8F',
     red: '#E84A3B',
@@ -651,7 +652,23 @@ const styles = {
     },
 };
 
+const baseCodeTagStyles = {
+    backgroundColor: colors.textBackground,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: colors.border,
+};
+
 const webViewStyles = {
+    preTagStyle: {
+        ...baseCodeTagStyles,
+        padding: 10,
+    },
+    codeTagStyle: {
+        ...baseCodeTagStyles,
+        paddingLeft: 3,
+        paddingRight: 3,
+    },
     tagStyles: {
         em: {
             fontStyle: 'italic',
@@ -669,7 +686,15 @@ const webViewStyles = {
 
         a: {
             color: colors.blue
-        }
+        },
+
+        pre: {
+            fontFamily: 'monospace',
+        },
+
+        code: {
+            fontFamily: 'monospace',
+        },
     },
 
     baseFontStyle: {
