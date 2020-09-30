@@ -9,6 +9,7 @@ import Str from './Str';
 import Guid from './Guid';
 import redirectToSignIn from './actions/SignInRedirect';
 import {redirect} from './actions/App';
+import Activity from './Activity';
 
 // Holds all of the callbacks that need to be triggered when the network reconnects
 const reconnectionCallbacks = [];
@@ -27,6 +28,13 @@ Ion.connect({
     callback: val => authToken = val ? val.authToken : null,
 });
 
+/**
+ * Loop over all reconnection callbacks and fire each one
+ */
+function triggerReconnectionCallbacks() {
+    _.each(reconnectionCallbacks, callback => callback());
+}
+
 // We subscribe to changes to the online/offline status of the network to determine when we should fire off API calls
 // vs queueing them for later. When reconnecting, ie, going from offline to online, all the reconnection callbacks
 // are triggered (this is usually Actions that need to re-download data from the server)
@@ -35,10 +43,22 @@ Ion.connect({
     key: IONKEYS.NETWORK,
     callback: (val) => {
         if (isOffline && !val.isOffline) {
-            _.each(reconnectionCallbacks, callback => callback());
+            triggerReconnectionCallbacks();
         }
         isOffline = val && val.isOffline;
     }
+});
+
+// When the app is in the background Pusher can still receive realtime updates
+// for a few minutes, but eventually disconnects causing a delay when the app
+// returns from the background. So, if we are returning from the background
+// and we are online we should trigger our reconnection callbacks.
+Activity.registerOnAppBecameActiveCallback(() => {
+    if (isOffline) {
+        return;
+    }
+
+    triggerReconnectionCallbacks();
 });
 
 // When the user authenticates for the first time we create a login and store credentials in Ion.
@@ -364,6 +384,7 @@ function getAuthToken() {
  * @returns {Promise}
  */
 function authenticate(parameters) {
+    Ion.merge(IONKEYS.SESSION, {loading: true, error: ''});
     return queueRequest('Authenticate', {
         // When authenticating for the first time, we pass useExpensifyLogin as true so we check for credentials for
         // the expensify partnerID to let users authenticate with their expensify user and password.
@@ -379,6 +400,8 @@ function authenticate(parameters) {
             console.error(err);
             console.debug('[SIGNIN] Request error');
             Ion.merge(IONKEYS.SESSION, {error: err.message});
+        }).finally(() => {
+            Ion.merge(IONKEYS.SESSION, {loading: false});
         });
 }
 
@@ -398,10 +421,93 @@ function deleteLogin(parameters) {
         .catch(err => Ion.merge(IONKEYS.SESSION, {error: err.message}));
 }
 
+/**
+ * @param {object} parameters
+ * @param {number} parameters.accountID
+ * @param {number} parameters.reportID
+ * @param {number} parameters.sequenceNumber
+ * @returns {Promise}
+ */
+function setLastReadActionID(parameters) {
+    return queueRequest('Report_SetLastReadActionID', {
+        authToken,
+        accountID: parameters.accountID,
+        reportID: parameters.reportID,
+        sequenceNumber: parameters.sequenceNumber,
+    });
+}
+
+/**
+ * @param {object} parameters
+ * @param {number} parameters.reportID
+ * @returns {Promise}
+ */
+function getReportHistory(parameters) {
+    return queueRequest('Report_GetHistory', {
+        authToken,
+        reportID: parameters.reportID,
+    });
+}
+
+/**
+ * @param {object} parameters
+ * @param {string} parameters.emailList
+ * @returns {Promise}
+ */
+function createChatReport(parameters) {
+    return queueRequest('CreateChatReport', {
+        authToken,
+        emailList: parameters.emailList,
+    });
+}
+
+/**
+ * @param {object} parameters
+ * @param {string} parameters.reportComment
+ * @param {object} parameters.file
+ * @returns {Promise}
+ */
+function addReportComment(parameters) {
+    return queueRequest('Report_AddComment', {
+        authToken,
+        reportComment: parameters.reportComment,
+        file: parameters.file,
+    });
+}
+
+/**
+ * @param {object} parameters
+ * @param {string} parameters.returnValueList
+ * @returns {Promise}
+ */
+function get(parameters) {
+    return queueRequest('Get', {
+        authToken,
+        ...parameters,
+    });
+}
+
+/**
+ * @param {object} parameters
+ * @param {string} parameters.emailList
+ * @returns {Promise}
+ */
+function getPersonalDetails(parameters) {
+    return queueRequest('Get', {
+        authToken,
+        emailList: parameters.emailList,
+    });
+}
+
 export {
     authenticate,
+    addReportComment,
+    createChatReport,
     deleteLogin,
+    get,
     getAuthToken,
+    getPersonalDetails,
+    getReportHistory,
     onReconnect,
-    queueRequest,
+    setLastReadActionID,
 };
