@@ -12,13 +12,14 @@
 		13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.m */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
+		2A03B7FAB1989524E18D4F97 /* libPods-ReactNativeChat-ReactNativeChatTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C89947EEA39BBF00B7EF26A6 /* libPods-ReactNativeChat-ReactNativeChatTests.a */; };
 		4912B60FA66C4604A56AD575 /* GTAmericaExp-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = 8C7003903C1E4957824899BB /* GTAmericaExp-Regular.otf */; };
 		49F157C845CE4D56AA72B80E /* GTAmericaExp-Light.otf in Resources */ = {isa = PBXBuildFile; fileRef = 67D5C3A6A7FA417C8A853FC1 /* GTAmericaExp-Light.otf */; };
 		7F7721B764D444D6861A9B39 /* GTAmericaExp-Thin.otf in Resources */ = {isa = PBXBuildFile; fileRef = A292718541C841859D97DF2F /* GTAmericaExp-Thin.otf */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
-		A2CDC0C5FF0B4238EDF00E70 /* libPods-ReactNativeChat.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 98FAF3CC3CFF9F89A372A57F /* libPods-ReactNativeChat.a */; };
+		B50BF560D54753753D2B7522 /* libPods-ReactNativeChat.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 59D3EEA5B40E14473132477B /* libPods-ReactNativeChat.a */; };
 		CC07911F22C2437DA6708BD2 /* GTAmericaExp-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = AE65058949E14DA5A2D5435D /* GTAmericaExp-Medium.otf */; };
-		DD56F9D34944614CB5A2BC9C /* libPods-ReactNativeChat-ReactNativeChatTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D7846B56920B8E09BA63C843 /* libPods-ReactNativeChat-ReactNativeChatTests.a */; };
+		E9DF872D2525201700607FDC /* AirshipConfig.plist in Resources */ = {isa = PBXBuildFile; fileRef = E9DF872C2525201700607FDC /* AirshipConfig.plist */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -42,18 +43,20 @@
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = ReactNativeChat/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = ReactNativeChat/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = ReactNativeChat/main.m; sourceTree = "<group>"; };
-		52FD02A97003546BD29ED1F1 /* Pods-ReactNativeChat-ReactNativeChatTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ReactNativeChat-ReactNativeChatTests.release.xcconfig"; path = "Target Support Files/Pods-ReactNativeChat-ReactNativeChatTests/Pods-ReactNativeChat-ReactNativeChatTests.release.xcconfig"; sourceTree = "<group>"; };
+		20AD5495BB19D0CE21D0F356 /* Pods-ReactNativeChat-ReactNativeChatTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ReactNativeChat-ReactNativeChatTests.release.xcconfig"; path = "Target Support Files/Pods-ReactNativeChat-ReactNativeChatTests/Pods-ReactNativeChat-ReactNativeChatTests.release.xcconfig"; sourceTree = "<group>"; };
+		2791C2E4A4F1D9EC4BCA1311 /* Pods-ReactNativeChat.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ReactNativeChat.release.xcconfig"; path = "Target Support Files/Pods-ReactNativeChat/Pods-ReactNativeChat.release.xcconfig"; sourceTree = "<group>"; };
+		47B12692BCB071BA3DA6B107 /* Pods-ReactNativeChat-ReactNativeChatTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ReactNativeChat-ReactNativeChatTests.debug.xcconfig"; path = "Target Support Files/Pods-ReactNativeChat-ReactNativeChatTests/Pods-ReactNativeChat-ReactNativeChatTests.debug.xcconfig"; sourceTree = "<group>"; };
+		59D3EEA5B40E14473132477B /* libPods-ReactNativeChat.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ReactNativeChat.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		67D5C3A6A7FA417C8A853FC1 /* GTAmericaExp-Light.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-Light.otf"; path = "../assets/fonts/GTAmericaExp-Light.otf"; sourceTree = "<group>"; };
-		79C70276BBEA634D78F5CE7F /* Pods-ReactNativeChat.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ReactNativeChat.release.xcconfig"; path = "Target Support Files/Pods-ReactNativeChat/Pods-ReactNativeChat.release.xcconfig"; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = ReactNativeChat/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		8C7003903C1E4957824899BB /* GTAmericaExp-Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-Regular.otf"; path = "../assets/fonts/GTAmericaExp-Regular.otf"; sourceTree = "<group>"; };
-		98FAF3CC3CFF9F89A372A57F /* libPods-ReactNativeChat.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ReactNativeChat.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A292718541C841859D97DF2F /* GTAmericaExp-Thin.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-Thin.otf"; path = "../assets/fonts/GTAmericaExp-Thin.otf"; sourceTree = "<group>"; };
 		A5AAD008CBD84A6CAEB9AC97 /* GTAmericaExp-Bold.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-Bold.otf"; path = "../assets/fonts/GTAmericaExp-Bold.otf"; sourceTree = "<group>"; };
 		AE65058949E14DA5A2D5435D /* GTAmericaExp-Medium.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-Medium.otf"; path = "../assets/fonts/GTAmericaExp-Medium.otf"; sourceTree = "<group>"; };
-		B37FE0EDA609BB155B22BDDE /* Pods-ReactNativeChat.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ReactNativeChat.debug.xcconfig"; path = "Target Support Files/Pods-ReactNativeChat/Pods-ReactNativeChat.debug.xcconfig"; sourceTree = "<group>"; };
-		B7FD7A35A63E32551C5F2579 /* Pods-ReactNativeChat-ReactNativeChatTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ReactNativeChat-ReactNativeChatTests.debug.xcconfig"; path = "Target Support Files/Pods-ReactNativeChat-ReactNativeChatTests/Pods-ReactNativeChat-ReactNativeChatTests.debug.xcconfig"; sourceTree = "<group>"; };
-		D7846B56920B8E09BA63C843 /* libPods-ReactNativeChat-ReactNativeChatTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ReactNativeChat-ReactNativeChatTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		C19B554C5F616C1AD56D7A56 /* Pods-ReactNativeChat.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ReactNativeChat.debug.xcconfig"; path = "Target Support Files/Pods-ReactNativeChat/Pods-ReactNativeChat.debug.xcconfig"; sourceTree = "<group>"; };
+		C89947EEA39BBF00B7EF26A6 /* libPods-ReactNativeChat-ReactNativeChatTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ReactNativeChat-ReactNativeChatTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		E9DF86F625251E4A00607FDC /* Chat.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = Chat.entitlements; path = ReactNativeChat/Chat.entitlements; sourceTree = "<group>"; };
+		E9DF872C2525201700607FDC /* AirshipConfig.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = AirshipConfig.plist; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		ED2971642150620600B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS12.0.sdk/System/Library/Frameworks/JavaScriptCore.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
@@ -63,7 +66,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DD56F9D34944614CB5A2BC9C /* libPods-ReactNativeChat-ReactNativeChatTests.a in Frameworks */,
+				2A03B7FAB1989524E18D4F97 /* libPods-ReactNativeChat-ReactNativeChatTests.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -71,7 +74,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A2CDC0C5FF0B4238EDF00E70 /* libPods-ReactNativeChat.a in Frameworks */,
+				B50BF560D54753753D2B7522 /* libPods-ReactNativeChat.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -98,6 +101,8 @@
 		13B07FAE1A68108700A75B9A /* ReactNativeChat */ = {
 			isa = PBXGroup;
 			children = (
+				E9DF872C2525201700607FDC /* AirshipConfig.plist */,
+				E9DF86F625251E4A00607FDC /* Chat.entitlements */,
 				008F07F21AC5B25A0029DE68 /* main.jsbundle */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
 				13B07FB01A68108700A75B9A /* AppDelegate.m */,
@@ -114,8 +119,8 @@
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				ED2971642150620600B7C4FE /* JavaScriptCore.framework */,
-				98FAF3CC3CFF9F89A372A57F /* libPods-ReactNativeChat.a */,
-				D7846B56920B8E09BA63C843 /* libPods-ReactNativeChat-ReactNativeChatTests.a */,
+				59D3EEA5B40E14473132477B /* libPods-ReactNativeChat.a */,
+				C89947EEA39BBF00B7EF26A6 /* libPods-ReactNativeChat-ReactNativeChatTests.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -167,10 +172,10 @@
 		EC29677F0A49C2946A495A33 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				B37FE0EDA609BB155B22BDDE /* Pods-ReactNativeChat.debug.xcconfig */,
-				79C70276BBEA634D78F5CE7F /* Pods-ReactNativeChat.release.xcconfig */,
-				B7FD7A35A63E32551C5F2579 /* Pods-ReactNativeChat-ReactNativeChatTests.debug.xcconfig */,
-				52FD02A97003546BD29ED1F1 /* Pods-ReactNativeChat-ReactNativeChatTests.release.xcconfig */,
+				C19B554C5F616C1AD56D7A56 /* Pods-ReactNativeChat.debug.xcconfig */,
+				2791C2E4A4F1D9EC4BCA1311 /* Pods-ReactNativeChat.release.xcconfig */,
+				47B12692BCB071BA3DA6B107 /* Pods-ReactNativeChat-ReactNativeChatTests.debug.xcconfig */,
+				20AD5495BB19D0CE21D0F356 /* Pods-ReactNativeChat-ReactNativeChatTests.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -182,11 +187,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "ReactNativeChatTests" */;
 			buildPhases = (
-				42ECEAF38FD51DAF5C36C421 /* [CP] Check Pods Manifest.lock */,
+				AE43224DB5FDB1A6AD5D05C0 /* [CP] Check Pods Manifest.lock */,
 				00E356EA1AD99517003FC87E /* Sources */,
 				00E356EB1AD99517003FC87E /* Frameworks */,
 				00E356EC1AD99517003FC87E /* Resources */,
-				47BFF8CFFA227C730E0A25B9 /* [CP] Copy Pods Resources */,
+				9549BADC0A8863C4AE3E64ED /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -202,13 +207,13 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "ReactNativeChat" */;
 			buildPhases = (
-				2B36DE1F24E920095A8809AF /* [CP] Check Pods Manifest.lock */,
+				65C9D025A7C6606100A5D923 /* [CP] Check Pods Manifest.lock */,
 				FD10A7F022414F080027D42C /* Start Packager */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
-				14A7FEF4B64F88E63C4E8ED4 /* [CP] Copy Pods Resources */,
+				C70727B1CBBD0122615E6118 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -273,6 +278,7 @@
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				11FA3546D54246CD8F819152 /* GTAmericaExp-Bold.otf in Resources */,
+				E9DF872D2525201700607FDC /* AirshipConfig.plist in Resources */,
 				49F157C845CE4D56AA72B80E /* GTAmericaExp-Light.otf in Resources */,
 				CC07911F22C2437DA6708BD2 /* GTAmericaExp-Medium.otf in Resources */,
 				4912B60FA66C4604A56AD575 /* GTAmericaExp-Regular.otf in Resources */,
@@ -297,135 +303,7 @@
 			shellPath = /bin/sh;
 			shellScript = "export NODE_BINARY=node\n../node_modules/react-native/scripts/react-native-xcode.sh";
 		};
-		14A7FEF4B64F88E63C4E8ED4 /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-ReactNativeChat/Pods-ReactNativeChat-resources.sh",
-				"${PODS_ROOT}/Airship/Airship/AirshipAutomation/Resources/UAAutomationActions.plist",
-				"${PODS_ROOT}/Airship/Airship/AirshipAutomation/Resources/UAInAppMessageBannerContentView.xib",
-				"${PODS_ROOT}/Airship/Airship/AirshipAutomation/Resources/UAInAppMessageBannerView.xib",
-				"${PODS_ROOT}/Airship/Airship/AirshipAutomation/Resources/UAInAppMessageButtonView.xib",
-				"${PODS_ROOT}/Airship/Airship/AirshipAutomation/Resources/UAInAppMessageFullScreenViewController.xib",
-				"${PODS_ROOT}/Airship/Airship/AirshipAutomation/Resources/UAInAppMessageHTMLViewController.xib",
-				"${PODS_ROOT}/Airship/Airship/AirshipAutomation/Resources/UAInAppMessageModalViewController.xib",
-				"${PODS_ROOT}/Airship/Airship/AirshipAutomation/Resources/UAInAppMessageResizableViewController.xib",
-				"${PODS_ROOT}/Airship/Airship/AirshipAutomation/Resources/UAAutomation.xcdatamodeld",
-				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/ar.lproj",
-				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/cs.lproj",
-				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/da.lproj",
-				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/de.lproj",
-				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/en.lproj",
-				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/es-419.lproj",
-				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/es.lproj",
-				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/fi.lproj",
-				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/fr.lproj",
-				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/hi.lproj",
-				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/hu.lproj",
-				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/id.lproj",
-				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/it.lproj",
-				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/iw.lproj",
-				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/ja.lproj",
-				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/ko.lproj",
-				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/ms.lproj",
-				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/nl.lproj",
-				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/no.lproj",
-				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/pl.lproj",
-				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/pt-PT.lproj",
-				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/pt.lproj",
-				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/ro.lproj",
-				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/ru.lproj",
-				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/sk.lproj",
-				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/sv.lproj",
-				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/th.lproj",
-				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/tr.lproj",
-				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/UAEvents.xcdatamodeld",
-				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/UARemoteData.xcdatamodeld",
-				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/vi.lproj",
-				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/zh-Hans.lproj",
-				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/zh-Hant.lproj",
-				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/ios/UADefaultActions.plist",
-				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/ios/UANativeBridge",
-				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/ios/UANotificationCategories.plist",
-				"${PODS_ROOT}/Airship/Airship/AirshipExtendedActions/Resources/UAExtendedActions.plist",
-				"${PODS_ROOT}/Airship/Airship/AirshipExtendedActions/Resources/UARateAppPromptView.xib",
-				"${PODS_ROOT}/Airship/Airship/AirshipMessageCenter/Resources/UADefaultMessageCenterListViewController.xib",
-				"${PODS_ROOT}/Airship/Airship/AirshipMessageCenter/Resources/UADefaultMessageCenterMessageViewController.xib",
-				"${PODS_ROOT}/Airship/Airship/AirshipMessageCenter/Resources/UAMessageCenterActions.plist",
-				"${PODS_ROOT}/Airship/Airship/AirshipMessageCenter/Resources/UAMessageCenterListCell.xib",
-				"${PODS_ROOT}/Airship/Airship/AirshipMessageCenter/Resources/UAMessageCenterListViewController.xib",
-				"${PODS_ROOT}/Airship/Airship/AirshipMessageCenter/Resources/UAMessageCenterMessageViewController.xib",
-				"${PODS_ROOT}/Airship/Airship/AirshipMessageCenter/Resources/UAMessageCenterPlaceholderIcon.png",
-				"${PODS_ROOT}/Airship/Airship/AirshipMessageCenter/Resources/UAInbox.xcdatamodeld",
-				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/AccessibilityResources.bundle",
-			);
-			name = "[CP] Copy Pods Resources";
-			outputPaths = (
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAAutomationActions.plist",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAInAppMessageBannerContentView.nib",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAInAppMessageBannerView.nib",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAInAppMessageButtonView.nib",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAInAppMessageFullScreenViewController.nib",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAInAppMessageHTMLViewController.nib",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAInAppMessageModalViewController.nib",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAInAppMessageResizableViewController.nib",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAAutomation.momd",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ar.lproj",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/cs.lproj",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/da.lproj",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/de.lproj",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/en.lproj",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/es-419.lproj",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/es.lproj",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/fi.lproj",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/fr.lproj",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/hi.lproj",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/hu.lproj",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/id.lproj",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/it.lproj",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/iw.lproj",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ja.lproj",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ko.lproj",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ms.lproj",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/nl.lproj",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/no.lproj",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/pl.lproj",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/pt-PT.lproj",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/pt.lproj",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ro.lproj",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ru.lproj",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/sk.lproj",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/sv.lproj",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/th.lproj",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/tr.lproj",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAEvents.momd",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UARemoteData.momd",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/vi.lproj",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/zh-Hans.lproj",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/zh-Hant.lproj",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UADefaultActions.plist",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UANativeBridge",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UANotificationCategories.plist",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAExtendedActions.plist",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UARateAppPromptView.nib",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UADefaultMessageCenterListViewController.nib",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UADefaultMessageCenterMessageViewController.nib",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAMessageCenterActions.plist",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAMessageCenterListCell.nib",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAMessageCenterListViewController.nib",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAMessageCenterMessageViewController.nib",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAMessageCenterPlaceholderIcon.png",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAInbox.momd",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/AccessibilityResources.bundle",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-ReactNativeChat/Pods-ReactNativeChat-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		2B36DE1F24E920095A8809AF /* [CP] Check Pods Manifest.lock */ = {
+		65C9D025A7C6606100A5D923 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -447,29 +325,7 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		42ECEAF38FD51DAF5C36C421 /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-ReactNativeChat-ReactNativeChatTests-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		47BFF8CFFA227C730E0A25B9 /* [CP] Copy Pods Resources */ = {
+		9549BADC0A8863C4AE3E64ED /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -597,6 +453,156 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-ReactNativeChat-ReactNativeChatTests/Pods-ReactNativeChat-ReactNativeChatTests-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
+		AE43224DB5FDB1A6AD5D05C0 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-ReactNativeChat-ReactNativeChatTests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		C70727B1CBBD0122615E6118 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-ReactNativeChat/Pods-ReactNativeChat-resources.sh",
+				"${PODS_ROOT}/Airship/Airship/AirshipAutomation/Resources/UAAutomationActions.plist",
+				"${PODS_ROOT}/Airship/Airship/AirshipAutomation/Resources/UAInAppMessageBannerContentView.xib",
+				"${PODS_ROOT}/Airship/Airship/AirshipAutomation/Resources/UAInAppMessageBannerView.xib",
+				"${PODS_ROOT}/Airship/Airship/AirshipAutomation/Resources/UAInAppMessageButtonView.xib",
+				"${PODS_ROOT}/Airship/Airship/AirshipAutomation/Resources/UAInAppMessageFullScreenViewController.xib",
+				"${PODS_ROOT}/Airship/Airship/AirshipAutomation/Resources/UAInAppMessageHTMLViewController.xib",
+				"${PODS_ROOT}/Airship/Airship/AirshipAutomation/Resources/UAInAppMessageModalViewController.xib",
+				"${PODS_ROOT}/Airship/Airship/AirshipAutomation/Resources/UAInAppMessageResizableViewController.xib",
+				"${PODS_ROOT}/Airship/Airship/AirshipAutomation/Resources/UAAutomation.xcdatamodeld",
+				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/ar.lproj",
+				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/cs.lproj",
+				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/da.lproj",
+				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/de.lproj",
+				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/en.lproj",
+				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/es-419.lproj",
+				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/es.lproj",
+				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/fi.lproj",
+				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/fr.lproj",
+				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/hi.lproj",
+				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/hu.lproj",
+				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/id.lproj",
+				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/it.lproj",
+				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/iw.lproj",
+				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/ja.lproj",
+				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/ko.lproj",
+				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/ms.lproj",
+				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/nl.lproj",
+				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/no.lproj",
+				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/pl.lproj",
+				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/pt-PT.lproj",
+				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/pt.lproj",
+				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/ro.lproj",
+				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/ru.lproj",
+				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/sk.lproj",
+				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/sv.lproj",
+				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/th.lproj",
+				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/tr.lproj",
+				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/UAEvents.xcdatamodeld",
+				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/UARemoteData.xcdatamodeld",
+				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/vi.lproj",
+				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/zh-Hans.lproj",
+				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/common/zh-Hant.lproj",
+				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/ios/UADefaultActions.plist",
+				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/ios/UANativeBridge",
+				"${PODS_ROOT}/Airship/Airship/AirshipCore/Resources/ios/UANotificationCategories.plist",
+				"${PODS_ROOT}/Airship/Airship/AirshipExtendedActions/Resources/UAExtendedActions.plist",
+				"${PODS_ROOT}/Airship/Airship/AirshipExtendedActions/Resources/UARateAppPromptView.xib",
+				"${PODS_ROOT}/Airship/Airship/AirshipMessageCenter/Resources/UADefaultMessageCenterListViewController.xib",
+				"${PODS_ROOT}/Airship/Airship/AirshipMessageCenter/Resources/UADefaultMessageCenterMessageViewController.xib",
+				"${PODS_ROOT}/Airship/Airship/AirshipMessageCenter/Resources/UAMessageCenterActions.plist",
+				"${PODS_ROOT}/Airship/Airship/AirshipMessageCenter/Resources/UAMessageCenterListCell.xib",
+				"${PODS_ROOT}/Airship/Airship/AirshipMessageCenter/Resources/UAMessageCenterListViewController.xib",
+				"${PODS_ROOT}/Airship/Airship/AirshipMessageCenter/Resources/UAMessageCenterMessageViewController.xib",
+				"${PODS_ROOT}/Airship/Airship/AirshipMessageCenter/Resources/UAMessageCenterPlaceholderIcon.png",
+				"${PODS_ROOT}/Airship/Airship/AirshipMessageCenter/Resources/UAInbox.xcdatamodeld",
+				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/AccessibilityResources.bundle",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAAutomationActions.plist",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAInAppMessageBannerContentView.nib",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAInAppMessageBannerView.nib",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAInAppMessageButtonView.nib",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAInAppMessageFullScreenViewController.nib",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAInAppMessageHTMLViewController.nib",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAInAppMessageModalViewController.nib",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAInAppMessageResizableViewController.nib",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAAutomation.momd",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ar.lproj",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/cs.lproj",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/da.lproj",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/de.lproj",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/en.lproj",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/es-419.lproj",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/es.lproj",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/fi.lproj",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/fr.lproj",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/hi.lproj",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/hu.lproj",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/id.lproj",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/it.lproj",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/iw.lproj",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ja.lproj",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ko.lproj",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ms.lproj",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/nl.lproj",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/no.lproj",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/pl.lproj",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/pt-PT.lproj",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/pt.lproj",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ro.lproj",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ru.lproj",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/sk.lproj",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/sv.lproj",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/th.lproj",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/tr.lproj",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAEvents.momd",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UARemoteData.momd",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/vi.lproj",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/zh-Hans.lproj",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/zh-Hant.lproj",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UADefaultActions.plist",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UANativeBridge",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UANotificationCategories.plist",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAExtendedActions.plist",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UARateAppPromptView.nib",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UADefaultMessageCenterListViewController.nib",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UADefaultMessageCenterMessageViewController.nib",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAMessageCenterActions.plist",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAMessageCenterListCell.nib",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAMessageCenterListViewController.nib",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAMessageCenterMessageViewController.nib",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAMessageCenterPlaceholderIcon.png",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAInbox.momd",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/AccessibilityResources.bundle",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-ReactNativeChat/Pods-ReactNativeChat-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 		FD10A7F022414F080027D42C /* Start Packager */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -649,7 +655,7 @@
 /* Begin XCBuildConfiguration section */
 		00E356F61AD99517003FC87E /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = B7FD7A35A63E32551C5F2579 /* Pods-ReactNativeChat-ReactNativeChatTests.debug.xcconfig */;
+			baseConfigurationReference = 47B12692BCB071BA3DA6B107 /* Pods-ReactNativeChat-ReactNativeChatTests.debug.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
@@ -673,7 +679,7 @@
 		};
 		00E356F71AD99517003FC87E /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 52FD02A97003546BD29ED1F1 /* Pods-ReactNativeChat-ReactNativeChatTests.release.xcconfig */;
+			baseConfigurationReference = 20AD5495BB19D0CE21D0F356 /* Pods-ReactNativeChat-ReactNativeChatTests.release.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
@@ -694,10 +700,11 @@
 		};
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = B37FE0EDA609BB155B22BDDE /* Pods-ReactNativeChat.debug.xcconfig */;
+			baseConfigurationReference = C19B554C5F616C1AD56D7A56 /* Pods-ReactNativeChat.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = ReactNativeChat/Chat.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 3;
@@ -723,10 +730,11 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 79C70276BBEA634D78F5CE7F /* Pods-ReactNativeChat.release.xcconfig */;
+			baseConfigurationReference = 2791C2E4A4F1D9EC4BCA1311 /* Pods-ReactNativeChat.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = ReactNativeChat/Chat.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 3;
