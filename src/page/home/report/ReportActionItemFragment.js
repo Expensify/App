@@ -52,9 +52,11 @@ class ReportActionItemFragment extends React.PureComponent {
                 </View>
             ),
             code: (htmlAttribs, children, convertedCSSStyles, passProps) => (
-                <Text key={passProps.key}>
-                    {children}
-                </Text>
+                <View key={passProps.key} style={webViewStyles.codeTagStyle}>
+                    <Text>
+                        {children}
+                    </Text>
+                </View>
             ),
         };
     }
