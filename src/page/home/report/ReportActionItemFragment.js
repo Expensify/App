@@ -1,7 +1,7 @@
 import React from 'react';
 import HTML from 'react-native-render-html';
 import {
-    Linking, ActivityIndicator, View, Platform
+    Linking, ActivityIndicator, View, Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import Str from '../../../lib/Str';
@@ -43,13 +43,16 @@ class ReportActionItemFragment extends React.PureComponent {
                     {children}
                 </AnchorForCommentsOnly>
             ),
-            pre: (htmlAttribs, children) => (
-                <View style={webViewStyles.preTagStyle}>
+            pre: (htmlAttribs, children, convertedCSSStyles, passProps) => (
+                <View
+                    key={passProps.key}
+                    style={webViewStyles.preTagStyle}
+                >
                     {children}
                 </View>
             ),
-            code: (htmlAttribs, children) => (
-                <Text style={webViewStyles.codeTagStyle}>
+            code: (htmlAttribs, children, convertedCSSStyles, passProps) => (
+                <Text key={passProps.key}>
                     {children}
                 </Text>
             ),

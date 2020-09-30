@@ -1,4 +1,5 @@
 // We place items a percentage to the safe area on the top or bottom of the screen
+import {Platform} from 'react-native';
 import fontFamily from './fontFamily';
 
 const safeInsertPercentage = 0.7;
@@ -652,22 +653,18 @@ const styles = {
     },
 };
 
+const monospaceFont = Platform.OS === 'ios' ? 'Courier New' : 'monospace';
 const baseCodeTagStyles = {
-    backgroundColor: colors.textBackground,
-    borderRadius: 4,
     borderWidth: 1,
+    borderRadius: 5,
     borderColor: colors.border,
+    backgroundColor: colors.textBackground,
 };
 
 const webViewStyles = {
     preTagStyle: {
         ...baseCodeTagStyles,
         padding: 10,
-    },
-    codeTagStyle: {
-        ...baseCodeTagStyles,
-        paddingLeft: 3,
-        paddingRight: 3,
     },
     tagStyles: {
         em: {
@@ -689,11 +686,14 @@ const webViewStyles = {
         },
 
         pre: {
-            fontFamily: 'monospace',
+            fontFamily: monospaceFont,
         },
 
         code: {
-            fontFamily: 'monospace',
+            ...baseCodeTagStyles,
+            fontFamily: monospaceFont,
+            paddingLeft: 3,
+            paddingRight: 3,
         },
     },
 
