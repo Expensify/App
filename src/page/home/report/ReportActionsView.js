@@ -48,7 +48,10 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidMount() {
-        this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
+        if (this.props.isActiveReport) {
+            this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
+        }
+
         fetchActions(this.props.reportID);
     }
 
@@ -69,14 +72,18 @@ class ReportActionsView extends React.Component {
             return;
         }
 
-        // If we are switching from not active to active report then mark comments as read
+        // If we are switching from not active to active report then mark comments as
+        // read and bind the keyboard listener for this report
         if (!prevProps.isActiveReport && this.props.isActiveReport) {
             this.recordMaxAction();
+            this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
         }
     }
 
     componentWillUnmount() {
-        this.keyboardEvent.remove();
+        if (this.keyboardEvent) {
+            this.keyboardEvent.remove();
+        }
     }
 
     /**
