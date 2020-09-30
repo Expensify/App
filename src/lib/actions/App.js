@@ -1,6 +1,6 @@
 import Ion from '../Ion';
 import IONKEYS from '../../IONKEYS';
-import Str from '../Str'
+import Str from '../Str';
 
 let currentRedirectTo;
 Ion.connect({
