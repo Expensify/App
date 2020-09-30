@@ -1,5 +1,6 @@
 // We place items a percentage to the safe area on the top or bottom of the screen
 import fontFamily from './fontFamily';
+import {Platform} from 'react-native';
 
 const safeInsertPercentage = 0.7;
 
@@ -654,8 +655,8 @@ const styles = {
 const webViewStyles = {
     tagStyles: {
         em: {
-            fontStyle: 'italic',
             fontFamily: fontFamily.GTA_ITALIC,
+            fontStyle: Platform.OS !== 'android' ? 'normal' : 'italic',
         },
 
         del: {
