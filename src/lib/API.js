@@ -421,10 +421,93 @@ function deleteLogin(parameters) {
         .catch(err => Ion.merge(IONKEYS.SESSION, {error: err.message}));
 }
 
+/**
+ * @param {object} parameters
+ * @param {number} parameters.accountID
+ * @param {number} parameters.reportID
+ * @param {number} parameters.sequenceNumber
+ * @returns {Promise}
+ */
+function setLastReadActionID(parameters) {
+    return queueRequest('Report_SetLastReadActionID', {
+        authToken,
+        accountID: parameters.accountID,
+        reportID: parameters.reportID,
+        sequenceNumber: parameters.sequenceNumber,
+    });
+}
+
+/**
+ * @param {object} parameters
+ * @param {number} parameters.reportID
+ * @returns {Promise}
+ */
+function getReportHistory(parameters) {
+    return queueRequest('Report_GetHistory', {
+        authToken,
+        reportID: parameters.reportID,
+    });
+}
+
+/**
+ * @param {object} parameters
+ * @param {string} parameters.emailList
+ * @returns {Promise}
+ */
+function createChatReport(parameters) {
+    return queueRequest('CreateChatReport', {
+        authToken,
+        emailList: parameters.emailList,
+    });
+}
+
+/**
+ * @param {object} parameters
+ * @param {string} parameters.reportComment
+ * @param {object} parameters.file
+ * @returns {Promise}
+ */
+function addReportComment(parameters) {
+    return queueRequest('Report_AddComment', {
+        authToken,
+        reportComment: parameters.reportComment,
+        file: parameters.file,
+    });
+}
+
+/**
+ * @param {object} parameters
+ * @param {string} parameters.returnValueList
+ * @returns {Promise}
+ */
+function get(parameters) {
+    return queueRequest('Get', {
+        authToken,
+        ...parameters,
+    });
+}
+
+/**
+ * @param {object} parameters
+ * @param {string} parameters.emailList
+ * @returns {Promise}
+ */
+function getPersonalDetails(parameters) {
+    return queueRequest('Get', {
+        authToken,
+        emailList: parameters.emailList,
+    });
+}
+
 export {
     authenticate,
+    addReportComment,
+    createChatReport,
     deleteLogin,
+    get,
     getAuthToken,
+    getPersonalDetails,
+    getReportHistory,
     onReconnect,
-    queueRequest,
+    setLastReadActionID,
 };
