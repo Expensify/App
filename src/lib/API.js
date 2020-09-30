@@ -102,15 +102,8 @@ function queueRequest(command, data) {
  * @param {string} exitTo
  */
 function setSuccessfulSignInData(data, exitTo) {
-    let redirectTo;
+    const redirectTo = exitTo ? Str.normalizeUrl(exitTo) : ROUTES.HOME;
 
-    if (exitTo && exitTo[0] === '/') {
-        redirectTo = exitTo;
-    } else if (exitTo) {
-        redirectTo = `/${exitTo}`;
-    } else {
-        redirectTo = ROUTES.HOME;
-    }
     Ion.multiSet({
         [IONKEYS.SESSION]: _.pick(data, 'authToken', 'accountID', 'email'),
         [IONKEYS.APP_REDIRECT_TO]: redirectTo
