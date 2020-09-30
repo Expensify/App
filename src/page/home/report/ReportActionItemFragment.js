@@ -43,6 +43,16 @@ class ReportActionItemFragment extends React.PureComponent {
                     {children}
                 </AnchorForCommentsOnly>
             ),
+            pre: (htmlAttribs, children) => (
+                <View style={webViewStyles.preTagStyle}>
+                    {children}
+                </View>
+            ),
+            code: (htmlAttribs, children) => (
+                <Text style={webViewStyles.codeTagStyle}>
+                    {children}
+                </Text>
+            ),
         };
     }
 
