@@ -50,7 +50,7 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
-     * updates the Highlight state of the composer
+     * Updates the Highlight state of the composer
      *
      * @param {boolean} shouldHighlight
      */
@@ -150,7 +150,7 @@ class ReportActionCompose extends React.Component {
         return (
             <View style={[styles.chatItemCompose]}>
                 <View style={[
-                    this.state.isFocused ? styles.chatItemComposeBoxFocusedColour : styles.chatItemComposeBoxColour,
+                    this.state.isFocused ? styles.chatItemComposeBoxFocusedColour : styles.chatItemComposeBoxColor,
                     styles.chatItemComposeBox,
                     styles.flexRow
                 ]}
