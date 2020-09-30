@@ -138,8 +138,8 @@ android {
         applicationId "com.expensify.chat"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 86
-        versionName "1.0.1-85"
+        versionCode 87
+        versionName "1.0.1-86"
     }
     splits {
         abi {
