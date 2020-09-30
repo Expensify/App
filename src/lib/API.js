@@ -364,6 +364,7 @@ function getAuthToken() {
  * @returns {Promise}
  */
 function authenticate(parameters) {
+    Ion.merge(IONKEYS.SESSION, {loading: true, error: ''});
     return queueRequest('Authenticate', {
         // When authenticating for the first time, we pass useExpensifyLogin as true so we check for credentials for
         // the expensify partnerID to let users authenticate with their expensify user and password.
@@ -379,6 +380,8 @@ function authenticate(parameters) {
             console.error(err);
             console.debug('[SIGNIN] Request error');
             Ion.merge(IONKEYS.SESSION, {error: err.message});
+        }).finally(() => {
+            Ion.merge(IONKEYS.SESSION, {loading: false});
         });
 }
 
