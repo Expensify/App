@@ -169,7 +169,7 @@ function fetchChatReportsByIDs(chatList) {
  * @param {object} reportAction
  */
 function updateReportWithNewAction(reportID, reportAction) {
-    const previousMaxSequenceNumber = reportMaxSequenceNumbers[reportID];
+    const previousMaxSequenceNumber = reportMaxSequenceNumbers[reportID] || 0;
     const newMaxSequenceNumber = reportAction.sequenceNumber;
     const hasNewSequenceNumber = newMaxSequenceNumber > previousMaxSequenceNumber;
 
