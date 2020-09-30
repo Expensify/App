@@ -10,6 +10,7 @@ import styles, {webViewStyles, colors} from '../../../style/StyleSheet';
 import Text from '../../../components/Text';
 import AnchorForCommentsOnly from '../../../components/AnchorForCommentsOnly';
 import {getAuthToken} from '../../../lib/API';
+import InlineCodeBlock from '../../../components/InlineCodeBlock';
 
 const propTypes = {
     // The message fragment needing to be displayed
@@ -52,11 +53,9 @@ class ReportActionItemFragment extends React.PureComponent {
                 </View>
             ),
             code: (htmlAttribs, children, convertedCSSStyles, passProps) => (
-                <View key={passProps.key} style={webViewStyles.codeTagStyle}>
-                    <Text>
-                        {children}
-                    </Text>
-                </View>
+                <InlineCodeBlock key={passProps.key}>
+                    {children}
+                </InlineCodeBlock>
             ),
         };
     }

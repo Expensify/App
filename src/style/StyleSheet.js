@@ -653,7 +653,7 @@ const styles = {
     },
 };
 
-const monospaceFont = Platform.OS === 'ios' ? 'Courier New' : 'monospace';
+const monospaceFont = Platform.OS === 'web' ? 'monospace' : fontFamily.GTA_MONO;
 const baseCodeTagStyles = {
     borderWidth: 1,
     borderRadius: 5,
@@ -664,13 +664,16 @@ const baseCodeTagStyles = {
 const webViewStyles = {
     preTagStyle: {
         ...baseCodeTagStyles,
-        padding: 10,
+        paddingTop: 4,
+        paddingBottom: 5,
+        paddingRight: 8,
+        paddingLeft: 8,
     },
     codeTagStyle: {
         ...baseCodeTagStyles,
         paddingLeft: 5,
         paddingRight: 5,
-        marginBottom: -5,
+        paddingBottom: 2,
         alignSelf: 'flex-start',
     },
     tagStyles: {
@@ -697,17 +700,14 @@ const webViewStyles = {
         },
 
         code: {
-            ...baseCodeTagStyles,
             fontFamily: monospaceFont,
-            paddingLeft: 3,
-            paddingRight: 3,
         },
     },
 
     baseFontStyle: {
         color: colors.text,
         fontSize: 15,
-        fontFamily: fontFamily.GTA
+        fontFamily: fontFamily.GTA,
     }
 };
 
