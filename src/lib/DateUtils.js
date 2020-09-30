@@ -1,8 +1,5 @@
 import moment from 'moment';
-
-// We have to import moment-timezone, but don't access it directly because all it's functionality is added to moment
-// eslint-disable-next-line no-unused-vars
-import momentTimzone from 'moment-timezone';
+import 'moment-timezone';
 import Str from './Str';
 import Ion from './Ion';
 import IONKEYS from '../IONKEYS';
