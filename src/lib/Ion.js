@@ -85,13 +85,6 @@ function keyChanged(key, data) {
 }
 
 /**
- * Initialize the store with actions and listening for storage events
- */
-function init() {
-    addStorageEventHandler((key, newValue) => keyChanged(key, newValue));
-}
-
-/**
  * Sends the data obtained from the keys to the connection. It either:
  *     - sets state on the withIonInstances
  *     - triggers the callback function
@@ -264,6 +257,15 @@ function merge(key, val) {
         .then(() => {
             keyChanged(key, val);
         });
+}
+
+/**
+ * Initialize the store with actions and listening for storage events
+ */
+function init() {
+    // Clear any loading and error messages so they do not appear on app startup
+    merge(IONKEYS.SESSION, {loading: false, error: ''});
+    addStorageEventHandler((key, newValue) => keyChanged(key, newValue));
 }
 
 const Ion = {

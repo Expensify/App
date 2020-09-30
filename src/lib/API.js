@@ -8,6 +8,7 @@ import ROUTES from '../ROUTES';
 import Str from './Str';
 import Guid from './Guid';
 import redirectToSignIn from './actions/SignInRedirect';
+import Activity from './Activity';
 
 // Holds all of the callbacks that need to be triggered when the network reconnects
 const reconnectionCallbacks = [];
@@ -26,6 +27,13 @@ Ion.connect({
     callback: val => authToken = val ? val.authToken : null,
 });
 
+/**
+ * Loop over all reconnection callbacks and fire each one
+ */
+function triggerReconnectionCallbacks() {
+    _.each(reconnectionCallbacks, callback => callback());
+}
+
 // We subscribe to changes to the online/offline status of the network to determine when we should fire off API calls
 // vs queueing them for later. When reconnecting, ie, going from offline to online, all the reconnection callbacks
 // are triggered (this is usually Actions that need to re-download data from the server)
@@ -34,10 +42,22 @@ Ion.connect({
     key: IONKEYS.NETWORK,
     callback: (val) => {
         if (isOffline && !val.isOffline) {
-            _.each(reconnectionCallbacks, callback => callback());
+            triggerReconnectionCallbacks();
         }
         isOffline = val && val.isOffline;
     }
+});
+
+// When the app is in the background Pusher can still receive realtime updates
+// for a few minutes, but eventually disconnects causing a delay when the app
+// returns from the background. So, if we are returning from the background
+// and we are online we should trigger our reconnection callbacks.
+Activity.registerOnAppBecameActiveCallback(() => {
+    if (isOffline) {
+        return;
+    }
+
+    triggerReconnectionCallbacks();
 });
 
 // When the user authenticates for the first time we create a login and store credentials in Ion.
@@ -338,6 +358,7 @@ function getAuthToken() {
  * @returns {Promise}
  */
 function authenticate(parameters) {
+    Ion.merge(IONKEYS.SESSION, {loading: true, error: ''});
     return queueRequest('Authenticate', {
         // When authenticating for the first time, we pass useExpensifyLogin as true so we check for credentials for
         // the expensify partnerID to let users authenticate with their expensify user and password.
@@ -353,6 +374,8 @@ function authenticate(parameters) {
             console.error(err);
             console.debug('[SIGNIN] Request error');
             Ion.merge(IONKEYS.SESSION, {error: err.message});
+        }).finally(() => {
+            Ion.merge(IONKEYS.SESSION, {loading: false});
         });
 }
 
