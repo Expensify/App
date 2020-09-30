@@ -1,7 +1,7 @@
 import React from 'react';
 import HTML from 'react-native-render-html';
 import {
-    Linking, ActivityIndicator, View, Platform
+    Linking, ActivityIndicator, View, Platform, Dimensions
 } from 'react-native';
 import PropTypes from 'prop-types';
 import Str from '../../../lib/Str';
@@ -65,7 +65,8 @@ class ReportActionItemFragment extends React.PureComponent {
 
     render() {
         const {fragment} = this.props;
-        const maxImageWidth = 512;
+        const maxImageDimensions = 512;
+        const windowWidth = Dimensions.get('window').width;
         switch (fragment.type) {
             case 'COMMENT':
                 // If this is an attachment placeholder, return the placeholder component
@@ -94,8 +95,8 @@ class ReportActionItemFragment extends React.PureComponent {
                             onLinkPress={(event, href) => Linking.openURL(href)}
                             html={fragment.html}
                             alterNode={this.alterNode}
-                            imagesMaxWidth={maxImageWidth}
-                            imagesInitialDimensions={{width: maxImageWidth}}
+                            imagesMaxWidth={Math.min(maxImageDimensions, windowWidth * 0.8)}
+                            imagesInitialDimensions={{width: maxImageDimensions, height: maxImageDimensions}}
                         />
                     )
                     : (
