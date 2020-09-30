@@ -666,6 +666,13 @@ const webViewStyles = {
         ...baseCodeTagStyles,
         padding: 10,
     },
+    codeTagStyle: {
+        ...baseCodeTagStyles,
+        paddingLeft: 5,
+        paddingRight: 5,
+        marginBottom: -5,
+        alignSelf: 'flex-start',
+    },
     tagStyles: {
         em: {
             fontStyle: 'italic',
