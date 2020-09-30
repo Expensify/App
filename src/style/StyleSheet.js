@@ -536,7 +536,7 @@ const styles = {
         display: 'flex',
     },
 
-    chatItemComposeBoxColour: {
+    chatItemComposeBoxColor: {
         borderColor: colors.border,
     },
 
@@ -659,7 +659,7 @@ const styles = {
     chatSwitcherItemText: {
         color: colors.text,
     },
-
+    ReportActionCompose.js
     chatSwitcherItemFocused: {
         backgroundColor: colors.blue,
         borderRadius: 8,
