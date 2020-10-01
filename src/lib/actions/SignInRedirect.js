@@ -21,7 +21,7 @@ function redirectToSignIn(errorMessage) {
     Ion.clear()
         .then(() => {
             if (errorMessage) {
-                Ion.set(IONKEYS.SESSION, {error: errorMessage})
+                Ion.set(IONKEYS.SESSION, {error: errorMessage});
             }
         });
 
