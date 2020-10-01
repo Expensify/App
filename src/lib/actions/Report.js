@@ -2,7 +2,7 @@ import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import Ion from '../Ion';
-import {queueRequest, onReconnect} from '../API';
+import * as API from '../API';
 import IONKEYS from '../../IONKEYS';
 import CONFIG from '../../CONFIG';
 import * as Pusher from '../Pusher/pusher';
@@ -125,7 +125,7 @@ function getChatReportName(sharedReportList) {
  */
 function fetchChatReportsByIDs(chatList) {
     let fetchedReports;
-    return queueRequest('Get', {
+    return API.get({
         returnValueList: 'reportStuff',
         reportIDList: chatList.join(','),
         shouldLoadOptionalKeys: true,
@@ -223,6 +223,11 @@ function updateReportWithNewAction(reportID, reportAction) {
  * Initialize our pusher subscriptions to listen for new report comments
  */
 function subscribeToReportCommentEvents() {
+    // If we don't have the user's accountID yet we can't subscribe so return early
+    if (!currentUserAccountID) {
+        return;
+    }
+
     const pusherChannelName = `private-user-accountID-${currentUserAccountID}`;
     if (Pusher.isSubscribed(pusherChannelName) || Pusher.isAlreadySubscribing(pusherChannelName)) {
         return;
@@ -240,7 +245,7 @@ function subscribeToReportCommentEvents() {
  * @returns {Promise} only used internally when fetchAll() is called
  */
 function fetchChatReports() {
-    return queueRequest('Get', {
+    return API.get({
         returnValueList: 'chatList',
     })
 
@@ -254,7 +259,7 @@ function fetchChatReports() {
  * @param {number} reportID
  */
 function fetchActions(reportID) {
-    queueRequest('Report_GetHistory', {reportID})
+    API.getReportHistory({reportID})
         .then((data) => {
             const indexedData = _.indexBy(data.history, 'sequenceNumber');
             const maxSequenceNumber = _.chain(data.history)
@@ -277,7 +282,7 @@ function fetchAll(shouldRedirectToFirstReport = true, shouldFetchActions = false
     let fetchedReports;
 
     // Request each report one at a time to allow individual reports to fail if access to it is prevented by Auth
-    const reportFetchPromises = _.map(configReportIDs, reportID => queueRequest('Get', {
+    const reportFetchPromises = _.map(configReportIDs, reportID => API.get({
         returnValueList: 'reportStuff',
         reportIDList: reportID,
         shouldLoadOptionalKeys: true,
@@ -336,7 +341,7 @@ function fetchOrCreateChatReport(participants) {
         throw new Error('fetchOrCreateChatReport() must have at least two participants');
     }
 
-    queueRequest('CreateChatReport', {
+    API.createChatReport({
         emailList: participants.join(','),
     })
 
@@ -345,7 +350,7 @@ function fetchOrCreateChatReport(participants) {
             reportID = data.reportID;
 
             // Make a request to get all the information about the report
-            return queueRequest('Get', {
+            return API.get({
                 returnValueList: 'reportStuff',
                 reportIDList: reportID,
                 shouldLoadOptionalKeys: true,
@@ -424,7 +429,7 @@ function addAction(reportID, text, file) {
         }
     });
 
-    queueRequest('Report_AddComment', {
+    API.addReportComment({
         reportID,
         reportComment: htmlComment,
         file
@@ -455,7 +460,7 @@ function updateLastReadActionID(reportID, sequenceNumber) {
     });
 
     // Mark the report as not having any unread items
-    queueRequest('Report_SetLastReadActionID', {
+    API.setLastReadActionID({
         accountID: currentUserAccountID,
         reportID,
         sequenceNumber,
@@ -499,9 +504,10 @@ Ion.connect({
 });
 
 // When the app reconnects from being offline, fetch all of the reports and their actions
-onReconnect(() => {
+API.onReconnect(() => {
     fetchAll(false, true);
 });
+
 export {
     fetchAll,
     fetchActions,

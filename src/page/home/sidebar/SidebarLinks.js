@@ -61,6 +61,11 @@ class SidebarLinks extends React.Component {
         // eslint-disable-next-line max-len
         const reportsToDisplay = _.filter(sortedReports, report => (report.pinnedReport || (report.unreadActionCount > 0) || report.reportID === reportIDInUrl));
 
+        // Update styles to hide the report links if they should not be visible
+        const sidebarLinksStyle = this.state.areReportLinksVisible
+            ? [styles.sidebarListContainer]
+            : [styles.sidebarListContainer, styles.dNone];
+
         return (
             <View style={[styles.flex1, {marginTop: this.props.insets.top}]}>
                 <View style={[styles.sidebarHeader]}>
@@ -76,27 +81,25 @@ class SidebarLinks extends React.Component {
                     />
                 </View>
 
-                {this.state.areReportLinksVisible && (
-                    <View style={[styles.sidebarListContainer]}>
-                        <View style={[styles.sidebarListItem]}>
-                            <Text style={[styles.sidebarListHeader]}>
-                                Chats
-                            </Text>
-                        </View>
-                        {/* A report will not have a report name if it hasn't been fetched from the server yet */}
-                        {/* so nothing is rendered */}
-                        {_.map(reportsToDisplay, report => report.reportName && (
-                            <SidebarLink
-                                key={report.reportID}
-                                reportID={report.reportID}
-                                reportName={report.reportName}
-                                isUnread={report.unreadActionCount > 0}
-                                onLinkClick={onLinkClick}
-                                isActiveReport={report.reportID === reportIDInUrl}
-                            />
-                        ))}
+                <View style={sidebarLinksStyle}>
+                    <View style={[styles.sidebarListItem]}>
+                        <Text style={[styles.sidebarListHeader]}>
+                            Chats
+                        </Text>
                     </View>
-                )}
+                    {/* A report will not have a report name if it hasn't been fetched from the server yet */}
+                    {/* so nothing is rendered */}
+                    {_.map(reportsToDisplay, report => report.reportName && (
+                        <SidebarLink
+                            key={report.reportID}
+                            reportID={report.reportID}
+                            reportName={report.reportName}
+                            isUnread={report.unreadActionCount > 0}
+                            onLinkClick={onLinkClick}
+                            isActiveReport={report.reportID === reportIDInUrl}
+                        />
+                    ))}
+                </View>
             </View>
         );
     }

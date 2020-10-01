@@ -22,7 +22,7 @@ const propTypes = {
         alternateText: PropTypes.string.isRequired,
 
         // The URL of the person's avatar
-        avatarURL: PropTypes.string,
+        icon: PropTypes.string,
 
         // A function that is called when an option is selected. Selected option is passed as a param
         callback: PropTypes.func.isRequired,
@@ -53,12 +53,17 @@ const ChatSwitcherList = ({focusedIndex, options}) => (
                             optionIsFocused ? styles.chatSwitcherItemFocused : null
                         ]}
                     >
-                        <View style={[styles.chatSwitcherAvatar, styles.mr2]}>
-                            <Image
-                                source={{uri: option.icon}}
-                                style={[styles.chatSwitcherAvatarImage]}
-                            />
-                        </View>
+                        {
+                            option.icon
+                            && (
+                                <View style={[styles.chatSwitcherAvatar, styles.mr2]}>
+                                    <Image
+                                        source={{uri: option.icon}}
+                                        style={[styles.chatSwitcherAvatarImage]}
+                                    />
+                                </View>
+                            )
+                        }
                         <View style={[styles.flex1]}>
                             {option.text === option.alternateText ? (
                                 <Text style={[textStyle, styles.h3]} numberOfLines={1}>
