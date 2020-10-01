@@ -1,6 +1,6 @@
 // We place items a percentage to the safe area on the top or bottom of the screen
-import fontFamily from './fontFamily';
 import {Platform} from 'react-native';
+import fontFamily from './fontFamily';
 
 const safeInsertPercentage = 0.7;
 
