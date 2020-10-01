@@ -529,10 +529,17 @@ const styles = {
         display: 'flex',
     },
 
+    chatItemComposeBoxColor: {
+        borderColor: colors.border,
+    },
+
+    chatItemComposeBoxFocusedColor: {
+        borderColor: colors.blue,
+    },
+
     chatItemComposeBox: {
         backgroundColor: colors.componentBG,
         borderWidth: 1,
-        borderColor: colors.border,
         borderRadius: 8,
         minHeight: 40,
     },
@@ -670,6 +677,12 @@ const webViewStyles = {
 
         a: {
             color: colors.blue
+        },
+
+        img: {
+            borderColor: colors.border,
+            borderRadius: 8,
+            borderWidth: 1,
         }
     },
 
