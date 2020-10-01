@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-import ExpensiMark from '../src/lib/ExpensiMark';
+import {ExpensiMark} from 'js-libs';
 
 const parser = new ExpensiMark();
 
