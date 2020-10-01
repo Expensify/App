@@ -14,12 +14,16 @@ Ion.connect({
  * Clears the Ion store, redirects to the sign in page and handles adding any exitTo params to the URL.
  * Normally this method would live in Session.js, but that would cause a circular dependency with Network.js.
  *
- * @param {String} errorMessage optional error message to be displayed on the sign in page
+ * @param {String} [errorMessage] error message to be displayed on the sign in page
  */
 function redirectToSignIn(errorMessage) {
     Pusher.disconnect();
     Ion.clear()
-        .then(() => Ion.set(IONKEYS.SESSION, {error: errorMessage}));
+        .then(() => {
+            if (errorMessage) {
+                Ion.set(IONKEYS.SESSION, {error: errorMessage})
+            }
+        });
 
     if (!currentURL) {
         return;
