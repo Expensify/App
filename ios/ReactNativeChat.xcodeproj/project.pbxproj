@@ -56,7 +56,6 @@
 		BA6C613DE6755E40F7EDDC68 /* Pods-ReactNativeChat-ReactNativeChatTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ReactNativeChat-ReactNativeChatTests.debug.xcconfig"; path = "Target Support Files/Pods-ReactNativeChat-ReactNativeChatTests/Pods-ReactNativeChat-ReactNativeChatTests.debug.xcconfig"; sourceTree = "<group>"; };
 		C4F81DB9C6DA6418525441E5 /* libPods-ReactNativeChat-ReactNativeChatTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ReactNativeChat-ReactNativeChatTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C6C1D4F5C262ACDAF1800CAD /* Pods-ReactNativeChat.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ReactNativeChat.release.xcconfig"; path = "Target Support Files/Pods-ReactNativeChat/Pods-ReactNativeChat.release.xcconfig"; sourceTree = "<group>"; };
-		C7D0D4F57818445CAA756893 /* GT-America-Exp-Mono-Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GT-America-Exp-Mono-Regular.otf"; path = "../assets/fonts/GT-America-Exp-Mono-Regular.otf"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		ED2971642150620600B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS12.0.sdk/System/Library/Frameworks/JavaScriptCore.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
@@ -163,7 +162,6 @@
 				AE65058949E14DA5A2D5435D /* GTAmericaExp-Medium.otf */,
 				8C7003903C1E4957824899BB /* GTAmericaExp-Regular.otf */,
 				A292718541C841859D97DF2F /* GTAmericaExp-Thin.otf */,
-				C7D0D4F57818445CAA756893 /* GT-America-Exp-Mono-Regular.otf */,
 				8437A5A38F2047E0BCCD7C2F /* GTAmericaExpMono-Rg.otf */,
 			);
 			name = Resources;
