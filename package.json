@@ -33,7 +33,7 @@
     "electron-updater": "^4.3.4",
     "file-loader": "^6.0.0",
     "html-entities": "^1.3.1",
-    "js-libs": "git+ssh://git@github.com/Expensify/JS-Libs.git#c13a308ada46811ca5fff9566ca15f9f5ea44084",
+    "js-libs": "git+ssh://git@github.com/Expensify/JS-Libs.git#e28ac12f268ed256fb80b1830e3ccf7835177c64",
     "lodash.get": "^4.4.2",
     "lodash.has": "^4.5.2",
     "lodash.orderby": "^4.6.0",
