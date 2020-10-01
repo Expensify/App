@@ -53,7 +53,9 @@ Ion.connect({
 // returns from the background. So, if we are returning from the background
 // and we are online we should trigger our reconnection callbacks.
 Activity.registerOnAppBecameActiveCallback(() => {
-    if (isOffline) {
+    // If we know we are offline and we have no authToken then there's
+    // no reason to trigger the reconnection callbacks as they will fail.
+    if (isOffline || !authToken) {
         return;
     }
 
@@ -178,6 +180,16 @@ function request(command, parameters, type = 'post') {
                     createLogin(Str.generateDeviceLoginID(), Guid());
                 }
             });
+    }
+
+    // If we end up here with no authToken it means we are trying to make
+    // an API request before we are signed in. In this case, we should just
+    // cancel this and all other requests and set reauthenticating to false.
+    if (!authToken) {
+        console.error('A request was made without an authToken', {command, parameters});
+        reauthenticating = false;
+        networkRequestQueue = [];
+        return Promise.resolve();
     }
 
     // Add authToken automatically to all commands
