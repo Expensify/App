@@ -1,5 +1,6 @@
 import Ion from '../Ion';
 import IONKEYS from '../../IONKEYS';
+import Str from '../Str';
 
 let currentRedirectTo;
 Ion.connect({
@@ -14,7 +15,7 @@ Ion.connect({
  * @param {mixed} url
  */
 function redirect(url) {
-    const formattedURL = (typeof url === 'string' && url.startsWith('/')) ? url : `/${url}`;
+    const formattedURL = Str.normalizeUrl(url);
     Ion.merge(IONKEYS.APP_REDIRECT_TO, formattedURL);
 }
 
