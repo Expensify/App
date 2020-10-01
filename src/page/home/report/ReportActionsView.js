@@ -48,7 +48,10 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidMount() {
-        this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
+        if (this.props.isActiveReport) {
+            this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
+        }
+
         fetchActions(this.props.reportID);
     }
 
@@ -56,7 +59,8 @@ class ReportActionsView extends React.Component {
         if (_.size(prevProps.reportActions) !== _.size(this.props.reportActions)) {
             // If a new comment is added and it's from the current user scroll to the bottom otherwise
             // leave the user positioned where they are now in the list.
-            if (lastItem(this.props.reportActions).actorEmail === this.props.session.email) {
+            const lastAction = lastItem(this.props.reportActions);
+            if (lastAction && (lastAction.actorEmail === this.props.session.email)) {
                 this.scrollToListBottom();
             }
 
@@ -69,14 +73,18 @@ class ReportActionsView extends React.Component {
             return;
         }
 
-        // If we are switching from not active to active report then mark comments as read
+        // If we are switching from not active to active report then mark comments as
+        // read and bind the keyboard listener for this report
         if (!prevProps.isActiveReport && this.props.isActiveReport) {
             this.recordMaxAction();
+            this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
         }
     }
 
     componentWillUnmount() {
-        this.keyboardEvent.remove();
+        if (this.keyboardEvent) {
+            this.keyboardEvent.remove();
+        }
     }
 
     /**
