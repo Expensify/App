@@ -8,7 +8,6 @@ import ROUTES from '../ROUTES';
 import Str from './Str';
 import Guid from './Guid';
 import redirectToSignIn from './actions/SignInRedirect';
-import {redirect} from './actions/App';
 import Activity from './Activity';
 
 // Holds all of the callbacks that need to be triggered when the network reconnects
@@ -123,17 +122,12 @@ function queueRequest(command, data) {
  * @param {string} exitTo
  */
 function setSuccessfulSignInData(data, exitTo) {
-    let redirectTo;
+    const redirectTo = exitTo ? Str.normalizeUrl(exitTo) : ROUTES.HOME;
 
-    if (exitTo && exitTo[0] === '/') {
-        redirectTo = exitTo;
-    } else if (exitTo) {
-        redirectTo = `/${exitTo}`;
-    } else {
-        redirectTo = ROUTES.HOME;
-    }
-    redirect(redirectTo);
-    Ion.merge(IONKEYS.SESSION, _.pick(data, 'authToken', 'accountID', 'email'));
+    Ion.multiSet({
+        [IONKEYS.SESSION]: _.pick(data, 'authToken', 'accountID', 'email'),
+        [IONKEYS.APP_REDIRECT_TO]: redirectTo
+    });
 }
 
 /**
@@ -325,36 +319,16 @@ Pusher.registerCustomAuthorizer((channel, {authEndpoint}) => ({
  * Events that happen on the pusher socket are used to determine if the app is online or offline. The offline setting
  * is stored in Ion so the rest of the app has access to it.
  *
- * @params {string} eventName,
- * @params {object} data
+ * @params {string} eventName
  */
-Pusher.registerSocketEventCallback((eventName, data) => {
-    let isCurrentlyOffline = false;
+Pusher.registerSocketEventCallback((eventName) => {
     switch (eventName) {
-        case 'connected':
-            isCurrentlyOffline = false;
-            break;
-        case 'disconnected':
-            isCurrentlyOffline = true;
-            break;
-        case 'state_change':
-            if (data.current === 'failed') {
-                // WebSockets are not natively available. In this case,
-                // we should not let Pusher influence the offline state of the app.
-                return;
-            }
-
-            if (data.current === 'disconnected' || data.current === 'connecting' || data.current === 'unavailable') {
-                isCurrentlyOffline = true;
-            }
-            break;
         case 'error':
             reconnectToPusher();
             break;
         default:
             break;
     }
-    setOfflineStatus(isCurrentlyOffline);
 });
 
 /**
