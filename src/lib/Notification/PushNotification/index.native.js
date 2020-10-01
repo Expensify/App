@@ -48,9 +48,14 @@ function enablePushNotifications() {
             Ion.connect({
                 key: IONKEYS.SESSION,
                 callback: (sessionData) => {
+                    const accountID = sessionData?.accountID.toString() || undefined;
+                    console.debug(`[PUSH_NOTIFICATION] ${accountID
+                        ? `Subscribing to push notifications for accountID ${accountID}`
+                        : 'Unsubscribing from push notifications'}.`);
+
                     // This will register this device with the named user associated with this accountID,
                     // or clear the the named user (deregister this device) if sessionData.accountID is undefined
-                    UrbanAirship.setNamedUser(sessionData.accountID.toString() || undefined);
+                    UrbanAirship.setNamedUser(accountID);
                 }
             });
         })
