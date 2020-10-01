@@ -1,6 +1,7 @@
 // We place items a percentage to the safe area on the top or bottom of the screen
 import {Platform} from 'react-native';
 import fontFamily from './fontFamily';
+import italic from './italic';
 
 const safeInsertPercentage = 0.7;
 
@@ -663,12 +664,7 @@ const webViewStyles = {
     tagStyles: {
         em: {
             fontFamily: fontFamily.GTA_ITALIC,
-
-            // At the moment I don't see another way to go about this, Android will just assign the system font
-            // if the style is italic, and iOS won't use italic font if the style is normal, web does care either way.
-            // this will probably need some change on the HTML library itself, so for now I'm adding
-            // the platform check
-            fontStyle: Platform.OS === 'android' ? 'normal' : 'italic',
+            fontStyle: italic,
         },
 
         del: {
