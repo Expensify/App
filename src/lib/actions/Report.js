@@ -16,6 +16,7 @@ import Visibility from '../Visibility';
 
 let currentUserEmail;
 let currentUserAccountID;
+let secondaryLogins;
 Ion.connect({
     key: IONKEYS.SESSION,
     callback: (val) => {
@@ -23,6 +24,7 @@ Ion.connect({
         if (val) {
             currentUserEmail = val.email;
             currentUserAccountID = val.accountID;
+            secondaryLogins = val.secondaryLogins;
         }
     }
 });
@@ -193,7 +195,7 @@ function updateReportWithNewAction(reportID, reportAction) {
     }
 
     // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
-    if (reportAction.actorEmail === currentUserEmail) {
+    if (reportAction.actorEmail === currentUserEmail || _.contains(secondaryLogins, currentUserEmail)) {
         console.debug('[NOTIFICATION] No notification because comment is from the currently logged in user');
         return;
     }

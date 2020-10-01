@@ -133,7 +133,7 @@ function setSuccessfulSignInData(data, exitTo) {
         redirectTo = ROUTES.HOME;
     }
     redirect(redirectTo);
-    Ion.merge(IONKEYS.SESSION, _.pick(data, 'authToken', 'accountID', 'email'));
+    Ion.merge(IONKEYS.SESSION, _.pick(data, 'authToken', 'accountID', 'email', 'secondaryLogins'));
 }
 
 /**
@@ -210,7 +210,8 @@ function request(command, parameters, type = 'post') {
                     partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
                     partnerUserID: credentials.login,
                     partnerUserSecret: credentials.password,
-                    twoFactorAuthCode: ''
+                    twoFactorAuthCode: '',
+                    includeSecondaryLogins: true,
                 })
                     .then((response) => {
                         reauthenticating = false;
@@ -394,6 +395,7 @@ function authenticate(parameters) {
         partnerUserID: parameters.partnerUserID,
         partnerUserSecret: parameters.partnerUserSecret,
         twoFactorAuthCode: parameters.twoFactorAuthCode,
+        includeSecondaryLogins: true,
         exitTo: parameters.exitTo,
     })
         .catch((err) => {
