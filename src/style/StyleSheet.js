@@ -663,7 +663,12 @@ const webViewStyles = {
     tagStyles: {
         em: {
             fontFamily: fontFamily.GTA_ITALIC,
-            fontStyle: Platform.OS !== 'android' ? 'normal' : 'italic',
+
+            // At the moment I don't see another way to go about this, Android will just assign the system font
+            // if the style is italic, and iOS won't use italic font if the style is normal, web does care either way.
+            // this will probably need some change on the HTML library itself, so for now I'm adding
+            // the platform check
+            fontStyle: Platform.OS === 'android' ? 'normal' : 'italic',
         },
 
         del: {
