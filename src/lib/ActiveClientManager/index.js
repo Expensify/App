@@ -10,7 +10,7 @@ let activeClients;
 Ion.connect({
     key: IONKEYS.ACTIVE_CLIENTS,
 
-    callback: (val) => {
+    callback: (val = []) => {
         activeClients = val;
         if (activeClients.length >= maxClients) {
             activeClients.shift();
