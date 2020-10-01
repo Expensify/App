@@ -77,7 +77,7 @@ function getUnreadActionCount(report) {
     // There are unread items if the last one the user has read is less
     // than the highest sequence number we have.
     const unreadActionCount = (maxSequenceNumber || report.reportActionList.length) - usersLastReadActionID;
-    return unreadActionCount > 0 ? unreadActionCount : 0;
+    return Math.max(0, unreadActionCount);
 }
 
 /**

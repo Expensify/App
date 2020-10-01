@@ -5,7 +5,6 @@
  * @format
  */
 
-
 module.exports = {
     transformer: {
         getTransformOptions: async () => ({
