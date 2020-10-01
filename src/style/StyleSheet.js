@@ -1,5 +1,6 @@
 // We place items a percentage to the safe area on the top or bottom of the screen
 import fontFamily from './fontFamily';
+import strongFontFamily from './strong';
 
 const safeInsertPercentage = 0.7;
 
@@ -671,6 +672,7 @@ const webViewStyles = {
         },
 
         strong: {
+            fontFamily: strongFontFamily,
             fontWeight: '600',
         },
 
