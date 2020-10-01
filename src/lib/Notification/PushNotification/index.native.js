@@ -48,7 +48,7 @@ function enablePushNotifications() {
             Ion.connect({
                 key: IONKEYS.SESSION,
                 callback: (sessionData) => {
-                    const accountID = sessionData?.accountID.toString() || undefined;
+                    const accountID = sessionData?.accountID.toString() || null;
                     console.debug(`[PUSH_NOTIFICATION] ${accountID
                         ? `Subscribing to push notifications for accountID ${accountID}`
                         : 'Unsubscribing from push notifications'}.`);
