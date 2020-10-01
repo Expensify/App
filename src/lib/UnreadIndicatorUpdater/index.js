@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import Ion from '../Ion';
 import IONKEYS from '../../IONKEYS';
-import updateUnread from './updateUnread/index.website';
+import updateUnread from './updateUnread';
 
 // Stash the unread action counts for each report
 const unreadActionCounts = {};
