@@ -125,7 +125,7 @@ function setSuccessfulSignInData(data, exitTo) {
     const redirectTo = exitTo ? Str.normalizeUrl(exitTo) : ROUTES.HOME;
 
     Ion.multiSet({
-        [IONKEYS.SESSION]: _.pick(data, 'authToken', 'accountID', 'email', 'secondaryLogins'),
+        [IONKEYS.SESSION]: _.pick(data, 'authToken', 'accountID', 'email'),
         [IONKEYS.APP_REDIRECT_TO]: redirectTo
     });
 }
@@ -204,8 +204,7 @@ function request(command, parameters, type = 'post') {
                     partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
                     partnerUserID: credentials.login,
                     partnerUserSecret: credentials.password,
-                    twoFactorAuthCode: '',
-                    includeSecondaryLogins: true,
+                    twoFactorAuthCode: ''
                 })
                     .then((response) => {
                         reauthenticating = false;
@@ -369,7 +368,6 @@ function authenticate(parameters) {
         partnerUserID: parameters.partnerUserID,
         partnerUserSecret: parameters.partnerUserSecret,
         twoFactorAuthCode: parameters.twoFactorAuthCode,
-        includeSecondaryLogins: true,
         exitTo: parameters.exitTo,
     })
         .catch((err) => {
