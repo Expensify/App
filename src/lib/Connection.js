@@ -10,7 +10,6 @@ const Connection = new EventEmitter();
 let previousIsConnected;
 
 NetInfo.addEventListener((state) => {
-
     // We moved from disconnected to connected fire reconnection callbacks
     if (!previousIsConnected && state.isConnected) {
         Connection.emit(CONNECTED);

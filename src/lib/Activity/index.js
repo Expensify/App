@@ -1,7 +1,5 @@
-/**
- * On web/desktop we don't really care if the app becomes
- * active or inactive as long as Pusher is always connected
- */
-export default {
-    subscribe: () => {},
-};
+import Activity from './Activity';
+import EVENT from './Events';
+
+export const APP_BECAME_ACTIVE = EVENT.APP_BECAME_ACTIVE;
+export default Activity;

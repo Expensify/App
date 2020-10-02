@@ -3,12 +3,10 @@ import Connection, {CONNECTED} from './Connection';
 import Activity, {APP_BECAME_ACTIVE} from './Activity';
 import {fetch as fetchPersonalDetails} from './actions/PersonalDetails';
 import {fetchAll as fetchAllReports} from './actions/Report';
-import Ion from '../lib/Ion';
+import Ion from './Ion';
 import IONKEYS from '../IONKEYS';
 
-/**
- * List of actions to fire on reconnect
- */
+// List of actions to fire on reconnect
 const reconnnectActions = [
     () => fetchPersonalDetails(),
     () => fetchAllReports(false, true),
@@ -50,31 +48,32 @@ function onSignIn() {
  */
 function onSignOut() {
     if (unsubscribeAppBecameActiveEvent) {
-        unsubscribeAppBecameActive();
+        unsubscribeAppBecameActiveEvent();
     }
 
     if (unsubscribeConnectedEvent) {
-        unsubscribeConnected();
+        unsubscribeConnectedEvent();
     }
 }
 
 function init() {
     let authToken = null;
-    Ion.connect({key: IONKEYS.SESSION, callback: (val) => {
-        const nextAuthToken = val ? val.authToken : null;
+    Ion.connect({
+        key: IONKEYS.SESSION,
+        callback: (val) => {
+            const nextAuthToken = val ? val.authToken : null;
 
-        if (!authToken && nextAuthToken) {
-            console.log('Signing In');
-            onSignIn();
+            if (!authToken && nextAuthToken) {
+                onSignIn();
+            }
+
+            if (authToken && !nextAuthToken) {
+                onSignOut();
+            }
+
+            authToken = nextAuthToken;
         }
-
-        if (authToken && !nextAuthToken) {
-            console.log('Signing Out');
-            onSignOut();
-        }
-
-        authToken = nextAuthToken;
-    }});
+    });
 }
 
 
