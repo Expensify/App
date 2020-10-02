@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import Ion from './Ion';
 import IONKEYS from '../IONKEYS';
-import {xhr, setOfflineStatus} from './Network';
+import xhr from './xhr';
 import CONFIG from '../CONFIG';
 import * as Pusher from './Pusher/pusher';
 import ROUTES from '../ROUTES';
@@ -214,13 +214,8 @@ function request(command, parameters, type = 'post') {
  */
 function processNetworkRequestQueue() {
     if (isOffline) {
-        // Two things will bring the app online again...
-        // 1. NetInfo library detecting a network change
-        // 2. Getting a 200 response back from the API (happens right below)
-
-        // Make a simple request every second to see if the API is online again
-        xhr('Get', {doNotRetry: true})
-            .then(() => setOfflineStatus(false));
+        // We'll return here for now. Once we are back online
+        // we can continue to process the queue.
         return;
     }
 
