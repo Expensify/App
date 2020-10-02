@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import {AppState} from 'react-native';
 import {UrbanAirship, EventType} from 'urbanairship-react-native';
 import Ion from '../../Ion';
@@ -5,35 +6,58 @@ import IONKEYS from '../../../IONKEYS';
 
 /* ====== Private Functions ====== */
 
-const notificationTypeActionMap = {};
+const notificationEventActionMap = {};
 
 /**
- * Setup listener for push notifications, and trigger any bound actions.
+ * Handle a push notification event, and trigger and bound actions.
+ *
+ * @param {string} eventType
+ * @param {object} notification
+ */
+function pushNotificationEventCallback(eventType, notification) {
+    const actionMap = notificationEventActionMap[eventType];
+    const payload = notification.extras?.payload;
+
+    console.debug(`[PUSH_NOTIFICATION] ${eventType} - {
+                title: ${notification.title},
+                message: ${notification.alert},
+                payload: ${payload}
+            }`);
+
+    // If a push notification is received while the app is in foreground,
+    // we'll assume pusher is connected so we'll ignore this push notification
+    if (AppState.currentState === 'active') {
+        console.debug('[PUSH_NOTIFICATION] App is in foreground, ignoring push notification.');
+        return;
+    }
+
+    if (!payload?.type) {
+        console.debug('[PUSH_NOTIFICATION] Notification of unknown type received.');
+        return;
+    }
+
+    if (!actionMap[payload.type]) {
+        console.debug(`[PUSH_NOTIFICATION] No callback set up: {
+                    event: ${eventType},
+                    notification type: ${payload.type},
+                }`);
+        return;
+    }
+
+    const action = actionMap[payload.type];
+    action(payload);
+}
+
+/**
+ * Setup listener for push notification events.
  */
 function setupPushNotificationCallbacks() {
     UrbanAirship.addListener(EventType.PushReceived, (notification) => {
-        console.debug(`[PUSH_NOTIFICATION] Push received - {
-            title: ${notification.title},
-            message: ${notification.message},
-            payload: ${notification.payload}
-        }`);
+        pushNotificationEventCallback(EventType.PushReceived, notification);
+    });
 
-        // If app is in foreground,  we'll assume pusher is connected so we'll ignore this push notification
-        if (AppState.currentState === 'active') {
-            console.debug('[PUSH_NOTIFICATION] App is in foreground, ignoring push notification.');
-            return;
-        }
-        if (!notification.payload.type) {
-            console.debug('[PUSH_NOTIFICATION] Notification of unknown type received, ignoring.');
-            return;
-        }
-        if (!notificationTypeActionMap[notification.payload.type]) {
-            console.debug(`[PUSH_NOTIFICATION] No callback setup for notification type: ${notification.payload.type}`);
-            return;
-        }
-
-        const action = notificationTypeActionMap[notification.payload.type].action;
-        action(...notification.payload);
+    UrbanAirship.addListener(EventType.NotificationResponse, (event) => {
+        pushNotificationEventCallback(EventType.NotificationResponse, event.notification);
     });
 }
 
@@ -71,9 +95,14 @@ function enablePushNotifications() {
  *
  * @param {string} notificationType
  * @param {Function} action
+ * @param {string?} triggerEvent - The event that should trigger this action. Should be one of UrbanAirship.EventType
  */
-function bindActionToPushNotification(notificationType, action) {
-    notificationTypeActionMap[notificationType] = action;
+function bindActionToPushNotification(notificationType, action, triggerEvent = EventType.PushReceived) {
+    const event = _.contains(_.values(EventType), triggerEvent) ? triggerEvent : EventType.PushReceived;
+    notificationEventActionMap[event] = {
+        ...notificationEventActionMap[event],
+        [notificationType]: action,
+    };
 }
 
 export default {
