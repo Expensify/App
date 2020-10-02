@@ -231,12 +231,12 @@ function subscribeToReportCommentEvents() {
         updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
     });
 
-    PushNotification.bindActionToPushNotification(NotificationType.REPORT.COMMENT, ({reportID, reportAction}) => {
+    PushNotification.bind(NotificationType.REPORT.COMMENT, ({reportID, reportAction}) => {
         updateReportWithNewAction(reportID, reportAction);
     });
 
     // Open correct report when push notification is clicked
-    PushNotification.bindActionToPushNotification(NotificationType.REPORT.COMMENT, ({reportID}) => {
+    PushNotification.bind(NotificationType.REPORT.COMMENT, ({reportID}) => {
         redirect(reportID);
     }, 'notificationResponse');
 }

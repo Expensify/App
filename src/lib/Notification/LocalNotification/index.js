@@ -4,8 +4,6 @@ import CONST from '../../../CONST';
 const EXPENSIFY_ICON_URL = `${CONST.CLOUDFRONT_URL}/images/favicon-2019.png`;
 const DEFAULT_DELAY = 4000;
 
-/* ====== Private Functions ====== */
-
 /**
  * Checks if the user has granted permission to show local notifications
  *

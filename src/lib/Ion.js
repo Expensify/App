@@ -259,7 +259,7 @@ function clear() {
         .then((keys) => {
             // Then notify all the relevant subscribers that their underlying Ion data has been deleted
             _.each(keys, (key) => {
-                keyChanged(key, undefined);
+                keyChanged(key, null);
             });
         });
 }

@@ -53,7 +53,7 @@ class Expensify extends Component {
             key: IONKEYS.SESSION,
             callback: this.removeLoadingState,
         });
-        PushNotification.enablePushNotifications();
+        PushNotification.enable();
     }
 
     /**
