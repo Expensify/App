@@ -4,9 +4,8 @@ import {UrbanAirship, EventType} from 'urbanairship-react-native';
 import Ion from '../../Ion';
 import IONKEYS from '../../../IONKEYS';
 
-/* ====== Private Functions ====== */
-
 const notificationEventActionMap = {};
+let currentNamedUser;
 
 /**
  * Handle a push notification event, and trigger and bound actions.
@@ -61,18 +60,22 @@ function setupPushNotificationCallbacks() {
     });
 }
 
-/* ====== Public Functions ====== */
-
 /**
  * Get permissions and register this device as a named user in AirshipAPI.
  */
-function enablePushNotifications() {
+function enable() {
     UrbanAirship.enableUserPushNotifications()
         .finally(() => {
             Ion.connect({
                 key: IONKEYS.SESSION,
                 callback: (sessionData) => {
                     const accountID = sessionData?.accountID.toString() || null;
+
+                    // No need to re-subscribe if we're just re-authenticating the same account.
+                    if (accountID === currentNamedUser) {
+                        return;
+                    }
+
                     console.debug(`[PUSH_NOTIFICATION] ${accountID
                         ? `Subscribing to push notifications for accountID ${accountID}`
                         : 'Unsubscribing from push notifications'}.`);
@@ -80,10 +83,11 @@ function enablePushNotifications() {
                     // This will register this device with the named user associated with this accountID,
                     // or clear the the named user (deregister this device) if sessionData.accountID is undefined
                     UrbanAirship.setNamedUser(accountID);
+                    currentNamedUser = accountID;
                 }
             });
         })
-        .then(() => {
+        .finally(() => {
             setupPushNotificationCallbacks();
         });
 }
@@ -97,7 +101,7 @@ function enablePushNotifications() {
  * @param {Function} action
  * @param {string?} triggerEvent - The event that should trigger this action. Should be one of UrbanAirship.EventType
  */
-function bindActionToPushNotification(notificationType, action, triggerEvent = EventType.PushReceived) {
+function bind(notificationType, action, triggerEvent = EventType.PushReceived) {
     const event = _.contains(_.values(EventType), triggerEvent) ? triggerEvent : EventType.PushReceived;
     notificationEventActionMap[event] = {
         ...notificationEventActionMap[event],
@@ -106,6 +110,6 @@ function bindActionToPushNotification(notificationType, action, triggerEvent = E
 }
 
 export default {
-    enablePushNotifications,
-    bindActionToPushNotification,
+    enable,
+    bind,
 };
