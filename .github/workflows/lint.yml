@@ -39,7 +39,7 @@ jobs:
                         channel: '#andrew-test',
                         attachments: [{
                           color: "#39AA56",
-                          text: `${process.env.AS_WORKFLOW} ${{ $VERSION }} was deployed 🚀`,
+                          text: `${process.env.AS_WORKFLOW} ` + $VERSION + ` was deployed 🚀`,
                         }]
                       }
               env:
