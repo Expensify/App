@@ -20,8 +20,7 @@
     "lint": "eslint .",
     "postinstall": "patch-package",
     "postversion": "react-native-version",
-    "print-version": "echo $npm_package_version",
-    "link": "react-native link"
+    "print-version": "echo $npm_package_version"
   },
   "dependencies": {
     "@react-native-community/async-storage": "^1.11.0",
