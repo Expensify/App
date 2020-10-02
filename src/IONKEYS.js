@@ -3,9 +3,7 @@
  */
 export default {
     ACTIVE_CLIENTS: 'activeClients2',
-    APP: {
-        REDIRECT_TO: 'appRedirectTo',
-    },
+    APP_REDIRECT_TO: 'appRedirectTo',
     CURRENT_URL: 'currentURL',
     CREDENTIALS: 'credentials',
     FIRST_REPORT_ID: 'firstReportID',
