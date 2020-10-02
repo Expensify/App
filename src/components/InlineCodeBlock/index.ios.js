@@ -1,9 +1,9 @@
 import React from 'react';
 import {View} from 'react-native';
-import {webViewStyles} from '../../style/StyleSheet';
+import {webViewStyles, styles} from '../../style/StyleSheet';
 
 export default ({children}) => (
-    <View style={[webViewStyles.codeTagStyle, {marginBottom: -5}]}>
+    <View style={[webViewStyles.codeTagStyle, styles.mbn5]}>
         {children}
     </View>
 );
