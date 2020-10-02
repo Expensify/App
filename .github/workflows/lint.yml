@@ -14,12 +14,16 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v2
-            - name: Use Node.js
-              uses: actions/setup-node@v1
-            - run: npm install
-            - run: npm run lint
-              env:
-                  CI: true
+            - uses: actions/cache@v2
+              with:
+                  path: ~/.npm
+                  key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-node-
+#            - run: npm install
+#            - run: npm run lint
+#              env:
+#                  CI: true
 
             - name: Set version in ENV
               if: ${{ success() }}
@@ -35,7 +39,7 @@ jobs:
                       {
                         attachments: [{
                           color: "#DB4545",
-                          text: `${process.env.AS_WORKFLOW} ${VERSION} was deployed 🚀`,
+                          text: `${process.env.AS_WORKFLOW} ${process.env.VERSION} was deployed 🚀`,
                         }]
                       }
               env:
