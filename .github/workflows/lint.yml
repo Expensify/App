@@ -32,11 +32,11 @@ jobs:
               name: Job failed Slack notification
               if: ${{ success() }}
               with:
-                  channel: '#andrew-test'
                   status: custom
                   fields: workflow, repo
                   custom_payload: |
                       {
+                        channel: '#andrew-test',
                         attachments: [{
                           color: "#DB4545",
                           text: `${process.env.AS_WORKFLOW} ${process.env.VERSION} was deployed 🚀`,
