@@ -360,6 +360,7 @@ function authenticate(parameters) {
             return response;
         })
         .then(response => (
+
             // It's the users first time signing in and we need to create a login for the user
             createLogin(Str.generateDeviceLoginID(), Guid())
                 .then(() => setSuccessfulSignInData(response, parameters.exitTo))
