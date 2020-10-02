@@ -1,6 +1,8 @@
+import monospace from './monospace';
+
 const fontFamily = {
     GTA: 'GTAmericaExp-Regular',
-    GTA_MONO: 'GTAmericaExpMono-Rg',
+    MONOSPACE: monospace,
     SYSTEM: 'System',
 };
 
