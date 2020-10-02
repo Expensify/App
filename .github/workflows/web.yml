@@ -52,8 +52,8 @@ jobs:
           env:
             CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
 
-        # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
-        # the other workflows with the same change
+        # These Slack steps are duplicated in all workflows, if you make a change to this step, make sure to update all
+        # the other workflows with the same changes
         - uses: 8398a7/action-slack@v3
           name: Job failed Slack notification
           if: ${{ failure() }}
