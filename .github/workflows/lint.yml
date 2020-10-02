@@ -20,3 +20,24 @@ jobs:
             - run: npm run lint
               env:
                   CI: true
+
+            - name: Set version in ENV
+              if: ${{ success() }}
+              run: echo "VERSION=$(npm run version --silent)" >> $GITHUB_ENV
+            - uses: 8398a7/action-slack@v3
+              name: Job failed Slack notification
+              if: ${{ success() }}
+              with:
+                  channel: '#andrew-test'
+                  status: custom
+                  fields: workflow, repo
+                  custom_payload: |
+                      {
+                        attachments: [{
+                          color: "#DB4545",
+                          text: `${process.env.AS_WORKFLOW} ${VERSION} was deployed 🚀`,
+                        }]
+                      }
+              env:
+                  GITHUB_TOKEN: ${{ github.token }}
+                  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
