@@ -6,7 +6,7 @@ import EventEmitter from './EventEmitter';
 export const CONNECTED = 'connected';
 export const DISCONNECTED = 'disconnected';
 
-const Connection = new EventEmitter();
+const Network = new EventEmitter();
 
 let previousIsConnected;
 
@@ -18,7 +18,7 @@ NetInfo.fetch()
         NetInfo.addEventListener((state) => {
             // We moved from disconnected to connected fire reconnection callbacks
             if (!previousIsConnected && state.isConnected) {
-                Connection.emit(CONNECTED);
+                Network.emit(CONNECTED);
             }
 
             previousIsConnected = state.isConnected;
@@ -26,4 +26,4 @@ NetInfo.fetch()
         });
     });
 
-export default Connection;
+export default Network;

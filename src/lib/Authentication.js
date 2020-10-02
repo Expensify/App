@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import Connection, {CONNECTED} from './Connection';
+import Network, {CONNECTED} from './Network';
 import Activity, {APP_BECAME_ACTIVE} from './Activity';
 import {fetch as fetchPersonalDetails} from './actions/PersonalDetails';
 import {fetchAll as fetchAllReports} from './actions/Report';
@@ -38,7 +38,7 @@ function onSignIn() {
     // Subscribe to the state change event via NetInfo so we can update
     // whether a user has internet connectivity or not. This is more reliable
     // than the Pusher `disconnected` event which takes about 10-15 seconds to emit
-    unsubscribeConnectedEvent = Connection.subscribe(CONNECTED, () => {
+    unsubscribeConnectedEvent = Network.subscribe(CONNECTED, () => {
         triggerReconnectActions();
     });
 }
