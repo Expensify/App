@@ -189,6 +189,7 @@ function request(command, parameters, type = 'post') {
         console.error('A request was made without an authToken', {command, parameters});
         reauthenticating = false;
         networkRequestQueue = [];
+        redirectToSignIn();
         return Promise.resolve();
     }
 
