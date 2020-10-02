@@ -9,7 +9,7 @@ const contextMenu = require('electron-context-menu');
 const {autoUpdater} = require('electron-updater');
 const log = require('electron-log');
 
-const checkForUpdates = require('./src/lib/checkForUpdates.js').default;
+const checkForUpdates = require('../src/lib/checkForUpdates.js').default;
 
 /**
  * Electron main process that handles wrapping the web application.
