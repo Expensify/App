@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import {recordCurrentRoute} from './lib/actions/App';
 import SignInPage from './page/SignInPage';
 import HomePage from './page/home/HomePage';
+import Authentication from './lib/Authentication';
 import Ion from './lib/Ion';
 import * as ActiveClientManager from './lib/ActiveClientManager';
 import IONKEYS from './IONKEYS';
@@ -20,6 +21,9 @@ import ROUTES from './ROUTES';
 
 // Initialize the store when the app loads for the first time
 Ion.init();
+
+// Setup on sign in and on sign out
+Authentication.init();
 
 const propTypes = {
     /* Ion Props */

@@ -498,11 +498,6 @@ Ion.connect({
     callback: handleReportChanged
 });
 
-// When the app reconnects from being offline, fetch all of the reports and their actions
-API.onReconnect(() => {
-    fetchAll(false, true);
-});
-
 export {
     fetchAll,
     fetchActions,

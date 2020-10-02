@@ -1,22 +1,14 @@
 import {AppState} from 'react-native';
+import EventEmitter from '../EventEmitter';
 
-let onAppBecameActiveCallback;
+const Activity = new EventEmitter();
+
+export const APP_BECAME_ACTIVE = 'appBecameActive';
 
 AppState.addEventListener('change', (state) => {
     if (state === 'active') {
-        onAppBecameActiveCallback();
+        Activity.emit(APP_BECAME_ACTIVE);
     }
 });
 
-/**
- * Register active state change callback
- *
- * @param {Function} callback
- */
-function registerOnAppBecameActiveCallback(callback) {
-    onAppBecameActiveCallback = callback;
-}
-
-export default {
-    registerOnAppBecameActiveCallback,
-};
+export default Activity;

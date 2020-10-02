@@ -3,5 +3,5 @@
  * active or inactive as long as Pusher is always connected
  */
 export default {
-    registerOnAppBecameActiveCallback: () => {},
+    subscribe: () => {},
 };

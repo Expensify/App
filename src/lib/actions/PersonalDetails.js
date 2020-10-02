@@ -137,9 +137,6 @@ function getForEmails(emailList) {
         });
 }
 
-// When the app reconnects from being offline, fetch all of the personal details
-API.onReconnect(fetch);
-
 export {
     fetch,
     fetchTimezone,
