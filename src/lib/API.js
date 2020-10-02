@@ -153,34 +153,6 @@ function request(command, parameters, type = 'post') {
         return queueRequest(command, parameters);
     }
 
-    // We treat Authenticate in a special way because unlike other commands, this one can't fail
-    // with 407 authToken expired. When other api commands fail with this error we call Authenticate
-    // to get a new authToken and then fire the original api command again
-    if (command === 'Authenticate') {
-        return xhr(command, parameters, type)
-            .then((response) => {
-                // If we didn't get a 200 response from authenticate we either failed to authenticate with
-                // an expensify login or the login credentials we created after the initial authentication.
-                // In both cases, we need the user to sign in again with their expensify credentials
-                if (response.jsonCode !== 200) {
-                    throw new Error(response.message);
-                }
-
-                // Update the authToken so it's used in the call to  createLogin below
-                authToken = response.authToken;
-                return response;
-            })
-            .then((response) => {
-                // If Expensify login, it's the users first time signing in and we need to
-                // create a login for the user
-                if (parameters.useExpensifyLogin) {
-                    return createLogin(Str.generateDeviceLoginID(), Guid())
-                        .then(() => setSuccessfulSignInData(response, parameters.exitTo));
-                }
-            })
-            .catch(error => Ion.merge(IONKEYS.SESSION, {error: error.message}));
-    }
-
     // Add authToken automatically to all commands
     const parametersWithAuthToken = {...parameters, ...{authToken}};
 
@@ -360,7 +332,11 @@ function getAuthToken() {
  */
 function authenticate(parameters) {
     Ion.merge(IONKEYS.SESSION, {loading: true, error: ''});
-    return queueRequest('Authenticate', {
+
+    // We treat Authenticate in a special way because unlike other commands, this one can't fail
+    // with 407 authToken expired. When other api commands fail with this error we call Authenticate
+    // to get a new authToken and then fire the original api command again
+    return xhr('Authenticate', {
         // When authenticating for the first time, we pass useExpensifyLogin as true so we check for credentials for
         // the expensify partnerID to let users authenticate with their expensify user and password.
         useExpensifyLogin: true,
@@ -371,11 +347,29 @@ function authenticate(parameters) {
         twoFactorAuthCode: parameters.twoFactorAuthCode,
         exitTo: parameters.exitTo,
     })
+        .then((response) => {
+            // If we didn't get a 200 response from authenticate we either failed to authenticate with
+            // an expensify login or the login credentials we created after the initial authentication.
+            // In both cases, we need the user to sign in again with their expensify credentials
+            if (response.jsonCode !== 200) {
+                throw new Error(response.message);
+            }
+
+            // Update the authToken so it's used in the call to  createLogin below
+            authToken = response.authToken;
+            return response;
+        })
+        .then(response => (
+            // It's the users first time signing in and we need to create a login for the user
+            createLogin(Str.generateDeviceLoginID(), Guid())
+                .then(() => setSuccessfulSignInData(response, parameters.exitTo))
+        ))
         .catch((error) => {
             console.error(error);
             console.debug('[SIGNIN] Request error');
             Ion.merge(IONKEYS.SESSION, {error: error.message});
-        }).finally(() => {
+        })
+        .finally(() => {
             Ion.merge(IONKEYS.SESSION, {loading: false});
         });
 }
