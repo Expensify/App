@@ -105,12 +105,13 @@ function createLogin(login, password) {
  * @returns {Promise}
  */
 function queueRequest(command, data) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         // Add the write request to a queue of actions to perform
         networkRequestQueue.push({
             command,
             data,
             callback: resolve,
+            reject,
         });
 
         // Try to fire off the request as soon as it's queued so we don't add a delay to every queued command
@@ -237,6 +238,9 @@ function request(command, parameters, type = 'post') {
             if (parametersWithAuthToken.doNotRetry !== true) {
                 queueRequest(command, parametersWithAuthToken);
             }
+
+            // Throw an error so we can pass the error up the chain
+            throw new Error();
         });
 }
 
@@ -263,7 +267,8 @@ function processNetworkRequestQueue() {
 
     _.each(networkRequestQueue, (queuedRequest) => {
         request(queuedRequest.command, queuedRequest.data)
-            .then(queuedRequest.callback);
+            .then(queuedRequest.callback)
+            .catch(queuedRequest.reject);
     });
 
     networkRequestQueue = [];
