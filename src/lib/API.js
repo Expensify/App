@@ -89,8 +89,12 @@ function createLogin(login, password) {
         partnerUserID: login,
         partnerUserSecret: password,
     })
-        .then(() => Ion.merge(IONKEYS.CREDENTIALS, {login, password}))
-        .catch(err => Ion.merge(IONKEYS.SESSION, {error: err}));
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                throw new Error(response.message);
+            }
+            Ion.merge(IONKEYS.CREDENTIALS, {login, password});
+        });
 }
 
 /**
@@ -158,26 +162,22 @@ function request(command, parameters, type = 'post') {
                 // an expensify login or the login credentials we created after the initial authentication.
                 // In both cases, we need the user to sign in again with their expensify credentials
                 if (response.jsonCode !== 200) {
-                    return Ion.multiSet({
-                        [IONKEYS.CREDENTIALS]: {},
-                        [IONKEYS.SESSION]: {error: response.message},
-                    })
-                        .then(redirectToSignIn);
+                    throw new Error(response.message);
                 }
 
-                // We need to return the promise from setSuccessfulSignInData to ensure the authToken is updated before
-                // we try to create a login below
-                setSuccessfulSignInData(response, parameters.exitTo);
+                // Update the authToken so it's used in the call to  createLogin below
                 authToken = response.authToken;
+                return response;
             })
-            .then(() => {
+            .then((response) => {
                 // If Expensify login, it's the users first time signing in and we need to
                 // create a login for the user
                 if (parameters.useExpensifyLogin) {
-                    console.debug('[SIGNIN] Creating a login');
-                    createLogin(Str.generateDeviceLoginID(), Guid());
+                    return createLogin(Str.generateDeviceLoginID(), Guid())
+                        .then(() => setSuccessfulSignInData(response, parameters.exitTo));
                 }
-            });
+            })
+            .catch(error => Ion.merge(IONKEYS.SESSION, {error: error.message}));
     }
 
     // Add authToken automatically to all commands
@@ -225,11 +225,7 @@ function request(command, parameters, type = 'post') {
                     .then(() => xhr(command, parametersWithAuthToken, type))
                     .catch((error) => {
                         reauthenticating = false;
-                        Ion.multiSet({
-                            [IONKEYS.CREDENTIALS]: {},
-                            [IONKEYS.SESSION]: {error: error.message},
-                        });
-                        redirectToSignIn();
+                        redirectToSignIn(error.message);
                         return Promise.reject();
                     });
             }
@@ -307,10 +303,10 @@ Pusher.registerCustomAuthorizer((channel, {authEndpoint}) => ({
         })
             .then(authResponse => authResponse.json())
             .then(data => callback(null, data))
-            .catch((err) => {
+            .catch((error) => {
                 reconnectToPusher();
                 console.debug('[Network] Failed to authorize Pusher');
-                callback(new Error(`Error calling auth endpoint: ${err}`));
+                callback(new Error(`Error calling auth endpoint: ${error.message}`));
             });
     },
 }));
@@ -370,10 +366,10 @@ function authenticate(parameters) {
         twoFactorAuthCode: parameters.twoFactorAuthCode,
         exitTo: parameters.exitTo,
     })
-        .catch((err) => {
-            console.error(err);
+        .catch((error) => {
+            console.error(error);
             console.debug('[SIGNIN] Request error');
-            Ion.merge(IONKEYS.SESSION, {error: err.message});
+            Ion.merge(IONKEYS.SESSION, {error: error.message});
         }).finally(() => {
             Ion.merge(IONKEYS.SESSION, {loading: false});
         });
@@ -392,7 +388,7 @@ function deleteLogin(parameters) {
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         doNotRetry: true,
     })
-        .catch(err => Ion.merge(IONKEYS.SESSION, {error: err.message}));
+        .catch(error => Ion.merge(IONKEYS.SESSION, {error: error.message}));
 }
 
 /**
