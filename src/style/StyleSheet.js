@@ -60,7 +60,7 @@ const styles = {
     },
 
     mbn5: {
-        marginBottom: -5.
+        marginBottom: -5,
     },
 
     p1: {
