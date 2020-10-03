@@ -86,8 +86,6 @@ function enable() {
                     currentNamedUser = accountID;
                 }
             });
-        })
-        .finally(() => {
             setupPushNotificationCallbacks();
         });
 }
