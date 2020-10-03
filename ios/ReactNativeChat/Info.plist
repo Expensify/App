@@ -21,7 +21,7 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>88</string>
+	<string>93</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>LSRequiresIPhoneOS</key>
@@ -64,6 +64,9 @@
 		<string>GTAmericaExp-Regular.otf</string>
 		<string>GTAmericaExp-Thin.otf</string>
 		<string>GTAmericaExpMono-Rg.otf</string>
+		<string>GTAmericaExp-BdIt.otf</string>
+		<string>GTAmericaExp-MdIt.otf</string>
+		<string>GTAmericaExp-RgIt.otf</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
