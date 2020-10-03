@@ -253,7 +253,7 @@ function clear() {
     getCurrentKeySet()
         .then((keys) => {
             // Then clear the store
-            AsyncStorage.clear();
+            AsyncStorage.multiRemove(keys);
             return keys;
         })
         .then((keys) => {
