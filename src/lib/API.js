@@ -8,7 +8,6 @@ import ROUTES from '../ROUTES';
 import Str from './Str';
 import Guid from './Guid';
 import redirectToSignIn from './actions/SignInRedirect';
-import {redirect} from './actions/App';
 import Activity from './Activity';
 
 // Holds all of the callbacks that need to be triggered when the network reconnects
@@ -90,8 +89,12 @@ function createLogin(login, password) {
         partnerUserID: login,
         partnerUserSecret: password,
     })
-        .then(() => Ion.merge(IONKEYS.CREDENTIALS, {login, password}))
-        .catch(err => Ion.merge(IONKEYS.SESSION, {error: err}));
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                throw new Error(response.message);
+            }
+            Ion.merge(IONKEYS.CREDENTIALS, {login, password});
+        });
 }
 
 /**
@@ -123,17 +126,12 @@ function queueRequest(command, data) {
  * @param {string} exitTo
  */
 function setSuccessfulSignInData(data, exitTo) {
-    let redirectTo;
+    const redirectTo = exitTo ? Str.normalizeUrl(exitTo) : ROUTES.HOME;
 
-    if (exitTo && exitTo[0] === '/') {
-        redirectTo = exitTo;
-    } else if (exitTo) {
-        redirectTo = `/${exitTo}`;
-    } else {
-        redirectTo = ROUTES.HOME;
-    }
-    redirect(redirectTo);
-    Ion.merge(IONKEYS.SESSION, _.pick(data, 'authToken', 'accountID', 'email'));
+    Ion.multiSet({
+        [IONKEYS.SESSION]: _.pick(data, 'authToken', 'accountID', 'email'),
+        [IONKEYS.APP_REDIRECT_TO]: redirectTo
+    });
 }
 
 /**
@@ -164,26 +162,22 @@ function request(command, parameters, type = 'post') {
                 // an expensify login or the login credentials we created after the initial authentication.
                 // In both cases, we need the user to sign in again with their expensify credentials
                 if (response.jsonCode !== 200) {
-                    return Ion.multiSet({
-                        [IONKEYS.CREDENTIALS]: {},
-                        [IONKEYS.SESSION]: {error: response.message},
-                    })
-                        .then(redirectToSignIn);
+                    throw new Error(response.message);
                 }
 
-                // We need to return the promise from setSuccessfulSignInData to ensure the authToken is updated before
-                // we try to create a login below
-                setSuccessfulSignInData(response, parameters.exitTo);
+                // Update the authToken so it's used in the call to  createLogin below
                 authToken = response.authToken;
+                return response;
             })
-            .then(() => {
+            .then((response) => {
                 // If Expensify login, it's the users first time signing in and we need to
                 // create a login for the user
                 if (parameters.useExpensifyLogin) {
-                    console.debug('[SIGNIN] Creating a login');
-                    createLogin(Str.generateDeviceLoginID(), Guid());
+                    return createLogin(Str.generateDeviceLoginID(), Guid())
+                        .then(() => setSuccessfulSignInData(response, parameters.exitTo));
                 }
-            });
+            })
+            .catch(error => Ion.merge(IONKEYS.SESSION, {error: error.message}));
     }
 
     // Add authToken automatically to all commands
@@ -231,11 +225,7 @@ function request(command, parameters, type = 'post') {
                     .then(() => xhr(command, parametersWithAuthToken, type))
                     .catch((error) => {
                         reauthenticating = false;
-                        Ion.multiSet({
-                            [IONKEYS.CREDENTIALS]: {},
-                            [IONKEYS.SESSION]: {error: error.message},
-                        });
-                        redirectToSignIn();
+                        redirectToSignIn(error.message);
                         return Promise.reject();
                     });
             }
@@ -313,10 +303,10 @@ Pusher.registerCustomAuthorizer((channel, {authEndpoint}) => ({
         })
             .then(authResponse => authResponse.json())
             .then(data => callback(null, data))
-            .catch((err) => {
+            .catch((error) => {
                 reconnectToPusher();
                 console.debug('[Network] Failed to authorize Pusher');
-                callback(new Error(`Error calling auth endpoint: ${err}`));
+                callback(new Error(`Error calling auth endpoint: ${error.message}`));
             });
     },
 }));
@@ -325,36 +315,16 @@ Pusher.registerCustomAuthorizer((channel, {authEndpoint}) => ({
  * Events that happen on the pusher socket are used to determine if the app is online or offline. The offline setting
  * is stored in Ion so the rest of the app has access to it.
  *
- * @params {string} eventName,
- * @params {object} data
+ * @params {string} eventName
  */
-Pusher.registerSocketEventCallback((eventName, data) => {
-    let isCurrentlyOffline = false;
+Pusher.registerSocketEventCallback((eventName) => {
     switch (eventName) {
-        case 'connected':
-            isCurrentlyOffline = false;
-            break;
-        case 'disconnected':
-            isCurrentlyOffline = true;
-            break;
-        case 'state_change':
-            if (data.current === 'failed') {
-                // WebSockets are not natively available. In this case,
-                // we should not let Pusher influence the offline state of the app.
-                return;
-            }
-
-            if (data.current === 'disconnected' || data.current === 'connecting' || data.current === 'unavailable') {
-                isCurrentlyOffline = true;
-            }
-            break;
         case 'error':
             reconnectToPusher();
             break;
         default:
             break;
     }
-    setOfflineStatus(isCurrentlyOffline);
 });
 
 /**
@@ -396,10 +366,10 @@ function authenticate(parameters) {
         twoFactorAuthCode: parameters.twoFactorAuthCode,
         exitTo: parameters.exitTo,
     })
-        .catch((err) => {
-            console.error(err);
+        .catch((error) => {
+            console.error(error);
             console.debug('[SIGNIN] Request error');
-            Ion.merge(IONKEYS.SESSION, {error: err.message});
+            Ion.merge(IONKEYS.SESSION, {error: error.message});
         }).finally(() => {
             Ion.merge(IONKEYS.SESSION, {loading: false});
         });
@@ -418,7 +388,7 @@ function deleteLogin(parameters) {
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         doNotRetry: true,
     })
-        .catch(err => Ion.merge(IONKEYS.SESSION, {error: err.message}));
+        .catch(error => Ion.merge(IONKEYS.SESSION, {error: error.message}));
 }
 
 /**
@@ -465,6 +435,7 @@ function createChatReport(parameters) {
  * @param {object} parameters
  * @param {string} parameters.reportComment
  * @param {object} parameters.file
+ * @param {number} parameters.reportID
  * @returns {Promise}
  */
 function addReportComment(parameters) {
@@ -472,6 +443,7 @@ function addReportComment(parameters) {
         authToken,
         reportComment: parameters.reportComment,
         file: parameters.file,
+        reportID: parameters.reportID,
     });
 }
 
