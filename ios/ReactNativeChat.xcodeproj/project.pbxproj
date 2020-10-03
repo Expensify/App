@@ -168,13 +168,10 @@
 				AE65058949E14DA5A2D5435D /* GTAmericaExp-Medium.otf */,
 				8C7003903C1E4957824899BB /* GTAmericaExp-Regular.otf */,
 				A292718541C841859D97DF2F /* GTAmericaExp-Thin.otf */,
-<<<<<<< HEAD
 				8437A5A38F2047E0BCCD7C2F /* GTAmericaExpMono-Rg.otf */,
-=======
 				A8D6F2F722FD4E66A38EBBB6 /* GTAmericaExp-BdIt.otf */,
 				DB5A1365442D4419AF6F08E5 /* GTAmericaExp-MdIt.otf */,
 				918D7FEFF96242E6B5F5E14D /* GTAmericaExp-RgIt.otf */,
->>>>>>> origin
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -287,14 +284,7 @@
 			files = (
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
-<<<<<<< HEAD
-				11FA3546D54246CD8F819152 /* GTAmericaExp-Bold.otf in Resources */,
-				49F157C845CE4D56AA72B80E /* GTAmericaExp-Light.otf in Resources */,
-				CC07911F22C2437DA6708BD2 /* GTAmericaExp-Medium.otf in Resources */,
-				4912B60FA66C4604A56AD575 /* GTAmericaExp-Regular.otf in Resources */,
-				7F7721B764D444D6861A9B39 /* GTAmericaExp-Thin.otf in Resources */,
 				12DD1878FCB9487C9F031C86 /* GTAmericaExpMono-Rg.otf in Resources */,
-=======
 				1E76D5212522316A005A268F /* GTAmericaExp-Bold.otf in Resources */,
 				1E76D5222522316A005A268F /* GTAmericaExp-Light.otf in Resources */,
 				1E76D5232522316A005A268F /* GTAmericaExp-Medium.otf in Resources */,
@@ -303,7 +293,6 @@
 				425866037F4C482AAB46CB8B /* GTAmericaExp-BdIt.otf in Resources */,
 				6856B78873B64C44A92E51DB /* GTAmericaExp-MdIt.otf in Resources */,
 				8821A238A081483FA947BC4E /* GTAmericaExp-RgIt.otf in Resources */,
->>>>>>> origin
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
