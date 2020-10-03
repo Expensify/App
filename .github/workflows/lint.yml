@@ -27,7 +27,7 @@ jobs:
 
             - name: Set version in ENV
               if: ${{ success() }}
-              run: echo "VERSION=$(npm run version --silent)" >> $GITHUB_ENV
+              run: echo "::set-env name=VERSION::$(npm run version --silent)"
             - uses: 8398a7/action-slack@v3
               name: QA Slack notification
               if: ${{ success() }}
@@ -45,4 +45,3 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ github.token }}
                   SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
-                  VERSION: $(npm run version --silent)
