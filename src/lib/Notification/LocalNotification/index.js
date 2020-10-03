@@ -103,8 +103,7 @@ export default {
      */
     pushReportCommentNotification({reportAction, onClick}) {
         const {person, message} = reportAction;
-        const plainTextPerson = Str.htmlDecode(person.map(f => f.text)
-            .join());
+        const plainTextPerson = Str.htmlDecode(person.map(f => f.text).join());
 
         // Specifically target the comment part of the message
         const plainTextMessage = Str.htmlDecode((message.find(f => f.type === 'COMMENT') || {}).text);
@@ -115,5 +114,5 @@ export default {
             delay: 0,
             onClick,
         });
-    }
+    },
 };

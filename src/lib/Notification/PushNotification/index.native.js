@@ -81,7 +81,7 @@ function enable() {
                         : 'Unsubscribing from push notifications'}.`);
 
                     // This will register this device with the named user associated with this accountID,
-                    // or clear the the named user (deregister this device) if sessionData.accountID is undefined
+                    // or clear the the named user (deregister this device) if sessionData.accountID is null
                     UrbanAirship.setNamedUser(accountID);
                     currentNamedUser = accountID;
                 }
