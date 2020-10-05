@@ -217,14 +217,19 @@ function request(command, parameters, type = 'post') {
             }
             return responseData;
         })
-        .catch(() => {
+        .catch((error) => {
             // If the request failed, we need to put the request object back into the queue as long as there is no
             // doNotRetry option set in the parametersWithAuthToken
             if (parametersWithAuthToken.doNotRetry !== true) {
                 queueRequest(command, parametersWithAuthToken);
             }
 
-            // Throw an error so we can pass the error up the chain
+            // If we already have an error, throw that so we do not swallow it
+            if (error && error instanceof Error) {
+                throw error;
+            }
+
+            // Throw a generic error so we can pass the error up the chain
             throw new Error(`API Command ${command} failed`);
         });
 }
