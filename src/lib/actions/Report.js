@@ -10,7 +10,6 @@ import promiseAllSettled from '../promiseAllSettled';
 import ExpensiMark from '../ExpensiMark';
 import LocalNotification from '../Notification/LocalNotification';
 import PushNotification from '../Notification/PushNotification';
-import NotificationType from '../Notification/NotificationType';
 import * as PersonalDetails from './PersonalDetails';
 import {redirect} from './App';
 import * as ActiveClientManager from '../ActiveClientManager';
@@ -227,18 +226,18 @@ function subscribeToReportCommentEvents() {
         return;
     }
 
-    Pusher.subscribe(pusherChannelName, NotificationType.REPORT.COMMENT, (pushJSON) => {
+    Pusher.subscribe(pusherChannelName, 'reportComment', (pushJSON) => {
         updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
     });
 
-    PushNotification.bind(NotificationType.REPORT.COMMENT, ({reportID, reportAction}) => {
+    PushNotification.bind(PushNotification.NotificationType.REPORT.COMMENT, ({reportID, reportAction}) => {
         updateReportWithNewAction(reportID, reportAction);
     });
 
     // Open correct report when push notification is clicked
-    PushNotification.bind(NotificationType.REPORT.COMMENT, ({reportID}) => {
+    PushNotification.bind(PushNotification.NotificationType.REPORT.COMMENT, ({reportID}) => {
         redirect(reportID);
-    }, 'notificationResponse');
+    }, PushNotification.EventType.NotificationResponse);
 }
 
 /**
