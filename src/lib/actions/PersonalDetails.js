@@ -5,7 +5,7 @@ import * as API from '../API';
 import IONKEYS from '../../IONKEYS';
 import md5 from '../md5';
 import CONST from '../../CONST';
-import Connection from '../NetworkConnection';
+import NetworkConnection from '../NetworkConnection';
 
 let currentUserEmail;
 Ion.connect({
