@@ -2,7 +2,6 @@ import Ion from '../Ion';
 import * as API from '../API';
 import IONKEYS from '../../IONKEYS';
 import redirectToSignIn from './SignInRedirect';
-import * as Pusher from '../Pusher/pusher';
 
 let credentials;
 Ion.connect({
@@ -32,13 +31,9 @@ function signIn(partnerUserID, partnerUserSecret, twoFactorAuthCode = '', exitTo
  */
 function signOut() {
     redirectToSignIn();
-    Ion.clear();
-    Pusher.disconnect();
-
     if (!credentials || !credentials.login) {
         return;
     }
-
     API.deleteLogin({
         partnerUserID: credentials.login
     });
