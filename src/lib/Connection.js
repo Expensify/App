@@ -47,6 +47,7 @@ function init() {
     // Subscribe to the state change event via NetInfo so we can update
     // whether a user has internet connectivity or not.
     unsubscribeFromNetInfo = NetInfo.addEventListener((state) => {
+        console.debug('[NetInfo] isConnected:', state && state.isConnected);
         setOfflineStatus(!state.isConnected);
     });
 
@@ -55,6 +56,7 @@ function init() {
     // returns from the background. So, if we are returning from the background
     // and we are online we should trigger our reconnection callbacks.
     AppState.addEventListener('change', (state) => {
+        console.debug('[AppState] state changed:', state);
         const nextStateIsActive = state === 'active';
 
         // We are moving from not active to active and we are online so fire callbacks
