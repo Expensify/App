@@ -1,5 +1,6 @@
 // We place items a percentage to the safe area on the top or bottom of the screen
 import fontFamily from './fontFamily';
+import italic from './italic';
 
 const safeInsertPercentage = 0.7;
 
@@ -661,8 +662,8 @@ const styles = {
 const webViewStyles = {
     tagStyles: {
         em: {
-            fontStyle: 'italic',
-            fontFamily: fontFamily.SYSTEM,
+            fontFamily: fontFamily.GTA_ITALIC,
+            fontStyle: italic,
         },
 
         del: {
