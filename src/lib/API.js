@@ -177,8 +177,12 @@ function request(command, parameters, type = 'post') {
                 // create a login for the user
                 if (parameters.useExpensifyLogin) {
                     return createLogin(Str.generateDeviceLoginID(), Guid())
-                        .then(() => setSuccessfulSignInData(response, parameters.exitTo));
+                        .then(() => {
+                            setSuccessfulSignInData(response, parameters.exitTo);
+                            return response;
+                        });
                 }
+                return response;
             })
             .catch(error => Ion.merge(IONKEYS.SESSION, {error: error.message}));
     }
