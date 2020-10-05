@@ -3,6 +3,7 @@ import {AppState} from 'react-native';
 import {UrbanAirship, EventType} from 'urbanairship-react-native';
 import Ion from '../../Ion';
 import IONKEYS from '../../../IONKEYS';
+import NotificationType from './NotificationType';
 
 const notificationEventActionMap = {};
 let currentNamedUser;
@@ -110,4 +111,6 @@ function bind(notificationType, action, triggerEvent = EventType.PushReceived) {
 export default {
     enable,
     bind,
+    EventType,
+    NotificationType,
 };
