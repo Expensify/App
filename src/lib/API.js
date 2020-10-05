@@ -359,8 +359,6 @@ function authenticate(parameters) {
             authToken = response.authToken;
             return response;
         })
-
-        // It's the users first time signing in and we need to create a login for the user
         .then(response => (
             createLogin(Str.generateDeviceLoginID(), Guid())
                 .then(() => setSuccessfulSignInData(response, parameters.exitTo))
