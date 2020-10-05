@@ -60,7 +60,7 @@ jobs:
                   GITHUB_TOKEN: ${{ github.token }}
                   SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
-           - name: Set version in ENV
+            - name: Set version in ENV
               if: ${{ success() }}
               run: echo "VERSION=$(npm run print-version --silent)" >> $GITHUB_ENV
 
