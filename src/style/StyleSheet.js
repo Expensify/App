@@ -1,5 +1,6 @@
 // We place items a percentage to the safe area on the top or bottom of the screen
 import fontFamily from './fontFamily';
+import italic from './italic';
 
 const safeInsertPercentage = 0.7;
 
@@ -528,10 +529,17 @@ const styles = {
         display: 'flex',
     },
 
+    chatItemComposeBoxColor: {
+        borderColor: colors.border,
+    },
+
+    chatItemComposeBoxFocusedColor: {
+        borderColor: colors.blue,
+    },
+
     chatItemComposeBox: {
         backgroundColor: colors.componentBG,
         borderWidth: 1,
-        borderColor: colors.border,
         borderRadius: 8,
         minHeight: 40,
     },
@@ -654,8 +662,8 @@ const styles = {
 const webViewStyles = {
     tagStyles: {
         em: {
-            fontStyle: 'italic',
-            fontFamily: fontFamily.SYSTEM,
+            fontFamily: fontFamily.GTA_ITALIC,
+            fontStyle: italic,
         },
 
         del: {
@@ -669,6 +677,12 @@ const webViewStyles = {
 
         a: {
             color: colors.blue
+        },
+
+        img: {
+            borderColor: colors.border,
+            borderRadius: 8,
+            borderWidth: 1,
         }
     },
 
