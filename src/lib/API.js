@@ -9,6 +9,7 @@ import Str from './Str';
 import Guid from './Guid';
 import redirectToSignIn from './actions/SignInRedirect';
 import Activity from './Activity';
+import PushNotification from './Notification/PushNotification';
 
 // Holds all of the callbacks that need to be triggered when the network reconnects
 const reconnectionCallbacks = [];
@@ -379,6 +380,7 @@ function authenticate(parameters) {
         twoFactorAuthCode: parameters.twoFactorAuthCode,
         exitTo: parameters.exitTo,
     })
+        .then(({accountID}) => PushNotification.register(accountID))
         .catch((error) => {
             console.error(error);
             console.debug('[SIGNIN] Request error');
