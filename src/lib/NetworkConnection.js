@@ -18,9 +18,9 @@ const reconnectionCallbacks = [];
 /**
  * Loop over all reconnection callbacks and fire each one
  */
-function triggerReconnectionCallbacks() {
+const triggerReconnectionCallbacks = _.throttle(() => {
     _.each(reconnectionCallbacks, callback => callback());
-}
+}, 2000);
 
 /**
  * Called when the offline status of the app changes and if the network is "reconnecting" (going from offline to online)
