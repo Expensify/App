@@ -372,6 +372,9 @@ function authenticate(parameters) {
             authToken = response.authToken;
             return response;
         })
+
+        // After the user authenticates, create a new login for the user so that we can reauthenticate when the
+        // authtoken expires
         .then(response => (
             createLogin(Str.generateDeviceLoginID(), Guid())
                 .then(() => setSuccessfulSignInData(response, parameters.exitTo))
