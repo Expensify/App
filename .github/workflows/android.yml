@@ -20,6 +20,10 @@ jobs:
         - name: Install gems
           run: bundle install
 
+        - uses: webfactory/ssh-agent@v0.4.0
+          with:
+              ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
         - name: Install node packages
           run: npm install
 
