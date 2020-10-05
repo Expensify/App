@@ -2,7 +2,7 @@ import _ from 'underscore';
 import Ion from './Ion';
 import CONFIG from '../CONFIG';
 import IONKEYS from '../IONKEYS';
-import Connection from './Connection';
+import NetworkConnection from './NetworkConnection';
 
 /**
  * Makes XHR request
@@ -24,7 +24,7 @@ function xhr(command, data, type = 'post') {
         // This will catch any HTTP network errors (like 404s and such), not to be confused with jsonCode which this
         // does NOT catch
         .catch(() => {
-            Connection.setOfflineStatus(true);
+            NetworkConnection.setOfflineStatus(true);
 
             // Set an error state and signify we are done loading
             Ion.merge(IONKEYS.SESSION, {loading: false, error: 'Cannot connect to server'});
