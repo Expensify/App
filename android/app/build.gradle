@@ -138,6 +138,7 @@ android {
         applicationId "com.expensify.chat"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
+        multiDexEnabled rootProject.ext.multiDexEnabled
         versionCode 97
         versionName "1.0.1-96"
     }
@@ -229,6 +230,9 @@ dependencies {
 
     // Firebase
     implementation 'com.google.gms:google-services:4.3.3'
+
+    // Multi Dex Support
+    implementation 'com.android.support:multidex:1.0.3'
 }
 
 // Run this once to be able to run the application with BUCK
