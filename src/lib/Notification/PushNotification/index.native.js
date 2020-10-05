@@ -1,33 +1,36 @@
 import _ from 'underscore';
 import {AppState} from 'react-native';
 import {UrbanAirship, EventType} from 'urbanairship-react-native';
-import Ion from '../../Ion';
-import IONKEYS from '../../../IONKEYS';
 import NotificationType from './NotificationType';
 
 const notificationEventActionMap = {};
-let currentNamedUser;
 
-Ion.connect({
-    key: IONKEYS.SESSION,
-    callback: (sessionData) => {
-        const accountID = sessionData?.accountID.toString() || null;
+/**
+ * Register this device for push notifications for the given accountID.
+ *
+ * @param {string} accountID
+ */
+function register(accountID) {
+    // Get permissions to display push notifications
+    UrbanAirship.enableUserPushNotifications()
+        .then((isEnabled) => {
+            if (!isEnabled) {
+                console.debug('[PUSH_NOTIFICATIONS] User has disabled visible push notifications for this app.');
+            }
+        });
 
-        // No need to re-subscribe if we're just re-authenticating the same account.
-        if (accountID === currentNamedUser) {
-            return;
-        }
+    // Register this device as a named user in AirshipAPI
+    console.debug(`[PUSH_NOTIFICATIONS] Subscribing to notifications for account ID ${accountID}`);
+    UrbanAirship.setNamedUser(accountID);
+}
 
-        console.debug(`[PUSH_NOTIFICATION] ${accountID
-            ? `Subscribing to push notifications for accountID ${accountID}`
-            : 'Unsubscribing from push notifications'}.`);
-
-        // This will register this device with the named user associated with this accountID,
-        // or clear the the named user (deregister this device) if sessionData.accountID is null
-        UrbanAirship.setNamedUser(accountID);
-        currentNamedUser = accountID;
-    }
-});
+/**
+ * Deregister this device from push notifications.
+ */
+function deregister() {
+    console.debug('[PUSH_NOTIFICATIONS] Unsubscribing from push notifications.');
+    UrbanAirship.setNamedUser(null);
+}
 
 /**
  * Handle a push notification event, and trigger and bound actions.
@@ -72,7 +75,7 @@ function pushNotificationEventCallback(eventType, notification) {
 /**
  * Setup listener for push notification events.
  */
-function setupPushNotificationCallbacks() {
+function setupEventListeners() {
     UrbanAirship.addListener(EventType.PushReceived, (notification) => {
         pushNotificationEventCallback(EventType.PushReceived, notification);
     });
@@ -80,13 +83,6 @@ function setupPushNotificationCallbacks() {
     UrbanAirship.addListener(EventType.NotificationResponse, (event) => {
         pushNotificationEventCallback(EventType.NotificationResponse, event.notification);
     });
-}
-
-/**
- * Get permissions and register this device as a named user in AirshipAPI.
- */
-function enable() {
-    UrbanAirship.enableUserPushNotifications();
 }
 
 /**
@@ -106,10 +102,12 @@ function bind(notificationType, action, triggerEvent = EventType.PushReceived) {
     };
 }
 
-setupPushNotificationCallbacks();
+// Setup the listeners when this module first loads
+setupEventListeners();
 
 export default {
-    enable,
+    register,
+    deregister,
     bind,
     EventType,
     NotificationType,
