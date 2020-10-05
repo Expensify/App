@@ -2,7 +2,7 @@ import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import Ion from '../Ion';
-import {queueRequest, onReconnect} from '../API';
+import * as API from '../API';
 import IONKEYS from '../../IONKEYS';
 import CONFIG from '../../CONFIG';
 import * as Pusher from '../Pusher/pusher';
@@ -11,6 +11,8 @@ import ExpensiMark from '../ExpensiMark';
 import Notification from '../Notification';
 import * as PersonalDetails from './PersonalDetails';
 import {redirect} from './App';
+import * as ActiveClientManager from '../ActiveClientManager';
+import Visibility from '../Visibility';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -29,12 +31,6 @@ let currentURL;
 Ion.connect({
     key: IONKEYS.CURRENT_URL,
     callback: val => currentURL = val,
-});
-
-let personalDetails;
-Ion.connect({
-    key: IONKEYS.PERSONAL_DETAILS,
-    callback: val => personalDetails = val,
 });
 
 let myPersonalDetails;
@@ -110,7 +106,7 @@ function getChatReportName(sharedReportList) {
     return _.chain(sharedReportList)
         .map(participant => participant.email)
         .filter(participant => participant !== currentUserEmail)
-        .map(participant => lodashGet(personalDetails, [participant, 'firstName']) || participant)
+        .map(participant => PersonalDetails.getDisplayName(participant))
         .value()
         .join(', ');
 }
@@ -124,7 +120,7 @@ function getChatReportName(sharedReportList) {
  */
 function fetchChatReportsByIDs(chatList) {
     let fetchedReports;
-    return queueRequest('Get', {
+    return API.get({
         returnValueList: 'reportStuff',
         reportIDList: chatList.join(','),
         shouldLoadOptionalKeys: true,
@@ -173,7 +169,7 @@ function fetchChatReportsByIDs(chatList) {
  * @param {object} reportAction
  */
 function updateReportWithNewAction(reportID, reportAction) {
-    const previousMaxSequenceNumber = reportMaxSequenceNumbers[reportID];
+    const previousMaxSequenceNumber = reportMaxSequenceNumbers[reportID] || 0;
     const newMaxSequenceNumber = reportAction.sequenceNumber;
     const hasNewSequenceNumber = newMaxSequenceNumber > previousMaxSequenceNumber;
 
@@ -191,6 +187,11 @@ function updateReportWithNewAction(reportID, reportAction) {
         [reportAction.sequenceNumber]: reportAction,
     });
 
+    if (!ActiveClientManager.isClientTheLeader()) {
+        console.debug('[NOTIFICATION] Skipping notification because this client is not the leader');
+        return;
+    }
+
     // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
     if (reportAction.actorEmail === currentUserEmail) {
         console.debug('[NOTIFICATION] No notification because comment is from the currently logged in user');
@@ -200,7 +201,7 @@ function updateReportWithNewAction(reportID, reportAction) {
     const currentReportID = Number(lodashGet(currentURL.split('/'), [1], 0));
 
     // If we are currently viewing this report do not show a notification.
-    if (reportID === currentReportID) {
+    if (reportID === currentReportID && Visibility.isVisible()) {
         console.debug('[NOTIFICATION] No notification because it was a comment for the current report');
         return;
     }
@@ -219,6 +220,11 @@ function updateReportWithNewAction(reportID, reportAction) {
  * Initialize our pusher subscriptions to listen for new report comments
  */
 function subscribeToReportCommentEvents() {
+    // If we don't have the user's accountID yet we can't subscribe so return early
+    if (!currentUserAccountID) {
+        return;
+    }
+
     const pusherChannelName = `private-user-accountID-${currentUserAccountID}`;
     if (Pusher.isSubscribed(pusherChannelName) || Pusher.isAlreadySubscribing(pusherChannelName)) {
         return;
@@ -236,7 +242,7 @@ function subscribeToReportCommentEvents() {
  * @returns {Promise} only used internally when fetchAll() is called
  */
 function fetchChatReports() {
-    return queueRequest('Get', {
+    return API.get({
         returnValueList: 'chatList',
     })
 
@@ -250,7 +256,7 @@ function fetchChatReports() {
  * @param {number} reportID
  */
 function fetchActions(reportID) {
-    queueRequest('Report_GetHistory', {reportID})
+    API.getReportHistory({reportID})
         .then((data) => {
             const indexedData = _.indexBy(data.history, 'sequenceNumber');
             const maxSequenceNumber = _.chain(data.history)
@@ -273,7 +279,7 @@ function fetchAll(shouldRedirectToFirstReport = true, shouldFetchActions = false
     let fetchedReports;
 
     // Request each report one at a time to allow individual reports to fail if access to it is prevented by Auth
-    const reportFetchPromises = _.map(configReportIDs, reportID => queueRequest('Get', {
+    const reportFetchPromises = _.map(configReportIDs, reportID => API.get({
         returnValueList: 'reportStuff',
         reportIDList: reportID,
         shouldLoadOptionalKeys: true,
@@ -298,10 +304,9 @@ function fetchAll(shouldRedirectToFirstReport = true, shouldFetchActions = false
 
             // Set the first report ID so that the logged in person can be redirected there
             // if they are on the home page
-            if (shouldRedirectToFirstReport && currentURL === '/') {
+            if (shouldRedirectToFirstReport && (currentURL === '/' || currentURL === '/home')) {
                 const firstReportID = _.first(_.pluck(fetchedReports, 'reportID'));
 
-                // If we're on the home page, then redirect to the first report ID
                 if (firstReportID) {
                     redirect(`/${firstReportID}`);
                 }
@@ -313,6 +318,7 @@ function fetchAll(shouldRedirectToFirstReport = true, shouldFetchActions = false
                 Ion.merge(`${IONKEYS.COLLECTION.REPORT}${report.reportID}`, getSimplifiedReportObject(report));
 
                 if (shouldFetchActions) {
+                    console.debug(`[RECONNECT] Fetching report actions for report ${report.reportID}`);
                     fetchActions(report.reportID);
                 }
             });
@@ -332,7 +338,7 @@ function fetchOrCreateChatReport(participants) {
         throw new Error('fetchOrCreateChatReport() must have at least two participants');
     }
 
-    queueRequest('CreateChatReport', {
+    API.createChatReport({
         emailList: participants.join(','),
     })
 
@@ -341,7 +347,7 @@ function fetchOrCreateChatReport(participants) {
             reportID = data.reportID;
 
             // Make a request to get all the information about the report
-            return queueRequest('Get', {
+            return API.get({
                 returnValueList: 'reportStuff',
                 reportIDList: reportID,
                 shouldLoadOptionalKeys: true,
@@ -370,13 +376,15 @@ function fetchOrCreateChatReport(participants) {
  *
  * @param {number} reportID
  * @param {string} text
+ * @param {object} file
  */
-function addAction(reportID, text) {
+function addAction(reportID, text, file) {
     const actionKey = `${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
 
     // Convert the comment from MD into HTML because that's how it is stored in the database
     const parser = new ExpensiMark();
     const htmlComment = parser.replace(text);
+    const isAttachment = _.isEmpty(text) && file !== undefined;
 
     // The new sequence number will be one higher than the highest
     let highestSequenceNumber = reportMaxSequenceNumbers[reportID] || 0;
@@ -406,20 +414,22 @@ function addAction(reportID, text) {
             message: [
                 {
                     type: 'COMMENT',
-                    html: htmlComment,
+                    html: isAttachment ? 'Uploading Attachment...' : htmlComment,
 
                     // Remove HTML from text when applying optimistic offline comment
-                    text: htmlComment.replace(/<[^>]*>?/gm, ''),
+                    text: isAttachment ? 'Uploading Attachment...'
+                        : htmlComment.replace(/<[^>]*>?/gm, ''),
                 }
             ],
             isFirstItem: false,
-            isAttachmentPlaceHolder: false,
+            isAttachment,
         }
     });
 
-    queueRequest('Report_AddComment', {
+    API.addReportComment({
         reportID,
         reportComment: htmlComment,
+        file
     });
 }
 
@@ -445,7 +455,7 @@ function updateLastReadActionID(reportID, sequenceNumber) {
     });
 
     // Mark the report as not having any unread items
-    queueRequest('Report_SetLastReadActionID', {
+    API.setLastReadActionID({
         accountID: currentUserAccountID,
         reportID,
         sequenceNumber,
@@ -489,9 +499,10 @@ Ion.connect({
 });
 
 // When the app reconnects from being offline, fetch all of the reports and their actions
-onReconnect(() => {
+API.onReconnect(() => {
     fetchAll(false, true);
 });
+
 export {
     fetchAll,
     fetchActions,

@@ -1,5 +1,6 @@
 // We place items a percentage to the safe area on the top or bottom of the screen
 import fontFamily from './fontFamily';
+import italic from './italic';
 
 const safeInsertPercentage = 0.7;
 
@@ -9,6 +10,7 @@ const colors = {
     black: '#000000',
     blue: '#2EAAE2',
     border: '#ECECEC',
+    borderLight: '#E0E0E0',
     green: '#2ECB70',
     heading: '#37444C',
     icon: '#C6C9CA',
@@ -160,11 +162,9 @@ const styles = {
     },
 
     // Actions
-    actionAvatarWrapper: {
-        width: 40,
-    },
     actionAvatar: {
         borderRadius: 20,
+        marginRight: 8,
         height: 40,
         width: 40,
     },
@@ -451,7 +451,7 @@ const styles = {
 
     chatContentScrollView: {
         flexGrow: 1,
-        justifyContent: 'flex-end',
+        justifyContent: 'flex-start',
         paddingVertical: 16,
     },
 
@@ -470,12 +470,6 @@ const styles = {
         paddingBottom: 8,
         paddingLeft: 20,
         paddingRight: 20,
-    },
-
-    chatItemLeft: {
-        display: 'flex',
-        flexShrink: 0,
-        marginRight: 8,
     },
 
     chatItemRightGrouped: {
@@ -535,10 +529,17 @@ const styles = {
         display: 'flex',
     },
 
+    chatItemComposeBoxColor: {
+        borderColor: colors.border,
+    },
+
+    chatItemComposeBoxFocusedColor: {
+        borderColor: colors.blue,
+    },
+
     chatItemComposeBox: {
         backgroundColor: colors.componentBG,
         borderWidth: 1,
-        borderColor: colors.border,
         borderRadius: 8,
         minHeight: 40,
     },
@@ -582,6 +583,17 @@ const styles = {
         marginTop: 6,
         justifyContent: 'center',
         width: 39,
+    },
+
+    chatItemAttachmentPlaceholder: {
+        backgroundColor: colors.border,
+        borderColor: colors.borderLight,
+        borderWidth: 1,
+        borderRadius: 8,
+        height: 150,
+        textAlign: 'center',
+        verticalAlign: 'middle',
+        width: 200,
     },
 
     chatSwitcherInputClear: {
@@ -650,8 +662,8 @@ const styles = {
 const webViewStyles = {
     tagStyles: {
         em: {
-            fontStyle: 'italic',
-            fontFamily: fontFamily.SYSTEM,
+            fontFamily: fontFamily.GTA_ITALIC,
+            fontStyle: italic,
         },
 
         del: {
@@ -665,6 +677,12 @@ const webViewStyles = {
 
         a: {
             color: colors.blue
+        },
+
+        img: {
+            borderColor: colors.border,
+            borderRadius: 8,
+            borderWidth: 1,
         }
     },
 

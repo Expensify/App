@@ -65,6 +65,11 @@ class SidebarLinks extends React.Component {
         // Updates the page title to indicate there are unread reports
         PageTitleUpdater(_.any(reports, report => report.isUnread));
 
+        // Update styles to hide the report links if they should not be visible
+        const sidebarLinksStyle = this.state.areReportLinksVisible
+            ? [styles.sidebarListContainer]
+            : [styles.sidebarListContainer, styles.dNone];
+
         return (
             <View style={[styles.flex1, {marginTop: this.props.insets.top}]}>
                 <View style={[styles.sidebarHeader]}>
@@ -80,26 +85,24 @@ class SidebarLinks extends React.Component {
                     />
                 </View>
 
-                {this.state.areReportLinksVisible && (
-                    <View style={[styles.sidebarListContainer]}>
-                        <View style={[styles.sidebarListItem]}>
-                            <Text style={[styles.sidebarListHeader]}>
-                                Chats
-                            </Text>
-                        </View>
-                        {/* A report will not have a report name if it hasn't been fetched from the server yet */}
-                        {/* so nothing is rendered */}
-                        {_.map(reportsToDisplay, report => report.reportName && (
-                            <SidebarLink
-                                key={report.reportID}
-                                reportID={report.reportID}
-                                reportName={report.reportName}
-                                isUnread={report.isUnread}
-                                onLinkClick={onLinkClick}
-                            />
-                        ))}
+                <View style={sidebarLinksStyle}>
+                    <View style={[styles.sidebarListItem]}>
+                        <Text style={[styles.sidebarListHeader]}>
+                            Chats
+                        </Text>
                     </View>
-                )}
+                    {/* A report will not have a report name if it hasn't been fetched from the server yet */}
+                    {/* so nothing is rendered */}
+                    {_.map(reportsToDisplay, report => report.reportName && (
+                        <SidebarLink
+                            key={report.reportID}
+                            reportID={report.reportID}
+                            reportName={report.reportName}
+                            isUnread={report.isUnread}
+                            onLinkClick={onLinkClick}
+                        />
+                    ))}
+                </View>
             </View>
         );
     }

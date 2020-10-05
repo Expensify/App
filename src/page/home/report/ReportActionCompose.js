@@ -7,11 +7,9 @@ import TextInputFocusable from '../../../components/TextInputFocusable';
 import sendIcon from '../../../../assets/images/icon-send.png';
 import IONKEYS from '../../../IONKEYS';
 import paperClipIcon from '../../../../assets/images/icon-paper-clip.png';
-import CONFIG from '../../../CONFIG';
-import openURLInNewTab from '../../../lib/openURLInNewTab';
+import ImagePicker from '../../../lib/ImagePicker';
 import withIon from '../../../components/withIon';
-import {saveReportComment} from '../../../lib/actions/Report';
-
+import {addAction, saveReportComment} from '../../../lib/actions/Report';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -37,7 +35,10 @@ class ReportActionCompose extends React.Component {
         this.submitForm = this.submitForm.bind(this);
         this.triggerSubmitShortcut = this.triggerSubmitShortcut.bind(this);
         this.submitForm = this.submitForm.bind(this);
+        this.showAttachmentPicker = this.showAttachmentPicker.bind(this);
+        this.setIsFocused = this.setIsFocused.bind(this);
         this.comment = '';
+        this.state = {isFocused: false};
     }
 
     componentDidUpdate(prevProps) {
@@ -46,6 +47,15 @@ class ReportActionCompose extends React.Component {
         if (this.props.comment && prevProps.comment === '' && prevProps.comment !== this.props.comment) {
             this.comment = this.props.comment;
         }
+    }
+
+    /**
+     * Updates the Highlight state of the composer
+     *
+     * @param {boolean} shouldHighlight
+     */
+    setIsFocused(shouldHighlight) {
+        this.setState({isFocused: shouldHighlight});
     }
 
     /**
@@ -94,7 +104,6 @@ class ReportActionCompose extends React.Component {
         const trimmedComment = this.comment.trim();
 
         // Don't submit empty comments
-        // @TODO show an error in the UI
         if (!trimmedComment) {
             return;
         }
@@ -104,13 +113,49 @@ class ReportActionCompose extends React.Component {
         this.updateComment('');
     }
 
+    /**
+     * Handle the attachment icon being tapped
+     *
+     * @param {SyntheticEvent} e
+     */
+    showAttachmentPicker(e) {
+        e.preventDefault();
+
+        /**
+         * See https://github.com/react-native-community/react-native-image-picker/blob/master/docs/Reference.md#options
+         * for option definitions
+         */
+        const options = {
+            storageOptions: {
+                skipBackup: true,
+            },
+        };
+
+        ImagePicker.showImagePicker(options, (response) => {
+            if (response.didCancel) {
+                return;
+            }
+
+            if (response.error) {
+                console.error(`Error occurred picking image: ${response.error}`);
+                return;
+            }
+
+            addAction(this.props.reportID, '', ImagePicker.getDataForUpload(response));
+        });
+    }
+
     render() {
-        const href = `${CONFIG.PUSHER.AUTH_URL}/report?reportID=${this.props.reportID}&shouldScrollToLastUnread=true`;
         return (
             <View style={[styles.chatItemCompose]}>
-                <View style={[styles.chatItemComposeBox, styles.flexRow]}>
+                <View style={[
+                    this.state.isFocused ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
+                    styles.chatItemComposeBox,
+                    styles.flexRow
+                ]}
+                >
                     <TouchableOpacity
-                        onPress={() => openURLInNewTab(href)}
+                        onPress={this.showAttachmentPicker}
                         style={[styles.chatItemAttachButton]}
                         underlayColor={colors.componentBG}
                     >
@@ -131,6 +176,8 @@ class ReportActionCompose extends React.Component {
                         style={[styles.textInput, styles.textInputCompose, styles.flex4]}
                         defaultValue={this.props.comment || ''}
                         maxLines={16} // This is the same that slack has
+                        onFocus={() => this.setIsFocused(true)}
+                        onBlur={() => this.setIsFocused(false)}
                     />
                     <TouchableOpacity
                         style={[styles.chatItemSubmitButton, styles.buttonSuccess]}

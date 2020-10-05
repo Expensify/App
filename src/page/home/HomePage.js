@@ -30,6 +30,7 @@ export default class App extends React.Component {
 
         this.toggleHamburger = this.toggleHamburger.bind(this);
         this.dismissHamburger = this.dismissHamburger.bind(this);
+        this.showHamburger = this.showHamburger.bind(this);
         this.toggleHamburgerBasedOnDimensions = this.toggleHamburgerBasedOnDimensions.bind(this);
         this.animationTranslateX = new Animated.Value(!this.state.hamburgerShown ? -300 : 0);
     }
@@ -73,13 +74,24 @@ export default class App extends React.Component {
      * Only changes hamburger state on small screens (e.g. Mobile and mWeb)
      */
     dismissHamburger() {
-        const hamburgerIsShown = this.state.hamburgerShown;
-
-        if (!hamburgerIsShown) {
+        if (!this.state.hamburgerShown) {
             return;
         }
 
-        this.animateHamburger(hamburgerIsShown);
+        this.animateHamburger(true);
+    }
+
+    /**
+     * Method called when we want to show the hamburger menu,
+     * will not do anything if it already open
+     * Only changes hamburger state on smaller screens (e.g. Mobile and mWeb)
+     */
+    showHamburger() {
+        if (this.state.hamburgerShown) {
+            return;
+        }
+
+        this.toggleHamburger();
     }
 
     /**
@@ -150,7 +162,11 @@ export default class App extends React.Component {
                                         transform: [{translateX: this.animationTranslateX}]
                                     }]}
                                 >
-                                    <Sidebar insets={insets} onLinkClick={this.toggleHamburger} />
+                                    <Sidebar
+                                        insets={insets}
+                                        onLinkClick={this.toggleHamburger}
+                                        onChatSwitcherFocus={this.showHamburger}
+                                    />
                                 </Animated.View>
                                 <View
                                     onTouchStart={this.dismissHamburger}

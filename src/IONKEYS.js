@@ -2,7 +2,7 @@
  * This is a file containing constants for all the top level keys in our store
  */
 export default {
-    ACTIVE_CLIENTS: 'activeClients',
+    ACTIVE_CLIENTS: 'activeClients2',
     APP_REDIRECT_TO: 'appRedirectTo',
     CURRENT_URL: 'currentURL',
     CREDENTIALS: 'credentials',
