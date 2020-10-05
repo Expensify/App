@@ -231,7 +231,7 @@ dependencies {
     // Firebase
     implementation 'com.google.gms:google-services:4.3.3'
 
-    // Multi Dex Support
+    // Multi Dex Support: https://developer.android.com/studio/build/multidex#mdex-gradle
     implementation 'com.android.support:multidex:1.0.3'
 }
 
