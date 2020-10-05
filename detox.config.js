@@ -11,7 +11,7 @@ module.exports = {
             }
         },
         'ios.sim.release': {
-            binaryPath: 'ios/build/Build/Products/Debug-iphonesimulator/Chat.app',
+            binaryPath: 'ios/build/Build/Products/Release-iphonesimulator/Chat.app',
             build: 'xcodebuild -workspace ios/ReactNativeChat.xcworkspace -scheme ReactNativeChat -configuration Release -sdk iphonesimulator -derivedDataPath ios/build -destination "platform=iOS Simulator,name=iPhone 11,OS=13.7" | xcpretty',
             type: 'ios.simulator',
             device: {
