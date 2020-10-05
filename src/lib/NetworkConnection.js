@@ -4,6 +4,8 @@ import NetInfo from '@react-native-community/netinfo';
 import Ion from './Ion';
 import IONKEYS from '../IONKEYS';
 
+// NetInfo.addEventListener() returns a function used to unsubscribe the
+// listener so we must create a reference to it and call it in stopListeningForReconnect()
 let unsubscribeFromNetInfo;
 let isActive = false;
 let isOffline = false;
@@ -39,11 +41,9 @@ function setOfflineStatus(isCurrentlyOffline) {
 /**
  * Set up the event listener for NetInfo to tell whether the user has
  * internet connectivity or not. This is more reliable than the Pusher
- * `disconnected` event which takes about 10-15 seconds to emit. We
- * are setting this up in a way where we can tear it down again as
- * we only care about connectivity if the user is logged in.
+ * `disconnected` event which takes about 10-15 seconds to emit.
  */
-function init() {
+function listenForReconnect() {
     // Subscribe to the state change event via NetInfo so we can update
     // whether a user has internet connectivity or not.
     unsubscribeFromNetInfo = NetInfo.addEventListener((state) => {
@@ -71,7 +71,7 @@ function init() {
 /**
  * Tear down the event listeners when we are finished with them.
  */
-function destroy() {
+function stopListeningForReconnect() {
     if (unsubscribeFromNetInfo) {
         unsubscribeFromNetInfo();
     }
@@ -89,7 +89,7 @@ function onReconnect(callback) {
 
 export default {
     setOfflineStatus,
-    init,
-    destroy,
+    listenForReconnect,
+    stopListeningForReconnect,
     onReconnect,
 };

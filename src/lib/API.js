@@ -2,7 +2,7 @@ import _ from 'underscore';
 import Ion from './Ion';
 import IONKEYS from '../IONKEYS';
 import xhr from './xhr';
-import Connection from './Connection';
+import NetworkConnection from './NetworkConnection';
 import CONFIG from '../CONFIG';
 import * as Pusher from './Pusher/pusher';
 import ROUTES from '../ROUTES';
@@ -223,7 +223,7 @@ function processNetworkRequestQueue() {
 
         // Make a simple request every second to see if the API is online again
         xhr('Get', {doNotRetry: true})
-            .then(() => Connection.setOfflineStatus(false));
+            .then(() => NetworkConnection.setOfflineStatus(false));
         return;
     }
 
