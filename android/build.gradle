@@ -7,6 +7,7 @@ buildscript {
         compileSdkVersion = 29
         targetSdkVersion = 29
         androidXCore = "1.0.2"
+        multiDexEnabled = true
     }
     repositories {
         google()
