@@ -8,7 +8,7 @@ const notificationEventActionMap = {};
 /**
  * Register this device for push notifications for the given accountID.
  *
- * @param {string} accountID
+ * @param {string|int} accountID
  */
 function register(accountID) {
     // Get permissions to display push notifications
@@ -21,7 +21,7 @@ function register(accountID) {
 
     // Register this device as a named user in AirshipAPI
     console.debug(`[PUSH_NOTIFICATIONS] Subscribing to notifications for account ID ${accountID}`);
-    UrbanAirship.setNamedUser(accountID);
+    UrbanAirship.setNamedUser(accountID.toString());
 }
 
 /**
