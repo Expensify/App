@@ -110,7 +110,7 @@ function queueRequest(command, data) {
         networkRequestQueue.push({
             command,
             data,
-            callback: resolve,
+            resolve,
             reject,
         });
 
@@ -212,7 +212,7 @@ function request(command, parameters, type = 'post') {
             }
 
             // Throw an error so we can pass the error up the chain
-            throw new Error();
+            throw new Error(`API Command ${command} failed`);
         });
 }
 
@@ -239,7 +239,7 @@ function processNetworkRequestQueue() {
 
     _.each(networkRequestQueue, (queuedRequest) => {
         request(queuedRequest.command, queuedRequest.data)
-            .then(queuedRequest.callback)
+            .then(queuedRequest.resolve)
             .catch(queuedRequest.reject);
     });
 
@@ -355,12 +355,11 @@ function authenticate(parameters) {
                 throw new Error(response.message);
             }
 
-            // Update the authToken so it's used in the call to  createLogin below
+            // Update the authToken so it's used in the call to createLogin below
             authToken = response.authToken;
             return response;
         })
         .then(response => (
-
             // It's the users first time signing in and we need to create a login for the user
             createLogin(Str.generateDeviceLoginID(), Guid())
                 .then(() => setSuccessfulSignInData(response, parameters.exitTo))
@@ -370,9 +369,7 @@ function authenticate(parameters) {
             console.debug('[SIGNIN] Request error');
             Ion.merge(IONKEYS.SESSION, {error: error.message});
         })
-        .finally(() => {
-            Ion.merge(IONKEYS.SESSION, {loading: false});
-        });
+        .finally(() => Ion.merge(IONKEYS.SESSION, {loading: false}));
 }
 
 /**
