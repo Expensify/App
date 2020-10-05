@@ -7,6 +7,8 @@ import IONKEYS from '../IONKEYS';
 // NetInfo.addEventListener() returns a function used to unsubscribe the
 // listener so we must create a reference to it and call it in stopListeningForReconnect()
 let unsubscribeFromNetInfo;
+let sleepTimer;
+let lastTime;
 let isActive = false;
 let isOffline = false;
 
@@ -66,12 +68,26 @@ function listenForReconnect() {
 
         isActive = nextStateIsActive;
     });
+
+    // When a device is put to sleep, NetInfo is not always able to detect
+    // when connectivity has been lost. As a failsafe we will capture the time
+    // every two seconds and if the last time recorded is greater than 5 seconds
+    // we know that the computer has been asleep.
+    lastTime = (new Date()).getTime();
+    sleepTimer = setInterval(() => {
+        const currentTime = (new Date()).getTime();
+        if (currentTime > (lastTime + 5000)) {
+            triggerReconnectionCallbacks();
+        }
+        lastTime = currentTime;
+    }, 2000);
 }
 
 /**
  * Tear down the event listeners when we are finished with them.
  */
 function stopListeningForReconnect() {
+    clearInterval(sleepTimer);
     if (unsubscribeFromNetInfo) {
         unsubscribeFromNetInfo();
     }
