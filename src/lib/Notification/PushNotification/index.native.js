@@ -8,6 +8,27 @@ import NotificationType from './NotificationType';
 const notificationEventActionMap = {};
 let currentNamedUser;
 
+Ion.connect({
+    key: IONKEYS.SESSION,
+    callback: (sessionData) => {
+        const accountID = sessionData?.accountID.toString() || null;
+
+        // No need to re-subscribe if we're just re-authenticating the same account.
+        if (accountID === currentNamedUser) {
+            return;
+        }
+
+        console.debug(`[PUSH_NOTIFICATION] ${accountID
+            ? `Subscribing to push notifications for accountID ${accountID}`
+            : 'Unsubscribing from push notifications'}.`);
+
+        // This will register this device with the named user associated with this accountID,
+        // or clear the the named user (deregister this device) if sessionData.accountID is null
+        UrbanAirship.setNamedUser(accountID);
+        currentNamedUser = accountID;
+    }
+});
+
 /**
  * Handle a push notification event, and trigger and bound actions.
  *
@@ -65,30 +86,7 @@ function setupPushNotificationCallbacks() {
  * Get permissions and register this device as a named user in AirshipAPI.
  */
 function enable() {
-    UrbanAirship.enableUserPushNotifications()
-        .finally(() => {
-            Ion.connect({
-                key: IONKEYS.SESSION,
-                callback: (sessionData) => {
-                    const accountID = sessionData?.accountID.toString() || null;
-
-                    // No need to re-subscribe if we're just re-authenticating the same account.
-                    if (accountID === currentNamedUser) {
-                        return;
-                    }
-
-                    console.debug(`[PUSH_NOTIFICATION] ${accountID
-                        ? `Subscribing to push notifications for accountID ${accountID}`
-                        : 'Unsubscribing from push notifications'}.`);
-
-                    // This will register this device with the named user associated with this accountID,
-                    // or clear the the named user (deregister this device) if sessionData.accountID is null
-                    UrbanAirship.setNamedUser(accountID);
-                    currentNamedUser = accountID;
-                }
-            });
-            setupPushNotificationCallbacks();
-        });
+    UrbanAirship.enableUserPushNotifications();
 }
 
 /**
@@ -107,6 +105,8 @@ function bind(notificationType, action, triggerEvent = EventType.PushReceived) {
         [notificationType]: action,
     };
 }
+
+setupPushNotificationCallbacks();
 
 export default {
     enable,
