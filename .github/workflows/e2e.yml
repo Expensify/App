@@ -37,7 +37,7 @@ jobs:
               brew install applesimutils
 
           - name: Build tests
-            run: detox build
+            run: detox build --configuration ios.sim.release
 
           - name: Run tests
-            run: detox test --loglevel trace --cleanup
+            run: detox test --configuration ios.sim.release --cleanup
