@@ -69,7 +69,7 @@ jobs:
                         channel: '#qa',
                         attachments: [{
                           color: "#39AA56",
-                          text: `${process.env.AS_WORKFLOW} version *${{ env.VERSION }}* was deployed 🚀`,
+                          text: `${process.env.AS_WORKFLOW} version *${{ env.VERSION }}* was deployed, please start *regression testing*: https://git.io/JUb0r`,
                         }]
                       }
               env:
