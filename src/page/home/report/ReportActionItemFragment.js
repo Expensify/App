@@ -1,7 +1,7 @@
 import React from 'react';
 import HTML from 'react-native-render-html';
 import {
-    Linking, ActivityIndicator, View, Platform, Dimensions
+    Linking, ActivityIndicator, View, Dimensions
 } from 'react-native';
 import PropTypes from 'prop-types';
 import Str from '../../../lib/Str';
@@ -100,9 +100,7 @@ class ReportActionItemFragment extends React.PureComponent {
                 return fragment.html !== fragment.text
                     ? (
                         <HTML
-
-                            // HACK - Android selection causes performance issues, temporarily disable it until we fix
-                            textSelectable={Platform.OS !== 'android'}
+                            textSelectable
                             renderers={this.customRenderers}
                             baseFontStyle={webViewStyles.baseFontStyle}
                             tagsStyles={webViewStyles.tagStyles}
@@ -114,20 +112,14 @@ class ReportActionItemFragment extends React.PureComponent {
                         />
                     )
                     : (
-                        <Text
-
-                            // HACK - Android selection causes performance issues, temporarily disable it until we fix
-                            selectable={Platform.OS !== 'android'}
-                        >
+                        <Text selectable>
                             {Str.htmlDecode(fragment.text)}
                         </Text>
                     );
             case 'TEXT':
                 return (
                     <Text
-
-                        // HACK - Android selection causes performance issues, temporarily disable it until we fix
-                        selectable={Platform.OS !== 'android'}
+                        selectable
                         style={[styles.chatItemMessageHeaderSender]}
                     >
                         {Str.htmlDecode(fragment.text)}

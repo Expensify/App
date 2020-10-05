@@ -83,9 +83,17 @@ You can use any IDE or code editing tool for developing on any platform. Use you
 2. If you are running into issues communicating with `expensify.com.dev` (CORS, SSL, etc.), running via `ngrok` is recommended, see step 3 in **_Getting Started_**
 
 ## Debugging
-1. If running on the iOS simulator `⌘D`, or `⌘M` on Android emulator will open the debugging menu. 
+### iOS
+1. If running on the iOS simulator pressing `⌘D` will open the debugging menu. 
 2. This will allow you to attach a debugger in your IDE, React Developer Tools, or your browser. 
 3. For more information on how to attach a debugger, see [React Native Debugging Documentation](https://reactnative.dev/docs/debugging#chrome-developer-tools)
+
+### Android
+Our React Native Android app now uses the `Hermes` JS engine which requires your browser for remote debugging. These instructions are specific to Chrome since that's what the Hermes documentation provided.
+1. Navigate to `chrome://inspect`
+2. Use the `Configure...` button to add the Metro server address (typically `localhost:8081`, check your `Metro` output)
+3. You should now see a "Hermes React Native" target with an "inspect" link which can be used to bring up a debugger. If you don't see the "inspect" link, make sure the Metro server is running.
+4. You can now use the Chrome debug tools. See [React Native Debugging Hermes](https://reactnative.dev/docs/hermes#debugging-hermes-using-google-chromes-devtools)
 
 ## Things to know or brush up on before jumping into the code
 1. The major difference between React-Native and React are the [components](https://reactnative.dev/docs/components-and-apis) that are used in the `render()` method. Everything else is exactly the same. If you learn React, you've already learned 98% of React-Native.
