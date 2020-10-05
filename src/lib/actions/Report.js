@@ -13,6 +13,7 @@ import * as PersonalDetails from './PersonalDetails';
 import {redirect} from './App';
 import * as ActiveClientManager from '../ActiveClientManager';
 import Visibility from '../Visibility';
+import Connection from '../Connection';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -499,7 +500,7 @@ Ion.connect({
 });
 
 // When the app reconnects from being offline, fetch all of the reports and their actions
-API.onReconnect(() => {
+Connection.onReconnect(() => {
     fetchAll(false, true);
 });
 
