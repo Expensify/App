@@ -63,7 +63,7 @@ class SidebarLinks extends React.Component {
         const reportsToDisplay = _.filter(sortedReports, report => (report.pinnedReport || (report.unreadActionCount > 0) || report.reportID === reportIDInUrl));
 
         // Updates the page title to indicate there are unread reports
-        PageTitleUpdater(_.any(reports, report => report.unreadActionCount > 0));
+        PageTitleUpdater(_.any(sortedReports, report => report.unreadActionCount > 0));
 
         // Update styles to hide the report links if they should not be visible
         const sidebarLinksStyle = this.state.areReportLinksVisible
