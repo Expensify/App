@@ -1,9 +1,21 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {Text} from 'react-native';
 import {webViewStyles} from '../../style/StyleSheet';
 
-export default ({children}) => (
+const propTypes = {
+    children: PropTypes.oneOfType([
+        PropTypes.arrayOf(PropTypes.node),
+        PropTypes.node
+    ]).isRequired
+};
+
+const InlineCodeBlock = ({children}) => (
     <Text style={[webViewStyles.codeTagStyle]}>
         {children}
     </Text>
 );
+
+InlineCodeBlock.propTypes = propTypes;
+InlineCodeBlock.displayName = 'InlineCodeBlock';
+export default InlineCodeBlock;
