@@ -179,10 +179,10 @@ function request(command, parameters, type = 'post') {
                     return createLogin(Str.generateDeviceLoginID(), Guid())
                         .then(() => {
                             setSuccessfulSignInData(response, parameters.exitTo);
-                            return response;
+                            PushNotification.register(response.accountID);
                         });
                 }
-                return response;
+                PushNotification.register(response.accountID);
             })
             .catch(error => Ion.merge(IONKEYS.SESSION, {error: error.message}));
     }
@@ -384,7 +384,6 @@ function authenticate(parameters) {
         twoFactorAuthCode: parameters.twoFactorAuthCode,
         exitTo: parameters.exitTo,
     })
-        .then(({accountID}) => PushNotification.register(accountID))
         .catch((error) => {
             console.error(error);
             console.debug('[SIGNIN] Request error');

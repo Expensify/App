@@ -217,7 +217,6 @@ function multiSet(data) {
 function clear() {
     return AsyncStorage.clear()
         .then((keys) => {
-            AsyncStorage.clear();
             _.each(keys, (key) => {
                 keyChanged(key, null);
             });
