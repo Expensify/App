@@ -81,7 +81,7 @@ class Expensify extends Component {
                 {/* Leave this as a ternary or else iOS throws an error about text not being wrapped in <Text> */}
                 {redirectTo ? <Redirect to={redirectTo} /> : null}
                 <Route path="*" render={recordCurrentRoute} />
-                <Route path="/:reportID" exact render={recordCurrentlyViewedReportID} />
+                <Route path={ROUTES.REPORT} exact render={recordCurrentlyViewedReportID} />
 
                 <Switch>
                     <Route
@@ -93,7 +93,7 @@ class Expensify extends Component {
                                 : <Redirect to={ROUTES.SIGNIN} />
                         )}
                     />
-                    <Route path={['/signin/exitTo/:exitTo*', ROUTES.SIGNIN]} component={SignInPage} />
+                    <Route path={[ROUTES.SIGNIN_WITH_EXITTO, ROUTES.SIGNIN]} component={SignInPage} />
                     <Route path={[ROUTES.HOME, ROUTES.ROOT]} component={HomePage} />
                 </Switch>
             </Router>

@@ -34,6 +34,12 @@ Ion.connect({
     callback: val => currentURL = val,
 });
 
+let lastViewedReportID;
+Ion.connect({
+    key: IONKEYS.CURRENTLY_VIEWED_REPORTID,
+    callback: val => lastViewedReportID = val,
+});
+
 let myPersonalDetails;
 Ion.connect({
     key: IONKEYS.MY_PERSONAL_DETAILS,
@@ -303,13 +309,11 @@ function fetchAll(shouldRedirectToFirstReport = true, shouldFetchActions = false
                 return _.isEmpty(report) ? null : _.values(report)[0];
             }));
 
-            // Set the first report ID so that the logged in person can be redirected there
+            // Set the last viewed report ID so that the logged in person can be redirected there
             // if they are on the home page
-            if (shouldRedirectToFirstReport && (currentURL === '/' || currentURL === '/home')) {
-                const firstReportID = _.first(_.pluck(fetchedReports, 'reportID'));
-
-                if (firstReportID) {
-                    redirect(ROUTES.REPORT(firstReportID));
+            if (shouldRedirectToFirstReport && (currentURL === ROUTES.ROOT || currentURL === ROUTES.HOME)) {
+                if (lastViewedReportID) {
+                    redirect(ROUTES.getReportRoute(lastViewedReportID));
                 }
             }
 
@@ -368,7 +372,7 @@ function fetchOrCreateChatReport(participants) {
             Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, newReport);
 
             // Redirect the logged in person to the new report
-            redirect(ROUTES.REPORT(reportID));
+            redirect(ROUTES.getReportRoute(reportID));
         });
 }
 
