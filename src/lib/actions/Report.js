@@ -158,7 +158,7 @@ function fetchChatReportsByIDs(chatList) {
                 Ion.merge(`${IONKEYS.COLLECTION.REPORT}${report.reportID}`, newReport);
             });
 
-            return Promise.all(ionPromises);
+            return {reports: fetchedReports};
         });
 }
 
@@ -273,9 +273,8 @@ function fetchActions(reportID) {
  *
  * @param {boolean} shouldRedirectToFirstReport this is set to false when the network reconnect
  *     code runs
- * @param {boolean} shouldFetchActions whether or not the actions of the reports should also be fetched
  */
-function fetchAll(shouldRedirectToFirstReport = true, shouldFetchActions = false) {
+function fetchAll(shouldRedirectToFirstReport = true) {
     let fetchedReports;
 
     // Request each report one at a time to allow individual reports to fail if access to it is prevented by Auth
@@ -297,10 +296,21 @@ function fetchAll(shouldRedirectToFirstReport = true, shouldFetchActions = false
                 // Grab the report from the promise result which stores it in the `value` key
                 const report = lodashGet(promiseResult, 'value.reports', {});
 
+                // If there are multiple reports they cannot be processed in this way
+                if (report && _.values(report).length > 1) {
+                    return null;
+                }
+
                 // If there is no report found from the promise, return null
                 // Otherwise, grab the actual report object from the first index in the values array
                 return _.isEmpty(report) ? null : _.values(report)[0];
             }));
+
+            // Next add all the chat reports if they are present
+            const chatReports = lodashGet(_.last(data), 'value.reports');
+            _.each(chatReports, report => {
+                fetchedReports.push(report);
+            });
 
             // Set the first report ID so that the logged in person can be redirected there
             // if they are on the home page
@@ -317,10 +327,7 @@ function fetchAll(shouldRedirectToFirstReport = true, shouldFetchActions = false
                 // overwrite any existing data (like if they have unread messages)
                 Ion.merge(`${IONKEYS.COLLECTION.REPORT}${report.reportID}`, getSimplifiedReportObject(report));
 
-                if (shouldFetchActions) {
-                    console.debug(`[RECONNECT] Fetching report actions for report ${report.reportID}`);
-                    fetchActions(report.reportID);
-                }
+                fetchActions(report.reportID);
             });
         });
 }
@@ -500,7 +507,7 @@ Ion.connect({
 
 // When the app reconnects from being offline, fetch all of the reports and their actions
 API.onReconnect(() => {
-    fetchAll(false, true);
+    fetchAll(false);
 });
 
 export {
