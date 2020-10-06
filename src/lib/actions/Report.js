@@ -158,6 +158,7 @@ function fetchChatReportsByIDs(chatList) {
                 // Merge the data into Ion
                 Ion.merge(`${IONKEYS.COLLECTION.REPORT}${report.reportID}`, newReport);
             });
+            return {reports: _.indexBy(fetchedReports, 'reportID')};
         });
 }
 
@@ -290,14 +291,19 @@ function fetchAll(shouldRedirectToFirstReport = true, shouldFetchActions = false
 
     promiseAllSettled(reportFetchPromises)
         .then((data) => {
-            fetchedReports = _.compact(_.map(data, (promiseResult) => {
+            fetchedReports = _.compact(_.reduce(data, (finalArray, promiseResult) => {
                 // Grab the report from the promise result which stores it in the `value` key
-                const report = lodashGet(promiseResult, 'value.reports', {});
+                const reports = lodashGet(promiseResult, 'value.reports', {});
 
-                // If there is no report found from the promise, return null
-                // Otherwise, grab the actual report object from the first index in the values array
-                return _.isEmpty(report) ? null : _.values(report)[0];
-            }));
+                // If there are no reports found from the promise, stop early
+                if (_.isEmpty(reports)) {
+                    return finalArray;
+                }
+
+                _.each(_.values(reports), report => finalArray.push(report));
+
+                return finalArray;
+            }, []));
 
             // Set the first report ID so that the logged in person can be redirected there
             // if they are on the home page
