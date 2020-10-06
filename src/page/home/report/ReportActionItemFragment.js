@@ -35,6 +35,13 @@ class ReportActionItemFragment extends React.PureComponent {
             a: (htmlAttribs, children, convertedCSSStyles, passProps) => (
                 <AnchorForCommentsOnly
                     href={htmlAttribs.href}
+
+                    // Unless otherwise specified open all links in
+                    // a new window. On Desktop this means that we will
+                    // skip the default Save As... download prompt
+                    // and defer to whatever browser the user has.
+                    target={htmlAttribs.target || '_blank'}
+                    rel={htmlAttribs.rel || 'noopener noreferrer'}
                     style={passProps.style}
                     key={passProps.key}
                 >
