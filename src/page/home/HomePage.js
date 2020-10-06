@@ -16,6 +16,7 @@ import {subscribeToReportCommentEvents, fetchAll as fetchAllReports} from '../..
 import {fetch as fetchPersonalDetails} from '../../lib/actions/PersonalDetails';
 import * as Pusher from '../../lib/Pusher/pusher';
 import ROUTES from '../../ROUTES';
+import NetworkConnection from '../../lib/NetworkConnection';
 
 const windowSize = Dimensions.get('window');
 const widthBreakPoint = 1000;
@@ -37,6 +38,7 @@ export default class App extends React.Component {
     }
 
     componentDidMount() {
+        NetworkConnection.listenForReconnect();
         Pusher.init().then(subscribeToReportCommentEvents);
 
         // Fetch all the personal details
