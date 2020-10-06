@@ -228,9 +228,6 @@ dependencies {
     // Android support library
     implementation 'com.android.support:support-core-utils:28.0.0'
 
-    // Firebase
-    implementation 'com.google.gms:google-services:4.3.3'
-
     // Multi Dex Support: https://developer.android.com/studio/build/multidex#mdex-gradle
     implementation 'com.android.support:multidex:1.0.3'
 }
@@ -243,3 +240,5 @@ task copyDownloadableDepsToLibs(type: Copy) {
 }
 
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
+apply plugin: 'com.google.gms.google-services'
+apply plugin: 'com.google.firebase.crashlytics'
