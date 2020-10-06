@@ -279,11 +279,11 @@ function fetchActions(reportID) {
 /**
  * Get all of our reports
  *
- * @param {boolean} shouldRedirectToFirstReport this is set to false when the network reconnect
+ * @param {boolean} shouldRedirectToReport this is set to false when the network reconnect
  *     code runs
  * @param {boolean} shouldFetchActions whether or not the actions of the reports should also be fetched
  */
-function fetchAll(shouldRedirectToFirstReport = true, shouldFetchActions = false) {
+function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false) {
     let fetchedReports;
 
     // Request each report one at a time to allow individual reports to fail if access to it is prevented by Auth
@@ -310,11 +310,12 @@ function fetchAll(shouldRedirectToFirstReport = true, shouldFetchActions = false
                 return _.isEmpty(report) ? null : _.values(report)[0];
             }));
 
-            // Set the last viewed report ID so that the logged in person can be redirected there
-            // if they are on the home page
-            if (shouldRedirectToFirstReport && (currentURL === ROUTES.ROOT || currentURL === ROUTES.HOME)) {
+            if (shouldRedirectToReport && (currentURL === ROUTES.ROOT || currentURL === ROUTES.HOME)) {
+                // Redirect to either the last viewed report ID or the first report ID from our report collection
                 if (lastViewedReportID) {
                     redirect(ROUTES.getReportRoute(lastViewedReportID));
+                } else {
+                    redirect(ROUTES.getReportRoute(_.first(_.pluck(fetchedReports, 'reportID'))));
                 }
             }
 
