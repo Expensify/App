@@ -24,6 +24,7 @@ function redirect(url) {
  * Also reset the app_redirect_to in Ion so that if we go back to the current url the state will update
  *
  * @param {object} match
+ * @param {string} match.url
  */
 function recordCurrentRoute({match}) {
     Ion.merge(IONKEYS.CURRENT_URL, match.url);
@@ -32,7 +33,20 @@ function recordCurrentRoute({match}) {
     }
 }
 
+/**
+ * When a report is being viewed, keep track of the report ID. This way when the user comes back to the app they will
+ * be returned to the last report they were viewing.
+ *
+ * @param {object} match
+ * @param {object} match.params
+ * @param {string} match.params.reportID
+ */
+function recordCurrentlyViewedReportID({match}) {
+    Ion.merge(IONKEYS.CURRENTLY_VIEWED_REPORTID, match.params.reportID);
+}
+
 export {
     recordCurrentRoute,
+    recordCurrentlyViewedReportID,
     redirect,
 };
