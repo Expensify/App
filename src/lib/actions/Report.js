@@ -13,6 +13,7 @@ import * as PersonalDetails from './PersonalDetails';
 import {redirect} from './App';
 import * as ActiveClientManager from '../ActiveClientManager';
 import Visibility from '../Visibility';
+import ROUTES from '../../ROUTES';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -308,7 +309,7 @@ function fetchAll(shouldRedirectToFirstReport = true, shouldFetchActions = false
                 const firstReportID = _.first(_.pluck(fetchedReports, 'reportID'));
 
                 if (firstReportID) {
-                    redirect(`/${firstReportID}`);
+                    redirect(ROUTES.REPORT(firstReportID));
                 }
             }
 
@@ -367,7 +368,7 @@ function fetchOrCreateChatReport(participants) {
             Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, newReport);
 
             // Redirect the logged in person to the new report
-            redirect(`/${reportID}`);
+            redirect(ROUTES.REPORT(reportID));
         });
 }
 
