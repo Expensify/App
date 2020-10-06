@@ -19,6 +19,10 @@ jobs:
               with:
                   node-version: '14.x'
 
+            - uses: webfactory/ssh-agent@v0.4.0
+              with:
+                  ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
             - name: Install dependenices
               run: npm install
 

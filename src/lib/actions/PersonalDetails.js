@@ -5,6 +5,7 @@ import * as API from '../API';
 import IONKEYS from '../../IONKEYS';
 import md5 from '../md5';
 import CONST from '../../CONST';
+import NetworkConnection from '../NetworkConnection';
 
 let currentUserEmail;
 Ion.connect({
@@ -138,7 +139,7 @@ function getForEmails(emailList) {
 }
 
 // When the app reconnects from being offline, fetch all of the personal details
-API.onReconnect(fetch);
+NetworkConnection.onReconnect(fetch);
 
 export {
     fetch,
