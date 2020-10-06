@@ -35,8 +35,6 @@ class ReportActionItemFragment extends React.PureComponent {
             a: (htmlAttribs, children, convertedCSSStyles, passProps) => (
                 <AnchorForCommentsOnly
                     href={htmlAttribs.href}
-                    target={htmlAttribs.target}
-                    rel={htmlAttribs.rel}
                     style={passProps.style}
                     key={passProps.key}
                 >

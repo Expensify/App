@@ -10,12 +10,6 @@ const propTypes = {
     // The URL to open
     href: PropTypes.string,
 
-    // What headers to send to the linked page (usually noopener and noreferrer)
-    rel: PropTypes.string,
-
-    // Used to determine where to open a link ("_blank" is passed for a new tab)
-    target: PropTypes.string,
-
     // Any children to display
     children: PropTypes.node,
 
@@ -26,16 +20,12 @@ const propTypes = {
 
 const defaultProps = {
     href: '',
-    rel: '',
-    target: '',
     children: null,
     style: {},
 };
 
 const AnchorForCommentsOnly = ({
     href,
-    rel,
-    target,
     children,
     style,
     ...props
@@ -43,8 +33,8 @@ const AnchorForCommentsOnly = ({
     <a
         style={StyleSheet.flatten(style)}
         href={href}
-        rel={rel}
-        target={target}
+        rel="noopener noreferrer"
+        target="_blank"
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
     >
