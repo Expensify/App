@@ -71,12 +71,12 @@ function getUnreadActionCount(report) {
         return report.reportActionList.length;
     }
 
-    // Find the most recent sequence number from the report actions
-    const maxSequenceNumber = reportMaxSequenceNumbers[report.reportID];
+    // Find the most recent sequence number from the report itself or the local store of max sequence numbers
+    const maxSequenceNumber = Math.max(reportMaxSequenceNumbers[report.reportID] || 0, report.reportActionList.length);
 
     // There are unread items if the last one the user has read is less
     // than the highest sequence number we have.
-    const unreadActionCount = (maxSequenceNumber || report.reportActionList.length) - usersLastReadActionID;
+    const unreadActionCount = maxSequenceNumber - usersLastReadActionID;
     return Math.max(0, unreadActionCount);
 }
 
@@ -91,6 +91,7 @@ function getUnreadActionCount(report) {
  * @returns {object}
  */
 function getSimplifiedReportObject(report) {
+    const maxSequenceNumber = Math.max(reportMaxSequenceNumbers[report.reportID] || 0, report.reportActionList.length);
     const unreadActionCount = getUnreadActionCount(report);
     return {
         reportID: report.reportID,
@@ -98,6 +99,7 @@ function getSimplifiedReportObject(report) {
         reportNameValuePairs: report.reportNameValuePairs,
         unreadActionCount,
         pinnedReport: configReportIDs.includes(report.reportID),
+        maxSequenceNumber,
     };
 }
 
@@ -150,9 +152,8 @@ function fetchChatReportsByIDs(chatList) {
                 PersonalDetails.getForEmails(emails.join(','));
             }
 
-
             // Process the reports and store them in Ion
-            const ionPromises = _.map(fetchedReports, (report) => {
+            _.each(fetchedReports, (report) => {
                 const newReport = getSimplifiedReportObject(report);
 
                 if (lodashGet(report, 'reportNameValuePairs.type') === 'chat') {
@@ -163,7 +164,7 @@ function fetchChatReportsByIDs(chatList) {
                 Ion.merge(`${IONKEYS.COLLECTION.REPORT}${report.reportID}`, newReport);
             });
 
-            return Promise.all(ionPromises);
+            return {reports: fetchedReports};
         });
 }
 
@@ -298,12 +299,20 @@ function fetchAll(shouldRedirectToFirstReport = true, shouldFetchActions = false
         .then((data) => {
             fetchedReports = _.compact(_.map(data, (promiseResult) => {
                 // Grab the report from the promise result which stores it in the `value` key
-                const report = lodashGet(promiseResult, 'value.reports', {});
+                const reports = lodashGet(promiseResult, 'value.reports', {});
+
+                // If there are multiple reports then these are the chat reports
+                if (_.size(reports) > 1) {
+                    return null;
+                }
 
                 // If there is no report found from the promise, return null
                 // Otherwise, grab the actual report object from the first index in the values array
-                return _.isEmpty(report) ? null : _.values(report)[0];
+                return _.isEmpty(reports) ? null : _.values(reports)[0];
             }));
+
+            const chatReports = lodashGet(_.last(data), 'value.reports', {});
+            _.each(chatReports, report => fetchedReports.push(report));
 
             // Set the first report ID so that the logged in person can be redirected there
             // if they are on the home page
