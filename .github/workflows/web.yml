@@ -38,6 +38,10 @@ jobs:
             aws-region: us-east-1
 
         # Install node modules
+        - uses: webfactory/ssh-agent@v0.4.0
+          with:
+              ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
         - name: Install dependenices
           run: npm install
 
