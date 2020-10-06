@@ -72,7 +72,7 @@ function getUnreadActionCount(report) {
     }
 
     // There are unread items if the last one the user has read is less
-    // than the highest sequence number we have.
+    // than the highest sequence number we have
     const unreadActionCount = report.reportActionList.length - usersLastReadActionID;
     return Math.max(0, unreadActionCount);
 }
@@ -88,12 +88,11 @@ function getUnreadActionCount(report) {
  * @returns {object}
  */
 function getSimplifiedReportObject(report) {
-    const unreadActionCount = getUnreadActionCount(report);
     return {
         reportID: report.reportID,
         reportName: report.reportName,
         reportNameValuePairs: report.reportNameValuePairs,
-        unreadActionCount,
+        unreadActionCount: getUnreadActionCount(report),
         pinnedReport: configReportIDs.includes(report.reportID),
         maxSequenceNumber: report.reportActionList.length,
     };
