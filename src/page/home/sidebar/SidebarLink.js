@@ -51,7 +51,7 @@ const SidebarLink = (props) => {
 
     return (
         <View style={[styles.sidebarListItem, linkWrapperActiveStyle]}>
-            <PressableLink onClick={props.onLinkClick} to={ROUTES.REPORT(props.reportID)} style={linkActiveStyle}>
+            <PressableLink onClick={props.onLinkClick} to={ROUTES.getReportRoute(props.reportID)} style={linkActiveStyle}>
                 <View style={[styles.sidebarLinkInner]}>
                     <Text numberOfLines={1} style={textActiveUnreadStyle}>
                         {props.reportName}

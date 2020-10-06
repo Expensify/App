@@ -15,6 +15,7 @@ import Main from './MainView';
 import {subscribeToReportCommentEvents, fetchAll as fetchAllReports} from '../../lib/actions/Report';
 import {fetch as fetchPersonalDetails} from '../../lib/actions/PersonalDetails';
 import * as Pusher from '../../lib/Pusher/pusher';
+import ROUTES from '../../ROUTES';
 
 const windowSize = Dimensions.get('window');
 const widthBreakPoint = 1000;
@@ -154,7 +155,7 @@ export default class App extends React.Component {
                                 getSafeAreaPadding(insets)
                             ]}
                         >
-                            <Route path="/:reportID?">
+                            <Route path={ROUTES.REPORT}>
                                 <Animated.View style={[
                                     hamburgerStyle,
                                     visibility,
