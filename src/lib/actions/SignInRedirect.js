@@ -3,6 +3,7 @@ import IONKEYS from '../../IONKEYS';
 import ROUTES from '../../ROUTES';
 import {redirect} from './App';
 import * as Pusher from '../Pusher/pusher';
+import NetworkConnection from '../NetworkConnection';
 
 let currentURL;
 Ion.connect({
@@ -17,6 +18,7 @@ Ion.connect({
  * @param {String} [errorMessage] error message to be displayed on the sign in page
  */
 function redirectToSignIn(errorMessage) {
+    NetworkConnection.stopListeningForReconnect();
     Pusher.disconnect();
     Ion.clear()
         .then(() => {
