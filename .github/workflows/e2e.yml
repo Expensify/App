@@ -40,4 +40,4 @@ jobs:
             run: detox build --configuration ios.sim.release
 
           - name: Run tests
-            run: detox test --configuration ios.sim.release --cleanup --debug-synchronization 200
+            run: detox test --configuration ios.sim.release --cleanup --debug-synchronization 200 --loglevel trace
