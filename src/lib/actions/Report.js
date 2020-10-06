@@ -268,7 +268,7 @@ function fetchActions(reportID) {
 }
 
 /**
- * Get all of our reports
+ * Get all of our hardcoded reports
  *
  * @param {boolean} shouldRedirectToFirstReport this is set to false when the network reconnect
  *     code runs
