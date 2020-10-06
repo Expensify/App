@@ -4,10 +4,7 @@ import {View} from 'react-native';
 import {webViewStyles} from '../../style/StyleSheet';
 
 const propTypes = {
-    children: PropTypes.oneOfType([
-        PropTypes.arrayOf(PropTypes.node),
-        PropTypes.node
-    ]).isRequired
+    children: PropTypes.node.isRequired,
 };
 
 const InlineCodeBlock = ({children}) => (
