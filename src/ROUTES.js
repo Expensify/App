@@ -3,6 +3,7 @@
  */
 export default {
     SIGNIN: '/signin',
+    SIGNIN_WITH_EXITTO: exitTo => `/signin/exitTo${exitTo}`,
     HOME: '/',
     REPORT: reportID => `/${reportID}`,
 };

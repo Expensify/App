@@ -35,9 +35,9 @@ function redirectToSignIn(errorMessage) {
     }
 
     // When the URL is at the root of the site, go to sign-in, otherwise add the exitTo
-    const urlWithExitTo = currentURL === '/'
+    const urlWithExitTo = currentURL === ROUTES.HOME
         ? ROUTES.SIGNIN
-        : `${ROUTES.SIGNIN}/exitTo${currentURL}`;
+        : ROUTES.SIGNIN_WITH_EXITTO(currentURL);
     redirect(urlWithExitTo);
 }
 
