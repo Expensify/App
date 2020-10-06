@@ -4,4 +4,5 @@
 export default {
     SIGNIN: '/signin',
     HOME: '/',
+    REPORT: reportID => `/${reportID}`,
 };
