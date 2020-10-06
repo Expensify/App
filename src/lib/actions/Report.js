@@ -1,19 +1,20 @@
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
+import ExpensiMark from 'js-libs/lib/ExpensiMark';
 import Ion from '../Ion';
 import * as API from '../API';
 import IONKEYS from '../../IONKEYS';
 import CONFIG from '../../CONFIG';
 import * as Pusher from '../Pusher/pusher';
 import promiseAllSettled from '../promiseAllSettled';
-import ExpensiMark from '../ExpensiMark';
 import LocalNotification from '../Notification/LocalNotification';
 import PushNotification from '../Notification/PushNotification';
 import * as PersonalDetails from './PersonalDetails';
 import {redirect} from './App';
 import * as ActiveClientManager from '../ActiveClientManager';
 import Visibility from '../Visibility';
+import NetworkConnection from '../NetworkConnection';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -194,7 +195,7 @@ function updateReportWithNewAction(reportID, reportAction) {
     }
 
     // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
-    if (reportAction.actorEmail === currentUserEmail) {
+    if (reportAction.actorAccountID === currentUserAccountID) {
         console.debug('[LOCAL_NOTIFICATION] No notification because comment is from the currently logged in user');
         return;
     }
@@ -509,7 +510,7 @@ Ion.connect({
 });
 
 // When the app reconnects from being offline, fetch all of the reports and their actions
-API.onReconnect(() => {
+NetworkConnection.onReconnect(() => {
     fetchAll(false, true);
 });
 
