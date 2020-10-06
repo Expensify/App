@@ -158,6 +158,8 @@ function fetchChatReportsByIDs(chatList) {
                 // Merge the data into Ion
                 Ion.merge(`${IONKEYS.COLLECTION.REPORT}${report.reportID}`, newReport);
             });
+
+            return _.map(fetchedReports, report => report.reportID);
         });
 }
 
@@ -270,11 +272,10 @@ function fetchActions(reportID) {
  *
  * @param {boolean} shouldRedirectToFirstReport this is set to false when the network reconnect
  *     code runs
- * @param {boolean} shouldFetchActions whether or not the actions of the reports should also be fetched
+ *
+ * @returns {Promise}
  */
-function fetchAll(shouldRedirectToFirstReport = true, shouldFetchActions = false) {
-    let fetchedReports;
-
+function fetchHardcodedReports(shouldRedirectToFirstReport) {
     // Request each report one at a time to allow individual reports to fail if access to it is prevented by Auth
     const reportFetchPromises = _.map(configReportIDs, reportID => API.get({
         returnValueList: 'reportStuff',
@@ -282,15 +283,9 @@ function fetchAll(shouldRedirectToFirstReport = true, shouldFetchActions = false
         shouldLoadOptionalKeys: true,
     }));
 
-    // Chat reports need to be fetched separately than the reports hard-coded in the config
-    // files. The promise for fetching them is added to the array of promises here so
-    // that both types of reports (chat reports and hard-coded reports) are fetched in
-    // parallel
-    reportFetchPromises.push(fetchChatReports());
-
-    promiseAllSettled(reportFetchPromises)
+    return promiseAllSettled(reportFetchPromises)
         .then((data) => {
-            fetchedReports = _.compact(_.map(data, (promiseResult) => {
+            const fetchedReports = _.compact(_.map(data, (promiseResult) => {
                 // Grab the report from the promise result which stores it in the `value` key
                 const report = lodashGet(promiseResult, 'value.reports', {});
 
@@ -313,11 +308,32 @@ function fetchAll(shouldRedirectToFirstReport = true, shouldFetchActions = false
                 // Merge the data into Ion. Don't use set() here or multiSet() because then that would
                 // overwrite any existing data (like if they have unread messages)
                 Ion.merge(`${IONKEYS.COLLECTION.REPORT}${report.reportID}`, getSimplifiedReportObject(report));
+            });
 
-                if (shouldFetchActions) {
-                    console.debug(`[RECONNECT] Fetching report actions for report ${report.reportID}`);
-                    fetchActions(report.reportID);
-                }
+            return _.map(fetchedReports, report => report.reportID);
+        });
+}
+
+/**
+ * Get all of our reports
+ *
+ * @param {boolean} shouldRedirectToFirstReport this is set to false when the network reconnect
+ *     code runs
+ * @param {boolean} shouldFetchActions whether or not the actions of the reports should also be fetched
+ */
+function fetchAll(shouldRedirectToFirstReport = true, shouldFetchActions = false) {
+    Promise.all([
+        fetchChatReports(),
+        fetchHardcodedReports(shouldRedirectToFirstReport)
+    ])
+        .then((promiseResults) => {
+            if (!shouldFetchActions) {
+                return;
+            }
+
+            _.each(_.flatten(promiseResults), (reportID) => {
+                console.debug(`[RECONNECT] Fetching report actions for report ${reportID}`);
+                fetchActions(reportID);
             });
         });
 }
