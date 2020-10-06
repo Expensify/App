@@ -145,9 +145,8 @@ function fetchChatReportsByIDs(chatList) {
                 PersonalDetails.getForEmails(emails.join(','));
             }
 
-
             // Process the reports and store them in Ion
-            const ionPromises = _.map(fetchedReports, (report) => {
+            _.each(fetchedReports, (report) => {
                 const newReport = getSimplifiedReportObject(report);
 
                 if (lodashGet(report, 'reportNameValuePairs.type') === 'chat') {
@@ -273,8 +272,9 @@ function fetchActions(reportID) {
  *
  * @param {boolean} shouldRedirectToFirstReport this is set to false when the network reconnect
  *     code runs
+ * @param {boolean} shouldFetchActions whether or not the actions of the reports should also be fetched
  */
-function fetchAll(shouldRedirectToFirstReport = true) {
+function fetchAll(shouldRedirectToFirstReport = true, shouldFetchActions = false) {
     let fetchedReports;
 
     // Request each report one at a time to allow individual reports to fail if access to it is prevented by Auth
@@ -323,11 +323,17 @@ function fetchAll(shouldRedirectToFirstReport = true) {
             }
 
             _.each(fetchedReports, (report) => {
+                // See if this report is in the LHN or not and if it's not then we should also fetchActions for it
+                const simplifiedReport = getSimplifiedReportObject(report);
+
                 // Merge the data into Ion. Don't use set() here or multiSet() because then that would
                 // overwrite any existing data (like if they have unread messages)
-                Ion.merge(`${IONKEYS.COLLECTION.REPORT}${report.reportID}`, getSimplifiedReportObject(report));
+                Ion.merge(`${IONKEYS.COLLECTION.REPORT}${report.reportID}`, simplifiedReport);
 
-                fetchActions(report.reportID);
+                if (shouldFetchActions) {
+                    console.debug(`[RECONNECT] Fetching report actions for report ${report.reportID}`);
+                    fetchActions(report.reportID);
+                }
             });
         });
 }
@@ -507,7 +513,7 @@ Ion.connect({
 
 // When the app reconnects from being offline, fetch all of the reports and their actions
 API.onReconnect(() => {
-    fetchAll(false);
+    fetchAll(false, true);
 });
 
 export {
