@@ -225,7 +225,7 @@ function request(command, parameters, type = 'post') {
             }
 
             // If we already have an error, throw that so we do not swallow it
-            if (error && error instanceof Error) {
+            if (error instanceof Error) {
                 throw error;
             }
 
