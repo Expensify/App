@@ -1,7 +1,7 @@
 import React from 'react';
 import HTML from 'react-native-render-html';
 import {
-    Linking, ActivityIndicator, View, Platform, Dimensions
+    Linking, ActivityIndicator, View, Dimensions
 } from 'react-native';
 import PropTypes from 'prop-types';
 import Str from '../../../lib/Str';
@@ -10,6 +10,7 @@ import styles, {webViewStyles, colors} from '../../../style/StyleSheet';
 import Text from '../../../components/Text';
 import AnchorForCommentsOnly from '../../../components/AnchorForCommentsOnly';
 import {getAuthToken} from '../../../lib/API';
+import InlineCodeBlock from '../../../components/InlineCodeBlock';
 
 const propTypes = {
     // The message fragment needing to be displayed
@@ -35,13 +36,31 @@ class ReportActionItemFragment extends React.PureComponent {
             a: (htmlAttribs, children, convertedCSSStyles, passProps) => (
                 <AnchorForCommentsOnly
                     href={htmlAttribs.href}
-                    target={htmlAttribs.target}
-                    rel={htmlAttribs.rel}
+
+                    // Unless otherwise specified open all links in
+                    // a new window. On Desktop this means that we will
+                    // skip the default Save As... download prompt
+                    // and defer to whatever browser the user has.
+                    target={htmlAttribs.target || '_blank'}
+                    rel={htmlAttribs.rel || 'noopener noreferrer'}
                     style={passProps.style}
                     key={passProps.key}
                 >
                     {children}
                 </AnchorForCommentsOnly>
+            ),
+            pre: (htmlAttribs, children, convertedCSSStyles, passProps) => (
+                <View
+                    key={passProps.key}
+                    style={webViewStyles.preTagStyle}
+                >
+                    {children}
+                </View>
+            ),
+            code: (htmlAttribs, children, convertedCSSStyles, passProps) => (
+                <InlineCodeBlock key={passProps.key}>
+                    {children}
+                </InlineCodeBlock>
             ),
         };
     }
@@ -86,9 +105,7 @@ class ReportActionItemFragment extends React.PureComponent {
                 return fragment.html !== fragment.text
                     ? (
                         <HTML
-
-                            // HACK - Android selection causes performance issues, temporarily disable it until we fix
-                            textSelectable={Platform.OS !== 'android'}
+                            textSelectable
                             renderers={this.customRenderers}
                             baseFontStyle={webViewStyles.baseFontStyle}
                             tagsStyles={webViewStyles.tagStyles}
@@ -100,20 +117,14 @@ class ReportActionItemFragment extends React.PureComponent {
                         />
                     )
                     : (
-                        <Text
-
-                            // HACK - Android selection causes performance issues, temporarily disable it until we fix
-                            selectable={Platform.OS !== 'android'}
-                        >
+                        <Text selectable>
                             {Str.htmlDecode(fragment.text)}
                         </Text>
                     );
             case 'TEXT':
                 return (
                     <Text
-
-                        // HACK - Android selection causes performance issues, temporarily disable it until we fix
-                        selectable={Platform.OS !== 'android'}
+                        selectable
                         style={[styles.chatItemMessageHeaderSender]}
                     >
                         {Str.htmlDecode(fragment.text)}

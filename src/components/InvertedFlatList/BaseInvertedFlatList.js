@@ -137,9 +137,11 @@ class BaseInvertedFlatList extends Component {
                 renderItem={this.renderItem}
                 getItemLayout={this.getItemLayout}
                 bounces={false}
-                removeClippedSubviews
                 maxToRenderPerBatch={15}
                 updateCellsBatchingPeriod={40}
+
+                // Setting removeClippedSubviews will break text selection on Android
+                removeClippedSubviews={false}
             />
         );
     }
