@@ -95,6 +95,13 @@ function createLogin(login, password) {
             if (response.jsonCode !== 200) {
                 throw new Error(response.message);
             }
+
+            if (credentials && credentials.login) {
+                // If we have an old login for some reason, we should delete it before storing the new details
+                // eslint-disable-next-line no-use-before-define
+                deleteLogin({partnerUserID: credentials.login});
+            }
+
             Ion.merge(IONKEYS.CREDENTIALS, {login, password});
         });
 }

@@ -34,9 +34,7 @@ function signOut() {
     if (!credentials || !credentials.login) {
         return;
     }
-    API.deleteLogin({
-        partnerUserID: credentials.login
-    });
+    API.deleteLogin({partnerUserID: credentials.login});
 }
 
 export {
