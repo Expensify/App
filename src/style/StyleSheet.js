@@ -672,6 +672,7 @@ const webViewStyles = {
         },
 
         strong: {
+            fontFamily: fontFamily.GTA_BOLD,
             fontWeight: '600',
         },
 
