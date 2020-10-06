@@ -1,8 +1,9 @@
+import bold from '../bold';
+
 const fontFamily = {
     GTA_ITALIC: 'GTAmericaExp-RgIt',
-    GTA_BOLD: 'GTAmericaExp-Bold',
+    GTA_BOLD: bold,
     GTA: 'GTAmericaExp-Regular',
-    GTA_BOLD: 'GTAmericaExp-Bold',
     SYSTEM: 'System',
 };
 
