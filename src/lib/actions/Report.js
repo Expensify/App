@@ -13,6 +13,7 @@ import * as PersonalDetails from './PersonalDetails';
 import {redirect} from './App';
 import * as ActiveClientManager from '../ActiveClientManager';
 import Visibility from '../Visibility';
+import ROUTES from '../../ROUTES';
 import NetworkConnection from '../NetworkConnection';
 
 let currentUserEmail;
@@ -32,6 +33,12 @@ let currentURL;
 Ion.connect({
     key: IONKEYS.CURRENT_URL,
     callback: val => currentURL = val,
+});
+
+let lastViewedReportID;
+Ion.connect({
+    key: IONKEYS.CURRENTLY_VIEWED_REPORTID,
+    callback: val => lastViewedReportID = val,
 });
 
 let myPersonalDetails;
@@ -272,11 +279,11 @@ function fetchActions(reportID) {
 /**
  * Get all of our reports
  *
- * @param {boolean} shouldRedirectToFirstReport this is set to false when the network reconnect
+ * @param {boolean} shouldRedirectToReport this is set to false when the network reconnect
  *     code runs
  * @param {boolean} shouldFetchActions whether or not the actions of the reports should also be fetched
  */
-function fetchAll(shouldRedirectToFirstReport = true, shouldFetchActions = false) {
+function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false) {
     let fetchedReports;
 
     // Request each report one at a time to allow individual reports to fail if access to it is prevented by Auth
@@ -303,13 +310,12 @@ function fetchAll(shouldRedirectToFirstReport = true, shouldFetchActions = false
                 return _.isEmpty(report) ? null : _.values(report)[0];
             }));
 
-            // Set the first report ID so that the logged in person can be redirected there
-            // if they are on the home page
-            if (shouldRedirectToFirstReport && (currentURL === '/' || currentURL === '/home')) {
-                const firstReportID = _.first(_.pluck(fetchedReports, 'reportID'));
-
-                if (firstReportID) {
-                    redirect(`/${firstReportID}`);
+            if (shouldRedirectToReport && (currentURL === ROUTES.ROOT || currentURL === ROUTES.HOME)) {
+                // Redirect to either the last viewed report ID or the first report ID from our report collection
+                if (lastViewedReportID) {
+                    redirect(ROUTES.getReportRoute(lastViewedReportID));
+                } else {
+                    redirect(ROUTES.getReportRoute(_.first(_.pluck(fetchedReports, 'reportID'))));
                 }
             }
 
@@ -368,7 +374,7 @@ function fetchOrCreateChatReport(participants) {
             Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, newReport);
 
             // Redirect the logged in person to the new report
-            redirect(`/${reportID}`);
+            redirect(ROUTES.getReportRoute(reportID));
         });
 }
 
