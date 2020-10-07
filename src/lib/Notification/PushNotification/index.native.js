@@ -20,7 +20,7 @@ function register(accountID) {
         });
 
     // Register this device as a named user in AirshipAPI.
-    // Regardless of opt-in status, we still want to receive silent push notifications.
+    // Regardless of the user's opt-in status, we still want to receive silent push notifications.
     console.debug(`[PUSH_NOTIFICATIONS] Subscribing to notifications for account ID ${accountID}`);
     UrbanAirship.setNamedUser(accountID.toString());
 }
