@@ -1,5 +1,6 @@
 import {AppState} from 'react-native';
 import {UrbanAirship, EventType} from 'urbanairship-react-native';
+import lodashGet from 'lodash.get';
 import NotificationType from './NotificationType';
 
 const notificationEventActionMap = {};
@@ -39,7 +40,7 @@ function deregister() {
  */
 function pushNotificationEventCallback(eventType, notification) {
     const actionMap = notificationEventActionMap[eventType] ?? {};
-    const payload = notification.extras?.payload;
+    const payload = lodashGet(notification, 'extras.payload');
 
     console.debug(`[PUSH_NOTIFICATION] ${eventType}`, {
         title: notification.title,
@@ -83,6 +84,8 @@ function setupEventListeners() {
         pushNotificationEventCallback(EventType.PushReceived, notification);
     });
 
+    // Note: the NotificationResponse event has a nested PushReceived event,
+    // so event.notification refers to the same thing as notification above ^
     UrbanAirship.addListener(EventType.NotificationResponse, (event) => {
         pushNotificationEventCallback(EventType.NotificationResponse, event.notification);
     });
