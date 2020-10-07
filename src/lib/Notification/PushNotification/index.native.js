@@ -104,11 +104,22 @@ function bind(notificationType, callback, triggerEvent) {
     };
 }
 
-
+/**
+ * Bind a callback to be executed when a push notification of a given type is received.
+ *
+ * @param {string} notificationType
+ * @param {Function} callback
+ */
 function onReceived(notificationType, callback) {
     bind(notificationType, callback, EventType.PushReceived);
 }
 
+/**
+ * Bind a callback to be executed when a push notification of a given type is tapped by the user.
+ *
+ * @param {string} notificationType
+ * @param {Function} callback
+ */
 function onSelected(notificationType, callback) {
     bind(notificationType, callback, EventType.NotificationResponse);
 }
