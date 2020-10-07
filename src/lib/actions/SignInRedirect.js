@@ -3,6 +3,7 @@ import IONKEYS from '../../IONKEYS';
 import ROUTES from '../../ROUTES';
 import {redirect} from './App';
 import * as Pusher from '../Pusher/pusher';
+import NetworkConnection from '../NetworkConnection';
 
 let currentURL;
 Ion.connect({
@@ -17,6 +18,7 @@ Ion.connect({
  * @param {String} [errorMessage] error message to be displayed on the sign in page
  */
 function redirectToSignIn(errorMessage) {
+    NetworkConnection.stopListeningForReconnect();
     Pusher.disconnect();
     Ion.clear()
         .then(() => {
@@ -35,9 +37,9 @@ function redirectToSignIn(errorMessage) {
     }
 
     // When the URL is at the root of the site, go to sign-in, otherwise add the exitTo
-    const urlWithExitTo = currentURL === '/'
+    const urlWithExitTo = currentURL === ROUTES.ROOT
         ? ROUTES.SIGNIN
-        : `${ROUTES.SIGNIN}/exitTo${currentURL}`;
+        : ROUTES.getSigninWithExitToRoute(currentURL);
     redirect(urlWithExitTo);
 }
 

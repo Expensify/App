@@ -5,6 +5,7 @@ export default {
     ACTIVE_CLIENTS: 'activeClients2',
     APP_REDIRECT_TO: 'appRedirectTo',
     CURRENT_URL: 'currentURL',
+    CURRENTLY_VIEWED_REPORTID: 'currentlyViewedReportID',
     CREDENTIALS: 'credentials',
     FIRST_REPORT_ID: 'firstReportID',
     MY_PERSONAL_DETAILS: 'myPersonalDetails',
