@@ -42,6 +42,13 @@ Ion.connect({
 });
 
 /**
+ * Clears all currently queued network requests
+ */
+function clearNetworkRequestQueue() {
+    networkRequestQueue = [];
+}
+
+/**
  * Adds a request to networkRequestQueue
  *
  * @param {string} command
@@ -181,7 +188,7 @@ function request(command, parameters, type = 'post') {
     if (!authToken) {
         console.error('A request was made without an authToken', {command, parameters});
         reauthenticating = false;
-        networkRequestQueue = [];
+        clearNetworkRequestQueue();
         redirectToSignIn();
         return Promise.resolve();
     }
@@ -231,6 +238,7 @@ function request(command, parameters, type = 'post') {
                     .then(() => xhr(command, parametersWithAuthToken, type))
                     .catch((error) => {
                         reauthenticating = false;
+                        clearNetworkRequestQueue();
                         redirectToSignIn(error.message);
                         return Promise.reject();
                     });
@@ -461,4 +469,5 @@ export {
     getPersonalDetails,
     getReportHistory,
     setLastReadActionID,
+    clearNetworkRequestQueue,
 };

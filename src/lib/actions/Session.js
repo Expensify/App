@@ -30,6 +30,7 @@ function signIn(partnerUserID, partnerUserSecret, twoFactorAuthCode = '', exitTo
  * Clears the Ion store and redirects user to the sign in page
  */
 function signOut() {
+    API.clearNetworkRequestQueue();
     redirectToSignIn();
     if (!credentials || !credentials.login) {
         return;
