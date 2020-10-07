@@ -38,7 +38,7 @@ function deregister() {
  * @param {object} notification
  */
 function pushNotificationEventCallback(eventType, notification) {
-    const actionMap = notificationEventActionMap[eventType];
+    const actionMap = notificationEventActionMap[eventType] ?? {};
     const payload = notification.extras?.payload;
 
     console.debug(`[PUSH_NOTIFICATION] ${eventType}`, {
@@ -47,27 +47,31 @@ function pushNotificationEventCallback(eventType, notification) {
         payload
     });
 
-    // If a push notification is received while the app is in foreground,
-    // we'll assume pusher is connected so we'll ignore this push notification
-    if (AppState.currentState === 'active') {
-        console.debug('[PUSH_NOTIFICATION] App is in foreground, ignoring push notification.');
+    if (!payload) {
+        console.debug('[PUSH_NOTIFICATION] Notification has null or undefined payload, not executing any callback.');
         return;
     }
 
-    if (!payload?.type) {
+    // If a push notification is received while the app is in foreground,
+    // we'll assume pusher is connected so we'll ignore this push notification
+    if (AppState.currentState === 'active') {
+        console.debug('[PUSH_NOTIFICATION] App is in foreground, not executing any callback.');
+        return;
+    }
+
+    if (!payload.type) {
         console.debug('[PUSH_NOTIFICATION] Notification of unknown type received.');
         return;
     }
 
-    if (!actionMap[payload.type]) {
+    const action = actionMap[payload.type];
+    if (!action) {
         console.debug('[PUSH_NOTIFICATION] No callback set up: ', {
             event: eventType,
             notificationType: payload.type,
         });
         return;
     }
-
-    const action = actionMap[payload.type];
     action(payload);
 }
 
