@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import {recordCurrentRoute} from './lib/actions/App';
+import {recordCurrentlyViewedReportID, recordCurrentRoute} from './lib/actions/App';
 import SignInPage from './page/SignInPage';
 import HomePage from './page/home/HomePage';
 import Ion from './lib/Ion';
@@ -81,6 +81,7 @@ class Expensify extends Component {
                 {/* Leave this as a ternary or else iOS throws an error about text not being wrapped in <Text> */}
                 {redirectTo ? <Redirect to={redirectTo} /> : null}
                 <Route path="*" render={recordCurrentRoute} />
+                <Route path={ROUTES.REPORT} exact render={recordCurrentlyViewedReportID} />
 
                 <Switch>
                     <Route
@@ -88,12 +89,12 @@ class Expensify extends Component {
                         path="/"
                         render={() => (
                             this.state.authToken
-                                ? <Redirect to="/home" />
-                                : <Redirect to="/signin" />
+                                ? <Redirect to={ROUTES.HOME} />
+                                : <Redirect to={ROUTES.SIGNIN} />
                         )}
                     />
-                    <Route path={['/signin/exitTo/:exitTo*', '/signin']} component={SignInPage} />
-                    <Route path={['/home', '/']} component={HomePage} />
+                    <Route path={[ROUTES.SIGNIN_WITH_EXITTO, ROUTES.SIGNIN]} component={SignInPage} />
+                    <Route path={[ROUTES.HOME, ROUTES.ROOT]} component={HomePage} />
                 </Switch>
             </Router>
         );

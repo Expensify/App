@@ -11,6 +11,7 @@ jobs:
         runs-on: macos-latest
         steps:
             - uses: actions/checkout@v2
+
             - uses: actions/setup-ruby@v1
 
             - name: Install bundler
@@ -18,6 +19,10 @@ jobs:
 
             - name: Install gems
               run: bundle install
+
+            - uses: webfactory/ssh-agent@v0.4.0
+              with:
+                  ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
             - name: Install node packages
               run: npm install
@@ -40,8 +45,8 @@ jobs:
               env:
                   FASTLANE_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
 
-            # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
-            # the other workflows with the same change
+            # These Slack steps are duplicated in all workflows, if you make a change to this step, make sure to update all
+            # the other workflows with the same changes
             - uses: 8398a7/action-slack@v3
               name: Job failed Slack notification
               if: ${{ failure() }}
@@ -53,6 +58,28 @@ jobs:
                         attachments: [{
                           color: "#DB4545",
                           text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
+                        }]
+                      }
+              env:
+                  GITHUB_TOKEN: ${{ github.token }}
+                  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+            - name: Set version in ENV
+              if: ${{ success() }}
+              run: echo "VERSION=$(npm run print-version --silent)" >> $GITHUB_ENV
+
+            - uses: 8398a7/action-slack@v3
+              name: QA Slack notification
+              if: ${{ success() }}
+              with:
+                  status: custom
+                  fields: workflow, repo
+                  custom_payload: |
+                      {
+                        channel: '#qa',
+                        attachments: [{
+                          color: "#39AA56",
+                          text: `*Expensify Chat :expensifychat:* ${process.env.AS_WORKFLOW} version *${{ env.VERSION }}* was deployed, please start *regression testing*: https://git.io/JUb0r`,
                         }]
                       }
               env:
