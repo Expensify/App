@@ -98,10 +98,10 @@ function setupEventListeners() {
  * @param {string?} triggerEvent - The event that should trigger this callback. Should be one of UrbanAirship.EventType
  */
 function bind(notificationType, callback, triggerEvent) {
-    notificationEventActionMap[triggerEvent] = {
-        ...notificationEventActionMap[triggerEvent],
-        [notificationType]: callback,
-    };
+    if (!notificationEventActionMap[triggerEvent]) {
+        notificationEventActionMap[triggerEvent] = {};
+    }
+    notificationEventActionMap[triggerEvent][notificationType] = callback;
 }
 
 /**
