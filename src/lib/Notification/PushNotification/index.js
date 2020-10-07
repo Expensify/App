@@ -6,5 +6,5 @@ export default {
     deregister: () => {},
     onReceived: () => {},
     onSelected: () => {},
-    NotificationType,
+    TYPE: NotificationType,
 };

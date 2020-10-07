@@ -3,7 +3,5 @@
  * types of push notifications sent by our API.
  */
 export default {
-    REPORT: {
-        COMMENT: 'reportComment',
-    }
+    REPORT_COMMENT: 'reportComment',
 };
