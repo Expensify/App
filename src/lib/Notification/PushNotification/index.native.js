@@ -41,11 +41,11 @@ function pushNotificationEventCallback(eventType, notification) {
     const actionMap = notificationEventActionMap[eventType];
     const payload = notification.extras?.payload;
 
-    console.debug(`[PUSH_NOTIFICATION] ${eventType} - {
-                title: ${notification.title},
-                message: ${notification.alert},
-                payload: ${payload}
-            }`);
+    console.debug(`[PUSH_NOTIFICATION] ${eventType}`, {
+        title: notification.title,
+        message: notification.alert,
+        payload
+    });
 
     // If a push notification is received while the app is in foreground,
     // we'll assume pusher is connected so we'll ignore this push notification
@@ -60,10 +60,10 @@ function pushNotificationEventCallback(eventType, notification) {
     }
 
     if (!actionMap[payload.type]) {
-        console.debug(`[PUSH_NOTIFICATION] No callback set up: {
-                    event: ${eventType},
-                    notification type: ${payload.type},
-                }`);
+        console.debug('[PUSH_NOTIFICATION] No callback set up: ', {
+            event: eventType,
+            notificationType: payload.type,
+        });
         return;
     }
 
