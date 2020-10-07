@@ -96,6 +96,10 @@ function setupEventListeners() {
  * See https://github.com/Expensify/Web-Expensify/blob/master/lib/MobilePushNotifications.php for the various
  * types of push notifications sent, along with the data that they provide.
  *
+ * Note: This implementation allows for only one callback to be bound to an Event/Type pair. For example,
+ *       if we attempt to bind two callbacks to the PushReceived event for reportComment notifications,
+ *       the second will overwrite the first.
+ *
  * @param {string} notificationType
  * @param {Function} callback
  * @param {string?} triggerEvent - The event that should trigger this callback. Should be one of UrbanAirship.EventType
