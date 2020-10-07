@@ -1,5 +1,6 @@
 // We place items a percentage to the safe area on the top or bottom of the screen
 import fontFamily from './fontFamily';
+import italic from './italic';
 
 const safeInsertPercentage = 0.7;
 
@@ -14,6 +15,7 @@ const colors = {
     heading: '#37444C',
     icon: '#C6C9CA',
     text: '#4A5960',
+    textBackground: '#F0F0F0',
     textReversed: '#FFFFFF',
     textSupporting: '#7D8B8F',
     red: '#E84A3B',
@@ -55,6 +57,10 @@ const styles = {
     },
     mb4: {
         marginBottom: 16,
+    },
+
+    mbn5: {
+        marginBottom: -5,
     },
 
     p1: {
@@ -658,11 +664,32 @@ const styles = {
     },
 };
 
+const baseCodeTagStyles = {
+    borderWidth: 1,
+    borderRadius: 5,
+    borderColor: colors.border,
+    backgroundColor: colors.textBackground,
+};
+
 const webViewStyles = {
+    preTagStyle: {
+        ...baseCodeTagStyles,
+        paddingTop: 4,
+        paddingBottom: 5,
+        paddingRight: 8,
+        paddingLeft: 8,
+    },
+    codeTagStyle: {
+        ...baseCodeTagStyles,
+        paddingLeft: 5,
+        paddingRight: 5,
+        paddingBottom: 2,
+        alignSelf: 'flex-start',
+    },
     tagStyles: {
         em: {
-            fontStyle: 'italic',
-            fontFamily: fontFamily.SYSTEM,
+            fontFamily: fontFamily.GTA_ITALIC,
+            fontStyle: italic,
         },
 
         del: {
@@ -671,11 +698,20 @@ const webViewStyles = {
         },
 
         strong: {
+            fontFamily: fontFamily.GTA_BOLD,
             fontWeight: '600',
         },
 
         a: {
             color: colors.blue
+        },
+
+        pre: {
+            fontFamily: fontFamily.MONOSPACE,
+        },
+
+        code: {
+            fontFamily: fontFamily.MONOSPACE,
         },
 
         img: {
@@ -688,7 +724,7 @@ const webViewStyles = {
     baseFontStyle: {
         color: colors.text,
         fontSize: 15,
-        fontFamily: fontFamily.GTA
+        fontFamily: fontFamily.GTA,
     }
 };
 

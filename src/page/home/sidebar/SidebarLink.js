@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import Text from '../../../components/Text';
 import styles from '../../../style/StyleSheet';
 import PressableLink from '../../../components/PressableLink';
+import ROUTES from '../../../ROUTES';
 
 const propTypes = {
     // The ID of the report for this link
@@ -36,7 +37,11 @@ const SidebarLink = (props) => {
 
     return (
         <View style={[styles.sidebarListItem, linkWrapperActiveStyle]}>
-            <PressableLink onClick={props.onLinkClick} to={`/${props.reportID}`} style={linkActiveStyle}>
+            <PressableLink
+                onClick={props.onLinkClick}
+                to={ROUTES.getReportRoute(props.reportID)}
+                style={linkActiveStyle}
+            >
                 <View style={[styles.sidebarLinkInner]}>
                     <Text numberOfLines={1} style={textActiveUnreadStyle}>
                         {props.reportName}

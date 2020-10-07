@@ -16,6 +16,8 @@ import {subscribeToReportCommentEvents, fetchAll as fetchAllReports} from '../..
 import {fetch as fetchPersonalDetails} from '../../lib/actions/PersonalDetails';
 import * as Pusher from '../../lib/Pusher/pusher';
 import UnreadIndicatorUpdater from '../../lib/UnreadIndicatorUpdater';
+import ROUTES from '../../ROUTES';
+import NetworkConnection from '../../lib/NetworkConnection';
 
 const windowSize = Dimensions.get('window');
 const widthBreakPoint = 1000;
@@ -37,6 +39,7 @@ export default class App extends React.Component {
     }
 
     componentDidMount() {
+        NetworkConnection.listenForReconnect();
         Pusher.init().then(subscribeToReportCommentEvents);
 
         // Fetch all the personal details
@@ -158,7 +161,7 @@ export default class App extends React.Component {
                                 getSafeAreaPadding(insets)
                             ]}
                         >
-                            <Route path="/:reportID?">
+                            <Route path={[ROUTES.REPORT, ROUTES.HOME]}>
                                 <Animated.View style={[
                                     hamburgerStyle,
                                     visibility,

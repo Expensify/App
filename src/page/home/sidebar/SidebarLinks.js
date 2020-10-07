@@ -9,6 +9,7 @@ import SidebarLink from './SidebarLink';
 import withIon from '../../../components/withIon';
 import IONKEYS from '../../../IONKEYS';
 import ChatSwitcherView from './ChatSwitcherView';
+import PageTitleUpdater from '../../../lib/PageTitleUpdater';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
 import compose from '../../../lib/compose';
 import {withRouter} from '../../../lib/Router';
