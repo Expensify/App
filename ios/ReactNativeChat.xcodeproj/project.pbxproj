@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		00E356F31AD99517003FC87E /* ReactNativeChatTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* ReactNativeChatTests.m */; };
-		097C76E5807C5DFC565DC655 /* libPods-ReactNativeChat-ReactNativeChatTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C4F81DB9C6DA6418525441E5 /* libPods-ReactNativeChat-ReactNativeChatTests.a */; };
 		12DD1878FCB9487C9F031C86 /* GTAmericaExpMono-Rg.otf in Resources */ = {isa = PBXBuildFile; fileRef = 8437A5A38F2047E0BCCD7C2F /* GTAmericaExpMono-Rg.otf */; };
 		13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.m */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
@@ -18,10 +17,11 @@
 		1E76D5232522316A005A268F /* GTAmericaExp-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = AE65058949E14DA5A2D5435D /* GTAmericaExp-Medium.otf */; };
 		1E76D5242522316A005A268F /* GTAmericaExp-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = 8C7003903C1E4957824899BB /* GTAmericaExp-Regular.otf */; };
 		1E76D5252522316A005A268F /* GTAmericaExp-Thin.otf in Resources */ = {isa = PBXBuildFile; fileRef = A292718541C841859D97DF2F /* GTAmericaExp-Thin.otf */; };
-		347C4A976B972BC7A903F97D /* libPods-ReactNativeChat.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6ABF95746519766B23B4E2D0 /* libPods-ReactNativeChat.a */; };
-		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		425866037F4C482AAB46CB8B /* GTAmericaExp-BdIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = A8D6F2F722FD4E66A38EBBB6 /* GTAmericaExp-BdIt.otf */; };
 		6856B78873B64C44A92E51DB /* GTAmericaExp-MdIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = DB5A1365442D4419AF6F08E5 /* GTAmericaExp-MdIt.otf */; };
+		712B637C71EDACB60BFCCFDF /* libPods-ReactNativeChat-ReactNativeChatTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5198B14DF64811534104106B /* libPods-ReactNativeChat-ReactNativeChatTests.a */; };
+		7EF88515CE8703E46E771C2D /* libPods-ReactNativeChat.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B2E64A28C6D8EC058C5C3144 /* libPods-ReactNativeChat.a */; };
+		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		8821A238A081483FA947BC4E /* GTAmericaExp-RgIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 918D7FEFF96242E6B5F5E14D /* GTAmericaExp-RgIt.otf */; };
 /* End PBXBuildFile section */
 
@@ -48,22 +48,23 @@
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = ReactNativeChat/main.m; sourceTree = "<group>"; };
 		2061509B833DB0123E4416F5 /* Pods-ReactNativeChat.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ReactNativeChat.release.xcconfig"; path = "Target Support Files/Pods-ReactNativeChat/Pods-ReactNativeChat.release.xcconfig"; sourceTree = "<group>"; };
 		499D0486251AC7F1000B666B /* Chat.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = Chat.entitlements; path = ReactNativeChat/Chat.entitlements; sourceTree = "<group>"; };
+		5198B14DF64811534104106B /* libPods-ReactNativeChat-ReactNativeChatTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ReactNativeChat-ReactNativeChatTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		66FC9F8F0AF1190BE595FC04 /* Pods-ReactNativeChat.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ReactNativeChat.debug.xcconfig"; path = "Target Support Files/Pods-ReactNativeChat/Pods-ReactNativeChat.debug.xcconfig"; sourceTree = "<group>"; };
 		67D5C3A6A7FA417C8A853FC1 /* GTAmericaExp-Light.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-Light.otf"; path = "../assets/fonts/GTAmericaExp-Light.otf"; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = ReactNativeChat/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		8437A5A38F2047E0BCCD7C2F /* GTAmericaExpMono-Rg.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExpMono-Rg.otf"; path = "../assets/fonts/GTAmericaExpMono-Rg.otf"; sourceTree = "<group>"; };
 		8C7003903C1E4957824899BB /* GTAmericaExp-Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-Regular.otf"; path = "../assets/fonts/GTAmericaExp-Regular.otf"; sourceTree = "<group>"; };
+		918D7FEFF96242E6B5F5E14D /* GTAmericaExp-RgIt.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-RgIt.otf"; path = "../assets/fonts/GTAmericaExp-RgIt.otf"; sourceTree = "<group>"; };
 		A292718541C841859D97DF2F /* GTAmericaExp-Thin.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-Thin.otf"; path = "../assets/fonts/GTAmericaExp-Thin.otf"; sourceTree = "<group>"; };
 		A5AAD008CBD84A6CAEB9AC97 /* GTAmericaExp-Bold.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-Bold.otf"; path = "../assets/fonts/GTAmericaExp-Bold.otf"; sourceTree = "<group>"; };
+		A8D6F2F722FD4E66A38EBBB6 /* GTAmericaExp-BdIt.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-BdIt.otf"; path = "../assets/fonts/GTAmericaExp-BdIt.otf"; sourceTree = "<group>"; };
 		AE65058949E14DA5A2D5435D /* GTAmericaExp-Medium.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-Medium.otf"; path = "../assets/fonts/GTAmericaExp-Medium.otf"; sourceTree = "<group>"; };
 		B2E64A28C6D8EC058C5C3144 /* libPods-ReactNativeChat.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ReactNativeChat.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B81A8F09B6065AF7D0A5D2CD /* Pods-ReactNativeChat-ReactNativeChatTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ReactNativeChat-ReactNativeChatTests.release.xcconfig"; path = "Target Support Files/Pods-ReactNativeChat-ReactNativeChatTests/Pods-ReactNativeChat-ReactNativeChatTests.release.xcconfig"; sourceTree = "<group>"; };
 		BB3B578785B6B7D4E739A8C8 /* Pods-ReactNativeChat-ReactNativeChatTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ReactNativeChat-ReactNativeChatTests.debug.xcconfig"; path = "Target Support Files/Pods-ReactNativeChat-ReactNativeChatTests/Pods-ReactNativeChat-ReactNativeChatTests.debug.xcconfig"; sourceTree = "<group>"; };
+		DB5A1365442D4419AF6F08E5 /* GTAmericaExp-MdIt.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-MdIt.otf"; path = "../assets/fonts/GTAmericaExp-MdIt.otf"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		ED2971642150620600B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS12.0.sdk/System/Library/Frameworks/JavaScriptCore.framework; sourceTree = DEVELOPER_DIR; };
-		A8D6F2F722FD4E66A38EBBB6 /* GTAmericaExp-BdIt.otf */ = {isa = PBXFileReference; name = "GTAmericaExp-BdIt.otf"; path = "../assets/fonts/GTAmericaExp-BdIt.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		DB5A1365442D4419AF6F08E5 /* GTAmericaExp-MdIt.otf */ = {isa = PBXFileReference; name = "GTAmericaExp-MdIt.otf"; path = "../assets/fonts/GTAmericaExp-MdIt.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		918D7FEFF96242E6B5F5E14D /* GTAmericaExp-RgIt.otf */ = {isa = PBXFileReference; name = "GTAmericaExp-RgIt.otf"; path = "../assets/fonts/GTAmericaExp-RgIt.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -71,7 +72,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4240AE54CAE449C1152C6BDE /* libPods-ReactNativeChat-ReactNativeChatTests.a in Frameworks */,
+				712B637C71EDACB60BFCCFDF /* libPods-ReactNativeChat-ReactNativeChatTests.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -79,7 +80,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FC9F1F30A3B563D480032A24 /* libPods-ReactNativeChat.a in Frameworks */,
+				7EF88515CE8703E46E771C2D /* libPods-ReactNativeChat.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -124,7 +125,7 @@
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				ED2971642150620600B7C4FE /* JavaScriptCore.framework */,
 				B2E64A28C6D8EC058C5C3144 /* libPods-ReactNativeChat.a */,
-				88C2B58752759FFC71A856C2 /* libPods-ReactNativeChat-ReactNativeChatTests.a */,
+				5198B14DF64811534104106B /* libPods-ReactNativeChat-ReactNativeChatTests.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
