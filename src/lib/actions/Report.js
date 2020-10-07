@@ -205,10 +205,8 @@ function updateReportWithNewAction(reportID, reportAction) {
         return;
     }
 
-    const currentReportID = Number(lodashGet(currentURL.split('/'), [1], 0));
-
     // If we are currently viewing this report do not show a notification.
-    if (reportID === currentReportID && Visibility.isVisible()) {
+    if (reportID === lastViewedReportID && Visibility.isVisible()) {
         console.debug('[NOTIFICATION] No notification because it was a comment for the current report');
         return;
     }
