@@ -23,6 +23,24 @@ const triggerReconnectionCallbacks = _.throttle(() => {
 }, 5000, {trailing: false});
 
 /**
+ * When the app is in the background Pusher can still receive realtime updates
+ * for a few minutes, but eventually disconnects causing a delay when the app
+ * returns from the background. So, if we are returning from the background
+ * and we are online we should trigger our reconnection callbacks.
+ */
+const reconnectListener = (state) => {
+    console.debug('[AppState] state changed:', state);
+    const nextStateIsActive = state === 'active';
+
+    // We are moving from not active to active and we are online so fire callbacks
+    if (!isOffline && nextStateIsActive && !isActive) {
+        triggerReconnectionCallbacks();
+    }
+
+    isActive = nextStateIsActive;
+};
+
+/**
  * Called when the offline status of the app changes and if the network is "reconnecting" (going from offline to online)
  * then all of the reconnection callbacks are triggered
  *
@@ -53,21 +71,7 @@ function listenForReconnect() {
         setOfflineStatus(!state.isConnected);
     });
 
-    // When the app is in the background Pusher can still receive realtime updates
-    // for a few minutes, but eventually disconnects causing a delay when the app
-    // returns from the background. So, if we are returning from the background
-    // and we are online we should trigger our reconnection callbacks.
-    AppState.addEventListener('change', (state) => {
-        console.debug('[AppState] state changed:', state);
-        const nextStateIsActive = state === 'active';
-
-        // We are moving from not active to active and we are online so fire callbacks
-        if (!isOffline && nextStateIsActive && !isActive) {
-            triggerReconnectionCallbacks();
-        }
-
-        isActive = nextStateIsActive;
-    });
+    AppState.addEventListener('change', reconnectListener);
 
     // When a device is put to sleep, NetInfo is not always able to detect
     // when connectivity has been lost. As a failsafe we will capture the time
@@ -91,7 +95,7 @@ function stopListeningForReconnect() {
     if (unsubscribeFromNetInfo) {
         unsubscribeFromNetInfo();
     }
-    AppState.removeEventListener('change', () => {});
+    AppState.removeEventListener('change', reconnectListener);
 }
 
 /**
