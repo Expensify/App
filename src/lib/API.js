@@ -43,6 +43,44 @@ Ion.connect({
 });
 
 /**
+ * Adds a request to networkRequestQueue
+ *
+ * @param {string} command
+ * @param {mixed} data
+ * @returns {Promise}
+ */
+function queueRequest(command, data) {
+    return new Promise((resolve) => {
+        // Add the write request to a queue of actions to perform
+        networkRequestQueue.push({
+            command,
+            data,
+            callback: resolve,
+        });
+
+        // Try to fire off the request as soon as it's queued so we don't add a delay to every queued command
+        // eslint-disable-next-line no-use-before-define
+        processNetworkRequestQueue();
+    });
+}
+
+/**
+ * @param {object} parameters
+ * @param {string} parameters.partnerUserID
+ * @returns {Promise}
+ */
+function deleteLogin(parameters) {
+    return queueRequest('DeleteLogin', {
+        authToken,
+        partnerUserID: parameters.partnerUserID,
+        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+        doNotRetry: true,
+    })
+        .catch(error => Ion.merge(IONKEYS.SESSION, {error: error.message}));
+}
+
+/**
  * @param {string} login
  * @param {string} password
  * @returns {Promise}
@@ -66,31 +104,16 @@ function createLogin(login, password) {
             if (response.jsonCode !== 200) {
                 throw new Error(response.message);
             }
+
+            if (credentials && credentials.login) {
+                // If we have an old login for some reason, we should delete it before storing the new details
+                deleteLogin({partnerUserID: credentials.login});
+            }
+
             Ion.merge(IONKEYS.CREDENTIALS, {login, password});
         });
 }
 
-/**
- * Adds a request to networkRequestQueue
- *
- * @param {string} command
- * @param {mixed} data
- * @returns {Promise}
- */
-function queueRequest(command, data) {
-    return new Promise((resolve) => {
-        // Add the write request to a queue of actions to perform
-        networkRequestQueue.push({
-            command,
-            data,
-            callback: resolve,
-        });
-
-        // Try to fire off the request as soon as it's queued so we don't add a delay to every queued command
-        // eslint-disable-next-line no-use-before-define
-        processNetworkRequestQueue();
-    });
-}
 
 /**
  * Sets API data in the store when we make a successful "Authenticate"/"CreateLogin" request
@@ -99,7 +122,7 @@ function queueRequest(command, data) {
  * @param {string} exitTo
  */
 function setSuccessfulSignInData(data, exitTo) {
-    const redirectTo = exitTo ? Str.normalizeUrl(exitTo) : ROUTES.HOME;
+    const redirectTo = exitTo ? Str.normalizeUrl(exitTo) : ROUTES.ROOT;
 
     Ion.multiSet({
         [IONKEYS.SESSION]: _.pick(data, 'authToken', 'accountID', 'email'),
@@ -350,22 +373,6 @@ function authenticate(parameters) {
         }).finally(() => {
             Ion.merge(IONKEYS.SESSION, {loading: false});
         });
-}
-
-/**
- * @param {object} parameters
- * @param {string} parameters.partnerUserID
- * @returns {Promise}
- */
-function deleteLogin(parameters) {
-    return queueRequest('DeleteLogin', {
-        authToken,
-        partnerUserID: parameters.partnerUserID,
-        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-        doNotRetry: true,
-    })
-        .catch(error => Ion.merge(IONKEYS.SESSION, {error: error.message}));
 }
 
 /**
