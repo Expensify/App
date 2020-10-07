@@ -19,6 +19,7 @@ Ion.connect({
  */
 function redirectToSignIn(errorMessage) {
     NetworkConnection.stopListeningForReconnect();
+    UnreadIndicatorUpdater.stopListeningForReportChanges();
     Pusher.disconnect();
     Ion.clear()
         .then(() => {
