@@ -236,14 +236,14 @@ function subscribeToReportCommentEvents() {
         updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
     });
 
-    PushNotification.bind(PushNotification.NotificationType.REPORT.COMMENT, ({reportID, reportAction}) => {
+    PushNotification.onReceived(PushNotification.NotificationType.REPORT.COMMENT, ({reportID, reportAction}) => {
         updateReportWithNewAction(reportID, reportAction);
     });
 
     // Open correct report when push notification is clicked
-    PushNotification.bind(PushNotification.NotificationType.REPORT.COMMENT, ({reportID}) => {
+    PushNotification.onSelected(PushNotification.NotificationType.REPORT.COMMENT, ({reportID}) => {
         redirect(reportID);
-    }, PushNotification.EventType.NotificationResponse);
+    });
 }
 
 /**
