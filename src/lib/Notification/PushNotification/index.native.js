@@ -11,7 +11,7 @@ const notificationEventActionMap = {};
  * @param {string|int} accountID
  */
 function register(accountID) {
-    // Get permissions to display push notifications
+    // Get permissions to display push notifications (prompts user on iOS, but not Android)
     UrbanAirship.enableUserPushNotifications()
         .then((isEnabled) => {
             if (!isEnabled) {

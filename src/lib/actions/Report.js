@@ -248,7 +248,7 @@ function subscribeToReportCommentEvents() {
 
     // Open correct report when push notification is clicked
     PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, ({reportID}) => {
-        redirect(reportID);
+        redirect(ROUTES.getReportRoute(reportID));
     });
 }
 
