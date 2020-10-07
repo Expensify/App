@@ -219,7 +219,7 @@ function updateReportWithNewAction(reportID, reportAction) {
         reportAction,
         onClick: () => {
             // Navigate to this report onClick
-            redirect(reportID);
+            redirect(ROUTES.getReportRoute(reportID));
         }
     });
 }
