@@ -41,12 +41,16 @@ Ion.connect({
     callback: ionCredentials => credentials = ionCredentials,
 });
 
-/**
- * Clears all currently queued network requests
- */
-function clearNetworkRequestQueue() {
-    networkRequestQueue = [];
-}
+// If we are ever being redirected to the sign in page, the user is currently unauthenticated, so we should clear the
+// network request queue, to prevent DDoSing our own API
+Ion.connect({
+    key: IONKEYS.APP_REDIRECT_TO,
+    callback: (redirectTo) => {
+        if (redirectTo && redirectTo.startsWith(ROUTES.SIGNIN)) {
+            networkRequestQueue = [];
+        }
+    }
+});
 
 /**
  * Adds a request to networkRequestQueue
@@ -188,7 +192,6 @@ function request(command, parameters, type = 'post') {
     if (!authToken) {
         console.error('A request was made without an authToken', {command, parameters});
         reauthenticating = false;
-        clearNetworkRequestQueue();
         redirectToSignIn();
         return Promise.resolve();
     }
@@ -238,7 +241,6 @@ function request(command, parameters, type = 'post') {
                     .then(() => xhr(command, parametersWithAuthToken, type))
                     .catch((error) => {
                         reauthenticating = false;
-                        clearNetworkRequestQueue();
                         redirectToSignIn(error.message);
                         return Promise.reject();
                     });
@@ -469,5 +471,4 @@ export {
     getPersonalDetails,
     getReportHistory,
     setLastReadActionID,
-    clearNetworkRequestQueue,
 };
