@@ -1,17 +1,14 @@
 import _ from 'underscore';
 import Ion from './Ion';
 import IONKEYS from '../IONKEYS';
-import {xhr, setOfflineStatus} from './Network';
+import xhr from './xhr';
+import NetworkConnection from './NetworkConnection';
 import CONFIG from '../CONFIG';
 import * as Pusher from './Pusher/pusher';
 import ROUTES from '../ROUTES';
 import Str from './Str';
 import Guid from './Guid';
 import redirectToSignIn from './actions/SignInRedirect';
-import Activity from './Activity';
-
-// Holds all of the callbacks that need to be triggered when the network reconnects
-const reconnectionCallbacks = [];
 
 // Queue for network requests so we don't lose actions done by the user while offline
 let networkRequestQueue = [];
@@ -27,39 +24,12 @@ Ion.connect({
     callback: val => authToken = val ? val.authToken : null,
 });
 
-/**
- * Loop over all reconnection callbacks and fire each one
- */
-function triggerReconnectionCallbacks() {
-    _.each(reconnectionCallbacks, callback => callback());
-}
-
 // We subscribe to changes to the online/offline status of the network to determine when we should fire off API calls
-// vs queueing them for later. When reconnecting, ie, going from offline to online, all the reconnection callbacks
-// are triggered (this is usually Actions that need to re-download data from the server)
+// vs queueing them for later.
 let isOffline;
 Ion.connect({
     key: IONKEYS.NETWORK,
-    callback: (val) => {
-        if (isOffline && !val.isOffline) {
-            triggerReconnectionCallbacks();
-        }
-        isOffline = val && val.isOffline;
-    }
-});
-
-// When the app is in the background Pusher can still receive realtime updates
-// for a few minutes, but eventually disconnects causing a delay when the app
-// returns from the background. So, if we are returning from the background
-// and we are online we should trigger our reconnection callbacks.
-Activity.registerOnAppBecameActiveCallback(() => {
-    // If we know we are offline and we have no authToken then there's
-    // no reason to trigger the reconnection callbacks as they will fail.
-    if (isOffline || !authToken) {
-        return;
-    }
-
-    triggerReconnectionCallbacks();
+    callback: val => isOffline = val && val.isOffline,
 });
 
 // When the user authenticates for the first time we create a login and store credentials in Ion.
@@ -128,7 +98,7 @@ function queueRequest(command, data) {
  * @param {string} exitTo
  */
 function setSuccessfulSignInData(data, exitTo) {
-    const redirectTo = exitTo ? Str.normalizeUrl(exitTo) : ROUTES.HOME;
+    const redirectTo = exitTo ? Str.normalizeUrl(exitTo) : ROUTES.ROOT;
 
     Ion.multiSet({
         [IONKEYS.SESSION]: _.pick(data, 'authToken', 'accountID', 'email'),
@@ -264,7 +234,7 @@ function processNetworkRequestQueue() {
 
         // Make a simple request every second to see if the API is online again
         xhr('Get', {doNotRetry: true})
-            .then(() => setOfflineStatus(false));
+            .then(() => NetworkConnection.setOfflineStatus(false));
         return;
     }
 
@@ -339,16 +309,6 @@ Pusher.registerSocketEventCallback((eventName) => {
             break;
     }
 });
-
-/**
- * Register a callback function to be called when the network reconnects
- *
- * @public
- * @param {function} cb
- */
-function onReconnect(cb) {
-    reconnectionCallbacks.push(cb);
-}
 
 /**
  * Get the authToken that the network uses
@@ -493,6 +453,5 @@ export {
     getAuthToken,
     getPersonalDetails,
     getReportHistory,
-    onReconnect,
     setLastReadActionID,
 };

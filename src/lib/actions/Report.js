@@ -1,18 +1,20 @@
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
+import ExpensiMark from 'js-libs/lib/ExpensiMark';
 import Ion from '../Ion';
 import * as API from '../API';
 import IONKEYS from '../../IONKEYS';
 import CONFIG from '../../CONFIG';
 import * as Pusher from '../Pusher/pusher';
 import promiseAllSettled from '../promiseAllSettled';
-import ExpensiMark from '../ExpensiMark';
 import Notification from '../Notification';
 import * as PersonalDetails from './PersonalDetails';
 import {redirect} from './App';
 import * as ActiveClientManager from '../ActiveClientManager';
 import Visibility from '../Visibility';
+import ROUTES from '../../ROUTES';
+import NetworkConnection from '../NetworkConnection';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -31,6 +33,12 @@ let currentURL;
 Ion.connect({
     key: IONKEYS.CURRENT_URL,
     callback: val => currentURL = val,
+});
+
+let lastViewedReportID;
+Ion.connect({
+    key: IONKEYS.CURRENTLY_VIEWED_REPORTID,
+    callback: val => lastViewedReportID = val,
 });
 
 let myPersonalDetails;
@@ -192,7 +200,7 @@ function updateReportWithNewAction(reportID, reportAction) {
     }
 
     // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
-    if (reportAction.actorEmail === currentUserEmail) {
+    if (reportAction.actorAccountID === currentUserAccountID) {
         console.debug('[NOTIFICATION] No notification because comment is from the currently logged in user');
         return;
     }
@@ -270,12 +278,12 @@ function fetchActions(reportID) {
 /**
  * Get all of our hardcoded reports
  *
- * @param {boolean} shouldRedirectToFirstReport this is set to false when the network reconnect
+ * @param {boolean} shouldRedirectToReport this is set to false when the network reconnect
  *     code runs
  *
  * @returns {Promise}
  */
-function fetchHardcodedReports(shouldRedirectToFirstReport) {
+function fetchHardcodedReports() {
     // Request each report one at a time to allow individual reports to fail if access to it is prevented by Auth
     const reportFetchPromises = _.map(configReportIDs, reportID => API.get({
         returnValueList: 'reportStuff',
@@ -293,16 +301,6 @@ function fetchHardcodedReports(shouldRedirectToFirstReport) {
                 // Otherwise, grab the actual report object from the first index in the values array
                 return _.isEmpty(report) ? null : _.values(report)[0];
             }));
-
-            // Set the first report ID so that the logged in person can be redirected there
-            // if they are on the home page
-            if (shouldRedirectToFirstReport && (currentURL === '/' || currentURL === '/home')) {
-                const firstReportID = _.first(_.pluck(fetchedReports, 'reportID'));
-
-                if (firstReportID) {
-                    redirect(`/${firstReportID}`);
-                }
-            }
 
             _.each(fetchedReports, (report) => {
                 // Merge the data into Ion. Don't use set() here or multiSet() because then that would
@@ -327,14 +325,23 @@ function fetchAll(shouldRedirectToFirstReport = true, shouldFetchActions = false
         fetchHardcodedReports(shouldRedirectToFirstReport)
     ])
         .then((promiseResults) => {
-            if (!shouldFetchActions) {
-                return;
+            const reportIDs = _.flatten(promiseResults);
+
+            if (shouldRedirectToReport && (currentURL === ROUTES.ROOT || currentURL === ROUTES.HOME)) {
+                // Redirect to either the last viewed report ID or the first report ID from our report collection
+                if (lastViewedReportID) {
+                    redirect(ROUTES.getReportRoute(lastViewedReportID));
+                } else {
+                    redirect(ROUTES.getReportRoute(_.first(reportIDs)));
+                }
             }
 
-            _.each(_.flatten(promiseResults), (reportID) => {
-                console.debug(`[RECONNECT] Fetching report actions for report ${reportID}`);
-                fetchActions(reportID);
-            });
+            if (shouldFetchActions) {
+                _.each(reportIDs, (reportID) => {
+                    console.debug(`[RECONNECT] Fetching report actions for report ${reportID}`);
+                    fetchActions(reportID);
+                });
+            }
         });
 }
 
@@ -380,7 +387,7 @@ function fetchOrCreateChatReport(participants) {
             Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, newReport);
 
             // Redirect the logged in person to the new report
-            redirect(`/${reportID}`);
+            redirect(ROUTES.getReportRoute(reportID));
         });
 }
 
@@ -514,7 +521,7 @@ Ion.connect({
 });
 
 // When the app reconnects from being offline, fetch all of the reports and their actions
-API.onReconnect(() => {
+NetworkConnection.onReconnect(() => {
     fetchAll(false, true);
 });
 

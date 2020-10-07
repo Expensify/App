@@ -20,6 +20,10 @@ jobs:
         - name: Install gems
           run: bundle install
 
+        - uses: webfactory/ssh-agent@v0.4.0
+          with:
+              ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
         - name: Install node packages
           run: npm install
 
@@ -70,7 +74,7 @@ jobs:
                     channel: '#qa',
                     attachments: [{
                       color: "#39AA56",
-                      text: `${process.env.AS_WORKFLOW} version *${{ env.VERSION }}* was deployed, please start *regression testing*: https://git.io/JUb0r`,
+                      text: `*Expensify Chat :expensifychat:* ${process.env.AS_WORKFLOW} version *${{ env.VERSION }}* was deployed, please start *regression testing*: https://git.io/JUb0r`,
                     }]
                   }
           env:
