@@ -278,9 +278,6 @@ function fetchActions(reportID) {
 /**
  * Get all of our hardcoded reports
  *
- * @param {boolean} shouldRedirectToReport this is set to false when the network reconnect
- *     code runs
- *
  * @returns {Promise}
  */
 function fetchHardcodedReports() {
@@ -315,14 +312,14 @@ function fetchHardcodedReports() {
 /**
  * Get all of our reports
  *
- * @param {boolean} shouldRedirectToFirstReport this is set to false when the network reconnect
+ * @param {boolean} shouldRedirectToReport this is set to false when the network reconnect
  *     code runs
  * @param {boolean} shouldFetchActions whether or not the actions of the reports should also be fetched
  */
-function fetchAll(shouldRedirectToFirstReport = true, shouldFetchActions = false) {
+function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false) {
     Promise.all([
         fetchChatReports(),
-        fetchHardcodedReports(shouldRedirectToFirstReport)
+        fetchHardcodedReports()
     ])
         .then((promiseResults) => {
             const reportIDs = _.flatten(promiseResults);
