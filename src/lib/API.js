@@ -122,8 +122,9 @@ function createLogin(login, password) {
  * @param {string} exitTo
  */
 function setSuccessfulSignInData(data, exitTo) {
-    const redirectTo = exitTo ? Str.normalizeUrl(exitTo) : ROUTES.ROOT;
+    PushNotification.register(data.accountID);
 
+    const redirectTo = exitTo ? Str.normalizeUrl(exitTo) : ROUTES.ROOT;
     Ion.multiSet({
         [IONKEYS.SESSION]: _.pick(data, 'authToken', 'accountID', 'email'),
         [IONKEYS.APP_REDIRECT_TO]: redirectTo
@@ -172,7 +173,6 @@ function request(command, parameters, type = 'post') {
                     return createLogin(Str.generateDeviceLoginID(), Guid())
                         .then(() => {
                             setSuccessfulSignInData(response, parameters.exitTo);
-                            PushNotification.register(response.accountID);
                         });
                 }
             })
