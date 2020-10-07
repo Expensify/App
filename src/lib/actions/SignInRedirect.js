@@ -4,6 +4,7 @@ import ROUTES from '../../ROUTES';
 import {redirect} from './App';
 import * as Pusher from '../Pusher/pusher';
 import NetworkConnection from '../NetworkConnection';
+import UnreadIndicatorUpdater from '../UnreadIndicatorUpdater';
 
 let currentURL;
 Ion.connect({
