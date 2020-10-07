@@ -79,18 +79,9 @@ function getUnreadActionCount(report) {
         return report.reportActionList.length;
     }
 
-<<<<<<< HEAD
-    // Find the most recent sequence number from the report itself or the local store of max sequence numbers
-    const maxSequenceNumber = Math.max(reportMaxSequenceNumbers[report.reportID] || 0, report.reportActionList.length);
-
-    // There are unread items if the last one the user has read is less
-    // than the highest sequence number we have.
-    const unreadActionCount = maxSequenceNumber - usersLastReadActionID;
-=======
     // There are unread items if the last one the user has read is less
     // than the highest sequence number we have
     const unreadActionCount = report.reportActionList.length - usersLastReadActionID;
->>>>>>> origin
     return Math.max(0, unreadActionCount);
 }
 
@@ -105,21 +96,13 @@ function getUnreadActionCount(report) {
  * @returns {object}
  */
 function getSimplifiedReportObject(report) {
-    const maxSequenceNumber = Math.max(reportMaxSequenceNumbers[report.reportID] || 0, report.reportActionList.length);
-    const unreadActionCount = getUnreadActionCount(report);
     return {
         reportID: report.reportID,
         reportName: report.reportName,
         reportNameValuePairs: report.reportNameValuePairs,
-<<<<<<< HEAD
-        unreadActionCount,
-        pinnedReport: configReportIDs.includes(report.reportID),
-        maxSequenceNumber,
-=======
         unreadActionCount: getUnreadActionCount(report),
         pinnedReport: configReportIDs.includes(report.reportID),
         maxSequenceNumber: report.reportActionList.length,
->>>>>>> origin
     };
 }
 
