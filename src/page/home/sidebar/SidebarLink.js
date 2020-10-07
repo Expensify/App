@@ -2,12 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import Text from '../../../components/Text';
-import {withRouter} from '../../../lib/Router';
-import IONKEYS from '../../../IONKEYS';
 import styles from '../../../style/StyleSheet';
-import withIon from '../../../components/withIon';
 import PressableLink from '../../../components/PressableLink';
-import compose from '../../../lib/compose';
 import ROUTES from '../../../ROUTES';
 
 const propTypes = {
@@ -17,36 +13,26 @@ const propTypes = {
     // The name of the report to use as the text for this link
     reportName: PropTypes.string,
 
-    // These are from withRouter
-    // eslint-disable-next-line react/forbid-prop-types
-    match: PropTypes.object.isRequired,
-
     // Toggles the hamburger menu open and closed
     onLinkClick: PropTypes.func.isRequired,
 
-    /* Ion Props */
+    // Does the report for this link have unread comments?
+    isUnread: PropTypes.bool,
 
-    // The report object for this link
-    report: PropTypes.shape({
-        // Does the report for this link have unread comments?
-        isUnread: PropTypes.bool,
-    }),
+    // Whether this is the report currently in view
+    isActiveReport: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
-    report: {
-        isUnread: false,
-    },
+    isUnread: false,
     reportName: '',
 };
 
 const SidebarLink = (props) => {
-    const reportIDInUrl = parseInt(props.match.params.reportID, 10);
-    const isReportActive = reportIDInUrl === props.reportID;
-    const linkWrapperActiveStyle = isReportActive && styles.sidebarLinkWrapperActive;
-    const linkActiveStyle = isReportActive ? styles.sidebarLinkActive : styles.sidebarLink;
-    const textActiveStyle = isReportActive ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
-    const textActiveUnreadStyle = props.report.isUnread
+    const linkWrapperActiveStyle = props.isActiveReport && styles.sidebarLinkWrapperActive;
+    const linkActiveStyle = props.isActiveReport ? styles.sidebarLinkActive : styles.sidebarLink;
+    const textActiveStyle = props.isActiveReport ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
+    const textActiveUnreadStyle = props.isUnread
         ? [textActiveStyle, styles.sidebarLinkTextUnread] : [textActiveStyle];
 
     return (
@@ -70,11 +56,4 @@ SidebarLink.displayName = 'SidebarLink';
 SidebarLink.propTypes = propTypes;
 SidebarLink.defaultProps = defaultProps;
 
-export default compose(
-    withRouter,
-    withIon({
-        report: {
-            key: ({reportID}) => `${IONKEYS.COLLECTION.REPORT}${reportID}`,
-        },
-    }),
-)(SidebarLink);
+export default SidebarLink;
