@@ -48,7 +48,7 @@ export default class App extends React.Component {
         // Fetch all the reports
         fetchAllReports();
 
-        UnreadIndicatorUpdater.init();
+        UnreadIndicatorUpdater.listenForReportChanges();
 
         Dimensions.addEventListener('change', this.toggleHamburgerBasedOnDimensions);
 
@@ -59,7 +59,6 @@ export default class App extends React.Component {
 
     componentWillUnmount() {
         Dimensions.removeEventListener('change', this.toggleHamburgerBasedOnDimensions);
-        UnreadIndicatorUpdater.destroy();
     }
 
     /**

@@ -21,7 +21,7 @@ let connectionID;
  * Bind to the report collection key and update
  * the title and unread count indicators
  */
-function init() {
+function listenForReportChanges() {
     connectionID = Ion.connect({
         key: IONKEYS.COLLECTION.REPORT,
         callback: (report) => {
@@ -38,11 +38,15 @@ function init() {
 /**
  * Remove the subscription callback when we no longer need it.
  */
-function destroy() {
+function stopListeningForReportChanges() {
+    if (!connectionID) {
+        return;
+    }
+
     Ion.disconnect(connectionID);
 }
 
 export default {
-    init,
-    destroy,
+    listenForReportChanges,
+    stopListeningForReportChanges,
 };
