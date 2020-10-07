@@ -211,9 +211,11 @@ function multiSet(data) {
 
 /**
  * Clear out all the data in the store
+ *
+ * @returns {Promise<void>}
  */
 function clear() {
-    AsyncStorage.clear();
+    return AsyncStorage.clear();
 }
 
 /**
