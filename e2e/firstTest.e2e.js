@@ -1,3 +1,5 @@
+/* eslint-env detox/detox */
+
 jest.setTimeout(120000 * 10);
 
 describe('Example', () => {

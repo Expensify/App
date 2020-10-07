@@ -7,7 +7,6 @@ import React from 'react';
 
 // Note: `react-test-renderer` renderer must be required after react-native.
 import renderer from 'react-test-renderer';
-import {render, fireEvent} from '@testing-library/react-native';
 import {MemoryRouter} from 'react-router-dom';
 
 
