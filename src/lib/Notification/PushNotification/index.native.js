@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import {AppState} from 'react-native';
 import {UrbanAirship, EventType} from 'urbanairship-react-native';
 import NotificationType from './NotificationType';
@@ -86,20 +85,28 @@ function setupEventListeners() {
 }
 
 /**
- * Bind an action (from src/lib/actions) to a push notification of a given type.
+ * Bind a callback to a push notification of a given type.
  * See https://github.com/Expensify/Web-Expensify/blob/master/lib/MobilePushNotifications.php for the various
  * types of push notifications sent, along with the data that they provide.
  *
  * @param {string} notificationType
- * @param {Function} action
- * @param {string?} triggerEvent - The event that should trigger this action. Should be one of UrbanAirship.EventType
+ * @param {Function} callback
+ * @param {string?} triggerEvent - The event that should trigger this callback. Should be one of UrbanAirship.EventType
  */
-function bind(notificationType, action, triggerEvent = EventType.PushReceived) {
-    const event = _.contains(_.values(EventType), triggerEvent) ? triggerEvent : EventType.PushReceived;
-    notificationEventActionMap[event] = {
-        ...notificationEventActionMap[event],
-        [notificationType]: action,
+function bind(notificationType, callback, triggerEvent) {
+    notificationEventActionMap[triggerEvent] = {
+        ...notificationEventActionMap[triggerEvent],
+        [notificationType]: callback,
     };
+}
+
+
+function onReceived(notificationType, callback) {
+    bind(notificationType, callback, EventType.PushReceived);
+}
+
+function onSelected(notificationType, callback) {
+    bind(notificationType, callback, EventType.NotificationResponse);
 }
 
 // Setup the listeners when this module first loads
@@ -108,7 +115,7 @@ setupEventListeners();
 export default {
     register,
     deregister,
-    bind,
-    EventType,
+    onReceived,
+    onSelected,
     NotificationType,
 };
