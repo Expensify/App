@@ -152,7 +152,6 @@ function request(command, parameters, type = 'post') {
                             PushNotification.register(response.accountID);
                         });
                 }
-                PushNotification.register(response.accountID);
             })
             .catch(error => Ion.merge(IONKEYS.SESSION, {error: error.message}));
     }
