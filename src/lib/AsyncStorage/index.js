@@ -1,5 +1,10 @@
 /**
- * Adapted from https://github.com/react-native-community/async-storage/blob/176812ec486323fe455cfbd8d008f635ad27f7e6/src/AsyncStorage.js#L1-L158
+ * This lib has been adapted from github.com/react-native-community/async-storage/blob/master/src/AsyncStorage.js
+ *
+ * Until the next version of async-storage web will only support localStorage which means
+ * our storage capacity is severely limited in the browser. This lib mimicks the API of
+ * AsyncStorage and replaces all localStorage with localForage (an IndexedDB wrapper which
+ * increases the available space significantly).
  */
 
 import merge from 'deep-assign';
