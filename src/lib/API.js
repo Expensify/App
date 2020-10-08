@@ -21,7 +21,15 @@ let reauthenticating = false;
 let authToken;
 Ion.connect({
     key: IONKEYS.SESSION,
-    callback: val => authToken = val ? val.authToken : null,
+    callback: (session) => {
+        if (!session) {
+            authToken = null;
+            return;
+        }
+        if (session.authToken) {
+            authToken = session.authToken;
+        }
+    },
 });
 
 // We subscribe to changes to the online/offline status of the network to determine when we should fire off API calls
