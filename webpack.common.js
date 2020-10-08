@@ -86,6 +86,6 @@ module.exports = {
         // without this, web will try to use native implementations and break in not very obvious ways.
         // This is also why we have to use .website.js for our own web-specific files...
         // Because desktop also relies on "web-specific" module implementations
-        extensions: ['.web.js', '.js', (platform === 'web') ? '.website.js' : '.desktop.js'],
+        extensions: ['.web.js', '.js', '.jsx', (platform === 'web') ? '.website.js' : '.desktop.js'],
     },
 };
