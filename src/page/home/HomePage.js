@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {
     StatusBar,
     View,
@@ -17,11 +18,22 @@ import {fetch as fetchPersonalDetails} from '../../lib/actions/PersonalDetails';
 import * as Pusher from '../../lib/Pusher/pusher';
 import ROUTES from '../../ROUTES';
 import NetworkConnection from '../../lib/NetworkConnection';
+import IONKEYS from '../../IONKEYS';
+import withIon from '../../components/withIon';
 
 const windowSize = Dimensions.get('window');
 const widthBreakPoint = 1000;
 
-export default class App extends React.Component {
+// There are times where we need to be able to toggle the sidebar view from elsewhere in the application,
+// so this prop mirrors the internal state variable hamburgerShown, but can be modified via Ion
+const propTypes = {
+    sidebarShown: PropTypes.bool,
+};
+const defaultProps = {
+    sidebarShown: 'visible',
+};
+
+class App extends React.Component {
     constructor(props) {
         super(props);
 
@@ -52,6 +64,17 @@ export default class App extends React.Component {
         StatusBar.setBarStyle('dark-content', true);
         StatusBar.setBackgroundColor('transparent', true);
         StatusBar.setTranslucent(true);
+    }
+
+    componentDidUpdate(prevProps) {
+        if (this.props.sidebarShown === prevProps.sidebarShown
+            || this.props.sidebarShown === this.state.hamburgerShown) {
+            // Nothing has changed or needs to change
+            return;
+        }
+
+        // Visibility of the sidebar has been externally modified via Ion, toggle visibility
+        this.toggleHamburger();
     }
 
     componentWillUnmount() {
@@ -189,3 +212,14 @@ export default class App extends React.Component {
         );
     }
 }
+
+App.propTypes = propTypes;
+App.defaultProps = defaultProps;
+
+export default withIon(
+    {
+        sidebarShown: {
+            key: IONKEYS.IS_SIDEBAR_SHOWN
+        },
+    },
+)(App);

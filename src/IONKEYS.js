@@ -12,6 +12,7 @@ export default {
     NETWORK: 'network',
     PERSONAL_DETAILS: 'personalDetails',
     SESSION: 'session',
+    IS_SIDEBAR_SHOWN: 'isSidebarShown',
 
     // Collection Keys
     COLLECTION: {

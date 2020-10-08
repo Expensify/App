@@ -16,6 +16,7 @@ import * as ActiveClientManager from '../ActiveClientManager';
 import Visibility from '../Visibility';
 import ROUTES from '../../ROUTES';
 import NetworkConnection from '../NetworkConnection';
+import {hide as hideSidebar} from './Sidebar';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -249,6 +250,7 @@ function subscribeToReportCommentEvents() {
     // Open correct report when push notification is clicked
     PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, ({reportID}) => {
         redirect(ROUTES.getReportRoute(reportID));
+        hideSidebar();
     });
 }
 
