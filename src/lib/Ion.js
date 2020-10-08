@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from './AsyncStorage';
 import addStorageEventHandler from './addStorageEventHandler';
 import Str from './Str';
 import IONKEYS from '../IONKEYS';
