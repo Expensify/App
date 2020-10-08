@@ -5,32 +5,27 @@
 import merge from 'deep-assign';
 import localForage from 'localforage';
 
-const mergeLocalStorageItem = (key, value) => {
-    return localForage.getItem(key)
+const mergeLocalStorageItem = (key, value) => (
+    localForage.getItem(key)
         .then((oldValue) => {
             const oldObject = JSON.parse(oldValue);
             const newObject = JSON.parse(value);
             const nextValue = JSON.stringify(merge({}, oldObject, newObject));
             return localForage.setItem(key, nextValue);
-        });
-};
+        })
+);
 
-const createPromiseAll = (promises, callback, processResult) => {
-    return Promise.all(promises).then(
-        result => {
+const createPromiseAll = (promises, processResult) => (
+    Promise.all(promises).then(
+        (result) => {
             const value = processResult ? processResult(result) : null;
-            callback && callback(null, value);
             return Promise.resolve(value);
         },
-        errors => {
-            callback && callback(errors);
-            return Promise.reject(errors);
-        }
-    );
-};
+        errors => Promise.reject(errors)
+    )
+);
 
 export default class AsyncStorage {
-
     /**
      * Fetches `key` value
      *
@@ -41,13 +36,13 @@ export default class AsyncStorage {
         return localForage.getItem(key);
     }
 
-  /**
-   * Sets `value` for `key`.
-   *
-   * @param {String} key
-   * @param {String} value
-   * @returns {Promise}
-   */
+    /**
+     * Sets `value` for `key`.
+     *
+     * @param {String} key
+     * @param {String} value
+     * @returns {Promise}
+     */
     static setItem(key, value) {
         return localForage.setItem(key, value);
     }
@@ -108,19 +103,19 @@ export default class AsyncStorage {
     static multiGet(keys) {
         const promises = keys.map(key => AsyncStorage.getItem(key));
         const processResult = result => result.map((value, i) => [keys[i], value]);
-        return createPromiseAll(promises, callback, processResult);
+        return createPromiseAll(promises, processResult);
     }
 
     /**
      * Takes an array of key-value array pairs.
      *   multiSet([['k1', 'val1'], ['k2', 'val2']])
      *
-     * @param {Array}
+     * @param {Array} keyValuePairs
      * @returns {Promise}
      */
     static multiSet(keyValuePairs) {
         const promises = keyValuePairs.map(item => AsyncStorage.setItem(item[0], item[1]));
-        return createPromiseAll(promises, callback);
+        return createPromiseAll(promises);
     }
 
     /**
@@ -131,7 +126,7 @@ export default class AsyncStorage {
      */
     static multiRemove(keys) {
         const promises = keys.map(key => AsyncStorage.removeItem(key));
-        return createPromiseAll(promises, callback);
+        return createPromiseAll(promises);
     }
 
     /**
@@ -145,6 +140,6 @@ export default class AsyncStorage {
      */
     static multiMerge(keyValuePairs) {
         const promises = keyValuePairs.map(item => AsyncStorage.mergeItem(item[0], item[1]));
-        return createPromiseAll(promises, callback);
+        return createPromiseAll(promises);
     }
 }
