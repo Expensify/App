@@ -123,7 +123,7 @@ function createLogin(login, password) {
 
 
 /**
- * Sets API data in the store when we make a successful "Authenticate"/"CreateLogin" request
+ * Sets API data in the store when we make a subsequent API requests
  *
  * @param {object} data
  * @param {string} exitTo
