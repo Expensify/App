@@ -6,6 +6,7 @@ export default {
     APP_REDIRECT_TO: 'appRedirectTo',
     CURRENT_URL: 'currentURL',
     CURRENTLY_VIEWED_REPORTID: 'currentlyViewedReportID',
+    RECENT_REPORT_IDS: 'recentReportIDs',
     CREDENTIALS: 'credentials',
     FIRST_REPORT_ID: 'firstReportID',
     MY_PERSONAL_DETAILS: 'myPersonalDetails',
