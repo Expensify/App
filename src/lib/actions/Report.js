@@ -35,10 +35,42 @@ Ion.connect({
     callback: val => currentURL = val,
 });
 
+let recentReportIDs;
+Ion.connect({
+    key: IONKEYS.RECENT_REPORT_IDS,
+    callback: val => recentReportIDs = val || [],
+});
+
+/**
+ * Updates our list of recent reportIDs. We are tracking these
+ * here so we can evict less recent reportActions sets from the
+ * storage cache.
+ *
+ * @param {Number|String} reportID
+ * @param {Boolean} isCurrentlyInView
+ */
+function updateRecentReportIDList(reportID, isCurrentlyInView = false) {
+    // Remove this report if it exists in the list already
+    recentReportIDs = _.without(recentReportIDs, Number(reportID));
+
+    // If this is the current reportID in view then put it onto the front of the list
+    // otherwise we'll put this at the 1 index
+    if (isCurrentlyInView) {
+        recentReportIDs.unshift(Number(reportID));
+    } else {
+        recentReportIDs.splice(1, 0, Number(reportID));
+    }
+
+    Ion.set(IONKEYS.RECENT_REPORT_IDS, recentReportIDs);
+}
+
 let lastViewedReportID;
 Ion.connect({
     key: IONKEYS.CURRENTLY_VIEWED_REPORTID,
-    callback: val => lastViewedReportID = val,
+    callback: (val) => {
+        lastViewedReportID = val;
+        updateRecentReportIDList(lastViewedReportID, true);
+    },
 });
 
 let myPersonalDetails;
@@ -272,6 +304,7 @@ function fetchActions(reportID) {
                 .value();
             Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, indexedData);
             Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {maxSequenceNumber});
+            updateRecentReportIDList(reportID);
         });
 }
 
@@ -530,4 +563,5 @@ export {
     updateLastReadActionID,
     subscribeToReportCommentEvents,
     saveReportComment,
+    updateRecentReportIDList,
 };

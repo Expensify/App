@@ -173,6 +173,38 @@ function disconnect(connectionID) {
 }
 
 /**
+ * If we fail to set or merge we must handle this by
+ * evicting some data from Ion and then retrying to do
+ * whatever it is we attempted to do.
+ *
+ * @param {Error} error
+ * @param {Function} callback
+ * @param  {...any} args
+ * @return {Promise}
+ */
+function evictStorageAndRetry(error, callback, ...args) {
+    let updatedReportIDs;
+
+    // If we get an error while setting an item we'll need to remove
+    // the oldest set of report actions then try to set the item again
+    return get(IONKEYS.RECENT_REPORT_IDS)
+        .then((recentReportIDs) => {
+            updatedReportIDs = [...recentReportIDs];
+            if (updatedReportIDs.length === 0) {
+                console.debug('[Ion] Max storage reached. But there is nothing left to evict from storage.');
+                throw error;
+            }
+
+            console.debug('[Ion] Max storage reached. Evicting least recent reportActions set and retrying.');
+            return AsyncStorage.removeItem(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${updatedReportIDs.pop()}`);
+        })
+
+        // eslint-disable-next-line no-use-before-define
+        .then(() => set(IONKEYS.RECENT_REPORT_IDS, updatedReportIDs))
+        .then(() => callback(...args));
+}
+
+/**
  * Write a value to our store with the given key
  *
  * @param {string} key
@@ -184,7 +216,8 @@ function set(key, val) {
     return AsyncStorage.setItem(key, JSON.stringify(val))
         .then(() => {
             keyChanged(key, val);
-        });
+        })
+        .catch(error => evictStorageAndRetry(error, set, key, val));
 }
 
 /**
@@ -206,7 +239,8 @@ function multiSet(data) {
     return AsyncStorage.multiSet(keyValuePairs)
         .then(() => {
             _.each(data, (val, key) => keyChanged(key, val));
-        });
+        })
+        .catch(error => evictStorageAndRetry(error, multiSet, data));
 }
 
 /**
@@ -238,7 +272,8 @@ function merge(key, val) {
             })
             .then(() => {
                 keyChanged(key, newArray);
-            });
+            })
+            .catch(error => evictStorageAndRetry(error, merge, key, val));
         return;
     }
 
@@ -248,7 +283,8 @@ function merge(key, val) {
             .then(() => get(key))
             .then((newObject) => {
                 keyChanged(key, newObject);
-            });
+            })
+            .catch(error => evictStorageAndRetry(error, merge, key, val));
         return;
     }
 
@@ -256,7 +292,8 @@ function merge(key, val) {
     AsyncStorage.setItem(key, JSON.stringify(val))
         .then(() => {
             keyChanged(key, val);
-        });
+        })
+        .catch(error => evictStorageAndRetry(error, merge, key, val));
 }
 
 /**
