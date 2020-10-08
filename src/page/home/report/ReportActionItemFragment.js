@@ -10,6 +10,7 @@ import styles, {webViewStyles, colors} from '../../../style/StyleSheet';
 import Text from '../../../components/Text';
 import AnchorForCommentsOnly from '../../../components/AnchorForCommentsOnly';
 import {getAuthToken} from '../../../lib/API';
+import InlineCodeBlock from '../../../components/InlineCodeBlock';
 
 const propTypes = {
     // The message fragment needing to be displayed
@@ -35,13 +36,31 @@ class ReportActionItemFragment extends React.PureComponent {
             a: (htmlAttribs, children, convertedCSSStyles, passProps) => (
                 <AnchorForCommentsOnly
                     href={htmlAttribs.href}
-                    target={htmlAttribs.target}
-                    rel={htmlAttribs.rel}
+
+                    // Unless otherwise specified open all links in
+                    // a new window. On Desktop this means that we will
+                    // skip the default Save As... download prompt
+                    // and defer to whatever browser the user has.
+                    target={htmlAttribs.target || '_blank'}
+                    rel={htmlAttribs.rel || 'noopener noreferrer'}
                     style={passProps.style}
                     key={passProps.key}
                 >
                     {children}
                 </AnchorForCommentsOnly>
+            ),
+            pre: (htmlAttribs, children, convertedCSSStyles, passProps) => (
+                <View
+                    key={passProps.key}
+                    style={webViewStyles.preTagStyle}
+                >
+                    {children}
+                </View>
+            ),
+            code: (htmlAttribs, children, convertedCSSStyles, passProps) => (
+                <InlineCodeBlock key={passProps.key}>
+                    {children}
+                </InlineCodeBlock>
             ),
         };
     }
