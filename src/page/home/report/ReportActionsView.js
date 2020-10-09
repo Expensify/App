@@ -95,8 +95,7 @@ class ReportActionsView extends React.Component {
             .sortBy('sequenceNumber')
             .filter(action => action.actionName === 'ADDCOMMENT')
             .map((item, index) => ({action: item, index}))
-            .value()
-            .reverse();
+            .value();
     }
 
     /**
@@ -149,7 +148,8 @@ class ReportActionsView extends React.Component {
      */
     scrollToListBottom() {
         if (this.actionListElement) {
-            this.actionListElement.scrollToIndex({animated: false, index: 0});
+            const lastIndex = lodashGet(this.actionListElement, 'props.data.length', 1) - 1;
+            this.actionListElement.scrollToIndex({animated: false, index: lastIndex});
         }
         this.recordMaxAction();
     }
@@ -208,6 +208,7 @@ class ReportActionsView extends React.Component {
                 contentContainerStyle={[styles.chatContentScrollView]}
                 keyExtractor={item => `${item.action.sequenceNumber}`}
                 initialRowHeight={32}
+                initialScrollIndex={this.sortedReportActions.length ? this.sortedReportActions.length - 1 : 0}
             />
         );
     }
