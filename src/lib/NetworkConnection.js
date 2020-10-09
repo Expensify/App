@@ -41,6 +41,21 @@ function setOfflineStatus(isCurrentlyOffline) {
 }
 
 /**
+ * @param {String} state
+ */
+function setAppState(state) {
+    console.debug('[AppState] state changed:', state);
+    const nextStateIsActive = state === 'active';
+
+    // We are moving from not active to active and we are online so fire callbacks
+    if (!isOffline && nextStateIsActive && !isActive) {
+        triggerReconnectionCallbacks();
+    }
+
+    isActive = nextStateIsActive;
+}
+
+/**
  * Set up the event listener for NetInfo to tell whether the user has
  * internet connectivity or not. This is more reliable than the Pusher
  * `disconnected` event which takes about 10-15 seconds to emit.
@@ -57,17 +72,7 @@ function listenForReconnect() {
     // for a few minutes, but eventually disconnects causing a delay when the app
     // returns from the background. So, if we are returning from the background
     // and we are online we should trigger our reconnection callbacks.
-    AppState.addEventListener('change', (state) => {
-        console.debug('[AppState] state changed:', state);
-        const nextStateIsActive = state === 'active';
-
-        // We are moving from not active to active and we are online so fire callbacks
-        if (!isOffline && nextStateIsActive && !isActive) {
-            triggerReconnectionCallbacks();
-        }
-
-        isActive = nextStateIsActive;
-    });
+    AppState.addEventListener('change', setAppState);
 
     // When a device is put to sleep, NetInfo is not always able to detect
     // when connectivity has been lost. As a failsafe we will capture the time
@@ -91,7 +96,7 @@ function stopListeningForReconnect() {
     if (unsubscribeFromNetInfo) {
         unsubscribeFromNetInfo();
     }
-    AppState.removeEventListener('change', () => {});
+    AppState.removeEventListener('change', setAppState);
 }
 
 /**

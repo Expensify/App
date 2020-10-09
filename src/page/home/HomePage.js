@@ -157,7 +157,7 @@ export default class App extends React.Component {
                                 getSafeAreaPadding(insets)
                             ]}
                         >
-                            <Route path={ROUTES.REPORT}>
+                            <Route path={[ROUTES.REPORT, ROUTES.HOME]}>
                                 <Animated.View style={[
                                     hamburgerStyle,
                                     visibility,
