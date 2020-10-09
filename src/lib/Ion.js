@@ -173,6 +173,17 @@ function disconnect(connectionID) {
 }
 
 /**
+ * Remove a key from Ion and update it's subscribers
+ *
+ * @param {String} key
+ * @return {Promise}
+ */
+function remove(key) {
+    return AsyncStorage.removeItem(key)
+        .then(() => keyChanged(key, null));
+}
+
+/**
  * If we fail to set or merge we must handle this by
  * evicting some data from Ion and then retrying to do
  * whatever it is we attempted to do.
@@ -183,25 +194,48 @@ function disconnect(connectionID) {
  * @return {Promise}
  */
 function evictStorageAndRetry(error, callback, ...args) {
-    let updatedReportIDs;
+    let reportActionsKeys;
 
     // If we get an error while setting an item we'll need to remove
     // the oldest set of report actions then try to set the item again
-    return get(IONKEYS.RECENT_REPORT_IDS)
-        .then((recentReportIDs) => {
-            updatedReportIDs = [...recentReportIDs];
-            if (updatedReportIDs.length === 0) {
-                console.debug('[Ion] Max storage reached. But there is nothing left to evict from storage.');
+    return AsyncStorage.getAllKeys()
+        .then((keys) => {
+            reportActionsKeys = _.filter(keys, key => Str.startsWith(key, IONKEYS.COLLECTION.REPORT_ACTIONS));
+            return Promise.all(_.map(reportActionsKeys, key => AsyncStorage.getItem(key)));
+        })
+        .then((rawData) => {
+            const sortedKeys = [];
+
+            _.each(rawData, (data, index) => {
+                const keyEntry = {key: reportActionsKeys[index], size: new Blob([data]).size};
+                if (sortedKeys.length === 0) {
+                    sortedKeys.push(keyEntry);
+                } else {
+                    sortedKeys.splice(_.sortedIndex(sortedKeys, keyEntry, 'size'), 0, keyEntry);
+                }
+            });
+
+            // Now that we have the keys sorted from smallest to largest we need to find the first one
+            // that is not explicitly being subscribed to by Ion and then delete it.
+            const keyToRemove = _.find(sortedKeys.reverse(), ({key}) => (
+                !_.any(callbackToStateMapping, mapping => mapping.key === key)
+            ));
+
+            // We have no keys to remove so just throw the original error since something is very wrong
+            if (!keyToRemove) {
+                console.error('[Ion] Max storage reached but found no acceptable reportActions set to remove.');
                 throw error;
             }
 
+            // Remove the largest set of reportActions that is not currently in view
             console.debug('[Ion] Max storage reached. Evicting least recent reportActions set and retrying.');
-            return AsyncStorage.removeItem(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${updatedReportIDs.pop()}`);
+            return remove(keyToRemove.key);
         })
 
         // eslint-disable-next-line no-use-before-define
-        .then(() => set(IONKEYS.RECENT_REPORT_IDS, updatedReportIDs))
-        .then(() => callback(...args));
+        .then(() => {
+            callback(...args);
+        });
 }
 
 /**
