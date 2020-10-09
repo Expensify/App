@@ -8,8 +8,8 @@ const serve = require('electron-serve');
 const contextMenu = require('electron-context-menu');
 const {autoUpdater} = require('electron-updater');
 const log = require('electron-log');
-const ELECTRON_EVENTS = require('./desktop/ELECTRON_EVENTS');
-const checkForUpdates = require('./src/lib/checkForUpdates/index.desktop');
+const ELECTRON_EVENTS = require('./ELECTRON_EVENTS');
+const checkForUpdates = require('../src/lib/checkForUpdates/index.desktop');
 
 /**
  * Electron main process that handles wrapping the web application.
@@ -35,7 +35,7 @@ autoUpdater.logger.transports.file.level = 'info';
 Object.assign(console, log.functions);
 
 const mainWindow = (() => {
-    const loadURL = serve({directory: 'dist'});
+    const loadURL = serve({directory: '../dist'});
 
     return app.whenReady()
         .then(() => {
