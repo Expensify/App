@@ -196,9 +196,9 @@ function remove(key) {
 function evictStorageAndRetry(error, callback, ...args) {
     let reportActionsKeys;
 
-    // Start by getting all existing keys, finding the ones that are report actions, and getting the raw
-    // stringified JSON for them. We are targeting the reportActions since they are the heaviest things
-    // we are storing in Ion.
+    // Start by getting all existing keys, locating the reportActions, and getting the raw
+    // stringified JSON for each one. We are targeting the reportActions since they are the
+    // heaviest things we are storing in Ion
     return AsyncStorage.getAllKeys()
         .then((keys) => {
             reportActionsKeys = _.filter(keys, key => Str.startsWith(key, IONKEYS.COLLECTION.REPORT_ACTIONS));
