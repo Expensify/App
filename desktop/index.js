@@ -8,6 +8,7 @@ const serve = require('electron-serve');
 const contextMenu = require('electron-context-menu');
 const {autoUpdater} = require('electron-updater');
 const log = require('electron-log');
+const ELECTRON_EVENTS = require('./desktop/ELECTRON_EVENTS');
 
 const checkForUpdates = require('../src/lib/checkForUpdates.js').default;
 
@@ -75,10 +76,16 @@ const mainWindow = (() => {
             app.on('before-quit', () => quitting = true);
             app.on('activate', () => browserWindow.show());
 
-            ipcMain.on('request-visibility', (event) => {
+            ipcMain.on(ELECTRON_EVENTS.REQUEST_VISIBILITY, (event) => {
                 // This is how synchronous messages work in Electron
                 // eslint-disable-next-line no-param-reassign
                 event.returnValue = browserWindow.isFocused();
+            });
+
+            // Listen to badge updater event emitted by the render process
+            // and update the app badge count (MacOS only)
+            ipcMain.on(ELECTRON_EVENTS.REQUEST_UPDATE_BADGE_COUNT, (event, totalCount) => {
+                app.setBadgeCount(totalCount);
             });
 
             return browserWindow;
