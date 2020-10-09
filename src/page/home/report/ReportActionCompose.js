@@ -36,7 +36,9 @@ class ReportActionCompose extends React.Component {
         this.triggerSubmitShortcut = this.triggerSubmitShortcut.bind(this);
         this.submitForm = this.submitForm.bind(this);
         this.showAttachmentPicker = this.showAttachmentPicker.bind(this);
+        this.setIsFocused = this.setIsFocused.bind(this);
         this.comment = '';
+        this.state = {isFocused: false};
     }
 
     componentDidUpdate(prevProps) {
@@ -45,6 +47,15 @@ class ReportActionCompose extends React.Component {
         if (this.props.comment && prevProps.comment === '' && prevProps.comment !== this.props.comment) {
             this.comment = this.props.comment;
         }
+    }
+
+    /**
+     * Updates the Highlight state of the composer
+     *
+     * @param {boolean} shouldHighlight
+     */
+    setIsFocused(shouldHighlight) {
+        this.setState({isFocused: shouldHighlight});
     }
 
     /**
@@ -137,7 +148,12 @@ class ReportActionCompose extends React.Component {
     render() {
         return (
             <View style={[styles.chatItemCompose]}>
-                <View style={[styles.chatItemComposeBox, styles.flexRow]}>
+                <View style={[
+                    this.state.isFocused ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
+                    styles.chatItemComposeBox,
+                    styles.flexRow
+                ]}
+                >
                     <TouchableOpacity
                         onPress={this.showAttachmentPicker}
                         style={[styles.chatItemAttachButton]}
@@ -160,6 +176,8 @@ class ReportActionCompose extends React.Component {
                         style={[styles.textInput, styles.textInputCompose, styles.flex4]}
                         defaultValue={this.props.comment || ''}
                         maxLines={16} // This is the same that slack has
+                        onFocus={() => this.setIsFocused(true)}
+                        onBlur={() => this.setIsFocused(false)}
                     />
                     <TouchableOpacity
                         style={[styles.chatItemSubmitButton, styles.buttonSuccess]}

@@ -1,10 +1,11 @@
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import Ion from '../Ion';
-import {onReconnect, queueRequest} from '../API';
+import * as API from '../API';
 import IONKEYS from '../../IONKEYS';
 import md5 from '../md5';
 import CONST from '../../CONST';
+import NetworkConnection from '../NetworkConnection';
 
 let currentUserEmail;
 Ion.connect({
@@ -86,7 +87,7 @@ function formatPersonalDetails(personalDetailsList) {
  * Get the timezone of the logged in user
  */
 function fetchTimezone() {
-    queueRequest('Get', {
+    API.get({
         returnValueList: 'nameValuePairs',
         name: 'timeZone',
     })
@@ -103,7 +104,7 @@ function fetchTimezone() {
  * Get the personal details for our organization
  */
 function fetch() {
-    queueRequest('Get', {
+    API.get({
         returnValueList: 'personalDetailsList',
     })
         .then((data) => {
@@ -130,7 +131,7 @@ function fetch() {
  * @param {String} emailList
  */
 function getForEmails(emailList) {
-    queueRequest('PersonalDetails_GetForEmails', {emailList})
+    API.getPersonalDetails({emailList})
         .then((data) => {
             const details = _.pick(data, emailList.split(','));
             Ion.merge(IONKEYS.PERSONAL_DETAILS, formatPersonalDetails(details));
@@ -138,7 +139,7 @@ function getForEmails(emailList) {
 }
 
 // When the app reconnects from being offline, fetch all of the personal details
-onReconnect(fetch);
+NetworkConnection.onReconnect(fetch);
 
 export {
     fetch,

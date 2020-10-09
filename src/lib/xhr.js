@@ -1,25 +1,8 @@
 import _ from 'underscore';
-import NetInfo from '@react-native-community/netinfo';
 import Ion from './Ion';
 import CONFIG from '../CONFIG';
 import IONKEYS from '../IONKEYS';
-
-/**
- * Called when the offline status of the app changes and if the network is "reconnecting" (going from offline to online)
- * then all of the reconnection callbacks are triggered
- *
- * @param {boolean} isCurrentlyOffline
- */
-function setOfflineStatus(isCurrentlyOffline) {
-    Ion.merge(IONKEYS.NETWORK, {isOffline: isCurrentlyOffline});
-}
-
-// Subscribe to the state change event via NetInfo so we can update
-// whether a user has internet connectivity or not. This is more reliable
-// than the Pusher `disconnected` event which takes about 10-15 seconds to emit
-NetInfo.addEventListener((state) => {
-    setOfflineStatus(!state.isConnected);
-});
+import NetworkConnection from './NetworkConnection';
 
 /**
  * Send an HTTP request, and attempt to resolve the json response.
@@ -40,7 +23,10 @@ function processHTTPRequest(url, method = 'get', body = null) {
         // This will catch any HTTP network errors (like 404s and such), not to be confused with jsonCode which this
         // does NOT catch
         .catch(() => {
-            setOfflineStatus(true);
+            NetworkConnection.setOfflineStatus(true);
+
+            // Set an error state and signify we are done loading
+            Ion.merge(IONKEYS.SESSION, {loading: false, error: 'Cannot connect to server'});
 
             // Throw a new error to prevent any other `then()` in the promise chain from being triggered (until another
             // catch() happens
@@ -81,5 +67,4 @@ function download(relativePath) {
 export {
     download,
     xhr,
-    setOfflineStatus,
 };

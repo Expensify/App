@@ -9,7 +9,7 @@ import ChatSwitcherList from './ChatSwitcherList';
 import ChatSwitcherSearchForm from './ChatSwitcherSearchForm';
 import {fetchOrCreateChatReport} from '../../../lib/actions/Report';
 import {redirect} from '../../../lib/actions/App';
-import CONFIG from '../../../CONFIG';
+import ROUTES from '../../../ROUTES';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -109,7 +109,7 @@ class ChatSwitcherView extends React.Component {
      * @param {string} option.reportID
      */
     selectReport(option) {
-        redirect(option.reportID);
+        redirect(ROUTES.getReportRoute(option.reportID));
         this.reset();
     }
 
@@ -246,11 +246,10 @@ class ChatSwitcherView extends React.Component {
             .values()
             .filter(report => report.reportNameValuePairs && report.reportNameValuePairs.type === 'expense')
             .map(report => ({
-                text: '',
+                text: report.reportName,
                 alternateText: report.reportName,
                 searchText: report.reportName,
                 reportID: report.reportID,
-                icon: CONFIG.FAVICON.DEFAULT,
                 callback: this.selectReport,
             }))
             .value();
