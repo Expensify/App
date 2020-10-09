@@ -64,7 +64,7 @@ function download(relativePath) {
     return processHTTPRequest(`${siteRoot}${strippedRelativePath}`);
 }
 
-export {
+export default {
     download,
     xhr,
 };

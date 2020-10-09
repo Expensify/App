@@ -8,13 +8,16 @@ const APP_VERSION = require('../package.json').version;
 class CustomVersionFilePlugin {
     apply(compiler) {
         compiler.hooks.done.tap(this.constructor.name, () => new Promise((resolve, reject) => {
-            fs.writeFile(path.join(__dirname, '/../dist/version.txt'), APP_VERSION, 'utf8', (err) => {
-                if (err) {
-                    reject(err);
-                    return;
-                }
-                resolve();
-            });
+            fs.writeFile(path.join(__dirname, '/../dist/version.json'),
+                JSON.stringify({version: APP_VERSION}),
+                'utf8',
+                (err) => {
+                    if (err) {
+                        reject(err);
+                        return;
+                    }
+                    resolve();
+                });
         }));
     }
 }

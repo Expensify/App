@@ -2,7 +2,7 @@ import {AppRegistry} from 'react-native';
 import App from '../src/App';
 import {name as appName} from '../app.json';
 import checkForUpdates from '../src/lib/checkForUpdates';
-import {download} from '../src/lib/Network';
+import HttpUtils from '../src/lib/HttpUtils';
 
 AppRegistry.registerComponent('App', () => App);
 AppRegistry.registerComponent(appName, () => App);
@@ -18,9 +18,8 @@ AppRegistry.runApplication('App', {
  * @param {String} currentVersion
  */
 function webUpdate(currentVersion) {
-    download('version.txt')
-        .then(response => response.text())
-        .then((newVersion) => {
+    HttpUtils.download('version.json')
+        .then(({version: newVersion}) => {
             if (newVersion !== currentVersion) {
                 if (window.visibilityState === 'hidden') {
                     // Page is hidden, refresh immediately
@@ -57,8 +56,7 @@ const webUpdater = currentVersion => ({
 });
 
 // When app loads, get current version
-download('version.txt')
-    .then(response => response.text())
-    .then((currentVersion) => {
+HttpUtils.download('version.json')
+    .then(({version: currentVersion}) => {
         checkForUpdates(webUpdater(currentVersion));
     });
