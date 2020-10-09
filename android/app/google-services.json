@@ -30,6 +30,13 @@
                         {
                             "client_id": "921154746561-gpsoaqgqfuqrfsjdf8l7vohfkfj7b9up.apps.googleusercontent.com",
                             "client_type": 3
+                        },
+                        {
+                            "client_id": "921154746561-s3uqn2oe4m85tufi6mqflbfbuajrm2i3.apps.googleusercontent.com",
+                            "client_type": 2,
+                            "ios_info": {
+                                "bundle_id": "com.chat.expensify.chat"
+                            }
                         }
                     ]
                 }
