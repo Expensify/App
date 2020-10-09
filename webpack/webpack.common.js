@@ -2,6 +2,7 @@ const path = require('path');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
+const CustomVersionFilePlugin = require('./CustomVersionFilePlugin');
 
 // Check for a --platform command line argument (default to 'web')
 // If it is 'web', we want to ignore .desktop.js files, and if it is 'desktop', we want to ignore .website.js files.
@@ -31,6 +32,8 @@ module.exports = {
                 {from: 'web/favicon-unread.png'},
             ],
         }),
+
+        new CustomVersionFilePlugin(),
     ],
     module: {
         rules: [
