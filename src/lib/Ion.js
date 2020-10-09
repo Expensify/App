@@ -196,16 +196,17 @@ function remove(key) {
 function evictStorageAndRetry(error, callback, ...args) {
     let reportActionsKeys;
 
-    // If we get an error while setting an item we'll need to remove
-    // the oldest set of report actions then try to set the item again
+    // Start by getting all existing keys, finding the ones that are report actions, and getting the raw
+    // stringified JSON for them. We are targeting the reportActions since they are the heaviest things
+    // we are storing in Ion.
     return AsyncStorage.getAllKeys()
         .then((keys) => {
             reportActionsKeys = _.filter(keys, key => Str.startsWith(key, IONKEYS.COLLECTION.REPORT_ACTIONS));
             return Promise.all(_.map(reportActionsKeys, key => AsyncStorage.getItem(key)));
         })
         .then((rawData) => {
+            // Next we will sort the keys in ascending order of total size
             const sortedKeys = [];
-
             _.each(rawData, (data, index) => {
                 const keyEntry = {key: reportActionsKeys[index], size: new Blob([data]).size};
                 if (sortedKeys.length === 0) {
@@ -216,26 +217,26 @@ function evictStorageAndRetry(error, callback, ...args) {
             });
 
             // Now that we have the keys sorted from smallest to largest we need to find the first one
-            // that is not explicitly being subscribed to by Ion and then delete it.
+            // that is not explicitly being subscribed to by Ion and delete it
             const keyToRemove = _.find(sortedKeys.reverse(), ({key}) => (
                 !_.any(callbackToStateMapping, mapping => mapping.key === key)
             ));
 
             // We have no keys to remove so just throw the original error since something is very wrong
+            // This means we are trying to set something to localStorage that is SO large that deleting all
+            // of our reportActions that don't need to be visible won't create enough space.
             if (!keyToRemove) {
                 console.error('[Ion] Max storage reached but found no acceptable reportActions set to remove.');
                 throw error;
             }
 
-            // Remove the largest set of reportActions that is not currently in view
+            // Remove the largest set of reportActions that is not currently in view and retry.
             console.debug('[Ion] Max storage reached. Evicting least recent reportActions set and retrying.');
             return remove(keyToRemove.key);
         })
 
         // eslint-disable-next-line no-use-before-define
-        .then(() => {
-            callback(...args);
-        });
+        .then(() => callback(...args));
 }
 
 /**
