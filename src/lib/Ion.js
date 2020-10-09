@@ -184,59 +184,83 @@ function remove(key) {
 }
 
 /**
+ * Checks to see if we have any subscribers for a given key.
+ *
+ * @param {String} key
+ * @returns {Boolean}
+ */
+function hasSubscriberForKey(key) {
+    return _.any(callbackToStateMapping, mapping => mapping.key === key);
+}
+
+/**
  * If we fail to set or merge we must handle this by
  * evicting some data from Ion and then retrying to do
  * whatever it is we attempted to do.
  *
  * @param {Error} error
- * @param {Function} callback
+ * @param {Function} ionMethod
  * @param  {...any} args
  * @return {Promise}
  */
-function evictStorageAndRetry(error, callback, ...args) {
+function evictStorageAndRetry(error, ionMethod, ...args) {
     let reportActionsKeys;
+    let recentReportIDs;
 
-    // Start by getting all existing keys, locating the reportActions, and getting the raw
-    // stringified JSON for each one. We are targeting the reportActions since they are the
-    // heaviest things we are storing in Ion
-    return AsyncStorage.getAllKeys()
-        .then((keys) => {
-            reportActionsKeys = _.filter(keys, key => Str.startsWith(key, IONKEYS.COLLECTION.REPORT_ACTIONS));
-            return Promise.all(_.map(reportActionsKeys, key => AsyncStorage.getItem(key)));
-        })
-        .then((rawData) => {
-            // Next we will sort the keys in ascending order of total size
-            const sortedKeys = [];
-            _.each(rawData, (data, index) => {
-                const keyEntry = {key: reportActionsKeys[index], size: new Blob([data]).size};
-                if (sortedKeys.length === 0) {
-                    sortedKeys.push(keyEntry);
-                } else {
-                    sortedKeys.splice(_.sortedIndex(sortedKeys, keyEntry, 'size'), 0, keyEntry);
+    // Get all recent reportIDs (these are reports the user has viewed ordered from most recent to least recent)
+    // so that we can find the least recent that is not currently in view and delete its reportActions
+    return get(IONKEYS.RECENT_REPORT_IDS).then((reportIDs) => {
+        recentReportIDs = reportIDs || [];
+
+        const leastRecentlyViewedReportIDNotInView = _.find(recentReportIDs.slice().reverse(), reportID => (
+            !hasSubscriberForKey(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`)
+        ));
+
+        if (leastRecentlyViewedReportIDNotInView) {
+            // Remove the least recently viewed report that is not currently in view and retry. We must also remove this
+            // report from our list of recently viewed reports so that we do not try to delete it again.
+            console.debug('[Ion] Max storage reached. Evicting least recently viewed report not currently in view and retrying.');
+            return remove(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${leastRecentlyViewedReportIDNotInView}`)
+
+                // eslint-disable-next-line no-use-before-define
+                .then(() => set(IONKEYS.RECENT_REPORT_IDS, _.without(recentReportIDs, leastRecentlyViewedReportIDNotInView)))
+                .then(() => ionMethod(...args));
+        }
+
+        // If we did not find any recent reportID then we will look at all reportActions keys that have no
+        // subscribers, evict them, and retry the original ion method.
+        return AsyncStorage.getAllKeys()
+            .then((keys) => {
+                reportActionsKeys = _.filter(keys, key => Str.startsWith(key, IONKEYS.COLLECTION.REPORT_ACTIONS) && !hasSubscriberForKey(key));
+
+                // We have no keys that we can remove so just throw the original error since something is very wrong.
+                // e.g. every reportActions set that we have is in view or we are trying to set something huge to storage.
+                if (!reportActionsKeys.length) {
+                    console.error('[Ion] Max storage reached but found no acceptable reportActions set to remove.');
+                    throw error;
                 }
-            });
 
-            // Now that we have the keys sorted from smallest to largest we need to find the first one
-            // that is not explicitly being subscribed to by Ion and delete it
-            const keyToRemove = _.find(sortedKeys.reverse(), ({key}) => (
-                !_.any(callbackToStateMapping, mapping => mapping.key === key)
-            ));
+                // Get the raw stringified JSON for each reportAction set so we can measure and sort them
+                return Promise.all(_.map(reportActionsKeys, key => AsyncStorage.getItem(key)));
+            })
+            .then((rawData) => {
+                const sortedKeys = [];
+                _.each(rawData, (data, index) => {
+                    const keyEntry = {key: reportActionsKeys[index], size: new Blob([data]).size};
+                    if (sortedKeys.length === 0) {
+                        sortedKeys.push(keyEntry);
+                    } else {
+                        sortedKeys.splice(_.sortedIndex(sortedKeys, keyEntry, 'size'), 0, keyEntry);
+                    }
+                });
 
-            // We have no keys to remove so just throw the original error since something is very wrong
-            // This means we are trying to set something to localStorage that is SO large that deleting all
-            // of our reportActions that don't need to be visible won't create enough space.
-            if (!keyToRemove) {
-                console.error('[Ion] Max storage reached but found no acceptable reportActions set to remove.');
-                throw error;
-            }
+                console.debug('[Ion] Max storage reached. Evicting largest reportActions set not in view and retrying.');
+                return remove(_.last(sortedKeys).key);
+            })
 
-            // Remove the largest set of reportActions that is not currently in view and retry.
-            console.debug('[Ion] Max storage reached. Evicting least recent reportActions set and retrying.');
-            return remove(keyToRemove.key);
-        })
-
-        // eslint-disable-next-line no-use-before-define
-        .then(() => callback(...args));
+            // eslint-disable-next-line no-use-before-define
+            .then(() => ionMethod(...args));
+    });
 }
 
 /**
