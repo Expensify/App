@@ -1,16 +1,4 @@
 PODS:
-  - Airship (13.5.4):
-    - Airship/Automation (= 13.5.4)
-    - Airship/Core (= 13.5.4)
-    - Airship/ExtendedActions (= 13.5.4)
-    - Airship/MessageCenter (= 13.5.4)
-  - Airship/Automation (13.5.4):
-    - Airship/Core
-  - Airship/Core (13.5.4)
-  - Airship/ExtendedActions (13.5.4):
-    - Airship/Core
-  - Airship/MessageCenter (13.5.4):
-    - Airship/Core
   - boost-for-react-native (1.63.0)
   - CocoaAsyncSocket (7.6.4)
   - CocoaLibEvent (1.0.0)
@@ -322,8 +310,7 @@ PODS:
     - React-jsi (= 0.63.3)
   - RNCAsyncStorage (1.11.0):
     - React
-  - urbanairship-react-native (8.1.0):
-    - Airship (= 13.5.4)
+  - RNCPushNotificationIOS (1.5.0):
     - React
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
@@ -382,12 +369,11 @@ DEPENDENCIES:
   - React-RCTVibration (from `../node_modules/react-native/Libraries/Vibration`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-community/async-storage`)"
-  - urbanairship-react-native (from `../node_modules/urbanairship-react-native`)
+  - "RNCPushNotificationIOS (from `../node_modules/@react-native-community/push-notification-ios`)"
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
   trunk:
-    - Airship
     - boost-for-react-native
     - CocoaAsyncSocket
     - CocoaLibEvent
@@ -464,13 +450,12 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   RNCAsyncStorage:
     :path: "../node_modules/@react-native-community/async-storage"
-  urbanairship-react-native:
-    :path: "../node_modules/urbanairship-react-native"
+  RNCPushNotificationIOS:
+    :path: "../node_modules/@react-native-community/push-notification-ios"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  Airship: cbbd372a4ffc8dcfeacec01fd623155ec41f33ed
   boost-for-react-native: 39c7adb57c4e60d6c5479dd8623128eb5b3f0f2c
   CocoaAsyncSocket: 694058e7c0ed05a9e217d1b3c7ded962f4180845
   CocoaLibEvent: 2fab71b8bd46dd33ddb959f7928ec5909f838e3f
@@ -513,10 +498,10 @@ SPEC CHECKSUMS:
   React-RCTVibration: 8e9fb25724a0805107fc1acc9075e26f814df454
   ReactCommon: 4167844018c9ed375cc01a843e9ee564399e53c3
   RNCAsyncStorage: db711e29e5e0500d9bd21aa0c2e397efa45302b1
-  urbanairship-react-native: fa123940041a6a13ab7dac192e32833c53754f00
+  RNCPushNotificationIOS: 8025ff0b610d7b28d29ddc1b619cd55814362e4c
   Yoga: 7d13633d129fd179e01b8953d38d47be90db185a
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: d03a22d8299d9564ca7fc55d0a779f6fbf0d2b37
+PODFILE CHECKSUM: 7f6bb9c130ea13236f8249f800f75d671c1833fa
 
 COCOAPODS: 1.9.3
