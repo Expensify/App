@@ -163,7 +163,7 @@ class App extends React.Component {
         }
 
         // If the hamburger currently is not shown, we want to make it visible before the animation
-        if (!this.state.hamburgerShown) {
+        if (!this.props.hamburgerShown) {
             Ion.set(IONKEYS.IS_SIDEBAR_SHOWN, true);
             return;
         }
