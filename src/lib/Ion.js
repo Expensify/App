@@ -3,15 +3,13 @@ import AsyncStorage from '@react-native-community/async-storage';
 import addStorageEventHandler from './addStorageEventHandler';
 import Str from './Str';
 import IONKEYS from '../IONKEYS';
+import PromiseQueue from './PromiseQueue';
 
 // Keeps track of the last connectionID that was used so we can keep incrementing it
 let lastConnectionID = 0;
 
 // Holds a mapping of all the react components that want their state subscribed to a store key
 const callbackToStateMapping = {};
-
-// Holds a list of all the recently accessed keys
-let recentlyAccessedKeys = [];
 
 /**
  * When a key change happens, search for any callbacks matching the regex pattern and trigger those callbacks
@@ -108,6 +106,8 @@ function sendDataToConnection(config, val) {
     }
 }
 
+const lastAccessedKeyQueue = new PromiseQueue();
+
 /**
  * Update our unique stack of recently accessed keys. The least
  * recently accessed key should be at the head and the most
@@ -118,15 +118,21 @@ function sendDataToConnection(config, val) {
  * @param {Boolean} removeKey
  */
 function updateLastAccessedKey(key, removeKey) {
-    // Remove this key if it exists in the list already
-    recentlyAccessedKeys = _.without(recentlyAccessedKeys || [], key);
+    lastAccessedKeyQueue
+        .add(() => (
+            get(IONKEYS.RECENTLY_ACCESSED_KEYS)
+                .then((keys) => {
+                    // Remove this key if it exists in the list already
+                    const recentlyAccessedKeys = _.without(keys || [], key);
 
-    if (!removeKey) {
-        recentlyAccessedKeys.push(key);
-    }
+                    if (!removeKey) {
+                        recentlyAccessedKeys.push(key);
+                    }
 
-    // eslint-disable-next-line no-use-before-define
-    return set(IONKEYS.RECENTLY_ACCESSED_KEYS, recentlyAccessedKeys);
+                    // eslint-disable-next-line no-use-before-define
+                    return set(IONKEYS.RECENTLY_ACCESSED_KEYS, recentlyAccessedKeys);
+                })
+        ));
 }
 
 /**
@@ -236,8 +242,13 @@ function hasSubscriberForKey(key) {
  * @return {Promise}
  */
 function evictStorageAndRetry(error, ionMethod, ...args) {
-    return AsyncStorage.getAllKeys()
-        .then((allKeys) => {
+    let recentlyAccessedKeys;
+    let allKeys;
+    return get(IONKEYS.RECENTLY_ACCESSED_KEYS)
+        .then(keys => recentlyAccessedKeys = keys)
+        .then(() => AsyncStorage.getAllKeys())
+        .then(keys => allKeys = keys)
+        .then(() => {
             // Locate keys that have never been accessed and evict the largest key from the cache
             const neverAccessedKeys = _.difference(allKeys, recentlyAccessedKeys);
 
@@ -380,8 +391,6 @@ function init() {
     // Clear any loading and error messages so they do not appear on app startup
     merge(IONKEYS.SESSION, {loading: false, error: ''});
     addStorageEventHandler((key, newValue) => keyChanged(key, newValue));
-    get(IONKEYS.RECENTLY_ACCESSED_KEYS)
-        .then(keys => recentlyAccessedKeys = keys || []);
 }
 
 const Ion = {
