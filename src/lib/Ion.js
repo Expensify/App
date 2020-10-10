@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import addStorageEventHandler from './addStorageEventHandler';
 import Str from './Str';
 import IONKEYS from '../IONKEYS';
+import PromiseQueue from './PromiseQueue';
 
 // Keeps track of the last connectionID that was used so we can keep incrementing it
 let lastConnectionID = 0;
@@ -105,6 +106,35 @@ function sendDataToConnection(config, val) {
     }
 }
 
+const lastAccessedKeyQueue = new PromiseQueue();
+
+/**
+ * Update our unique stack of recently accessed keys. The least
+ * recently accessed key should be at the head and the most
+ * recently accessed key at the tail. This method is used to
+ * add/remove keys.
+ *
+ * @param {String} key
+ * @param {Boolean} removeKey
+ */
+function updateLastAccessedKey(key, removeKey) {
+    lastAccessedKeyQueue
+        .add(() => (
+            get(IONKEYS.RECENTLY_ACCESSED_KEYS)
+                .then((keys) => {
+                    // Remove this key if it exists in the list already
+                    const recentlyAccessedKeys = _.without(keys || [], key);
+
+                    if (!removeKey) {
+                        recentlyAccessedKeys.push(key);
+                    }
+
+                    // eslint-disable-next-line no-use-before-define
+                    return set(IONKEYS.RECENTLY_ACCESSED_KEYS, recentlyAccessedKeys);
+                })
+        ));
+}
+
 /**
  * Subscribes a react component's state directly to a store key
  *
@@ -136,6 +166,13 @@ function connect(mapping) {
             if (matchingKeys.length === 0) {
                 sendDataToConnection(mapping, null);
                 return;
+            }
+
+            // Insert this key into the last accessed array. We won't do this with
+            // collection keys since subscribing to them does not guarantee that one
+            // key in particular is required by a subscriber
+            if (!isCollectionKey(mapping.key)) {
+                updateLastAccessedKey(mapping.key);
             }
 
             // When using a callback subscriber we will trigger the callback
@@ -180,6 +217,7 @@ function disconnect(connectionID) {
  */
 function remove(key) {
     return AsyncStorage.removeItem(key)
+        .then(() => updateLastAccessedKey(key, true))
         .then(() => keyChanged(key, null));
 }
 
@@ -204,63 +242,54 @@ function hasSubscriberForKey(key) {
  * @return {Promise}
  */
 function evictStorageAndRetry(error, ionMethod, ...args) {
-    let reportActionsKeys;
-    let recentReportIDs;
+    let recentlyAccessedKeys;
+    let allKeys;
+    return get(IONKEYS.RECENTLY_ACCESSED_KEYS)
+        .then(keys => recentlyAccessedKeys = keys)
+        .then(() => AsyncStorage.getAllKeys())
+        .then(keys => allKeys = keys)
+        .then(() => {
+            // Locate keys that have never been accessed and evict the largest key from the cache
+            const neverAccessedKeys = _.difference(allKeys, recentlyAccessedKeys);
 
-    // Get all recent reportIDs (these are reports the user has viewed ordered from most recent to least recent)
-    // so that we can find the least recent that is not currently in view and delete its reportActions
-    return get(IONKEYS.RECENT_REPORT_IDS).then((reportIDs) => {
-        recentReportIDs = reportIDs || [];
+            if (neverAccessedKeys.length > 0) {
+                return Promise.all(_.map(neverAccessedKeys, key => AsyncStorage.getItem(key)))
+                    .then((rawData) => {
+                        const sortedKeys = [];
+                        _.each(rawData, (data, index) => {
+                            const keyEntry = {key: neverAccessedKeys[index], size: new Blob([data]).size};
+                            if (sortedKeys.length === 0) {
+                                sortedKeys.push(keyEntry);
+                            } else {
+                                sortedKeys.splice(_.sortedIndex(sortedKeys, keyEntry, 'size'), 0, keyEntry);
+                            }
+                        });
 
-        const leastRecentlyViewedReportIDNotInView = _.find(recentReportIDs.slice().reverse(), reportID => (
-            !hasSubscriberForKey(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`)
-        ));
+                        const keyForRemoval = _.last(sortedKeys).key;
 
-        if (leastRecentlyViewedReportIDNotInView) {
-            // Remove the least recently viewed report that is not currently in view and retry. We must also remove this
-            // report from our list of recently viewed reports so that we do not try to delete it again.
-            console.debug('[Ion] Max storage reached. Evicting least recently viewed report not currently in view and retrying.');
-            return remove(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${leastRecentlyViewedReportIDNotInView}`)
+                        // eslint-disable-next-line max-len
+                        console.debug('[Ion] Max storage reached. Evicting largest key that has never been accessed and retrying.', {keyForRemoval});
+                        return remove(keyForRemoval);
+                    })
+                    .then(() => ionMethod(...args));
+            }
 
-                // eslint-disable-next-line no-use-before-define
-                .then(() => set(IONKEYS.RECENT_REPORT_IDS, _.without(recentReportIDs, leastRecentlyViewedReportIDNotInView)))
-                .then(() => ionMethod(...args));
-        }
+            // We did not find any keys that have never been accessed so let's look at the list of
+            // keys that have been accessed.
+            const leastRecentlyAccessedKeyWithoutSubscribers = _.find(recentlyAccessedKeys || [], key => (
+                !hasSubscriberForKey(key)
+            ));
 
-        // If we did not find any recent reportID then we will look at all reportActions keys that have no
-        // subscribers, evict them, and retry the original ion method.
-        return AsyncStorage.getAllKeys()
-            .then((keys) => {
-                reportActionsKeys = _.filter(keys, key => Str.startsWith(key, IONKEYS.COLLECTION.REPORT_ACTIONS) && !hasSubscriberForKey(key));
+            if (leastRecentlyAccessedKeyWithoutSubscribers) {
+                // Remove the least recently viewed key that is not currently being accessed and retry.
+                console.debug('[Ion] Max storage reached. Evicting least recently accessed key and retrying.');
+                return remove(leastRecentlyAccessedKeyWithoutSubscribers)
+                    .then(() => ionMethod(...args));
+            }
 
-                // We have no keys that we can remove so just throw the original error since something is very wrong.
-                // e.g. every reportActions set that we have is in view or we are trying to set something huge to storage.
-                if (!reportActionsKeys.length) {
-                    console.error('[Ion] Max storage reached but found no acceptable reportActions set to remove.');
-                    throw error;
-                }
-
-                // Get the raw stringified JSON for each reportAction set so we can measure and sort them
-                return Promise.all(_.map(reportActionsKeys, key => AsyncStorage.getItem(key)));
-            })
-            .then((rawData) => {
-                const sortedKeys = [];
-                _.each(rawData, (data, index) => {
-                    const keyEntry = {key: reportActionsKeys[index], size: new Blob([data]).size};
-                    if (sortedKeys.length === 0) {
-                        sortedKeys.push(keyEntry);
-                    } else {
-                        sortedKeys.splice(_.sortedIndex(sortedKeys, keyEntry, 'size'), 0, keyEntry);
-                    }
-                });
-
-                console.debug('[Ion] Max storage reached. Evicting largest reportActions set not in view and retrying.');
-                return remove(_.last(sortedKeys).key);
-            })
-
-            // eslint-disable-next-line no-use-before-define
-            .then(() => ionMethod(...args));
-    });
+            console.error('[Ion] Max storage reached, but found no acceptable key to remove.');
+            throw error;
+        });
 }
 
 /**
