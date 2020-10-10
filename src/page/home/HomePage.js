@@ -16,6 +16,7 @@ import Main from './MainView';
 import {subscribeToReportCommentEvents, fetchAll as fetchAllReports} from '../../lib/actions/Report';
 import {fetch as fetchPersonalDetails} from '../../lib/actions/PersonalDetails';
 import * as Pusher from '../../lib/Pusher/pusher';
+import UnreadIndicatorUpdater from '../../lib/UnreadIndicatorUpdater';
 import ROUTES from '../../ROUTES';
 import NetworkConnection from '../../lib/NetworkConnection';
 import Ion from '../../lib/Ion';
@@ -63,6 +64,8 @@ class App extends React.Component {
 
         // Fetch all the reports
         fetchAllReports();
+
+        UnreadIndicatorUpdater.listenForReportChanges();
 
         Dimensions.addEventListener('change', this.toggleHamburgerBasedOnDimensions);
 
