@@ -35,34 +35,10 @@ Ion.connect({
     callback: val => currentURL = val,
 });
 
-let recentReportIDs;
-Ion.connect({
-    key: IONKEYS.RECENT_REPORT_IDS,
-    callback: val => recentReportIDs = val || [],
-});
-
-/**
- * Updates our list of recent reportIDs. We are tracking these
- * here so we can evict less recent reportActions sets from the
- * storage cache.
- *
- * @param {Number|String} reportID
- * @param {Boolean} isCurrentlyInView
- */
-function updateRecentReportIDList(reportID) {
-    // Remove this report if it exists in the list already
-    recentReportIDs = _.without(recentReportIDs, Number(reportID));
-    recentReportIDs.unshift(Number(reportID));
-    Ion.set(IONKEYS.RECENT_REPORT_IDS, recentReportIDs);
-}
-
 let lastViewedReportID;
 Ion.connect({
     key: IONKEYS.CURRENTLY_VIEWED_REPORTID,
-    callback: (val) => {
-        lastViewedReportID = val;
-        updateRecentReportIDList(lastViewedReportID);
-    },
+    callback: val => lastViewedReportID = val,
 });
 
 let myPersonalDetails;
