@@ -18,6 +18,7 @@ import {fetch as fetchPersonalDetails} from '../../lib/actions/PersonalDetails';
 import * as Pusher from '../../lib/Pusher/pusher';
 import ROUTES from '../../ROUTES';
 import NetworkConnection from '../../lib/NetworkConnection';
+import Ion from '../../lib/Ion';
 import IONKEYS from '../../IONKEYS';
 import withIon from '../../components/withIon';
 
@@ -27,10 +28,10 @@ const widthBreakPoint = 1000;
 // There are times where we need to be able to toggle the sidebar view from elsewhere in the application,
 // so this prop mirrors the internal state variable hamburgerShown, but can be modified via Ion
 const propTypes = {
-    sidebarShown: PropTypes.bool,
+    hamburgerShown: PropTypes.bool,
 };
 const defaultProps = {
-    sidebarShown: 'visible',
+    hamburgerShown: true,
 };
 
 class App extends React.Component {
@@ -38,15 +39,19 @@ class App extends React.Component {
         super(props);
 
         this.state = {
-            hamburgerShown: true,
             isHamburgerEnabled: windowSize.width <= widthBreakPoint,
         };
+
+        // This flag differentiates between a completed animation and external modification of IONKEYS.SIDEBAR_SHOWN
+        this.isCompletedAnimation = false;
 
         this.toggleHamburger = this.toggleHamburger.bind(this);
         this.dismissHamburger = this.dismissHamburger.bind(this);
         this.showHamburger = this.showHamburger.bind(this);
         this.toggleHamburgerBasedOnDimensions = this.toggleHamburgerBasedOnDimensions.bind(this);
-        this.animationTranslateX = new Animated.Value(!this.state.hamburgerShown ? -300 : 0);
+        this.animationTranslateX = new Animated.Value(!props.hamburgerShown ? -300 : 0);
+
+        Ion.set(IONKEYS.IS_SIDEBAR_SHOWN, props.hamburgerShown);
     }
 
     componentDidMount() {
@@ -67,14 +72,18 @@ class App extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (this.props.sidebarShown === prevProps.sidebarShown
-            || this.props.sidebarShown === this.state.hamburgerShown) {
-            // Nothing has changed or needs to change
+        if (this.props.hamburgerShown === prevProps.hamburgerShown) {
+            // Nothing has changed
             return;
         }
 
-        // Visibility of the sidebar has been externally modified via Ion, toggle visibility
-        this.toggleHamburger();
+        // If an animation just completed, don't trigger a new one
+        if (this.isCompletedAnimation) {
+            this.isCompletedAnimation = false;
+            return;
+        }
+
+        this.animateHamburger(prevProps.hamburgerShown);
     }
 
     componentWillUnmount() {
@@ -87,10 +96,10 @@ class App extends React.Component {
      */
     toggleHamburgerBasedOnDimensions({window: changedWindow}) {
         this.setState({isHamburgerEnabled: changedWindow.width <= widthBreakPoint});
-        if (!this.state.hamburgerShown && changedWindow.width > widthBreakPoint) {
-            this.setState({hamburgerShown: true});
-        } else if (this.state.hamburgerShown && changedWindow.width < widthBreakPoint) {
-            this.setState({hamburgerShown: false});
+        if (!this.props.hamburgerShown && changedWindow.width > widthBreakPoint) {
+            Ion.set(IONKEYS.IS_SIDEBAR_SHOWN, true);
+        } else if (this.props.hamburgerShown && changedWindow.width < widthBreakPoint) {
+            Ion.set(IONKEYS.IS_SIDEBAR_SHOWN, false);
         }
     }
 
@@ -100,7 +109,7 @@ class App extends React.Component {
      * Only changes hamburger state on small screens (e.g. Mobile and mWeb)
      */
     dismissHamburger() {
-        if (!this.state.hamburgerShown) {
+        if (!this.props.hamburgerShown) {
             return;
         }
 
@@ -113,7 +122,7 @@ class App extends React.Component {
      * Only changes hamburger state on smaller screens (e.g. Mobile and mWeb)
      */
     showHamburger() {
-        if (this.state.hamburgerShown) {
+        if (this.props.hamburgerShown) {
             return;
         }
 
@@ -134,10 +143,9 @@ class App extends React.Component {
             easing: Easing.ease,
             useNativeDriver: false
         }).start(({finished}) => {
-            // If the hamburger is currently shown, we want to hide it only after the animation is complete
-            // Otherwise, we can't see the animation
             if (finished && hamburgerIsShown) {
-                this.setState({hamburgerShown: false});
+                this.isCompletedAnimation = true;
+                Ion.set(IONKEYS.IS_SIDEBAR_SHOWN, !hamburgerIsShown);
             }
         });
     }
@@ -151,20 +159,20 @@ class App extends React.Component {
             return;
         }
 
-        const hamburgerIsShown = this.state.hamburgerShown;
-
-        // If the hamburger currently is not shown, we want to immediately make it visible for the animation
-        if (!hamburgerIsShown) {
-            this.setState({hamburgerShown: true});
+        // If the hamburger currently is not shown, we want to make it visible before the animation
+        if (!this.state.hamburgerShown) {
+            Ion.set(IONKEYS.IS_SIDEBAR_SHOWN, true);
+            return;
         }
 
-        this.animateHamburger(hamburgerIsShown);
+        // Otherwise, we want to hide it after the animation
+        this.animateHamburger(true);
     }
 
     render() {
-        const hamburgerStyle = this.state.isHamburgerEnabled && this.state.hamburgerShown
+        const hamburgerStyle = this.state.isHamburgerEnabled && this.props.hamburgerShown
             ? styles.hamburgerOpenAbsolute : styles.hamburgerOpen;
-        const visibility = this.state.hamburgerShown ? styles.dFlex : styles.dNone;
+        const visibility = this.props.hamburgerShown ? styles.dFlex : styles.dNone;
         const appContentWrapperStyle = !this.state.isHamburgerEnabled ? styles.appContentWrapperLarge : null;
         const appContentStyle = !this.state.isHamburgerEnabled ? styles.appContentRounded : null;
         return (
@@ -218,7 +226,7 @@ App.defaultProps = defaultProps;
 
 export default withIon(
     {
-        sidebarShown: {
+        hamburgerShown: {
             key: IONKEYS.IS_SIDEBAR_SHOWN
         },
     },
