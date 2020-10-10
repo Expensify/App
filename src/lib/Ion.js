@@ -109,7 +109,7 @@ function sendDataToConnection(config, val) {
 const lastAccessedKeyQueue = new PromiseQueue();
 
 /**
- * Update our unique stack of recently accessed keys. The least
+ * Update our unique list of recently accessed keys. The least
  * recently accessed key should be at the head and the most
  * recently accessed key at the tail. This method is used to
  * add/remove keys.
