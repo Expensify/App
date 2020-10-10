@@ -7,28 +7,13 @@ Ion.connect({
     callback: val => isSidebarShown = val,
 });
 
+/**
+ * Hide the sidebar, if it is shown.
+ */
 function hide() {
     if (isSidebarShown) {
         Ion.set(IONKEYS.IS_SIDEBAR_SHOWN, false);
-    } else {
-        console.debug("Attempting to hide sidebar, but it's already hidden.");
     }
 }
 
-function show() {
-    if (!isSidebarShown) {
-        Ion.set(IONKEYS.IS_SIDEBAR_SHOWN, true);
-    } else {
-        console.debug("Attempting to show sidebar, but it's already visible.");
-    }
-}
-
-function toggle() {
-    Ion.set(IONKEYS.IS_SIDEBAR_SHOWN, !isSidebarShown);
-}
-
-export {
-    hide,
-    show,
-    toggle,
-};
+export default hide;
