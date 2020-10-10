@@ -9,6 +9,7 @@ import ReportActionFragmentPropTypes from './ReportActionFragmentPropTypes';
 import styles, {webViewStyles, colors} from '../../../style/StyleSheet';
 import Text from '../../../components/Text';
 import AnchorForCommentsOnly from '../../../components/AnchorForCommentsOnly';
+import ImageModal from '../../../components/ImageModal';
 import {getAuthToken} from '../../../lib/API';
 import InlineCodeBlock from '../../../components/InlineCodeBlock';
 
@@ -61,6 +62,9 @@ class ReportActionItemFragment extends React.PureComponent {
                 <InlineCodeBlock key={passProps.key}>
                     {children}
                 </InlineCodeBlock>
+            ),
+            img: (htmlAttribs, children, convertedCSSStyles, passProps) => (
+                <ImageModal previewSrc={htmlAttribs.src} style={webViewStyles.tagStyles.img} key={passProps.key} />
             ),
         };
     }

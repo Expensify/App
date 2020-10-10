@@ -662,6 +662,29 @@ const styles = {
         backgroundColor: colors.blue,
         borderRadius: 8,
     },
+
+    imageModal: {
+        flex: 1,
+        alignItems: 'center', 
+        justifyContent: 'center',
+        backgroundColor: '#000000'
+    },
+
+    imageModalImage: {
+        width: '100%',
+        height: undefined,
+        aspectRatio: 1,
+    },
+
+    imageModalPlaceholder: {
+        backgroundColor: '#fff'
+    },
+
+    imageModalHeader: {
+        alignItems: 'flex-end',
+        height: 35,
+        backgroundColor: '#fff',
+    },
 };
 
 const baseCodeTagStyles = {
