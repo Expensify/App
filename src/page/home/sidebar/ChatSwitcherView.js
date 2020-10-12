@@ -9,6 +9,7 @@ import ChatSwitcherList from './ChatSwitcherList';
 import ChatSwitcherSearchForm from './ChatSwitcherSearchForm';
 import {fetchOrCreateChatReport} from '../../../lib/actions/Report';
 import {redirect} from '../../../lib/actions/App';
+import ROUTES from '../../../ROUTES';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -108,7 +109,7 @@ class ChatSwitcherView extends React.Component {
      * @param {string} option.reportID
      */
     selectReport(option) {
-        redirect(option.reportID);
+        redirect(ROUTES.getReportRoute(option.reportID));
         this.reset();
     }
 
