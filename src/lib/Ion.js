@@ -10,7 +10,7 @@ let lastConnectionID = 0;
 // Holds a mapping of all the react components that want their state subscribed to a store key
 const callbackToStateMapping = {};
 
-// Hold a list of keys that have changed ordered from least recent to most recent
+// Holds a list of keys that have been directly subscribed to from least to most recent
 let recentlyAccessedKeys = [];
 
 /**
@@ -59,7 +59,6 @@ function isKeyMatch(configKey, key) {
  *
  * @param {String} key
  * @param {Boolean} removeKey
- * @return {Promise}
  */
 function updateLastAccessedKey(key, removeKey) {
     // Remove this key if it exists in the list already
@@ -77,12 +76,6 @@ function updateLastAccessedKey(key, removeKey) {
  * @param {mixed} data
  */
 function keyChanged(key, data) {
-    // Insert this key into the last accessed array to help us
-    // decide which keys to delete if storage capacity is reached.
-    // If we have a falsy value for data we will remove this key from
-    // the list.
-    updateLastAccessedKey(key, !data);
-
     // Find all subscribers that were added with connect() and trigger the callback or setState() with the new data
     _.each(callbackToStateMapping, (subscriber) => {
         if (subscriber && isKeyMatch(subscriber.key, key)) {
@@ -166,6 +159,15 @@ function connect(mapping) {
                 return;
             }
 
+            // Insert this key into the last accessed array to help us
+            // decide which keys to delete if storage capacity is reached.
+            // We only want to treat things that are directly subscribed to
+            // as "accessed"
+            if (!isCollectionKey(mapping.key)) {
+                updateLastAccessedKey(mapping.key);
+            }
+
+
             // When using a callback subscriber we will trigger the callback
             // for each key we find. It's up to the subscriber to know whether
             // to expect a single key or multiple keys in the case of a collection.
@@ -208,6 +210,7 @@ function disconnect(connectionID) {
  */
 function remove(key) {
     return AsyncStorage.removeItem(key)
+        .then(() => updateLastAccessedKey(key, true))
         .then(() => keyChanged(key, null));
 }
 
