@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import Ion from '../Ion';
 import IONKEYS from '../../IONKEYS';
 
@@ -18,7 +19,7 @@ Ion.connect({
  * @param {?Function} platformSpecificUpdater.init
  */
 export default function (platformSpecificUpdater) {
-    if (platformSpecificUpdater.init) {
+    if (_.isFunction(platformSpecificUpdater.init)) {
         platformSpecificUpdater.init();
     }
 
