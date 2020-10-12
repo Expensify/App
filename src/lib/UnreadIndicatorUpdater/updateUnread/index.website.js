@@ -1,16 +1,17 @@
 /**
  * Web browsers have a tab title and favicon which can be updated to show there are unread comments
  */
-import CONFIG from '../../CONFIG';
+import CONFIG from '../../../CONFIG';
 
 /**
- * Updates the title and favicon of the current browser tab with an unread indicator
+ * Set the page title on web
  *
- * @param {boolean} hasUnread
+ * @param {Number} totalCount
  */
-const PageTitleUpdater = (hasUnread) => {
+function updateUnread(totalCount) {
+    const hasUnread = totalCount > 0;
     document.title = hasUnread ? `(NEW!) ${CONFIG.SITE_TITLE}` : CONFIG.SITE_TITLE;
     document.getElementById('favicon').href = hasUnread ? CONFIG.FAVICON.UNREAD : CONFIG.FAVICON.DEFAULT;
-};
+}
 
-export default PageTitleUpdater;
+export default updateUnread;

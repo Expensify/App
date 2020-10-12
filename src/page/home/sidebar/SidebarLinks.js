@@ -9,7 +9,6 @@ import SidebarLink from './SidebarLink';
 import withIon from '../../../components/withIon';
 import IONKEYS from '../../../IONKEYS';
 import ChatSwitcherView from './ChatSwitcherView';
-import PageTitleUpdater from '../../../lib/PageTitleUpdater';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
 import compose from '../../../lib/compose';
 import {withRouter} from '../../../lib/Router';
@@ -61,9 +60,6 @@ class SidebarLinks extends React.Component {
         // Filter the reports so that the only reports shown are pinned, unread, and the one matching the URL
         // eslint-disable-next-line max-len
         const reportsToDisplay = _.filter(sortedReports, report => (report.pinnedReport || (report.unreadActionCount > 0) || report.reportID === reportIDInUrl));
-
-        // Updates the page title to indicate there are unread reports
-        PageTitleUpdater(_.any(sortedReports, report => report.unreadActionCount > 0));
 
         // Update styles to hide the report links if they should not be visible
         const sidebarLinksStyle = this.state.areReportLinksVisible
