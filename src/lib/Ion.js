@@ -3,13 +3,14 @@ import AsyncStorage from '@react-native-community/async-storage';
 import addStorageEventHandler from './addStorageEventHandler';
 import Str from './Str';
 import IONKEYS from '../IONKEYS';
-import PromiseQueue from './PromiseQueue';
 
 // Keeps track of the last connectionID that was used so we can keep incrementing it
 let lastConnectionID = 0;
 
 // Holds a mapping of all the react components that want their state subscribed to a store key
 const callbackToStateMapping = {};
+
+let recentlyAccessedKeys;
 
 /**
  * When a key change happens, search for any callbacks matching the regex pattern and trigger those callbacks
@@ -23,6 +24,10 @@ function get(key) {
         .then(val => JSON.parse(val))
         .catch(err => console.error(`Unable to get item from persistent storage. Key: ${key} Error: ${err}`));
 }
+
+// Get the iniital set of recently accessed keys
+get(IONKEYS.RECENTLY_ACCESSED_KEYS)
+    .then(keys => recentlyAccessedKeys = keys);
 
 /**
  * Checks to see if the a subscriber's supplied key
@@ -50,12 +55,42 @@ function isKeyMatch(configKey, key) {
 }
 
 /**
+ * Update our unique list of recently accessed keys. The least
+ * recently accessed key should be at the head and the most
+ * recently accessed key at the tail. This method is used to
+ * add/remove keys.
+ *
+ * @param {String} key
+ * @param {Boolean} removeKey
+ * @return {Promise}
+ */
+function updateLastAccessedKey(key, removeKey) {
+    // Remove this key if it exists in the list already
+    recentlyAccessedKeys = _.without(recentlyAccessedKeys || [], key);
+
+    if (!removeKey) {
+        recentlyAccessedKeys.push(key);
+    }
+
+    // eslint-disable-next-line no-use-before-define
+    return set(IONKEYS.RECENTLY_ACCESSED_KEYS, recentlyAccessedKeys);
+}
+
+/**
  * When a key change happens, search for any callbacks matching the key or collection key and trigger those callbacks
  *
  * @param {string} key
  * @param {mixed} data
  */
 function keyChanged(key, data) {
+    // Insert this key into the last accessed array to help us
+    // decide which keys to delete if storage capacity is reached.
+    // We must prevent setting `recentlyAccessedKeys` as one of the keys
+    // otherwise we'll get caught in an infinite loop.
+    if (key !== IONKEYS.RECENTLY_ACCESSED_KEYS) {
+        updateLastAccessedKey(key);
+    }
+
     // Find all subscribers that were added with connect() and trigger the callback or setState() with the new data
     _.each(callbackToStateMapping, (subscriber) => {
         if (subscriber && isKeyMatch(subscriber.key, key)) {
@@ -106,35 +141,6 @@ function sendDataToConnection(config, val) {
     }
 }
 
-const lastAccessedKeyQueue = new PromiseQueue();
-
-/**
- * Update our unique list of recently accessed keys. The least
- * recently accessed key should be at the head and the most
- * recently accessed key at the tail. This method is used to
- * add/remove keys.
- *
- * @param {String} key
- * @param {Boolean} removeKey
- */
-function updateLastAccessedKey(key, removeKey) {
-    lastAccessedKeyQueue
-        .add(() => (
-            get(IONKEYS.RECENTLY_ACCESSED_KEYS)
-                .then((keys) => {
-                    // Remove this key if it exists in the list already
-                    const recentlyAccessedKeys = _.without(keys || [], key);
-
-                    if (!removeKey) {
-                        recentlyAccessedKeys.push(key);
-                    }
-
-                    // eslint-disable-next-line no-use-before-define
-                    return set(IONKEYS.RECENTLY_ACCESSED_KEYS, recentlyAccessedKeys);
-                })
-        ));
-}
-
 /**
  * Subscribes a react component's state directly to a store key
  *
@@ -166,13 +172,6 @@ function connect(mapping) {
             if (matchingKeys.length === 0) {
                 sendDataToConnection(mapping, null);
                 return;
-            }
-
-            // Insert this key into the last accessed array. We won't do this with
-            // collection keys since subscribing to them does not guarantee that one
-            // key in particular is required by a subscriber
-            if (!isCollectionKey(mapping.key)) {
-                updateLastAccessedKey(mapping.key);
             }
 
             // When using a callback subscriber we will trigger the callback
@@ -242,11 +241,8 @@ function hasSubscriberForKey(key) {
  * @return {Promise}
  */
 function evictStorageAndRetry(error, ionMethod, ...args) {
-    let recentlyAccessedKeys;
     let allKeys;
-    return get(IONKEYS.RECENTLY_ACCESSED_KEYS)
-        .then(keys => recentlyAccessedKeys = keys)
-        .then(() => AsyncStorage.getAllKeys())
+    return AsyncStorage.getAllKeys()
         .then(keys => allKeys = keys)
         .then(() => {
             // Locate keys that have never been accessed and evict the largest key from the cache
