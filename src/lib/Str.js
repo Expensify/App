@@ -94,7 +94,17 @@ const Str = {
      */
     normalizeUrl(url) {
         return (typeof url === 'string' && url.startsWith('/')) ? url : `/${url}`;
-    }
+    },
+
+    /**
+     * Takes in a URL and checks if the file extension is PDF
+     * 
+     * @param {mixed} url The URL to be checked
+     * @returns {Boolean} Whether file path is PDF or not
+     */
+    isPDF(url) {
+        return _.first(_.last(url.split('.')).split('?')) === 'pdf';
+    },
 };
 
 export default Str;
