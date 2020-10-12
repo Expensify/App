@@ -10,7 +10,7 @@ let lastConnectionID = 0;
 // Holds a mapping of all the react components that want their state subscribed to a store key
 const callbackToStateMapping = {};
 
-let recentlyAccessedKeys;
+let recentlyAccessedKeys = [];
 
 /**
  * When a key change happens, search for any callbacks matching the regex pattern and trigger those callbacks
@@ -24,10 +24,6 @@ function get(key) {
         .then(val => JSON.parse(val))
         .catch(err => console.error(`Unable to get item from persistent storage. Key: ${key} Error: ${err}`));
 }
-
-// Get the iniital set of recently accessed keys
-get(IONKEYS.RECENTLY_ACCESSED_KEYS)
-    .then(keys => recentlyAccessedKeys = keys);
 
 /**
  * Checks to see if the a subscriber's supplied key
@@ -66,14 +62,11 @@ function isKeyMatch(configKey, key) {
  */
 function updateLastAccessedKey(key, removeKey) {
     // Remove this key if it exists in the list already
-    recentlyAccessedKeys = _.without(recentlyAccessedKeys || [], key);
+    recentlyAccessedKeys = _.without(recentlyAccessedKeys, key);
 
     if (!removeKey) {
         recentlyAccessedKeys.push(key);
     }
-
-    // eslint-disable-next-line no-use-before-define
-    return set(IONKEYS.RECENTLY_ACCESSED_KEYS, recentlyAccessedKeys);
 }
 
 /**
@@ -85,11 +78,7 @@ function updateLastAccessedKey(key, removeKey) {
 function keyChanged(key, data) {
     // Insert this key into the last accessed array to help us
     // decide which keys to delete if storage capacity is reached.
-    // We must prevent setting `recentlyAccessedKeys` as one of the keys
-    // otherwise we'll get caught in an infinite loop.
-    if (key !== IONKEYS.RECENTLY_ACCESSED_KEYS) {
-        updateLastAccessedKey(key);
-    }
+    updateLastAccessedKey(key);
 
     // Find all subscribers that were added with connect() and trigger the callback or setState() with the new data
     _.each(callbackToStateMapping, (subscriber) => {
