@@ -8,7 +8,6 @@ import Text from '../../../components/Text';
 import SidebarLink from './SidebarLink';
 import withIon from '../../../components/withIon';
 import IONKEYS from '../../../IONKEYS';
-import PageTitleUpdater from '../../../lib/PageTitleUpdater';
 import ChatSwitcherView from './ChatSwitcherView';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
 import compose from '../../../lib/compose';
@@ -37,7 +36,7 @@ const propTypes = {
     reports: PropTypes.objectOf(PropTypes.shape({
         reportID: PropTypes.number,
         reportName: PropTypes.string,
-        isUnread: PropTypes.bool,
+        unreadActionCount: PropTypes.number,
     })),
 };
 const defaultProps = {
@@ -54,16 +53,13 @@ class SidebarLinks extends React.Component {
     }
 
     render() {
-        const {reports, onLinkClick} = this.props;
+        const {onLinkClick} = this.props;
         const reportIDInUrl = parseInt(this.props.match.params.reportID, 10);
         const sortedReports = lodashOrderby(this.props.reports, ['pinnedReport', 'reportName'], ['desc', 'asc']);
 
         // Filter the reports so that the only reports shown are pinned, unread, and the one matching the URL
         // eslint-disable-next-line max-len
-        const reportsToDisplay = _.filter(sortedReports, report => (report.pinnedReport || report.isUnread || report.reportID === reportIDInUrl));
-
-        // Updates the page title to indicate there are unread reports
-        PageTitleUpdater(_.any(reports, report => report.isUnread));
+        const reportsToDisplay = _.filter(sortedReports, report => (report.pinnedReport || (report.unreadActionCount > 0) || report.reportID === reportIDInUrl));
 
         // Update styles to hide the report links if they should not be visible
         const sidebarLinksStyle = this.state.areReportLinksVisible
@@ -98,8 +94,9 @@ class SidebarLinks extends React.Component {
                             key={report.reportID}
                             reportID={report.reportID}
                             reportName={report.reportName}
-                            isUnread={report.isUnread}
+                            isUnread={report.unreadActionCount > 0}
                             onLinkClick={onLinkClick}
+                            isActiveReport={report.reportID === reportIDInUrl}
                         />
                     ))}
                 </View>
