@@ -19,26 +19,6 @@ let networkRequestQueue = [];
 let reauthenticating = false;
 
 let authToken;
-Ion.connect({
-    key: IONKEYS.SESSION,
-    callback: (session) => {
-        if (!session) {
-            authToken = null;
-            return;
-        }
-        if (session.authToken) {
-            authToken = session.authToken;
-        }
-    },
-});
-
-// We subscribe to changes to the online/offline status of the network to determine when we should fire off API calls
-// vs queueing them for later.
-let isOffline;
-Ion.connect({
-    key: IONKEYS.NETWORK,
-    callback: val => isOffline = val && val.isOffline,
-});
 
 // When the user authenticates for the first time we create a login and store credentials in Ion.
 // When the user's authToken expires we use this login to re-authenticate and get a new authToken
@@ -87,6 +67,8 @@ function deleteLogin(parameters) {
         .catch(error => Ion.merge(IONKEYS.SESSION, {error: error.message}));
 }
 
+let redirectTo;
+
 /**
  * @param {string} login
  * @param {string} password
@@ -118,9 +100,10 @@ function createLogin(login, password) {
             }
 
             Ion.merge(IONKEYS.CREDENTIALS, {login, password});
+            Ion.merge(IONKEYS.APP_REDIRECT_TO, redirectTo);
+            redirectTo = null;
         });
 }
-
 
 /**
  * Sets API data in the store when we make a subsequent API requests
@@ -129,13 +112,38 @@ function createLogin(login, password) {
  * @param {string} exitTo
  */
 function setSuccessfulSignInData(data, exitTo) {
-    const redirectTo = exitTo ? Str.normalizeUrl(exitTo) : ROUTES.ROOT;
-
+    redirectTo = exitTo ? Str.normalizeUrl(exitTo) : ROUTES.ROOT;
     Ion.multiSet({
         [IONKEYS.SESSION]: _.pick(data, 'authToken', 'accountID', 'email'),
-        [IONKEYS.APP_REDIRECT_TO]: redirectTo
     });
 }
+
+Ion.connect({
+    key: IONKEYS.SESSION,
+    callback: (session) => {
+        if (!session) {
+            authToken = null;
+            return;
+        }
+        if (session.authToken) {
+            authToken = session.authToken;
+        }
+
+        // If we have an authToken but no login, it's the users first time signing in and we need to
+        // create a login for the user, so when the authToken expires we can get a new one with said login
+        if (authToken && !session.login) {
+            createLogin(Str.generateDeviceLoginID(), Guid());
+        }
+    },
+});
+
+// We subscribe to changes to the online/offline status of the network to determine when we should fire off API calls
+// vs queueing them for later.
+let isOffline;
+Ion.connect({
+    key: IONKEYS.NETWORK,
+    callback: val => isOffline = val && val.isOffline,
+});
 
 /**
  * Makes an API request.
@@ -168,18 +176,11 @@ function request(command, parameters, type = 'post') {
                     throw new Error(response.message);
                 }
 
-                // Update the authToken so it's used in the call to  createLogin below
+                // Update the authToken so it's used in subsequent API requests
                 authToken = response.authToken;
                 return response;
             })
-            .then((response) => {
-                // If Expensify login, it's the users first time signing in and we need to
-                // create a login for the user
-                if (parameters.useExpensifyLogin) {
-                    return createLogin(Str.generateDeviceLoginID(), Guid())
-                        .then(() => setSuccessfulSignInData(response, parameters.exitTo));
-                }
-            })
+            .then(response => setSuccessfulSignInData(response, parameters.exitTo))
             .catch(error => Ion.merge(IONKEYS.SESSION, {error: error.message}));
     }
 
