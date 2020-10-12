@@ -10,14 +10,6 @@ import Str from './Str';
 import Guid from './Guid';
 import redirectToSignIn from './actions/SignInRedirect';
 
-// Queue for network requests so we don't lose actions done by the user while offline
-let networkRequestQueue = [];
-
-// Indicates if we're in the process of re-authenticating. When an API call returns jsonCode 407 indicating that the
-// authToken expired, we set this to true, pause all API calls, re-authenticate, and then use the authToken fromm the
-// response in the subsequent API calls
-let reauthenticating = false;
-
 // When the user authenticates for the first time we create a login and store credentials in Ion.
 // When the user's authToken expires we use this login to re-authenticate and get a new authToken
 // and use that new authToken in subsequent API calls
@@ -26,6 +18,9 @@ Ion.connect({
     key: IONKEYS.CREDENTIALS,
     callback: ionCredentials => credentials = ionCredentials,
 });
+
+// Queue for network requests so we don't lose actions done by the user while offline
+let networkRequestQueue = [];
 
 /**
  * Adds a request to networkRequestQueue
@@ -150,6 +145,11 @@ Ion.connect({
     key: IONKEYS.NETWORK,
     callback: val => isOffline = val && val.isOffline,
 });
+
+// Indicates if we're in the process of re-authenticating. When an API call returns jsonCode 407 indicating that the
+// authToken expired, we set this to true, pause all API calls, re-authenticate, and then use the authToken fromm the
+// response in the subsequent API calls
+let reauthenticating = false;
 
 /**
  * Makes an API request.
