@@ -49,9 +49,6 @@ Ion.connect({
 // Keeps track of the max sequence number for each report
 const reportMaxSequenceNumbers = {};
 
-// List of reportIDs that we define in .env
-const configReportIDs = '';
-
 /**
  * Checks the report to see if there are any unread action items
  *
@@ -98,8 +95,7 @@ function getSimplifiedReportObject(report) {
         reportID: report.reportID,
         reportName: report.reportName,
         reportNameValuePairs: report.reportNameValuePairs,
-        isUnread: hasUnreadActions(report),
-        pinnedReport: configReportIDs.includes(report.reportID),
+        isUnread: hasUnreadActions(report)
     };
 }
 
@@ -283,24 +279,10 @@ function fetchActions(reportID) {
  * @param {boolean} shouldFetchActions whether or not the actions of the reports should also be fetched
  */
 function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false) {
-    let fetchedReports;
 
-    // Request each report one at a time to allow individual reports to fail if access to it is prevented by Auth
-    const reportFetchPromises = _.map(configReportIDs, reportID => API.get({
-        returnValueList: 'reportStuff',
-        reportIDList: reportID,
-        shouldLoadOptionalKeys: true,
-    }));
-
-    // Chat reports need to be fetched separately than the reports hard-coded in the config
-    // files. The promise for fetching them is added to the array of promises here so
-    // that both types of reports (chat reports and hard-coded reports) are fetched in
-    // parallel
-    reportFetchPromises.push(fetchChatReports());
-
-    promiseAllSettled(reportFetchPromises)
+    fetchChatReports()
         .then((data) => {
-            fetchedReports = _.compact(_.map(data, (promiseResult) => {
+            let fetchedReports = _.compact(_.map(data, (promiseResult) => {
                 // Grab the report from the promise result which stores it in the `value` key
                 const report = lodashGet(promiseResult, 'value.reports', {});
 
