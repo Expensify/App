@@ -11,7 +11,6 @@ export default {
     MY_PERSONAL_DETAILS: 'myPersonalDetails',
     NETWORK: 'network',
     PERSONAL_DETAILS: 'personalDetails',
-    RECENTLY_ACCESSED_KEYS: 'recentlyAccessedKeys',
     SESSION: 'session',
 
     // Collection Keys
