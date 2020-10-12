@@ -18,8 +18,6 @@ let networkRequestQueue = [];
 // response in the subsequent API calls
 let reauthenticating = false;
 
-let authToken;
-
 // When the user authenticates for the first time we create a login and store credentials in Ion.
 // When the user's authToken expires we use this login to re-authenticate and get a new authToken
 // and use that new authToken in subsequent API calls
@@ -51,6 +49,9 @@ function queueRequest(command, data) {
     });
 }
 
+// This holds te current authToken with used to make API requests
+let authToken;
+
 /**
  * @param {object} parameters
  * @param {string} parameters.partnerUserID
@@ -67,6 +68,10 @@ function deleteLogin(parameters) {
         .catch(error => Ion.merge(IONKEYS.SESSION, {error: error.message}));
 }
 
+// When users load the app, if they're not authenticated we send them to the signIn page and put a redirectTo value
+// in the URL, so we can redirect them there after authentication (if nothing is set, we send them to the homepage)
+// In this variable we capture that redirectTo, after we authenticate the user, we then create a login for the user
+// and after that, we redirect the user using the route we captured in this variable.
 let redirectTo;
 
 /**
@@ -93,13 +98,14 @@ function createLogin(login, password) {
             if (response.jsonCode !== 200) {
                 throw new Error(response.message);
             }
-
             if (credentials && credentials.login) {
                 // If we have an old login for some reason, we should delete it before storing the new details
                 deleteLogin({partnerUserID: credentials.login});
             }
-
             Ion.merge(IONKEYS.CREDENTIALS, {login, password});
+
+            // Now that we created a login to re-authenticate the user when the authToken expires,
+            // we redirect the user and clear the value of redirectTo since we don't need it anymore
             Ion.merge(IONKEYS.APP_REDIRECT_TO, redirectTo);
             redirectTo = null;
         });
