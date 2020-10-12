@@ -10,7 +10,7 @@ import IONKEYS from '../../../IONKEYS';
 import ReportActionItem from './ReportActionItem';
 import styles from '../../../style/StyleSheet';
 import ReportActionPropTypes from './ReportActionPropTypes';
-import InvertedFlatList from '../../../components/InvertedFlatList';
+import MeasuredFlatList from '../../../components/MeasuredFlatList';
 import {lastItem} from '../../../lib/CollectionUtils';
 
 const propTypes = {
@@ -50,8 +50,8 @@ class ReportActionsView extends React.Component {
     componentDidMount() {
         if (this.props.isActiveReport) {
             this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
+            this.scrollToListBottom();
         }
-
         fetchActions(this.props.reportID);
     }
 
@@ -110,7 +110,7 @@ class ReportActionsView extends React.Component {
      * @return {Boolean}
      */
     isConsecutiveActionMadeByPreviousActor(actionIndex) {
-        const previousAction = this.sortedReportActions[actionIndex + 1];
+        const previousAction = this.sortedReportActions[actionIndex - 1];
         const currentAction = this.sortedReportActions[actionIndex];
 
         // It's OK for there to be no previous action, and in that case, false will be returned
@@ -201,7 +201,7 @@ class ReportActionsView extends React.Component {
 
         this.updateSortedReportActions();
         return (
-            <InvertedFlatList
+            <MeasuredFlatList
                 ref={el => this.actionListElement = el}
                 data={this.sortedReportActions}
                 renderItem={this.renderItem}

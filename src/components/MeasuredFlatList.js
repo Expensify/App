@@ -2,7 +2,7 @@ import _ from 'underscore';
 import React, {forwardRef, Component} from 'react';
 import PropTypes from 'prop-types';
 import {FlatList, View} from 'react-native';
-import {lastItem} from '../../lib/CollectionUtils';
+import {lastItem} from '../lib/CollectionUtils';
 
 const propTypes = {
     // Same as FlatList can be any array of anything
@@ -28,7 +28,7 @@ const defaultProps = {
     data: [],
 };
 
-class BaseInvertedFlatList extends Component {
+class MeasuredFlatList extends Component {
     constructor(props) {
         super(props);
 
@@ -146,10 +146,10 @@ class BaseInvertedFlatList extends Component {
     }
 }
 
-BaseInvertedFlatList.propTypes = propTypes;
-BaseInvertedFlatList.defaultProps = defaultProps;
+MeasuredFlatList.propTypes = propTypes;
+MeasuredFlatList.defaultProps = defaultProps;
 
 export default forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading
-    <BaseInvertedFlatList {...props} innerRef={ref} />
+    <MeasuredFlatList {...props} innerRef={ref} />
 ));
