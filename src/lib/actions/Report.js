@@ -5,7 +5,6 @@ import ExpensiMark from 'js-libs/lib/ExpensiMark';
 import Ion from '../Ion';
 import * as API from '../API';
 import IONKEYS from '../../IONKEYS';
-import CONFIG from '../../CONFIG';
 import * as Pusher from '../Pusher/pusher';
 import promiseAllSettled from '../promiseAllSettled';
 import Notification from '../Notification';
@@ -51,7 +50,7 @@ Ion.connect({
 const reportMaxSequenceNumbers = {};
 
 // List of reportIDs that we define in .env
-const configReportIDs = CONFIG.REPORT_IDS.split(',').map(Number);
+const configReportIDs = '';
 
 /**
  * Checks the report to see if there are any unread action items
