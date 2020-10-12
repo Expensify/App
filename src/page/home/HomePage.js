@@ -71,11 +71,6 @@ class App extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (this.props.isSidebarShown === prevProps.isSidebarShown) {
-            // Nothing has changed
-            return;
-        }
-
         // If an animation just completed, don't trigger a new one
         if (this.isCompletedAnimation) {
             this.isCompletedAnimation = false;
