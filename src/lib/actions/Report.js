@@ -275,12 +275,8 @@ function fetchActions(reportID) {
  * @param {boolean} shouldFetchActions whether or not the actions of the reports should also be fetched
  */
 function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false) {
-    Promise.all([
-        fetchChatReports(),
-    ])
-        .then((promiseResults) => {
-            const reportIDs = _.flatten(promiseResults);
-
+    fetchChatReports()
+        .then((reportIDs) => {
             if (shouldRedirectToReport && (currentURL === ROUTES.ROOT || currentURL === ROUTES.HOME)) {
                 // Redirect to either the last viewed report ID or the first report ID from our report collection
                 if (lastViewedReportID) {
