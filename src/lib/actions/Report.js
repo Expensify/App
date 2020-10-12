@@ -16,7 +16,7 @@ import * as ActiveClientManager from '../ActiveClientManager';
 import Visibility from '../Visibility';
 import ROUTES from '../../ROUTES';
 import NetworkConnection from '../NetworkConnection';
-import hideSidebar from './Sidebar';
+import {hide as hideSidebar} from './Sidebar';
 
 let currentUserEmail;
 let currentUserAccountID;

@@ -16,4 +16,13 @@ function hide() {
     }
 }
 
-export default hide;
+function show() {
+    if (!isSidebarShown) {
+        Ion.set(IONKEYS.IS_SIDEBAR_SHOWN, true);
+    }
+}
+
+export {
+    hide,
+    show,
+};

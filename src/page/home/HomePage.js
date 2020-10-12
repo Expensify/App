@@ -13,13 +13,13 @@ import styles, {getSafeAreaPadding} from '../../style/StyleSheet';
 import Header from './HeaderView';
 import Sidebar from './sidebar/SidebarView';
 import Main from './MainView';
+import {hide as hideSidebar, show as showSidebar} from '../../lib/actions/Sidebar';
 import {subscribeToReportCommentEvents, fetchAll as fetchAllReports} from '../../lib/actions/Report';
 import {fetch as fetchPersonalDetails} from '../../lib/actions/PersonalDetails';
 import * as Pusher from '../../lib/Pusher/pusher';
 import UnreadIndicatorUpdater from '../../lib/UnreadIndicatorUpdater';
 import ROUTES from '../../ROUTES';
 import NetworkConnection from '../../lib/NetworkConnection';
-import Ion from '../../lib/Ion';
 import IONKEYS from '../../IONKEYS';
 import withIon from '../../components/withIon';
 
@@ -49,8 +49,6 @@ class App extends React.Component {
         this.showHamburger = this.showHamburger.bind(this);
         this.toggleHamburgerBasedOnDimensions = this.toggleHamburgerBasedOnDimensions.bind(this);
         this.animationTranslateX = new Animated.Value(!props.sidebarShown ? -300 : 0);
-
-        Ion.set(IONKEYS.IS_SIDEBAR_SHOWN, props.sidebarShown);
     }
 
     componentDidMount() {
@@ -98,9 +96,9 @@ class App extends React.Component {
     toggleHamburgerBasedOnDimensions({window: changedWindow}) {
         this.setState({isHamburgerEnabled: changedWindow.width <= widthBreakPoint});
         if (!this.props.sidebarShown && changedWindow.width > widthBreakPoint) {
-            Ion.set(IONKEYS.IS_SIDEBAR_SHOWN, true);
+            showSidebar();
         } else if (this.props.sidebarShown && changedWindow.width < widthBreakPoint) {
-            Ion.set(IONKEYS.IS_SIDEBAR_SHOWN, false);
+            hideSidebar();
         }
     }
 
@@ -146,7 +144,11 @@ class App extends React.Component {
         }).start(({finished}) => {
             if (finished && hamburgerIsShown) {
                 this.isCompletedAnimation = true;
-                Ion.set(IONKEYS.IS_SIDEBAR_SHOWN, !hamburgerIsShown);
+                if (hamburgerIsShown) {
+                    hideSidebar();
+                } else {
+                    showSidebar();
+                }
             }
         });
     }
@@ -162,7 +164,7 @@ class App extends React.Component {
 
         // If the hamburger currently is not shown, we want to make it visible before the animation
         if (!this.props.sidebarShown) {
-            Ion.set(IONKEYS.IS_SIDEBAR_SHOWN, true);
+            showSidebar();
             return;
         }
 
