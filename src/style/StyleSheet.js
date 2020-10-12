@@ -559,6 +559,7 @@ const styles = {
         paddingRight: 8,
         paddingBottom: 10,
         paddingLeft: 8,
+        fontSize: 15,
     },
 
     chatItemSubmitButton: {
