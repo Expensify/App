@@ -182,6 +182,7 @@ const styles = {
         borderWidth: 1,
         color: colors.text,
         fontFamily: fontFamily.GTA,
+        fontSize: 15,
         padding: 12,
         textAlignVertical: 'center',
     },
@@ -559,7 +560,6 @@ const styles = {
         paddingRight: 8,
         paddingBottom: 10,
         paddingLeft: 8,
-        fontSize: 15,
     },
 
     chatItemSubmitButton: {
