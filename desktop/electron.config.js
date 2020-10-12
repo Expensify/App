@@ -22,6 +22,7 @@ module.exports = {
     }],
     files: [
         './dist/**/*',
-        './desktop/main.js'
+        './desktop/main.js',
+        './desktop/ELECTRON_EVENTS.js',
     ]
 };
