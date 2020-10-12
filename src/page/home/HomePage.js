@@ -26,13 +26,11 @@ import withIon from '../../components/withIon';
 const windowSize = Dimensions.get('window');
 const widthBreakPoint = 1000;
 
-// There are times where we need to be able to toggle the sidebar view from elsewhere in the application,
-// so this prop mirrors the internal state variable hamburgerShown, but can be modified via Ion
 const propTypes = {
-    hamburgerShown: PropTypes.bool,
+    sidebarShown: PropTypes.bool,
 };
 const defaultProps = {
-    hamburgerShown: true,
+    sidebarShown: true,
 };
 
 class App extends React.Component {
@@ -50,9 +48,9 @@ class App extends React.Component {
         this.dismissHamburger = this.dismissHamburger.bind(this);
         this.showHamburger = this.showHamburger.bind(this);
         this.toggleHamburgerBasedOnDimensions = this.toggleHamburgerBasedOnDimensions.bind(this);
-        this.animationTranslateX = new Animated.Value(!props.hamburgerShown ? -300 : 0);
+        this.animationTranslateX = new Animated.Value(!props.sidebarShown ? -300 : 0);
 
-        Ion.set(IONKEYS.IS_SIDEBAR_SHOWN, props.hamburgerShown);
+        Ion.set(IONKEYS.IS_SIDEBAR_SHOWN, props.sidebarShown);
     }
 
     componentDidMount() {
@@ -75,7 +73,7 @@ class App extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (this.props.hamburgerShown === prevProps.hamburgerShown) {
+        if (this.props.sidebarShown === prevProps.sidebarShown) {
             // Nothing has changed
             return;
         }
@@ -86,7 +84,7 @@ class App extends React.Component {
             return;
         }
 
-        this.animateHamburger(prevProps.hamburgerShown);
+        this.animateHamburger(prevProps.sidebarShown);
     }
 
     componentWillUnmount() {
@@ -99,9 +97,9 @@ class App extends React.Component {
      */
     toggleHamburgerBasedOnDimensions({window: changedWindow}) {
         this.setState({isHamburgerEnabled: changedWindow.width <= widthBreakPoint});
-        if (!this.props.hamburgerShown && changedWindow.width > widthBreakPoint) {
+        if (!this.props.sidebarShown && changedWindow.width > widthBreakPoint) {
             Ion.set(IONKEYS.IS_SIDEBAR_SHOWN, true);
-        } else if (this.props.hamburgerShown && changedWindow.width < widthBreakPoint) {
+        } else if (this.props.sidebarShown && changedWindow.width < widthBreakPoint) {
             Ion.set(IONKEYS.IS_SIDEBAR_SHOWN, false);
         }
     }
@@ -112,7 +110,7 @@ class App extends React.Component {
      * Only changes hamburger state on small screens (e.g. Mobile and mWeb)
      */
     dismissHamburger() {
-        if (!this.props.hamburgerShown) {
+        if (!this.props.sidebarShown) {
             return;
         }
 
@@ -125,7 +123,7 @@ class App extends React.Component {
      * Only changes hamburger state on smaller screens (e.g. Mobile and mWeb)
      */
     showHamburger() {
-        if (this.props.hamburgerShown) {
+        if (this.props.sidebarShown) {
             return;
         }
 
@@ -163,7 +161,7 @@ class App extends React.Component {
         }
 
         // If the hamburger currently is not shown, we want to make it visible before the animation
-        if (!this.props.hamburgerShown) {
+        if (!this.props.sidebarShown) {
             Ion.set(IONKEYS.IS_SIDEBAR_SHOWN, true);
             return;
         }
@@ -173,9 +171,9 @@ class App extends React.Component {
     }
 
     render() {
-        const hamburgerStyle = this.state.isHamburgerEnabled && this.props.hamburgerShown
+        const hamburgerStyle = this.state.isHamburgerEnabled && this.props.sidebarShown
             ? styles.hamburgerOpenAbsolute : styles.hamburgerOpen;
-        const visibility = this.props.hamburgerShown ? styles.dFlex : styles.dNone;
+        const visibility = this.props.sidebarShown ? styles.dFlex : styles.dNone;
         const appContentWrapperStyle = !this.state.isHamburgerEnabled ? styles.appContentWrapperLarge : null;
         const appContentStyle = !this.state.isHamburgerEnabled ? styles.appContentRounded : null;
         return (
@@ -229,7 +227,7 @@ App.defaultProps = defaultProps;
 
 export default withIon(
     {
-        hamburgerShown: {
+        sidebarShown: {
             key: IONKEYS.IS_SIDEBAR_SHOWN
         },
     },
