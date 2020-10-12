@@ -2,7 +2,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { View, Image, Modal, TouchableOpacity, Text, Dimensions } from 'react-native';
 import styles from '../../style/StyleSheet';
+import ImageViewer from 'react-native-image-zoom-viewer';
 import _ from 'underscore';
+import Pdf from 'react-native-pdf';
+import Str from '../../lib/Str';
 
 /**
  * Text based component that is passed a URL to open onPress
@@ -43,10 +46,18 @@ class ImageModal extends React.Component {
     }
 
     render() {
+        let imageView;
+
+        if (Str.isPDF(this.props.srcURL)) {
+            imageView = <Pdf source={{ uri: this.props.srcURL }} style={styles.imageModalPDF} />;
+        } else {
+            imageView= <ImageViewer imageUrls={[{ url: this.props.srcURL, cache: true }]} enableSwipeDown={true} onSwipeDown={() => this.setModalVisiblity(false)} />;
+        }
+
         return (
             <>
                 <TouchableOpacity onPress={() => this.setModalVisiblity(true)} >
-                    <Image source={{ uri: this.props.previewSrcURL }} style={[this.props.style, {width: 200, height: 150}]} />
+                    <Image source={{ uri: this.props.previewSrcURL }} style={[this.props.style, {width: 200, height: 175}]} />
                 </TouchableOpacity>
 
                 <Modal
@@ -56,17 +67,11 @@ class ImageModal extends React.Component {
                 >
 
                     <View style={styles.imageModalHeader}>
-                        <Text onPress={() => this.setModalVisiblity(false)}>X</Text>
+                        <Text onPress={() => this.setModalVisiblity(false)} style={{color: 'white'}}>X</Text>
                     </View>
-
-                    <View style={styles.imageModal}>
-                        <View style={styles.imageModalPlaceholder}>
-                            <Image style={styles.imageModalImage}  source={{ uri: this.props.srcURL }} />
-                        </View>
-                    </View>
-      
+                    {imageView}
+                    
                 </Modal>
-
             </>
         );
     }
