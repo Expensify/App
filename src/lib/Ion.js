@@ -78,7 +78,9 @@ function updateLastAccessedKey(key, removeKey) {
 function keyChanged(key, data) {
     // Insert this key into the last accessed array to help us
     // decide which keys to delete if storage capacity is reached.
-    updateLastAccessedKey(key);
+    // If we have a falsy value for data we will remove this key from
+    // the list.
+    updateLastAccessedKey(key, !data);
 
     // Find all subscribers that were added with connect() and trigger the callback or setState() with the new data
     _.each(callbackToStateMapping, (subscriber) => {
@@ -205,7 +207,6 @@ function disconnect(connectionID) {
  */
 function remove(key) {
     return AsyncStorage.removeItem(key)
-        .then(() => updateLastAccessedKey(key, true))
         .then(() => keyChanged(key, null));
 }
 
