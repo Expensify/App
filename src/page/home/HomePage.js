@@ -27,10 +27,10 @@ const windowSize = Dimensions.get('window');
 const widthBreakPoint = 1000;
 
 const propTypes = {
-    sidebarShown: PropTypes.bool,
+    isSidebarShown: PropTypes.bool,
 };
 const defaultProps = {
-    sidebarShown: true,
+    isSidebarShown: true,
 };
 
 class App extends React.Component {
@@ -48,7 +48,7 @@ class App extends React.Component {
         this.dismissHamburger = this.dismissHamburger.bind(this);
         this.showHamburger = this.showHamburger.bind(this);
         this.toggleHamburgerBasedOnDimensions = this.toggleHamburgerBasedOnDimensions.bind(this);
-        this.animationTranslateX = new Animated.Value(!props.sidebarShown ? -300 : 0);
+        this.animationTranslateX = new Animated.Value(!props.isSidebarShown ? -300 : 0);
     }
 
     componentDidMount() {
@@ -71,7 +71,7 @@ class App extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (this.props.sidebarShown === prevProps.sidebarShown) {
+        if (this.props.isSidebarShown === prevProps.isSidebarShown) {
             // Nothing has changed
             return;
         }
@@ -82,7 +82,7 @@ class App extends React.Component {
             return;
         }
 
-        this.animateHamburger(prevProps.sidebarShown);
+        this.animateHamburger(prevProps.isSidebarShown);
     }
 
     componentWillUnmount() {
@@ -95,9 +95,9 @@ class App extends React.Component {
      */
     toggleHamburgerBasedOnDimensions({window: changedWindow}) {
         this.setState({isHamburgerEnabled: changedWindow.width <= widthBreakPoint});
-        if (!this.props.sidebarShown && changedWindow.width > widthBreakPoint) {
+        if (!this.props.isSidebarShown && changedWindow.width > widthBreakPoint) {
             showSidebar();
-        } else if (this.props.sidebarShown && changedWindow.width < widthBreakPoint) {
+        } else if (this.props.isSidebarShown && changedWindow.width < widthBreakPoint) {
             hideSidebar();
         }
     }
@@ -108,7 +108,7 @@ class App extends React.Component {
      * Only changes hamburger state on small screens (e.g. Mobile and mWeb)
      */
     dismissHamburger() {
-        if (!this.props.sidebarShown) {
+        if (!this.props.isSidebarShown) {
             return;
         }
 
@@ -121,7 +121,7 @@ class App extends React.Component {
      * Only changes hamburger state on smaller screens (e.g. Mobile and mWeb)
      */
     showHamburger() {
-        if (this.props.sidebarShown) {
+        if (this.props.isSidebarShown) {
             return;
         }
 
@@ -163,7 +163,7 @@ class App extends React.Component {
         }
 
         // If the hamburger currently is not shown, we want to make it visible before the animation
-        if (!this.props.sidebarShown) {
+        if (!this.props.isSidebarShown) {
             showSidebar();
             return;
         }
@@ -173,9 +173,9 @@ class App extends React.Component {
     }
 
     render() {
-        const hamburgerStyle = this.state.isHamburgerEnabled && this.props.sidebarShown
+        const hamburgerStyle = this.state.isHamburgerEnabled && this.props.isSidebarShown
             ? styles.hamburgerOpenAbsolute : styles.hamburgerOpen;
-        const visibility = this.props.sidebarShown ? styles.dFlex : styles.dNone;
+        const visibility = this.props.isSidebarShown ? styles.dFlex : styles.dNone;
         const appContentWrapperStyle = !this.state.isHamburgerEnabled ? styles.appContentWrapperLarge : null;
         const appContentStyle = !this.state.isHamburgerEnabled ? styles.appContentRounded : null;
         return (
@@ -229,7 +229,7 @@ App.defaultProps = defaultProps;
 
 export default withIon(
     {
-        sidebarShown: {
+        isSidebarShown: {
             key: IONKEYS.IS_SIDEBAR_SHOWN
         },
     },
