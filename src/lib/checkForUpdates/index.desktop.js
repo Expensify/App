@@ -12,6 +12,8 @@
  * https://github.com/electron/electron/issues/21457
  */
 
+const _ = require('underscore');
+
 const UPDATE_INTERVAL = 1000 * 60 * 60;
 
 /**
@@ -22,7 +24,7 @@ const UPDATE_INTERVAL = 1000 * 60 * 60;
  * @param {?Function} platformSpecificUpdater.init
  */
 function checkForUpdates(platformSpecificUpdater) {
-    if (platformSpecificUpdater.init) {
+    if (_.isFunction(platformSpecificUpdater.init)) {
         platformSpecificUpdater.init();
     }
 

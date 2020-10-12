@@ -96,10 +96,10 @@ const mainWindow = (() => {
         // Start checking for JS updates
         .then(() => checkForUpdates({
             // Check for a new version of the app on launch
-            init: () => autoUpdater.checkForUpdatesAndNotify,
+            init: () => autoUpdater.checkForUpdatesAndNotify(),
 
             // Set a timer to check for new versions of the app
-            update: () => autoUpdater.checkForUpdatesAndNotify,
+            update: () => autoUpdater.checkForUpdatesAndNotify(),
         }));
 });
 
