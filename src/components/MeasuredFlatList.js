@@ -92,9 +92,9 @@ class MeasuredFlatList extends Component {
 
         // We've already measured this item so we don't need to
         // measure it again.
-        if (this.sizeMap[index]) {
-            return;
-        }
+        // if (this.sizeMap[index]) {
+        //     return;
+        // }
 
         const previousItem = this.sizeMap[index - 1] || {};
 

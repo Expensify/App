@@ -50,8 +50,8 @@ class ReportActionsView extends React.Component {
     componentDidMount() {
         if (this.props.isActiveReport) {
             this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
-            this.scrollToListBottom();
         }
+        this.scrollToListBottom();
         fetchActions(this.props.reportID);
     }
 
@@ -148,10 +148,12 @@ class ReportActionsView extends React.Component {
      */
     scrollToListBottom() {
         if (this.actionListElement) {
-            const lastIndex = lodashGet(this.actionListElement, 'props.data.length', 1) - 1;
-            this.actionListElement.scrollToIndex({animated: false, index: lastIndex});
+            const item = lastItem(this.sortedReportActions);
+            this.actionListElement.scrollToIndex({animated: false, index: item.index});
         }
-        this.recordMaxAction();
+        if (this.props.isActiveReport) {
+            this.recordMaxAction();
+        }
     }
 
     /**
