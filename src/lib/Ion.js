@@ -10,6 +10,7 @@ let lastConnectionID = 0;
 // Holds a mapping of all the react components that want their state subscribed to a store key
 const callbackToStateMapping = {};
 
+// Hold a list of keys that have changed ordered from least recent to most recent
 let recentlyAccessedKeys = [];
 
 /**
