@@ -6,7 +6,6 @@ import Ion from '../Ion';
 import * as API from '../API';
 import IONKEYS from '../../IONKEYS';
 import * as Pusher from '../Pusher/pusher';
-import promiseAllSettled from '../promiseAllSettled';
 import Notification from '../Notification';
 import * as PersonalDetails from './PersonalDetails';
 import {redirect} from './App';
@@ -279,10 +278,9 @@ function fetchActions(reportID) {
  * @param {boolean} shouldFetchActions whether or not the actions of the reports should also be fetched
  */
 function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false) {
-
     fetchChatReports()
         .then((data) => {
-            let fetchedReports = _.compact(_.map(data, (promiseResult) => {
+            const fetchedReports = _.compact(_.map(data, (promiseResult) => {
                 // Grab the report from the promise result which stores it in the `value` key
                 const report = lodashGet(promiseResult, 'value.reports', {});
 
