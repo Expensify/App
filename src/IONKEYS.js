@@ -12,6 +12,7 @@ export default {
     NETWORK: 'network',
     PERSONAL_DETAILS: 'personalDetails',
     SESSION: 'session',
+    REAUTHENTICATING: 'reauthenticating',
 
     // Collection Keys
     COLLECTION: {
