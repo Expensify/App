@@ -217,12 +217,18 @@ function remove(key) {
 
 /**
  * Checks to see if we have any subscribers for a given key.
+ * This returns true if the key is explicitly subscribed to
+ * or when something is subscribing to a collection that this
+ * key belongs to.
  *
  * @param {String} key
  * @returns {Boolean}
  */
 function hasSubscriberForKey(key) {
-    return _.any(callbackToStateMapping, mapping => mapping.key === key);
+    return _.any(callbackToStateMapping, mapping => (
+        mapping.key === key
+            || isKeyMatch(mapping.key, key)
+    ));
 }
 
 /**
@@ -250,6 +256,22 @@ function getLargestKey(keys) {
 }
 
 /**
+ * Checks to be sure this key belongs to Ion
+ * and is not some random key in storage.
+ *
+ * @param {String} testKey
+ * @return {Boolean}
+ */
+function isIonKey(testKey) {
+    const singleIonKeys = _.reduce(IONKEYS, (keys, key) => (
+        _.isString(key) ? [...keys, key] : keys
+    ), []);
+
+    return _.contains(singleIonKeys, testKey)
+        || isCollectionKey(`${lodashGet(testKey.split('_'), 0, '')}_`);
+}
+
+/**
  * If we fail to set or merge we must handle this by
  * evicting some data from Ion and then retrying to do
  * whatever it is we attempted to do.
@@ -269,15 +291,11 @@ function evictStorageAndRetry(error, ionMethod, ...args) {
             let neverAccessedKeys = _.difference(allKeys, recentlyAccessedKeys);
             neverAccessedKeys = _.filter(neverAccessedKeys, key => (
 
-                // Omit reports since there may be reports that are not being explicitly subscribed to
-                // but all reports are needed so that the LHN populates correctly
-                !Str.startsWith(key, IONKEYS.COLLECTION.REPORT)
+                // There are keys that should never be removed as they are not added by Ion
+                isIonKey(key)
 
                     // Do not include anything that has a subscriber to be on the safe side
                     && !hasSubscriberForKey(key)
-
-                    // These keys should never be removed as they are not added by Ion
-                    && !_.contains(['pusherTransportTLS', 'loglevel:webpack-dev-server'], key)
             ));
 
             if (neverAccessedKeys.length > 0) {
@@ -295,8 +313,7 @@ function evictStorageAndRetry(error, ionMethod, ...args) {
             // We did not find any keys that have never been accessed so let's look at the list of
             // keys that have been accessed.
             const leastRecentlyAccessedKeyWithoutSubscribers = _.find(recentlyAccessedKeys || [], key => (
-                !Str.startsWith(key, IONKEYS.COLLECTION.REPORT)
-                    && !hasSubscriberForKey(key)
+                !hasSubscriberForKey(key)
             ));
 
             if (leastRecentlyAccessedKeyWithoutSubscribers) {
