@@ -3,7 +3,7 @@ import App from '../src/App';
 import {name as appName} from '../app.json';
 import checkForUpdates from '../src/lib/checkForUpdates';
 import HttpUtils from '../src/lib/HttpUtils';
-import isVisible from '../src/lib/Visibility';
+import Visibility from '../src/lib/Visibility';
 
 AppRegistry.registerComponent('App', () => App);
 AppRegistry.registerComponent(appName, () => App);
@@ -22,7 +22,7 @@ function webUpdate(currentVersion) {
     HttpUtils.download('version.json')
         .then(({version: newVersion}) => {
             if (newVersion !== currentVersion) {
-                if (!isVisible()) {
+                if (!Visibility.isVisible()) {
                     // Page is hidden, refresh immediately
                     window.location.reload(true);
                     return;
@@ -48,7 +48,7 @@ const webUpdater = currentVersion => ({
         // That way, it will auto-update silently when they minimize the page,
         // and we don't bug the user any more than necessary :)
         window.addEventListener('visibilitychange', () => {
-            if (!isVisible()) {
+            if (!Visibility.isVisible()) {
                 webUpdate(currentVersion);
             }
         });
