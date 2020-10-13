@@ -5,13 +5,13 @@ import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import Text from '../../../components/Text';
 import withIon from '../../../components/withIon';
-import {fetchActions, updateLastReadActionID} from '../../../lib/actions/Report';
+import {fetchActions, updateLastReadActionID} from '../../../libs/actions/Report';
 import IONKEYS from '../../../IONKEYS';
 import ReportActionItem from './ReportActionItem';
 import styles from '../../../style/StyleSheet';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import InvertedFlatList from '../../../components/InvertedFlatList';
-import {lastItem} from '../../../lib/CollectionUtils';
+import {lastItem} from '../../../libs/CollectionUtils';
 
 const propTypes = {
     // The ID of the report actions will be created for

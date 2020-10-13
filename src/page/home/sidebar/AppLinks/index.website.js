@@ -1,7 +1,7 @@
 import React from 'react';
 
 import styles from '../../../../style/StyleSheet';
-import openURLInNewTab from '../../../../lib/openURLInNewTab';
+import openURLInNewTab from '../../../../libs/openURLInNewTab';
 import Text from '../../../../components/Text';
 
 const AppLinks = () => (

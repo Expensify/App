@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {Text} from 'react-native';
-import DateUtils from '../../../lib/DateUtils';
+import DateUtils from '../../../libs/DateUtils';
 import styles from '../../../style/StyleSheet';
 
 const propTypes = {

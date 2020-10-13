@@ -4,12 +4,12 @@ import {
     Linking, ActivityIndicator, View, Dimensions
 } from 'react-native';
 import PropTypes from 'prop-types';
-import Str from '../../../lib/Str';
+import Str from '../../../libs/Str';
 import ReportActionFragmentPropTypes from './ReportActionFragmentPropTypes';
 import styles, {webViewStyles, colors} from '../../../style/StyleSheet';
 import Text from '../../../components/Text';
 import AnchorForCommentsOnly from '../../../components/AnchorForCommentsOnly';
-import {getAuthToken} from '../../../lib/API';
+import {getAuthToken} from '../../../libs/API';
 import InlineCodeBlock from '../../../components/InlineCodeBlock';
 
 const propTypes = {

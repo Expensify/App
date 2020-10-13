@@ -7,9 +7,9 @@ import TextInputFocusable from '../../../components/TextInputFocusable';
 import sendIcon from '../../../../assets/images/icon-send.png';
 import IONKEYS from '../../../IONKEYS';
 import paperClipIcon from '../../../../assets/images/icon-paper-clip.png';
-import ImagePicker from '../../../lib/ImagePicker';
+import ImagePicker from '../../../libs/ImagePicker';
 import withIon from '../../../components/withIon';
-import {addAction, saveReportComment} from '../../../lib/actions/Report';
+import {addAction, saveReportComment} from '../../../libs/actions/Report';
 
 const propTypes = {
     // A method to call when the form is submitted

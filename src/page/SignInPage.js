@@ -12,9 +12,9 @@ import {
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import CONFIG from '../CONFIG';
-import compose from '../lib/compose';
-import {withRouter} from '../lib/Router';
-import {signIn} from '../lib/actions/Session';
+import compose from '../libs/compose';
+import {withRouter} from '../libs/Router';
+import {signIn} from '../libs/actions/Session';
 import IONKEYS from '../IONKEYS';
 import withIon from '../components/withIon';
 import styles, {colors} from '../style/StyleSheet';

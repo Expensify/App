@@ -3,12 +3,12 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import withIon from '../../../components/withIon';
 import IONKEYS from '../../../IONKEYS';
-import Str from '../../../lib/Str';
-import KeyboardShortcut from '../../../lib/KeyboardShortcut';
+import Str from '../../../libs/Str';
+import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import ChatSwitcherList from './ChatSwitcherList';
 import ChatSwitcherSearchForm from './ChatSwitcherSearchForm';
-import {fetchOrCreateChatReport} from '../../../lib/actions/Report';
-import {redirect} from '../../../lib/actions/App';
+import {fetchOrCreateChatReport} from '../../../libs/actions/Report';
+import {redirect} from '../../../libs/actions/App';
 import ROUTES from '../../../ROUTES';
 
 const personalDetailsPropTypes = PropTypes.shape({

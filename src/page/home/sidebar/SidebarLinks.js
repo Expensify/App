@@ -9,10 +9,10 @@ import SidebarLink from './SidebarLink';
 import withIon from '../../../components/withIon';
 import IONKEYS from '../../../IONKEYS';
 import ChatSwitcherView from './ChatSwitcherView';
-import PageTitleUpdater from '../../../lib/PageTitleUpdater';
+import PageTitleUpdater from '../../../libs/PageTitleUpdater';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
-import compose from '../../../lib/compose';
-import {withRouter} from '../../../lib/Router';
+import compose from '../../../libs/compose';
+import {withRouter} from '../../../libs/Router';
 
 const propTypes = {
     // These are from withRouter

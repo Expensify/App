@@ -5,9 +5,9 @@ import Text from '../../components/Text';
 import styles from '../../style/StyleSheet';
 import IONKEYS from '../../IONKEYS';
 import withIon from '../../components/withIon';
-import {withRouter} from '../../lib/Router';
+import {withRouter} from '../../libs/Router';
 import LHNToggle from '../../../assets/images/icon-menu-toggle.png';
-import compose from '../../lib/compose';
+import compose from '../../libs/compose';
 
 const propTypes = {
     // Toggles the hamburger menu open and closed
