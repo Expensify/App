@@ -1,5 +1,6 @@
 // We place items a percentage to the safe area on the top or bottom of the screen
 import fontFamily from './fontFamily';
+import italic from './italic';
 
 const safeInsertPercentage = 0.7;
 
@@ -9,10 +10,12 @@ const colors = {
     black: '#000000',
     blue: '#2EAAE2',
     border: '#ECECEC',
+    borderLight: '#E0E0E0',
     green: '#2ECB70',
     heading: '#37444C',
     icon: '#C6C9CA',
     text: '#4A5960',
+    textBackground: '#F0F0F0',
     textReversed: '#FFFFFF',
     textSupporting: '#7D8B8F',
     red: '#E84A3B',
@@ -54,6 +57,10 @@ const styles = {
     },
     mb4: {
         marginBottom: 16,
+    },
+
+    mbn5: {
+        marginBottom: -5,
     },
 
     p1: {
@@ -160,11 +167,9 @@ const styles = {
     },
 
     // Actions
-    actionAvatarWrapper: {
-        width: 40,
-    },
     actionAvatar: {
         borderRadius: 20,
+        marginRight: 8,
         height: 40,
         width: 40,
     },
@@ -177,6 +182,7 @@ const styles = {
         borderWidth: 1,
         color: colors.text,
         fontFamily: fontFamily.GTA,
+        fontSize: 15,
         padding: 12,
         textAlignVertical: 'center',
     },
@@ -222,6 +228,7 @@ const styles = {
 
     genericView: {
         backgroundColor: colors.heading,
+        height: '100%',
     },
 
     signInPageInner: {
@@ -450,7 +457,7 @@ const styles = {
 
     chatContentScrollView: {
         flexGrow: 1,
-        justifyContent: 'flex-end',
+        justifyContent: 'flex-start',
         paddingVertical: 16,
     },
 
@@ -469,12 +476,6 @@ const styles = {
         paddingBottom: 8,
         paddingLeft: 20,
         paddingRight: 20,
-    },
-
-    chatItemLeft: {
-        display: 'flex',
-        flexShrink: 0,
-        marginRight: 8,
     },
 
     chatItemRightGrouped: {
@@ -534,10 +535,17 @@ const styles = {
         display: 'flex',
     },
 
+    chatItemComposeBoxColor: {
+        borderColor: colors.border,
+    },
+
+    chatItemComposeBoxFocusedColor: {
+        borderColor: colors.blue,
+    },
+
     chatItemComposeBox: {
         backgroundColor: colors.componentBG,
         borderWidth: 1,
-        borderColor: colors.border,
         borderRadius: 8,
         minHeight: 40,
     },
@@ -587,6 +595,17 @@ const styles = {
         marginTop: 6,
         justifyContent: 'center',
         width: 39,
+    },
+
+    chatItemAttachmentPlaceholder: {
+        backgroundColor: colors.border,
+        borderColor: colors.borderLight,
+        borderWidth: 1,
+        borderRadius: 8,
+        height: 150,
+        textAlign: 'center',
+        verticalAlign: 'middle',
+        width: 200,
     },
 
     chatSwitcherInputClear: {
@@ -652,11 +671,32 @@ const styles = {
     },
 };
 
+const baseCodeTagStyles = {
+    borderWidth: 1,
+    borderRadius: 5,
+    borderColor: colors.border,
+    backgroundColor: colors.textBackground,
+};
+
 const webViewStyles = {
+    preTagStyle: {
+        ...baseCodeTagStyles,
+        paddingTop: 4,
+        paddingBottom: 5,
+        paddingRight: 8,
+        paddingLeft: 8,
+    },
+    codeTagStyle: {
+        ...baseCodeTagStyles,
+        paddingLeft: 5,
+        paddingRight: 5,
+        paddingBottom: 2,
+        alignSelf: 'flex-start',
+    },
     tagStyles: {
         em: {
-            fontStyle: 'italic',
-            fontFamily: fontFamily.SYSTEM,
+            fontFamily: fontFamily.GTA_ITALIC,
+            fontStyle: italic,
         },
 
         del: {
@@ -665,18 +705,33 @@ const webViewStyles = {
         },
 
         strong: {
+            fontFamily: fontFamily.GTA_BOLD,
             fontWeight: '600',
         },
 
         a: {
             color: colors.blue
+        },
+
+        pre: {
+            fontFamily: fontFamily.MONOSPACE,
+        },
+
+        code: {
+            fontFamily: fontFamily.MONOSPACE,
+        },
+
+        img: {
+            borderColor: colors.border,
+            borderRadius: 8,
+            borderWidth: 1,
         }
     },
 
     baseFontStyle: {
         color: colors.text,
         fontSize: 15,
-        fontFamily: fontFamily.GTA
+        fontFamily: fontFamily.GTA,
     }
 };
 

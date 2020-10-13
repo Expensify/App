@@ -1,15 +1,16 @@
 import React from 'react';
-import styles from '../../../style/StyleSheet';
-import openURLInNewTab from '../../../lib/openURLInNewTab';
-import Text from '../../../components/Text';
+
+import styles from '../../../../style/StyleSheet';
+import openURLInNewTab from '../../../../lib/openURLInNewTab';
+import Text from '../../../../components/Text';
 
 const AppLinks = () => (
     <>
         <Text
             style={[styles.sidebarFooterLink, styles.mr2]}
-            onPress={() => openURLInNewTab('https://chat.expensify.com/Chat.dmg')}
+            onPress={() => openURLInNewTab('https://chat.expensify.com')}
         >
-            Desktop
+            Web
         </Text>
         <Text
             style={[styles.sidebarFooterLink, styles.mr2]}

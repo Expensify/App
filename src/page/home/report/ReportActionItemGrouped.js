@@ -10,21 +10,13 @@ const propTypes = {
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
 };
 
-class ReportActionItemGrouped extends React.PureComponent {
-    render() {
-        const {action} = this.props;
-        return (
-            <View style={[styles.chatItem]}>
-                <View style={[styles.chatItemRightGrouped]}>
-                    <View style={[styles.chatItemMessage]}>
-                        <ReportActionItemMessage action={action} />
-                    </View>
-                </View>
-            </View>
-        );
-    }
-}
+const ReportActionItemGrouped = ({action}) => (
+    <View style={[styles.chatItem]}>
+        <View style={[styles.chatItemRightGrouped]}>
+            <ReportActionItemMessage action={action} />
+        </View>
+    </View>
+);
 
 ReportActionItemGrouped.propTypes = propTypes;
-
 export default ReportActionItemGrouped;

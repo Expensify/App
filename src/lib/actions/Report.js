@@ -1,16 +1,20 @@
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
+import ExpensiMark from 'js-libs/lib/ExpensiMark';
 import Ion from '../Ion';
-import {queueRequest, onReconnect} from '../API';
+import * as API from '../API';
 import IONKEYS from '../../IONKEYS';
 import CONFIG from '../../CONFIG';
 import * as Pusher from '../Pusher/pusher';
 import promiseAllSettled from '../promiseAllSettled';
-import ExpensiMark from '../ExpensiMark';
 import Notification from '../Notification';
 import * as PersonalDetails from './PersonalDetails';
 import {redirect} from './App';
+import * as ActiveClientManager from '../ActiveClientManager';
+import Visibility from '../Visibility';
+import ROUTES from '../../ROUTES';
+import NetworkConnection from '../NetworkConnection';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -31,11 +35,10 @@ Ion.connect({
     callback: val => currentURL = val,
 });
 
-// Use a regex pattern here for an exact match so it doesn't also match "my_personal_details"
-let personalDetails;
+let lastViewedReportID;
 Ion.connect({
-    key: `^${IONKEYS.PERSONAL_DETAILS}$`,
-    callback: val => personalDetails = val,
+    key: IONKEYS.CURRENTLY_VIEWED_REPORTID,
+    callback: val => lastViewedReportID = val ? Number(val) : null,
 });
 
 let myPersonalDetails;
@@ -44,7 +47,11 @@ Ion.connect({
     callback: val => myPersonalDetails = val,
 });
 
+// Keeps track of the max sequence number for each report
 const reportMaxSequenceNumbers = {};
+
+// Keeps track of the last read for each report
+const lastReadActionIDs = {};
 
 // List of reportIDs that we define in .env
 const configReportIDs = CONFIG.REPORT_IDS.split(',').map(Number);
@@ -55,29 +62,27 @@ const configReportIDs = CONFIG.REPORT_IDS.split(',').map(Number);
  * @param {object} report
  * @returns {boolean}
  */
-function hasUnreadActions(report) {
+function getUnreadActionCount(report) {
     const usersLastReadActionID = lodashGet(report, [
         'reportNameValuePairs',
         `lastReadActionID_${currentUserAccountID}`,
     ]);
 
+    // Save the lastReadActionID locally so we can access this later
+    lastReadActionIDs[report.reportID] = usersLastReadActionID;
+
     if (report.reportActionList.length === 0) {
-        return false;
+        return 0;
     }
 
     if (!usersLastReadActionID) {
-        return true;
+        return report.reportActionList.length;
     }
 
-    // Find the most recent sequence number from the report actions
-    const maxSequenceNumber = reportMaxSequenceNumbers[report.reportID];
-
-    if (!maxSequenceNumber) {
-        return false;
-    }
-
-    // There are unread items if the last one the user has read is less than the highest sequence number we have
-    return usersLastReadActionID < maxSequenceNumber;
+    // There are unread items if the last one the user has read is less
+    // than the highest sequence number we have
+    const unreadActionCount = report.reportActionList.length - usersLastReadActionID;
+    return Math.max(0, unreadActionCount);
 }
 
 /**
@@ -95,9 +100,10 @@ function getSimplifiedReportObject(report) {
         reportID: report.reportID,
         reportName: report.reportName,
         reportNameValuePairs: report.reportNameValuePairs,
-        hasUnread: hasUnreadActions(report),
+        unreadActionCount: getUnreadActionCount(report),
         pinnedReport: configReportIDs.includes(report.reportID),
         canModifyPin: !configReportIDs.includes(report.reportID),
+        maxSequenceNumber: report.reportActionList.length,
     };
 }
 
@@ -111,7 +117,7 @@ function getChatReportName(sharedReportList) {
     return _.chain(sharedReportList)
         .map(participant => participant.email)
         .filter(participant => participant !== currentUserEmail)
-        .map(participant => lodashGet(personalDetails, [participant, 'firstName']) || participant)
+        .map(participant => PersonalDetails.getDisplayName(participant))
         .value()
         .join(', ');
 }
@@ -121,11 +127,11 @@ function getChatReportName(sharedReportList) {
  * chat report IDs
  *
  * @param {Array} chatList
- * @return {Promise}
+ * @return {Promise} only used internally when fetchAll() is called
  */
 function fetchChatReportsByIDs(chatList) {
     let fetchedReports;
-    return queueRequest('Get', {
+    return API.get({
         returnValueList: 'reportStuff',
         reportIDList: chatList.join(','),
         shouldLoadOptionalKeys: true,
@@ -150,21 +156,19 @@ function fetchChatReportsByIDs(chatList) {
                 PersonalDetails.getForEmails(emails.join(','));
             }
 
-
             // Process the reports and store them in Ion
-            const ionPromises = _.map(fetchedReports, (report) => {
+            _.each(fetchedReports, (report) => {
                 const newReport = getSimplifiedReportObject(report);
 
                 if (lodashGet(report, 'reportNameValuePairs.type') === 'chat') {
                     newReport.reportName = getChatReportName(report.sharedReportList);
                 }
 
-                // Merge the data into Ion. Don't use set() here or multiSet() because then that would
-                // overwrite any existing data (like if they have unread messages)
-                return Ion.merge(`${IONKEYS.REPORT}_${report.reportID}`, newReport);
+                // Merge the data into Ion
+                Ion.merge(`${IONKEYS.COLLECTION.REPORT}${report.reportID}`, newReport);
             });
 
-            return Promise.all(ionPromises);
+            return _.map(fetchedReports, report => report.reportID);
         });
 }
 
@@ -175,51 +179,45 @@ function fetchChatReportsByIDs(chatList) {
  * @param {object} reportAction
  */
 function updateReportWithNewAction(reportID, reportAction) {
+    const newMaxSequenceNumber = reportAction.sequenceNumber;
+
     // Always merge the reportID into Ion
     // If the report doesn't exist in Ion yet, then all the rest of the data will be filled out
     // by handleReportChanged
-    Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {
+    Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {
         reportID,
+        unreadActionCount: newMaxSequenceNumber - (lastReadActionIDs[reportID] || 0),
         maxSequenceNumber: reportAction.sequenceNumber,
     });
 
-    const previousMaxSequenceNumber = reportMaxSequenceNumbers[reportID];
-    const newMaxSequenceNumber = reportAction.sequenceNumber;
-
-    // Mark the report as unread if there is a new max sequence number
-    if (newMaxSequenceNumber > previousMaxSequenceNumber) {
-        Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {
-            hasUnread: true,
-            maxSequenceNumber: newMaxSequenceNumber,
-        });
-    }
-
     // Add the action into Ion
-    Ion.merge(`${IONKEYS.REPORT_ACTIONS}_${reportID}`, {
+    Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         [reportAction.sequenceNumber]: reportAction,
     });
 
+    if (!ActiveClientManager.isClientTheLeader()) {
+        console.debug('[NOTIFICATION] Skipping notification because this client is not the leader');
+        return;
+    }
+
     // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
-    if (reportAction.actorEmail === currentUserEmail) {
+    if (reportAction.actorAccountID === currentUserAccountID) {
         console.debug('[NOTIFICATION] No notification because comment is from the currently logged in user');
         return;
     }
 
-    const currentReportID = Number(lodashGet(currentURL.split('/'), [1], 0));
-
     // If we are currently viewing this report do not show a notification.
-    if (reportID === currentReportID) {
+    if (reportID === lastViewedReportID && Visibility.isVisible()) {
         console.debug('[NOTIFICATION] No notification because it was a comment for the current report');
         return;
     }
-
 
     console.debug('[NOTIFICATION] Creating notification');
     Notification.showCommentNotification({
         reportAction,
         onClick: () => {
             // Navigate to this report onClick
-            redirect(reportID);
+            redirect(ROUTES.getReportRoute(reportID));
         }
     });
 }
@@ -228,6 +226,11 @@ function updateReportWithNewAction(reportID, reportAction) {
  * Initialize our pusher subscriptions to listen for new report comments
  */
 function subscribeToReportCommentEvents() {
+    // If we don't have the user's accountID yet we can't subscribe so return early
+    if (!currentUserAccountID) {
+        return;
+    }
+
     const pusherChannelName = `private-user-accountID-${currentUserAccountID}`;
     if (Pusher.isSubscribed(pusherChannelName) || Pusher.isAlreadySubscribing(pusherChannelName)) {
         return;
@@ -242,10 +245,10 @@ function subscribeToReportCommentEvents() {
  * Get all chat reports and provide the proper report name
  * by fetching sharedReportList and personalDetails
  *
- * @returns {Promise}
+ * @returns {Promise} only used internally when fetchAll() is called
  */
 function fetchChatReports() {
-    return queueRequest('Get', {
+    return API.get({
         returnValueList: 'chatList',
     })
 
@@ -254,29 +257,39 @@ function fetchChatReports() {
 }
 
 /**
- * Get all of our reports
+ * Get the actions of a report
+ *
+ * @param {number} reportID
+ */
+function fetchActions(reportID) {
+    API.getReportHistory({reportID})
+        .then((data) => {
+            const indexedData = _.indexBy(data.history, 'sequenceNumber');
+            const maxSequenceNumber = _.chain(data.history)
+                .pluck('sequenceNumber')
+                .max()
+                .value();
+            Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, indexedData);
+            Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {maxSequenceNumber});
+        });
+}
+
+/**
+ * Get all of our hardcoded reports
  *
  * @returns {Promise}
  */
-function fetchAll() {
-    let fetchedReports;
-
+function fetchHardcodedReports() {
     // Request each report one at a time to allow individual reports to fail if access to it is prevented by Auth
-    const reportFetchPromises = _.map(configReportIDs, reportID => queueRequest('Get', {
+    const reportFetchPromises = _.map(configReportIDs, reportID => API.get({
         returnValueList: 'reportStuff',
         reportIDList: reportID,
         shouldLoadOptionalKeys: true,
     }));
 
-    // Chat reports need to be fetched separately than the reports hard-coded in the config
-    // files. The promise for fetching them is added to the array of promises here so
-    // that both types of reports (chat reports and hard-coded reports) are fetched in
-    // parallel
-    reportFetchPromises.push(fetchChatReports());
-
     return promiseAllSettled(reportFetchPromises)
         .then((data) => {
-            fetchedReports = _.compact(_.map(data, (promiseResult) => {
+            const fetchedReports = _.compact(_.map(data, (promiseResult) => {
                 // Grab the report from the promise result which stores it in the `value` key
                 const report = lodashGet(promiseResult, 'value.reports', {});
 
@@ -285,35 +298,46 @@ function fetchAll() {
                 return _.isEmpty(report) ? null : _.values(report)[0];
             }));
 
-            // Store the first report ID in Ion
-            Ion.set(IONKEYS.FIRST_REPORT_ID, _.first(_.pluck(fetchedReports, 'reportID')) || 0);
-
             _.each(fetchedReports, (report) => {
                 // Merge the data into Ion. Don't use set() here or multiSet() because then that would
                 // overwrite any existing data (like if they have unread messages)
-                Ion.merge(`${IONKEYS.REPORT}_${report.reportID}`, getSimplifiedReportObject(report));
+                Ion.merge(`${IONKEYS.COLLECTION.REPORT}${report.reportID}`, getSimplifiedReportObject(report));
             });
 
-            return fetchedReports;
+            return _.map(fetchedReports, report => report.reportID);
         });
 }
 
 /**
- * Get the actions of a report
+ * Get all of our reports
  *
- * @param {number} reportID
- * @returns {Promise}
+ * @param {boolean} shouldRedirectToReport this is set to false when the network reconnect
+ *     code runs
+ * @param {boolean} shouldFetchActions whether or not the actions of the reports should also be fetched
  */
-function fetchActions(reportID) {
-    return queueRequest('Report_GetHistory', {reportID})
-        .then((data) => {
-            const indexedData = _.indexBy(data.history, 'sequenceNumber');
-            const maxSequenceNumber = _.chain(data.history)
-                .pluck('sequenceNumber')
-                .max()
-                .value();
-            Ion.set(`${IONKEYS.REPORT_ACTIONS}_${reportID}`, indexedData);
-            Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {maxSequenceNumber});
+function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false) {
+    Promise.all([
+        fetchChatReports(),
+        fetchHardcodedReports()
+    ])
+        .then((promiseResults) => {
+            const reportIDs = _.flatten(promiseResults);
+
+            if (shouldRedirectToReport && (currentURL === ROUTES.ROOT || currentURL === ROUTES.HOME)) {
+                // Redirect to either the last viewed report ID or the first report ID from our report collection
+                if (lastViewedReportID) {
+                    redirect(ROUTES.getReportRoute(lastViewedReportID));
+                } else {
+                    redirect(ROUTES.getReportRoute(_.first(reportIDs)));
+                }
+            }
+
+            if (shouldFetchActions) {
+                _.each(reportIDs, (reportID) => {
+                    console.debug(`[RECONNECT] Fetching report actions for report ${reportID}`);
+                    fetchActions(reportID);
+                });
+            }
         });
 }
 
@@ -322,12 +346,15 @@ function fetchActions(reportID) {
  * set of participants
  *
  * @param {string[]} participants
- * @returns {Promise} resolves with reportID
  */
 function fetchOrCreateChatReport(participants) {
     let reportID;
 
-    return queueRequest('CreateChatReport', {
+    if (participants.length < 2) {
+        throw new Error('fetchOrCreateChatReport() must have at least two participants');
+    }
+
+    API.createChatReport({
         emailList: participants.join(','),
     })
 
@@ -336,7 +363,7 @@ function fetchOrCreateChatReport(participants) {
             reportID = data.reportID;
 
             // Make a request to get all the information about the report
-            return queueRequest('Get', {
+            return API.get({
                 returnValueList: 'reportStuff',
                 reportIDList: reportID,
                 shouldLoadOptionalKeys: true,
@@ -353,10 +380,10 @@ function fetchOrCreateChatReport(participants) {
 
             // Merge the data into Ion. Don't use set() here or multiSet() because then that would
             // overwrite any existing data (like if they have unread messages)
-            Ion.merge(`${IONKEYS.REPORT}_${reportID}`, newReport);
+            Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, newReport);
 
-            // Return the reportID as the final return value
-            return reportID;
+            // Redirect the logged in person to the new report
+            redirect(ROUTES.getReportRoute(reportID));
         });
 }
 
@@ -365,20 +392,22 @@ function fetchOrCreateChatReport(participants) {
  *
  * @param {number} reportID
  * @param {string} text
+ * @param {object} file
  */
-function addAction(reportID, text) {
-    const actionKey = `${IONKEYS.REPORT_ACTIONS}_${reportID}`;
+function addAction(reportID, text, file) {
+    const actionKey = `${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
 
     // Convert the comment from MD into HTML because that's how it is stored in the database
     const parser = new ExpensiMark();
     const htmlComment = parser.replace(text);
+    const isAttachment = _.isEmpty(text) && file !== undefined;
 
     // The new sequence number will be one higher than the highest
     let highestSequenceNumber = reportMaxSequenceNumbers[reportID] || 0;
     const newSequenceNumber = highestSequenceNumber + 1;
 
     // Update the report in Ion to have the new sequence number
-    Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {
+    Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {
         maxSequenceNumber: newSequenceNumber,
     });
 
@@ -401,20 +430,22 @@ function addAction(reportID, text) {
             message: [
                 {
                     type: 'COMMENT',
-                    html: htmlComment,
+                    html: isAttachment ? 'Uploading Attachment...' : htmlComment,
 
                     // Remove HTML from text when applying optimistic offline comment
-                    text: htmlComment.replace(/<[^>]*>?/gm, ''),
+                    text: isAttachment ? 'Uploading Attachment...'
+                        : htmlComment.replace(/<[^>]*>?/gm, ''),
                 }
             ],
             isFirstItem: false,
-            isAttachmentPlaceHolder: false,
+            isAttachment,
         }
     });
 
-    queueRequest('Report_AddComment', {
+    API.addReportComment({
         reportID,
         reportComment: htmlComment,
+        file
     });
 }
 
@@ -422,23 +453,28 @@ function addAction(reportID, text) {
  * Updates the last read action ID on the report. It optimistically makes the change to the store, and then let's the
  * network layer handle the delayed write.
  *
- * @param {string} accountID
  * @param {number} reportID
  * @param {number} sequenceNumber
  */
-function updateLastReadActionID(accountID, reportID, sequenceNumber) {
-    // Mark the report as not having any unread items
-    Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {
-        hasUnread: false,
+function updateLastReadActionID(reportID, sequenceNumber) {
+    const currentMaxSequenceNumber = reportMaxSequenceNumbers[reportID];
+    if (sequenceNumber < currentMaxSequenceNumber) {
+        return;
+    }
+
+    lastReadActionIDs[reportID] = sequenceNumber;
+
+    // Update the lastReadActionID on the report optimistically
+    Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {
+        unreadActionCount: 0,
         reportNameValuePairs: {
-            [`lastReadActionID_${accountID}`]: sequenceNumber,
+            [`lastReadActionID_${currentUserAccountID}`]: sequenceNumber,
         }
     });
 
-
-    // Update the lastReadActionID on the report optimistically
-    queueRequest('Report_SetLastReadActionID', {
-        accountID,
+    // Mark the report as not having any unread items
+    API.setLastReadActionID({
+        accountID: currentUserAccountID,
         reportID,
         sequenceNumber,
     });
@@ -469,7 +505,7 @@ function togglePinnedState(reportID, isPinned) {
  * @param {string} comment
  */
 function saveReportComment(reportID, comment) {
-    Ion.set(`${IONKEYS.REPORT_DRAFT_COMMENT}_${reportID}`, comment);
+    Ion.merge(`${IONKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, comment);
 }
 
 /**
@@ -479,21 +515,29 @@ function saveReportComment(reportID, comment) {
  * @param {object} report
  */
 function handleReportChanged(report) {
+    if (!report) {
+        return;
+    }
+
+    // A report can be missing a name if a comment is received via pusher event
+    // and the report does not yet exist in Ion (eg. a new DM created with the logged in person)
     if (report.reportName === undefined) {
         fetchChatReportsByIDs([report.reportID]);
     }
 
+    // Store the max sequence number for each report
     reportMaxSequenceNumbers[report.reportID] = report.maxSequenceNumber;
 }
 Ion.connect({
-    key: `${IONKEYS.REPORT}_[0-9]+$`,
+    key: IONKEYS.COLLECTION.REPORT,
     callback: handleReportChanged
 });
 
 // When the app reconnects from being offline, fetch all of the reports and their actions
-onReconnect(() => {
-    fetchAll().then(reports => _.each(reports, report => fetchActions(report.reportID)));
+NetworkConnection.onReconnect(() => {
+    fetchAll(false, true);
 });
+
 export {
     fetchAll,
     fetchActions,

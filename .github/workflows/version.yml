@@ -19,6 +19,10 @@ jobs:
               with:
                   node-version: '14.x'
 
+            - uses: webfactory/ssh-agent@v0.4.0
+              with:
+                  ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
             - name: Install dependenices
               run: npm install
 
@@ -47,3 +51,22 @@ jobs:
                     destination_branch: "master"
                     pr_label: "automerge"
                     github_token: ${{ secrets.BOTIFY_TOKEN }}
+
+            # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
+            # the other workflows with the same change
+            - uses: 8398a7/action-slack@v3
+              name: Job failed Slack notification
+              if: ${{ failure() }}
+              with:
+                    status: custom
+                    fields: workflow, repo
+                    custom_payload: |
+                        {
+                          attachments: [{
+                            color: "#DB4545",
+                            text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
+                          }]
+                        }
+              env:
+                    GITHUB_TOKEN: ${{ github.token }}
+                    SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

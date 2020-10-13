@@ -17,6 +17,10 @@ jobs:
               with:
                 node-version: '14.x'
 
+            - uses: webfactory/ssh-agent@v0.4.0
+              with:
+                  ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
             - name: Install node packages
               run: npm install
 
@@ -28,9 +32,50 @@ jobs:
             - name: Build desktop app
               run: npm run desktop-build
               env:
-                CSC_LINK: ${{ secrets.CSC_LINK }}
-                CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
-                APPLE_ID: ${{ secrets.APPLE_ID }}
-                APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
-                AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  CSC_LINK: ${{ secrets.CSC_LINK }}
+                  CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+                  APPLE_ID: ${{ secrets.APPLE_ID }}
+                  APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+                  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+            # These Slack steps are duplicated in all workflows, if you make a change to this step, make sure to update all
+            # the other workflows with the same changes
+            - uses: 8398a7/action-slack@v3
+              name: Job failed Slack notification
+              if: ${{ failure() }}
+              with:
+                  status: custom
+                  fields: workflow, repo
+                  custom_payload: |
+                      {
+                        attachments: [{
+                          color: "#DB4545",
+                          text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
+                        }]
+                      }
+              env:
+                  GITHUB_TOKEN: ${{ github.token }}
+                  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+            - name: Set version in ENV
+              if: ${{ success() }}
+              run: echo "VERSION=$(npm run print-version --silent)" >> $GITHUB_ENV
+
+            - uses: 8398a7/action-slack@v3
+              name: QA Slack notification
+              if: ${{ success() }}
+              with:
+                  status: custom
+                  fields: workflow, repo
+                  custom_payload: |
+                      {
+                        channel: '#qa',
+                        attachments: [{
+                          color: "#39AA56",
+                          text: `*Expensify Chat :expensifychat:* ${process.env.AS_WORKFLOW} version *${{ env.VERSION }}* was deployed, please start *regression testing*: https://git.io/JUb0r`,
+                        }]
+                      }
+              env:
+                  GITHUB_TOKEN: ${{ github.token }}
+                  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

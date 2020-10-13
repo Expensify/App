@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -26,19 +26,15 @@ const defaultProps = {
     reports: {},
 };
 
-class MainView extends React.Component {
+class MainView extends Component {
     render() {
-        if (!_.size(this.props.reports)) {
-            return null;
-        }
-
-        const reportIDInURL = parseInt(this.props.match.params.reportID, 10);
+        const reportIDInUrl = parseInt(this.props.match.params.reportID, 10);
 
         // The styles for each of our reports. Basically, they are all hidden except for the one matching the
         // reportID in the URL
         let activeReportID;
         const reportStyles = _.reduce(this.props.reports, (memo, report) => {
-            const isActiveReport = reportIDInURL === report.reportID;
+            const isActiveReport = reportIDInUrl === report.reportID;
             const finalData = {...memo};
             let reportStyle;
 
@@ -53,9 +49,14 @@ class MainView extends React.Component {
             return finalData;
         }, {});
 
+        const reportsToDisplay = _.filter(this.props.reports, report => (
+            report.pinnedReport
+                || report.unreadActionCount > 0
+                || report.reportID === reportIDInUrl
+        ));
         return (
             <>
-                {_.map(this.props.reports, report => (
+                {_.map(reportsToDisplay, report => (
                     <View
                         key={report.reportID}
                         style={reportStyles[report.reportID]}
@@ -78,9 +79,7 @@ export default compose(
     withRouter,
     withIon({
         reports: {
-            key: `${IONKEYS.REPORT}_[0-9]+$`,
-            addAsCollection: true,
-            collectionID: 'reportID',
+            key: IONKEYS.COLLECTION.REPORT,
         },
     }),
 )(MainView);
