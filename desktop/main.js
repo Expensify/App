@@ -1,16 +1,20 @@
+import * as Electron from 'electron';
+import * as ElectronUpdater from 'electron-updater';
+import contextMenu from 'electron-context-menu';
+import serve from 'electron-serve';
+import log from 'electron-log';
+
 import checkForUpdates from '../src/lib/checkForUpdates';
+import ELECTRON_EVENTS from './ELECTRON_EVENTS';
 
 const {
     app,
     BrowserWindow,
     shell,
     ipcMain
-} = require('electron');
-const serve = require('electron-serve');
-const contextMenu = require('electron-context-menu');
-const {autoUpdater} = require('electron-updater');
-const log = require('electron-log');
-const ELECTRON_EVENTS = require('./ELECTRON_EVENTS');
+} = Electron;
+const {autoUpdater} = ElectronUpdater;
+
 
 /**
  * Electron main process that handles wrapping the web application.
