@@ -40,7 +40,7 @@ Ion.connect({
 let lastViewedReportID;
 Ion.connect({
     key: IONKEYS.CURRENTLY_VIEWED_REPORTID,
-    callback: val => lastViewedReportID = val,
+    callback: val => lastViewedReportID = val ? Number(val) : null,
 });
 
 let myPersonalDetails;
@@ -208,7 +208,7 @@ function updateReportWithNewAction(reportID, reportAction) {
     }
 
     // If we are currently viewing this report do not show a notification.
-    if (reportID === Number(lastViewedReportID) && Visibility.isVisible()) {
+    if (reportID === lastViewedReportID && Visibility.isVisible()) {
         console.debug('[LOCAL_NOTIFICATION] No notification because it was a comment for the current report');
         return;
     }
