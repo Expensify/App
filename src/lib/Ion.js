@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import lodashGet from 'lodash.get';
 import AsyncStorage from '@react-native-community/async-storage';
 import addStorageEventHandler from './addStorageEventHandler';
 import Str from './Str';
@@ -161,8 +162,8 @@ function connect(mapping) {
 
             // Insert this key into the last accessed array to help us
             // decide which keys to delete if storage capacity is reached.
-            // We only want to treat things that are directly subscribed to
-            // as "accessed"
+            // We will not add collections here since they are not individual
+            // Ion keys that we can remove and point to many different keys.
             if (!isCollectionKey(mapping.key)) {
                 updateLastAccessedKey(mapping.key);
             }
@@ -225,6 +226,30 @@ function hasSubscriberForKey(key) {
 }
 
 /**
+ * Given a list of keys it will return the
+ * key that takes up the most space in storage.
+ *
+ * @param {String[]} keys
+ * @returns {Promise}
+ */
+function getLargestKey(keys) {
+    return Promise.all(_.map(keys, key => AsyncStorage.getItem(key)))
+        .then((rawData) => {
+            const sortedKeys = [];
+            _.each(rawData, (data, index) => {
+                const keyEntry = {key: keys[index], size: new Blob([data]).size};
+                if (sortedKeys.length === 0) {
+                    sortedKeys.push(keyEntry);
+                } else {
+                    sortedKeys.splice(_.sortedIndex(sortedKeys, keyEntry, 'size'), 0, keyEntry);
+                }
+            });
+
+            return lodashGet(_.last(sortedKeys), 'key');
+        });
+}
+
+/**
  * If we fail to set or merge we must handle this by
  * evicting some data from Ion and then retrying to do
  * whatever it is we attempted to do.
@@ -239,31 +264,29 @@ function evictStorageAndRetry(error, ionMethod, ...args) {
     return AsyncStorage.getAllKeys()
         .then(keys => allKeys = keys)
         .then(() => {
-            // Locate keys that have never been accessed and evict the largest key from the cache
+            // Locate keys that have not yet been subscribed to in this session
+            // and evict the largest key from storage.
             let neverAccessedKeys = _.difference(allKeys, recentlyAccessedKeys);
             neverAccessedKeys = _.filter(neverAccessedKeys, key => (
+
+                // Omit reports since there may be reports that are not being explicitly subscribed to
+                // but all reports are needed so that the LHN populates correctly
                 !Str.startsWith(key, IONKEYS.COLLECTION.REPORT)
+
+                    // Do not include anything that has a subscriber to be on the safe side
                     && !hasSubscriberForKey(key)
+
+                    // These keys should never be removed as they are not added by Ion
                     && !_.contains(['pusherTransportTLS', 'loglevel:webpack-dev-server'], key)
             ));
 
             if (neverAccessedKeys.length > 0) {
-                return Promise.all(_.map(neverAccessedKeys, key => AsyncStorage.getItem(key)))
-                    .then((rawData) => {
-                        const sortedKeys = [];
-                        _.each(rawData, (data, index) => {
-                            const keyEntry = {key: neverAccessedKeys[index], size: new Blob([data]).size};
-                            if (sortedKeys.length === 0) {
-                                sortedKeys.push(keyEntry);
-                            } else {
-                                sortedKeys.splice(_.sortedIndex(sortedKeys, keyEntry, 'size'), 0, keyEntry);
-                            }
-                        });
-
-                        const keyForRemoval = _.last(sortedKeys).key;
-
-                        // eslint-disable-next-line max-len
-                        console.debug('[Ion] Max storage reached. Evicting largest key that has never been accessed and retrying.', {keyForRemoval});
+                return getLargestKey(neverAccessedKeys)
+                    .then((keyForRemoval) => {
+                        console.debug(
+                            '[Ion] Out of storage. Evicting largest key that has never been accessed and retrying.',
+                            {keyForRemoval}
+                        );
                         return remove(keyForRemoval);
                     })
                     .then(() => ionMethod(...args));
@@ -278,12 +301,15 @@ function evictStorageAndRetry(error, ionMethod, ...args) {
 
             if (leastRecentlyAccessedKeyWithoutSubscribers) {
                 // Remove the least recently viewed key that is not currently being accessed and retry.
-                console.debug('[Ion] Max storage reached. Evicting least recently accessed key and retrying.', {keyForRemoval: leastRecentlyAccessedKeyWithoutSubscribers});
+                console.debug(
+                    '[Ion] Out of storage. Evicting least recently accessed key and retrying.',
+                    {keyForRemoval: leastRecentlyAccessedKeyWithoutSubscribers}
+                );
                 return remove(leastRecentlyAccessedKeyWithoutSubscribers)
                     .then(() => ionMethod(...args));
             }
 
-            console.error('[Ion] Max storage reached, but found no acceptable key to remove.');
+            console.error('[Ion] Out of storage. But found no acceptable key to remove.');
             throw error;
         });
 }
