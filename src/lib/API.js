@@ -122,9 +122,8 @@ function setSuccessfulSignInData(data, exitTo) {
 Ion.connect({
     key: IONKEYS.SESSION,
     callback: (session) => {
-        if (!session) {
+        if (!session || !session.authToken) {
             authToken = null;
-            return;
         }
         if (session.authToken) {
             authToken = session.authToken;
