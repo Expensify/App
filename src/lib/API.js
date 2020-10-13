@@ -142,6 +142,49 @@ Ion.connect({
     },
 });
 
+// Indicates if we're in the process of re-authenticating. When an API call returns jsonCode 407 indicating that the
+// authToken expired, we set this to true, pause all API calls, re-authenticate, and then use the authToken fromm the
+// response in the subsequent API calls
+let reauthenticating = false;
+Ion.connect({
+    key: IONKEYS.REAUTHENTICATING,
+    callback: (isReauthenticating) => {
+        // When the app is no longer authenticating restart the network queue
+        if (reauthenticating && !isReauthenticating) {
+            reauthenticating = false;
+            processNetworkRequestQueue();
+            return;
+        }
+
+        if (!reauthenticating && isReauthenticating) {
+            reauthenticating = true;
+            return xhr('Authenticate', {
+                useExpensifyLogin: false,
+                partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+                partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+                partnerUserID: credentials.login,
+                partnerUserSecret: credentials.password,
+                twoFactorAuthCode: ''
+            })
+                .then((response) => {
+                    // If authentication fails throw so that we hit the catch below and redirect to sign in
+                    if (response.jsonCode !== 200) {
+                        throw new Error(response.message);
+                    }
+
+                    // Update authToken in Ion store otherwise subsequent API calls will use the expired one
+                    Ion.merge(IONKEYS.SESSION, _.pick(response, 'authToken'));
+                    return response;
+                })
+                .catch((error) => {
+                    redirectToSignIn(error.message);
+                    return Promise.reject();
+                })
+                .finally(() => Ion.set(IONKEYS.REAUTHENTICATING, false));
+        }
+    }
+});
+
 // We subscribe to changes to the online/offline status of the network to determine when we should fire off API calls
 // vs queueing them for later.
 let isOffline;
@@ -149,11 +192,6 @@ Ion.connect({
     key: IONKEYS.NETWORK,
     callback: val => isOffline = val && val.isOffline,
 });
-
-// Indicates if we're in the process of re-authenticating. When an API call returns jsonCode 407 indicating that the
-// authToken expired, we set this to true, pause all API calls, re-authenticate, and then use the authToken fromm the
-// response in the subsequent API calls
-let reauthenticating = false;
 
 /**
  * Makes an API request.
@@ -199,7 +237,7 @@ function request(command, parameters, type = 'post') {
     // cancel this and all other requests and set reauthenticating to false.
     if (!authToken) {
         console.error('A request was made without an authToken', {command, parameters});
-        reauthenticating = false;
+        Ion.set(IONKEYS.REAUTHENTICATING, false);
         networkRequestQueue = [];
         redirectToSignIn();
         return Promise.resolve();
@@ -222,37 +260,8 @@ function request(command, parameters, type = 'post') {
             // If we're not re-authenticating and we get 407 (authToken expired)
             // we re-authenticate and then re-try the original request
             if (responseData.jsonCode === 407 && parametersWithAuthToken.doNotRetry !== true) {
-                reauthenticating = true;
-                return xhr('Authenticate', {
-                    useExpensifyLogin: false,
-                    partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-                    partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-                    partnerUserID: credentials.login,
-                    partnerUserSecret: credentials.password,
-                    twoFactorAuthCode: ''
-                })
-                    .then((response) => {
-                        reauthenticating = false;
-
-                        // If authentication fails throw so that we hit
-                        // the catch below and redirect to sign in
-                        if (response.jsonCode !== 200) {
-                            throw new Error(response.message);
-                        }
-
-                        // Update the authToken that will be used to retry the command since the one we have is expired
-                        parametersWithAuthToken.authToken = response.authToken;
-
-                        // Update authToken in Ion store otherwise subsequent API calls will use the expired one
-                        Ion.merge(IONKEYS.SESSION, _.pick(response, 'authToken'));
-                        return response;
-                    })
-                    .then(() => xhr(command, parametersWithAuthToken, type))
-                    .catch((error) => {
-                        reauthenticating = false;
-                        redirectToSignIn(error.message);
-                        return Promise.reject();
-                    });
+                Ion.set(IONKEYS.REAUTHENTICATING, true);
+                return queueRequest(command, parameters, type);
             }
             return responseData;
         })
