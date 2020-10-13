@@ -119,6 +119,9 @@ function setSuccessfulSignInData(data, exitTo) {
     });
 }
 
+// Used to prevent calling CreateLogin more than once since this callback is triggered when we set authToken, loading,
+// error, etc
+let creatingLogin = false;
 Ion.connect({
     key: IONKEYS.SESSION,
     callback: (session) => {
@@ -131,8 +134,10 @@ Ion.connect({
 
         // If we have an authToken but no login, it's the users first time signing in and we need to
         // create a login for the user, so when the authToken expires we can get a new one with said login
-        if (authToken && !session.login) {
-            createLogin(Str.generateDeviceLoginID(), Guid());
+        if (authToken && !session.login && !creatingLogin) {
+            creatingLogin = true;
+            createLogin(Str.generateDeviceLoginID(), Guid())
+                .then(() => creatingLogin = false);
         }
     },
 });
