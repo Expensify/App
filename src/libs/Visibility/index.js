@@ -1,3 +1,5 @@
+import ELECTRON_EVENTS from '../../../desktop/ELECTRON_EVENTS';
+
 // We conditionally import the ipcRenderer here so that we can
 // communicate with the main Electron process in main.js
 const ipcRenderer = window.require ? window.require('electron').ipcRenderer : null;
@@ -13,7 +15,7 @@ const ipcRenderer = window.require ? window.require('electron').ipcRenderer : nu
  */
 function isVisible() {
     return ipcRenderer
-        ? ipcRenderer.sendSync('request-visibility')
+        ? ipcRenderer.sendSync(ELECTRON_EVENTS.REQUEST_VISIBILITY)
         : document.visibilityState === 'visible';
 }
 
