@@ -445,9 +445,9 @@ function get(parameters) {
  * @returns {Promise}
  */
 function getPersonalDetails(parameters) {
-    return queueRequest('Get', {
+    return queueRequest('PersonalDetails_GetForEmails', {
         authToken,
-        emailList: parameters.emailList,
+        emailList: parameters,
     });
 }
 
