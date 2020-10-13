@@ -1,9 +1,9 @@
 import _ from 'underscore';
-import Guid from '../Guid';
+import guid from '../guid';
 import Ion from '../Ion';
 import IONKEYS from '../../IONKEYS';
 
-const clientID = Guid();
+const clientID = guid();
 const maxClients = 20;
 
 let activeClients;
