@@ -2,31 +2,47 @@ import Ion from '../Ion';
 import IONKEYS from '../../IONKEYS';
 import ROUTES from '../../ROUTES';
 import {redirect} from './App';
+import * as Pusher from '../Pusher/pusher';
+import NetworkConnection from '../NetworkConnection';
+import UnreadIndicatorUpdater from '../UnreadIndicatorUpdater';
+
+let currentURL;
+Ion.connect({
+    key: IONKEYS.CURRENT_URL,
+    callback: val => currentURL = val,
+});
 
 /**
- * Redirects to the sign in page and handles adding any exitTo params to the URL.
+ * Clears the Ion store, redirects to the sign in page and handles adding any exitTo params to the URL.
  * Normally this method would live in Session.js, but that would cause a circular dependency with Network.js.
  *
- * @returns {Promise}
+ * @param {String} [errorMessage] error message to be displayed on the sign in page
  */
-function redirectToSignIn() {
-    return Ion.get(IONKEYS.CURRENT_URL)
-        .then((url) => {
-            if (!url) {
-                return;
+function redirectToSignIn(errorMessage) {
+    NetworkConnection.stopListeningForReconnect();
+    UnreadIndicatorUpdater.stopListeningForReportChanges();
+    Pusher.disconnect();
+    Ion.clear()
+        .then(() => {
+            if (errorMessage) {
+                Ion.set(IONKEYS.SESSION, {error: errorMessage});
             }
-
-            // If there is already an exitTo, or has the URL of signin, don't redirect
-            if (url.indexOf('exitTo') !== -1 || url.indexOf('signin') !== -1) {
-                return;
-            }
-
-            // When the URL is at the root of the site, go to sign-in, otherwise add the exitTo
-            const urlWithExitTo = url === '/'
-                ? ROUTES.SIGNIN
-                : `${ROUTES.SIGNIN}/exitTo${url}`;
-            return redirect(urlWithExitTo);
         });
+
+    if (!currentURL) {
+        return;
+    }
+
+    // If there is already an exitTo, or has the URL of signin, don't redirect
+    if (currentURL.indexOf('exitTo') !== -1 || currentURL.indexOf('signin') !== -1) {
+        return;
+    }
+
+    // When the URL is at the root of the site, go to sign-in, otherwise add the exitTo
+    const urlWithExitTo = currentURL === ROUTES.ROOT
+        ? ROUTES.SIGNIN
+        : ROUTES.getSigninWithExitToRoute(currentURL);
+    redirect(urlWithExitTo);
 }
 
 export default redirectToSignIn;

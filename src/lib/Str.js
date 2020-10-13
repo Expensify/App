@@ -72,6 +72,29 @@ const Str = {
     escapeForRegExp(string) {
         return string.replace(/[-[\]/{}()*+?.\\^$|]/g, '\\$&');
     },
+
+    /**
+     * Returns true if the haystack begins with the needle
+     *
+     * @param {String} haystack  The full string to be searched
+     * @param {String} needle    The case-sensitive string to search for
+     * @returns {Boolean} Returns true if the haystack starts with the needle.
+     */
+    startsWith(haystack, needle) {
+        return _.isString(haystack)
+            && _.isString(needle)
+            && haystack.substring(0, needle.length) === needle;
+    },
+
+    /**
+     * Takes in a URL and returns it with a leading '/'
+     *
+     * @param {mixed} url The URL to be formatted
+     * @returns {String} The formatted URL
+     */
+    normalizeUrl(url) {
+        return (typeof url === 'string' && url.startsWith('/')) ? url : `/${url}`;
+    }
 };
 
 export default Str;

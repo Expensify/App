@@ -7,8 +7,10 @@ import {
     TextInput,
     Image,
     View,
+    ActivityIndicator,
 } from 'react-native';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import CONFIG from '../CONFIG';
 import compose from '../lib/compose';
 import {withRouter} from '../lib/Router';
@@ -25,12 +27,18 @@ const propTypes = {
 
     /* Ion Props */
 
-    // Error to display when there is a session error returned
-    error: PropTypes.string,
+    // The session of the logged in person
+    session: PropTypes.shape({
+        // Error to display when there is a session error returned
+        error: PropTypes.string,
+
+        // Stores if we are currently making an authentication request
+        loading: PropTypes.bool,
+    }),
 };
 
 const defaultProps = {
-    error: null,
+    session: null,
 };
 
 class App extends Component {
@@ -56,10 +64,14 @@ class App extends Component {
      * Sign into the application when the form is submitted
      */
     submitForm() {
+        if (this.props.session && this.props.session.loading) {
+            return;
+        }
         signIn(this.state.login, this.state.password, this.state.twoFactorAuthCode, this.props.match.params.exitTo);
     }
 
     render() {
+        const isLoading = this.props.session && this.props.session.loading;
         return (
             <>
                 <StatusBar />
@@ -111,12 +123,17 @@ class App extends Component {
                                 style={[styles.button, styles.buttonSuccess, styles.mb4]}
                                 onPress={this.submitForm}
                                 underlayColor={colors.componentBG}
+                                disabled={isLoading}
                             >
-                                <Text style={[styles.buttonText, styles.buttonSuccessText]}>Log In</Text>
+                                {isLoading ? (
+                                    <ActivityIndicator color={colors.textReversed} />
+                                ) : (
+                                    <Text style={[styles.buttonText, styles.buttonSuccessText]}>Log In</Text>
+                                )}
                             </TouchableOpacity>
-                            {this.props.error && (
+                            {this.props.session && !_.isEmpty(this.props.session.error) && (
                                 <Text style={[styles.formError]}>
-                                    {this.props.error}
+                                    {this.props.session.error}
                                 </Text>
                             )}
                         </View>
@@ -133,7 +150,6 @@ App.defaultProps = defaultProps;
 export default compose(
     withRouter,
     withIon({
-        // Bind this.props.error to the error in the session object
-        error: {key: IONKEYS.SESSION, path: 'error', defaultValue: null},
+        session: {key: IONKEYS.SESSION},
     })
 )(App);
