@@ -7,7 +7,7 @@ import CONFIG from '../CONFIG';
 import * as Pusher from './Pusher/pusher';
 import ROUTES from '../ROUTES';
 import Str from './Str';
-import Guid from './Guid';
+import guid from './guid';
 import redirectToSignIn from './actions/SignInRedirect';
 
 // Queue for network requests so we don't lose actions done by the user while offline
@@ -168,7 +168,7 @@ function request(command, parameters, type = 'post') {
                 // If Expensify login, it's the users first time signing in and we need to
                 // create a login for the user
                 if (parameters.useExpensifyLogin) {
-                    return createLogin(Str.generateDeviceLoginID(), Guid())
+                    return createLogin(Str.generateDeviceLoginID(), guid())
                         .then(() => setSuccessfulSignInData(response, parameters.exitTo));
                 }
             })

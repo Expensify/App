@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import {AllHtmlEntities} from 'html-entities';
-import Guid from './Guid';
+import guid from './guid';
 
 
 const Str = {
@@ -59,7 +59,7 @@ const Str = {
      * @returns {string}
      */
     generateDeviceLoginID() {
-        return `react-native-chat-${Guid()}`;
+        return `react-native-chat-${guid()}`;
     },
 
     /**
