@@ -19,8 +19,30 @@ Ion.connect({
     callback: ionCredentials => credentials = ionCredentials,
 });
 
+// We subscribe to changes to the online/offline status of the network to determine when we should fire off API calls
+// vs queueing them for later.
+let isOffline;
+Ion.connect({
+    key: IONKEYS.NETWORK,
+    callback: val => isOffline = val && val.isOffline,
+});
+
+// This holds te current authToken with used to make API requests
+let authToken;
+
 // Queue for network requests so we don't lose actions done by the user while offline
 let networkRequestQueue = [];
+
+// Indicates if we're in the process of re-authenticating. When an API call returns jsonCode 407 indicating that the
+// authToken expired, we set this to true, pause all API calls, re-authenticate, and then use the authToken fromm the
+// response in the subsequent API calls
+let reauthenticating = false;
+
+// When users load the app, if they're not authenticated we send them to the signIn page and put a redirectTo value
+// in the URL, so we can redirect them there after authentication (if nothing is set, we send them to the homepage)
+// In this variable we capture that redirectTo, after we authenticate the user, we then create a login for the user
+// and after that, we redirect the user using the route we captured in this variable.
+let redirectTo;
 
 /**
  * Adds a request to networkRequestQueue
@@ -44,68 +66,6 @@ function queueRequest(command, data) {
     });
 }
 
-// This holds te current authToken with used to make API requests
-let authToken;
-
-/**
- * @param {object} parameters
- * @param {string} parameters.partnerUserID
- * @returns {Promise}
- */
-function deleteLogin(parameters) {
-    return queueRequest('DeleteLogin', {
-        authToken,
-        partnerUserID: parameters.partnerUserID,
-        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-        doNotRetry: true,
-    })
-        .catch(error => Ion.merge(IONKEYS.SESSION, {error: error.message}));
-}
-
-// When users load the app, if they're not authenticated we send them to the signIn page and put a redirectTo value
-// in the URL, so we can redirect them there after authentication (if nothing is set, we send them to the homepage)
-// In this variable we capture that redirectTo, after we authenticate the user, we then create a login for the user
-// and after that, we redirect the user using the route we captured in this variable.
-let redirectTo;
-
-/**
- * @param {string} login
- * @param {string} password
- * @returns {Promise}
- */
-function createLogin(login, password) {
-    if (!authToken) {
-        throw new Error('createLogin() can\'t be called when there is no authToken');
-    }
-
-    // Using xhr instead of request becasue request has logic to re-try API commands when we get a 407 authToken expired
-    // in the response, and we call CreateLogin after getting a successful resposne to Authenticate so it's unlikely
-    // that we'll get a 407.
-    return xhr('CreateLogin', {
-        authToken,
-        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-        partnerUserID: login,
-        partnerUserSecret: password,
-    })
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                throw new Error(response.message);
-            }
-            if (credentials && credentials.login) {
-                // If we have an old login for some reason, we should delete it before storing the new details
-                deleteLogin({partnerUserID: credentials.login});
-            }
-            Ion.merge(IONKEYS.CREDENTIALS, {login, password});
-
-            // Now that we created a login to re-authenticate the user when the authToken expires,
-            // we redirect the user and clear the value of redirectTo since we don't need it anymore
-            Ion.merge(IONKEYS.APP_REDIRECT_TO, redirectTo);
-            redirectTo = null;
-        });
-}
-
 /**
  * Sets API data in the store when we make a subsequent API requests
  *
@@ -118,80 +78,6 @@ function setSuccessfulSignInData(data, exitTo) {
         [IONKEYS.SESSION]: _.pick(data, 'authToken', 'accountID', 'email'),
     });
 }
-
-// Used to prevent calling CreateLogin more than once since this callback is triggered when we set authToken, loading,
-// error, etc
-let creatingLogin = false;
-Ion.connect({
-    key: IONKEYS.SESSION,
-    callback: (session) => {
-        if (!session || !session.authToken) {
-            authToken = null;
-        }
-        if (session.authToken) {
-            authToken = session.authToken;
-        }
-
-        // If we have an authToken but no login, it's the users first time signing in and we need to
-        // create a login for the user, so when the authToken expires we can get a new one with said login
-        if (authToken && !session.login && !creatingLogin) {
-            creatingLogin = true;
-            createLogin(Str.generateDeviceLoginID(), Guid())
-                .then(() => creatingLogin = false);
-        }
-    },
-});
-
-// Indicates if we're in the process of re-authenticating. When an API call returns jsonCode 407 indicating that the
-// authToken expired, we set this to true, pause all API calls, re-authenticate, and then use the authToken fromm the
-// response in the subsequent API calls
-let reauthenticating = false;
-Ion.connect({
-    key: IONKEYS.REAUTHENTICATING,
-    callback: (isReauthenticating) => {
-        // When the app is no longer authenticating restart the network queue
-        if (reauthenticating && !isReauthenticating) {
-            reauthenticating = false;
-            processNetworkRequestQueue();
-            return;
-        }
-
-        if (!reauthenticating && isReauthenticating) {
-            reauthenticating = true;
-            return xhr('Authenticate', {
-                useExpensifyLogin: false,
-                partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-                partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-                partnerUserID: credentials.login,
-                partnerUserSecret: credentials.password,
-                twoFactorAuthCode: ''
-            })
-                .then((response) => {
-                    // If authentication fails throw so that we hit the catch below and redirect to sign in
-                    if (response.jsonCode !== 200) {
-                        throw new Error(response.message);
-                    }
-
-                    // Update authToken in Ion store otherwise subsequent API calls will use the expired one
-                    Ion.merge(IONKEYS.SESSION, _.pick(response, 'authToken'));
-                    return response;
-                })
-                .catch((error) => {
-                    redirectToSignIn(error.message);
-                    return Promise.reject();
-                })
-                .finally(() => Ion.set(IONKEYS.REAUTHENTICATING, false));
-        }
-    }
-});
-
-// We subscribe to changes to the online/offline status of the network to determine when we should fire off API calls
-// vs queueing them for later.
-let isOffline;
-Ion.connect({
-    key: IONKEYS.NETWORK,
-    callback: val => isOffline = val && val.isOffline,
-});
 
 /**
  * Makes an API request.
@@ -274,6 +160,7 @@ function request(command, parameters, type = 'post') {
         });
 }
 
+
 /**
  * Process the networkRequestQueue by looping through the queue and attempting to make the requests
  */
@@ -305,6 +192,121 @@ function processNetworkRequestQueue() {
 
 // Process our write queue very often
 setInterval(processNetworkRequestQueue, 1000);
+
+/**
+ * @param {object} parameters
+ * @param {string} parameters.partnerUserID
+ * @returns {Promise}
+ */
+function deleteLogin(parameters) {
+    return queueRequest('DeleteLogin', {
+        authToken,
+        partnerUserID: parameters.partnerUserID,
+        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+        doNotRetry: true,
+    })
+        .catch(error => Ion.merge(IONKEYS.SESSION, {error: error.message}));
+}
+
+/**
+ * @param {string} login
+ * @param {string} password
+ * @returns {Promise}
+ */
+function createLogin(login, password) {
+    if (!authToken) {
+        throw new Error('createLogin() can\'t be called when there is no authToken');
+    }
+
+    // Using xhr instead of request becasue request has logic to re-try API commands when we get a 407 authToken expired
+    // in the response, and we call CreateLogin after getting a successful resposne to Authenticate so it's unlikely
+    // that we'll get a 407.
+    return xhr('CreateLogin', {
+        authToken,
+        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+        partnerUserID: login,
+        partnerUserSecret: password,
+    })
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                throw new Error(response.message);
+            }
+            if (credentials && credentials.login) {
+                // If we have an old login for some reason, we should delete it before storing the new details
+                deleteLogin({partnerUserID: credentials.login});
+            }
+            Ion.merge(IONKEYS.CREDENTIALS, {login, password});
+
+            // Now that we created a login to re-authenticate the user when the authToken expires,
+            // we redirect the user and clear the value of redirectTo since we don't need it anymore
+            Ion.merge(IONKEYS.APP_REDIRECT_TO, redirectTo);
+            redirectTo = null;
+        });
+}
+
+// Used to prevent calling CreateLogin more than once since this callback is triggered when we set authToken, loading,
+// error, etc
+let creatingLogin = false;
+Ion.connect({
+    key: IONKEYS.SESSION,
+    callback: (session) => {
+        if (!session || !session.authToken) {
+            authToken = null;
+        }
+        if (session.authToken) {
+            authToken = session.authToken;
+        }
+
+        // If we have an authToken but no login, it's the users first time signing in and we need to
+        // create a login for the user, so when the authToken expires we can get a new one with said login
+        if (authToken && !session.login && !creatingLogin) {
+            creatingLogin = true;
+            createLogin(Str.generateDeviceLoginID(), Guid())
+                .then(() => creatingLogin = false);
+        }
+    },
+});
+
+Ion.connect({
+    key: IONKEYS.REAUTHENTICATING,
+    callback: (isReauthenticating) => {
+        // When the app is no longer authenticating restart the network queue
+        if (reauthenticating && !isReauthenticating) {
+            reauthenticating = false;
+            processNetworkRequestQueue();
+            return;
+        }
+
+        if (!reauthenticating && isReauthenticating) {
+            reauthenticating = true;
+            return xhr('Authenticate', {
+                useExpensifyLogin: false,
+                partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+                partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+                partnerUserID: credentials.login,
+                partnerUserSecret: credentials.password,
+                twoFactorAuthCode: ''
+            })
+                .then((response) => {
+                    // If authentication fails throw so that we hit the catch below and redirect to sign in
+                    if (response.jsonCode !== 200) {
+                        throw new Error(response.message);
+                    }
+
+                    // Update authToken in Ion store otherwise subsequent API calls will use the expired one
+                    Ion.merge(IONKEYS.SESSION, _.pick(response, 'authToken'));
+                    return response;
+                })
+                .catch((error) => {
+                    redirectToSignIn(error.message);
+                    return Promise.reject();
+                })
+                .finally(() => Ion.set(IONKEYS.REAUTHENTICATING, false));
+        }
+    }
+});
 
 /**
  * Pusher.reconnect() calls disconnect and connect on the
