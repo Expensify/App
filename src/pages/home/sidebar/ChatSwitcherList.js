@@ -7,7 +7,7 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
-import styles from '../../../style/StyleSheet';
+import styles from '../../../styles/StyleSheet';
 
 const propTypes = {
     // The index of the option that is currently in focus

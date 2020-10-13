@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import lodashOrderby from 'lodash.orderby';
-import styles from '../../../style/StyleSheet';
+import styles from '../../../styles/StyleSheet';
 import Text from '../../../components/Text';
 import SidebarLink from './SidebarLink';
 import withIon from '../../../components/withIon';

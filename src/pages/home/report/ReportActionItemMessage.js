@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import styles from '../../../style/StyleSheet';
+import styles from '../../../styles/StyleSheet';
 import ReportActionItemFragment from './ReportActionItemFragment';
 import ReportActionPropTypes from './ReportActionPropTypes';
 

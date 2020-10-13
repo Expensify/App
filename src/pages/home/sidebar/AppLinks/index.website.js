@@ -1,6 +1,6 @@
 import React from 'react';
 
-import styles from '../../../../style/StyleSheet';
+import styles from '../../../../styles/StyleSheet';
 import openURLInNewTab from '../../../../libs/openURLInNewTab';
 import Text from '../../../../components/Text';
 

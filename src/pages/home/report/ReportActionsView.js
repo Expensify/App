@@ -8,7 +8,7 @@ import withIon from '../../../components/withIon';
 import {fetchActions, updateLastReadActionID} from '../../../libs/actions/Report';
 import IONKEYS from '../../../IONKEYS';
 import ReportActionItem from './ReportActionItem';
-import styles from '../../../style/StyleSheet';
+import styles from '../../../styles/StyleSheet';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import {lastItem} from '../../../libs/CollectionUtils';

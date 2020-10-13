@@ -5,7 +5,7 @@ import _ from 'underscore';
 import ReportView from './report/ReportView';
 import withIon from '../../components/withIon';
 import IONKEYS from '../../IONKEYS';
-import styles from '../../style/StyleSheet';
+import styles from '../../styles/StyleSheet';
 import {withRouter} from '../../libs/Router';
 import compose from '../../libs/compose';
 

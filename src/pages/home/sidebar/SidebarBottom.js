@@ -2,7 +2,7 @@ import React from 'react';
 import {Image, View, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import styles, {getSafeAreaMargins} from '../../../style/StyleSheet';
+import styles, {getSafeAreaMargins} from '../../../styles/StyleSheet';
 import Text from '../../../components/Text';
 import AppLinks from './AppLinks';
 import {signOut} from '../../../libs/actions/Session';
