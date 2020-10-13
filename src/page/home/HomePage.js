@@ -41,9 +41,6 @@ class App extends React.Component {
             isHamburgerEnabled: windowSize.width <= widthBreakPoint,
         };
 
-        // This flag differentiates between a completed animation and external modification of IONKEYS.SIDEBAR_SHOWN
-        this.isCompletedAnimation = false;
-
         this.toggleHamburger = this.toggleHamburger.bind(this);
         this.dismissHamburger = this.dismissHamburger.bind(this);
         this.showHamburger = this.showHamburger.bind(this);
@@ -71,12 +68,10 @@ class App extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        // If an animation just completed, don't trigger a new one
-        if (this.isCompletedAnimation) {
-            this.isCompletedAnimation = false;
+        if (this.props.isSidebarShown === prevProps.isSidebarShown) {
+            // Nothing changed, don't trigger animation or re-render
             return;
         }
-
         this.animateHamburger(prevProps.isSidebarShown);
     }
 
@@ -138,11 +133,8 @@ class App extends React.Component {
             useNativeDriver: false
         }).start(({finished}) => {
             if (finished && hamburgerIsShown) {
-                this.isCompletedAnimation = true;
                 if (hamburgerIsShown) {
                     hideSidebar();
-                } else {
-                    showSidebar();
                 }
             }
         });
@@ -170,7 +162,7 @@ class App extends React.Component {
     render() {
         const hamburgerStyle = this.state.isHamburgerEnabled && this.props.isSidebarShown
             ? styles.hamburgerOpenAbsolute : styles.hamburgerOpen;
-        const visibility = this.props.isSidebarShown ? styles.dFlex : styles.dNone;
+        const visibility = !this.state.isHamburgerEnabled || this.props.isSidebarShown ? styles.dFlex : styles.dNone;
         const appContentWrapperStyle = !this.state.isHamburgerEnabled ? styles.appContentWrapperLarge : null;
         const appContentStyle = !this.state.isHamburgerEnabled ? styles.appContentRounded : null;
         return (
