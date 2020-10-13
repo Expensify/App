@@ -1,6 +1,6 @@
 import _ from 'underscore';
-import Ion from '../Ion';
-import IONKEYS from '../../IONKEYS';
+import Ion from './Ion';
+import IONKEYS from '../IONKEYS';
 
 const UPDATE_INTERVAL = 1000 * 60 * 60;
 

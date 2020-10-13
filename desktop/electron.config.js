@@ -23,6 +23,7 @@ module.exports = {
     files: [
         './dist/**/*',
         './desktop/main.js',
+        './desktop/mainESM.js',
         './desktop/ELECTRON_EVENTS.js',
     ]
 };
