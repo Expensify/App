@@ -239,7 +239,6 @@ function evictStorageAndRetry(error, ionMethod, ...args) {
     return AsyncStorage.getAllKeys()
         .then(keys => allKeys = keys)
         .then(() => {
-
             // Locate keys that have never been accessed and evict the largest key from the cache
             let neverAccessedKeys = _.difference(allKeys, recentlyAccessedKeys);
             neverAccessedKeys = _.filter(neverAccessedKeys, key => (
@@ -251,7 +250,6 @@ function evictStorageAndRetry(error, ionMethod, ...args) {
             if (neverAccessedKeys.length > 0) {
                 return Promise.all(_.map(neverAccessedKeys, key => AsyncStorage.getItem(key)))
                     .then((rawData) => {
-
                         const sortedKeys = [];
                         _.each(rawData, (data, index) => {
                             const keyEntry = {key: neverAccessedKeys[index], size: new Blob([data]).size};
