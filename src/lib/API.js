@@ -261,7 +261,7 @@ Ion.connect({
 
         // If we have an authToken but no login, it's the users first time signing in and we need to
         // create a login for the user, so when the authToken expires we can get a new one with said login
-        if (authToken && !session.login && !creatingLogin) {
+        if (authToken && !credentials.login && !creatingLogin) {
             creatingLogin = true;
             createLogin(Str.generateDeviceLoginID(), Guid())
                 .then(() => creatingLogin = false);
