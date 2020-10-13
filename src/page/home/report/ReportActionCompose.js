@@ -10,7 +10,6 @@ import paperClipIcon from '../../../../assets/images/icon-paper-clip.png';
 import ImagePicker from '../../../lib/ImagePicker';
 import withIon from '../../../components/withIon';
 import {addAction, saveReportComment} from '../../../lib/actions/Report';
-import crashlytics from '@react-native-firebase/crashlytics';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -120,9 +119,6 @@ class ReportActionCompose extends React.Component {
      * @param {SyntheticEvent} e
      */
     showAttachmentPicker(e) {
-        crashlytics().log('joe testing log');
-        crashlytics().crash();
-
         e.preventDefault();
 
         /**
