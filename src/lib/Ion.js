@@ -242,7 +242,11 @@ function evictStorageAndRetry(error, ionMethod, ...args) {
 
             // Locate keys that have never been accessed and evict the largest key from the cache
             let neverAccessedKeys = _.difference(allKeys, recentlyAccessedKeys);
-            neverAccessedKeys = _.filter(neverAccessedKeys, key => !Str.startsWith(key, IONKEYS.COLLECTION.REPORT) && !hasSubscriberForKey(key));
+            neverAccessedKeys = _.filter(neverAccessedKeys, key => (
+                !Str.startsWith(key, IONKEYS.COLLECTION.REPORT)
+                    && !hasSubscriberForKey(key)
+                    && !_.contains(['pusherTransportTLS', 'loglevel:webpack-dev-server'], key)
+            ));
 
             if (neverAccessedKeys.length > 0) {
                 return Promise.all(_.map(neverAccessedKeys, key => AsyncStorage.getItem(key)))
@@ -270,7 +274,8 @@ function evictStorageAndRetry(error, ionMethod, ...args) {
             // We did not find any keys that have never been accessed so let's look at the list of
             // keys that have been accessed.
             const leastRecentlyAccessedKeyWithoutSubscribers = _.find(recentlyAccessedKeys || [], key => (
-                !hasSubscriberForKey(key)
+                !Str.startsWith(key, IONKEYS.COLLECTION.REPORT)
+                    && !hasSubscriberForKey(key)
             ));
 
             if (leastRecentlyAccessedKeyWithoutSubscribers) {
