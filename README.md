@@ -136,7 +136,7 @@ created to house a collection of items in plural form and using camelCase (eg: p
 
 - components: React native components that are re-used in several places.
 - libs: Library classes/functions, these are not React native components (ie: they are not UI)
-- pages: These are components that define pages in the app. The component that defines de page itself should be named 
+- pages: These are components that define pages in the app. The component that defines the page itself should be named 
 `<pageName>Page` if there are components used only inside one page, they should live in its own directory named after the `<pageName>`.
 - styles: These files define styles used among components/pages
 
@@ -148,6 +148,8 @@ Files should be named after the component/function/constants they export, respec
 - If you export a component named `Text` the file/directory should be named `Text` 
 - If you export a function named `guid` the file/directory should be named `guid`. 
 - For files that are utilities that export several functions/classes use the UpperCamelCase version ie: `DateUtils`.
+- HOCs should be named in camelCase like withIon.
+- All React components should be PascalCase (a.k.a. UpperCamelCase 🐫).
 
 ## Platform-Specific File Extensions
 In most cases, the code written for this repo should be platform-independent. In such cases, each module should have a single file, `index.js`, which defines the module's exports. There are, however, some cases in which a feature is intrinsically tied to the underlying platform. In such cases, the following file extensions can be used to export platform-specific code from a module:

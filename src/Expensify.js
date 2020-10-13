@@ -1,11 +1,11 @@
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import {recordCurrentlyViewedReportID, recordCurrentRoute} from './lib/actions/App';
+import {recordCurrentlyViewedReportID, recordCurrentRoute} from './libs/actions/App';
 import SignInPage from './page/SignInPage';
 import HomePage from './page/home/HomePage';
-import Ion from './lib/Ion';
-import * as ActiveClientManager from './lib/ActiveClientManager';
+import Ion from './libs/Ion';
+import * as ActiveClientManager from './libs/ActiveClientManager';
 import IONKEYS from './IONKEYS';
 import withIon from './components/withIon';
 import styles from './style/StyleSheet';
@@ -15,7 +15,7 @@ import {
     Router,
     Redirect,
     Switch
-} from './lib/Router';
+} from './libs/Router';
 import ROUTES from './ROUTES';
 
 // Initialize the store when the app loads for the first time

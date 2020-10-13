@@ -5,7 +5,7 @@ import _ from 'underscore';
 import styles, {getSafeAreaMargins} from '../../../style/StyleSheet';
 import Text from '../../../components/Text';
 import AppLinks from './AppLinks';
-import {signOut} from '../../../lib/actions/Session';
+import {signOut} from '../../../libs/actions/Session';
 import IONKEYS from '../../../IONKEYS';
 import withIon from '../../../components/withIon';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';

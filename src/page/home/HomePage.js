@@ -7,16 +7,16 @@ import {
     Easing
 } from 'react-native';
 import {SafeAreaInsetsContext, SafeAreaProvider} from 'react-native-safe-area-context';
-import {Route} from '../../lib/Router';
+import {Route} from '../../libs/Router';
 import styles, {getSafeAreaPadding} from '../../style/StyleSheet';
 import Header from './HeaderView';
 import Sidebar from './sidebar/SidebarView';
 import Main from './MainView';
-import {subscribeToReportCommentEvents, fetchAll as fetchAllReports} from '../../lib/actions/Report';
-import {fetch as fetchPersonalDetails} from '../../lib/actions/PersonalDetails';
-import * as Pusher from '../../lib/Pusher/pusher';
+import {subscribeToReportCommentEvents, fetchAll as fetchAllReports} from '../../libs/actions/Report';
+import {fetch as fetchPersonalDetails} from '../../libs/actions/PersonalDetails';
+import * as Pusher from '../../libs/Pusher/pusher';
 import ROUTES from '../../ROUTES';
-import NetworkConnection from '../../lib/NetworkConnection';
+import NetworkConnection from '../../libs/NetworkConnection';
 
 const windowSize = Dimensions.get('window');
 const widthBreakPoint = 1000;

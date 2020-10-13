@@ -6,8 +6,8 @@ import ReportView from './report/ReportView';
 import withIon from '../../components/withIon';
 import IONKEYS from '../../IONKEYS';
 import styles from '../../style/StyleSheet';
-import {withRouter} from '../../lib/Router';
-import compose from '../../lib/compose';
+import {withRouter} from '../../libs/Router';
+import compose from '../../libs/compose';
 
 const propTypes = {
     // This comes from withRouter

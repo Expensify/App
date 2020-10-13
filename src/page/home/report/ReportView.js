@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ReportActionView from './ReportActionsView';
 import ReportActionCompose from './ReportActionCompose';
-import {addAction} from '../../../lib/actions/Report';
+import {addAction} from '../../../libs/actions/Report';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
 import styles from '../../../style/StyleSheet';
 
