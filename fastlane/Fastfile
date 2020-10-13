@@ -52,8 +52,7 @@ platform :ios do
 
     build_app(
         workspace: "./ios/ReactNativeChat.xcworkspace",
-        scheme: "ReactNativeChat",
-        output_directory: "./ios/build/"
+        scheme: "ReactNativeChat"
     )
   end
 
@@ -85,8 +84,7 @@ platform :ios do
 
     build_app(
         workspace: "./ios/ReactNativeChat.xcworkspace",
-        scheme: "ReactNativeChat",
-        output_directory: "./ios/build/"
+        scheme: "ReactNativeChat"
     )
 
     upload_to_testflight(
@@ -105,12 +103,10 @@ platform :ios do
             notes: "Use the account provided. Thank you for the review."
         }
     )
-  end
 
-  lane :upload_dsym do | options |
-      upload_symbols_to_crashlytics(
-          dsym_path: "./ios/build/Chat.app.dSYM",
-          gsp_path: "./ios/GoogleService-Info.plist"
-      )
+    upload_symbols_to_crashlytics(
+      dsym_path: "./ios/Chat.app.dSYM",
+      gsp_path: "./ios/GoogleService-Info.plist"
+    )
   end
 end
