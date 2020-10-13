@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import {SafeAreaInsetsContext, SafeAreaProvider} from 'react-native-safe-area-context';
 import {Route} from '../../libs/Router';
-import styles, {getSafeAreaPadding} from '../../style/StyleSheet';
+import styles, {getSafeAreaPadding} from '../../styles/StyleSheet';
 import Header from './HeaderView';
 import Sidebar from './sidebar/SidebarView';
 import Main from './MainView';

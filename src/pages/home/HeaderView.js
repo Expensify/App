@@ -2,7 +2,7 @@ import React from 'react';
 import {View, Image, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
 import Text from '../../components/Text';
-import styles from '../../style/StyleSheet';
+import styles from '../../styles/StyleSheet';
 import IONKEYS from '../../IONKEYS';
 import withIon from '../../components/withIon';
 import {withRouter} from '../../libs/Router';

@@ -8,7 +8,7 @@ import Ion from './libs/Ion';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import IONKEYS from './IONKEYS';
 import withIon from './components/withIon';
-import styles from './style/StyleSheet';
+import styles from './styles/StyleSheet';
 
 import {
     Route,

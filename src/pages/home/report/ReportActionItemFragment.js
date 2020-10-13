@@ -6,7 +6,7 @@ import {
 import PropTypes from 'prop-types';
 import Str from '../../../libs/Str';
 import ReportActionFragmentPropTypes from './ReportActionFragmentPropTypes';
-import styles, {webViewStyles, colors} from '../../../style/StyleSheet';
+import styles, {webViewStyles, colors} from '../../../styles/StyleSheet';
 import Text from '../../../components/Text';
 import AnchorForCommentsOnly from '../../../components/AnchorForCommentsOnly';
 import {getAuthToken} from '../../../libs/API';

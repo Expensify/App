@@ -5,7 +5,7 @@ import ReportActionView from './ReportActionsView';
 import ReportActionCompose from './ReportActionCompose';
 import {addAction} from '../../../libs/actions/Report';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
-import styles from '../../../style/StyleSheet';
+import styles from '../../../styles/StyleSheet';
 
 const propTypes = {
     // The ID of the report actions will be created for

@@ -17,7 +17,7 @@ import {withRouter} from '../libs/Router';
 import {signIn} from '../libs/actions/Session';
 import IONKEYS from '../IONKEYS';
 import withIon from '../components/withIon';
-import styles, {colors} from '../style/StyleSheet';
+import styles, {colors} from '../styles/StyleSheet';
 import logo from '../../assets/images/expensify-logo_reversed.png';
 
 const propTypes = {

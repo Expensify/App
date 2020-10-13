@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import Text from '../../../components/Text';
-import styles from '../../../style/StyleSheet';
+import styles from '../../../styles/StyleSheet';
 import PressableLink from '../../../components/PressableLink';
 import ROUTES from '../../../ROUTES';
 
