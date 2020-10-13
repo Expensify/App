@@ -56,6 +56,13 @@ const lastReadActionIDs = {};
 // List of reportIDs that we define in .env
 const configReportIDs = CONFIG.REPORT_IDS.split(',').map(Number);
 
+// List of reportIDs pinned by the user
+let pinnedReportIDs = [];
+Ion.connect({
+    key: IONKEYS.PINNED_CHAT_REPORT_IDs,
+    callback: val => pinnedReportIDs = val,
+});
+
 /**
  * Checks the report to see if there are any unread action items
  *
@@ -101,7 +108,7 @@ function getSimplifiedReportObject(report) {
         reportName: report.reportName,
         reportNameValuePairs: report.reportNameValuePairs,
         unreadActionCount: getUnreadActionCount(report),
-        pinnedReport: configReportIDs.includes(report.reportID),
+        isPinned: configReportIDs.includes(report.reportID) || pinnedReportIDs.includes(report.reportID),
         canModifyPin: !configReportIDs.includes(report.reportID),
         maxSequenceNumber: report.reportActionList.length,
     };
@@ -483,18 +490,46 @@ function updateLastReadActionID(reportID, sequenceNumber) {
 /**
  *
  * @param {string} reportID
- * @param {boolean} isPinned
  */
-function togglePinnedState(reportID, isPinned) {
-    debugger;
+function togglePinnedState(reportID) {
     if (configReportIDs.includes(reportID)) {
         // We don't allow unpinning reports defined in .env
         return;
     }
 
-    Ion.merge(`${IONKEYS.REPORT}_${reportID}`, {
-        pinnedReport: !isPinned,
-    });
+    const updatedPinnedReportIDs = pinnedReportIDs;
+    const indexOfReportID = pinnedReportIDs.indexOf(reportID);
+    let isPinned;
+    if (indexOfReportID !== -1) {
+        isPinned = false;
+        updatedPinnedReportIDs.splice(indexOfReportID, 1);
+    } else {
+        isPinned = true;
+        updatedPinnedReportIDs.push(reportID);
+    }
+
+    API.setNameValuePair({
+        name: 'expensify_chat_pinnedReportIDs',
+        value: updatedPinnedReportIDs,
+    })
+        .then(() => {
+            Ion.set(IONKEYS.PINNED_CHAT_REPORT_IDs, updatedPinnedReportIDs);
+            Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {
+                isPinned,
+            });
+        });
+}
+
+function fetchPinnedReportIDs() {
+    return API.get({
+        returnValueList: 'nameValuePairs',
+        name: 'expensify_chat_pinnedReportIDs',
+    })
+        .then((data) => {
+            const strReportIDs = lodashGet(data, 'nameValuePairs.expensify_chat_pinnedReportIDs', '').toString();
+            const reportIDs = strReportIDs ? strReportIDs.split(',').map(Number) : [];
+            Ion.set(IONKEYS.PINNED_CHAT_REPORT_IDs, reportIDs);
+        });
 }
 
 /**
@@ -542,6 +577,7 @@ export {
     fetchAll,
     fetchActions,
     fetchOrCreateChatReport,
+    fetchPinnedReportIDs,
     addAction,
     updateLastReadActionID,
     subscribeToReportCommentEvents,

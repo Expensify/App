@@ -24,13 +24,18 @@ const propTypes = {
     shouldShowHamburgerButton: PropTypes.bool.isRequired,
 
     /* Ion Props */
-    //
-    isPinned: PropTypes.bool,
+    // The report currently being looked at
+    report: PropTypes.shape({
+        // Name of the report
+        reportName: PropTypes.string,
+
+        // Value indicating if the report is pinned or not
+        isPinned: PropTypes.bool,
+    }),
 };
 
 const defaultProps = {
     report: null,
-    isPinned: false,
 };
 
 const HeaderView = props => (
@@ -49,18 +54,20 @@ const HeaderView = props => (
                 </TouchableOpacity>
             )}
             {props.report && props.report.reportName ? (
-                <TouchableOpacity
-                    onPress={() => togglePinnedState(parseInt(props.match.params.reportID, 10), props.isPinned)}
-                >
-                    <Image
-                        resizeMode="contain"
-                        source={props.isPinned ? starActive : starInactive}
-                        style={[styles.reportPinIcon]}
-                    />
-                </TouchableOpacity>
-                <Text numberOfLines={2} style={[styles.navText]}>
-                    {props.report.reportName}
-                </Text>
+                <>
+                    <TouchableOpacity
+                        onPress={() => togglePinnedState(parseInt(props.match.params.reportID, 10))}
+                    >
+                        <Image
+                            resizeMode="contain"
+                            source={props.report.isPinned ? starActive : starInactive}
+                            style={[styles.reportPinIcon]}
+                        />
+                    </TouchableOpacity>
+                    <Text numberOfLines={2} style={[styles.navText]}>
+                        {props.report.reportName}
+                    </Text>
+                </>
             ) : null}
         </View>
     </View>
@@ -76,10 +83,5 @@ export default compose(
         report: {
             key: ({match}) => `${IONKEYS.COLLECTION.REPORT}${match.params.reportID}`,
         },
-        isPinned: {
-            key: `${IONKEYS.REPORT}_%DATAFROMPROPS%`,
-            path: 'pinnedReport',
-            pathForProps: 'match.params.reportID',
-        }
     }),
 )(HeaderView);

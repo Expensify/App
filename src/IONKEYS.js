@@ -9,6 +9,7 @@ export default {
     CREDENTIALS: 'credentials',
     FIRST_REPORT_ID: 'firstReportID',
     MY_PERSONAL_DETAILS: 'myPersonalDetails',
+    PINNED_CHAT_REPORT_IDs: 'pinnedChatReportIDs',
     NETWORK: 'network',
     PERSONAL_DETAILS: 'personalDetails',
     SESSION: 'session',

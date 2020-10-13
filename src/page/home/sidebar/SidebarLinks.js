@@ -59,7 +59,7 @@ class SidebarLinks extends React.Component {
 
         // Filter the reports so that the only reports shown are pinned, unread, and the one matching the URL
         // eslint-disable-next-line max-len
-        const reportsToDisplay = _.filter(sortedReports, report => (report.pinnedReport || (report.unreadActionCount > 0) || report.reportID === reportIDInUrl));
+        const reportsToDisplay = _.filter(sortedReports, report => (report.isPinned || (report.unreadActionCount > 0) || report.reportID === reportIDInUrl));
 
         // Update styles to hide the report links if they should not be visible
         const sidebarLinksStyle = this.state.areReportLinksVisible
@@ -96,7 +96,7 @@ class SidebarLinks extends React.Component {
                             isUnread={report.unreadActionCount > 0}
                             onLinkClick={onLinkClick}
                             isActiveReport={report.reportID === reportIDInUrl}
-                            isPinned={report.pinnedReport}
+                            isPinned={report.isPinned}
                             canModifyPin={report.canModifyPin}
                         />
                     ))}
