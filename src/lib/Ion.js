@@ -239,12 +239,15 @@ function evictStorageAndRetry(error, ionMethod, ...args) {
     return AsyncStorage.getAllKeys()
         .then(keys => allKeys = keys)
         .then(() => {
+
             // Locate keys that have never been accessed and evict the largest key from the cache
-            const neverAccessedKeys = _.difference(allKeys, recentlyAccessedKeys);
+            let neverAccessedKeys = _.difference(allKeys, recentlyAccessedKeys);
+            neverAccessedKeys = _.filter(neverAccessedKeys, key => !Str.startsWith(key, IONKEYS.COLLECTION.REPORT) && !hasSubscriberForKey(key));
 
             if (neverAccessedKeys.length > 0) {
                 return Promise.all(_.map(neverAccessedKeys, key => AsyncStorage.getItem(key)))
                     .then((rawData) => {
+
                         const sortedKeys = [];
                         _.each(rawData, (data, index) => {
                             const keyEntry = {key: neverAccessedKeys[index], size: new Blob([data]).size};
@@ -272,7 +275,7 @@ function evictStorageAndRetry(error, ionMethod, ...args) {
 
             if (leastRecentlyAccessedKeyWithoutSubscribers) {
                 // Remove the least recently viewed key that is not currently being accessed and retry.
-                console.debug('[Ion] Max storage reached. Evicting least recently accessed key and retrying.');
+                console.debug('[Ion] Max storage reached. Evicting least recently accessed key and retrying.', {keyForRemoval: leastRecentlyAccessedKeyWithoutSubscribers});
                 return remove(leastRecentlyAccessedKeyWithoutSubscribers)
                     .then(() => ionMethod(...args));
             }
