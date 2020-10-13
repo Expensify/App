@@ -458,6 +458,7 @@ const styles = {
         flexGrow: 1,
         justifyContent: 'flex-start',
         paddingVertical: 16,
+        flexDirection: 'column-reverse',
     },
 
     chatContentEmpty: {

@@ -95,8 +95,7 @@ class ReportActionsView extends React.Component {
             .sortBy('sequenceNumber')
             .filter(action => action.actionName === 'ADDCOMMENT')
             .map((item, index) => ({action: item, index}))
-            .value()
-            .reverse();
+            .value();
     }
 
     /**
@@ -111,7 +110,7 @@ class ReportActionsView extends React.Component {
      * @return {Boolean}
      */
     isConsecutiveActionMadeByPreviousActor(actionIndex) {
-        const previousAction = this.sortedReportActions[actionIndex + 1];
+        const previousAction = this.sortedReportActions[actionIndex - 1];
         const currentAction = this.sortedReportActions[actionIndex];
 
         // It's OK for there to be no previous action, and in that case, false will be returned
