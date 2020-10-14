@@ -13,10 +13,6 @@ import compose from '../../lib/compose';
 import {togglePinnedState} from '../../lib/actions/Report';
 
 const propTypes = {
-    // This comes from withRouter
-    // eslint-disable-next-line react/forbid-prop-types
-    match: PropTypes.object.isRequired,
-
     // Toggles the hamburger menu open and closed
     onHamburgerButtonClicked: PropTypes.func.isRequired,
 
@@ -28,6 +24,9 @@ const propTypes = {
     report: PropTypes.shape({
         // Name of the report
         reportName: PropTypes.string,
+
+        // ID of the report
+        reportID: PropTypes.number,
 
         // Value indicating if the report is pinned or not
         isPinned: PropTypes.bool,
@@ -56,7 +55,7 @@ const HeaderView = props => (
             {props.report && props.report.reportName ? (
                 <>
                     <TouchableOpacity
-                        onPress={() => togglePinnedState(parseInt(props.match.params.reportID, 10))}
+                        onPress={() => togglePinnedState(parseInt(props.report.reportID, 10))}
                     >
                         <Image
                             resizeMode="contain"

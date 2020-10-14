@@ -49,11 +49,9 @@ export default class App extends React.Component {
         // Fetch all the personal details
         fetchPersonalDetails();
 
-        // Fetch the reportIDs that should be pinned
-        fetchPinnedReportIDs();
-
-        // Fetch all the reports
-        fetchAllReports();
+        // Fetch the reportIDs that should be pinned then fetch all the reports
+        fetchPinnedReportIDs()
+            .then(fetchAllReports);
 
         UnreadIndicatorUpdater.listenForReportChanges();
 
