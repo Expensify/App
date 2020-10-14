@@ -10,7 +10,7 @@ let lastConnectionID = 0;
 // Holds a mapping of all the react components that want their state subscribed to a store key
 const callbackToStateMapping = {};
 
-// Holds a list of keys that have been directly subscribed to from least to most recent
+// Holds a list of keys that have been directly subscribed to or recently modified from least to most recent
 let recentlyAccessedKeys = [];
 
 // Holds a list of keys that are safe to remove when we reach max storage
@@ -236,7 +236,7 @@ function disconnect(connectionID) {
 }
 
 /**
- * Remove a key from Ion and update it's subscribers
+ * Remove a key from Ion and update the subscribers
  *
  * @param {String} key
  * @return {Promise}
