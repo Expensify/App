@@ -7,7 +7,7 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
-import styles, {colors} from '../../../style/StyleSheet';
+import styles from '../../../style/StyleSheet';
 
 const propTypes = {
     // The index of the option that is currently in focus
@@ -24,15 +24,15 @@ const propTypes = {
         // The URL of the person's avatar
         icon: PropTypes.string,
 
-        // A function that is called when an option is selected. Selected option is passed as a param
-        callback: PropTypes.func.isRequired,
+        // A flag that tells us whether our option is a user
+        isUser: PropTypes.bool.isRequired,
     })),
 };
 const defaultProps = {
     options: [],
 };
 
-const ChatSwitcherList = ({focusedIndex, options}) => (
+const ChatSwitcherList = ({focusedIndex, options, onRowSelected, onAddToGroupDM}) => (
     <View style={[styles.chatSwitcherItemList]}>
         {options.length > 0 && _.map(options, (option, i) => {
             const optionIsFocused = i === focusedIndex;
@@ -43,12 +43,13 @@ const ChatSwitcherList = ({focusedIndex, options}) => (
                 <View
                     style={[
                         styles.flexRow,
+                        styles.alignItemsCenter,
                         optionIsFocused ? styles.chatSwitcherItemFocused : null
                     ]}
                 >
                     <TouchableOpacity
                         key={option.alternateText}
-                        onPress={() => option.callback(option)}
+                        onPress={() => onRowSelected(option)}
                     >
                         <View
                             style={[
@@ -56,6 +57,7 @@ const ChatSwitcherList = ({focusedIndex, options}) => (
                                 styles.mb2,
                                 styles.alignItemsCenter,
                                 styles.chatSwitcherItem,
+                                {width: 220},
                             ]}
                         >
                             {
@@ -91,13 +93,13 @@ const ChatSwitcherList = ({focusedIndex, options}) => (
                         <View>
                             <TouchableOpacity
                                 style={[{
-                                    borderWidth: 1,
-                                    backgroundColor: colors.background,
+                                    backgroundColor: '#8a8a8a',
                                     alignItems: 'center',
-                                    padding: 10,
+                                    padding: 5,
                                     justifyContent: 'center',
                                     borderRadius: 5,
                                 }]}
+                                onPress={() => onAddToGroupDM(option)}
                             >
                                 <Text style={[textStyle, styles.h3]} numberOfLines={1}>
                                     Add

@@ -1,4 +1,5 @@
 import React from 'react';
+import {Text, View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import withIon from '../../../components/withIon';
@@ -63,8 +64,7 @@ class ChatSwitcherView extends React.Component {
 
         this.handleKeyPress = this.handleKeyPress.bind(this);
         this.reset = this.reset.bind(this);
-        this.selectUser = this.selectUser.bind(this);
-        this.selectReport = this.selectReport.bind(this);
+        this.selectRow = this.selectRow.bind(this);
         this.triggerOnFocusCallback = this.triggerOnFocusCallback.bind(this);
         this.updateSearch = this.updateSearch.bind(this);
 
@@ -74,6 +74,7 @@ class ChatSwitcherView extends React.Component {
             focusedIndex: 0,
             isLogoVisible: true,
             isClearButtonVisible: false,
+            groupLogins: [],
         };
     }
 
@@ -91,6 +92,14 @@ class ChatSwitcherView extends React.Component {
         KeyboardShortcut.unsubscribe('K');
     }
 
+    selectRow(option) {
+        if (option.isUser) {
+            this.selectUser(option);
+        } else {
+            this.selectReport(option);
+        }
+    }
+
     /**
      * Fetch the chat report and then redirect to the new report
      *
@@ -99,6 +108,11 @@ class ChatSwitcherView extends React.Component {
      */
     selectUser(option) {
         fetchOrCreateChatReport([this.props.session.email, option.login]);
+        this.reset();
+    }
+
+    createGroupDM() {
+        fetchOrCreateChatReport(_.reduce(this.state.groupLogins, (logins, {login}) => [...logins, login], [this.props.session.email]));
         this.reset();
     }
 
@@ -125,6 +139,7 @@ class ChatSwitcherView extends React.Component {
             focusedIndex: 0,
             isLogoVisible: blurAfterReset,
             isClearButtonVisible: !blurAfterReset,
+            groupLogins: [],
         }, () => {
             if (blurAfterReset) {
                 this.textInput.blur();
@@ -157,9 +172,8 @@ class ChatSwitcherView extends React.Component {
 
         switch (e.key) {
             case 'Enter':
-                // Call the selected option's callback and pass the option itself
                 option = this.state.options[this.state.focusedIndex];
-                option.callback(option);
+                this.selectRow(option);
                 e.preventDefault();
                 break;
 
@@ -235,7 +249,7 @@ class ChatSwitcherView extends React.Component {
                     : `${personalDetail.displayName} ${personalDetail.login}`,
                 icon: personalDetail.avatarURL,
                 login: personalDetail.login,
-                callback: this.selectUser,
+                isUser: true,
             }))
             .value();
 
@@ -250,7 +264,7 @@ class ChatSwitcherView extends React.Component {
                 alternateText: report.reportName,
                 searchText: report.reportName,
                 reportID: report.reportID,
-                callback: this.selectReport,
+                isUser: false,
             }))
             .value();
 
@@ -285,6 +299,27 @@ class ChatSwitcherView extends React.Component {
     render() {
         return (
             <>
+                {this.state.groupLogins.length > 0 && (
+                    <>
+                        <View>
+                            {_.map(this.state.groupLogins, ({displayName}) => (
+                                <View
+                                    style={{
+                                        borderWidth: 1,
+                                        borderColor: '#fff',
+                                    }}
+                                >
+                                    <Text>{displayName}</Text>
+                                </View>
+                            ))}
+                        </View>
+                        <TouchableOpacity
+                            onPress={() => this.createGroupDM()}
+                        >
+                            <Text>Go</Text>
+                        </TouchableOpacity>
+                    </>
+                )}
                 <ChatSwitcherSearchForm
                     ref={el => this.textInput = el}
                     isClearButtonVisible={this.state.isClearButtonVisible}
@@ -299,11 +334,21 @@ class ChatSwitcherView extends React.Component {
                     onClearButtonClick={this.reset}
                     onFocus={this.triggerOnFocusCallback}
                     onKeyPress={this.handleKeyPress}
+                    groupLogins={this.state.groupLogins}
                 />
 
                 <ChatSwitcherList
                     focusedIndex={this.state.focusedIndex}
                     options={this.state.options}
+                    onRowSelected={this.selectRow}
+                    onAddToGroupDM={(option) => {
+                        this.setState(prevState => ({
+                            groupLogins: [
+                                ...prevState.groupLogins,
+                                {login: option.login, displayName: option.text},
+                            ],
+                        }));
+                    }}
                 />
             </>
         );
