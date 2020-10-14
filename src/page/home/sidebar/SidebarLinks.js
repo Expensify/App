@@ -55,11 +55,11 @@ class SidebarLinks extends React.Component {
     render() {
         const {onLinkClick} = this.props;
         const reportIDInUrl = parseInt(this.props.match.params.reportID, 10);
-        const sortedReports = lodashOrderby(this.props.reports, ['pinnedReport', 'reportName'], ['desc', 'asc']);
+        const sortedReports = lodashOrderby(this.props.reports, ['isHardCoded', 'isPinned', 'reportName'], ['desc', 'desc', 'asc']);
 
         // Filter the reports so that the only reports shown are pinned, unread, and the one matching the URL
         // eslint-disable-next-line max-len
-        const reportsToDisplay = _.filter(sortedReports, report => (report.isPinned || (report.unreadActionCount > 0) || report.reportID === reportIDInUrl));
+        const reportsToDisplay = _.filter(sortedReports, report => (report.isHardCoded || report.isPinned || (report.unreadActionCount > 0) || report.reportID === reportIDInUrl));
 
         // Update styles to hide the report links if they should not be visible
         const sidebarLinksStyle = this.state.areReportLinksVisible
@@ -97,7 +97,6 @@ class SidebarLinks extends React.Component {
                             onLinkClick={onLinkClick}
                             isActiveReport={report.reportID === reportIDInUrl}
                             isPinned={report.isPinned}
-                            canModifyPin={report.canModifyPin}
                         />
                     ))}
                 </View>
