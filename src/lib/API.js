@@ -27,14 +27,14 @@ Ion.connect({
     callback: val => isOffline = val && val.isOffline,
 });
 
-// This holds te current authToken with used to make API requests
+// This holds the current authToken with used to make API requests
 let authToken;
 
 // Queue for network requests so we don't lose actions done by the user while offline
 let networkRequestQueue = [];
 
 // Indicates if we're in the process of re-authenticating. When an API call returns jsonCode 407 indicating that the
-// authToken expired, we set this to true, pause all API calls, re-authenticate, and then use the authToken fromm the
+// authToken expired, we set this to true, pause all API calls, re-authenticate, and then use the authToken from the
 // response in the subsequent API calls
 let reauthenticating = false;
 
@@ -219,8 +219,8 @@ function createLogin(login, password) {
         throw new Error('createLogin() can\'t be called when there is no authToken');
     }
 
-    // Using xhr instead of request becasue request has logic to re-try API commands when we get a 407 authToken expired
-    // in the response, and we call CreateLogin after getting a successful resposne to Authenticate so it's unlikely
+    // Using xhr instead of request because request has logic to retry API commands when we get a 407 authToken expired
+    // in the response, and we call CreateLogin after getting a successful response to Authenticate so it's unlikely
     // that we'll get a 407.
     return xhr('CreateLogin', {
         authToken,
