@@ -603,7 +603,7 @@ const styles = {
     },
 
     chatSwitcherInputClear: {
-        alignSelf: 'center',
+        alignSelf: 'flex-start',
     },
 
     chatSwitcherInputClearIcon: {

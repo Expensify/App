@@ -1,5 +1,5 @@
 import React from 'react';
-import {Text, View, TouchableOpacity, Image} from 'react-native';
+import {Text, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import withIon from '../../../components/withIon';
@@ -11,8 +11,6 @@ import ChatSwitcherSearchForm from './ChatSwitcherSearchForm';
 import {fetchOrCreateChatReport} from '../../../lib/actions/Report';
 import {redirect} from '../../../lib/actions/App';
 import ROUTES from '../../../ROUTES';
-import {colors} from '../../../style/StyleSheet';
-import iconX from '../../../../assets/images/icon-x.png';
 
 const MAX_GROUP_DM_LENGTH = 8;
 
@@ -69,7 +67,7 @@ class ChatSwitcherView extends React.Component {
         this.handleKeyPress = this.handleKeyPress.bind(this);
         this.reset = this.reset.bind(this);
         this.selectRow = this.selectRow.bind(this);
-        this.addUserToDM = this.addUserToDM.bind(this);
+        this.addUserToGroup = this.addUserToGroup.bind(this);
         this.triggerOnFocusCallback = this.triggerOnFocusCallback.bind(this);
         this.updateSearch = this.updateSearch.bind(this);
 
@@ -99,7 +97,7 @@ class ChatSwitcherView extends React.Component {
 
     selectRow(option) {
         if (this.state.groupLogins.length > 0) {
-            this.addUserToDM(option, true);
+            this.addUserToGroup(option, true);
             return;
         }
 
@@ -110,7 +108,7 @@ class ChatSwitcherView extends React.Component {
         }
     }
 
-    addUserToDM(option, createAfterAddUser = false) {
+    addUserToGroup(option, startChatNow = false) {
         this.setState(prevState => ({
             groupLogins: [
                 ...prevState.groupLogins,
@@ -121,10 +119,46 @@ class ChatSwitcherView extends React.Component {
             // refreshing the search with the last value we searched
             this.updateSearch(this.state.search);
 
-            if (createAfterAddUser) {
+            if (startChatNow) {
                 this.createGroupDM();
             }
         });
+    }
+
+    /**
+     * Remove a user from a group DM list and update the options.
+     *
+     * @param {Object} [optionToRemove] optional object to remove
+     * when not present we remove the last item
+     */
+    removeUserFromGroup(optionToRemove) {
+        const updateSearch = () => {
+            // Put option back into list by refreshing
+            // the search with the last value we searched
+            this.updateSearch(this.state.search);
+        };
+
+        // If we have no option to remove then remove the last user.
+        if (!optionToRemove) {
+            this.setState(prevState => {
+                return ({
+                    groupLogins: prevState.groupLogins.slice(0, prevState.groupLogins.length - 1),
+                });
+            }, updateSearch)
+            return;
+        }
+
+        this.setState(prevState => {
+            return ({
+                groupLogins: _.reduce(prevState.groupLogins, (logins, option) => {
+                    if (option.login === optionToRemove.login) {
+                        return logins;
+                    }
+
+                    return [...logins, option];
+                }, []),
+            });
+        }, updateSearch)
     }
 
     /**
@@ -198,6 +232,11 @@ class ChatSwitcherView extends React.Component {
         let option;
 
         switch (e.key) {
+            case 'Backspace':
+                if (this.state.groupLogins.length > 0 && this.state.search === '') {
+                    this.removeUserFromGroup();
+                }
+                break;
             case 'Enter':
                 option = this.state.options[this.state.focusedIndex];
                 this.selectRow(option);
@@ -245,6 +284,13 @@ class ChatSwitcherView extends React.Component {
      */
     updateSearch(value) {
         if (value === '') {
+            if (this.state.groupLogins.length > 0) {
+                // Only reset the options in this case since we don't want
+                // to reset this entire component.
+                this.setState({options: [], search: ''});
+                return;
+            }
+
             this.reset(false);
             return;
         }
@@ -328,78 +374,6 @@ class ChatSwitcherView extends React.Component {
         const maxParticipantsReached = this.state.groupLogins.length === MAX_GROUP_DM_LENGTH;
         return (
             <>
-                {this.state.groupLogins.length > 0 && (
-                    <View
-                        style={[
-                            {
-                                flexDirection: 'row',
-                                flexWrap: 'wrap',
-                                paddingBottom: 10,
-                            }
-                        ]}
-                    >
-                        {_.map(this.state.groupLogins, option => (
-                            <TouchableOpacity
-                                style={{
-                                    borderWidth: 1,
-                                    borderColor: '#fff',
-                                    borderRadius: 20,
-                                    paddingLeft: 8,
-                                    paddingRight: 8,
-                                    marginBottom: 5,
-                                    marginRight: 5,
-                                    height: 25,
-                                    backgroundColor: '#8a8a8a',
-                                    flexDirection: 'row',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                }}
-                            >
-                                <Text
-                                    style={[{
-                                        color: '#fff',
-                                        fontSize: 13,
-                                    }]}
-                                >
-                                    {option.text}
-                                </Text>
-                                <Image
-                                    resizeMode="contain"
-                                    style={[{
-                                        height: 13,
-                                        width: 13,
-                                        marginLeft: 5,
-                                    }]}
-                                    source={iconX}
-                                />
-                            </TouchableOpacity>
-                        ))}
-                        <TouchableOpacity
-                            style={[
-                                {
-                                    backgroundColor: colors.green,
-                                    borderRadius: 5,
-                                    marginLeft: 10,
-                                    height: 35,
-                                    width: 35,
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                }
-                            ]}
-                            onPress={() => this.createGroupDM()}
-                        >
-                            <Text
-                                style={[
-                                    {
-                                        color: '#fff',
-                                        fontSize: 13,
-                                        fontWeight: 'bold',
-                                    }
-                                ]}
-                            >Go</Text>
-                        </TouchableOpacity>
-                    </View>
-                )}
                 <ChatSwitcherSearchForm
                     ref={el => this.textInput = el}
                     isClearButtonVisible={this.state.isClearButtonVisible}
@@ -415,6 +389,8 @@ class ChatSwitcherView extends React.Component {
                     onFocus={this.triggerOnFocusCallback}
                     onKeyPress={this.handleKeyPress}
                     groupLogins={this.state.groupLogins}
+                    onSelectGo={() => this.createGroupDM()}
+                    onRemoveUser={(option) => this.removeUserFromGroup(option)}
                 />
 
                 {!maxParticipantsReached
@@ -423,7 +399,7 @@ class ChatSwitcherView extends React.Component {
                             focusedIndex={this.state.focusedIndex}
                             options={this.state.options}
                             onRowSelected={this.selectRow}
-                            onAddToGroupDM={this.addUserToDM}
+                            onAddToGroupDM={this.addUserToGroup}
                         />
                     )
                 : (
