@@ -256,39 +256,42 @@ Ion.connect({
 Ion.connect({
     key: IONKEYS.REAUTHENTICATING,
     callback: (isReauthenticating) => {
+        // Nothing has changed so do nothing
+        if (reauthenticating === isReauthenticating) {
+            return;
+        }
+        reauthenticating = isReauthenticating;
+
         // When the app is no longer authenticating restart the network queue
-        if (reauthenticating && !isReauthenticating) {
-            reauthenticating = false;
+        if (!reauthenticating) {
             processNetworkRequestQueue();
             return;
         }
 
-        if (!reauthenticating && isReauthenticating) {
-            reauthenticating = true;
-            return xhr('Authenticate', {
-                useExpensifyLogin: false,
-                partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-                partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-                partnerUserID: credentials.login,
-                partnerUserSecret: credentials.password,
-                twoFactorAuthCode: ''
-            })
-                .then((response) => {
-                    // If authentication fails throw so that we hit the catch below and redirect to sign in
-                    if (response.jsonCode !== 200) {
-                        throw new Error(response.message);
-                    }
+        // Otherwise let's refresh the authToken by calling Authenticate
+        return xhr('Authenticate', {
+            useExpensifyLogin: false,
+            partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+            partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+            partnerUserID: credentials.login,
+            partnerUserSecret: credentials.password,
+            twoFactorAuthCode: ''
+        })
+            .then((response) => {
+                // If authentication fails throw so that we hit the catch below and redirect to sign in
+                if (response.jsonCode !== 200) {
+                    throw new Error(response.message);
+                }
 
-                    // Update authToken in Ion store otherwise subsequent API calls will use the expired one
-                    Ion.merge(IONKEYS.SESSION, _.pick(response, 'authToken'));
-                    return response;
-                })
-                .catch((error) => {
-                    redirectToSignIn(error.message);
-                    return Promise.reject();
-                })
-                .finally(() => Ion.set(IONKEYS.REAUTHENTICATING, false));
-        }
+                // Update authToken in Ion store otherwise subsequent API calls will use the expired one
+                Ion.merge(IONKEYS.SESSION, _.pick(response, 'authToken'));
+                return response;
+            })
+            .catch((error) => {
+                redirectToSignIn(error.message);
+                return Promise.reject();
+            })
+            .finally(() => Ion.set(IONKEYS.REAUTHENTICATING, false));
     }
 });
 
