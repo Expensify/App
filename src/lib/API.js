@@ -38,8 +38,6 @@ let networkRequestQueue = [];
 // response in the subsequent API calls
 let reauthenticating = false;
 
-// When users load the app, if they're not authenticated we send them to the signIn page and put a redirectTo value
-// in the URL, so we can redirect them there after authentication (if nothing is set, we send them to the homepage)
 // In this variable we capture that redirectTo, after we authenticate the user, we then create a login for the user
 // and after that, we redirect the user using the route we captured in this variable.
 let redirectTo;
