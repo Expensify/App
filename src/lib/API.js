@@ -291,7 +291,7 @@ Ion.connect({
                 redirectToSignIn(error.message);
                 return Promise.reject();
             })
-            .finally(() => Ion.set(IONKEYS.REAUTHENTICATING, false));
+            .finally(() => reauthenticating = false);
     }
 });
 
