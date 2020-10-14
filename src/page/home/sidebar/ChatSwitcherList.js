@@ -40,48 +40,72 @@ const ChatSwitcherList = ({focusedIndex, options}) => (
                 ? styles.sidebarLinkActiveText
                 : styles.sidebarLinkText;
             return (
-                <TouchableOpacity
-                    key={option.alternateText}
-                    onPress={() => option.callback(option)}
+                <View
+                    style={[
+                        styles.flexRow,
+                        optionIsFocused ? styles.chatSwitcherItemFocused : null
+                    ]}
                 >
-                    <View
-                        style={[
-                            styles.flexRow,
-                            styles.mb2,
-                            styles.alignItemsCenter,
-                            styles.chatSwitcherItem,
-                            optionIsFocused ? styles.chatSwitcherItemFocused : null
-                        ]}
+                    <TouchableOpacity
+                        key={option.alternateText}
+                        onPress={() => option.callback(option)}
                     >
-                        {
-                            option.icon
-                            && (
-                                <View style={[styles.chatSwitcherAvatar, styles.mr2]}>
-                                    <Image
-                                        source={{uri: option.icon}}
-                                        style={[styles.chatSwitcherAvatarImage]}
-                                    />
-                                </View>
-                            )
-                        }
-                        <View style={[styles.flex1]}>
-                            {option.text === option.alternateText ? (
-                                <Text style={[textStyle, styles.h3]} numberOfLines={1}>
-                                    {option.alternateText}
-                                </Text>
-                            ) : (
-                                <>
+                        <View
+                            style={[
+                                styles.flexRow,
+                                styles.mb2,
+                                styles.alignItemsCenter,
+                                styles.chatSwitcherItem,
+                            ]}
+                        >
+                            {
+                                option.icon
+                                && (
+                                    <View style={[styles.chatSwitcherAvatar, styles.mr2]}>
+                                        <Image
+                                            source={{uri: option.icon}}
+                                            style={[styles.chatSwitcherAvatarImage]}
+                                        />
+                                    </View>
+                                )
+                            }
+                            <View style={[styles.flex1]}>
+                                {option.text === option.alternateText ? (
                                     <Text style={[textStyle, styles.h3]} numberOfLines={1}>
-                                        {option.text}
-                                    </Text>
-                                    <Text style={[textStyle, styles.textMicro]} numberOfLines={1}>
                                         {option.alternateText}
                                     </Text>
-                                </>
-                            )}
+                                ) : (
+                                    <>
+                                        <Text style={[textStyle, styles.h3]} numberOfLines={1}>
+                                            {option.text}
+                                        </Text>
+                                        <Text style={[textStyle, styles.textMicro]} numberOfLines={1}>
+                                            {option.alternateText}
+                                        </Text>
+                                    </>
+                                )}
+                            </View>
                         </View>
-                    </View>
-                </TouchableOpacity>
+                    </TouchableOpacity>
+                    {true && (
+                        <View>
+                            <TouchableOpacity
+                                style={[{
+                                    borderWidth: 1,
+                                    borderColor: '#fff',
+                                    alignItems: 'center',
+                                    padding: 10,
+                                    justifyContent: 'center',
+                                    borderRadius: 5,
+                                }]}
+                            >
+                                <Text style={[textStyle, styles.h3]} numberOfLines={1}>
+                                    Add
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
+                </View>
             );
         })}
     </View>
