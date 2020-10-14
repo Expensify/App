@@ -19,7 +19,9 @@ import {
 import ROUTES from './ROUTES';
 
 // Initialize the store when the app loads for the first time
-Ion.init();
+Ion.init({
+    safeEvictionKeys: [IONKEYS.COLLECTION.REPORT_ACTIONS],
+});
 
 const propTypes = {
     /* Ion Props */

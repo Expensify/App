@@ -73,6 +73,20 @@ export default function (mapIonToState) {
              * it needs is available to it.
              */
             checkAndUpdateLoading() {
+                // We will add this key to our list of recently accessed keys
+                // if the canEvict function returns true. This is additional criteria
+                // we can use to allow a key to be removed or not.
+                _.each(mapIonToState, (mapping) => {
+                    if (_.isFunction(mapping.canEvict)) {
+                        const key = _.isFunction(mapping.key) ? mapping.key(this.props) : mapping.key;
+                        if (mapping.canEvict(this.props)) {
+                            Ion.updateEvictionBlocklist(key, true);
+                        } else {
+                            Ion.updateEvictionBlocklist(key);
+                        }
+                    }
+                });
+
                 if (!this.state.loading) {
                     return;
                 }

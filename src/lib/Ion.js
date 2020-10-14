@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import lodashGet from 'lodash.get';
 import AsyncStorage from '@react-native-community/async-storage';
 import addStorageEventHandler from './addStorageEventHandler';
 import Str from './Str';
@@ -13,6 +12,12 @@ const callbackToStateMapping = {};
 
 // Holds a list of keys that have been directly subscribed to from least to most recent
 let recentlyAccessedKeys = [];
+
+// Holds a list of keys that are safe to remove when we reach max storage
+let evictionAllowList = [];
+
+// Holds a list of keys that we should never remove
+let evictionBlocklist = [];
 
 /**
  * When a key change happens, search for any callbacks matching the regex pattern and trigger those callbacks
@@ -53,6 +58,17 @@ function isKeyMatch(configKey, key) {
 }
 
 /**
+ * Checks to see if this key has been flagged as
+ * safe for removal.
+ *
+ * @param {String} testKey
+ * @returns {Boolean}
+ */
+function canEvictKey(testKey) {
+    return _.some(evictionAllowList, key => isKeyMatch(key, testKey));
+}
+
+/**
  * Update our unique list of recently accessed keys. The least
  * recently accessed key should be at the head and the most
  * recently accessed key at the tail. This method is used to
@@ -62,11 +78,34 @@ function isKeyMatch(configKey, key) {
  * @param {Boolean} removeKey
  */
 function updateLastAccessedKey(key, removeKey) {
+    // Only specific keys belong in this list since we cannot remove an entire collection.
+    if (isCollectionKey(key) || !canEvictKey(key)) {
+        return;
+    }
+
     // Remove this key if it exists in the list already
     recentlyAccessedKeys = _.without(recentlyAccessedKeys, key);
 
     if (!removeKey) {
         recentlyAccessedKeys.push(key);
+    }
+}
+
+/**
+ * Keys added to this list can never be deleted.
+ *
+ * @param {String} key
+ * @param {Boolean} removeFromList
+ */
+function updateEvictionBlocklist(key, removeFromList) {
+    if (!canEvictKey(key)) {
+        throw new Error('Key pattern must be defined in Ion.init({safeEvictionKeys: String[]})');
+    }
+
+    evictionBlocklist = _.without(evictionBlocklist, key);
+
+    if (!removeFromList) {
+        evictionBlocklist.push(key);
     }
 }
 
@@ -149,6 +188,8 @@ function connect(mapping) {
         return connectionID;
     }
 
+    updateLastAccessedKey(mapping.key);
+
     AsyncStorage.getAllKeys()
         .then((keys) => {
             // Find all the keys matched by the config key
@@ -159,15 +200,6 @@ function connect(mapping) {
                 sendDataToConnection(mapping, null);
                 return;
             }
-
-            // Insert this key into the last accessed array to help us
-            // decide which keys to delete if storage capacity is reached.
-            // We will not add collections here since they are not individual
-            // Ion keys that we can remove and point to many different keys.
-            if (!isCollectionKey(mapping.key)) {
-                updateLastAccessedKey(mapping.key);
-            }
-
 
             // When using a callback subscriber we will trigger the callback
             // for each key we find. It's up to the subscriber to know whether
@@ -216,62 +248,6 @@ function remove(key) {
 }
 
 /**
- * Checks to see if we have any subscribers for a given key.
- * This returns true if the key is explicitly subscribed to
- * or when something is subscribing to a collection that this
- * key belongs to.
- *
- * @param {String} key
- * @returns {Boolean}
- */
-function hasSubscriberForKey(key) {
-    return _.any(callbackToStateMapping, mapping => (
-        mapping.key === key
-            || isKeyMatch(mapping.key, key)
-    ));
-}
-
-/**
- * Given a list of keys it will return the
- * key that takes up the most space in storage.
- *
- * @param {String[]} keys
- * @returns {Promise}
- */
-function getLargestKey(keys) {
-    return Promise.all(_.map(keys, key => AsyncStorage.getItem(key)))
-        .then((rawData) => {
-            const sortedKeys = [];
-            _.each(rawData, (data, index) => {
-                const keyEntry = {key: keys[index], size: new Blob([data]).size};
-                if (sortedKeys.length === 0) {
-                    sortedKeys.push(keyEntry);
-                } else {
-                    sortedKeys.splice(_.sortedIndex(sortedKeys, keyEntry, 'size'), 0, keyEntry);
-                }
-            });
-
-            return lodashGet(_.last(sortedKeys), 'key');
-        });
-}
-
-/**
- * Checks to be sure this key belongs to Ion
- * and is not some random key in storage.
- *
- * @param {String} testKey
- * @return {Boolean}
- */
-function isIonKey(testKey) {
-    const singleIonKeys = _.reduce(IONKEYS, (keys, key) => (
-        _.isString(key) ? [...keys, key] : keys
-    ), []);
-
-    return _.contains(singleIonKeys, testKey)
-        || isCollectionKey(`${lodashGet(testKey.split('_'), 0, '')}_`);
-}
-
-/**
  * If we fail to set or merge we must handle this by
  * evicting some data from Ion and then retrying to do
  * whatever it is we attempted to do.
@@ -282,53 +258,20 @@ function isIonKey(testKey) {
  * @return {Promise}
  */
 function evictStorageAndRetry(error, ionMethod, ...args) {
-    let allKeys;
-    return AsyncStorage.getAllKeys()
-        .then(keys => allKeys = keys)
-        .then(() => {
-            // Locate keys that have not yet been subscribed to in this session
-            // and evict the largest key from storage.
-            let neverAccessedKeys = _.difference(allKeys, recentlyAccessedKeys);
-            neverAccessedKeys = _.filter(neverAccessedKeys, key => (
+    // Find the first key that we can remove that is not in our blocklist
+    const keyForRemoval = _.find(recentlyAccessedKeys, key => !_.contains(evictionBlocklist, key));
+    if (keyForRemoval) {
+        // Remove the least recently viewed key that is not currently being accessed and retry.
+        console.debug(
+            '[Ion] Out of storage. Evicting least recently accessed key and retrying.',
+            {keyForRemoval}
+        );
+        return remove(keyForRemoval)
+            .then(() => ionMethod(...args));
+    }
 
-                // There are keys that should never be removed as they are not added by Ion
-                isIonKey(key)
-
-                    // Do not include anything that has a subscriber to be on the safe side
-                    && !hasSubscriberForKey(key)
-            ));
-
-            if (neverAccessedKeys.length > 0) {
-                return getLargestKey(neverAccessedKeys)
-                    .then((keyForRemoval) => {
-                        console.debug(
-                            '[Ion] Out of storage. Evicting largest key that has never been accessed and retrying.',
-                            {keyForRemoval}
-                        );
-                        return remove(keyForRemoval);
-                    })
-                    .then(() => ionMethod(...args));
-            }
-
-            // We did not find any keys that have never been accessed so let's look at the list of
-            // keys that have been accessed.
-            const leastRecentlyAccessedKeyWithoutSubscribers = _.find(recentlyAccessedKeys || [], key => (
-                !hasSubscriberForKey(key)
-            ));
-
-            if (leastRecentlyAccessedKeyWithoutSubscribers) {
-                // Remove the least recently viewed key that is not currently being accessed and retry.
-                console.debug(
-                    '[Ion] Out of storage. Evicting least recently accessed key and retrying.',
-                    {keyForRemoval: leastRecentlyAccessedKeyWithoutSubscribers}
-                );
-                return remove(leastRecentlyAccessedKeyWithoutSubscribers)
-                    .then(() => ionMethod(...args));
-            }
-
-            console.error('[Ion] Out of storage. But found no acceptable key to remove.');
-            throw error;
-        });
+    console.error('[Ion] Out of storage. But found no acceptable keys to remove.');
+    throw error;
 }
 
 /**
@@ -386,6 +329,8 @@ function clear() {
  * @param {*} val
  */
 function merge(key, val) {
+    updateLastAccessedKey(key, !val);
+
     // Arrays need to be manually merged because the AsyncStorage behavior
     // is not desired when merging arrays. `AsyncStorage.mergeItem('test', [1]);
     // will result in `{0: 1}` being set in storage, when `[1]` is what is expected
@@ -425,8 +370,13 @@ function merge(key, val) {
 
 /**
  * Initialize the store with actions and listening for storage events
+ *
+ * @param {Object} [options]
+ * @param {String[]} [options.safeEvictionKeys]
  */
-function init() {
+function init({safeEvictionKeys}) {
+    evictionAllowList = safeEvictionKeys;
+
     // Clear any loading and error messages so they do not appear on app startup
     merge(IONKEYS.SESSION, {loading: false, error: ''});
     addStorageEventHandler((key, newValue) => keyChanged(key, newValue));
@@ -440,6 +390,7 @@ const Ion = {
     merge,
     clear,
     init,
+    updateEvictionBlocklist,
 };
 
 export default Ion;
