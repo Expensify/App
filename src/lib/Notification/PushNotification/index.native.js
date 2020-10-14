@@ -40,7 +40,7 @@ function pushNotificationEventCallback(eventType, notification) {
     }
 
     if (!payload.type) {
-        console.debug('[PUSH_NOTIFICATION] Notification of unknown type received.');
+        console.debug('[PUSH_NOTIFICATION] No type value provided in payload, not executing any callback.');
         return;
     }
 
