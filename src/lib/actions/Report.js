@@ -108,8 +108,8 @@ function getSimplifiedReportObject(report) {
         reportName: report.reportName,
         reportNameValuePairs: report.reportNameValuePairs,
         unreadActionCount: getUnreadActionCount(report),
-        isPinned: configReportIDs.includes(report.reportID) || pinnedReportIDs.includes(report.reportID),
-        canModifyPin: !configReportIDs.includes(report.reportID),
+        isHardCoded: configReportIDs.includes(report.reportID),
+        isPinned: pinnedReportIDs.includes(report.reportID),
         maxSequenceNumber: report.reportActionList.length,
     };
 }
@@ -488,6 +488,7 @@ function updateLastReadActionID(reportID, sequenceNumber) {
 }
 
 /**
+ * Toggles the pinned state of the report and saves it into an NVP.
  *
  * @param {string} reportID
  */
@@ -510,7 +511,7 @@ function togglePinnedState(reportID) {
 
     API.setNameValuePair({
         name: 'expensify_chat_pinnedReportIDs',
-        value: updatedPinnedReportIDs,
+        value: updatedPinnedReportIDs.toString(),
     })
         .then(() => {
             Ion.set(IONKEYS.PINNED_CHAT_REPORT_IDs, updatedPinnedReportIDs);
@@ -520,6 +521,11 @@ function togglePinnedState(reportID) {
         });
 }
 
+/**
+ * Gets the pinned reportIDs from the users NVP and saves it into ION.
+ *
+ * @returns {Promise}
+ */
 function fetchPinnedReportIDs() {
     return API.get({
         returnValueList: 'nameValuePairs',

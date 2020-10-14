@@ -12,7 +12,11 @@ import styles, {getSafeAreaPadding} from '../../style/StyleSheet';
 import Header from './HeaderView';
 import Sidebar from './sidebar/SidebarView';
 import Main from './MainView';
-import {subscribeToReportCommentEvents, fetchAll as fetchAllReports, fetchPinnedReportIDs} from '../../lib/actions/Report';
+import {
+    subscribeToReportCommentEvents,
+    fetchAll as fetchAllReports,
+    fetchPinnedReportIDs
+} from '../../lib/actions/Report';
 import {fetch as fetchPersonalDetails} from '../../lib/actions/PersonalDetails';
 import * as Pusher from '../../lib/Pusher/pusher';
 import UnreadIndicatorUpdater from '../../lib/UnreadIndicatorUpdater';
