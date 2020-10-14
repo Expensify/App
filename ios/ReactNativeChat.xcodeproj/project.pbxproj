@@ -19,11 +19,12 @@
 		1E76D5252522316A005A268F /* GTAmericaExp-Thin.otf in Resources */ = {isa = PBXBuildFile; fileRef = A292718541C841859D97DF2F /* GTAmericaExp-Thin.otf */; };
 		425866037F4C482AAB46CB8B /* GTAmericaExp-BdIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = A8D6F2F722FD4E66A38EBBB6 /* GTAmericaExp-BdIt.otf */; };
 		6856B78873B64C44A92E51DB /* GTAmericaExp-MdIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = DB5A1365442D4419AF6F08E5 /* GTAmericaExp-MdIt.otf */; };
-		7EF88515CE8703E46E771C2D /* (null) in Frameworks */ = {isa = PBXBuildFile; };
+		7EF88515CE8703E46E771C2D /* BuildFile in Frameworks */ = {isa = PBXBuildFile; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		8821A238A081483FA947BC4E /* GTAmericaExp-RgIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 918D7FEFF96242E6B5F5E14D /* GTAmericaExp-RgIt.otf */; };
+		AB606A6D424AE2B476BEFD07 /* libPods-ReactNativeChat.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A5E21B3B4603003659AA9250 /* libPods-ReactNativeChat.a */; };
+		E1866E081AB386749BB5FE39 /* libPods-ReactNativeChat-ReactNativeChatTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BF94FAF26294857A369B1127 /* libPods-ReactNativeChat-ReactNativeChatTests.a */; };
 		E9DF872D2525201700607FDC /* AirshipConfig.plist in Resources */ = {isa = PBXBuildFile; fileRef = E9DF872C2525201700607FDC /* AirshipConfig.plist */; };
-		F574082BD3E243B7DA37B0BA /* libPods-ReactNativeChat-ReactNativeChatTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8012DB2DB4A4578220958B92 /* libPods-ReactNativeChat-ReactNativeChatTests.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -47,21 +48,21 @@
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = ReactNativeChat/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = ReactNativeChat/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = ReactNativeChat/main.m; sourceTree = "<group>"; };
-		547FB1575833AEDE29F25896 /* Pods-ReactNativeChat-ReactNativeChatTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ReactNativeChat-ReactNativeChatTests.release.xcconfig"; path = "Target Support Files/Pods-ReactNativeChat-ReactNativeChatTests/Pods-ReactNativeChat-ReactNativeChatTests.release.xcconfig"; sourceTree = "<group>"; };
+		20AC44D93509707BC89B1013 /* Pods-ReactNativeChat.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ReactNativeChat.release.xcconfig"; path = "Target Support Files/Pods-ReactNativeChat/Pods-ReactNativeChat.release.xcconfig"; sourceTree = "<group>"; };
+		3CF68E161AFD219803827BFA /* Pods-ReactNativeChat.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ReactNativeChat.debug.xcconfig"; path = "Target Support Files/Pods-ReactNativeChat/Pods-ReactNativeChat.debug.xcconfig"; sourceTree = "<group>"; };
+		4836FA3D8151BC83FFA2F12F /* Pods-ReactNativeChat-ReactNativeChatTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ReactNativeChat-ReactNativeChatTests.debug.xcconfig"; path = "Target Support Files/Pods-ReactNativeChat-ReactNativeChatTests/Pods-ReactNativeChat-ReactNativeChatTests.debug.xcconfig"; sourceTree = "<group>"; };
 		67D5C3A6A7FA417C8A853FC1 /* GTAmericaExp-Light.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-Light.otf"; path = "../assets/fonts/GTAmericaExp-Light.otf"; sourceTree = "<group>"; };
-		8012DB2DB4A4578220958B92 /* libPods-ReactNativeChat-ReactNativeChatTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ReactNativeChat-ReactNativeChatTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		72FEF6AF05EAD544ED1EB5F4 /* Pods-ReactNativeChat-ReactNativeChatTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ReactNativeChat-ReactNativeChatTests.release.xcconfig"; path = "Target Support Files/Pods-ReactNativeChat-ReactNativeChatTests/Pods-ReactNativeChat-ReactNativeChatTests.release.xcconfig"; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = ReactNativeChat/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		8437A5A38F2047E0BCCD7C2F /* GTAmericaExpMono-Rg.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExpMono-Rg.otf"; path = "../assets/fonts/GTAmericaExpMono-Rg.otf"; sourceTree = "<group>"; };
-		84BEA7302209B03FEC158B9A /* Pods-ReactNativeChat.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ReactNativeChat.debug.xcconfig"; path = "Target Support Files/Pods-ReactNativeChat/Pods-ReactNativeChat.debug.xcconfig"; sourceTree = "<group>"; };
 		8C7003903C1E4957824899BB /* GTAmericaExp-Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-Regular.otf"; path = "../assets/fonts/GTAmericaExp-Regular.otf"; sourceTree = "<group>"; };
 		918D7FEFF96242E6B5F5E14D /* GTAmericaExp-RgIt.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-RgIt.otf"; path = "../assets/fonts/GTAmericaExp-RgIt.otf"; sourceTree = "<group>"; };
 		A292718541C841859D97DF2F /* GTAmericaExp-Thin.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-Thin.otf"; path = "../assets/fonts/GTAmericaExp-Thin.otf"; sourceTree = "<group>"; };
 		A5AAD008CBD84A6CAEB9AC97 /* GTAmericaExp-Bold.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-Bold.otf"; path = "../assets/fonts/GTAmericaExp-Bold.otf"; sourceTree = "<group>"; };
+		A5E21B3B4603003659AA9250 /* libPods-ReactNativeChat.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ReactNativeChat.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A8D6F2F722FD4E66A38EBBB6 /* GTAmericaExp-BdIt.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-BdIt.otf"; path = "../assets/fonts/GTAmericaExp-BdIt.otf"; sourceTree = "<group>"; };
 		AE65058949E14DA5A2D5435D /* GTAmericaExp-Medium.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-Medium.otf"; path = "../assets/fonts/GTAmericaExp-Medium.otf"; sourceTree = "<group>"; };
-		BC4434CE76865567DAD7D7FB /* libPods-ReactNativeChat.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ReactNativeChat.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		BF057013BA158EE4172DAA52 /* Pods-ReactNativeChat.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ReactNativeChat.release.xcconfig"; path = "Target Support Files/Pods-ReactNativeChat/Pods-ReactNativeChat.release.xcconfig"; sourceTree = "<group>"; };
-		D8D3A45F65070233676930CF /* Pods-ReactNativeChat-ReactNativeChatTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ReactNativeChat-ReactNativeChatTests.debug.xcconfig"; path = "Target Support Files/Pods-ReactNativeChat-ReactNativeChatTests/Pods-ReactNativeChat-ReactNativeChatTests.debug.xcconfig"; sourceTree = "<group>"; };
+		BF94FAF26294857A369B1127 /* libPods-ReactNativeChat-ReactNativeChatTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ReactNativeChat-ReactNativeChatTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		DB5A1365442D4419AF6F08E5 /* GTAmericaExp-MdIt.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-MdIt.otf"; path = "../assets/fonts/GTAmericaExp-MdIt.otf"; sourceTree = "<group>"; };
 		E9DF86F625251E4A00607FDC /* Chat.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = Chat.entitlements; path = ReactNativeChat/Chat.entitlements; sourceTree = "<group>"; };
 		E9DF872C2525201700607FDC /* AirshipConfig.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = AirshipConfig.plist; sourceTree = "<group>"; };
@@ -74,7 +75,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F574082BD3E243B7DA37B0BA /* libPods-ReactNativeChat-ReactNativeChatTests.a in Frameworks */,
+				E1866E081AB386749BB5FE39 /* libPods-ReactNativeChat-ReactNativeChatTests.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -82,7 +83,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7EF88515CE8703E46E771C2D /* (null) in Frameworks */,
+				7EF88515CE8703E46E771C2D /* BuildFile in Frameworks */,
+				AB606A6D424AE2B476BEFD07 /* libPods-ReactNativeChat.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -127,8 +129,8 @@
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				ED2971642150620600B7C4FE /* JavaScriptCore.framework */,
-				BC4434CE76865567DAD7D7FB /* libPods-ReactNativeChat.a */,
-				8012DB2DB4A4578220958B92 /* libPods-ReactNativeChat-ReactNativeChatTests.a */,
+				A5E21B3B4603003659AA9250 /* libPods-ReactNativeChat.a */,
+				BF94FAF26294857A369B1127 /* libPods-ReactNativeChat-ReactNativeChatTests.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -184,10 +186,10 @@
 		EC29677F0A49C2946A495A33 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				84BEA7302209B03FEC158B9A /* Pods-ReactNativeChat.debug.xcconfig */,
-				BF057013BA158EE4172DAA52 /* Pods-ReactNativeChat.release.xcconfig */,
-				D8D3A45F65070233676930CF /* Pods-ReactNativeChat-ReactNativeChatTests.debug.xcconfig */,
-				547FB1575833AEDE29F25896 /* Pods-ReactNativeChat-ReactNativeChatTests.release.xcconfig */,
+				3CF68E161AFD219803827BFA /* Pods-ReactNativeChat.debug.xcconfig */,
+				20AC44D93509707BC89B1013 /* Pods-ReactNativeChat.release.xcconfig */,
+				4836FA3D8151BC83FFA2F12F /* Pods-ReactNativeChat-ReactNativeChatTests.debug.xcconfig */,
+				72FEF6AF05EAD544ED1EB5F4 /* Pods-ReactNativeChat-ReactNativeChatTests.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -199,11 +201,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "ReactNativeChatTests" */;
 			buildPhases = (
-				C5B995E95E82AA45C89CA88A /* [CP] Check Pods Manifest.lock */,
+				DBAA892DE9208CEF9F09C62B /* [CP] Check Pods Manifest.lock */,
 				00E356EA1AD99517003FC87E /* Sources */,
 				00E356EB1AD99517003FC87E /* Frameworks */,
 				00E356EC1AD99517003FC87E /* Resources */,
-				64450B67A8B6ADA8A8D3C47D /* [CP] Copy Pods Resources */,
+				2CE4CED3438C7F03D4D6D7D0 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -219,13 +221,13 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "ReactNativeChat" */;
 			buildPhases = (
-				A3E5D3E0B3D2144C5839A88A /* [CP] Check Pods Manifest.lock */,
+				6CC15D6E15FF4B1CCD49A418 /* [CP] Check Pods Manifest.lock */,
 				FD10A7F022414F080027D42C /* Start Packager */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
-				9BDBE41A2934927B5C02A879 /* [CP] Copy Pods Resources */,
+				E58EE7CFA8E729776B644F2A /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -319,7 +321,7 @@
 			shellPath = /bin/sh;
 			shellScript = "export NODE_BINARY=node\n../node_modules/react-native/scripts/react-native-xcode.sh";
 		};
-		64450B67A8B6ADA8A8D3C47D /* [CP] Copy Pods Resources */ = {
+		2CE4CED3438C7F03D4D6D7D0 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -447,7 +449,51 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-ReactNativeChat-ReactNativeChatTests/Pods-ReactNativeChat-ReactNativeChatTests-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		9BDBE41A2934927B5C02A879 /* [CP] Copy Pods Resources */ = {
+		6CC15D6E15FF4B1CCD49A418 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-ReactNativeChat-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		DBAA892DE9208CEF9F09C62B /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-ReactNativeChat-ReactNativeChatTests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		E58EE7CFA8E729776B644F2A /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -575,50 +621,6 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-ReactNativeChat/Pods-ReactNativeChat-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		A3E5D3E0B3D2144C5839A88A /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-ReactNativeChat-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		C5B995E95E82AA45C89CA88A /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-ReactNativeChat-ReactNativeChatTests-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
 		FD10A7F022414F080027D42C /* Start Packager */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -671,7 +673,7 @@
 /* Begin XCBuildConfiguration section */
 		00E356F61AD99517003FC87E /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = D8D3A45F65070233676930CF /* Pods-ReactNativeChat-ReactNativeChatTests.debug.xcconfig */;
+			baseConfigurationReference = 4836FA3D8151BC83FFA2F12F /* Pods-ReactNativeChat-ReactNativeChatTests.debug.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
@@ -695,7 +697,7 @@
 		};
 		00E356F71AD99517003FC87E /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 547FB1575833AEDE29F25896 /* Pods-ReactNativeChat-ReactNativeChatTests.release.xcconfig */;
+			baseConfigurationReference = 72FEF6AF05EAD544ED1EB5F4 /* Pods-ReactNativeChat-ReactNativeChatTests.release.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
@@ -716,7 +718,7 @@
 		};
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 84BEA7302209B03FEC158B9A /* Pods-ReactNativeChat.debug.xcconfig */;
+			baseConfigurationReference = 3CF68E161AFD219803827BFA /* Pods-ReactNativeChat.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -746,7 +748,7 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = BF057013BA158EE4172DAA52 /* Pods-ReactNativeChat.release.xcconfig */;
+			baseConfigurationReference = 20AC44D93509707BC89B1013 /* Pods-ReactNativeChat.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;

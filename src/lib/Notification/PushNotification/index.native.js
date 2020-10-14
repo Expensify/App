@@ -15,6 +15,8 @@ const notificationEventActionMap = {};
 function pushNotificationEventCallback(eventType, notification) {
     const actionMap = notificationEventActionMap[eventType] || {};
     let payload = lodashGet(notification, 'extras.payload');
+
+    // On Android, some notification payloads are sent as a JSON string rather than an object
     if (_.isString(payload)) {
         payload = JSON.parse(payload);
     }
