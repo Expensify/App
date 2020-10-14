@@ -7,8 +7,8 @@ import IONKEYS from '../../IONKEYS';
 import withIon from '../../components/withIon';
 import {withRouter} from '../../lib/Router';
 import LHNToggle from '../../../assets/images/icon-menu-toggle.png';
-import starActive from '../../../assets/images/star-active.png';
-import starInactive from '../../../assets/images/star-inactive.png';
+import pinEnabled from '../../../assets/images/pin-enabled.png';
+import pinDisabled from '../../../assets/images/pin-disabled.png';
 import compose from '../../lib/compose';
 import {togglePinnedState} from '../../lib/actions/Report';
 
@@ -54,18 +54,20 @@ const HeaderView = props => (
             )}
             {props.report && props.report.reportName ? (
                 <>
-                    <TouchableOpacity
-                        onPress={() => togglePinnedState(parseInt(props.report.reportID, 10))}
-                    >
-                        <Image
-                            resizeMode="contain"
-                            source={props.report.isPinned ? starActive : starInactive}
-                            style={[styles.reportPinIcon]}
-                        />
-                    </TouchableOpacity>
-                    <Text numberOfLines={2} style={[styles.navText]}>
+                    <Text numberOfLines={2} style={[styles.navText, styles.flex4]}>
                         {props.report.reportName}
                     </Text>
+                    <View style={[styles.flex0, styles.pr2]}>
+                        <TouchableOpacity
+                            onPress={() => togglePinnedState(parseInt(props.report.reportID, 10))}
+                        >
+                            <Image
+                                resizeMode="contain"
+                                source={props.report.isPinned ? pinEnabled : pinDisabled}
+                                style={[styles.reportPinIcon]}
+                            />
+                        </TouchableOpacity>
+                    </View>
                 </>
             ) : null}
         </View>
