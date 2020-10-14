@@ -104,6 +104,12 @@ class ReportActionsView extends React.Component {
         }
     }
 
+    /**
+     * When setting to true we will refetch the reportActions
+     * the next time this report is switched to.
+     *
+     * @param {Boolean} refetchNeeded
+     */
     setRefetchNeeded(refetchNeeded) {
         this.setState({refetchNeeded});
     }
