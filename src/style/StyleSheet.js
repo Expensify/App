@@ -182,6 +182,7 @@ const styles = {
         borderWidth: 1,
         color: colors.text,
         fontFamily: fontFamily.GTA,
+        fontSize: 15,
         padding: 12,
         textAlignVertical: 'center',
     },
