@@ -226,7 +226,6 @@ function createLogin(login, password) {
             // Now that we created a login to re-authenticate the user when the authToken expires,
             // we redirect the user and clear the value of redirectTo since we don't need it anymore
             Ion.merge(IONKEYS.APP_REDIRECT_TO, redirectTo);
-            redirectTo = null;
         });
 }
 
