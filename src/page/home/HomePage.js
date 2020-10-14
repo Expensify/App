@@ -7,6 +7,7 @@ import {
     Animated,
     Easing
 } from 'react-native';
+import _ from 'underscore';
 import {SafeAreaInsetsContext, SafeAreaProvider} from 'react-native-safe-area-context';
 import {Route} from '../../lib/Router';
 import styles, {getSafeAreaPadding} from '../../style/StyleSheet';
@@ -45,7 +46,12 @@ class App extends React.Component {
         this.dismissHamburger = this.dismissHamburger.bind(this);
         this.showHamburger = this.showHamburger.bind(this);
         this.toggleHamburgerBasedOnDimensions = this.toggleHamburgerBasedOnDimensions.bind(this);
-        this.animationTranslateX = new Animated.Value(!props.isSidebarShown ? -300 : 0);
+
+        // Note: This null check is only necessary because withIon passes null for bound props
+        //       that are null-initialized initialized in Ion, and defaultProps only replaces for `undefined` values
+        this.animationTranslateX = new Animated.Value(
+            !_.isNull(props.isSidebarShown) && !props.isSidebarShown ? -300 : 0
+        );
     }
 
     componentDidMount() {
