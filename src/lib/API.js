@@ -203,10 +203,6 @@ function deleteLogin(parameters) {
  * @returns {Promise}
  */
 function createLogin(login, password) {
-    if (!authToken) {
-        throw new Error('createLogin() can\'t be called when there is no authToken');
-    }
-
     // Using xhr instead of request because request has logic to retry API commands when we get a 407 authToken expired
     // in the response, and we call CreateLogin after getting a successful response to Authenticate so it's unlikely
     // that we'll get a 407.
