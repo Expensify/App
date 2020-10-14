@@ -282,6 +282,8 @@ function evictStorageAndRetry(error, ionMethod, ...args) {
  * @returns {Promise}
  */
 function set(key, val) {
+    updateLastAccessedKey(key, !val);
+
     // Write the thing to persistent storage, which will trigger a storage event for any other tabs open on this domain
     return AsyncStorage.setItem(key, JSON.stringify(val))
         .then(() => {
