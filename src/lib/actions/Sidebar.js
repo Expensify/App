@@ -16,6 +16,9 @@ function hide() {
     }
 }
 
+/**
+ * Show the sidebar, if it is hidden.
+ */
 function show() {
     if (!isSidebarShown) {
         Ion.set(IONKEYS.IS_SIDEBAR_SHOWN, true);
