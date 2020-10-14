@@ -259,8 +259,13 @@ function remove(key) {
  */
 function evictStorageAndRetry(error, ionMethod, ...args) {
     // Find the first key that we can remove that is not in our blocklist
-    const keyForRemoval = _.find(recentlyAccessedKeys, key => !_.contains(evictionBlocklist, key));
-    if (keyForRemoval) {
+    const keysToRemove = _.filter(recentlyAccessedKeys, key => !_.contains(evictionBlocklist, key));
+
+    // It's dangerous to remove the last key since after this we will have no more keys to remove
+    // if this fails we will just keep retrying over and over again in an endless loop.
+    if (keysToRemove.length > 1) {
+        const keyForRemoval = _.first(keysToRemove);
+
         // Remove the least recently viewed key that is not currently being accessed and retry.
         console.debug(
             '[Ion] Out of storage. Evicting least recently accessed key and retrying.',
