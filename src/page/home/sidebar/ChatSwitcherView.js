@@ -1,5 +1,5 @@
 import React from 'react';
-import {Text, View, TouchableOpacity} from 'react-native';
+import {Text, View, TouchableOpacity, Image} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import withIon from '../../../components/withIon';
@@ -11,6 +11,10 @@ import ChatSwitcherSearchForm from './ChatSwitcherSearchForm';
 import {fetchOrCreateChatReport} from '../../../lib/actions/Report';
 import {redirect} from '../../../lib/actions/App';
 import ROUTES from '../../../ROUTES';
+import {colors} from '../../../style/StyleSheet';
+import iconX from '../../../../assets/images/icon-x.png';
+
+const MAX_GROUP_DM_LENGTH = 8;
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -65,6 +69,7 @@ class ChatSwitcherView extends React.Component {
         this.handleKeyPress = this.handleKeyPress.bind(this);
         this.reset = this.reset.bind(this);
         this.selectRow = this.selectRow.bind(this);
+        this.addUserToDM = this.addUserToDM.bind(this);
         this.triggerOnFocusCallback = this.triggerOnFocusCallback.bind(this);
         this.updateSearch = this.updateSearch.bind(this);
 
@@ -93,11 +98,33 @@ class ChatSwitcherView extends React.Component {
     }
 
     selectRow(option) {
+        if (this.state.groupLogins.length > 0) {
+            this.addUserToDM(option, true);
+            return;
+        }
+
         if (option.isUser) {
             this.selectUser(option);
         } else {
             this.selectReport(option);
         }
+    }
+
+    addUserToDM(option, createAfterAddUser = false) {
+        this.setState(prevState => ({
+            groupLogins: [
+                ...prevState.groupLogins,
+                option,
+            ],
+        }), () => {
+            // Remove option from our list of options by
+            // refreshing the search with the last value we searched
+            this.updateSearch(this.state.search);
+
+            if (createAfterAddUser) {
+                this.createGroupDM();
+            }
+        });
     }
 
     /**
@@ -276,9 +303,10 @@ class ChatSwitcherView extends React.Component {
                     const option = searchOptions[j];
                     const valueToSearch = option.searchText.replace(new RegExp(/&nbsp;/g), '');
                     const isMatch = matchRegexes[i].test(valueToSearch);
+                    const isInGroupDM = _.some(this.state.groupLogins, (groupDMOption) => groupDMOption.login === option.login);
 
                     // Make sure we don't include the same option twice (automatically handled be using a `Set`)
-                    if (isMatch) {
+                    if (isMatch && !isInGroupDM) {
                         matches.add(option);
                     }
 
@@ -297,28 +325,80 @@ class ChatSwitcherView extends React.Component {
     }
 
     render() {
+        const maxParticipantsReached = this.state.groupLogins.length === MAX_GROUP_DM_LENGTH;
         return (
             <>
                 {this.state.groupLogins.length > 0 && (
-                    <>
-                        <View>
-                            {_.map(this.state.groupLogins, ({displayName}) => (
-                                <View
-                                    style={{
-                                        borderWidth: 1,
-                                        borderColor: '#fff',
-                                    }}
+                    <View
+                        style={[
+                            {
+                                flexDirection: 'row',
+                                flexWrap: 'wrap',
+                                paddingBottom: 10,
+                            }
+                        ]}
+                    >
+                        {_.map(this.state.groupLogins, option => (
+                            <TouchableOpacity
+                                style={{
+                                    borderWidth: 1,
+                                    borderColor: '#fff',
+                                    borderRadius: 20,
+                                    paddingLeft: 8,
+                                    paddingRight: 8,
+                                    marginBottom: 5,
+                                    marginRight: 5,
+                                    height: 25,
+                                    backgroundColor: '#8a8a8a',
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                }}
+                            >
+                                <Text
+                                    style={[{
+                                        color: '#fff',
+                                        fontSize: 13,
+                                    }]}
                                 >
-                                    <Text>{displayName}</Text>
-                                </View>
-                            ))}
-                        </View>
+                                    {option.text}
+                                </Text>
+                                <Image
+                                    resizeMode="contain"
+                                    style={[{
+                                        height: 13,
+                                        width: 13,
+                                        marginLeft: 5,
+                                    }]}
+                                    source={iconX}
+                                />
+                            </TouchableOpacity>
+                        ))}
                         <TouchableOpacity
+                            style={[
+                                {
+                                    backgroundColor: colors.green,
+                                    borderRadius: 5,
+                                    marginLeft: 10,
+                                    height: 35,
+                                    width: 35,
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                }
+                            ]}
                             onPress={() => this.createGroupDM()}
                         >
-                            <Text>Go</Text>
+                            <Text
+                                style={[
+                                    {
+                                        color: '#fff',
+                                        fontSize: 13,
+                                        fontWeight: 'bold',
+                                    }
+                                ]}
+                            >Go</Text>
                         </TouchableOpacity>
-                    </>
+                    </View>
                 )}
                 <ChatSwitcherSearchForm
                     ref={el => this.textInput = el}
@@ -337,19 +417,21 @@ class ChatSwitcherView extends React.Component {
                     groupLogins={this.state.groupLogins}
                 />
 
-                <ChatSwitcherList
-                    focusedIndex={this.state.focusedIndex}
-                    options={this.state.options}
-                    onRowSelected={this.selectRow}
-                    onAddToGroupDM={(option) => {
-                        this.setState(prevState => ({
-                            groupLogins: [
-                                ...prevState.groupLogins,
-                                {login: option.login, displayName: option.text},
-                            ],
-                        }));
-                    }}
-                />
+                {!maxParticipantsReached
+                    ? (
+                        <ChatSwitcherList
+                            focusedIndex={this.state.focusedIndex}
+                            options={this.state.options}
+                            onRowSelected={this.selectRow}
+                            onAddToGroupDM={this.addUserToDM}
+                        />
+                    )
+                : (
+                    <View>
+                        <Text>Maximum participants reached</Text>
+                        <Text>You've reached the maximum number of participants for a group chat.</Text>
+                    </View>
+                )}
             </>
         );
     }

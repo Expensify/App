@@ -7,7 +7,7 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
-import styles from '../../../style/StyleSheet';
+import styles, {colors} from '../../../style/StyleSheet';
 
 const propTypes = {
     // The index of the option that is currently in focus
@@ -89,7 +89,7 @@ const ChatSwitcherList = ({focusedIndex, options, onRowSelected, onAddToGroupDM}
                             </View>
                         </View>
                     </TouchableOpacity>
-                    {true && (
+                    {option.isUser && (
                         <View>
                             <TouchableOpacity
                                 style={[{
@@ -101,7 +101,11 @@ const ChatSwitcherList = ({focusedIndex, options, onRowSelected, onAddToGroupDM}
                                 }]}
                                 onPress={() => onAddToGroupDM(option)}
                             >
-                                <Text style={[textStyle, styles.h3]} numberOfLines={1}>
+                                <Text style={[{
+                                    color: '#fff',
+                                    fontSize: 13,
+                                    fontWeight: 'bold',
+                                }]} numberOfLines={1}>
                                     Add
                                 </Text>
                             </TouchableOpacity>
