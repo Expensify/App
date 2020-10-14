@@ -29,9 +29,6 @@ const propTypes = {
         // Name of the report
         reportName: PropTypes.string,
 
-        // Value indicating if the report is included via hardCoding or not
-        isHardCoded: PropTypes.bool,
-
         // Value indicating if the report is pinned or not
         isPinned: PropTypes.bool,
     }),
@@ -58,17 +55,15 @@ const HeaderView = props => (
             )}
             {props.report && props.report.reportName ? (
                 <>
-                    {!props.report.isHardCoded && (
-                        <TouchableOpacity
-                            onPress={() => togglePinnedState(parseInt(props.match.params.reportID, 10))}
-                        >
-                            <Image
-                                resizeMode="contain"
-                                source={props.report.isPinned ? starActive : starInactive}
-                                style={[styles.reportPinIcon]}
-                            />
-                        </TouchableOpacity>
-                    )}
+                    <TouchableOpacity
+                        onPress={() => togglePinnedState(parseInt(props.match.params.reportID, 10))}
+                    >
+                        <Image
+                            resizeMode="contain"
+                            source={props.report.isPinned ? starActive : starInactive}
+                            style={[styles.reportPinIcon]}
+                        />
+                    </TouchableOpacity>
                     <Text numberOfLines={2} style={[styles.navText]}>
                         {props.report.reportName}
                     </Text>
