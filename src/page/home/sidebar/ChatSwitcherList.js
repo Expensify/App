@@ -7,7 +7,7 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
-import styles from '../../../style/StyleSheet';
+import styles, {colors} from '../../../style/StyleSheet';
 
 const propTypes = {
     // The index of the option that is currently in focus
@@ -92,7 +92,7 @@ const ChatSwitcherList = ({focusedIndex, options}) => (
                             <TouchableOpacity
                                 style={[{
                                     borderWidth: 1,
-                                    borderColor: '#fff',
+                                    backgroundColor: colors.background,
                                     alignItems: 'center',
                                     padding: 10,
                                     justifyContent: 'center',
