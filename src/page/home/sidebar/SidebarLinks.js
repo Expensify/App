@@ -55,7 +55,15 @@ class SidebarLinks extends React.Component {
     render() {
         const {onLinkClick} = this.props;
         const reportIDInUrl = parseInt(this.props.match.params.reportID, 10);
-        const sortedReports = lodashOrderby(this.props.reports, ['isHardCoded', 'isPinned', 'reportName'], ['desc', 'desc', 'asc']);
+        const sortedReports = lodashOrderby(this.props.reports, [
+            'isHardCoded',
+            'isPinned',
+            'reportName'
+        ], [
+            'desc',
+            'desc',
+            'asc'
+        ]);
 
         // Filter the reports so that the only reports shown are pinned, unread, and the one matching the URL
         // eslint-disable-next-line max-len
