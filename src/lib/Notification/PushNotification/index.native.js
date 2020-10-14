@@ -6,34 +6,6 @@ import NotificationType from './NotificationType';
 const notificationEventActionMap = {};
 
 /**
- * Register this device for push notifications for the given accountID.
- *
- * @param {string|int} accountID
- */
-function register(accountID) {
-    // Get permissions to display push notifications (prompts user on iOS, but not Android)
-    UrbanAirship.enableUserPushNotifications()
-        .then((isEnabled) => {
-            if (!isEnabled) {
-                console.debug('[PUSH_NOTIFICATIONS] User has disabled visible push notifications for this app.');
-            }
-        });
-
-    // Register this device as a named user in AirshipAPI.
-    // Regardless of the user's opt-in status, we still want to receive silent push notifications.
-    console.debug(`[PUSH_NOTIFICATIONS] Subscribing to notifications for account ID ${accountID}`);
-    UrbanAirship.setNamedUser(accountID.toString());
-}
-
-/**
- * Deregister this device from push notifications.
- */
-function deregister() {
-    console.debug('[PUSH_NOTIFICATIONS] Unsubscribing from push notifications.');
-    UrbanAirship.setNamedUser(null);
-}
-
-/**
  * Handle a push notification event, and trigger and bound actions.
  *
  * @param {string} eventType
@@ -78,9 +50,25 @@ function pushNotificationEventCallback(eventType, notification) {
 }
 
 /**
- * Setup listener for push notification events.
+ * Register this device for push notifications for the given accountID.
+ *
+ * @param {string|int} accountID
  */
-function setupEventListeners() {
+function register(accountID) {
+    // Get permissions to display push notifications (prompts user on iOS, but not Android)
+    UrbanAirship.enableUserPushNotifications()
+        .then((isEnabled) => {
+            if (!isEnabled) {
+                console.debug('[PUSH_NOTIFICATIONS] User has disabled visible push notifications for this app.');
+            }
+        });
+
+    // Register this device as a named user in AirshipAPI.
+    // Regardless of the user's opt-in status, we still want to receive silent push notifications.
+    console.debug(`[PUSH_NOTIFICATIONS] Subscribing to notifications for account ID ${accountID}`);
+    UrbanAirship.setNamedUser(accountID.toString());
+
+    // Setup event listeners
     UrbanAirship.addListener(EventType.PushReceived, (notification) => {
         pushNotificationEventCallback(EventType.PushReceived, notification);
     });
@@ -90,6 +78,15 @@ function setupEventListeners() {
     UrbanAirship.addListener(EventType.NotificationResponse, (event) => {
         pushNotificationEventCallback(EventType.NotificationResponse, event.notification);
     });
+}
+
+/**
+ * Deregister this device from push notifications.
+ */
+function deregister() {
+    console.debug('[PUSH_NOTIFICATIONS] Unsubscribing from push notifications.');
+    UrbanAirship.setNamedUser(null);
+    UrbanAirship.removeAllListeners();
 }
 
 /**
@@ -131,9 +128,6 @@ function onReceived(notificationType, callback) {
 function onSelected(notificationType, callback) {
     bind(notificationType, callback, EventType.NotificationResponse);
 }
-
-// Setup the listeners when this module first loads
-setupEventListeners();
 
 export default {
     register,
