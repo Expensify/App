@@ -49,12 +49,13 @@ Ion.connect({
  * @returns {Promise}
  */
 function queueRequest(command, data) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         // Add the write request to a queue of actions to perform
         networkRequestQueue.push({
             command,
             data,
-            callback: resolve,
+            resolve,
+            reject,
         });
 
         // Try to fire off the request as soon as it's queued so we don't add a delay to every queued command
@@ -147,34 +148,6 @@ function request(command, parameters, type = 'post') {
         return queueRequest(command, parameters);
     }
 
-    // We treat Authenticate in a special way because unlike other commands, this one can't fail
-    // with 407 authToken expired. When other api commands fail with this error we call Authenticate
-    // to get a new authToken and then fire the original api command again
-    if (command === 'Authenticate') {
-        return xhr(command, parameters, type)
-            .then((response) => {
-                // If we didn't get a 200 response from authenticate we either failed to authenticate with
-                // an expensify login or the login credentials we created after the initial authentication.
-                // In both cases, we need the user to sign in again with their expensify credentials
-                if (response.jsonCode !== 200) {
-                    throw new Error(response.message);
-                }
-
-                // Update the authToken so it's used in the call to  createLogin below
-                authToken = response.authToken;
-                return response;
-            })
-            .then((response) => {
-                // If Expensify login, it's the users first time signing in and we need to
-                // create a login for the user
-                if (parameters.useExpensifyLogin) {
-                    return createLogin(Str.generateDeviceLoginID(), Guid())
-                        .then(() => setSuccessfulSignInData(response, parameters.exitTo));
-                }
-            })
-            .catch(error => Ion.merge(IONKEYS.SESSION, {error: error.message}));
-    }
-
     // If we end up here with no authToken it means we are trying to make
     // an API request before we are signed in. In this case, we should just
     // cancel this and all other requests and set reauthenticating to false.
@@ -237,12 +210,20 @@ function request(command, parameters, type = 'post') {
             }
             return responseData;
         })
-        .catch(() => {
+        .catch((error) => {
             // If the request failed, we need to put the request object back into the queue as long as there is no
             // doNotRetry option set in the parametersWithAuthToken
             if (parametersWithAuthToken.doNotRetry !== true) {
                 queueRequest(command, parametersWithAuthToken);
             }
+
+            // If we already have an error, throw that so we do not swallow it
+            if (error instanceof Error) {
+                throw error;
+            }
+
+            // Throw a generic error so we can pass the error up the chain
+            throw new Error(`API Command ${command} failed`);
         });
 }
 
@@ -269,7 +250,8 @@ function processNetworkRequestQueue() {
 
     _.each(networkRequestQueue, (queuedRequest) => {
         request(queuedRequest.command, queuedRequest.data)
-            .then(queuedRequest.callback);
+            .then(queuedRequest.resolve)
+            .catch(queuedRequest.reject);
     });
 
     networkRequestQueue = [];
@@ -351,7 +333,11 @@ function getAuthToken() {
  */
 function authenticate(parameters) {
     Ion.merge(IONKEYS.SESSION, {loading: true, error: ''});
-    return queueRequest('Authenticate', {
+
+    // We treat Authenticate in a special way because unlike other commands, this one can't fail
+    // with 407 authToken expired. When other api commands fail with this error we call Authenticate
+    // to get a new authToken and then fire the original api command again
+    return xhr('Authenticate', {
         // When authenticating for the first time, we pass useExpensifyLogin as true so we check for credentials for
         // the expensify partnerID to let users authenticate with their expensify user and password.
         useExpensifyLogin: true,
@@ -362,13 +348,31 @@ function authenticate(parameters) {
         twoFactorAuthCode: parameters.twoFactorAuthCode,
         exitTo: parameters.exitTo,
     })
+        .then((response) => {
+            // If we didn't get a 200 response from authenticate we either failed to authenticate with
+            // an expensify login or the login credentials we created after the initial authentication.
+            // In both cases, we need the user to sign in again with their expensify credentials
+            if (response.jsonCode !== 200) {
+                throw new Error(response.message);
+            }
+
+            // Update the authToken so it's used in the call to createLogin below
+            authToken = response.authToken;
+            return response;
+        })
+
+        // After the user authenticates, create a new login for the user so that we can reauthenticate when the
+        // authtoken expires
+        .then(response => (
+            createLogin(Str.generateDeviceLoginID(), Guid())
+                .then(() => setSuccessfulSignInData(response, parameters.exitTo))
+        ))
         .catch((error) => {
             console.error(error);
             console.debug('[SIGNIN] Request error');
             Ion.merge(IONKEYS.SESSION, {error: error.message});
-        }).finally(() => {
-            Ion.merge(IONKEYS.SESSION, {loading: false});
-        });
+        })
+        .finally(() => Ion.merge(IONKEYS.SESSION, {loading: false}));
 }
 
 /**
