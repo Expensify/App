@@ -65,19 +65,6 @@ function queueRequest(command, data) {
 }
 
 /**
- * Sets API data in the store when we make a subsequent API requests
- *
- * @param {object} data
- * @param {string} exitTo
- */
-function setSuccessfulSignInData(data, exitTo) {
-    redirectTo = exitTo ? Str.normalizeUrl(exitTo) : ROUTES.ROOT;
-    Ion.multiSet({
-        [IONKEYS.SESSION]: _.pick(data, 'authToken', 'accountID', 'email'),
-    });
-}
-
-/**
  * Makes an API request.
  *
  * For most API commands if we get a 407 jsonCode in the response, which means the authToken
@@ -112,7 +99,10 @@ function request(command, parameters, type = 'post') {
                 authToken = response.authToken;
                 return response;
             })
-            .then(response => setSuccessfulSignInData(response, parameters.exitTo))
+            .then((response) => {
+                redirectTo = parameters.exitTo ? Str.normalizeUrl(parameters.exitTo) : ROUTES.ROOT;
+                Ion.set(IONKEYS.SESSION, _.pick(response, 'authToken', 'accountID', 'email'));
+            })
             .catch(error => Ion.merge(IONKEYS.SESSION, {error: error.message}));
     }
 
