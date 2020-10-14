@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import {AppState} from 'react-native';
 import {UrbanAirship, EventType} from 'urbanairship-react-native';
 import lodashGet from 'lodash.get';
@@ -13,7 +14,10 @@ const notificationEventActionMap = {};
  */
 function pushNotificationEventCallback(eventType, notification) {
     const actionMap = notificationEventActionMap[eventType] || {};
-    const payload = lodashGet(notification, 'extras.payload');
+    let payload = lodashGet(notification, 'extras.payload');
+    if (_.isString(payload)) {
+        payload = JSON.parse(payload);
+    }
 
     console.debug(`[PUSH_NOTIFICATION] ${eventType}`, {
         title: notification.title,
@@ -86,7 +90,8 @@ function register(accountID) {
 function deregister() {
     console.debug('[PUSH_NOTIFICATIONS] Unsubscribing from push notifications.');
     UrbanAirship.setNamedUser(null);
-    UrbanAirship.removeAllListeners();
+    UrbanAirship.removeAllListeners(EventType.PushReceived);
+    UrbanAirship.removeAllListeners(EventType.NotificationResponse);
 }
 
 /**
