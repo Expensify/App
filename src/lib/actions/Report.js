@@ -58,10 +58,6 @@ const configReportIDs = CONFIG.REPORT_IDS.split(',').map(Number);
 
 // List of reportIDs pinned by the user
 let pinnedReportIDs = [];
-Ion.connect({
-    key: IONKEYS.PINNED_CHAT_REPORT_IDs,
-    callback: val => pinnedReportIDs = val,
-});
 
 /**
  * Checks the report to see if there are any unread action items
@@ -498,23 +494,21 @@ function togglePinnedState(reportID) {
         return;
     }
 
-    const updatedPinnedReportIDs = pinnedReportIDs;
     const indexOfReportID = pinnedReportIDs.indexOf(reportID);
     let isPinned;
     if (indexOfReportID !== -1) {
         isPinned = false;
-        updatedPinnedReportIDs.splice(indexOfReportID, 1);
+        pinnedReportIDs.splice(indexOfReportID, 1);
     } else {
         isPinned = true;
-        updatedPinnedReportIDs.push(reportID);
+        pinnedReportIDs.push(reportID);
     }
 
     API.setNameValuePair({
         name: 'expensify_chat_pinnedReportIDs',
-        value: updatedPinnedReportIDs.toString(),
+        value: pinnedReportIDs.toString(),
     })
         .then(() => {
-            Ion.set(IONKEYS.PINNED_CHAT_REPORT_IDs, updatedPinnedReportIDs);
             Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {
                 isPinned,
             });
@@ -533,8 +527,7 @@ function fetchPinnedReportIDs() {
     })
         .then((data) => {
             const strReportIDs = lodashGet(data, 'nameValuePairs.expensify_chat_pinnedReportIDs', '').toString();
-            const reportIDs = strReportIDs ? strReportIDs.split(',').map(Number) : [];
-            Ion.set(IONKEYS.PINNED_CHAT_REPORT_IDs, reportIDs);
+            pinnedReportIDs = strReportIDs ? strReportIDs.split(',').map(Number) : [];
         });
 }
 
