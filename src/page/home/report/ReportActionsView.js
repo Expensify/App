@@ -49,9 +49,9 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidMount() {
-        this.visibilityChangeEvent = AppState.addListener('change', () => {
-            if (this.props.isActiveReport) {
-                setTimeout(this.recordMaxAction, 5000);
+        this.visibilityChangeEvent = AppState.addEventListener('change', () => {
+            if (this.props.isActiveReport && Visibility.isVisible) {
+                setTimeout(this.recordMaxAction, 3000);
             }
         });
         if (this.props.isActiveReport) {
