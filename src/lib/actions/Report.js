@@ -254,10 +254,6 @@ function subscribeToReportTypingEvents(reportID) {
     }
 
     const pusherChannelName = `private-report-reportID-${reportID}`;
-    if (Pusher.isSubscribed(pusherChannelName) || Pusher.isAlreadySubscribing(pusherChannelName)) {
-        return;
-    }
-
     Pusher.subscribe(pusherChannelName, 'client-userIsTyping', () => {
         clearTimeout(typingWatchTimers[reportID]);
         Ion.merge(`${IONKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, true);
@@ -267,6 +263,21 @@ function subscribeToReportTypingEvents(reportID) {
             delete typingWatchTimers[reportID];
         }, 1500);
     });
+}
+
+/**
+ * Remove our pusher subscriptions to listen for someone typing in a report.
+ *
+ * @param {number} reportID
+ */
+function unsubscribeToReportTypingEvents(reportID) {
+    // If we don't have the user's accountID yet we can't subscribe so return early
+    if (!currentUserAccountID) {
+        return;
+    }
+
+    const pusherChannelName = `private-report-reportID-${reportID}`;
+    Pusher.unsubscribe(pusherChannelName, 'client-userIsTyping');
 }
 
 /**
@@ -567,6 +578,7 @@ export {
     updateLastReadActionID,
     subscribeToReportCommentEvents,
     subscribeToReportTypingEvents,
+    unsubscribeToReportTypingEvents,
     saveReportComment,
     broadcastUserIsTyping,
 };

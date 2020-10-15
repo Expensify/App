@@ -8,7 +8,7 @@ import withIon from '../../components/withIon';
 import {withRouter} from '../../lib/Router';
 import LHNToggle from '../../../assets/images/icon-menu-toggle.png';
 import compose from '../../lib/compose';
-import {subscribeToReportTypingEvents} from '../../lib/actions/Report';
+import {subscribeToReportTypingEvents, unsubscribeToReportTypingEvents} from '../../lib/actions/Report';
 
 const propTypes = {
     // Toggles the hamburger menu open and closed
@@ -32,6 +32,16 @@ const defaultProps = {
 class HeaderView extends React.PureComponent {
     componentDidMount() {
         if (this.props.report && this.props.report.reportID) {
+            subscribeToReportTypingEvents(this.props.report.reportID);
+        }
+    }
+
+    componentDidUpdate(prevProps) {
+        // If we're viewing a new report, unbind the event subscription for the previous report in addition to
+        // subscribing for the new report.
+        if (this.props.report && this.props.report.reportID
+            && prevProps.report.reportID !== this.props.report.reportID) {
+            unsubscribeToReportTypingEvents(prevProps.report.reportID);
             subscribeToReportTypingEvents(this.props.report.reportID);
         }
     }
