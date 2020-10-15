@@ -77,18 +77,21 @@ export default function (mapIonToState) {
                 // if the canEvict function returns true. This is additional criteria
                 // we can use to allow a key to be removed or not.
                 _.each(mapIonToState, (mapping) => {
-                    if (_.isFunction(mapping.canEvict)) {
-                        const key = _.isFunction(mapping.key) ? mapping.key(this.props) : mapping.key;
-                        if (!Ion.isSafeEvictionKey(key)) {
-                            // eslint-disable-next-line max-len
-                            throw new Error('canEvict cannot be used on a key that has not explicitly been flagged as safe for removal. This key must be added to the safeEvictionKeys option in Ion.init()');
-                        }
+                    if (_.isUndefined(mapping.canEvict)) {
+                        return;
+                    }
 
-                        if (mapping.canEvict(this.props)) {
-                            Ion.removeFromEvictionBlockList(key);
-                        } else {
-                            Ion.addToEvictionBlockList(key);
-                        }
+                    const canEvict = _.isFunction(mapping.canEvict) ? mapping.canEvict(this.props) : mapping.canEvict;
+                    const key = _.isFunction(mapping.key) ? mapping.key(this.props) : mapping.key;
+                    if (!Ion.isSafeEvictionKey(key)) {
+                        // eslint-disable-next-line max-len
+                        throw new Error('canEvict cannot be used on a key that has not explicitly been flagged as safe for removal. This key must be added to the safeEvictionKeys option in Ion.init()');
+                    }
+
+                    if (canEvict) {
+                        Ion.removeFromEvictionBlockList(key);
+                    } else {
+                        Ion.addToEvictionBlockList(key);
                     }
                 });
 
