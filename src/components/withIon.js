@@ -10,8 +10,8 @@ import Ion from '../lib/Ion';
 /**
  * Returns the display name of a component
  *
- * @param {Object} component
- * @returns {String}
+ * @param {object} component
+ * @returns {string}
  */
 function getDisplayName(component) {
     return component.displayName || component.name || 'Component';
