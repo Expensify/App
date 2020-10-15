@@ -46,7 +46,7 @@ export default function (propNameToBatch, batches) {
             componentWillUnmount() {
                 // We need to clean up any timers when the component unmounts or else
                 // we'll call set state on an unmounting component.
-                this.cancelBatchTimers();
+                _.each(this.timers, timerID => clearTimeout(timerID));
             }
 
             /**
@@ -58,13 +58,6 @@ export default function (propNameToBatch, batches) {
                 this.setState({
                     [propNameToBatch]: items,
                 });
-            }
-
-            /**
-             * Cancels all the timers
-             */
-            cancelBatchTimers() {
-                _.each(this.timers, timerID => clearTimeout(timerID));
             }
 
             render() {
