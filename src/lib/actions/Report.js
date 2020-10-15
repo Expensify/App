@@ -47,6 +47,8 @@ Ion.connect({
     callback: val => myPersonalDetails = val,
 });
 
+const typingWatchTimers = {};
+
 // Keeps track of the max sequence number for each report
 const reportMaxSequenceNumbers = {};
 
@@ -237,6 +239,33 @@ function subscribeToReportCommentEvents() {
 
     Pusher.subscribe(pusherChannelName, 'reportComment', (pushJSON) => {
         updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
+    });
+}
+
+/**
+ * Initialize our pusher subscriptions to listen for someone typing in a report.
+ *
+ * @param {number} reportID
+ */
+function subscribeToReportTypingEvents(reportID) {
+    // If we don't have the user's accountID yet we can't subscribe so return early
+    if (!currentUserAccountID) {
+        return;
+    }
+
+    const pusherChannelName = `private-report-reportID-${reportID}`;
+    if (Pusher.isSubscribed(pusherChannelName) || Pusher.isAlreadySubscribing(pusherChannelName)) {
+        return;
+    }
+
+    Pusher.subscribe(pusherChannelName, 'client-userIsTyping', () => {
+        clearTimeout(typingWatchTimers[reportID]);
+        Ion.merge(`${IONKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, true);
+
+        typingWatchTimers[reportID] = setTimeout(() => {
+            Ion.merge(`${IONKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, false);
+            delete typingWatchTimers[reportID];
+        }, 1500);
     });
 }
 
@@ -491,6 +520,16 @@ function saveReportComment(reportID, comment) {
 }
 
 /**
+ * Broadcasts whether or not a user is typing on a report over the report's private pusher channel.
+ *
+ * @param {number} reportID
+ */
+function broadcastUserIsTyping(reportID) {
+    const privateReportChannelName = `private-report-reportID-${reportID}`;
+    Pusher.sendEvent(privateReportChannelName, 'client-userIsTyping', {});
+}
+
+/**
  * When a report changes in Ion, this fetches the report from the API if the report doesn't have a name
  * and it keeps track of the max sequence number on the report actions.
  *
@@ -527,5 +566,7 @@ export {
     addAction,
     updateLastReadActionID,
     subscribeToReportCommentEvents,
+    subscribeToReportTypingEvents,
     saveReportComment,
+    broadcastUserIsTyping,
 };

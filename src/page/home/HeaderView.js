@@ -8,6 +8,7 @@ import withIon from '../../components/withIon';
 import {withRouter} from '../../lib/Router';
 import LHNToggle from '../../../assets/images/icon-menu-toggle.png';
 import compose from '../../lib/compose';
+import {subscribeToReportTypingEvents} from '../../lib/actions/Report';
 
 const propTypes = {
     // Toggles the hamburger menu open and closed
@@ -28,29 +29,44 @@ const defaultProps = {
     report: null,
 };
 
-const HeaderView = props => (
-    <View style={[styles.appContentHeader]}>
-        <View style={[styles.appContentHeaderTitle]}>
-            {props.shouldShowHamburgerButton && (
-            <TouchableOpacity
-                onPress={props.onHamburgerButtonClicked}
-                style={[styles.LHNToggle]}
-            >
-                <Image
-                    resizeMode="contain"
-                    style={[styles.LHNToggleIcon]}
-                    source={LHNToggle}
-                />
-            </TouchableOpacity>
-            )}
-            {props.report && props.report.reportName ? (
-                <Text numberOfLines={2} style={[styles.navText]}>
-                    {props.report.reportName}
-                </Text>
-            ) : null}
-        </View>
-    </View>
-);
+class HeaderView extends React.PureComponent {
+    componentDidMount() {
+        if (this.props.report && this.props.report.reportID) {
+            subscribeToReportTypingEvents(this.props.report.reportID);
+        }
+    }
+
+    render() {
+        return (
+            <View style={[styles.appContentHeader]}>
+                <View style={[styles.appContentHeaderTitle]}>
+                    {this.props.shouldShowHamburgerButton && (
+                        <TouchableOpacity
+                            onPress={this.props.onHamburgerButtonClicked}
+                            style={[styles.LHNToggle]}
+                        >
+                            <Image
+                                resizeMode="contain"
+                                style={[styles.LHNToggleIcon]}
+                                source={LHNToggle}
+                            />
+                        </TouchableOpacity>
+                    )}
+                    {this.props.report && this.props.report.reportName ? (
+                        <View>
+                            <Text numberOfLines={2} style={[styles.navText]}>
+                                {this.props.report.reportName}
+                            </Text>
+                            <Text numberOfLines={1} style={[styles.navSubText]}>
+                                {this.props.usersTyping ? 'Users Are Typing...' : ''}
+                            </Text>
+                        </View>
+                    ) : null}
+                </View>
+            </View>
+        );
+    }
+}
 
 HeaderView.propTypes = propTypes;
 HeaderView.displayName = 'HeaderView';
@@ -62,5 +78,8 @@ export default compose(
         report: {
             key: ({match}) => `${IONKEYS.COLLECTION.REPORT}${match.params.reportID}`,
         },
+        usersTyping: {
+            key: ({match}) => `${IONKEYS.COLLECTION.REPORT_USER_IS_TYPING}${match.params.reportID}`,
+        }
     }),
 )(HeaderView);
