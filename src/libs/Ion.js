@@ -64,49 +64,54 @@ function isKeyMatch(configKey, key) {
  * @param {String} testKey
  * @returns {Boolean}
  */
-function canEvictKey(testKey) {
+function isSafeEvictionKey(testKey) {
     return _.some(evictionAllowList, key => isKeyMatch(key, testKey));
 }
 
 /**
- * Update our unique list of recently accessed keys. The least
- * recently accessed key should be at the head and the most
- * recently accessed key at the tail. This method is used to
- * add/remove keys.
+ * Remove a key from the recently accessed key list.
  *
  * @param {String} key
- * @param {Boolean} removeKey
  */
-function updateLastAccessedKey(key, removeKey) {
+function removeLastAccessedKey(key) {
+    recentlyAccessedKeys = _.without(recentlyAccessedKeys, key);
+}
+
+/**
+ * Add a key to the list of recently accessed keys. The least
+ * recently accessed key should be at the head and the most
+ * recently accessed key at the tail.
+ *
+ * @param {String} key
+ */
+function addLastAccessedKey(key) {
     // Only specific keys belong in this list since we cannot remove an entire collection.
-    if (isCollectionKey(key) || !canEvictKey(key)) {
+    if (isCollectionKey(key) || !isSafeEvictionKey(key)) {
         return;
     }
 
-    // Remove this key if it exists in the list already
-    recentlyAccessedKeys = _.without(recentlyAccessedKeys, key);
+    removeLastAccessedKey(key);
+    recentlyAccessedKeys.push(key);
+}
 
-    if (!removeKey) {
-        recentlyAccessedKeys.push(key);
-    }
+/**
+ * Removes a key previously added to this list
+ * which will enable it to be deleted again.
+ *
+ * @param {String} key
+ */
+function removeFromEvictionBlockList(key) {
+    evictionBlocklist = _.without(evictionBlocklist, key);
 }
 
 /**
  * Keys added to this list can never be deleted.
  *
  * @param {String} key
- * @param {Boolean} removeFromList
  */
-function updateEvictionBlocklist(key, removeFromList) {
-    if (!canEvictKey(key)) {
-        throw new Error('Key pattern must be defined in Ion.init({safeEvictionKeys: String[]})');
-    }
-
-    evictionBlocklist = _.without(evictionBlocklist, key);
-
-    if (!removeFromList) {
-        evictionBlocklist.push(key);
-    }
+function addToEvictionBlockList(key) {
+    removeFromEvictionBlockList(key);
+    evictionBlocklist.push(key);
 }
 
 /**
@@ -188,7 +193,7 @@ function connect(mapping) {
         return connectionID;
     }
 
-    updateLastAccessedKey(mapping.key);
+    addLastAccessedKey(mapping.key);
 
     AsyncStorage.getAllKeys()
         .then((keys) => {
@@ -243,8 +248,10 @@ function disconnect(connectionID) {
  */
 function remove(key) {
     return AsyncStorage.removeItem(key)
-        .then(() => updateLastAccessedKey(key, true))
-        .then(() => keyChanged(key, null));
+        .then(() => {
+            removeLastAccessedKey(key);
+            keyChanged(key, null);
+        });
 }
 
 /**
@@ -287,7 +294,11 @@ function evictStorageAndRetry(error, ionMethod, ...args) {
  * @returns {Promise}
  */
 function set(key, val) {
-    updateLastAccessedKey(key, !val);
+    if (val) {
+        addLastAccessedKey(key);
+    } else {
+        removeLastAccessedKey(key);
+    }
 
     // Write the thing to persistent storage, which will trigger a storage event for any other tabs open on this domain
     return AsyncStorage.setItem(key, JSON.stringify(val))
@@ -336,7 +347,11 @@ function clear() {
  * @param {*} val
  */
 function merge(key, val) {
-    updateLastAccessedKey(key, !val);
+    if (val) {
+        addLastAccessedKey(key);
+    } else {
+        removeLastAccessedKey(key);
+    }
 
     // Arrays need to be manually merged because the AsyncStorage behavior
     // is not desired when merging arrays. `AsyncStorage.mergeItem('test', [1]);
@@ -397,7 +412,9 @@ const Ion = {
     merge,
     clear,
     init,
-    updateEvictionBlocklist,
+    addToEvictionBlockList,
+    removeFromEvictionBlockList,
+    isSafeEvictionKey,
 };
 
 export default Ion;
