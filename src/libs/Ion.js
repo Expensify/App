@@ -345,6 +345,15 @@ function multiSet(data) {
         ...finalArray,
         [key, JSON.stringify(val)],
     ]), []);
+
+    _.each(keyValuePairs, ([key, val]) => {
+        if (val) {
+            addLastAccessedKey(key);
+        } else {
+            removeLastAccessedKey(key);
+        }
+    });
+
     return AsyncStorage.multiSet(keyValuePairs)
         .then(() => {
             _.each(data, (val, key) => keyChanged(key, val));
