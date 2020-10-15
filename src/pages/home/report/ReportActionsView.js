@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Keyboard} from 'react-native';
+import {View, Keyboard, ActivityIndicator} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
@@ -8,7 +8,7 @@ import withIon from '../../../components/withIon';
 import {fetchActions, updateLastReadActionID} from '../../../libs/actions/Report';
 import IONKEYS from '../../../IONKEYS';
 import ReportActionItem from './ReportActionItem';
-import styles from '../../../styles/StyleSheet';
+import styles, {colors} from '../../../styles/StyleSheet';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import {lastItem} from '../../../libs/CollectionUtils';
@@ -154,6 +154,15 @@ class ReportActionsView extends React.Component {
         this.recordMaxAction();
     }
 
+    loadMore() {
+        if (this.props.reportActions.loading) {
+            return;
+        }
+
+        // Load the next set of report actions
+        fetchActions(this.props.reportID);
+    }
+
     /**
      * Do not move this or make it an anonymous function it is a method
      * so it will not be recreated each time we render an item
@@ -208,6 +217,24 @@ class ReportActionsView extends React.Component {
                 contentContainerStyle={[styles.chatContentScrollView]}
                 keyExtractor={item => `${item.action.sequenceNumber}`}
                 initialRowHeight={32}
+                ListFooterComponent={() => {
+                    if (this.props.reportActions.loading) {
+                        return (
+                            <ActivityIndicator
+                                size="large"
+                                color={colors.textSupporting}
+                            />
+                        );
+                    }
+
+                    return null;
+                }}
+                onScroll={({nativeEvent}) => {
+                    const scrollTop = (nativeEvent.contentOffset.y + nativeEvent.layoutMeasurement.height);
+                    if (scrollTop === nativeEvent.contentSize.height) {
+                        this.loadMore();
+                    }
+                }}
             />
         );
     }

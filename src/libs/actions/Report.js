@@ -51,6 +51,9 @@ const reportMaxSequenceNumbers = {};
 // Keeps track of the last read for each report
 const lastReadActionIDs = {};
 
+// Keeps track of the oldest report action we have for each report
+const reportActionOffsets = {};
+
 /**
  * Checks the report to see if there are any unread action items
  *
@@ -255,15 +258,24 @@ function fetchChatReports() {
  * @param {number} reportID
  */
 function fetchActions(reportID) {
+    Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {loading: true});
     API.getReportHistory({reportID})
         .then((data) => {
-            const indexedData = _.indexBy(data.history, 'sequenceNumber');
-            const maxSequenceNumber = _.chain(data.history)
+            const previousOffset = reportActionOffsets[reportID] || 0;
+            const actionSubSet = data.history.slice(previousOffset, previousOffset + 50);
+            const indexedData = _.indexBy(actionSubSet, 'sequenceNumber');
+            const maxSequenceNumber = _.chain(actionSubSet)
                 .pluck('sequenceNumber')
                 .max()
                 .value();
-            Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, indexedData);
-            Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {maxSequenceNumber});
+
+            const offset = _.chain(actionSubSet)
+                .pluck('sequenceNumber')
+                .min()
+                .value();
+
+            Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {...indexedData, loading: false});
+            Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {maxSequenceNumber, offset});
         });
 }
 
@@ -464,6 +476,7 @@ function handleReportChanged(report) {
 
     // Store the max sequence number for each report
     reportMaxSequenceNumbers[report.reportID] = report.maxSequenceNumber;
+    reportActionOffsets[report.reportID] = report.offset;
 }
 Ion.connect({
     key: IONKEYS.COLLECTION.REPORT,
