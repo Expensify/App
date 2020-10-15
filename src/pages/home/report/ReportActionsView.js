@@ -63,10 +63,11 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (_.size(prevProps.reportActions.actions) !== _.size(this.props.reportActions.actions)) {
+        const actions = lodashGet(this.props, 'reportActions.actions');
+        if (_.size(lodashGet(prevProps, 'reportActions.actions')) !== _.size(actions)) {
             // If a new comment is added and it's from the current user scroll to the bottom otherwise
             // leave the user positioned where they are now in the list.
-            const lastAction = lastItem(this.props.reportActions.actions);
+            const lastAction = lastItem(actions);
             if (lastAction && (lastAction.actorEmail === this.props.session.email)) {
                 this.scrollToListBottom();
             }
@@ -240,7 +241,7 @@ class ReportActionsView extends React.Component {
                     // Add some padding here so that the scroll position
                     // doesn't retrigger the loadMore method
                     return (
-                        <View style={{height: 32}} />
+                        <View style={{height: 36}} />
                     );
                 }}
                 onScroll={({nativeEvent}) => {

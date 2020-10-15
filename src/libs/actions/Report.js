@@ -269,20 +269,16 @@ function fetchActions(reportID) {
             }
 
             const previousOffset = reportActionOffsets[reportID] || 0;
-            const actionSubSet = data.history.slice(previousOffset, previousOffset + 50);
+            const newOffset = previousOffset + 50;
+            const actionSubSet = data.history.slice(previousOffset, newOffset);
             const indexedData = _.indexBy(actionSubSet, 'sequenceNumber');
             const maxSequenceNumber = _.chain(actionSubSet)
                 .pluck('sequenceNumber')
                 .max()
                 .value();
 
-            const offset = _.chain(actionSubSet)
-                .pluck('sequenceNumber')
-                .min()
-                .value();
-
             Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {actions: indexedData, loading: false});
-            Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {maxSequenceNumber, offset});
+            Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {maxSequenceNumber, offset: newOffset});
         });
 }
 
