@@ -30,7 +30,7 @@ const propTypes = {
     // A method that is triggered when the TextInput loses focus
     onBlur: PropTypes.func.isRequired,
 
-    /* From withIon() */
+    /* Ion Props */
 
     // All of the personal details for everyone
     // The keys of this object are the logins of the users, and the values are an object
