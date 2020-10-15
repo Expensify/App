@@ -3,7 +3,7 @@
  * Example: in MainView.js only the visible reports should be rendered in the first batch,
  * then all other reports are rendered in the second batch
  */
-import React from 'react';
+import React, {Component} from 'react';
 import _ from 'underscore';
 
 /**
@@ -18,7 +18,7 @@ function getDisplayName(component) {
 
 export default function (propNameToBatch, batches) {
     return (WrappedComponent) => {
-        class withBatchedRendering extends React.Component {
+        class withBatchedRendering extends Component {
             constructor(props) {
                 super(props);
                 this.timers = [];
@@ -36,19 +36,23 @@ export default function (propNameToBatch, batches) {
             }
 
             componentDidUpdate(prevProps) {
+                // We need this to allow the flow of props down from a parent component
+                // to work normally after all the batches have finished rendering
                 if (_.size(prevProps[propNameToBatch]) !== _.size(this.props[propNameToBatch])) {
                     this.setItemsToRender(this.props[propNameToBatch]);
                 }
             }
 
             componentWillUnmount() {
-                _.each(this.timers, timerID => clearTimeout(timerID));
+                // We need to clean up any timers when the component unmounts or else
+                // we'll call set state on an unmounting component.
+                this.cancelBatchTimers()
             }
 
             /**
              * Sets items to the state key that matches the defined propNameToBatch
              *
-             * @param {*} items
+             * @param {Object|Array} items - typically a collection of some kind
              */
             setItemsToRender(items) {
                 this.setState({
@@ -56,10 +60,17 @@ export default function (propNameToBatch, batches) {
                 });
             }
 
-            render() {
-                const propsToPass = _.omit(this.props, propNameToBatch);
+            /**
+             * Cancels all the timers
+             */
+            cancelBatchTimers() {
+                _.each(this.timers, timerID => clearTimeout(timerID));
+            }
 
-                // Spreading props and state is necessary in an HOC where the data cannot be predicted
+            render() {
+                // We must remove the original prop that we are splitting into chunks
+                // since we only want our processed versions to be passed as a prop.
+                const propsToPass = _.omit(this.props, propNameToBatch);
                 return (
                     <WrappedComponent
                         // eslint-disable-next-line react/jsx-props-no-spreading
