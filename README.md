@@ -15,7 +15,7 @@ This application is built with the following principles.
 1. **UI Binds to data on disk** 
     - Ion is a Pub/Sub library to connect the application to the data stored on disk.
     - UI components subscribe to Ion (using `withIon()`) and any change to the Ion data is published to the component by calling `setState()` with the changed data.
-    - Libraries subscribe to Ion (with `Ion.connect()`) and any change to the Ion data is published to the callback callback with the changed data.
+    - Libraries subscribe to Ion (with `Ion.connect()`) and any change to the Ion data is published to the callback with the changed data.
     - The UI should never call any Ion methods except for `Ion.connect()`. That is the job of Actions (see next section).
     - The UI always triggers an Action when something needs to happen (eg. a person inputs data, the UI triggers an Action with this data).
     - The UI should be as flexible as possible when it comes to:
@@ -27,7 +27,7 @@ This application is built with the following principles.
     - When data needs to be written to or read from the server, this is done through Actions only.
     - Public action methods should never return anything (not data or a promise). This is done to ensure that action methods can be called in parallel with no dependency on other methods (see discussion above).
     - Actions should favor using `Ion.merge()` over `Ion.set()` so that other values in an object aren't completely overwritten.
-    - In general, the operations that happen inside an action should be done in parallel and not in sequence ((eg. don't use the promise of one Ion method to trigger a second Ion method). Ion is built so that every operation is done in parallel and it doesn't matter what order they finish in. XHRs on the other hand need to be handled in sequence with promise chains in order to access and act upon the response.
+    - In general, the operations that happen inside an action should be done in parallel and not in sequence (eg. don't use the promise of one Ion method to trigger a second Ion method). Ion is built so that every operation is done in parallel and it doesn't matter what order they finish in. XHRs on the other hand need to be handled in sequence with promise chains in order to access and act upon the response.
     - If an Action needs to access data stored on disk, use a local variable and `Ion.connect()`
     - Data should be optimistically stored on disk whenever possible without waiting for a server response. Example of creating a new optimistic comment:
         1. user adds a comment 
@@ -47,7 +47,7 @@ This application is built with the following principles.
 1. Install `node` & `npm`: `brew install node`
 2. Install `watchman`: `brew install watchman`
 3. Install dependencies: `npm install`
-4. Run `cp .env.example .env` and edit `.env` to have your local config options(for example, we are curretly hardcoding the pinned chat reports IDs with the `REPORT_IDS` config option).
+4. Run `cp .env.example .env` and edit `.env` to have your local config options.
 
 You can use any IDE or code editing tool for developing on any platform. Use your favorite!
 
@@ -83,14 +83,31 @@ You can use any IDE or code editing tool for developing on any platform. Use you
 2. If you are running into issues communicating with `expensify.com.dev` (CORS, SSL, etc.), running via `ngrok` is recommended, see step 3 in **_Getting Started_**
 
 ## Debugging
-1. If running on the iOS simulator `⌘D`, or `⌘M` on Android emulator will open the debugging menu. 
+### iOS
+1. If running on the iOS simulator pressing `⌘D` will open the debugging menu. 
 2. This will allow you to attach a debugger in your IDE, React Developer Tools, or your browser. 
 3. For more information on how to attach a debugger, see [React Native Debugging Documentation](https://reactnative.dev/docs/debugging#chrome-developer-tools)
+
+### Android
+Our React Native Android app now uses the `Hermes` JS engine which requires your browser for remote debugging. These instructions are specific to Chrome since that's what the Hermes documentation provided.
+1. Navigate to `chrome://inspect`
+2. Use the `Configure...` button to add the Metro server address (typically `localhost:8081`, check your `Metro` output)
+3. You should now see a "Hermes React Native" target with an "inspect" link which can be used to bring up a debugger. If you don't see the "inspect" link, make sure the Metro server is running.
+4. You can now use the Chrome debug tools. See [React Native Debugging Hermes](https://reactnative.dev/docs/hermes#debugging-hermes-using-google-chromes-devtools)
 
 ## Things to know or brush up on before jumping into the code
 1. The major difference between React-Native and React are the [components](https://reactnative.dev/docs/components-and-apis) that are used in the `render()` method. Everything else is exactly the same. If you learn React, you've already learned 98% of React-Native.
 1. The application uses [React-Router](https://reactrouter.com/native/guides/quick-start) for navigating between parts of the app.
 1. [Higher Order Components](https://reactjs.org/docs/higher-order-components.html) are used to connect React components to persistent storage via Ion.
+
+## Platform-Specific File Extensions
+In most cases, the code written for this repo should be platform-independent. In such cases, each module should have a single file, `index.js`, which defines the module's exports. There are, however, some cases in which a feature is intrinsically tied to the underlying platform. In such cases, the following file extensions can be used to export platform-specific code from a module:
+- Mobile => `index.native.js`
+- iOS/Android => `index.ios.js`/`index.android.js`
+- Web => `index.website.js`
+- Desktop => `index.desktop.js`
+
+Note that `index.js` should be the default. i.e: If you have mobile-specific implementation in `index.native.js`, then the desktop/web implementation can be contained in a shared `index.js`. Furthermore, `index.native.js` should not be included in the same module as `index.ios.js` or `index.android.js`, nor should `index.js` be included in the same module as `index.website.js` or `index.desktop.js`.
 
 ## Structure of the app
 These are the main pieces of the application.

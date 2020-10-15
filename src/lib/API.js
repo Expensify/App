@@ -1,17 +1,14 @@
 import _ from 'underscore';
 import Ion from './Ion';
 import IONKEYS from '../IONKEYS';
-import {xhr, setOfflineStatus} from './Network';
+import xhr from './xhr';
+import NetworkConnection from './NetworkConnection';
 import CONFIG from '../CONFIG';
 import * as Pusher from './Pusher/pusher';
 import ROUTES from '../ROUTES';
 import Str from './Str';
 import Guid from './Guid';
 import redirectToSignIn from './actions/SignInRedirect';
-import {redirect} from './actions/App';
-
-// Holds all of the callbacks that need to be triggered when the network reconnects
-const reconnectionCallbacks = [];
 
 // Queue for network requests so we don't lose actions done by the user while offline
 let networkRequestQueue = [];
@@ -28,17 +25,11 @@ Ion.connect({
 });
 
 // We subscribe to changes to the online/offline status of the network to determine when we should fire off API calls
-// vs queueing them for later. When reconnecting, ie, going from offline to online, all the reconnection callbacks
-// are triggered (this is usually Actions that need to re-download data from the server)
+// vs queueing them for later.
 let isOffline;
 Ion.connect({
     key: IONKEYS.NETWORK,
-    callback: (val) => {
-        if (isOffline && !val.isOffline) {
-            _.each(reconnectionCallbacks, callback => callback());
-        }
-        isOffline = val && val.isOffline;
-    }
+    callback: val => isOffline = val && val.isOffline,
 });
 
 // When the user authenticates for the first time we create a login and store credentials in Ion.
@@ -49,6 +40,45 @@ Ion.connect({
     key: IONKEYS.CREDENTIALS,
     callback: ionCredentials => credentials = ionCredentials,
 });
+
+/**
+ * Adds a request to networkRequestQueue
+ *
+ * @param {string} command
+ * @param {mixed} data
+ * @returns {Promise}
+ */
+function queueRequest(command, data) {
+    return new Promise((resolve, reject) => {
+        // Add the write request to a queue of actions to perform
+        networkRequestQueue.push({
+            command,
+            data,
+            resolve,
+            reject,
+        });
+
+        // Try to fire off the request as soon as it's queued so we don't add a delay to every queued command
+        // eslint-disable-next-line no-use-before-define
+        processNetworkRequestQueue();
+    });
+}
+
+/**
+ * @param {object} parameters
+ * @param {string} parameters.partnerUserID
+ * @returns {Promise}
+ */
+function deleteLogin(parameters) {
+    return queueRequest('DeleteLogin', {
+        authToken,
+        partnerUserID: parameters.partnerUserID,
+        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+        doNotRetry: true,
+    })
+        .catch(error => Ion.merge(IONKEYS.SESSION, {error: error.message}));
+}
 
 /**
  * @param {string} login
@@ -70,31 +100,20 @@ function createLogin(login, password) {
         partnerUserID: login,
         partnerUserSecret: password,
     })
-        .then(() => Ion.merge(IONKEYS.CREDENTIALS, {login, password}))
-        .catch(err => Ion.merge(IONKEYS.SESSION, {error: err}));
-}
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                throw new Error(response.message);
+            }
 
-/**
- * Adds a request to networkRequestQueue
- *
- * @param {string} command
- * @param {mixed} data
- * @returns {Promise}
- */
-function queueRequest(command, data) {
-    return new Promise((resolve) => {
-        // Add the write request to a queue of actions to perform
-        networkRequestQueue.push({
-            command,
-            data,
-            callback: resolve,
+            if (credentials && credentials.login) {
+                // If we have an old login for some reason, we should delete it before storing the new details
+                deleteLogin({partnerUserID: credentials.login});
+            }
+
+            Ion.merge(IONKEYS.CREDENTIALS, {login, password});
         });
-
-        // Try to fire off the request as soon as it's queued so we don't add a delay to every queued command
-        // eslint-disable-next-line no-use-before-define
-        processNetworkRequestQueue();
-    });
 }
+
 
 /**
  * Sets API data in the store when we make a successful "Authenticate"/"CreateLogin" request
@@ -103,17 +122,12 @@ function queueRequest(command, data) {
  * @param {string} exitTo
  */
 function setSuccessfulSignInData(data, exitTo) {
-    let redirectTo;
+    const redirectTo = exitTo ? Str.normalizeUrl(exitTo) : ROUTES.ROOT;
 
-    if (exitTo && exitTo[0] === '/') {
-        redirectTo = exitTo;
-    } else if (exitTo) {
-        redirectTo = `/${exitTo}`;
-    } else {
-        redirectTo = ROUTES.HOME;
-    }
-    redirect(redirectTo);
-    Ion.merge(IONKEYS.SESSION, _.pick(data, 'authToken', 'accountID', 'email'));
+    Ion.multiSet({
+        [IONKEYS.SESSION]: _.pick(data, 'authToken', 'accountID', 'email'),
+        [IONKEYS.APP_REDIRECT_TO]: redirectTo
+    });
 }
 
 /**
@@ -134,36 +148,15 @@ function request(command, parameters, type = 'post') {
         return queueRequest(command, parameters);
     }
 
-    // We treat Authenticate in a special way because unlike other commands, this one can't fail
-    // with 407 authToken expired. When other api commands fail with this error we call Authenticate
-    // to get a new authToken and then fire the original api command again
-    if (command === 'Authenticate') {
-        return xhr(command, parameters, type)
-            .then((response) => {
-                // If we didn't get a 200 response from authenticate we either failed to authenticate with
-                // an expensify login or the login credentials we created after the initial authentication.
-                // In both cases, we need the user to sign in again with their expensify credentials
-                if (response.jsonCode !== 200) {
-                    return Ion.multiSet({
-                        [IONKEYS.CREDENTIALS]: {},
-                        [IONKEYS.SESSION]: {error: response.message},
-                    })
-                        .then(redirectToSignIn);
-                }
-
-                // We need to return the promise from setSuccessfulSignInData to ensure the authToken is updated before
-                // we try to create a login below
-                setSuccessfulSignInData(response, parameters.exitTo);
-                authToken = response.authToken;
-            })
-            .then(() => {
-                // If Expensify login, it's the users first time signing in and we need to
-                // create a login for the user
-                if (parameters.useExpensifyLogin) {
-                    console.debug('[SIGNIN] Creating a login');
-                    createLogin(Str.generateDeviceLoginID(), Guid());
-                }
-            });
+    // If we end up here with no authToken it means we are trying to make
+    // an API request before we are signed in. In this case, we should just
+    // cancel this and all other requests and set reauthenticating to false.
+    if (!authToken) {
+        console.error('A request was made without an authToken', {command, parameters});
+        reauthenticating = false;
+        networkRequestQueue = [];
+        redirectToSignIn();
+        return Promise.resolve();
     }
 
     // Add authToken automatically to all commands
@@ -211,22 +204,26 @@ function request(command, parameters, type = 'post') {
                     .then(() => xhr(command, parametersWithAuthToken, type))
                     .catch((error) => {
                         reauthenticating = false;
-                        Ion.multiSet({
-                            [IONKEYS.CREDENTIALS]: {},
-                            [IONKEYS.SESSION]: {error: error.message},
-                        });
-                        redirectToSignIn();
+                        redirectToSignIn(error.message);
                         return Promise.reject();
                     });
             }
             return responseData;
         })
-        .catch(() => {
+        .catch((error) => {
             // If the request failed, we need to put the request object back into the queue as long as there is no
             // doNotRetry option set in the parametersWithAuthToken
             if (parametersWithAuthToken.doNotRetry !== true) {
                 queueRequest(command, parametersWithAuthToken);
             }
+
+            // If we already have an error, throw that so we do not swallow it
+            if (error instanceof Error) {
+                throw error;
+            }
+
+            // Throw a generic error so we can pass the error up the chain
+            throw new Error(`API Command ${command} failed`);
         });
 }
 
@@ -241,7 +238,7 @@ function processNetworkRequestQueue() {
 
         // Make a simple request every second to see if the API is online again
         xhr('Get', {doNotRetry: true})
-            .then(() => setOfflineStatus(false));
+            .then(() => NetworkConnection.setOfflineStatus(false));
         return;
     }
 
@@ -253,7 +250,8 @@ function processNetworkRequestQueue() {
 
     _.each(networkRequestQueue, (queuedRequest) => {
         request(queuedRequest.command, queuedRequest.data)
-            .then(queuedRequest.callback);
+            .then(queuedRequest.resolve)
+            .catch(queuedRequest.reject);
     });
 
     networkRequestQueue = [];
@@ -293,10 +291,10 @@ Pusher.registerCustomAuthorizer((channel, {authEndpoint}) => ({
         })
             .then(authResponse => authResponse.json())
             .then(data => callback(null, data))
-            .catch((err) => {
+            .catch((error) => {
                 reconnectToPusher();
                 console.debug('[Network] Failed to authorize Pusher');
-                callback(new Error(`Error calling auth endpoint: ${err}`));
+                callback(new Error(`Error calling auth endpoint: ${error.message}`));
             });
     },
 }));
@@ -305,47 +303,17 @@ Pusher.registerCustomAuthorizer((channel, {authEndpoint}) => ({
  * Events that happen on the pusher socket are used to determine if the app is online or offline. The offline setting
  * is stored in Ion so the rest of the app has access to it.
  *
- * @params {string} eventName,
- * @params {object} data
+ * @params {string} eventName
  */
-Pusher.registerSocketEventCallback((eventName, data) => {
-    let isCurrentlyOffline = false;
+Pusher.registerSocketEventCallback((eventName) => {
     switch (eventName) {
-        case 'connected':
-            isCurrentlyOffline = false;
-            break;
-        case 'disconnected':
-            isCurrentlyOffline = true;
-            break;
-        case 'state_change':
-            if (data.current === 'failed') {
-                // WebSockets are not natively available. In this case,
-                // we should not let Pusher influence the offline state of the app.
-                return;
-            }
-
-            if (data.current === 'disconnected' || data.current === 'connecting' || data.current === 'unavailable') {
-                isCurrentlyOffline = true;
-            }
-            break;
         case 'error':
             reconnectToPusher();
             break;
         default:
             break;
     }
-    setOfflineStatus(isCurrentlyOffline);
 });
-
-/**
- * Register a callback function to be called when the network reconnects
- *
- * @public
- * @param {function} cb
- */
-function onReconnect(cb) {
-    reconnectionCallbacks.push(cb);
-}
 
 /**
  * Get the authToken that the network uses
@@ -364,7 +332,12 @@ function getAuthToken() {
  * @returns {Promise}
  */
 function authenticate(parameters) {
-    return queueRequest('Authenticate', {
+    Ion.merge(IONKEYS.SESSION, {loading: true, error: ''});
+
+    // We treat Authenticate in a special way because unlike other commands, this one can't fail
+    // with 407 authToken expired. When other api commands fail with this error we call Authenticate
+    // to get a new authToken and then fire the original api command again
+    return xhr('Authenticate', {
         // When authenticating for the first time, we pass useExpensifyLogin as true so we check for credentials for
         // the expensify partnerID to let users authenticate with their expensify user and password.
         useExpensifyLogin: true,
@@ -375,33 +348,121 @@ function authenticate(parameters) {
         twoFactorAuthCode: parameters.twoFactorAuthCode,
         exitTo: parameters.exitTo,
     })
-        .catch((err) => {
-            console.error(err);
+        .then((response) => {
+            // If we didn't get a 200 response from authenticate we either failed to authenticate with
+            // an expensify login or the login credentials we created after the initial authentication.
+            // In both cases, we need the user to sign in again with their expensify credentials
+            if (response.jsonCode !== 200) {
+                throw new Error(response.message);
+            }
+
+            // Update the authToken so it's used in the call to createLogin below
+            authToken = response.authToken;
+            return response;
+        })
+
+        // After the user authenticates, create a new login for the user so that we can reauthenticate when the
+        // authtoken expires
+        .then(response => (
+            createLogin(Str.generateDeviceLoginID(), Guid())
+                .then(() => setSuccessfulSignInData(response, parameters.exitTo))
+        ))
+        .catch((error) => {
+            console.error(error);
             console.debug('[SIGNIN] Request error');
-            Ion.merge(IONKEYS.SESSION, {error: err.message});
-        });
+            Ion.merge(IONKEYS.SESSION, {error: error.message});
+        })
+        .finally(() => Ion.merge(IONKEYS.SESSION, {loading: false}));
 }
 
 /**
  * @param {object} parameters
- * @param {string} parameters.partnerUserID
+ * @param {number} parameters.accountID
+ * @param {number} parameters.reportID
+ * @param {number} parameters.sequenceNumber
  * @returns {Promise}
  */
-function deleteLogin(parameters) {
-    return queueRequest('DeleteLogin', {
+function setLastReadActionID(parameters) {
+    return queueRequest('Report_SetLastReadActionID', {
         authToken,
-        partnerUserID: parameters.partnerUserID,
-        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-        doNotRetry: true,
-    })
-        .catch(err => Ion.merge(IONKEYS.SESSION, {error: err.message}));
+        accountID: parameters.accountID,
+        reportID: parameters.reportID,
+        sequenceNumber: parameters.sequenceNumber,
+    });
+}
+
+/**
+ * @param {object} parameters
+ * @param {number} parameters.reportID
+ * @returns {Promise}
+ */
+function getReportHistory(parameters) {
+    return queueRequest('Report_GetHistory', {
+        authToken,
+        reportID: parameters.reportID,
+    });
+}
+
+/**
+ * @param {object} parameters
+ * @param {string} parameters.emailList
+ * @returns {Promise}
+ */
+function createChatReport(parameters) {
+    return queueRequest('CreateChatReport', {
+        authToken,
+        emailList: parameters.emailList,
+    });
+}
+
+/**
+ * @param {object} parameters
+ * @param {string} parameters.reportComment
+ * @param {object} parameters.file
+ * @param {number} parameters.reportID
+ * @returns {Promise}
+ */
+function addReportComment(parameters) {
+    return queueRequest('Report_AddComment', {
+        authToken,
+        reportComment: parameters.reportComment,
+        file: parameters.file,
+        reportID: parameters.reportID,
+    });
+}
+
+/**
+ * @param {object} parameters
+ * @param {string} parameters.returnValueList
+ * @returns {Promise}
+ */
+function get(parameters) {
+    return queueRequest('Get', {
+        authToken,
+        ...parameters,
+    });
+}
+
+/**
+ * @param {object} parameters
+ * @param {string} parameters.emailList
+ * @returns {Promise}
+ */
+function getPersonalDetails(parameters) {
+    return queueRequest('PersonalDetails_GetForEmails', {
+        authToken,
+        emailList: parameters,
+    });
 }
 
 export {
     authenticate,
+    addReportComment,
+    createChatReport,
     deleteLogin,
+    get,
     getAuthToken,
-    onReconnect,
-    queueRequest,
+    getPersonalDetails,
+    getReportHistory,
+    setLastReadActionID,
 };

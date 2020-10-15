@@ -1,10 +1,11 @@
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import Ion from '../Ion';
-import {onReconnect, queueRequest} from '../API';
+import * as API from '../API';
 import IONKEYS from '../../IONKEYS';
 import md5 from '../md5';
 import CONST from '../../CONST';
+import NetworkConnection from '../NetworkConnection';
 
 let currentUserEmail;
 Ion.connect({
@@ -12,16 +13,22 @@ Ion.connect({
     callback: val => currentUserEmail = val ? val.email : null,
 });
 
+let personalDetails;
+Ion.connect({
+    key: IONKEYS.PERSONAL_DETAILS,
+    callback: val => personalDetails = val,
+});
+
 /**
  * Returns the URL for a user's avatar and handles someone not having any avatar at all
  *
- * @param {object} personalDetails
+ * @param {object} personalDetail
  * @param {string} login
  * @returns {string}
  */
-function getAvatar(personalDetails, login) {
-    if (personalDetails && personalDetails.avatar) {
-        return personalDetails.avatar.replace(/&d=404$/, '');
+function getAvatar(personalDetail, login) {
+    if (personalDetail && personalDetail.avatar) {
+        return personalDetail.avatar.replace(/&d=404$/, '');
     }
 
     // There are 8 possible default avatars, so we choose which one this user has based
@@ -31,30 +38,46 @@ function getAvatar(personalDetails, login) {
 }
 
 /**
+ * Returns the displayName for a user
+ *
+ * @param {string} login
+ * @param {object} [personalDetail]
+ * @returns {string}
+ */
+function getDisplayName(login, personalDetail) {
+    const userDetails = personalDetail || personalDetails[login];
+
+    if (!userDetails) {
+        return login;
+    }
+
+    if (userDetails.displayName) {
+        return userDetails.displayName;
+    }
+
+    const firstName = userDetails.firstName || '';
+    const lastName = userDetails.lastName || '';
+
+    return (`${firstName} ${lastName}`).trim() || login;
+}
+
+/**
  * Format personal details
  *
  * @param {Object} personalDetailsList
  * @return {Object}
  */
 function formatPersonalDetails(personalDetailsList) {
-    return _.reduce(personalDetailsList, (finalObject, personalDetails, login) => {
+    return _.reduce(personalDetailsList, (finalObject, personalDetailsResponse, login) => {
         // Form the details into something that has all the data in an easy to use format.
-        const avatarURL = getAvatar(personalDetails, login);
-        const firstName = personalDetails.firstName || '';
-        const lastName = personalDetails.lastName || '';
-        const fullName = `${firstName} ${lastName}`.trim();
-        const displayName = fullName === '' ? login : fullName;
-        const displayNameWithEmail = fullName === '' ? login : `${fullName} (${login})`;
+        const avatarURL = getAvatar(personalDetailsResponse, login);
+        const displayName = getDisplayName(login, personalDetailsResponse);
         return {
             ...finalObject,
             [login]: {
                 login,
                 avatarURL,
-                firstName,
-                lastName,
-                fullName,
                 displayName,
-                displayNameWithEmail,
             }
         };
     }, {});
@@ -64,7 +87,7 @@ function formatPersonalDetails(personalDetailsList) {
  * Get the timezone of the logged in user
  */
 function fetchTimezone() {
-    queueRequest('Get', {
+    API.get({
         returnValueList: 'nameValuePairs',
         name: 'timeZone',
     })
@@ -81,14 +104,14 @@ function fetchTimezone() {
  * Get the personal details for our organization
  */
 function fetch() {
-    queueRequest('Get', {
+    API.get({
         returnValueList: 'personalDetailsList',
     })
         .then((data) => {
             const allPersonalDetails = formatPersonalDetails(data.personalDetailsList);
             Ion.merge(IONKEYS.PERSONAL_DETAILS, allPersonalDetails);
 
-            // Get my personal details so they can be easily accessed and subscribed to on their own key
+            // Set my personal details so they can be easily accessed and subscribed to on their own key
             Ion.merge(IONKEYS.MY_PERSONAL_DETAILS, allPersonalDetails[currentUserEmail] || {});
 
             // Get the timezone and put it in Ion
@@ -96,7 +119,9 @@ function fetch() {
         })
         .catch(error => console.error('Error fetching personal details', error));
 
-    // Refresh the personal details every 30 minutes
+    // Refresh the personal details every 30 minutes because there is no
+    // pusher event that sends updated personal details data yet
+    // See https://github.com/Expensify/ReactNativeChat/issues/468
     setTimeout(fetch, 1000 * 60 * 30);
 }
 
@@ -106,19 +131,19 @@ function fetch() {
  * @param {String} emailList
  */
 function getForEmails(emailList) {
-    queueRequest('PersonalDetails_GetForEmails', {emailList})
+    API.getPersonalDetails(emailList)
         .then((data) => {
-            const details = _.omit(data, ['jsonCode', 'requestID']);
-            const formattedDetails = formatPersonalDetails(details);
-            Ion.merge(IONKEYS.PERSONAL_DETAILS, formattedDetails);
+            const details = _.pick(data, emailList.split(','));
+            Ion.merge(IONKEYS.PERSONAL_DETAILS, formatPersonalDetails(details));
         });
 }
 
 // When the app reconnects from being offline, fetch all of the personal details
-onReconnect(fetch);
+NetworkConnection.onReconnect(fetch);
 
 export {
     fetch,
     fetchTimezone,
     getForEmails,
+    getDisplayName,
 };

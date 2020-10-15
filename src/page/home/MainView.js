@@ -1,4 +1,5 @@
-import React from 'react';
+import React, {Component} from 'react';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ReportView from './report/ReportView';
@@ -26,16 +27,7 @@ const defaultProps = {
     reports: {},
 };
 
-// Since this component is connected to an Ion collection, it's props are updated anytime a single report
-// in the collection changes.
-// When reports are first fetched, this component is rendered n times (where n is the number of reports).
-// There are only two pieces of data this component cares about:
-// - reportID comes from the collection and is used to render ReportView, this data will never change after first render
-// - match.params.reportID comes from React Router and will change anytime a report is selected from LHN
-// Using PureComponent will ensure this component only re-renders if a new report is added to the collection.
-// PureComponent shallowly compares props. This means changes to individual reports will not cause a re-render,
-// but the addition or removal of a report will cause a render.
-class MainView extends React.PureComponent {
+class MainView extends Component {
     /**
      * Looks to see if the reportID matches the report ID in the URL because that
      * report needs to be the one that is visible while all the other reports are hidden
@@ -50,13 +42,12 @@ class MainView extends React.PureComponent {
     }
 
     render() {
-        if (!_.size(this.props.reports)) {
-            return null;
-        }
+        const reportIDInUrl = parseInt(this.props.match.params.reportID, 10);
 
-        // The styles for each of our report views. Basically, they are all hidden except for the one matching the
+        // The styles for each of our reports. Basically, they are all hidden except for the one matching the
         // reportID in the URL
         const reportStyles = _.reduce(this.props.reports, (memo, report) => {
+            const isActiveReport = reportIDInUrl === report.reportID;
             const finalData = {...memo};
             let reportStyle;
 
@@ -70,15 +61,23 @@ class MainView extends React.PureComponent {
             return finalData;
         }, {});
 
+        const reportsToDisplay = _.filter(this.props.reports, report => (
+            report.pinnedReport
+                || report.unreadActionCount > 0
+                || report.reportID === reportIDInUrl
+        ));
         return (
             <>
-                {_.map(this.props.reports, report => report.reportName && (
-                    <ReportView
+                {_.map(reportsToDisplay, report => (
+                    <View
                         key={report.reportID}
                         style={reportStyles[report.reportID]}
-                        reportID={report.reportID}
-                        isActiveReport={this.isReportIDMatchingURL(report.reportID)}
-                    />
+                    >
+                        <ReportView
+                            reportID={report.reportID}
+                            isActiveReport={report.reportID === activeReportID}
+                        />
+                    </View>
                 ))}
             </>
         );

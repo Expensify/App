@@ -27,8 +27,11 @@ class ReportView extends React.PureComponent {
         // calling focus() on 42 different forms doesn't work
         const shouldShowComposeForm = this.props.isActiveReport;
         return (
-            <View style={[styles.chatContent, this.props.style]}>
-                <ReportActionView reportID={this.props.reportID} />
+            <View style={[styles.chatContent]}>
+                <ReportActionView
+                    reportID={this.props.reportID}
+                    isActiveReport={this.props.isActiveReport}
+                />
 
                 {shouldShowComposeForm && (
                     <ReportActionCompose

@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, ScrollView, Keyboard} from 'react-native';
+import {View, Keyboard} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Text from '../../../components/Text';
@@ -8,53 +8,96 @@ import {fetchActions, updateLastReadActionID} from '../../../lib/actions/Report'
 import IONKEYS from '../../../IONKEYS';
 import ReportActionItem from './ReportActionItem';
 import styles from '../../../style/StyleSheet';
-import {withRouter} from '../../../lib/Router';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import compose from '../../../lib/compose';
 import withBatchedRendering from '../../../components/withBatchedRendering';
+import InvertedFlatList from '../../../components/InvertedFlatList';
+import {lastItem} from '../../../lib/CollectionUtils';
 
 const propTypes = {
     // The ID of the report actions will be created for
     reportID: PropTypes.number.isRequired,
 
-    /* From withRouter() */
-    // eslint-disable-next-line react/forbid-prop-types
-    match: PropTypes.object.isRequired,
+    // Is this report currently in view?
+    isActiveReport: PropTypes.bool.isRequired,
 
-    /* From withIon() */
-    // All of the report actions for this report
-    reportActions: PropTypes.PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
+    /* Ion Props */
+
+    // Array of report actions for this report
+    reportActions: PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
+
+    // The session of the logged in person
+    session: PropTypes.shape({
+        // Email of the logged in person
+        email: PropTypes.string,
+    }),
 };
 
 const defaultProps = {
     reportActions: {},
+    session: {},
 };
 
 class ReportActionsView extends React.Component {
     constructor(props) {
         super(props);
 
+        this.renderItem = this.renderItem.bind(this);
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
         this.recordMaxAction = this.recordMaxAction.bind(this);
+        this.sortedReportActions = this.updateSortedReportActions();
     }
 
     componentDidMount() {
-        this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
+        if (this.props.isActiveReport) {
+            this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
+        }
+
         fetchActions(this.props.reportID);
     }
 
     componentDidUpdate(prevProps) {
-        const isReportVisible = this.props.reportID === parseInt(this.props.match.params.reportID, 10);
+        if (_.size(prevProps.reportActions) !== _.size(this.props.reportActions)) {
+            // If a new comment is added and it's from the current user scroll to the bottom otherwise
+            // leave the user positioned where they are now in the list.
+            const lastAction = lastItem(this.props.reportActions);
+            if (lastAction && (lastAction.actorEmail === this.props.session.email)) {
+                this.scrollToListBottom();
+            }
 
-        // When the number of actions change, wait three seconds, then record the max action
-        // This will make the unread indicator go away if you receive comments in the same chat you're looking at
-        if (isReportVisible && _.size(prevProps.reportActions) !== _.size(this.props.reportActions)) {
-            setTimeout(this.recordMaxAction, 3000);
+            // When the number of actions change, wait three seconds, then record the max action
+            // This will make the unread indicator go away if you receive comments in the same chat you're looking at
+            if (this.props.isActiveReport) {
+                setTimeout(this.recordMaxAction, 3000);
+            }
+
+            return;
+        }
+
+        // If we are switching from not active to active report then mark comments as
+        // read and bind the keyboard listener for this report
+        if (!prevProps.isActiveReport && this.props.isActiveReport) {
+            this.recordMaxAction();
+            this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
         }
     }
 
     componentWillUnmount() {
-        this.keyboardEvent.remove();
+        if (this.keyboardEvent) {
+            this.keyboardEvent.remove();
+        }
+    }
+
+    /**
+     * Updates and sorts the report actions by sequence number
+     */
+    updateSortedReportActions() {
+        this.sortedReportActions = _.chain(this.props.reportActions)
+            .sortBy('sequenceNumber')
+            .filter(action => action.actionName === 'ADDCOMMENT')
+            .map((item, index) => ({action: item, index}))
+            .value()
+            .reverse();
     }
 
     /**
@@ -68,15 +111,9 @@ class ReportActionsView extends React.Component {
      *
      * @return {Boolean}
      */
-    // eslint-disable-next-line
     isConsecutiveActionMadeByPreviousActor(actionIndex) {
-        // This is the created action and the very first action so it cannot be a consecutive comment.
-        if (actionIndex === 0) {
-            return false;
-        }
-
-        const previousAction = this.props.reportActions[actionIndex - 1];
-        const currentAction = this.props.reportActions[actionIndex];
+        const previousAction = this.sortedReportActions[actionIndex + 1];
+        const currentAction = this.sortedReportActions[actionIndex];
 
         // It's OK for there to be no previous action, and in that case, false will be returned
         // so that the comment isn't grouped
@@ -84,17 +121,12 @@ class ReportActionsView extends React.Component {
             return false;
         }
 
-        // Only comments that follow other comments are consecutive
-        if (previousAction.actionName !== 'ADDCOMMENT' || currentAction.actionName !== 'ADDCOMMENT') {
-            return false;
-        }
-
         // Comments are only grouped if they happen within 5 minutes of each other
-        if (currentAction.timestamp - previousAction.timestamp > 300) {
+        if (currentAction.action.timestamp - previousAction.action.timestamp > 300) {
             return false;
         }
 
-        return currentAction.actorEmail === previousAction.actorEmail;
+        return currentAction.action.actorEmail === previousAction.action.actorEmail;
     }
 
     /**
@@ -117,13 +149,49 @@ class ReportActionsView extends React.Component {
      */
     scrollToListBottom() {
         if (this.actionListElement) {
-            this.actionListElement.scrollToEnd({animated: false});
+            this.actionListElement.scrollToIndex({animated: false, index: 0});
         }
         this.recordMaxAction();
     }
 
+    /**
+     * Do not move this or make it an anonymous function it is a method
+     * so it will not be recreated each time we render an item
+     *
+     * See: https://reactnative.dev/docs/optimizing-flatlist-configuration#avoid-anonymous-function-on-renderitem
+     *
+     * @param {Object} args
+     * @param {Object} args.item
+     * @param {Number} args.index
+     * @param {Function} args.onLayout
+     * @param {Boolean} args.needsLayoutCalculation
+     *
+     * @returns {React.Component}
+     */
+    renderItem({
+        item,
+        index,
+        onLayout,
+        needsLayoutCalculation
+    }) {
+        return (
+            <ReportActionItem
+                action={item.action}
+                displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
+                onLayout={onLayout}
+                needsLayoutCalculation={needsLayoutCalculation}
+            />
+        );
+    }
+
     render() {
+        // Comments have not loaded at all yet do nothing
         if (!_.size(this.props.reportActions)) {
+            return null;
+        }
+
+        // If we only have the created action then no one has left a comment
+        if (_.size(this.props.reportActions) === 1) {
             return (
                 <View style={[styles.chatContent, styles.chatContentEmpty]}>
                     <Text style={[styles.textP]}>Be the first person to comment!</Text>
@@ -131,23 +199,16 @@ class ReportActionsView extends React.Component {
             );
         }
 
+        this.updateSortedReportActions();
         return (
-            <ScrollView
-                ref={(el) => {
-                    this.actionListElement = el;
-                }}
-                onContentSizeChange={this.scrollToListBottom}
-                bounces={false}
+            <InvertedFlatList
+                ref={el => this.actionListElement = el}
+                data={this.sortedReportActions}
+                renderItem={this.renderItem}
                 contentContainerStyle={[styles.chatContentScrollView]}
-            >
-                {_.map(this.props.reportActions, (item, index) => (
-                    <ReportActionItem
-                        key={item.sequenceNumber}
-                        action={item}
-                        displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
-                    />
-                ))}
-            </ScrollView>
+                keyExtractor={item => `${item.action.sequenceNumber}`}
+                initialRowHeight={32}
+            />
         );
     }
 }
@@ -160,6 +221,9 @@ export default compose(
     withIon({
         reportActions: {
             key: ({reportID}) => `${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        },
+        session: {
+            key: IONKEYS.SESSION,
         },
     }),
 
