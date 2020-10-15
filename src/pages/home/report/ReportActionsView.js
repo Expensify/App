@@ -22,8 +22,11 @@ const propTypes = {
 
     /* Ion Props */
 
-    // Array of report actions for this report
-    reportActions: PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
+    reportActions: PropTypes.shape({
+        // Map of report actions for this report
+        actions: PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
+        loading: PropTypes.bool,
+    }),
 
     // The session of the logged in person
     session: PropTypes.shape({
@@ -33,7 +36,10 @@ const propTypes = {
 };
 
 const defaultProps = {
-    reportActions: {},
+    reportActions: {
+        actions: {},
+        loading: false,
+    },
     session: {},
 };
 
@@ -45,6 +51,7 @@ class ReportActionsView extends React.Component {
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
         this.recordMaxAction = this.recordMaxAction.bind(this);
         this.sortedReportActions = this.updateSortedReportActions();
+        this.debouncedLoadMore = _.debounce(() => this.loadMore(), 500);
     }
 
     componentDidMount() {
@@ -56,10 +63,10 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (_.size(prevProps.reportActions) !== _.size(this.props.reportActions)) {
+        if (_.size(prevProps.reportActions.actions) !== _.size(this.props.reportActions.actions)) {
             // If a new comment is added and it's from the current user scroll to the bottom otherwise
             // leave the user positioned where they are now in the list.
-            const lastAction = lastItem(this.props.reportActions);
+            const lastAction = lastItem(this.props.reportActions.actions);
             if (lastAction && (lastAction.actorEmail === this.props.session.email)) {
                 this.scrollToListBottom();
             }
@@ -91,7 +98,8 @@ class ReportActionsView extends React.Component {
      * Updates and sorts the report actions by sequence number
      */
     updateSortedReportActions() {
-        this.sortedReportActions = _.chain(this.props.reportActions)
+        const actions = lodashGet(this.props, 'reportActions.actions', {});
+        this.sortedReportActions = _.chain(actions)
             .sortBy('sequenceNumber')
             .filter(action => action.actionName === 'ADDCOMMENT')
             .map((item, index) => ({action: item, index}))
@@ -194,13 +202,15 @@ class ReportActionsView extends React.Component {
     }
 
     render() {
+        const actions = lodashGet(this.props, 'reportActions.actions', {});
+
         // Comments have not loaded at all yet do nothing
-        if (!_.size(this.props.reportActions)) {
+        if (!_.size(actions)) {
             return null;
         }
 
         // If we only have the created action then no one has left a comment
-        if (_.size(this.props.reportActions) === 1) {
+        if (_.size(actions) === 1) {
             return (
                 <View style={[styles.chatContent, styles.chatContentEmpty]}>
                     <Text style={[styles.textP]}>Be the first person to comment!</Text>
@@ -227,12 +237,16 @@ class ReportActionsView extends React.Component {
                         );
                     }
 
-                    return null;
+                    // Add some padding here so that the scroll position
+                    // doesn't retrigger the loadMore method
+                    return (
+                        <View style={{height: 32}} />
+                    );
                 }}
                 onScroll={({nativeEvent}) => {
                     const scrollTop = (nativeEvent.contentOffset.y + nativeEvent.layoutMeasurement.height);
                     if (scrollTop === nativeEvent.contentSize.height) {
-                        this.loadMore();
+                        this.debouncedLoadMore();
                     }
                 }}
             />

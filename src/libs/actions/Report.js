@@ -188,7 +188,9 @@ function updateReportWithNewAction(reportID, reportAction) {
 
     // Add the action into Ion
     Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        [reportAction.sequenceNumber]: reportAction,
+        actions: {
+            [reportAction.sequenceNumber]: reportAction,
+        },
     });
 
     if (!ActiveClientManager.isClientTheLeader()) {
@@ -279,7 +281,7 @@ function fetchActions(reportID) {
                 .min()
                 .value();
 
-            Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {...indexedData, loading: false});
+            Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {actions: indexedData, loading: false});
             Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {maxSequenceNumber, offset});
         });
 }
@@ -384,32 +386,34 @@ function addAction(reportID, text, file) {
 
     // Optimistically add the new comment to the store before waiting to save it to the server
     Ion.merge(actionKey, {
-        [newSequenceNumber]: {
-            actionName: 'ADDCOMMENT',
-            actorEmail: currentUserEmail,
-            person: [
-                {
-                    style: 'strong',
-                    text: myPersonalDetails.displayName || currentUserEmail,
-                    type: 'TEXT'
-                }
-            ],
-            automatic: false,
-            sequenceNumber: ++highestSequenceNumber,
-            avatar: myPersonalDetails.avatarURL,
-            timestamp: moment().unix(),
-            message: [
-                {
-                    type: 'COMMENT',
-                    html: isAttachment ? 'Uploading Attachment...' : htmlComment,
+        actions: {
+            [newSequenceNumber]: {
+                actionName: 'ADDCOMMENT',
+                actorEmail: currentUserEmail,
+                person: [
+                    {
+                        style: 'strong',
+                        text: myPersonalDetails.displayName || currentUserEmail,
+                        type: 'TEXT'
+                    }
+                ],
+                automatic: false,
+                sequenceNumber: ++highestSequenceNumber,
+                avatar: myPersonalDetails.avatarURL,
+                timestamp: moment().unix(),
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: isAttachment ? 'Uploading Attachment...' : htmlComment,
 
-                    // Remove HTML from text when applying optimistic offline comment
-                    text: isAttachment ? 'Uploading Attachment...'
-                        : htmlComment.replace(/<[^>]*>?/gm, ''),
-                }
-            ],
-            isFirstItem: false,
-            isAttachment,
+                        // Remove HTML from text when applying optimistic offline comment
+                        text: isAttachment ? 'Uploading Attachment...'
+                            : htmlComment.replace(/<[^>]*>?/gm, ''),
+                    }
+                ],
+                isFirstItem: false,
+                isAttachment,
+            },
         }
     });
 
