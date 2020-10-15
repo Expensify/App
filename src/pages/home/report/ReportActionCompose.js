@@ -142,6 +142,7 @@ class ReportActionCompose extends React.Component {
             }
 
             addAction(this.props.reportID, '', ImagePicker.getDataForUpload(response));
+            this.textInput.focus();
         });
     }
 

@@ -131,7 +131,7 @@ function fetch() {
  * @param {String} emailList
  */
 function getForEmails(emailList) {
-    API.getPersonalDetails({emailList})
+    API.getPersonalDetails(emailList)
         .then((data) => {
             const details = _.pick(data, emailList.split(','));
             Ion.merge(IONKEYS.PERSONAL_DETAILS, formatPersonalDetails(details));
