@@ -180,12 +180,19 @@ By default, Ion will not evict anything from storage and will presume all keys a
 - The key will only be deleted when all subscribers return `true` for `canEvict`
 
 e.g.
+```js
+Ion.init({
+    safeEvictionKeys: [IONKEYS.COLLECTION.REPORT_ACTIONS],
+});
+```
 
 ```js
-reportActions: {
-    key: ({reportID}) => `${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-    canEvict: props => !props.isActiveReport,
-},
+export default withIon({
+    reportActions: {
+        key: ({reportID}) => `${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        canEvict: props => !props.isActiveReport,
+    },
+})(ReportActionsView);
 ```
 
 # Deploying
