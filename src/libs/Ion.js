@@ -17,7 +17,7 @@ let recentlyAccessedKeys = [];
 let evictionAllowList = [];
 
 // Holds a list of keys that we should never remove
-let evictionBlocklist = [];
+const evictionBlocklist = {};
 
 /**
  * When a key change happens, search for any callbacks matching the regex pattern and trigger those callbacks
@@ -99,19 +99,31 @@ function addLastAccessedKey(key) {
  * which will enable it to be deleted again.
  *
  * @param {String} key
+ * @param {Number} connectionID
  */
-function removeFromEvictionBlockList(key) {
-    evictionBlocklist = _.without(evictionBlocklist, key);
+function removeFromEvictionBlockList(key, connectionID) {
+    evictionBlocklist[key] = _.without(evictionBlocklist[key] || [], connectionID);
+
+    // Remove the key if there are no more subscribers
+    if (evictionBlocklist[key].length === 0) {
+        delete evictionBlocklist[key];
+    }
 }
 
 /**
  * Keys added to this list can never be deleted.
  *
  * @param {String} key
+ * @param {Number} connectionID
  */
-function addToEvictionBlockList(key) {
-    removeFromEvictionBlockList(key);
-    evictionBlocklist.push(key);
+function addToEvictionBlockList(key, connectionID) {
+    removeFromEvictionBlockList(key, connectionID);
+
+    if (!evictionBlocklist[key]) {
+        evictionBlocklist[key] = [];
+    }
+
+    evictionBlocklist[key].push(connectionID);
 }
 
 /**
@@ -193,26 +205,14 @@ function connect(mapping) {
         return connectionID;
     }
 
-    // Check to see if this key is flagged as a safe eviction key and
-    // if so make sure it has exactly one canEvict property in it's mapping.
-    // If it has no canEvict setting then there is a chance we will unsafely
-    // remove this key. If it has more than one canEvict setting then we
-    // could end up with conflicting sets of instructions.
-    if (!isCollectionKey(mapping.key) && isSafeEvictionKey(mapping.key)) {
-        const mappingsWithCanEvictProperty = _.filter(callbackToStateMapping, config => (
-            config.key === mapping.key && _.isFunction(config.canEvict)
-        ));
-
-        if (mappingsWithCanEvictProperty.length === 0) {
+    // Check to see if this key is flagged as a safe eviction key and add it to the recentlyAccessedKeys list
+    if (mapping.withIonInstance && !isCollectionKey(mapping.key) && isSafeEvictionKey(mapping.key)) {
+        // All React components subscribing to a key flagged as a safe eviction
+        // key must implement the canEvict property.
+        if (_.isUndefined(mapping.canEvict)) {
             // eslint-disable-next-line max-len
-            throw new Error('Subscribed to an Ion key that has been flagged as a safe eviction key without providing a canEvict method.');
+            throw new Error(`Cannot subscribe to safe eviction key '${mapping.key}' without providing a canEvict value.`);
         }
-
-        if (mappingsWithCanEvictProperty.length > 1) {
-            // eslint-disable-next-line max-len
-            throw new Error('A canEvict method has already been defined by another subscriber. This behavior should only be defined once.');
-        }
-
         addLastAccessedKey(mapping.key);
     }
 
@@ -286,8 +286,8 @@ function remove(key) {
  * @return {Promise}
  */
 function evictStorageAndRetry(error, ionMethod, ...args) {
-    // Find the first key that we can remove that is not in our blocklist
-    const keysToRemove = _.filter(recentlyAccessedKeys, key => !_.contains(evictionBlocklist, key));
+    // Find the first key that we can remove that has no subscribers in our blocklist
+    const keysToRemove = _.filter(recentlyAccessedKeys, key => !evictionBlocklist[key]);
 
     // It's dangerous to remove the last key since after this we will have no more keys to remove
     // if this fails we will just keep retrying over and over again in an endless loop.
