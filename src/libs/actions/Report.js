@@ -261,6 +261,11 @@ function fetchActions(reportID) {
     Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {loading: true});
     API.getReportHistory({reportID})
         .then((data) => {
+            if (!data.history) {
+                Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {loading: false});
+                return;
+            }
+
             const previousOffset = reportActionOffsets[reportID] || 0;
             const actionSubSet = data.history.slice(previousOffset, previousOffset + 50);
             const indexedData = _.indexBy(actionSubSet, 'sequenceNumber');
