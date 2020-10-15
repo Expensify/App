@@ -47,7 +47,7 @@ This application is built with the following principles.
 1. Install `node` & `npm`: `brew install node`
 2. Install `watchman`: `brew install watchman`
 3. Install dependencies: `npm install`
-4. Run `cp .env.example .env` and edit `.env` to have your local config options(for example, we are curretly hardcoding the pinned chat reports IDs with the `REPORT_IDS` config option).
+4. Run `cp .env.example .env` and edit `.env` to have your local config options.
 
 You can use any IDE or code editing tool for developing on any platform. Use your favorite!
 

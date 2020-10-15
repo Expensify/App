@@ -93,6 +93,7 @@ class App extends Component {
                                 textContentType="username"
                                 onChangeText={text => this.setState({login: text})}
                                 onSubmitEditing={this.submitForm}
+                                autoCapitalize="none"
                             />
                         </View>
                         <View style={[styles.mb4]}>
