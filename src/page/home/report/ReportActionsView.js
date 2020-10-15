@@ -134,7 +134,8 @@ class ReportActionsView extends React.Component {
      * action when scrolled
      */
     recordMaxAction() {
-        const maxVisibleSequenceNumber = _.chain(this.props.reportActions)
+        const reportActions = lodashGet(this.props, 'reportActions', {});
+        const maxVisibleSequenceNumber = _.chain(reportActions)
             .pluck('sequenceNumber')
             .max()
             .value();
