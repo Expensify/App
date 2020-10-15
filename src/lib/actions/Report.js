@@ -254,12 +254,12 @@ function subscribeToReportTypingEvents(reportID) {
     }
 
     const pusherChannelName = `private-report-reportID-${reportID}`;
-    Pusher.subscribe(pusherChannelName, 'client-userIsTyping', () => {
+    Pusher.subscribe(pusherChannelName, 'client-userIsTyping', (payload) => {
         clearTimeout(typingWatchTimers[reportID]);
-        Ion.merge(`${IONKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, true);
+        Ion.merge(`${IONKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, payload);
 
         typingWatchTimers[reportID] = setTimeout(() => {
-            Ion.merge(`${IONKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, false);
+            Ion.removeFromCollection(`${IONKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, _.keys(payload));
             delete typingWatchTimers[reportID];
         }, 1500);
     });
@@ -277,6 +277,7 @@ function unsubscribeToReportTypingEvents(reportID) {
     }
 
     const pusherChannelName = `private-report-reportID-${reportID}`;
+    Ion.set(`${IONKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, []);
     Pusher.unsubscribe(pusherChannelName, 'client-userIsTyping');
 }
 
@@ -534,10 +535,13 @@ function saveReportComment(reportID, comment) {
  * Broadcasts whether or not a user is typing on a report over the report's private pusher channel.
  *
  * @param {number} reportID
+ * @param {string} login
  */
-function broadcastUserIsTyping(reportID) {
+function broadcastUserIsTyping(reportID, login) {
     const privateReportChannelName = `private-report-reportID-${reportID}`;
-    Pusher.sendEvent(privateReportChannelName, 'client-userIsTyping', {});
+    const payload = {};
+    payload[login] = true;
+    Pusher.sendEvent(privateReportChannelName, 'client-userIsTyping', payload);
 }
 
 /**

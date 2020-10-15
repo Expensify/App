@@ -1,4 +1,5 @@
 import React from 'react';
+import _ from 'underscore';
 import {View, Image, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
 import Text from '../../components/Text';
@@ -9,6 +10,7 @@ import {withRouter} from '../../lib/Router';
 import LHNToggle from '../../../assets/images/icon-menu-toggle.png';
 import compose from '../../lib/compose';
 import {subscribeToReportTypingEvents, unsubscribeToReportTypingEvents} from '../../lib/actions/Report';
+import {getDisplayName} from '../../lib/actions/PersonalDetails';
 
 const propTypes = {
     // Toggles the hamburger menu open and closed
@@ -46,6 +48,25 @@ class HeaderView extends React.PureComponent {
         }
     }
 
+    /**
+     * Retrieves the text to display if users are typing.
+     *
+     * @returns {string}
+     */
+    getUsersTypingText() {
+        if (_.size(this.props.usersTyping) === 1) {
+            const displayName = getDisplayName(_.keys(this.props.usersTyping)[0]);
+            return `${displayName} is typing...`;
+        }
+
+
+        if (_.size(this.props.usersTyping) > 1) {
+            return 'Multiple users are typing...';
+        }
+
+        return '';
+    }
+
     render() {
         return (
             <View style={[styles.appContentHeader]}>
@@ -68,7 +89,7 @@ class HeaderView extends React.PureComponent {
                                 {this.props.report.reportName}
                             </Text>
                             <Text numberOfLines={1} style={[styles.navSubText]}>
-                                {this.props.usersTyping ? 'Users Are Typing...' : ''}
+                                {this.getUsersTypingText()}
                             </Text>
                         </View>
                     ) : null}

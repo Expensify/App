@@ -74,7 +74,7 @@ class ReportActionCompose extends React.Component {
      * too often to send data over Pusher and update other clients that might be listening.
      */
     debouncedBroadcastUserIsTyping() {
-        broadcastUserIsTyping(this.props.reportID);
+        broadcastUserIsTyping(this.props.reportID, this.props.session.email);
     }
 
     /**
