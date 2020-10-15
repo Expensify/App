@@ -5,7 +5,7 @@ import {redirect} from './App';
 import * as Pusher from '../Pusher/pusher';
 import NetworkConnection from '../NetworkConnection';
 import UnreadIndicatorUpdater from '../UnreadIndicatorUpdater';
-import PushNotification from '../Notification/PushNotification/index.native';
+import PushNotification from '../Notification/PushNotification';
 
 let currentURL;
 Ion.connect({
