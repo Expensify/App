@@ -260,6 +260,26 @@ function merge(key, val) {
 }
 
 /**
+ * Removes a given a key for a collection.
+ *
+ * @param {string} collection
+ * @param {*} key
+ */
+function removeFromCollection(collection, key) {
+    let newObj;
+    get(collection)
+        .then((prevVal) => {
+            if (_.isObject(prevVal)) {
+                newObj = _.omit(prevVal, key);
+                return AsyncStorage.setItem(collection, JSON.stringify(newObj));
+            }
+        })
+        .then(() => {
+            keyChanged(collection, newObj);
+        });
+}
+
+/**
  * Initialize the store with actions and listening for storage events
  */
 function init() {
@@ -276,6 +296,7 @@ const Ion = {
     merge,
     clear,
     init,
+    removeFromCollection
 };
 
 export default Ion;
