@@ -10,7 +10,7 @@ import IONKEYS from '../../../IONKEYS';
 import ReportActionItem from './ReportActionItem';
 import styles from '../../../styles/StyleSheet';
 import ReportActionPropTypes from './ReportActionPropTypes';
-import compose from '../../../lib/compose';
+import compose from '../../../libs/compose';
 import withBatchedRendering from '../../../components/withBatchedRendering';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import {lastItem} from '../../../libs/CollectionUtils';
