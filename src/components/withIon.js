@@ -79,10 +79,14 @@ export default function (mapIonToState) {
                 _.each(mapIonToState, (mapping) => {
                     if (_.isFunction(mapping.canEvict)) {
                         const key = _.isFunction(mapping.key) ? mapping.key(this.props) : mapping.key;
+                        if (!Ion.isSafeEvictionKey(key)) {
+                            throw new Error('canEvict cannot be used on a key that has not explicitly been flagged as safe for removal. This key must be added to the safeEvictionKeys option in Ion.init()');
+                        }
+
                         if (mapping.canEvict(this.props)) {
-                            Ion.updateEvictionBlocklist(key, true);
+                            Ion.removeFromEvictionBlockList(key);
                         } else {
-                            Ion.updateEvictionBlocklist(key);
+                            Ion.addToEvictionBlockList(key);
                         }
                     }
                 });
