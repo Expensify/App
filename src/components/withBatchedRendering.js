@@ -21,27 +21,39 @@ export default function (propNameToBatch, batches) {
         class withBatchedRendering extends React.Component {
             constructor(props) {
                 super(props);
-
+                this.timers = [];
                 this.state = {};
             }
 
             componentDidMount() {
                 _.each(batches, (batch) => {
-                    setTimeout(() => {
-                        this.setState({
-                            [propNameToBatch]: batch.items(this.props),
-                        });
-                    }, batch.delay || 0);
+                    this.timers.push(
+                        setTimeout(() => {
+                            this.setItemsToRender(batch.items(this.props));
+                        }, batch.delay || 0)
+                    );
                 });
             }
 
             componentDidUpdate(prevProps) {
                 if (_.size(prevProps[propNameToBatch]) !== _.size(this.props[propNameToBatch])) {
-                    // eslint-disable-next-line react/no-did-update-set-state
-                    this.setState({
-                        itemsToRender: this.props[propNameToBatch],
-                    });
+                    this.setItemsToRender(this.props[propNameToBatch]);
                 }
+            }
+
+            componentWillUnmount() {
+                _.each(this.timers, timerID => clearTimeout(timerID));
+            }
+
+            /**
+             * Sets items to the state key that matches the defined propNameToBatch
+             *
+             * @param {*} items
+             */
+            setItemsToRender(items) {
+                this.setState({
+                    [propNameToBatch]: items,
+                });
             }
 
             render() {

@@ -296,7 +296,7 @@ class ChatSwitcherView extends React.Component {
                         }
                     }}
                     onChangeText={this.updateSearch}
-                    onClearButtonClick={this.reset}
+                    onClearButtonClick={() => this.reset()}
                     onFocus={this.triggerOnFocusCallback}
                     onKeyPress={this.handleKeyPress}
                 />

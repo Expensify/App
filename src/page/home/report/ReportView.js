@@ -13,10 +13,6 @@ const propTypes = {
 
     // Whether or not this report is the one that is currently being viewed
     isActiveReport: PropTypes.bool.isRequired,
-
-    // These are styles to apply to the report view
-    // eslint-disable-next-line react/forbid-prop-types
-    style: PropTypes.any.isRequired,
 };
 
 // This is a PureComponent so that it only re-renders when the reportID changes or when the report changes from

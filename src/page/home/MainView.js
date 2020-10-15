@@ -46,12 +46,14 @@ class MainView extends Component {
 
         // The styles for each of our reports. Basically, they are all hidden except for the one matching the
         // reportID in the URL
+        let activeReportID;
         const reportStyles = _.reduce(this.props.reports, (memo, report) => {
             const isActiveReport = reportIDInUrl === report.reportID;
             const finalData = {...memo};
             let reportStyle;
 
-            if (this.isReportIDMatchingURL(report.reportID)) {
+            if (isActiveReport) {
+                activeReportID = report.reportID;
                 reportStyle = [styles.dFlex, styles.flex1];
             } else {
                 reportStyle = [styles.dNone];
