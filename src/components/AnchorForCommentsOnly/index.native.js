@@ -8,7 +8,7 @@ import {Linking, StyleSheet, Text} from 'react-native';
 
 const propTypes = {
     // The URL to open
-    href: PropTypes.string.isRequired,
+    href: PropTypes.string,
 
     // What headers to send to the linked page (usually noopener and noreferrer)
     // This is unused in native, but is here for parity with web
@@ -28,6 +28,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    href: '',
     rel: null,
     target: null,
     children: null,

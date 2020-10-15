@@ -24,15 +24,10 @@ const propTypes = {
     /* From withIon() */
     // All of the report actions for this report
     reportActions: PropTypes.PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
-
-    /* From withBatchedRendering() */
-    // The specific items that need to be rendered
-    itemsToRender: PropTypes.PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
 };
 
 const defaultProps = {
     reportActions: {},
-    itemsToRender: {},
 };
 
 class ReportActionsView extends React.Component {
@@ -53,7 +48,7 @@ class ReportActionsView extends React.Component {
 
         // When the number of actions change, wait three seconds, then record the max action
         // This will make the unread indicator go away if you receive comments in the same chat you're looking at
-        if (isReportVisible && _.size(prevProps.itemsToRender) !== _.size(this.props.itemsToRender)) {
+        if (isReportVisible && _.size(prevProps.reportActions) !== _.size(this.props.reportActions)) {
             setTimeout(this.recordMaxAction, 3000);
         }
     }
@@ -75,15 +70,13 @@ class ReportActionsView extends React.Component {
      */
     // eslint-disable-next-line
     isConsecutiveActionMadeByPreviousActor(actionIndex) {
-        const {reportActions} = this.props;
-
         // This is the created action and the very first action so it cannot be a consecutive comment.
         if (actionIndex === 0) {
             return false;
         }
 
-        const previousAction = reportActions[actionIndex - 1];
-        const currentAction = reportActions[actionIndex];
+        const previousAction = this.props.reportActions[actionIndex - 1];
+        const currentAction = this.props.reportActions[actionIndex];
 
         // It's OK for there to be no previous action, and in that case, false will be returned
         // so that the comment isn't grouped
@@ -109,8 +102,7 @@ class ReportActionsView extends React.Component {
      * action when scrolled
      */
     recordMaxAction() {
-        const {reportActions} = this.props;
-        const maxVisibleSequenceNumber = _.chain(reportActions)
+        const maxVisibleSequenceNumber = _.chain(this.props.reportActions)
             .pluck('sequenceNumber')
             .max()
             .value();
@@ -148,7 +140,7 @@ class ReportActionsView extends React.Component {
                 bounces={false}
                 contentContainerStyle={[styles.chatContentScrollView]}
             >
-                {_.map(this.props.itemsToRender, (item, index) => (
+                {_.map(this.props.reportActions, (item, index) => (
                     <ReportActionItem
                         key={item.sequenceNumber}
                         action={item}

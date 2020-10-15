@@ -20,17 +20,10 @@ const propTypes = {
     reports: PropTypes.objectOf(PropTypes.shape({
         reportID: PropTypes.number,
     })),
-
-    /* From withBatchedRendering() */
-    // The specific items that need to be rendered
-    itemsToRender: PropTypes.PropTypes.objectOf(PropTypes.shape({
-        reportID: PropTypes.number,
-    })),
 };
 
 const defaultProps = {
     reports: {},
-    itemsToRender: {},
 };
 
 // Since this component is connected to an Ion collection, it's props are updated anytime a single report
@@ -57,13 +50,13 @@ class MainView extends React.PureComponent {
     }
 
     render() {
-        if (!_.size(this.props.itemsToRender)) {
+        if (!_.size(this.props.reports)) {
             return null;
         }
 
         // The styles for each of our report views. Basically, they are all hidden except for the one matching the
         // reportID in the URL
-        const reportStyles = _.reduce(this.props.itemsToRender, (memo, report) => {
+        const reportStyles = _.reduce(this.props.reports, (memo, report) => {
             const finalData = {...memo};
             let reportStyle;
 
@@ -79,7 +72,7 @@ class MainView extends React.PureComponent {
 
         return (
             <>
-                {_.map(this.props.itemsToRender, report => report.reportName && (
+                {_.map(this.props.reports, report => report.reportName && (
                     <ReportView
                         key={report.reportID}
                         style={reportStyles[report.reportID]}
