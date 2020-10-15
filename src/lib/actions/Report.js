@@ -5,9 +5,7 @@ import ExpensiMark from 'js-libs/lib/ExpensiMark';
 import Ion from '../Ion';
 import * as API from '../API';
 import IONKEYS from '../../IONKEYS';
-import CONFIG from '../../CONFIG';
 import * as Pusher from '../Pusher/pusher';
-import promiseAllSettled from '../promiseAllSettled';
 import Notification from '../Notification';
 import * as PersonalDetails from './PersonalDetails';
 import {redirect} from './App';
@@ -38,7 +36,7 @@ Ion.connect({
 let lastViewedReportID;
 Ion.connect({
     key: IONKEYS.CURRENTLY_VIEWED_REPORTID,
-    callback: val => lastViewedReportID = val,
+    callback: val => lastViewedReportID = val ? Number(val) : null,
 });
 
 let myPersonalDetails;
@@ -52,9 +50,6 @@ const reportMaxSequenceNumbers = {};
 
 // Keeps track of the last read for each report
 const lastReadActionIDs = {};
-
-// List of reportIDs that we define in .env
-const configReportIDs = CONFIG.REPORT_IDS.split(',').map(Number);
 
 /**
  * Checks the report to see if there are any unread action items
@@ -101,7 +96,6 @@ function getSimplifiedReportObject(report) {
         reportName: report.reportName,
         reportNameValuePairs: report.reportNameValuePairs,
         unreadActionCount: getUnreadActionCount(report),
-        pinnedReport: configReportIDs.includes(report.reportID),
         maxSequenceNumber: report.reportActionList.length,
     };
 }
@@ -206,7 +200,7 @@ function updateReportWithNewAction(reportID, reportAction) {
     }
 
     // If we are currently viewing this report do not show a notification.
-    if (reportID === Number(lastViewedReportID) && Visibility.isVisible()) {
+    if (reportID === lastViewedReportID && Visibility.isVisible()) {
         console.debug('[NOTIFICATION] No notification because it was a comment for the current report');
         return;
     }
@@ -274,40 +268,6 @@ function fetchActions(reportID) {
 }
 
 /**
- * Get all of our hardcoded reports
- *
- * @returns {Promise}
- */
-function fetchHardcodedReports() {
-    // Request each report one at a time to allow individual reports to fail if access to it is prevented by Auth
-    const reportFetchPromises = _.map(configReportIDs, reportID => API.get({
-        returnValueList: 'reportStuff',
-        reportIDList: reportID,
-        shouldLoadOptionalKeys: true,
-    }));
-
-    return promiseAllSettled(reportFetchPromises)
-        .then((data) => {
-            const fetchedReports = _.compact(_.map(data, (promiseResult) => {
-                // Grab the report from the promise result which stores it in the `value` key
-                const report = lodashGet(promiseResult, 'value.reports', {});
-
-                // If there is no report found from the promise, return null
-                // Otherwise, grab the actual report object from the first index in the values array
-                return _.isEmpty(report) ? null : _.values(report)[0];
-            }));
-
-            _.each(fetchedReports, (report) => {
-                // Merge the data into Ion. Don't use set() here or multiSet() because then that would
-                // overwrite any existing data (like if they have unread messages)
-                Ion.merge(`${IONKEYS.COLLECTION.REPORT}${report.reportID}`, getSimplifiedReportObject(report));
-            });
-
-            return _.map(fetchedReports, report => report.reportID);
-        });
-}
-
-/**
  * Get all of our reports
  *
  * @param {boolean} shouldRedirectToReport this is set to false when the network reconnect
@@ -315,13 +275,8 @@ function fetchHardcodedReports() {
  * @param {boolean} shouldFetchActions whether or not the actions of the reports should also be fetched
  */
 function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false) {
-    Promise.all([
-        fetchChatReports(),
-        fetchHardcodedReports()
-    ])
-        .then((promiseResults) => {
-            const reportIDs = _.flatten(promiseResults);
-
+    fetchChatReports()
+        .then((reportIDs) => {
             if (shouldRedirectToReport && (currentURL === ROUTES.ROOT || currentURL === ROUTES.HOME)) {
                 // Redirect to either the last viewed report ID or the first report ID from our report collection
                 if (lastViewedReportID) {
