@@ -193,7 +193,28 @@ function connect(mapping) {
         return connectionID;
     }
 
-    addLastAccessedKey(mapping.key);
+    // Check to see if this key is flagged as a safe eviction key and
+    // if so make sure it has exactly one canEvict property in it's mapping.
+    // If it has no canEvict setting then there is a chance we will unsafely
+    // remove this key. If it has more than one canEvict setting then we
+    // could end up with conflicting sets of instructions.
+    if (!isCollectionKey(mapping.key) && isSafeEvictionKey(mapping.key)) {
+        const mappingsWithCanEvictProperty = _.filter(callbackToStateMapping, config => (
+            config.key === mapping.key && _.isFunction(config.canEvict)
+        ));
+
+        if (mappingsWithCanEvictProperty.length === 0) {
+            // eslint-disable-next-line max-len
+            throw new Error('Subscribed to an Ion key that has been flagged as a safe eviction key without providing a canEvict method.');
+        }
+
+        if (mappingsWithCanEvictProperty.length > 1) {
+            // eslint-disable-next-line max-len
+            throw new Error('A canEvict method has already been defined by another subscriber. This behavior should only be defined once.');
+        }
+
+        addLastAccessedKey(mapping.key);
+    }
 
     AsyncStorage.getAllKeys()
         .then((keys) => {
