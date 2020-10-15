@@ -52,7 +52,14 @@ export default function (mapIonToState) {
                     if (_.isFunction(mapping.key)) {
                         const previousKey = mapping.key(prevProps);
                         const newKey = mapping.key(this.props);
+
                         if (previousKey !== newKey) {
+                            // If we have a canEvict property and we are unsubscribing we should
+                            // remove this key from the blocklist.
+                            if (!_.isUndefined(mapping.canEvict) && Ion.isSafeEvictionKey(previousKey)) {
+                                Ion.removeFromEvictionBlockList(previousKey, mapping.connectionID);
+                            }
+
                             Ion.disconnect(this.activeConnectionIDsWithPropsData[previousKey]);
                             this.connectMappingToIon(mapping, propertyName, this.wrappedComponent);
                         }
@@ -65,6 +72,16 @@ export default function (mapIonToState) {
                 // Disconnect everything from Ion
                 _.each(this.actionConnectionIDs, Ion.disconnect);
                 _.each(this.activeConnectionIDsWithPropsData, Ion.disconnect);
+
+                // Remove this key from the eviction block list as we are no longer
+                // subscribing to it and should ignore whatever value it had for canEvict
+                _.each(mapIonToState, (mapping) => {
+                    const key = _.isFunction(mapping.key) ? mapping.key(this.props) : mapping.key;
+                    if (_.isUndefined(mapping.canEvict) && !Ion.isSafeEvictionKey(key)) {
+                        return;
+                    }
+                    Ion.removeFromEvictionBlockList(key, mapping.connectionID);
+                });
             }
 
             /**
@@ -74,8 +91,8 @@ export default function (mapIonToState) {
              */
             checkAndUpdateLoading() {
                 // We will add this key to our list of recently accessed keys
-                // if the canEvict function returns true. This is additional criteria
-                // we can use to allow a key to be removed or not.
+                // if the canEvict function returns true. This is necessary criteria
+                // we MUST use to specify if a key can be removed or not.
                 _.each(mapIonToState, (mapping) => {
                     if (_.isUndefined(mapping.canEvict)) {
                         return;
@@ -85,13 +102,13 @@ export default function (mapIonToState) {
                     const key = _.isFunction(mapping.key) ? mapping.key(this.props) : mapping.key;
                     if (!Ion.isSafeEvictionKey(key)) {
                         // eslint-disable-next-line max-len
-                        throw new Error('canEvict cannot be used on a key that has not explicitly been flagged as safe for removal. This key must be added to the safeEvictionKeys option in Ion.init()');
+                        throw new Error(`canEvict cannot be used on key '${key}'. This key must explicitly be flagged as safe for removal by adding it to Ion.init({safeEvictionKeys: []}).`);
                     }
 
                     if (canEvict) {
-                        Ion.removeFromEvictionBlockList(key);
+                        Ion.removeFromEvictionBlockList(key, mapping.connectionID);
                     } else {
-                        Ion.addToEvictionBlockList(key);
+                        Ion.addToEvictionBlockList(key, mapping.connectionID);
                     }
                 });
 
@@ -146,6 +163,10 @@ export default function (mapIonToState) {
                     connectionID = Ion.connect(ionConnectionConfig);
                     this.actionConnectionIDs[connectionID] = connectionID;
                 }
+
+                // Add the connectionID to the mapping for reference
+                // eslint-disable-next-line no-param-reassign
+                mapping.connectionID = connectionID;
             }
 
             render() {
