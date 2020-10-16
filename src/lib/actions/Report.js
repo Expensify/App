@@ -255,12 +255,14 @@ function subscribeToReportTypingEvents(reportID) {
 
     const pusherChannelName = `private-report-reportID-${reportID}`;
     Pusher.subscribe(pusherChannelName, 'client-userIsTyping', (payload) => {
-        clearTimeout(typingWatchTimers[reportID]);
+        // Use a combo of the reportID and the username as a key for holding our timers.
+        const reportUserIdentifier = `${reportID}-${_.keys(payload)[0]}`;
+        clearTimeout(typingWatchTimers[reportUserIdentifier]);
         Ion.merge(`${IONKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, payload);
 
-        typingWatchTimers[reportID] = setTimeout(() => {
+        typingWatchTimers[reportUserIdentifier] = setTimeout(() => {
             Ion.removeFromCollection(`${IONKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, _.keys(payload));
-            delete typingWatchTimers[reportID];
+            delete typingWatchTimers[reportUserIdentifier];
         }, 1500);
     });
 }
