@@ -242,20 +242,30 @@ function subscribeToReportCommentEvents() {
  * @param {number} reportID
  */
 function subscribeToReportTypingEvents(reportID) {
-    // If we don't have the user's accountID yet we can't subscribe so return early
-    if (!currentUserAccountID) {
+    if (!reportID) {
         return;
     }
 
     const pusherChannelName = `private-report-reportID-${reportID}`;
-    Pusher.subscribe(pusherChannelName, 'client-userIsTyping', (payload) => {
-        // Use a combo of the reportID and the username as a key for holding our timers.
-        const reportUserIdentifier = `${reportID}-${_.keys(payload)[0]}`;
-        clearTimeout(typingWatchTimers[reportUserIdentifier]);
-        Ion.merge(`${IONKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, payload);
 
+    // Typing status is an object with the shape {login: true} (e.g. {yuwen@expensify.com: true}), where the value is
+    // whether the user with that login is typing on the report or not.
+    Pusher.subscribe(pusherChannelName, 'client-userIsTyping', (typingStatus) => {
+        const login = _.first(_.keys(typingStatus));
+        if (!login) {
+            return;
+        }
+
+        // Use a combo of the reportID and the login as a key for holding our timers.
+        const reportUserIdentifier = `${reportID}-${login}`;
+        clearTimeout(typingWatchTimers[reportUserIdentifier]);
+        Ion.merge(`${IONKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, typingStatus);
+
+        // Wait for 1.5s of no additional typing events before setting the status back to false.
         typingWatchTimers[reportUserIdentifier] = setTimeout(() => {
-            Ion.removeFromCollection(`${IONKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, _.keys(payload));
+            const typingStoppedStatus = {};
+            typingStoppedStatus[login] = false;
+            Ion.merge(`${IONKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, typingStoppedStatus);
             delete typingWatchTimers[reportUserIdentifier];
         }, 1500);
     });
@@ -267,8 +277,7 @@ function subscribeToReportTypingEvents(reportID) {
  * @param {number} reportID
  */
 function unsubscribeToReportTypingEvents(reportID) {
-    // If we don't have the user's accountID yet we can't subscribe so return early
-    if (!currentUserAccountID) {
+    if (!reportID) {
         return;
     }
 
@@ -496,9 +505,9 @@ function saveReportComment(reportID, comment) {
  */
 function broadcastUserIsTyping(reportID, login) {
     const privateReportChannelName = `private-report-reportID-${reportID}`;
-    const payload = {};
-    payload[login] = true;
-    Pusher.sendEvent(privateReportChannelName, 'client-userIsTyping', payload);
+    const typingStatus = {};
+    typingStatus[login] = true;
+    Pusher.sendEvent(privateReportChannelName, 'client-userIsTyping', typingStatus);
 }
 
 /**
