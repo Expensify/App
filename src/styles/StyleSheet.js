@@ -23,6 +23,10 @@ const colors = {
 
 const styles = {
     // Utility classes
+    mr0: {
+        marginRight: 0,
+    },
+
     mr1: {
         marginRight: 4,
     },
@@ -591,13 +595,9 @@ const styles = {
         width: 20,
     },
 
-    reportOptions: {
-        flex: 1,
-    },
-
     reportPinIcon: {
-        height: 15,
-        width: 15,
+        height: 20,
+        width: 20,
     },
 
     chatItemAttachButton: {
