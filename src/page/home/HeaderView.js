@@ -41,8 +41,8 @@ class HeaderView extends React.PureComponent {
     componentDidUpdate(prevProps) {
         // If we're viewing a new report, unbind the event subscription for the previous report in addition to
         // subscribing for the new report.
-        if (this.props.report && this.props.report.reportID
-            && prevProps.report.reportID !== this.props.report.reportID) {
+        if (this.props.report && this.props.report.reportID && prevProps.report
+                && prevProps.report.reportID !== this.props.report.reportID) {
             unsubscribeToReportTypingEvents(prevProps.report.reportID);
             subscribeToReportTypingEvents(this.props.report.reportID);
         }
