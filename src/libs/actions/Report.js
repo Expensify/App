@@ -270,7 +270,7 @@ function fetchActions(reportID) {
             }
 
             const previousOffset = reportActionOffsets[reportID] || 0;
-            const newOffset = previousOffset + 50;
+            const newOffset = previousOffset + 20;
             const actionSubSet = data.history.slice(previousOffset, newOffset);
             const indexedData = _.indexBy(actionSubSet, 'sequenceNumber');
             const maxSequenceNumber = _.chain(actionSubSet)

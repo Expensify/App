@@ -10,6 +10,12 @@ import BaseInvertedFlatList from './BaseInvertedFlatList';
 const propTypes = {
     // Passed via forwardRef so we can access the FlatList ref
     innerRef: PropTypes.func.isRequired,
+
+    onScrollToTop: PropTypes.func,
+};
+
+const defaultProps = {
+    onScrollToTop: () => {},
 };
 
 // This is copied from https://codesandbox.io/s/react-native-dsyse
@@ -54,11 +60,18 @@ const InvertedFlatList = (props) => {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}
+            onScroll={({nativeEvent}) => {
+                const scrollTop = (nativeEvent.contentOffset.y + nativeEvent.layoutMeasurement.height);
+                if (scrollTop === nativeEvent.contentSize.height) {
+                    this.props.onScrollToTop();
+                }
+            }}
         />
     );
 };
 
 InvertedFlatList.propTypes = propTypes;
+InvertedFlatList.defaultProps = defaultProps;
 
 export default forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading

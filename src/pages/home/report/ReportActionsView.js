@@ -66,9 +66,12 @@ class ReportActionsView extends React.Component {
         const actions = lodashGet(this.props, 'reportActions.actions');
         if (_.size(lodashGet(prevProps, 'reportActions.actions')) !== _.size(actions)) {
             // If a new comment is added and it's from the current user scroll to the bottom otherwise
-            // leave the user positioned where they are now in the list.
+            // leave the user positioned where they are now in the list. We also make an exception for
+            // right after we update with a new action from a fetch since we are paginating or there
+            // was a background update and we should not shift the scroll position.
             const lastAction = lastItem(actions);
-            if (lastAction && (lastAction.actorEmail === this.props.session.email)) {
+            const didFetchActions = prevProps.reportActions.loading && !this.props.reportActions.loading;
+            if (!didFetchActions && lastAction && (lastAction.actorEmail === this.props.session.email)) {
                 this.scrollToListBottom();
             }
 
@@ -244,11 +247,8 @@ class ReportActionsView extends React.Component {
                         <View style={{height: 36}} />
                     );
                 }}
-                onScroll={({nativeEvent}) => {
-                    const scrollTop = (nativeEvent.contentOffset.y + nativeEvent.layoutMeasurement.height);
-                    if (scrollTop === nativeEvent.contentSize.height) {
-                        this.debouncedLoadMore();
-                    }
+                onScrollToTop={() => {
+                    this.debouncedLoadMore();
                 }}
             />
         );
