@@ -592,9 +592,7 @@ const styles = {
     },
 
     reportOptions: {
-        flex: 0,
-        width: 40,
-        justifyContent: 'flex-end',
+        flex: 1,
     },
 
     reportPinIcon: {
