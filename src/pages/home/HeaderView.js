@@ -25,10 +25,14 @@ const propTypes = {
         // Name of the report
         reportName: PropTypes.string,
     }),
+
+    // Key-value pairs of user logins and whether or not they are typing.
+    userTypingStatuses: PropTypes.object,
 };
 
 const defaultProps = {
     report: null,
+    userTypingStatuses: {},
 };
 
 class HeaderView extends React.PureComponent {
@@ -54,13 +58,16 @@ class HeaderView extends React.PureComponent {
      * @returns {string}
      */
     getUsersTypingText() {
-        if (_.size(this.props.usersTyping) === 1) {
-            const displayName = getDisplayName(_.keys(this.props.usersTyping)[0]);
+        // Filter only to users that are typing.
+        const usersTyping = Object.keys(this.props.userTypingStatuses || {})
+            .filter(login => this.props.userTypingStatuses[login] === true);
+
+        if (_.size(usersTyping) === 1) {
+            const displayName = getDisplayName(usersTyping[0]);
             return `${displayName} is typing...`;
         }
 
-
-        if (_.size(this.props.usersTyping) > 1) {
+        if (_.size(usersTyping) > 1) {
             return 'Multiple users are typing...';
         }
 
@@ -109,7 +116,7 @@ export default compose(
         report: {
             key: ({match}) => `${IONKEYS.COLLECTION.REPORT}${match.params.reportID}`,
         },
-        usersTyping: {
+        userTypingStatuses: {
             key: ({match}) => `${IONKEYS.COLLECTION.REPORT_USER_IS_TYPING}${match.params.reportID}`,
         }
     }),
