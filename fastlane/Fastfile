@@ -103,5 +103,10 @@ platform :ios do
             notes: "Use the account provided. Thank you for the review."
         }
     )
+
+    upload_symbols_to_crashlytics(
+      dsym_path: "./ios/Chat.app.dSYM",
+      gsp_path: "./ios/GoogleService-Info.plist"
+    )
   end
 end
