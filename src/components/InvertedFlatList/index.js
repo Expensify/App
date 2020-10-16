@@ -63,7 +63,7 @@ const InvertedFlatList = (props) => {
             onScroll={({nativeEvent}) => {
                 const scrollTop = (nativeEvent.contentOffset.y + nativeEvent.layoutMeasurement.height);
                 if (scrollTop === nativeEvent.contentSize.height) {
-                    this.props.onScrollToTop();
+                    props.onScrollToTop();
                 }
             }}
         />
