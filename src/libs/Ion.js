@@ -133,6 +133,13 @@ function addToEvictionBlockList(key, connectionID) {
  * @param {mixed} data
  */
 function keyChanged(key, data) {
+    // Add or remove this key from the recentlyAccessedKeys lists
+    if (!_.isNull(data)) {
+        addLastAccessedKey(key);
+    } else {
+        removeLastAccessedKey(key);
+    }
+
     // Find all subscribers that were added with connect() and trigger the callback or setState() with the new data
     _.each(callbackToStateMapping, (subscriber) => {
         if (subscriber && isKeyMatch(subscriber.key, key)) {
@@ -269,10 +276,7 @@ function disconnect(connectionID) {
  */
 function remove(key) {
     return AsyncStorage.removeItem(key)
-        .then(() => {
-            removeLastAccessedKey(key);
-            keyChanged(key, null);
-        });
+        .then(() => keyChanged(key, null));
 }
 
 /**
@@ -315,17 +319,9 @@ function evictStorageAndRetry(error, ionMethod, ...args) {
  * @returns {Promise}
  */
 function set(key, val) {
-    if (val) {
-        addLastAccessedKey(key);
-    } else {
-        removeLastAccessedKey(key);
-    }
-
     // Write the thing to persistent storage, which will trigger a storage event for any other tabs open on this domain
     return AsyncStorage.setItem(key, JSON.stringify(val))
-        .then(() => {
-            keyChanged(key, val);
-        })
+        .then(() => keyChanged(key, val))
         .catch(error => evictStorageAndRetry(error, set, key, val));
 }
 
@@ -346,18 +342,8 @@ function multiSet(data) {
         [key, JSON.stringify(val)],
     ]), []);
 
-    _.each(keyValuePairs, ([key, val]) => {
-        if (val) {
-            addLastAccessedKey(key);
-        } else {
-            removeLastAccessedKey(key);
-        }
-    });
-
     return AsyncStorage.multiSet(keyValuePairs)
-        .then(() => {
-            _.each(data, (val, key) => keyChanged(key, val));
-        })
+        .then(() => _.each(data, (val, key) => keyChanged(key, val)))
         .catch(error => evictStorageAndRetry(error, multiSet, data));
 }
 
@@ -377,12 +363,6 @@ function clear() {
  * @param {*} val
  */
 function merge(key, val) {
-    if (val) {
-        addLastAccessedKey(key);
-    } else {
-        removeLastAccessedKey(key);
-    }
-
     // Arrays need to be manually merged because the AsyncStorage behavior
     // is not desired when merging arrays. `AsyncStorage.mergeItem('test', [1]);
     // will result in `{0: 1}` being set in storage, when `[1]` is what is expected
@@ -394,9 +374,7 @@ function merge(key, val) {
                 newArray = [...previousValue, ...val];
                 return AsyncStorage.setItem(key, JSON.stringify(newArray));
             })
-            .then(() => {
-                keyChanged(key, newArray);
-            })
+            .then(() => keyChanged(key, newArray))
             .catch(error => evictStorageAndRetry(error, merge, key, val));
         return;
     }
