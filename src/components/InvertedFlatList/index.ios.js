@@ -6,19 +6,11 @@ const InvertedFlatList = forwardRef((props, ref) => (
     <BaseInvertedFlatList
         {...props}
         ref={ref}
+        shouldGetItemLayout={false}
         onEndReachedThreshold={0.5}
-        initialNumToRender={20}
         onEndReached={() => {
-            console.log('end reached');
-            // props.onScrollToTop();
+            props.onScrollToTop();
         }}
-        // onScroll={({nativeEvent}) => {
-        //     const scrollTop = (nativeEvent.contentOffset.y + nativeEvent.layoutMeasurement.height);
-        //     if (scrollTop === nativeEvent.contentSize.height) {
-        //         console.log('top reached')
-        //         props.onScrollToTop();
-        //     }
-        // }}
     />
 ));
 

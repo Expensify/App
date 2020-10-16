@@ -17,6 +17,9 @@ const propTypes = {
     // if this is inaccurate.
     initialRowHeight: PropTypes.number.isRequired,
 
+    // Should we calculate the item layouts or not
+    shouldGetItemLayout: PropTypes.bool,
+
     // Passed via forwardRef so we can access the FlatList ref
     innerRef: PropTypes.oneOfType([
         PropTypes.func,
@@ -26,6 +29,7 @@ const propTypes = {
 
 const defaultProps = {
     data: [],
+    shouldGetItemLayout: true,
 };
 
 class BaseInvertedFlatList extends Component {
@@ -120,11 +124,15 @@ class BaseInvertedFlatList extends Component {
      * @return {React.Component}
      */
     renderItem({item, index}) {
-        return (
-            <View onLayout={({nativeEvent}) => this.measureItemLayout(nativeEvent, index)}>
-                {this.props.renderItem({item, index})}
-            </View>
-        );
+        if (this.props.shouldGetItemLayout) {
+            return (
+                <View onLayout={({nativeEvent}) => this.measureItemLayout(nativeEvent, index)}>
+                    {this.props.renderItem({item, index})}
+                </View>
+            );
+        }
+
+        return this.props.renderItem({item, index});
     }
 
     render() {
@@ -135,13 +143,13 @@ class BaseInvertedFlatList extends Component {
                 ref={this.props.innerRef}
                 inverted
                 renderItem={this.renderItem}
-                getItemLayout={this.getItemLayout}
-                bounces={false}
-                // maxToRenderPerBatch={15}
-                // updateCellsBatchingPeriod={40}
 
-                // Setting removeClippedSubviews will break text selection on Android
-                removeClippedSubviews={false}
+                // iOS scrolling skips in a bad way after a certain number of items
+                // enters the list and should not use getItemLayout as implemented here
+                getItemLayout={this.props.shouldGetItemLayout ? this.getItemLayout : undefined}
+                bounces={false}
+                maxToRenderPerBatch={15}
+                updateCellsBatchingPeriod={40}
             />
         );
     }
