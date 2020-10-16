@@ -105,7 +105,7 @@ platform :ios do
     )
 
     upload_symbols_to_crashlytics(
-      dsym_path: "./ios/Chat.app.dSYM",
+      dsym_path: "./Chat.app.dSYM",
       gsp_path: "./ios/GoogleService-Info.plist"
     )
   end
