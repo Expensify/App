@@ -20,6 +20,8 @@ import {
 import {fetch as fetchPersonalDetails} from '../../libs/actions/PersonalDetails';
 import * as Pusher from '../../libs/Pusher/pusher';
 import UnreadIndicatorUpdater from '../../libs/UnreadIndicatorUpdater';
+import ROUTES from '../../ROUTES';
+import NetworkConnection from '../../libs/NetworkConnection';
 
 const windowSize = Dimensions.get('window');
 const widthBreakPoint = 1000;
