@@ -107,6 +107,10 @@ const styles = {
         justifyContent: 'flex-end',
     },
 
+    flexJustifySpaceBetween: {
+        justifyContent: 'space-between',
+    },
+
     alignItemsCenter: {
         alignItems: 'center',
     },
@@ -179,6 +183,12 @@ const styles = {
         justifyContent: 'center',
         marginRight: 8,
         width: 40,
+    },
+
+    navText: {
+        color: colors.heading,
+        fontSize: 17,
+        fontWeight: '700'
     },
 
     // Actions
@@ -457,13 +467,6 @@ const styles = {
     LHNToggleIcon: {
         height: 15,
         width: 18,
-    },
-
-    navText: {
-        color: colors.heading,
-        fontSize: 17,
-        fontWeight: '700',
-        flexGrow: 1,
     },
 
     chatContent: {
