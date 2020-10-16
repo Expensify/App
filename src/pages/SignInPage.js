@@ -13,7 +13,8 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import CONFIG from '../CONFIG';
 import compose from '../libs/compose';
-import {withRouter} from '../libs/Router';
+import {withRouter, Redirect} from '../libs/Router';
+import ROUTES from '../ROUTES';
 import {signIn} from '../libs/actions/Session';
 import IONKEYS from '../IONKEYS';
 import withIon from '../components/withIon';
@@ -71,7 +72,15 @@ class App extends Component {
     }
 
     render() {
-        const isLoading = this.props.session && this.props.session.loading;
+        const session = this.props.session || {};
+
+        // If we end up on the sign in page and have an authToken then
+        // we are signed in and should be brought back to the site root
+        if (session.authToken) {
+            return <Redirect to={ROUTES.ROOT} />;
+        }
+
+        const isLoading = session.loading;
         return (
             <>
                 <StatusBar />
