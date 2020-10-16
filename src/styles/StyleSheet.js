@@ -88,9 +88,7 @@ const styles = {
     flex1: {
         flex: 1,
     },
-    flex3: {
-        flex: 3,
-    },
+
     flex4: {
         flex: 4,
     },
