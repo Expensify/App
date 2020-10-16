@@ -13,6 +13,14 @@ export function lastItem(object = {}) {
     return object[lastKey];
 }
 
+/**
+ * All collection keys have IDs built into the
+ * key. This is a simple tool to separate that ID
+ * from the key.
+ *
+ * @param {String} key
+ * @return {String}
+ */
 export function getIDFromKey(key) {
     return _.last(key.split('_'));
 }
