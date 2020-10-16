@@ -215,7 +215,20 @@ function multiSet(data) {
  * @returns {Promise}
  */
 function clear() {
-    return AsyncStorage.clear();
+    return new Promise((resolve, reject) => {
+        AsyncStorage.getAllKeys()
+            .then((keys) => {
+                AsyncStorage.clear()
+                    .then(() => {
+                        _.each(keys, (key) => {
+                            keyChanged(key, null);
+                        });
+                        resolve();
+                    })
+                    .catch(reject);
+            })
+            .catch(reject);
+    });
 }
 
 /**
