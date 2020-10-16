@@ -452,7 +452,7 @@ const styles = {
 
     navSubText: {
         color: colors.textSupporting,
-        fontSize: 12,
+        fontSize: 11,
     },
 
     chatContent: {
