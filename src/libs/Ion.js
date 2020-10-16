@@ -291,24 +291,20 @@ function remove(key) {
  */
 function evictStorageAndRetry(error, ionMethod, ...args) {
     // Find the first key that we can remove that has no subscribers in our blocklist
-    const keysToRemove = _.filter(recentlyAccessedKeys, key => !evictionBlocklist[key]);
+    const keyForRemoval = _.find(recentlyAccessedKeys, key => !evictionBlocklist[key]);
 
-    // It's dangerous to remove the last key since after this we will have no more keys to remove
-    // if this fails we will just keep retrying over and over again in an endless loop.
-    if (keysToRemove.length > 1) {
-        const keyForRemoval = _.first(keysToRemove);
-
-        // Remove the least recently viewed key that is not currently being accessed and retry.
-        console.debug(
-            '[Ion] Out of storage. Evicting least recently accessed key and retrying.',
-            {keyForRemoval}
-        );
-        return remove(keyForRemoval)
-            .then(() => ionMethod(...args));
+    if (!keyForRemoval) {
+        console.error('[Ion] Out of storage. But found no acceptable keys to remove.');
+        throw error;
     }
 
-    console.error('[Ion] Out of storage. But found no acceptable keys to remove.');
-    throw error;
+    // Remove the least recently viewed key that is not currently being accessed and retry.
+    console.debug(
+        '[Ion] Out of storage. Evicting least recently accessed key and retrying.',
+        {keyForRemoval}
+    );
+    return remove(keyForRemoval)
+        .then(() => ionMethod(...args));
 }
 
 /**
@@ -402,7 +398,10 @@ function merge(key, val) {
  * Initialize the store with actions and listening for storage events
  *
  * @param {Object} [options]
- * @param {String[]} [options.safeEvictionKeys]
+ * @param {String[]} [options.safeEvictionKeys] This is an array of IONKEYS
+ * (individual or collection patterns) that when provided to Ion are flagged
+ * as "safe" for removal. Any components subscribing to these keys must also
+ * implement a canEvict option. See the README for more info.
  */
 function init({safeEvictionKeys}) {
     evictionAllowList = safeEvictionKeys;
