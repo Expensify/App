@@ -2,8 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {Text as RNText} from 'react-native';
-import fontFamily from '../style/fontFamily';
-import {colors} from '../style/StyleSheet';
+import fontFamily from '../styles/fontFamily';
+import {colors} from '../styles/StyleSheet';
 
 const propTypes = {
     // The color of the text
