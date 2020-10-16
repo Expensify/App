@@ -13,6 +13,7 @@ import * as ActiveClientManager from '../ActiveClientManager';
 import Visibility from '../Visibility';
 import ROUTES from '../../ROUTES';
 import NetworkConnection from '../NetworkConnection';
+import {getIDFromKey} from '../CollectionUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -277,8 +278,10 @@ function fetchActions(reportID) {
                 .max()
                 .value();
 
+            reportActionOffsets[reportID] = newOffset;
+
             Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {actions: indexedData, loading: false});
-            Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {maxSequenceNumber, offset: newOffset});
+            Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {maxSequenceNumber});
         });
 }
 
@@ -481,11 +484,17 @@ function handleReportChanged(report) {
 
     // Store the max sequence number for each report
     reportMaxSequenceNumbers[report.reportID] = report.maxSequenceNumber;
-    reportActionOffsets[report.reportID] = report.offset;
 }
 Ion.connect({
     key: IONKEYS.COLLECTION.REPORT,
     callback: handleReportChanged
+});
+Ion.connect({
+    key: IONKEYS.COLLECTION.REPORT_ACTIONS,
+    callback: (reportActions = {}, key) => {
+        const reportID = getIDFromKey(key);
+        reportActionOffsets[reportID] = _.size(reportActions.actions);
+    },
 });
 
 // When the app reconnects from being offline, fetch all of the reports and their actions

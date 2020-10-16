@@ -13,6 +13,11 @@ export function lastItem(object = {}) {
     return object[lastKey];
 }
 
+export function getIDFromKey(key) {
+    return _.last(key.split('_'));
+}
+
 export default {
     lastItem,
+    getIDFromKey,
 };
