@@ -18,7 +18,7 @@ const propTypes = {
     initialRowHeight: PropTypes.number.isRequired,
 
     // Should we calculate the item layouts or not
-    shouldGetItemLayout: PropTypes.bool,
+    shouldMeasureItems: PropTypes.bool,
 
     // Passed via forwardRef so we can access the FlatList ref
     innerRef: PropTypes.oneOfType([
@@ -29,7 +29,7 @@ const propTypes = {
 
 const defaultProps = {
     data: [],
-    shouldGetItemLayout: true,
+    shouldMeasureItems: true,
 };
 
 class BaseInvertedFlatList extends Component {
@@ -124,7 +124,7 @@ class BaseInvertedFlatList extends Component {
      * @return {React.Component}
      */
     renderItem({item, index}) {
-        if (this.props.shouldGetItemLayout) {
+        if (this.props.shouldMeasureItems) {
             return (
                 <View onLayout={({nativeEvent}) => this.measureItemLayout(nativeEvent, index)}>
                     {this.props.renderItem({item, index})}
@@ -146,7 +146,7 @@ class BaseInvertedFlatList extends Component {
 
                 // iOS scrolling skips in a bad way after a certain number of items
                 // enters the list and should not use getItemLayout as implemented here
-                getItemLayout={this.props.shouldGetItemLayout ? this.getItemLayout : undefined}
+                getItemLayout={this.props.shouldMeasureItems ? this.getItemLayout : undefined}
                 bounces={false}
                 maxToRenderPerBatch={15}
                 updateCellsBatchingPeriod={40}

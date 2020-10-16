@@ -6,7 +6,7 @@ const InvertedFlatList = forwardRef((props, ref) => (
     <BaseInvertedFlatList
         {...props}
         ref={ref}
-        shouldGetItemLayout={false}
+        shouldMeasureItems={false}
         onEndReachedThreshold={0.5}
         onEndReached={() => {
             props.onScrollToTop();
