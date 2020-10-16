@@ -84,6 +84,9 @@ const styles = {
     flex1: {
         flex: 1,
     },
+    flex3: {
+        flex: 3,
+    },
     flex4: {
         flex: 4,
     },
@@ -164,6 +167,14 @@ const styles = {
 
     buttonSuccessText: {
         color: colors.textReversed,
+    },
+
+    touchableButtonImage: {
+        alignItems: 'center',
+        height: 40,
+        justifyContent: 'center',
+        marginRight: 8,
+        width: 40,
     },
 
     // Actions
@@ -448,6 +459,7 @@ const styles = {
         color: colors.heading,
         fontSize: 17,
         fontWeight: '700',
+        flexGrow: 1,
     },
 
     chatContent: {
@@ -579,10 +591,15 @@ const styles = {
         width: 20,
     },
 
+    reportOptions: {
+        flex: 0,
+        width: 40,
+        justifyContent: 'flex-end',
+    },
+
     reportPinIcon: {
         height: 15,
         width: 15,
-        marginRight: 10,
     },
 
     chatItemAttachButton: {
