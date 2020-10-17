@@ -8,7 +8,6 @@ import IONKEYS from '../../IONKEYS';
 import withIon from '../../components/withIon';
 import {withRouter} from '../../libs/Router';
 import LHNToggle from '../../../assets/images/icon-menu-toggle.png';
-import {subscribeToReportTypingEvents, unsubscribeToReportTypingEvents} from '../../libs/actions/Report';
 import {getDisplayName} from '../../libs/actions/PersonalDetails';
 import compose from '../../libs/compose';
 
@@ -27,7 +26,7 @@ const propTypes = {
     }),
 
     // Key-value pairs of user logins and whether or not they are typing.
-    userTypingStatuses: PropTypes.object,
+    userTypingStatuses: PropTypes.array,
 };
 
 const defaultProps = {
@@ -36,22 +35,6 @@ const defaultProps = {
 };
 
 class HeaderView extends React.PureComponent {
-    componentDidMount() {
-        if (this.props.report && this.props.report.reportID) {
-            subscribeToReportTypingEvents(this.props.report.reportID);
-        }
-    }
-
-    componentDidUpdate(prevProps) {
-        // If we're viewing a new report, unbind the event subscription for the previous report in addition to
-        // subscribing for the new report.
-        if (this.props.report && this.props.report.reportID && prevProps.report
-                && prevProps.report.reportID !== this.props.report.reportID) {
-            unsubscribeToReportTypingEvents(prevProps.report.reportID);
-            subscribeToReportTypingEvents(this.props.report.reportID);
-        }
-    }
-
     /**
      * Retrieves the text to display if users are typing.
      *

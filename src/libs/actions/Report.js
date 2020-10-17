@@ -501,12 +501,11 @@ function saveReportComment(reportID, comment) {
  * Broadcasts whether or not a user is typing on a report over the report's private pusher channel.
  *
  * @param {number} reportID
- * @param {string} login
  */
-function broadcastUserIsTyping(reportID, login) {
+function broadcastUserIsTyping(reportID) {
     const privateReportChannelName = `private-report-reportID-${reportID}`;
     const typingStatus = {};
-    typingStatus[login] = true;
+    typingStatus[currentUserEmail] = true;
     Pusher.sendEvent(privateReportChannelName, 'client-userIsTyping', typingStatus);
 }
 
