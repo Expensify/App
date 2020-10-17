@@ -32,7 +32,7 @@ class ReportActionCompose extends React.Component {
 
         this.updateComment = this.updateComment.bind(this);
         this.debouncedSaveReportComment = _.debounce(this.debouncedSaveReportComment.bind(this), 1000, false);
-        this.debouncedBroadcastUserIsTyping = _.debounce(this.debouncedBroadcastUserIsTyping.bind(this), 100, true);
+        this.debouncedBroadcastUserIsTyping = _.debounce(this.broadcastUserIsTyping.bind(this), 100, true);
         this.submitForm = this.submitForm.bind(this);
         this.triggerSubmitShortcut = this.triggerSubmitShortcut.bind(this);
         this.submitForm = this.submitForm.bind(this);
@@ -73,8 +73,8 @@ class ReportActionCompose extends React.Component {
      * Sends out that we're typing on this report .We debounce this method in the constructor so that it's not called
      * too often to send data over Pusher and update other clients that might be listening.
      */
-    debouncedBroadcastUserIsTyping() {
-        broadcastUserIsTyping(this.props.reportID, this.props.session.email);
+    broadcastUserIsTyping() {
+        broadcastUserIsTyping(this.props.reportID);
     }
 
     /**
@@ -212,8 +212,5 @@ ReportActionCompose.defaultProps = defaultProps;
 export default withIon({
     comment: {
         key: ({reportID}) => `${IONKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
-    },
-    session: {
-        key: IONKEYS.SESSION,
     }
 })(ReportActionCompose);
