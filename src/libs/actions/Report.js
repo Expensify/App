@@ -53,6 +53,9 @@ const reportMaxSequenceNumbers = {};
 // Keeps track of the last read for each report
 const lastReadActionIDs = {};
 
+// List of reportIDs pinned by the user
+let pinnedReportIDs = [];
+
 /**
  * Checks the report to see if there are any unread action items
  *
@@ -98,6 +101,7 @@ function getSimplifiedReportObject(report) {
         reportName: report.reportName,
         reportNameValuePairs: report.reportNameValuePairs,
         unreadActionCount: getUnreadActionCount(report),
+        isPinned: pinnedReportIDs.includes(report.reportID),
         maxSequenceNumber: report.reportActionList.length,
     };
 }
@@ -487,6 +491,49 @@ function updateLastReadActionID(reportID, sequenceNumber) {
 }
 
 /**
+ * Toggles the pinned state of the report and saves it into an NVP.
+ *
+ * @param {string} reportID
+ */
+function togglePinnedState(reportID) {
+    const indexOfReportID = pinnedReportIDs.indexOf(reportID);
+    let isPinned;
+    if (indexOfReportID !== -1) {
+        isPinned = false;
+        pinnedReportIDs.splice(indexOfReportID, 1);
+    } else {
+        isPinned = true;
+        pinnedReportIDs.push(reportID);
+    }
+
+    API.setNameValuePair({
+        name: 'expensify_chat_pinnedReportIDs',
+        value: pinnedReportIDs.toString(),
+    })
+        .then(() => {
+            Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {
+                isPinned,
+            });
+        });
+}
+
+/**
+ * Gets the pinned reportIDs from the users NVP and saves it into ION.
+ *
+ * @returns {Promise}
+ */
+function fetchPinnedReportIDs() {
+    return API.get({
+        returnValueList: 'nameValuePairs',
+        name: 'expensify_chat_pinnedReportIDs',
+    })
+        .then((data) => {
+            const strReportIDs = lodashGet(data, 'nameValuePairs.expensify_chat_pinnedReportIDs', '').toString();
+            pinnedReportIDs = strReportIDs ? strReportIDs.split(',').map(Number) : [];
+        });
+}
+
+/**
  * Saves the comment left by the user as they are typing. By saving this data the user can switch between chats, close
  * tab, refresh etc without worrying about loosing what they typed out.
  *
@@ -543,6 +590,7 @@ export {
     fetchAll,
     fetchActions,
     fetchOrCreateChatReport,
+    fetchPinnedReportIDs,
     addAction,
     updateLastReadActionID,
     subscribeToReportCommentEvents,
@@ -550,4 +598,5 @@ export {
     unsubscribeToReportTypingEvents,
     saveReportComment,
     broadcastUserIsTyping,
+    togglePinnedState,
 };
