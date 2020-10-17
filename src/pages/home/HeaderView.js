@@ -9,7 +9,10 @@ import withIon from '../../components/withIon';
 import {withRouter} from '../../libs/Router';
 import LHNToggle from '../../../assets/images/icon-menu-toggle.png';
 import {getDisplayName} from '../../libs/actions/PersonalDetails';
+import pinEnabled from '../../../assets/images/pin-enabled.png';
+import pinDisabled from '../../../assets/images/pin-disabled.png';
 import compose from '../../libs/compose';
+import {togglePinnedState} from '../../libs/actions/Report';
 
 const propTypes = {
     // Toggles the hamburger menu open and closed
@@ -23,6 +26,12 @@ const propTypes = {
     report: PropTypes.shape({
         // Name of the report
         reportName: PropTypes.string,
+
+        // ID of the report
+        reportID: PropTypes.number,
+
+        // Value indicating if the report is pinned or not
+        isPinned: PropTypes.bool,
     }),
 
     // Key-value pairs of user logins and whether or not they are typing.
@@ -34,7 +43,7 @@ const defaultProps = {
     userTypingStatuses: {},
 };
 
-class HeaderView extends React.PureComponent {
+class HeaderView extends React.Component {
     /**
      * Retrieves the text to display if users are typing.
      *
@@ -74,13 +83,35 @@ class HeaderView extends React.PureComponent {
                         </TouchableOpacity>
                     )}
                     {this.props.report && this.props.report.reportName ? (
-                        <View>
-                            <Text numberOfLines={2} style={[styles.navText]}>
-                                {this.props.report.reportName}
-                            </Text>
-                            <Text numberOfLines={1} style={[styles.navSubText]}>
-                                {this.getUsersTypingText()}
-                            </Text>
+                        <View style={[
+                            styles.dFlex,
+                            styles.flexRow,
+                            styles.alignItemsCenter,
+                            styles.flexGrow1,
+                            styles.flexJustifySpaceBetween
+                        ]}
+                        >
+                            <View>
+                                <Text numberOfLines={1} style={[styles.navText]}>
+                                    {this.props.report.reportName}
+                                </Text>
+                                <Text numberOfLines={1} style={[styles.navSubText]}>
+                                    {this.getUsersTypingText()}
+                                </Text>
+                            </View>
+
+                            <View style={[styles.reportOptions, styles.flexRow]}>
+                                <TouchableOpacity
+                                    onPress={() => togglePinnedState(parseInt(this.props.report.reportID, 10))}
+                                    style={[styles.touchableButtonImage, styles.mr0]}
+                                >
+                                    <Image
+                                        resizeMode="contain"
+                                        source={this.props.report.isPinned ? pinEnabled : pinDisabled}
+                                        style={[styles.reportPinIcon]}
+                                    />
+                                </TouchableOpacity>
+                            </View>
                         </View>
                     ) : null}
                 </View>

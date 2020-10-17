@@ -455,6 +455,20 @@ function getPersonalDetails(parameters) {
     });
 }
 
+/**
+ * @param {object} parameters
+ * @param {string} parameters.name
+ * @param {mixed} parameters.value
+ * @returns {Promise}
+ */
+function setNameValuePair(parameters) {
+    return queueRequest('SetNameValuePair', {
+        authToken,
+        name: parameters.name,
+        value: parameters.value,
+    });
+}
+
 export {
     authenticate,
     addReportComment,
@@ -465,4 +479,5 @@ export {
     getPersonalDetails,
     getReportHistory,
     setLastReadActionID,
+    setNameValuePair,
 };
