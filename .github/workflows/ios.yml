@@ -1,8 +1,10 @@
 name: Build and Deploy iOS
 
 # This workflow is run when any tag is published
-# TODO: Remove, added for testing
-on: push
+on:
+    push:
+        tags:
+            - '*'
 
 jobs:
     build:
@@ -39,47 +41,47 @@ jobs:
                   LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
             - name: Run Fastlane
-              run: bundle exec fastlane ios beta --verbose
+              run: bundle exec fastlane ios beta
               env:
                   FASTLANE_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
 
             # These Slack steps are duplicated in all workflows, if you make a change to this step, make sure to update all
             # the other workflows with the same changes
-#            - uses: 8398a7/action-slack@v3
-#              name: Job failed Slack notification
-#              if: ${{ failure() }}
-#              with:
-#                  status: custom
-#                  fields: workflow, repo
-#                  custom_payload: |
-#                      {
-#                        attachments: [{
-#                          color: "#DB4545",
-#                          text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
-#                        }]
-#                      }
-#              env:
-#                  GITHUB_TOKEN: ${{ github.token }}
-#                  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
-#
-#            - name: Set version in ENV
-#              if: ${{ success() }}
-#              run: echo "VERSION=$(npm run print-version --silent)" >> $GITHUB_ENV
-#
-#            - uses: 8398a7/action-slack@v3
-#              name: QA Slack notification
-#              if: ${{ success() }}
-#              with:
-#                  status: custom
-#                  fields: workflow, repo
-#                  custom_payload: |
-#                      {
-#                        channel: '#qa',
-#                        attachments: [{
-#                          color: "#39AA56",
-#                          text: `*Expensify Chat :expensifychat:* ${process.env.AS_WORKFLOW} version *${{ env.VERSION }}* was deployed, please start *regression testing*: https://git.io/JUb0r`,
-#                        }]
-#                      }
-#              env:
-#                  GITHUB_TOKEN: ${{ github.token }}
-#                  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+            - uses: 8398a7/action-slack@v3
+              name: Job failed Slack notification
+              if: ${{ failure() }}
+              with:
+                  status: custom
+                  fields: workflow, repo
+                  custom_payload: |
+                      {
+                        attachments: [{
+                          color: "#DB4545",
+                          text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
+                        }]
+                      }
+              env:
+                  GITHUB_TOKEN: ${{ github.token }}
+                  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+            - name: Set version in ENV
+              if: ${{ success() }}
+              run: echo "VERSION=$(npm run print-version --silent)" >> $GITHUB_ENV
+
+            - uses: 8398a7/action-slack@v3
+              name: QA Slack notification
+              if: ${{ success() }}
+              with:
+                  status: custom
+                  fields: workflow, repo
+                  custom_payload: |
+                      {
+                        channel: '#qa',
+                        attachments: [{
+                          color: "#39AA56",
+                          text: `*Expensify Chat :expensifychat:* ${process.env.AS_WORKFLOW} version *${{ env.VERSION }}* was deployed, please start *regression testing*: https://git.io/JUb0r`,
+                        }]
+                      }
+              env:
+                  GITHUB_TOKEN: ${{ github.token }}
+                  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
