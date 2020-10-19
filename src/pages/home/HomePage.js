@@ -4,7 +4,8 @@ import {
     View,
     Dimensions,
     Animated,
-    Easing
+    Easing,
+    Keyboard
 } from 'react-native';
 import {SafeAreaInsetsContext, SafeAreaProvider} from 'react-native-safe-area-context';
 import {Route} from '../../libs/Router';
@@ -142,7 +143,7 @@ export default class App extends React.Component {
         if (!hamburgerIsShown) {
             this.setState({hamburgerShown: true});
         }
-
+        Keyboard.dismiss();
         this.animateHamburger(hamburgerIsShown);
     }
 
