@@ -1,0 +1,47 @@
+{
+    "project_info": {
+        "project_number": "921154746561",
+        "firebase_url": "https://expensify-chat.firebaseio.com",
+        "project_id": "expensify-chat",
+        "storage_bucket": "expensify-chat.appspot.com"
+    },
+    "client": [
+        {
+            "client_info": {
+                "mobilesdk_app_id": "1:921154746561:android:4f04268f25f84eaf027c40",
+                "android_client_info": {
+                    "package_name": "com.expensify.chat"
+                }
+            },
+            "oauth_client": [
+                {
+                    "client_id": "921154746561-gpsoaqgqfuqrfsjdf8l7vohfkfj7b9up.apps.googleusercontent.com",
+                    "client_type": 3
+                }
+            ],
+            "api_key": [
+                {
+                    "current_key": "AIzaSyCVwQb9lBI06bDIwHOw10AkdJyquXoMngk"
+                }
+            ],
+            "services": {
+                "appinvite_service": {
+                    "other_platform_oauth_client": [
+                        {
+                            "client_id": "921154746561-gpsoaqgqfuqrfsjdf8l7vohfkfj7b9up.apps.googleusercontent.com",
+                            "client_type": 3
+                        },
+                        {
+                            "client_id": "921154746561-s3uqn2oe4m85tufi6mqflbfbuajrm2i3.apps.googleusercontent.com",
+                            "client_type": 2,
+                            "ios_info": {
+                                "bundle_id": "com.chat.expensify.chat"
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "configuration_version": "1"
+}

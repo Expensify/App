@@ -12,7 +12,11 @@ import styles, {getSafeAreaPadding} from '../../styles/StyleSheet';
 import Header from './HeaderView';
 import Sidebar from './sidebar/SidebarView';
 import Main from './MainView';
-import {subscribeToReportCommentEvents, fetchAll as fetchAllReports} from '../../libs/actions/Report';
+import {
+    subscribeToReportCommentEvents,
+    fetchAll as fetchAllReports,
+    fetchPinnedReportIDs
+} from '../../libs/actions/Report';
 import {fetch as fetchPersonalDetails} from '../../libs/actions/PersonalDetails';
 import * as Pusher from '../../libs/Pusher/pusher';
 import UnreadIndicatorUpdater from '../../libs/UnreadIndicatorUpdater';
@@ -45,8 +49,9 @@ export default class App extends React.Component {
         // Fetch all the personal details
         fetchPersonalDetails();
 
-        // Fetch all the reports
-        fetchAllReports();
+        // Fetch the reportIDs that should be pinned then fetch all the reports
+        fetchPinnedReportIDs()
+            .then(fetchAllReports);
 
         UnreadIndicatorUpdater.listenForReportChanges();
 
