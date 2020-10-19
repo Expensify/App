@@ -101,6 +101,9 @@
   },
   "jest": {
     "preset": "react-native",
+    "transform": {
+      "^.+\\.jsx?$": "babel-jest"
+    },
     "transformIgnorePatterns": [
       "node_modules/(?!react-native)/"
     ],
