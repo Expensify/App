@@ -141,6 +141,7 @@ class BaseInvertedFlatList extends Component {
                 updateCellsBatchingPeriod={40}
 
                 // Setting removeClippedSubviews will break text selection on Android
+                // eslint-disable-next-line react/jsx-props-no-multi-spaces
                 removeClippedSubviews={false}
             />
         );
