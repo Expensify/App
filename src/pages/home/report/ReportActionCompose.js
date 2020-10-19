@@ -42,6 +42,7 @@ class ReportActionCompose extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        console.log('Multiline - ReportActionCompose - componentDidUpdate - 1');
         // The first time the component loads the props is empty and the next time it may contain value.
         // If it does let's update this.comment so that it matches the defaultValue that we show in textInput.
         if (this.props.comment && prevProps.comment === '' && prevProps.comment !== this.props.comment) {
@@ -108,8 +109,10 @@ class ReportActionCompose extends React.Component {
             return;
         }
 
+        console.log('Multiline - ReportActionCompose - submitForm' + this.textInput);
         this.props.onSubmit(trimmedComment);
-        this.textInput.clear();
+        this.textInputFocusable.clear();
+        this.textInputFocusable.clearContent();
         this.updateComment('');
     }
 
@@ -167,10 +170,10 @@ class ReportActionCompose extends React.Component {
                         />
                     </TouchableOpacity>
                     <TextInputFocusable
+                        ref={el => this.textInputFocusable = el}
                         multiline
                         textAlignVertical="top"
                         placeholder="Write something..."
-                        ref={el => this.textInput = el}
                         placeholderTextColor={colors.textSupporting}
                         onChangeText={this.updateComment}
                         onKeyPress={this.triggerSubmitShortcut}

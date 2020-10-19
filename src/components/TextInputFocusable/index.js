@@ -25,6 +25,8 @@ class TextInputFocusable extends React.Component {
     constructor(props) {
         super(props);
 
+        this.clearContent = this.clearContent.bind(this);
+
         this.state = {
             numberOfLines: 1,
         };
@@ -43,7 +45,9 @@ class TextInputFocusable extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        console.log('Multiline - TextInputFocusable - componentDidUpdate - 1');
         if (prevProps.defaultValue !== this.props.defaultValue) {
+            console.log('Multiline - TextInputFocusable - componentDidUpdate - 2');
             this.updateNumberOfLines();
         }
     }
@@ -70,6 +74,7 @@ class TextInputFocusable extends React.Component {
      *
      */
     updateNumberOfLines() {
+        console.log('Multiline - TextInputFocusable - updateNumberOfLines');
         const computedStyle = window.getComputedStyle(this.textInput);
         const lineHeight = parseInt(computedStyle.lineHeight, 10) || 20;
         const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10)
@@ -84,6 +89,10 @@ class TextInputFocusable extends React.Component {
         });
     }
 
+    clearContent() {
+        console.log('Multiline - TextInputFocusable - clearContent');
+    }
+
     focusInput() {
         this.textInput.focus();
     }
@@ -93,6 +102,7 @@ class TextInputFocusable extends React.Component {
             <TextInput
                 ref={el => this.textInput = el}
                 onChange={() => {
+                    console.log('Multiline - TextInputFocusable - onChange');
                     this.updateNumberOfLines();
                 }}
                 numberOfLines={this.state.numberOfLines}
