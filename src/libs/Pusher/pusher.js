@@ -90,6 +90,10 @@ function init(appKey, params) {
  * @returns {Channel}
  */
 function getChannel(channelName) {
+    if (!socket) {
+        return;
+    }
+
     return socket.channel(channelName);
 }
 
