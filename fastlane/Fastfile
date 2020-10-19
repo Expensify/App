@@ -24,25 +24,6 @@ platform :android do
       build_type: 'Release',
     )
   end
-
-  desc "Build and upload app to Google Play"
-  lane :beta do
-    ENV["ENVFILE"]=".env.production"
-
-    gradle(
-        project_dir: './android',
-        task: 'bundle',
-        build_type: 'Release',
-    )
-
-    upload_to_play_store(
-        package_name: "com.expensify.chat",
-        json_key: './android/app/android-fastlane-json-key.json',
-        aab: './android/app/build/outputs/bundle/release/app-release.aab',
-        track: 'internal',
-        rollout: '1.0'
-    )
-  end
 end
 
 platform :ios do
@@ -54,58 +35,9 @@ platform :ios do
         workspace: "./ios/ReactNativeChat.xcworkspace",
         scheme: "ReactNativeChat"
     )
-  end
-
-  desc "Build and upload app to TestFlight"
-  lane :beta do
-    require 'securerandom'
-    ENV["ENVFILE"]=".env.production"
-
-    keychain_password = SecureRandom.uuid
-
-    create_keychain(
-        name: "ios-build.keychain",
-        password: keychain_password,
-        default_keychain: "true",
-        unlock: "true",
-        timeout: "3600",
-        add_to_search_list: "true"
-    )
-
-    import_certificate(
-        certificate_path: "./ios/Certificates.p12",
-        keychain_name: "ios-build.keychain",
-        keychain_password: keychain_password
-    )
-
-    install_provisioning_profile(
-        path: "./ios/chat_expensify_appstore.mobileprovision"
-    )
-
-    build_app(
-        workspace: "./ios/ReactNativeChat.xcworkspace",
-        scheme: "ReactNativeChat"
-    )
-
-    upload_to_testflight(
-        distribute_external: true,
-        reject_build_waiting_for_review: true,
-        changelog: "Thank you for beta testing the Expensify Chat, this version includes bug fixes and improvements.",
-        groups: ["Beta"],
-        demo_account_required: true,
-        beta_app_review_info: {
-            contact_email: "mobile@expensify.com",
-            contact_first_name: "Andrew",
-            contact_last_name: "Gable",
-            contact_phone: "+1 916 698 2582",
-            demo_account_name: "andrew+empty@expensifail.com",
-            demo_account_password: "asdfASDF00",
-            notes: "Use the account provided. Thank you for the review."
-        }
-    )
 
     upload_symbols_to_crashlytics(
-      dsym_path: "./Chat.app.dSYM",
+      dsym_path: lane_context[SharedValues::DSYM_OUTPUT_PATH],
       gsp_path: "./ios/GoogleService-Info.plist"
     )
   end
