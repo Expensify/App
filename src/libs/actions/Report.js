@@ -252,8 +252,8 @@ function subscribeToReportTypingEvents(reportID) {
 
     const pusherChannelName = `private-report-reportID-${reportID}`;
 
-    // Typing status is an object with the shape {login: true} (e.g. {yuwen@expensify.com: true}), where the value is
-    // whether the user with that login is typing on the report or not.
+    // Typing status is an object with the shape {[login]: Boolean} (e.g. {yuwen@expensify.com: true}), where the value
+    // is whether the user with that login is typing on the report or not.
     Pusher.subscribe(pusherChannelName, 'client-userIsTyping', (typingStatus) => {
         const login = _.first(_.keys(typingStatus));
         if (!login) {

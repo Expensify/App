@@ -32,7 +32,7 @@ class ReportActionCompose extends React.Component {
 
         this.updateComment = this.updateComment.bind(this);
         this.debouncedSaveReportComment = _.debounce(this.debouncedSaveReportComment.bind(this), 1000, false);
-        this.debouncedBroadcastUserIsTyping = _.debounce(this.broadcastUserIsTyping.bind(this), 100, true);
+        this.debouncedBroadcastUserIsTyping = _.debounce(() => broadcastUserIsTyping(props.reportID), 100, true);
         this.submitForm = this.submitForm.bind(this);
         this.triggerSubmitShortcut = this.triggerSubmitShortcut.bind(this);
         this.submitForm = this.submitForm.bind(this);
@@ -67,14 +67,6 @@ class ReportActionCompose extends React.Component {
      */
     debouncedSaveReportComment(comment) {
         saveReportComment(this.props.reportID, comment || '');
-    }
-
-    /**
-     * Sends out that we're typing on this report .We debounce this method in the constructor so that it's not called
-     * too often to send data over Pusher and update other clients that might be listening.
-     */
-    broadcastUserIsTyping() {
-        broadcastUserIsTyping(this.props.reportID);
     }
 
     /**
