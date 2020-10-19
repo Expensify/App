@@ -4,7 +4,7 @@
 export default {
     ACTIVE_CLIENTS: 'activeClients2',
 
-    // When this key is changed, the active page changes (see Expensify.js and `redirect` in App.js)
+    // When this key is changed, the active page changes (see Expensify.js and `redirect` in actions/App.js)
     APP_REDIRECT_TO: 'appRedirectTo',
 
     // The current URL, you should not change this directly (use `redirect` in App.js)
