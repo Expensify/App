@@ -45,6 +45,8 @@ Ion.connect({
     callback: val => myPersonalDetails = val,
 });
 
+const typingWatchTimers = {};
+
 // Keeps track of the max sequence number for each report
 const reportMaxSequenceNumbers = {};
 
@@ -220,6 +222,16 @@ function updateReportWithNewAction(reportID, reportAction) {
 }
 
 /**
+ * Get the private pusher channel name for a Report.
+ *
+ * @param {number} reportID
+ * @returns {string}
+ */
+function getReportChannelName(reportID) {
+    return `private-report-reportID-${reportID}`;
+}
+
+/**
  * Initialize our pusher subscriptions to listen for new report comments
  */
 function subscribeToReportCommentEvents() {
@@ -236,6 +248,56 @@ function subscribeToReportCommentEvents() {
     Pusher.subscribe(pusherChannelName, 'reportComment', (pushJSON) => {
         updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
     });
+}
+
+/**
+ * Initialize our pusher subscriptions to listen for someone typing in a report.
+ *
+ * @param {number} reportID
+ */
+function subscribeToReportTypingEvents(reportID) {
+    if (!reportID) {
+        return;
+    }
+
+    const pusherChannelName = getReportChannelName(reportID);
+
+    // Typing status is an object with the shape {[login]: Boolean} (e.g. {yuwen@expensify.com: true}), where the value
+    // is whether the user with that login is typing on the report or not.
+    Pusher.subscribe(pusherChannelName, 'client-userIsTyping', (typingStatus) => {
+        const login = _.first(_.keys(typingStatus));
+        if (!login) {
+            return;
+        }
+
+        // Use a combo of the reportID and the login as a key for holding our timers.
+        const reportUserIdentifier = `${reportID}-${login}`;
+        clearTimeout(typingWatchTimers[reportUserIdentifier]);
+        Ion.merge(`${IONKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, typingStatus);
+
+        // Wait for 1.5s of no additional typing events before setting the status back to false.
+        typingWatchTimers[reportUserIdentifier] = setTimeout(() => {
+            const typingStoppedStatus = {};
+            typingStoppedStatus[login] = false;
+            Ion.merge(`${IONKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, typingStoppedStatus);
+            delete typingWatchTimers[reportUserIdentifier];
+        }, 1500);
+    });
+}
+
+/**
+ * Remove our pusher subscriptions to listen for someone typing in a report.
+ *
+ * @param {number} reportID
+ */
+function unsubscribeToReportTypingEvents(reportID) {
+    if (!reportID) {
+        return;
+    }
+
+    const pusherChannelName = getReportChannelName(reportID);
+    Ion.set(`${IONKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, []);
+    Pusher.unsubscribe(pusherChannelName, 'client-userIsTyping');
 }
 
 /**
@@ -493,6 +555,18 @@ function saveReportComment(reportID, comment) {
 }
 
 /**
+ * Broadcasts whether or not a user is typing on a report over the report's private pusher channel.
+ *
+ * @param {number} reportID
+ */
+function broadcastUserIsTyping(reportID) {
+    const privateReportChannelName = getReportChannelName(reportID);
+    const typingStatus = {};
+    typingStatus[currentUserEmail] = true;
+    Pusher.sendEvent(privateReportChannelName, 'client-userIsTyping', typingStatus);
+}
+
+/**
  * When a report changes in Ion, this fetches the report from the API if the report doesn't have a name
  * and it keeps track of the max sequence number on the report actions.
  *
@@ -512,6 +586,7 @@ function handleReportChanged(report) {
     // Store the max sequence number for each report
     reportMaxSequenceNumbers[report.reportID] = report.maxSequenceNumber;
 }
+
 Ion.connect({
     key: IONKEYS.COLLECTION.REPORT,
     callback: handleReportChanged
@@ -530,6 +605,9 @@ export {
     addAction,
     updateLastReadActionID,
     subscribeToReportCommentEvents,
+    subscribeToReportTypingEvents,
+    unsubscribeToReportTypingEvents,
     saveReportComment,
+    broadcastUserIsTyping,
     togglePinnedState,
 };

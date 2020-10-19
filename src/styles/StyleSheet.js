@@ -189,6 +189,11 @@ const styles = {
         fontWeight: '700'
     },
 
+    navSubText: {
+        color: colors.textSupporting,
+        fontSize: 11,
+    },
+
     // Actions
     actionAvatar: {
         borderRadius: 20,
