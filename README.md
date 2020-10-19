@@ -47,7 +47,7 @@ This application is built with the following principles.
 1. Install `node` & `npm`: `brew install node`
 2. Install `watchman`: `brew install watchman`
 3. Install dependencies: `npm install`
-4. Run `cp .env.example .env` and edit `.env` to have your local config options(for example, we are curretly hardcoding the pinned chat reports IDs with the `REPORT_IDS` config option).
+4. Run `cp .env.example .env` and edit `.env` to have your local config options.
 
 You can use any IDE or code editing tool for developing on any platform. Use your favorite!
 
@@ -100,15 +100,6 @@ Our React Native Android app now uses the `Hermes` JS engine which requires your
 1. The application uses [React-Router](https://reactrouter.com/native/guides/quick-start) for navigating between parts of the app.
 1. [Higher Order Components](https://reactjs.org/docs/higher-order-components.html) are used to connect React components to persistent storage via Ion.
 
-## Platform-Specific File Extensions
-In most cases, the code written for this repo should be platform-independent. In such cases, each module should have a single file, `index.js`, which defines the module's exports. There are, however, some cases in which a feature is intrinsically tied to the underlying platform. In such cases, the following file extensions can be used to export platform-specific code from a module:
-- Mobile => `index.native.js`
-- iOS/Android => `index.ios.js`/`index.android.js`
-- Web => `index.website.js`
-- Desktop => `index.desktop.js`
-
-Note that `index.js` should be the default. i.e: If you have mobile-specific implementation in `index.native.js`, then the desktop/web implementation can be contained in a shared `index.js`. Furthermore, `index.native.js` should not be included in the same module as `index.ios.js` or `index.android.js`, nor should `index.js` be included in the same module as `index.website.js` or `index.desktop.js`.
-
 ## Structure of the app
 These are the main pieces of the application.
 
@@ -137,6 +128,43 @@ This layer is solely responsible for:
 
 - Reflecting exactly the data that is in persistent storage by using `withIon()` to bind to Ion data.
 - Taking user input and passing it to an action
+
+### Directory structure
+
+Almost all the code is located in the `src` folder, inside it there's some organization, we chose to name directories that are 
+created to house a collection of items in plural form and using camelCase (eg: pages, libs, etc), the main ones we have for now are:
+
+- components: React native components that are re-used in several places.
+- libs: Library classes/functions, these are not React native components (ie: they are not UI)
+- pages: These are components that define pages in the app. The component that defines the page itself should be named 
+`<pageName>Page` if there are components used only inside one page, they should live in its own directory named after the `<pageName>`.
+- styles: These files define styles used among components/pages
+
+### File naming/structure
+
+Files should be named after the component/function/constants they export, respecting the casing used for it. ie: 
+
+- If you export a constant named `CONST` it's file/directory should be named the `CONST`.
+- If you export a component named `Text` the file/directory should be named `Text` 
+- If you export a function named `guid` the file/directory should be named `guid`. 
+- For files that are utilities that export several functions/classes use the UpperCamelCase version ie: `DateUtils`.
+- HOCs should be named in camelCase like withIon.
+- All React components should be PascalCase (a.k.a. UpperCamelCase 🐫).
+
+## Platform-Specific File Extensions
+In most cases, the code written for this repo should be platform-independent. In such cases, each module should have a single file, `index.js`, which defines the module's exports. There are, however, some cases in which a feature is intrinsically tied to the underlying platform. In such cases, the following file extensions can be used to export platform-specific code from a module:
+- Mobile => `index.native.js`
+- iOS/Android => `index.ios.js`/`index.android.js`
+- Web => `index.website.js`
+- Desktop => `index.desktop.js`
+
+Note that `index.js` should be the default. i.e: If you have mobile-specific implementation in `index.native.js`, then the desktop/web implementation can be contained in a shared `index.js`. Furthermore, `index.native.js` should not be included in the same module as `index.ios.js` or `index.android.js`, nor should `index.js` be included in the same module as `index.website.js` or `index.desktop.js`.
+
+### API building
+
+When adding new API commands (and preferrably when starting using a new one that was not yet used in this codebase) always
+prefer to return the created/updated data in the command itself, instead of saving and reloading. ie: if we call `CreateTransaction`,
+we should prefer making `CreateTransaction` return the data it just created instead of calling `CreateTransaction` then `Get` rvl=transactionList
 
 # Deploying 
 ##  Continuous deployment / GitHub workflows

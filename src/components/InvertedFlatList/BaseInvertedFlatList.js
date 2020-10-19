@@ -2,7 +2,7 @@ import _ from 'underscore';
 import React, {forwardRef, Component} from 'react';
 import PropTypes from 'prop-types';
 import {FlatList, View} from 'react-native';
-import {lastItem} from '../../lib/CollectionUtils';
+import {lastItem} from '../../libs/CollectionUtils';
 
 const propTypes = {
     // Same as FlatList can be any array of anything
