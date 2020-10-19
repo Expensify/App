@@ -23,6 +23,10 @@ class TextInputFocusable extends React.Component {
         }
     }
 
+    clearContent() {
+        this.clear();
+    }
+
     render() {
         return (
             <TextInput
