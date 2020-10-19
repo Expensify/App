@@ -34,8 +34,8 @@ const propTypes = {
         isPinned: PropTypes.bool,
     }),
 
-    // Key-value pairs of user logins and whether or not they are typing.
-    userTypingStatuses: PropTypes.array,
+    // Key-value pairs of user logins and whether or not they are typing. Keys are logins.
+    userTypingStatuses: PropTypes.objectOf(PropTypes.bool),
 };
 
 const defaultProps = {
@@ -43,16 +43,16 @@ const defaultProps = {
     userTypingStatuses: {},
 };
 
-class HeaderView extends React.Component {
+const HeaderView = (props) => {
     /**
      * Retrieves the text to display if users are typing.
      *
      * @returns {string}
      */
-    getUsersTypingText() {
+    function getUsersTypingText() {
         // Filter only to users that are typing.
-        const usersTyping = Object.keys(this.props.userTypingStatuses || {})
-            .filter(login => this.props.userTypingStatuses[login] === true);
+        const usersTyping = Object.keys(props.userTypingStatuses || {})
+            .filter(login => props.userTypingStatuses[login] === true);
 
         if (_.size(usersTyping) === 1) {
             const displayName = getDisplayName(usersTyping[0]);
@@ -66,59 +66,57 @@ class HeaderView extends React.Component {
         return '';
     }
 
-    render() {
-        return (
-            <View style={[styles.appContentHeader]}>
-                <View style={[styles.appContentHeaderTitle]}>
-                    {this.props.shouldShowHamburgerButton && (
-                        <TouchableOpacity
-                            onPress={this.props.onHamburgerButtonClicked}
-                            style={[styles.LHNToggle]}
-                        >
-                            <Image
-                                resizeMode="contain"
-                                style={[styles.LHNToggleIcon]}
-                                source={LHNToggle}
-                            />
-                        </TouchableOpacity>
-                    )}
-                    {this.props.report && this.props.report.reportName ? (
-                        <View style={[
-                            styles.dFlex,
-                            styles.flexRow,
-                            styles.alignItemsCenter,
-                            styles.flexGrow1,
-                            styles.flexJustifySpaceBetween
-                        ]}
-                        >
-                            <View>
-                                <Text numberOfLines={1} style={[styles.navText]}>
-                                    {this.props.report.reportName}
-                                </Text>
-                                <Text numberOfLines={1} style={[styles.navSubText]}>
-                                    {this.getUsersTypingText()}
-                                </Text>
-                            </View>
-
-                            <View style={[styles.reportOptions, styles.flexRow]}>
-                                <TouchableOpacity
-                                    onPress={() => togglePinnedState(parseInt(this.props.report.reportID, 10))}
-                                    style={[styles.touchableButtonImage, styles.mr0]}
-                                >
-                                    <Image
-                                        resizeMode="contain"
-                                        source={this.props.report.isPinned ? pinEnabled : pinDisabled}
-                                        style={[styles.reportPinIcon]}
-                                    />
-                                </TouchableOpacity>
-                            </View>
+    return (
+        <View style={[styles.appContentHeader]}>
+            <View style={[styles.appContentHeaderTitle]}>
+                {props.shouldShowHamburgerButton && (
+                    <TouchableOpacity
+                        onPress={props.onHamburgerButtonClicked}
+                        style={[styles.LHNToggle]}
+                    >
+                        <Image
+                            resizeMode="contain"
+                            style={[styles.LHNToggleIcon]}
+                            source={LHNToggle}
+                        />
+                    </TouchableOpacity>
+                )}
+                {props.report && props.report.reportName ? (
+                    <View style={[
+                        styles.dFlex,
+                        styles.flexRow,
+                        styles.alignItemsCenter,
+                        styles.flexGrow1,
+                        styles.flexJustifySpaceBetween
+                    ]}
+                    >
+                        <View>
+                            <Text numberOfLines={1} style={[styles.navText]}>
+                                {props.report.reportName}
+                            </Text>
+                            <Text numberOfLines={1} style={[styles.navSubText]}>
+                                {getUsersTypingText()}
+                            </Text>
                         </View>
-                    ) : null}
-                </View>
+
+                        <View style={[styles.reportOptions, styles.flexRow]}>
+                            <TouchableOpacity
+                                onPress={() => togglePinnedState(parseInt(props.report.reportID, 10))}
+                                style={[styles.touchableButtonImage, styles.mr0]}
+                            >
+                                <Image
+                                    resizeMode="contain"
+                                    source={props.report.isPinned ? pinEnabled : pinDisabled}
+                                    style={[styles.reportPinIcon]}
+                                />
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                ) : null}
             </View>
-        );
-    }
-}
+        </View>
+    );
+};
 
 HeaderView.propTypes = propTypes;
 HeaderView.displayName = 'HeaderView';
