@@ -222,6 +222,16 @@ function updateReportWithNewAction(reportID, reportAction) {
 }
 
 /**
+ * Get the private pusher channel name for a Report.
+ *
+ * @param {number} reportID
+ * @returns {string}
+ */
+function getReportChannelName(reportID) {
+    return `private-report-reportID-${reportID}`;
+}
+
+/**
  * Initialize our pusher subscriptions to listen for new report comments
  */
 function subscribeToReportCommentEvents() {
@@ -250,7 +260,7 @@ function subscribeToReportTypingEvents(reportID) {
         return;
     }
 
-    const pusherChannelName = `private-report-reportID-${reportID}`;
+    const pusherChannelName = getReportChannelName(reportID);
 
     // Typing status is an object with the shape {[login]: Boolean} (e.g. {yuwen@expensify.com: true}), where the value
     // is whether the user with that login is typing on the report or not.
@@ -285,7 +295,7 @@ function unsubscribeToReportTypingEvents(reportID) {
         return;
     }
 
-    const pusherChannelName = `private-report-reportID-${reportID}`;
+    const pusherChannelName = getReportChannelName(reportID);
     Ion.set(`${IONKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, []);
     Pusher.unsubscribe(pusherChannelName, 'client-userIsTyping');
 }
@@ -550,7 +560,7 @@ function saveReportComment(reportID, comment) {
  * @param {number} reportID
  */
 function broadcastUserIsTyping(reportID) {
-    const privateReportChannelName = `private-report-reportID-${reportID}`;
+    const privateReportChannelName = getReportChannelName(reportID);
     const typingStatus = {};
     typingStatus[currentUserEmail] = true;
     Pusher.sendEvent(privateReportChannelName, 'client-userIsTyping', typingStatus);
@@ -576,6 +586,7 @@ function handleReportChanged(report) {
     // Store the max sequence number for each report
     reportMaxSequenceNumbers[report.reportID] = report.maxSequenceNumber;
 }
+
 Ion.connect({
     key: IONKEYS.COLLECTION.REPORT,
     callback: handleReportChanged
