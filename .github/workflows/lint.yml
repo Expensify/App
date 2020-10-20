@@ -44,7 +44,7 @@ jobs:
               with:
                   status: custom
                   fields: workflow, repo
-                  mention: 'here'
+                  mention: here
                   custom_payload: |
                       {
                         channel: '#andrew-test',
