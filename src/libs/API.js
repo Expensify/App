@@ -474,7 +474,7 @@ function setNameValuePair(parameters) {
  * @param {String} parameters.message
  * @returns {Promise}
  */
-function log(parameters) {
+function logToServer(parameters) {
     const params = parameters.parameters || {};
     return queueRequest('Log', {
         message: parameters.message,
@@ -493,5 +493,5 @@ export {
     getReportHistory,
     setLastReadActionID,
     setNameValuePair,
-    log,
+    logToServer,
 };
