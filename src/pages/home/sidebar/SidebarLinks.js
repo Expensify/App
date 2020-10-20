@@ -84,6 +84,7 @@ class SidebarLinks extends React.Component {
                             this.setState({areReportLinksVisible: false});
                             this.props.onChatSwitcherFocus();
                         }}
+                        onLinkClick={onLinkClick}
                     />
                 </View>
                 <View style={sidebarLinksStyle}>
