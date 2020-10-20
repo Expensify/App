@@ -20,6 +20,9 @@ import ROUTES from './ROUTES';
 
 // Initialize the store when the app loads for the first time
 Ion.init();
+Ion.registerLogger((message) => {
+    console.debug(message);
+});
 
 const propTypes = {
     /* Ion Props */
