@@ -13,6 +13,15 @@ const callbackToStateMapping = {};
 // Stores all of the keys that Ion can use. Must be defined in init().
 let ionKeys;
 
+// Holds a list of keys that have been directly subscribed to or recently modified from least to most recent
+let recentlyAccessedKeys = [];
+
+// Holds a list of keys that are safe to remove when we reach max storage
+let evictionAllowList = [];
+
+// Holds a list of keys that we should never remove
+const evictionBlocklist = {};
+
 /**
  * When a key change happens, search for any callbacks matching the regex pattern and trigger those callbacks
  * Get some data from the store
@@ -52,12 +61,88 @@ function isKeyMatch(configKey, key) {
 }
 
 /**
+ * Checks to see if this key has been flagged as
+ * safe for removal.
+ *
+ * @param {String} testKey
+ * @returns {Boolean}
+ */
+function isSafeEvictionKey(testKey) {
+    return _.some(evictionAllowList, key => isKeyMatch(key, testKey));
+}
+
+/**
+ * Remove a key from the recently accessed key list.
+ *
+ * @param {String} key
+ */
+function removeLastAccessedKey(key) {
+    recentlyAccessedKeys = _.without(recentlyAccessedKeys, key);
+}
+
+/**
+ * Add a key to the list of recently accessed keys. The least
+ * recently accessed key should be at the head and the most
+ * recently accessed key at the tail.
+ *
+ * @param {String} key
+ */
+function addLastAccessedKey(key) {
+    // Only specific keys belong in this list since we cannot remove an entire collection.
+    if (isCollectionKey(key) || !isSafeEvictionKey(key)) {
+        return;
+    }
+
+    removeLastAccessedKey(key);
+    recentlyAccessedKeys.push(key);
+}
+
+/**
+ * Removes a key previously added to this list
+ * which will enable it to be deleted again.
+ *
+ * @param {String} key
+ * @param {Number} connectionID
+ */
+function removeFromEvictionBlockList(key, connectionID) {
+    evictionBlocklist[key] = _.without(evictionBlocklist[key] || [], connectionID);
+
+    // Remove the key if there are no more subscribers
+    if (evictionBlocklist[key].length === 0) {
+        delete evictionBlocklist[key];
+    }
+}
+
+/**
+ * Keys added to this list can never be deleted.
+ *
+ * @param {String} key
+ * @param {Number} connectionID
+ */
+function addToEvictionBlockList(key, connectionID) {
+    removeFromEvictionBlockList(key, connectionID);
+
+    if (!evictionBlocklist[key]) {
+        evictionBlocklist[key] = [];
+    }
+
+    evictionBlocklist[key].push(connectionID);
+}
+
+/**
  * When a key change happens, search for any callbacks matching the key or collection key and trigger those callbacks
  *
  * @param {string} key
  * @param {mixed} data
  */
 function keyChanged(key, data) {
+    // Add or remove this key from the recentlyAccessedKeys lists
+    if (!_.isNull(data)) {
+        addLastAccessedKey(key);
+    } else {
+        removeLastAccessedKey(key);
+    }
+
     // Find all subscribers that were added with connect() and trigger the callback or setState() with the new data
     _.each(callbackToStateMapping, (subscriber) => {
         if (subscriber && isKeyMatch(subscriber.key, key)) {
@@ -130,6 +215,17 @@ function connect(mapping) {
         return connectionID;
     }
 
+    // Check to see if this key is flagged as a safe eviction key and add it to the recentlyAccessedKeys list
+    if (mapping.withIonInstance && !isCollectionKey(mapping.key) && isSafeEvictionKey(mapping.key)) {
+        // All React components subscribing to a key flagged as a safe eviction
+        // key must implement the canEvict property.
+        if (_.isUndefined(mapping.canEvict)) {
+            // eslint-disable-next-line max-len
+            throw new Error(`Cannot subscribe to safe eviction key '${mapping.key}' without providing a canEvict value.`);
+        }
+        addLastAccessedKey(mapping.key);
+    }
+
     AsyncStorage.getAllKeys()
         .then((keys) => {
             // Find all the keys matched by the config key
@@ -176,6 +272,47 @@ function disconnect(connectionID) {
 }
 
 /**
+ * Remove a key from Ion and update the subscribers
+ *
+ * @param {String} key
+ * @return {Promise}
+ */
+function remove(key) {
+    return AsyncStorage.removeItem(key)
+        .then(() => keyChanged(key, null));
+}
+
+/**
+ * If we fail to set or merge we must handle this by
+ * evicting some data from Ion and then retrying to do
+ * whatever it is we attempted to do.
+ *
+ * @param {Error} error
+ * @param {Function} ionMethod
+ * @param  {...any} args
+ * @return {Promise}
+ */
+function evictStorageAndRetry(error, ionMethod, ...args) {
+    // Find the first key that we can remove that has no subscribers in our blocklist
+    const keyForRemoval = _.find(recentlyAccessedKeys, key => !evictionBlocklist[key]);
+
+    if (!keyForRemoval) {
+        const logMessage = '[Ion] Out of storage. But found no acceptable keys to remove.';
+        console.error(logMessage);
+        logAlert(logMessage);
+        throw error;
+    }
+
+    // Remove the least recently viewed key that is not currently being accessed and retry.
+    console.debug(
+        '[Ion] Out of storage. Evicting least recently accessed key and retrying.',
+        {keyForRemoval}
+    );
+    return remove(keyForRemoval)
+        .then(() => ionMethod(...args));
+}
+
+/**
  * Write a value to our store with the given key
  *
  * @param {string} key
@@ -185,13 +322,8 @@ function disconnect(connectionID) {
 function set(key, val) {
     // Write the thing to persistent storage, which will trigger a storage event for any other tabs open on this domain
     return AsyncStorage.setItem(key, JSON.stringify(val))
-        .then(() => {
-            keyChanged(key, val);
-        })
-        .catch((err) => {
-            logAlert(`Unable to set item to persistent storage. Key: ${key} Error: ${err}`);
-            throw err;
-        });
+        .then(() => keyChanged(key, val))
+        .catch(error => evictStorageAndRetry(error, set, key, val));
 }
 
 /**
@@ -210,14 +342,10 @@ function multiSet(data) {
         ...finalArray,
         [key, JSON.stringify(val)],
     ]), []);
+
     return AsyncStorage.multiSet(keyValuePairs)
-        .then(() => {
-            _.each(data, (val, key) => keyChanged(key, val));
-        })
-        .catch((err) => {
-            logAlert(`Unable to multiSet items to persistent storage. Error: ${err}`);
-            throw err;
-        });
+        .then(() => _.each(data, (val, key) => keyChanged(key, val)))
+        .catch(error => evictStorageAndRetry(error, multiSet, data));
 }
 
 /**
@@ -247,13 +375,8 @@ function merge(key, val) {
                 newArray = [...previousValue, ...val];
                 return AsyncStorage.setItem(key, JSON.stringify(newArray));
             })
-            .then(() => {
-                keyChanged(key, newArray);
-            })
-            .catch((err) => {
-                logAlert(`Unable to merge array to persistent storage. Key: ${key} Error: ${err}`);
-                throw err;
-            });
+            .then(() => keyChanged(key, newArray))
+            .catch(error => evictStorageAndRetry(error, merge, key, val));
         return;
     }
 
@@ -264,10 +387,7 @@ function merge(key, val) {
             .then((newObject) => {
                 keyChanged(key, newObject);
             })
-            .catch((err) => {
-                logAlert(`Unable to merge item to persistent storage. Key: ${key} Error: ${err}`);
-                throw err;
-            });
+            .catch(error => evictStorageAndRetry(error, merge, key, val));
         return;
     }
 
@@ -277,13 +397,24 @@ function merge(key, val) {
 
 /**
  * Initialize the store with actions and listening for storage events
+ *
+ * @param {Object} [options]
+ * @param {String[]} [options.safeEvictionKeys] This is an array of IONKEYS
+ * (individual or collection patterns) that when provided to Ion are flagged
+ * as "safe" for removal. Any components subscribing to these keys must also
+ * implement a canEvict option. See the README for more info.
  */
-function init({keys, initialKeyStates}) {
+function init({keys, initialKeyStates, safeEvictionKeys}) {
     // Let Ion know about all of our keys
     ionKeys = keys;
 
+    // Let Ion know about which keys are safe to evict
+    evictionAllowList = safeEvictionKeys;
+
     // Initialize all of our keys with data provided
     _.each(initialKeyStates, (state, key) => merge(key, state));
+
+    // Update any key whose value changes in storage
     addStorageEventHandler((key, newValue) => keyChanged(key, newValue));
 }
 
@@ -296,6 +427,9 @@ const Ion = {
     clear,
     init,
     registerLogger,
+    addToEvictionBlockList,
+    removeFromEvictionBlockList,
+    isSafeEvictionKey,
 };
 
 export default Ion;
