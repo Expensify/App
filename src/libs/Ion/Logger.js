@@ -1,8 +1,8 @@
-// Holds logging callback
+// Logging callback
 let logger;
 
 /**
- * Reister a logger
+ * Register the logging callback
  *
  * @param {Function} callback
  */
