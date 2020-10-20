@@ -1,4 +1,5 @@
 import {logToServer} from './API';
+import getPlatform from './getPlatform';
 
 const SOURCE_EXPENSIFY_CASH = 'expensify_cash';
 const LEVEL = {
@@ -16,8 +17,11 @@ const LEVEL = {
 */
 function sendLogs(message, parameters = {}) {
     logToServer({
-        parameters,
         message,
+        parameters: {
+            ...parameters,
+            platform: getPlatform(),
+        },
         source: SOURCE_EXPENSIFY_CASH,
     });
 }
@@ -29,7 +33,7 @@ function sendLogs(message, parameters = {}) {
 * @param {Object|String} parameters The parameters to send along with the message
 */
 function info(message, parameters) {
-    sendLogs(`[${LEVEL.INFO}] ${message}`, parameters);
+    sendLogs(`${message}`, parameters);
 }
 
 /**
@@ -38,11 +42,8 @@ function info(message, parameters) {
  * @param {String} message The message to alert.
  * @param {Object|String} parameters The parameters to send along with the message
  */
-function alert(message, parameters = {}) {
-    const msg = `[${LEVEL.ALERT}] ${message}`;
-    const params = parameters;
-    params.stack = JSON.stringify(new Error().stack);
-    sendLogs(msg, params);
+function alert(message, parameters) {
+    sendLogs(`[${LEVEL.ALERT}] ${message}`, parameters);
 }
 
 /**
