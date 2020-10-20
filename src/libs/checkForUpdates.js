@@ -3,7 +3,7 @@ const _ = require('underscore');
 const UPDATE_INTERVAL = 1000 * 60 * 60;
 
 /**
- * Check for updates every hour, and perform and platform-specific update if there is a network connection.
+ * Check for updates every hour and perform and platform-specific update
  *
  * @param {Object} platformSpecificUpdater
  * @param {Function} platformSpecificUpdater.update
