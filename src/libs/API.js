@@ -51,11 +51,7 @@ Ion.connect({
  * @param {String} command
  */
 function isAuthTokenRequired(command) {
-    if (_.contains(['Log'], command)) {
-        return false;
-    }
-
-    return true;
+    return !_.contains(['Log'], command);
 }
 
 /**
@@ -168,7 +164,6 @@ function request(command, parameters, type = 'post') {
     // If we end up here with no authToken it means we are trying to make
     // an API request before we are signed in. In this case, we should just
     // cancel this and all other requests and set reauthenticating to false.
-    // Some requests do not require an authToken
     if (!authToken && isAuthTokenRequired(command)) {
         console.error('A request was made without an authToken', {command, parameters});
         reauthenticating = false;
