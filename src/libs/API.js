@@ -49,6 +49,7 @@ Ion.connect({
  * Does this command require an authToken?
  *
  * @param {String} command
+ * @return {Boolean}
  */
 function isAuthTokenRequired(command) {
     return !_.contains(['Log'], command);
