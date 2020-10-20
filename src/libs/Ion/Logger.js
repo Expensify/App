@@ -1,5 +1,5 @@
-// Holds all logging callbacks
-const loggers = [];
+// Holds logging callback
+let logger;
 
 /**
  * Reister a logger
@@ -7,21 +7,29 @@ const loggers = [];
  * @param {Function} callback
  */
 function registerLogger(callback) {
-    loggers.push(callback);
+    logger = callback;
 }
 
 /**
- * Send a log message to any loggers
+ * Send an alert message to the logger
  *
  * @param {String} message
  */
-function log(message) {
-    _.each(loggers, (logger) => {
-        logger(message);
-    });
+function logAlert(message) {
+    logger({message: `[Ion] ${message}`, level: 'alert'});
 }
 
-export default {
-    registerLogger,
-    log,
+/**
+ * Send an info message to the logger
+ *
+ * @param {String} message
+ */
+function logInfo(message) {
+    logger({message: `[Ion] ${message}`, level: 'info'});
 }
+
+export {
+    registerLogger,
+    logInfo,
+    logAlert,
+};

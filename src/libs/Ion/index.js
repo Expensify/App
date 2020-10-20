@@ -2,14 +2,16 @@ import _ from 'underscore';
 import AsyncStorage from '@react-native-community/async-storage';
 import addStorageEventHandler from './addStorageEventHandler';
 import Str from '../Str';
-import {registerLogger, log} from './Logger';
-import IONKEYS from '../IONKEYS';
+import {registerLogger, logInfo, logAlert} from './Logger';
 
 // Keeps track of the last connectionID that was used so we can keep incrementing it
 let lastConnectionID = 0;
 
 // Holds a mapping of all the react components that want their state subscribed to a store key
 const callbackToStateMapping = {};
+
+// Stores all of the keys that Ion can use. Must be defined in init().
+let ionKeys;
 
 /**
  * When a key change happens, search for any callbacks matching the regex pattern and trigger those callbacks
@@ -21,7 +23,7 @@ const callbackToStateMapping = {};
 function get(key) {
     return AsyncStorage.getItem(key)
         .then(val => JSON.parse(val))
-        .catch(err => log(`Unable to get item from persistent storage. Key: ${key} Error: ${err}`));
+        .catch(err => logInfo(`Unable to get item from persistent storage. Key: ${key} Error: ${err}`));
 }
 
 /**
@@ -32,7 +34,7 @@ function get(key) {
  * @returns {Boolean}
  */
 function isCollectionKey(key) {
-    return _.contains(_.values(IONKEYS.COLLECTION), key);
+    return _.contains(_.values(ionKeys.COLLECTION), key);
 }
 
 /**
@@ -185,6 +187,10 @@ function set(key, val) {
     return AsyncStorage.setItem(key, JSON.stringify(val))
         .then(() => {
             keyChanged(key, val);
+        })
+        .catch((err) => {
+            logAlert(`Unable to set item to persistent storage. Key: ${key} Error: ${err}`);
+            throw err;
         });
 }
 
@@ -207,6 +213,10 @@ function multiSet(data) {
     return AsyncStorage.multiSet(keyValuePairs)
         .then(() => {
             _.each(data, (val, key) => keyChanged(key, val));
+        })
+        .catch((err) => {
+            logAlert(`Unable to multiSet items to persistent storage. Error: ${err}`);
+            throw err;
         });
 }
 
@@ -239,6 +249,10 @@ function merge(key, val) {
             })
             .then(() => {
                 keyChanged(key, newArray);
+            })
+            .catch((err) => {
+                logAlert(`Unable to merge array to persistent storage. Key: ${key} Error: ${err}`);
+                throw err;
             });
         return;
     }
@@ -249,23 +263,27 @@ function merge(key, val) {
             .then(() => get(key))
             .then((newObject) => {
                 keyChanged(key, newObject);
+            })
+            .catch((err) => {
+                logAlert(`Unable to merge item to persistent storage. Key: ${key} Error: ${err}`);
+                throw err;
             });
         return;
     }
 
     // Anything else (strings and numbers) need to be set into storage
-    AsyncStorage.setItem(key, JSON.stringify(val))
-        .then(() => {
-            keyChanged(key, val);
-        });
+    set(key, val);
 }
 
 /**
  * Initialize the store with actions and listening for storage events
  */
-function init() {
-    // Clear any loading and error messages so they do not appear on app startup
-    merge(IONKEYS.SESSION, {loading: false, error: ''});
+function init({keys, initialKeyStates}) {
+    // Let Ion know about all of our keys
+    ionKeys = keys;
+
+    // Initialize all of our keys with data provided
+    _.each(initialKeyStates, (state, key) => merge(key, state));
     addStorageEventHandler((key, newValue) => keyChanged(key, newValue));
 }
 
