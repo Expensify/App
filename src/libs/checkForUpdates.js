@@ -7,7 +7,7 @@ const UPDATE_INTERVAL = 1000 * 60 * 60;
  *
  * @param {Object} platformSpecificUpdater
  * @param {Function} platformSpecificUpdater.update
- * @param {?Function} platformSpecificUpdater.init
+ * @param {Function} [platformSpecificUpdater.init]
  */
 function checkForUpdates(platformSpecificUpdater) {
     if (_.isFunction(platformSpecificUpdater.init)) {
