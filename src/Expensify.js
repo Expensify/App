@@ -9,7 +9,7 @@ import * as ActiveClientManager from './libs/ActiveClientManager';
 import IONKEYS from './IONKEYS';
 import withIon from './components/withIon';
 import styles from './styles/StyleSheet';
-import {logAlert} from './libs/Log';
+import Log from './libs/Log';
 
 import {
     Route,
@@ -31,8 +31,8 @@ Ion.init({
 Ion.registerLogger(({level, message}) => {
     console.debug(message);
 
-    if (level === 'alert') {
-        logAlert(message);
+    if (level === Log.LEVEL.ALERT) {
+        Log.alert(message);
     }
 });
 
