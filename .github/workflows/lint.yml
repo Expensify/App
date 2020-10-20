@@ -44,13 +44,14 @@ jobs:
               with:
                   status: custom
                   fields: workflow, repo
-                  mention: here
                   custom_payload: |
                       {
                         channel: '#andrew-test',
+                        mention: 'here',
                         attachments: [{
                           color: "#DB4545",
                           text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
+                          mention: 'here',
                         }]
                       }
               env:
