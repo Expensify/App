@@ -166,7 +166,36 @@ When adding new API commands (and preferrably when starting using a new one that
 prefer to return the created/updated data in the command itself, instead of saving and reloading. ie: if we call `CreateTransaction`,
 we should prefer making `CreateTransaction` return the data it just created instead of calling `CreateTransaction` then `Get` rvl=transactionList
 
-# Deploying 
+### Storage Eviction
+
+Different platforms come with varying storage capacities and Ion has a way to gracefully fail when those storage limits are encountered. When Ion fails to set or modify a key the following steps are taken:
+1. Ion looks at a list of recently accessed keys (access is defined as subscribed to or modified) and locates the key that was least recently accessed
+2. It then deletes this key and retries the original operation
+
+By default, Ion will not evict anything from storage and will presume all keys are "unsafe" to remove unless explicitly told otherwise.
+
+**To flag a key as safe for removal:**
+- Add the key to the `safeEvictionKeys` option in `Ion.init(options)`
+- Implement `canEvict` in the Ion config for each component subscribing to a key
+- The key will only be deleted when all subscribers return `true` for `canEvict`
+
+e.g.
+```js
+Ion.init({
+    safeEvictionKeys: [IONKEYS.COLLECTION.REPORT_ACTIONS],
+});
+```
+
+```js
+export default withIon({
+    reportActions: {
+        key: ({reportID}) => `${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        canEvict: props => !props.isActiveReport,
+    },
+})(ReportActionsView);
+```
+
+# Deploying
 ##  Continuous deployment / GitHub workflows
 Every PR merged into `master` will kick off the **Create a new version** GitHub workflow defined in `.github/workflows/version.yml`.
 It will look at the current version and increment it by one build version (using [`react-native-version`](https://www.npmjs.com/package/react-native-version)), create a PR with that new version, and tag the version.
