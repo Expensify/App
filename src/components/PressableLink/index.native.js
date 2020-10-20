@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Link} from '../../lib/Router';
+import {Link} from '../../libs/Router';
 
 /**
  * On the native layers, we need to convert the onClick prop to onPress for react-router-native
