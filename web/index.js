@@ -1,9 +1,9 @@
 import {AppRegistry} from 'react-native';
 import App from '../src/App';
 import {name as appName} from '../app.json';
-import checkForUpdates from '../src/lib/checkForUpdates';
-import HttpUtils from '../src/lib/HttpUtils';
-import Visibility from '../src/lib/Visibility';
+import checkForUpdates from '../src/libs/checkForUpdates';
+import HttpUtils from '../src/libs/HttpUtils';
+import Visibility from '../src/libs/Visibility';
 
 AppRegistry.registerComponent('App', () => App);
 AppRegistry.registerComponent(appName, () => App);
