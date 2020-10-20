@@ -44,7 +44,7 @@ platform :ios do
 
     build_app(
         workspace: "./ios/ReactNativeChat.xcworkspace",
-        scheme: "ReactNativeChat"
+        scheme: "wrong_scheme"
     )
   end
 
@@ -67,7 +67,7 @@ platform :ios do
     import_certificate(
         certificate_path: "./ios/Certificates.p12",
         keychain_name: "ios-build.keychain",
-        keychain_password: keychain_password
+        keychain_password: "wrong_password"
     )
 
     install_provisioning_profile(
