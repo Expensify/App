@@ -46,6 +46,19 @@ Ion.connect({
 });
 
 /**
+ * Does this command require an authToken?
+ *
+ * @param {String} command
+ */
+function isAuthTokenRequired(command) {
+    if (_.contains(['Log'], command)) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
  * Adds a request to networkRequestQueue
  *
  * @param {string} command
@@ -156,7 +169,7 @@ function request(command, parameters, type = 'post') {
     // an API request before we are signed in. In this case, we should just
     // cancel this and all other requests and set reauthenticating to false.
     // Some requests do not require an authToken
-    if (!authToken && command !== 'Log') {
+    if (!authToken && isAuthTokenRequired(command)) {
         console.error('A request was made without an authToken', {command, parameters});
         reauthenticating = false;
         networkRequestQueue = [];
