@@ -49,7 +49,8 @@ jobs:
                         channel: '#andrew-test',
                         attachments: [{
                           color: "#DB4545",
-                          pretext: "@here please ignore, testing!",
+                          title: `@here testing title`,
+                          pretext: "@here testing pretext",
                           text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
                         }]
                       }
