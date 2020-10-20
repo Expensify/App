@@ -1,5 +1,13 @@
 import {logToServer} from './API';
 
+const SOURCE_EXPENSIFY_CASH = 'expensify_cash';
+const LEVEL = {
+    INFO: 'info',
+    ALERT: 'alrt',
+    WARN: 'warn',
+    HMMM: 'hmmm',
+};
+
 /**
 * Ask the server to write the log message
 *
@@ -7,7 +15,11 @@ import {logToServer} from './API';
 * @param {Object|String} parameters The parameters to send along with the message
 */
 function sendLogs(message, parameters = {}) {
-    logToServer({parameters, message});
+    logToServer({
+        parameters,
+        message,
+        source: SOURCE_EXPENSIFY_CASH,
+    });
 }
 
 /**
@@ -16,8 +28,8 @@ function sendLogs(message, parameters = {}) {
 * @param {String} message The message to log.
 * @param {Object|String} parameters The parameters to send along with the message
 */
-function logInfo(message, parameters){
-    sendLogs(`[info] ${message}`, parameters);
+function info(message, parameters) {
+    sendLogs(`[${LEVEL.INFO}] ${message}`, parameters);
 }
 
 /**
@@ -26,8 +38,8 @@ function logInfo(message, parameters){
  * @param {String} message The message to alert.
  * @param {Object|String} parameters The parameters to send along with the message
  */
-function logAlert(message, parameters = {}) {
-    const msg = `[alrt] ${message}`;
+function alert(message, parameters = {}) {
+    const msg = `[${LEVEL.ALERT}] ${message}`;
     const params = parameters;
     params.stack = JSON.stringify(new Error().stack);
     sendLogs(msg, params);
@@ -39,8 +51,8 @@ function logAlert(message, parameters = {}) {
  * @param {String} message The message to warn.
  * @param {Object|String} parameters The parameters to send along with the message
  */
-function logWarn(message, parameters) {
-    sendLogs(`[warn] ${message}`, parameters);
+function warn(message, parameters) {
+    sendLogs(`[${LEVEL.WARN}] ${message}`, parameters);
 }
 
 /**
@@ -49,13 +61,14 @@ function logWarn(message, parameters) {
  * @param {String} message The message to hmmm.
  * @param {Object|String} parameters The parameters to send along with the message
  */
-function logHmmm(message, parameters) {
-    sendLogs(`[hmmm] ${message}`, parameters);
+function hmmm(message, parameters) {
+    sendLogs(`[${LEVEL.HMMM}] ${message}`, parameters);
 }
 
-export {
-    logAlert,
-    logInfo,
-    logHmmm,
-    logWarn,
+export default {
+    LEVEL,
+    alert,
+    info,
+    hmmm,
+    warn,
 };

@@ -472,13 +472,15 @@ function setNameValuePair(parameters) {
 /**
  * @param {Object} parameters
  * @param {String} parameters.message
+ * @param {String} parameters.source
  * @returns {Promise}
  */
 function logToServer(parameters) {
     const params = parameters.parameters || {};
-    return queueRequest('Log', {
+    return xhr('Log', {
         message: parameters.message,
         parameters: JSON.stringify(params),
+        source: parameters.source,
     });
 }
 
