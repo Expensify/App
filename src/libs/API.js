@@ -469,6 +469,19 @@ function setNameValuePair(parameters) {
     });
 }
 
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.message
+ * @returns {Promise}
+ */
+function log(parameters) {
+    const params = parameters.parameters || {};
+    return queueRequest('Log', {
+        message: parameters.message,
+        parameters: JSON.stringify(params),
+    });
+}
+
 export {
     authenticate,
     addReportComment,
@@ -480,4 +493,5 @@ export {
     getReportHistory,
     setLastReadActionID,
     setNameValuePair,
+    log,
 };
