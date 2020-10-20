@@ -3,8 +3,8 @@
  */
 export default {
     HOME: '/home',
-    REPORT: '/report/:reportID',
-    getReportRoute: reportID => `/report/${reportID}`,
+    REPORT: '/r/:reportID',
+    getReportRoute: reportID => `/r/${reportID}`,
     ROOT: '/',
     SIGNIN: '/signin',
     SIGNIN_WITH_EXITTO: '/signIn/exitTo/:exitTo*',
