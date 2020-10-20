@@ -19,12 +19,12 @@ let networkRequestQueue = [];
 let reauthenticating = false;
 
 let authToken;
-let login;
+let email;
 Ion.connect({
     key: IONKEYS.SESSION,
-    callback: val => {
+    callback: (val) => {
         authToken = val ? val.authToken : null;
-        login = val ? val.email : null;
+        email = val ? val.email : null;
     },
 });
 
@@ -482,12 +482,18 @@ function setNameValuePair(parameters) {
  */
 function logToServer(parameters) {
     const params = parameters.parameters || {};
-    return queueRequest('Log', {
+
+    const requestParams = {
         message: parameters.message,
         parameters: JSON.stringify(params),
         source: parameters.source,
-        email: login,
-    });
+    };
+
+    if (email) {
+        requestParams.email = email;
+    }
+
+    return queueRequest('Log', requestParams);
 }
 
 export {
