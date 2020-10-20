@@ -30,6 +30,9 @@ const propTypes = {
     // A method that is triggered when the TextInput loses focus
     onBlur: PropTypes.func.isRequired,
 
+    // Toggles the hamburger menu open and closed
+    onLinkClick: PropTypes.func.isRequired,
+
     /* Ion Props */
 
     // All of the personal details for everyone
@@ -99,6 +102,7 @@ class ChatSwitcherView extends React.Component {
      */
     selectUser(option) {
         fetchOrCreateChatReport([this.props.session.email, option.login]);
+        this.props.onLinkClick();
         this.reset();
     }
 
@@ -110,6 +114,7 @@ class ChatSwitcherView extends React.Component {
      */
     selectReport(option) {
         redirect(ROUTES.getReportRoute(option.reportID));
+        this.props.onLinkClick();
         this.reset();
     }
 
