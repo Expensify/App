@@ -478,6 +478,7 @@ function setNameValuePair(parameters) {
 function logToServer(parameters) {
     const params = parameters.parameters || {};
     return xhr('Log', {
+        authToken,
         message: parameters.message,
         parameters: JSON.stringify(params),
         source: parameters.source,
