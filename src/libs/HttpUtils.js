@@ -11,7 +11,7 @@ import NetworkConnection from './NetworkConnection';
  * @param {String} url
  * @param {String} method
  * @param {Object} body
- * @returns {Promise<Response | void>}
+ * @returns {Promise}
  */
 function processHTTPRequest(url, method = 'get', body = null) {
     return fetch(url, {
