@@ -497,6 +497,10 @@ function logToServer(parameters) {
         source: parameters.source,
     };
 
+    // If we are logging something and have no email
+    // then we do not want to include this. If we pass
+    // this as null or undefined that will literally
+    // appear in the logs instead of we@dont.know
     if (email) {
         requestParams.email = email;
     }
