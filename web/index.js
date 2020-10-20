@@ -40,7 +40,7 @@ function webUpdate(currentVersion) {
  * Create an object whose shape reflects the callbacks used in checkForUpdates.
  *
  * @param {String} currentVersion The version of the app that is currently running.
- * @returns {{init: Function, update: Function}}
+ * @returns {Object}
  */
 const webUpdater = currentVersion => ({
     init: () => {
