@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import _ from 'underscore';
-import Ion from '../lib/Ion';
+import Ion from '../libs/Ion';
 
 /**
  * Returns the display name of a component

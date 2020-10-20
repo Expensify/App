@@ -18,5 +18,6 @@ export default {
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
         REPORT_DRAFT_COMMENT: 'reportDraftComment_',
+        REPORT_USER_IS_TYPING: 'reportUserIsTyping_'
     }
 };

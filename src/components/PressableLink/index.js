@@ -1,5 +1,5 @@
 import React from 'react';
-import {Link} from '../../lib/Router';
+import {Link} from '../../libs/Router';
 
 /**
  * On web, no changes to Link are required to make links pressable
