@@ -49,6 +49,7 @@ jobs:
                   fields: workflow, repo
                   custom_payload: |
                       {
+                        channel: '#announce',
                         attachments: [{
                           color: "#DB4545",
                           text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,

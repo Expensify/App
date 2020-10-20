@@ -1,10 +1,7 @@
 name: Build and Deploy iOS
 
-# This workflow is run when any tag is published
-on:
-    push:
-        tags:
-            - '*'
+# TODO: Remove, added for testing
+on: push
 
 jobs:
     build:
@@ -55,8 +52,10 @@ jobs:
                   fields: workflow, repo
                   custom_payload: |
                       {
+                        channel: '#andrew-test',
                         attachments: [{
                           color: "#DB4545",
+                          pretext: '@here please ignore, just testing!',
                           text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
                         }]
                       }
