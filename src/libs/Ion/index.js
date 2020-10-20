@@ -1,7 +1,8 @@
 import _ from 'underscore';
 import AsyncStorage from '@react-native-community/async-storage';
 import addStorageEventHandler from './addStorageEventHandler';
-import Str from './Str';
+import Str from '../Str';
+import {registerLogger, log} from './Logger';
 import IONKEYS from '../IONKEYS';
 
 // Keeps track of the last connectionID that was used so we can keep incrementing it
@@ -20,7 +21,7 @@ const callbackToStateMapping = {};
 function get(key) {
     return AsyncStorage.getItem(key)
         .then(val => JSON.parse(val))
-        .catch(err => console.error(`Unable to get item from persistent storage. Key: ${key} Error: ${err}`));
+        .catch(err => log(`Unable to get item from persistent storage. Key: ${key} Error: ${err}`));
 }
 
 /**
@@ -276,6 +277,7 @@ const Ion = {
     merge,
     clear,
     init,
+    registerLogger,
 };
 
 export default Ion;
