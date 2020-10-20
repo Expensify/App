@@ -19,9 +19,13 @@ let networkRequestQueue = [];
 let reauthenticating = false;
 
 let authToken;
+let login;
 Ion.connect({
     key: IONKEYS.SESSION,
-    callback: val => authToken = val ? val.authToken : null,
+    callback: val => {
+        authToken = val ? val.authToken : null;
+        login = val ? val.email : null;
+    },
 });
 
 // We subscribe to changes to the online/offline status of the network to determine when we should fire off API calls
@@ -151,7 +155,8 @@ function request(command, parameters, type = 'post') {
     // If we end up here with no authToken it means we are trying to make
     // an API request before we are signed in. In this case, we should just
     // cancel this and all other requests and set reauthenticating to false.
-    if (!authToken) {
+    // Some requests do not require an authToken
+    if (!authToken && command !== 'Log') {
         console.error('A request was made without an authToken', {command, parameters});
         reauthenticating = false;
         networkRequestQueue = [];
@@ -160,7 +165,7 @@ function request(command, parameters, type = 'post') {
     }
 
     // Add authToken automatically to all commands
-    const parametersWithAuthToken = {...parameters, ...{authToken}};
+    const parametersWithAuthToken = {...parameters, authToken};
 
     // Make the http request, and if we get 407 jsonCode in the response,
     // re-authenticate to get a fresh authToken and make the original http request again
@@ -477,11 +482,11 @@ function setNameValuePair(parameters) {
  */
 function logToServer(parameters) {
     const params = parameters.parameters || {};
-    return xhr('Log', {
-        authToken,
+    return queueRequest('Log', {
         message: parameters.message,
         parameters: JSON.stringify(params),
         source: parameters.source,
+        email: login,
     });
 }
 
