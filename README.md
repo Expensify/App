@@ -57,7 +57,7 @@ You can use any IDE or code editing tool for developing on any platform. Use you
 * Changes applied to Javascript will be applied automatically via WebPack as configured in `webpack.dev.js`
 
 ## Running the iOS app 📱
-* To install the iOS dependencies, run: `cd ios/ && pod install`
+* To install the iOS dependencies, run: `npm install && cd ios/ && pod install`
 * To run a on a **Development Simulator**: `npm run ios`
     * If the app is booting on a simulator for the first time, run the following two commands:
     ```bash
@@ -67,6 +67,7 @@ You can use any IDE or code editing tool for developing on any platform. Use you
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
 ## Running the Android app 🤖
+* To install the Android dependencies, run: `npm install`, then `gradle` will install all linked dependencies
 * Running via `ngrok` is required to communicate with the API
     * Start ngrok (`Expensidev/script/ngrok.sh`), replace `expensify.com.dev` value in `.env` with your ngrok value
 * To run a on a **Development Emulator**: `npm run android`
