@@ -34,14 +34,6 @@ platform :android do
         task: 'bundle',
         build_type: 'Release',
     )
-
-    upload_to_play_store(
-        package_name: "com.expensify.chat",
-        json_key: './android/app/android-fastlane-json-key.json',
-        aab: './android/app/build/outputs/bundle/release/app-release.aab',
-        track: 'internal',
-        rollout: '1.0'
-    )
   end
 end
 
@@ -86,24 +78,6 @@ platform :ios do
         workspace: "./ios/ReactNativeChat.xcworkspace",
         scheme: "ReactNativeChat"
     )
-
-    upload_to_testflight(
-        distribute_external: true,
-        reject_build_waiting_for_review: true,
-        changelog: "Thank you for beta testing the Expensify Chat, this version includes bug fixes and improvements.",
-        groups: ["Beta"],
-        demo_account_required: true,
-        beta_app_review_info: {
-            contact_email: "mobile@expensify.com",
-            contact_first_name: "Andrew",
-            contact_last_name: "Gable",
-            contact_phone: "+1 916 698 2582",
-            demo_account_name: "andrew+empty@expensifail.com",
-            demo_account_password: "asdfASDF00",
-            notes: "Use the account provided. Thank you for the review."
-        }
-    )
-
 
     upload_symbols_to_crashlytics(
       dsym_path: lane_context[SharedValues::DSYM_OUTPUT_PATH],
