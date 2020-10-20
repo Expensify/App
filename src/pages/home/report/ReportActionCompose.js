@@ -128,6 +128,7 @@ class ReportActionCompose extends React.Component {
          * for option definitions
          */
         const options = {
+            customButtons: [{name: 'Choose Document', title: 'Choose Document'}],
             storageOptions: {
                 skipBackup: true,
             },
@@ -140,6 +141,11 @@ class ReportActionCompose extends React.Component {
 
             if (response.error) {
                 console.error(`Error occurred picking image: ${response.error}`);
+                return;
+            }
+
+            if (response.customButton) {
+                console.debug('Testing custom button press');
                 return;
             }
 
