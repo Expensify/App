@@ -20,7 +20,7 @@ const defaultProps = {
 /**
  * On web we like to have the Text Input field always focused so the user can easily type a new chat
  */
-export default class TextInputFocusable extends React.Component {
+class TextInputFocusable extends React.Component {
     constructor(props) {
         super(props);
 
@@ -103,3 +103,4 @@ export default class TextInputFocusable extends React.Component {
 
 TextInputFocusable.propTypes = propTypes;
 TextInputFocusable.defaultProps = defaultProps;
+export default TextInputFocusable;

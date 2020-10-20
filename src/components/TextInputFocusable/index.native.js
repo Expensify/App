@@ -11,7 +11,7 @@ const propTypes = {
  * On native layers we like to have the Text Input not focused so the user can read new chats without they keyboard in
  * the way of the view
  */
-export default class TextInputFocusable extends React.Component {
+class TextInputFocusable extends React.Component {
     constructor(props) {
         super(props);
 
@@ -36,3 +36,4 @@ export default class TextInputFocusable extends React.Component {
 
 TextInputFocusable.displayName = 'TextInputFocusable';
 TextInputFocusable.propTypes = propTypes;
+export default TextInputFocusable;
