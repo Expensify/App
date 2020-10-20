@@ -32,7 +32,7 @@ Ion.init({
 Ion.registerLogger(({level, message}) => {
     console.debug(message);
 
-    if (level === Log.LEVEL.ALERT) {
+    if (level === 'alert') {
         Log.alert(message);
     }
 });
