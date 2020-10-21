@@ -10,6 +10,7 @@ import Str from './Str';
 import guid from './guid';
 import redirectToSignIn from './actions/SignInRedirect';
 import PushNotification from './Notification/PushNotification';
+import getPlatform from './getPlatform';
 
 // Queue for network requests so we don't lose actions done by the user while offline
 let networkRequestQueue = [];
@@ -492,12 +493,10 @@ function setNameValuePair(parameters) {
  * @returns {Promise}
  */
 function logToServer(parameters) {
-    const params = parameters.parameters || {};
-
     const requestParams = {
         message: parameters.message,
-        parameters: JSON.stringify(params),
-        source: parameters.source,
+        parameters: JSON.stringify(parameters.parameters || {}),
+        expensifyCashAppVersion: `${getPlatform()}`,
     };
 
     // If we are logging something and have no email

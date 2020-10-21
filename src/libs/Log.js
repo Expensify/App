@@ -1,6 +1,5 @@
 import Logger from 'js-libs/lib/Logger';
 import {logToServer} from './API';
-import getPlatform from './getPlatform';
 import CONFIG from '../CONFIG';
 
 /**
@@ -11,10 +10,7 @@ import CONFIG from '../CONFIG';
  * @param {String} params.message
  */
 function serverLoggingCallback(params) {
-    logToServer({
-        ...params,
-        expensifyCashAppVersion: `${getPlatform()}`,
-    });
+    logToServer(params);
 }
 
 export default new Logger({
