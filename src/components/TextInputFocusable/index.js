@@ -45,16 +45,23 @@ class TextInputFocusable extends React.Component {
             this.props.forwardedRef(this.textInput);
         }
 
-        // There is no onPaste for TextInput in react-native. But we can access this
-        // via ref.onpaste and handle the paste event this way.
-        this.textInput.addEventListener('paste', this.checkForAttachment.bind(this));
+        // There is no onPaste for TextInput in react-native so we will add event
+        // listener here and unbind when the component unmounts
+        if (this.textInput) {
+            this.textInput.addEventListener('paste', this.checkForAttachment.bind(this));
+        }
+    }
+
+    componentWillUnmount() {
+        if (this.textInput) {
+            this.textInput.removeEventListener('paste', this.checkForAttachment.bind(this));
+        }
     }
 
     componentDidUpdate(prevProps) {
         if (prevProps.defaultValue !== this.props.defaultValue) {
             this.updateNumberOfLines();
         }
-        this.textInput.removeEventListener('paste', this.checkForAttachment.bind(this));
     }
 
     /**
