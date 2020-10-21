@@ -1,4 +1,5 @@
 import {AppRegistry} from 'react-native';
+import Config from 'src/CONFIG';
 import App from '../src/App';
 import {name as appName} from '../app.json';
 import checkForUpdates from '../src/libs/checkForUpdates';
@@ -56,8 +57,10 @@ const webUpdater = currentVersion => ({
     update: () => webUpdate(currentVersion),
 });
 
-// When app loads, get current version
-HttpUtils.download('version.json')
-    .then(({version: currentVersion}) => {
-        checkForUpdates(webUpdater(currentVersion));
-    });
+// When app loads, get current version (production only)
+if (Config.IS_IN_PRODUCTION) {
+    HttpUtils.download('version.json')
+        .then(({version: currentVersion}) => {
+            checkForUpdates(webUpdater(currentVersion));
+        });
+}
