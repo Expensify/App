@@ -128,7 +128,7 @@ class ReportActionCompose extends React.Component {
          * for option definitions
          */
         const options = {
-            customButtons: [{name: 'Choose Document', title: 'Choose Document'}],
+            customButtons: [{name: 'Document', title: 'Choose Document'}],
             storageOptions: {
                 skipBackup: true,
             },
@@ -145,7 +145,7 @@ class ReportActionCompose extends React.Component {
             }
 
             if (response.customButton) {
-                console.debug('Testing custom button press');
+                console.debug('Display document picker!');
                 return;
             }
 
