@@ -3,15 +3,15 @@
  */
 import RNImagePicker from 'react-native-image-picker';
 
-const ImagePicker = RNImagePicker;
+const AttachmentPicker = RNImagePicker;
 
 /*
- * The data returned from `showImagePicker` is different on web and mobile, so use this function to ensure the data we
+ * The data returned from `showPicker` is different on web and mobile, so use this function to ensure the data we
  * send to the xhr will be handled properly.
  */
-ImagePicker.getDataForUpload = fileData => ({
+AttachmentPicker.getDataForUpload = fileData => ({
     name: fileData.fileName || 'chat_attachment',
     type: fileData.type,
     uri: fileData.uri,
 });
-export default ImagePicker;
+export default AttachmentPicker;
