@@ -1,75 +1,26 @@
+import Logger from 'js-libs/lib/Logger';
 import {logToServer} from './API';
 import getPlatform from './getPlatform';
-
-const SOURCE_EXPENSIFY_CASH = 'expensify_cash';
-const LEVEL = {
-    INFO: 'info',
-    ALERT: 'alrt',
-    WARN: 'warn',
-    HMMM: 'hmmm',
-};
+import CONFIG from '../CONFIG';
 
 /**
-* Ask the server to write the log message
-*
-* @param {String} message The message to write
-* @param {Object|String} parameters The parameters to send along with the message
-*/
-function sendLogs(message, parameters = {}) {
+ * Network interface for logger.
+ *
+ * @param {Object} params
+ * @param {Object} params.parameters
+ * @param {String} params.message
+ */
+function serverLoggingCallback(params) {
     logToServer({
-        message,
-        parameters: {
-            ...parameters,
-            platform: getPlatform(),
-        },
-        source: SOURCE_EXPENSIFY_CASH,
+        ...params,
+        expensifyCashAppVersion: `${getPlatform()}`,
     });
 }
 
-/**
-* Sends an informational message to the logs.
-*
-* @param {String} message The message to log.
-* @param {Object|String} parameters The parameters to send along with the message
-*/
-function info(message, parameters) {
-    sendLogs(`${message}`, parameters);
-}
-
-/**
- * Logs an alert.
- *
- * @param {String} message The message to alert.
- * @param {Object|String} parameters The parameters to send along with the message
- */
-function alert(message, parameters) {
-    sendLogs(`[${LEVEL.ALERT}] ${message}`, parameters);
-}
-
-/**
- * Logs a warn.
- *
- * @param {String} message The message to warn.
- * @param {Object|String} parameters The parameters to send along with the message
- */
-function warn(message, parameters) {
-    sendLogs(`[${LEVEL.WARN}] ${message}`, parameters);
-}
-
-/**
- * Logs a hmmm.
- *
- * @param {String} message The message to hmmm.
- * @param {Object|String} parameters The parameters to send along with the message
- */
-function hmmm(message, parameters) {
-    sendLogs(`[${LEVEL.HMMM}] ${message}`, parameters);
-}
-
-export default {
-    LEVEL,
-    alert,
-    info,
-    hmmm,
-    warn,
-};
+export default new Logger({
+    serverLoggingCallback,
+    clientLoggingCallback: (message) => {
+        console.debug(message);
+    },
+    isDebug: !CONFIG.IS_IN_PRODUCTION,
+});
