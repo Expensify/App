@@ -7,7 +7,7 @@ import TextInputFocusable from '../../../components/TextInputFocusable';
 import sendIcon from '../../../../assets/images/icon-send.png';
 import IONKEYS from '../../../IONKEYS';
 import paperClipIcon from '../../../../assets/images/icon-paper-clip.png';
-import ImagePicker from '../../../libs/ImagePicker';
+import AttachmentPicker from '../../../libs/AttachmentPicker';
 import withIon from '../../../components/withIon';
 import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs/actions/Report';
 
@@ -135,7 +135,7 @@ class ReportActionCompose extends React.Component {
             },
         };
 
-        ImagePicker.showImagePicker(options, (response) => {
+        AttachmentPicker.showImagePicker(options, (response) => {
             if (response.didCancel) {
                 return;
             }
@@ -150,7 +150,7 @@ class ReportActionCompose extends React.Component {
                 return;
             }
 
-            addAction(this.props.reportID, '', ImagePicker.getDataForUpload(response));
+            addAction(this.props.reportID, '', AttachmentPicker.getDataForUpload(response));
             this.textInput.focus();
         });
     }
