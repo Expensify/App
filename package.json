@@ -58,7 +58,8 @@
     "react-router-native": "^5.2.0",
     "react-web-config": "^1.0.0",
     "save": "^2.4.0",
-    "underscore": "^1.10.2"
+    "underscore": "^1.10.2",
+    "urbanairship-react-native": "^8.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.11.1",
