@@ -6,7 +6,7 @@ import DocumentPicker from 'react-native-document-picker';
 
 const AttachmentPicker = {};
 
-AttachmentPicker.showPicker = function(callback) {
+AttachmentPicker.showPicker = function (callback) {
     // TODO: Make into a promise?
 
     /**
@@ -24,31 +24,29 @@ AttachmentPicker.showPicker = function(callback) {
     RNImagePicker.showImagePicker(options, (response) => {
         if (response.customButton) {
             this.showDocumentPicker();
-            return;
         } else {
-            console.info('Falling back to callback: ', response.customButton); // TODO: remove this log
+            console.debug('Falling back to callback: ', response.customButton); // TODO: remove this log
             callback(response);
         }
     });
-}
+};
 
-AttachmentPicker.showDocumentPicker = async function() {
+AttachmentPicker.showDocumentPicker = async function () {
     console.debug('Launch DocumentPicker');
 
-    try {        
+    try {
         const results = await DocumentPicker.pick({
             type: [DocumentPicker.types.allFiles],
         });
-        console.info('Attachment selected: ' + res.uri, res.type, res.name, res.size);
-        
+        console.debug('Attachment selected: ' + results.uri, results.type, results.name, results.size);
     } catch (error) {
         if (DocumentPicker.isCancel(error)) {
-            console.info('User cancelled document selection');
+            console.debug('User cancelled document selection');
         } else {
             throw error;
         }
     }
-}
+};
 
 /*
  * The data returned from `showPicker` is different on web and mobile, so use this function to ensure the data we
