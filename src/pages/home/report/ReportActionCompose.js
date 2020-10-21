@@ -181,6 +181,7 @@ class ReportActionCompose extends React.Component {
                         maxLines={16} // This is the same that slack has
                         onFocus={() => this.setIsFocused(true)}
                         onBlur={() => this.setIsFocused(false)}
+                        onPasteFile={file => addAction(this.props.reportID, '', file)}
                     />
                     <TouchableOpacity
                         style={[styles.chatItemSubmitButton, styles.buttonSuccess]}
