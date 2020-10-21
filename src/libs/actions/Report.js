@@ -296,7 +296,7 @@ function unsubscribeToReportTypingEvents(reportID) {
     }
 
     const pusherChannelName = getReportChannelName(reportID);
-    Ion.set(`${IONKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, []);
+    Ion.set(`${IONKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, {});
     Pusher.unsubscribe(pusherChannelName, 'client-userIsTyping');
 }
 
