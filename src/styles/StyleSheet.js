@@ -221,7 +221,10 @@ const styles = {
         borderColor: colors.text,
         borderWidth: 1,
         color: colors.textReversed,
-        padding: 12,
+        paddingLeft: 12,
+        paddingRight: 12,
+        paddingTop: 10,
+        paddingBottom: 10,
         outlineWidth: 0,
     },
 
