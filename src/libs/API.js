@@ -9,6 +9,7 @@ import ROUTES from '../ROUTES';
 import Str from './Str';
 import guid from './guid';
 import redirectToSignIn from './actions/SignInRedirect';
+import PushNotification from './Notification/PushNotification';
 
 // Queue for network requests so we don't lose actions done by the user while offline
 let networkRequestQueue = [];
@@ -136,8 +137,9 @@ function createLogin(login, password) {
  * @param {string} exitTo
  */
 function setSuccessfulSignInData(data, exitTo) {
-    const redirectTo = exitTo ? Str.normalizeUrl(exitTo) : ROUTES.ROOT;
+    PushNotification.register(data.accountID);
 
+    const redirectTo = exitTo ? Str.normalizeUrl(exitTo) : ROUTES.ROOT;
     Ion.multiSet({
         [IONKEYS.SESSION]: _.pick(data, 'authToken', 'accountID', 'email'),
         [IONKEYS.APP_REDIRECT_TO]: redirectTo
