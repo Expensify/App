@@ -17,7 +17,6 @@ AttachmentPicker.showPicker = function(callback) {
         customButtons: [{name: 'Document', title: 'Choose Document'}],
         storageOptions: {
             skipBackup: true,
-            cameraRoll: true,
         },
     };
 
