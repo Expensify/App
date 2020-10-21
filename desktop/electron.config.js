@@ -24,5 +24,6 @@ module.exports = {
         './dist/**/*',
         './desktop/main.js',
         './desktop/ELECTRON_EVENTS.js',
+        './src/lib/checkForUpdates/*',
     ]
 };
