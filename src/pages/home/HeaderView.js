@@ -94,9 +94,15 @@ const HeaderView = (props) => {
                             <Text numberOfLines={1} style={[styles.navText]}>
                                 {props.report.reportName}
                             </Text>
-                            <Text numberOfLines={1} style={[styles.navSubText]}>
-                                {getUsersTypingText()}
-                            </Text>
+                            {
+                                !_.isEmpty(getUsersTypingText())
+                                && (
+                                    <Text style={[styles.navSubText]}>
+                                        {getUsersTypingText()}
+                                    </Text>
+                                )
+                            }
+
                         </View>
 
                         <View style={[styles.reportOptions, styles.flexRow]}>
