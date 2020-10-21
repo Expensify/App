@@ -131,6 +131,7 @@ class ReportActionCompose extends React.Component {
             customButtons: [{name: 'Document', title: 'Choose Document'}],
             storageOptions: {
                 skipBackup: true,
+                cameraRoll: true,
             },
         };
 
