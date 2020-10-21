@@ -297,17 +297,12 @@ function evictStorageAndRetry(error, ionMethod, ...args) {
     const keyForRemoval = _.find(recentlyAccessedKeys, key => !evictionBlocklist[key]);
 
     if (!keyForRemoval) {
-        const logMessage = 'Out of storage. But found no acceptable keys to remove.';
-        console.error(logMessage);
-        logAlert(logMessage);
+        logAlert('Out of storage. But found no acceptable keys to remove.');
         throw error;
     }
 
     // Remove the least recently viewed key that is not currently being accessed and retry.
-    console.debug(
-        'Out of storage. Evicting least recently accessed key and retrying.',
-        {keyForRemoval}
-    );
+    logInfo(`Out of storage. Evicting least recently accessed key (${keyForRemoval}) and retrying.`);
     return remove(keyForRemoval)
         .then(() => ionMethod(...args));
 }
