@@ -52,15 +52,15 @@ class TextInputFocusable extends React.Component {
         }
     }
 
-    componentWillUnmount() {
-        if (this.textInput) {
-            this.textInput.removeEventListener('paste', this.checkForAttachment.bind(this));
-        }
-    }
-
     componentDidUpdate(prevProps) {
         if (prevProps.defaultValue !== this.props.defaultValue) {
             this.updateNumberOfLines();
+        }
+    }
+
+    componentWillUnmount() {
+        if (this.textInput) {
+            this.textInput.removeEventListener('paste', this.checkForAttachment.bind(this));
         }
     }
 
