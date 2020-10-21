@@ -123,30 +123,13 @@ class ReportActionCompose extends React.Component {
     showAttachmentPicker(e) {
         e.preventDefault();
 
-        /**
-         * See https://github.com/react-native-community/react-native-image-picker/blob/master/docs/Reference.md#options
-         * for option definitions
-         */
-        const options = {
-            customButtons: [{name: 'Document', title: 'Choose Document'}],
-            storageOptions: {
-                skipBackup: true,
-                cameraRoll: true,
-            },
-        };
-
-        AttachmentPicker.showImagePicker(options, (response) => {
+        AttachmentPicker.showPicker((response) => {
             if (response.didCancel) {
                 return;
             }
 
             if (response.error) {
                 console.error(`Error occurred picking image: ${response.error}`);
-                return;
-            }
-
-            if (response.customButton) {
-                console.debug('Display document picker!');
                 return;
             }
 
