@@ -31,11 +31,10 @@ const ReportTypingIndicator = ({userTypingStatuses}) => {
     /**
      * Get the Text element that will hold the display for the users that are typing.
      *
+     * @param {string[]} usersTyping
      * @returns {JSX.Element}
      */
-    function getUsersTypingText() {
-        const usersTyping = getUsersTyping();
-
+    function getUsersTypingText(usersTyping) {
         if (_.size(usersTyping) === 1) {
             return <Text style={[styles.textStrong]}>{getDisplayName(usersTyping[0])}</Text>;
         }
@@ -56,7 +55,7 @@ const ReportTypingIndicator = ({userTypingStatuses}) => {
     }
 
     const usersTyping = getUsersTyping();
-    const usersTypingText = getUsersTypingText();
+    const usersTypingText = getUsersTypingText(usersTyping);
     return (
         <Text style={[styles.typingIndicator]}>
             {!_.isEmpty(usersTyping) && (
