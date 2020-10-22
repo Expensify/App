@@ -50,9 +50,7 @@ jobs:
                         attachments: [{
                           color: "#DB4545",
                           text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
-                          pretext: `@joe`,
-                          mention: 'here',
-                          if_mention: 'always',
+                          pretext: `<!here>`,
                         }]
                       }
               env:
