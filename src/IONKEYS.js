@@ -27,11 +27,13 @@ export default {
 
     // Information about the current session (authToken, accountID, email, loading, error)
     SESSION: 'session',
+    IS_SIDEBAR_SHOWN: 'isSidebarShown',
 
     // Collection Keys
     COLLECTION: {
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
         REPORT_DRAFT_COMMENT: 'reportDraftComment_',
+        REPORT_USER_IS_TYPING: 'reportUserIsTyping_'
     }
 };

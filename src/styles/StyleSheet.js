@@ -23,6 +23,10 @@ const colors = {
 
 const styles = {
     // Utility classes
+    mr0: {
+        marginRight: 0,
+    },
+
     mr1: {
         marginRight: 4,
     },
@@ -84,6 +88,7 @@ const styles = {
     flex1: {
         flex: 1,
     },
+
     flex4: {
         flex: 4,
     },
@@ -98,6 +103,10 @@ const styles = {
 
     flexJustifyEnd: {
         justifyContent: 'flex-end',
+    },
+
+    flexJustifySpaceBetween: {
+        justifyContent: 'space-between',
     },
 
     alignItemsCenter: {
@@ -164,6 +173,25 @@ const styles = {
 
     buttonSuccessText: {
         color: colors.textReversed,
+    },
+
+    touchableButtonImage: {
+        alignItems: 'center',
+        height: 40,
+        justifyContent: 'center',
+        marginRight: 8,
+        width: 40,
+    },
+
+    navText: {
+        color: colors.heading,
+        fontSize: 17,
+        fontWeight: '700'
+    },
+
+    navSubText: {
+        color: colors.textSupporting,
+        fontSize: 11,
     },
 
     // Actions
@@ -444,12 +472,6 @@ const styles = {
         width: 18,
     },
 
-    navText: {
-        color: colors.heading,
-        fontSize: 17,
-        fontWeight: '700',
-    },
-
     chatContent: {
         flex: 4,
         justifyContent: 'flex-end',
@@ -575,6 +597,11 @@ const styles = {
     },
 
     chatItemSubmitButtonIcon: {
+        height: 20,
+        width: 20,
+    },
+
+    reportPinIcon: {
         height: 20,
         width: 20,
     },
