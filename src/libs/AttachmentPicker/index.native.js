@@ -17,7 +17,7 @@ const ImagePickerOptions = {
     },
 }
 
-AttachmentPicker.showPicker = function (callback) {
+AttachmentPicker.show = function (callback) {
     // TODO: Make into a promise?
 
     // We display the ImagePicker first, as the custom document choice is displayed as a custom ImagePicker option.
