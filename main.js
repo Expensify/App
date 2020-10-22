@@ -1,6 +1,8 @@
 const {
     app,
     BrowserWindow,
+    Menu,
+    MenuItem,
     shell,
     ipcMain
 } = require('electron');
@@ -50,6 +52,17 @@ const mainWindow = (() => {
                 },
             });
 
+            // List the Expensify Chat instance under the Window menu, even when it's hidden
+            const menu = Menu.getApplicationMenu();
+            windowMenu = menu.items.find((item) => item.role === "windowmenu");
+            windowMenu.submenu.append(new MenuItem({ type: 'separator' }));
+            windowMenu.submenu.append(new MenuItem({
+                label: 'Expensify Chat',
+                accelerator: 'CmdOrCtrl+1',
+                click: () => { browserWindow.show() }
+            }));
+            Menu.setApplicationMenu(menu);
+
             // When the user clicks a link that has target="_blank" (which is all external links)
             // open the default browser instead of a new electron window
             browserWindow.webContents.on('new-window', (e, url) => {
@@ -70,7 +83,7 @@ const mainWindow = (() => {
             browserWindow.on('close', (evt) => {
                 if (!quitting) {
                     evt.preventDefault();
-                    browserWindow.minimize();
+                    browserWindow.hide();
                 }
             });
 
