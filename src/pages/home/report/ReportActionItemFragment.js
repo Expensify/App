@@ -1,12 +1,12 @@
 import React from 'react';
 import HTML from 'react-native-render-html';
 import {
-    Linking, ActivityIndicator, View, Dimensions
+    Linking, View, Dimensions
 } from 'react-native';
 import PropTypes from 'prop-types';
 import Str from '../../../libs/Str';
 import ReportActionFragmentPropTypes from './ReportActionFragmentPropTypes';
-import styles, {webViewStyles, colors} from '../../../styles/StyleSheet';
+import styles, {webViewStyles} from '../../../styles/StyleSheet';
 import Text from '../../../components/Text';
 import AnchorForCommentsOnly from '../../../components/AnchorForCommentsOnly';
 import {getAuthToken} from '../../../libs/API';
@@ -92,11 +92,12 @@ class ReportActionItemFragment extends React.PureComponent {
                 if (this.props.isAttachment && fragment.html === fragment.text) {
                     return (
                         <View style={[styles.chatItemAttachmentPlaceholder]}>
-                            <ActivityIndicator
-                                size="large"
-                                color={colors.textSupporting}
-                                style={[styles.h100p]}
-                            />
+                            {/* <ActivityIndicator */}
+                            {/*    size="large" */}
+                            {/*    color={colors.textSupporting} */}
+                            {/*    style={[styles.h100p]} */}
+                            {/* /> */}
+                            <Text>Uploading Attachment...</Text>
                         </View>
                     );
                 }
