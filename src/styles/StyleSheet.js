@@ -211,17 +211,17 @@ const styles = {
         color: colors.text,
         fontFamily: fontFamily.GTA,
         fontSize: 15,
-        padding: 12,
+        paddingLeft: 12,
+        paddingRight: 12,
+        paddingTop: 10,
+        paddingBottom: 10,
         textAlignVertical: 'center',
     },
 
     textInputReversed: {
         backgroundColor: colors.heading,
-        borderRadius: 8,
         borderColor: colors.text,
-        borderWidth: 1,
         color: colors.textReversed,
-        padding: 12,
         outlineWidth: 0,
     },
 
