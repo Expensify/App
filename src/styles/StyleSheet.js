@@ -349,7 +349,6 @@ const styles = {
         flexGrow: 100,
         scrollbarWidth: 'none',
         overflow: 'scroll',
-        paddingTop: 4,
         paddingBottom: 4,
         paddingLeft: 12,
         paddingRight: 12,
@@ -369,6 +368,7 @@ const styles = {
         height: 40,
         justifyContent: 'center',
         textDecorationLine: 'none',
+        backgroundColor: colors.heading,
     },
 
     sidebarLink: {
