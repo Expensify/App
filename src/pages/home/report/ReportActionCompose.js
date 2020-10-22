@@ -10,6 +10,7 @@ import paperClipIcon from '../../../../assets/images/icon-paper-clip.png';
 import ImagePicker from '../../../libs/ImagePicker';
 import withIon from '../../../components/withIon';
 import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs/actions/Report';
+import TextInputWithAttachments from '../../../components/TextInputWithAttachments';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -143,12 +144,26 @@ class ReportActionCompose extends React.Component {
                 return;
             }
 
-            addAction(this.props.reportID, '', ImagePicker.getDataForUpload(response));
-            this.textInput.focus();
+            const file = ImagePicker.getDataForUpload(response);
+            this.textInput.setInlineAttachment(file);
+            // addAction(this.props.reportID, '', ImagePicker.getDataForUpload(response));
+            // this.textInput.focus();
         });
     }
 
     render() {
+        return (
+            <View style={[styles.chatItemCompose]}>
+                <TextInputWithAttachments
+                    ref={el => this.textInput = el}
+                    isFocused={this.state.isFocused}
+                    onFocus={() => this.setIsFocused(true)}
+                    onBlur={() => this.setIsFocused(false)}
+                    onAttachButtonPress={this.showAttachmentPicker}
+                />
+            </View>
+        );
+
         return (
             <View style={[styles.chatItemCompose]}>
                 <View style={[
