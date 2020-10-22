@@ -6,22 +6,22 @@ import DocumentPicker from 'react-native-document-picker';
 
 const AttachmentPicker = {};
 
+/**
+ * See https://github.com/react-native-community/react-native-image-picker/blob/master/docs/Reference.md#options
+ * for option definitions
+ */
+const ImagePickerOptions = {
+    customButtons: [{name: 'Document', title: 'Choose Document'}],
+    storageOptions: {
+        skipBackup: true,
+    },
+}
+
 AttachmentPicker.showPicker = function (callback) {
     // TODO: Make into a promise?
 
-    /**
-     * See https://github.com/react-native-community/react-native-image-picker/blob/master/docs/Reference.md#options
-     * for option definitions
-     */
-    const options = {
-        customButtons: [{name: 'Document', title: 'Choose Document'}],
-        storageOptions: {
-            skipBackup: true,
-        },
-    };
-
     // We display the ImagePicker first, as the custom document choice is displayed as a custom ImagePicker option.
-    RNImagePicker.showImagePicker(options, (response) => {
+    RNImagePicker.showImagePicker(ImagePickerOptions, (response) => {
         if (response.customButton) {
             this.showDocumentPicker();
         } else {
