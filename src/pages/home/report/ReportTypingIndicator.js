@@ -1,5 +1,5 @@
 import React from 'react';
-import {Text} from 'react-native';
+import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import compose from '../../../libs/compose';
@@ -57,7 +57,7 @@ const ReportTypingIndicator = ({userTypingStatuses}) => {
     const usersTyping = getUsersTyping();
     const usersTypingText = getUsersTypingText(usersTyping);
     return (
-        <Text style={[styles.typingIndicator]}>
+        <View style={[styles.typingIndicator]}>
             {!_.isEmpty(usersTyping) && (
                 <Text style={[styles.typingIndicatorSubText]}>
                     {usersTypingText}
@@ -65,7 +65,7 @@ const ReportTypingIndicator = ({userTypingStatuses}) => {
                     typing...
                 </Text>
             )}
-        </Text>
+        </View>
     );
 };
 
