@@ -18,53 +18,42 @@ const defaultProps = {
 };
 
 const ReportTypingIndicator = ({userTypingStatuses}) => {
-    /**
-     * Get an array with the logins of the users that are currently typing.
-     *
-     * @returns {string[]}
-     */
-    function getUsersTyping() {
-        return Object.keys(userTypingStatuses || {})
-            .filter(login => userTypingStatuses[login] === true);
+    // Get an array with the logins of the users that are currently typing.
+    const usersTyping = Object.keys(userTypingStatuses || {})
+        .filter(login => userTypingStatuses[login] === true);
+    const numUsersTyping = _.size(usersTyping);
+
+    // Return an empty view if no one is typing.
+    if (numUsersTyping === 0) {
+        return <View style={[styles.typingIndicator]} />;
     }
 
-    /**
-     * Get the Text element that will hold the display for the users that are typing.
-     *
-     * @param {string[]} usersTyping
-     * @returns {JSX.Element}
-     */
-    function getUsersTypingText(usersTyping) {
-        if (_.size(usersTyping) === 1) {
-            return <Text style={[styles.textStrong]}>{getDisplayName(usersTyping[0])}</Text>;
-        }
-
-        if (_.size(usersTyping) === 2) {
-            return (
+    // Decide on the Text element that will hold the display for the users that are typing.
+    let usersTypingText;
+    switch (numUsersTyping) {
+        case 1:
+            usersTypingText = <Text style={[styles.textStrong]}>{getDisplayName(usersTyping[0])}</Text>;
+            break;
+        case 2:
+            usersTypingText = (
                 <Text>
                     <Text style={[styles.textStrong]}>{getDisplayName(usersTyping[0])}</Text>
                     {' and '}
                     <Text style={[styles.textStrong]}>{getDisplayName(usersTyping[1])}</Text>
                 </Text>
             );
-        }
-
-        if (_.size(usersTyping) > 2) {
-            return <Text style={[styles.textStrong]}>Multiple users</Text>;
-        }
+            break;
+        default:
+            usersTypingText = <Text style={[styles.textStrong]}>Multiple users</Text>;
     }
 
-    const usersTyping = getUsersTyping();
-    const usersTypingText = getUsersTypingText(usersTyping);
     return (
         <View style={[styles.typingIndicator]}>
-            {!_.isEmpty(usersTyping) && (
-                <Text style={[styles.typingIndicatorSubText]}>
-                    {usersTypingText}
-                    {_.size(usersTyping) > 1 ? ' are ' : ' is '}
-                    typing...
-                </Text>
-            )}
+            <Text style={[styles.typingIndicatorSubText]}>
+                {usersTypingText}
+                {_.size(usersTyping) > 1 ? ' are ' : ' is '}
+                typing...
+            </Text>
         </View>
     );
 };
