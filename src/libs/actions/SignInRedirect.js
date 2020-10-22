@@ -39,7 +39,8 @@ function redirectToSignIn(errorMessage) {
         return;
     }
 
-    // Save the reportID before calling redirect or otherwise when clear is finished the value saved here will already be null
+    // Save the reportID before calling redirect or otherwise when clear
+    // is finished the value saved here will already be null
     const reportID = currentlyViewedReportID;
 
     // When the URL is at the root of the site, go to sign-in, otherwise add the exitTo
