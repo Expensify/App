@@ -195,14 +195,16 @@ const styles = {
     },
 
     typingIndicator: {
-        height: 25,
+        height: 15,
+        marginBottom: 5,
+        marginTop: 5,
     },
 
     typingIndicatorSubText: {
         color: colors.textSupporting,
         fontFamily: fontFamily.GTA,
         fontSize: 11,
-        marginLeft: 45,
+        marginLeft: 48,
     },
 
     // Actions
