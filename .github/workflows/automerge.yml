@@ -36,6 +36,7 @@ jobs:
                         channel: '#announce',
                         attachments: [{
                           color: "#DB4545",
+                          pretext: `<!here>`,
                           text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
                         }]
                       }
