@@ -36,23 +36,3 @@ jobs:
             - run: npm run lint
               env:
                   CI: true
-
-            # These Slack steps are duplicated in all workflows, if you make a change to this step, make sure to update all
-            # the other workflows with the same changes
-            - uses: 8398a7/action-slack@v3
-              name: Job failed Slack notification
-              with:
-                  status: custom
-                  fields: workflow, repo
-                  custom_payload: |
-                      {
-                        channel: '#andrew-test',
-                        attachments: [{
-                          color: "#DB4545",
-                          text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
-                          pretext: `<!here>`,
-                        }]
-                      }
-              env:
-                  GITHUB_TOKEN: ${{ github.token }}
-                  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
