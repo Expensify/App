@@ -53,15 +53,15 @@ const mainWindow = (() => {
             });
 
             // List the Expensify Chat instance under the Window menu, even when it's hidden
-            const menu = Menu.getApplicationMenu();
-            const windowMenu = menu.items.find(item => item.role === 'windowmenu');
+            const systemMenu = Menu.getApplicationMenu();
+            const windowMenu = systemMenu.items.find(item => item.role === 'windowmenu');
             windowMenu.submenu.append(new MenuItem({type: 'separator'}));
             windowMenu.submenu.append(new MenuItem({
                 label: 'Expensify Chat',
                 accelerator: 'CmdOrCtrl+1',
                 click: () => browserWindow.show()
             }));
-            Menu.setApplicationMenu(menu);
+            Menu.setApplicationMenu(systemMenu);
 
             // When the user clicks a link that has target="_blank" (which is all external links)
             // open the default browser instead of a new electron window
