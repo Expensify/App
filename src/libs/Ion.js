@@ -349,7 +349,15 @@ function multiSet(data) {
  * @returns {Promise<void>}
  */
 function clear() {
-    return AsyncStorage.clear();
+    let allKeys;
+    return AsyncStorage.getAllKeys()
+        .then(keys => allKeys = keys)
+        .then(() => AsyncStorage.clear())
+        .then(() => {
+            _.each(allKeys, (key) => {
+                keyChanged(key, null);
+            });
+        });
 }
 
 /**
