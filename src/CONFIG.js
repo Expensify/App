@@ -14,7 +14,6 @@ export default {
         APP_KEY: Config.PUSHER_APP_KEY,
         CLUSTER: 'mt1',
     },
-    REPORT_IDS: Config.REPORT_IDS,
     SITE_TITLE: 'Chat',
     FAVICON: {
         DEFAULT: 'favicon.png',
