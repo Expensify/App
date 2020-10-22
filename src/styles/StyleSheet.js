@@ -211,17 +211,17 @@ const styles = {
         color: colors.text,
         fontFamily: fontFamily.GTA,
         fontSize: 15,
-        padding: 12,
+        paddingLeft: 12,
+        paddingRight: 12,
+        paddingTop: 10,
+        paddingBottom: 10,
         textAlignVertical: 'center',
     },
 
     textInputReversed: {
         backgroundColor: colors.heading,
-        borderRadius: 8,
         borderColor: colors.text,
-        borderWidth: 1,
         color: colors.textReversed,
-        padding: 12,
         outlineWidth: 0,
     },
 
@@ -349,7 +349,6 @@ const styles = {
         flexGrow: 100,
         scrollbarWidth: 'none',
         overflow: 'scroll',
-        paddingTop: 4,
         paddingBottom: 4,
         paddingLeft: 12,
         paddingRight: 12,
@@ -369,6 +368,7 @@ const styles = {
         height: 40,
         justifyContent: 'center',
         textDecorationLine: 'none',
+        backgroundColor: colors.heading,
     },
 
     sidebarLink: {

@@ -47,6 +47,17 @@ Ion.connect({
     callback: ionCredentials => credentials = ionCredentials,
 });
 
+// If we are ever being redirected to the sign in page, the user is currently unauthenticated, so we should clear the
+// network request queue, to prevent DDoSing our own API
+Ion.connect({
+    key: IONKEYS.APP_REDIRECT_TO,
+    callback: (redirectTo) => {
+        if (redirectTo && redirectTo.startsWith(ROUTES.SIGNIN)) {
+            networkRequestQueue = [];
+        }
+    }
+});
+
 /**
  * Does this command require an authToken?
  *
@@ -171,7 +182,6 @@ function request(command, parameters, type = 'post') {
     if (!authToken && isAuthTokenRequired(command)) {
         console.error('A request was made without an authToken', {command, parameters});
         reauthenticating = false;
-        networkRequestQueue = [];
         redirectToSignIn();
         return Promise.resolve();
     }
