@@ -11,7 +11,9 @@ const AttachmentPicker = {};
  * for ImagePicker configuration options
  */
 const ImagePickerOptions = {
-    title: 'Select an attachment',
+    title: 'Select an Attachment',
+    takePhotoButtonTitle: 'Take Photo',
+    chooseFromLibraryButtonTitle: 'Choose from Gallery',
     customButtons: [{name: 'Document', title: 'Choose Document'}],
     storageOptions: {
         skipBackup: true,
