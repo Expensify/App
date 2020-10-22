@@ -18,26 +18,27 @@ const ImagePickerOptions = {
     storageOptions: {
         skipBackup: true,
     },
-}
+};
 
 /**
  * See https://github.com/rnmods/react-native-document-picker#options for DocumentPicker configuration options
  */
 const DocumentPickerOptions = {
     type: [DocumentPicker.types.allFiles],
-}
+};
 
 /**
- * Launch the AttachmentPicker. We display the ImagePicker first, as the document option is displayed as a custom ImagePicker list item.
- * 
- * @param {Object} callback 
+ * Launch the AttachmentPicker. We display the ImagePicker first, as the document option is displayed as a
+ * custom ImagePicker list item.
+ *
+ * @param {Object} callback
  */
 AttachmentPicker.show = function (callback) {
     RNImagePicker.showImagePicker(ImagePickerOptions, (response) => {
         if (response.didCancel) {
             console.debug('User cancelled attachment selection');
         } else if (response.customButton) {
-            this._showDocumentPicker(callback);
+            this.showDocumentPicker(callback);
         } else {
             callback(response);
         }
@@ -45,14 +46,15 @@ AttachmentPicker.show = function (callback) {
 };
 
 /**
- * Launch the DocumentPicker. Results are in the same format as ImagePicker, so simply pass the repsonse to the callback.
- * 
- * @param {Object} callback 
+ * Launch the DocumentPicker. Results are in same format as ImagePicker, so we can pass the repsonse to the
+ * callback as is.
+ *
+ * @param {Object} callback
  */
-AttachmentPicker._showDocumentPicker = function (callback) {
+AttachmentPicker.showDocumentPicker = function (callback) {
     console.debug('Launching DocumentPicker');
 
-    DocumentPicker.pick(DocumentPickerOptions).then(results => {
+    DocumentPicker.pick(DocumentPickerOptions).then((results) => {
         callback(results);
     }).catch((error) => {
         if (DocumentPicker.isCancel(error)) {
