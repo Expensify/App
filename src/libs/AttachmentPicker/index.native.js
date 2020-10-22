@@ -23,7 +23,7 @@ AttachmentPicker.show = function (callback) {
     // We display the ImagePicker first, as the custom document choice is displayed as a custom ImagePicker option.
     RNImagePicker.showImagePicker(ImagePickerOptions, (response) => {
         if (response.customButton) {
-            this.showDocumentPicker(callback);
+            this._showDocumentPicker(callback);
         } else {
             console.debug('Falling back to callback: ', response.customButton); // TODO: remove this log
             callback(response);
@@ -31,7 +31,7 @@ AttachmentPicker.show = function (callback) {
     });
 };
 
-AttachmentPicker.showDocumentPicker = async function (callback) {
+AttachmentPicker._showDocumentPicker = async function (callback) {
     console.debug('Launching DocumentPicker');
 
     try {
