@@ -23,7 +23,7 @@ AttachmentPicker.showPicker = function (callback) {
     // We display the ImagePicker first, as the custom document choice is displayed as a custom ImagePicker option.
     RNImagePicker.showImagePicker(ImagePickerOptions, (response) => {
         if (response.customButton) {
-            this.showDocumentPicker();
+            this.showDocumentPicker(callback);
         } else {
             console.debug('Falling back to callback: ', response.customButton); // TODO: remove this log
             callback(response);
@@ -31,14 +31,14 @@ AttachmentPicker.showPicker = function (callback) {
     });
 };
 
-AttachmentPicker.showDocumentPicker = async function () {
-    console.debug('Launch DocumentPicker');
+AttachmentPicker.showDocumentPicker = async function (callback) {
+    console.debug('Launching DocumentPicker');
 
     try {
         const results = await DocumentPicker.pick({
             type: [DocumentPicker.types.allFiles],
         });
-        console.debug('Attachment selected: ' + results.uri, results.type, results.name, results.size);
+        callback(results);
     } catch (error) {
         if (DocumentPicker.isCancel(error)) {
             console.debug('User cancelled document selection');
