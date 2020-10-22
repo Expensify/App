@@ -200,8 +200,9 @@ const styles = {
 
     typingIndicatorSubText: {
         color: colors.textSupporting,
+        fontFamily: fontFamily.GTA,
         fontSize: 11,
-        paddingLeft: 10,
+        marginLeft: 45,
     },
 
     // Actions
