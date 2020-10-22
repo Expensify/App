@@ -6,13 +6,15 @@ import Ion from '../Ion';
 import * as API from '../API';
 import IONKEYS from '../../IONKEYS';
 import * as Pusher from '../Pusher/pusher';
-import Notification from '../Notification';
+import LocalNotification from '../Notification/LocalNotification';
+import PushNotification from '../Notification/PushNotification';
 import * as PersonalDetails from './PersonalDetails';
 import {redirect} from './App';
 import * as ActiveClientManager from '../ActiveClientManager';
 import Visibility from '../Visibility';
 import ROUTES from '../../ROUTES';
 import NetworkConnection from '../NetworkConnection';
+import {hide as hideSidebar} from './Sidebar';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -195,24 +197,24 @@ function updateReportWithNewAction(reportID, reportAction) {
     });
 
     if (!ActiveClientManager.isClientTheLeader()) {
-        console.debug('[NOTIFICATION] Skipping notification because this client is not the leader');
+        console.debug('[LOCAL_NOTIFICATION] Skipping notification because this client is not the leader');
         return;
     }
 
     // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
     if (reportAction.actorAccountID === currentUserAccountID) {
-        console.debug('[NOTIFICATION] No notification because comment is from the currently logged in user');
+        console.debug('[LOCAL_NOTIFICATION] No notification because comment is from the currently logged in user');
         return;
     }
 
     // If we are currently viewing this report do not show a notification.
     if (reportID === lastViewedReportID && Visibility.isVisible()) {
-        console.debug('[NOTIFICATION] No notification because it was a comment for the current report');
+        console.debug('[LOCAL_NOTIFICATION] No notification because it was a comment for the current report');
         return;
     }
 
-    console.debug('[NOTIFICATION] Creating notification');
-    Notification.showCommentNotification({
+    console.debug('[LOCAL_NOTIFICATION] Creating notification');
+    LocalNotification.showCommentNotification({
         reportAction,
         onClick: () => {
             // Navigate to this report onClick
@@ -247,6 +249,16 @@ function subscribeToReportCommentEvents() {
 
     Pusher.subscribe(pusherChannelName, 'reportComment', (pushJSON) => {
         updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
+    });
+
+    PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, reportAction}) => {
+        updateReportWithNewAction(reportID, reportAction);
+    });
+
+    // Open correct report when push notification is clicked
+    PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, ({reportID}) => {
+        redirect(ROUTES.getReportRoute(reportID));
+        hideSidebar();
     });
 }
 
@@ -296,7 +308,7 @@ function unsubscribeToReportTypingEvents(reportID) {
     }
 
     const pusherChannelName = getReportChannelName(reportID);
-    Ion.set(`${IONKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, []);
+    Ion.set(`${IONKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, {});
     Pusher.unsubscribe(pusherChannelName, 'client-userIsTyping');
 }
 

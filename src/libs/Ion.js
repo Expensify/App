@@ -24,7 +24,7 @@ const evictionBlocklist = {};
  * Get some data from the store
  *
  * @param {string} key
- * @returns {*}
+ * @returns {Promise<*>}
  */
 function get(key) {
     return AsyncStorage.getItem(key)
@@ -346,7 +346,7 @@ function multiSet(data) {
 /**
  * Clear out all the data in the store
  *
- * @returns {Promise}
+ * @returns {Promise<void>}
  */
 function clear() {
     return AsyncStorage.clear();

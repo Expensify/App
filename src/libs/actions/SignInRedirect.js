@@ -5,6 +5,7 @@ import {redirect} from './App';
 import * as Pusher from '../Pusher/pusher';
 import NetworkConnection from '../NetworkConnection';
 import UnreadIndicatorUpdater from '../UnreadIndicatorUpdater';
+import PushNotification from '../Notification/PushNotification';
 
 let currentURL;
 Ion.connect({
@@ -21,6 +22,7 @@ Ion.connect({
 function redirectToSignIn(errorMessage) {
     NetworkConnection.stopListeningForReconnect();
     UnreadIndicatorUpdater.stopListeningForReportChanges();
+    PushNotification.deregister();
     Pusher.disconnect();
     Ion.clear()
         .then(() => {

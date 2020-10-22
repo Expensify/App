@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Keyboard} from 'react-native';
+import {View, Keyboard, AppState} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
@@ -12,6 +12,7 @@ import styles from '../../../styles/StyleSheet';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import {lastItem} from '../../../libs/CollectionUtils';
+import Visibility from '../../../libs/Visibility';
 
 const propTypes = {
     // The ID of the report actions will be created for
@@ -52,6 +53,11 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidMount() {
+        this.visibilityChangeEvent = AppState.addEventListener('change', () => {
+            if (this.props.isActiveReport && Visibility.isVisible) {
+                setTimeout(this.recordMaxAction, 3000);
+            }
+        });
         if (this.props.isActiveReport) {
             this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
         }
@@ -78,7 +84,7 @@ class ReportActionsView extends React.Component {
 
             // When the number of actions change, wait three seconds, then record the max action
             // This will make the unread indicator go away if you receive comments in the same chat you're looking at
-            if (this.props.isActiveReport) {
+            if (this.props.isActiveReport && Visibility.isVisible()) {
                 setTimeout(this.recordMaxAction, 3000);
             }
 
@@ -101,6 +107,9 @@ class ReportActionsView extends React.Component {
     componentWillUnmount() {
         if (this.keyboardEvent) {
             this.keyboardEvent.remove();
+        }
+        if (this.visibilityChangeEvent) {
+            this.visibilityChangeEvent.remove();
         }
     }
 
