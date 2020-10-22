@@ -138,8 +138,9 @@ android {
         applicationId "com.expensify.chat"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 125
-        versionName "1.0.1-124"
+        multiDexEnabled rootProject.ext.multiDexEnabled
+        versionCode 140
+        versionName "1.0.1-139"
     }
     splits {
         abi {
@@ -226,6 +227,12 @@ dependencies {
 
     // Android support library
     implementation 'com.android.support:support-core-utils:28.0.0'
+
+    // Multi Dex Support: https://developer.android.com/studio/build/multidex#mdex-gradle
+    implementation 'com.android.support:multidex:1.0.3'
+
+    // Crashlytics
+    implementation 'com.google.firebase:firebase-crashlytics:17.2.2'
 }
 
 // Run this once to be able to run the application with BUCK
@@ -236,3 +243,10 @@ task copyDownloadableDepsToLibs(type: Copy) {
 }
 
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
+def googleServicesFile = rootProject.file('app/google-services.json')
+if (googleServicesFile.exists()) {
+    apply plugin: 'com.google.gms.google-services'  // Google Play services Gradle plugin
+}
+apply plugin: 'com.google.firebase.crashlytics'
+
+
