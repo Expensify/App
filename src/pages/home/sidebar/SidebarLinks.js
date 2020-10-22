@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import lodashOrderby from 'lodash.orderby';
@@ -87,7 +87,12 @@ class SidebarLinks extends React.Component {
                         onLinkClick={onLinkClick}
                     />
                 </View>
-                <View style={sidebarLinksStyle}>
+                <ScrollView
+                    style={sidebarLinksStyle}
+                    bounces={false}
+                    indicatorStyle="white"
+                    stickyHeaderIndices={[0]}
+                >
                     <View style={[styles.sidebarListItem]}>
                         <Text style={[styles.sidebarListHeader]}>
                             Chats
@@ -106,7 +111,7 @@ class SidebarLinks extends React.Component {
                             isPinned={report.isPinned}
                         />
                     ))}
-                </View>
+                </ScrollView>
             </View>
         );
     }
