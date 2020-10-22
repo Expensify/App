@@ -54,12 +54,12 @@ const mainWindow = (() => {
 
             // List the Expensify Chat instance under the Window menu, even when it's hidden
             const menu = Menu.getApplicationMenu();
-            windowMenu = menu.items.find((item) => item.role === "windowmenu");
-            windowMenu.submenu.append(new MenuItem({ type: 'separator' }));
+            const windowMenu = menu.items.find(item => item.role === 'windowmenu');
+            windowMenu.submenu.append(new MenuItem({type: 'separator'}));
             windowMenu.submenu.append(new MenuItem({
                 label: 'Expensify Chat',
                 accelerator: 'CmdOrCtrl+1',
-                click: () => { browserWindow.show() }
+                click: () => browserWindow.show()
             }));
             Menu.setApplicationMenu(menu);
 
