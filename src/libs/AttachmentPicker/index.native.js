@@ -1,5 +1,5 @@
 /**
- * The react native document picker already works for iOS/Android, so just export the imported document picker
+ * The react native image/document pickers work for iOS/Android, but we want to wrap them both within AttachmentPicker
  */
 import RNImagePicker from 'react-native-image-picker';
 import DocumentPicker from 'react-native-document-picker';
@@ -8,7 +8,7 @@ const AttachmentPicker = {};
 
 /**
  * See https://github.com/react-native-community/react-native-image-picker/blob/master/docs/Reference.md#options
- * for option definitions
+ * for ImagePicker configuration options
  */
 const ImagePickerOptions = {
     title: 'Select an attachment',
@@ -18,35 +18,47 @@ const ImagePickerOptions = {
     },
 }
 
-AttachmentPicker.show = function (callback) {
-    // TODO: Make into a promise?
+/**
+ * See https://github.com/rnmods/react-native-document-picker#options for DocumentPicker configuration options
+ */
+const DocumentPickerOptions = {
+    type: [DocumentPicker.types.allFiles],
+}
 
-    // We display the ImagePicker first, as the custom document choice is displayed as a custom ImagePicker option.
+/**
+ * Launch the AttachmentPicker. We display the ImagePicker first, as the document option is displayed as a custom ImagePicker list item.
+ * 
+ * @param {Object} callback 
+ */
+AttachmentPicker.show = function (callback) {
     RNImagePicker.showImagePicker(ImagePickerOptions, (response) => {
-        if (response.customButton) {
+        if (response.didCancel) {
+            console.debug('User cancelled attachment selection');
+        } else if (response.customButton) {
             this._showDocumentPicker(callback);
         } else {
-            console.debug('Falling back to callback: ', response.customButton); // TODO: remove this log
             callback(response);
         }
     });
 };
 
-AttachmentPicker._showDocumentPicker = async function (callback) {
+/**
+ * Launch the DocumentPicker. Results are in the same format as ImagePicker, so simply pass the repsonse to the callback.
+ * 
+ * @param {Object} callback 
+ */
+AttachmentPicker._showDocumentPicker = function (callback) {
     console.debug('Launching DocumentPicker');
 
-    try {
-        const results = await DocumentPicker.pick({
-            type: [DocumentPicker.types.allFiles],
-        });
+    DocumentPicker.pick(DocumentPickerOptions).then(results => {
         callback(results);
-    } catch (error) {
+    }).catch((error) => {
         if (DocumentPicker.isCancel(error)) {
             console.debug('User cancelled document selection');
         } else {
             throw error;
         }
-    }
+    });
 };
 
 /*

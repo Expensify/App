@@ -124,15 +124,6 @@ class ReportActionCompose extends React.Component {
         e.preventDefault();
 
         AttachmentPicker.show((response) => {
-            if (response.didCancel) {
-                return;
-            }
-
-            if (response.error) {
-                console.error(`Error occurred picking image: ${response.error}`);
-                return;
-            }
-
             console.debug(`Attachment selected: ${response.uri}, ${response.type}, ${response.name}, ${response.size}`);
 
             addAction(this.props.reportID, '', AttachmentPicker.getDataForUpload(response));
