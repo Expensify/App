@@ -686,6 +686,11 @@ const webViewStyles = {
         paddingBottom: 2,
         alignSelf: 'flex-start',
     },
+    blockquoteTagStyle: {
+        borderLeftColor: colors.border,
+        borderLeftWidth: 5,
+        paddingLeft: 5,
+    },
     tagStyles: {
         em: {
             fontFamily: fontFamily.GTA_ITALIC,
@@ -718,7 +723,7 @@ const webViewStyles = {
             borderColor: colors.border,
             borderRadius: 8,
             borderWidth: 1,
-        }
+        },
     },
 
     baseFontStyle: {

@@ -62,6 +62,14 @@ class ReportActionItemFragment extends React.PureComponent {
                     {children}
                 </InlineCodeBlock>
             ),
+            blockquote: (htmlAttribs, children, convertedCSSStyles, passProps) => (
+                <View
+                    key={passProps.key}
+                    style={webViewStyles.blockquoteTagStyle}
+                >
+                    {children}
+                </View>
+            ),
         };
     }
 
