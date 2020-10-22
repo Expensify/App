@@ -1,7 +1,7 @@
 // Implementation adapted from https://github.com/QuantumBA/foqum-react-native-document-picker/blob/master/web/index.js
 
 const AttachmentPicker = {
-    showPicker(callback) {
+    show(callback) {
         const input = document.createElement('input');
         input.type = 'file';
         input.onchange = function () {

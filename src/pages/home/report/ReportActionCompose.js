@@ -123,7 +123,7 @@ class ReportActionCompose extends React.Component {
     showAttachmentPicker(e) {
         e.preventDefault();
 
-        AttachmentPicker.showPicker((response) => {
+        AttachmentPicker.show((response) => {
             if (response.didCancel) {
                 return;
             }
