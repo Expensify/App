@@ -189,6 +189,12 @@ const styles = {
         fontWeight: '700'
     },
 
+    reportOptions: {
+        height: 40,
+        width: 30,
+        marginLeft: 8,
+    },
+
     navSubText: {
         color: colors.textSupporting,
         fontSize: 11,
