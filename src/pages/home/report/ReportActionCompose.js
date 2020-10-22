@@ -133,7 +133,7 @@ class ReportActionCompose extends React.Component {
                 return;
             }
 
-            console.info('Attachment selected: ' + response.uri, response.type, response.name, response.size);
+            console.debug(`Attachment selected: ${response.uri}, ${response.type}, ${response.name}, ${response.size}`);
 
             addAction(this.props.reportID, '', AttachmentPicker.getDataForUpload(response));
             this.textInput.focus();
