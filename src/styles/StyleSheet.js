@@ -148,6 +148,11 @@ const styles = {
         fontSize: 11,
     },
 
+    textStrong: {
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: '600',
+    },
+
     colorReversed: {
         color: colors.textReversed,
     },
@@ -189,9 +194,14 @@ const styles = {
         fontWeight: '700'
     },
 
-    navSubText: {
+    typingIndicator: {
+        height: 25,
+    },
+
+    typingIndicatorSubText: {
         color: colors.textSupporting,
         fontSize: 11,
+        paddingLeft: 10,
     },
 
     // Actions
@@ -551,7 +561,7 @@ const styles = {
 
     chatItemCompose: {
         minHeight: 65,
-        paddingBottom: 20,
+        marginBottom: 5,
         paddingLeft: 20,
         paddingRight: 20,
         display: 'flex',
