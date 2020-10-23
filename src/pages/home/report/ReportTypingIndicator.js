@@ -41,39 +41,40 @@ class ReportTypingIndicator extends React.Component {
     render() {
         const numUsersTyping = _.size(this.state.usersTyping);
 
-        // Return an empty view if no one is typing.
-        if (numUsersTyping === 0) {
-            return <View style={[styles.typingIndicator]} />;
-        }
-
-        // Decide on the Text element that will hold the display for the users that are typing.
-        let usersTypingText;
+        // Decide on the Text element that will hold the display based on the number of users that are typing.
         switch (numUsersTyping) {
+            case 0:
+                return <View style={[styles.typingIndicator]} />;
             case 1:
-                usersTypingText = <Text style={[styles.textStrong]}>{getDisplayName(this.state.usersTyping[0])}</Text>;
-                break;
-            case 2:
-                usersTypingText = (
-                    <Text>
-                        <Text style={[styles.textStrong]}>{getDisplayName(this.state.usersTyping[0])}</Text>
-                        {' and '}
-                        <Text style={[styles.textStrong]}>{getDisplayName(this.state.usersTyping[1])}</Text>
-                    </Text>
+                return (
+                    <View style={[styles.typingIndicator]}>
+                        <Text style={[styles.typingIndicatorSubText]}>
+                            <Text style={[styles.textStrong]}>{getDisplayName(this.state.usersTyping[0])}</Text>
+                            {' is typing...'}
+                        </Text>
+                    </View>
                 );
-                break;
+            case 2:
+                return (
+                    <View style={[styles.typingIndicator]}>
+                        <Text style={[styles.typingIndicatorSubText]}>
+                            <Text style={[styles.textStrong]}>{getDisplayName(this.state.usersTyping[0])}</Text>
+                            {' and '}
+                            <Text style={[styles.textStrong]}>{getDisplayName(this.state.usersTyping[1])}</Text>
+                            {' are typing...'}
+                        </Text>
+                    </View>
+                );
             default:
-                usersTypingText = <Text style={[styles.textStrong]}>Multiple users</Text>;
+                return (
+                    <View style={[styles.typingIndicator]}>
+                        <Text style={[styles.typingIndicatorSubText]}>
+                            <Text style={[styles.textStrong]}>Multiple users</Text>
+                            {' are typing...'}
+                        </Text>
+                    </View>
+                );
         }
-
-        return (
-            <View style={[styles.typingIndicator]}>
-                <Text style={[styles.typingIndicatorSubText]}>
-                    {usersTypingText}
-                    {numUsersTyping > 1 ? ' are ' : ' is '}
-                    typing...
-                </Text>
-            </View>
-        );
     }
 }
 
