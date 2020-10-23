@@ -76,6 +76,8 @@ class ChatSwitcherView extends React.Component {
         this.triggerOnFocusCallback = this.triggerOnFocusCallback.bind(this);
         this.updateSearch = this.updateSearch.bind(this);
         this.selectRow = this.selectRow.bind(this);
+        this.addUserToGroup = this.addUserToGroup.bind(this);
+        this.removeUserFromGroup = this.removeUserFromGroup.bind(this);
 
         this.state = {
             search: '',
@@ -83,6 +85,7 @@ class ChatSwitcherView extends React.Component {
             focusedIndex: 0,
             isLogoVisible: true,
             isClearButtonVisible: false,
+            groupUsers: [],
         };
     }
 
@@ -115,6 +118,34 @@ class ChatSwitcherView extends React.Component {
                 break;
             default:
         }
+    }
+
+    /**
+     * Adds a user to the groupUsers array and
+     * updates the options.
+     *
+     * @param {Object} option
+     */
+    addUserToGroup(option) {
+        this.setState(prevState => ({
+            groupUsers: [...prevState.groupUsers, option],
+        }), () => this.updateSearch(this.state.search));
+    }
+
+    /**
+     * Removes a user from the groupUsers array and
+     * updates the options.
+     *
+     * @param {Object} optionToRemove
+     */
+    removeUserFromGroup(optionToRemove) {
+        this.setState(prevState => ({
+            groupUsers: _.reduce(prevState.groupUsers, (users, option) => (
+                option.login === optionToRemove.login
+                    ? users
+                    : [...users, option]
+            ), []),
+        }), () => this.updateSearch(this.state.search));
     }
 
     /**
@@ -231,6 +262,13 @@ class ChatSwitcherView extends React.Component {
      */
     updateSearch(value) {
         if (value === '') {
+            if (this.state.groupUsers.length > 0) {
+                // If we have groupLogins we only want to reset the options not
+                // the entire state which would clear out the list of groupUsers
+                this.setState({options: [], search: ''});
+                return;
+            }
+
             this.reset(false);
             return;
         }
@@ -281,7 +319,11 @@ class ChatSwitcherView extends React.Component {
             }))
             .value();
 
-        const searchOptions = _.union(personalDetailOptions, reportOptions);
+        // If we have at least one group user then stop showing
+        // report options as we cannot add a report to a group DM
+        const searchOptions = this.state.groupUsers.length > 0
+            ? _.union(personalDetailOptions, reportOptions)
+            : personalDetailOptions;
 
         for (let i = 0; i < matchRegexes.length; i++) {
             if (matches.size < this.maxSearchResults) {
@@ -289,9 +331,13 @@ class ChatSwitcherView extends React.Component {
                     const option = searchOptions[j];
                     const valueToSearch = option.searchText.replace(new RegExp(/&nbsp;/g), '');
                     const isMatch = matchRegexes[i].test(valueToSearch);
+                    const isInGroupUsers = _.some(this.state.groupUsers, groupOption => (
+                        groupOption.login === option.login
+                    ));
 
                     // Make sure we don't include the same option twice (automatically handled be using a `Set`)
-                    if (isMatch) {
+                    // and that we filter out any users who are already in the Group DM list
+                    if (isMatch && !isInGroupUsers) {
                         matches.add(option);
                     }
 
@@ -326,12 +372,15 @@ class ChatSwitcherView extends React.Component {
                     onClearButtonClick={this.reset}
                     onFocus={this.triggerOnFocusCallback}
                     onKeyPress={this.handleKeyPress}
+                    groupUsers={this.state.groupUsers}
+                    onRemoveFromGroup={this.removeUserFromGroup}
                 />
 
                 <ChatSwitcherList
                     focusedIndex={this.state.focusedIndex}
                     options={this.state.options}
                     onSelectRow={this.selectRow}
+                    onAddToGroup={this.addUserToGroup}
                 />
             </>
         );
