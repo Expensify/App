@@ -66,7 +66,7 @@ const ChatSwitcherList = ({
                                 styles.mb2,
                                 styles.alignItemsCenter,
                                 styles.chatSwitcherItem,
-                                isUserRow ? styles.chatSwitcherItemUser : null,
+                                isUserRow ? styles.chatSwitcherItemLeft : null,
                             ]}
                         >
                             {
