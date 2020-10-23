@@ -19,6 +19,7 @@ const colors = {
     textReversed: '#FFFFFF',
     textSupporting: '#7D8B8F',
     red: '#E84A3B',
+    buttonBG: '#8A8A8A',
 };
 
 const styles = {
@@ -695,8 +696,26 @@ const styles = {
         padding: 12,
     },
 
+    chatSwitcherItemLeft: {
+        width: 220,
+    },
+
     chatSwitcherItemText: {
         color: colors.text,
+    },
+
+    chatSwitcherItemButton: {
+        backgroundColor: colors.buttonBG,
+        alignItems: 'center',
+        padding: 5,
+        justifyContent: 'center',
+        borderRadius: 5,
+    },
+
+    chatSwitcherItemButtonText: {
+        color: colors.componentBG,
+        fontSize: 13,
+        fontWeight: 'bold',
     },
 
     chatSwitcherItemFocused: {
