@@ -38,7 +38,7 @@ AttachmentPicker.show = function (callback) {
         if (response.didCancel) {
             console.debug('User cancelled attachment selection');
         } else if (response.customButton) {
-            this.showDocumentPicker(callback);
+            showDocumentPicker(callback);
         } else {
             callback(response);
         }
@@ -51,7 +51,7 @@ AttachmentPicker.show = function (callback) {
  *
  * @param {Object} callback
  */
-AttachmentPicker.showDocumentPicker = function (callback) {
+function showDocumentPicker(callback) {
     console.debug('Launching DocumentPicker');
 
     DocumentPicker.pick(DocumentPickerOptions).then((results) => {
