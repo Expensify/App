@@ -13,11 +13,12 @@ const propTypes = {
     defaultValue: PropTypes.string.isRequired,
 
     // A ref to forward to the text input
-    shouldClear: PropTypes.func.isRequired,
+    shouldClear: PropTypes.bool,
 };
 
 const defaultProps = {
     maxLines: -1,
+    shouldClear: false,
 };
 
 /**
@@ -39,9 +40,10 @@ class TextInputFocusable extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        console.log("Text Focused Input - componentDidUpdate - shouldClear: " + this.props.shouldClear);
         if (this.props.shouldClear) {
             this.textInput.clear();
-            this.updateNumberOfLines();
+            this.setState({numberOfLines: 1});
         }
         if (prevProps.defaultValue !== this.props.defaultValue) {
             this.updateNumberOfLines();

@@ -68,7 +68,10 @@ class ReportActionCompose extends React.Component {
      * @param {boolean} shouldClear
      */
     setTextInputShouldClear(shouldClear) {
-        this.setState({textInputShouldClear: shouldClear});
+        console.log("ReportActionCompose - setTextInputShouldClear - shouldClear: " + shouldClear);
+        if (this.state.textInputShouldClear !== shouldClear) {
+            this.setState({textInputShouldClear: shouldClear});
+        }
     }
 
     /**
@@ -87,7 +90,7 @@ class ReportActionCompose extends React.Component {
      * @param {string} newComment
      */
     updateComment(newComment) {
-        this.setTextInputShouldClear(false);
+        // this.setTextInputShouldClear(false);
         this.comment = newComment;
         this.debouncedSaveReportComment(newComment);
         this.debouncedBroadcastUserIsTyping();
@@ -124,8 +127,8 @@ class ReportActionCompose extends React.Component {
         }
 
         this.props.onSubmit(trimmedComment);
-        this.setTextInputShouldClear(true);
         this.updateComment('');
+        this.setTextInputShouldClear(true);
     }
 
     /**
@@ -162,6 +165,7 @@ class ReportActionCompose extends React.Component {
     }
 
     render() {
+        console.log("ReportActionCompose - render - shouldClear: " + this.state.textInputShouldClear);
         return (
             <View style={[styles.chatItemCompose]}>
                 <View style={[
