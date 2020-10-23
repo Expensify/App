@@ -9,7 +9,7 @@ import IONKEYS from '../../../IONKEYS';
 import paperClipIcon from '../../../../assets/images/icon-paper-clip.png';
 import ImagePicker from '../../../libs/ImagePicker';
 import withIon from '../../../components/withIon';
-import {addAction, saveReportComment} from '../../../libs/actions/Report';
+import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs/actions/Report';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -32,6 +32,7 @@ class ReportActionCompose extends React.Component {
 
         this.updateComment = this.updateComment.bind(this);
         this.debouncedSaveReportComment = _.debounce(this.debouncedSaveReportComment.bind(this), 1000, false);
+        this.debouncedBroadcastUserIsTyping = _.debounce(() => broadcastUserIsTyping(props.reportID), 100, true);
         this.submitForm = this.submitForm.bind(this);
         this.triggerSubmitShortcut = this.triggerSubmitShortcut.bind(this);
         this.submitForm = this.submitForm.bind(this);
@@ -89,6 +90,7 @@ class ReportActionCompose extends React.Component {
         this.setTextInputShouldClear(false);
         this.comment = newComment;
         this.debouncedSaveReportComment(newComment);
+        this.debouncedBroadcastUserIsTyping();
     }
 
     /**

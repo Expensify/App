@@ -139,8 +139,8 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled rootProject.ext.multiDexEnabled
-        versionCode 128
-        versionName "1.0.1-127"
+        versionCode 145
+        versionName "1.0.1-144"
     }
     splits {
         abi {
@@ -243,5 +243,10 @@ task copyDownloadableDepsToLibs(type: Copy) {
 }
 
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
-apply plugin: 'com.google.gms.google-services'
+def googleServicesFile = rootProject.file('app/google-services.json')
+if (googleServicesFile.exists()) {
+    apply plugin: 'com.google.gms.google-services'  // Google Play services Gradle plugin
+}
 apply plugin: 'com.google.firebase.crashlytics'
+
+
