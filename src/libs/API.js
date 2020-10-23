@@ -11,6 +11,7 @@ import guid from './guid';
 import redirectToSignIn from './actions/SignInRedirect';
 import PushNotification from './Notification/PushNotification';
 import getPlatform from './getPlatform';
+import {version} from '../../package.json';
 
 // Queue for network requests so we don't lose actions done by the user while offline
 let networkRequestQueue = [];
@@ -506,7 +507,7 @@ function logToServer(parameters) {
     const requestParams = {
         message: parameters.message,
         parameters: JSON.stringify(parameters.parameters || {}),
-        expensifyCashAppVersion: `expensifyCash[${getPlatform()}]`,
+        expensifyCashAppVersion: `expensifyCash[${getPlatform()}]${version}`,
     };
 
     // If we are logging something and have no email
