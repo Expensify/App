@@ -11,6 +11,9 @@ const propTypes = {
 
     // The default value of the comment box
     defaultValue: PropTypes.string.isRequired,
+
+    // A ref to forward to the text input
+    shouldClear: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -36,6 +39,10 @@ class TextInputFocusable extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        if (this.props.shouldClear) {
+            this.textInput.clear();
+            this.updateNumberOfLines();
+        }
         if (prevProps.defaultValue !== this.props.defaultValue) {
             this.updateNumberOfLines();
         }

@@ -38,7 +38,10 @@ class ReportActionCompose extends React.Component {
         this.showAttachmentPicker = this.showAttachmentPicker.bind(this);
         this.setIsFocused = this.setIsFocused.bind(this);
         this.comment = '';
-        this.state = {isFocused: false};
+        this.state = {
+            isFocused: false,
+            textInputShouldClear: false
+        };
     }
 
     componentDidUpdate(prevProps) {
@@ -59,6 +62,15 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
+     * Updates the should clear state of the composer
+     *
+     * @param {boolean} shouldClear
+     */
+    setTextInputShouldClear(shouldClear) {
+        this.setState({textInputShouldClear: shouldClear});
+    }
+
+    /**
      * Save our report comment in Ion. We debounce this method in the constructor so that it's not called too often
      * to update Ion and re-render this component.
      *
@@ -74,6 +86,7 @@ class ReportActionCompose extends React.Component {
      * @param {string} newComment
      */
     updateComment(newComment) {
+        this.setTextInputShouldClear(false);
         this.comment = newComment;
         this.debouncedSaveReportComment(newComment);
     }
@@ -109,7 +122,7 @@ class ReportActionCompose extends React.Component {
         }
 
         this.props.onSubmit(trimmedComment);
-        this.textInputFocusable.clearContents();
+        this.setTextInputShouldClear(true);
         this.updateComment('');
     }
 
@@ -179,6 +192,7 @@ class ReportActionCompose extends React.Component {
                         maxLines={16} // This is the same that slack has
                         onFocus={() => this.setIsFocused(true)}
                         onBlur={() => this.setIsFocused(false)}
+                        shouldClear={this.state.textInputShouldClear}
                     />
                     <TouchableOpacity
                         style={[styles.chatItemSubmitButton, styles.buttonSuccess]}
