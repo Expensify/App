@@ -6,13 +6,15 @@ import Ion from '../Ion';
 import * as API from '../API';
 import IONKEYS from '../../IONKEYS';
 import * as Pusher from '../Pusher/pusher';
-import Notification from '../Notification';
+import LocalNotification from '../Notification/LocalNotification';
+import PushNotification from '../Notification/PushNotification';
 import * as PersonalDetails from './PersonalDetails';
 import {redirect} from './App';
 import * as ActiveClientManager from '../ActiveClientManager';
 import Visibility from '../Visibility';
 import ROUTES from '../../ROUTES';
 import NetworkConnection from '../NetworkConnection';
+import {hide as hideSidebar} from './Sidebar';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -44,6 +46,8 @@ Ion.connect({
     key: IONKEYS.MY_PERSONAL_DETAILS,
     callback: val => myPersonalDetails = val,
 });
+
+const typingWatchTimers = {};
 
 // Keeps track of the max sequence number for each report
 const reportMaxSequenceNumbers = {};
@@ -193,30 +197,40 @@ function updateReportWithNewAction(reportID, reportAction) {
     });
 
     if (!ActiveClientManager.isClientTheLeader()) {
-        console.debug('[NOTIFICATION] Skipping notification because this client is not the leader');
+        console.debug('[LOCAL_NOTIFICATION] Skipping notification because this client is not the leader');
         return;
     }
 
     // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
     if (reportAction.actorAccountID === currentUserAccountID) {
-        console.debug('[NOTIFICATION] No notification because comment is from the currently logged in user');
+        console.debug('[LOCAL_NOTIFICATION] No notification because comment is from the currently logged in user');
         return;
     }
 
     // If we are currently viewing this report do not show a notification.
     if (reportID === lastViewedReportID && Visibility.isVisible()) {
-        console.debug('[NOTIFICATION] No notification because it was a comment for the current report');
+        console.debug('[LOCAL_NOTIFICATION] No notification because it was a comment for the current report');
         return;
     }
 
-    console.debug('[NOTIFICATION] Creating notification');
-    Notification.showCommentNotification({
+    console.debug('[LOCAL_NOTIFICATION] Creating notification');
+    LocalNotification.showCommentNotification({
         reportAction,
         onClick: () => {
             // Navigate to this report onClick
             redirect(ROUTES.getReportRoute(reportID));
         }
     });
+}
+
+/**
+ * Get the private pusher channel name for a Report.
+ *
+ * @param {number} reportID
+ * @returns {string}
+ */
+function getReportChannelName(reportID) {
+    return `private-report-reportID-${reportID}`;
 }
 
 /**
@@ -236,6 +250,66 @@ function subscribeToReportCommentEvents() {
     Pusher.subscribe(pusherChannelName, 'reportComment', (pushJSON) => {
         updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
     });
+
+    PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, reportAction}) => {
+        updateReportWithNewAction(reportID, reportAction);
+    });
+
+    // Open correct report when push notification is clicked
+    PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, ({reportID}) => {
+        redirect(ROUTES.getReportRoute(reportID));
+        hideSidebar();
+    });
+}
+
+/**
+ * Initialize our pusher subscriptions to listen for someone typing in a report.
+ *
+ * @param {number} reportID
+ */
+function subscribeToReportTypingEvents(reportID) {
+    if (!reportID) {
+        return;
+    }
+
+    const pusherChannelName = getReportChannelName(reportID);
+
+    // Typing status is an object with the shape {[login]: Boolean} (e.g. {yuwen@expensify.com: true}), where the value
+    // is whether the user with that login is typing on the report or not.
+    Pusher.subscribe(pusherChannelName, 'client-userIsTyping', (typingStatus) => {
+        const login = _.first(_.keys(typingStatus));
+        if (!login) {
+            return;
+        }
+
+        // Use a combo of the reportID and the login as a key for holding our timers.
+        const reportUserIdentifier = `${reportID}-${login}`;
+        clearTimeout(typingWatchTimers[reportUserIdentifier]);
+        Ion.merge(`${IONKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, typingStatus);
+
+        // Wait for 1.5s of no additional typing events before setting the status back to false.
+        typingWatchTimers[reportUserIdentifier] = setTimeout(() => {
+            const typingStoppedStatus = {};
+            typingStoppedStatus[login] = false;
+            Ion.merge(`${IONKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, typingStoppedStatus);
+            delete typingWatchTimers[reportUserIdentifier];
+        }, 1500);
+    });
+}
+
+/**
+ * Remove our pusher subscriptions to listen for someone typing in a report.
+ *
+ * @param {number} reportID
+ */
+function unsubscribeToReportTypingEvents(reportID) {
+    if (!reportID) {
+        return;
+    }
+
+    const pusherChannelName = getReportChannelName(reportID);
+    Ion.set(`${IONKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, {});
+    Pusher.unsubscribe(pusherChannelName, 'client-userIsTyping');
 }
 
 /**
@@ -493,6 +567,18 @@ function saveReportComment(reportID, comment) {
 }
 
 /**
+ * Broadcasts whether or not a user is typing on a report over the report's private pusher channel.
+ *
+ * @param {number} reportID
+ */
+function broadcastUserIsTyping(reportID) {
+    const privateReportChannelName = getReportChannelName(reportID);
+    const typingStatus = {};
+    typingStatus[currentUserEmail] = true;
+    Pusher.sendEvent(privateReportChannelName, 'client-userIsTyping', typingStatus);
+}
+
+/**
  * When a report changes in Ion, this fetches the report from the API if the report doesn't have a name
  * and it keeps track of the max sequence number on the report actions.
  *
@@ -512,6 +598,7 @@ function handleReportChanged(report) {
     // Store the max sequence number for each report
     reportMaxSequenceNumbers[report.reportID] = report.maxSequenceNumber;
 }
+
 Ion.connect({
     key: IONKEYS.COLLECTION.REPORT,
     callback: handleReportChanged
@@ -530,6 +617,9 @@ export {
     addAction,
     updateLastReadActionID,
     subscribeToReportCommentEvents,
+    subscribeToReportTypingEvents,
+    unsubscribeToReportTypingEvents,
     saveReportComment,
+    broadcastUserIsTyping,
     togglePinnedState,
 };

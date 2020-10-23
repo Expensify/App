@@ -23,6 +23,6 @@ module.exports = {
     files: [
         './dist/**/*',
         './main.js',
-        './desktop/ELECTRON_EVENTS.js',
+        './desktop/*.js',
     ]
 };

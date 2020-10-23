@@ -5,11 +5,17 @@ import {redirect} from './App';
 import * as Pusher from '../Pusher/pusher';
 import NetworkConnection from '../NetworkConnection';
 import UnreadIndicatorUpdater from '../UnreadIndicatorUpdater';
+import PushNotification from '../Notification/PushNotification';
 
 let currentURL;
 Ion.connect({
     key: IONKEYS.CURRENT_URL,
     callback: val => currentURL = val,
+});
+let currentlyViewedReportID;
+Ion.connect({
+    key: IONKEYS.CURRENTLY_VIEWED_REPORTID,
+    callback: val => currentlyViewedReportID = val,
 });
 
 /**
@@ -21,13 +27,8 @@ Ion.connect({
 function redirectToSignIn(errorMessage) {
     NetworkConnection.stopListeningForReconnect();
     UnreadIndicatorUpdater.stopListeningForReportChanges();
+    PushNotification.deregister();
     Pusher.disconnect();
-    Ion.clear()
-        .then(() => {
-            if (errorMessage) {
-                Ion.set(IONKEYS.SESSION, {error: errorMessage});
-            }
-        });
 
     if (!currentURL) {
         return;
@@ -38,11 +39,22 @@ function redirectToSignIn(errorMessage) {
         return;
     }
 
+    // Save the reportID before calling redirect or otherwise when clear is finished the value saved here will already be null
+    const reportID = currentlyViewedReportID;
+
     // When the URL is at the root of the site, go to sign-in, otherwise add the exitTo
     const urlWithExitTo = currentURL === ROUTES.ROOT
         ? ROUTES.SIGNIN
         : ROUTES.getSigninWithExitToRoute(currentURL);
     redirect(urlWithExitTo);
+    Ion.clear().then(() => {
+        if (errorMessage) {
+            Ion.set(IONKEYS.SESSION, {error: errorMessage});
+        }
+        if (reportID) {
+            Ion.set(IONKEYS.CURRENTLY_VIEWED_REPORTID, reportID);
+        }
+    });
 }
 
 export default redirectToSignIn;
