@@ -28,26 +28,6 @@ const DocumentPickerOptions = {
 };
 
 /**
- * Launch the AttachmentPicker. We display the ImagePicker first, as the document option is displayed as a
- * custom ImagePicker list item.
- *
- * @param {Object} callback
- */
-AttachmentPicker.show = function (callback) {
-    RNImagePicker.showImagePicker(ImagePickerOptions, (response) => {
-        if (response.didCancel) {
-            console.debug('User cancelled attachment selection');
-        } else if (response.error) {
-            console.error(`Error during attachment selection: ${response.error}`);
-        } else if (response.customButton) {
-            showDocumentPicker(callback);
-        } else {
-            callback(response);
-        }
-    });
-};
-
-/**
  * Launch the DocumentPicker. Results are in same format as ImagePicker, so we can pass the repsonse to the
  * callback as is.
  *
@@ -63,6 +43,26 @@ function showDocumentPicker(callback) {
             console.debug('User cancelled document selection');
         } else {
             throw error;
+        }
+    });
+}
+
+/**
+ * Launch the AttachmentPicker. We display the ImagePicker first, as the document option is displayed as a
+ * custom ImagePicker list item.
+ *
+ * @param {Object} callback
+ */
+AttachmentPicker.show = function (callback) {
+    RNImagePicker.showImagePicker(ImagePickerOptions, (response) => {
+        if (response.didCancel) {
+            console.debug('User cancelled attachment selection');
+        } else if (response.error) {
+            console.error(`Error during attachment selection: ${response.error}`);
+        } else if (response.customButton) {
+            showDocumentPicker(callback);
+        } else {
+            callback(response);
         }
     });
 };
