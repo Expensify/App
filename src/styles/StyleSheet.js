@@ -190,8 +190,6 @@ const styles = {
     },
 
     reportOptions: {
-        height: 40,
-        width: 30,
         marginLeft: 8,
     },
 
