@@ -506,7 +506,7 @@ function logToServer(parameters) {
     const requestParams = {
         message: parameters.message,
         parameters: JSON.stringify(parameters.parameters || {}),
-        expensifyCashAppVersion: `${getPlatform()}`,
+        expensifyCashAppVersion: `expensifyCash[${getPlatform()}]`,
     };
 
     // If we are logging something and have no email
