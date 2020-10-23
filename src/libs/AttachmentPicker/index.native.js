@@ -37,6 +37,8 @@ AttachmentPicker.show = function (callback) {
     RNImagePicker.showImagePicker(ImagePickerOptions, (response) => {
         if (response.didCancel) {
             console.debug('User cancelled attachment selection');
+        } else if (response.error) {
+            console.error(`Error during attachment selection: ${response.error}`);
         } else if (response.customButton) {
             showDocumentPicker(callback);
         } else {
