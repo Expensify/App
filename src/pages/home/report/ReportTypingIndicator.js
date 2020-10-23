@@ -17,46 +17,65 @@ const defaultProps = {
     userTypingStatuses: {},
 };
 
-const ReportTypingIndicator = ({userTypingStatuses}) => {
-    // Get an array with the logins of the users that are currently typing.
-    const usersTyping = Object.keys(userTypingStatuses || {})
-        .filter(login => userTypingStatuses[login] === true);
-    const numUsersTyping = _.size(usersTyping);
+class ReportTypingIndicator extends React.Component {
+    constructor(props) {
+        super(props);
 
-    // Return an empty view if no one is typing.
-    if (numUsersTyping === 0) {
-        return <View style={[styles.typingIndicator]} />;
+        const usersTyping = Object.keys(props.userTypingStatuses || {})
+            .filter(login => props.userTypingStatuses[login]);
+        this.state = {usersTyping};
     }
 
-    // Decide on the Text element that will hold the display for the users that are typing.
-    let usersTypingText;
-    switch (numUsersTyping) {
-        case 1:
-            usersTypingText = <Text style={[styles.textStrong]}>{getDisplayName(usersTyping[0])}</Text>;
-            break;
-        case 2:
-            usersTypingText = (
-                <Text>
-                    <Text style={[styles.textStrong]}>{getDisplayName(usersTyping[0])}</Text>
-                    {' and '}
-                    <Text style={[styles.textStrong]}>{getDisplayName(usersTyping[1])}</Text>
+    componentDidUpdate(prevProps) {
+        // Make sure we only update the state if there's been a change in who's typing.
+        if (!_.isEqual(prevProps.userTypingStatuses, this.props.userTypingStatuses)) {
+            const usersTyping = Object.keys(this.props.userTypingStatuses || {})
+                .filter(login => this.props.userTypingStatuses[login]);
+
+            // Suppressing because this is within a conditional, and hence we won't run into an infinite loop
+            // eslint-disable-next-line react/no-did-update-set-state
+            this.setState({usersTyping});
+        }
+    }
+
+    render() {
+        const numUsersTyping = _.size(this.state.usersTyping);
+
+        // Return an empty view if no one is typing.
+        if (numUsersTyping === 0) {
+            return <View style={[styles.typingIndicator]} />;
+        }
+
+        // Decide on the Text element that will hold the display for the users that are typing.
+        let usersTypingText;
+        switch (numUsersTyping) {
+            case 1:
+                usersTypingText = <Text style={[styles.textStrong]}>{getDisplayName(this.state.usersTyping[0])}</Text>;
+                break;
+            case 2:
+                usersTypingText = (
+                    <Text>
+                        <Text style={[styles.textStrong]}>{getDisplayName(this.state.usersTyping[0])}</Text>
+                        {' and '}
+                        <Text style={[styles.textStrong]}>{getDisplayName(this.state.usersTyping[1])}</Text>
+                    </Text>
+                );
+                break;
+            default:
+                usersTypingText = <Text style={[styles.textStrong]}>Multiple users</Text>;
+        }
+
+        return (
+            <View style={[styles.typingIndicator]}>
+                <Text style={[styles.typingIndicatorSubText]}>
+                    {usersTypingText}
+                    {numUsersTyping > 1 ? ' are ' : ' is '}
+                    typing...
                 </Text>
-            );
-            break;
-        default:
-            usersTypingText = <Text style={[styles.textStrong]}>Multiple users</Text>;
+            </View>
+        );
     }
-
-    return (
-        <View style={[styles.typingIndicator]}>
-            <Text style={[styles.typingIndicatorSubText]}>
-                {usersTypingText}
-                {_.size(usersTyping) > 1 ? ' are ' : ' is '}
-                typing...
-            </Text>
-        </View>
-    );
-};
+}
 
 ReportTypingIndicator.propTypes = propTypes;
 ReportTypingIndicator.defaultProps = defaultProps;
