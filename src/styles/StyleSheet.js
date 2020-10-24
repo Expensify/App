@@ -719,6 +719,25 @@ const styles = {
         marginRight: 1,
     },
 
+    chatSwitcherMessage: {
+        paddingLeft: 12,
+        paddingRight: 12,
+    },
+
+    chatSwitcherMessageTextHeader: {
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: '700',
+        fontSize: 13,
+        color: colors.componentBG,
+        marginBottom: 4,
+    },
+
+    chatSwitcherMessageTextBody: {
+        fontFamily: fontFamily.GTA,
+        fontSize: 11,
+        color: colors.icon,
+    },
+
     hamburgerOpenAbsolute: {
         position: 'absolute',
         left: 0,
