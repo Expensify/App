@@ -78,7 +78,7 @@ class ChatSwitcherView extends React.Component {
         this.selectRow = this.selectRow.bind(this);
         this.addUserToGroup = this.addUserToGroup.bind(this);
         this.removeUserFromGroup = this.removeUserFromGroup.bind(this);
-
+        this.startGroupChat = this.startGroupChat.bind(this);
         this.state = {
             search: '',
             options: [],
@@ -149,6 +149,16 @@ class ChatSwitcherView extends React.Component {
     }
 
     /**
+     * Begins the group
+     */
+    startGroupChat() {
+        const userLogins = _.map(this.state.groupUsers, option => option.login);
+        fetchOrCreateChatReport([this.props.session.email, ...userLogins]);
+        this.props.onLinkClick();
+        this.reset();
+    }
+
+    /**
      * Fetch the chat report and then redirect to the new report
      *
      * @param {object} option
@@ -184,6 +194,7 @@ class ChatSwitcherView extends React.Component {
             focusedIndex: 0,
             isLogoVisible: blurAfterReset,
             isClearButtonVisible: !blurAfterReset,
+            groupUsers: [],
         }, () => {
             if (blurAfterReset) {
                 this.textInput.blur();
@@ -374,6 +385,7 @@ class ChatSwitcherView extends React.Component {
                     onKeyPress={this.handleKeyPress}
                     groupUsers={this.state.groupUsers}
                     onRemoveFromGroup={this.removeUserFromGroup}
+                    onConfirmUsers={this.startGroupChat}
                 />
 
                 <ChatSwitcherList
