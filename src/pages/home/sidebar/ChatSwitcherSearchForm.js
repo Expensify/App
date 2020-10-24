@@ -57,18 +57,7 @@ const ChatSwitcherSearchForm = props => (
         {props.groupUsers.length > 0 && (
             <View
                 style={[
-                    styles.flexRow,
-                    styles.flexWrap,
-                    {
-                        borderRadius: 8,
-                        borderWidth: 1,
-                        borderColor: colors.textSupporting,
-                        paddingLeft: 12,
-                        paddingTop: 6,
-                        paddingRight: 5,
-                        paddingBottom: 5.5,
-                        marginBottom: 4,
-                    }
+                    styles.chatSwitcherUserPillContainer,
                 ]}
             >
                 {_.map(props.groupUsers, user => (
