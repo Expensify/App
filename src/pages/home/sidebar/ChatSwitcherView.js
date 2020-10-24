@@ -240,7 +240,7 @@ class ChatSwitcherView extends React.Component {
     handleKeyPress(e) {
         let newFocusedIndex;
 
-        switch (e.key) {
+        switch (e.nativeEvent.key) {
             case 'Enter':
                 // Pass the option to the selectRow method which
                 // will fire the correct callback for the option type.
