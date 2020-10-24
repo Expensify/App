@@ -1,6 +1,11 @@
 import _ from 'underscore';
 import React from 'react';
-import {Image, TouchableOpacity, View, Text} from 'react-native';
+import {
+    Image,
+    TouchableOpacity,
+    View,
+    Text
+} from 'react-native';
 import PropTypes from 'prop-types';
 import styles, {colors} from '../../../styles/StyleSheet';
 import logoCircle from '../../../../assets/images/expensify-logo-round.png';
@@ -53,74 +58,88 @@ const defaultProps = {
 };
 
 const ChatSwitcherSearchForm = props => (
-    <>
-        {props.groupUsers.length > 0 && (
-            <View
-                style={[
-                    styles.chatSwitcherUserPillContainer,
-                ]}
-            >
-                {_.map(props.groupUsers, user => (
-                    <View
-                        key={user.login}
-                        style={[styles.mb1, styles.mr1]}
-                    >
-                        <PillWithCancelButton
-                            text={getDisplayName(user.login)}
-                            onCancel={() => props.onRemoveFromGroup(user)}
-                        />
-                    </View>
-                ))}
-                <View style={[styles.flex1, styles.flexRow, styles.flexJustifyEnd]}>
-                    <TouchableOpacity
-                        style={[styles.button, styles.buttonSmall, styles.buttonSuccess]}
-                        onPress={props.onConfirmUsers}
-                        underlayColor={colors.componentBG}
-                    >
-                        <Text style={[styles.buttonText, styles.buttonSuccessText]}>Go</Text>
-                    </TouchableOpacity>
-                </View>
+    <View style={[styles.flexRow, styles.mb4]}>
+        {props.isLogoVisible && (
+            <View style={[styles.mr2, styles.ml2]}>
+                <Image
+                    resizeMode="contain"
+                    style={[styles.sidebarHeaderLogo]}
+                    source={logoCircle}
+                />
             </View>
         )}
-        <View style={[styles.flexRow, styles.mb4]}>
-            {props.isLogoVisible && (
-                <View style={[styles.mr2, styles.ml2]}>
-                    <Image
-                        resizeMode="contain"
-                        style={[styles.sidebarHeaderLogo]}
-                        source={logoCircle}
-                    />
-                </View>
-            )}
 
-            <TextInputWithFocusStyles
-                styleFocusIn={[styles.textInputReversedFocus]}
-                ref={props.forwardedRef}
-                style={[styles.textInput, styles.textInputReversed, styles.flex1, styles.mr2]}
-                value={props.searchValue}
-                onBlur={props.onBlur}
-                onChangeText={props.onChangeText}
-                onFocus={props.onFocus}
-                onKeyPress={props.onKeyPress}
-                placeholder="Find or start a chat"
-                placeholderTextColor={colors.icon}
-            />
-
-            {props.isClearButtonVisible && (
-                <TouchableOpacity
-                    style={[styles.chatSwitcherInputClear]}
-                    onPress={props.onClearButtonClick}
-                    underlayColor={colors.componentBG}
+        {props.groupUsers.length > 0
+            ? (
+                <View
+                    style={[
+                        styles.chatSwitcherGroupDMContainer,
+                        styles.flex1,
+                    ]}
                 >
-                    <Image
-                        resizeMode="contain"
-                        style={[styles.chatSwitcherInputClearIcon]}
-                        source={iconX}
-                    />
-                </TouchableOpacity>
+                    {_.map(props.groupUsers, user => (
+                        <View
+                            key={user.login}
+                            style={[styles.mb1, styles.mr1]}
+                        >
+                            <PillWithCancelButton
+                                text={getDisplayName(user.login)}
+                                onCancel={() => props.onRemoveFromGroup(user)}
+                            />
+                        </View>
+                    ))}
+                    <View style={[styles.chatSwitcherInputGroup, styles.flexRow]}>
+                        <TextInputWithFocusStyles
+                            styleFocusIn={[styles.textInputReversedFocus]}
+                            ref={props.forwardedRef}
+                            style={[styles.chatSwitcherGroupDMTextInput, styles.textInputReversed]}
+                            value={props.searchValue}
+                            onBlur={props.onBlur}
+                            onChangeText={props.onChangeText}
+                            onFocus={props.onFocus}
+                            onKeyPress={props.onKeyPress}
+                        />
+                        <View style={[styles.flexJustifyEnd]}>
+                            <TouchableOpacity
+                                style={[styles.button, styles.buttonSmall, styles.buttonSuccess]}
+                                onPress={props.onConfirmUsers}
+                                underlayColor={colors.componentBG}
+                            >
+                                <Text style={[styles.buttonText, styles.buttonSuccessText]}>Go</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            )
+            : (
+                <TextInputWithFocusStyles
+                    styleFocusIn={[styles.textInputReversedFocus]}
+                    ref={props.forwardedRef}
+                    style={[styles.textInput, styles.textInputReversed, styles.flex1, styles.mr2]}
+                    value={props.searchValue}
+                    onBlur={props.onBlur}
+                    onChangeText={props.onChangeText}
+                    onFocus={props.onFocus}
+                    onKeyPress={props.onKeyPress}
+                    placeholder="Find or start a chat"
+                    placeholderTextColor={colors.icon}
+                />
             )}
-        </View>
-    </>
+
+        {props.isClearButtonVisible && (
+            <TouchableOpacity
+                style={[styles.chatSwitcherInputClear]}
+                onPress={props.onClearButtonClick}
+                underlayColor={colors.componentBG}
+            >
+                <Image
+                    resizeMode="contain"
+                    style={[styles.chatSwitcherInputClearIcon]}
+                    source={iconX}
+                />
+            </TouchableOpacity>
+        )}
+    </View>
 );
 
 ChatSwitcherSearchForm.propTypes = propTypes;
