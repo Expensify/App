@@ -1,4 +1,5 @@
 import React from 'react';
+import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import withIon from '../../../components/withIon';
@@ -10,11 +11,14 @@ import ChatSwitcherSearchForm from './ChatSwitcherSearchForm';
 import {fetchOrCreateChatReport} from '../../../libs/actions/Report';
 import {redirect} from '../../../libs/actions/App';
 import ROUTES from '../../../ROUTES';
+import styles from '../../../styles/StyleSheet';
 
 const OPTION_TYPE = {
     USER: 'user',
     REPORT: 'report',
 };
+
+const MAX_GROUP_DM_LENGTH = 8;
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -405,12 +409,25 @@ class ChatSwitcherView extends React.Component {
                     onConfirmUsers={this.startGroupChat}
                 />
 
-                <ChatSwitcherList
-                    focusedIndex={this.state.focusedIndex}
-                    options={this.state.options}
-                    onSelectRow={this.selectRow}
-                    onAddToGroup={this.addUserToGroup}
-                />
+                {this.state.groupUsers.length === MAX_GROUP_DM_LENGTH
+                    ? (
+                        <View style={[styles.chatSwitcherMessage]}>
+                            <Text style={[styles.chatSwitcherMessageTextHeader]}>
+                                Maximum participants reached
+                            </Text>
+                            <Text style={[styles.chatSwitcherMessageTextBody]}>
+                                {'You\'ve reached the maximum number of participants for a group chat.'}
+                            </Text>
+                        </View>
+                    )
+                    : (
+                        <ChatSwitcherList
+                            focusedIndex={this.state.focusedIndex}
+                            options={this.state.options}
+                            onSelectRow={this.selectRow}
+                            onAddToGroup={this.addUserToGroup}
+                        />
+                    )}
             </>
         );
     }
