@@ -54,6 +54,9 @@ const styles = {
     mt1: {
         marginTop: 10,
     },
+    mb1: {
+        marginBottom: 4,
+    },
     mb2: {
         marginBottom: 8,
     },
@@ -100,6 +103,10 @@ const styles = {
 
     flexColumn: {
         flexDirection: 'column',
+    },
+
+    flexJustifyCenter: {
+        justifyContent: 'center',
     },
 
     flexJustifyEnd: {
@@ -166,6 +173,11 @@ const styles = {
         justifyContent: 'center',
     },
 
+    buttonSmall: {
+        height: 28,
+        width: 34,
+    },
+
     buttonText: {
         color: colors.text,
         fontWeight: '700',
@@ -187,6 +199,34 @@ const styles = {
         justifyContent: 'center',
         marginRight: 8,
         width: 40,
+    },
+
+    pill: {
+        borderRadius: 23,
+        backgroundColor: colors.text,
+        height: 21,
+        flexDirection: 'row',
+        paddingTop: 3,
+        paddingBottom: 3,
+        paddingLeft: 7,
+        paddingRight: 7,
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        maxWidth: 250,
+    },
+
+    pillText: {
+        color: colors.componentBG,
+        weight: '400',
+        fontSize: 11,
+        marginBottom: 2,
+        marginRight: 5,
+        userSelect: 'none',
+    },
+
+    pillCancelIcon: {
+        width: 11,
+        height: 11,
     },
 
     navText: {
@@ -652,6 +692,19 @@ const styles = {
         width: 24,
     },
 
+    chatSwitcherUserPillContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: colors.textSupporting,
+        paddingLeft: 12,
+        paddingTop: 6,
+        paddingRight: 5,
+        paddingBottom: 5.5,
+        marginBottom: 4,
+    },
+
     hamburgerOpenAbsolute: {
         position: 'absolute',
         left: 0,
@@ -705,17 +758,20 @@ const styles = {
     },
 
     chatSwitcherItemButton: {
-        backgroundColor: colors.buttonBG,
+        borderColor: colors.textSupporting,
+        borderWidth: 1,
         alignItems: 'center',
         padding: 5,
         justifyContent: 'center',
-        borderRadius: 5,
+        borderRadius: 8,
+        height: 24,
     },
 
     chatSwitcherItemButtonText: {
         color: colors.componentBG,
-        fontSize: 13,
-        fontWeight: 'bold',
+        fontSize: 11,
+        lineHeight: 14,
+        fontWeight: '700',
     },
 
     chatSwitcherItemFocused: {

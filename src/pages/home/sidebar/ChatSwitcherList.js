@@ -8,22 +8,14 @@ import {
     View
 } from 'react-native';
 import styles from '../../../styles/StyleSheet';
+import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
 
 const propTypes = {
     // The index of the option that is currently in focus
     focusedIndex: PropTypes.number.isRequired,
 
     // An array of options to allow the user to choose from
-    options: PropTypes.arrayOf(PropTypes.shape({
-        // The full name of the user if available, otherwise the login (email/phone number) of the user
-        text: PropTypes.string.isRequired,
-
-        // The login of the user, or the name of the chat room
-        alternateText: PropTypes.string.isRequired,
-
-        // The URL of the person's avatar
-        icon: PropTypes.string,
-    })),
+    options: PropTypes.arrayOf(ChatSwitcherOptionPropTypes),
 
     // A function that is called when an option is selected. Selected option is passed as a param
     onSelectRow: PropTypes.func.isRequired,
@@ -50,14 +42,15 @@ const ChatSwitcherList = ({
                 : styles.sidebarLinkText;
             return (
                 <View
+                    key={option.alternateText}
                     style={[
                         styles.flexRow,
                         styles.alignItemsCenter,
+                        styles.flexJustifyCenter,
                         optionIsFocused ? styles.chatSwitcherItemFocused : null
                     ]}
                 >
                     <TouchableOpacity
-                        key={option.alternateText}
                         onPress={() => onSelectRow(option)}
                     >
                         <View
