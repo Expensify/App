@@ -136,12 +136,16 @@ class ChatSwitcherView extends React.Component {
      * Removes a user from the groupUsers array and
      * updates the options.
      *
-     * @param {Object} optionToRemove
+     * @param {Object} [optionToRemove] remove last when no option provided
      */
     removeUserFromGroup(optionToRemove) {
+        const selectedOption = !optionToRemove
+            ? _.last(this.state.groupUsers)
+            : optionToRemove;
+
         this.setState(prevState => ({
             groupUsers: _.reduce(prevState.groupUsers, (users, option) => (
-                option.login === optionToRemove.login
+                option.login === selectedOption.login
                     ? users
                     : [...users, option]
             ), []),
@@ -161,11 +165,19 @@ class ChatSwitcherView extends React.Component {
     /**
      * Fetch the chat report and then redirect to the new report
      *
-     * @param {object} option
-     * @param {string} option.login
+     * @param {object} selectedOption
+     * @param {string} selectedOption.login
      */
-    selectUser(option) {
-        fetchOrCreateChatReport([this.props.session.email, option.login]);
+    selectUser(selectedOption) {
+        // If there are group users saved start a group chat between
+        // the user that was just selected and everyone in the list
+        if (this.state.groupUsers.length > 0) {
+            const userLogins = _.map(this.state.groupUsers, option => option.login);
+            fetchOrCreateChatReport([this.props.session.email, ...userLogins, selectedOption.login]);
+        } else {
+            fetchOrCreateChatReport([this.props.session.email, selectedOption.login]);
+        }
+
         this.props.onLinkClick();
         this.reset();
     }
@@ -231,7 +243,12 @@ class ChatSwitcherView extends React.Component {
                 this.selectRow(this.state.options[this.state.focusedIndex]);
                 e.preventDefault();
                 break;
-
+            case 'Backspace':
+                if (this.state.groupUsers.length > 0 && this.state.search === '') {
+                    // Remove the last user
+                    this.removeUserFromGroup();
+                }
+                break;
             case 'ArrowDown':
                 newFocusedIndex = this.state.focusedIndex + 1;
 

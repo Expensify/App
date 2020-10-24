@@ -212,7 +212,7 @@ const styles = {
         paddingRight: 7,
         alignItems: 'center',
         justifyContent: 'space-between',
-        maxWidth: 250,
+        maxWidth: 230,
     },
 
     pillText: {
@@ -692,7 +692,7 @@ const styles = {
         width: 24,
     },
 
-    chatSwitcherUserPillContainer: {
+    chatSwitcherGroupDMContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
         borderRadius: 8,
@@ -703,6 +703,20 @@ const styles = {
         paddingRight: 5,
         paddingBottom: 5.5,
         marginBottom: 4,
+    },
+
+    chatSwitcherInputGroup: {
+        minWidth: 230,
+    },
+
+    chatSwitcherGroupDMTextInput: {
+        flex: 1,
+        backgroundColor: colors.componentBG,
+        color: colors.text,
+        fontFamily: fontFamily.GTA,
+        fontSize: 15,
+        textAlignVertical: 'center',
+        marginRight: 1,
     },
 
     hamburgerOpenAbsolute: {
