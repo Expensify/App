@@ -12,10 +12,6 @@ const propTypes = {
  * the way of the view
  */
 class TextInputFocusable extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
     render() {
         return (
             <TextInput
