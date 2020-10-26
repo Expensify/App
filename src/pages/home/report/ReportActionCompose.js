@@ -197,6 +197,7 @@ class ReportActionCompose extends React.Component {
                         onFocus={() => this.setIsFocused(true)}
                         onBlur={() => this.setIsFocused(false)}
                         shouldClear={this.state.textInputShouldClear}
+                        didClear={this.setTextInputShouldClear(false)}
                     />
                     <TouchableOpacity
                         style={[styles.chatItemSubmitButton, styles.buttonSuccess]}

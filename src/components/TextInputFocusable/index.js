@@ -12,13 +12,17 @@ const propTypes = {
     // The default value of the comment box
     defaultValue: PropTypes.string.isRequired,
 
-    // A ref to forward to the text input
+    // If the input should clear, it actually gets intercepted instead of .clear()
     shouldClear: PropTypes.bool,
+
+    // When the input has cleared whoever owns this input should know about it
+    didClear: PropTypes.func,
 };
 
 const defaultProps = {
     maxLines: -1,
     shouldClear: false,
+    didClear: null,
 };
 
 /**
@@ -42,6 +46,9 @@ class TextInputFocusable extends React.Component {
             this.textInput.clear();
             // eslint-disable-next-line react/no-did-update-set-state
             this.setState({numberOfLines: 1});
+            if (this.props.didClear) {
+                this.props.didClear();
+            }
         }
         if (prevProps.defaultValue !== this.props.defaultValue) {
             this.updateNumberOfLines();
