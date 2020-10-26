@@ -14,12 +14,6 @@ const propTypes = {
 class TextInputFocusable extends React.Component {
     constructor(props) {
         super(props);
-
-        this.clearContents = this.clearContents.bind(this);
-    }
-
-    clearContents() {
-        this.textInput.clear();
     }
 
     render() {

@@ -28,8 +28,6 @@ class TextInputFocusable extends React.Component {
     constructor(props) {
         super(props);
 
-        this.clearContents = this.clearContents.bind(this);
-
         this.state = {
             numberOfLines: 1,
         };
@@ -40,8 +38,7 @@ class TextInputFocusable extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        console.log("Text Focused Input - componentDidUpdate - shouldClear: " + this.props.shouldClear);
-        if (this.props.shouldClear) {
+        if (!prevProps.shouldClear && this.props.shouldClear) {
             this.textInput.clear();
             this.setState({numberOfLines: 1});
         }
@@ -84,11 +81,6 @@ class TextInputFocusable extends React.Component {
                 numberOfLines: this.getNumberOfLines(lineHeight, paddingTopAndBottom, this.textInput.scrollHeight)
             });
         });
-    }
-
-    clearContents() {
-        this.textInput.clear();
-        this.updateNumberOfLines();
     }
 
     focusInput() {
