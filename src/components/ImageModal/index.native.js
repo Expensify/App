@@ -1,8 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { View, Image, Modal, TouchableOpacity, Text, Dimensions } from 'react-native';
-import styles from '../../style/StyleSheet';
-import ImageViewer from 'react-native-image-zoom-viewer';
+import { View, Image, Modal, TouchableOpacity, Text, Dimensions, StatusBar } from 'react-native';
+import {SafeAreaInsetsContext, SafeAreaProvider} from 'react-native-safe-area-context';
+import styles, {getSafeAreaPadding} from '../../style/StyleSheet';
+import ImageZoom from 'react-native-image-pan-zoom';
 import _ from 'underscore';
 import Pdf from 'react-native-pdf';
 import Str from '../../lib/Str';
@@ -38,11 +39,17 @@ class ImageModal extends React.Component {
 
         this.state = {
             visible: false,
+            width: 200,
+            height: 200,
         }
     }
 
     setModalVisiblity(visibility) {
         this.setState({ visible: visibility });
+    }
+
+    componentDidMount() {
+        Image.getSize(this.props.srcURL, (width, height) => {this.setState({width, height})});
     }
 
     render() {
@@ -51,31 +58,50 @@ class ImageModal extends React.Component {
         if (Str.isPDF(this.props.srcURL)) {
             imageView = <Pdf source={{ uri: this.props.srcURL }} style={styles.imageModalPDF} />;
         } else {
-            imageView= <ImageViewer imageUrls={[{ url: this.props.srcURL, cache: true }]} enableSwipeDown={true} onSwipeDown={() => this.setModalVisiblity(false)} />;
+            imageView = <ImageZoom cropWidth={Dimensions.get('window').width}
+                            cropHeight={Dimensions.get('window').height}
+                            imageWidth={this.state.width}
+                            imageHeight={this.state.height}>
+                            <Image 
+                                style={{width: this.state.width, height:this.state.height}} 
+                                source={{ uri:this.props.srcURL }} 
+                            />
+                        </ImageZoom>;
+            
+            
+            //<ImageViewer imageUrls={[{ url: this.props.srcURL, cache: true }]} enableSwipeDown={true} onSwipeDown={() => this.setModalVisiblity(false)} />;
         }
 
         return (
             <>
-                <TouchableOpacity onPress={() => this.setModalVisiblity(true)} >
-                    <Image source={{ uri: this.props.previewSrcURL }} style={[this.props.style, {width: 200, height: 175}]} />
-                </TouchableOpacity>
+                    <TouchableOpacity onPress={() => this.setModalVisiblity(true)} >
+                        <Image source={{ uri: this.props.previewSrcURL }} style={[this.props.style, {width: 200, height: 175}]} />
+                    </TouchableOpacity>
 
-                <Modal
-                    animationType={"slide"}
-                    onRequestClose={() => this.setModalVisiblity(false)}
-                    visible={this.state.visible}
-                >
+                <SafeAreaProvider>
+                    <SafeAreaInsetsContext.Consumer style={[styles.flex1, styles.h100p]}>
+                    { insets => (
+                        <View style={[getSafeAreaPadding(insets)]}>
+                            <Modal
+                                animationType={"slide"}
+                                onRequestClose={() => this.setModalVisiblity(false)}
+                                visible={this.state.visible}
+                            >
 
-                    <View style={styles.imageModalHeader}>
-                        <Text onPress={() => this.setModalVisiblity(false)} style={{color: 'white'}}>X</Text>
-                    </View>
-                    {imageView}
-                    
-                </Modal>
+                                <View style={styles.appContentHeader}>
+                                    <Text numberOfLines={1} style={[styles.navText]}>Attachment</Text>
+                                    <Text onPress={() => this.setModalVisiblity(false)} style={{color: 'white'}}>X</Text>
+                                </View>
+                                {imageView}
+                                
+                            </Modal>
+                        </View>
+                    )}
+                    </SafeAreaInsetsContext.Consumer>
+                </SafeAreaProvider>
             </>
         );
     }
-
 }
 
 ImageModal.propTypes = propTypes;

@@ -82,7 +82,7 @@ class ReportActionItemFragment extends React.PureComponent {
         // We only want to attach auth tokens to images that come from Expensify attachments
         if (htmlNode.name === 'img' && htmlNode.attribs['data-expensify-source']) {
             htmlNode.attribs.preview = `${node.attribs.src}?authToken=${getAuthToken()}`;
-            htmlNode.attribs.src = htmlNode.attribs['data-expensify-source'];
+            htmlNode.attribs.src = htmlNode.attribs['data-expensify-source'] + `?authToken=${getAuthToken()}`;
             return htmlNode;
         }
     }
