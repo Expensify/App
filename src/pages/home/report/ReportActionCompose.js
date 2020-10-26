@@ -89,7 +89,7 @@ class ReportActionCompose extends React.Component {
      * @param {string} newComment
      */
     updateComment(newComment) {
-        // this.setTextInputShouldClear(false);
+        this.setTextInputShouldClear(false);
         this.comment = newComment;
         this.debouncedSaveReportComment(newComment);
         this.debouncedBroadcastUserIsTyping();
