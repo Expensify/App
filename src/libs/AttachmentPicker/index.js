@@ -16,7 +16,7 @@ const AttachmentPicker = {
 
     /**
      *
-     * The data returned from `showPicker` is different on web and mobile, so use this function to ensure the
+     * The data returned from `show` is different on web and mobile, so use this function to ensure the
      * data we send to the xhr will be handled properly by the API. On web, we just want to send the file data returned
      * from the input.
      *
