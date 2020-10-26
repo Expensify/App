@@ -22,6 +22,7 @@ module.exports = {
     }],
     files: [
         './dist/**/*',
-        './main.js'
+        './main.js',
+        './desktop/*.js',
     ]
 };

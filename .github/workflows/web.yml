@@ -43,7 +43,7 @@ jobs:
               ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
         - name: Install dependenices
-          run: npm install
+          run: npm ci
 
         - name: Build web
           run: npm run build
@@ -66,8 +66,10 @@ jobs:
             fields: workflow, repo
             custom_payload: |
                 {
+                  channel: '#announce',
                   attachments: [{
                     color: "#DB4545",
+                    pretext: `<!here>`,
                     text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
                   }]
                 }
