@@ -153,7 +153,7 @@ class ReportActionCompose extends React.Component {
         return (
             <View style={[styles.chatItemCompose]}>
                 <View style={[
-                    this.state.isFocused ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
+                    (this.state.isFocused || this.state.isDraggingOver) ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
                     styles.chatItemComposeBox,
                     styles.flexRow
                 ]}
@@ -177,6 +177,17 @@ class ReportActionCompose extends React.Component {
                         placeholderTextColor={colors.textSupporting}
                         onChangeText={this.updateComment}
                         onKeyPress={this.triggerSubmitShortcut}
+                        onDragEnter={() => {
+                            this.setState({isDraggingOver: true});
+                        }}
+                        onDragLeave={() => {
+                            this.setState({isDraggingOver: false});
+                        }}
+                        onDrop={(e) => {
+                            e.preventDefault();
+                            console.log(e.dataTransfer.files);
+                            this.setState({isDraggingOver: false});
+                        }}
                         style={[styles.textInput, styles.textInputCompose, styles.flex4]}
                         defaultValue={this.props.comment || ''}
                         maxLines={16} // This is the same that slack has
