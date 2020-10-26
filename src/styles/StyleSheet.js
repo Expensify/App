@@ -713,9 +713,9 @@ const styles = {
     },
 
     imageModalImage: {
-        width: '100%',
-        height: undefined,
-        aspectRatio: 1,
+        flex: 1,
+        width: 200,
+        height: 200,
     },
 
     imageModalPDF: {

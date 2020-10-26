@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { View, Image, Modal, TouchableOpacity, Text, Dimensions } from 'react-native';
+import { View, Image, Modal, TouchableOpacity, Text } from 'react-native';
 import styles from '../../style/StyleSheet';
 import _ from 'underscore';
 
@@ -9,9 +9,6 @@ import _ from 'underscore';
  */
 
 const propTypes = {
-    // Object array of images
-    images: PropTypes.array,
-
     // URL to image preview
     previewSrcURL: PropTypes.string,
 
@@ -38,11 +35,21 @@ class ImageModal extends React.Component {
         }
     }
 
+    componentWillMount() {
+        Image.getSize(this.props.srcURL, (width, height) => {
+
+        })
+    }
+
     setModalVisiblity(visibility) {
         this.setState({ visible: visibility });
     }
 
     render() {
+
+        // Hack for achieving height: auto
+
+
         return (
             <>
                 <TouchableOpacity onPress={() => this.setModalVisiblity(true)} >
@@ -53,15 +60,15 @@ class ImageModal extends React.Component {
                     animationType={"slide"}
                     onRequestClose={() => this.setModalVisiblity(false)}
                     visible={this.state.visible}
+                    transparent={true}
                 >
+                    <View style={{ flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+                        <View>
+                            <Text onPress={() => this.setModalVisiblity(false)}>X</Text>
+                        </View>
 
-                    <View style={styles.imageModalHeader}>
-                        <Text onPress={() => this.setModalVisiblity(false)}>X</Text>
-                    </View>
-
-                    <View style={styles.imageModal}>
-                        <View style={styles.imageModalPlaceholder}>
-                            <Image style={styles.imageModalImage}  source={{ uri: this.props.srcURL }} />
+                        <View>
+                            <Image source={{ uri: this.props.srcURL }} style={styles.imageModalImage} />
                         </View>
                     </View>
       
