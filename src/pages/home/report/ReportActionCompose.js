@@ -68,7 +68,6 @@ class ReportActionCompose extends React.Component {
      * @param {boolean} shouldClear
      */
     setTextInputShouldClear(shouldClear) {
-        console.log("ReportActionCompose - setTextInputShouldClear - shouldClear: " + shouldClear);
         if (this.state.textInputShouldClear !== shouldClear) {
             this.setState({textInputShouldClear: shouldClear});
         }
@@ -165,7 +164,6 @@ class ReportActionCompose extends React.Component {
     }
 
     render() {
-        console.log("ReportActionCompose - render - shouldClear: " + this.state.textInputShouldClear);
         return (
             <View style={[styles.chatItemCompose]}>
                 <View style={[
@@ -216,6 +214,7 @@ class ReportActionCompose extends React.Component {
         );
     }
 }
+
 ReportActionCompose.propTypes = propTypes;
 ReportActionCompose.defaultProps = defaultProps;
 
