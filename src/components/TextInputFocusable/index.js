@@ -40,11 +40,26 @@ class TextInputFocusable extends React.Component {
         if (this.props.forwardedRef && _.isFunction(this.props.forwardedRef)) {
             this.props.forwardedRef(this.textInput);
         }
+
+        // Handle the drag events
+        if (this.textInput) {
+            this.textInput.addEventListener('dragenter', this.handleDragEnter.bind(this));
+            this.textInput.addEventListener('dragleave', this.handleDragLeave.bind(this));
+            this.textInput.addEventListener('drop', this.handleDrop.bind(this));
+        }
     }
 
     componentDidUpdate(prevProps) {
         if (prevProps.defaultValue !== this.props.defaultValue) {
             this.updateNumberOfLines();
+        }
+    }
+
+    componentWillUnmount() {
+        if (this.textInput) {
+            this.textInput.removeEventListener('dragenter', this.handleDragEnter.bind(this));
+            this.textInput.removeEventListener('dragleave', this.handleDragLeave.bind(this));
+            this.textInput.removeEventListener('drop', this.handleDrop.bind(this));
         }
     }
 
@@ -62,6 +77,18 @@ class TextInputFocusable extends React.Component {
         let newNumberOfLines = Math.ceil((scrollHeight - paddingTopAndBottom) / lineHeight);
         newNumberOfLines = maxLines <= 0 ? newNumberOfLines : Math.min(newNumberOfLines, maxLines);
         return newNumberOfLines;
+    }
+
+    handleDragEnter(e) {
+        this.props.onDragEnter(e);
+    }
+
+    handleDragLeave(e) {
+        this.props.onDragLeave(e);
+    }
+
+    handleDrop(e) {
+        this.props.onDrop(e);
     }
 
     /**
