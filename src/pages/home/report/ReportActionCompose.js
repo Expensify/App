@@ -68,9 +68,7 @@ class ReportActionCompose extends React.Component {
      * @param {boolean} shouldClear
      */
     setTextInputShouldClear(shouldClear) {
-        if (this.state.textInputShouldClear !== shouldClear) {
-            this.setState({textInputShouldClear: shouldClear});
-        }
+        this.setState({textInputShouldClear: shouldClear});
     }
 
     /**
@@ -183,7 +181,6 @@ class ReportActionCompose extends React.Component {
                         />
                     </TouchableOpacity>
                     <TextInputFocusable
-                        ref={el => this.textInputFocusable = el}
                         multiline
                         textAlignVertical="top"
                         placeholder="Write something..."
@@ -196,7 +193,7 @@ class ReportActionCompose extends React.Component {
                         onFocus={() => this.setIsFocused(true)}
                         onBlur={() => this.setIsFocused(false)}
                         shouldClear={this.state.textInputShouldClear}
-                        didClear={this.setTextInputShouldClear(false)}
+                        onClear={this.setTextInputShouldClear(false)}
                     />
                     <TouchableOpacity
                         style={[styles.chatItemSubmitButton, styles.buttonSuccess]}
