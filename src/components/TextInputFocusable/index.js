@@ -16,13 +16,13 @@ const propTypes = {
     shouldClear: PropTypes.bool,
 
     // When the input has cleared whoever owns this input should know about it
-    didClear: PropTypes.func,
+    onClear: PropTypes.func,
 };
 
 const defaultProps = {
     maxLines: -1,
     shouldClear: false,
-    didClear: null,
+    onClear: null,
 };
 
 /**
@@ -46,8 +46,8 @@ class TextInputFocusable extends React.Component {
             this.textInput.clear();
             // eslint-disable-next-line react/no-did-update-set-state
             this.setState({numberOfLines: 1});
-            if (this.props.didClear) {
-                this.props.didClear();
+            if (this.props.onClear) {
+                this.props.onClear();
             }
         }
         if (prevProps.defaultValue !== this.props.defaultValue) {
