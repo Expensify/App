@@ -1,11 +1,5 @@
 import React from 'react';
 import {TextInput} from 'react-native';
-import PropTypes from 'prop-types';
-
-const propTypes = {
-    // A ref to forward to the text input
-    forwardedRef: PropTypes.func.isRequired,
-};
 
 /**
  * On native layers we like to have the Text Input not focused so the user can read new chats without they keyboard in
@@ -25,5 +19,4 @@ class TextInputFocusable extends React.Component {
 }
 
 TextInputFocusable.displayName = 'TextInputFocusable';
-TextInputFocusable.propTypes = propTypes;
 export default TextInputFocusable;
