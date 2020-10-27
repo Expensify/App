@@ -72,9 +72,6 @@ class ImageModal extends React.Component {
                                 source={{ uri:this.props.srcURL }} 
                             />
                         </ImageZoom>;
-            
-            
-            //<ImageViewer imageUrls={[{ url: this.props.srcURL, cache: true }]} enableSwipeDown={true} onSwipeDown={() => this.setModalVisiblity(false)} />;
         }
 
         return (
