@@ -1,6 +1,6 @@
-// Web and desktop implementation only. Do not import for direct use. Use Notification.
-import Str from '../Str';
-import CONST from '../../CONST';
+// Web and desktop implementation only. Do not import for direct use. Use LocalNotification.
+import Str from '../../Str';
+import CONST from '../../../CONST';
 
 const EXPENSIFY_ICON_URL = `${CONST.CLOUDFRONT_URL}/images/favicon-2019.png`;
 const DEFAULT_DELAY = 4000;

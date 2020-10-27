@@ -148,6 +148,11 @@ const styles = {
         fontSize: 11,
     },
 
+    textStrong: {
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: '600',
+    },
+
     colorReversed: {
         color: colors.textReversed,
     },
@@ -189,9 +194,17 @@ const styles = {
         fontWeight: '700'
     },
 
-    navSubText: {
+    typingIndicator: {
+        height: 15,
+        marginBottom: 5,
+        marginTop: 5,
+    },
+
+    typingIndicatorSubText: {
         color: colors.textSupporting,
+        fontFamily: fontFamily.GTA,
         fontSize: 11,
+        marginLeft: 48,
     },
 
     // Actions
@@ -211,17 +224,17 @@ const styles = {
         color: colors.text,
         fontFamily: fontFamily.GTA,
         fontSize: 15,
-        padding: 12,
+        paddingLeft: 12,
+        paddingRight: 12,
+        paddingTop: 10,
+        paddingBottom: 10,
         textAlignVertical: 'center',
     },
 
     textInputReversed: {
         backgroundColor: colors.heading,
-        borderRadius: 8,
         borderColor: colors.text,
-        borderWidth: 1,
         color: colors.textReversed,
-        padding: 12,
         outlineWidth: 0,
     },
 
@@ -349,7 +362,6 @@ const styles = {
         flexGrow: 100,
         scrollbarWidth: 'none',
         overflow: 'scroll',
-        paddingTop: 4,
         paddingBottom: 4,
         paddingLeft: 12,
         paddingRight: 12,
@@ -369,6 +381,7 @@ const styles = {
         height: 40,
         justifyContent: 'center',
         textDecorationLine: 'none',
+        backgroundColor: colors.heading,
     },
 
     sidebarLink: {
@@ -551,7 +564,7 @@ const styles = {
 
     chatItemCompose: {
         minHeight: 65,
-        paddingBottom: 20,
+        marginBottom: 5,
         paddingLeft: 20,
         paddingRight: 20,
         display: 'flex',

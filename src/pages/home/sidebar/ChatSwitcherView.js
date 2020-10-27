@@ -11,6 +11,11 @@ import {fetchOrCreateChatReport} from '../../../libs/actions/Report';
 import {redirect} from '../../../libs/actions/App';
 import ROUTES from '../../../ROUTES';
 
+const OPTION_TYPE = {
+    USER: 'user',
+    REPORT: 'report',
+};
+
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
     login: PropTypes.string.isRequired,
@@ -29,6 +34,9 @@ const propTypes = {
 
     // A method that is triggered when the TextInput loses focus
     onBlur: PropTypes.func.isRequired,
+
+    // Toggles the hamburger menu open and closed
+    onLinkClick: PropTypes.func.isRequired,
 
     /* Ion Props */
 
@@ -67,6 +75,7 @@ class ChatSwitcherView extends React.Component {
         this.selectReport = this.selectReport.bind(this);
         this.triggerOnFocusCallback = this.triggerOnFocusCallback.bind(this);
         this.updateSearch = this.updateSearch.bind(this);
+        this.selectRow = this.selectRow.bind(this);
 
         this.state = {
             search: '',
@@ -92,6 +101,23 @@ class ChatSwitcherView extends React.Component {
     }
 
     /**
+     * Fires the correct method for the option type selected.
+     *
+     * @param {Object} option
+     */
+    selectRow(option) {
+        switch (option.type) {
+            case OPTION_TYPE.USER:
+                this.selectUser(option);
+                break;
+            case OPTION_TYPE.REPORT:
+                this.selectReport(option);
+                break;
+            default:
+        }
+    }
+
+    /**
      * Fetch the chat report and then redirect to the new report
      *
      * @param {object} option
@@ -99,6 +125,7 @@ class ChatSwitcherView extends React.Component {
      */
     selectUser(option) {
         fetchOrCreateChatReport([this.props.session.email, option.login]);
+        this.props.onLinkClick();
         this.reset();
     }
 
@@ -110,6 +137,7 @@ class ChatSwitcherView extends React.Component {
      */
     selectReport(option) {
         redirect(ROUTES.getReportRoute(option.reportID));
+        this.props.onLinkClick();
         this.reset();
     }
 
@@ -153,13 +181,12 @@ class ChatSwitcherView extends React.Component {
      */
     handleKeyPress(e) {
         let newFocusedIndex;
-        let option;
 
         switch (e.key) {
             case 'Enter':
-                // Call the selected option's callback and pass the option itself
-                option = this.state.options[this.state.focusedIndex];
-                option.callback(option);
+                // Pass the option to the selectRow method which
+                // will fire the correct callback for the option type.
+                this.selectRow(this.state.options[this.state.focusedIndex]);
                 e.preventDefault();
                 break;
 
@@ -235,7 +262,7 @@ class ChatSwitcherView extends React.Component {
                     : `${personalDetail.displayName} ${personalDetail.login}`,
                 icon: personalDetail.avatarURL,
                 login: personalDetail.login,
-                callback: this.selectUser,
+                type: OPTION_TYPE.USER,
             }))
             .value();
 
@@ -250,7 +277,7 @@ class ChatSwitcherView extends React.Component {
                 alternateText: report.reportName,
                 searchText: report.reportName,
                 reportID: report.reportID,
-                callback: this.selectReport,
+                type: OPTION_TYPE.REPORT,
             }))
             .value();
 
@@ -304,6 +331,7 @@ class ChatSwitcherView extends React.Component {
                 <ChatSwitcherList
                     focusedIndex={this.state.focusedIndex}
                     options={this.state.options}
+                    onSelectRow={this.selectRow}
                 />
             </>
         );

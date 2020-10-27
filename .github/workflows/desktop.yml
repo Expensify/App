@@ -22,7 +22,7 @@ jobs:
                   ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
             - name: Install node packages
-              run: npm install
+              run: npm ci
 
             - name: Decrypt Developer ID Certificate
               run: cd desktop && gpg --quiet --batch --yes --decrypt --passphrase="$DEVELOPER_ID_SECRET_PASSPHRASE" --output developer_id.p12 developer_id.p12.gpg
@@ -49,8 +49,10 @@ jobs:
                   fields: workflow, repo
                   custom_payload: |
                       {
+                        channel: '#announce',
                         attachments: [{
                           color: "#DB4545",
+                          pretext: `<!here>`,
                           text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
                         }]
                       }
