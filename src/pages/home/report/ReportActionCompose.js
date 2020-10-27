@@ -39,7 +39,6 @@ class ReportActionCompose extends React.Component {
         this.submitForm = this.submitForm.bind(this);
         this.showAttachmentPicker = this.showAttachmentPicker.bind(this);
         this.setIsFocused = this.setIsFocused.bind(this);
-        this.setTextInputShouldClear = this.setTextInputShouldClear.bind(this);
         this.comment = '';
         this.state = {
             isFocused: false,
