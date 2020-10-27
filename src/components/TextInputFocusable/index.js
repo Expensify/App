@@ -43,9 +43,7 @@ class TextInputFocusable extends React.Component {
             this.textInput.clear();
             // eslint-disable-next-line react/no-did-update-set-state
             this.setState({numberOfLines: 1});
-            if (this.props.onClear) {
-                this.props.onClear();
-            }
+            this.props.onClear();
         }
         if (prevProps.defaultValue !== this.props.defaultValue) {
             this.updateNumberOfLines();

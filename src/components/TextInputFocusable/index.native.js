@@ -24,9 +24,7 @@ class TextInputFocusable extends React.Component {
     componentDidUpdate(prevProps) {
         if (!prevProps.shouldClear && this.props.shouldClear) {
             this.textInput.clear();
-            if (this.props.onClear) {
-                this.props.onClear();
-            }
+            this.props.onClear();
         }
     }
 
