@@ -38,6 +38,7 @@ class ReportActionCompose extends React.Component {
         this.submitForm = this.submitForm.bind(this);
         this.showAttachmentPicker = this.showAttachmentPicker.bind(this);
         this.setIsFocused = this.setIsFocused.bind(this);
+        this.setTextInputShouldClear = this.setTextInputShouldClear.bind(this);
         this.comment = '';
         this.state = {
             isFocused: false,
@@ -193,7 +194,7 @@ class ReportActionCompose extends React.Component {
                         onFocus={() => this.setIsFocused(true)}
                         onBlur={() => this.setIsFocused(false)}
                         shouldClear={this.state.textInputShouldClear}
-                        onClear={this.setTextInputShouldClear(false)}
+                        onClear={() => this.setTextInputShouldClear(false)}
                     />
                     <TouchableOpacity
                         style={[styles.chatItemSubmitButton, styles.buttonSuccess]}
