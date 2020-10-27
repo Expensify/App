@@ -25,7 +25,7 @@ jobs:
               ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
         - name: Install node packages
-          run: npm install
+          run: npm ci
 
         - name: Decrypt keystore
           run: cd android/app && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output my-upload-key.keystore my-upload-key.keystore.gpg

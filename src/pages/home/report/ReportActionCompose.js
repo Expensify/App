@@ -10,6 +10,7 @@ import paperClipIcon from '../../../../assets/images/icon-paper-clip.png';
 import ImagePicker from '../../../libs/ImagePicker';
 import withIon from '../../../components/withIon';
 import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs/actions/Report';
+import ReportTypingIndicator from './ReportTypingIndicator';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -208,6 +209,7 @@ class ReportActionCompose extends React.Component {
                         />
                     </TouchableOpacity>
                 </View>
+                <ReportTypingIndicator reportID={this.props.reportID} />
             </View>
         );
     }
