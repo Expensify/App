@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { View, Image, Modal, TouchableOpacity, Text } from 'react-native';
-import styles from '../../style/StyleSheet';
+import styles from '../../styles/StyleSheet';
 import _ from 'underscore';
 
 /**
