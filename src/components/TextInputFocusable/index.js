@@ -3,9 +3,6 @@ import {TextInput} from 'react-native';
 import PropTypes from 'prop-types';
 
 const propTypes = {
-    // A ref to forward to the text input
-    forwardedRef: PropTypes.func.isRequired,
-
     // Maximum number of lines in the text input
     maxLines: PropTypes.number,
 
