@@ -49,7 +49,12 @@ class ImageModal extends React.Component {
     }
 
     componentDidMount() {
-        Image.getSize(this.props.srcURL, (width, height) => {this.setState({width, height})});
+        Image.getSize(this.props.srcURL, (width, height) => {
+            const screenWidth = Dimensions.get('window').width;
+            const scaleFactor = width / screenWidth;
+            const imageHeight = height / scaleFactor;
+            this.setState({imgWidth: screenWidth, imgHeight: imageHeight})
+        });
     }
 
     render() {
@@ -60,10 +65,10 @@ class ImageModal extends React.Component {
         } else {
             imageView = <ImageZoom cropWidth={Dimensions.get('window').width}
                             cropHeight={Dimensions.get('window').height}
-                            imageWidth={this.state.width}
-                            imageHeight={this.state.height}>
+                            imageWidth={this.state.imgWidth}
+                            imageHeight={this.state.imageHeight}>
                             <Image 
-                                style={{width: this.state.width, height:this.state.height}} 
+                                style={{width: this.state.imgWidth, height: this.state.imageHeight}} 
                                 source={{ uri:this.props.srcURL }} 
                             />
                         </ImageZoom>;
