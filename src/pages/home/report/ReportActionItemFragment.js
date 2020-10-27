@@ -10,7 +10,7 @@ import styles, {webViewStyles, colors} from '../../../styles/StyleSheet';
 import Text from '../../../components/Text';
 import AnchorForCommentsOnly from '../../../components/AnchorForCommentsOnly';
 import ImageModal from '../../../components/ImageModal';
-import {getAuthToken} from '../../../lib/API';
+import {getAuthToken} from '../../../libs/API';
 import InlineCodeBlock from '../../../components/InlineCodeBlock';
 
 const propTypes = {

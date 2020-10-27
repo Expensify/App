@@ -2,11 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { View, Image, Modal, TouchableOpacity, Text, Dimensions, StatusBar } from 'react-native';
 import {SafeAreaInsetsContext, SafeAreaProvider} from 'react-native-safe-area-context';
-import styles, {getSafeAreaPadding} from '../../style/StyleSheet';
+import styles, {getSafeAreaPadding} from '../../styles/StyleSheet';
 import ImageZoom from 'react-native-image-pan-zoom';
 import _ from 'underscore';
 import Pdf from 'react-native-pdf';
-import Str from '../../lib/Str';
+import Str from '../../libs/Str';
 
 /**
  * Text based component that is passed a URL to open onPress
