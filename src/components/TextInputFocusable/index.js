@@ -19,7 +19,7 @@ const propTypes = {
 const defaultProps = {
     maxLines: -1,
     shouldClear: false,
-    onClear: null,
+    onClear: () => {},
 };
 
 /**

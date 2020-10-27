@@ -17,7 +17,7 @@ const propTypes = {
 
 const defaultProps = {
     shouldClear: false,
-    onClear: null,
+    onClear: () => {},
 };
 
 class TextInputFocusable extends React.Component {
