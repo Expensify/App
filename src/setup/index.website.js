@@ -1,17 +1,9 @@
 import {AppRegistry} from 'react-native';
-import Config from 'src/CONFIG';
-import App from '../src/App';
-import {name as appName} from '../app.json';
-import checkForUpdates from '../src/libs/checkForUpdates';
-import HttpUtils from '../src/libs/HttpUtils';
-import Visibility from '../src/libs/Visibility';
-
-AppRegistry.registerComponent('App', () => App);
-AppRegistry.registerComponent(appName, () => App);
-
-AppRegistry.runApplication('App', {
-    rootTag: document.getElementById('root'),
-});
+import checkForUpdates from '../libs/checkForUpdates';
+import Config from '../CONFIG';
+import HttpUtils from '../libs/HttpUtils';
+import {name as appName} from '../../app.json';
+import Visibility from '../libs/Visibility';
 
 /**
  * Download the latest app version from the server, and if it is different than the current one,
@@ -57,10 +49,16 @@ const webUpdater = currentVersion => ({
     update: () => webUpdate(currentVersion),
 });
 
-// When app loads, get current version (production only)
-if (Config.IS_IN_PRODUCTION) {
-    HttpUtils.download('version.json')
-        .then(({version: currentVersion}) => {
-            checkForUpdates(webUpdater(currentVersion));
-        });
+export default function () {
+    AppRegistry.runApplication(appName, {
+        rootTag: document.getElementById('root'),
+    });
+
+    // When app loads, get current version (production only)
+    if (Config.IS_IN_PRODUCTION) {
+        HttpUtils.download('version.json')
+            .then(({version: currentVersion}) => {
+                checkForUpdates(webUpdater(currentVersion));
+            });
+    }
 }

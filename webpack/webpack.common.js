@@ -12,7 +12,7 @@ const platformExclude = platform === 'web' ? new RegExp(/\.desktop\.js$/) : new 
 
 module.exports = {
     entry: {
-        app: platform === 'web' ? './web/index.js' : './desktop/index.js',
+        app: './index.js',
     },
     output: {
         filename: '[name]-[hash].bundle.js',
