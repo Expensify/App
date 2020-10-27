@@ -172,7 +172,7 @@ class ReportActionsView extends React.Component {
         }
 
         // Load the next set of report actions
-        fetchActions(this.props.reportID);
+        fetchActions(this.props.reportID, true);
     }
 
     /**

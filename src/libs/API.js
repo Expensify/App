@@ -405,6 +405,20 @@ function getReportHistory(parameters) {
 
 /**
  * @param {object} parameters
+ * @param {number} parameters.reportID
+ * @returns {Promise}
+ */
+function getChatHistory(parameters) {
+    return queueRequest('Chat_GetHistory', {
+        authToken,
+        reportID: parameters.reportID,
+        offset: parameters.offset,
+        limit: parameters.limit,
+    });
+}
+
+/**
+ * @param {object} parameters
  * @param {string} parameters.emailList
  * @returns {Promise}
  */
@@ -465,4 +479,5 @@ export {
     getPersonalDetails,
     getReportHistory,
     setLastReadActionID,
+    getChatHistory,
 };

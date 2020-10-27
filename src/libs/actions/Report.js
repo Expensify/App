@@ -53,7 +53,7 @@ const reportMaxSequenceNumbers = {};
 const lastReadActionIDs = {};
 
 // Keeps track of the oldest report action we have for each report
-const reportActionOffsets = {};
+const reportActionSizes = {};
 
 /**
  * Checks the report to see if there are any unread action items
@@ -260,25 +260,31 @@ function fetchChatReports() {
  *
  * @param {number} reportID
  */
-function fetchActions(reportID) {
+function fetchActions(reportID, fetchMore) {
     Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {loading: true});
-    API.getReportHistory({reportID})
+
+    // Get the next set of actions by looking at how many
+    // actions we currently have and loading the next n
+    let offset = 0;
+    let limit = 50;
+
+    if (fetchMore) {
+        offset = reportActionSizes[reportID] || 0;
+        limit = offset + 50;
+    }
+
+    API.getChatHistory({reportID, offset, limit})
         .then((data) => {
             if (!data.history) {
                 Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {loading: false});
                 return;
             }
 
-            const previousOffset = reportActionOffsets[reportID] || 0;
-            const newOffset = previousOffset + 50;
-            const actionSubSet = data.history.slice(previousOffset, newOffset);
-            const indexedData = _.indexBy(actionSubSet, 'sequenceNumber');
-            const maxSequenceNumber = _.chain(actionSubSet)
+            const indexedData = _.indexBy(data.history, 'sequenceNumber');
+            const maxSequenceNumber = _.chain(data.history)
                 .pluck('sequenceNumber')
                 .max()
                 .value();
-
-            reportActionOffsets[reportID] = newOffset;
 
             Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {actions: indexedData, loading: false});
             Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {maxSequenceNumber});
@@ -493,7 +499,7 @@ Ion.connect({
     key: IONKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (reportActions = {}, key) => {
         const reportID = getIDFromKey(key);
-        reportActionOffsets[reportID] = _.size(reportActions.actions);
+        reportActionSizes[reportID] = _.size(reportActions.actions);
     },
 });
 
