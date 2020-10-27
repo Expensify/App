@@ -9,6 +9,7 @@ import ROUTES from '../ROUTES';
 import Str from './Str';
 import guid from './guid';
 import redirectToSignIn from './actions/SignInRedirect';
+import PushNotification from './Notification/PushNotification';
 
 // Queue for network requests so we don't lose actions done by the user while offline
 let networkRequestQueue = [];
@@ -39,6 +40,17 @@ let credentials;
 Ion.connect({
     key: IONKEYS.CREDENTIALS,
     callback: ionCredentials => credentials = ionCredentials,
+});
+
+// If we are ever being redirected to the sign in page, the user is currently unauthenticated, so we should clear the
+// network request queue, to prevent DDoSing our own API
+Ion.connect({
+    key: IONKEYS.APP_REDIRECT_TO,
+    callback: (redirectTo) => {
+        if (redirectTo && redirectTo.startsWith(ROUTES.SIGNIN)) {
+            networkRequestQueue = [];
+        }
+    }
 });
 
 /**
@@ -122,8 +134,9 @@ function createLogin(login, password) {
  * @param {string} exitTo
  */
 function setSuccessfulSignInData(data, exitTo) {
-    const redirectTo = exitTo ? Str.normalizeUrl(exitTo) : ROUTES.ROOT;
+    PushNotification.register(data.accountID);
 
+    const redirectTo = exitTo ? Str.normalizeUrl(exitTo) : ROUTES.ROOT;
     Ion.multiSet({
         [IONKEYS.SESSION]: _.pick(data, 'authToken', 'accountID', 'email'),
         [IONKEYS.APP_REDIRECT_TO]: redirectTo
@@ -154,7 +167,6 @@ function request(command, parameters, type = 'post') {
     if (!authToken) {
         console.error('A request was made without an authToken', {command, parameters});
         reauthenticating = false;
-        networkRequestQueue = [];
         redirectToSignIn();
         return Promise.resolve();
     }
