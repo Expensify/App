@@ -157,10 +157,22 @@ const styles = {
         backgroundColor: 'pink',
     },
 
+    h4: {
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: '700',
+        fontSize: 13,
+    },
+
     textP: {
         color: colors.text,
         fontSize: 15,
         lineHeight: 20,
+    },
+
+    textLabel: {
+        color: colors.text,
+        fontSize: 13,
+        lineHeight: 18,
     },
 
     textMicro: {
@@ -178,6 +190,10 @@ const styles = {
 
     colorReversed: {
         color: colors.textReversed,
+    },
+
+    colorMutedReversed: {
+        color: colors.icon,
     },
 
     button: {
@@ -703,7 +719,9 @@ const styles = {
     },
 
     chatSwitcherInputClear: {
-        alignSelf: 'center',
+        alignSelf: 'flex-end',
+        height: 40,
+        justifyContent: 'center',
     },
 
     chatSwitcherInputClearIcon: {
@@ -717,11 +735,10 @@ const styles = {
         borderRadius: 8,
         borderWidth: 1,
         borderColor: colors.textSupporting,
-        paddingTop: 8,
-        paddingRight: 8,
+        paddingTop: 0,
+        paddingRight: 3,
         paddingBottom: 0,
-        paddingLeft: 8,
-        marginBottom: 4,
+        paddingLeft: 5,
     },
 
     chatSwitcherPillsInput: {
@@ -744,25 +761,26 @@ const styles = {
         height: 28,
         minWidth: 80,
         width: 0,
+        marginTop: 5,
+        marginBottom: 5,
+        marginLeft: 3,
+    },
+
+    chatSwticherPillWrapper: {
+        marginTop: 5,
+        marginRight: 4,
+        maxWidth: 191,
+    },
+
+    chatSwitcherGo: {
+        borderRadius: 6,
+        height: 32,
+        marginBottom: 3,
     },
 
     chatSwitcherMessage: {
         paddingLeft: 12,
         paddingRight: 12,
-    },
-
-    chatSwitcherMessageTextHeader: {
-        fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: '700',
-        fontSize: 13,
-        color: colors.componentBG,
-        marginBottom: 4,
-    },
-
-    chatSwitcherMessageTextBody: {
-        fontFamily: fontFamily.GTA,
-        fontSize: 11,
-        color: colors.icon,
     },
 
     hamburgerOpenAbsolute: {
