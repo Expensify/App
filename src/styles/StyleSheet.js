@@ -117,6 +117,10 @@ const styles = {
         justifyContent: 'space-between',
     },
 
+    flexAlignSelfStretch: {
+        alignSelf: 'stretch',
+    },
+
     alignItemsCenter: {
         alignItems: 'center',
     },
@@ -143,6 +147,14 @@ const styles = {
 
     bgHighlight: {
         backgroundColor: 'yellow',
+    },
+
+    bgHighlight2: {
+        backgroundColor: 'green',
+    },
+
+    bgHighlight3: {
+        backgroundColor: 'pink',
     },
 
     textP: {
@@ -214,31 +226,29 @@ const styles = {
     },
 
     pill: {
-        borderRadius: 23,
+        borderRadius: 14,
         backgroundColor: colors.text,
-        height: 21,
+        height: 28,
         flexDirection: 'row',
-        paddingTop: 3,
-        paddingBottom: 3,
+        paddingTop: 6,
+        paddingBottom: 6,
         paddingLeft: 7,
         paddingRight: 7,
         alignItems: 'center',
-        justifyContent: 'space-between',
-        maxWidth: 230,
     },
 
     pillText: {
         color: colors.componentBG,
         weight: '400',
         fontSize: 11,
-        marginBottom: 2,
-        marginRight: 5,
+        lineHeight: 16,
+        marginRight: 4,
         userSelect: 'none',
     },
 
     pillCancelIcon: {
-        width: 11,
-        height: 11,
+        width: 12,
+        height: 12,
     },
 
     navText: {
@@ -293,6 +303,10 @@ const styles = {
 
     textInputReversedFocus: {
         borderColor: colors.icon,
+    },
+
+    textInputNoOutline: {
+        outlineWidth: 0,
     },
 
     formLabel: {
@@ -437,17 +451,17 @@ const styles = {
     },
 
     sidebarLink: {
-        paddingTop: 10,
-        paddingRight: 8,
-        paddingBottom: 10,
-        paddingLeft: 8,
         textDecorationLine: 'none',
     },
 
     sidebarLinkInner: {
         alignItems: 'center',
         flexDirection: 'row',
-        height: 24,
+        height: 44,
+        paddingTop: 10,
+        paddingRight: 8,
+        paddingBottom: 10,
+        paddingLeft: 8,
     },
 
     sidebarLinkText: {
@@ -703,25 +717,33 @@ const styles = {
         borderRadius: 8,
         borderWidth: 1,
         borderColor: colors.textSupporting,
-        paddingLeft: 12,
-        paddingTop: 6,
-        paddingRight: 5,
-        paddingBottom: 5.5,
+        paddingTop: 8,
+        paddingRight: 8,
+        paddingBottom: 0,
+        paddingLeft: 8,
         marginBottom: 4,
     },
 
+    chatSwitcherPillsInput: {
+        alignItems: 'flex-start',
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        maxWidth: 191,
+    },
+
     chatSwitcherInputGroup: {
-        minWidth: 230,
+        minWidth: 1,
     },
 
     chatSwitcherGroupDMTextInput: {
-        flex: 1,
-        backgroundColor: colors.componentBG,
-        color: colors.text,
+        backgroundColor: colors.sidebar,
+        color: colors.textReversed,
         fontFamily: fontFamily.GTA,
         fontSize: 15,
-        textAlignVertical: 'center',
-        marginRight: 1,
+        flexGrow: 1,
+        height: 28,
+        minWidth: 80,
+        width: 0,
     },
 
     chatSwitcherMessage: {

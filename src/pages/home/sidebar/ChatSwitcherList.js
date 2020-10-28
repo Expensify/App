@@ -48,6 +48,7 @@ const ChatSwitcherList = ({
                         styles.alignItemsCenter,
                         styles.flexJustifySpaceBetween,
                         styles.sidebarLink,
+                        styles.sidebarLinkInner,
                         optionIsFocused ? styles.sidebarLinkActive : null
                     ]}
                 >
