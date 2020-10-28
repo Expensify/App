@@ -181,13 +181,15 @@ function fetchChatReportsByIDs(chatList) {
  */
 function updateReportWithNewAction(reportID, reportAction) {
     const newMaxSequenceNumber = reportAction.sequenceNumber;
+    const isFromCurrentUser = reportAction.actorAccountID === currentUserAccountID;
+    const unreadActionCount = isFromCurrentUser ? 0 : newMaxSequenceNumber - (lastReadActionIDs[reportID] || 0);
 
     // Always merge the reportID into Ion
     // If the report doesn't exist in Ion yet, then all the rest of the data will be filled out
     // by handleReportChanged
     Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {
         reportID,
-        unreadActionCount: newMaxSequenceNumber - (lastReadActionIDs[reportID] || 0),
+        unreadActionCount,
         maxSequenceNumber: reportAction.sequenceNumber,
     });
 
@@ -202,7 +204,7 @@ function updateReportWithNewAction(reportID, reportAction) {
     }
 
     // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
-    if (reportAction.actorAccountID === currentUserAccountID) {
+    if (isFromCurrentUser) {
         console.debug('[LOCAL_NOTIFICATION] No notification because comment is from the currently logged in user');
         return;
     }
