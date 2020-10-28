@@ -50,26 +50,26 @@ const AttachmentPicker = {
      */
     show(callback) {
         RNImagePicker.showImagePicker(imagePickerOptions, (response) => {
-            if (response.didCancel) {
-                // can ignore this case
-            } else if (response.error) {
+            if (response.error) {
                 console.error(`Error during attachment selection: ${response.error}`);
             } else if (response.customButton) {
                 this.showDocumentPicker(callback);
-            } else {
+            } else if (!response.didCancel) {
                 callback(response);
             }
         });
+    },
+
+    /*
+    * The data returned from `show` is different on web and mobile, so use this function to ensure the data we
+    * send to the xhr will be handled properly.
+    */
+    getDataForUpload(fileData) {
+        return {
+            name: fileData.fileName || 'chat_attachment',
+            type: fileData.type,
+            uri: fileData.uri,
+        };
     }
 };
-
-/*
- * The data returned from `show` is different on web and mobile, so use this function to ensure the data we
- * send to the xhr will be handled properly.
- */
-AttachmentPicker.getDataForUpload = fileData => ({
-    name: fileData.fileName || 'chat_attachment',
-    type: fileData.type,
-    uri: fileData.uri,
-});
 export default AttachmentPicker;
