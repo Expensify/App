@@ -40,7 +40,7 @@ class Expensify extends Component {
         // Initialize this client as being an active client
         ActiveClientManager.init();
 
-        Authenticator();
+        Authenticator.init();
 
         this.removeLoadingState = this.removeLoadingState.bind(this);
 

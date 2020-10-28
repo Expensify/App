@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import Ion from '../Ion';
 import * as API from '../API';
 import IONKEYS from '../../IONKEYS';
@@ -26,6 +27,24 @@ function signIn(partnerUserID, partnerUserSecret, twoFactorAuthCode = '', exitTo
     });
 }
 
+function reauthenticate() {
+    API.callAuthenticate(credentials.login, credentials.password)
+        .then((response) => {
+            // If authentication fails throw so that we hit the catch below and redirect to sign in
+            if (response.jsonCode !== 200) {
+                throw new Error(response.message);
+            }
+
+            // Update authToken in Ion store otherwise subsequent API calls will use the expired one
+            Ion.merge(IONKEYS.SESSION, _.pick(response, 'authToken'));
+        })
+        .catch((error) => {
+            redirectToSignIn(error.message);
+            return Promise.reject();
+        })
+        .finally(() => Ion.set(IONKEYS.REAUTHENTICATING, false));
+}
+
 /**
  * Clears the Ion store and redirects user to the sign in page
  */
@@ -42,4 +61,5 @@ function signOut() {
 export {
     signIn,
     signOut,
+    reauthenticate,
 };

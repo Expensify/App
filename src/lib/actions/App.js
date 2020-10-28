@@ -8,7 +8,6 @@ Ion.connect({
     callback: val => currentRedirectTo = val,
 });
 
-
 /**
  * Redirect the app to a new page by updating the state in Ion
  *
