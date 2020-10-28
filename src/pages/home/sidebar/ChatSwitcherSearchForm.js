@@ -77,37 +77,41 @@ const ChatSwitcherSearchForm = props => (
                         styles.flex1,
                     ]}
                 >
-                    {_.map(props.groupUsers, user => (
-                        <View
-                            key={user.login}
-                            style={[styles.mb1, styles.mr1]}
+                    <View style={[styles.flexGrow1]}>
+                        <View style={styles.chatSwitcherPillsInput}>
+                            {_.map(props.groupUsers, user => (
+                                <View
+                                    key={user.login}
+                                    style={[styles.mb1, styles.mr1]}
+                                >
+                                    <PillWithCancelButton
+                                        text={getDisplayName(user.login)}
+                                        onCancel={() => props.onRemoveFromGroup(user)}
+                                    />
+                                </View>
+                            ))}
+                            <View style={[styles.chatSwitcherInputGroup, styles.flexRow, styles.flexGrow1, styles.flexAlignSelfStretch]}>
+                                <TextInputWithFocusStyles
+                                    styleFocusIn={[styles.textInputNoOutline]}
+                                    ref={props.forwardedRef}
+                                    style={[styles.chatSwitcherGroupDMTextInput, styles.mb2]}
+                                    value={props.searchValue}
+                                    onBlur={props.onBlur}
+                                    onChangeText={props.onChangeText}
+                                    onFocus={props.onFocus}
+                                    onKeyPress={props.onKeyPress}
+                                />
+                            </View>
+                        </View>
+                    </View>
+                    <View style={[styles.ml2, styles.mb2, styles.flexJustifyEnd]}>
+                        <TouchableOpacity
+                            style={[styles.button, styles.buttonSmall, styles.buttonSuccess]}
+                            onPress={props.onConfirmUsers}
+                            underlayColor={colors.componentBG}
                         >
-                            <PillWithCancelButton
-                                text={getDisplayName(user.login)}
-                                onCancel={() => props.onRemoveFromGroup(user)}
-                            />
-                        </View>
-                    ))}
-                    <View style={[styles.chatSwitcherInputGroup, styles.flexRow]}>
-                        <TextInputWithFocusStyles
-                            styleFocusIn={[styles.textInputReversedFocus]}
-                            ref={props.forwardedRef}
-                            style={[styles.chatSwitcherGroupDMTextInput, styles.textInputReversed]}
-                            value={props.searchValue}
-                            onBlur={props.onBlur}
-                            onChangeText={props.onChangeText}
-                            onFocus={props.onFocus}
-                            onKeyPress={props.onKeyPress}
-                        />
-                        <View style={[styles.flexJustifyEnd]}>
-                            <TouchableOpacity
-                                style={[styles.button, styles.buttonSmall, styles.buttonSuccess]}
-                                onPress={props.onConfirmUsers}
-                                underlayColor={colors.componentBG}
-                            >
-                                <Text style={[styles.buttonText, styles.buttonSmallText, styles.buttonSuccessText]}>Go</Text>
-                            </TouchableOpacity>
-                        </View>
+                            <Text style={[styles.buttonText, styles.buttonSmallText, styles.buttonSuccessText]}>Go</Text>
+                        </TouchableOpacity>
                     </View>
                 </View>
             )
