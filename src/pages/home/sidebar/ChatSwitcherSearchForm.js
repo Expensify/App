@@ -105,7 +105,7 @@ const ChatSwitcherSearchForm = props => (
                                 onPress={props.onConfirmUsers}
                                 underlayColor={colors.componentBG}
                             >
-                                <Text style={[styles.buttonText, styles.buttonSuccessText]}>Go</Text>
+                                <Text style={[styles.buttonText, styles.buttonSmallText, styles.buttonSuccessText]}>Go</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
