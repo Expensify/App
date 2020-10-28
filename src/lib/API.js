@@ -5,19 +5,7 @@ import xhr from './xhr';
 import NetworkConnection from './NetworkConnection';
 import CONFIG from '../CONFIG';
 import * as Pusher from './Pusher/pusher';
-import ROUTES from '../ROUTES';
-import Str from './Str';
-import Guid from './Guid';
 import redirectToSignIn from './actions/SignInRedirect';
-
-// When the user authenticates for the first time we create a login and store credentials in Ion.
-// When the user's authToken expires we use this login to re-authenticate and get a new authToken
-// and use that new authToken in subsequent API calls
-let credentials;
-Ion.connect({
-    key: IONKEYS.CREDENTIALS,
-    callback: ionCredentials => credentials = ionCredentials,
-});
 
 // We subscribe to changes to the online/offline status of the network to determine when we should fire off API calls
 // vs queueing them for later.
@@ -40,7 +28,7 @@ let reauthenticating = false;
 
 // In this variable we capture that redirectTo, after we authenticate the user, we then create a login for the user
 // and after that, we redirect the user using the route we captured in this variable.
-let redirectTo;
+// let redirectTo;
 
 /**
  * Adds a request to networkRequestQueue
@@ -183,41 +171,6 @@ function deleteLogin(parameters) {
         .catch(error => Ion.merge(IONKEYS.SESSION, {error: error.message}));
 }
 
-/**
- * @param {string} login
- * @param {string} password
- * @returns {Promise}
- */
-function createLogin(login, password) {
-    // Using xhr instead of request because request has logic to retry API commands when we get a 407 authToken expired
-    // in the response, and we call CreateLogin after getting a successful response to Authenticate so it's unlikely
-    // that we'll get a 407.
-    return xhr('CreateLogin', {
-        authToken,
-        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-        partnerUserID: login,
-        partnerUserSecret: password,
-    })
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                throw new Error(response.message);
-            }
-            if (credentials && credentials.login) {
-                // If we have an old login for some reason, we should delete it before storing the new details
-                deleteLogin({partnerUserID: credentials.login});
-            }
-            Ion.merge(IONKEYS.CREDENTIALS, {login, password});
-
-            // Now that we created a login to re-authenticate the user when the authToken expires,
-            // we redirect the user and clear the value of redirectTo since we don't need it anymore
-            Ion.merge(IONKEYS.APP_REDIRECT_TO, redirectTo);
-        });
-}
-
-// Used to prevent calling CreateLogin more than once since this callback is triggered when we set authToken, loading,
-// error, etc
-let creatingLogin = false;
 Ion.connect({
     key: IONKEYS.SESSION,
     callback: (session) => {
@@ -226,15 +179,6 @@ Ion.connect({
         }
         if (session.authToken) {
             authToken = session.authToken;
-        }
-
-        // If we have an authToken but no login, it's the users first time signing in and we need to
-        // create a login for the user, so when the authToken expires we can get a new one with said login
-        const hasLogin = credentials && credentials.login;
-        if (authToken && !hasLogin && !creatingLogin) {
-            creatingLogin = true;
-            createLogin(Str.generateDeviceLoginID(), Guid())
-                .then(() => creatingLogin = false);
         }
     },
 });
@@ -251,33 +195,7 @@ Ion.connect({
         // When the app is no longer authenticating restart the network queue
         if (!reauthenticating) {
             processNetworkRequestQueue();
-            return;
         }
-
-        // Otherwise let's refresh the authToken by calling Authenticate
-        return xhr('Authenticate', {
-            useExpensifyLogin: false,
-            partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-            partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-            partnerUserID: credentials.login,
-            partnerUserSecret: credentials.password,
-            twoFactorAuthCode: ''
-        })
-            .then((response) => {
-                // If authentication fails throw so that we hit the catch below and redirect to sign in
-                if (response.jsonCode !== 200) {
-                    throw new Error(response.message);
-                }
-
-                // Update authToken in Ion store otherwise subsequent API calls will use the expired one
-                Ion.merge(IONKEYS.SESSION, _.pick(response, 'authToken'));
-                return response;
-            })
-            .catch((error) => {
-                redirectToSignIn(error.message);
-                return Promise.reject();
-            })
-            .finally(() => reauthenticating = false);
     }
 });
 
@@ -385,7 +303,7 @@ function authenticate(parameters) {
         // After the user authenticates, create a new login for the user so that we can reauthenticate when the
         // authtoken expires
         .then((response) => {
-            redirectTo = parameters.exitTo ? Str.normalizeUrl(parameters.exitTo) : ROUTES.ROOT;
+            // redirectTo = parameters.exitTo ? Str.normalizeUrl(parameters.exitTo) : ROUTES.ROOT;
             Ion.set(IONKEYS.SESSION, _.pick(response, 'authToken', 'accountID', 'email'));
         })
         .catch((error) => {
@@ -476,10 +394,33 @@ function getPersonalDetails(parameters) {
     });
 }
 
+function createLogin(login, password) {
+    return xhr('CreateLogin', {
+        authToken,
+        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+        partnerUserID: login,
+        partnerUserSecret: password,
+    });
+}
+
+function callAuthenticate(login, password) {
+    return xhr('Authenticate', {
+        useExpensifyLogin: false,
+        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+        partnerUserID: login,
+        partnerUserSecret: password,
+        twoFactorAuthCode: ''
+    });
+}
+
 export {
     authenticate,
     addReportComment,
+    callAuthenticate,
     createChatReport,
+    createLogin,
     deleteLogin,
     get,
     getAuthToken,

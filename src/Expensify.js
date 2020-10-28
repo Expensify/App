@@ -6,6 +6,7 @@ import SignInPage from './page/SignInPage';
 import HomePage from './page/home/HomePage';
 import Ion from './lib/Ion';
 import * as ActiveClientManager from './lib/ActiveClientManager';
+import Authenticator from './lib/Authenticator';
 import IONKEYS from './IONKEYS';
 import withIon from './components/withIon';
 import styles from './style/StyleSheet';
@@ -38,6 +39,8 @@ class Expensify extends Component {
 
         // Initialize this client as being an active client
         ActiveClientManager.init();
+
+        Authenticator();
 
         this.removeLoadingState = this.removeLoadingState.bind(this);
 
