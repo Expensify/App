@@ -1,7 +1,12 @@
 import React, {createRef} from 'react';
+import PropTypes from 'prop-types';
 import AttachmentPickerNative from '../../libs/AttachmentPickerNative';
 
-export default class AttachmentPicker extends React.Component {
+const propTypes = {
+    children: PropTypes.func.isRequired,
+};
+
+class AttachmentPicker extends React.Component {
     constructor(props) {
         super(props);
         this.onChangeCallback = createRef();
@@ -14,6 +19,9 @@ export default class AttachmentPicker extends React.Component {
                     callback(AttachmentPickerNative.getDataForUpload(response));
                 });
             },
-        })
+        });
     }
 }
+
+AttachmentPicker.propTypes = propTypes;
+export default AttachmentPicker;
