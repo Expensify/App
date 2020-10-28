@@ -3,7 +3,7 @@ import checkForUpdates from '../libs/checkForUpdates';
 import Config from '../CONFIG';
 import HttpUtils from '../libs/HttpUtils';
 import {name as appName} from '../../app.json';
-import packageJSON from '../../package.json';
+import {version as currentVersion} from '../../package.json';
 import Visibility from '../libs/Visibility';
 
 /**
@@ -12,10 +12,10 @@ import Visibility from '../libs/Visibility';
  *
  * @param {String} currentVersion
  */
-function webUpdate(currentVersion) {
+function webUpdate() {
     HttpUtils.download('version.json')
-        .then(({version: newVersion}) => {
-            if (newVersion !== currentVersion) {
+        .then(({version}) => {
+            if (version !== currentVersion) {
                 if (!Visibility.isVisible()) {
                     // Page is hidden, refresh immediately
                     window.location.reload(true);
@@ -33,21 +33,20 @@ function webUpdate(currentVersion) {
 /**
  * Create an object whose shape reflects the callbacks used in checkForUpdates.
  *
- * @param {String} currentVersion The version of the app that is currently running.
  * @returns {Object}
  */
-const webUpdater = currentVersion => ({
+const webUpdater = () => ({
     init: () => {
         // We want to check for updates and refresh the page if necessary when the app is backgrounded.
         // That way, it will auto-update silently when they minimize the page,
         // and we don't bug the user any more than necessary :)
         window.addEventListener('visibilitychange', () => {
             if (!Visibility.isVisible()) {
-                webUpdate(currentVersion);
+                webUpdate();
             }
         });
     },
-    update: () => webUpdate(currentVersion),
+    update: () => webUpdate(),
 });
 
 export default function () {
@@ -57,6 +56,6 @@ export default function () {
 
     // When app loads, get current version (production only)
     if (Config.IS_IN_PRODUCTION) {
-        checkForUpdates(webUpdater(packageJSON.version));
+        checkForUpdates(webUpdater());
     }
 }
