@@ -1,6 +1,9 @@
 module.exports = {
     appId: 'com.expensifyreactnative.chat',
     productName: 'Chat',
+    extraMetadata: {
+        main: './desktop/main.js',
+    },
     afterSign: 'desktop/notarize.js',
     mac: {
         category: 'public.app-category.finance',
@@ -24,5 +27,5 @@ module.exports = {
         './dist/**/*',
         './desktop/*.js',
         './src/libs/checkForUpdates.js',
-    ]
+    ],
 };

@@ -37,7 +37,7 @@ autoUpdater.logger.transports.file.level = 'info';
 Object.assign(console, log.functions);
 
 const mainWindow = (() => {
-    const loadURL = serve({directory: '../dist'});
+    const loadURL = serve({directory: `${__dirname}/../dist`});
 
     return app.whenReady()
         .then(() => {
