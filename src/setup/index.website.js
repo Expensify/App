@@ -3,6 +3,7 @@ import checkForUpdates from '../libs/checkForUpdates';
 import Config from '../CONFIG';
 import HttpUtils from '../libs/HttpUtils';
 import {name as appName} from '../../app.json';
+import packageJSON from '../../package.json';
 import Visibility from '../libs/Visibility';
 
 /**
@@ -56,9 +57,6 @@ export default function () {
 
     // When app loads, get current version (production only)
     if (Config.IS_IN_PRODUCTION) {
-        HttpUtils.download('version.json')
-            .then(({version: currentVersion}) => {
-                checkForUpdates(webUpdater(currentVersion));
-            });
+        checkForUpdates(webUpdater(packageJSON.version));
     }
 }
