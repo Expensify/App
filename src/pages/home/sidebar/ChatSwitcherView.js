@@ -133,7 +133,10 @@ class ChatSwitcherView extends React.Component {
     addUserToGroup(option) {
         this.setState(prevState => ({
             groupUsers: [...prevState.groupUsers, option],
-        }), () => this.updateSearch(this.state.search));
+            search: '',
+        }), () => {
+            this.textInput.clear();
+        });
     }
 
     /**
