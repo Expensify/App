@@ -82,7 +82,7 @@ const ChatSwitcherSearchForm = props => (
                             {_.map(props.groupUsers, user => (
                                 <View
                                     key={user.login}
-                                    style={[styles.mb1, styles.mr1]}
+                                    style={[styles.chatSwticherPillWrapper]}
                                 >
                                     <PillWithCancelButton
                                         text={getDisplayName(user.login)}
@@ -94,7 +94,7 @@ const ChatSwitcherSearchForm = props => (
                                 <TextInputWithFocusStyles
                                     styleFocusIn={[styles.textInputNoOutline]}
                                     ref={props.forwardedRef}
-                                    style={[styles.chatSwitcherGroupDMTextInput, styles.mb2]}
+                                    style={[styles.chatSwitcherGroupDMTextInput, styles.mb1]}
                                     value={props.searchValue}
                                     onBlur={props.onBlur}
                                     onChangeText={props.onChangeText}
@@ -104,9 +104,9 @@ const ChatSwitcherSearchForm = props => (
                             </View>
                         </View>
                     </View>
-                    <View style={[styles.ml2, styles.mb2, styles.flexJustifyEnd]}>
+                    <View style={[styles.ml2, styles.flexJustifyEnd]}>
                         <TouchableOpacity
-                            style={[styles.button, styles.buttonSmall, styles.buttonSuccess]}
+                            style={[styles.button, styles.buttonSmall, styles.buttonSuccess, styles.chatSwitcherGo]}
                             onPress={props.onConfirmUsers}
                             underlayColor={colors.componentBG}
                         >
@@ -119,7 +119,7 @@ const ChatSwitcherSearchForm = props => (
                 <TextInputWithFocusStyles
                     styleFocusIn={[styles.textInputReversedFocus]}
                     ref={props.forwardedRef}
-                    style={[styles.textInput, styles.textInputReversed, styles.flex1, styles.mr2]}
+                    style={[styles.textInput, styles.textInputReversed, styles.flex1]}
                     value={props.searchValue}
                     onBlur={props.onBlur}
                     onChangeText={props.onChangeText}
@@ -132,7 +132,7 @@ const ChatSwitcherSearchForm = props => (
 
         {props.isClearButtonVisible && (
             <TouchableOpacity
-                style={[styles.chatSwitcherInputClear]}
+                style={[styles.chatSwitcherInputClear, styles.ml2]}
                 onPress={props.onClearButtonClick}
                 underlayColor={colors.componentBG}
             >
