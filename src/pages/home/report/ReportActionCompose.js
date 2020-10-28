@@ -7,7 +7,7 @@ import TextInputFocusable from '../../../components/TextInputFocusable';
 import sendIcon from '../../../../assets/images/icon-send.png';
 import IONKEYS from '../../../IONKEYS';
 import paperClipIcon from '../../../../assets/images/icon-paper-clip.png';
-import AttachmentPicker from '../../../libs/AttachmentPicker';
+import AttachmentPicker from '../../../components/AttachmentPicker';
 import withIon from '../../../components/withIon';
 import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs/actions/Report';
 import ReportTypingIndicator from './ReportTypingIndicator';
@@ -37,7 +37,6 @@ class ReportActionCompose extends React.Component {
         this.submitForm = this.submitForm.bind(this);
         this.triggerSubmitShortcut = this.triggerSubmitShortcut.bind(this);
         this.submitForm = this.submitForm.bind(this);
-        this.showAttachmentPicker = this.showAttachmentPicker.bind(this);
         this.setIsFocused = this.setIsFocused.bind(this);
         this.comment = '';
         this.state = {
@@ -128,22 +127,6 @@ class ReportActionCompose extends React.Component {
         this.setTextInputShouldClear(true);
     }
 
-    /**
-     * Handle the attachment icon being tapped
-     *
-     * @param {SyntheticEvent} e
-     */
-    showAttachmentPicker(e) {
-        e.preventDefault();
-
-        AttachmentPicker.show((response) => {
-            console.debug(`Attachment selected: ${response.uri}, ${response.type}, ${response.name}, ${response.size}`);
-
-            addAction(this.props.reportID, '', AttachmentPicker.getDataForUpload(response));
-            this.textInput.focus();
-        });
-    }
-
     render() {
         return (
             <View style={[styles.chatItemCompose]}>
@@ -153,17 +136,27 @@ class ReportActionCompose extends React.Component {
                     styles.flexRow
                 ]}
                 >
-                    <TouchableOpacity
-                        onPress={this.showAttachmentPicker}
-                        style={[styles.chatItemAttachButton]}
-                        underlayColor={colors.componentBG}
-                    >
-                        <Image
-                            style={[styles.chatItemSubmitButtonIcon]}
-                            resizeMode="contain"
-                            source={paperClipIcon}
-                        />
-                    </TouchableOpacity>
+                    <AttachmentPicker>
+                        {({show}) => (
+                            <TouchableOpacity
+                                onPress={(e) => {
+                                    e.preventDefault();
+                                    show((file) => {
+                                        addAction(this.props.reportID, '', file);
+                                        this.setTextInputShouldClear(true);
+                                    });
+                                }}
+                                style={[styles.chatItemAttachButton]}
+                                underlayColor={colors.componentBG}
+                            >
+                                <Image
+                                    style={[styles.chatItemSubmitButtonIcon]}
+                                    resizeMode="contain"
+                                    source={paperClipIcon}
+                                />
+                            </TouchableOpacity>
+                        )}
+                    </AttachmentPicker>
                     <TextInputFocusable
                         multiline
                         textAlignVertical="top"
