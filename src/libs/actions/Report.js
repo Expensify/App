@@ -213,6 +213,10 @@ function updateReportWithNewAction(reportID, reportAction) {
         return;
     }
 
+    // If the comment came from Concierge let's not show a notification since we already show one for expensify.com
+    if (lodashGet(reportAction, 'actorEmail') === 'concierge@expensify.com') {
+        return;
+    }
     console.debug('[LOCAL_NOTIFICATION] Creating notification');
     LocalNotification.showCommentNotification({
         reportAction,

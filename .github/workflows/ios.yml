@@ -25,7 +25,7 @@ jobs:
                   ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
             - name: Install node packages
-              run: npm install
+              run: npm ci
 
             - name: Install cocoapods
               run: cd ios && pod install

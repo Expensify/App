@@ -1,7 +1,7 @@
 // Implementation adapted from https://github.com/QuantumBA/foqum-react-native-document-picker/blob/master/web/index.js
 
-const ImagePicker = {
-    showImagePicker(options, callback) {
+const AttachmentPicker = {
+    show(callback) {
         const input = document.createElement('input');
         input.type = 'file';
         input.onchange = function () {
@@ -16,7 +16,7 @@ const ImagePicker = {
 
     /**
      *
-     * The data returned from `showImagePicker` is different on web and mobile, so use this function to ensure the
+     * The data returned from `show` is different on web and mobile, so use this function to ensure the
      * data we send to the xhr will be handled properly by the API. On web, we just want to send the file data returned
      * from the input.
      *
@@ -28,4 +28,4 @@ const ImagePicker = {
     },
 };
 
-export default ImagePicker;
+export default AttachmentPicker;
