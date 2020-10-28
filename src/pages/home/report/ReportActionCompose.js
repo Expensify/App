@@ -40,7 +40,10 @@ class ReportActionCompose extends React.Component {
         this.showAttachmentPicker = this.showAttachmentPicker.bind(this);
         this.setIsFocused = this.setIsFocused.bind(this);
         this.comment = '';
-        this.state = {isFocused: false};
+        this.state = {
+            isFocused: false,
+            textInputShouldClear: false
+        };
     }
 
     componentDidUpdate(prevProps) {
@@ -58,6 +61,15 @@ class ReportActionCompose extends React.Component {
      */
     setIsFocused(shouldHighlight) {
         this.setState({isFocused: shouldHighlight});
+    }
+
+    /**
+     * Updates the should clear state of the composer
+     *
+     * @param {boolean} shouldClear
+     */
+    setTextInputShouldClear(shouldClear) {
+        this.setState({textInputShouldClear: shouldClear});
     }
 
     /**
@@ -112,8 +124,8 @@ class ReportActionCompose extends React.Component {
         }
 
         this.props.onSubmit(trimmedComment);
-        this.textInput.clear();
         this.updateComment('');
+        this.setTextInputShouldClear(true);
     }
 
     /**
@@ -173,7 +185,6 @@ class ReportActionCompose extends React.Component {
                         multiline
                         textAlignVertical="top"
                         placeholder="Write something..."
-                        ref={el => this.textInput = el}
                         placeholderTextColor={colors.textSupporting}
                         onChangeText={this.updateComment}
                         onKeyPress={this.triggerSubmitShortcut}
@@ -182,6 +193,8 @@ class ReportActionCompose extends React.Component {
                         maxLines={16} // This is the same that slack has
                         onFocus={() => this.setIsFocused(true)}
                         onBlur={() => this.setIsFocused(false)}
+                        shouldClear={this.state.textInputShouldClear}
+                        onClear={() => this.setTextInputShouldClear(false)}
                     />
                     <TouchableOpacity
                         style={[styles.chatItemSubmitButton, styles.buttonSuccess]}
@@ -200,6 +213,7 @@ class ReportActionCompose extends React.Component {
         );
     }
 }
+
 ReportActionCompose.propTypes = propTypes;
 ReportActionCompose.defaultProps = defaultProps;
 
