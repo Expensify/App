@@ -10,7 +10,6 @@ import Visibility from '../libs/Visibility';
  * Download the latest app version from the server, and if it is different than the current one,
  * then refresh. If the page is visibile, prompt the user to refresh.
  *
- * @param {String} currentVersion
  */
 function webUpdate() {
     HttpUtils.download('version.json')
