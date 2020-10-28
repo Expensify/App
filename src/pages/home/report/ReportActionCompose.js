@@ -7,7 +7,7 @@ import TextInputFocusable from '../../../components/TextInputFocusable';
 import sendIcon from '../../../../assets/images/icon-send.png';
 import IONKEYS from '../../../IONKEYS';
 import paperClipIcon from '../../../../assets/images/icon-paper-clip.png';
-import ImagePicker from '../../../libs/ImagePicker';
+import AttachmentPicker from '../../../libs/AttachmentPicker';
 import withIon from '../../../components/withIon';
 import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs/actions/Report';
 import ReportTypingIndicator from './ReportTypingIndicator';
@@ -136,27 +136,10 @@ class ReportActionCompose extends React.Component {
     showAttachmentPicker(e) {
         e.preventDefault();
 
-        /**
-         * See https://github.com/react-native-community/react-native-image-picker/blob/master/docs/Reference.md#options
-         * for option definitions
-         */
-        const options = {
-            storageOptions: {
-                skipBackup: true,
-            },
-        };
+        AttachmentPicker.show((response) => {
+            console.debug(`Attachment selected: ${response.uri}, ${response.type}, ${response.name}, ${response.size}`);
 
-        ImagePicker.showImagePicker(options, (response) => {
-            if (response.didCancel) {
-                return;
-            }
-
-            if (response.error) {
-                console.error(`Error occurred picking image: ${response.error}`);
-                return;
-            }
-
-            addAction(this.props.reportID, '', ImagePicker.getDataForUpload(response));
+            addAction(this.props.reportID, '', AttachmentPicker.getDataForUpload(response));
             this.textInput.focus();
         });
     }
