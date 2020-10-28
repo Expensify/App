@@ -46,20 +46,22 @@ const ChatSwitcherList = ({
                     style={[
                         styles.flexRow,
                         styles.alignItemsCenter,
-                        styles.flexJustifyCenter,
-                        optionIsFocused ? styles.chatSwitcherItemFocused : null
+                        styles.flexJustifySpaceBetween,
+                        styles.sidebarLink,
+                        optionIsFocused ? styles.sidebarLinkActive : null
                     ]}
                 >
                     <TouchableOpacity
                         onPress={() => onSelectRow(option)}
+                        style={[
+                            styles.flexGrow1,
+                            styles.chatSwitcherItemAvatarNameWrapper,
+                        ]}
                     >
                         <View
                             style={[
                                 styles.flexRow,
-                                styles.mb2,
                                 styles.alignItemsCenter,
-                                styles.chatSwitcherItem,
-                                isUserRow ? styles.chatSwitcherItemLeft : null,
                             ]}
                         >
                             {
@@ -75,12 +77,12 @@ const ChatSwitcherList = ({
                             }
                             <View style={[styles.flex1]}>
                                 {option.text === option.alternateText ? (
-                                    <Text style={[textStyle, styles.h3]} numberOfLines={1}>
+                                    <Text style={[textStyle]} numberOfLines={1}>
                                         {option.alternateText}
                                     </Text>
                                 ) : (
                                     <>
-                                        <Text style={[textStyle, styles.h3]} numberOfLines={1}>
+                                        <Text style={[textStyle]} numberOfLines={1}>
                                             {option.text}
                                         </Text>
                                         <Text style={[textStyle, styles.textMicro]} numberOfLines={1}>
