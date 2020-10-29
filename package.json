@@ -13,7 +13,7 @@
     "start": "react-native start",
     "web": "webpack-dev-server --open --config config/webpack/webpack.dev.js",
     "build": "webpack --config config/webpack/webpack.prod.js",
-    "desktop-build": "webpack --config config/webpack/webpack.prod.js --platform desktop && electron-builder --config desktop/electron.config.js --publish always",
+    "desktop-build": "webpack --config config/webpack/webpack.prod.js --platform desktop && electron-builder --config config/electron.config.js --publish always",
     "ios-build": "fastlane ios build",
     "android-build": "fastlane android build",
     "test": "jest",
