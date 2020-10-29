@@ -278,7 +278,6 @@ const styles = {
         marginLeft: 8,
     },
 
-    navSubText: {
     typingIndicator: {
         height: 15,
         marginBottom: 5,
