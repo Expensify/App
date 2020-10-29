@@ -1,4 +1,4 @@
-import React, {createRef} from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 
 const propTypes = {
@@ -21,11 +21,6 @@ const propTypes = {
  * </AttachmentPicker>
  */
 class AttachmentPicker extends React.Component {
-    constructor(props) {
-        super(props);
-        this.onChangeCallback = createRef();
-    }
-
     render() {
         return (
             <>
@@ -36,12 +31,12 @@ class AttachmentPicker extends React.Component {
                     onChange={(e) => {
                         const file = e.target.files[0];
                         file.uri = URL.createObjectURL(file);
-                        this.onChangeCallback.current(file);
+                        this.callback(file);
                     }}
                 />
                 {this.props.children({
                     show: (callback) => {
-                        this.onChangeCallback.current = callback;
+                        this.callback = callback;
                         this.fileInput.click();
                     },
                 })}
