@@ -19,6 +19,7 @@ const colors = {
     textReversed: '#FFFFFF',
     textSupporting: '#7D8B8F',
     red: '#E84A3B',
+    buttonBG: '#8A8A8A',
 };
 
 const styles = {
@@ -52,6 +53,9 @@ const styles = {
     },
     mt1: {
         marginTop: 10,
+    },
+    mb1: {
+        marginBottom: 4,
     },
     mb2: {
         marginBottom: 8,
@@ -101,12 +105,20 @@ const styles = {
         flexDirection: 'column',
     },
 
+    flexJustifyCenter: {
+        justifyContent: 'center',
+    },
+
     flexJustifyEnd: {
         justifyContent: 'flex-end',
     },
 
     flexJustifySpaceBetween: {
         justifyContent: 'space-between',
+    },
+
+    flexAlignSelfStretch: {
+        alignSelf: 'stretch',
     },
 
     alignItemsCenter: {
@@ -133,23 +145,55 @@ const styles = {
         display: 'none',
     },
 
+    bgHighlight: {
+        backgroundColor: 'yellow',
+    },
+
+    bgHighlight2: {
+        backgroundColor: 'green',
+    },
+
+    bgHighlight3: {
+        backgroundColor: 'pink',
+    },
+
+    h4: {
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: '700',
+        fontSize: 13,
+    },
+
     textP: {
         color: colors.text,
         fontSize: 15,
         lineHeight: 20,
     },
 
-    h3: {
-        color: '#FFFFFF',
-        fontWeight: '600',
+    textLabel: {
+        color: colors.text,
+        fontSize: 13,
+        lineHeight: 18,
     },
 
     textMicro: {
         fontSize: 11,
     },
 
+    textStrong: {
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: '600',
+    },
+
+    textDecorationNoLine: {
+        textDecorationLine: 'none',
+    },
+
     colorReversed: {
         color: colors.textReversed,
+    },
+
+    colorMutedReversed: {
+        color: colors.icon,
     },
 
     button: {
@@ -162,8 +206,22 @@ const styles = {
 
     buttonText: {
         color: colors.text,
+        fontFamily: fontFamily.GTA_BOLD,
         fontWeight: '700',
         textAlign: 'center',
+    },
+
+    buttonSmall: {
+        height: 28,
+        paddingTop: 6,
+        paddingRight: 10,
+        paddingBottom: 6,
+        paddingLeft: 10,
+    },
+
+    buttonSmallText: {
+        fontSize: 11,
+        lineHeight: 16,
     },
 
     buttonSuccess: {
@@ -183,6 +241,33 @@ const styles = {
         width: 40,
     },
 
+    pill: {
+        borderRadius: 14,
+        backgroundColor: colors.text,
+        height: 28,
+        flexDirection: 'row',
+        paddingTop: 6,
+        paddingBottom: 6,
+        paddingLeft: 7,
+        paddingRight: 7,
+        alignItems: 'center',
+    },
+
+    pillText: {
+        color: colors.componentBG,
+        weight: '400',
+        fontSize: 11,
+        lineHeight: 16,
+        marginRight: 4,
+        userSelect: 'none',
+        maxWidth: 160,
+    },
+
+    pillCancelIcon: {
+        width: 12,
+        height: 12,
+    },
+
     navText: {
         color: colors.heading,
         fontSize: 17,
@@ -194,8 +279,17 @@ const styles = {
     },
 
     navSubText: {
+    typingIndicator: {
+        height: 15,
+        marginBottom: 5,
+        marginTop: 5,
+    },
+
+    typingIndicatorSubText: {
         color: colors.textSupporting,
+        fontFamily: fontFamily.GTA,
         fontSize: 11,
+        marginLeft: 48,
     },
 
     // Actions
@@ -231,6 +325,10 @@ const styles = {
 
     textInputReversedFocus: {
         borderColor: colors.icon,
+    },
+
+    textInputNoOutline: {
+        outlineWidth: 0,
     },
 
     formLabel: {
@@ -363,31 +461,29 @@ const styles = {
         fontSize: 15,
         fontWeight: '700',
         paddingTop: 8,
-        paddingRight: 12,
+        paddingRight: 8,
         paddingBottom: 8,
-        paddingLeft: 12,
+        paddingLeft: 8,
     },
 
     sidebarListItem: {
-        height: 40,
         justifyContent: 'center',
         textDecorationLine: 'none',
         backgroundColor: colors.heading,
     },
 
     sidebarLink: {
-        height: 40,
-        paddingTop: 8,
-        paddingRight: 12,
-        paddingBottom: 8,
-        paddingLeft: 12,
         textDecorationLine: 'none',
     },
 
     sidebarLinkInner: {
         alignItems: 'center',
         flexDirection: 'row',
-        height: 24,
+        height: 44,
+        paddingTop: 10,
+        paddingRight: 8,
+        paddingBottom: 10,
+        paddingLeft: 8,
     },
 
     sidebarLinkText: {
@@ -398,13 +494,8 @@ const styles = {
     },
 
     sidebarLinkActive: {
-        backgroundColor: colors.blue,
+        backgroundColor: colors.text,
         borderRadius: 8,
-        height: 40,
-        paddingTop: 8,
-        paddingRight: 12,
-        paddingBottom: 8,
-        paddingLeft: 12,
         textDecorationLine: 'none',
     },
     sidebarLinkTextUnread: {
@@ -555,7 +646,7 @@ const styles = {
 
     chatItemCompose: {
         minHeight: 65,
-        paddingBottom: 20,
+        marginBottom: 5,
         paddingLeft: 20,
         paddingRight: 20,
         display: 'flex',
@@ -634,12 +725,68 @@ const styles = {
     },
 
     chatSwitcherInputClear: {
-        alignSelf: 'center',
+        alignSelf: 'flex-end',
+        height: 40,
+        justifyContent: 'center',
     },
 
     chatSwitcherInputClearIcon: {
         height: 24,
         width: 24,
+    },
+
+    chatSwitcherGroupDMContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: colors.textSupporting,
+        paddingTop: 0,
+        paddingRight: 3,
+        paddingBottom: 0,
+        paddingLeft: 5,
+    },
+
+    chatSwitcherPillsInput: {
+        alignItems: 'flex-start',
+        alignSelf: 'flex-start',
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        maxWidth: 190,
+        overflow: 'hidden',
+    },
+
+    chatSwitcherInputGroup: {
+        minWidth: 1,
+    },
+
+    chatSwitcherGroupDMTextInput: {
+        backgroundColor: colors.sidebar,
+        color: colors.textReversed,
+        fontFamily: fontFamily.GTA,
+        fontSize: 15,
+        flexGrow: 1,
+        height: 28,
+        width: 186,
+        marginTop: 5,
+        marginBottom: 5,
+        marginLeft: 3,
+    },
+
+    chatSwticherPillWrapper: {
+        marginTop: 5,
+        marginRight: 4,
+    },
+
+    chatSwitcherGo: {
+        borderRadius: 6,
+        height: 32,
+        marginBottom: 3,
+    },
+
+    chatSwitcherMessage: {
+        paddingLeft: 12,
+        paddingRight: 12,
     },
 
     hamburgerOpenAbsolute: {
@@ -682,17 +829,32 @@ const styles = {
         width: 28,
     },
 
-    chatSwitcherItem: {
-        padding: 12,
-    },
-
     chatSwitcherItemText: {
         color: colors.text,
     },
 
-    chatSwitcherItemFocused: {
-        backgroundColor: colors.blue,
+    chatSwitcherItemAvatarNameWrapper: {
+        minWidth: 0,
+        flex: 1,
+    },
+
+    chatSwitcherItemButton: {
+        backgroundColor: 'rgba(255, 255, 255, 0.15)',
+        paddingTop: 6,
+        paddingRight: 8,
+        paddingBottom: 6,
+        paddingLeft: 8,
         borderRadius: 8,
+        height: 28,
+        marginLeft: 4,
+    },
+
+    chatSwitcherItemButtonText: {
+        color: colors.componentBG,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: 11,
+        lineHeight: 16,
+        fontWeight: '700',
     },
 };
 
