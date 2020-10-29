@@ -15,11 +15,11 @@ const propTypes = {
  *
  * @example
  * <AttachmentPicker>
- * {({openFilePicker}) => (
+ * {({openPicker}) => (
  *     <Button
  *         onPress={() => {
- *             openFilePicker({
- *                 onFilePicked: (file) => {
+ *             openPicker({
+ *                 onPicked: (file) => {
  *                     // Display or upload File
  *                 },
  *             });
@@ -39,12 +39,12 @@ class AttachmentPicker extends React.Component {
                     onChange={(e) => {
                         const file = e.target.files[0];
                         file.uri = URL.createObjectURL(file);
-                        this.onFilePicked(file);
+                        this.onPicked(file);
                     }}
                 />
                 {this.props.children({
-                    openFilePicker: ({onFilePicked}) => {
-                        this.onFilePicked = onFilePicked;
+                    openPicker: ({onPicked}) => {
+                        this.onPicked = onPicked;
                         this.fileInput.click();
                     },
                 })}
