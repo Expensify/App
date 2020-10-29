@@ -88,6 +88,15 @@ function getUnreadActionCount(report) {
 }
 
 /**
+ * @param {Object} report
+ * @return {String[]}
+ */
+function getParticipantEmailsFromReport({sharedReportList}) {
+    const emailArray = _.map(sharedReportList, participant => participant.email);
+    return _.without(emailArray, currentUserEmail);
+}
+
+/**
  * Only store the minimal amount of data in Ion that needs to be stored
  * because space is limited
  *
@@ -105,6 +114,7 @@ function getSimplifiedReportObject(report) {
         unreadActionCount: getUnreadActionCount(report),
         isPinned: pinnedReportIDs.includes(report.reportID),
         maxSequenceNumber: report.reportActionList.length,
+        participants: getParticipantEmailsFromReport(report),
     };
 }
 
@@ -142,24 +152,13 @@ function fetchChatReportsByIDs(chatList) {
 
             // Build array of all participant emails so we can
             // get the personal details.
-            const emails = _.chain(reports)
-                .pluck('sharedReportList')
-                .reduce((participants, sharedList) => {
-                    const emailArray = _.map(sharedList, participant => participant.email);
-                    return [...participants, ...emailArray];
-                }, [])
-                .filter(email => email !== currentUserEmail)
-                .unique()
-                .value();
-
-            // Fetch the person details if there are any
-            if (emails && emails.length !== 0) {
-                PersonalDetails.getForEmails(emails.join(','));
-            }
+            let participantEmails = [];
 
             // Process the reports and store them in Ion
             _.each(fetchedReports, (report) => {
                 const newReport = getSimplifiedReportObject(report);
+
+                participantEmails.push(newReport.participants);
 
                 if (lodashGet(report, 'reportNameValuePairs.type') === 'chat') {
                     newReport.reportName = getChatReportName(report.sharedReportList);
@@ -168,6 +167,12 @@ function fetchChatReportsByIDs(chatList) {
                 // Merge the data into Ion
                 Ion.merge(`${IONKEYS.COLLECTION.REPORT}${report.reportID}`, newReport);
             });
+
+            // Fetch the person details if there are any
+            participantEmails = _.unique(participantEmails);
+            if (participantEmails && participantEmails.length !== 0) {
+                PersonalDetails.getForEmails(participantEmails.join(','));
+            }
 
             return _.map(fetchedReports, report => report.reportID);
         });
