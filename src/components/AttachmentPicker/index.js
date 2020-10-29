@@ -5,6 +5,21 @@ const propTypes = {
     children: PropTypes.func.isRequired,
 };
 
+/**
+ * This component renders a function as a child and
+ * returns a "show attachment picker" method that takes
+ * a callback. This is the web/mWeb/desktop version since
+ * on iOS Safari we must append a hidden input to the DOM
+ * and listen to onChange event.
+ *
+ * e.g.
+ *
+ * <AttachmentPicker>
+ *     {({show}) => (
+ *         <Button onPress={() => show(someCallback)} />
+ *     )}
+ * </AttachmentPicker>
+ */
 class AttachmentPicker extends React.Component {
     constructor(props) {
         super(props);
