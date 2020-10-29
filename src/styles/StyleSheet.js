@@ -260,6 +260,7 @@ const styles = {
         lineHeight: 16,
         marginRight: 4,
         userSelect: 'none',
+        maxWidth: 160,
     },
 
     pillCancelIcon: {
@@ -770,7 +771,6 @@ const styles = {
     chatSwticherPillWrapper: {
         marginTop: 5,
         marginRight: 4,
-        maxWidth: 190,
     },
 
     chatSwitcherGo: {
