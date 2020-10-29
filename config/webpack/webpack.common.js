@@ -65,6 +65,7 @@ module.exports = {
                 options: {
                     cache: false,
                     emitWarning: true,
+                    configFile: './config/.eslintrc.js',
                 },
             },
 
