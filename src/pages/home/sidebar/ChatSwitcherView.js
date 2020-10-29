@@ -345,11 +345,8 @@ class ChatSwitcherView extends React.Component {
             .value();
 
         // Get a list of all reports we can send messages to
-        // Filter the reports to only group chats
-        // Make the report details generic
         const reportOptions = _.chain(this.props.reports)
             .values()
-            .filter(report => report.reportNameValuePairs && report.reportNameValuePairs.type === 'expense')
             .map(report => ({
                 text: report.reportName,
                 alternateText: report.reportName,
@@ -361,7 +358,7 @@ class ChatSwitcherView extends React.Component {
 
         // If we have at least one group user then stop showing
         // report options as we cannot add a report to a group DM
-        const searchOptions = this.state.groupUsers.length > 0
+        const searchOptions = this.state.groupUsers.length === 0
             ? _.union(personalDetailOptions, reportOptions)
             : personalDetailOptions;
 
