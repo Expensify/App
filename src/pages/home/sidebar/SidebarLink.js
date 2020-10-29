@@ -30,24 +30,26 @@ const defaultProps = {
 
 const SidebarLink = (props) => {
     const linkWrapperActiveStyle = props.isActiveReport && styles.sidebarLinkWrapperActive;
-    const linkActiveStyle = props.isActiveReport ? styles.sidebarLinkActive : styles.sidebarLink;
+    const linkActiveStyle = props.isActiveReport ? styles.sidebarLinkActive : null;
     const textActiveStyle = props.isActiveReport ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textActiveUnreadStyle = props.isUnread
         ? [textActiveStyle, styles.sidebarLinkTextUnread] : [textActiveStyle];
 
     return (
         <View style={[styles.sidebarListItem, linkWrapperActiveStyle]}>
-            <PressableLink
-                onClick={props.onLinkClick}
-                to={ROUTES.getReportRoute(props.reportID)}
-                style={linkActiveStyle}
-            >
-                <View style={[styles.sidebarLinkInner]}>
-                    <Text numberOfLines={1} style={textActiveUnreadStyle}>
-                        {props.reportName}
-                    </Text>
-                </View>
-            </PressableLink>
+            <View style={[linkActiveStyle, styles.sidebarLink]}>
+                <PressableLink
+                    onClick={props.onLinkClick}
+                    to={ROUTES.getReportRoute(props.reportID)}
+                    style={styles.textDecorationNoLine}
+                >
+                    <View style={[styles.sidebarLinkInner]}>
+                        <Text numberOfLines={1} style={textActiveUnreadStyle}>
+                            {props.reportName}
+                        </Text>
+                    </View>
+                </PressableLink>
+            </View>
         </View>
     );
 };
