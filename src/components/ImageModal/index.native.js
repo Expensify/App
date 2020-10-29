@@ -1,8 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { View, Image, Modal, TouchableOpacity, Text, Dimensions, StatusBar } from 'react-native';
-import {SafeAreaInsetsContext, SafeAreaProvider} from 'react-native-safe-area-context';
-import styles, {getSafeAreaPadding} from '../../styles/StyleSheet';
+import { View, Image, Modal, TouchableOpacity, Text, Dimensions } from 'react-native';
+import styles from '../../styles/StyleSheet';
+import exitIcon from '../../../assets/images/icon-x.png';
 import ImageZoom from 'react-native-image-pan-zoom';
 import _ from 'underscore';
 import Pdf from 'react-native-pdf';
@@ -39,8 +39,8 @@ class ImageModal extends React.Component {
 
         this.state = {
             visible: false,
-            width: 200,
-            height: 200,
+            imgWidth: 200,
+            imgHeight: 200,
         }
     }
 
@@ -63,13 +63,14 @@ class ImageModal extends React.Component {
         if (Str.isPDF(this.props.srcURL)) {
             imageView = <Pdf source={{ uri: this.props.srcURL }} style={styles.imageModalPDF} />;
         } else {
-            imageView = <ImageZoom cropWidth={Dimensions.get('window').width}
-                            cropHeight={Dimensions.get('window').height}
+            imageView = <ImageZoom 
+                            cropWidth={Dimensions.get('window').width}
+                            cropHeight={Dimensions.get('window').height - 87}
                             imageWidth={this.state.imgWidth}
-                            imageHeight={this.state.imageHeight}>
+                            imageHeight={this.state.imgHeight}>
                             <Image 
-                                style={{width: this.state.imgWidth, height: this.state.imageHeight}} 
-                                source={{ uri:this.props.srcURL }} 
+                                style={{width: this.state.imgWidth, height: this.state.imgHeight}}
+                                source={{ uri: this.props.srcURL }} 
                             />
                         </ImageZoom>;
         }
@@ -80,27 +81,46 @@ class ImageModal extends React.Component {
                         <Image source={{ uri: this.props.previewSrcURL }} style={[this.props.style, {width: 200, height: 175}]} />
                     </TouchableOpacity>
 
-                <SafeAreaProvider>
-                    <SafeAreaInsetsContext.Consumer style={[styles.flex1, styles.h100p]}>
-                    { insets => (
-                        <View style={[getSafeAreaPadding(insets)]}>
-                            <Modal
-                                animationType={"slide"}
-                                onRequestClose={() => this.setModalVisiblity(false)}
-                                visible={this.state.visible}
-                            >
 
-                                <View style={styles.appContentHeader}>
+                       
+                    <Modal
+                        animationType={"slide"}
+                        onRequestClose={() => this.setModalVisiblity(false)}
+                        visible={this.state.visible}
+                        transparent={true}
+                    >
+
+                        <View style={styles.imageModalContentHeader}>
+                            <View style={[
+                                styles.dFlex,
+                                styles.flexRow,
+                                styles.alignItemsCenter,
+                                styles.flexGrow1,
+                                styles.flexJustifySpaceBetween,
+                                styles.overflowHidden
+                            ]}>
+                                <View>
                                     <Text numberOfLines={1} style={[styles.navText]}>Attachment</Text>
-                                    <Text onPress={() => this.setModalVisiblity(false)} style={{color: 'white'}}>X</Text>
                                 </View>
-                                {imageView}
-                                
-                            </Modal>
+                                <View style={[styles.reportOptions, styles.flexRow]} >
+                                    <TouchableOpacity
+                                        onPress={() => this.setModalVisiblity(false)}
+                                        style={[styles.touchableButtonImage, styles.mr0]}
+                                    >
+                                        <Image
+                                            resizeMode="contain"
+                                            style={[styles.LHNToggleIcon]}
+                                            source={exitIcon}
+                                        />
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                            
                         </View>
-                    )}
-                    </SafeAreaInsetsContext.Consumer>
-                </SafeAreaProvider>
+                        {imageView}
+                        
+                    </Modal>
+               
             </>
         );
     }
