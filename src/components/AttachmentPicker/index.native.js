@@ -53,7 +53,7 @@ function show(callback) {
         if (response.error) {
             console.error(`Error during attachment selection: ${response.error}`);
         } else if (response.customButton) {
-            this.showDocumentPicker(callback);
+            showDocumentPicker(callback);
         } else if (!response.didCancel) {
             callback(response);
         }
@@ -65,7 +65,6 @@ function show(callback) {
  * send to the xhr will be handled properly.
  *
  * @param {Object} fileData
- *
  * @return {Object}
  */
 function getDataForUpload(fileData) {
@@ -90,11 +89,11 @@ const propTypes = {
  *
  * @example
  * <AttachmentPicker>
- * {({openFilePicker}) => (
+ * {({openPicker}) => (
  *     <Button
  *         onPress={() => {
- *             openFilePicker({
- *                 onFilePicked: (file) => {
+ *             openPicker({
+ *                 onPicked: (file) => {
  *                     // Display or upload File
  *                 },
  *             });
@@ -106,9 +105,9 @@ const propTypes = {
  * @returns {Function}
  */
 const AttachmentPicker = ({children}) => children({
-    openFilePicker: ({onFilePicked}) => {
+    openPicker: ({onPicked}) => {
         show((response) => {
-            onFilePicked(getDataForUpload(response));
+            onPicked(getDataForUpload(response));
         });
     },
 });

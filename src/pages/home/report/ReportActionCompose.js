@@ -142,7 +142,7 @@ class ReportActionCompose extends React.Component {
                                 onPress={(e) => {
                                     e.preventDefault();
                                     openPicker({
-                                        onFilePicked: (file) => {
+                                        onPicked: (file) => {
                                             addAction(this.props.reportID, '', file);
                                             this.setTextInputShouldClear(true);
                                         },
