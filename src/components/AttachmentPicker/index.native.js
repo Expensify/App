@@ -17,6 +17,8 @@ const propTypes = {
  *         <Button onPress={() => show(someCallback)} />
  *     )}
  * </AttachmentPicker>
+ *
+ * @returns {Function}
  */
 const AttachmentPicker = ({children}) => children({
     show: (callback) => {
