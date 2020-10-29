@@ -112,7 +112,6 @@ function getSimplifiedReportObject(report) {
         reportName: report.reportName,
         reportNameValuePairs: report.reportNameValuePairs,
         unreadActionCount: getUnreadActionCount(report),
-        isPinned: pinnedReportIDs.includes(report.reportID),
         maxSequenceNumber: report.reportActionList.length,
         participants: getParticipantEmailsFromReport(report),
     };
@@ -537,15 +536,11 @@ function togglePinnedState(reportID) {
         pinnedReportIDs.push(reportID);
     }
 
+    Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {isPinned});
     API.setNameValuePair({
         name: 'expensify_chat_pinnedReportIDs',
         value: pinnedReportIDs.toString(),
-    })
-        .then(() => {
-            Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {
-                isPinned,
-            });
-        });
+    });
 }
 
 /**
@@ -561,6 +556,7 @@ function fetchPinnedReportIDs() {
         .then((data) => {
             const strReportIDs = lodashGet(data, 'nameValuePairs.expensify_chat_pinnedReportIDs', '').toString();
             pinnedReportIDs = strReportIDs ? strReportIDs.split(',').map(Number) : [];
+            _.each(pinnedReportIDs, reportID => Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {reportID, isPinned: true}));
         });
 }
 
