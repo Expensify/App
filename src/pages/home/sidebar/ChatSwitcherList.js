@@ -1,9 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {FlatList} from 'react-native';
+import {View, FlatList} from 'react-native';
 import styles from '../../../styles/StyleSheet';
 import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
 import ChatSwitcherRow from './ChatSwitcherRow';
+import KeyboardSpacer from '../../../components/KeyboardSpacer';
 
 const propTypes = {
     // The index of the option that is currently in focus
@@ -28,20 +29,25 @@ const ChatSwitcherList = ({
     onSelectRow,
     onAddToGroup,
 }) => (
-    <FlatList
-        contentContainerStyle={[styles.chatSwitcherItemList]}
-        data={options}
-        keyExtractor={option => (option.type === 'user' ? option.alternateText : String(option.reportID))}
-        renderItem={({item, index}) => (
-            <ChatSwitcherRow
-                option={item}
-                optionIsFocused={index === focusedIndex}
-                onSelectRow={onSelectRow}
-                onAddToGroup={onAddToGroup}
-            />
-        )}
-        extraData={focusedIndex}
-    />
+    <View style={[styles.flex1]}>
+        <FlatList
+            showsVerticalScrollIndicator={false}
+            data={options}
+            keyExtractor={option => (option.type === 'user' ? option.alternateText : String(option.reportID))}
+            renderItem={({item, index}) => (
+                <ChatSwitcherRow
+                    option={item}
+                    optionIsFocused={index === focusedIndex}
+                    onSelectRow={onSelectRow}
+                    onAddToGroup={onAddToGroup}
+                />
+            )}
+            extraData={focusedIndex}
+            ListFooterComponent={View}
+            ListFooterComponentStyle={[styles.p1]}
+        />
+        <KeyboardSpacer />
+    </View>
 );
 
 ChatSwitcherList.propTypes = propTypes;

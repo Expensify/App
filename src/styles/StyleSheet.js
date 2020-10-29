@@ -804,13 +804,6 @@ const styles = {
         width: 300,
     },
 
-    chatSwitcherItemList: {
-        flex: 1,
-        flexGrow: 1,
-        scrollbarWidth: 'none',
-        overflow: 'scroll',
-    },
-
     chatSwitcherAvatar: {
         backgroundColor: colors.text,
         borderRadius: 14,
