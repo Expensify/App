@@ -762,7 +762,7 @@ const styles = {
         fontSize: 15,
         flexGrow: 1,
         height: 28,
-        width: 190,
+        width: 186,
         marginTop: 5,
         marginBottom: 5,
         marginLeft: 3,
