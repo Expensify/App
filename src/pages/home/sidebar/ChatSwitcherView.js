@@ -404,7 +404,7 @@ class ChatSwitcherView extends React.Component {
                     isLogoVisible={this.state.isLogoVisible}
                     searchValue={this.state.search}
                     onBlur={() => {
-                        if (this.state.search === '' && this.state.groupUsers.length === 0) {
+                        if (this.state.search === '') {
                             this.reset();
                         }
                     }}
