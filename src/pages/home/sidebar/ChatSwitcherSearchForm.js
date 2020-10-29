@@ -103,7 +103,12 @@ const ChatSwitcherSearchForm = props => (
                                     ref={props.forwardedRef}
                                     style={[styles.chatSwitcherGroupDMTextInput, styles.mb1]}
                                     value={props.searchValue}
-                                    onBlur={props.onBlur}
+
+                                    // We don't want to handle this blur event when
+                                    // we are composing a group DM since it will reset
+                                    // everything when we try to remove a user or start
+                                    // the conversation
+                                    onBlur={() => {}}
                                     onChangeText={props.onChangeText}
                                     onFocus={props.onFocus}
                                     onKeyPress={props.onKeyPress}
