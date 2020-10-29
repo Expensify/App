@@ -10,14 +10,22 @@ const propTypes = {
  * returns a "show attachment picker" method that takes
  * a callback. This is the web/mWeb/desktop version since
  * on iOS Safari we must append a hidden input to the DOM
- * and listen to onChange event.
+ * and listen to onChange event. When the show method is
+ * called an attachment
  *
- * e.g.
- *
+ * @example
  * <AttachmentPicker>
- *     {({show}) => (
- *         <Button onPress={() => show(someCallback)} />
- *     )}
+ * {({openFilePicker}) => (
+ *     <Button
+ *         onPress={() => {
+ *             openFilePicker({
+ *                 onFilePicked: (file) => {
+ *                     // Display or upload File
+ *                 },
+ *             });
+ *         }}
+ *     />
+ * )}
  * </AttachmentPicker>
  */
 class AttachmentPicker extends React.Component {
@@ -31,12 +39,12 @@ class AttachmentPicker extends React.Component {
                     onChange={(e) => {
                         const file = e.target.files[0];
                         file.uri = URL.createObjectURL(file);
-                        this.callback(file);
+                        this.onFilePicked(file);
                     }}
                 />
                 {this.props.children({
-                    show: (callback) => {
-                        this.callback = callback;
+                    openFilePicker: ({onFilePicked}) => {
+                        this.onFilePicked = onFilePicked;
                         this.fileInput.click();
                     },
                 })}
