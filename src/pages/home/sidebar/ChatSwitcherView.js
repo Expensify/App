@@ -1,4 +1,5 @@
 import React from 'react';
+import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import withIon from '../../../components/withIon';
@@ -10,6 +11,14 @@ import ChatSwitcherSearchForm from './ChatSwitcherSearchForm';
 import {fetchOrCreateChatReport} from '../../../libs/actions/Report';
 import {redirect} from '../../../libs/actions/App';
 import ROUTES from '../../../ROUTES';
+import styles from '../../../styles/StyleSheet';
+
+const OPTION_TYPE = {
+    USER: 'user',
+    REPORT: 'report',
+};
+
+const MAX_GROUP_DM_LENGTH = 8;
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -70,13 +79,17 @@ class ChatSwitcherView extends React.Component {
         this.selectReport = this.selectReport.bind(this);
         this.triggerOnFocusCallback = this.triggerOnFocusCallback.bind(this);
         this.updateSearch = this.updateSearch.bind(this);
-
+        this.selectRow = this.selectRow.bind(this);
+        this.addUserToGroup = this.addUserToGroup.bind(this);
+        this.removeUserFromGroup = this.removeUserFromGroup.bind(this);
+        this.startGroupChat = this.startGroupChat.bind(this);
         this.state = {
             search: '',
             options: [],
             focusedIndex: 0,
             isLogoVisible: true,
             isClearButtonVisible: false,
+            groupUsers: [],
         };
     }
 
@@ -95,13 +108,88 @@ class ChatSwitcherView extends React.Component {
     }
 
     /**
+     * Fires the correct method for the option type selected.
+     *
+     * @param {Object} option
+     */
+    selectRow(option) {
+        switch (option.type) {
+            case OPTION_TYPE.USER:
+                this.selectUser(option);
+                break;
+            case OPTION_TYPE.REPORT:
+                this.selectReport(option);
+                break;
+            default:
+        }
+    }
+
+    /**
+     * Adds a user to the groupUsers array and
+     * updates the options.
+     *
+     * @param {Object} option
+     */
+    addUserToGroup(option) {
+        this.setState(prevState => ({
+            groupUsers: [...prevState.groupUsers, option],
+            search: '',
+        }), () => {
+            this.updateSearch('');
+            this.textInput.clear();
+            this.textInput.focus();
+        });
+    }
+
+    /**
+     * Removes a user from the groupUsers array and
+     * updates the options.
+     *
+     * @param {Object} [optionToRemove] remove last when no option provided
+     */
+    removeUserFromGroup(optionToRemove) {
+        const selectedOption = !optionToRemove
+            ? _.last(this.state.groupUsers)
+            : optionToRemove;
+
+        this.setState(prevState => ({
+            groupUsers: _.reduce(prevState.groupUsers, (users, option) => (
+                option.login === selectedOption.login
+                    ? users
+                    : [...users, option]
+            ), []),
+        }), () => {
+            this.updateSearch(this.state.search);
+            this.textInput.focus();
+        });
+    }
+
+    /**
+     * Begins the group
+     */
+    startGroupChat() {
+        const userLogins = _.map(this.state.groupUsers, option => option.login);
+        fetchOrCreateChatReport([this.props.session.email, ...userLogins]);
+        this.props.onLinkClick();
+        this.reset();
+    }
+
+    /**
      * Fetch the chat report and then redirect to the new report
      *
-     * @param {object} option
-     * @param {string} option.login
+     * @param {object} selectedOption
+     * @param {string} selectedOption.login
      */
-    selectUser(option) {
-        fetchOrCreateChatReport([this.props.session.email, option.login]);
+    selectUser(selectedOption) {
+        // If there are group users saved start a group chat between
+        // the user that was just selected and everyone in the list
+        if (this.state.groupUsers.length > 0) {
+            const userLogins = _.map(this.state.groupUsers, option => option.login);
+            fetchOrCreateChatReport([this.props.session.email, ...userLogins, selectedOption.login]);
+        } else {
+            fetchOrCreateChatReport([this.props.session.email, selectedOption.login]);
+        }
+
         this.props.onLinkClick();
         this.reset();
     }
@@ -130,6 +218,7 @@ class ChatSwitcherView extends React.Component {
             focusedIndex: 0,
             isLogoVisible: blurAfterReset,
             isClearButtonVisible: !blurAfterReset,
+            groupUsers: [],
         }, () => {
             if (blurAfterReset) {
                 this.textInput.blur();
@@ -158,16 +247,20 @@ class ChatSwitcherView extends React.Component {
      */
     handleKeyPress(e) {
         let newFocusedIndex;
-        let option;
 
-        switch (e.key) {
+        switch (e.nativeEvent.key) {
             case 'Enter':
-                // Call the selected option's callback and pass the option itself
-                option = this.state.options[this.state.focusedIndex];
-                option.callback(option);
+                // Pass the option to the selectRow method which
+                // will fire the correct callback for the option type.
+                this.selectRow(this.state.options[this.state.focusedIndex]);
                 e.preventDefault();
                 break;
-
+            case 'Backspace':
+                if (this.state.groupUsers.length > 0 && this.state.search === '') {
+                    // Remove the last user
+                    this.removeUserFromGroup();
+                }
+                break;
             case 'ArrowDown':
                 newFocusedIndex = this.state.focusedIndex + 1;
 
@@ -209,6 +302,13 @@ class ChatSwitcherView extends React.Component {
      */
     updateSearch(value) {
         if (value === '') {
+            if (this.state.groupUsers.length > 0) {
+                // If we have groupLogins we only want to reset the options not
+                // the entire state which would clear out the list of groupUsers
+                this.setState({options: [], search: ''});
+                return;
+            }
+
             this.reset(false);
             return;
         }
@@ -240,26 +340,28 @@ class ChatSwitcherView extends React.Component {
                     : `${personalDetail.displayName} ${personalDetail.login}`,
                 icon: personalDetail.avatarURL,
                 login: personalDetail.login,
-                callback: this.selectUser,
+                type: OPTION_TYPE.USER,
             }))
             .value();
 
         // Get a list of all reports we can send messages to
-        // Filter the reports to only group chats
-        // Make the report details generic
         const reportOptions = _.chain(this.props.reports)
             .values()
-            .filter(report => report.reportNameValuePairs && report.reportNameValuePairs.type === 'expense')
             .map(report => ({
                 text: report.reportName,
                 alternateText: report.reportName,
                 searchText: report.reportName,
                 reportID: report.reportID,
-                callback: this.selectReport,
+                type: OPTION_TYPE.REPORT,
+                participants: report.participants,
             }))
             .value();
 
-        const searchOptions = _.union(personalDetailOptions, reportOptions);
+        // If we have at least one group user then stop showing
+        // report options as we cannot add a report to a group DM
+        const searchOptions = this.state.groupUsers.length === 0
+            ? _.union(personalDetailOptions, reportOptions)
+            : personalDetailOptions;
 
         for (let i = 0; i < matchRegexes.length; i++) {
             if (matches.size < this.maxSearchResults) {
@@ -268,8 +370,19 @@ class ChatSwitcherView extends React.Component {
                     const valueToSearch = option.searchText.replace(new RegExp(/&nbsp;/g), '');
                     const isMatch = matchRegexes[i].test(valueToSearch);
 
+                    // We want to avoid adding single user private DM reports
+                    // since we will prefer to show the user UI over the report name
+                    const isSingleUserPrivateDMReport = option.participants
+                        && option.participants.length === 1;
+
+                    // We must also filter out any users who are already in the Group DM list
+                    // so they can't be selected more than once
+                    const isInGroupUsers = _.some(this.state.groupUsers, groupOption => (
+                        groupOption.login === option.login
+                    ));
+
                     // Make sure we don't include the same option twice (automatically handled be using a `Set`)
-                    if (isMatch) {
+                    if (isMatch && !isSingleUserPrivateDMReport && !isInGroupUsers) {
                         matches.add(option);
                     }
 
@@ -304,12 +417,30 @@ class ChatSwitcherView extends React.Component {
                     onClearButtonClick={this.reset}
                     onFocus={this.triggerOnFocusCallback}
                     onKeyPress={this.handleKeyPress}
+                    groupUsers={this.state.groupUsers}
+                    onRemoveFromGroup={this.removeUserFromGroup}
+                    onConfirmUsers={this.startGroupChat}
                 />
 
-                <ChatSwitcherList
-                    focusedIndex={this.state.focusedIndex}
-                    options={this.state.options}
-                />
+                {this.state.groupUsers.length === MAX_GROUP_DM_LENGTH
+                    ? (
+                        <View style={[styles.chatSwitcherMessage]}>
+                            <Text style={[styles.h4, styles.mb1, styles.colorReversed]}>
+                                Maximum participants reached
+                            </Text>
+                            <Text style={[styles.textLabel, styles.colorMutedReversed]}>
+                                {'You\'ve reached the maximum number of participants for a group chat.'}
+                            </Text>
+                        </View>
+                    )
+                    : (
+                        <ChatSwitcherList
+                            focusedIndex={this.state.focusedIndex}
+                            options={this.state.options}
+                            onSelectRow={this.selectRow}
+                            onAddToGroup={this.addUserToGroup}
+                        />
+                    )}
             </>
         );
     }
