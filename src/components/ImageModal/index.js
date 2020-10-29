@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { View, Image, Modal, TouchableOpacity, Text } from 'react-native';
+import { View, Image, Modal, TouchableOpacity, Text, Dimensions, ImageBackground } from 'react-native';
+import exitIcon from '../../../assets/images/icon-x.png';
 import styles from '../../styles/StyleSheet';
 import _ from 'underscore';
 
@@ -32,13 +33,13 @@ class ImageModal extends React.Component {
 
         this.state = {
             visible: false,
+            imgWidth: 200,
+            imgHeight: 200,
         }
     }
 
     componentWillMount() {
-        Image.getSize(this.props.srcURL, (width, height) => {
-
-        })
+        Image.getSize(this.props.srcURL, (width, height) => {this.setState({imgWidth: width, imgHeight: height})});
     }
 
     setModalVisiblity(visibility) {
@@ -47,9 +48,6 @@ class ImageModal extends React.Component {
 
     render() {
 
-        // Hack for achieving height: auto
-
-
         return (
             <>
                 <TouchableOpacity onPress={() => this.setModalVisiblity(true)} >
@@ -57,22 +55,69 @@ class ImageModal extends React.Component {
                 </TouchableOpacity>
 
                 <Modal
-                    animationType={"slide"}
                     onRequestClose={() => this.setModalVisiblity(false)}
                     visible={this.state.visible}
                     transparent={true}
                 >
-                    <View style={{ flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-                        <View>
-                            <Text onPress={() => this.setModalVisiblity(false)}>X</Text>
-                        </View>
+                    <View style={{
+                        flex: 1,
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        backgroundColor: '#00000080',
+                    }}>
+                        <View style={{width: Dimensions.get('window').width * 0.8, height: Dimensions.get('window').height * 0.8}}>
+                            <View style={styles.imageModalContentHeader}>
+                                <View style={[
+                                    styles.dFlex,
+                                    styles.flexRow,
+                                    styles.alignItemsCenter,
+                                    styles.flexGrow1,
+                                    styles.flexJustifySpaceBetween,
+                                    styles.overflowHidden
+                                ]}>
+                                    <View>
+                                        <Text numberOfLines={1} style={[styles.navText]}>Attachment</Text>
+                                    </View>
+                                    <View style={[styles.reportOptions, styles.flexRow]} >
+                                        <TouchableOpacity
+                                            onPress={() => this.setModalVisiblity(false)}
+                                            style={[styles.touchableButtonImage, styles.mr0]}
+                                        >
+                                            <Image
+                                                resizeMode="contain"
+                                                style={[styles.LHNToggleIcon]}
+                                                source={exitIcon}
+                                            />
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
 
-                        <View>
-                            <Image source={{ uri: this.props.srcURL }} style={styles.imageModalImage} />
+                            </View>
+                            <View style={{
+                                flex: 1,
+                                flexDirection: 'column',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                backgroundColor: '#FFFFFF',
+                                borderWidth: 1,
+                                borderBottomLeftRadius: 20,
+                                borderBottomRightRadius: 20,
+                                overflow: 'hidden',
+                                borderColor: '#ECECEC',
+                            }}>
+                                <View>
+                                    <Image
+                                        source={{ uri: this.props.srcURL }} 
+                                        style={{width: 200, height: 200}} 
+                                    />
+                                </View>
+                            </View>
                         </View>
                     </View>
       
                 </Modal>
+                
 
             </>
         );

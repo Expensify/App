@@ -158,6 +158,10 @@ const styles = {
         backgroundColor: 'pink',
     },
 
+    overflowHidden: {
+        overflow: 'hidden',
+    },
+
     h4: {
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: '700',
@@ -545,6 +549,20 @@ const styles = {
         paddingRight: 20,
     },
 
+    imageModalContentHeader: {
+        borderWidth: 1,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        overflow: 'hidden',
+        borderColor: colors.border,
+        height: 87,
+        justifyContent: 'center',
+        display: 'flex',
+        paddingLeft: 20,
+        paddingRight: 20,
+        backgroundColor: colors.componentBG,
+    },
+
     appContentHeaderTitle: {
         alignItems: 'center',
         flexDirection: 'row',
@@ -860,16 +878,11 @@ const styles = {
         backgroundColor: colors.black,
     },
 
-    imageModalImage: {
-        flex: 1,
-        width: 200,
-        height: 200,
-    },
-
     imageModalPDF: {
         flex: 1,
         width: Dimensions.get('window').width,
         height: Dimensions.get('window').height,
+        backgroundColor: colors.componentBG,
     },
 
     imageModalPlaceholder: {
