@@ -743,9 +743,11 @@ const styles = {
 
     chatSwitcherPillsInput: {
         alignItems: 'flex-start',
+        alignSelf: 'flex-start',
         flexDirection: 'row',
         flexWrap: 'wrap',
-        maxWidth: 191,
+        maxWidth: 190,
+        overflow: 'hidden',
     },
 
     chatSwitcherInputGroup: {
@@ -759,8 +761,7 @@ const styles = {
         fontSize: 15,
         flexGrow: 1,
         height: 28,
-        minWidth: 80,
-        width: 0,
+        width: 190,
         marginTop: 5,
         marginBottom: 5,
         marginLeft: 3,
@@ -769,7 +770,7 @@ const styles = {
     chatSwticherPillWrapper: {
         marginTop: 5,
         marginRight: 4,
-        maxWidth: 191,
+        maxWidth: 190,
     },
 
     chatSwitcherGo: {
