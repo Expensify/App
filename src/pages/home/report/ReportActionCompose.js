@@ -137,13 +137,15 @@ class ReportActionCompose extends React.Component {
                 ]}
                 >
                     <AttachmentPicker>
-                        {({show}) => (
+                        {({openPicker}) => (
                             <TouchableOpacity
                                 onPress={(e) => {
                                     e.preventDefault();
-                                    show((file) => {
-                                        addAction(this.props.reportID, '', file);
-                                        this.setTextInputShouldClear(true);
+                                    openPicker({
+                                        onFilePicked: (file) => {
+                                            addAction(this.props.reportID, '', file);
+                                            this.setTextInputShouldClear(true);
+                                        },
                                     });
                                 }}
                                 style={[styles.chatItemAttachButton]}
