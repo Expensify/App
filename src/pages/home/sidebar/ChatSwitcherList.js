@@ -42,7 +42,7 @@ const ChatSwitcherList = ({
                 : styles.sidebarLinkText;
             return (
                 <View
-                    key={option.alternateText}
+                    key={isUserRow ? option.alternateText : option.reportID}
                     style={[
                         styles.flexRow,
                         styles.alignItemsCenter,

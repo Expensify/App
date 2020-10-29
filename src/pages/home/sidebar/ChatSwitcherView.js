@@ -353,6 +353,7 @@ class ChatSwitcherView extends React.Component {
                 searchText: report.reportName,
                 reportID: report.reportID,
                 type: OPTION_TYPE.REPORT,
+                participants: report.participants,
             }))
             .value();
 
@@ -368,13 +369,20 @@ class ChatSwitcherView extends React.Component {
                     const option = searchOptions[j];
                     const valueToSearch = option.searchText.replace(new RegExp(/&nbsp;/g), '');
                     const isMatch = matchRegexes[i].test(valueToSearch);
+
+                    // We want to avoid adding single user private DM reports
+                    // since we will prefer to show the user UI over the report name
+                    const isSingleUserPrivateDMReport = option.participants
+                        && option.participants.length === 1;
+
+                    // We must also filter out any users who are already in the Group DM list
+                    // so they can't be selected more than once
                     const isInGroupUsers = _.some(this.state.groupUsers, groupOption => (
                         groupOption.login === option.login
                     ));
 
                     // Make sure we don't include the same option twice (automatically handled be using a `Set`)
-                    // and that we filter out any users who are already in the Group DM list
-                    if (isMatch && !isInGroupUsers) {
+                    if (isMatch && !isSingleUserPrivateDMReport && !isInGroupUsers) {
                         matches.add(option);
                     }
 
