@@ -90,7 +90,14 @@ const ChatSwitcherSearchForm = props => (
                                     />
                                 </View>
                             ))}
-                            <View style={[styles.chatSwitcherInputGroup, styles.flexRow, styles.flexGrow1, styles.flexAlignSelfStretch]}>
+                            <View
+                                style={[
+                                    styles.chatSwitcherInputGroup,
+                                    styles.flexRow,
+                                    styles.flexGrow1,
+                                    styles.flexAlignSelfStretch,
+                                ]}
+                            >
                                 <TextInputWithFocusStyles
                                     styleFocusIn={[styles.textInputNoOutline]}
                                     ref={props.forwardedRef}
@@ -110,7 +117,15 @@ const ChatSwitcherSearchForm = props => (
                             onPress={props.onConfirmUsers}
                             underlayColor={colors.componentBG}
                         >
-                            <Text style={[styles.buttonText, styles.buttonSmallText, styles.buttonSuccessText]}>Go</Text>
+                            <Text
+                                style={[
+                                    styles.buttonText,
+                                    styles.buttonSmallText,
+                                    styles.buttonSuccessText
+                                ]}
+                            >
+                                Go
+                            </Text>
                         </TouchableOpacity>
                     </View>
                 </View>

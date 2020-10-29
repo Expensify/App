@@ -135,7 +135,9 @@ class ChatSwitcherView extends React.Component {
             groupUsers: [...prevState.groupUsers, option],
             search: '',
         }), () => {
+            this.updateSearch('');
             this.textInput.clear();
+            this.textInput.focus();
         });
     }
 
@@ -156,7 +158,10 @@ class ChatSwitcherView extends React.Component {
                     ? users
                     : [...users, option]
             ), []),
-        }), () => this.updateSearch(this.state.search));
+        }), () => {
+            this.updateSearch(this.state.search);
+            this.textInput.focus();
+        });
     }
 
     /**
@@ -399,7 +404,7 @@ class ChatSwitcherView extends React.Component {
                     isLogoVisible={this.state.isLogoVisible}
                     searchValue={this.state.search}
                     onBlur={() => {
-                        if (this.state.search === '') {
+                        if (this.state.search === '' && this.state.groupUsers.length === 0) {
                             this.reset();
                         }
                     }}
