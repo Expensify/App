@@ -14,4 +14,5 @@ const AttachmentPicker = ({children}) => children({
 });
 
 AttachmentPicker.propTypes = propTypes;
+AttachmentPicker.displayName = 'AttachmentPicker';
 export default AttachmentPicker;
