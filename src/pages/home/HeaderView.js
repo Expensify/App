@@ -69,7 +69,7 @@ const HeaderView = props => (
 
                     <View style={[styles.reportOptions, styles.flexRow]}>
                         <TouchableOpacity
-                            onPress={() => togglePinnedState(props.report.reportID, !props.report.isPinned)}
+                            onPress={() => togglePinnedState(props.report)}
                             style={[styles.touchableButtonImage, styles.mr0]}
                         >
                             <Image

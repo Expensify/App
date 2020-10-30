@@ -522,13 +522,13 @@ function updateLastReadActionID(reportID, sequenceNumber) {
 /**
  * Toggles the pinned state of the report
  *
- * @param {string} reportID
- * @param {boolean} pinnedValue
+ * @param {object} report
  */
-function togglePinnedState(reportID, pinnedValue) {
-    Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {isPinned: pinnedValue});
+function togglePinnedState(report) {
+    const pinnedValue = !report.isPinned;
+    Ion.merge(`${IONKEYS.COLLECTION.REPORT}${report.reportID}`, {isPinned: pinnedValue});
     API.togglePinnedReport({
-        reportID,
+        reportID: report.reportID,
         pinnedValue,
     });
 }
