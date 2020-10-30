@@ -19,13 +19,13 @@ const propTypes = {
     // Is this fragment an attachment?
     isAttachment: PropTypes.bool,
 
-    // Does this fragment belong to a pending reportAction
-    isPending: PropTypes.bool,
+    // Does this fragment belong to a reportAction that has not yet loaded?
+    loading: PropTypes.bool,
 };
 
 const defaultProps = {
     isAttachment: false,
-    isPending: false,
+    loading: false,
 };
 
 class ReportActionItemFragment extends React.PureComponent {
@@ -93,7 +93,7 @@ class ReportActionItemFragment extends React.PureComponent {
         switch (fragment.type) {
             case 'COMMENT':
                 // If this is an attachment placeholder, return the placeholder component
-                if (this.props.isAttachment && this.props.isPending) {
+                if (this.props.isAttachment && this.props.loading) {
                     return (
                         <View style={[styles.chatItemAttachmentPlaceholder]}>
                             <ActivityIndicator
