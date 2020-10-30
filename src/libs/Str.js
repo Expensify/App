@@ -98,7 +98,7 @@ const Str = {
 
     /**
      * Takes in a URL and checks if the file extension is PDF
-     * 
+     *
      * @param {mixed} url The URL to be checked
      * @returns {Boolean} Whether file path is PDF or not
      */
