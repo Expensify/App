@@ -19,7 +19,6 @@ import {hide as hideSidebar, show as showSidebar} from '../../libs/actions/Sideb
 import {
     subscribeToReportCommentEvents,
     fetchAll as fetchAllReports,
-    fetchPinnedReportIDs
 } from '../../libs/actions/Report';
 import {fetch as fetchPersonalDetails} from '../../libs/actions/PersonalDetails';
 import * as Pusher from '../../libs/Pusher/pusher';
@@ -66,8 +65,6 @@ class App extends React.Component {
         // Fetch all the personal details
         fetchPersonalDetails();
 
-        // Fetch the reportIDs that should be pinned then fetch all the reports
-        fetchPinnedReportIDs();
         fetchAllReports();
 
         UnreadIndicatorUpdater.listenForReportChanges();
