@@ -201,6 +201,7 @@ function updateReportWithNewAction(reportID, reportAction) {
         [reportAction.sequenceNumber]: {
             ...reportAction,
             isAttachment: reportAction.text === '[Attachment]',
+            isPending: false,
         },
     });
 
@@ -483,6 +484,7 @@ function addAction(reportID, text, file) {
             ],
             isFirstItem: false,
             isAttachment,
+            isPending: true,
         }
     });
 

@@ -18,6 +18,7 @@ const ReportActionItemMessage = ({action}) => (
                 key={`actionFragment-${action.sequenceNumber}-${index}`}
                 fragment={fragment}
                 isAttachment={action.isAttachment}
+                isAttachment={action.isPending}
             />
         ))}
     </View>
