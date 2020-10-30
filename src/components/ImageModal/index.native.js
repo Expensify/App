@@ -1,11 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { View, Image, Modal, TouchableOpacity, Text, Dimensions } from 'react-native';
-import styles from '../../styles/StyleSheet';
-import exitIcon from '../../../assets/images/icon-x.png';
+import {
+    View, Image, Modal, TouchableOpacity, Text, Dimensions
+} from 'react-native';
 import ImageZoom from 'react-native-image-pan-zoom';
 import _ from 'underscore';
 import Pdf from 'react-native-pdf';
+import exitIcon from '../../../assets/images/icon-x.png';
+import styles from '../../styles/StyleSheet';
 import Str from '../../libs/Str';
 
 /**
@@ -13,9 +15,6 @@ import Str from '../../libs/Str';
  */
 
 const propTypes = {
-    // Object array of images
-    images: PropTypes.array,
-
     // URL to image preview
     previewSrcURL: PropTypes.string,
 
@@ -41,20 +40,16 @@ class ImageModal extends React.Component {
             visible: false,
             imgWidth: 200,
             imgHeight: 200,
-        }
-    }
-
-    setModalVisiblity(visibility) {
-        this.setState({ visible: visibility });
+        };
     }
 
     componentDidMount() {
-        // Generate image size for modal 
+        // Generate image size for modal
         Image.getSize(this.props.srcURL, (width, height) => {
             const screenWidth = Dimensions.get('window').width;
             const scaleFactor = width / screenWidth;
             const imageHeight = height / scaleFactor;
-            this.setState({imgWidth: screenWidth, imgHeight: imageHeight})
+            this.setState({imgWidth: screenWidth, imgHeight: imageHeight});
         });
 
         // Generate thumbnail size
@@ -62,43 +57,59 @@ class ImageModal extends React.Component {
             const screenWidth = 300;
             const scaleFactor = width / screenWidth;
             const imageHeight = height / scaleFactor;
-            this.setState({thumbnailWidth: screenWidth, thumbnailHeight: imageHeight})
+            this.setState({thumbnailWidth: screenWidth, thumbnailHeight: imageHeight});
         });
+    }
+
+    setModalVisiblity(visibility) {
+        this.setState({visible: visibility});
     }
 
     render() {
         let imageView;
-        
+
         if (Str.isPDF(this.props.srcURL)) {
-            imageView = <Pdf 
-                            source={{ uri: this.props.srcURL }} 
-                            style={styles.imageModalPDF}
-                        />;
+            imageView = (
+                <Pdf
+                    source={{uri: this.props.srcURL}}
+                    style={styles.imageModalPDF}
+                />
+            );
         } else {
-            imageView = <ImageZoom 
-                            cropWidth={Dimensions.get('window').width}
-                            cropHeight={Dimensions.get('window').height - 87}
-                            imageWidth={this.state.imgWidth}
-                            imageHeight={this.state.imgHeight + 87}>
-                            <Image 
-                                style={{width: this.state.imgWidth, height: this.state.imgHeight}}
-                                source={{ uri: this.props.srcURL }} 
-                            />
-                        </ImageZoom>;
+            imageView = (
+                <ImageZoom
+                    cropWidth={Dimensions.get('window').width}
+                    cropHeight={Dimensions.get('window').height - 87}
+                    imageWidth={this.state.imgWidth}
+                    imageHeight={this.state.imgHeight + 87}
+                >
+                    <Image
+                        style={{width: this.state.imgWidth, height: this.state.imgHeight}}
+                        source={{uri: this.props.srcURL}}
+                    />
+                </ImageZoom>
+            );
         }
 
         return (
             <>
-                    <TouchableOpacity onPress={() => this.setModalVisiblity(true)} >
-                        <Image source={{ uri: this.props.previewSrcURL }} style={[this.props.style, {width: this.state.thumbnailWidth, height: this.state.thumbnailHeight}]} />
-                    </TouchableOpacity>
+                <TouchableOpacity onPress={() => this.setModalVisiblity(true)}>
+                    <Image
+                        source={{uri: this.props.previewSrcURL}}
+                        style={{
+                            ...this.props.style,
+                            width: this.state.thumbnailWidth,
+                            height: this.state.thumbnailHeight
+                        }}
+                    />
+                </TouchableOpacity>
 
-                    <Modal
-                        animationType={"slide"}
-                        onRequestClose={() => this.setModalVisiblity(false)}
-                        visible={this.state.visible}
-                        transparent={true}
-                    >
+                <Modal
+                    animationType="slide"
+                    onRequestClose={() => this.setModalVisiblity(false)}
+                    visible={this.state.visible}
+                    transparent
+                >
                     <View style={styles.imageModalContainer}>
                         <View style={styles.imageModalHeader}>
                             <View style={[
@@ -108,11 +119,12 @@ class ImageModal extends React.Component {
                                 styles.flexGrow1,
                                 styles.flexJustifySpaceBetween,
                                 styles.overflowHidden
-                            ]}>
+                            ]}
+                            >
                                 <View>
                                     <Text numberOfLines={1} style={[styles.navText]}>Attachment</Text>
                                 </View>
-                                <View style={[styles.reportOptions, styles.flexRow]} >
+                                <View style={[styles.reportOptions, styles.flexRow]}>
                                     <TouchableOpacity
                                         onPress={() => this.setModalVisiblity(false)}
                                         style={[styles.touchableButtonImage, styles.mr0]}
@@ -125,13 +137,13 @@ class ImageModal extends React.Component {
                                     </TouchableOpacity>
                                 </View>
                             </View>
-                            
+
                         </View>
                         {imageView}
-                        </View>
-                        
-                    </Modal>
-               
+                    </View>
+
+                </Modal>
+
             </>
         );
     }

@@ -64,7 +64,12 @@ class ReportActionItemFragment extends React.PureComponent {
                 </InlineCodeBlock>
             ),
             img: (htmlAttribs, children, convertedCSSStyles, passProps) => (
-                <ImageModal previewSrcURL={htmlAttribs.preview} srcURL={htmlAttribs.src} style={webViewStyles.tagStyles.img} key={passProps.key} />
+                <ImageModal
+                    previewSrcURL={htmlAttribs.preview}
+                    srcURL={htmlAttribs.src}
+                    style={webViewStyles.tagStyles.img}
+                    key={passProps.key}
+                />
             ),
         };
     }
@@ -82,7 +87,7 @@ class ReportActionItemFragment extends React.PureComponent {
         // We only want to attach auth tokens to images that come from Expensify attachments
         if (htmlNode.name === 'img' && htmlNode.attribs['data-expensify-source']) {
             htmlNode.attribs.preview = `${node.attribs.src}?authToken=${getAuthToken()}`;
-            htmlNode.attribs.src = htmlNode.attribs['data-expensify-source'] + `?authToken=${getAuthToken()}`;
+            htmlNode.attribs.src = `${htmlNode.attribs['data-expensify-source']}?authToken=${getAuthToken()}`;
             return htmlNode;
         }
     }
