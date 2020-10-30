@@ -1,9 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { View, Image, Modal, TouchableOpacity, Text, Dimensions, ImageBackground } from 'react-native';
+import { View, Image, Modal, TouchableOpacity, Text, Dimensions, TouchableWithoutFeedback } from 'react-native';
 import exitIcon from '../../../assets/images/icon-x.png';
 import styles from '../../styles/StyleSheet';
 import _ from 'underscore';
+import { WebView } from 'react-native-webview';
+import Str from '../../libs/Str';
 
 /**
  * Text based component that is passed a URL to open onPress
@@ -39,7 +41,19 @@ class ImageModal extends React.Component {
     }
 
     componentWillMount() {
-        Image.getSize(this.props.srcURL, (width, height) => {this.setState({imgWidth: width, imgHeight: height})});
+        Image.getSize(this.props.srcURL, (width, height) => {
+            const screenWidth = Dimensions.get('window').width  * 0.6;
+            const scaleFactor = width / screenWidth;
+            const imageHeight = height / scaleFactor;
+            this.setState({imgWidth: screenWidth, imgHeight: imageHeight})
+        });
+
+        Image.getSize(this.props.previewSrcURL, (width, height) => {
+            const screenWidth = 300;
+            const scaleFactor = width / screenWidth;
+            const imageHeight = height / scaleFactor;
+            this.setState({thumbnailWidth: screenWidth, thumbnailHeight: imageHeight})
+        });
     }
 
     setModalVisiblity(visibility) {
@@ -47,27 +61,38 @@ class ImageModal extends React.Component {
     }
 
     render() {
+        let imageView;
+
+        if (Str.isPDF(this.props.srcURL)) {
+            const pdfViewUrl = `http://mozilla.github.com/pdf.js/web/viewer.html?file=${encodeURIComponent(this.props.srcURL)}`;
+            imageView = <WebView source={{ uri: pdfViewUrl }} />;
+        } else {
+            imageView = <View style={styles.imageModalImageContainer}>
+                <Image
+                    source={{ uri: this.props.srcURL }} 
+                    style={{width: this.state.imgWidth, height: this.state.imgHeight}} 
+                />
+                </View>;
+        }
 
         return (
             <>
                 <TouchableOpacity onPress={() => this.setModalVisiblity(true)} >
-                    <Image source={{ uri: this.props.previewSrcURL }} style={[this.props.style, {width: 200, height: 150}]} />
+                    {this.props.info}
+                    <Image source={{ uri: this.props.previewSrcURL }} style={[this.props.style, {width: this.state.thumbnailWidth, height: this.state.thumbnailHeight}]} />
                 </TouchableOpacity>
 
+                
                 <Modal
                     onRequestClose={() => this.setModalVisiblity(false)}
                     visible={this.state.visible}
                     transparent={true}
                 >
-                    <View style={{
-                        flex: 1,
-                        flexDirection: 'column',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        backgroundColor: '#00000080',
-                    }}>
-                        <View style={{width: Dimensions.get('window').width * 0.8, height: Dimensions.get('window').height * 0.8}}>
-                            <View style={styles.imageModalContentHeader}>
+
+                    <TouchableOpacity style={styles.imageModalCenterContainer} activeOpacity={1} onPress={() => this.setModalVisiblity(false)}>
+                        <TouchableWithoutFeedback style={{ cursor: 'none' }}>
+                        <View style={{...styles.imageModalContainer, width: Dimensions.get('window').width * 0.8, height: Dimensions.get('window').height * 0.8}}>
+                            <View style={styles.imageModalHeader}>
                                 <View style={[
                                     styles.dFlex,
                                     styles.flexRow,
@@ -94,28 +119,12 @@ class ImageModal extends React.Component {
                                 </View>
 
                             </View>
-                            <View style={{
-                                flex: 1,
-                                flexDirection: 'column',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                backgroundColor: '#FFFFFF',
-                                borderWidth: 1,
-                                borderBottomLeftRadius: 20,
-                                borderBottomRightRadius: 20,
-                                overflow: 'hidden',
-                                borderColor: '#ECECEC',
-                            }}>
-                                <View>
-                                    <Image
-                                        source={{ uri: this.props.srcURL }} 
-                                        style={{width: 200, height: 200}} 
-                                    />
-                                </View>
+                            <View style={styles.imageModalImageCenterContainer}>
+                            {imageView}
                             </View>
                         </View>
-                    </View>
-      
+                        </TouchableWithoutFeedback>
+                    </TouchableOpacity>
                 </Modal>
                 
 

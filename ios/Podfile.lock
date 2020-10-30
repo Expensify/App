@@ -338,8 +338,8 @@ PODS:
     - React
   - react-native-safe-area-context (3.1.4):
     - React
-  - react-native-webview (10.6.0):
-    - React
+  - react-native-webview (10.10.0):
+    - React-Core
   - React-RCTActionSheet (0.63.3):
     - React-Core/RCTActionSheetHeaders (= 0.63.3)
   - React-RCTAnimation (0.63.3):
@@ -649,7 +649,7 @@ SPEC CHECKSUMS:
   react-native-progress-bar-android: d1b109b86c699d36f6a7099dab1a117dc1d66d3c
   react-native-progress-view: 0b937488a5730aeec461b00c4eb438e1fe626015
   react-native-safe-area-context: 0ed9288ed4409beabb0817b54efc047286fc84da
-  react-native-webview: 797f50d16bb271c4270bc742040a64c79ec7147c
+  react-native-webview: 2e330b109bfd610e9818bf7865d1979f898960a7
   React-RCTActionSheet: 53ea72699698b0b47a6421cb1c8b4ab215a774aa
   React-RCTAnimation: 1befece0b5183c22ae01b966f5583f42e69a83c2
   React-RCTBlob: 0b284339cbe4b15705a05e2313a51c6d8b51fa40
