@@ -549,20 +549,6 @@ const styles = {
         paddingRight: 20,
     },
 
-    imageModalContentHeader: {
-        borderWidth: 1,
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
-        overflow: 'hidden',
-        borderColor: colors.border,
-        height: 87,
-        justifyContent: 'center',
-        display: 'flex',
-        paddingLeft: 20,
-        paddingRight: 20,
-        backgroundColor: colors.componentBG,
-    },
-
     appContentHeaderTitle: {
         alignItems: 'center',
         flexDirection: 'row',
@@ -878,6 +864,23 @@ const styles = {
         backgroundColor: colors.black,
     },
 
+    imageModalContainer: {
+        backgroundColor: colors.componentBG,
+        borderColor: colors.border,
+        borderWidth: 1,
+        borderRadius: 20,
+        height: '100%',
+    },
+
+    imageModalHeader: {
+        overflow: 'hidden',
+        height: 87,
+        justifyContent: 'center',
+        display: 'flex',
+        paddingLeft: 20,
+        paddingRight: 20,
+    },
+
     imageModalPDF: {
         flex: 1,
         width: Dimensions.get('window').width,
@@ -885,19 +888,24 @@ const styles = {
         backgroundColor: colors.componentBG,
     },
 
-    imageModalPlaceholder: {
-        alignItems: 'center',
+    imageModalCenterContainer: {
+        flex: 1,
+        flexDirection: 'column',
         justifyContent: 'center',
-        backgroundColor: colors.componentBG,
+        alignItems: 'center',
+        backgroundColor: '#00000080',
     },
 
-    imageModalHeader: {
-        alignItems: 'flex-end',
-        justifyContent: 'flex-end',
-        height: 65,
-        backgroundColor: colors.heading,
-        paddingRight: 25,
-        paddingBottom: 10,
+    imageModalImageCenterContainer: {
+        flex: 1,
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        overflow: 'hidden',
+    },
+
+    imageModalImageContainer: {
+        padding: 50,
         overflow: 'hidden',
     },
 };

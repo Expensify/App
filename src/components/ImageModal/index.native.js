@@ -49,25 +49,37 @@ class ImageModal extends React.Component {
     }
 
     componentDidMount() {
+        // Generate image size for modal 
         Image.getSize(this.props.srcURL, (width, height) => {
             const screenWidth = Dimensions.get('window').width;
             const scaleFactor = width / screenWidth;
             const imageHeight = height / scaleFactor;
             this.setState({imgWidth: screenWidth, imgHeight: imageHeight})
         });
+
+        // Generate thumbnail size
+        Image.getSize(this.props.previewSrcURL, (width, height) => {
+            const screenWidth = 300;
+            const scaleFactor = width / screenWidth;
+            const imageHeight = height / scaleFactor;
+            this.setState({thumbnailWidth: screenWidth, thumbnailHeight: imageHeight})
+        });
     }
 
     render() {
         let imageView;
-
+        
         if (Str.isPDF(this.props.srcURL)) {
-            imageView = <Pdf source={{ uri: this.props.srcURL }} style={styles.imageModalPDF} />;
+            imageView = <Pdf 
+                            source={{ uri: this.props.srcURL }} 
+                            style={styles.imageModalPDF}
+                        />;
         } else {
             imageView = <ImageZoom 
                             cropWidth={Dimensions.get('window').width}
                             cropHeight={Dimensions.get('window').height - 87}
                             imageWidth={this.state.imgWidth}
-                            imageHeight={this.state.imgHeight}>
+                            imageHeight={this.state.imgHeight + 87}>
                             <Image 
                                 style={{width: this.state.imgWidth, height: this.state.imgHeight}}
                                 source={{ uri: this.props.srcURL }} 
@@ -78,19 +90,17 @@ class ImageModal extends React.Component {
         return (
             <>
                     <TouchableOpacity onPress={() => this.setModalVisiblity(true)} >
-                        <Image source={{ uri: this.props.previewSrcURL }} style={[this.props.style, {width: 200, height: 175}]} />
+                        <Image source={{ uri: this.props.previewSrcURL }} style={[this.props.style, {width: this.state.thumbnailWidth, height: this.state.thumbnailHeight}]} />
                     </TouchableOpacity>
 
-
-                       
                     <Modal
                         animationType={"slide"}
                         onRequestClose={() => this.setModalVisiblity(false)}
                         visible={this.state.visible}
                         transparent={true}
                     >
-
-                        <View style={styles.imageModalContentHeader}>
+                    <View style={styles.imageModalContainer}>
+                        <View style={styles.imageModalHeader}>
                             <View style={[
                                 styles.dFlex,
                                 styles.flexRow,
@@ -118,6 +128,7 @@ class ImageModal extends React.Component {
                             
                         </View>
                         {imageView}
+                        </View>
                         
                     </Modal>
                
