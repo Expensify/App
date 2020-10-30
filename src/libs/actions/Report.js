@@ -15,6 +15,7 @@ import Visibility from '../Visibility';
 import ROUTES from '../../ROUTES';
 import NetworkConnection from '../NetworkConnection';
 import {hide as hideSidebar} from './Sidebar';
+import guid from '../guid';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -57,6 +58,8 @@ const lastReadActionIDs = {};
 
 // List of reportIDs pinned by the user
 let pinnedReportIDs = [];
+
+const pendingReportActions = {};
 
 /**
  * Checks the report to see if there are any unread action items
@@ -196,11 +199,49 @@ function updateReportWithNewAction(reportID, reportAction) {
         maxSequenceNumber: reportAction.sequenceNumber,
     });
 
+    // Check the reportAction for the clientGUID and make sure the sequenceNumber
+    // for this action matches correctly with the one we are expecting
+    const clientGUID = reportAction.clientGUID;
+    if (clientGUID) {
+        const pendingReportAction = pendingReportActions[clientGUID] || {};
+        const expectedSequenceNumber = pendingReportAction.sequenceNumber;
+        if (expectedSequenceNumber && (expectedSequenceNumber !== reportAction.sequenceNumber)) {
+            // If we end up here this means we handled some report action
+            // by Pusher out of order. We must find the action that is already
+            // occupying this sequenceNumber in memory and swap it's sequenceNumber
+            // for the expected one.
+            const pendingActionToRelocate = _.find(pendingReportActions, (action) => {
+                return action.sequenceNumber === reportAction.sequenceNumber;
+            });
+
+            // Move this action to the position where we expected the previous action
+            // to be so that there are no conflicts. This is most likely where this
+            // action will end up.
+            if (pendingActionToRelocate) {
+                const messageText = lodashGet(pendingActionToRelocate, ['message', 0, 'text'], '');
+                console.log(messageText);
+                const updatedPendingAction = {
+                    ...pendingActionToRelocate,
+                    sequenceNumber: expectedSequenceNumber,
+                    isAttachment: messageText === '[Attachment]',
+                    loading: true,
+                };
+                Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                    [expectedSequenceNumber]: updatedPendingAction,
+                });
+            }
+        }
+
+        // Clean this action from the pending action list
+        delete pendingReportActions[clientGUID];
+    }
+
     // Add the action into Ion
+    const messageText = lodashGet(reportAction, ['message', 0, 'text'], '');
     Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         [reportAction.sequenceNumber]: {
             ...reportAction,
-            isAttachment: reportAction.text === '[Attachment]',
+            isAttachment: messageText === '[Attachment]',
             loading: false,
         },
     });
@@ -380,7 +421,7 @@ function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false) {
             if (shouldFetchActions) {
                 _.each(reportIDs, (reportID) => {
                     console.debug(`[RECONNECT] Fetching report actions for report ${reportID}`);
-                    fetchActions(reportID);
+                    // fetchActions(reportID);
                 });
             }
         });
@@ -451,47 +492,57 @@ function addAction(reportID, text, file) {
     const highestSequenceNumber = reportMaxSequenceNumbers[reportID] || 0;
     const newSequenceNumber = highestSequenceNumber + 1;
 
+    // Generate a client guid so we can identify this later when it
+    // returns via Pusher with the real sequenceNumber
+    const clientGUID = `${reportID}_9999_${Date.now()}_${guid()}`;
+
     // Update the report in Ion to have the new sequence number
     Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {
         maxSequenceNumber: newSequenceNumber,
     });
 
+    const newAction = {
+        actionName: 'ADDCOMMENT',
+        actorEmail: currentUserEmail,
+        person: [
+            {
+                style: 'strong',
+                text: myPersonalDetails.displayName || currentUserEmail,
+                type: 'TEXT'
+            }
+        ],
+        automatic: false,
+        sequenceNumber: newSequenceNumber,
+        avatar: myPersonalDetails.avatarURL,
+        timestamp: moment().unix(),
+        message: [
+            {
+                type: 'COMMENT',
+                html: isAttachment ? 'Uploading Attachment...' : htmlComment,
+
+                // Remove HTML from text when applying optimistic offline comment
+                text: isAttachment ? '[Attachment]'
+                    : htmlComment.replace(/<[^>]*>?/gm, ''),
+            }
+        ],
+        isFirstItem: false,
+        isAttachment,
+        loading: true,
+        clientGUID,
+    };
+
     // Optimistically add the new comment to the store before waiting to save it to the server
     Ion.merge(actionKey, {
-        [newSequenceNumber]: {
-            actionName: 'ADDCOMMENT',
-            actorEmail: currentUserEmail,
-            person: [
-                {
-                    style: 'strong',
-                    text: myPersonalDetails.displayName || currentUserEmail,
-                    type: 'TEXT'
-                }
-            ],
-            automatic: false,
-            sequenceNumber: newSequenceNumber,
-            avatar: myPersonalDetails.avatarURL,
-            timestamp: moment().unix(),
-            message: [
-                {
-                    type: 'COMMENT',
-                    html: isAttachment ? 'Uploading Attachment...' : htmlComment,
-
-                    // Remove HTML from text when applying optimistic offline comment
-                    text: isAttachment ? '[Attachment]'
-                        : htmlComment.replace(/<[^>]*>?/gm, ''),
-                }
-            ],
-            isFirstItem: false,
-            isAttachment,
-            loading: true,
-        }
+        [newSequenceNumber]: newAction,
     });
+
+    pendingReportActions[clientGUID] = newAction;
 
     API.addReportComment({
         reportID,
         reportComment: htmlComment,
-        file
+        file,
+        clientGUID,
     });
 }
 

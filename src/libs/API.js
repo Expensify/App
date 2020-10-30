@@ -432,6 +432,7 @@ function createChatReport(parameters) {
  * @param {string} parameters.reportComment
  * @param {object} parameters.file
  * @param {number} parameters.reportID
+ * @param {String} parameters.clientGUID
  * @returns {Promise}
  */
 function addReportComment(parameters) {
@@ -440,6 +441,7 @@ function addReportComment(parameters) {
         reportComment: parameters.reportComment,
         file: parameters.file,
         reportID: parameters.reportID,
+        clientGUID: parameters.clientGUID,
     });
 }
 
