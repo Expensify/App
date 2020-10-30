@@ -4,7 +4,6 @@ import {
     View, Image, Modal, TouchableOpacity, Text, Dimensions
 } from 'react-native';
 import ImageZoom from 'react-native-image-pan-zoom';
-import _ from 'underscore';
 import Pdf from 'react-native-pdf';
 import exitIcon from '../../../assets/images/icon-x.png';
 import styles from '../../styles/StyleSheet';

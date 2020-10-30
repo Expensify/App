@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import {
     View, Image, Modal, TouchableOpacity, Text, Dimensions, TouchableWithoutFeedback
 } from 'react-native';
-import _ from 'underscore';
 import {WebView} from 'react-native-webview';
 import exitIcon from '../../../assets/images/icon-x.png';
 import styles from '../../styles/StyleSheet';

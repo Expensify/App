@@ -67,10 +67,11 @@ module.exports = {
                     emitWarning: true,
                 },
             },
-            // Rule for react-native-web-webview 
+
+            // Rule for react-native-web-webview
             {
                 test: /postMock.html$/,
-                    use: {
+                use: {
                     loader: 'file-loader',
                     options: {
                         name: '[name].[ext]',
