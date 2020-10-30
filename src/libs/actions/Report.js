@@ -197,10 +197,11 @@ function updateReportWithNewAction(reportID, reportAction) {
     });
 
     // Add the action into Ion
+    const messageText = lodashGet(reportAction, ['message', 0, 'text'], '');
     Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         [reportAction.sequenceNumber]: {
             ...reportAction,
-            isAttachment: reportAction.text === '[Attachment]',
+            isAttachment: messageText === '[Attachment]',
             loading: false,
         },
     });
