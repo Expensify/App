@@ -89,7 +89,7 @@ class ReportActionItemFragment extends React.PureComponent {
         switch (fragment.type) {
             case 'COMMENT':
                 // If this is an attachment placeholder, return the placeholder component
-                if (this.props.isAttachment && fragment.html === fragment.text) {
+                if (this.props.isAttachment && fragment.text === '[Attachment]') {
                     return (
                         <View style={[styles.chatItemAttachmentPlaceholder]}>
                             <ActivityIndicator
