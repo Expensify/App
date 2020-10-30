@@ -10,16 +10,14 @@ const serve = require('electron-serve');
 const contextMenu = require('electron-context-menu');
 const {autoUpdater} = require('electron-updater');
 const log = require('electron-log');
-const ELECTRON_EVENTS = require('./desktop/ELECTRON_EVENTS');
+const ELECTRON_EVENTS = require('./ELECTRON_EVENTS');
+const checkForUpdates = require('../src/libs/checkForUpdates');
 
 /**
  * Electron main process that handles wrapping the web application.
  *
  * @see: https://www.electronjs.org/docs/tutorial/application-architecture#main-and-renderer-processes
  */
-
-// Interval that we check for new versions of the app
-const UPDATE_INTERVAL = 1000 * 60 * 60;
 
 // TODO: Turn this off, use web-security after alpha launch, currently we receive a CORS issue preventing
 // the electron app from making any API requests.
@@ -39,7 +37,7 @@ autoUpdater.logger.transports.file.level = 'info';
 Object.assign(console, log.functions);
 
 const mainWindow = (() => {
-    const loadURL = serve({directory: 'dist'});
+    const loadURL = serve({directory: `${__dirname}/../dist`});
 
     return app.whenReady()
         .then(() => {
@@ -108,11 +106,11 @@ const mainWindow = (() => {
         // After initializing and configuring the browser window, load the compiled JavaScript
         .then(browserWindow => loadURL(browserWindow))
 
-        // Check for a new version of the app on launch
-        .then(() => autoUpdater.checkForUpdatesAndNotify())
-
-        // Set a timer to check for new versions of the app
-        .then(() => setInterval(() => autoUpdater.checkForUpdatesAndNotify(), UPDATE_INTERVAL));
+        // Start checking for JS updates
+        .then(() => checkForUpdates({
+            init: () => autoUpdater.checkForUpdatesAndNotify(),
+            update: () => autoUpdater.checkForUpdatesAndNotify(),
+        }));
 });
 
 mainWindow().then(window => window);
