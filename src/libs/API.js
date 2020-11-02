@@ -10,8 +10,6 @@ import Str from './Str';
 import guid from './guid';
 import redirectToSignIn from './actions/SignInRedirect';
 import PushNotification from './Notification/PushNotification';
-import getPlatform from './getPlatform';
-import {version} from '../../package.json';
 
 // Queue for network requests so we don't lose actions done by the user while offline
 let networkRequestQueue = [];
@@ -22,13 +20,9 @@ let networkRequestQueue = [];
 let reauthenticating = false;
 
 let authToken;
-let email;
 Ion.connect({
     key: IONKEYS.SESSION,
-    callback: (val) => {
-        authToken = val ? val.authToken : null;
-        email = val ? val.email : null;
-    },
+    callback: val => authToken = val ? val.authToken : null,
 });
 
 // We subscribe to changes to the online/offline status of the network to determine when we should fire off API calls
@@ -500,25 +494,13 @@ function setNameValuePair(parameters) {
 /**
  * @param {Object} parameters
  * @param {String} parameters.message
- * @param {String} parameters.source
+ * @param {Object} parameters.parameters
+ * @param {String} parameters.expensifyCashAppVersion
+ * @param {String} [parameters.email]
  * @returns {Promise}
  */
 function logToServer(parameters) {
-    const requestParams = {
-        message: parameters.message,
-        parameters: JSON.stringify(parameters.parameters || {}),
-        expensifyCashAppVersion: `expensifyCash[${getPlatform()}]${version}`,
-    };
-
-    // If we are logging something and have no email
-    // then we do not want to include this. If we pass
-    // this as null or undefined that will literally
-    // appear in the logs instead of we@dont.know
-    if (email) {
-        requestParams.email = email;
-    }
-
-    return queueRequest('Log', requestParams);
+    return queueRequest('Log', parameters);
 }
 
 export {
