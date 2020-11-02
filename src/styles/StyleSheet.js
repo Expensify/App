@@ -274,6 +274,10 @@ const styles = {
         fontWeight: '700'
     },
 
+    reportOptions: {
+        marginLeft: 8,
+    },
+
     typingIndicator: {
         height: 15,
         marginBottom: 5,
