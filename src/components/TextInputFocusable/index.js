@@ -12,6 +12,9 @@ const propTypes = {
     // If the input should clear, it actually gets intercepted instead of .clear()
     shouldClear: PropTypes.bool,
 
+    // Should the TextInput field be in focused state
+    shouldFocus: PropTypes.bool,
+
     // When the input has cleared whoever owns this input should know about it
     onClear: PropTypes.func,
 };
@@ -19,6 +22,7 @@ const propTypes = {
 const defaultProps = {
     maxLines: -1,
     shouldClear: false,
+    shouldFocus: false,
     onClear: () => {},
 };
 
@@ -45,6 +49,11 @@ class TextInputFocusable extends React.Component {
             this.setState({numberOfLines: 1});
             this.props.onClear();
         }
+
+        if (this.props.shouldFocus) {
+            this.focusInput();
+        }
+
         if (prevProps.defaultValue !== this.props.defaultValue) {
             this.updateNumberOfLines();
         }
