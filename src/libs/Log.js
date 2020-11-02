@@ -13,6 +13,10 @@ function serverLoggingCallback(params) {
     logToServer(params);
 }
 
+// Note: We are importing Logger from JS-Libs because it is
+// used by other platforms. The server and client logging
+// callback methods are passed in here so we can decouple
+// the logging library from the logging methods.
 export default new Logger({
     serverLoggingCallback,
     clientLoggingCallback: (message) => {
