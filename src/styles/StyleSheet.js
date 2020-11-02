@@ -21,6 +21,7 @@ const colors = {
     textSupporting: '#7D8B8F',
     red: '#E84A3B',
     buttonBG: '#8A8A8A',
+    modalBackground: '#00000080',
 };
 
 const styles = {
@@ -893,7 +894,7 @@ const styles = {
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#00000080',
+        backgroundColor: colors.modalBackground,
     },
 
     imageModalImageCenterContainer: {

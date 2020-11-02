@@ -7,9 +7,10 @@ import {WebView} from 'react-native-webview';
 import exitIcon from '../../../assets/images/icon-x.png';
 import styles from '../../styles/StyleSheet';
 import Str from '../../libs/Str';
+import CONST from '../../CONST';
 
 /**
- * Text based component that is passed a URL to open onPress
+ * Image modal component that is triggered by an onpress on an image preview
  */
 
 const propTypes = {
@@ -38,10 +39,13 @@ class ImageModal extends React.Component {
             visible: false,
             imgWidth: 200,
             imgHeight: 200,
+            thumbnailWidth: 300,
+            thumbnailHeight: 150,
         };
     }
 
     componentDidMount() {
+        // Scale image for modal view
         Image.getSize(this.props.srcURL, (width, height) => {
             const screenWidth = Dimensions.get('window').width * 0.6;
             const scaleFactor = width / screenWidth;
@@ -49,6 +53,7 @@ class ImageModal extends React.Component {
             this.setState({imgWidth: screenWidth, imgHeight: imageHeight});
         });
 
+        // Scale image for thumbnail preview
         Image.getSize(this.props.previewSrcURL, (width, height) => {
             const screenWidth = 300;
             const scaleFactor = width / screenWidth;
@@ -57,50 +62,47 @@ class ImageModal extends React.Component {
         });
     }
 
+    /**
+     * Updates the visibility of the modal
+     *
+     * @param {bool} visibility
+     */
     setModalVisiblity(visibility) {
         this.setState({visible: visibility});
     }
 
     render() {
-        let imageView;
+        // Generate height/width for modal
+        const modalWidth = Dimensions.get('window').width * 0.8;
+        const modalHeight = Dimensions.get('window').height * 0.8;
 
-        if (Str.isPDF(this.props.srcURL)) {
-            const pdfViewUrl = `http://mozilla.github.com/pdf.js/web/viewer.html?file=${encodeURIComponent(this.props.srcURL)}`;
-            imageView = <WebView source={{uri: pdfViewUrl}} />;
-        } else {
-            imageView = (
-                <View style={styles.imageModalImageContainer}>
-                    <Image
-                        source={{uri: this.props.srcURL}}
-                        style={{width: this.state.imgWidth, height: this.state.imgHeight}}
-                    />
-                </View>
-            );
-        }
+        // URL for PDF file inside the mozilla viewer
+        const PDFUrl = `${CONST.MOZILLA_PDF_VIEWER_URL}?file=${encodeURIComponent(this.props.srcURL)}`;
 
         return (
             <>
                 <TouchableOpacity onPress={() => this.setModalVisiblity(true)}>
                     <Image
                         source={{uri: this.props.previewSrcURL}}
-                        style={[this.props.style, {width: this.state.thumbnailWidth, height: this.state.thumbnailHeight}]}
+                        style={[
+                            this.props.style,
+                            {width: this.state.thumbnailWidth, height: this.state.thumbnailHeight}
+                        ]}
                     />
                 </TouchableOpacity>
-
 
                 <Modal
                     onRequestClose={() => this.setModalVisiblity(false)}
                     visible={this.state.visible}
                     transparent
                 >
-
                     <TouchableOpacity
                         style={styles.imageModalCenterContainer}
                         activeOpacity={1}
                         onPress={() => this.setModalVisiblity(false)}
                     >
                         <TouchableWithoutFeedback style={{cursor: 'none'}}>
-                            <View style={{...styles.imageModalContainer, width: Dimensions.get('window').width * 0.8, height: Dimensions.get('window').height * 0.8}}>
+                            <View style={{...styles.imageModalContainer, width: modalWidth, height: modalHeight}}>
                                 <View style={styles.imageModalHeader}>
                                     <View style={[
                                         styles.dFlex,
@@ -127,17 +129,32 @@ class ImageModal extends React.Component {
                                             </TouchableOpacity>
                                         </View>
                                     </View>
-
                                 </View>
                                 <View style={styles.imageModalImageCenterContainer}>
-                                    {imageView}
+                                    {
+                                        (Str.isPDF(this.props.srcURL))
+                                            ? (
+                                                <WebView
+                                                    source={{uri: PDFUrl}}
+                                                />
+                                            )
+                                            : (
+                                                <View style={styles.imageModalImageContainer}>
+                                                    <Image
+                                                        source={{uri: this.props.srcURL}}
+                                                        style={{
+                                                            width: this.state.imgWidth,
+                                                            height: this.state.imgHeight
+                                                        }}
+                                                    />
+                                                </View>
+                                            )
+                                    }
                                 </View>
                             </View>
                         </TouchableWithoutFeedback>
                     </TouchableOpacity>
                 </Modal>
-
-
             </>
         );
     }
@@ -145,6 +162,5 @@ class ImageModal extends React.Component {
 
 ImageModal.propTypes = propTypes;
 ImageModal.defaultProps = defaultProps;
-ImageModal.displayName = 'ImageModal';
 
 export default ImageModal;

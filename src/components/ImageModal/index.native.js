@@ -10,7 +10,7 @@ import styles from '../../styles/StyleSheet';
 import Str from '../../libs/Str';
 
 /**
- * Text based component that is passed a URL to open onPress
+ * Image modal component that is triggered by an onpress on an image preview
  */
 
 const propTypes = {
@@ -39,11 +39,13 @@ class ImageModal extends React.Component {
             visible: false,
             imgWidth: 200,
             imgHeight: 200,
+            thumbnailWidth: 300,
+            thumbnailHeight: 150,
         };
     }
 
     componentDidMount() {
-        // Generate image size for modal
+        // Scale image for modal view
         Image.getSize(this.props.srcURL, (width, height) => {
             const screenWidth = Dimensions.get('window').width;
             const scaleFactor = width / screenWidth;
@@ -51,7 +53,7 @@ class ImageModal extends React.Component {
             this.setState({imgWidth: screenWidth, imgHeight: imageHeight});
         });
 
-        // Generate thumbnail size
+        // Scale image for thumbnail preview
         Image.getSize(this.props.previewSrcURL, (width, height) => {
             const screenWidth = 300;
             const scaleFactor = width / screenWidth;
@@ -60,36 +62,16 @@ class ImageModal extends React.Component {
         });
     }
 
+    /**
+     * Updates the visibility of the modal
+     *
+     * @param {bool} visibility
+     */
     setModalVisiblity(visibility) {
         this.setState({visible: visibility});
     }
 
     render() {
-        let imageView;
-
-        if (Str.isPDF(this.props.srcURL)) {
-            imageView = (
-                <Pdf
-                    source={{uri: this.props.srcURL}}
-                    style={styles.imageModalPDF}
-                />
-            );
-        } else {
-            imageView = (
-                <ImageZoom
-                    cropWidth={Dimensions.get('window').width}
-                    cropHeight={Dimensions.get('window').height - 87}
-                    imageWidth={this.state.imgWidth}
-                    imageHeight={this.state.imgHeight + 87}
-                >
-                    <Image
-                        style={{width: this.state.imgWidth, height: this.state.imgHeight}}
-                        source={{uri: this.props.srcURL}}
-                    />
-                </ImageZoom>
-            );
-        }
-
         return (
             <>
                 <TouchableOpacity onPress={() => this.setModalVisiblity(true)}>
@@ -138,11 +120,26 @@ class ImageModal extends React.Component {
                             </View>
 
                         </View>
-                        {imageView}
+                        {(Str.isPDF(this.props.srcURL)) ? (
+                            <Pdf
+                                source={{uri: this.props.srcURL}}
+                                style={styles.imageModalPDF}
+                            />
+                        ) : (
+                            <ImageZoom
+                                cropWidth={Dimensions.get('window').width}
+                                cropHeight={Dimensions.get('window').height - 87}
+                                imageWidth={this.state.imgWidth}
+                                imageHeight={this.state.imgHeight + 87}
+                            >
+                                <Image
+                                    style={{width: this.state.imgWidth, height: this.state.imgHeight}}
+                                    source={{uri: this.props.srcURL}}
+                                />
+                            </ImageZoom>
+                        )}
                     </View>
-
                 </Modal>
-
             </>
         );
     }
@@ -150,6 +147,5 @@ class ImageModal extends React.Component {
 
 ImageModal.propTypes = propTypes;
 ImageModal.defaultProps = defaultProps;
-ImageModal.displayName = 'ImageModal';
 
 export default ImageModal;
