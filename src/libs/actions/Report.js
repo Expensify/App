@@ -88,6 +88,15 @@ function getUnreadActionCount(report) {
 }
 
 /**
+ * @param {Object} report
+ * @return {String[]}
+ */
+function getParticipantEmailsFromReport({sharedReportList}) {
+    const emailArray = _.map(sharedReportList, participant => participant.email);
+    return _.without(emailArray, currentUserEmail);
+}
+
+/**
  * Only store the minimal amount of data in Ion that needs to be stored
  * because space is limited
  *
@@ -103,8 +112,8 @@ function getSimplifiedReportObject(report) {
         reportName: report.reportName,
         reportNameValuePairs: report.reportNameValuePairs,
         unreadActionCount: getUnreadActionCount(report),
-        isPinned: pinnedReportIDs.includes(report.reportID),
         maxSequenceNumber: report.reportActionList.length,
+        participants: getParticipantEmailsFromReport(report),
     };
 }
 
@@ -142,24 +151,13 @@ function fetchChatReportsByIDs(chatList) {
 
             // Build array of all participant emails so we can
             // get the personal details.
-            const emails = _.chain(reports)
-                .pluck('sharedReportList')
-                .reduce((participants, sharedList) => {
-                    const emailArray = _.map(sharedList, participant => participant.email);
-                    return [...participants, ...emailArray];
-                }, [])
-                .filter(email => email !== currentUserEmail)
-                .unique()
-                .value();
-
-            // Fetch the person details if there are any
-            if (emails && emails.length !== 0) {
-                PersonalDetails.getForEmails(emails.join(','));
-            }
+            let participantEmails = [];
 
             // Process the reports and store them in Ion
             _.each(fetchedReports, (report) => {
                 const newReport = getSimplifiedReportObject(report);
+
+                participantEmails.push(newReport.participants);
 
                 if (lodashGet(report, 'reportNameValuePairs.type') === 'chat') {
                     newReport.reportName = getChatReportName(report.sharedReportList);
@@ -169,8 +167,32 @@ function fetchChatReportsByIDs(chatList) {
                 Ion.merge(`${IONKEYS.COLLECTION.REPORT}${report.reportID}`, newReport);
             });
 
+            // Fetch the person details if there are any
+            participantEmails = _.unique(participantEmails);
+            if (participantEmails && participantEmails.length !== 0) {
+                PersonalDetails.getForEmails(participantEmails.join(','));
+            }
+
             return _.map(fetchedReports, report => report.reportID);
         });
+}
+
+/**
+ * Update the lastReadActionID in Ion and local memory.
+ *
+ * @param {Number} reportID
+ * @param {Number} sequenceNumber
+ */
+function setLocalLastReadActionID(reportID, sequenceNumber) {
+    lastReadActionIDs[reportID] = sequenceNumber;
+
+    // Update the lastReadActionID on the report optimistically
+    Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {
+        unreadActionCount: 0,
+        reportNameValuePairs: {
+            [`lastReadActionID_${currentUserAccountID}`]: sequenceNumber,
+        }
+    });
 }
 
 /**
@@ -181,6 +203,14 @@ function fetchChatReportsByIDs(chatList) {
  */
 function updateReportWithNewAction(reportID, reportAction) {
     const newMaxSequenceNumber = reportAction.sequenceNumber;
+    const isFromCurrentUser = reportAction.actorAccountID === currentUserAccountID;
+
+    // When handling an action from the current users we can assume that their
+    // last read actionID has been updated in the server but not necessarily reflected
+    // locally so we must first update it and then calculate the unread (which should be 0)
+    if (isFromCurrentUser) {
+        setLocalLastReadActionID(reportID, newMaxSequenceNumber);
+    }
 
     // Always merge the reportID into Ion
     // If the report doesn't exist in Ion yet, then all the rest of the data will be filled out
@@ -202,7 +232,7 @@ function updateReportWithNewAction(reportID, reportAction) {
     }
 
     // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
-    if (reportAction.actorAccountID === currentUserAccountID) {
+    if (isFromCurrentUser) {
         console.debug('[LOCAL_NOTIFICATION] No notification because comment is from the currently logged in user');
         return;
     }
@@ -498,15 +528,7 @@ function updateLastReadActionID(reportID, sequenceNumber) {
         return;
     }
 
-    lastReadActionIDs[reportID] = sequenceNumber;
-
-    // Update the lastReadActionID on the report optimistically
-    Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {
-        unreadActionCount: 0,
-        reportNameValuePairs: {
-            [`lastReadActionID_${currentUserAccountID}`]: sequenceNumber,
-        }
-    });
+    setLocalLastReadActionID(reportID, sequenceNumber);
 
     // Mark the report as not having any unread items
     API.setLastReadActionID({
@@ -532,15 +554,11 @@ function togglePinnedState(reportID) {
         pinnedReportIDs.push(reportID);
     }
 
+    Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {isPinned});
     API.setNameValuePair({
         name: 'expensify_chat_pinnedReportIDs',
         value: pinnedReportIDs.toString(),
-    })
-        .then(() => {
-            Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {
-                isPinned,
-            });
-        });
+    });
 }
 
 /**
@@ -556,6 +574,10 @@ function fetchPinnedReportIDs() {
         .then((data) => {
             const strReportIDs = lodashGet(data, 'nameValuePairs.expensify_chat_pinnedReportIDs', '').toString();
             pinnedReportIDs = strReportIDs ? strReportIDs.split(',').map(Number) : [];
+            _.each(pinnedReportIDs, reportID => Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {
+                reportID,
+                isPinned: true
+            }));
         });
 }
 
