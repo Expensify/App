@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import Ion from './Ion';
 import IONKEYS from '../IONKEYS';
-import xhr from './xhr';
+import HttpUtils from './HttpUtils';
 import NetworkConnection from './NetworkConnection';
 import CONFIG from '../CONFIG';
 import * as Pusher from './Pusher/pusher';
@@ -121,7 +121,7 @@ function createLogin(login, password) {
     // Using xhr instead of request becasue request has logic to re-try API commands when we get a 407 authToken expired
     // in the response, and we call CreateLogin after getting a successful resposne to Authenticate so it's unlikely
     // that we'll get a 407.
-    return xhr('CreateLogin', {
+    return HttpUtils.xhr('CreateLogin', {
         authToken,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
@@ -192,7 +192,7 @@ function request(command, parameters, type = 'post') {
 
     // Make the http request, and if we get 407 jsonCode in the response,
     // re-authenticate to get a fresh authToken and make the original http request again
-    return xhr(command, parametersWithAuthToken, type)
+    return HttpUtils.xhr(command, parametersWithAuthToken, type)
         .then((responseData) => {
             // We can end up here if we have queued up many
             // requests and have an expired authToken. In these cases,
@@ -205,7 +205,7 @@ function request(command, parameters, type = 'post') {
             // we re-authenticate and then re-try the original request
             if (responseData.jsonCode === 407 && parametersWithAuthToken.doNotRetry !== true) {
                 reauthenticating = true;
-                return xhr('Authenticate', {
+                return HttpUtils.xhr('Authenticate', {
                     useExpensifyLogin: false,
                     partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
                     partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
@@ -229,7 +229,7 @@ function request(command, parameters, type = 'post') {
                         Ion.merge(IONKEYS.SESSION, _.pick(response, 'authToken'));
                         return response;
                     })
-                    .then(() => xhr(command, parametersWithAuthToken, type))
+                    .then(() => HttpUtils.xhr(command, parametersWithAuthToken, type))
                     .catch((error) => {
                         reauthenticating = false;
                         redirectToSignIn(error.message);
@@ -265,7 +265,7 @@ function processNetworkRequestQueue() {
         // 2. Getting a 200 response back from the API (happens right below)
 
         // Make a simple request every second to see if the API is online again
-        xhr('Get', {doNotRetry: true})
+        HttpUtils.xhr('Get', {doNotRetry: true})
             .then(() => NetworkConnection.setOfflineStatus(false));
         return;
     }
@@ -365,7 +365,7 @@ function authenticate(parameters) {
     // We treat Authenticate in a special way because unlike other commands, this one can't fail
     // with 407 authToken expired. When other api commands fail with this error we call Authenticate
     // to get a new authToken and then fire the original api command again
-    return xhr('Authenticate', {
+    return HttpUtils.xhr('Authenticate', {
         // When authenticating for the first time, we pass useExpensifyLogin as true so we check for credentials for
         // the expensify partnerID to let users authenticate with their expensify user and password.
         useExpensifyLogin: true,
