@@ -10,9 +10,6 @@ let lastConnectionID = 0;
 // Holds a mapping of all the react components that want their state subscribed to a store key
 const callbackToStateMapping = {};
 
-// Stores all of the keys that Ion can use. Must be defined in init().
-let ionKeys;
-
 // Holds a list of keys that have been directly subscribed to or recently modified from least to most recent
 let recentlyAccessedKeys = [];
 
@@ -425,10 +422,7 @@ function merge(key, val) {
  * as "safe" for removal. Any components subscribing to these keys must also
  * implement a canEvict option. See the README for more info.
  */
-function init({keys, initialKeyStates, safeEvictionKeys}) {
-    // Let Ion know about all of our keys
-    ionKeys = keys;
-
+function init({initialKeyStates, safeEvictionKeys}) {
     // Let Ion know about which keys are safe to evict
     evictionAllowList = safeEvictionKeys;
 
