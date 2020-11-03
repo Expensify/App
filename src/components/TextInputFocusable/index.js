@@ -1,6 +1,7 @@
 import React from 'react';
 import {TextInput} from 'react-native';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 
 const propTypes = {
     // Maximum number of lines in the text input
@@ -8,6 +9,9 @@ const propTypes = {
 
     // The default value of the comment box
     defaultValue: PropTypes.string.isRequired,
+
+    // A ref to forward to the text input
+    forwardedRef: PropTypes.func.isRequired,
 
     // If the input should clear, it actually gets intercepted instead of .clear()
     shouldClear: PropTypes.bool,
@@ -36,6 +40,9 @@ class TextInputFocusable extends React.Component {
 
     componentDidMount() {
         this.focusInput();
+        if (this.props.forwardedRef && _.isFunction(this.props.forwardedRef)) {
+            this.props.forwardedRef(this.textInput);
+        }
     }
 
     componentDidUpdate(prevProps) {
@@ -107,4 +114,8 @@ class TextInputFocusable extends React.Component {
 
 TextInputFocusable.propTypes = propTypes;
 TextInputFocusable.defaultProps = defaultProps;
-export default TextInputFocusable;
+
+export default React.forwardRef((props, ref) => (
+    /* eslint-disable-next-line react/jsx-props-no-spreading */
+    <TextInputFocusable {...props} forwardedRef={ref} />
+));
