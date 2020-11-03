@@ -190,7 +190,7 @@ Ion.init({
 ```js
 export default withIon({
     reportActions: {
-        key: ({reportID}) => `${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        key: ({reportID}) => `${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}_`,
         canEvict: props => !props.isActiveReport,
     },
 })(ReportActionsView);

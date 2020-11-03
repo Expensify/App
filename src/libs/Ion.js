@@ -40,7 +40,8 @@ function get(key) {
  * @returns {Boolean}
  */
 function isCollectionKey(key) {
-    return _.contains(_.values(IONKEYS.COLLECTION), key);
+    // Any key that ends with an underscore is a collection
+    return Str.endsWith(key, '_');
 }
 
 /**
@@ -155,7 +156,15 @@ function keyChanged(key, data) {
             if (isCollectionKey(subscriber.key)) {
                 subscriber.withIonInstance.setState((prevState) => {
                     const collection = prevState[subscriber.statePropertyName] || {};
-                    collection[key] = data;
+
+                    // If we have removed the value for this key or it has been
+                    // deleted then remove it from the collection and update
+                    if (_.isNull(data)) {
+                        delete collection[key];
+                    } else {
+                        collection[key] = data;
+                    }
+
                     return {
                         [subscriber.statePropertyName]: collection,
                     };

@@ -94,7 +94,22 @@ const Str = {
      */
     normalizeUrl(url) {
         return (typeof url === 'string' && url.startsWith('/')) ? url : `/${url}`;
-    }
+    },
+
+    /**
+     * Return true if the string is ending with the provided suffix
+     *
+     * @param {String} str String ot search in
+     * @param {String} suffix What to look for
+     * @return {Boolean}
+     */
+    endsWith(str, suffix) {
+        if (!str || !suffix) {
+            return false;
+        }
+
+        return str.substr(-suffix.length) === suffix;
+    },
 };
 
 export default Str;
