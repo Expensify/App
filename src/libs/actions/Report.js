@@ -484,7 +484,6 @@ function addAction(reportID, text, file) {
     });
 
     // Optimistically add the new comment to the store before waiting to save it to the server
-<<<<<<< HEAD
     Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}_${newSequenceNumber}`, {
         actionName: 'ADDCOMMENT',
         actorEmail: currentUserEmail,
@@ -496,7 +495,7 @@ function addAction(reportID, text, file) {
             }
         ],
         automatic: false,
-        sequenceNumber: ++highestSequenceNumber,
+        sequenceNumber: newSequenceNumber,
         avatar: myPersonalDetails.avatarURL,
         timestamp: moment().unix(),
         message: [
@@ -505,43 +504,13 @@ function addAction(reportID, text, file) {
                 html: isAttachment ? 'Uploading Attachment...' : htmlComment,
 
                 // Remove HTML from text when applying optimistic offline comment
-                text: isAttachment ? 'Uploading Attachment...'
+                text: isAttachment ? '[Attachment]'
                     : htmlComment.replace(/<[^>]*>?/gm, ''),
             }
         ],
         isFirstItem: false,
         isAttachment,
-=======
-    Ion.merge(actionKey, {
-        [newSequenceNumber]: {
-            actionName: 'ADDCOMMENT',
-            actorEmail: currentUserEmail,
-            person: [
-                {
-                    style: 'strong',
-                    text: myPersonalDetails.displayName || currentUserEmail,
-                    type: 'TEXT'
-                }
-            ],
-            automatic: false,
-            sequenceNumber: newSequenceNumber,
-            avatar: myPersonalDetails.avatarURL,
-            timestamp: moment().unix(),
-            message: [
-                {
-                    type: 'COMMENT',
-                    html: isAttachment ? 'Uploading Attachment...' : htmlComment,
-
-                    // Remove HTML from text when applying optimistic offline comment
-                    text: isAttachment ? '[Attachment]'
-                        : htmlComment.replace(/<[^>]*>?/gm, ''),
-                }
-            ],
-            isFirstItem: false,
-            isAttachment,
-            loading: true,
-        }
->>>>>>> origin
+        loading: true,
     });
 
     API.addReportComment({
