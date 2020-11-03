@@ -140,6 +140,7 @@ class ReportActionCompose extends React.Component {
             console.debug(`Attachment selected: ${response.uri}, ${response.type}, ${response.name}, ${response.size}`);
 
             addAction(this.props.reportID, '', AttachmentPicker.getDataForUpload(response));
+            this.textInput.focus();
         });
     }
 
@@ -165,6 +166,7 @@ class ReportActionCompose extends React.Component {
                     </TouchableOpacity>
                     <TextInputFocusable
                         multiline
+                        ref={el => this.textInput = el}
                         textAlignVertical="top"
                         placeholder="Write something..."
                         placeholderTextColor={colors.textSupporting}
