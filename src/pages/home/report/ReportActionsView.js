@@ -171,6 +171,14 @@ class ReportActionsView extends React.Component {
     recordMaxAction() {
         const reportActions = lodashGet(this.props, 'reportActions', {});
         const maxVisibleSequenceNumber = _.chain(reportActions)
+
+            // We want to avoid marking any pending actions as read since
+            // 1. Any action ID that hasn't been delivered by the server
+            //    is a temporary action ID.
+            // 2. We already set a comment someone has authored as the
+            //    lastReadActionID_<accountID> rNVP on the server and should
+            //    sync it locally when we handle it via Pusher or Airship
+            .filter(action => !action.loading)
             .pluck('sequenceNumber')
             .max()
             .value();

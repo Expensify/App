@@ -419,6 +419,23 @@ function init({safeEvictionKeys}) {
     addStorageEventHandler((key, newValue) => keyChanged(key, newValue));
 }
 
+/**
+ * Remove an object key from an Ion key value.
+ *
+ * WARNING: This has a known limitation in that
+ * if called in quick succession the value
+ * returned by Ion.get() may not be what we expect.
+ *
+ * @param {String} key
+ * @param {String} objectKeyToRemove
+ */
+function without(key, objectKeyToRemove) {
+    Ion.get(key)
+        .then(val => {
+            Ion.set(key, _.without(val, objectKeyToRemove));
+        });
+}
+
 const Ion = {
     connect,
     disconnect,
@@ -430,6 +447,7 @@ const Ion = {
     addToEvictionBlockList,
     removeFromEvictionBlockList,
     isSafeEvictionKey,
+    without,
 };
 
 export default Ion;

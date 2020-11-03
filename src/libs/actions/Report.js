@@ -59,8 +59,6 @@ const lastReadActionIDs = {};
 // List of reportIDs pinned by the user
 let pinnedReportIDs = [];
 
-const pendingReportActions = {};
-
 /**
  * Checks the report to see if there are any unread action items
  *
@@ -183,6 +181,7 @@ function fetchChatReportsByIDs(chatList) {
 
 /**
  * Updates a report in the store with a new report action
+ * from incoming Pusher or Airship event payload
  *
  * @param {number} reportID
  * @param {object} reportAction
@@ -199,46 +198,20 @@ function updateReportWithNewAction(reportID, reportAction) {
         maxSequenceNumber: reportAction.sequenceNumber,
     });
 
+    const actionKey = `${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
+
     // Check the reportAction for the clientGUID and make sure the sequenceNumber
     // for this action matches correctly with the one we are expecting
     const clientGUID = reportAction.clientGUID;
     if (clientGUID) {
-        const pendingReportAction = pendingReportActions[clientGUID] || {};
-        const expectedSequenceNumber = pendingReportAction.sequenceNumber;
-        if (expectedSequenceNumber && (expectedSequenceNumber !== reportAction.sequenceNumber)) {
-            // If we end up here this means we handled some report action
-            // by Pusher out of order. We must find the action that is already
-            // occupying this sequenceNumber in memory and swap it's sequenceNumber
-            // for the expected one.
-            const pendingActionToRelocate = _.find(pendingReportActions, (action) => {
-                return action.sequenceNumber === reportAction.sequenceNumber;
-            });
-
-            // Move this action to the position where we expected the previous action
-            // to be so that there are no conflicts. This is most likely where this
-            // action will end up.
-            if (pendingActionToRelocate) {
-                const messageText = lodashGet(pendingActionToRelocate, ['message', 0, 'text'], '');
-                console.log(messageText);
-                const updatedPendingAction = {
-                    ...pendingActionToRelocate,
-                    sequenceNumber: expectedSequenceNumber,
-                    isAttachment: messageText === '[Attachment]',
-                    loading: true,
-                };
-                Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-                    [expectedSequenceNumber]: updatedPendingAction,
-                });
-            }
-        }
-
-        // Clean this action from the pending action list
-        delete pendingReportActions[clientGUID];
+        // Delete this item from the report since we are about to replace it at the
+        // correct action ID index
+        Ion.without(actionKey, clientGUID);
     }
 
     // Add the action into Ion
     const messageText = lodashGet(reportAction, ['message', 0, 'text'], '');
-    Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+    Ion.merge(actionKey, {
         [reportAction.sequenceNumber]: {
             ...reportAction,
             isAttachment: messageText === '[Attachment]',
@@ -481,25 +454,14 @@ function fetchOrCreateChatReport(participants) {
  * @param {object} file
  */
 function addAction(reportID, text, file) {
-    const actionKey = `${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
-
     // Convert the comment from MD into HTML because that's how it is stored in the database
     const parser = new ExpensiMark();
     const htmlComment = parser.replace(text);
     const isAttachment = _.isEmpty(text) && file !== undefined;
 
-    // The new sequence number will be one higher than the highest
-    const highestSequenceNumber = reportMaxSequenceNumbers[reportID] || 0;
-    const newSequenceNumber = highestSequenceNumber + 1;
-
     // Generate a client guid so we can identify this later when it
     // returns via Pusher with the real sequenceNumber
-    const clientGUID = `${reportID}_9999_${Date.now()}_${guid()}`;
-
-    // Update the report in Ion to have the new sequence number
-    Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {
-        maxSequenceNumber: newSequenceNumber,
-    });
+    const tempActionID = `${reportID}_9999_${Date.now()}_${guid()}`;
 
     const newAction = {
         actionName: 'ADDCOMMENT',
@@ -512,7 +474,10 @@ function addAction(reportID, text, file) {
             }
         ],
         automatic: false,
-        sequenceNumber: newSequenceNumber,
+
+        // Use the client generated ID as a temporary action ID
+        // so we can remove it later
+        sequenceNumber: tempActionID,
         avatar: myPersonalDetails.avatarURL,
         timestamp: moment().unix(),
         message: [
@@ -528,21 +493,18 @@ function addAction(reportID, text, file) {
         isFirstItem: false,
         isAttachment,
         loading: true,
-        clientGUID,
     };
 
     // Optimistically add the new comment to the store before waiting to save it to the server
-    Ion.merge(actionKey, {
-        [newSequenceNumber]: newAction,
+    Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+        [tempActionID]: newAction,
     });
-
-    pendingReportActions[clientGUID] = newAction;
 
     API.addReportComment({
         reportID,
         reportComment: htmlComment,
         file,
-        clientGUID,
+        clientGUID: tempActionID,
     });
 }
 
