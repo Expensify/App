@@ -1,14 +1,17 @@
 import _ from 'underscore';
 import AsyncStorage from '@react-native-community/async-storage';
 import addStorageEventHandler from './addStorageEventHandler';
-import Str from './Str';
-import IONKEYS from '../IONKEYS';
+import Str from '../Str';
+import {registerLogger, logInfo, logAlert} from './Logger';
 
 // Keeps track of the last connectionID that was used so we can keep incrementing it
 let lastConnectionID = 0;
 
 // Holds a mapping of all the react components that want their state subscribed to a store key
 const callbackToStateMapping = {};
+
+// Stores all of the keys that Ion can use. Must be defined in init().
+let ionKeys;
 
 // Holds a list of keys that have been directly subscribed to or recently modified from least to most recent
 let recentlyAccessedKeys = [];
@@ -29,7 +32,7 @@ const evictionBlocklist = {};
 function get(key) {
     return AsyncStorage.getItem(key)
         .then(val => JSON.parse(val))
-        .catch(err => console.error(`Unable to get item from persistent storage. Key: ${key} Error: ${err}`));
+        .catch(err => logInfo(`Unable to get item from persistent storage. Key: ${key} Error: ${err}`));
 }
 
 /**
@@ -309,18 +312,15 @@ function evictStorageAndRetry(error, ionMethod, ...args) {
     const keyForRemoval = _.find(recentlyAccessedKeys, key => !evictionBlocklist[key]);
 
     if (!keyForRemoval) {
-        console.error('[Ion] Out of storage. But found no acceptable keys to remove.');
+        logAlert('Out of storage. But found no acceptable keys to remove.');
         throw error;
     }
 
-    // Remove the least recently viewed key that is not currently being accessed and retry.
-    console.debug(
-        '[Ion] Out of storage. Evicting least recently accessed key and retrying.',
-        {keyForRemoval}
-    );
-
     // We must immediately remove this so we do not try to remove the same key twice.
     removeLastAccessedKey(keyForRemoval);
+
+    // Remove the least recently viewed key that is not currently being accessed and retry.
+    logInfo(`Out of storage. Evicting least recently accessed key (${keyForRemoval}) and retrying.`);
     return remove(keyForRemoval)
         .then(() => ionMethod(...args));
 }
@@ -413,11 +413,7 @@ function merge(key, val) {
     }
 
     // Anything else (strings and numbers) need to be set into storage
-    AsyncStorage.setItem(key, JSON.stringify(val))
-        .then(() => {
-            keyChanged(key, val);
-        })
-        .catch(error => evictStorageAndRetry(error, merge, key, val));
+    set(key, val);
 }
 
 /**
@@ -429,11 +425,17 @@ function merge(key, val) {
  * as "safe" for removal. Any components subscribing to these keys must also
  * implement a canEvict option. See the README for more info.
  */
-function init({safeEvictionKeys}) {
+function init({keys, initialKeyStates, safeEvictionKeys}) {
+    // Let Ion know about all of our keys
+    ionKeys = keys;
+
+    // Let Ion know about which keys are safe to evict
     evictionAllowList = safeEvictionKeys;
 
-    // Clear any loading and error messages so they do not appear on app startup
-    merge(IONKEYS.SESSION, {loading: false, error: ''});
+    // Initialize all of our keys with data provided
+    _.each(initialKeyStates, (state, key) => merge(key, state));
+
+    // Update any key whose value changes in storage
     addStorageEventHandler((key, newValue) => keyChanged(key, newValue));
 }
 
@@ -445,6 +447,7 @@ const Ion = {
     merge,
     clear,
     init,
+    registerLogger,
     addToEvictionBlockList,
     removeFromEvictionBlockList,
     isSafeEvictionKey,

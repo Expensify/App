@@ -222,7 +222,14 @@ function updateReportWithNewAction(reportID, reportAction) {
     });
 
     // Add the action into Ion
-    Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}_${reportAction.sequenceNumber}`, reportAction);
+    const messageText = lodashGet(reportAction, ['message', 0, 'text'], '');
+    Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}_${reportAction.sequenceNumber}`, {
+        [reportAction.sequenceNumber]: {
+            ...reportAction,
+            isAttachment: messageText === '[Attachment]',
+            loading: false,
+        },
+    });
 
     if (!ActiveClientManager.isClientTheLeader()) {
         console.debug('[LOCAL_NOTIFICATION] Skipping notification because this client is not the leader');
@@ -468,7 +475,7 @@ function addAction(reportID, text, file) {
     const isAttachment = _.isEmpty(text) && file !== undefined;
 
     // The new sequence number will be one higher than the highest
-    let highestSequenceNumber = reportMaxSequenceNumbers[reportID] || 0;
+    const highestSequenceNumber = reportMaxSequenceNumbers[reportID] || 0;
     const newSequenceNumber = highestSequenceNumber + 1;
 
     // Update the report in Ion to have the new sequence number
@@ -477,6 +484,7 @@ function addAction(reportID, text, file) {
     });
 
     // Optimistically add the new comment to the store before waiting to save it to the server
+<<<<<<< HEAD
     Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}_${newSequenceNumber}`, {
         actionName: 'ADDCOMMENT',
         actorEmail: currentUserEmail,
@@ -503,6 +511,37 @@ function addAction(reportID, text, file) {
         ],
         isFirstItem: false,
         isAttachment,
+=======
+    Ion.merge(actionKey, {
+        [newSequenceNumber]: {
+            actionName: 'ADDCOMMENT',
+            actorEmail: currentUserEmail,
+            person: [
+                {
+                    style: 'strong',
+                    text: myPersonalDetails.displayName || currentUserEmail,
+                    type: 'TEXT'
+                }
+            ],
+            automatic: false,
+            sequenceNumber: newSequenceNumber,
+            avatar: myPersonalDetails.avatarURL,
+            timestamp: moment().unix(),
+            message: [
+                {
+                    type: 'COMMENT',
+                    html: isAttachment ? 'Uploading Attachment...' : htmlComment,
+
+                    // Remove HTML from text when applying optimistic offline comment
+                    text: isAttachment ? '[Attachment]'
+                        : htmlComment.replace(/<[^>]*>?/gm, ''),
+                }
+            ],
+            isFirstItem: false,
+            isAttachment,
+            loading: true,
+        }
+>>>>>>> origin
     });
 
     API.addReportComment({
