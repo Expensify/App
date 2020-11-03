@@ -468,41 +468,39 @@ function addAction(reportID, text, file) {
     // returns via Pusher with the real sequenceNumber
     const tempActionID = `${reportID}_9999_${Date.now()}_${guid()}`;
 
-    const newAction = {
-        actionName: 'ADDCOMMENT',
-        actorEmail: currentUserEmail,
-        person: [
-            {
-                style: 'strong',
-                text: myPersonalDetails.displayName || currentUserEmail,
-                type: 'TEXT'
-            }
-        ],
-        automatic: false,
-
-        // Use the client generated ID as a temporary action ID
-        // so we can remove it later
-        sequenceNumber: tempActionID,
-        avatar: myPersonalDetails.avatarURL,
-        timestamp: moment().unix(),
-        message: [
-            {
-                type: 'COMMENT',
-                html: isAttachment ? 'Uploading Attachment...' : htmlComment,
-
-                // Remove HTML from text when applying optimistic offline comment
-                text: isAttachment ? '[Attachment]'
-                    : htmlComment.replace(/<[^>]*>?/gm, ''),
-            }
-        ],
-        isFirstItem: false,
-        isAttachment,
-        loading: true,
-    };
-
     // Optimistically add the new comment to the store before waiting to save it to the server
     Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        [tempActionID]: newAction,
+        [tempActionID]: {
+            actionName: 'ADDCOMMENT',
+            actorEmail: currentUserEmail,
+            person: [
+                {
+                    style: 'strong',
+                    text: myPersonalDetails.displayName || currentUserEmail,
+                    type: 'TEXT'
+                }
+            ],
+            automatic: false,
+
+            // Use the client generated ID as a temporary action ID
+            // so we can remove it later
+            sequenceNumber: tempActionID,
+            avatar: myPersonalDetails.avatarURL,
+            timestamp: moment().unix(),
+            message: [
+                {
+                    type: 'COMMENT',
+                    html: isAttachment ? 'Uploading Attachment...' : htmlComment,
+
+                    // Remove HTML from text when applying optimistic offline comment
+                    text: isAttachment ? '[Attachment]'
+                        : htmlComment.replace(/<[^>]*>?/gm, ''),
+                }
+            ],
+            isFirstItem: false,
+            isAttachment,
+            loading: true,
+        },
     });
 
     API.addReportComment({
