@@ -222,8 +222,13 @@ function updateReportWithNewAction(reportID, reportAction) {
     });
 
     // Add the action into Ion
+    const messageText = lodashGet(reportAction, ['message', 0, 'text'], '');
     Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        [reportAction.sequenceNumber]: reportAction,
+        [reportAction.sequenceNumber]: {
+            ...reportAction,
+            isAttachment: messageText === '[Attachment]',
+            loading: false,
+        },
     });
 
     if (!ActiveClientManager.isClientTheLeader()) {
@@ -469,7 +474,7 @@ function addAction(reportID, text, file) {
     const isAttachment = _.isEmpty(text) && file !== undefined;
 
     // The new sequence number will be one higher than the highest
-    let highestSequenceNumber = reportMaxSequenceNumbers[reportID] || 0;
+    const highestSequenceNumber = reportMaxSequenceNumbers[reportID] || 0;
     const newSequenceNumber = highestSequenceNumber + 1;
 
     // Update the report in Ion to have the new sequence number
@@ -490,7 +495,7 @@ function addAction(reportID, text, file) {
                 }
             ],
             automatic: false,
-            sequenceNumber: ++highestSequenceNumber,
+            sequenceNumber: newSequenceNumber,
             avatar: myPersonalDetails.avatarURL,
             timestamp: moment().unix(),
             message: [
@@ -499,12 +504,13 @@ function addAction(reportID, text, file) {
                     html: isAttachment ? 'Uploading Attachment...' : htmlComment,
 
                     // Remove HTML from text when applying optimistic offline comment
-                    text: isAttachment ? 'Uploading Attachment...'
+                    text: isAttachment ? '[Attachment]'
                         : htmlComment.replace(/<[^>]*>?/gm, ''),
                 }
             ],
             isFirstItem: false,
             isAttachment,
+            loading: true,
         }
     });
 
