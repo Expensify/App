@@ -372,7 +372,7 @@ function fetchActions(reportID) {
                 .max()
                 .value();
 
-            _.each(data.history, action => {
+            _.each(data.history, (action) => {
                 Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}_${action.sequenceNumber}`, action);
             });
 
