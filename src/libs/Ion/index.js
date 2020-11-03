@@ -306,7 +306,11 @@ function remove(key) {
  */
 function evictStorageAndRetry(error, ionMethod, ...args) {
     // Find the first key that we can remove that has no subscribers in our blocklist
-    const keyForRemoval = _.find(recentlyAccessedKeys, key => !evictionBlocklist[key]);
+    const keyForRemoval = _.find(recentlyAccessedKeys, (key) => {
+        const keyParts = key.split('_');
+        const keyPrefix = `${keyParts.slice(0, keyParts.length - 1).join('_')}_`;
+        return !evictionBlocklist[keyPrefix];
+    });
 
     if (!keyForRemoval) {
         logAlert('Out of storage. But found no acceptable keys to remove.');
