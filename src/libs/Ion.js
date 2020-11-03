@@ -422,17 +422,20 @@ function init({safeEvictionKeys}) {
 /**
  * Remove an object key from an Ion key value.
  *
- * WARNING: This has a known limitation in that
- * if called in quick succession the value
- * returned by Ion.get() may not be what we expect.
+ * Caveat - this method should only be used
+ * synchronously before a call to Ion.merge()
  *
  * @param {String} key
  * @param {String} objectKeyToRemove
+ *
+ * @returns {Promise}
  */
-function without(key, objectKeyToRemove) {
-    Ion.get(key)
-        .then(val => {
-            Ion.set(key, _.without(val, objectKeyToRemove));
+function removeObjectKey(key, objectKeyToRemove) {
+    return get(key)
+        .then((object) => {
+            const newObject = {...object};
+            delete newObject[objectKeyToRemove];
+            return set(key, newObject);
         });
 }
 
@@ -447,7 +450,7 @@ const Ion = {
     addToEvictionBlockList,
     removeFromEvictionBlockList,
     isSafeEvictionKey,
-    without,
+    removeObjectKey,
 };
 
 export default Ion;

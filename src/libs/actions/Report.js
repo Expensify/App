@@ -200,24 +200,29 @@ function updateReportWithNewAction(reportID, reportAction) {
 
     const actionKey = `${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
 
+    const mergeAction = () => {
+        // Add the action into Ion
+        const messageText = lodashGet(reportAction, ['message', 0, 'text'], '');
+        Ion.merge(actionKey, {
+            [reportAction.sequenceNumber]: {
+                ...reportAction,
+                isAttachment: messageText === '[Attachment]',
+                loading: false,
+            },
+        });
+    };
+
     // Check the reportAction for the clientGUID and make sure the sequenceNumber
     // for this action matches correctly with the one we are expecting
     const clientGUID = reportAction.clientGUID;
     if (clientGUID) {
         // Delete this item from the report since we are about to replace it at the
         // correct action ID index
-        Ion.without(actionKey, clientGUID);
+        Ion.removeObjectKey(actionKey, clientGUID)
+            .then(mergeAction);
+    } else {
+        mergeAction();
     }
-
-    // Add the action into Ion
-    const messageText = lodashGet(reportAction, ['message', 0, 'text'], '');
-    Ion.merge(actionKey, {
-        [reportAction.sequenceNumber]: {
-            ...reportAction,
-            isAttachment: messageText === '[Attachment]',
-            loading: false,
-        },
-    });
 
     if (!ActiveClientManager.isClientTheLeader()) {
         console.debug('[LOCAL_NOTIFICATION] Skipping notification because this client is not the leader');
@@ -394,7 +399,7 @@ function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false) {
             if (shouldFetchActions) {
                 _.each(reportIDs, (reportID) => {
                     console.debug(`[RECONNECT] Fetching report actions for report ${reportID}`);
-                    // fetchActions(reportID);
+                    fetchActions(reportID);
                 });
             }
         });
