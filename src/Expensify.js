@@ -21,7 +21,6 @@ import ROUTES from './ROUTES';
 
 // Initialize the store when the app loads for the first time
 Ion.init({
-    keys: IONKEYS,
     safeEvictionKeys: [IONKEYS.COLLECTION.REPORT_ACTIONS],
     initialKeyStates: {
 
