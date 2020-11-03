@@ -222,9 +222,7 @@ function updateReportWithNewAction(reportID, reportAction) {
     });
 
     // Add the action into Ion
-    Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        [reportAction.sequenceNumber]: reportAction,
-    });
+    Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}_${reportAction.sequenceNumber}`, reportAction);
 
     if (!ActiveClientManager.isClientTheLeader()) {
         console.debug('[LOCAL_NOTIFICATION] Skipping notification because this client is not the leader');
@@ -369,12 +367,15 @@ function fetchChatReports() {
 function fetchActions(reportID) {
     API.getReportHistory({reportID})
         .then((data) => {
-            const indexedData = _.indexBy(data.history, 'sequenceNumber');
             const maxSequenceNumber = _.chain(data.history)
                 .pluck('sequenceNumber')
                 .max()
                 .value();
-            Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, indexedData);
+
+            _.each(data.history, action => {
+                Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}_${action.sequenceNumber}`, action);
+            });
+
             Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {maxSequenceNumber});
         });
 }
@@ -461,8 +462,6 @@ function fetchOrCreateChatReport(participants) {
  * @param {object} file
  */
 function addAction(reportID, text, file) {
-    const actionKey = `${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
-
     // Convert the comment from MD into HTML because that's how it is stored in the database
     const parser = new ExpensiMark();
     const htmlComment = parser.replace(text);
@@ -478,34 +477,32 @@ function addAction(reportID, text, file) {
     });
 
     // Optimistically add the new comment to the store before waiting to save it to the server
-    Ion.merge(actionKey, {
-        [newSequenceNumber]: {
-            actionName: 'ADDCOMMENT',
-            actorEmail: currentUserEmail,
-            person: [
-                {
-                    style: 'strong',
-                    text: myPersonalDetails.displayName || currentUserEmail,
-                    type: 'TEXT'
-                }
-            ],
-            automatic: false,
-            sequenceNumber: ++highestSequenceNumber,
-            avatar: myPersonalDetails.avatarURL,
-            timestamp: moment().unix(),
-            message: [
-                {
-                    type: 'COMMENT',
-                    html: isAttachment ? 'Uploading Attachment...' : htmlComment,
+    Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}_${newSequenceNumber}`, {
+        actionName: 'ADDCOMMENT',
+        actorEmail: currentUserEmail,
+        person: [
+            {
+                style: 'strong',
+                text: myPersonalDetails.displayName || currentUserEmail,
+                type: 'TEXT'
+            }
+        ],
+        automatic: false,
+        sequenceNumber: ++highestSequenceNumber,
+        avatar: myPersonalDetails.avatarURL,
+        timestamp: moment().unix(),
+        message: [
+            {
+                type: 'COMMENT',
+                html: isAttachment ? 'Uploading Attachment...' : htmlComment,
 
-                    // Remove HTML from text when applying optimistic offline comment
-                    text: isAttachment ? 'Uploading Attachment...'
-                        : htmlComment.replace(/<[^>]*>?/gm, ''),
-                }
-            ],
-            isFirstItem: false,
-            isAttachment,
-        }
+                // Remove HTML from text when applying optimistic offline comment
+                text: isAttachment ? 'Uploading Attachment...'
+                    : htmlComment.replace(/<[^>]*>?/gm, ''),
+            }
+        ],
+        isFirstItem: false,
+        isAttachment,
     });
 
     API.addReportComment({
