@@ -160,6 +160,12 @@ function keyChanged(key, data) {
                     // If we have removed the value for this key or it has been
                     // deleted then remove it from the collection and update
                     if (_.isNull(data)) {
+                        // We do not have this key in the collection so don't
+                        // bother to update the component state here
+                        if (!collection[key]) {
+                            return;
+                        }
+
                         delete collection[key];
                     } else {
                         collection[key] = data;
@@ -312,6 +318,9 @@ function evictStorageAndRetry(error, ionMethod, ...args) {
         '[Ion] Out of storage. Evicting least recently accessed key and retrying.',
         {keyForRemoval}
     );
+
+    // We must immediately remove this so we do not try to remove the same key twice.
+    removeLastAccessedKey(keyForRemoval);
     return remove(keyForRemoval)
         .then(() => ionMethod(...args));
 }
