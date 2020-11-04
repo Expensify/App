@@ -265,18 +265,18 @@ function connect(mapping) {
  * Remove the listener for a react component
  *
  * @param {Number} connectionID
- * @param {String} previousKey
+ * @param {String} [keyToRemoveFromEvictionBlocklist]
  */
-function disconnect(connectionID, previousKey) {
+function disconnect(connectionID, keyToRemoveFromEvictionBlocklist) {
     if (!callbackToStateMapping[connectionID]) {
         return;
     }
 
-    const mapping = callbackToStateMapping[connectionID];
-
     // Remove this key from the eviction block list as we are no longer
     // subscribing to it and it should be safe to delete again
-    removeFromEvictionBlockList(previousKey || mapping.key, connectionID);
+    if (keyToRemoveFromEvictionBlocklist) {
+        removeFromEvictionBlockList(keyToRemoveFromEvictionBlocklist, connectionID);
+    }
 
     delete callbackToStateMapping[connectionID];
 }
@@ -313,7 +313,6 @@ function evictStorageAndRetry(error, ionMethod, ...args) {
 
     // Remove the least recently viewed key that is not currently being accessed and retry.
     logInfo(`Out of storage. Evicting least recently accessed key (${keyForRemoval}) and retrying.`);
-
     return remove(keyForRemoval)
         .then(() => ionMethod(...args));
 }
