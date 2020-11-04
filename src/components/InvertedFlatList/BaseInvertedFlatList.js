@@ -22,10 +22,14 @@ const propTypes = {
         PropTypes.func,
         PropTypes.shape({current: PropTypes.instanceOf(FlatList)})
     ]).isRequired,
+
+    // Should we measure these items and call getItemLayout?
+    shouldMeasureItems: PropTypes.bool,
 };
 
 const defaultProps = {
     data: [],
+    shouldMeasureItems: false,
 };
 
 class BaseInvertedFlatList extends Component {
@@ -120,11 +124,15 @@ class BaseInvertedFlatList extends Component {
      * @return {React.Component}
      */
     renderItem({item, index}) {
-        return (
-            <View onLayout={({nativeEvent}) => this.measureItemLayout(nativeEvent, index)}>
-                {this.props.renderItem({item, index})}
-            </View>
-        );
+        if (this.props.shouldMeasureItems) {
+            return (
+                <View onLayout={({nativeEvent}) => this.measureItemLayout(nativeEvent, index)}>
+                    {this.props.renderItem({item, index})}
+                </View>
+            );
+        }
+
+        return this.props.renderItem({item, index});
     }
 
     render() {
@@ -135,7 +143,10 @@ class BaseInvertedFlatList extends Component {
                 ref={this.props.innerRef}
                 inverted
                 renderItem={this.renderItem}
-                getItemLayout={this.getItemLayout}
+
+                // Native platforms do not need to measure items and work fine without this.
+                // Web requires that items be measured or else crazy things happpen when scrolling.
+                getItemLayout={this.props.shouldMeasureItems ? this.getItemLayout : undefined}
                 bounces={false}
                 maxToRenderPerBatch={15}
                 updateCellsBatchingPeriod={40}

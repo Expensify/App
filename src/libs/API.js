@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import Ion from './Ion';
 import IONKEYS from '../IONKEYS';
-import xhr from './xhr';
+import HttpUtils from './HttpUtils';
 import NetworkConnection from './NetworkConnection';
 import CONFIG from '../CONFIG';
 import * as Pusher from './Pusher/pusher';
@@ -9,6 +9,7 @@ import ROUTES from '../ROUTES';
 import Str from './Str';
 import guid from './guid';
 import redirectToSignIn from './actions/SignInRedirect';
+import PushNotification from './Notification/PushNotification';
 
 // Queue for network requests so we don't lose actions done by the user while offline
 let networkRequestQueue = [];
@@ -40,6 +41,27 @@ Ion.connect({
     key: IONKEYS.CREDENTIALS,
     callback: ionCredentials => credentials = ionCredentials,
 });
+
+// If we are ever being redirected to the sign in page, the user is currently unauthenticated, so we should clear the
+// network request queue, to prevent DDoSing our own API
+Ion.connect({
+    key: IONKEYS.APP_REDIRECT_TO,
+    callback: (redirectTo) => {
+        if (redirectTo && redirectTo.startsWith(ROUTES.SIGNIN)) {
+            networkRequestQueue = [];
+        }
+    }
+});
+
+/**
+ * Does this command require an authToken?
+ *
+ * @param {String} command
+ * @return {Boolean}
+ */
+function isAuthTokenRequired(command) {
+    return !_.contains(['Log'], command);
+}
 
 /**
  * Adds a request to networkRequestQueue
@@ -93,7 +115,7 @@ function createLogin(login, password) {
     // Using xhr instead of request becasue request has logic to re-try API commands when we get a 407 authToken expired
     // in the response, and we call CreateLogin after getting a successful resposne to Authenticate so it's unlikely
     // that we'll get a 407.
-    return xhr('CreateLogin', {
+    return HttpUtils.xhr('CreateLogin', {
         authToken,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
@@ -122,8 +144,9 @@ function createLogin(login, password) {
  * @param {string} exitTo
  */
 function setSuccessfulSignInData(data, exitTo) {
-    const redirectTo = exitTo ? Str.normalizeUrl(exitTo) : ROUTES.ROOT;
+    PushNotification.register(data.accountID);
 
+    const redirectTo = exitTo ? Str.normalizeUrl(exitTo) : ROUTES.ROOT;
     Ion.multiSet({
         [IONKEYS.SESSION]: _.pick(data, 'authToken', 'accountID', 'email'),
         [IONKEYS.APP_REDIRECT_TO]: redirectTo
@@ -151,20 +174,19 @@ function request(command, parameters, type = 'post') {
     // If we end up here with no authToken it means we are trying to make
     // an API request before we are signed in. In this case, we should just
     // cancel this and all other requests and set reauthenticating to false.
-    if (!authToken) {
+    if (!authToken && isAuthTokenRequired(command)) {
         console.error('A request was made without an authToken', {command, parameters});
         reauthenticating = false;
-        networkRequestQueue = [];
         redirectToSignIn();
         return Promise.resolve();
     }
 
     // Add authToken automatically to all commands
-    const parametersWithAuthToken = {...parameters, ...{authToken}};
+    const parametersWithAuthToken = {...parameters, authToken};
 
     // Make the http request, and if we get 407 jsonCode in the response,
     // re-authenticate to get a fresh authToken and make the original http request again
-    return xhr(command, parametersWithAuthToken, type)
+    return HttpUtils.xhr(command, parametersWithAuthToken, type)
         .then((responseData) => {
             // We can end up here if we have queued up many
             // requests and have an expired authToken. In these cases,
@@ -177,7 +199,7 @@ function request(command, parameters, type = 'post') {
             // we re-authenticate and then re-try the original request
             if (responseData.jsonCode === 407 && parametersWithAuthToken.doNotRetry !== true) {
                 reauthenticating = true;
-                return xhr('Authenticate', {
+                return HttpUtils.xhr('Authenticate', {
                     useExpensifyLogin: false,
                     partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
                     partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
@@ -201,7 +223,7 @@ function request(command, parameters, type = 'post') {
                         Ion.merge(IONKEYS.SESSION, _.pick(response, 'authToken'));
                         return response;
                     })
-                    .then(() => xhr(command, parametersWithAuthToken, type))
+                    .then(() => HttpUtils.xhr(command, parametersWithAuthToken, type))
                     .catch((error) => {
                         reauthenticating = false;
                         redirectToSignIn(error.message);
@@ -237,7 +259,7 @@ function processNetworkRequestQueue() {
         // 2. Getting a 200 response back from the API (happens right below)
 
         // Make a simple request every second to see if the API is online again
-        xhr('Get', {doNotRetry: true})
+        HttpUtils.xhr('Get', {doNotRetry: true})
             .then(() => NetworkConnection.setOfflineStatus(false));
         return;
     }
@@ -337,7 +359,7 @@ function authenticate(parameters) {
     // We treat Authenticate in a special way because unlike other commands, this one can't fail
     // with 407 authToken expired. When other api commands fail with this error we call Authenticate
     // to get a new authToken and then fire the original api command again
-    return xhr('Authenticate', {
+    return HttpUtils.xhr('Authenticate', {
         // When authenticating for the first time, we pass useExpensifyLogin as true so we check for credentials for
         // the expensify partnerID to let users authenticate with their expensify user and password.
         useExpensifyLogin: true,
@@ -469,6 +491,18 @@ function setNameValuePair(parameters) {
     });
 }
 
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.message
+ * @param {Object} parameters.parameters
+ * @param {String} parameters.expensifyCashAppVersion
+ * @param {String} [parameters.email]
+ * @returns {Promise}
+ */
+function logToServer(parameters) {
+    return queueRequest('Log', parameters);
+}
+
 export {
     authenticate,
     addReportComment,
@@ -480,4 +514,5 @@ export {
     getReportHistory,
     setLastReadActionID,
     setNameValuePair,
+    logToServer,
 };

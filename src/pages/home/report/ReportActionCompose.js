@@ -7,9 +7,10 @@ import TextInputFocusable from '../../../components/TextInputFocusable';
 import sendIcon from '../../../../assets/images/icon-send.png';
 import IONKEYS from '../../../IONKEYS';
 import paperClipIcon from '../../../../assets/images/icon-paper-clip.png';
-import ImagePicker from '../../../libs/ImagePicker';
+import AttachmentPicker from '../../../libs/AttachmentPicker';
 import withIon from '../../../components/withIon';
-import {addAction, saveReportComment} from '../../../libs/actions/Report';
+import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs/actions/Report';
+import ReportTypingIndicator from './ReportTypingIndicator';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -32,13 +33,17 @@ class ReportActionCompose extends React.Component {
 
         this.updateComment = this.updateComment.bind(this);
         this.debouncedSaveReportComment = _.debounce(this.debouncedSaveReportComment.bind(this), 1000, false);
+        this.debouncedBroadcastUserIsTyping = _.debounce(() => broadcastUserIsTyping(props.reportID), 100, true);
         this.submitForm = this.submitForm.bind(this);
         this.triggerSubmitShortcut = this.triggerSubmitShortcut.bind(this);
         this.submitForm = this.submitForm.bind(this);
         this.showAttachmentPicker = this.showAttachmentPicker.bind(this);
         this.setIsFocused = this.setIsFocused.bind(this);
         this.comment = '';
-        this.state = {isFocused: false};
+        this.state = {
+            isFocused: false,
+            textInputShouldClear: false
+        };
     }
 
     componentDidUpdate(prevProps) {
@@ -59,6 +64,15 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
+     * Updates the should clear state of the composer
+     *
+     * @param {boolean} shouldClear
+     */
+    setTextInputShouldClear(shouldClear) {
+        this.setState({textInputShouldClear: shouldClear});
+    }
+
+    /**
      * Save our report comment in Ion. We debounce this method in the constructor so that it's not called too often
      * to update Ion and re-render this component.
      *
@@ -76,6 +90,7 @@ class ReportActionCompose extends React.Component {
     updateComment(newComment) {
         this.comment = newComment;
         this.debouncedSaveReportComment(newComment);
+        this.debouncedBroadcastUserIsTyping();
     }
 
     /**
@@ -109,8 +124,8 @@ class ReportActionCompose extends React.Component {
         }
 
         this.props.onSubmit(trimmedComment);
-        this.textInput.clear();
         this.updateComment('');
+        this.setTextInputShouldClear(true);
     }
 
     /**
@@ -121,27 +136,10 @@ class ReportActionCompose extends React.Component {
     showAttachmentPicker(e) {
         e.preventDefault();
 
-        /**
-         * See https://github.com/react-native-community/react-native-image-picker/blob/master/docs/Reference.md#options
-         * for option definitions
-         */
-        const options = {
-            storageOptions: {
-                skipBackup: true,
-            },
-        };
+        AttachmentPicker.show((response) => {
+            console.debug(`Attachment selected: ${response.uri}, ${response.type}, ${response.name}, ${response.size}`);
 
-        ImagePicker.showImagePicker(options, (response) => {
-            if (response.didCancel) {
-                return;
-            }
-
-            if (response.error) {
-                console.error(`Error occurred picking image: ${response.error}`);
-                return;
-            }
-
-            addAction(this.props.reportID, '', ImagePicker.getDataForUpload(response));
+            addAction(this.props.reportID, '', AttachmentPicker.getDataForUpload(response));
             this.textInput.focus();
         });
     }
@@ -170,7 +168,6 @@ class ReportActionCompose extends React.Component {
                         multiline
                         textAlignVertical="top"
                         placeholder="Write something..."
-                        ref={el => this.textInput = el}
                         placeholderTextColor={colors.textSupporting}
                         onChangeText={this.updateComment}
                         onKeyPress={this.triggerSubmitShortcut}
@@ -179,6 +176,8 @@ class ReportActionCompose extends React.Component {
                         maxLines={16} // This is the same that slack has
                         onFocus={() => this.setIsFocused(true)}
                         onBlur={() => this.setIsFocused(false)}
+                        shouldClear={this.state.textInputShouldClear}
+                        onClear={() => this.setTextInputShouldClear(false)}
                     />
                     <TouchableOpacity
                         style={[styles.chatItemSubmitButton, styles.buttonSuccess]}
@@ -192,10 +191,12 @@ class ReportActionCompose extends React.Component {
                         />
                     </TouchableOpacity>
                 </View>
+                <ReportTypingIndicator reportID={this.props.reportID} />
             </View>
         );
     }
 }
+
 ReportActionCompose.propTypes = propTypes;
 ReportActionCompose.defaultProps = defaultProps;
 

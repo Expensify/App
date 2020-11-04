@@ -1,3 +1,12 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SampleComponent should render 1`] = `null`;
+exports[`SampleComponent should render 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#37444C",
+      "height": "100%",
+    }
+  }
+/>
+`;

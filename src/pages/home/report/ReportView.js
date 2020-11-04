@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ReportActionView from './ReportActionsView';
 import ReportActionCompose from './ReportActionCompose';
-import {addAction} from '../../../libs/actions/Report';
+import {addAction, subscribeToReportTypingEvents, unsubscribeToReportTypingEvents} from '../../../libs/actions/Report';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
 import styles from '../../../styles/StyleSheet';
 
@@ -18,6 +18,18 @@ const propTypes = {
 // This is a PureComponent so that it only re-renders when the reportID changes or when the report changes from
 // active to inactive (or vice versa). This should greatly reduce how often comments are re-rendered.
 class ReportView extends React.PureComponent {
+    componentDidMount() {
+        if (this.props.reportID) {
+            subscribeToReportTypingEvents(this.props.reportID);
+        }
+    }
+
+    componentWillUnmount() {
+        if (this.props.reportID) {
+            unsubscribeToReportTypingEvents(this.props.reportID);
+        }
+    }
+
     render() {
         // Only display the compose form for the active report because the form needs to get focus and
         // calling focus() on 42 different forms doesn't work
