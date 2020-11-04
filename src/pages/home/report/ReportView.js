@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ReportActionView from './ReportActionsView';
 import ReportActionCompose from './ReportActionCompose';
-import {addAction, subscribeToReportTypingEvents, unsubscribeToReportTypingEvents} from '../../../libs/actions/Report';
+import {addAction, subscribeToReportTypingEvents, unsubscribeFromReportChannel} from '../../../libs/actions/Report';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
 import styles from '../../../styles/StyleSheet';
 
@@ -23,7 +23,7 @@ class ReportView extends React.PureComponent {
     }
 
     componentWillUnmount() {
-        unsubscribeToReportTypingEvents(this.props.reportID);
+        unsubscribeFromReportChannel(this.props.reportID);
     }
 
     render() {
