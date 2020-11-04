@@ -97,21 +97,6 @@ const Str = {
     },
 
     /**
-     * Return true if the string is ending with the provided suffix
-     *
-     * @param {String} str String ot search in
-     * @param {String} suffix What to look for
-     * @return {Boolean}
-     */
-    endsWith(str, suffix) {
-        if (!str || !suffix) {
-            return false;
-        }
-
-        return str.substr(-suffix.length) === suffix;
-    },
-
-    /**
      * Checks if parameter is a string or function
      * if it is a function then we will call it with
      * the provided context.

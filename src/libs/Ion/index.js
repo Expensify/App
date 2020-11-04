@@ -161,9 +161,7 @@ function keyChanged(key, data) {
                 subscriber.withIonInstance.setState((prevState) => {
                     const collection = prevState[subscriber.statePropertyName] || {};
                     collection[key] = data;
-
                     return {
-                        // If we have just removed the last item in a collection then explicitly return null
                         [subscriber.statePropertyName]: collection,
                     };
                 });
@@ -284,16 +282,14 @@ function disconnect(connectionID, previousKey) {
 }
 
 /**
- * Given a key this will return the prefix for a collection
- *
- * e.g. reportActions_12_123 will return reportActions_12_
+ * Remove a key from Ion and update the subscribers
  *
  * @param {String} key
- * @returns {String}
+ * @return {Promise}
  */
-function getKeyPrefix(key) {
-    const keyParts = key.split('_');
-    return `${keyParts.slice(0, keyParts.length - 1).join('_')}_`;
+function remove(key) {
+    return AsyncStorage.removeItem(key)
+        .then(() => keyChanged(key, null));
 }
 
 /**
@@ -307,34 +303,19 @@ function getKeyPrefix(key) {
  * @return {Promise}
  */
 function evictStorageAndRetry(error, ionMethod, ...args) {
-    return AsyncStorage.getAllKeys()
-        .then((keys) => {
-            // Find the first key that we can remove that has no subscribers in our blocklist
-            const keyForRemoval = _.find(recentlyAccessedKeys, key => (
+    // Find the first key that we can remove that has no subscribers in our blocklist
+    const keyForRemoval = _.find(recentlyAccessedKeys, key => !evictionBlocklist[key]);
 
-                // Our recentlyAccessedKeys list will include only full key names (not
-                // partial keys to match on) e.g. reportActions_<reportID>_<actionID>
-                // However, the blocklist is tracks whether a component is subscribing
-                // to reportActions_<reportID>_ so we must find out the key's prefix
-                // to see if the key is eligible for removal.
-                !evictionBlocklist[getKeyPrefix(key)]
-            ));
+    if (!keyForRemoval) {
+        logAlert('Out of storage. But found no acceptable keys to remove.');
+        throw error;
+    }
 
-            if (!keyForRemoval) {
-                logAlert('Out of storage. But found no acceptable keys to remove.');
-                throw error;
-            }
+    // Remove the least recently viewed key that is not currently being accessed and retry.
+    logInfo(`Out of storage. Evicting least recently accessed key (${keyForRemoval}) and retrying.`);
 
-            // We found a key for removal. Remove all keys that belong to the same collection.
-            const keyForRemovalPrefix = getKeyPrefix(keyForRemoval);
-            const keysToRemove = _.filter(keys, key => Str.startsWith(key, keyForRemovalPrefix));
-
-            // Remove the least recently viewed key that is not currently being accessed and retry.
-            logInfo('Out of storage. Evicting least recently accessed keys and retrying.');
-            return AsyncStorage.multiRemove(keysToRemove)
-                .then(() => _.each(keysToRemove, key => keyChanged(key, null)))
-                .then(() => ionMethod(...args));
-        });
+    return remove(keyForRemoval)
+        .then(() => ionMethod(...args));
 }
 
 /**
@@ -388,20 +369,6 @@ function clear() {
                 keyChanged(key, null);
             });
         });
-}
-
-/**
- * Merges in muliple keys at once in a batch.
- *
- * @param {Object} keyValues
- * @returns {Promise}
- */
-function multiMerge(keyValues) {
-    const keyValuePairs = _.map(keyValues, (value, key) => [key, JSON.stringify(value)]);
-
-    return AsyncStorage.multiMerge(keyValuePairs)
-        .then(() => _.each(keyValues, (val, key) => keyChanged(key, val)))
-        .catch(error => evictStorageAndRetry(error, multiMerge, keyValues));
 }
 
 /**
@@ -477,7 +444,6 @@ const Ion = {
     addToEvictionBlockList,
     removeFromEvictionBlockList,
     isSafeEvictionKey,
-    multiMerge,
 };
 
 export default Ion;
