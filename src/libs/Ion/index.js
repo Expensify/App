@@ -13,10 +13,12 @@ const callbackToStateMapping = {};
 // Holds a list of keys that have been directly subscribed to or recently modified from least to most recent
 let recentlyAccessedKeys = [];
 
-// Holds a list of keys that are safe to remove when we reach max storage
+// Holds a list of keys that are safe to remove when we reach max storage. If a key does not match with
+// whatever appears in this list it will NEVER be a candidate for eviction.
 let evictionAllowList = [];
 
-// Holds a list of keys that we should never remove
+// Holds a map of keys and connectionID arrays whose keys will never be automatically evicted as
+// long as we have at least one subscriber that returns false for the canEvict property.
 const evictionBlocklist = {};
 
 /**
@@ -307,6 +309,11 @@ function remove(key) {
 function evictStorageAndRetry(error, ionMethod, ...args) {
     // Find the first key that we can remove that has no subscribers in our blocklist
     const keyForRemoval = _.find(recentlyAccessedKeys, (key) => {
+        // Our recentlyAccessedKeys list will include only full key names (not
+        // partial keys to match on) e.g. reportActions_<reportID>_<actionID>
+        // However, the blocklist is tracks whether a component is subscribing
+        // to reportActions_<reportID>_ so we must find out the key's prefix
+        // to see if the key is eligible for removal.
         const keyParts = key.split('_');
         const keyPrefix = `${keyParts.slice(0, keyParts.length - 1).join('_')}_`;
         return !evictionBlocklist[keyPrefix];
