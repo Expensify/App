@@ -366,7 +366,7 @@ const mergeQueue = {};
 
 /**
  * Given an Ion key and value this method will combine all queued
- * value updates and  return a single value. Merge attempts are
+ * value updates and return a single value. Merge attempts are
  * batched. They must occur after a single calls to get() and set()
  * so we can avoid any race conditions.
  *
