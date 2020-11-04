@@ -24,8 +24,8 @@ export default function (mapIonToState) {
                 super(props);
 
                 // This stores all the Ion connection IDs to be used when the component unmounts so everything can be
-                // disconnected
-                this.actionConnectionIDs = {};
+                // disconnected. It is a key value store with the format {[mapping.key]: connectionID}.
+                this.activeConnectionIDs = {};
 
                 this.state = {
                     loading: true,
@@ -44,16 +44,15 @@ export default function (mapIonToState) {
                 // If any of the mappings use data from the props, then when the props change, all the
                 // connections need to be reconnected with the new props
                 _.each(mapIonToState, (mapping, propertyName) => {
-                    if (!_.isFunction(mapping.key)) {
-                        return;
-                    }
+                    if (_.isFunction(mapping.key)) {
+                        const previousKey = mapping.key(prevProps);
+                        const newKey = mapping.key(this.props);
 
-                    const previousKey = mapping.key(prevProps);
-                    const newKey = mapping.key(this.props);
-
-                    if (previousKey !== newKey) {
-                        Ion.disconnect(this.actionConnectionIDs[previousKey]);
-                        this.connectMappingToIon(mapping, propertyName);
+                        if (previousKey !== newKey) {
+                            Ion.disconnect(this.activeConnectionIDs[previousKey], previousKey);
+                            delete this.activeConnectionIDs[previousKey];
+                            this.connectMappingToIon(mapping, propertyName);
+                        }
                     }
                 });
                 this.checkAndUpdateLoading();
@@ -61,7 +60,13 @@ export default function (mapIonToState) {
 
             componentWillUnmount() {
                 // Disconnect everything from Ion
-                _.each(this.actionConnectionIDs, Ion.disconnect);
+                _.each(mapIonToState, (mapping) => {
+                    const key = _.isFunction(mapping.key)
+                        ? mapping.key(this.props)
+                        : mapping.key;
+                    const connectionID = this.activeConnectionIDs[key];
+                    Ion.disconnect(connectionID, key);
+                });
             }
 
             /**
@@ -128,19 +133,18 @@ export default function (mapIonToState) {
              *  component
              */
             connectMappingToIon(mapping, statePropertyName) {
-                const ionConnectionConfig = {
+                let key = mapping.key;
+                if (_.isFunction(key)) {
+                    key = key(this.props);
+                }
+
+                const connectionID = Ion.connect({
                     ...mapping,
                     statePropertyName,
                     withIonInstance: this,
-                };
+                });
 
-                // Connect to Ion and keep track of the connectionID
-                const connectionID = Ion.connect(ionConnectionConfig);
-                this.actionConnectionIDs[connectionID] = connectionID;
-
-                // Add the connectionID to the mapping for reference
-                // eslint-disable-next-line no-param-reassign
-                mapping.connectionID = connectionID;
+                this.activeConnectionIDs[key] = connectionID;
             }
 
             render() {
