@@ -361,11 +361,14 @@ function clear() {
         });
 }
 
+// Key/value store of Ion key and arrays of values to merge
 const mergeQueue = {};
 
 /**
- * All merges should be batched so they occur after a single
- * call to AsyncStorage.getItem() and data set only once.
+ * Given an Ion key and value this method will apply all queued
+ * value updates and then return a single value. Merges should
+ * are batched so they occur after a single call to
+ * AsyncStorage.getItem() and their data set only once.
  *
  * @param {String} key
  * @param {*} data
@@ -377,19 +380,18 @@ function applyMerge(key, data) {
 
     // What type of data we have determines how we handle
     // the batched values to merge
+    let updatedData;
 
     if (_.isArray(data)) {
         // Array values will always just concatenate
         // more items onto the end of the array
-        return _.reduce(mergeValues, (modifiedData, mergeValue) => [
+        updatedData = _.reduce(mergeValues, (modifiedData, mergeValue) => [
             ...modifiedData,
             ...mergeValue,
         ], data);
-    }
-
-    if (_.isObject(data)) {
-        // Object values are merged one after the other
-        return _.reduce(mergeValues, (modifiedData, mergeValue) => {
+    } else if (_.isObject(data)) {
+        updatedData = _.reduce(mergeValues, (modifiedData, mergeValue) => {
+            // Object values are merged one after the other
             const newData = deepAssign({}, modifiedData, mergeValue);
 
             // We will also delete any object keys that are undefined or null.
@@ -397,11 +399,16 @@ function applyMerge(key, data) {
             // Remove all first level keys that are null or undefined.
             return _.omit(newData, (value, finalObjectKey) => _.isNull(mergeValue[finalObjectKey]));
         }, data);
+    } else {
+        // If we have anything else we can't merge it so we'll
+        // simply return the last value that was queued
+        updatedData = _.last(mergeValues);
     }
 
-    // If we have anything else we can't merge it so we'll
-    // simply return the last value that was queued
-    return _.last(mergeValues);
+    // Clean up the write queue so we
+    // can't apply these changes again
+    delete mergeQueue[key];
+    return updatedData;
 }
 
 /**
@@ -418,14 +425,7 @@ function merge(key, val) {
 
     mergeQueue[key] = [val];
     get(key)
-        .then((data) => {
-            const modifiedData = applyMerge(key, data);
-
-            // Clean up the write queue so we
-            // don't apply these changes again
-            delete mergeQueue[key];
-            set(key, modifiedData);
-        });
+        .then((data) => set(key, applyMerge(key, data)));
 }
 
 /**
