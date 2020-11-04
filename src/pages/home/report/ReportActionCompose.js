@@ -166,6 +166,7 @@ class ReportActionCompose extends React.Component {
                     </TouchableOpacity>
                     <TextInputFocusable
                         multiline
+                        ref={el => this.textInput = el}
                         textAlignVertical="top"
                         placeholder="Write something..."
                         placeholderTextColor={colors.textSupporting}
