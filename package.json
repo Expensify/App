@@ -29,6 +29,7 @@
     "@react-native-firebase/app": "^8.4.5",
     "@react-native-firebase/crashlytics": "^8.4.9",
     "babel-plugin-transform-remove-console": "^6.9.4",
+    "deep-assign": "^3.0.0",
     "dotenv": "^8.2.0",
     "electron-context-menu": "^2.3.0",
     "electron-log": "^4.2.4",
