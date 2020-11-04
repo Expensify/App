@@ -140,6 +140,7 @@ export default function (mapIonToState) {
 
                 const connectionID = Ion.connect({
                     ...mapping,
+                    key,
                     statePropertyName,
                     withIonInstance: this,
                 });
