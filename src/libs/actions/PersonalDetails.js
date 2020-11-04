@@ -112,9 +112,7 @@ function fetch() {
             Ion.merge(IONKEYS.PERSONAL_DETAILS, allPersonalDetails);
 
             // Set my personal details so they can be easily accessed and subscribed to on their own key
-            const myPersonalDetails = allPersonalDetails[currentUserEmail]
-                || {avatarURL: getAvatar(undefined, currentUserEmail)};
-            Ion.merge(IONKEYS.MY_PERSONAL_DETAILS, myPersonalDetails);
+            Ion.merge(IONKEYS.MY_PERSONAL_DETAILS, allPersonalDetails[currentUserEmail] || {});
 
             // Get the timezone and put it in Ion
             fetchTimezone();
