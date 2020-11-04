@@ -27,11 +27,6 @@ export default function (mapIonToState) {
                 // disconnected
                 this.actionConnectionIDs = {};
 
-                // This stores all of the Ion connection IDs from the mappings where they Ion key uses data from
-                // this.props. These are stored differently because anytime the props change, the component has to be
-                // reconnected to Ion with the new props.
-                this.activeConnectionIDsWithPropsData = {};
-
                 this.state = {
                     loading: true,
                 };
@@ -40,7 +35,7 @@ export default function (mapIonToState) {
             componentDidMount() {
                 // Subscribe each of the state properties to the proper Ion key
                 _.each(mapIonToState, (mapping, propertyName) => {
-                    this.connectMappingToIon(mapping, propertyName, this.wrappedComponent);
+                    this.connectMappingToIon(mapping, propertyName);
                 });
                 this.checkAndUpdateLoading();
             }
@@ -54,14 +49,8 @@ export default function (mapIonToState) {
                         const newKey = mapping.key(this.props);
 
                         if (previousKey !== newKey) {
-                            // If we have a canEvict property and we are unsubscribing we should
-                            // remove this key from the blocklist.
-                            if (!_.isUndefined(mapping.canEvict) && Ion.isSafeEvictionKey(previousKey)) {
-                                Ion.removeFromEvictionBlockList(previousKey, mapping.connectionID);
-                            }
-
-                            Ion.disconnect(this.activeConnectionIDsWithPropsData[previousKey]);
-                            this.connectMappingToIon(mapping, propertyName, this.wrappedComponent);
+                            Ion.disconnect(this.actionConnectionIDs[previousKey]);
+                            this.connectMappingToIon(mapping, propertyName);
                         }
                     }
                 });
@@ -71,17 +60,6 @@ export default function (mapIonToState) {
             componentWillUnmount() {
                 // Disconnect everything from Ion
                 _.each(this.actionConnectionIDs, Ion.disconnect);
-                _.each(this.activeConnectionIDsWithPropsData, Ion.disconnect);
-
-                // Remove this key from the eviction block list as we are no longer
-                // subscribing to it and should ignore whatever value it had for canEvict
-                _.each(mapIonToState, (mapping) => {
-                    const key = _.isFunction(mapping.key) ? mapping.key(this.props) : mapping.key;
-                    if (_.isUndefined(mapping.canEvict) && !Ion.isSafeEvictionKey(key)) {
-                        return;
-                    }
-                    Ion.removeFromEvictionBlockList(key, mapping.connectionID);
-                });
             }
 
             /**
@@ -98,8 +76,14 @@ export default function (mapIonToState) {
                         return;
                     }
 
-                    const canEvict = _.isFunction(mapping.canEvict) ? mapping.canEvict(this.props) : mapping.canEvict;
-                    const key = _.isFunction(mapping.key) ? mapping.key(this.props) : mapping.key;
+                    const canEvict = _.isFunction(mapping.canEvict)
+                        ? mapping.canEvict(this.props)
+                        : mapping.canEvict;
+
+                    const key = _.isFunction(mapping.key)
+                        ? mapping.key(this.props)
+                        : mapping.key;
+
                     if (!Ion.isSafeEvictionKey(key)) {
                         // eslint-disable-next-line max-len
                         throw new Error(`canEvict cannot be used on key '${key}'. This key must explicitly be flagged as safe for removal by adding it to Ion.init({safeEvictionKeys: []}).`);
@@ -148,21 +132,9 @@ export default function (mapIonToState) {
                     withIonInstance: this,
                 };
 
-                let connectionID;
-
                 // Connect to Ion and keep track of the connectionID
-                if (_.isFunction(mapping.key)) {
-                    const keyFromProps = mapping.key(this.props);
-                    ionConnectionConfig.key = keyFromProps;
-
-                    // Store the connectionID with a key that is unique to the data coming from the props which allows
-                    // it to be easily reconnected to when the props change
-                    connectionID = Ion.connect(ionConnectionConfig);
-                    this.activeConnectionIDsWithPropsData[keyFromProps] = connectionID;
-                } else {
-                    connectionID = Ion.connect(ionConnectionConfig);
-                    this.actionConnectionIDs[connectionID] = connectionID;
-                }
+                const connectionID = Ion.connect(ionConnectionConfig);
+                this.actionConnectionIDs[connectionID] = connectionID;
 
                 // Add the connectionID to the mapping for reference
                 // eslint-disable-next-line no-param-reassign
