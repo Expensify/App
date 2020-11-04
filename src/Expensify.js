@@ -9,6 +9,7 @@ import * as ActiveClientManager from './libs/ActiveClientManager';
 import IONKEYS from './IONKEYS';
 import withIon from './components/withIon';
 import styles from './styles/StyleSheet';
+import Log from './libs/Log';
 
 import {
     Route,
@@ -20,7 +21,20 @@ import ROUTES from './ROUTES';
 
 // Initialize the store when the app loads for the first time
 Ion.init({
+    keys: IONKEYS,
     safeEvictionKeys: [IONKEYS.COLLECTION.REPORT_ACTIONS],
+    initialKeyStates: {
+
+        // Clear any loading and error messages so they do not appear on app startup
+        [IONKEYS.SESSION]: {loading: false, error: ''},
+    }
+});
+Ion.registerLogger(({level, message}) => {
+    if (level === 'alert') {
+        Log.alert(message, 0, {}, false);
+    } else {
+        Log.client(message);
+    }
 });
 
 const propTypes = {

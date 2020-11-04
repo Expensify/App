@@ -177,6 +177,24 @@ function fetchChatReportsByIDs(chatList) {
 }
 
 /**
+ * Update the lastReadActionID in Ion and local memory.
+ *
+ * @param {Number} reportID
+ * @param {Number} sequenceNumber
+ */
+function setLocalLastReadActionID(reportID, sequenceNumber) {
+    lastReadActionIDs[reportID] = sequenceNumber;
+
+    // Update the lastReadActionID on the report optimistically
+    Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {
+        unreadActionCount: 0,
+        reportNameValuePairs: {
+            [`lastReadActionID_${currentUserAccountID}`]: sequenceNumber,
+        }
+    });
+}
+
+/**
  * Updates a report in the store with a new report action
  *
  * @param {number} reportID
@@ -184,6 +202,14 @@ function fetchChatReportsByIDs(chatList) {
  */
 function updateReportWithNewAction(reportID, reportAction) {
     const newMaxSequenceNumber = reportAction.sequenceNumber;
+    const isFromCurrentUser = reportAction.actorAccountID === currentUserAccountID;
+
+    // When handling an action from the current users we can assume that their
+    // last read actionID has been updated in the server but not necessarily reflected
+    // locally so we must first update it and then calculate the unread (which should be 0)
+    if (isFromCurrentUser) {
+        setLocalLastReadActionID(reportID, newMaxSequenceNumber);
+    }
 
     // Always merge the reportID into Ion
     // If the report doesn't exist in Ion yet, then all the rest of the data will be filled out
@@ -195,8 +221,13 @@ function updateReportWithNewAction(reportID, reportAction) {
     });
 
     // Add the action into Ion
+    const messageText = lodashGet(reportAction, ['message', 0, 'text'], '');
     Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        [reportAction.sequenceNumber]: reportAction,
+        [reportAction.sequenceNumber]: {
+            ...reportAction,
+            isAttachment: messageText === '[Attachment]',
+            loading: false,
+        },
     });
 
     if (!ActiveClientManager.isClientTheLeader()) {
@@ -205,7 +236,7 @@ function updateReportWithNewAction(reportID, reportAction) {
     }
 
     // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
-    if (reportAction.actorAccountID === currentUserAccountID) {
+    if (isFromCurrentUser) {
         console.debug('[LOCAL_NOTIFICATION] No notification because comment is from the currently logged in user');
         return;
     }
@@ -442,7 +473,7 @@ function addAction(reportID, text, file) {
     const isAttachment = _.isEmpty(text) && file !== undefined;
 
     // The new sequence number will be one higher than the highest
-    let highestSequenceNumber = reportMaxSequenceNumbers[reportID] || 0;
+    const highestSequenceNumber = reportMaxSequenceNumbers[reportID] || 0;
     const newSequenceNumber = highestSequenceNumber + 1;
 
     // Update the report in Ion to have the new sequence number
@@ -463,7 +494,7 @@ function addAction(reportID, text, file) {
                 }
             ],
             automatic: false,
-            sequenceNumber: ++highestSequenceNumber,
+            sequenceNumber: newSequenceNumber,
             avatar: myPersonalDetails.avatarURL,
             timestamp: moment().unix(),
             message: [
@@ -472,12 +503,13 @@ function addAction(reportID, text, file) {
                     html: isAttachment ? 'Uploading Attachment...' : htmlComment,
 
                     // Remove HTML from text when applying optimistic offline comment
-                    text: isAttachment ? 'Uploading Attachment...'
+                    text: isAttachment ? '[Attachment]'
                         : htmlComment.replace(/<[^>]*>?/gm, ''),
                 }
             ],
             isFirstItem: false,
             isAttachment,
+            loading: true,
         }
     });
 
@@ -501,15 +533,7 @@ function updateLastReadActionID(reportID, sequenceNumber) {
         return;
     }
 
-    lastReadActionIDs[reportID] = sequenceNumber;
-
-    // Update the lastReadActionID on the report optimistically
-    Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {
-        unreadActionCount: 0,
-        reportNameValuePairs: {
-            [`lastReadActionID_${currentUserAccountID}`]: sequenceNumber,
-        }
-    });
+    setLocalLastReadActionID(reportID, sequenceNumber);
 
     // Mark the report as not having any unread items
     API.setLastReadActionID({
