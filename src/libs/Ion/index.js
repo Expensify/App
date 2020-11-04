@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import AsyncStorage from '@react-native-community/async-storage';
+import deepAssign from 'deep-assign';
 import addStorageEventHandler from './addStorageEventHandler';
 import Str from '../Str';
 import {registerLogger, logInfo, logAlert} from './Logger';
@@ -360,6 +361,50 @@ function clear() {
         });
 }
 
+const mergeQueue = {};
+
+/**
+ * All merges should be batched so they occur after a single
+ * call to AsyncStorage.getItem() and data set only once.
+ *
+ * @param {String} key
+ * @param {*} data
+ */
+function applyMerge(key, data) {
+    const mergeValues = mergeQueue[key];
+
+    // What type of data we have determines how we handle
+    // the batched values to merge
+
+    if (_.isArray(data)) {
+        // Array values will always just concatenate
+        // more items onto the end of the array
+        return _.reduce(mergeValues, (modifiedData, mergeValue) => {
+            return [...modifiedData, ...mergeValue];
+        }, data);
+    }
+
+    if (_.isObject(data)) {
+        // Object values are merged one after the other
+        return _.reduce(mergeValues, (modifiedData, mergeValue) => {
+            const newData = deepAssign({}, modifiedData, mergeValue);
+
+            // We will also delete any object keys that are undefined or null.
+            // Deleting keys is not supported by AsyncStorage so we do it this way.
+            // Remove all first level keys that are null or undefined.
+            const final = _.omit(newData, (value, key) => {
+                const valueToMerge = mergeValue[key];
+                return _.isNull(valueToMerge);
+            });
+            return final;
+        }, data);
+    }
+
+    // If we have anything else we can't merge it so we'll
+    // simply return the last value that was queued
+    return _.last(mergeValues);
+}
+
 /**
  * Merge a new value into an existing value at a key
  *
@@ -367,35 +412,21 @@ function clear() {
  * @param {*} val
  */
 function merge(key, val) {
-    // Arrays need to be manually merged because the AsyncStorage behavior
-    // is not desired when merging arrays. `AsyncStorage.mergeItem('test', [1]);
-    // will result in `{0: 1}` being set in storage, when `[1]` is what is expected
-    if (_.isArray(val)) {
-        let newArray;
-        get(key)
-            .then((prevVal) => {
-                const previousValue = prevVal || [];
-                newArray = [...previousValue, ...val];
-                return AsyncStorage.setItem(key, JSON.stringify(newArray));
-            })
-            .then(() => keyChanged(key, newArray))
-            .catch(error => evictStorageAndRetry(error, merge, key, val));
+    if (mergeQueue[key]) {
+        mergeQueue[key].push(val);
         return;
     }
 
-    // Values that are objects are merged normally into storage
-    if (_.isObject(val)) {
-        AsyncStorage.mergeItem(key, JSON.stringify(val))
-            .then(() => get(key))
-            .then((newObject) => {
-                keyChanged(key, newObject);
-            })
-            .catch(error => evictStorageAndRetry(error, merge, key, val));
-        return;
-    }
+    mergeQueue[key] = [val];
+    return get(key)
+        .then(data => {
+            const modifiedData = applyMerge(key, data);
 
-    // Anything else (strings and numbers) need to be set into storage
-    set(key, val);
+            // Clean up the write queue so we
+            // don't apply these changes again
+            delete mergeQueue[key];
+            return set(key, modifiedData);
+        });
 }
 
 /**
