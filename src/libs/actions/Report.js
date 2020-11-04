@@ -379,7 +379,6 @@ function fetchActions(reportID) {
                 .pluck('sequenceNumber')
                 .max()
                 .value();
-
             Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, indexedData);
             Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {maxSequenceNumber});
         });
@@ -511,7 +510,7 @@ function addAction(reportID, text, file) {
             ],
             isFirstItem: false,
             isAttachment,
-            loading: true,
+            loading: true
         },
     });
 
