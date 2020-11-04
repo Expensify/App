@@ -130,6 +130,22 @@ function addToEvictionBlockList(key, connectionID) {
 }
 
 /**
+ * Returns the correct key for this mapping.
+ *
+ * @param {Object} mapping
+ * @param {String|Function} mapping.key
+ * @param {ReactComponent} [mapping.withIonInstance]
+ * @param {Object} [mapping.withIonInstance.props]
+ *
+ * @returns {String}
+ */
+function getKeyFromMapping(mapping) {
+    return _.isFunction(mapping.key)
+        ? mapping.key(mapping.withIonInstance.props)
+        : mapping.key;
+}
+
+/**
  * When a key change happens, search for any callbacks matching the key or collection key and trigger those callbacks
  *
  * @param {string} key
@@ -145,7 +161,8 @@ function keyChanged(key, data) {
 
     // Find all subscribers that were added with connect() and trigger the callback or setState() with the new data
     _.each(callbackToStateMapping, (subscriber) => {
-        if (subscriber && isKeyMatch(subscriber.key, key)) {
+        const subscriberKey = getKeyFromMapping(subscriber);
+        if (subscriber && isKeyMatch(subscriberKey, key)) {
             if (_.isFunction(subscriber.callback)) {
                 subscriber.callback(data, key);
             }
@@ -155,7 +172,7 @@ function keyChanged(key, data) {
             }
 
             // Check if we are subscribing to a collection key and add this item as a collection
-            if (isCollectionKey(subscriber.key)) {
+            if (isCollectionKey(subscriberKey)) {
                 subscriber.withIonInstance.setState((prevState) => {
                     const collection = prevState[subscriber.statePropertyName] || {};
 
@@ -230,20 +247,21 @@ function connect(mapping) {
     }
 
     // Check to see if this key is flagged as a safe eviction key and add it to the recentlyAccessedKeys list
-    if (mapping.withIonInstance && !isCollectionKey(mapping.key) && isSafeEvictionKey(mapping.key)) {
+    const connectedKey = getKeyFromMapping(mapping);
+    if (mapping.withIonInstance && !isCollectionKey(connectedKey) && isSafeEvictionKey(connectedKey)) {
         // All React components subscribing to a key flagged as a safe eviction
         // key must implement the canEvict property.
         if (_.isUndefined(mapping.canEvict)) {
             // eslint-disable-next-line max-len
-            throw new Error(`Cannot subscribe to safe eviction key '${mapping.key}' without providing a canEvict value.`);
+            throw new Error(`Cannot subscribe to safe eviction key '${connectedKey}' without providing a canEvict value.`);
         }
-        addLastAccessedKey(mapping.key);
+        addLastAccessedKey(connectedKey);
     }
 
     AsyncStorage.getAllKeys()
         .then((keys) => {
             // Find all the keys matched by the config key
-            const matchingKeys = _.filter(keys, key => isKeyMatch(mapping.key, key));
+            const matchingKeys = _.filter(keys, key => isKeyMatch(connectedKey, key));
 
             // If the key being connected to does not exist, initialize the value with null
             if (matchingKeys.length === 0) {
@@ -256,7 +274,7 @@ function connect(mapping) {
             // to expect a single key or multiple keys in the case of a collection.
             // React components are an exception since we'll want to send their
             // initial data as a single object when using collection keys.
-            if (mapping.withIonInstance && isCollectionKey(mapping.key)) {
+            if (mapping.withIonInstance && isCollectionKey(connectedKey)) {
                 Promise.all(_.map(matchingKeys, key => get(key)))
                     .then(values => _.reduce(values, (finalObject, value, i) => ({
                         ...finalObject,
@@ -282,6 +300,13 @@ function disconnect(connectionID) {
     if (!callbackToStateMapping[connectionID]) {
         return;
     }
+
+    const mapping = callbackToStateMapping[connectionID];
+    const key = getKeyFromMapping(mapping.key);
+
+    // Remove this key from the eviction block list as we are no longer
+    // subscribing to it and it should be safe to delete again
+    removeFromEvictionBlockList(key, connectionID);
     delete callbackToStateMapping[connectionID];
 }
 
