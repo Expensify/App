@@ -2,7 +2,7 @@
 
 jest.setTimeout(120000 * 10);
 
-describe('Example', () => {
+describe('Test login page', () => {
     beforeEach(async () => {
         await device.reloadReactNative();
     });
