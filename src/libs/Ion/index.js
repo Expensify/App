@@ -378,20 +378,18 @@ const mergeQueue = {};
 function applyMerge(key, data) {
     const mergeValues = mergeQueue[key];
 
-    // What type of data we have determines how we handle
-    // the batched values to merge
-    let updatedData;
-
     if (_.isArray(data)) {
         // Array values will always just concatenate
         // more items onto the end of the array
-        updatedData = _.reduce(mergeValues, (modifiedData, mergeValue) => [
+        return _.reduce(mergeValues, (modifiedData, mergeValue) => [
             ...modifiedData,
             ...mergeValue,
         ], data);
-    } else if (_.isObject(data)) {
-        updatedData = _.reduce(mergeValues, (modifiedData, mergeValue) => {
-            // Object values are merged one after the other
+    }
+
+    if (_.isObject(data)) {
+        // Object values are merged one after the other
+        return _.reduce(mergeValues, (modifiedData, mergeValue) => {
             const newData = deepAssign({}, modifiedData, mergeValue);
 
             // We will also delete any object keys that are undefined or null.
@@ -399,16 +397,11 @@ function applyMerge(key, data) {
             // Remove all first level keys that are null or undefined.
             return _.omit(newData, (value, finalObjectKey) => _.isNull(mergeValue[finalObjectKey]));
         }, data);
-    } else {
-        // If we have anything else we can't merge it so we'll
-        // simply return the last value that was queued
-        updatedData = _.last(mergeValues);
     }
 
-    // Clean up the write queue so we
-    // can't apply these changes again
-    delete mergeQueue[key];
-    return updatedData;
+    // If we have anything else we can't merge it so we'll
+    // simply return the last value that was queued
+    return _.last(mergeValues);
 }
 
 /**
@@ -425,7 +418,14 @@ function merge(key, val) {
 
     mergeQueue[key] = [val];
     get(key)
-        .then((data) => set(key, applyMerge(key, data)));
+        .then((data) => {
+            const modifiedData = applyMerge(key, data);
+
+            // Clean up the write queue so we
+            // don't apply these changes again
+            delete mergeQueue[key];
+            set(key, modifiedData);
+        });
 }
 
 /**
