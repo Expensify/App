@@ -103,6 +103,7 @@ const Str = {
      *
      * @param {String|Function} parameter
      * @param {Object} context
+     * @returns {String}
      */
     result(parameter, context = {}) {
         return _.isFunction(parameter)
