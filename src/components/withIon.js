@@ -6,6 +6,7 @@
 import React from 'react';
 import _ from 'underscore';
 import Ion from '../libs/Ion';
+import Str from '../libs/Str';
 
 /**
  * Returns the display name of a component
@@ -44,15 +45,13 @@ export default function (mapIonToState) {
                 // If any of the mappings use data from the props, then when the props change, all the
                 // connections need to be reconnected with the new props
                 _.each(mapIonToState, (mapping, propertyName) => {
-                    if (_.isFunction(mapping.key)) {
-                        const previousKey = mapping.key(prevProps);
-                        const newKey = mapping.key(this.props);
+                    const previousKey = Str.result(mapping.key, prevProps);
+                    const newKey = Str.result(mapping.key, this.props);
 
-                        if (previousKey !== newKey) {
-                            Ion.disconnect(this.activeConnectionIDs[previousKey], previousKey);
-                            delete this.activeConnectionIDs[previousKey];
-                            this.connectMappingToIon(mapping, propertyName);
-                        }
+                    if (previousKey !== newKey) {
+                        Ion.disconnect(this.activeConnectionIDs[previousKey], previousKey);
+                        delete this.activeConnectionIDs[previousKey];
+                        this.connectMappingToIon(mapping, propertyName);
                     }
                 });
                 this.checkAndUpdateLoading();
@@ -61,9 +60,7 @@ export default function (mapIonToState) {
             componentWillUnmount() {
                 // Disconnect everything from Ion
                 _.each(mapIonToState, (mapping) => {
-                    const key = _.isFunction(mapping.key)
-                        ? mapping.key(this.props)
-                        : mapping.key;
+                    const key = Str.result(mapping.key, this.props);
                     const connectionID = this.activeConnectionIDs[key];
                     Ion.disconnect(connectionID, key);
                 });
@@ -83,13 +80,8 @@ export default function (mapIonToState) {
                         return;
                     }
 
-                    const canEvict = _.isFunction(mapping.canEvict)
-                        ? mapping.canEvict(this.props)
-                        : mapping.canEvict;
-
-                    const key = _.isFunction(mapping.key)
-                        ? mapping.key(this.props)
-                        : mapping.key;
+                    const canEvict = Str.result(mapping.canEvict, this.props);
+                    const key = Str.result(mapping.key, this.props);
 
                     if (!Ion.isSafeEvictionKey(key)) {
                         // eslint-disable-next-line max-len
@@ -133,11 +125,7 @@ export default function (mapIonToState) {
              *  component
              */
             connectMappingToIon(mapping, statePropertyName) {
-                let key = mapping.key;
-                if (_.isFunction(key)) {
-                    key = key(this.props);
-                }
-
+                const key = Str.result(mapping.key, this.props);
                 const connectionID = Ion.connect({
                     ...mapping,
                     key,

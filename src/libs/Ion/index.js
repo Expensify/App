@@ -462,7 +462,10 @@ function merge(key, val) {
  * as "safe" for removal. Any components subscribing to these keys must also
  * implement a canEvict option. See the README for more info.
  */
-function init({initialKeyStates, safeEvictionKeys}) {
+function init({keys, initialKeyStates, safeEvictionKeys}) {
+    // Let Ion know about all of our keys
+    ionKeys = keys;
+
     // Let Ion know about which keys are safe to evict
     evictionAllowList = safeEvictionKeys;
 
