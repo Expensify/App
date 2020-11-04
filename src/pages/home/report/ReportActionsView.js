@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Keyboard} from 'react-native';
+import {View, Keyboard, AppState} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
@@ -12,6 +12,7 @@ import styles from '../../../styles/StyleSheet';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import {lastItem} from '../../../libs/CollectionUtils';
+import Visibility from '../../../libs/Visibility';
 
 const propTypes = {
     // The ID of the report actions will be created for
@@ -45,9 +46,18 @@ class ReportActionsView extends React.Component {
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
         this.recordMaxAction = this.recordMaxAction.bind(this);
         this.sortedReportActions = this.updateSortedReportActions();
+
+        this.state = {
+            refetchNeeded: true,
+        };
     }
 
     componentDidMount() {
+        this.visibilityChangeEvent = AppState.addEventListener('change', () => {
+            if (this.props.isActiveReport && Visibility.isVisible()) {
+                setTimeout(this.recordMaxAction, 3000);
+            }
+        });
         if (this.props.isActiveReport) {
             this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
         }
@@ -56,6 +66,14 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        // If we previously had a value for reportActions but no longer have one
+        // this can only mean that the reportActions have been deleted. So we must
+        // refetch these actions the next time we switch to this chat.
+        if (prevProps.reportActions && !this.props.reportActions) {
+            this.setRefetchNeeded(true);
+            return;
+        }
+
         if (_.size(prevProps.reportActions) !== _.size(this.props.reportActions)) {
             // If a new comment is added and it's from the current user scroll to the bottom otherwise
             // leave the user positioned where they are now in the list.
@@ -66,7 +84,7 @@ class ReportActionsView extends React.Component {
 
             // When the number of actions change, wait three seconds, then record the max action
             // This will make the unread indicator go away if you receive comments in the same chat you're looking at
-            if (this.props.isActiveReport) {
+            if (this.props.isActiveReport && Visibility.isVisible()) {
                 setTimeout(this.recordMaxAction, 3000);
             }
 
@@ -76,6 +94,11 @@ class ReportActionsView extends React.Component {
         // If we are switching from not active to active report then mark comments as
         // read and bind the keyboard listener for this report
         if (!prevProps.isActiveReport && this.props.isActiveReport) {
+            if (this.state.refetchNeeded) {
+                fetchActions(this.props.reportID);
+                this.setRefetchNeeded(false);
+            }
+
             this.recordMaxAction();
             this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
         }
@@ -85,6 +108,19 @@ class ReportActionsView extends React.Component {
         if (this.keyboardEvent) {
             this.keyboardEvent.remove();
         }
+        if (this.visibilityChangeEvent) {
+            this.visibilityChangeEvent.remove();
+        }
+    }
+
+    /**
+     * When setting to true we will refetch the reportActions
+     * the next time this report is switched to.
+     *
+     * @param {Boolean} refetchNeeded
+     */
+    setRefetchNeeded(refetchNeeded) {
+        this.setState({refetchNeeded});
     }
 
     /**
@@ -219,6 +255,7 @@ ReportActionsView.defaultProps = defaultProps;
 export default withIon({
     reportActions: {
         key: ({reportID}) => `${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        canEvict: props => !props.isActiveReport,
     },
     session: {
         key: IONKEYS.SESSION,

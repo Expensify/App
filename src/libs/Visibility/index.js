@@ -1,7 +1,7 @@
 import ELECTRON_EVENTS from '../../../desktop/ELECTRON_EVENTS';
 
 // We conditionally import the ipcRenderer here so that we can
-// communicate with the main Electron process in main.js
+// communicate with the main Electron process
 const ipcRenderer = window.require ? window.require('electron').ipcRenderer : null;
 
 /**
