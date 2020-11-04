@@ -44,14 +44,16 @@ export default function (mapIonToState) {
                 // If any of the mappings use data from the props, then when the props change, all the
                 // connections need to be reconnected with the new props
                 _.each(mapIonToState, (mapping, propertyName) => {
-                    if (_.isFunction(mapping.key)) {
-                        const previousKey = mapping.key(prevProps);
-                        const newKey = mapping.key(this.props);
+                    if (!_.isFunction(mapping.key)) {
+                        return;
+                    }
 
-                        if (previousKey !== newKey) {
-                            Ion.disconnect(this.actionConnectionIDs[previousKey]);
-                            this.connectMappingToIon(mapping, propertyName);
-                        }
+                    const previousKey = mapping.key(prevProps);
+                    const newKey = mapping.key(this.props);
+
+                    if (previousKey !== newKey) {
+                        Ion.disconnect(this.actionConnectionIDs[previousKey]);
+                        this.connectMappingToIon(mapping, propertyName);
                     }
                 });
                 this.checkAndUpdateLoading();

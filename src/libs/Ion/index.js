@@ -302,7 +302,7 @@ function disconnect(connectionID) {
     }
 
     const mapping = callbackToStateMapping[connectionID];
-    const key = getKeyFromMapping(mapping.key);
+    const key = getKeyFromMapping(mapping);
 
     // Remove this key from the eviction block list as we are no longer
     // subscribing to it and it should be safe to delete again
