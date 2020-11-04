@@ -19,15 +19,11 @@ const propTypes = {
 // active to inactive (or vice versa). This should greatly reduce how often comments are re-rendered.
 class ReportView extends React.PureComponent {
     componentDidMount() {
-        if (this.props.reportID) {
-            subscribeToReportTypingEvents(this.props.reportID);
-        }
+        subscribeToReportTypingEvents(this.props.reportID);
     }
 
     componentWillUnmount() {
-        if (this.props.reportID) {
-            unsubscribeToReportTypingEvents(this.props.reportID);
-        }
+        unsubscribeToReportTypingEvents(this.props.reportID);
     }
 
     render() {
