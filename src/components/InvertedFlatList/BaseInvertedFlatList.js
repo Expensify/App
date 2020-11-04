@@ -145,7 +145,8 @@ class BaseInvertedFlatList extends Component {
                 renderItem={this.renderItem}
 
                 // Native platforms do not need to measure items and work fine without this.
-                // Web requires that items be measured or else crazy things happpen when scrolling.
+                // Web requires that items be measured or else crazy things happen when scrolling.
+                // eslint-disable-next-line react/jsx-props-no-multi-spaces
                 getItemLayout={this.props.shouldMeasureItems ? this.getItemLayout : undefined}
                 bounces={false}
                 maxToRenderPerBatch={15}
