@@ -10,6 +10,9 @@ let lastConnectionID = 0;
 // Holds a mapping of all the react components that want their state subscribed to a store key
 const callbackToStateMapping = {};
 
+// Stores all of the keys that Ion can use. Must be defined in init().
+let ionKeys;
+
 // Holds a list of keys that have been directly subscribed to or recently modified from least to most recent
 let recentlyAccessedKeys = [];
 
@@ -42,8 +45,7 @@ function get(key) {
  * @returns {Boolean}
  */
 function isCollectionKey(key) {
-    // Any key that ends with an underscore is a collection
-    return Str.endsWith(key, '_');
+    return _.contains(_.values(ionKeys.COLLECTION), key);
 }
 
 /**
@@ -158,24 +160,11 @@ function keyChanged(key, data) {
             if (isCollectionKey(subscriber.key)) {
                 subscriber.withIonInstance.setState((prevState) => {
                     const collection = prevState[subscriber.statePropertyName] || {};
-
-                    // If we have removed the value for this key or it has been
-                    // deleted then remove it from the collection and update
-                    if (_.isNull(data)) {
-                        // We do not have this key in the collection so don't
-                        // bother to update the component state here
-                        if (!collection[key]) {
-                            return;
-                        }
-
-                        delete collection[key];
-                    } else {
-                        collection[key] = data;
-                    }
+                    collection[key] = data;
 
                     return {
                         // If we have just removed the last item in a collection then explicitly return null
-                        [subscriber.statePropertyName]: _.isEmpty(collection) ? null : collection,
+                        [subscriber.statePropertyName]: collection,
                     };
                 });
             } else {
