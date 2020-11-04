@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SampleComponent should render 1`] = `
+exports[`LoadingComponent should render loading screen first 1`] = `
 <View
   style={
     Object {

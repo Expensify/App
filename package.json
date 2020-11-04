@@ -111,10 +111,10 @@
     ],
     "testPathIgnorePatterns": [
       "<rootDir>/node_modules/",
-      "<rootDir>/tests/mocks/"
+      "<rootDir>/tests/unit/mocks/"
     ],
     "testMatch": [
-      "**/tests/**/*.[jt]s?(x)",
+      "**/tests/unit/**/*.[jt]s?(x)",
       "**/?(*.)+(spec|test).[jt]s?(x)"
     ],
     "globals": {
