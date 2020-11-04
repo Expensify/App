@@ -369,6 +369,8 @@ const mergeQueue = {};
  *
  * @param {String} key
  * @param {*} data
+ *
+ * @returns {*}
  */
 function applyMerge(key, data) {
     const mergeValues = mergeQueue[key];
@@ -379,9 +381,10 @@ function applyMerge(key, data) {
     if (_.isArray(data)) {
         // Array values will always just concatenate
         // more items onto the end of the array
-        return _.reduce(mergeValues, (modifiedData, mergeValue) => {
-            return [...modifiedData, ...mergeValue];
-        }, data);
+        return _.reduce(mergeValues, (modifiedData, mergeValue) => [
+            ...modifiedData,
+            ...mergeValue,
+        ], data);
     }
 
     if (_.isObject(data)) {
@@ -392,11 +395,9 @@ function applyMerge(key, data) {
             // We will also delete any object keys that are undefined or null.
             // Deleting keys is not supported by AsyncStorage so we do it this way.
             // Remove all first level keys that are null or undefined.
-            const final = _.omit(newData, (value, key) => {
-                const valueToMerge = mergeValue[key];
-                return _.isNull(valueToMerge);
+            return _.omit(newData, (value, finalObjectKey) => {
+                return _.isNull(mergeValue[finalObjectKey]);
             });
-            return final;
         }, data);
     }
 
@@ -418,14 +419,14 @@ function merge(key, val) {
     }
 
     mergeQueue[key] = [val];
-    return get(key)
-        .then(data => {
+    get(key)
+        .then((data) => {
             const modifiedData = applyMerge(key, data);
 
             // Clean up the write queue so we
             // don't apply these changes again
             delete mergeQueue[key];
-            return set(key, modifiedData);
+            set(key, modifiedData);
         });
 }
 
