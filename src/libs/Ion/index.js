@@ -365,10 +365,10 @@ function clear() {
 const mergeQueue = {};
 
 /**
- * Given an Ion key and value this method will apply all queued
- * value updates and then return a single value. Merges should
- * are batched so they occur after a single call to
- * AsyncStorage.getItem() and their data set only once.
+ * Given an Ion key and value this method will combine all queued
+ * value updates and  return a single value. Merge attempts are
+ * batched. They must occur after a single calls to get() and set()
+ * so we can avoid any race conditions.
  *
  * @param {String} key
  * @param {*} data
