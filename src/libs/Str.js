@@ -110,6 +110,20 @@ const Str = {
 
         return str.substr(-suffix.length) === suffix;
     },
+
+    /**
+     * Checks if parameter is a string or function
+     * if it is a function then we will call it with
+     * the provided context.
+     *
+     * @param {String|Function} parameter
+     * @param {Object} context
+     */
+    result(parameter, context = {}) {
+        return _.isFunction(parameter)
+            ? parameter(context)
+            : parameter;
+    },
 };
 
 export default Str;

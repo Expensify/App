@@ -254,7 +254,7 @@ ReportActionsView.defaultProps = defaultProps;
 
 export default withIon({
     reportActions: {
-        key: ({reportID}) => `${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}_`,
+        key: ({reportID}) => `${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
         canEvict: props => !props.isActiveReport,
     },
     session: {
