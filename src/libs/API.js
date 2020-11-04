@@ -492,6 +492,20 @@ function setNameValuePair(parameters) {
 }
 
 /**
+ * @param {object} parameters
+ * @param {number} parameters.reportID
+ * @param {boolean} parameters.pinnedValue
+ * @returns {Promise}
+ */
+function togglePinnedReport(parameters) {
+    return queueRequest('Report_TogglePinned', {
+        authToken,
+        reportID: parameters.reportID,
+        pinnedValue: parameters.pinnedValue,
+    });
+}
+
+/**
  * @param {Object} parameters
  * @param {String} parameters.message
  * @param {Object} parameters.parameters
@@ -514,5 +528,6 @@ export {
     getReportHistory,
     setLastReadActionID,
     setNameValuePair,
+    togglePinnedReport,
     logToServer,
 };
