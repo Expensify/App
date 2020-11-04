@@ -510,8 +510,8 @@ function addAction(reportID, text, file) {
             ],
             isFirstItem: false,
             isAttachment,
-            loading: true
-        },
+            loading: true,
+        }
     });
 
     API.addReportComment({
