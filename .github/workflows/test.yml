@@ -1,6 +1,6 @@
 name: Jest Unit Tests
 
-# Only lint on branches that aren't related to master and the deploy process
+# Only run unit tests on branches that aren't related to master and the deploy process
 on:
     push:
         branches-ignore:

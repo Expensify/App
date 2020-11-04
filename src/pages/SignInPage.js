@@ -100,7 +100,6 @@ class App extends Component {
                                 value={this.state.login}
                                 autoCompleteType="email"
                                 textContentType="username"
-                                placeholder="Login"
                                 onChangeText={text => this.setState({login: text})}
                                 onSubmitEditing={this.submitForm}
                                 autoCapitalize="none"
@@ -113,7 +112,6 @@ class App extends Component {
                                 secureTextEntry
                                 autoCompleteType="password"
                                 textContentType="password"
-                                placeholder="Password"
                                 value={this.state.password}
                                 onChangeText={text => this.setState({password: text})}
                                 onSubmitEditing={this.submitForm}
