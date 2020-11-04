@@ -395,9 +395,7 @@ function applyMerge(key, data) {
             // We will also delete any object keys that are undefined or null.
             // Deleting keys is not supported by AsyncStorage so we do it this way.
             // Remove all first level keys that are null or undefined.
-            return _.omit(newData, (value, finalObjectKey) => (
-                _.isNull(mergeValue[finalObjectKey]))
-            );
+            return _.omit(newData, (value, finalObjectKey) => _.isNull(mergeValue[finalObjectKey]));
         }, data);
     }
 
