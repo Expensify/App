@@ -4,11 +4,10 @@ import Config from 'react-native-config';
 export default {
     AUTH_TOKEN_EXPIRATION_TIME: 1000 * 60 * 90,
     EXPENSIFY: {
-        // TODO: Fix hard coded values
-        API_ROOT: 'https://www.expensify.com.dev/api?',
-        SITE_ROOT: 'https://chat.expensify.com.dev/',
-        PARTNER_NAME: 'android',
-        PARTNER_PASSWORD: 'c3a9ac418ea3f152aae2',
+        API_ROOT: Config.EXPENSIFY_API_ROOT,
+        SITE_ROOT: Config.EXPENSIFY_SITE_ROOT,
+        PARTNER_NAME: Config.EXPENSIFY_PARTNER_NAME,
+        PARTNER_PASSWORD: Config.EXPENSIFY_PARTNER_PASSWORD,
     },
     // eslint-disable-next-line no-undef
     IS_IN_PRODUCTION: Platform.OS === 'web' ? process.env.NODE_ENV === 'production' : !__DEV__,

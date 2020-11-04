@@ -7,7 +7,7 @@ describe('Test login page', () => {
         await device.reloadReactNative();
     });
 
-    it('should have Log In screen', async () => {
+    it('should have a Log In button visible', async () => {
         await expect(element(by.text('Log In'))).toBeVisible();
     });
 });
