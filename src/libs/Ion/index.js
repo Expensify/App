@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import AsyncStorage from '@react-native-community/async-storage';
-import deepAssign from 'deep-assign';
+import lodashMerge from 'lodash.merge';
 import addStorageEventHandler from './addStorageEventHandler';
 import Str from '../Str';
 import {registerLogger, logInfo, logAlert} from './Logger';
@@ -390,11 +390,11 @@ function applyMerge(key, data) {
     if (_.isObject(data)) {
         // Object values are merged one after the other
         return _.reduce(mergeValues, (modifiedData, mergeValue) => {
-            const newData = deepAssign({}, modifiedData, mergeValue);
+            const newData = lodashMerge({}, modifiedData, mergeValue);
 
             // We will also delete any object keys that are undefined or null.
             // Deleting keys is not supported by AsyncStorage so we do it this way.
-            // Remove all first level keys that are null or undefined.
+            // Remove all first level keys that are explicitly set to null.
             return _.omit(newData, (value, finalObjectKey) => _.isNull(mergeValue[finalObjectKey]));
         }, data);
     }
