@@ -1,4 +1,4 @@
-name: eslint
+name: Lint JavaScript
 
 # Only lint on branches that aren't related to master and the deploy process
 on:
@@ -10,7 +10,7 @@ on:
             - '*'
 
 jobs:
-    build:
+    lint:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v2
