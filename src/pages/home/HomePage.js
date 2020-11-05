@@ -6,7 +6,8 @@ import {
     Dimensions,
     Animated,
     Easing,
-    Keyboard
+    Keyboard,
+    Pressable,
 } from 'react-native';
 import _ from 'underscore';
 import {SafeAreaInsetsContext, SafeAreaProvider} from 'react-native-safe-area-context';
@@ -117,7 +118,7 @@ class App extends React.Component {
      * Only changes hamburger state on small screens (e.g. Mobile and mWeb)
      */
     dismissHamburger() {
-        if (!this.props.isSidebarShown) {
+        if (!this.state.isHamburgerEnabled || !this.props.isSidebarShown) {
             return;
         }
 
@@ -215,16 +216,20 @@ class App extends React.Component {
                                         isChatSwitcherActive={this.props.isChatSwitcherActive}
                                     />
                                 </Animated.View>
-                                <View
-                                    onTouchStart={this.dismissHamburger}
-                                    style={[styles.appContent, appContentStyle, styles.flex1, styles.flexColumn]}
+                                <Pressable
+                                    style={[styles.flex1]}
+                                    onPress={this.dismissHamburger}
                                 >
-                                    <Header
-                                        shouldShowHamburgerButton={this.state.isHamburgerEnabled}
-                                        onHamburgerButtonClicked={this.toggleHamburger}
-                                    />
-                                    <Main />
-                                </View>
+                                    <View
+                                        style={[styles.appContent, appContentStyle, styles.flex1, styles.flexColumn]}
+                                    >
+                                        <Header
+                                            shouldShowHamburgerButton={this.state.isHamburgerEnabled}
+                                            onHamburgerButtonClicked={this.toggleHamburger}
+                                        />
+                                        <Main />
+                                    </View>
+                                </Pressable>
                             </Route>
                         </View>
                     )}
