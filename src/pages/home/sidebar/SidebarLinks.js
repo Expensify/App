@@ -40,7 +40,7 @@ const defaultProps = {
     isChatSwitcherActive: false,
 };
 
-const SidebarLinks = props => {
+const SidebarLinks = (props) => {
     const {onLinkClick} = props;
     const reportIDInUrl = parseInt(props.match.params.reportID, 10);
     const sortedReports = lodashOrderby(props.reports, [
