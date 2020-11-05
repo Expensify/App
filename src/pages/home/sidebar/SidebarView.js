@@ -14,39 +14,21 @@ const propTypes = {
     insets: SafeAreaInsetPropTypes.isRequired,
 
     // when the chat switcher is selected
-    onChatSwitcherFocus: PropTypes.func.isRequired,
+    isChatSwitcherActive: PropTypes.bool,
 };
 
 class SidebarView extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            isSidebarBottomVisible: true,
-        };
-
-        this.setIsFocused = this.setIsFocused.bind(this);
-    }
-
-    /**
-    * @param {boolean} isFocused
-    * */
-    setIsFocused(isFocused) {
-        this.setState({isSidebarBottomVisible: !isFocused});
-        if (isFocused) {
-            this.props.onChatSwitcherFocus();
-        }
-    }
-
     render() {
         return (
             <View style={[styles.flex1, styles.sidebar]}>
                 <SidebarLinks
                     onLinkClick={this.props.onLinkClick}
                     insets={this.props.insets}
-                    onChatSwitcherFocus={() => this.setIsFocused(true)}
-                    onChatSwitcherBlur={() => this.setIsFocused(false)}
+                    isChatSwitcherActive={this.props.isChatSwitcherActive}
                 />
-                {this.state.isSidebarBottomVisible && <SidebarBottom insets={this.props.insets} />}
+                {!this.props.isChatSwitcherActive && (
+                    <SidebarBottom insets={this.props.insets} />
+                )}
             </View>
         );
     }

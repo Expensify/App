@@ -15,7 +15,11 @@ import styles, {getSafeAreaPadding} from '../../styles/StyleSheet';
 import Header from './HeaderView';
 import Sidebar from './sidebar/SidebarView';
 import Main from './MainView';
-import {hide as hideSidebar, show as showSidebar} from '../../libs/actions/Sidebar';
+import {
+    hide as hideSidebar,
+    show as showSidebar,
+    setIsAnimating as setSideBarIsAnimating,
+} from '../../libs/actions/Sidebar';
 import {
     subscribeToReportCommentEvents,
     fetchAll as fetchAllReports,
@@ -33,9 +37,11 @@ const widthBreakPoint = 1000;
 
 const propTypes = {
     isSidebarShown: PropTypes.bool,
+    isChatSwitcherActive: PropTypes.bool,
 };
 const defaultProps = {
     isSidebarShown: true,
+    isChatSwitcherActive: false,
 };
 
 class App extends React.Component {
@@ -77,6 +83,10 @@ class App extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        if (!prevProps.isChatSwitcherActive && this.props.isChatSwitcherActive) {
+            this.showHamburger();
+        }
+
         if (this.props.isSidebarShown === prevProps.isSidebarShown) {
             // Nothing changed, don't trigger animation or re-render
             return;
@@ -135,6 +145,7 @@ class App extends React.Component {
     animateHamburger(hamburgerIsShown) {
         const animationFinalValue = hamburgerIsShown ? -300 : 0;
 
+        setSideBarIsAnimating(true);
         Animated.timing(this.animationTranslateX, {
             toValue: animationFinalValue,
             duration: 200,
@@ -143,6 +154,10 @@ class App extends React.Component {
         }).start(({finished}) => {
             if (finished && hamburgerIsShown) {
                 hideSidebar();
+            }
+
+            if (finished) {
+                setSideBarIsAnimating(false);
             }
         });
     }
@@ -197,7 +212,7 @@ class App extends React.Component {
                                     <Sidebar
                                         insets={insets}
                                         onLinkClick={this.toggleHamburger}
-                                        onChatSwitcherFocus={this.showHamburger}
+                                        isChatSwitcherActive={this.props.isChatSwitcherActive}
                                     />
                                 </Animated.View>
                                 <View
@@ -226,6 +241,10 @@ export default withIon(
     {
         isSidebarShown: {
             key: IONKEYS.IS_SIDEBAR_SHOWN
+        },
+        isChatSwitcherActive: {
+            key: IONKEYS.IS_CHAT_SWITCHER_ACTIVE,
+            initWithStoredValues: false,
         },
     },
 )(App);
