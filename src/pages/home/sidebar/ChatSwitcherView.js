@@ -2,6 +2,7 @@ import React from 'react';
 import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import lodashOrderby from 'lodash.orderby';
 import withIon from '../../../components/withIon';
 import IONKEYS from '../../../IONKEYS';
 import Str from '../../../libs/Str';
@@ -212,9 +213,27 @@ class ChatSwitcherView extends React.Component {
      * @param {boolean} blurAfterReset
      */
     reset(blurAfterReset = true) {
+        let options = [];
+        if (blurAfterReset === false) {
+            const sortByLastVisited = lodashOrderby(this.props.reports, ['lastVisited'], ['desc']);
+            const recentReports = sortByLastVisited.slice(0, this.maxSearchResults);
+            options = _.chain(recentReports)
+                .values()
+                .map(report => ({
+                    text: report.reportName,
+                    alternateText: report.reportName,
+                    searchText: report.reportName,
+                    reportID: report.reportID,
+                    type: OPTION_TYPE.REPORT,
+                    participants: report.participants,
+                    icons: report.icons,
+                }))
+                .value();
+        }
+
         this.setState({
             search: '',
-            options: [],
+            options,
             focusedIndex: 0,
             isLogoVisible: blurAfterReset,
             isClearButtonVisible: !blurAfterReset,
@@ -233,10 +252,7 @@ class ChatSwitcherView extends React.Component {
      */
     triggerOnFocusCallback() {
         this.props.onFocus();
-        this.setState({
-            isLogoVisible: false,
-            isClearButtonVisible: true,
-        });
+        this.reset(false);
     }
 
     /**
@@ -338,7 +354,7 @@ class ChatSwitcherView extends React.Component {
                 alternateText: personalDetail.login,
                 searchText: personalDetail.displayName === personalDetail.login ? personalDetail.login
                     : `${personalDetail.displayName} ${personalDetail.login}`,
-                icon: personalDetail.avatarURL,
+                icons: [personalDetail.avatarURL],
                 login: personalDetail.login,
                 type: OPTION_TYPE.USER,
             }))
@@ -354,6 +370,7 @@ class ChatSwitcherView extends React.Component {
                 reportID: report.reportID,
                 type: OPTION_TYPE.REPORT,
                 participants: report.participants,
+                icons: report.icons,
             }))
             .value();
 

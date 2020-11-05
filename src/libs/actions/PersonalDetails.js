@@ -131,11 +131,7 @@ function fetch() {
  * @param {String} emailList
  */
 function getForEmails(emailList) {
-    API.getPersonalDetails(emailList)
-        .then((data) => {
-            const details = _.pick(data, emailList.split(','));
-            Ion.merge(IONKEYS.PERSONAL_DETAILS, formatPersonalDetails(details));
-        });
+    return API.getPersonalDetails(emailList);
 }
 
 // When the app reconnects from being offline, fetch all of the personal details
@@ -146,4 +142,5 @@ export {
     fetchTimezone,
     getForEmails,
     getDisplayName,
+    formatPersonalDetails,
 };

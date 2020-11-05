@@ -65,6 +65,10 @@ function getUnreadActionCount(report) {
     const usersLastReadActionID = lodashGet(report, [
         'reportNameValuePairs',
         `lastReadActionID_${currentUserAccountID}`,
+    ]) || lodashGet(report, [
+        'reportNameValuePairs',
+        `lastAccessed_${currentUserAccountID}`,
+        'readActionID',
     ]);
 
     // Save the lastReadActionID locally so we can access this later
@@ -107,11 +111,15 @@ function getSimplifiedReportObject(report) {
     return {
         reportID: report.reportID,
         reportName: report.reportName,
-        reportNameValuePairs: report.reportNameValuePairs,
         unreadActionCount: getUnreadActionCount(report),
         maxSequenceNumber: report.reportActionList.length,
         participants: getParticipantEmailsFromReport(report),
         isPinned: report.isPinned,
+        lastVisited: lodashGet(report, [
+            'reportNameValuePairs',
+            `lastAccessed_${currentUserAccountID}`,
+            'timestamp'
+        ], 0)
     };
 }
 
@@ -153,9 +161,11 @@ function fetchChatReportsByIDs(chatList) {
             let participantEmails = [];
 
             // Process the reports and store them in Ion
+            let simplifiedReports = [];
             _.each(fetchedReports, (report) => {
                 const newReport = getSimplifiedReportObject(report);
 
+                simplifiedReports.push(newReport);
                 participantEmails.push(newReport.participants);
 
                 if (lodashGet(report, 'reportNameValuePairs.type') === 'chat') {
@@ -169,7 +179,26 @@ function fetchChatReportsByIDs(chatList) {
             // Fetch the person details if there are any
             participantEmails = _.unique(participantEmails);
             if (participantEmails && participantEmails.length !== 0) {
-                PersonalDetails.getForEmails(participantEmails.join(','));
+                PersonalDetails.getForEmails(participantEmails.join(','))
+                    .then((data) => {
+                        const details = _.pick(data, participantEmails);
+                        Ion.merge(IONKEYS.PERSONAL_DETAILS, PersonalDetails.formatPersonalDetails(details));
+
+                        // Let's save report icons based on the the personalDetails of the participants
+                        _.each(simplifiedReports, (report) => {
+                            const avatars = _.chain(report.participants)
+                                .filter(participant => participant.email !== currentUserEmail)
+                                .map(participant => lodashGet(details, [participant, 'avatar']))
+                                .compact()
+                                .value();
+
+                            if (!_.isEmpty(avatars)) {
+                                Ion.merge(`${IONKEYS.COLLECTION.REPORT}${report.reportID}`, {
+                                    icons: avatars.slice(0, 3),
+                                });
+                            }
+                        });
+                    });
             }
 
             return _.map(fetchedReports, report => report.reportID);
@@ -185,12 +214,10 @@ function fetchChatReportsByIDs(chatList) {
 function setLocalLastReadActionID(reportID, sequenceNumber) {
     lastReadActionIDs[reportID] = sequenceNumber;
 
-    // Update the lastReadActionID on the report optimistically
+    // Update the lastReadActionID on the report optimisticallys
     Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {
         unreadActionCount: 0,
-        reportNameValuePairs: {
-            [`lastReadActionID_${currentUserAccountID}`]: sequenceNumber,
-        }
+        lastVisited: Date.now(),
     });
 }
 
@@ -536,7 +563,7 @@ function updateLastReadActionID(reportID, sequenceNumber) {
     setLocalLastReadActionID(reportID, sequenceNumber);
 
     // Mark the report as not having any unread items
-    API.setLastReadActionID({
+    API.updateLastAccessed({
         accountID: currentUserAccountID,
         reportID,
         sequenceNumber,

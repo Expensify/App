@@ -404,8 +404,8 @@ function authenticate(parameters) {
  * @param {number} parameters.sequenceNumber
  * @returns {Promise}
  */
-function setLastReadActionID(parameters) {
-    return queueRequest('Report_SetLastReadActionID', {
+function updateLastAccessed(parameters) {
+    return queueRequest('Report_UpdateLastAccessed', {
         authToken,
         accountID: parameters.accountID,
         reportID: parameters.reportID,
@@ -526,7 +526,7 @@ export {
     getAuthToken,
     getPersonalDetails,
     getReportHistory,
-    setLastReadActionID,
+    updateLastAccessed,
     setNameValuePair,
     togglePinnedReport,
     logToServer,

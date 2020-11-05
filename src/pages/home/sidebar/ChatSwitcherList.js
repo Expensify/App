@@ -66,15 +66,14 @@ const ChatSwitcherList = ({
                             ]}
                         >
                             {
-                                option.icon
-                                && (
+                                _.map(option.icons, icon => (
                                     <View style={[styles.chatSwitcherAvatar, styles.mr2]}>
                                         <Image
-                                            source={{uri: option.icon}}
+                                            source={{uri: icon}}
                                             style={[styles.chatSwitcherAvatarImage]}
                                         />
                                     </View>
-                                )
+                                ))
                             }
                             <View style={[styles.flex1]}>
                                 {option.text === option.alternateText ? (
