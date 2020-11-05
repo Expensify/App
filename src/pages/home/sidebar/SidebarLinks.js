@@ -94,7 +94,7 @@ const SidebarLinks = (props) => {
             </ScrollView>
         </View>
     );
-}
+};
 
 SidebarLinks.propTypes = propTypes;
 SidebarLinks.defaultProps = defaultProps;
