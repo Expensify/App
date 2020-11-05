@@ -77,7 +77,15 @@ You can use any IDE or code editing tool for developing on any platform. Use you
  * To run the **Development app**, run: `npm run desktop`, this will start a new Electron process running on your MacOS desktop in the `dist/Mac` folder.
 
 ## Running the tests 🎰
-* To run the **Jest Unit Tests**: `npm run test`
+### Unit tests
+* To run the **Jest unit tests**: `npm run test`
+
+### End to end tests
+[Detox](https://github.com/wix/Detox) is a _"Gray box end-to-end testing and automation library"_
+
+You are first required to build the tests, then you can run them: 
+1. To build the **Detox end to end tests**: `npm run detox-build`
+2. To run the **Detox end to end tests**: `npm run detox-test`
 
 ## Troubleshooting
 1. If you are having issues with **_Getting Started_**, please reference [React Native's Documentation](https://reactnative.dev/docs/environment-setup)
