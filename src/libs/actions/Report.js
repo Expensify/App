@@ -340,14 +340,14 @@ function subscribeToReportTypingEvents(reportID) {
  *
  * @param {number} reportID
  */
-function unsubscribeToReportTypingEvents(reportID) {
+function unsubscribeFromReportChannel(reportID) {
     if (!reportID) {
         return;
     }
 
     const pusherChannelName = getReportChannelName(reportID);
     Ion.set(`${IONKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, {});
-    Pusher.unsubscribe(pusherChannelName, 'client-userIsTyping');
+    Pusher.unsubscribe(pusherChannelName);
 }
 
 /**
@@ -619,7 +619,7 @@ export {
     updateLastReadActionID,
     subscribeToReportCommentEvents,
     subscribeToReportTypingEvents,
-    unsubscribeToReportTypingEvents,
+    unsubscribeFromReportChannel,
     saveReportComment,
     broadcastUserIsTyping,
     togglePinnedState,
