@@ -1,5 +1,4 @@
 // We place items a percentage to the safe area on the top or bottom of the screen
-import {Dimensions} from 'react-native';
 import fontFamily from './fontFamily';
 import italic from './italic';
 
@@ -21,7 +20,7 @@ const colors = {
     textSupporting: '#7D8B8F',
     red: '#E84A3B',
     buttonBG: '#8A8A8A',
-    modalBackground: '#00000080',
+    modalBackdrop: '#00000080',
 };
 
 const styles = {
@@ -884,8 +883,6 @@ const styles = {
 
     imageModalPDF: {
         flex: 1,
-        width: Dimensions.get('window').width,
-        height: Dimensions.get('window').height,
         backgroundColor: colors.componentBG,
     },
 
@@ -894,7 +891,7 @@ const styles = {
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: colors.modalBackground,
+        backgroundColor: colors.modalBackdrop,
     },
 
     imageModalImageCenterContainer: {
@@ -906,7 +903,7 @@ const styles = {
     },
 
     imageModalImageContainer: {
-        padding: 50,
+        margin: 50,
         overflow: 'hidden',
     },
 };
