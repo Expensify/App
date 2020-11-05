@@ -1,4 +1,4 @@
-name: ESLint JavaScript Lint
+name: Lint JavaScript
 
 # Only lint on branches that aren't related to master and the deploy process
 on:
