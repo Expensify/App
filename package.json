@@ -19,7 +19,9 @@
     "test": "jest",
     "lint": "eslint .",
     "postversion": "react-native-version",
-    "print-version": "echo $npm_package_version"
+    "print-version": "echo $npm_package_version",
+    "detox-build": "detox build --configuration ios.sim.debug",
+    "detox-test": "detox test --configuration ios.sim.debug"
   },
   "dependencies": {
     "@react-native-community/async-storage": "^1.11.0",
