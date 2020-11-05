@@ -18,12 +18,6 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     match: PropTypes.object.isRequired,
 
-    // A function to call when the chat switcher is blurred
-    onChatSwitcherBlur: PropTypes.func.isRequired,
-
-    // A function to call when the chat switcher gets focus
-    onChatSwitcherFocus: PropTypes.func.isRequired,
-
     // Toggles the hamburger menu open and closed
     onLinkClick: PropTypes.func.isRequired,
 
@@ -38,20 +32,15 @@ const propTypes = {
         reportName: PropTypes.string,
         unreadActionCount: PropTypes.number,
     })),
+
+    isChatSwitcherActive: PropTypes.bool,
 };
 const defaultProps = {
     reports: {},
+    isChatSwitcherActive: false,
 };
 
 class SidebarLinks extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            areReportLinksVisible: true,
-        };
-    }
-
     render() {
         const {onLinkClick} = this.props;
         const reportIDInUrl = parseInt(this.props.match.params.reportID, 10);
@@ -68,23 +57,15 @@ class SidebarLinks extends React.Component {
         const reportsToDisplay = _.filter(sortedReports, report => (report.isPinned || (report.unreadActionCount > 0) || report.reportID === reportIDInUrl));
 
         // Update styles to hide the report links if they should not be visible
-        const sidebarLinksStyle = this.state.areReportLinksVisible
+        const sidebarLinksStyle = !this.props.isChatSwitcherActive
             ? [styles.sidebarListContainer]
             : [styles.sidebarListContainer, styles.dNone];
-
         return (
             <View style={[styles.flex1, {marginTop: this.props.insets.top}]}>
                 <View style={[styles.sidebarHeader]}>
                     <ChatSwitcherView
-                        onBlur={() => {
-                            this.setState({areReportLinksVisible: true});
-                            this.props.onChatSwitcherBlur();
-                        }}
-                        onFocus={() => {
-                            this.setState({areReportLinksVisible: false});
-                            this.props.onChatSwitcherFocus();
-                        }}
                         onLinkClick={onLinkClick}
+                        isChatSwitcherActive={this.props.isChatSwitcherActive}
                     />
                 </View>
                 <ScrollView
@@ -125,6 +106,6 @@ export default compose(
     withIon({
         reports: {
             key: IONKEYS.COLLECTION.REPORT,
-        }
+        },
     }),
 )(SidebarLinks);

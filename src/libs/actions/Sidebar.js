@@ -15,7 +15,12 @@ function show() {
     Ion.set(IONKEYS.IS_SIDEBAR_SHOWN, true);
 }
 
+function setIsAnimating(isAnimating) {
+    Ion.set(IONKEYS.IS_SIDEBAR_ANIMATING, isAnimating);
+}
+
 export {
     hide,
     show,
+    setIsAnimating,
 };
