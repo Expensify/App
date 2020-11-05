@@ -36,4 +36,5 @@ const SidebarView = props => (
 
 SidebarView.propTypes = propTypes;
 SidebarView.defaultProps = defaultProps;
+SidebarView.displayName = 'SidebarView';
 export default SidebarView;
