@@ -56,12 +56,15 @@ const propTypes = {
         email: PropTypes.string.isRequired,
     }),
 
-    sideBarIsAnimating: PropTypes.bool,
+    isSidebarAnimating: PropTypes.bool,
+    isChatSwitcherActive: PropTypes.bool,
 };
 const defaultProps = {
     personalDetails: {},
     reports: {},
     session: null,
+    isSidebarAnimating: false,
+    isChatSwitcherActive: false,
 };
 
 class ChatSwitcherView extends React.Component {
@@ -98,10 +101,6 @@ class ChatSwitcherView extends React.Component {
         }, ['meta'], true);
     }
 
-    componentWillUnmount() {
-        KeyboardShortcut.unsubscribe('K');
-    }
-
     componentDidUpdate(prevProps) {
         // Check if the sidebar was animating but is no longer animating and
         // if the chat switcher is active then focus the input
@@ -111,6 +110,10 @@ class ChatSwitcherView extends React.Component {
         ) {
             this.textInput.focus();
         }
+    }
+
+    componentWillUnmount() {
+        KeyboardShortcut.unsubscribe('K');
     }
 
     /**

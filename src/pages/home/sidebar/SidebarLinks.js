@@ -40,66 +40,65 @@ const defaultProps = {
     isChatSwitcherActive: false,
 };
 
-class SidebarLinks extends React.Component {
-    render() {
-        const {onLinkClick} = this.props;
-        const reportIDInUrl = parseInt(this.props.match.params.reportID, 10);
-        const sortedReports = lodashOrderby(this.props.reports, [
-            'isPinned',
-            'reportName'
-        ], [
-            'desc',
-            'asc'
-        ]);
+const SidebarLinks = props => {
+    const {onLinkClick} = props;
+    const reportIDInUrl = parseInt(props.match.params.reportID, 10);
+    const sortedReports = lodashOrderby(props.reports, [
+        'isPinned',
+        'reportName'
+    ], [
+        'desc',
+        'asc'
+    ]);
 
-        // Filter the reports so that the only reports shown are pinned, unread, and the one matching the URL
-        // eslint-disable-next-line max-len
-        const reportsToDisplay = _.filter(sortedReports, report => (report.isPinned || (report.unreadActionCount > 0) || report.reportID === reportIDInUrl));
+    // Filter the reports so that the only reports shown are pinned, unread, and the one matching the URL
+    // eslint-disable-next-line max-len
+    const reportsToDisplay = _.filter(sortedReports, report => (report.isPinned || (report.unreadActionCount > 0) || report.reportID === reportIDInUrl));
 
-        // Update styles to hide the report links if they should not be visible
-        const sidebarLinksStyle = !this.props.isChatSwitcherActive
-            ? [styles.sidebarListContainer]
-            : [styles.sidebarListContainer, styles.dNone];
-        return (
-            <View style={[styles.flex1, {marginTop: this.props.insets.top}]}>
-                <View style={[styles.sidebarHeader]}>
-                    <ChatSwitcherView
-                        onLinkClick={onLinkClick}
-                        isChatSwitcherActive={this.props.isChatSwitcherActive}
-                    />
-                </View>
-                <ScrollView
-                    style={sidebarLinksStyle}
-                    bounces={false}
-                    indicatorStyle="white"
-                    stickyHeaderIndices={[0]}
-                >
-                    <View style={[styles.sidebarListItem]}>
-                        <Text style={[styles.sidebarListHeader]}>
-                            Chats
-                        </Text>
-                    </View>
-                    {/* A report will not have a report name if it hasn't been fetched from the server yet */}
-                    {/* so nothing is rendered */}
-                    {_.map(reportsToDisplay, report => report.reportName && (
-                        <SidebarLink
-                            key={report.reportID}
-                            reportID={report.reportID}
-                            reportName={report.reportName}
-                            isUnread={report.unreadActionCount > 0}
-                            onLinkClick={onLinkClick}
-                            isActiveReport={report.reportID === reportIDInUrl}
-                            isPinned={report.isPinned}
-                        />
-                    ))}
-                </ScrollView>
+    // Update styles to hide the report links if they should not be visible
+    const sidebarLinksStyle = !props.isChatSwitcherActive
+        ? [styles.sidebarListContainer]
+        : [styles.sidebarListContainer, styles.dNone];
+    return (
+        <View style={[styles.flex1, {marginTop: props.insets.top}]}>
+            <View style={[styles.sidebarHeader]}>
+                <ChatSwitcherView
+                    onLinkClick={onLinkClick}
+                    isChatSwitcherActive={props.isChatSwitcherActive}
+                />
             </View>
-        );
-    }
+            <ScrollView
+                style={sidebarLinksStyle}
+                bounces={false}
+                indicatorStyle="white"
+                stickyHeaderIndices={[0]}
+            >
+                <View style={[styles.sidebarListItem]}>
+                    <Text style={[styles.sidebarListHeader]}>
+                        Chats
+                    </Text>
+                </View>
+                {/* A report will not have a report name if it hasn't been fetched from the server yet */}
+                {/* so nothing is rendered */}
+                {_.map(reportsToDisplay, report => report.reportName && (
+                    <SidebarLink
+                        key={report.reportID}
+                        reportID={report.reportID}
+                        reportName={report.reportName}
+                        isUnread={report.unreadActionCount > 0}
+                        onLinkClick={onLinkClick}
+                        isActiveReport={report.reportID === reportIDInUrl}
+                        isPinned={report.isPinned}
+                    />
+                ))}
+            </ScrollView>
+        </View>
+    );
 }
 
 SidebarLinks.propTypes = propTypes;
 SidebarLinks.defaultProps = defaultProps;
+SidebarLinks.displayName = 'SidebarLinks';
 
 export default compose(
     withRouter,
