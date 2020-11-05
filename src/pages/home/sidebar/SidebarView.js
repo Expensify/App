@@ -17,23 +17,23 @@ const propTypes = {
     isChatSwitcherActive: PropTypes.bool,
 };
 
-class SidebarView extends React.Component {
-    render() {
-        return (
-            <View style={[styles.flex1, styles.sidebar]}>
-                <SidebarLinks
-                    onLinkClick={this.props.onLinkClick}
-                    insets={this.props.insets}
-                    isChatSwitcherActive={this.props.isChatSwitcherActive}
-                />
-                {!this.props.isChatSwitcherActive && (
-                    <SidebarBottom insets={this.props.insets} />
-                )}
-            </View>
-        );
-    }
-}
+const defaultProps = {
+    isChatSwitcherActive: false,
+};
+
+const SidebarView = props => (
+    <View style={[styles.flex1, styles.sidebar]}>
+        <SidebarLinks
+            onLinkClick={props.onLinkClick}
+            insets={props.insets}
+            isChatSwitcherActive={props.isChatSwitcherActive}
+        />
+        {!props.isChatSwitcherActive && (
+            <SidebarBottom insets={props.insets} />
+        )}
+    </View>
+);
 
 SidebarView.propTypes = propTypes;
-
+SidebarView.defaultProps = defaultProps;
 export default SidebarView;
