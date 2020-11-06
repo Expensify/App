@@ -65,16 +65,14 @@ const ChatSwitcherList = ({
                                 styles.alignItemsCenter,
                             ]}
                         >
-                            {
-                                _.map(option.icons, icon => (
-                                    <View style={[styles.chatSwitcherAvatar, styles.mr2]}>
-                                        <Image
-                                            source={{uri: icon}}
-                                            style={[styles.chatSwitcherAvatarImage]}
-                                        />
-                                    </View>
-                                ))
-                            }
+                            {_.map(option.icons, icon => (
+                                <View style={[styles.chatSwitcherAvatar]}>
+                                    <Image
+                                        source={{uri: icon}}
+                                        style={[styles.chatSwitcherAvatarImage]}
+                                    />
+                                </View>
+                            ))}
                             <View style={[styles.flex1]}>
                                 {option.text === option.alternateText ? (
                                     <Text style={[textStyle]} numberOfLines={1}>

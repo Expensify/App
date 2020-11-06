@@ -105,6 +105,7 @@ class SidebarLinks extends React.Component {
                             key={report.reportID}
                             reportID={report.reportID}
                             reportName={report.reportName}
+                            icons={report.icons || []}
                             isUnread={report.unreadActionCount > 0}
                             onLinkClick={onLinkClick}
                             isActiveReport={report.reportID === reportIDInUrl}

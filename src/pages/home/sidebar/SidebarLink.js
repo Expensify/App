@@ -1,10 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {Image, View} from 'react-native';
 import Text from '../../../components/Text';
 import styles from '../../../styles/StyleSheet';
 import PressableLink from '../../../components/PressableLink';
 import ROUTES from '../../../ROUTES';
+import _ from "underscore";
 
 const propTypes = {
     // The ID of the report for this link
@@ -12,6 +13,9 @@ const propTypes = {
 
     // The name of the report to use as the text for this link
     reportName: PropTypes.string,
+
+    //
+    icons: PropTypes.arrayOf(PropTypes.string),
 
     // Toggles the hamburger menu open and closed
     onLinkClick: PropTypes.func.isRequired,
@@ -26,6 +30,7 @@ const propTypes = {
 const defaultProps = {
     isUnread: false,
     reportName: '',
+    icons: [],
 };
 
 const SidebarLink = (props) => {
@@ -44,6 +49,14 @@ const SidebarLink = (props) => {
                     style={styles.textDecorationNoLine}
                 >
                     <View style={[styles.sidebarLinkInner]}>
+                        {_.map(props.icons, icon => (
+                            <View style={[styles.chatSwitcherAvatar]}>
+                                <Image
+                                    source={{uri: icon}}
+                                    style={[styles.chatSwitcherAvatarImage]}
+                                />
+                            </View>
+                        ))}
                         <Text numberOfLines={1} style={textActiveUnreadStyle}>
                             {props.reportName}
                         </Text>
