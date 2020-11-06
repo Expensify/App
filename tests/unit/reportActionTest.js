@@ -40,7 +40,7 @@ describe('Report Action', () => {
         const CREATED_ACTION = {
             actionName: 'CREATED',
             automatic: false,
-            created: 'Nov 6 2020 9:14am PST',
+            created: 'Oct 28 2020 4:29pm PDT',
             message: [
                 {type: "TEXT", style: "strong", text: "__fake__"},
                 {type: "TEXT", style: "normal", text: " created this report"},
@@ -112,7 +112,7 @@ describe('Report Action', () => {
             reportAction: {
                 actionName: 'ADDCOMMENT',
                 automatic: false,
-                created: 'Oct 28 2020 4:29pm PDT',
+                created: 'Nov 6 2020 9:14am PST',
                 message: [{type: 'COMMENT', html: 'Testing a comment', text: 'Testing a comment'}],
                 person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
                 shouldShow: true,
