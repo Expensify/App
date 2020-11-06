@@ -3,13 +3,12 @@ import {Dimensions} from 'react-native';
 /**
  * ~Tooltip coordinate system:~
  * The tooltip coordinates are based on the element which it is wrapping.
- * We take the x and y coordinates of the element and divide the surroundings
- * in four quadrants, and check for the one with biggest area.
- * Once we know the quadrant with the biggest area, we can place the tooltip in that
- * direction.
+ * If the element is too far to the left or right of the page, then we want the tooltip to
+ * be positioned on its right or left (respectively).
+ * If the element is on the top half of the page, we'll have the tooltip below it, and if
+ * the element is on the bottom half of the page, we'll have the tooltip above it.
  *
- * To find the areas we first get 5 coordinate points: the center and the 4 extreme points.
- * Once we know the coordinates, we can get the length of the sides which form each quadrant.
+ * Currently we're using the value, 10, as a buffer distance from the tooltip to the element. 
  *
  * @param {number} componentWidth
  * @param {number} componentHeight
@@ -25,22 +24,33 @@ export default function (componentWidth, componentHeight, xOffset, yOffset) {
     const centerX = xOffset + (componentWidth / 2);
     const centerY = yOffset + (componentHeight / 2);
 
-    // Determine which cartesian quadrant our component's center is in
-    if (centerX < (windowWidth / 2)) {
-        if (centerY < (windowHeight / 2)) {
-            // Q2
-            return [centerX - (componentWidth / 2), centerY + (componentHeight / 2)];
-        }
+    let gutter = '';
+    let inBottom = false;
+    let tooltipX = centerX;
+    let tooltipY;
 
-        // Q3
-        return [centerX - (componentWidth / 2), centerY - (componentHeight / 2)];
+    // Determine if we're in a danger gutter
+    // Left Gutter
+    if(centerX < 75 ) {
+        // letting 10 be the buffer distance between the element and the tooltip
+        gutter = 'left';
+        tooltipX = xOffset + componentWidth + 10;
+    }
+    // Right Gutter
+    if (windowWidth - centerX < 75) {
+        gutter = 'right';
+        tooltipX = xOffset - 10;
     }
 
-    if (centerY < (windowHeight / 2)) {
-        // Q1
-        return [centerX + (componentWidth / 2), centerY + (componentHeight / 2)];
+    // Determine if we're top or bottom of screen
+    // Top Half
+    if (centerY < (windowHeight/2)) {
+        tooltipY = gutter ? yOffset : yOffset + componentHeight + 10;
+    } else {
+        // Bottom Half
+        tooltipY = gutter ? yOffset + componentHeight : yOffset - 10;
+        inBottom = true;
     }
-
-    // Q4
-    return [centerX + (componentWidth / 2), centerY - (componentHeight / 2)];
+    console.log(`tooltipX: ${tooltipX}, tooltipY: ${tooltipY}, gutter: ${gutter}, inBottom: ${inBottom}`);
+    return [tooltipX, tooltipY, gutter, inBottom]
 }

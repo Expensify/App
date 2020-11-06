@@ -4,15 +4,15 @@ import getTooltipCoordinates from './getTooltipCoordinates';
 const backgroundColor = `${colors.heading}cc`;
 
 function getTooltipStyle(elementWidth, elementHeight, xOffset, yOffset) {
-    const [x, y] = getTooltipCoordinates(elementWidth, elementHeight, xOffset, yOffset);
-    return {
+    const [x, y, gutter, inBottom] = getTooltipCoordinates(elementWidth, elementHeight, xOffset, yOffset);
+    console.log(`x: ${x}, y: ${y}, gutter: ${gutter}`);
+    const styles = {
         position: 'absolute',
+        width: 150,
+        height: 60,
         left: x,
-        top: y,
-        width: 40,
-        height: 150,
         color: colors.textReversed,
-        backgroundColor,
+        backgroundColor: colors.red,
         display: 'flex',
         flex: 1,
         justifyContent: 'center',
@@ -20,6 +20,22 @@ function getTooltipStyle(elementWidth, elementHeight, xOffset, yOffset) {
         borderRadius: 10,
         padding: 10,
     };
+    if (!gutter) {
+        console.log('we\'re in the center');
+        // If we are NOT in a gutter, we will want to center the tooltip on the element
+        // styles.transform = [{translateX: -100}];
+    } else {
+        console.log('we\'re in the gutter!');
+    }
+    if (inBottom) {
+        console.log('in bottom!');
+        // If we're on the bottom of the page, we'll want to use the bottom attribute rather than the top
+        // this allows us to position the tooltip without actually knowing how large it is. 
+        styles.bottom = y;
+    } else {
+        styles.top = y;
+    }
+    return styles;
 }
 
 function getPointerStyle(elementWidth, elementHeight, xOffset, yOffset, tooltipY) {
