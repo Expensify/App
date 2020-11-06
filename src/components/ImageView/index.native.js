@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {View, Dimensions, Image} from 'react-native';
 import ImgZoom from 'react-native-image-pan-zoom';
-import styles from '../../styles/StyleSheet';
 
 /**
  * On the native layer, we use a image library to handle zoom functionality
@@ -37,7 +36,7 @@ const ImageView = props => (
     <View style={props.style}>
         <ImgZoom
             cropWidth={Dimensions.get('window').width}
-            cropHeight={Dimensions.get('window').height - 87}
+            cropHeight={Dimensions.get('window').height}
             imageWidth={props.imageWidth}
             imageHeight={props.imageHeight}
         >

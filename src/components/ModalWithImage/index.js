@@ -1,19 +1,17 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {
-    View, Image, Modal, TouchableOpacity, Text, Dimensions, TouchableWithoutFeedback
+    Image, TouchableOpacity, Dimensions
 } from 'react-native';
-import {WebView} from 'react-native-webview';
-import exitIcon from '../../../assets/images/icon-x.png';
 import styles from '../../styles/StyleSheet';
 import Str from '../../libs/Str';
-import CONST from '../../CONST';
 import PDFView from '../PDFView';
 import ImageView from '../ImageView';
 import BaseModal from '../BaseModal';
 
 /**
  * Image modal component that is triggered when pressing on an image
+ * On web, we indicate that the modal isn't pinned to edges with props to BaseModal
  */
 
 const propTypes = {
@@ -22,16 +20,11 @@ const propTypes = {
 
     // URL to full-sized image
     sourceURL: PropTypes.string,
-
-    // Any additional styles to apply
-    // eslint-disable-next-line react/forbid-prop-types
-    style: PropTypes.any,
 };
 
 const defaultProps = {
     previewSourceURL: '',
     sourceURL: '',
-    style: {},
 };
 
 class ModalWithImage extends React.Component {
@@ -70,9 +63,10 @@ class ModalWithImage extends React.Component {
      *
      * @param {Boolean} visibility
      */
-    setModalVisiblity(visibility) {
+    setModalVisiblity = (visibility) => {
         this.setState({visible: visibility});
     }
+
 
     render() {
         return (
@@ -80,14 +74,16 @@ class ModalWithImage extends React.Component {
                 <TouchableOpacity onPress={() => this.setModalVisiblity(true)}>
                     <Image
                         source={{uri: this.props.previewSourceURL}}
-                        style={[
-                            this.props.style,
-                            {width: this.state.thumbnailWidth, height: this.state.thumbnailHeight}
-                        ]}
+                        style={{width: this.state.thumbnailWidth, height: this.state.thumbnailHeight}}
                     />
                 </TouchableOpacity>
 
-                <BaseModal pinToEdges={false} title="Attachment" visible={this.state.visible} setModalVisiblity={this.setModalVisiblity}>
+                <BaseModal
+                    pinToEdges={false}
+                    title="Attachment"
+                    visible={this.state.visible}
+                    setModalVisiblity={this.setModalVisiblity}
+                >
                     {(Str.isPDF(this.props.sourceURL)) ? (
                         <PDFView
                             sourceURL={this.props.sourceURL}
@@ -96,7 +92,7 @@ class ModalWithImage extends React.Component {
                     ) : (
                         <ImageView
                             imageWidth={this.state.imgWidth}
-                            imageHeight={this.state.imgHeight + 87}
+                            imageHeight={this.state.imgHeight}
                             sourceURL={this.props.sourceURL}
                         />
                     )}
