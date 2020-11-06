@@ -1,6 +1,7 @@
 // Web and desktop implementation only. Do not import for direct use. Use LocalNotification.
 import Str from '../../Str';
 import CONST from '../../../CONST';
+import focusApp from './focusApp';
 
 const EXPENSIFY_ICON_URL = `${CONST.CLOUDFRONT_URL}/images/favicon-2019.png`;
 const DEFAULT_DELAY = 4000;
@@ -82,6 +83,7 @@ function push({
                 onClick();
                 window.parent.focus();
                 window.focus();
+                focusApp();
                 notification.close();
             };
 

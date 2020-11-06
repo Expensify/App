@@ -54,14 +54,13 @@ const HeaderView = props => (
             )}
             {props.report && props.report.reportName ? (
                 <View style={[
-                    styles.dFlex,
+                    styles.flex1,
                     styles.flexRow,
                     styles.alignItemsCenter,
-                    styles.flexGrow1,
                     styles.flexJustifySpaceBetween
                 ]}
                 >
-                    <View>
+                    <View style={[styles.flex1]}>
                         <Text numberOfLines={1} style={[styles.navText]}>
                             {props.report.reportName}
                         </Text>
@@ -69,7 +68,7 @@ const HeaderView = props => (
 
                     <View style={[styles.reportOptions, styles.flexRow]}>
                         <TouchableOpacity
-                            onPress={() => togglePinnedState(props.report.reportID)}
+                            onPress={() => togglePinnedState(props.report)}
                             style={[styles.touchableButtonImage, styles.mr0]}
                         >
                             <Image
