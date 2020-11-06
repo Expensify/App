@@ -58,13 +58,11 @@ describe('Ion', () => {
                         return;
                     }
 
-                    if (mockCallback.mock.calls.length === 2) {
-                        expect(value).toStrictEqual({
-                            test1: 'test1',
-                            test2: 'test2',
-                        });
-                        done();
-                    }
+                    expect(value).toStrictEqual({
+                        test1: 'test1',
+                        test2: 'test2',
+                    });
+                    done();
                 } catch (error) {
                     done(error);
                 }
@@ -89,10 +87,8 @@ describe('Ion', () => {
                         return;
                     }
 
-                    if (mockCallback.mock.calls.length === 2) {
-                        expect(value).toBe(null);
-                        done();
-                    }
+                    expect(value).toBe(null);
+                    done();
                 } catch (error) {
                     done(error);
                 }
@@ -128,4 +124,30 @@ describe('Ion', () => {
                 }
             });
     });
+
+    it('Merges arrays by appending new items to the end of a value', (done) => {
+        const mockCallback = jest.fn();
+        connectionID = Ion.connect({
+            key: TEST_KEY,
+            initWithStoredValues: false,
+            callback: (value) => {
+                mockCallback(value);
+
+                try{
+                    if (mockCallback.mock.calls.length === 1) {
+                        expect(value).toStrictEqual(['test1']);
+                        return;
+                    }
+
+                    expect(value).toStrictEqual(['test1', 'test2', 'test3', 'test4']);
+                    done();
+                } catch (err) {
+                    done(err);
+                }
+            }
+        });
+
+        Ion.set(TEST_KEY, ['test1']);
+        Ion.merge(TEST_KEY, ['test2', 'test3', 'test4']);
+    })
 });
