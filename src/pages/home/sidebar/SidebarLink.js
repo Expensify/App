@@ -36,9 +36,14 @@ const defaultProps = {
 const SidebarLink = (props) => {
     const linkWrapperActiveStyle = props.isActiveReport && styles.sidebarLinkWrapperActive;
     const linkActiveStyle = props.isActiveReport ? styles.sidebarLinkActive : null;
-    const textActiveStyle = props.isActiveReport ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
-    const textActiveUnreadStyle = props.isUnread
-        ? [textActiveStyle, styles.sidebarLinkTextUnread] : [textActiveStyle];
+    const textStyles = [];
+    textStyles.push(props.isActiveReport ? styles.sidebarLinkActiveText : styles.sidebarLinkText);
+    if (props.isUnread) {
+        textStyles.push(styles.sidebarLinkTextUnread);
+    }
+    if (props.icons.length !== 0) {
+        textStyles.push(styles.pl4);
+    }
 
     return (
         <View style={[styles.sidebarListItem, linkWrapperActiveStyle]}>
@@ -50,14 +55,14 @@ const SidebarLink = (props) => {
                 >
                     <View style={[styles.sidebarLinkInner]}>
                         {_.map(props.icons, icon => (
-                            <View style={[styles.chatSwitcherAvatar]}>
+                            <View key={icon} style={[styles.chatSwitcherAvatar]}>
                                 <Image
                                     source={{uri: icon}}
                                     style={[styles.chatSwitcherAvatarImage]}
                                 />
                             </View>
                         ))}
-                        <Text numberOfLines={1} style={textActiveUnreadStyle}>
+                        <Text numberOfLines={1} style={textStyles}>
                             {props.reportName}
                         </Text>
                     </View>

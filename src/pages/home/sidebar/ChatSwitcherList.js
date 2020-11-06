@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import lodashGet from 'lodash.get';
 import {
     Image,
     Text,
@@ -40,6 +41,8 @@ const ChatSwitcherList = ({
             const textStyle = optionIsFocused
                 ? styles.sidebarLinkActiveText
                 : styles.sidebarLinkText;
+            const paddingBeforeIcon = lodashGet(option, 'icons', []).length !== 0 ? styles.pl4 : null;
+
             return (
                 <View
                     key={isUserRow ? option.alternateText : option.reportID}
@@ -66,14 +69,14 @@ const ChatSwitcherList = ({
                             ]}
                         >
                             {_.map(option.icons, icon => (
-                                <View style={[styles.chatSwitcherAvatar]}>
+                                <View key={icon} style={[styles.chatSwitcherAvatar]}>
                                     <Image
                                         source={{uri: icon}}
                                         style={[styles.chatSwitcherAvatarImage]}
                                     />
                                 </View>
                             ))}
-                            <View style={[styles.flex1]}>
+                            <View style={[styles.flex1, paddingBeforeIcon]}>
                                 {option.text === option.alternateText ? (
                                     <Text style={[textStyle]} numberOfLines={1}>
                                         {option.alternateText}
