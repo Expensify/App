@@ -113,5 +113,6 @@ function BaseModal(props) {
 
 BaseModal.propTypes = propTypes;
 BaseModal.defaultProps = defaultProps;
+BaseModal.displayName = 'BaseModal';
 
 export default BaseModal;
