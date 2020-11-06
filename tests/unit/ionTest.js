@@ -133,7 +133,7 @@ describe('Ion', () => {
             callback: (value) => {
                 mockCallback(value);
 
-                try{
+                try {
                     if (mockCallback.mock.calls.length === 1) {
                         expect(value).toStrictEqual(['test1']);
                         return;
@@ -149,5 +149,5 @@ describe('Ion', () => {
 
         Ion.set(TEST_KEY, ['test1']);
         Ion.merge(TEST_KEY, ['test2', 'test3', 'test4']);
-    })
+    });
 });
