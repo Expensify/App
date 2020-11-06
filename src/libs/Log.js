@@ -46,5 +46,5 @@ export default new Logger({
     clientLoggingCallback: (message) => {
         console.debug(message);
     },
-    isDebug: !CONFIG.IS_IN_PRODUCTION,
+    isDebug: !CONFIG.IS_JEST_RUNNING && !CONFIG.IS_IN_PRODUCTION,
 });
