@@ -557,7 +557,6 @@ function addAction(reportID, text, file) {
  */
 function updateLastReadActionID(reportID, sequenceNumber) {
     const currentMaxSequenceNumber = reportMaxSequenceNumbers[reportID];
-    debugger;
     if (sequenceNumber < currentMaxSequenceNumber) {
         return;
     }
