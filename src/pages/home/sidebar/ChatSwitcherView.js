@@ -78,6 +78,7 @@ class ChatSwitcherView extends React.Component {
         this.reset = this.reset.bind(this);
         this.selectUser = this.selectUser.bind(this);
         this.selectReport = this.selectReport.bind(this);
+        this.getRecentVisitedOptions = this.getRecentVisitedOptions.bind(this);
         this.triggerOnFocusCallback = this.triggerOnFocusCallback.bind(this);
         this.updateSearch = this.updateSearch.bind(this);
         this.selectRow = this.selectRow.bind(this);
@@ -213,28 +214,9 @@ class ChatSwitcherView extends React.Component {
      * @param {boolean} blurAfterReset
      */
     reset(blurAfterReset = true) {
-        let options = [];
-        if (blurAfterReset === false) {
-            const sortByLastVisited = lodashOrderby(this.props.reports, ['lastVisited'], ['desc']);
-            const recentReports = sortByLastVisited.slice(0, this.maxSearchResults);
-            options = _.chain(recentReports)
-                .values()
-                .reject(report => !report.lastVisited)
-                .map(report => ({
-                    text: report.reportName,
-                    alternateText: report.reportName,
-                    searchText: report.reportName,
-                    reportID: report.reportID,
-                    type: OPTION_TYPE.REPORT,
-                    participants: report.participants,
-                    icons: report.icons,
-                }))
-                .value();
-        }
-
         this.setState({
             search: '',
-            options,
+            options: this.getRecentVisitedOptions(),
             focusedIndex: 0,
             isLogoVisible: blurAfterReset,
             isClearButtonVisible: !blurAfterReset,
@@ -247,13 +229,36 @@ class ChatSwitcherView extends React.Component {
         });
     }
 
+    getRecentVisitedOptions() {
+        const sortByLastVisited = lodashOrderby(this.props.reports, ['lastVisited'], ['desc']);
+        const recentReports = sortByLastVisited.slice(0, this.maxSearchResults);
+        return _.chain(recentReports)
+            .values()
+            .reject(report => !report.lastVisited)
+            .map(report => ({
+                text: report.reportName,
+                alternateText: report.reportName,
+                searchText: report.reportName,
+                reportID: report.reportID,
+                participants: report.participants,
+                icons: report.icons,
+                login: report.participants.length === 1 ? report.participants[0] : '',
+                type: report.participants.length === 1 ? OPTION_TYPE.USER : OPTION_TYPE.REPORT,
+            }))
+            .value();
+    }
+
     /**
      * When the text input gets focus, the onFocus() callback needs to be called, the keyboard shortcut is disabled
      * and the logo is hidden
      */
     triggerOnFocusCallback() {
         this.props.onFocus();
-        this.reset(false);
+        this.setState({
+            options: this.getRecentVisitedOptions(),
+            isLogoVisible: false,
+            isClearButtonVisible: true,
+        });
     }
 
     /**
