@@ -474,6 +474,7 @@ function fetchOrCreateChatReport(participants) {
             // Store only the absolute bare minimum of data in Ion because space is limited
             const newReport = getSimplifiedReportObject(report);
             newReport.reportName = getChatReportName(report.sharedReportList);
+            newReport.lastVisited = Date.now();
 
             // Merge the data into Ion. Don't use set() here or multiSet() because then that would
             // overwrite any existing data (like if they have unread messages)
@@ -556,6 +557,7 @@ function addAction(reportID, text, file) {
  */
 function updateLastReadActionID(reportID, sequenceNumber) {
     const currentMaxSequenceNumber = reportMaxSequenceNumbers[reportID];
+    debugger;
     if (sequenceNumber < currentMaxSequenceNumber) {
         return;
     }

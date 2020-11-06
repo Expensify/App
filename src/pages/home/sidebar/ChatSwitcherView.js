@@ -219,6 +219,7 @@ class ChatSwitcherView extends React.Component {
             const recentReports = sortByLastVisited.slice(0, this.maxSearchResults);
             options = _.chain(recentReports)
                 .values()
+                .reject(report => !report.lastVisited)
                 .map(report => ({
                     text: report.reportName,
                     alternateText: report.reportName,
