@@ -71,6 +71,11 @@ function isAuthTokenRequired(command) {
  * @returns {Promise}
  */
 function queueRequest(command, data) {
+    // Mock all requests for now
+    if (CONFIG.IS_JEST_RUNNING) {
+        return Promise.resolve();
+    }
+
     return new Promise((resolve, reject) => {
         // Add the write request to a queue of actions to perform
         networkRequestQueue.push({

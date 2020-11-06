@@ -15,6 +15,7 @@ import Visibility from '../Visibility';
 import ROUTES from '../../ROUTES';
 import NetworkConnection from '../NetworkConnection';
 import {hide as hideSidebar} from './Sidebar';
+import CONFIG from '../../CONFIG';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -281,7 +282,13 @@ function subscribeToReportCommentEvents() {
     }
 
     const pusherChannelName = `private-user-accountID-${currentUserAccountID}`;
-    if (Pusher.isSubscribed(pusherChannelName) || Pusher.isAlreadySubscribing(pusherChannelName)) {
+
+    // This early return is to prevent duplicate subscriptions. The mocks for jest
+    // are always subscribed so we skip this check when testing.
+    if (!CONFIG.IS_JEST_RUNNING
+            && Pusher.isSubscribed(pusherChannelName)
+            || Pusher.isAlreadySubscribing(pusherChannelName)
+    ) {
         return;
     }
 

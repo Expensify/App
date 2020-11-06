@@ -11,6 +11,7 @@ export default {
     },
     // eslint-disable-next-line no-undef
     IS_IN_PRODUCTION: Platform.OS === 'web' ? process.env.NODE_ENV === 'production' : !__DEV__,
+    IS_JEST_RUNNING: typeof jest !== 'undefined',
     PUSHER: {
         APP_KEY: Config.PUSHER_APP_KEY,
         CLUSTER: 'mt1',
