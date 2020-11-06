@@ -1,4 +1,11 @@
+import 'react-native';
+import {View, Text} from 'react-native';
+import {render} from '@testing-library/react-native';
+const waitForPromisesToResolve = () => new Promise(setImmediate);
+
+import React from 'react';
 import Ion from '../../src/libs/Ion';
+import withIon from '../../src/components/withIon';
 
 const TEST_KEY = 'test';
 
@@ -13,6 +20,35 @@ Ion.init({
     },
 });
 
+describe('withIon', () => {
+    it('should render with the test data when using withIon', () => {
+        let result;
+
+        Ion.set(TEST_KEY, 'test1')
+            .then(() => {
+                const TestComponent = (props) => {
+                    return (
+                        <View>
+                            <Text>{props.test}</Text>
+                        </View>
+                    );
+                };
+
+                const TestComponentWithIon = withIon({
+                    test: {
+                        key: TEST_KEY,
+                    },
+                })(TestComponent);
+                result = render(<TestComponentWithIon />);
+                return waitForPromisesToResolve();
+            })
+                .then(() => {
+                    const textComponent = result.getByText('test1');
+                    expect(textComponent).toBeTruthy();
+                });
+    });
+});
+
 describe('Ion', () => {
     let connectionID;
 
@@ -21,7 +57,7 @@ describe('Ion', () => {
         Ion.clear().then(done);
     });
 
-    it('Can set a simple key', (done) => {
+    it('should set a simple key', (done) => {
         const mockCallback = jest.fn();
         connectionID = Ion.connect({
             key: TEST_KEY,
@@ -42,7 +78,7 @@ describe('Ion', () => {
         Ion.set(TEST_KEY, 'test');
     });
 
-    it('Can merge an object with another object', (done) => {
+    it('should merge an object with another object', (done) => {
         const mockCallback = jest.fn();
         connectionID = Ion.connect({
             key: TEST_KEY,
@@ -73,7 +109,7 @@ describe('Ion', () => {
         Ion.merge(TEST_KEY, {test2: 'test2'});
     });
 
-    it('Notifies subscribers when data has been cleared', (done) => {
+    it('should notify subscribers when data has been cleared', (done) => {
         const mockCallback = jest.fn();
         connectionID = Ion.connect({
             key: TEST_KEY,
@@ -99,7 +135,7 @@ describe('Ion', () => {
         Ion.clear();
     });
 
-    it('Does not notify subscribers after they have disconnected', (done) => {
+    it('should not notify subscribers after they have disconnected', (done) => {
         const mockCallback = jest.fn();
         connectionID = Ion.connect({
             key: TEST_KEY,
@@ -125,7 +161,7 @@ describe('Ion', () => {
             });
     });
 
-    it('Merges arrays by appending new items to the end of a value', (done) => {
+    it('should merge arrays by appending new items to the end of a value', (done) => {
         const mockCallback = jest.fn();
         connectionID = Ion.connect({
             key: TEST_KEY,
