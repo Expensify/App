@@ -5,6 +5,7 @@ import {
     StatusBar,
     TouchableOpacity,
     TextInput,
+    Button,
     Image,
     View,
     ActivityIndicator,
@@ -20,6 +21,8 @@ import IONKEYS from '../IONKEYS';
 import withIon from '../components/withIon';
 import styles, {colors} from '../styles/StyleSheet';
 import logo from '../../assets/images/expensify-logo_reversed.png';
+
+import Tooltip from '../components/Tooltip';
 
 const propTypes = {
     // These are from withRouter
@@ -147,6 +150,13 @@ class App extends Component {
                                 </Text>
                             )}
                         </View>
+                        <Tooltip textContent="Tooltip!">
+                            <Button
+                                onPress={() => {}}
+                                title="Hover me!"
+                                color={colors.buttonBG}
+                            />
+                        </Tooltip>
                     </View>
                 </SafeAreaView>
             </>

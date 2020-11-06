@@ -53,7 +53,7 @@
     "react-native-keyboard-spacer": "^0.4.1",
     "react-native-render-html": "^4.2.3",
     "react-native-safe-area-context": "^3.1.4",
-    "react-native-web": "^0.13.5",
+    "react-native-web": "^0.14.7",
     "react-native-webview": "^10.6.0",
     "react-router-dom": "^5.2.0",
     "react-router-native": "^5.2.0",
