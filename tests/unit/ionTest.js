@@ -14,26 +14,57 @@ Ion.init({
 });
 
 describe('Ion', () => {
-    it('Can set a key', (done) => {
-        const mockCallback = jest.fn();
+    let connectionID;
 
-        Ion.connect({
+    afterEach((done) => {
+        Ion.disconnect(connectionID);
+        Ion.clear().then(done);
+    });
+
+    it('Can set a simple key', (done) => {
+        const mockCallback = jest.fn();
+        connectionID = Ion.connect({
             key: TEST_KEY,
+            initWithStoredValues: false,
             callback: (value) => {
                 mockCallback(value);
 
                 try {
-                    // Test that the initial value from connecting
-                    // will be null since the key does not yet exist
+                    expect(value).toBe('test');
+                    done();
+                } catch (error) {
+                    done(error);
+                }
+            }
+        });
+
+        // Set a simple key
+        Ion.set(TEST_KEY, 'test');
+    });
+
+    it('Can merge an object with another object', (done) => {
+        const mockCallback = jest.fn();
+        connectionID = Ion.connect({
+            key: TEST_KEY,
+            initWithStoredValues: false,
+            callback: (value) => {
+                mockCallback(value);
+
+                try {
+                    // Test that setting the value will trigger
+                    // the callback with the correct data
                     if (mockCallback.mock.calls.length === 1) {
-                        expect(value).toBe(null);
+                        expect(value).toStrictEqual({
+                            test1: 'test1',
+                        });
                         return;
                     }
 
-                    // Test that setting the value will trigger
-                    // the callback with the correct data
                     if (mockCallback.mock.calls.length === 2) {
-                        expect(value).toBe('test');
+                        expect(value).toStrictEqual({
+                            test1: 'test1',
+                            test2: 'test2',
+                        });
                         done();
                     }
                 } catch (error) {
@@ -42,6 +73,7 @@ describe('Ion', () => {
             }
         });
 
-        Ion.set(TEST_KEY, 'test');
+        Ion.set(TEST_KEY, {test1: 'test1'});
+        Ion.merge(TEST_KEY, {test2: 'test2'});
     });
 });
