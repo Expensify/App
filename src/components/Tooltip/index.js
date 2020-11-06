@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {
-    Modal, Pressable, Text, View
+    Animated, Pressable, Text, View
 } from 'react-native';
 
 import Triangle from './Triangle';
@@ -15,6 +15,13 @@ class Tooltip extends React.Component {
     constructor(props) {
         super(props);
 
+        this.state = {
+            tooltipShown: false,
+            isAnimating: false,
+        };
+
+        this.animation = new Animated.Value(0);
+
         // The outermost view rendered by this component
         this.renderedContent = null;
         this.wrappedElementWidth = 0;
@@ -25,6 +32,9 @@ class Tooltip extends React.Component {
 
         // The distance between the top of the rendered view and the top of the window
         this.yOffset = 0;
+
+        this.getPosition = this.getPosition.bind(this);
+        this.toggleTooltip = this.toggleTooltip.bind(this);
     }
 
     getPosition() {
@@ -33,6 +43,15 @@ class Tooltip extends React.Component {
             this.yOffset = y;
             this.wrappedElementWidth = width;
             this.wrappedElementHeight = height;
+        });
+    }
+
+    toggleTooltip() {
+        Animated.timing(this.animation, {
+            toValue: this.state.tooltipShown ? 0 : 1,
+            duration: 200,
+        }).start(() => {
+            this.setState(prevState => ({tooltipShown: !prevState.tooltipShown}));
         });
     }
 
@@ -50,6 +69,10 @@ class Tooltip extends React.Component {
             this.yOffset,
             toolTipStyle.top,
         );
+        const interpolatedSize = this.animation.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0, 1],
+        });
 
         return (
             <View
@@ -58,24 +81,21 @@ class Tooltip extends React.Component {
                 collapsable={false}
             >
                 <Pressable>
-                    {({hovered}) => (
-                        <View>
-                            {this.props.children}
-                            <Modal
-                                animationType="fade"
-                                visible={hovered}
-                                transparent
-                            >
-                                <View style={pointerWrapperViewStyle}>
-                                    <Triangle isPointingDown={shouldPointDown} />
-                                </View>
-                                <View style={toolTipStyle}>
-                                    <Text style={styles.tooltipText}>{this.props.textContent}</Text>
-                                </View>
-                            </Modal>
-                        </View>
-                    )}
+                    {({hovered}) => {
+                        if (!this.state.isAnimating && this.state.tooltipShown !== hovered) {
+                            this.toggleTooltip();
+                        }
+                        return (this.props.children);
+                    }}
                 </Pressable>
+                <Animated.View style={{transform: [{scale: interpolatedSize}]}}>
+                    <View style={pointerWrapperViewStyle}>
+                        <Triangle isPointingDown={shouldPointDown} />
+                    </View>
+                    <View style={toolTipStyle}>
+                        <Text style={styles.tooltipText}>{this.props.textContent}</Text>
+                    </View>
+                </Animated.View>
             </View>
         );
     }

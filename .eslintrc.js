@@ -3,6 +3,7 @@ module.exports = {
     parser: 'babel-eslint',
     rules: {
         'react/jsx-filename-extension': [1, {extensions: ['.js']}],
+        'react/prop-types': [2, {ignore: ['children']}],
     },
     env: {
         jest: true
