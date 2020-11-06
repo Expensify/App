@@ -15,7 +15,17 @@ function show() {
     Ion.set(IONKEYS.IS_SIDEBAR_SHOWN, true);
 }
 
+/**
+ * Tracks the animating state of the Sidebar.
+ *
+ * @param {Boolean} isAnimating
+ */
+function setIsAnimating(isAnimating) {
+    Ion.set(IONKEYS.IS_SIDEBAR_ANIMATING, isAnimating);
+}
+
 export {
     hide,
     show,
+    setIsAnimating,
 };
