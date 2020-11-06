@@ -85,7 +85,7 @@ describe('Ion', () => {
 
                 try {
                     if (mockCallback.mock.calls.length === 1) {
-                        expect(value).toBe('test')
+                        expect(value).toBe('test');
                         return;
                     }
 
@@ -110,11 +110,7 @@ describe('Ion', () => {
             initWithStoredValues: false,
             callback: (value) => {
                 mockCallback(value);
-
-                if (mockCallback.mock.calls.length === 1) {
-                    expect(value).toBe('test')
-                    return;
-                }
+                expect(value).toBe('test');
             }
         });
 
