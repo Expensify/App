@@ -1,11 +1,5 @@
 import 'react-native';
-import {View, Text} from 'react-native';
-import {render} from '@testing-library/react-native';
-const waitForPromisesToResolve = () => new Promise(setImmediate);
-
-import React from 'react';
 import Ion from '../../src/libs/Ion';
-import withIon from '../../src/components/withIon';
 
 const TEST_KEY = 'test';
 
@@ -18,35 +12,6 @@ Ion.init({
         TEST_KEY,
         COLLECTION: {},
     },
-});
-
-describe('withIon', () => {
-    it('should render with the test data when using withIon', () => {
-        let result;
-
-        Ion.set(TEST_KEY, 'test1')
-            .then(() => {
-                const TestComponent = (props) => {
-                    return (
-                        <View>
-                            <Text>{props.test}</Text>
-                        </View>
-                    );
-                };
-
-                const TestComponentWithIon = withIon({
-                    test: {
-                        key: TEST_KEY,
-                    },
-                })(TestComponent);
-                result = render(<TestComponentWithIon />);
-                return waitForPromisesToResolve();
-            })
-                .then(() => {
-                    const textComponent = result.getByText('test1');
-                    expect(textComponent).toBeTruthy();
-                });
-    });
 });
 
 describe('Ion', () => {
