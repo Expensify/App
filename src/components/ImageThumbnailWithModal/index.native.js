@@ -11,7 +11,7 @@ import BaseModal from '../BaseModal';
 
 /**
  * Image modal component that is triggered when pressing on an image
- * On web, we indicate that the modal isn't pinned to edges with props to BaseModal
+ * On native, we indicate that the modal is fullscreen with props to BaseModal
  */
 
 const propTypes = {
@@ -27,7 +27,7 @@ const defaultProps = {
     sourceURL: '',
 };
 
-class ModalWithImage extends React.Component {
+class ImageThumbnailWithModal extends React.Component {
     constructor(props) {
         super(props);
 
@@ -43,7 +43,7 @@ class ModalWithImage extends React.Component {
     componentDidMount() {
         // Scale image for modal view
         Image.getSize(this.props.sourceURL, (width, height) => {
-            const screenWidth = Dimensions.get('window').width * 0.6;
+            const screenWidth = Dimensions.get('window').width;
             const scaleFactor = width / screenWidth;
             const imageHeight = height / scaleFactor;
             this.setState({imgWidth: screenWidth, imgHeight: imageHeight});
@@ -51,7 +51,7 @@ class ModalWithImage extends React.Component {
 
         // Scale image for thumbnail preview
         Image.getSize(this.props.previewSourceURL, (width, height) => {
-            const screenWidth = 300;
+            const screenWidth = 200;
             const scaleFactor = width / screenWidth;
             const imageHeight = height / scaleFactor;
             this.setState({thumbnailWidth: screenWidth, thumbnailHeight: imageHeight});
@@ -67,7 +67,6 @@ class ModalWithImage extends React.Component {
         this.setState({visible: visibility});
     }
 
-
     render() {
         return (
             <>
@@ -79,7 +78,7 @@ class ModalWithImage extends React.Component {
                 </TouchableOpacity>
 
                 <BaseModal
-                    pinToEdges={false}
+                    pinToEdges
                     title="Attachment"
                     visible={this.state.visible}
                     setModalVisiblity={this.setModalVisiblity}
@@ -92,7 +91,7 @@ class ModalWithImage extends React.Component {
                     ) : (
                         <ImageView
                             imageWidth={this.state.imgWidth}
-                            imageHeight={this.state.imgHeight}
+                            imageHeight={this.state.imgHeight + 87}
                             sourceURL={this.props.sourceURL}
                         />
                     )}
@@ -102,7 +101,7 @@ class ModalWithImage extends React.Component {
     }
 }
 
-ModalWithImage.propTypes = propTypes;
-ModalWithImage.defaultProps = defaultProps;
+ImageThumbnailWithModal.propTypes = propTypes;
+ImageThumbnailWithModal.defaultProps = defaultProps;
 
-export default ModalWithImage;
+export default ImageThumbnailWithModal;
