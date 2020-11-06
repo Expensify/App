@@ -10,9 +10,9 @@ import IONKEYS from '../../../IONKEYS';
 import ReportActionItem from './ReportActionItem';
 import styles from '../../../styles/StyleSheet';
 import ReportActionPropTypes from './ReportActionPropTypes';
-import InvertedFlatList from '../../../components/InvertedFlatList';
 import {lastItem} from '../../../libs/CollectionUtils';
 import Visibility from '../../../libs/Visibility';
+import InvertedChatList from '../../../components/InvertedChatList';
 
 const propTypes = {
     // The ID of the report actions will be created for
@@ -99,6 +99,7 @@ class ReportActionsView extends React.Component {
                 this.setRefetchNeeded(false);
             }
 
+            this.scrollToListBottom();
             this.recordMaxAction();
             this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
         }
@@ -131,37 +132,7 @@ class ReportActionsView extends React.Component {
             .sortBy('sequenceNumber')
             .filter(action => action.actionName === 'ADDCOMMENT')
             .map((item, index) => ({action: item, index}))
-            .value()
-            .reverse();
-    }
-
-    /**
-     * Returns true when the report action immediately before the
-     * specified index is a comment made by the same actor who who
-     * is leaving a comment in the action at the specified index.
-     * Also checks to ensure that the comment is not too old to
-     * be considered part of the same comment
-     *
-     * @param {Number} actionIndex - index of the comment item in state to check
-     *
-     * @return {Boolean}
-     */
-    isConsecutiveActionMadeByPreviousActor(actionIndex) {
-        const previousAction = this.sortedReportActions[actionIndex + 1];
-        const currentAction = this.sortedReportActions[actionIndex];
-
-        // It's OK for there to be no previous action, and in that case, false will be returned
-        // so that the comment isn't grouped
-        if (!currentAction || !previousAction) {
-            return false;
-        }
-
-        // Comments are only grouped if they happen within 5 minutes of each other
-        if (currentAction.action.timestamp - previousAction.action.timestamp > 300) {
-            return false;
-        }
-
-        return currentAction.action.actorEmail === previousAction.action.actorEmail;
+            .value();
     }
 
     /**
@@ -198,24 +169,17 @@ class ReportActionsView extends React.Component {
      *
      * @param {Object} args
      * @param {Object} args.item
-     * @param {Number} args.index
-     * @param {Function} args.onLayout
-     * @param {Boolean} args.needsLayoutCalculation
      *
      * @returns {React.Component}
      */
     renderItem({
         item,
-        index,
-        onLayout,
-        needsLayoutCalculation
+        displayAsGroup,
     }) {
         return (
             <ReportActionItem
                 action={item.action}
-                displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
-                onLayout={onLayout}
-                needsLayoutCalculation={needsLayoutCalculation}
+                displayAsGroup={displayAsGroup}
             />
         );
     }
@@ -237,11 +201,12 @@ class ReportActionsView extends React.Component {
 
         this.updateSortedReportActions();
         return (
-            <InvertedFlatList
+            <InvertedChatList
+                // Cross-platform style take care if modifying this
+                contentContainerStyle={[styles.invertedChatListContainerStyle]}
                 ref={el => this.actionListElement = el}
                 data={this.sortedReportActions}
                 renderItem={this.renderItem}
-                contentContainerStyle={[styles.chatContentScrollView]}
                 keyExtractor={item => `${item.action.sequenceNumber}`}
                 initialRowHeight={32}
             />

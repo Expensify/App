@@ -1,6 +1,7 @@
 // We place items a percentage to the safe area on the top or bottom of the screen
 import fontFamily from './fontFamily';
 import italic from './italic';
+import invertedChatListContainerStyle from './invertedChatListContainerStyle';
 
 const safeInsertPercentage = 0.7;
 
@@ -571,11 +572,7 @@ const styles = {
         justifyContent: 'flex-end',
     },
 
-    chatContentScrollView: {
-        flexGrow: 1,
-        justifyContent: 'flex-start',
-        paddingVertical: 16,
-    },
+    invertedChatListContainerStyle,
 
     chatContentEmpty: {
         paddingTop: 16,
