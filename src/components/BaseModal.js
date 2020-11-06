@@ -17,104 +17,98 @@ const propTypes = {
     // Title of the modal
     title: PropTypes.string,
 
+    // Visibility of modal
+    visible: PropTypes.bool,
+
+    // Width of the modal
+    modalWidth: PropTypes.number,
+
+    // Height of the modal
+    modalHeight: PropTypes.number,
+
+    // Method passed down to update visibility of the modal
+    setModalVisiblity: PropTypes.func.isRequired,
+
     // Children of modal component
     children: PropTypes.func.isRequired,
-
 };
 
 const defaultProps = {
     pinToEdges: true,
     title: 'Attachment',
-    visible: 'false',
+    visible: false,
+    modalWidth: Dimensions.get('window').width * 0.8,
+    modalHeight: Dimensions.get('window').height * 0.8,
 };
 
-class BaseModal extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            visible: false,
-        };
-    }
-
-    /**
-     * Updates the visibility of the modal
-     *
-     * @param {Boolean} visibility
-     */
-    setModalVisiblity(visibility) {
-        this.setState({visible: visibility});
-    }
-
-    render() {
-        // Generate height/width for modal
-        const modalWidth = Dimensions.get('window').width * 0.8;
-        const modalHeight = Dimensions.get('window').height * 0.8;
-
-        const ModalHeader = (
-            <View style={styles.imageModalHeader}>
-                <View style={[
-                    styles.dFlex,
-                    styles.flexRow,
-                    styles.alignItemsCenter,
-                    styles.flexGrow1,
-                    styles.flexJustifySpaceBetween,
-                    styles.overflowHidden
-                ]}
-                >
-                    <View>
-                        <Text numberOfLines={1} style={[styles.navText]}>{this.props.title}</Text>
-                    </View>
-                    <View style={[styles.reportOptions, styles.flexRow]}>
-                        <TouchableOpacity
-                            onPress={() => this.setModalVisiblity(false)}
-                            style={[styles.touchableButtonImage, styles.mr0]}
-                        >
-                            <Image
-                                resizeMode="contain"
-                                style={[styles.LHNToggleIcon]}
-                                source={exitIcon}
-                            />
-                        </TouchableOpacity>
-                    </View>
+function BaseModal(props) {
+    const ModalHeader = (
+        <View style={styles.imageModalHeader}>
+            <View style={[
+                styles.dFlex,
+                styles.flexRow,
+                styles.alignItemsCenter,
+                styles.flexGrow1,
+                styles.flexJustifySpaceBetween,
+                styles.overflowHidden
+            ]}
+            >
+                <View>
+                    <Text numberOfLines={1} style={[styles.navText]}>{props.title}</Text>
+                </View>
+                <View style={[styles.reportOptions, styles.flexRow]}>
+                    <TouchableOpacity
+                        onPress={() => props.setModalVisiblity(false)}
+                        style={[styles.touchableButtonImage, styles.mr0]}
+                    >
+                        <Image
+                            resizeMode="contain"
+                            style={[styles.LHNToggleIcon]}
+                            source={exitIcon}
+                        />
+                    </TouchableOpacity>
                 </View>
             </View>
-        );
+        </View>
+    );
 
-        return (
-            <>
-                <Modal
-                    onRequestClose={() => this.setModalVisiblity(false)}
-                    visible={this.state.visible}
-                    transparent
+    return (
+        <Modal
+            onRequestClose={() => props.setModalVisiblity(false)}
+            visible={props.visible}
+            transparent
+        >
+            {(props.pinToEdges) ? (
+                <View style={styles.imageModalContainer}>
+                    {ModalHeader}
+                    <View style={styles.imageModalImageCenterContainer}>
+                        {props.children}
+                    </View>
+                </View>
+            ) : (
+                <TouchableOpacity
+                    style={styles.imageModalCenterContainer}
+                    activeOpacity={1}
+                    onPress={() => props.setModalVisiblity(false)}
                 >
-                    {(this.props.pinToEdges) ? (
-                        <View style={styles.imageModalContainer}>
+                    <TouchableWithoutFeedback style={{cursor: 'none'}}>
+                        <View
+                            style={{
+                                ...styles.imageModalContainer,
+                                width: props.modalWidth,
+                                height: props.modalHeight
+                            }}
+                        >
                             {ModalHeader}
                             <View style={styles.imageModalImageCenterContainer}>
-                                {this.props.children}
+                                {props.children}
                             </View>
                         </View>
-                    ) : (
-                        <TouchableOpacity
-                            style={styles.imageModalCenterContainer}
-                            activeOpacity={1}
-                            onPress={() => this.setModalVisiblity(false)}
-                        >
-                            <TouchableWithoutFeedback style={{cursor: 'none'}}>
-                                <View style={{...styles.imageModalContainer, width: modalWidth, height: modalHeight}}>
-                                    {ModalHeader}
-                                    <View style={styles.imageModalImageCenterContainer}>
-                                        {this.props.children}
-                                    </View>
-                                </View>
-                            </TouchableWithoutFeedback>
-                        </TouchableOpacity>
-                    )}
-                </Modal>
-            </>
-        );
-    }
+                    </TouchableWithoutFeedback>
+                </TouchableOpacity>
+            )}
+        </Modal>
+    );
 }
 
 BaseModal.propTypes = propTypes;

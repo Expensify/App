@@ -1,8 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
 import {WebView} from 'react-native-webview';
-import styles from '../../styles/StyleSheet';
 import CONST from '../../CONST';
 
 /**
