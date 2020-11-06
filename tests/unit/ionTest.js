@@ -14,7 +14,7 @@ Ion.init({
 });
 
 describe('Ion', () => {
-    it('Can set a key', done => {
+    it('Can set a key', (done) => {
         const mockCallback = jest.fn();
 
         Ion.connect({
@@ -23,11 +23,15 @@ describe('Ion', () => {
                 mockCallback(value);
 
                 try {
+                    // Test that the initial value from connecting
+                    // will be null since the key does not yet exist
                     if (mockCallback.mock.calls.length === 1) {
                         expect(value).toBe(null);
                         return;
                     }
 
+                    // Test that setting the value will trigger
+                    // the callback with the correct data
                     if (mockCallback.mock.calls.length === 2) {
                         expect(value).toBe('test');
                         done();
