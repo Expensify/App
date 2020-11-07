@@ -157,6 +157,31 @@ class App extends Component {
                                 color={colors.buttonBG}
                             />
                         </Tooltip>
+                        <br></br>
+                        <br></br>
+                        <br></br>
+                        <br></br>
+                        <br></br>
+                        <br></br>
+                        <br></br>
+                        <br></br>
+                        <br></br>
+                        <br></br>
+                        <br></br>
+                        <br></br>
+                        <br></br>
+                        <br></br>
+                        <br></br>
+                        <br></br>
+                        <br></br>
+                        <br></br>
+                        <Tooltip textContent="Tooltip!">
+                            <Button
+                                onPress={() => {}}
+                                title="Hover me!"
+                                color={colors.buttonBG}
+                            />
+                        </Tooltip>
                     </View>
                 </SafeAreaView>
             </>

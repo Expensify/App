@@ -15,42 +15,34 @@ import {Dimensions} from 'react-native';
  * @param {number} xOffset The distance between the left side of the screen and the left side of the component.
  * @param {number} yOffset The distance between the top of the screen and the top of the component.
  *
- * @returns {object}
+ * @returns {object} Returns coordinates for the top left corner of the tooltip RELATIVE to the element being hovered.
  */
 export default function (componentWidth, componentHeight, xOffset, yOffset) {
-    const windowWidth = Dimensions.get('window').width;
-    const windowHeight = Dimensions.get('window').height;
+    const windowWidth = Dimensions.get('screen').width;
+    const windowHeight = Dimensions.get('screen').height;
 
-    const centerX = xOffset + (componentWidth / 2);
-    const centerY = yOffset + (componentHeight / 2);
+
+    const centerX = (componentWidth / 2);
+    const centerY = (componentHeight / 2);
 
     let gutter = '';
-    let inBottom = false;
+    let inBottom = yOffset > (windowHeight / 2);
     let tooltipX = centerX;
-    let tooltipY;
+    let tooltipY = inBottom ? componentHeight + 15 : 15;
 
     // Determine if we're in a danger gutter
     // Left Gutter
     if(centerX < 75 ) {
         // letting 10 be the buffer distance between the element and the tooltip
         gutter = 'left';
-        tooltipX = xOffset + componentWidth + 10;
+        tooltipX = componentWidth + 3;
     }
     // Right Gutter
     if (windowWidth - centerX < 75) {
         gutter = 'right';
-        tooltipX = xOffset - 10;
+        tooltipX = - 3;
     }
-
-    // Determine if we're top or bottom of screen
-    // Top Half
-    if (centerY < (windowHeight/2)) {
-        tooltipY = gutter ? yOffset : yOffset + componentHeight + 10;
-    } else {
-        // Bottom Half
-        tooltipY = gutter ? yOffset + componentHeight : yOffset - 10;
-        inBottom = true;
-    }
+    
     console.log(`tooltipX: ${tooltipX}, tooltipY: ${tooltipY}, gutter: ${gutter}, inBottom: ${inBottom}`);
-    return [tooltipX, tooltipY, gutter, inBottom]
+    return [tooltipX, tooltipY, gutter, inBottom];
 }
