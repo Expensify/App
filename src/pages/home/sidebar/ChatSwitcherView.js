@@ -216,7 +216,7 @@ class ChatSwitcherView extends React.Component {
     reset(blurAfterReset = true) {
         this.setState({
             search: '',
-            options: this.getRecentVisitedOptions(),
+            options: this.getRecentVisitedOptions(true),
             focusedIndex: 0,
             isLogoVisible: blurAfterReset,
             isClearButtonVisible: !blurAfterReset,
@@ -229,22 +229,27 @@ class ChatSwitcherView extends React.Component {
         });
     }
 
-    getRecentVisitedOptions() {
+    getRecentVisitedOptions(getMaxSearchResults = true) {
         const sortByLastVisited = lodashOrderby(this.props.reports, ['lastVisited'], ['desc']);
-        const recentReports = sortByLastVisited.slice(0, this.maxSearchResults);
+        const recentReports = getMaxSearchResults ? sortByLastVisited.slice(0, this.maxSearchResults) : sortByLastVisited;
         return _.chain(recentReports)
             .values()
             .reject(report => !report.lastVisited)
-            .map(report => ({
-                text: report.reportName,
-                alternateText: report.reportName,
-                searchText: report.reportName,
-                reportID: report.reportID,
-                participants: report.participants,
-                icons: report.icons,
-                login: report.participants.length === 1 ? report.participants[0] : '',
-                type: report.participants.length === 1 ? OPTION_TYPE.USER : OPTION_TYPE.REPORT,
-            }))
+            .map(report => {
+                const isSingleUserPrivateDMReport = report.participants.length === 1;
+                const login = isSingleUserPrivateDMReport ? report.participants[0] : '';
+                return {
+                    text: report.reportName,
+                    alternateText: report.reportName,
+                    searchText: report.reportName === login ? login
+                        : `${report.reportName} ${login}`,
+                    reportID: report.reportID,
+                    participants: report.participants,
+                    icons: report.icons,
+                    login,
+                    type: report.participants.length === 1 ? OPTION_TYPE.USER : OPTION_TYPE.REPORT,
+                };
+            })
             .value();
     }
 
@@ -254,11 +259,14 @@ class ChatSwitcherView extends React.Component {
      */
     triggerOnFocusCallback() {
         this.props.onFocus();
-        this.setState({
-            options: this.getRecentVisitedOptions(),
+        const params = {
             isLogoVisible: false,
             isClearButtonVisible: true,
-        });
+        }
+        if (this.state.search === '') {
+            params.options = this.getRecentVisitedOptions(true);
+        }
+        this.setState(params);
     }
 
     /**
@@ -337,24 +345,17 @@ class ChatSwitcherView extends React.Component {
 
         this.setState({search: value});
 
-        // Search our full list of options. We want:
-        // 1) Exact matches first
-        // 2) beginning-of-string matches second
-        // 3) middle-of-string matches last
-        const matchRegexes = [
-            new RegExp(`^${Str.escapeForRegExp(value)}$`, 'i'),
-            new RegExp(`^${Str.escapeForRegExp(value)}`, 'i'),
-            new RegExp(Str.escapeForRegExp(value), 'i'),
-        ];
-
         // Because we want to regexes above to be listed in a specific order, the for loop below will end up adding
         // duplicate options to the list (because one option can match multiple regex patterns).
         // A Set is used here so that duplicate values are automatically removed.
         const matches = new Set();
 
+        const recentlyVisitedOptions = this.getRecentVisitedOptions(false);
+
         // Get a list of all users we can send messages to and make their details generic
         const personalDetailOptions = _.chain(this.props.personalDetails)
             .values()
+            .reject(personalDetail => _.findWhere(recentlyVisitedOptions, {login: personalDetail.login}))
             .map(personalDetail => ({
                 text: personalDetail.displayName,
                 alternateText: personalDetail.login,
@@ -366,54 +367,26 @@ class ChatSwitcherView extends React.Component {
             }))
             .value();
 
-        // Get a list of all reports we can send messages to
-        const reportOptions = _.chain(this.props.reports)
-            .values()
-            .map(report => ({
-                text: report.reportName,
-                alternateText: report.reportName,
-                searchText: report.reportName,
-                reportID: report.reportID,
-                type: OPTION_TYPE.REPORT,
-                participants: report.participants,
-                icons: report.icons,
-            }))
-            .value();
+        const searchOptions = _.union(recentlyVisitedOptions, personalDetailOptions)
+        const userEnteredText = value.toLowerCase();
 
-        // If we have at least one group user then stop showing
-        // report options as we cannot add a report to a group DM
-        const searchOptions = this.state.groupUsers.length === 0
-            ? _.union(personalDetailOptions, reportOptions)
-            : personalDetailOptions;
+        for (let i = 0; i < searchOptions.length; i++) {
+            const option = searchOptions[i];
+            const optionSearchText = option.searchText.toLowerCase();
+            const isMatch = optionSearchText.includes(userEnteredText);
 
-        for (let i = 0; i < matchRegexes.length; i++) {
-            if (matches.size < this.maxSearchResults) {
-                for (let j = 0; j < searchOptions.length; j++) {
-                    const option = searchOptions[j];
-                    const valueToSearch = option.searchText.replace(new RegExp(/&nbsp;/g), '');
-                    const isMatch = matchRegexes[i].test(valueToSearch);
+            // We must also filter out any users who are already in the Group DM list
+            // so they can't be selected more than once
+            const isInGroupUsers = _.some(this.state.groupUsers, groupOption => (
+                groupOption.login === option.login
+            ));
 
-                    // We want to avoid adding single user private DM reports
-                    // since we will prefer to show the user UI over the report name
-                    const isSingleUserPrivateDMReport = option.participants
-                        && option.participants.length === 1;
+            // Make sure we don't include the same option twice (automatically handled be using a `Set`)
+            if (isMatch && !isInGroupUsers) {
+                matches.add(option);
+            }
 
-                    // We must also filter out any users who are already in the Group DM list
-                    // so they can't be selected more than once
-                    const isInGroupUsers = _.some(this.state.groupUsers, groupOption => (
-                        groupOption.login === option.login
-                    ));
-
-                    // Make sure we don't include the same option twice (automatically handled be using a `Set`)
-                    if (isMatch && !isSingleUserPrivateDMReport && !isInGroupUsers) {
-                        matches.add(option);
-                    }
-
-                    if (matches.size === this.maxSearchResults) {
-                        break;
-                    }
-                }
-            } else {
+            if (matches.size === this.maxSearchResults) {
                 break;
             }
         }
@@ -431,11 +404,6 @@ class ChatSwitcherView extends React.Component {
                     isClearButtonVisible={this.state.isClearButtonVisible}
                     isLogoVisible={this.state.isLogoVisible}
                     searchValue={this.state.search}
-                    onBlur={() => {
-                        if (this.state.search === '') {
-                            this.reset();
-                        }
-                    }}
                     onChangeText={this.updateSearch}
                     onClearButtonClick={this.reset}
                     onFocus={this.triggerOnFocusCallback}

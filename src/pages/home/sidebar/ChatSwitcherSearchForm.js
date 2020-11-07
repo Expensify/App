@@ -28,9 +28,6 @@ const propTypes = {
     // The current value of the search input
     searchValue: PropTypes.string.isRequired,
 
-    // A function to call when the input has been blurred
-    onBlur: PropTypes.func.isRequired,
-
     // A function to call when the text has changed in the input
     onChangeText: PropTypes.func.isRequired,
 
@@ -141,7 +138,7 @@ const ChatSwitcherSearchForm = props => (
                     ref={props.forwardedRef}
                     style={[styles.textInput, styles.textInputReversed, styles.flex1]}
                     value={props.searchValue}
-                    onBlur={props.onBlur}
+                    onBlur={() => {}}
                     onChangeText={props.onChangeText}
                     onFocus={props.onFocus}
                     onKeyPress={props.onKeyPress}
