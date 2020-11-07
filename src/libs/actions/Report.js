@@ -187,7 +187,6 @@ function fetchChatReportsByIDs(chatList) {
                         // Let's save report icons based on the the personalDetails of the participants
                         _.each(simplifiedReports, (report) => {
                             const avatars = _.chain(report.participants)
-                                .filter(participant => participant.email !== currentUserEmail)
                                 .map(participant => lodashGet(details, [participant, 'avatar']))
                                 .compact()
                                 .value();
@@ -214,7 +213,7 @@ function fetchChatReportsByIDs(chatList) {
 function setLocalLastReadActionID(reportID, sequenceNumber) {
     lastReadActionIDs[reportID] = sequenceNumber;
 
-    // Update the lastReadActionID on the report optimisticallys
+    // Update the lastReadActionID on the report optimistically
     Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {
         unreadActionCount: 0,
         lastVisited: Date.now(),
