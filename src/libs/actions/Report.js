@@ -56,9 +56,6 @@ const reportMaxSequenceNumbers = {};
 // Keeps track of the last read for each report
 const lastReadActionIDs = {};
 
-// List of reportIDs pinned by the user
-let pinnedReportIDs = [];
-
 /**
  * Checks the report to see if there are any unread action items
  *
@@ -113,9 +110,9 @@ function getSimplifiedReportObject(report) {
         reportName: report.reportName,
         reportNameValuePairs: report.reportNameValuePairs,
         unreadActionCount: getUnreadActionCount(report),
-        isPinned: pinnedReportIDs.includes(report.reportID),
         maxSequenceNumber: report.reportActionList.length,
         participants: getParticipantEmailsFromReport(report),
+        isPinned: report.isPinned,
     };
 }
 
@@ -147,6 +144,7 @@ function fetchChatReportsByIDs(chatList) {
         returnValueList: 'reportStuff',
         reportIDList: chatList.join(','),
         shouldLoadOptionalKeys: true,
+        includePinnedReports: true,
     })
         .then(({reports}) => {
             fetchedReports = reports;
@@ -180,6 +178,24 @@ function fetchChatReportsByIDs(chatList) {
 }
 
 /**
+ * Update the lastReadActionID in Ion and local memory.
+ *
+ * @param {Number} reportID
+ * @param {Number} sequenceNumber
+ */
+function setLocalLastReadActionID(reportID, sequenceNumber) {
+    lastReadActionIDs[reportID] = sequenceNumber;
+
+    // Update the lastReadActionID on the report optimistically
+    Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {
+        unreadActionCount: 0,
+        reportNameValuePairs: {
+            [`lastReadActionID_${currentUserAccountID}`]: sequenceNumber,
+        }
+    });
+}
+
+/**
  * Updates a report in the store with a new report action
  * from incoming Pusher or Airship event payload
  *
@@ -188,6 +204,14 @@ function fetchChatReportsByIDs(chatList) {
  */
 function updateReportWithNewAction(reportID, reportAction) {
     const newMaxSequenceNumber = reportAction.sequenceNumber;
+    const isFromCurrentUser = reportAction.actorAccountID === currentUserAccountID;
+
+    // When handling an action from the current users we can assume that their
+    // last read actionID has been updated in the server but not necessarily reflected
+    // locally so we must first update it and then calculate the unread (which should be 0)
+    if (isFromCurrentUser) {
+        setLocalLastReadActionID(reportID, newMaxSequenceNumber);
+    }
 
     // Always merge the reportID into Ion
     // If the report doesn't exist in Ion yet, then all the rest of the data will be filled out
@@ -200,29 +224,26 @@ function updateReportWithNewAction(reportID, reportAction) {
 
     const actionKey = `${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
 
-    const mergeAction = () => {
-        // Add the action into Ion
-        const messageText = lodashGet(reportAction, ['message', 0, 'text'], '');
-        Ion.merge(actionKey, {
-            [reportAction.sequenceNumber]: {
-                ...reportAction,
-                isAttachment: messageText === '[Attachment]',
-                loading: false,
-            },
-        });
-    };
-
     // Check the reportAction for the clientGUID and make sure the sequenceNumber
     // for this action matches correctly with the one we are expecting
     const clientGUID = reportAction.clientGUID;
     if (clientGUID) {
         // Delete this item from the report since we are about to replace it at the
         // correct action ID index
-        Ion.removeObjectKey(actionKey, clientGUID)
-            .then(mergeAction);
-    } else {
-        mergeAction();
+        Ion.merge(actionKey, {
+            [clientGUID]: null,
+        });
     }
+
+    // Add the action into Ion
+    const messageText = lodashGet(reportAction, ['message', 0, 'text'], '');
+    Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+        [reportAction.sequenceNumber]: {
+            ...reportAction,
+            isAttachment: messageText === '[Attachment]',
+            loading: false,
+        },
+    });
 
     if (!ActiveClientManager.isClientTheLeader()) {
         console.debug('[LOCAL_NOTIFICATION] Skipping notification because this client is not the leader');
@@ -230,7 +251,7 @@ function updateReportWithNewAction(reportID, reportAction) {
     }
 
     // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
-    if (reportAction.actorAccountID === currentUserAccountID) {
+    if (isFromCurrentUser) {
         console.debug('[LOCAL_NOTIFICATION] No notification because comment is from the currently logged in user');
         return;
     }
@@ -334,14 +355,14 @@ function subscribeToReportTypingEvents(reportID) {
  *
  * @param {number} reportID
  */
-function unsubscribeToReportTypingEvents(reportID) {
+function unsubscribeFromReportChannel(reportID) {
     if (!reportID) {
         return;
     }
 
     const pusherChannelName = getReportChannelName(reportID);
     Ion.set(`${IONKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, {});
-    Pusher.unsubscribe(pusherChannelName, 'client-userIsTyping');
+    Pusher.unsubscribe(pusherChannelName);
 }
 
 /**
@@ -524,15 +545,7 @@ function updateLastReadActionID(reportID, sequenceNumber) {
         return;
     }
 
-    lastReadActionIDs[reportID] = sequenceNumber;
-
-    // Update the lastReadActionID on the report optimistically
-    Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {
-        unreadActionCount: 0,
-        reportNameValuePairs: {
-            [`lastReadActionID_${currentUserAccountID}`]: sequenceNumber,
-        }
-    });
+    setLocalLastReadActionID(reportID, sequenceNumber);
 
     // Mark the report as not having any unread items
     API.setLastReadActionID({
@@ -543,46 +556,17 @@ function updateLastReadActionID(reportID, sequenceNumber) {
 }
 
 /**
- * Toggles the pinned state of the report and saves it into an NVP.
+ * Toggles the pinned state of the report
  *
- * @param {string} reportID
+ * @param {object} report
  */
-function togglePinnedState(reportID) {
-    const indexOfReportID = pinnedReportIDs.indexOf(reportID);
-    let isPinned;
-    if (indexOfReportID !== -1) {
-        isPinned = false;
-        pinnedReportIDs.splice(indexOfReportID, 1);
-    } else {
-        isPinned = true;
-        pinnedReportIDs.push(reportID);
-    }
-
-    API.setNameValuePair({
-        name: 'expensify_chat_pinnedReportIDs',
-        value: pinnedReportIDs.toString(),
-    })
-        .then(() => {
-            Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {
-                isPinned,
-            });
-        });
-}
-
-/**
- * Gets the pinned reportIDs from the users NVP and saves it into ION.
- *
- * @returns {Promise}
- */
-function fetchPinnedReportIDs() {
-    return API.get({
-        returnValueList: 'nameValuePairs',
-        name: 'expensify_chat_pinnedReportIDs',
-    })
-        .then((data) => {
-            const strReportIDs = lodashGet(data, 'nameValuePairs.expensify_chat_pinnedReportIDs', '').toString();
-            pinnedReportIDs = strReportIDs ? strReportIDs.split(',').map(Number) : [];
-        });
+function togglePinnedState(report) {
+    const pinnedValue = !report.isPinned;
+    Ion.merge(`${IONKEYS.COLLECTION.REPORT}${report.reportID}`, {isPinned: pinnedValue});
+    API.togglePinnedReport({
+        reportID: report.reportID,
+        pinnedValue,
+    });
 }
 
 /**
@@ -643,12 +627,11 @@ export {
     fetchAll,
     fetchActions,
     fetchOrCreateChatReport,
-    fetchPinnedReportIDs,
     addAction,
     updateLastReadActionID,
     subscribeToReportCommentEvents,
     subscribeToReportTypingEvents,
-    unsubscribeToReportTypingEvents,
+    unsubscribeFromReportChannel,
     saveReportComment,
     broadcastUserIsTyping,
     togglePinnedState,

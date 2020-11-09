@@ -54,6 +54,16 @@ Ion.connect({
 });
 
 /**
+ * Does this command require an authToken?
+ *
+ * @param {String} command
+ * @return {Boolean}
+ */
+function isAuthTokenRequired(command) {
+    return !_.contains(['Log'], command);
+}
+
+/**
  * Adds a request to networkRequestQueue
  *
  * @param {string} command
@@ -164,7 +174,7 @@ function request(command, parameters, type = 'post') {
     // If we end up here with no authToken it means we are trying to make
     // an API request before we are signed in. In this case, we should just
     // cancel this and all other requests and set reauthenticating to false.
-    if (!authToken) {
+    if (!authToken && isAuthTokenRequired(command)) {
         console.error('A request was made without an authToken', {command, parameters});
         reauthenticating = false;
         redirectToSignIn();
@@ -172,7 +182,7 @@ function request(command, parameters, type = 'post') {
     }
 
     // Add authToken automatically to all commands
-    const parametersWithAuthToken = {...parameters, ...{authToken}};
+    const parametersWithAuthToken = {...parameters, authToken};
 
     // Make the http request, and if we get 407 jsonCode in the response,
     // re-authenticate to get a fresh authToken and make the original http request again
@@ -483,6 +493,32 @@ function setNameValuePair(parameters) {
     });
 }
 
+/**
+ * @param {object} parameters
+ * @param {number} parameters.reportID
+ * @param {boolean} parameters.pinnedValue
+ * @returns {Promise}
+ */
+function togglePinnedReport(parameters) {
+    return queueRequest('Report_TogglePinned', {
+        authToken,
+        reportID: parameters.reportID,
+        pinnedValue: parameters.pinnedValue,
+    });
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.message
+ * @param {Object} parameters.parameters
+ * @param {String} parameters.expensifyCashAppVersion
+ * @param {String} [parameters.email]
+ * @returns {Promise}
+ */
+function logToServer(parameters) {
+    return queueRequest('Log', parameters);
+}
+
 export {
     authenticate,
     addReportComment,
@@ -494,4 +530,6 @@ export {
     getReportHistory,
     setLastReadActionID,
     setNameValuePair,
+    togglePinnedReport,
+    logToServer,
 };
