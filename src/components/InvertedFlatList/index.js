@@ -4,6 +4,7 @@ import React, {
     useCallback,
     forwardRef
 } from 'react';
+import {Text} from 'react-native';
 import PropTypes from 'prop-types';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
 
@@ -12,6 +13,8 @@ const propTypes = {
     innerRef: PropTypes.func.isRequired,
 };
 
+const COMMENT_SEPARATOR_STRING = 'mgoofgq42l';
+
 // This is copied from https://codesandbox.io/s/react-native-dsyse
 // It's a HACK alert since FlatList has inverted scrolling on web
 const InvertedFlatList = (props) => {
@@ -19,6 +22,13 @@ const InvertedFlatList = (props) => {
 
     const invertedWheelEvent = useCallback((e) => {
         ref.current.getScrollableNode().scrollTop -= e.deltaY;
+        e.preventDefault();
+    }, []);
+
+    const copyTextEvent = useCallback((e) => {
+        const selection = document.getSelection();
+        const reverseSelection = selection.toString().split(COMMENT_SEPARATOR_STRING).reverse().join('');
+        e.clipboardData.setData('text/plain', reverseSelection);
         e.preventDefault();
     }, []);
 
@@ -33,6 +43,10 @@ const InvertedFlatList = (props) => {
                 .getScrollableNode()
                 .addEventListener('wheel', invertedWheelEvent);
 
+            currentRef
+                .getScrollableNode()
+                .addEventListener('copy', copyTextEvent);
+
             currentRef.setNativeProps({
                 style: {
                     transform: 'translate3d(0,0,0) scaleY(-1)'
@@ -45,9 +59,13 @@ const InvertedFlatList = (props) => {
                 currentRef
                     .getScrollableNode()
                     .removeEventListener('wheel', invertedWheelEvent);
+
+                currentRef
+                    .getScrollableNode()
+                    .removeEventListener('copy', copyTextEvent);
             }
         };
-    }, [ref, invertedWheelEvent]);
+    }, [ref, invertedWheelEvent, copyTextEvent]);
 
     return (
         <BaseInvertedFlatList
@@ -55,6 +73,17 @@ const InvertedFlatList = (props) => {
             {...props}
             ref={ref}
             shouldMeasureItems
+            ItemSeparatorComponent={() => (
+                <Text
+                    style={{
+                        color: 'transparent',
+                        height: 0,
+                        userSelect: 'none',
+                    }}
+                >
+                    {COMMENT_SEPARATOR_STRING}
+                </Text>
+            )}
         />
     );
 };
