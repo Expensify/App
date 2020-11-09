@@ -487,7 +487,7 @@ function addAction(reportID, text, file) {
 
     // Generate a client guid so we can identify this later when it
     // returns via Pusher with the real sequenceNumber
-    const tempActionID = `${reportID}_9999_${Date.now()}_${guid()}`;
+    const tempActionID = `${reportID}_${Date.now()}_${guid()}`;
 
     // Optimistically add the new comment to the store before waiting to save it to the server
     Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
