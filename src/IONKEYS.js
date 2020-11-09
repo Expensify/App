@@ -28,6 +28,8 @@ export default {
     // Information about the current session (authToken, accountID, email, loading, error)
     SESSION: 'session',
     IS_SIDEBAR_SHOWN: 'isSidebarShown',
+    IS_CHAT_SWITCHER_ACTIVE: 'isChatSwitcherActive',
+    IS_SIDEBAR_ANIMATING: 'isSidebarAnimating',
 
     // Collection Keys
     COLLECTION: {
