@@ -10,7 +10,10 @@ export default {
     person: PropTypes.arrayOf(ReportActionFragmentPropTypes).isRequired,
 
     // ID of the report action
-    sequenceNumber: PropTypes.number.isRequired,
+    sequenceNumber: PropTypes.oneOfType([
+        PropTypes.number,
+        PropTypes.string,
+    ]).isRequired,
 
     // Unix timestamp
     timestamp: PropTypes.number.isRequired,
