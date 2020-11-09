@@ -451,26 +451,6 @@ function init({keys, initialKeyStates, safeEvictionKeys}) {
     addStorageEventHandler((key, newValue) => keyChanged(key, newValue));
 }
 
-/**
- * Remove an object key from an Ion key value.
- *
- * Caveat - this method should only be used
- * synchronously before a call to Ion.merge()
- *
- * @param {String} key
- * @param {String} objectKeyToRemove
- *
- * @returns {Promise}
- */
-function removeObjectKey(key, objectKeyToRemove) {
-    return get(key)
-        .then((object) => {
-            const newObject = {...object};
-            delete newObject[objectKeyToRemove];
-            return set(key, newObject);
-        });
-}
-
 const Ion = {
     connect,
     disconnect,
@@ -483,7 +463,6 @@ const Ion = {
     addToEvictionBlockList,
     removeFromEvictionBlockList,
     isSafeEvictionKey,
-    removeObjectKey,
 };
 
 export default Ion;
