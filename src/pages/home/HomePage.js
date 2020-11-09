@@ -6,7 +6,8 @@ import {
     Dimensions,
     Animated,
     Easing,
-    Keyboard
+    Keyboard,
+    Pressable,
 } from 'react-native';
 import _ from 'underscore';
 import {SafeAreaInsetsContext, SafeAreaProvider} from 'react-native-safe-area-context';
@@ -15,11 +16,14 @@ import styles, {getSafeAreaPadding} from '../../styles/StyleSheet';
 import Header from './HeaderView';
 import Sidebar from './sidebar/SidebarView';
 import Main from './MainView';
-import {hide as hideSidebar, show as showSidebar} from '../../libs/actions/Sidebar';
+import {
+    hide as hideSidebar,
+    show as showSidebar,
+    setIsAnimating as setSideBarIsAnimating,
+} from '../../libs/actions/Sidebar';
 import {
     subscribeToReportCommentEvents,
     fetchAll as fetchAllReports,
-    fetchPinnedReportIDs
 } from '../../libs/actions/Report';
 import {fetch as fetchPersonalDetails} from '../../libs/actions/PersonalDetails';
 import * as Pusher from '../../libs/Pusher/pusher';
@@ -34,9 +38,11 @@ const widthBreakPoint = 1000;
 
 const propTypes = {
     isSidebarShown: PropTypes.bool,
+    isChatSwitcherActive: PropTypes.bool,
 };
 const defaultProps = {
     isSidebarShown: true,
+    isChatSwitcherActive: false,
 };
 
 class App extends React.Component {
@@ -66,8 +72,6 @@ class App extends React.Component {
         // Fetch all the personal details
         fetchPersonalDetails();
 
-        // Fetch the reportIDs that should be pinned then fetch all the reports
-        fetchPinnedReportIDs();
         fetchAllReports();
 
         UnreadIndicatorUpdater.listenForReportChanges();
@@ -80,6 +84,10 @@ class App extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        if (!prevProps.isChatSwitcherActive && this.props.isChatSwitcherActive) {
+            this.showHamburger();
+        }
+
         if (this.props.isSidebarShown === prevProps.isSidebarShown) {
             // Nothing changed, don't trigger animation or re-render
             return;
@@ -110,7 +118,7 @@ class App extends React.Component {
      * Only changes hamburger state on small screens (e.g. Mobile and mWeb)
      */
     dismissHamburger() {
-        if (!this.props.isSidebarShown) {
+        if (!this.state.isHamburgerEnabled || !this.props.isSidebarShown) {
             return;
         }
 
@@ -138,6 +146,7 @@ class App extends React.Component {
     animateHamburger(hamburgerIsShown) {
         const animationFinalValue = hamburgerIsShown ? -300 : 0;
 
+        setSideBarIsAnimating(true);
         Animated.timing(this.animationTranslateX, {
             toValue: animationFinalValue,
             duration: 200,
@@ -146,6 +155,10 @@ class App extends React.Component {
         }).start(({finished}) => {
             if (finished && hamburgerIsShown) {
                 hideSidebar();
+            }
+
+            if (finished) {
+                setSideBarIsAnimating(false);
             }
         });
     }
@@ -200,19 +213,23 @@ class App extends React.Component {
                                     <Sidebar
                                         insets={insets}
                                         onLinkClick={this.toggleHamburger}
-                                        onChatSwitcherFocus={this.showHamburger}
+                                        isChatSwitcherActive={this.props.isChatSwitcherActive}
                                     />
                                 </Animated.View>
-                                <View
-                                    onTouchStart={this.dismissHamburger}
-                                    style={[styles.appContent, appContentStyle, styles.flex1, styles.flexColumn]}
+                                <Pressable
+                                    style={[styles.flex1]}
+                                    onPress={this.dismissHamburger}
                                 >
-                                    <Header
-                                        shouldShowHamburgerButton={this.state.isHamburgerEnabled}
-                                        onHamburgerButtonClicked={this.toggleHamburger}
-                                    />
-                                    <Main />
-                                </View>
+                                    <View
+                                        style={[styles.appContent, appContentStyle, styles.flex1, styles.flexColumn]}
+                                    >
+                                        <Header
+                                            shouldShowHamburgerButton={this.state.isHamburgerEnabled}
+                                            onHamburgerButtonClicked={this.toggleHamburger}
+                                        />
+                                        <Main />
+                                    </View>
+                                </Pressable>
                             </Route>
                         </View>
                     )}
@@ -229,6 +246,10 @@ export default withIon(
     {
         isSidebarShown: {
             key: IONKEYS.IS_SIDEBAR_SHOWN
+        },
+        isChatSwitcherActive: {
+            key: IONKEYS.IS_CHAT_SWITCHER_ACTIVE,
+            initWithStoredValues: false,
         },
     },
 )(App);
