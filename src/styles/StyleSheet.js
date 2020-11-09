@@ -770,6 +770,7 @@ const styles = {
         marginTop: 5,
         marginBottom: 5,
         marginLeft: 3,
+        padding: 0,
     },
 
     chatSwticherPillWrapper: {
