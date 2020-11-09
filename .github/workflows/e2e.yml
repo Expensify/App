@@ -1,0 +1,50 @@
+name: E2E iOS Tests
+
+# Only run e2e tests on branches that aren't related to master and the deploy process
+on:
+    push:
+        branches-ignore:
+            - 'master'
+            - 'version-bump-*'
+        tags-ignore:
+            - '*'
+
+env:
+    DEVELOPER_DIR: /Applications/Xcode_11.5.app/Contents/Developer
+
+jobs:
+    test:
+        runs-on: macos-10.15
+        steps:
+          - uses: actions/checkout@v2
+          - uses: actions/setup-ruby@v1
+
+          - name: Install bundler
+            run: gem install bundler
+
+          - name: Install gems
+            run: bundle install
+
+          - uses: webfactory/ssh-agent@v0.4.1
+            with:
+                ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+          - name: Install node packages
+            run: npm install
+
+          - name: Install detox
+            run: npm install -g detox-cli
+
+          - name: Install cocoapods
+            run: cd ios && pod install --repo-update
+
+          - name: Install brew depdencies
+            run: |
+              brew tap wix/brew
+              brew install applesimutils
+
+          - name: Build tests
+            run: detox build --configuration ios.sim.release
+
+          - name: Run tests
+            run: detox test --configuration ios.sim.release --cleanup --debug-synchronization 200 --loglevel trace
