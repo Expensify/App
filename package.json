@@ -41,6 +41,7 @@
     "js-libs": "git+https://git@github.com:Expensify/JS-Libs.git#df92effd80acb6f47197d982d357d24f48cd3c98",
     "lodash.get": "^4.4.2",
     "lodash.has": "^4.5.2",
+    "lodash.merge": "^4.6.2",
     "lodash.orderby": "^4.6.0",
     "moment": "^2.27.0",
     "moment-timezone": "^0.5.31",
