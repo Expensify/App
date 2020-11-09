@@ -51,10 +51,62 @@ This application is built with the following principles.
 
 You can use any IDE or code editing tool for developing on any platform. Use your favorite!
 
+## Contractor/Contributor Setup
+
+For non-Expensify contributors, there are some additional setup steps required in order to run the app locally. Since this is just a front-end application, you'll need to run the app via a development build that points to production on iOS/Android, and a production build for Desktop. Additionally, it is not currently possible for non-Expensify employees to run a local production build of the web app at this time.
+
+* Update your `.env` file to match `.env.production`
+* Add `./desktop/ELECTRON_EVENTS.js` to the `files` array in `electron.config.js`
+* Make a few temporary changes to `electron.config.js` and `package.json`
+```javascript
+module.exports = {
+    appId: 'com.expensifyreactnative.chat',
+    productName: 'Chat',
+
+    // Comment out notarizing
+    // afterSign: 'desktop/notarize.js',
+    mac: {
+        category: 'public.app-category.finance',
+        icon: './android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png',
+        hardenedRuntime: true,
+        entitlements: 'desktop/entitlements.mac.plist',
+        entitlementsInherit: 'desktop/entitlements.mac.plist',
+        type: 'distribution'
+    },
+    dmg: {
+        title: 'Chat',
+        artifactName: 'Chat.dmg',
+        internetEnabled: true
+    },
+    // Also comment out publishing step
+    // publish: [{
+    //     provider: 's3',
+    //     bucket: 'chat-test-expensify-com',
+    //     channel: 'latest'
+    // }],
+    files: [
+        './dist/**/*',
+        './main.js',
+        './desktop/ELECTRON_EVENTS.js',
+    ]
+};
+```
+```json
+...
+// Temporarily remove --publish always
+"desktop-build": "webpack --config webpack.prod.js --platform desktop && electron-builder --config desktop/electron.config.js",
+...
+```
+* Run the desktop app via [these instructions](https://github.com/Expensify/ReactNativeChat/blob/master/README.md#local-production-build-of-the-macos-desktop-app).
+* Run the iOS app via [these instructions](https://github.com/Expensify/ReactNativeChat/blob/master/README.md#running-the-ios-app-).
+* Run the Android app via [these instructions](https://github.com/Expensify/ReactNativeChat/blob/master/README.md#running-the-android-app-).
+
 ## Running the web app 🕸
 * To run a **Development Server**: `npm run web`
-* To build a **production build**: `npm run build`
 * Changes applied to Javascript will be applied automatically via WebPack as configured in `webpack.dev.js`
+
+## Local production build of the web app
+In order to generate a production web build, run `npm run build`, this will generate a production javascript build in the `dist/` folder.
 
 ## Running the iOS app 📱
 * To install the iOS dependencies, run: `npm install && cd ios/ && pod install`
@@ -66,15 +118,24 @@ You can use any IDE or code editing tool for developing on any platform. Use you
     ```
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
+## Local production build the iOS app
+In order to compile a production iOS build, run `npm run ios-build`, this will generate a `Chat.ipa` in the root directory of this project. 
+
 ## Running the Android app 🤖
 * To install the Android dependencies, run: `npm install`, then `gradle` will install all linked dependencies
-* Running via `ngrok` is required to communicate with the API
+* For Expensify employees, running via `ngrok` is required to communicate with the dev environment API
     * Start ngrok (`Expensidev/script/ngrok.sh`), replace `expensify.com.dev` value in `.env` with your ngrok value
 * To run a on a **Development Emulator**: `npm run android`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
+## Local production build the Android app
+To build an APK to run or share, run `npm run android-build`. This will generate a new APK in the `android/app` folder.
+
 ## Running the MacOS desktop app 🖥
  * To run the **Development app**, run: `npm run desktop`, this will start a new Electron process running on your MacOS desktop in the `dist/Mac` folder.
+
+## Local production build of the MacOS desktop app
+In order to compile a production desktop build, run `npm run desktop-build`, this will generate a production app in the `dist/Mac` folder named `Chat.app`.
 
 ## Running the tests 🎰
 ### Unit tests
@@ -216,18 +277,3 @@ When a new tag is pushed, it will trigger a deploy of all four clients:
 2. The **MacOS desktop** app automatically deploys via a GitHub Action in `.github/workflows/desktop.yml`
 3. The **Android** app automatically deploys via a GitHub Action in `.github/workflows/android.yml`
 4. The **iOS** app automatically deploys via a GitHub Action in `.github/workflows/ios.yml`
-
-## Local production build
-Sometimes it might be beneficial to generate a local production version instead of testing on production. Follow the steps below for each client:
-
-## Local production build of the web app
-In order to generate a production web build, run `npm run build`, this will generate a production javascript build in the `dist/` folder.
-
-## Local production build of the MacOS desktop app
-In order to compile a production desktop build, run `npm run desktop-build`, this will generate a production app in the `dist/Mac` folder named `Chat.app`.
-  
-#### Local production build the iOS app
-In order to compile a production iOS build, run `npm run ios-build`, this will generate a `Chat.ipa` in the root directory of this project. 
-
-#### Local production build the Android app
-To build an APK to share run (e.g. via Slack), run `npm run android-build`, this will generate a new APK in the `android/app` folder.
