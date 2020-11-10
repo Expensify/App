@@ -5,7 +5,7 @@ import React from 'react';
 import Ion from '../../src/libs/Ion';
 import withIon from '../../src/components/withIon';
 
-import resolveAllPromises from '../utils/resolveAllPromises';
+import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 
 const TEST_KEY = 'test';
 
@@ -40,7 +40,7 @@ describe('withIon', () => {
                     },
                 })(TestComponent);
                 result = render(<TestComponentWithIon />);
-                return resolveAllPromises();
+                return waitForPromisesToResolve();
             })
                 .then(() => {
                     const textComponent = result.getByText('test1');
