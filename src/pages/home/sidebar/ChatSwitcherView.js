@@ -139,7 +139,7 @@ class ChatSwitcherView extends React.Component {
                     participants,
                     icons: report.icons,
                     login,
-                    type: participants.length === 1 ? OPTION_TYPE.USER : OPTION_TYPE.REPORT,
+                    type: isSingleUserPrivateDMReport ? OPTION_TYPE.USER : OPTION_TYPE.REPORT,
                 };
             })
             .value();
