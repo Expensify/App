@@ -191,7 +191,11 @@ function sendDataToConnection(config, val, key) {
             [config.statePropertyName]: val,
         });
     } else if (_.isFunction(config.callback)) {
-        config.callback(val, key, true);
+        // The only time we use sendDataToConnection is
+        // when we first call Ion.connect() on a key
+        // so we will give the subscribe a way to differentiate
+        // between the initial expected callback and future updates.
+        config.callback(val, key, {isInitialLoad: true});
     }
 }
 
