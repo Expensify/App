@@ -183,14 +183,15 @@ function keyChanged(key, data) {
  * @param {string} [config.statePropertyName]
  * @param {function} [config.callback]
  * @param {*|null} val
+ * @param {String} key
  */
-function sendDataToConnection(config, val) {
+function sendDataToConnection(config, val, key) {
     if (config.withIonInstance) {
         config.withIonInstance.setState({
             [config.statePropertyName]: val,
         });
     } else if (_.isFunction(config.callback)) {
-        config.callback(val);
+        config.callback(val, key, true);
     }
 }
 
@@ -252,7 +253,7 @@ function connect(mapping) {
                     .then(val => sendDataToConnection(mapping, val));
             } else {
                 _.each(matchingKeys, (key) => {
-                    get(key).then(val => sendDataToConnection(mapping, val));
+                    get(key).then(val => sendDataToConnection(mapping, val, key));
                 });
             }
         });
