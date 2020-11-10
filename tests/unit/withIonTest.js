@@ -4,7 +4,8 @@ import {render} from '@testing-library/react-native';
 import React from 'react';
 import Ion from '../../src/libs/Ion';
 import withIon from '../../src/components/withIon';
-import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
+
+import resolveAllPromises from '../utils/resolveAllPromises';
 
 const TEST_KEY = 'test';
 
@@ -39,7 +40,7 @@ describe('withIon', () => {
                     },
                 })(TestComponent);
                 result = render(<TestComponentWithIon />);
-                return waitForPromisesToResolve();
+                return resolveAllPromises();
             })
                 .then(() => {
                     const textComponent = result.getByText('test1');
