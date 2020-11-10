@@ -283,12 +283,13 @@ function subscribeToReportCommentEvents() {
 
     const pusherChannelName = `private-user-accountID-${currentUserAccountID}`;
 
-    // This early return is to prevent duplicate subscriptions. The mocks for jest
-    // are always subscribed so we skip this check when testing.
-    if (!CONFIG.IS_JEST_RUNNING
-            && Pusher.isSubscribed(pusherChannelName)
-            || Pusher.isAlreadySubscribing(pusherChannelName)
-    ) {
+    const pusherSubscribedOrSubscribing = Pusher.isSubscribed(pusherChannelName)
+        || Pusher.isAlreadySubscribing(pusherChannelName);
+
+    // This check is to prevent duplicate subscriptions. The mock channels for jest
+    // are always subscribed when created so we skip this check when testing or else it
+    // will prevent us from binding an even to the channel.
+    if (!CONFIG.IS_JEST_RUNNING && pusherSubscribedOrSubscribing) {
         return;
     }
 
