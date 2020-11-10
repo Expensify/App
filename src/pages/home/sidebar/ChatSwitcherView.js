@@ -3,9 +3,9 @@ import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashOrderby from 'lodash.orderby';
+import lodashGet from 'lodash.get';
 import withIon from '../../../components/withIon';
 import IONKEYS from '../../../IONKEYS';
-import Str from '../../../libs/Str';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import ChatSwitcherList from './ChatSwitcherList';
 import ChatSwitcherSearchForm from './ChatSwitcherSearchForm';
@@ -107,6 +107,33 @@ class ChatSwitcherView extends React.Component {
 
     componentWillUnmount() {
         KeyboardShortcut.unsubscribe('K');
+    }
+
+    getRecentVisitedOptions(getMaxSearchResults = true) {
+        const sortByLastVisited = lodashOrderby(this.props.reports, ['lastVisited'], ['desc']);
+        const recentReports = getMaxSearchResults
+            ? sortByLastVisited.slice(0, this.maxSearchResults)
+            : sortByLastVisited;
+        return _.chain(recentReports)
+            .values()
+            .reject(report => !report.lastVisited || lodashGet(report, 'participants', []).length === 0)
+            .map((report) => {
+                const participants = lodashGet(report, 'participants', []);
+                const isSingleUserPrivateDMReport = participants.length === 1;
+                const login = isSingleUserPrivateDMReport ? report.participants[0] : '';
+                return {
+                    text: report.reportName,
+                    alternateText: report.reportName,
+                    searchText: report.reportName === login ? login
+                        : `${report.reportName} ${login}`,
+                    reportID: report.reportID,
+                    participants: participants,
+                    icons: report.icons,
+                    login,
+                    type: participants.length === 1 ? OPTION_TYPE.USER : OPTION_TYPE.REPORT,
+                };
+            })
+            .value();
     }
 
     /**
@@ -229,30 +256,6 @@ class ChatSwitcherView extends React.Component {
         });
     }
 
-    getRecentVisitedOptions(getMaxSearchResults = true) {
-        const sortByLastVisited = lodashOrderby(this.props.reports, ['lastVisited'], ['desc']);
-        const recentReports = getMaxSearchResults ? sortByLastVisited.slice(0, this.maxSearchResults) : sortByLastVisited;
-        return _.chain(recentReports)
-            .values()
-            .reject(report => !report.lastVisited)
-            .map(report => {
-                const isSingleUserPrivateDMReport = report.participants.length === 1;
-                const login = isSingleUserPrivateDMReport ? report.participants[0] : '';
-                return {
-                    text: report.reportName,
-                    alternateText: report.reportName,
-                    searchText: report.reportName === login ? login
-                        : `${report.reportName} ${login}`,
-                    reportID: report.reportID,
-                    participants: report.participants,
-                    icons: report.icons,
-                    login,
-                    type: report.participants.length === 1 ? OPTION_TYPE.USER : OPTION_TYPE.REPORT,
-                };
-            })
-            .value();
-    }
-
     /**
      * When the text input gets focus, the onFocus() callback needs to be called, the keyboard shortcut is disabled
      * and the logo is hidden
@@ -262,7 +265,7 @@ class ChatSwitcherView extends React.Component {
         const params = {
             isLogoVisible: false,
             isClearButtonVisible: true,
-        }
+        };
         if (this.state.search === '') {
             params.options = this.getRecentVisitedOptions(true);
         }
@@ -367,7 +370,7 @@ class ChatSwitcherView extends React.Component {
             }))
             .value();
 
-        const searchOptions = _.union(recentlyVisitedOptions, personalDetailOptions)
+        const searchOptions = _.union(recentlyVisitedOptions, personalDetailOptions);
         const userEnteredText = value.toLowerCase();
 
         for (let i = 0; i < searchOptions.length; i++) {
@@ -405,7 +408,7 @@ class ChatSwitcherView extends React.Component {
                     isLogoVisible={this.state.isLogoVisible}
                     searchValue={this.state.search}
                     onChangeText={this.updateSearch}
-                    onClearButtonClick={this.reset}
+                    onClearButtonClick={() => this.reset(true)}
                     onFocus={this.triggerOnFocusCallback}
                     onKeyPress={this.handleKeyPress}
                     groupUsers={this.state.groupUsers}
