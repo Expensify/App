@@ -1,11 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {Image, View} from 'react-native';
+import _ from 'underscore';
 import Text from '../../../components/Text';
 import styles from '../../../styles/StyleSheet';
 import PressableLink from '../../../components/PressableLink';
 import ROUTES from '../../../ROUTES';
-import _ from "underscore";
 
 const propTypes = {
     // The ID of the report for this link
