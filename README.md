@@ -56,7 +56,6 @@ You can use any IDE or code editing tool for developing on any platform. Use you
 For non-Expensify contributors, there are some additional setup steps required in order to run the app locally. Since this is just a front-end application, you'll need to run the app via a development build that points to production on iOS/Android, and a production build for Desktop. Additionally, it is not currently possible for non-Expensify employees to run a local production build of the web app at this time.
 
 * Update your `.env` file to match `.env.production`
-* Add `./desktop/ELECTRON_EVENTS.js` to the `files` array in `electron.config.js`
 * Make a few temporary changes to `electron.config.js` and `package.json`
 ```javascript
 module.exports = {
