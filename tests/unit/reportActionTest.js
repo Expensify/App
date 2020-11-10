@@ -1,8 +1,8 @@
+import moment from 'moment';
 import Ion from '../../src/libs/Ion';
 import IONKEYS from '../../src/IONKEYS';
 import {addAction, subscribeToReportCommentEvents} from '../../src/libs/actions/Report';
 import * as Pusher from '../../src/libs/Pusher/pusher';
-import moment from 'moment';
 const resolveAllPromises = () => new Promise(setImmediate);
 
 Ion.registerLogger(() => {});
@@ -18,21 +18,21 @@ jest.mock('../../node_modules/urbanairship-react-native', () => {
     return airshipMock;
 });
 
-jest.mock('../../node_modules/@react-native-community/async-storage', () =>
+jest.mock('../../node_modules/@react-native-community/async-storage', () => (
     require('./mocks/@react-native-community/async-storage')
-);
+));
 
-jest.mock('../../node_modules/@react-native-community/push-notification-ios', () =>
+jest.mock('../../node_modules/@react-native-community/push-notification-ios', () => (
     require('./mocks/@react-native-community/push-notification-ios')
-);
+));
 
-jest.mock('pusher-js/react-native', () =>
-    require("pusher-js-mock").PusherMock
-);
+jest.mock('pusher-js/react-native', () => (
+    require('pusher-js-mock').PusherMock
+));
 
-jest.mock('../../node_modules/@react-native-community/netinfo', () =>
+jest.mock('../../node_modules/@react-native-community/netinfo', () => (
     require('./mocks/@react-native-community/netinfo')
-);
+));
 
 describe('Report Action', () => {
     it('should subscribe to the private-user-accountID channel', async (done) => {
@@ -42,10 +42,10 @@ describe('Report Action', () => {
             automatic: false,
             created: 'Oct 28 2020 4:29pm PDT',
             message: [
-                {type: "TEXT", style: "strong", text: "__fake__"},
-                {type: "TEXT", style: "normal", text: " created this report"},
+                {type: 'TEXT', style: 'strong', text: '__fake__'},
+                {type: 'TEXT', style: 'normal', text: ' created this report'},
             ],
-            person: [{type: "TEXT", style: "strong", text: "__fake__"}],
+            person: [{type: 'TEXT', style: 'strong', text: '__fake__'}],
             sequenceNumber: 0,
             shouldShow: true,
             timestamp: 1604682894,
