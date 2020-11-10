@@ -26,19 +26,18 @@ describe('withIon', () => {
 
         Ion.set(TEST_KEY, 'test1')
             .then(() => {
-                const TestComponent = props => <ViewWithText text={props.test} />;
                 const TestComponentWithIon = withIon({
-                    test: {
+                    text: {
                         key: TEST_KEY,
                     },
-                })(TestComponent);
+                })(ViewWithText);
 
                 result = render(<TestComponentWithIon />);
                 return waitForPromisesToResolve();
             })
-                .then(() => {
-                    const textComponent = result.getByText('test1');
-                    expect(textComponent).toBeTruthy();
-                });
+            .then(() => {
+                const textComponent = result.getByText('test1');
+                expect(textComponent).toBeTruthy();
+            });
     });
 });
