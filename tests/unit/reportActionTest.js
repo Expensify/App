@@ -3,6 +3,7 @@ import Ion from '../../src/libs/Ion';
 import IONKEYS from '../../src/IONKEYS';
 import {addAction, subscribeToReportCommentEvents} from '../../src/libs/actions/Report';
 import * as Pusher from '../../src/libs/Pusher/pusher';
+
 const resolveAllPromises = () => new Promise(setImmediate);
 
 Ion.registerLogger(() => {});
