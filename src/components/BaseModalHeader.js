@@ -1,6 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, Image, TouchableOpacity, Text} from 'react-native';
+import {
+    View, Image, TouchableOpacity, Text
+} from 'react-native';
 import styles from '../styles/StyleSheet';
 import exitIcon from '../../assets/images/icon-x.png';
 

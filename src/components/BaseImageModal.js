@@ -6,6 +6,7 @@ import {
 import BaseModalHeader from './BaseModalHeader';
 import AttachmentView from './AttachmentView';
 import styles from '../styles/StyleSheet';
+import {getAuthToken} from '../libs/API';
 
 /**
  * Modal component
@@ -21,19 +22,32 @@ const propTypes = {
     // Height of the modal
     modalHeight: PropTypes.number,
 
+    // Width of image inside the modal
+    modalImageWidth: PropTypes.number,
+
     // URL to image preview
     previewSourceURL: PropTypes.string,
 
     // URL to full-sized image
     sourceURL: PropTypes.string,
+
+    // Is the image an expensify attachment
+    isExpensifyAttachment: PropTypes.bool,
+
+    // Any additional styles to apply to the image thumbnail
+    // eslint-disable-next-line react/forbid-prop-types
+    style: PropTypes.any,
 };
 
 const defaultProps = {
     pinToEdges: true,
     modalWidth: Dimensions.get('window').width * 0.8,
     modalHeight: Dimensions.get('window').height * 0.8,
+    modalImageWidth: Dimensions.get('window').width * 0.6,
     previewSourceURL: '',
     sourceURL: '',
+    isExpensifyAttachment: true,
+    style: {},
 };
 
 class BaseImageModal extends React.Component {
@@ -41,30 +55,55 @@ class BaseImageModal extends React.Component {
         super(props);
 
         this.state = {
-            imageWidth: 200,
-            imageHeight: 200,
-            thumbnailWidth: 300,
-            thumbnailHeight: 150,
+            imageWidth: 300,
+            imageHeight: 300,
+            thumbnailWidth: 200,
+            thumbnailHeight: 200,
             visible: false,
+            calculatedImageSize: false,
+            previewSourceURL: this.props.previewSourceURL,
+            sourceURL: this.props.sourceURL,
         };
     }
 
     componentDidMount() {
-        // Scale image for modal view
-        Image.getSize(this.props.sourceURL, (width, height) => {
-            const screenWidth = Dimensions.get('window').width * 0.6;
-            const scaleFactor = width / screenWidth;
-            const newImageHeight = height / scaleFactor;
-            this.setState({imageWidth: screenWidth, imageHeight: newImageHeight});
-        });
+        this._isMounted = true;
+
+        // If the images are expensify attachments, add an authtoken so we can access them
+        if (this.props.isExpensifyAttachment) {
+            this.setState({
+                previewSourceURL: `${this.props.previewSourceURL}?authToken=${getAuthToken()}`,
+                sourceURL: `${this.props.sourceURL}?authToken=${getAuthToken()}`
+            });
+        }
 
         // Scale image for thumbnail preview
-        Image.getSize(this.props.previewSourceURL, (width, height) => {
+        Image.getSize(this.state.previewSourceURL, (width, height) => {
             const screenWidth = 300;
             const scaleFactor = width / screenWidth;
             const imageHeight = height / scaleFactor;
-            this.setState({thumbnailWidth: screenWidth, thumbnailHeight: imageHeight});
+            if (this._isMounted) {
+                this.setState({thumbnailWidth: screenWidth, thumbnailHeight: imageHeight});
+            }
         });
+    }
+
+    componentDidUpdate() {
+        // Only calculate image size if the modal is visible and if we haven't already done this
+        if (this.state.visible && !this.state.calculatedImageSize) {
+            Image.getSize(this.state.sourceURL, (width, height) => {
+                const screenWidth = this.props.pinToEdges ? Dimensions.get('window').width : this.props.modalImageWidth;
+                const scaleFactor = width / screenWidth;
+                const imageHeight = height / scaleFactor;
+                if (this._isMounted) {
+                    this.setState({imageWidth: screenWidth, imageHeight});
+                }
+            });
+        }
+    }
+
+    componentWillUnmount() {
+        this._isMounted = false;
     }
 
     /**
@@ -81,8 +120,12 @@ class BaseImageModal extends React.Component {
             <>
                 <TouchableOpacity onPress={() => this.setModalVisiblity(true)}>
                     <Image
-                        source={{uri: this.props.previewSourceURL}}
-                        style={{width: this.state.thumbnailWidth, height: this.state.thumbnailHeight}}
+                        source={{uri: this.state.previewSourceURL}}
+                        style={{
+                            ...this.props.style,
+                            width: this.state.thumbnailWidth,
+                            height: this.state.thumbnailHeight
+                        }}
                     />
                 </TouchableOpacity>
 
@@ -96,7 +139,7 @@ class BaseImageModal extends React.Component {
                             <BaseModalHeader title="Attachment" setModalVisiblity={this.setModalVisiblity} />
                             <View style={styles.imageModalImageCenterContainer}>
                                 <AttachmentView
-                                    sourceURL={this.props.sourceURL}
+                                    sourceURL={this.state.sourceURL}
                                     imageHeight={this.state.imageHeight}
                                     imageWidth={this.state.imageWidth}
                                 />
@@ -119,7 +162,7 @@ class BaseImageModal extends React.Component {
                                     <BaseModalHeader title="Attachment" setModalVisiblity={this.setModalVisiblity} />
                                     <View style={styles.imageModalImageCenterContainer}>
                                         <AttachmentView
-                                            sourceURL={this.props.sourceURL}
+                                            sourceURL={this.state.sourceURL}
                                             imageHeight={this.state.imageHeight}
                                             imageWidth={this.state.imageWidth}
                                         />
@@ -136,6 +179,5 @@ class BaseImageModal extends React.Component {
 
 BaseImageModal.propTypes = propTypes;
 BaseImageModal.defaultProps = defaultProps;
-BaseImageModal.displayName = 'BaseModal';
 
 export default BaseImageModal;
