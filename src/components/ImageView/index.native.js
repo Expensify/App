@@ -20,6 +20,12 @@ const propTypes = {
     // Image width
     imageWidth: PropTypes.number,
 
+    // Window Height
+    cropHeight: PropTypes.number,
+
+    // Window Width
+    cropWidth: PropTypes.number,
+
     // Any additional styles to apply
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.any,
@@ -29,14 +35,16 @@ const defaultProps = {
     sourceURL: '',
     imageHeight: 300,
     imageWidth: 300,
+    cropHeight: Dimensions.get('window').height,
+    cropWidth: Dimensions.get('window').width,
     style: {},
 };
 
 const ImageView = props => (
     <View style={props.style}>
         <ImgZoom
-            cropWidth={Dimensions.get('window').width}
-            cropHeight={Dimensions.get('window').height}
+            cropWidth={props.cropWidth}
+            cropHeight={props.cropHeight}
             imageWidth={props.imageWidth}
             imageHeight={props.imageHeight}
         >
