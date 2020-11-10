@@ -234,8 +234,8 @@ function updateReportWithNewAction(reportID, reportAction) {
         maxSequenceNumber: reportAction.sequenceNumber,
     });
 
-    // Check the reportAction for the clientGUID and make sure the sequenceNumber
-    // for this action matches correctly with the one we are expecting
+    // Check the reportAction for a clientGUID and remove the temporary action
+    // since we are about to merge in the real action with accurate sequenceNumber
     const clientGUID = reportAction.clientGUID;
     if (clientGUID) {
         // Delete this item from the report since we are about to replace it at the
@@ -628,14 +628,15 @@ Ion.connect({
 
 Ion.connect({
     key: IONKEYS.COLLECTION.REPORT_ACTIONS,
-    callback: (val, key, isInitialData) => {
-        if (!key || !isInitialData) {
+    callback: (val, key, options = {}) => {
+        // We only want to remove any stale loading reportActions on app init
+        if (!options.isInitialLoad) {
             return;
         }
 
         const reportID = key.replace(IONKEYS.COLLECTION.REPORT_ACTIONS, '');
 
-        // Remove any actions that we find
+        // Remove any actions in the loading state.
         _.each(val, (action, actionID) => {
             if (action.loading) {
                 removeLoadingAction(Number(reportID), actionID);
