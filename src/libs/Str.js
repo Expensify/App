@@ -99,15 +99,14 @@ const Str = {
     /**
      * Checks if parameter is a string or function
      * if it is a function then we will call it with
-     * the provided context.
+     * any additional arguments.
      *
      * @param {String|Function} parameter
-     * @param {Object} context
      * @returns {String}
      */
-    result(parameter, context = {}) {
+    result(parameter, ...args) {
         return _.isFunction(parameter)
-            ? parameter(context)
+            ? parameter(...args)
             : parameter;
     },
 };
