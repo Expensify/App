@@ -12,6 +12,7 @@ import ChatSwitcherView from './ChatSwitcherView';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
 import compose from '../../../libs/compose';
 import {withRouter} from '../../../libs/Router';
+import get from 'lodash.get';
 
 const propTypes = {
     // These are from withRouter
@@ -38,9 +39,13 @@ const propTypes = {
         reportName: PropTypes.string,
         unreadActionCount: PropTypes.number,
     })),
+
+    // List of draft comments
+    comments: PropTypes.object,
 };
 const defaultProps = {
     reports: {},
+    comments: {},
 };
 
 class SidebarLinks extends React.Component {
@@ -62,10 +67,9 @@ class SidebarLinks extends React.Component {
             'desc',
             'asc'
         ]);
-
         // Filter the reports so that the only reports shown are pinned, unread, and the one matching the URL
         // eslint-disable-next-line max-len
-        const reportsToDisplay = _.filter(sortedReports, report => (report.isPinned || (report.unreadActionCount > 0) || report.reportID === reportIDInUrl));
+        const reportsToDisplay = _.filter(sortedReports, report => (report.isPinned || (report.unreadActionCount > 0) || report.reportID === reportIDInUrl || get(this.props.comments, `${IONKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '').length > 0));
 
         // Update styles to hide the report links if they should not be visible
         const sidebarLinksStyle = this.state.areReportLinksVisible
@@ -125,6 +129,9 @@ export default compose(
     withIon({
         reports: {
             key: IONKEYS.COLLECTION.REPORT,
+        },
+        comments: {
+            key: IONKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
         }
     }),
 )(SidebarLinks);
