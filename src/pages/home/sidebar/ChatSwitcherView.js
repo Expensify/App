@@ -13,6 +13,7 @@ import {fetchOrCreateChatReport} from '../../../libs/actions/Report';
 import {redirect} from '../../../libs/actions/App';
 import ROUTES from '../../../ROUTES';
 import styles from '../../../styles/StyleSheet';
+import * as ChatSwitcher from '../../../libs/actions/ChatSwitcher';
 
 const OPTION_TYPE = {
     USER: 'user',
@@ -34,12 +35,6 @@ const personalDetailsPropTypes = PropTypes.shape({
 });
 
 const propTypes = {
-    // A method that is triggered when the TextInput gets focus
-    onFocus: PropTypes.func.isRequired,
-
-    // A method that is triggered when the TextInput loses focus
-    onBlur: PropTypes.func.isRequired,
-
     // Toggles the hamburger menu open and closed
     onLinkClick: PropTypes.func.isRequired,
 
@@ -61,11 +56,16 @@ const propTypes = {
         // The email of the person who is currently logged in
         email: PropTypes.string.isRequired,
     }),
+
+    isSidebarAnimating: PropTypes.bool,
+    isChatSwitcherActive: PropTypes.bool,
 };
 const defaultProps = {
     personalDetails: {},
     reports: {},
     session: null,
+    isSidebarAnimating: false,
+    isChatSwitcherActive: false,
 };
 
 class ChatSwitcherView extends React.Component {
@@ -98,11 +98,20 @@ class ChatSwitcherView extends React.Component {
     componentDidMount() {
         // Listen for the Command+K key being pressed so the focus can be given to the chat switcher
         KeyboardShortcut.subscribe('K', () => {
-            if (this.textInput) {
-                this.props.onFocus();
-                this.textInput.focus();
-            }
+            ChatSwitcher.show();
+            this.textInput.focus();
         }, ['meta'], true);
+    }
+
+    componentDidUpdate(prevProps) {
+        // Check if the sidebar was animating but is no longer animating and
+        // if the chat switcher is active then focus the input
+        if (prevProps.isSidebarAnimating
+                && !this.props.isSidebarAnimating
+                && this.props.isChatSwitcherActive
+        ) {
+            this.textInput.focus();
+        }
     }
 
     componentWillUnmount() {
@@ -251,7 +260,7 @@ class ChatSwitcherView extends React.Component {
         }, () => {
             if (blurAfterReset) {
                 this.textInput.blur();
-                this.props.onBlur();
+                ChatSwitcher.hide();
             }
         });
     }
@@ -261,7 +270,7 @@ class ChatSwitcherView extends React.Component {
      * and the logo is hidden
      */
     triggerOnFocusCallback() {
-        this.props.onFocus();
+        ChatSwitcher.show();
         const params = {
             isLogoVisible: false,
             isClearButtonVisible: true,
@@ -408,7 +417,7 @@ class ChatSwitcherView extends React.Component {
                     isLogoVisible={this.state.isLogoVisible}
                     searchValue={this.state.search}
                     onChangeText={this.updateSearch}
-                    onClearButtonClick={() => this.reset(true)}
+                    onClearButtonClick={() => this.reset()}
                     onFocus={this.triggerOnFocusCallback}
                     onKeyPress={this.handleKeyPress}
                     groupUsers={this.state.groupUsers}
@@ -452,5 +461,9 @@ export default withIon({
     },
     session: {
         key: IONKEYS.SESSION,
+    },
+    isSidebarAnimating: {
+        key: IONKEYS.IS_SIDEBAR_ANIMATING,
+        initFromStoredValues: false,
     },
 })(ChatSwitcherView);

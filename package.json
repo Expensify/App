@@ -1,6 +1,6 @@
 {
   "name": "react-native-chat",
-  "version": "1.0.1-164",
+  "version": "1.0.1-178",
   "author": "Expensify, Inc.",
   "homepage": "https://expensify.com",
   "description": "Expensify Chat",
@@ -19,7 +19,9 @@
     "test": "jest",
     "lint": "eslint .",
     "postversion": "react-native-version",
-    "print-version": "echo $npm_package_version"
+    "print-version": "echo $npm_package_version",
+    "detox-build": "detox build --configuration ios.sim.debug",
+    "detox-test": "detox test --configuration ios.sim.debug"
   },
   "dependencies": {
     "@react-native-community/async-storage": "^1.11.0",
@@ -36,9 +38,10 @@
     "electron-updater": "^4.3.4",
     "file-loader": "^6.0.0",
     "html-entities": "^1.3.1",
-    "js-libs": "git+https://git@github.com:Expensify/JS-Libs.git#7b13151f15f631bbf2ef10a7ef57e36f89261b0e",
+    "js-libs": "git+https://git@github.com:Expensify/JS-Libs.git#df92effd80acb6f47197d982d357d24f48cd3c98",
     "lodash.get": "^4.4.2",
     "lodash.has": "^4.5.2",
+    "lodash.merge": "^4.6.2",
     "lodash.orderby": "^4.6.0",
     "moment": "^2.27.0",
     "moment-timezone": "^0.5.31",
@@ -68,6 +71,8 @@
     "@babel/preset-react": "^7.10.4",
     "@babel/runtime": "^7.11.2",
     "@react-native-community/eslint-config": "^2.0.0",
+    "@testing-library/jest-native": "^3.4.2",
+    "@testing-library/react-native": "^7.0.2",
     "babel-eslint": "^10.1.0",
     "babel-jest": "^26.2.2",
     "babel-loader": "^8.1.0",
@@ -76,6 +81,7 @@
     "babel-plugin-transform-class-properties": "^6.24.1",
     "clean-webpack-plugin": "^3.0.0",
     "copy-webpack-plugin": "^6.0.3",
+    "detox": "^17.8.3",
     "electron": "^9.2.0",
     "electron-builder": "^22.8.0",
     "electron-notarize": "^1.0.0",
@@ -83,8 +89,12 @@
     "eslint": "^7.6.0",
     "eslint-config-expensify": "^2.0.11",
     "eslint-loader": "^4.0.2",
+    "eslint-plugin-detox": "^1.0.0",
+    "eslint-plugin-jest": "^24.1.0",
     "html-webpack-plugin": "^4.3.0",
-    "jest": "^26.2.2",
+    "jest": "^26.5.2",
+    "jest-circus": "^26.5.2",
+    "jest-cli": "^26.5.2",
     "metro-react-native-babel-preset": "^0.61.0",
     "react-hot-loader": "^4.12.21",
     "react-native-version": "^4.0.0",
@@ -95,6 +105,29 @@
     "webpack-merge": "^5.1.1"
   },
   "jest": {
-    "preset": "react-native"
+    "preset": "react-native",
+    "transform": {
+      "^.+\\.jsx?$": "babel-jest"
+    },
+    "transformIgnorePatterns": [
+      "node_modules/(?!react-native)/"
+    ],
+    "testPathIgnorePatterns": [
+      "<rootDir>/node_modules/",
+      "<rootDir>/tests/unit/mocks/"
+    ],
+    "testMatch": [
+      "**/tests/unit/**/*.[jt]s?(x)",
+      "**/?(*.)+(spec|test).[jt]s?(x)"
+    ],
+    "globals": {
+      "__DEV__": true,
+      "WebSocket": {}
+    },
+    "timers": "fake",
+    "testEnvironment": "jsdom",
+    "setupFilesAfterEnv": [
+      "@testing-library/jest-native/extend-expect"
+    ]
   }
 }

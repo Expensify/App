@@ -105,6 +105,7 @@ const ChatSwitcherSearchForm = props => (
                                     // we are composing a group DM since it will reset
                                     // everything when we try to remove a user or start
                                     // the conversation
+                                    // eslint-disable-next-line react/jsx-props-no-multi-spaces
                                     onBlur={() => {}}
                                     onChangeText={props.onChangeText}
                                     onFocus={props.onFocus}
