@@ -62,6 +62,7 @@ const lastReadActionIDs = {};
  * @returns {boolean}
  */
 function getUnreadActionCount(report) {
+    // @todo remove the first check as part of cleanup https://github.com/Expensify/Expensify/issues/145243
     const usersLastReadActionID = lodashGet(report, [
         'reportNameValuePairs',
         `lastReadActionID_${currentUserAccountID}`,
@@ -161,7 +162,7 @@ function fetchChatReportsByIDs(chatList) {
             let participantEmails = [];
 
             // Process the reports and store them in Ion
-            let simplifiedReports = [];
+            const simplifiedReports = [];
             _.each(fetchedReports, (report) => {
                 const newReport = getSimplifiedReportObject(report);
 
@@ -184,7 +185,8 @@ function fetchChatReportsByIDs(chatList) {
                         const details = _.pick(data, participantEmails);
                         Ion.merge(IONKEYS.PERSONAL_DETAILS, PersonalDetails.formatPersonalDetails(details));
 
-                        // Let's save report icons based on the the personalDetails of the participants
+                        // The personalDetails of the participants contain their avatar images. Here we'll go over each
+                        // report and based on the participants we'll link up their avatars to report icons.
                         _.each(simplifiedReports, (report) => {
                             const avatars = _.chain(report.participants)
                                 .map(participant => lodashGet(details, [participant, 'avatar']))
@@ -205,7 +207,7 @@ function fetchChatReportsByIDs(chatList) {
 }
 
 /**
- * Update the lastReadActionID in Ion and local memory.
+ * Update the lastReadActionID in local memory
  *
  * @param {Number} reportID
  * @param {Number} sequenceNumber
@@ -213,7 +215,7 @@ function fetchChatReportsByIDs(chatList) {
 function setLocalLastReadActionID(reportID, sequenceNumber) {
     lastReadActionIDs[reportID] = sequenceNumber;
 
-    // Update the lastReadActionID on the report optimistically
+    // Update the report optimistically
     Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {
         unreadActionCount: 0,
         lastVisited: Date.now(),

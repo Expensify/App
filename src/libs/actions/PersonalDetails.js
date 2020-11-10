@@ -129,6 +129,7 @@ function fetch() {
  * Get personal details for a list of emails.
  *
  * @param {String} emailList
+ * @return {Promise}
  */
 function getForEmails(emailList) {
     return API.getPersonalDetails(emailList);
