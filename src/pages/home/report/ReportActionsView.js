@@ -53,7 +53,6 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidMount() {
-        console.log(`componentDidMount: ${this.props.reportID}. IsActive: ${this.props.isActiveReport}`);
         this.visibilityChangeEvent = AppState.addEventListener('change', () => {
             if (this.props.isActiveReport && Visibility.isVisible()) {
                 setTimeout(this.recordMaxAction, 3000);
@@ -68,7 +67,6 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        console.log(`componentDidUpdate: ${this.props.reportID}. IsActive: ${this.props.isActiveReport}. Previous: ${prevProps.reportID}, IsActive: ${prevProps.isActiveReport}`);
         // If we previously had a value for reportActions but no longer have one
         // this can only mean that the reportActions have been deleted. So we must
         // refetch these actions the next time we switch to this chat.
