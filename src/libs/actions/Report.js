@@ -196,6 +196,18 @@ function setLocalLastReadActionID(reportID, sequenceNumber) {
 }
 
 /**
+ * Remove a temporary actionID
+ *
+ * @param {Number} reportID
+ * @param {String} actionID
+ */
+function removeLoadingAction(reportID, actionID) {
+    Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+        [actionID]: null,
+    });
+}
+
+/**
  * Updates a report in the store with a new report action
  * from incoming Pusher or Airship event payload
  *
@@ -222,17 +234,13 @@ function updateReportWithNewAction(reportID, reportAction) {
         maxSequenceNumber: reportAction.sequenceNumber,
     });
 
-    const actionKey = `${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
-
     // Check the reportAction for the clientGUID and make sure the sequenceNumber
     // for this action matches correctly with the one we are expecting
     const clientGUID = reportAction.clientGUID;
     if (clientGUID) {
         // Delete this item from the report since we are about to replace it at the
         // correct action ID index
-        Ion.merge(actionKey, {
-            [clientGUID]: null,
-        });
+        removeLoadingAction(reportID, clientGUID);
     }
 
     // Add the action into Ion
@@ -487,7 +495,7 @@ function addAction(reportID, text, file) {
 
     // Generate a client guid so we can identify this later when it
     // returns via Pusher with the real sequenceNumber
-    const tempActionID = `${reportID}_${Date.now()}_${guid()}`;
+    const tempActionID = `${Date.now()}_${guid()}`;
 
     // Optimistically add the new comment to the store before waiting to save it to the server
     Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
@@ -616,6 +624,24 @@ function handleReportChanged(report) {
 Ion.connect({
     key: IONKEYS.COLLECTION.REPORT,
     callback: handleReportChanged
+});
+
+Ion.connect({
+    key: IONKEYS.COLLECTION.REPORT_ACTIONS,
+    callback: (val, key, isInitialData) => {
+        if (!key || !isInitialData) {
+            return;
+        }
+
+        const reportID = key.replace(IONKEYS.COLLECTION.REPORT_ACTIONS, '');
+
+        // Remove any actions that we find
+        _.each(val, (action, actionID) => {
+            if (action.loading) {
+                removeLoadingAction(Number(reportID), actionID);
+            }
+        });
+    },
 });
 
 // When the app reconnects from being offline, fetch all of the reports and their actions
