@@ -1,9 +1,9 @@
 import 'react-native';
-import {View, Text} from 'react-native';
 import {render} from '@testing-library/react-native';
 import React from 'react';
 import Ion from '../../src/libs/Ion';
 import withIon from '../../src/components/withIon';
+import ViewWithText from './components/ViewWithText';
 
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 
@@ -26,19 +26,12 @@ describe('withIon', () => {
 
         Ion.set(TEST_KEY, 'test1')
             .then(() => {
-                const TestComponent = (props) => {
-                    return (
-                        <View>
-                            <Text>{props.test}</Text>
-                        </View>
-                    );
-                };
-
                 const TestComponentWithIon = withIon({
                     test: {
                         key: TEST_KEY,
                     },
-                })(TestComponent);
+                })(props => <ViewWithText text={props.test} />);
+
                 result = render(<TestComponentWithIon />);
                 return waitForPromisesToResolve();
             })
