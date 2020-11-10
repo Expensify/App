@@ -1,4 +1,4 @@
-import Ion from '../Ion';
+import Ion from 'react-ion';
 import IONKEYS from '../../IONKEYS';
 import ROUTES from '../../ROUTES';
 import {redirect} from './App';

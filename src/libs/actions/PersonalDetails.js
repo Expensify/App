@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
-import Ion from '../Ion';
+import Ion from 'react-ion';
 import * as API from '../API';
 import IONKEYS from '../../IONKEYS';
 import md5 from '../md5';

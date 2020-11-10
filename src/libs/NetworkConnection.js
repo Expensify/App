@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import {AppState} from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
-import Ion from './Ion';
+import Ion from 'react-ion';
 import IONKEYS from '../IONKEYS';
 
 // NetInfo.addEventListener() returns a function used to unsubscribe the

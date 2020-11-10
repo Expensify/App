@@ -1,6 +1,6 @@
 import _ from 'underscore';
+import Ion from 'react-ion';
 import guid from '../guid';
-import Ion from '../Ion';
 import IONKEYS from '../../IONKEYS';
 
 const clientID = guid();

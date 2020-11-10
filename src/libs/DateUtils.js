@@ -1,7 +1,7 @@
 import moment from 'moment';
 import 'moment-timezone';
+import Ion from 'react-ion';
 import Str from './Str';
-import Ion from './Ion';
 import IONKEYS from '../IONKEYS';
 
 let timezone;

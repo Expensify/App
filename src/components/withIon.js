@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import _ from 'underscore';
-import Ion from '../libs/Ion';
+import Ion from 'react-ion';
 import Str from '../libs/Str';
 
 /**

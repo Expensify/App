@@ -2,7 +2,7 @@ import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import ExpensiMark from 'js-libs/lib/ExpensiMark';
-import Ion from '../Ion';
+import Ion from 'react-ion';
 import * as API from '../API';
 import IONKEYS from '../../IONKEYS';
 import * as Pusher from '../Pusher/pusher';
