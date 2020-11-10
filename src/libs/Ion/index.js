@@ -17,10 +17,12 @@ let ionKeys;
 // Holds a list of keys that have been directly subscribed to or recently modified from least to most recent
 let recentlyAccessedKeys = [];
 
-// Holds a list of keys that are safe to remove when we reach max storage
+// Holds a list of keys that are safe to remove when we reach max storage. If a key does not match with
+// whatever appears in this list it will NEVER be a candidate for eviction.
 let evictionAllowList = [];
 
-// Holds a list of keys that we should never remove
+// Holds a map of keys and connectionID arrays whose keys will never be automatically evicted as
+// long as we have at least one subscriber that returns false for the canEvict property.
 const evictionBlocklist = {};
 
 /**
@@ -282,12 +284,20 @@ function connect(mapping) {
 /**
  * Remove the listener for a react component
  *
- * @param {string} connectionID
+ * @param {Number} connectionID
+ * @param {String} [keyToRemoveFromEvictionBlocklist]
  */
-function disconnect(connectionID) {
+function disconnect(connectionID, keyToRemoveFromEvictionBlocklist) {
     if (!callbackToStateMapping[connectionID]) {
         return;
     }
+
+    // Remove this key from the eviction block list as we are no longer
+    // subscribing to it and it should be safe to delete again
+    if (keyToRemoveFromEvictionBlocklist) {
+        removeFromEvictionBlockList(keyToRemoveFromEvictionBlocklist, connectionID);
+    }
+
     delete callbackToStateMapping[connectionID];
 }
 
