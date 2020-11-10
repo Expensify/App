@@ -1,4 +1,4 @@
-import Ion from '../Ion';
+import Ion from 'react-ion';
 import * as API from '../API';
 import IONKEYS from '../../IONKEYS';
 import redirectToSignIn from './SignInRedirect';

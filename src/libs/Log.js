@@ -1,9 +1,9 @@
 import Logger from 'js-libs/lib/Logger';
+import Ion from 'react-ion';
 import {logToServer} from './API';
 import CONFIG from '../CONFIG';
 import getPlatform from './getPlatform';
 import {version} from '../../package.json';
-import Ion from './Ion';
 import IONKEYS from '../IONKEYS';
 
 let email;

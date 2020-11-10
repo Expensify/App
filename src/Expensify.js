@@ -1,10 +1,11 @@
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import Ion from 'react-ion';
 import {recordCurrentlyViewedReportID, recordCurrentRoute} from './libs/actions/App';
 import SignInPage from './pages/SignInPage';
 import HomePage from './pages/home/HomePage';
-import Ion from './libs/Ion';
+import addStorageEventHandler from './libs/addStorageEventHandler';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import IONKEYS from './IONKEYS';
 import withIon from './components/withIon';
@@ -27,7 +28,8 @@ Ion.init({
 
         // Clear any loading and error messages so they do not appear on app startup
         [IONKEYS.SESSION]: {loading: false, error: ''},
-    }
+    },
+    onStorageEvent: addStorageEventHandler,
 });
 Ion.registerLogger(({level, message}) => {
     if (level === 'alert') {

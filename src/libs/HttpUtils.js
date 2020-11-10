@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import Ion from './Ion';
+import Ion from 'react-ion';
 import CONFIG from '../CONFIG';
 import IONKEYS from '../IONKEYS';
 import NetworkConnection from './NetworkConnection';
