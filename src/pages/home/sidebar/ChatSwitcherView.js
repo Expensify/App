@@ -136,7 +136,7 @@ class ChatSwitcherView extends React.Component {
                     searchText: report.reportName === login ? login
                         : `${report.reportName} ${login}`,
                     reportID: report.reportID,
-                    participants: participants,
+                    participants,
                     icons: report.icons,
                     login,
                     type: participants.length === 1 ? OPTION_TYPE.USER : OPTION_TYPE.REPORT,
