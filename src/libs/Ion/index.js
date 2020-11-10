@@ -131,6 +131,25 @@ function addToEvictionBlockList(key, connectionID) {
 }
 
 /**
+ * Take all the keys that are safe to evict and add them to
+ * the recently accessed list when initializing the app. This
+ * enables keys that have not recently been accessed to be
+ * removed.
+ */
+function addAllSafeEvictionKeysToRecentlyAccessedList() {
+    AsyncStorage.getAllKeys()
+        .then((keys) => {
+            _.each(evictionAllowList, (safeEvictionKey) => {
+                _.each(keys, (key) => {
+                    if (isKeyMatch(safeEvictionKey, key)) {
+                        addLastAccessedKey(key);
+                    }
+                });
+            });
+        });
+}
+
+/**
  * When a key change happens, search for any callbacks matching the key or collection key and trigger those callbacks
  *
  * @param {string} key
@@ -443,6 +462,7 @@ function init({keys, initialKeyStates, safeEvictionKeys}) {
 
     // Let Ion know about which keys are safe to evict
     evictionAllowList = safeEvictionKeys;
+    addAllSafeEvictionKeysToRecentlyAccessedList();
 
     // Initialize all of our keys with data provided
     _.each(initialKeyStates, (state, key) => merge(key, state));
