@@ -67,10 +67,15 @@ class BaseImageModal extends React.Component {
     }
 
     componentDidMount() {
+        // If the component unmounts by the time getSize() is finished, it will throw a warning
+        // So this is to prevent setting state if the component isn't mounted
+
+        // eslint-disable-next-line no-underscore-dangle
         this._isMounted = true;
 
         // If the images are expensify attachments, add an authtoken so we can access them
-        if (this.props.isExpensifyAttachment) {
+        // eslint-disable-next-line no-underscore-dangle
+        if (this.props.isExpensifyAttachment && this._isMounted) {
             this.setState({
                 previewSourceURL: `${this.props.previewSourceURL}?authToken=${getAuthToken()}`,
                 sourceURL: `${this.props.sourceURL}?authToken=${getAuthToken()}`
@@ -82,6 +87,8 @@ class BaseImageModal extends React.Component {
             const screenWidth = 300;
             const scaleFactor = width / screenWidth;
             const imageHeight = height / scaleFactor;
+
+            // eslint-disable-next-line no-underscore-dangle
             if (this._isMounted) {
                 this.setState({thumbnailWidth: screenWidth, thumbnailHeight: imageHeight});
             }
@@ -95,6 +102,8 @@ class BaseImageModal extends React.Component {
                 const screenWidth = this.props.pinToEdges ? Dimensions.get('window').width : this.props.modalImageWidth;
                 const scaleFactor = width / screenWidth;
                 const imageHeight = height / scaleFactor;
+
+                // eslint-disable-next-line no-underscore-dangle
                 if (this._isMounted) {
                     this.setState({imageWidth: screenWidth, imageHeight});
                 }
@@ -103,6 +112,7 @@ class BaseImageModal extends React.Component {
     }
 
     componentWillUnmount() {
+        // eslint-disable-next-line no-underscore-dangle
         this._isMounted = false;
     }
 
