@@ -72,8 +72,8 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
-     * Save our report comment in Ion. We debounce this method in the constructor so that it's not called too often
-     * to update Ion and re-render this component.
+     * Save our report comment in Onyx. We debounce this method in the constructor so that it's not called too often
+     * to update Onyx and re-render this component.
      *
      * @param {string} comment
      */
@@ -82,7 +82,7 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
-     * Update the value of the comment in Ion
+     * Update the value of the comment in Onyx
      *
      * @param {string} newComment
      */

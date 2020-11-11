@@ -22,7 +22,7 @@ let connectionID;
  * the title and unread count indicators
  */
 function listenForReportChanges() {
-    connectionID = Ion.connect({
+    connectionID = Onyx.connect({
         key: IONKEYS.COLLECTION.REPORT,
         callback: (report) => {
             if (!report || !report.reportID) {
@@ -43,7 +43,7 @@ function stopListeningForReportChanges() {
         return;
     }
 
-    Ion.disconnect(connectionID);
+    Onyx.disconnect(connectionID);
 }
 
 export default {

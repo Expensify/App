@@ -8,18 +8,18 @@ import UnreadIndicatorUpdater from '../UnreadIndicatorUpdater';
 import PushNotification from '../Notification/PushNotification';
 
 let currentURL;
-Ion.connect({
+Onyx.connect({
     key: IONKEYS.CURRENT_URL,
     callback: val => currentURL = val,
 });
 let currentlyViewedReportID;
-Ion.connect({
+Onyx.connect({
     key: IONKEYS.CURRENTLY_VIEWED_REPORTID,
     callback: val => currentlyViewedReportID = val,
 });
 
 /**
- * Clears the Ion store, redirects to the sign in page and handles adding any exitTo params to the URL.
+ * Clears the Onyx store, redirects to the sign in page and handles adding any exitTo params to the URL.
  * Normally this method would live in Session.js, but that would cause a circular dependency with Network.js.
  *
  * @param {String} [errorMessage] error message to be displayed on the sign in page
@@ -48,12 +48,12 @@ function redirectToSignIn(errorMessage) {
         ? ROUTES.SIGNIN
         : ROUTES.getSigninWithExitToRoute(currentURL);
     redirect(urlWithExitTo);
-    Ion.clear().then(() => {
+    Onyx.clear().then(() => {
         if (errorMessage) {
-            Ion.set(IONKEYS.SESSION, {error: errorMessage});
+            Onyx.set(IONKEYS.SESSION, {error: errorMessage});
         }
         if (reportID) {
-            Ion.set(IONKEYS.CURRENTLY_VIEWED_REPORTID, reportID);
+            Onyx.set(IONKEYS.CURRENTLY_VIEWED_REPORTID, reportID);
         }
     });
 }

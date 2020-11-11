@@ -14,7 +14,7 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     match: PropTypes.object.isRequired,
 
-    /* Ion Props */
+    /* Onyx Props */
 
     // List of reports to display
     reports: PropTypes.objectOf(PropTypes.shape({

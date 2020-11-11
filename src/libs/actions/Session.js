@@ -4,7 +4,7 @@ import IONKEYS from '../../IONKEYS';
 import redirectToSignIn from './SignInRedirect';
 
 let credentials;
-Ion.connect({
+Onyx.connect({
     key: IONKEYS.CREDENTIALS,
     callback: val => credentials = val,
 });
@@ -27,7 +27,7 @@ function signIn(partnerUserID, partnerUserSecret, twoFactorAuthCode = '', exitTo
 }
 
 /**
- * Clears the Ion store and redirects user to the sign in page
+ * Clears the Onyx store and redirects user to the sign in page
  */
 function signOut() {
     redirectToSignIn();

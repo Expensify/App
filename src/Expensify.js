@@ -42,9 +42,9 @@ Onyx.registerLogger(({level, message}) => {
 });
 
 const propTypes = {
-    /* Ion Props */
+    /* Onyx Props */
 
-    // A route set by Ion that we will redirect to if present. Always empty on app init.
+    // A route set by Onyx that we will redirect to if present. Always empty on app init.
     redirectTo: PropTypes.string,
 };
 
@@ -88,7 +88,7 @@ class Expensify extends Component {
     }
 
     render() {
-        // Until the authToken has been initialized from Ion, display a blank page
+        // Until the authToken has been initialized from Onyx, display a blank page
         if (this.state.isLoading) {
             return (
                 <View style={styles.genericView} />
@@ -128,7 +128,7 @@ export default withOnyx({
     redirectTo: {
         key: IONKEYS.APP_REDIRECT_TO,
 
-        // Prevent the prefilling of Ion data or else the app will always redirect to what the last value was set to.
+        // Prevent the prefilling of Onyx data or else the app will always redirect to what the last value was set to.
         // This ends up in a situation where you go to a report, refresh the page, and then rather than seeing the
         // report you are brought back to the root of the site (ie. "/").
         initWithStoredValues: false,
