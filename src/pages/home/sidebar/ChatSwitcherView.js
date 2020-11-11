@@ -363,6 +363,7 @@ class ChatSwitcherView extends React.Component {
                 reportID: report.reportID,
                 type: OPTION_TYPE.REPORT,
                 participants: report.participants,
+                isUnread: report.unreadActionCount > 0
             }))
             .value();
 
