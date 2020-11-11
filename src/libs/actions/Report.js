@@ -2,9 +2,9 @@ import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import ExpensiMark from 'js-libs/lib/ExpensiMark';
-import Ion from '../Ion';
+import Onyx from 'react-native-onyx';
 import * as API from '../API';
-import IONKEYS from '../../IONKEYS';
+import ONYXKEYS from '../../ONYXKEYS';
 import * as Pusher from '../Pusher/pusher';
 import LocalNotification from '../Notification/LocalNotification';
 import PushNotification from '../Notification/PushNotification';
@@ -18,8 +18,8 @@ import {hide as hideSidebar} from './Sidebar';
 
 let currentUserEmail;
 let currentUserAccountID;
-Ion.connect({
-    key: IONKEYS.SESSION,
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
     callback: (val) => {
         // When signed out, val is undefined
         if (val) {
@@ -30,20 +30,20 @@ Ion.connect({
 });
 
 let currentURL;
-Ion.connect({
-    key: IONKEYS.CURRENT_URL,
+Onyx.connect({
+    key: ONYXKEYS.CURRENT_URL,
     callback: val => currentURL = val,
 });
 
 let lastViewedReportID;
-Ion.connect({
-    key: IONKEYS.CURRENTLY_VIEWED_REPORTID,
+Onyx.connect({
+    key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
     callback: val => lastViewedReportID = val ? Number(val) : null,
 });
 
 let myPersonalDetails;
-Ion.connect({
-    key: IONKEYS.MY_PERSONAL_DETAILS,
+Onyx.connect({
+    key: ONYXKEYS.MY_PERSONAL_DETAILS,
     callback: val => myPersonalDetails = val,
 });
 
@@ -99,7 +99,7 @@ function getParticipantEmailsFromReport({sharedReportList}) {
 }
 
 /**
- * Only store the minimal amount of data in Ion that needs to be stored
+ * Only store the minimal amount of data in Onyx that needs to be stored
  * because space is limited
  *
  * @param {object} report
@@ -161,7 +161,7 @@ function fetchChatReportsByIDs(chatList) {
             // get the personal details.
             let participantEmails = [];
 
-            // Process the reports and store them in Ion
+            // Process the reports and store them in Onyx
             const simplifiedReports = [];
             _.each(fetchedReports, (report) => {
                 const newReport = getSimplifiedReportObject(report);
@@ -173,8 +173,8 @@ function fetchChatReportsByIDs(chatList) {
                     newReport.reportName = getChatReportName(report.sharedReportList);
                 }
 
-                // Merge the data into Ion
-                Ion.merge(`${IONKEYS.COLLECTION.REPORT}${report.reportID}`, newReport);
+                // Merge the data into Onyx
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, newReport);
             });
 
             // Fetch the person details if there are any
@@ -183,7 +183,7 @@ function fetchChatReportsByIDs(chatList) {
                 PersonalDetails.getForEmails(participantEmails.join(','))
                     .then((data) => {
                         const details = _.pick(data, participantEmails);
-                        Ion.merge(IONKEYS.PERSONAL_DETAILS, PersonalDetails.formatPersonalDetails(details));
+                        Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, PersonalDetails.formatPersonalDetails(details));
 
                         // The personalDetails of the participants contain their avatar images. Here we'll go over each
                         // report and based on the participants we'll link up their avatars to report icons.
@@ -213,7 +213,7 @@ function setLocalLastReadActionID(reportID, sequenceNumber) {
     lastReadActionIDs[reportID] = sequenceNumber;
 
     // Update the report optimistically
-    Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         unreadActionCount: 0,
         lastVisited: Date.now(),
     });
@@ -236,18 +236,18 @@ function updateReportWithNewAction(reportID, reportAction) {
         setLocalLastReadActionID(reportID, newMaxSequenceNumber);
     }
 
-    // Always merge the reportID into Ion
-    // If the report doesn't exist in Ion yet, then all the rest of the data will be filled out
+    // Always merge the reportID into Onyx
+    // If the report doesn't exist in Onyx yet, then all the rest of the data will be filled out
     // by handleReportChanged
-    Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         reportID,
         unreadActionCount: newMaxSequenceNumber - (lastReadActionIDs[reportID] || 0),
         maxSequenceNumber: reportAction.sequenceNumber,
     });
 
-    // Add the action into Ion
+    // Add the action into Onyx
     const messageText = lodashGet(reportAction, ['message', 0, 'text'], '');
-    Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         [reportAction.sequenceNumber]: {
             ...reportAction,
             isAttachment: messageText === '[Attachment]',
@@ -348,13 +348,13 @@ function subscribeToReportTypingEvents(reportID) {
         // Use a combo of the reportID and the login as a key for holding our timers.
         const reportUserIdentifier = `${reportID}-${login}`;
         clearTimeout(typingWatchTimers[reportUserIdentifier]);
-        Ion.merge(`${IONKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, typingStatus);
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, typingStatus);
 
         // Wait for 1.5s of no additional typing events before setting the status back to false.
         typingWatchTimers[reportUserIdentifier] = setTimeout(() => {
             const typingStoppedStatus = {};
             typingStoppedStatus[login] = false;
-            Ion.merge(`${IONKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, typingStoppedStatus);
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, typingStoppedStatus);
             delete typingWatchTimers[reportUserIdentifier];
         }, 1500);
     });
@@ -371,7 +371,7 @@ function unsubscribeFromReportChannel(reportID) {
     }
 
     const pusherChannelName = getReportChannelName(reportID);
-    Ion.set(`${IONKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, {});
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, {});
     Pusher.unsubscribe(pusherChannelName);
 }
 
@@ -403,8 +403,8 @@ function fetchActions(reportID) {
                 .pluck('sequenceNumber')
                 .max()
                 .value();
-            Ion.merge(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, indexedData);
-            Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {maxSequenceNumber});
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, indexedData);
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {maxSequenceNumber});
         });
 }
 
@@ -465,18 +465,18 @@ function fetchOrCreateChatReport(participants) {
             });
         })
 
-        // Put the report object into Ion
+        // Put the report object into Onyx
         .then((data) => {
             const report = data.reports[reportID];
 
-            // Store only the absolute bare minimum of data in Ion because space is limited
+            // Store only the absolute bare minimum of data in Onyx because space is limited
             const newReport = getSimplifiedReportObject(report);
             newReport.reportName = getChatReportName(report.sharedReportList);
             newReport.lastVisited = Date.now();
 
-            // Merge the data into Ion. Don't use set() here or multiSet() because then that would
+            // Merge the data into Onyx. Don't use set() here or multiSet() because then that would
             // overwrite any existing data (like if they have unread messages)
-            Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, newReport);
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, newReport);
 
             // Redirect the logged in person to the new report
             redirect(ROUTES.getReportRoute(reportID));
@@ -491,7 +491,7 @@ function fetchOrCreateChatReport(participants) {
  * @param {object} file
  */
 function addAction(reportID, text, file) {
-    const actionKey = `${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
+    const actionKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
 
     // Convert the comment from MD into HTML because that's how it is stored in the database
     const parser = new ExpensiMark();
@@ -502,13 +502,13 @@ function addAction(reportID, text, file) {
     const highestSequenceNumber = reportMaxSequenceNumbers[reportID] || 0;
     const newSequenceNumber = highestSequenceNumber + 1;
 
-    // Update the report in Ion to have the new sequence number
-    Ion.merge(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {
+    // Update the report in Onyx to have the new sequence number
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         maxSequenceNumber: newSequenceNumber,
     });
 
     // Optimistically add the new comment to the store before waiting to save it to the server
-    Ion.merge(actionKey, {
+    Onyx.merge(actionKey, {
         [newSequenceNumber]: {
             actionName: 'ADDCOMMENT',
             actorEmail: currentUserEmail,
@@ -576,7 +576,7 @@ function updateLastReadActionID(reportID, sequenceNumber) {
  */
 function togglePinnedState(report) {
     const pinnedValue = !report.isPinned;
-    Ion.merge(`${IONKEYS.COLLECTION.REPORT}${report.reportID}`, {isPinned: pinnedValue});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {isPinned: pinnedValue});
     API.togglePinnedReport({
         reportID: report.reportID,
         pinnedValue,
@@ -591,7 +591,7 @@ function togglePinnedState(report) {
  * @param {string} comment
  */
 function saveReportComment(reportID, comment) {
-    Ion.merge(`${IONKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, comment);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, comment);
 }
 
 /**
@@ -607,7 +607,7 @@ function broadcastUserIsTyping(reportID) {
 }
 
 /**
- * When a report changes in Ion, this fetches the report from the API if the report doesn't have a name
+ * When a report changes in Onyx, this fetches the report from the API if the report doesn't have a name
  * and it keeps track of the max sequence number on the report actions.
  *
  * @param {object} report
@@ -618,7 +618,7 @@ function handleReportChanged(report) {
     }
 
     // A report can be missing a name if a comment is received via pusher event
-    // and the report does not yet exist in Ion (eg. a new DM created with the logged in person)
+    // and the report does not yet exist in Onyx (eg. a new DM created with the logged in person)
     if (report.reportName === undefined) {
         fetchChatReportsByIDs([report.reportID]);
     }
@@ -627,8 +627,8 @@ function handleReportChanged(report) {
     reportMaxSequenceNumbers[report.reportID] = report.maxSequenceNumber;
 }
 
-Ion.connect({
-    key: IONKEYS.COLLECTION.REPORT,
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
     callback: handleReportChanged
 });
 

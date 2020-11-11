@@ -3,10 +3,10 @@ import {View, Keyboard, AppState} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
+import {withOnyx} from 'react-native-onyx';
 import Text from '../../../components/Text';
-import withIon from '../../../components/withIon';
 import {fetchActions, updateLastReadActionID} from '../../../libs/actions/Report';
-import IONKEYS from '../../../IONKEYS';
+import ONYXKEYS from '../../../ONYXKEYS';
 import ReportActionItem from './ReportActionItem';
 import styles from '../../../styles/StyleSheet';
 import ReportActionPropTypes from './ReportActionPropTypes';
@@ -21,7 +21,7 @@ const propTypes = {
     // Is this report currently in view?
     isActiveReport: PropTypes.bool.isRequired,
 
-    /* Ion Props */
+    /* Onyx Props */
 
     // Array of report actions for this report
     reportActions: PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
@@ -253,12 +253,12 @@ class ReportActionsView extends React.Component {
 ReportActionsView.propTypes = propTypes;
 ReportActionsView.defaultProps = defaultProps;
 
-export default withIon({
+export default withOnyx({
     reportActions: {
-        key: ({reportID}) => `${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
         canEvict: props => !props.isActiveReport,
     },
     session: {
-        key: IONKEYS.SESSION,
+        key: ONYXKEYS.SESSION,
     },
 })(ReportActionsView);
