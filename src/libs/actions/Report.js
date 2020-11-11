@@ -188,15 +188,12 @@ function fetchChatReportsByIDs(chatList) {
                         // The personalDetails of the participants contain their avatar images. Here we'll go over each
                         // report and based on the participants we'll link up their avatars to report icons.
                         _.each(simplifiedReports, (report) => {
-                            const avatars = _.chain(report.participants)
-                                .map(participant => lodashGet(details, [participant, 'avatar']))
-                                .compact()
-                                .value();
-
-                            if (!_.isEmpty(avatars)) {
-                                Ion.merge(`${IONKEYS.COLLECTION.REPORT}${report.reportID}`, {
-                                    icons: avatars.slice(0, 3),
-                                });
+                            if (lodashGet(report, 'participants', []).length === 1) {
+                                const dmParticipant = report.participants[0];
+                                const icon = lodashGet(details, [dmParticipant, 'avatar']);
+                                if (!_.isEmpty(icon)) {
+                                    Ion.merge(`${IONKEYS.COLLECTION.REPORT}${report.reportID}`, {icon});
+                                }
                             }
                         });
                     });
