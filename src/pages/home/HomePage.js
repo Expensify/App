@@ -30,7 +30,7 @@ import {fetch as fetchPersonalDetails} from '../../libs/actions/PersonalDetails'
 import * as Pusher from '../../libs/Pusher/pusher';
 import UnreadIndicatorUpdater from '../../libs/UnreadIndicatorUpdater';
 import ROUTES from '../../ROUTES';
-import IONKEYS from '../../IONKEYS';
+import ONYXKEYS from '../../ONYXKEYS';
 import NetworkConnection from '../../libs/NetworkConnection';
 
 const windowSize = Dimensions.get('window');
@@ -245,10 +245,10 @@ App.defaultProps = defaultProps;
 export default withOnyx(
     {
         isSidebarShown: {
-            key: IONKEYS.IS_SIDEBAR_SHOWN
+            key: ONYXKEYS.IS_SIDEBAR_SHOWN
         },
         isChatSwitcherActive: {
-            key: IONKEYS.IS_CHAT_SWITCHER_ACTIVE,
+            key: ONYXKEYS.IS_CHAT_SWITCHER_ACTIVE,
             initWithStoredValues: false,
         },
     },

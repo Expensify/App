@@ -4,11 +4,11 @@ import {logToServer} from './API';
 import CONFIG from '../CONFIG';
 import getPlatform from './getPlatform';
 import {version} from '../../package.json';
-import IONKEYS from '../IONKEYS';
+import ONYXKEYS from '../ONYXKEYS';
 
 let email;
 Onyx.connect({
-    key: IONKEYS.SESSION,
+    key: ONYXKEYS.SESSION,
     callback: val => email = val ? val.email : null,
 });
 

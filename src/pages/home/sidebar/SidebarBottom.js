@@ -7,7 +7,7 @@ import styles, {getSafeAreaMargins} from '../../../styles/StyleSheet';
 import Text from '../../../components/Text';
 import AppLinks from './AppLinks';
 import {signOut} from '../../../libs/actions/Session';
-import IONKEYS from '../../../IONKEYS';
+import ONYXKEYS from '../../../ONYXKEYS';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
 
 const propTypes = {
@@ -80,7 +80,7 @@ SidebarBottom.displayName = 'SidebarBottom';
 
 export default withOnyx({
     myPersonalDetails: {
-        key: IONKEYS.MY_PERSONAL_DETAILS,
+        key: ONYXKEYS.MY_PERSONAL_DETAILS,
     },
-    network: {key: IONKEYS.NETWORK},
+    network: {key: ONYXKEYS.NETWORK},
 })(SidebarBottom);

@@ -1,10 +1,10 @@
 import Onyx from 'react-native-onyx';
 import Str from 'js-libs/lib/str';
-import IONKEYS from '../../IONKEYS';
+import ONYXKEYS from '../../ONYXKEYS';
 
 let currentRedirectTo;
 Onyx.connect({
-    key: IONKEYS.APP_REDIRECT_TO,
+    key: ONYXKEYS.APP_REDIRECT_TO,
     callback: val => currentRedirectTo = val,
 });
 
@@ -16,7 +16,7 @@ Onyx.connect({
  */
 function redirect(url) {
     const formattedURL = Str.normalizeUrl(url);
-    Onyx.merge(IONKEYS.APP_REDIRECT_TO, formattedURL);
+    Onyx.merge(ONYXKEYS.APP_REDIRECT_TO, formattedURL);
 }
 
 /**
@@ -27,9 +27,9 @@ function redirect(url) {
  * @param {string} match.url
  */
 function recordCurrentRoute({match}) {
-    Onyx.merge(IONKEYS.CURRENT_URL, match.url);
+    Onyx.merge(ONYXKEYS.CURRENT_URL, match.url);
     if (match.url === currentRedirectTo) {
-        Onyx.merge(IONKEYS.APP_REDIRECT_TO, null);
+        Onyx.merge(ONYXKEYS.APP_REDIRECT_TO, null);
     }
 }
 
@@ -42,7 +42,7 @@ function recordCurrentRoute({match}) {
  * @param {string} match.params.reportID
  */
 function recordCurrentlyViewedReportID({match}) {
-    Onyx.merge(IONKEYS.CURRENTLY_VIEWED_REPORTID, match.params.reportID);
+    Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, match.params.reportID);
 }
 
 export {

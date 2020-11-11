@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import Str from 'js-libs/lib/str';
-import IONKEYS from '../IONKEYS';
+import ONYXKEYS from '../ONYXKEYS';
 import HttpUtils from './HttpUtils';
 import NetworkConnection from './NetworkConnection';
 import CONFIG from '../CONFIG';
@@ -20,7 +20,7 @@ let reauthenticating = false;
 
 let authToken;
 Onyx.connect({
-    key: IONKEYS.SESSION,
+    key: ONYXKEYS.SESSION,
     callback: val => authToken = val ? val.authToken : null,
 });
 
@@ -28,7 +28,7 @@ Onyx.connect({
 // vs queueing them for later.
 let isOffline;
 Onyx.connect({
-    key: IONKEYS.NETWORK,
+    key: ONYXKEYS.NETWORK,
     callback: val => isOffline = val && val.isOffline,
 });
 
@@ -37,14 +37,14 @@ Onyx.connect({
 // and use that new authToken in subsequent API calls
 let credentials;
 Onyx.connect({
-    key: IONKEYS.CREDENTIALS,
+    key: ONYXKEYS.CREDENTIALS,
     callback: ionCredentials => credentials = ionCredentials,
 });
 
 // If we are ever being redirected to the sign in page, the user is currently unauthenticated, so we should clear the
 // network request queue, to prevent DDoSing our own API
 Onyx.connect({
-    key: IONKEYS.APP_REDIRECT_TO,
+    key: ONYXKEYS.APP_REDIRECT_TO,
     callback: (redirectTo) => {
         if (redirectTo && redirectTo.startsWith(ROUTES.SIGNIN)) {
             networkRequestQueue = [];
@@ -98,7 +98,7 @@ function deleteLogin(parameters) {
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         doNotRetry: true,
     })
-        .catch(error => Onyx.merge(IONKEYS.SESSION, {error: error.message}));
+        .catch(error => Onyx.merge(ONYXKEYS.SESSION, {error: error.message}));
 }
 
 /**
@@ -131,7 +131,7 @@ function createLogin(login, password) {
                 deleteLogin({partnerUserID: credentials.login});
             }
 
-            Onyx.merge(IONKEYS.CREDENTIALS, {login, password});
+            Onyx.merge(ONYXKEYS.CREDENTIALS, {login, password});
         });
 }
 
@@ -147,8 +147,8 @@ function setSuccessfulSignInData(data, exitTo) {
 
     const redirectTo = exitTo ? Str.normalizeUrl(exitTo) : ROUTES.ROOT;
     Onyx.multiSet({
-        [IONKEYS.SESSION]: _.pick(data, 'authToken', 'accountID', 'email'),
-        [IONKEYS.APP_REDIRECT_TO]: redirectTo
+        [ONYXKEYS.SESSION]: _.pick(data, 'authToken', 'accountID', 'email'),
+        [ONYXKEYS.APP_REDIRECT_TO]: redirectTo
     });
 }
 
@@ -219,7 +219,7 @@ function request(command, parameters, type = 'post') {
                         parametersWithAuthToken.authToken = response.authToken;
 
                         // Update authToken in Onyx store otherwise subsequent API calls will use the expired one
-                        Onyx.merge(IONKEYS.SESSION, _.pick(response, 'authToken'));
+                        Onyx.merge(ONYXKEYS.SESSION, _.pick(response, 'authToken'));
                         return response;
                     })
                     .then(() => HttpUtils.xhr(command, parametersWithAuthToken, type))
@@ -353,7 +353,7 @@ function getAuthToken() {
  * @returns {Promise}
  */
 function authenticate(parameters) {
-    Onyx.merge(IONKEYS.SESSION, {loading: true, error: ''});
+    Onyx.merge(ONYXKEYS.SESSION, {loading: true, error: ''});
 
     // We treat Authenticate in a special way because unlike other commands, this one can't fail
     // with 407 authToken expired. When other api commands fail with this error we call Authenticate
@@ -391,9 +391,9 @@ function authenticate(parameters) {
         .catch((error) => {
             console.error(error);
             console.debug('[SIGNIN] Request error');
-            Onyx.merge(IONKEYS.SESSION, {error: error.message});
+            Onyx.merge(ONYXKEYS.SESSION, {error: error.message});
         })
-        .finally(() => Onyx.merge(IONKEYS.SESSION, {loading: false}));
+        .finally(() => Onyx.merge(ONYXKEYS.SESSION, {loading: false}));
 }
 
 /**

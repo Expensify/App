@@ -1,11 +1,11 @@
 import Onyx from 'react-native-onyx';
 import * as API from '../API';
-import IONKEYS from '../../IONKEYS';
+import ONYXKEYS from '../../ONYXKEYS';
 import redirectToSignIn from './SignInRedirect';
 
 let credentials;
 Onyx.connect({
-    key: IONKEYS.CREDENTIALS,
+    key: ONYXKEYS.CREDENTIALS,
     callback: val => credentials = val,
 });
 

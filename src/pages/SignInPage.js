@@ -17,7 +17,7 @@ import compose from '../libs/compose';
 import {withRouter, Redirect} from '../libs/Router';
 import ROUTES from '../ROUTES';
 import {signIn} from '../libs/actions/Session';
-import IONKEYS from '../IONKEYS';
+import ONYXKEYS from '../ONYXKEYS';
 import styles, {colors} from '../styles/StyleSheet';
 import logo from '../../assets/images/expensify-logo_reversed.png';
 
@@ -160,6 +160,6 @@ App.defaultProps = defaultProps;
 export default compose(
     withRouter,
     withOnyx({
-        session: {key: IONKEYS.SESSION},
+        session: {key: ONYXKEYS.SESSION},
     })
 )(App);

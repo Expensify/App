@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import IONKEYS from '../../IONKEYS';
+import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
 import {redirect} from './App';
 import * as Pusher from '../Pusher/pusher';
@@ -9,12 +9,12 @@ import PushNotification from '../Notification/PushNotification';
 
 let currentURL;
 Onyx.connect({
-    key: IONKEYS.CURRENT_URL,
+    key: ONYXKEYS.CURRENT_URL,
     callback: val => currentURL = val,
 });
 let currentlyViewedReportID;
 Onyx.connect({
-    key: IONKEYS.CURRENTLY_VIEWED_REPORTID,
+    key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
     callback: val => currentlyViewedReportID = val,
 });
 
@@ -50,10 +50,10 @@ function redirectToSignIn(errorMessage) {
     redirect(urlWithExitTo);
     Onyx.clear().then(() => {
         if (errorMessage) {
-            Onyx.set(IONKEYS.SESSION, {error: errorMessage});
+            Onyx.set(ONYXKEYS.SESSION, {error: errorMessage});
         }
         if (reportID) {
-            Onyx.set(IONKEYS.CURRENTLY_VIEWED_REPORTID, reportID);
+            Onyx.set(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, reportID);
         }
     });
 }

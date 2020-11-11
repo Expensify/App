@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import CONFIG from '../CONFIG';
-import IONKEYS from '../IONKEYS';
+import ONYXKEYS from '../ONYXKEYS';
 import NetworkConnection from './NetworkConnection';
 
 /**
@@ -26,7 +26,7 @@ function processHTTPRequest(url, method = 'get', body = null) {
             NetworkConnection.setOfflineStatus(true);
 
             // Set an error state and signify we are done loading
-            Onyx.merge(IONKEYS.SESSION, {loading: false, error: 'Cannot connect to server'});
+            Onyx.merge(ONYXKEYS.SESSION, {loading: false, error: 'Cannot connect to server'});
 
             // Throw a new error to prevent any other `then()` in the promise chain from being triggered (until another
             // catch() happens

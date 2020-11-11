@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Text from '../../components/Text';
 import styles from '../../styles/StyleSheet';
-import IONKEYS from '../../IONKEYS';
+import ONYXKEYS from '../../ONYXKEYS';
 import {withRouter} from '../../libs/Router';
 import LHNToggle from '../../../assets/images/icon-menu-toggle.png';
 import pinEnabled from '../../../assets/images/pin-enabled.png';
@@ -92,7 +92,7 @@ export default compose(
     withRouter,
     withOnyx({
         report: {
-            key: ({match}) => `${IONKEYS.COLLECTION.REPORT}${match.params.reportID}`,
+            key: ({match}) => `${ONYXKEYS.COLLECTION.REPORT}${match.params.reportID}`,
         },
     }),
 )(HeaderView);

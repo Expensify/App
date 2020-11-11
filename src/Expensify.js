@@ -7,7 +7,7 @@ import SignInPage from './pages/SignInPage';
 import HomePage from './pages/home/HomePage';
 import listenToStorageEvents from './libs/listenToStorageEvents';
 import * as ActiveClientManager from './libs/ActiveClientManager';
-import IONKEYS from './IONKEYS';
+import ONYXKEYS from './ONYXKEYS';
 
 import styles from './styles/StyleSheet';
 import Log from './libs/Log';
@@ -22,12 +22,12 @@ import ROUTES from './ROUTES';
 
 // Initialize the store when the app loads for the first time
 Onyx.init({
-    keys: IONKEYS,
-    safeEvictionKeys: [IONKEYS.COLLECTION.REPORT_ACTIONS],
+    keys: ONYXKEYS,
+    safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
     initialKeyStates: {
 
         // Clear any loading and error messages so they do not appear on app startup
-        [IONKEYS.SESSION]: {loading: false, error: ''},
+        [ONYXKEYS.SESSION]: {loading: false, error: ''},
     },
     registerStorageEventListener: (onStorageEvent) => {
         listenToStorageEvents(onStorageEvent);
@@ -69,7 +69,7 @@ class Expensify extends Component {
 
     componentDidMount() {
         Onyx.connect({
-            key: IONKEYS.SESSION,
+            key: ONYXKEYS.SESSION,
             callback: this.removeLoadingState,
         });
     }
@@ -126,7 +126,7 @@ Expensify.defaultProps = defaultProps;
 
 export default withOnyx({
     redirectTo: {
-        key: IONKEYS.APP_REDIRECT_TO,
+        key: ONYXKEYS.APP_REDIRECT_TO,
 
         // Prevent the prefilling of Onyx data or else the app will always redirect to what the last value was set to.
         // This ends up in a situation where you go to a report, refresh the page, and then rather than seeing the
