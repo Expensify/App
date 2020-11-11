@@ -1,11 +1,11 @@
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import {withOnyx} from Onyx from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import {recordCurrentlyViewedReportID, recordCurrentRoute} from './libs/actions/App';
 import SignInPage from './pages/SignInPage';
 import HomePage from './pages/home/HomePage';
-import addStorageEventHandler from './libs/addStorageEventHandler';
+import listenToStorageEvents from './libs/listenToStorageEvents';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import IONKEYS from './IONKEYS';
 
@@ -21,7 +21,7 @@ import {
 import ROUTES from './ROUTES';
 
 // Initialize the store when the app loads for the first time
-Ion.init({
+Onyx.init({
     keys: IONKEYS,
     safeEvictionKeys: [IONKEYS.COLLECTION.REPORT_ACTIONS],
     initialKeyStates: {
@@ -29,9 +29,11 @@ Ion.init({
         // Clear any loading and error messages so they do not appear on app startup
         [IONKEYS.SESSION]: {loading: false, error: ''},
     },
-    onStorageEvent: addStorageEventHandler,
+    registerStorageEventListener: (onStorageEvent) => {
+        listenToStorageEvents(onStorageEvent);
+    },
 });
-Ion.registerLogger(({level, message}) => {
+Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
         Log.alert(message, 0, {}, false);
     } else {
@@ -66,7 +68,7 @@ class Expensify extends Component {
     }
 
     componentDidMount() {
-        Ion.connect({
+        Onyx.connect({
             key: IONKEYS.SESSION,
             callback: this.removeLoadingState,
         });
