@@ -94,7 +94,21 @@ const Str = {
      */
     normalizeUrl(url) {
         return (typeof url === 'string' && url.startsWith('/')) ? url : `/${url}`;
-    }
+    },
+
+    /**
+     * Checks if parameter is a string or function
+     * if it is a function then we will call it with
+     * any additional arguments.
+     *
+     * @param {String|Function} parameter
+     * @returns {String}
+     */
+    result(parameter, ...args) {
+        return _.isFunction(parameter)
+            ? parameter(...args)
+            : parameter;
+    },
 };
 
 export default Str;

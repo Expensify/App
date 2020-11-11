@@ -6,8 +6,6 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import lodashGet from 'lodash.get';
-import _ from 'underscore';
 import styles from '../../../styles/StyleSheet';
 import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
 
@@ -35,8 +33,8 @@ const ChatSwitcherRow = ({
     const textStyle = optionIsFocused
         ? styles.sidebarLinkActiveText
         : styles.sidebarLinkText;
-    const paddingBeforeIcon = lodashGet(option, 'icons', []).length !== 0 ? styles.pl4 : null;
-
+    const textUnreadStyle = option.isUnread
+        ? [textStyle, styles.sidebarLinkTextUnread] : [textStyle];
     return (
         <View
             style={[
@@ -61,25 +59,28 @@ const ChatSwitcherRow = ({
                         styles.alignItemsCenter,
                     ]}
                 >
-                    {_.map(option.icons, icon => (
-                        <View key={icon} style={[styles.chatSwitcherAvatar]}>
-                            <Image
-                                source={{uri: icon}}
-                                style={[styles.chatSwitcherAvatarImage]}
-                            />
-                        </View>
-                    ))}
-                    <View style={[styles.flex1, paddingBeforeIcon]}>
+                    {
+                        option.icon
+                        && (
+                            <View style={[styles.chatSwitcherAvatar, styles.mr2]}>
+                                <Image
+                                    source={{uri: option.icon}}
+                                    style={[styles.chatSwitcherAvatarImage]}
+                                />
+                            </View>
+                        )
+                    }
+                    <View style={[styles.flex1]}>
                         {option.text === option.alternateText ? (
-                            <Text style={[textStyle]} numberOfLines={1}>
+                            <Text style={textUnreadStyle} numberOfLines={1}>
                                 {option.alternateText}
                             </Text>
                         ) : (
                             <>
-                                <Text style={[textStyle]} numberOfLines={1}>
+                                <Text style={textUnreadStyle} numberOfLines={1}>
                                     {option.text}
                                 </Text>
-                                <Text style={[textStyle, styles.textMicro]} numberOfLines={1}>
+                                <Text style={[...textUnreadStyle, styles.textMicro]} numberOfLines={1}>
                                     {option.alternateText}
                                 </Text>
                             </>
