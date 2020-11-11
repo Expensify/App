@@ -7,7 +7,7 @@ import {version} from '../../package.json';
 import IONKEYS from '../IONKEYS';
 
 let email;
-Ion.connect({
+Onyx.connect({
     key: IONKEYS.SESSION,
     callback: val => email = val ? val.email : null,
 });

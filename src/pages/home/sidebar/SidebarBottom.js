@@ -14,7 +14,7 @@ const propTypes = {
     // Safe area insets required for mobile devices margins
     insets: SafeAreaInsetPropTypes.isRequired,
 
-    /* Ion Props */
+    /* Onyx Props */
 
     // The personal details of the person who is logged in
     myPersonalDetails: PropTypes.shape({

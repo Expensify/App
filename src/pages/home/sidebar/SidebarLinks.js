@@ -24,7 +24,7 @@ const propTypes = {
     // Safe area insets required for mobile devices margins
     insets: SafeAreaInsetPropTypes.isRequired,
 
-    /* Ion Props */
+    /* Onyx Props */
 
     // List of reports
     reports: PropTypes.objectOf(PropTypes.shape({

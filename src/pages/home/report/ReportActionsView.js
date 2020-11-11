@@ -21,7 +21,7 @@ const propTypes = {
     // Is this report currently in view?
     isActiveReport: PropTypes.bool.isRequired,
 
-    /* Ion Props */
+    /* Onyx Props */
 
     // Array of report actions for this report
     reportActions: PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),

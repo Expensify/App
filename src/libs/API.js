@@ -20,7 +20,7 @@ let networkRequestQueue = [];
 let reauthenticating = false;
 
 let authToken;
-Ion.connect({
+Onyx.connect({
     key: IONKEYS.SESSION,
     callback: val => authToken = val ? val.authToken : null,
 });
@@ -28,23 +28,23 @@ Ion.connect({
 // We subscribe to changes to the online/offline status of the network to determine when we should fire off API calls
 // vs queueing them for later.
 let isOffline;
-Ion.connect({
+Onyx.connect({
     key: IONKEYS.NETWORK,
     callback: val => isOffline = val && val.isOffline,
 });
 
-// When the user authenticates for the first time we create a login and store credentials in Ion.
+// When the user authenticates for the first time we create a login and store credentials in Onyx.
 // When the user's authToken expires we use this login to re-authenticate and get a new authToken
 // and use that new authToken in subsequent API calls
 let credentials;
-Ion.connect({
+Onyx.connect({
     key: IONKEYS.CREDENTIALS,
     callback: ionCredentials => credentials = ionCredentials,
 });
 
 // If we are ever being redirected to the sign in page, the user is currently unauthenticated, so we should clear the
 // network request queue, to prevent DDoSing our own API
-Ion.connect({
+Onyx.connect({
     key: IONKEYS.APP_REDIRECT_TO,
     callback: (redirectTo) => {
         if (redirectTo && redirectTo.startsWith(ROUTES.SIGNIN)) {
@@ -99,7 +99,7 @@ function deleteLogin(parameters) {
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         doNotRetry: true,
     })
-        .catch(error => Ion.merge(IONKEYS.SESSION, {error: error.message}));
+        .catch(error => Onyx.merge(IONKEYS.SESSION, {error: error.message}));
 }
 
 /**
@@ -132,7 +132,7 @@ function createLogin(login, password) {
                 deleteLogin({partnerUserID: credentials.login});
             }
 
-            Ion.merge(IONKEYS.CREDENTIALS, {login, password});
+            Onyx.merge(IONKEYS.CREDENTIALS, {login, password});
         });
 }
 
@@ -147,7 +147,7 @@ function setSuccessfulSignInData(data, exitTo) {
     PushNotification.register(data.accountID);
 
     const redirectTo = exitTo ? Str.normalizeUrl(exitTo) : ROUTES.ROOT;
-    Ion.multiSet({
+    Onyx.multiSet({
         [IONKEYS.SESSION]: _.pick(data, 'authToken', 'accountID', 'email'),
         [IONKEYS.APP_REDIRECT_TO]: redirectTo
     });
@@ -219,8 +219,8 @@ function request(command, parameters, type = 'post') {
                         // Update the authToken that will be used to retry the command since the one we have is expired
                         parametersWithAuthToken.authToken = response.authToken;
 
-                        // Update authToken in Ion store otherwise subsequent API calls will use the expired one
-                        Ion.merge(IONKEYS.SESSION, _.pick(response, 'authToken'));
+                        // Update authToken in Onyx store otherwise subsequent API calls will use the expired one
+                        Onyx.merge(IONKEYS.SESSION, _.pick(response, 'authToken'));
                         return response;
                     })
                     .then(() => HttpUtils.xhr(command, parametersWithAuthToken, type))
@@ -323,7 +323,7 @@ Pusher.registerCustomAuthorizer((channel, {authEndpoint}) => ({
 
 /**
  * Events that happen on the pusher socket are used to determine if the app is online or offline. The offline setting
- * is stored in Ion so the rest of the app has access to it.
+ * is stored in Onyx so the rest of the app has access to it.
  *
  * @params {string} eventName
  */
@@ -354,7 +354,7 @@ function getAuthToken() {
  * @returns {Promise}
  */
 function authenticate(parameters) {
-    Ion.merge(IONKEYS.SESSION, {loading: true, error: ''});
+    Onyx.merge(IONKEYS.SESSION, {loading: true, error: ''});
 
     // We treat Authenticate in a special way because unlike other commands, this one can't fail
     // with 407 authToken expired. When other api commands fail with this error we call Authenticate
@@ -392,9 +392,9 @@ function authenticate(parameters) {
         .catch((error) => {
             console.error(error);
             console.debug('[SIGNIN] Request error');
-            Ion.merge(IONKEYS.SESSION, {error: error.message});
+            Onyx.merge(IONKEYS.SESSION, {error: error.message});
         })
-        .finally(() => Ion.merge(IONKEYS.SESSION, {loading: false}));
+        .finally(() => Onyx.merge(IONKEYS.SESSION, {loading: false}));
 }
 
 /**

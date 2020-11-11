@@ -59,7 +59,7 @@ class App extends React.Component {
         this.toggleHamburgerBasedOnDimensions = this.toggleHamburgerBasedOnDimensions.bind(this);
 
         // Note: This null check is only necessary because withOnyx passes null for bound props
-        //       that are null-initialized initialized in Ion, and defaultProps only replaces for `undefined` values
+        //       that are null-initialized initialized in Onyx, and defaultProps only replaces for `undefined` values
         this.animationTranslateX = new Animated.Value(
             !_.isNull(props.isSidebarShown) && !props.isSidebarShown ? -300 : 0
         );

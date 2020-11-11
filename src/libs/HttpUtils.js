@@ -26,7 +26,7 @@ function processHTTPRequest(url, method = 'get', body = null) {
             NetworkConnection.setOfflineStatus(true);
 
             // Set an error state and signify we are done loading
-            Ion.merge(IONKEYS.SESSION, {loading: false, error: 'Cannot connect to server'});
+            Onyx.merge(IONKEYS.SESSION, {loading: false, error: 'Cannot connect to server'});
 
             // Throw a new error to prevent any other `then()` in the promise chain from being triggered (until another
             // catch() happens

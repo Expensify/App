@@ -37,7 +37,7 @@ const propTypes = {
     // Toggles the hamburger menu open and closed
     onLinkClick: PropTypes.func.isRequired,
 
-    /* Ion Props */
+    /* Onyx Props */
 
     // All of the personal details for everyone
     // The keys of this object are the logins of the users, and the values are an object

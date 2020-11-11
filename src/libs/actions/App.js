@@ -3,33 +3,33 @@ import IONKEYS from '../../IONKEYS';
 import Str from '../Str';
 
 let currentRedirectTo;
-Ion.connect({
+Onyx.connect({
     key: IONKEYS.APP_REDIRECT_TO,
     callback: val => currentRedirectTo = val,
 });
 
 
 /**
- * Redirect the app to a new page by updating the state in Ion
+ * Redirect the app to a new page by updating the state in Onyx
  *
  * @param {mixed} url
  */
 function redirect(url) {
     const formattedURL = Str.normalizeUrl(url);
-    Ion.merge(IONKEYS.APP_REDIRECT_TO, formattedURL);
+    Onyx.merge(IONKEYS.APP_REDIRECT_TO, formattedURL);
 }
 
 /**
- * Keep the current route match stored in Ion so other libs can access it
- * Also reset the app_redirect_to in Ion so that if we go back to the current url the state will update
+ * Keep the current route match stored in Onyx so other libs can access it
+ * Also reset the app_redirect_to in Onyx so that if we go back to the current url the state will update
  *
  * @param {object} match
  * @param {string} match.url
  */
 function recordCurrentRoute({match}) {
-    Ion.merge(IONKEYS.CURRENT_URL, match.url);
+    Onyx.merge(IONKEYS.CURRENT_URL, match.url);
     if (match.url === currentRedirectTo) {
-        Ion.merge(IONKEYS.APP_REDIRECT_TO, null);
+        Onyx.merge(IONKEYS.APP_REDIRECT_TO, null);
     }
 }
 
@@ -42,7 +42,7 @@ function recordCurrentRoute({match}) {
  * @param {string} match.params.reportID
  */
 function recordCurrentlyViewedReportID({match}) {
-    Ion.merge(IONKEYS.CURRENTLY_VIEWED_REPORTID, match.params.reportID);
+    Onyx.merge(IONKEYS.CURRENTLY_VIEWED_REPORTID, match.params.reportID);
 }
 
 export {

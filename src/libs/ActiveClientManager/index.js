@@ -7,13 +7,13 @@ const clientID = guid();
 const maxClients = 20;
 
 let activeClients;
-Ion.connect({
+Onyx.connect({
     key: IONKEYS.ACTIVE_CLIENTS,
     callback: (val) => {
         activeClients = _.isNull(val) ? [] : val;
         if (activeClients.length >= maxClients) {
             activeClients.shift();
-            Ion.set(IONKEYS.ACTIVE_CLIENTS, activeClients);
+            Onyx.set(IONKEYS.ACTIVE_CLIENTS, activeClients);
         }
     },
 });
@@ -22,7 +22,7 @@ Ion.connect({
  * Add our client ID to the list of active IDs
  */
 function init() {
-    Ion.merge(IONKEYS.ACTIVE_CLIENTS, [clientID]);
+    Onyx.merge(IONKEYS.ACTIVE_CLIENTS, [clientID]);
 }
 
 /**

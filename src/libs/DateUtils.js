@@ -5,7 +5,7 @@ import Str from './Str';
 import IONKEYS from '../IONKEYS';
 
 let timezone;
-Ion.connect({
+Onyx.connect({
     key: IONKEYS.MY_PERSONAL_DETAILS,
     callback: val => timezone = val ? val.timezone : 'America/Los_Angeles',
 });
