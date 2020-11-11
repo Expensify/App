@@ -4,7 +4,7 @@
  *
  * @param {function} callback
  */
-function addStorageEventHandler(callback) {
+function listenToStorageEvents(callback) {
     window.addEventListener('storage', (e) => {
         let newValue;
         try {
@@ -18,4 +18,4 @@ function addStorageEventHandler(callback) {
     });
 }
 
-export default addStorageEventHandler;
+export default listenToStorageEvents;
