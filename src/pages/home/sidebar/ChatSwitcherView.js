@@ -6,6 +6,7 @@ import lodashOrderby from 'lodash.orderby';
 import lodashGet from 'lodash.get';
 import withIon from '../../../components/withIon';
 import IONKEYS from '../../../IONKEYS';
+import Str from '../../../libs/Str';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import ChatSwitcherList from './ChatSwitcherList';
 import ChatSwitcherSearchForm from './ChatSwitcherSearchForm';
@@ -121,12 +122,13 @@ class ChatSwitcherView extends React.Component {
     /**
      * Get the chat report options created from props.report. Additionally these chat report options will also determine
      * if its a 1:1 DM or not. If it is a 1:1 DM we'll save the participant login and the type as user so that we can
-     * filter out the same in personalDetailOptions.
+     * reject the same in personalDetailOptions to not deal with dupes.
      *
      * @param {Boolean} sortByLastVisited
+     * @param {Boolean} getOnlySingleUserPrivateDM
      * @returns {Object}
      */
-    getChatReportsOptions(sortByLastVisited = true) {
+    getChatReportsOptions(sortByLastVisited = true, getOnlySingleUserPrivateDM = false) {
         let chatReports = this.props.reports;
         if (sortByLastVisited) {
             chatReports = lodashOrderby(this.props.reports, ['lastVisited'], ['desc']);
@@ -134,7 +136,22 @@ class ChatSwitcherView extends React.Component {
 
         return _.chain(chatReports)
             .values()
-            .reject(report => (sortByLastVisited ? !report.lastVisited : false))
+            .reject((report) => {
+                if (_.isEmpty(report.reportName)) {
+                    return true;
+                }
+                if (sortByLastVisited && !report.lastVisited) {
+                    return true;
+                }
+                if (getOnlySingleUserPrivateDM) {
+                    const participants = lodashGet(report, 'participants', []);
+                    const isSingleUserPrivateDMReport = participants.length === 1;
+
+                    // Since we only want 1:1 private DMs we'll have to return true (reject) when its not a 1:1 DM
+                    return !isSingleUserPrivateDMReport;
+                }
+                return false;
+            })
             .map((report) => {
                 const participants = lodashGet(report, 'participants', []);
                 const isSingleUserPrivateDMReport = participants.length === 1;
@@ -146,7 +163,7 @@ class ChatSwitcherView extends React.Component {
                         : `${report.reportName} ${login}`,
                     reportID: report.reportID,
                     participants,
-                    icons: report.icons,
+                    icon: report.icon,
                     login,
                     type: isSingleUserPrivateDMReport ? OPTION_TYPE.USER : OPTION_TYPE.REPORT,
                     isUnread: report.unreadActionCount > 0,
@@ -367,12 +384,24 @@ class ChatSwitcherView extends React.Component {
 
         this.setState({search: value});
 
+        // Search our full list of options. We want:
+        // 1) Exact matches first
+        // 2) beginning-of-string matches second
+        // 3) middle-of-string matches last
+        const matchRegexes = [
+            new RegExp(`^${Str.escapeForRegExp(value)}$`, 'i'),
+            new RegExp(`^${Str.escapeForRegExp(value)}`, 'i'),
+            new RegExp(Str.escapeForRegExp(value), 'i'),
+        ];
+
         // Because we want to regexes above to be listed in a specific order, the for loop below will end up adding
         // duplicate options to the list (because one option can match multiple regex patterns).
         // A Set is used here so that duplicate values are automatically removed.
         const matches = new Set();
 
-        const chatReportOptions = this.getChatReportsOptions(false);
+        // If we have at least one group user then let's only get 1:1 DM chat options since we cannot add group
+        // DMs at this point
+        const chatReportOptions = this.getChatReportsOptions(false, this.state.groupUsers.length !== 0);
 
         // Get a list of all users we can send messages to and make their details generic
         const personalDetailOptions = _.chain(this.props.personalDetails)
@@ -383,32 +412,37 @@ class ChatSwitcherView extends React.Component {
                 alternateText: personalDetail.login,
                 searchText: personalDetail.displayName === personalDetail.login ? personalDetail.login
                     : `${personalDetail.displayName} ${personalDetail.login}`,
-                icons: [personalDetail.avatarURL],
+                icon: personalDetail.avatarURL,
                 login: personalDetail.login,
                 type: OPTION_TYPE.USER,
             }))
             .value();
 
         const searchOptions = _.union(chatReportOptions, personalDetailOptions);
-        const userEnteredText = value.toLowerCase();
 
-        for (let i = 0; i < searchOptions.length; i++) {
-            const option = searchOptions[i];
-            const optionSearchText = option.searchText.toLowerCase();
-            const isMatch = optionSearchText.includes(userEnteredText);
+        for (let i = 0; i < matchRegexes.length; i++) {
+            if (matches.size < this.maxSearchResults) {
+                for (let j = 0; j < searchOptions.length; j++) {
+                    const option = searchOptions[j];
+                    const valueToSearch = option.searchText.replace(new RegExp(/&nbsp;/g), '');
+                    const isMatch = matchRegexes[i].test(valueToSearch);
 
-            // We must also filter out any users who are already in the Group DM list
-            // so they can't be selected more than once
-            const isInGroupUsers = _.some(this.state.groupUsers, groupOption => (
-                groupOption.login === option.login
-            ));
+                    // We must also filter out any users who are already in the Group DM list
+                    // so they can't be selected more than once
+                    const isInGroupUsers = _.some(this.state.groupUsers, groupOption => (
+                        groupOption.login === option.login
+                    ));
 
-            // Make sure we don't include the same option twice (automatically handled be using a `Set`)
-            if (isMatch && !isInGroupUsers) {
-                matches.add(option);
-            }
+                    // Make sure we don't include the same option twice (automatically handled be using a `Set`)
+                    if (isMatch && !isInGroupUsers) {
+                        matches.add(option);
+                    }
 
-            if (matches.size === this.maxSearchResults) {
+                    if (matches.size === this.maxSearchResults) {
+                        break;
+                    }
+                }
+            } else {
                 break;
             }
         }

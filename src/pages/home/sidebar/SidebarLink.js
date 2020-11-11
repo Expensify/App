@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {Image, View} from 'react-native';
+import _ from 'underscore';
 import Text from '../../../components/Text';
 import styles from '../../../styles/StyleSheet';
 import PressableLink from '../../../components/PressableLink';
@@ -48,17 +49,14 @@ const SidebarLink = (props) => {
                     style={styles.textDecorationNoLine}
                 >
                     <View style={[styles.sidebarLinkInner]}>
-                        {
-                            props.icon
-                            && (
-                                <View style={[styles.chatSwitcherAvatar, styles.mr2]}>
-                                    <Image
-                                        source={{uri: props.icon}}
-                                        style={[styles.chatSwitcherAvatarImage]}
-                                    />
-                                </View>
-                            )
-                        }
+                        {!_.isEmpty(props.icon) && (
+                            <View style={[styles.chatSwitcherAvatar, styles.mr2]}>
+                                <Image
+                                    source={{uri: props.icon}}
+                                    style={[styles.chatSwitcherAvatarImage]}
+                                />
+                            </View>
+                        )}
                         <Text numberOfLines={1} style={textActiveUnreadStyle}>
                             {props.reportName}
                         </Text>
