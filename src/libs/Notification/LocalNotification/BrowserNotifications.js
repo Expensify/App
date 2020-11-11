@@ -1,5 +1,5 @@
 // Web and desktop implementation only. Do not import for direct use. Use LocalNotification.
-import Str from '../../Str';
+import Str from 'js-libs/lib/str';
 import CONST from '../../../CONST';
 import focusApp from './focusApp';
 

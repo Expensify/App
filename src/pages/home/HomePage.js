@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import _ from 'underscore';
 import {SafeAreaInsetsContext, SafeAreaProvider} from 'react-native-safe-area-context';
+import {withOnyx} from 'react-native-onyx';
 import {Route} from '../../libs/Router';
 import styles, {getSafeAreaPadding} from '../../styles/StyleSheet';
 import Header from './HeaderView';
@@ -29,8 +30,7 @@ import {fetch as fetchPersonalDetails} from '../../libs/actions/PersonalDetails'
 import * as Pusher from '../../libs/Pusher/pusher';
 import UnreadIndicatorUpdater from '../../libs/UnreadIndicatorUpdater';
 import ROUTES from '../../ROUTES';
-import IONKEYS from '../../IONKEYS';
-import withIon from '../../components/withIon';
+import ONYXKEYS from '../../ONYXKEYS';
 import NetworkConnection from '../../libs/NetworkConnection';
 
 const windowSize = Dimensions.get('window');
@@ -58,8 +58,8 @@ class App extends React.Component {
         this.showHamburger = this.showHamburger.bind(this);
         this.toggleHamburgerBasedOnDimensions = this.toggleHamburgerBasedOnDimensions.bind(this);
 
-        // Note: This null check is only necessary because withIon passes null for bound props
-        //       that are null-initialized initialized in Ion, and defaultProps only replaces for `undefined` values
+        // Note: This null check is only necessary because withOnyx passes null for bound props
+        //       that are null-initialized initialized in Onyx, and defaultProps only replaces for `undefined` values
         this.animationTranslateX = new Animated.Value(
             !_.isNull(props.isSidebarShown) && !props.isSidebarShown ? -300 : 0
         );
@@ -242,13 +242,13 @@ class App extends React.Component {
 App.propTypes = propTypes;
 App.defaultProps = defaultProps;
 
-export default withIon(
+export default withOnyx(
     {
         isSidebarShown: {
-            key: IONKEYS.IS_SIDEBAR_SHOWN
+            key: ONYXKEYS.IS_SIDEBAR_SHOWN
         },
         isChatSwitcherActive: {
-            key: IONKEYS.IS_CHAT_SWITCHER_ACTIVE,
+            key: ONYXKEYS.IS_CHAT_SWITCHER_ACTIVE,
             initWithStoredValues: false,
         },
     },

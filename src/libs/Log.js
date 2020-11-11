@@ -1,14 +1,14 @@
 import Logger from 'js-libs/lib/Logger';
+import Onyx from 'react-native-onyx';
 import {logToServer} from './API';
 import CONFIG from '../CONFIG';
 import getPlatform from './getPlatform';
 import {version} from '../../package.json';
-import Ion from './Ion';
-import IONKEYS from '../IONKEYS';
+import ONYXKEYS from '../ONYXKEYS';
 
 let email;
-Ion.connect({
-    key: IONKEYS.SESSION,
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
     callback: val => email = val ? val.email : null,
 });
 
