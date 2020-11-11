@@ -80,9 +80,6 @@ const styles = {
     pr2: {
         paddingRight: 8,
     },
-    pl4: {
-        paddingLeft: 4,
-    },
 
     h100p: {
         height: '100%',

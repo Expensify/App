@@ -14,7 +14,7 @@ const propTypes = {
     // The name of the report to use as the text for this link
     reportName: PropTypes.string,
 
-    // The icon for the reports
+    // The icon for the report
     icon: PropTypes.string,
 
     // Toggles the hamburger menu open and closed

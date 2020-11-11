@@ -433,7 +433,7 @@ class ChatSwitcherView extends React.Component {
                         groupOption.login === option.login
                     ));
 
-                    // Make sure we don't include the same option twice (automatically handled be using a `Set`)
+                    // Make sure we don't include the same option twice (automatically handled by using a `Set`)
                     if (isMatch && !isInGroupUsers) {
                         matches.add(option);
                     }
