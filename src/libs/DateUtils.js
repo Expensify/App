@@ -1,7 +1,7 @@
 import moment from 'moment';
 import 'moment-timezone';
 import Onyx from 'react-native-onyx';
-import Str from './Str';
+import Str from 'js-libs/lib/str';
 import IONKEYS from '../IONKEYS';
 
 let timezone;

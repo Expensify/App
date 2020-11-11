@@ -1,13 +1,12 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
+import Str from 'js-libs/lib/str';
 import IONKEYS from '../IONKEYS';
 import HttpUtils from './HttpUtils';
 import NetworkConnection from './NetworkConnection';
 import CONFIG from '../CONFIG';
 import * as Pusher from './Pusher/pusher';
 import ROUTES from '../ROUTES';
-import Str from './Str';
-import guid from './guid';
 import redirectToSignIn from './actions/SignInRedirect';
 import PushNotification from './Notification/PushNotification';
 
@@ -386,7 +385,7 @@ function authenticate(parameters) {
         // After the user authenticates, create a new login for the user so that we can reauthenticate when the
         // authtoken expires
         .then(response => (
-            createLogin(Str.generateDeviceLoginID(), guid())
+            createLogin(Str.guid('react-native-chat-'), Str.guid())
                 .then(() => setSuccessfulSignInData(response, parameters.exitTo))
         ))
         .catch((error) => {

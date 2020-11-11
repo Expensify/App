@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
+import Str from 'js-libs/lib/str';
 import IONKEYS from '../../IONKEYS';
-import Str from '../Str';
 
 let currentRedirectTo;
 Onyx.connect({
