@@ -2,12 +2,12 @@ import React from 'react';
 import {Image, View, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import {withOnyx} from 'react-native-onyx';
 import styles, {getSafeAreaMargins} from '../../../styles/StyleSheet';
 import Text from '../../../components/Text';
 import AppLinks from './AppLinks';
 import {signOut} from '../../../libs/actions/Session';
 import IONKEYS from '../../../IONKEYS';
-import withIon from '../../../components/withIon';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
 
 const propTypes = {
@@ -78,7 +78,7 @@ SidebarBottom.propTypes = propTypes;
 SidebarBottom.defaultProps = defaultProps;
 SidebarBottom.displayName = 'SidebarBottom';
 
-export default withIon({
+export default withOnyx({
     myPersonalDetails: {
         key: IONKEYS.MY_PERSONAL_DETAILS,
     },

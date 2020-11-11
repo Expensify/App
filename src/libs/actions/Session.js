@@ -1,4 +1,4 @@
-import Ion from 'react-ion';
+import Onyx from 'react-native-onyx';
 import * as API from '../API';
 import IONKEYS from '../../IONKEYS';
 import redirectToSignIn from './SignInRedirect';

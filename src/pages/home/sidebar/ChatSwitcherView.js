@@ -2,7 +2,7 @@ import React from 'react';
 import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import withIon from '../../../components/withIon';
+import {withOnyx} from 'react-native-onyx';
 import IONKEYS from '../../../IONKEYS';
 import Str from '../../../libs/Str';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
@@ -458,7 +458,7 @@ class ChatSwitcherView extends React.Component {
 ChatSwitcherView.propTypes = propTypes;
 ChatSwitcherView.defaultProps = defaultProps;
 
-export default withIon({
+export default withOnyx({
     personalDetails: {
         key: IONKEYS.PERSONAL_DETAILS,
     },

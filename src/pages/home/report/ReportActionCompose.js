@@ -2,13 +2,13 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {View, Image, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
+import {withOnyx} from 'react-native-onyx';
 import styles, {colors} from '../../../styles/StyleSheet';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 import sendIcon from '../../../../assets/images/icon-send.png';
 import IONKEYS from '../../../IONKEYS';
 import paperClipIcon from '../../../../assets/images/icon-paper-clip.png';
 import AttachmentPicker from '../../../components/AttachmentPicker';
-import withIon from '../../../components/withIon';
 import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs/actions/Report';
 import ReportTypingIndicator from './ReportTypingIndicator';
 
@@ -196,7 +196,7 @@ class ReportActionCompose extends React.Component {
 ReportActionCompose.propTypes = propTypes;
 ReportActionCompose.defaultProps = defaultProps;
 
-export default withIon({
+export default withOnyx({
     comment: {
         key: ({reportID}) => `${IONKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
     },

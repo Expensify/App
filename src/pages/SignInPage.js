@@ -11,13 +11,13 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import {withOnyx} from 'react-native-onyx';
 import CONFIG from '../CONFIG';
 import compose from '../libs/compose';
 import {withRouter, Redirect} from '../libs/Router';
 import ROUTES from '../ROUTES';
 import {signIn} from '../libs/actions/Session';
 import IONKEYS from '../IONKEYS';
-import withIon from '../components/withIon';
 import styles, {colors} from '../styles/StyleSheet';
 import logo from '../../assets/images/expensify-logo_reversed.png';
 
@@ -159,7 +159,7 @@ App.defaultProps = defaultProps;
 
 export default compose(
     withRouter,
-    withIon({
+    withOnyx({
         session: {key: IONKEYS.SESSION},
     })
 )(App);
