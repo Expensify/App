@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {Image, View} from 'react-native';
-import _ from 'underscore';
 import Text from '../../../components/Text';
 import styles from '../../../styles/StyleSheet';
 import PressableLink from '../../../components/PressableLink';
@@ -14,8 +13,8 @@ const propTypes = {
     // The name of the report to use as the text for this link
     reportName: PropTypes.string,
 
-    //
-    icons: PropTypes.arrayOf(PropTypes.string),
+    // The icon for the reports
+    icon: PropTypes.string,
 
     // Toggles the hamburger menu open and closed
     onLinkClick: PropTypes.func.isRequired,
@@ -30,20 +29,15 @@ const propTypes = {
 const defaultProps = {
     isUnread: false,
     reportName: '',
-    icons: [],
+    icon: '',
 };
 
 const SidebarLink = (props) => {
     const linkWrapperActiveStyle = props.isActiveReport && styles.sidebarLinkWrapperActive;
     const linkActiveStyle = props.isActiveReport ? styles.sidebarLinkActive : null;
-    const textStyles = [];
-    textStyles.push(props.isActiveReport ? styles.sidebarLinkActiveText : styles.sidebarLinkText);
-    if (props.isUnread) {
-        textStyles.push(styles.sidebarLinkTextUnread);
-    }
-    if (props.icons.length !== 0) {
-        textStyles.push(styles.pl4);
-    }
+    const textActiveStyle = props.isActiveReport ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
+    const textActiveUnreadStyle = props.isUnread
+        ? [textActiveStyle, styles.sidebarLinkTextUnread] : [textActiveStyle];
 
     return (
         <View style={[styles.sidebarListItem, linkWrapperActiveStyle]}>
@@ -54,15 +48,18 @@ const SidebarLink = (props) => {
                     style={styles.textDecorationNoLine}
                 >
                     <View style={[styles.sidebarLinkInner]}>
-                        {_.map(props.icons, icon => (
-                            <View key={icon} style={[styles.chatSwitcherAvatar]}>
-                                <Image
-                                    source={{uri: icon}}
-                                    style={[styles.chatSwitcherAvatarImage]}
-                                />
-                            </View>
-                        ))}
-                        <Text numberOfLines={1} style={textStyles}>
+                        {
+                            props.icon
+                            && (
+                                <View style={[styles.chatSwitcherAvatar, styles.mr2]}>
+                                    <Image
+                                        source={{uri: props.icon}}
+                                        style={[styles.chatSwitcherAvatarImage]}
+                                    />
+                                </View>
+                            )
+                        }
+                        <Text numberOfLines={1} style={textActiveUnreadStyle}>
                             {props.reportName}
                         </Text>
                     </View>

@@ -85,7 +85,7 @@ const SidebarLinks = (props) => {
                         key={report.reportID}
                         reportID={report.reportID}
                         reportName={report.reportName}
-                        icons={report.icons || []}
+                        icon={report.icon}
                         isUnread={report.unreadActionCount > 0}
                         onLinkClick={onLinkClick}
                         isActiveReport={report.reportID === reportIDInUrl}
