@@ -78,7 +78,7 @@ class ChatSwitcherView extends React.Component {
         this.reset = this.reset.bind(this);
         this.selectUser = this.selectUser.bind(this);
         this.selectReport = this.selectReport.bind(this);
-        this.getRecentVisitedOptions = this.getRecentVisitedOptions.bind(this);
+        this.getChatReportsOptions = this.getChatReportsOptions.bind(this);
         this.triggerOnFocusCallback = this.triggerOnFocusCallback.bind(this);
         this.updateSearch = this.updateSearch.bind(this);
         this.selectRow = this.selectRow.bind(this);
@@ -118,14 +118,25 @@ class ChatSwitcherView extends React.Component {
         KeyboardShortcut.unsubscribe('K');
     }
 
-    getRecentVisitedOptions(getMaxSearchResults = true) {
-        const sortByLastVisited = lodashOrderby(this.props.reports, ['lastVisited'], ['desc']);
-        const recentReports = getMaxSearchResults
-            ? sortByLastVisited.slice(0, this.maxSearchResults)
-            : sortByLastVisited;
-        return _.chain(recentReports)
+    /**
+     * Get the chat report options created from props.report. Additionally these chat report options will also determine
+     * if its a 1:1 DM or not. If it is a 1:1 DM we'll save the participant login and the type as user so that we can
+     * filter out the same in personalDetailOptions.
+     *
+     * @param {Boolean} sortByLastVisited
+     * @returns {Object}
+     */
+    getChatReportsOptions(sortByLastVisited = true) {
+        let chatReports = this.props.reports;
+        if (sortByLastVisited) {
+            chatReports = lodashOrderby(this.props.reports, ['lastVisited'], ['desc']);
+        }
+
+        return _.chain(chatReports)
             .values()
-            .reject(report => !report.lastVisited || lodashGet(report, 'participants', []).length === 0)
+            .reject(report => {
+                return sortByLastVisited ? !report.lastVisited : false;
+            })
             .map((report) => {
                 const participants = lodashGet(report, 'participants', []);
                 const isSingleUserPrivateDMReport = participants.length === 1;
@@ -140,6 +151,7 @@ class ChatSwitcherView extends React.Component {
                     icons: report.icons,
                     login,
                     type: isSingleUserPrivateDMReport ? OPTION_TYPE.USER : OPTION_TYPE.REPORT,
+                    isUnread: report.unreadActionCount > 0,
                 };
             })
             .value();
@@ -252,7 +264,7 @@ class ChatSwitcherView extends React.Component {
     reset(blurAfterReset = true) {
         this.setState({
             search: '',
-            options: this.getRecentVisitedOptions(true),
+            options: this.getChatReportsOptions(),
             focusedIndex: 0,
             isLogoVisible: blurAfterReset,
             isClearButtonVisible: !blurAfterReset,
@@ -276,7 +288,7 @@ class ChatSwitcherView extends React.Component {
             isClearButtonVisible: true,
         };
         if (this.state.search === '') {
-            params.options = this.getRecentVisitedOptions(true);
+            params.options = this.getChatReportsOptions();
         }
         this.setState(params);
     }
@@ -362,12 +374,12 @@ class ChatSwitcherView extends React.Component {
         // A Set is used here so that duplicate values are automatically removed.
         const matches = new Set();
 
-        const recentlyVisitedOptions = this.getRecentVisitedOptions(false);
+        const chatReportOptions = this.getChatReportsOptions(false);
 
         // Get a list of all users we can send messages to and make their details generic
         const personalDetailOptions = _.chain(this.props.personalDetails)
             .values()
-            .reject(personalDetail => _.findWhere(recentlyVisitedOptions, {login: personalDetail.login}))
+            .reject(personalDetail => _.findWhere(chatReportOptions, {login: personalDetail.login}))
             .map(personalDetail => ({
                 text: personalDetail.displayName,
                 alternateText: personalDetail.login,
@@ -379,7 +391,7 @@ class ChatSwitcherView extends React.Component {
             }))
             .value();
 
-        const searchOptions = _.union(recentlyVisitedOptions, personalDetailOptions);
+        const searchOptions = _.union(chatReportOptions, personalDetailOptions);
         const userEnteredText = value.toLowerCase();
 
         for (let i = 0; i < searchOptions.length; i++) {
