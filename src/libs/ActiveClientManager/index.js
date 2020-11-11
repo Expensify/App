@@ -1,9 +1,9 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
-import guid from '../guid';
+import Str from 'js-libs/lib/str';
 import IONKEYS from '../../IONKEYS';
 
-const clientID = guid();
+const clientID = Str.guid();
 const maxClients = 20;
 
 let activeClients;
