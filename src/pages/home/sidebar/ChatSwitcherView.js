@@ -134,9 +134,7 @@ class ChatSwitcherView extends React.Component {
 
         return _.chain(chatReports)
             .values()
-            .reject(report => {
-                return sortByLastVisited ? !report.lastVisited : false;
-            })
+            .reject(report => (sortByLastVisited ? !report.lastVisited : false))
             .map((report) => {
                 const participants = lodashGet(report, 'participants', []);
                 const isSingleUserPrivateDMReport = participants.length === 1;
