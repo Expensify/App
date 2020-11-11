@@ -123,7 +123,7 @@ This is a persistent storage solution wrapped in a Pub/Sub library. In general t
     1. Know what key the data is stored in (for web, you can find this by looking in the JS console > Application > local storage)
     2. Subscribe to changes of the data for a particular key or set of keys. React components use `withOnyx()` and non-React libs use `Onyx.connect()`.
     3. Get initialized with the current value of that key from persistent storage (Onyx does this by calling `setState()` or triggering the `callback` with the values currently on disk as part of the connection process)
-- Subscribing to Onyx keys is done using a constant defined in `IONKEYS`. Each Onyx key represents either a collection of items or a specific entry in storage. For example, since all reports are stored as individual keys like `report_1234`, if code needs to know about all the reports (eg. display a list of them in the nav menu), then it would subscribe to the key `IONKEYS.COLLECTION.REPORT`.
+- Subscribing to Onyx keys is done using a constant defined in `ONYXKEYS`. Each Onyx key represents either a collection of items or a specific entry in storage. For example, since all reports are stored as individual keys like `report_1234`, if code needs to know about all the reports (eg. display a list of them in the nav menu), then it would subscribe to the key `ONYXKEYS.COLLECTION.REPORT`.
 
 ### Actions
 Actions are responsible for managing what is on disk. This is usually:
@@ -191,14 +191,14 @@ By default, Onyx will not evict anything from storage and will presume all keys 
 e.g.
 ```js
 Onyx.init({
-    safeEvictionKeys: [IONKEYS.COLLECTION.REPORT_ACTIONS],
+    safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
 });
 ```
 
 ```js
 export default withOnyx({
     reportActions: {
-        key: ({reportID}) => `${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
         canEvict: props => !props.isActiveReport,
     },
 })(ReportActionsView);

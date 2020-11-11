@@ -1,18 +1,18 @@
 import Onyx from 'react-native-onyx';
-import IONKEYS from '../../IONKEYS';
+import ONYXKEYS from '../../ONYXKEYS';
 
 /**
  * Hide the sidebar, if it is shown.
  */
 function hide() {
-    Onyx.set(IONKEYS.IS_SIDEBAR_SHOWN, false);
+    Onyx.set(ONYXKEYS.IS_SIDEBAR_SHOWN, false);
 }
 
 /**
  * Show the sidebar, if it is hidden.
  */
 function show() {
-    Onyx.set(IONKEYS.IS_SIDEBAR_SHOWN, true);
+    Onyx.set(ONYXKEYS.IS_SIDEBAR_SHOWN, true);
 }
 
 /**
@@ -21,7 +21,7 @@ function show() {
  * @param {Boolean} isAnimating
  */
 function setIsAnimating(isAnimating) {
-    Onyx.set(IONKEYS.IS_SIDEBAR_ANIMATING, isAnimating);
+    Onyx.set(ONYXKEYS.IS_SIDEBAR_ANIMATING, isAnimating);
 }
 
 export {

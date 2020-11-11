@@ -7,7 +7,7 @@ import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/StyleSheet';
 import Text from '../../../components/Text';
 import SidebarLink from './SidebarLink';
-import IONKEYS from '../../../IONKEYS';
+import ONYXKEYS from '../../../ONYXKEYS';
 import ChatSwitcherView from './ChatSwitcherView';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
 import compose from '../../../libs/compose';
@@ -104,7 +104,7 @@ export default compose(
     withRouter,
     withOnyx({
         reports: {
-            key: IONKEYS.COLLECTION.REPORT,
+            key: ONYXKEYS.COLLECTION.REPORT,
         },
     }),
 )(SidebarLinks);

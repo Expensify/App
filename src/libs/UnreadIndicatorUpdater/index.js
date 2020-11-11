@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
-import IONKEYS from '../../IONKEYS';
+import ONYXKEYS from '../../ONYXKEYS';
 import updateUnread from './updateUnread';
 
 // Stash the unread action counts for each report
@@ -23,7 +23,7 @@ let connectionID;
  */
 function listenForReportChanges() {
     connectionID = Onyx.connect({
-        key: IONKEYS.COLLECTION.REPORT,
+        key: ONYXKEYS.COLLECTION.REPORT,
         callback: (report) => {
             if (!report || !report.reportID) {
                 return;

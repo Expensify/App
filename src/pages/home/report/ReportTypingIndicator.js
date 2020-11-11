@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import compose from '../../../libs/compose';
-import IONKEYS from '../../../IONKEYS';
+import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/StyleSheet';
 import {getDisplayName} from '../../../libs/actions/PersonalDetails';
 
@@ -85,7 +85,7 @@ ReportTypingIndicator.displayName = 'ReportTypingIndicator';
 export default compose(
     withOnyx({
         userTypingStatuses: {
-            key: ({reportID}) => `${IONKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`,
+            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`,
         }
     }),
 )(ReportTypingIndicator);

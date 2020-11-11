@@ -2,11 +2,11 @@ import moment from 'moment';
 import 'moment-timezone';
 import Onyx from 'react-native-onyx';
 import Str from 'js-libs/lib/str';
-import IONKEYS from '../IONKEYS';
+import ONYXKEYS from '../ONYXKEYS';
 
 let timezone;
 Onyx.connect({
-    key: IONKEYS.MY_PERSONAL_DETAILS,
+    key: ONYXKEYS.MY_PERSONAL_DETAILS,
     callback: val => timezone = val ? val.timezone : 'America/Los_Angeles',
 });
 

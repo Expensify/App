@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'js-libs/lib/str';
-import IONKEYS from '../../../IONKEYS';
+import ONYXKEYS from '../../../ONYXKEYS';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import ChatSwitcherList from './ChatSwitcherList';
 import ChatSwitcherSearchForm from './ChatSwitcherSearchForm';
@@ -460,16 +460,16 @@ ChatSwitcherView.defaultProps = defaultProps;
 
 export default withOnyx({
     personalDetails: {
-        key: IONKEYS.PERSONAL_DETAILS,
+        key: ONYXKEYS.PERSONAL_DETAILS,
     },
     reports: {
-        key: IONKEYS.COLLECTION.REPORT
+        key: ONYXKEYS.COLLECTION.REPORT
     },
     session: {
-        key: IONKEYS.SESSION,
+        key: ONYXKEYS.SESSION,
     },
     isSidebarAnimating: {
-        key: IONKEYS.IS_SIDEBAR_ANIMATING,
+        key: ONYXKEYS.IS_SIDEBAR_ANIMATING,
         initFromStoredValues: false,
     },
 })(ChatSwitcherView);
