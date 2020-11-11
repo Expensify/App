@@ -1,14 +1,14 @@
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import Ion from 'react-ion';
+import {withOnyx} from Onyx from 'react-native-onyx';
 import {recordCurrentlyViewedReportID, recordCurrentRoute} from './libs/actions/App';
 import SignInPage from './pages/SignInPage';
 import HomePage from './pages/home/HomePage';
 import addStorageEventHandler from './libs/addStorageEventHandler';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import IONKEYS from './IONKEYS';
-import withIon from './components/withIon';
+
 import styles from './styles/StyleSheet';
 import Log from './libs/Log';
 
@@ -122,7 +122,7 @@ class Expensify extends Component {
 Expensify.propTypes = propTypes;
 Expensify.defaultProps = defaultProps;
 
-export default withIon({
+export default withOnyx({
     redirectTo: {
         key: IONKEYS.APP_REDIRECT_TO,
 

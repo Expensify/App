@@ -1,5 +1,5 @@
 import Logger from 'js-libs/lib/Logger';
-import Ion from 'react-ion';
+import Onyx from 'react-native-onyx';
 import {logToServer} from './API';
 import CONFIG from '../CONFIG';
 import getPlatform from './getPlatform';

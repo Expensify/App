@@ -4,7 +4,7 @@
 This application is built with the following principles.
 1. **Data Flow** - Ideally, this is how data flows through the app:
     1. Server pushes data to the disk of any client (Server -> Pusher event -> Action listening to pusher event -> Ion). Currently the code only does this with report comments. Until we make more server changes, this steps is actually done by the client requesting data from the server via XHR and then storing the response in Ion.
-    1. Disk pushes data to the UI (Ion -> withIon()/connect() -> React component).
+    1. Disk pushes data to the UI (Ion -> withOnyx()/connect() -> React component).
     1. UI pushes data to people's brains (React component -> device screen).
     1. Brain pushes data into UI inputs (Device input -> React component).
     1. UI inputs push data to the server (React component -> Action -> XHR to server).
@@ -14,7 +14,7 @@ This application is built with the following principles.
     - All data that is displayed, comes from persistent storage.
 1. **UI Binds to data on disk** 
     - Ion is a Pub/Sub library to connect the application to the data stored on disk.
-    - UI components subscribe to Ion (using `withIon()`) and any change to the Ion data is published to the component by calling `setState()` with the changed data.
+    - UI components subscribe to Ion (using `withOnyx()`) and any change to the Ion data is published to the component by calling `setState()` with the changed data.
     - Libraries subscribe to Ion (with `Ion.connect()`) and any change to the Ion data is published to the callback with the changed data.
     - The UI should never call any Ion methods except for `Ion.connect()`. That is the job of Actions (see next section).
     - The UI always triggers an Action when something needs to happen (eg. a person inputs data, the UI triggers an Action with this data).
@@ -121,7 +121,7 @@ This is a persistent storage solution wrapped in a Pub/Sub library. In general t
 - Ion allows other code to subscribe to changes in data, and then publishes change events whenever data is changed
 - Anything needing to read Ion data needs to:
     1. Know what key the data is stored in (for web, you can find this by looking in the JS console > Application > local storage)
-    2. Subscribe to changes of the data for a particular key or set of keys. React components use `withIon()` and non-React libs use `Ion.connect()`.
+    2. Subscribe to changes of the data for a particular key or set of keys. React components use `withOnyx()` and non-React libs use `Ion.connect()`.
     3. Get initialized with the current value of that key from persistent storage (Ion does this by calling `setState()` or triggering the `callback` with the values currently on disk as part of the connection process)
 - Subscribing to Ion keys is done using a constant defined in `IONKEYS`. Each Ion key represents either a collection of items or a specific entry in storage. For example, since all reports are stored as individual keys like `report_1234`, if code needs to know about all the reports (eg. display a list of them in the nav menu), then it would subscribe to the key `IONKEYS.COLLECTION.REPORT`.
 
@@ -135,7 +135,7 @@ Actions are responsible for managing what is on disk. This is usually:
 ### The UI layer
 This layer is solely responsible for:
 
-- Reflecting exactly the data that is in persistent storage by using `withIon()` to bind to Ion data.
+- Reflecting exactly the data that is in persistent storage by using `withOnyx()` to bind to Ion data.
 - Taking user input and passing it to an action
 
 ### Directory structure
@@ -157,7 +157,7 @@ Files should be named after the component/function/constants they export, respec
 - If you export a component named `Text` the file/directory should be named `Text` 
 - If you export a function named `guid` the file/directory should be named `guid`. 
 - For files that are utilities that export several functions/classes use the UpperCamelCase version ie: `DateUtils`.
-- HOCs should be named in camelCase like withIon.
+- HOCs should be named in camelCase like withOnyx.
 - All React components should be PascalCase (a.k.a. UpperCamelCase 🐫).
 
 ## Platform-Specific File Extensions
@@ -196,7 +196,7 @@ Ion.init({
 ```
 
 ```js
-export default withIon({
+export default withOnyx({
     reportActions: {
         key: ({reportID}) => `${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
         canEvict: props => !props.isActiveReport,

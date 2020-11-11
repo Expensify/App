@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import _ from 'underscore';
-import Ion from 'react-ion';
+import Onyx from 'react-native-onyx';
 import Str from '../libs/Str';
 
 /**
@@ -20,7 +20,7 @@ function getDisplayName(component) {
 
 export default function (mapIonToState) {
     return (WrappedComponent) => {
-        class withIon extends React.Component {
+        class withOnyx extends React.Component {
             constructor(props) {
                 super(props);
 
@@ -130,7 +130,7 @@ export default function (mapIonToState) {
                     ...mapping,
                     key,
                     statePropertyName,
-                    withIonInstance: this,
+                    withOnyxInstance: this,
                 });
 
                 this.activeConnectionIDs[key] = connectionID;
@@ -141,7 +141,7 @@ export default function (mapIonToState) {
                     return null;
                 }
 
-                // Remove any internal state properties used by withIon
+                // Remove any internal state properties used by withOnyx
                 // that should not be passed to a wrapped component
                 const stateToPass = _.omit(this.state, 'loading');
 
@@ -157,7 +157,7 @@ export default function (mapIonToState) {
             }
         }
 
-        withIon.displayName = `withIon(${getDisplayName(WrappedComponent)})`;
-        return withIon;
+        withOnyx.displayName = `withOnyx(${getDisplayName(WrappedComponent)})`;
+        return withOnyx;
     };
 }

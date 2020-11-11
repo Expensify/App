@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import Ion from 'react-ion';
+import Onyx from 'react-native-onyx';
 import CONFIG from '../CONFIG';
 import IONKEYS from '../IONKEYS';
 import NetworkConnection from './NetworkConnection';

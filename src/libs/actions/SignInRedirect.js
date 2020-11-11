@@ -1,4 +1,4 @@
-import Ion from 'react-ion';
+import Onyx from 'react-native-onyx';
 import IONKEYS from '../../IONKEYS';
 import ROUTES from '../../ROUTES';
 import {redirect} from './App';

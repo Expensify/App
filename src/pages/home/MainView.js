@@ -2,8 +2,8 @@ import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import {withOnyx} from 'react-native-onyx';
 import ReportView from './report/ReportView';
-import withIon from '../../components/withIon';
 import IONKEYS from '../../IONKEYS';
 import styles from '../../styles/StyleSheet';
 import {withRouter} from '../../libs/Router';
@@ -77,7 +77,7 @@ MainView.defaultProps = defaultProps;
 
 export default compose(
     withRouter,
-    withIon({
+    withOnyx({
         reports: {
             key: IONKEYS.COLLECTION.REPORT,
         },

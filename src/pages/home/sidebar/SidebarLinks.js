@@ -3,10 +3,10 @@ import {View, ScrollView} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import lodashOrderby from 'lodash.orderby';
+import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/StyleSheet';
 import Text from '../../../components/Text';
 import SidebarLink from './SidebarLink';
-import withIon from '../../../components/withIon';
 import IONKEYS from '../../../IONKEYS';
 import ChatSwitcherView from './ChatSwitcherView';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
@@ -102,7 +102,7 @@ SidebarLinks.displayName = 'SidebarLinks';
 
 export default compose(
     withRouter,
-    withIon({
+    withOnyx({
         reports: {
             key: IONKEYS.COLLECTION.REPORT,
         },
