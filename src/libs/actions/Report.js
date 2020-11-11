@@ -192,7 +192,7 @@ function fetchChatReportsByIDs(chatList) {
                                 const dmParticipant = report.participants[0];
                                 const icon = lodashGet(details, [dmParticipant, 'avatar']);
                                 if (!_.isEmpty(icon)) {
-                                    Ion.merge(`${IONKEYS.COLLECTION.REPORT}${report.reportID}`, {icon});
+                                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {icon});
                                 }
                             }
                         });
