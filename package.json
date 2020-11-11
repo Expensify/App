@@ -39,7 +39,7 @@
     "file-loader": "^6.0.0",
     "html-entities": "^1.3.1",
     "js-libs": "git+https://git@github.com:Expensify/JS-Libs.git#8b209e01091a1dffa92c59b4b9b50192ddd99e26",
-    "react-native-onyx": "git+https://git@github.com:Expensify/react-native-onyx.git#bf228c32d6433f6bbf0e285aa48f9662088e2aea",
+    "react-native-onyx": "git+https://git@github.com:Expensify/react-native-onyx.git#2ec059e61b5c2993aed2c54b88be86457c2804fc",
     "lodash.get": "^4.4.2",
     "lodash.has": "^4.5.2",
     "lodash.merge": "^4.6.2",
