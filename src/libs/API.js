@@ -504,18 +504,6 @@ function togglePinnedReport(parameters) {
     });
 }
 
-/**
- * @param {Object} parameters
- * @param {String} parameters.message
- * @param {Object} parameters.parameters
- * @param {String} parameters.expensifyCashAppVersion
- * @param {String} [parameters.email]
- * @returns {Promise}
- */
-function logToServer(parameters) {
-    return queueRequest('Log', parameters);
-}
-
 export {
     authenticate,
     addReportComment,
@@ -528,5 +516,4 @@ export {
     setLastReadActionID,
     setNameValuePair,
     togglePinnedReport,
-    logToServer,
 };

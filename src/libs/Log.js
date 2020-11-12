@@ -1,6 +1,6 @@
 import Logger from 'js-libs/lib/Logger';
 import Onyx from 'react-native-onyx';
-import {logToServer} from './API';
+import expensifyAPI from './expensifyAPI';
 import CONFIG from '../CONFIG';
 import getPlatform from './getPlatform';
 import {version} from '../../package.json';
@@ -34,7 +34,7 @@ function serverLoggingCallback(params) {
         requestParams.email = email;
     }
 
-    logToServer(requestParams);
+    expensifyAPI.logToServer(requestParams);
 }
 
 // Note: We are importing Logger from JS-Libs because it is
