@@ -635,25 +635,6 @@ Onyx.connect({
     callback: handleReportChanged
 });
 
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    callback: (val, key, options = {}) => {
-        // We only want to remove any stale loading reportActions on app init
-        if (!options.isInitialLoad) {
-            return;
-        }
-
-        const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
-
-        // Remove any actions in the loading state.
-        _.each(val, (action, actionID) => {
-            if (action.loading) {
-                removeLoadingAction(Number(reportID), actionID);
-            }
-        });
-    },
-});
-
 // When the app reconnects from being offline, fetch all of the reports and their actions
 NetworkConnection.onReconnect(() => {
     fetchAll(false, true);
