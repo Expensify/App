@@ -69,7 +69,7 @@ function getUnreadActionCount(report) {
     ]) || lodashGet(report, [
         'reportNameValuePairs',
         `lastAccessed_${currentUserAccountID}`,
-        'readActionID',
+        'actionID',
     ]);
 
     // Save the lastReadActionID locally so we can access this later
@@ -116,7 +116,7 @@ function getSimplifiedReportObject(report) {
         maxSequenceNumber: report.reportActionList.length,
         participants: getParticipantEmailsFromReport(report),
         isPinned: report.isPinned,
-        lastVisited: lodashGet(report, [
+        lastVisitedTimestamp: lodashGet(report, [
             'reportNameValuePairs',
             `lastAccessed_${currentUserAccountID}`,
             'timestamp'
@@ -179,24 +179,8 @@ function fetchChatReportsByIDs(chatList) {
 
             // Fetch the person details if there are any
             participantEmails = _.unique(participantEmails);
-            if (participantEmails && participantEmails.length !== 0) {
-                PersonalDetails.getForEmails(participantEmails.join(','))
-                    .then((data) => {
-                        const details = _.pick(data, participantEmails);
-                        Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, PersonalDetails.formatPersonalDetails(details));
-
-                        // The personalDetails of the participants contain their avatar images. Here we'll go over each
-                        // report and based on the participants we'll link up their avatars to report icons.
-                        _.each(simplifiedReports, (report) => {
-                            if (lodashGet(report, 'participants', []).length === 1) {
-                                const dmParticipant = report.participants[0];
-                                const icon = lodashGet(details, [dmParticipant, 'avatar']);
-                                if (!_.isEmpty(icon)) {
-                                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {icon});
-                                }
-                            }
-                        });
-                    });
+            if (participantEmails && participantEmails.length > 0) {
+                PersonalDetails.getForEmails(participantEmails.join(','), simplifiedReports);
             }
 
             return _.map(fetchedReports, report => report.reportID);
@@ -215,7 +199,7 @@ function setLocalLastReadActionID(reportID, sequenceNumber) {
     // Update the report optimistically
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         unreadActionCount: 0,
-        lastVisited: Date.now(),
+        lastVisitedTimestamp: Date.now(),
     });
 }
 
@@ -472,7 +456,7 @@ function fetchOrCreateChatReport(participants) {
             // Store only the absolute bare minimum of data in Onyx because space is limited
             const newReport = getSimplifiedReportObject(report);
             newReport.reportName = getChatReportName(report.sharedReportList);
-            newReport.lastVisited = Date.now();
+            newReport.lastVisitedTimestamp = Date.now();
 
             // Merge the data into Onyx. Don't use set() here or multiSet() because then that would
             // overwrite any existing data (like if they have unread messages)

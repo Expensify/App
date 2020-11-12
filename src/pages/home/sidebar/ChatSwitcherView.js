@@ -125,14 +125,13 @@ class ChatSwitcherView extends React.Component {
      * reject the same in personalDetailOptions to not deal with dupes.
      *
      * @param {Boolean} sortByLastVisited
-     * @param {Boolean} getOnlySingleUserPrivateDM
+     * @param {Boolean} onlyShowSingleParticipantChats
      * @returns {Object}
      */
-    getChatReportsOptions(sortByLastVisited = true, getOnlySingleUserPrivateDM = false) {
-        let chatReports = this.props.reports;
-        if (sortByLastVisited) {
-            chatReports = lodashOrderby(this.props.reports, ['lastVisited'], ['desc']);
-        }
+    getChatReportsOptions(sortByLastVisited = true, onlyShowSingleParticipantChats = false) {
+        const chatReports = sortByLastVisited
+            ? lodashOrderby(this.props.reports, ['lastVisitedTimestamp'], ['desc'])
+            : this.props.reports;
 
         return _.chain(chatReports)
             .values()
@@ -140,10 +139,10 @@ class ChatSwitcherView extends React.Component {
                 if (_.isEmpty(report.reportName)) {
                     return true;
                 }
-                if (sortByLastVisited && !report.lastVisited) {
+                if (sortByLastVisited && !report.lastVisitedTimestamp) {
                     return true;
                 }
-                if (getOnlySingleUserPrivateDM) {
+                if (onlyShowSingleParticipantChats) {
                     const participants = lodashGet(report, 'participants', []);
                     const isSingleUserPrivateDMReport = participants.length === 1;
 
@@ -298,14 +297,11 @@ class ChatSwitcherView extends React.Component {
      */
     triggerOnFocusCallback() {
         ChatSwitcher.show();
-        const params = {
+        this.setState(prevState => ({
             isLogoVisible: false,
             isClearButtonVisible: true,
-        };
-        if (this.state.search === '') {
-            params.options = this.getChatReportsOptions();
-        }
-        this.setState(params);
+            options: prevState.search === '' ? this.getChatReportsOptions() : prevState.options,
+        }));
     }
 
     /**
@@ -401,7 +397,8 @@ class ChatSwitcherView extends React.Component {
 
         // If we have at least one group user then let's only get 1:1 DM chat options since we cannot add group
         // DMs at this point
-        const chatReportOptions = this.getChatReportsOptions(false, this.state.groupUsers.length !== 0);
+        const isGroupChat = this.state.groupUsers.length > 0;
+        const chatReportOptions = this.getChatReportsOptions(false, isGroupChat);
 
         // Get a list of all users we can send messages to and make their details generic
         const personalDetailOptions = _.chain(this.props.personalDetails)
