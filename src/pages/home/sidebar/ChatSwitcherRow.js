@@ -8,6 +8,8 @@ import {
 } from 'react-native';
 import styles from '../../../styles/StyleSheet';
 import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
+import ROUTES from "../../../ROUTES";
+import PressableLink from "../../../components/PressableLink";
 
 const propTypes = {
     // Option to allow the user to choose from can be type 'report' or 'user'
@@ -37,6 +39,8 @@ const ChatSwitcherRow = ({
     const textStyle = optionIsFocused
         ? styles.sidebarLinkActiveText
         : styles.sidebarLinkText;
+    const textUnreadStyle = option.isUnread
+        ? [textStyle, styles.sidebarLinkTextUnread] : [textStyle];
     return (
         <View
             style={[
@@ -48,6 +52,11 @@ const ChatSwitcherRow = ({
                 optionIsFocused ? styles.sidebarLinkActive : null
             ]}
         >
+            <PressableLink
+            onClick={() => onSelectRow(option)}
+            to={ROUTES.getReportRoute(option.reportID)}
+            style={styles.textDecorationNoLine}
+            >
             <TouchableOpacity
                 onPress={() => onSelectRow(option)}
                 style={[
@@ -74,15 +83,15 @@ const ChatSwitcherRow = ({
                     }
                     <View style={[styles.flex1]}>
                         {option.text === option.alternateText ? (
-                            <Text style={[textStyle]} numberOfLines={1}>
+                            <Text style={textUnreadStyle} numberOfLines={1}>
                                 {option.alternateText}
                             </Text>
                         ) : (
                             <>
-                                <Text style={[textStyle]} numberOfLines={1}>
+                                <Text style={textUnreadStyle} numberOfLines={1}>
                                     {option.text}
                                 </Text>
-                                <Text style={[textStyle, styles.textMicro]} numberOfLines={1}>
+                                <Text style={[...textUnreadStyle, styles.textMicro]} numberOfLines={1}>
                                     {option.alternateText}
                                 </Text>
                             </>
@@ -90,6 +99,7 @@ const ChatSwitcherRow = ({
                     </View>
                 </View>
             </TouchableOpacity>
+            </PressableLink>
             {isUserRow && (
                 <View>
                     <TouchableOpacity

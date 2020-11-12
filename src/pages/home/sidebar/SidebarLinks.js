@@ -4,16 +4,14 @@ import _ from 'underscore';
 import PropTypes from 'prop-types';
 import lodashOrderby from 'lodash.orderby';
 import get from 'lodash.get';
+import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/StyleSheet';
 import Text from '../../../components/Text';
-import SidebarLink from './SidebarLink';
-import withIon from '../../../components/withIon';
-import IONKEYS from '../../../IONKEYS';
+import ONYXKEYS from '../../../ONYXKEYS';
 import ChatSwitcherView from './ChatSwitcherView';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
 import compose from '../../../libs/compose';
 import {withRouter} from '../../../libs/Router';
-import ChatSwitcher from "../../../../../Web-Expensify/concierge/js/app/chat/switcher/ChatSwitcher";
 import ChatSwitcherRow from "./ChatSwitcherRow";
 
 const propTypes = {
@@ -27,7 +25,7 @@ const propTypes = {
     // Safe area insets required for mobile devices margins
     insets: SafeAreaInsetPropTypes.isRequired,
 
-    /* Ion Props */
+    /* Onyx Props */
 
     // List of reports
     reports: PropTypes.objectOf(PropTypes.shape({
@@ -87,23 +85,22 @@ const SidebarLinks = (props) => {
                 {/* A report will not have a report name if it hasn't been fetched from the server yet */}
                 {/* so nothing is rendered */}
                 {_.map(reportsToDisplay, (report) => {
-                    const participantDetails = report.participants.length === 1 ? get(props.personalDetails, report.participants[0], '') : '';
-                    const avatarUrl = participantDetails ? participantDetails.avatarURL : ''
+                    const participantDetails = get(report, 'participants.length', 0) === 1 ? get(props.personalDetails, report.participants[0], '') : '';
                     return report.reportName && (
                         <ChatSwitcherRow
                             option={{
                                 text: participantDetails ? participantDetails.displayName : report.reportName,
-                                alternateText: participantDetails ? report.reportName : '',
-                                type: participantDetails ? OPTION_TYPE.USER : OPTION_TYPE.REPORT,
-                                icon: participantDetails ? personalDetail.avatarURL : '',
+                                alternateText: participantDetails ? participantDetails.login : '',
+                                type: participantDetails ? 'user' : 'report',
+                                icon: participantDetails ? participantDetails.avatarURL : '',
+                                login: participantDetails ? participantDetails.login : '',
+                                reportID: report.reportID,
                             }}
                             onSelectRow={onLinkClick}
-                            optionIsFocused="false"
-                            onAddToGroup={}
+                            optionIsFocused={false}
                         />
-                );
+                    );
                 }
-
                 )}
             </ScrollView>
         </View>
@@ -116,12 +113,12 @@ SidebarLinks.displayName = 'SidebarLinks';
 
 export default compose(
     withRouter,
-    withIon({
+    withOnyx({
         reports: {
-            key: IONKEYS.COLLECTION.REPORT,
+            key: ONYXKEYS.COLLECTION.REPORT,
         },
         personalDetails: {
-            key: IONKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS,
         },
     }),
 )(SidebarLinks);
