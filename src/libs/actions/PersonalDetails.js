@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import Onyx from 'react-native-onyx';
-import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import md5 from '../md5';
 import CONST from '../../CONST';
@@ -135,7 +134,7 @@ function fetch() {
  * @param {String} emailList
  */
 function getForEmails(emailList) {
-    expensifyAPI.getPersonalDetails(emailList)
+    expensifyAPI.getPersonalDetails({emailList})
         .then((data) => {
             const details = _.pick(data, emailList.split(','));
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, formatPersonalDetails(details));

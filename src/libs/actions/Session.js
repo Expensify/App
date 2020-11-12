@@ -3,6 +3,7 @@ import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import redirectToSignIn from './SignInRedirect';
 import expensifyAPI from '../expensifyAPI';
+import CONFIG from '../../CONFIG';
 
 let credentials;
 Onyx.connect({
@@ -35,8 +36,12 @@ function signOut() {
     if (!credentials || !credentials.login) {
         return;
     }
+
     expensifyAPI.deleteLogin({
-        partnerUserID: credentials.login
+        partnerUserID: credentials.login,
+        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+        doNotRetry: true,
     })
         .catch(error => Onyx.merge(ONYXKEYS.SESSION, {error: error.message}));
 }

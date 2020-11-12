@@ -9,6 +9,7 @@ import * as Pusher from './Pusher/pusher';
 import ROUTES from '../ROUTES';
 import redirectToSignIn from './actions/SignInRedirect';
 import PushNotification from './Notification/PushNotification';
+import expensifyAPI from './expensifyAPI';
 
 // Queue for network requests so we don't lose actions done by the user while offline
 let networkRequestQueue = [];
@@ -112,7 +113,13 @@ function createLogin(login, password) {
 
             if (credentials && credentials.login) {
                 // If we have an old login for some reason, we should delete it before storing the new details
-                deleteLogin({partnerUserID: credentials.login});
+                expensifyAPI.deleteLogin({
+                    partnerUserID: credentials.login,
+                    partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+                    partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+                    doNotRetry: true,
+                })
+                    .catch(error => Onyx.merge(ONYXKEYS.SESSION, {error: error.message}));
             }
 
             Onyx.merge(ONYXKEYS.CREDENTIALS, {login, password});
