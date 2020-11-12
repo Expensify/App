@@ -1,4 +1,9 @@
 import _ from 'underscore';
+import Str from 'js-libs/lib/str';
+import Onyx from 'react-native-onyx';
+import HttpUtils from './HttpUtils';
+import CONFIG from '../CONFIG';
+import ONYXKEYS from '../ONYXKEYS';
 
 export default function API(network, args) {
     if (!network) {
@@ -6,8 +11,6 @@ export default function API(network, args) {
     }
 
     /**
-     * @private
-     *
      * Maps jsonCode => array of callback functions
      */
     const defaultHandlers = {};
@@ -35,8 +38,6 @@ export default function API(network, args) {
 
     /**
      * @throws {Error} If the "parameters" object has a null or undefined value for any of the given parameterNames
-     *
-     * @private
      *
      * @param {String[]} parameterNames Array of the required parameter names
      * @param {Object} parameters A map from available parameter names to their values
@@ -104,6 +105,53 @@ export default function API(network, args) {
                 defaultHandlers[jsonCode].push(callback);
             });
         },
+
+        /**
+         * @param {object} parameters
+         * @param {string} parameters.partnerName
+         * @param {string} parameters.partnerPassword
+         * @param {string} parameters.partnerUserID
+         * @param {string} parameters.partnerUserSecret
+         * @param {string} parameters.twoFactorAuthCode
+         * @returns {Promise}
+         */
+        authenticate(parameters) {
+            const commandName = 'Authenticate';
+
+            requireParameters([
+                'partnerName',
+                'partnerPassword',
+                'partnerUserID',
+                'partnerUserSecret',
+                'twoFactorAuthCode',
+            ], parameters, commandName);
+
+            // We treat Authenticate in a special way because unlike other commands, this one can't fail
+            // with 407 authToken expired. When other api commands fail with this error we call Authenticate
+            // to get a new authToken and then fire the original api command again
+            return network.post(commandName, {
+                // When authenticating for the first time, we pass useExpensifyLogin as true so we check
+                // for credentials for the expensify partnerID to let users authenticate with their expensify user
+                // and password.
+                useExpensifyLogin: true,
+                partnerName: parameters.partnerUserID,
+                partnerPassword: parameters.partnerPassword,
+                partnerUserID: parameters.partnerUserID,
+                partnerUserSecret: parameters.partnerUserSecret,
+                twoFactorAuthCode: parameters.twoFactorAuthCode,
+            })
+                .then((response) => {
+                    // If we didn't get a 200 response from authenticate we either failed to authenticate with
+                    // an expensify login or the login credentials we created after the initial authentication.
+                    // In both cases, we need the user to sign in again with their expensify credentials
+                    if (response.jsonCode !== 200) {
+                        throw new Error(response.message);
+                    }
+                    return response;
+                });
+        },
+
+        createLogin() {},
 
         /**
          * @param {object} parameters
