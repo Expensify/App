@@ -5,11 +5,12 @@ import {
 } from 'react-native';
 import BaseModalHeader from './BaseModalHeader';
 import AttachmentView from './AttachmentView';
-import styles from '../styles/StyleSheet';
+import styles, {webViewStyles} from '../styles/StyleSheet';
 import {getAuthToken} from '../libs/API';
 
 /**
- * Modal component
+ * Modal component consisting of an image thumbnail which triggers a modal with a larger image display
+ * Used for smaller image previews that also need to be viewed full-sized like in report comments
  */
 
 const propTypes = {
@@ -33,10 +34,6 @@ const propTypes = {
 
     // Is the image an expensify attachment
     isExpensifyAttachment: PropTypes.bool,
-
-    // Any additional styles to apply to the image thumbnail
-    // eslint-disable-next-line react/forbid-prop-types
-    style: PropTypes.any,
 };
 
 const defaultProps = {
@@ -47,7 +44,6 @@ const defaultProps = {
     previewSourceURL: '',
     sourceURL: '',
     isExpensifyAttachment: true,
-    style: {},
 };
 
 class BaseImageModal extends React.Component {
@@ -69,13 +65,10 @@ class BaseImageModal extends React.Component {
     componentDidMount() {
         // If the component unmounts by the time getSize() is finished, it will throw a warning
         // So this is to prevent setting state if the component isn't mounted
-
-        // eslint-disable-next-line no-underscore-dangle
-        this._isMounted = true;
+        this.isMounted = true;
 
         // If the images are expensify attachments, add an authtoken so we can access them
-        // eslint-disable-next-line no-underscore-dangle
-        if (this.props.isExpensifyAttachment && this._isMounted) {
+        if (this.props.isExpensifyAttachment) {
             this.setState({
                 previewSourceURL: `${this.props.previewSourceURL}?authToken=${getAuthToken()}`,
                 sourceURL: `${this.props.sourceURL}?authToken=${getAuthToken()}`
@@ -88,8 +81,7 @@ class BaseImageModal extends React.Component {
             const scaleFactor = width / screenWidth;
             const imageHeight = height / scaleFactor;
 
-            // eslint-disable-next-line no-underscore-dangle
-            if (this._isMounted) {
+            if (this.isMounted) {
                 this.setState({thumbnailWidth: screenWidth, thumbnailHeight: imageHeight});
             }
         });
@@ -103,8 +95,7 @@ class BaseImageModal extends React.Component {
                 const scaleFactor = width / screenWidth;
                 const imageHeight = height / scaleFactor;
 
-                // eslint-disable-next-line no-underscore-dangle
-                if (this._isMounted) {
+                if (this.isMounted) {
                     this.setState({imageWidth: screenWidth, imageHeight});
                 }
             });
@@ -112,8 +103,7 @@ class BaseImageModal extends React.Component {
     }
 
     componentWillUnmount() {
-        // eslint-disable-next-line no-underscore-dangle
-        this._isMounted = false;
+        this.isMounted = false;
     }
 
     /**
@@ -132,7 +122,7 @@ class BaseImageModal extends React.Component {
                     <Image
                         source={{uri: this.state.previewSourceURL}}
                         style={{
-                            ...this.props.style,
+                            ...webViewStyles.tagStyles.img,
                             width: this.state.thumbnailWidth,
                             height: this.state.thumbnailHeight
                         }}

@@ -72,7 +72,6 @@ class ReportActionItemFragment extends React.PureComponent {
                     previewSourceURL={htmlAttribs.preview}
                     sourceURL={htmlAttribs.src}
                     isExpensifyAttachment={htmlAttribs.isExpensifyAttachment}
-                    style={webViewStyles.tagStyles.img}
                     key={passProps.key}
                 />
             ),
