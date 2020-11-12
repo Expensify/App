@@ -53,6 +53,21 @@ export default function API(network, args) {
     }
 
     return {
+        /**
+         * @param {Object} parameters
+         * @param {String} parameters.message
+         * @param {Object} parameters.parameters
+         * @param {String} parameters.expensifyCashAppVersion
+         * @param {String} [parameters.email]
+         * @returns {Promise}
+         */
+        logToServer(parameters) {
+            const commandName = 'Log';
+            requireParameters(['message', 'parameters', 'expensifyCashAppVersion'],
+                parameters, commandName);
+            return performPOSTRequest(commandName, parameters);
+        },
+
         Report: {
             /**
              * @param {object} parameters
@@ -63,7 +78,8 @@ export default function API(network, args) {
              */
             setLastReadActionID(parameters) {
                 const commandName = 'Report_SetLastReadActionID';
-                requireParameters(['accountID', 'reportID', 'sequenceNumber'], parameters, commandName);
+                requireParameters(['accountID', 'reportID', 'sequenceNumber'],
+                    parameters, commandName);
                 return performPOSTRequest(commandName, parameters);
             }
         },
