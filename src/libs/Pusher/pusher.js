@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import Pusher from './library';
+import PusherConnection from './PusherConnection';
 import CONFIG from '../../CONFIG';
 
 let socket;
@@ -25,6 +26,8 @@ function callSocketEventCallbacks(eventName, data) {
  * @returns {Promise} resolves when Pusher has connected
  */
 function init(appKey, params) {
+    PusherConnection();
+
     return new Promise((resolve) => {
         if (socket) {
             return resolve();

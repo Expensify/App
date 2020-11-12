@@ -2,54 +2,8 @@ import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import HttpUtils from './HttpUtils';
-import NetworkConnection from './NetworkConnection';
 import CONFIG from '../CONFIG';
-import * as Pusher from './Pusher/pusher';
-import ROUTES from '../ROUTES';
 import redirectToSignIn from './actions/SignInRedirect';
-import expensifyAPI from './expensifyAPI';
-
-// Queue for network requests so we don't lose actions done by the user while offline
-let networkRequestQueue = [];
-
-// Indicates if we're in the process of re-authenticating. When an API call returns jsonCode 407 indicating that the
-// authToken expired, we set this to true, pause all API calls, re-authenticate, and then use the authToken fromm the
-// response in the subsequent API calls
-let reauthenticating = false;
-
-let authToken;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: val => authToken = val ? val.authToken : null,
-});
-
-// We subscribe to changes to the online/offline status of the network to determine when we should fire off API calls
-// vs queueing them for later.
-let isOffline;
-Onyx.connect({
-    key: ONYXKEYS.NETWORK,
-    callback: val => isOffline = val && val.isOffline,
-});
-
-// When the user authenticates for the first time we create a login and store credentials in Onyx.
-// When the user's authToken expires we use this login to re-authenticate and get a new authToken
-// and use that new authToken in subsequent API calls
-let credentials;
-Onyx.connect({
-    key: ONYXKEYS.CREDENTIALS,
-    callback: ionCredentials => credentials = ionCredentials,
-});
-
-// If we are ever being redirected to the sign in page, the user is currently unauthenticated, so we should clear the
-// network request queue, to prevent DDoSing our own API
-Onyx.connect({
-    key: ONYXKEYS.APP_REDIRECT_TO,
-    callback: (redirectTo) => {
-        if (redirectTo && redirectTo.startsWith(ROUTES.SIGNIN)) {
-            networkRequestQueue = [];
-        }
-    }
-});
 
 
 /**
@@ -147,58 +101,3 @@ function request(command, parameters, type = 'post') {
             throw new Error(`API Command ${command} failed`);
         });
 }
-
-/**
- * Pusher.reconnect() calls disconnect and connect on the
- * Pusher socket. In some cases, the authorizer might fail
- * or an error will be returned due to an out of date authToken.
- * Reconnect will preserve our existing subscriptions and retry
- * connecting until it succeeds. We're throttling this call so
- * that we retry as few times as possible.
- */
-const reconnectToPusher = _.throttle(Pusher.reconnect, 1000);
-
-/**
- * When authTokens expire they will automatically be refreshed.
- * The authorizer helps make sure that we are always passing the
- * current valid token to generate the signed auth response
- * needed to subscribe to Pusher channels.
- */
-Pusher.registerCustomAuthorizer((channel, {authEndpoint}) => ({
-    authorize: (socketID, callback) => {
-        console.debug('[Network] Attempting to authorize Pusher');
-
-        const formData = new FormData();
-        formData.append('socket_id', socketID);
-        formData.append('channel_name', channel.name);
-        formData.append('authToken', authToken);
-
-        return fetch(authEndpoint, {
-            method: 'POST',
-            body: formData,
-        })
-            .then(authResponse => authResponse.json())
-            .then(data => callback(null, data))
-            .catch((error) => {
-                reconnectToPusher();
-                console.debug('[Network] Failed to authorize Pusher');
-                callback(new Error(`Error calling auth endpoint: ${error.message}`));
-            });
-    },
-}));
-
-/**
- * Events that happen on the pusher socket are used to determine if the app is online or offline. The offline setting
- * is stored in Onyx so the rest of the app has access to it.
- *
- * @params {string} eventName
- */
-Pusher.registerSocketEventCallback((eventName) => {
-    switch (eventName) {
-        case 'error':
-            reconnectToPusher();
-            break;
-        default:
-            break;
-    }
-});
