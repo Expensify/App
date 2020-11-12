@@ -88,7 +88,7 @@ function formatPersonalDetails(personalDetailsList) {
  * Get the timezone of the logged in user
  */
 function fetchTimezone() {
-    API.get({
+    expensifyAPI.get({
         returnValueList: 'nameValuePairs',
         name: 'timeZone',
     })
@@ -105,7 +105,7 @@ function fetchTimezone() {
  * Get the personal details for our organization
  */
 function fetch() {
-    API.get({
+    expensifyAPI.get({
         returnValueList: 'personalDetailsList',
     })
         .then((data) => {

@@ -55,6 +55,18 @@ export default function API(network, args) {
     return {
         /**
          * @param {object} parameters
+         * @param {string} parameters.returnValueList
+         * @returns {Promise}
+         */
+        get(parameters) {
+            const commandName = 'Get';
+            requireParameters(['returnValueList'],
+                parameters, commandName);
+            return performPOSTRequest(commandName, parameters);
+        },
+
+        /**
+         * @param {object} parameters
          * @param {string} parameters.emailList
          * @returns {Promise}
          */
