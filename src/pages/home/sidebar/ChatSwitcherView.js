@@ -125,31 +125,29 @@ class ChatSwitcherView extends React.Component {
      * reject the same in personalDetailOptions to not deal with dupes.
      *
      * @param {Boolean} sortByLastVisited
-     * @param {Boolean} onlyShowSingleParticipantChats
+     * @param {Boolean} excludeGroupDMs
      * @returns {Object}
      */
-    getChatReportsOptions(sortByLastVisited = true, onlyShowSingleParticipantChats = false) {
+    getChatReportsOptions(sortByLastVisited = true, excludeGroupDMs = false) {
         const chatReports = sortByLastVisited
             ? lodashOrderby(this.props.reports, ['lastVisitedTimestamp'], ['desc'])
             : this.props.reports;
 
         return _.chain(chatReports)
             .values()
-            .reject((report) => {
+            .filter((report) => {
                 if (_.isEmpty(report.reportName)) {
-                    return true;
+                    return false;
                 }
                 if (sortByLastVisited && !report.lastVisitedTimestamp) {
-                    return true;
+                    return false;
                 }
-                if (onlyShowSingleParticipantChats) {
+                if (excludeGroupDMs) {
                     const participants = lodashGet(report, 'participants', []);
-                    const isSingleUserPrivateDMReport = participants.length === 1;
-
-                    // Since we only want 1:1 private DMs we'll have to return true (reject) when its not a 1:1 DM
-                    return !isSingleUserPrivateDMReport;
+                    const isGroupDM = participants.length > 0;
+                    return !isGroupDM;
                 }
-                return false;
+                return true;
             })
             .map((report) => {
                 const participants = lodashGet(report, 'participants', []);
@@ -396,7 +394,8 @@ class ChatSwitcherView extends React.Component {
         const matches = new Set();
 
         // If we have at least one group user then let's only get 1:1 DM chat options since we cannot add group
-        // DMs at this point
+        // DMs at this point. We don't want to sort our chatReportOptions by lastVisited since we'll let the regex
+        // matches order our options.
         const isGroupChat = this.state.groupUsers.length > 0;
         const chatReportOptions = this.getChatReportsOptions(false, isGroupChat);
 
