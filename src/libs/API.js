@@ -424,21 +424,8 @@ function getReportHistory(parameters) {
     });
 }
 
-/**
- * @param {object} parameters
- * @param {string} parameters.emailList
- * @returns {Promise}
- */
-function createChatReport(parameters) {
-    return queueRequest('CreateChatReport', {
-        authToken,
-        emailList: parameters.emailList,
-    });
-}
-
 export {
     authenticate,
-    createChatReport,
     deleteLogin,
     getAuthToken,
     getReportHistory,

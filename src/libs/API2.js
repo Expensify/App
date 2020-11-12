@@ -93,8 +93,6 @@ export default function API(network, args) {
         },
 
         Report: {
-
-
             /**
              * @param {object} parameters
              * @param {string} parameters.reportComment
@@ -105,6 +103,18 @@ export default function API(network, args) {
             addComment(parameters) {
                 const commandName = 'Report_AddComment';
                 requireParameters(['reportComment', 'reportID'],
+                    parameters, commandName);
+                return performPOSTRequest(commandName, parameters);
+            },
+
+            /**
+             * @param {object} parameters
+             * @param {string} parameters.emailList
+             * @returns {Promise}
+             */
+            createChat(parameters) {
+                const commandName = 'CreateChatReport';
+                requireParameters(['emailList'],
                     parameters, commandName);
                 return performPOSTRequest(commandName, parameters);
             },

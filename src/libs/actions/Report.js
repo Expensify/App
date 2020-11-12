@@ -425,7 +425,7 @@ function fetchOrCreateChatReport(participants) {
         throw new Error('fetchOrCreateChatReport() must have at least two participants');
     }
 
-    API.createChatReport({
+    expensifyAPI.Report.createChat({
         emailList: participants.join(','),
     })
 
