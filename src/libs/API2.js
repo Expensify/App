@@ -25,15 +25,13 @@ export default function API(network, args) {
      *
      * @returns {APIDeferred} An APIDeferred representing the promise of this request
      */
-    function performPOSTRequest(command, parameters) {
-        let newParameters = {...parameters, command};
-
+    function performPOSTRequest(command, parameters, type = 'post') {
         // If there was an enhanceParameters() method supplied in our args, then we will call that here
-        if (args && _.isFunction(args.enhanceParameters)) {
-            newParameters = args.enhanceParameters(newParameters);
-        }
+        const finalParameters = (args && _.isFunction(args.enhanceParameters))
+            ? args.enhanceParameters(parameters)
+            : parameters;
 
-        return network.post(newParameters);
+        return network.post(command, finalParameters, type);
     }
 
     /**
@@ -65,6 +63,19 @@ export default function API(network, args) {
     }
 
     return {
-
+        Report: {
+            /**
+             * @param {object} parameters
+             * @param {number} parameters.accountID
+             * @param {number} parameters.reportID
+             * @param {number} parameters.sequenceNumber
+             * @returns {Promise}
+             */
+            setLastReadActionID(parameters) {
+                const commandName = 'Report_SetLastReadActionID';
+                requireParameters(['accountID', 'reportID', 'sequenceNumber'], parameters, commandName);
+                return performPOSTRequest(commandName, parameters);
+            }
+        },
     };
 }
