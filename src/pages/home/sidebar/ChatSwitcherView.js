@@ -2,9 +2,9 @@ import React from 'react';
 import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import withIon from '../../../components/withIon';
-import IONKEYS from '../../../IONKEYS';
-import Str from '../../../libs/Str';
+import {withOnyx} from 'react-native-onyx';
+import Str from 'js-libs/lib/str';
+import ONYXKEYS from '../../../ONYXKEYS';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import ChatSwitcherList from './ChatSwitcherList';
 import ChatSwitcherSearchForm from './ChatSwitcherSearchForm';
@@ -37,7 +37,7 @@ const propTypes = {
     // Toggles the hamburger menu open and closed
     onLinkClick: PropTypes.func.isRequired,
 
-    /* Ion Props */
+    /* Onyx Props */
 
     // All of the personal details for everyone
     // The keys of this object are the logins of the users, and the values are an object
@@ -363,6 +363,7 @@ class ChatSwitcherView extends React.Component {
                 reportID: report.reportID,
                 type: OPTION_TYPE.REPORT,
                 participants: report.participants,
+                isUnread: report.unreadActionCount > 0
             }))
             .value();
 
@@ -458,18 +459,18 @@ class ChatSwitcherView extends React.Component {
 ChatSwitcherView.propTypes = propTypes;
 ChatSwitcherView.defaultProps = defaultProps;
 
-export default withIon({
+export default withOnyx({
     personalDetails: {
-        key: IONKEYS.PERSONAL_DETAILS,
+        key: ONYXKEYS.PERSONAL_DETAILS,
     },
     reports: {
-        key: IONKEYS.COLLECTION.REPORT
+        key: ONYXKEYS.COLLECTION.REPORT
     },
     session: {
-        key: IONKEYS.SESSION,
+        key: ONYXKEYS.SESSION,
     },
     isSidebarAnimating: {
-        key: IONKEYS.IS_SIDEBAR_ANIMATING,
+        key: ONYXKEYS.IS_SIDEBAR_ANIMATING,
         initFromStoredValues: false,
     },
 })(ChatSwitcherView);

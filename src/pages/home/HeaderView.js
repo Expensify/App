@@ -1,10 +1,10 @@
 import React from 'react';
 import {View, Image, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
 import Text from '../../components/Text';
 import styles from '../../styles/StyleSheet';
-import IONKEYS from '../../IONKEYS';
-import withIon from '../../components/withIon';
+import ONYXKEYS from '../../ONYXKEYS';
 import {withRouter} from '../../libs/Router';
 import LHNToggle from '../../../assets/images/icon-menu-toggle.png';
 import pinEnabled from '../../../assets/images/pin-enabled.png';
@@ -19,7 +19,7 @@ const propTypes = {
     // Decides whether we should show the hamburger menu button
     shouldShowHamburgerButton: PropTypes.bool.isRequired,
 
-    /* Ion Props */
+    /* Onyx Props */
     // The report currently being looked at
     report: PropTypes.shape({
         // Name of the report
@@ -90,9 +90,9 @@ HeaderView.defaultProps = defaultProps;
 
 export default compose(
     withRouter,
-    withIon({
+    withOnyx({
         report: {
-            key: ({match}) => `${IONKEYS.COLLECTION.REPORT}${match.params.reportID}`,
+            key: ({match}) => `${ONYXKEYS.COLLECTION.REPORT}${match.params.reportID}`,
         },
     }),
 )(HeaderView);
