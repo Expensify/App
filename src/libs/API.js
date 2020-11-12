@@ -436,25 +436,8 @@ function createChatReport(parameters) {
     });
 }
 
-/**
- * @param {object} parameters
- * @param {string} parameters.reportComment
- * @param {object} parameters.file
- * @param {number} parameters.reportID
- * @returns {Promise}
- */
-function addReportComment(parameters) {
-    return queueRequest('Report_AddComment', {
-        authToken,
-        reportComment: parameters.reportComment,
-        file: parameters.file,
-        reportID: parameters.reportID,
-    });
-}
-
 export {
     authenticate,
-    addReportComment,
     createChatReport,
     deleteLogin,
     getAuthToken,
