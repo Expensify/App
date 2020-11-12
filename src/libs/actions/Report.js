@@ -3,7 +3,6 @@ import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import ExpensiMark from 'js-libs/lib/ExpensiMark';
 import Onyx from 'react-native-onyx';
-import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Pusher from '../Pusher/pusher';
 import LocalNotification from '../Notification/LocalNotification';

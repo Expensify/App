@@ -84,8 +84,16 @@ export default function Network(endpoint) {
     }
 
     return {
+        /**
+         * Perform a queued post request
+         *
+         * @param {string} command
+         * @param {mixed} data
+         * @param {string} type
+         * @returns {Promise}
+         */
         post(command, data, type) {
-            queueRequest(command, data, type);
+            return queueRequest(command, data, type);
         },
     };
 }
