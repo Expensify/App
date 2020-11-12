@@ -2,6 +2,7 @@ import Onyx from 'react-native-onyx';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import redirectToSignIn from './SignInRedirect';
+import expensifyAPI from '../expensifyAPI';
 
 let credentials;
 Onyx.connect({
@@ -34,9 +35,10 @@ function signOut() {
     if (!credentials || !credentials.login) {
         return;
     }
-    API.deleteLogin({
+    expensifyAPI.deleteLogin({
         partnerUserID: credentials.login
-    });
+    })
+        .catch(error => Onyx.merge(ONYXKEYS.SESSION, {error: error.message}));
 }
 
 export {
