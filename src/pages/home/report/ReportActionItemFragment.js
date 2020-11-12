@@ -4,7 +4,7 @@ import {
     Linking, ActivityIndicator, View, Dimensions
 } from 'react-native';
 import PropTypes from 'prop-types';
-import Str from '../../../libs/Str';
+import Str from 'js-libs/lib/str';
 import ReportActionFragmentPropTypes from './ReportActionFragmentPropTypes';
 import styles, {webViewStyles, colors} from '../../../styles/StyleSheet';
 import Text from '../../../components/Text';
