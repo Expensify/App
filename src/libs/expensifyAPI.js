@@ -45,16 +45,30 @@ function handleAuthFailures(jsonCode, response) {
     Onyx.merge(ONYXKEYS.API, {isAuthenticating});
 }
 
+/**
+ * Does this command require an authToken?
+ *
+ * @param {String} command
+ * @return {Boolean}
+ */
+function isAuthTokenRequired(command) {
+    return !_.contains(['Log'], command);
+}
 
 /**
  * Adds CSRF and AuthToken to our request data
  *
+ * @param {string} command
  * @param {Object} parameters
  * @returns {Object}
  */
-function addAuthTokenToParameters(parameters) {
+function addAuthTokenToParameters(command, parameters) {
     const finalParameters = {...parameters};
-    finalParameters.authToken = authToken;
+
+    if (isAuthTokenRequired(command)) {
+        finalParameters.authToken = authToken;
+    }
+
     finalParameters.api_setCookie = false;
     return finalParameters;
 }
