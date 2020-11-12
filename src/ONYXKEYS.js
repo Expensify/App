@@ -4,6 +4,9 @@
 export default {
     ACTIVE_CLIENTS: 'activeClients2',
 
+    // Holds information about the status of our API (like if it's currently authenticating)
+    API: 'api',
+
     // When this key is changed, the active page changes (see Expensify.js and `redirect` in actions/App.js)
     APP_REDIRECT_TO: 'appRedirectTo',
 
