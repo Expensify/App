@@ -8,8 +8,8 @@ import {
 } from 'react-native';
 import styles from '../../../styles/StyleSheet';
 import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
-import ROUTES from "../../../ROUTES";
-import PressableLink from "../../../components/PressableLink";
+import ROUTES from '../../../ROUTES';
+import PressableLink from '../../../components/PressableLink';
 
 const propTypes = {
     // Option to allow the user to choose from can be type 'report' or 'user'
@@ -23,10 +23,13 @@ const propTypes = {
 
     // Callback that adds a user to the pending list of Group DM users
     onAddToGroup: PropTypes.func,
+
+    isChatSwitcher: PropTypes.bool
 };
 
 const defaultProps = {
-    onAddToGroup: ()=>{},
+    onAddToGroup: () => {},
+    isChatSwitcher: false,
 };
 
 const ChatSwitcherRow = ({
@@ -34,6 +37,7 @@ const ChatSwitcherRow = ({
     optionIsFocused,
     onSelectRow,
     onAddToGroup,
+    isChatSwitcher,
 }) => {
     const isUserRow = option.type === 'user';
     const textStyle = optionIsFocused
@@ -53,54 +57,54 @@ const ChatSwitcherRow = ({
             ]}
         >
             <PressableLink
-            onClick={() => onSelectRow(option)}
-            to={ROUTES.getReportRoute(option.reportID)}
-            style={styles.textDecorationNoLine}
+                onClick={() => onSelectRow(option)}
+                to={ROUTES.getReportRoute(option.reportID)}
+                style={styles.textDecorationNoLine}
             >
-            <TouchableOpacity
-                onPress={() => onSelectRow(option)}
-                style={[
-                    styles.flexGrow1,
-                    styles.chatSwitcherItemAvatarNameWrapper,
-                ]}
-            >
-                <View
+                <TouchableOpacity
+                    onPress={() => onSelectRow(option)}
                     style={[
-                        styles.flexRow,
-                        styles.alignItemsCenter,
+                        styles.flexGrow1,
+                        styles.chatSwitcherItemAvatarNameWrapper,
                     ]}
                 >
-                    {
-                        option.icon
-                        && (
-                            <View style={[styles.chatSwitcherAvatar, styles.mr2]}>
-                                <Image
-                                    source={{uri: option.icon}}
-                                    style={[styles.chatSwitcherAvatarImage]}
-                                />
-                            </View>
-                        )
-                    }
-                    <View style={[styles.flex1]}>
-                        {option.text === option.alternateText ? (
-                            <Text style={textUnreadStyle} numberOfLines={1}>
-                                {option.alternateText}
-                            </Text>
-                        ) : (
-                            <>
+                    <View
+                        style={[
+                            styles.flexRow,
+                            styles.alignItemsCenter,
+                        ]}
+                    >
+                        {
+                            option.icon
+                            && (
+                                <View style={[styles.chatSwitcherAvatar, styles.mr2]}>
+                                    <Image
+                                        source={{uri: option.icon}}
+                                        style={[styles.chatSwitcherAvatarImage]}
+                                    />
+                                </View>
+                            )
+                        }
+                        <View style={[styles.flex1]}>
+                            {option.text === option.alternateText ? (
                                 <Text style={textUnreadStyle} numberOfLines={1}>
-                                    {option.text}
-                                </Text>
-                                <Text style={[...textUnreadStyle, styles.textMicro]} numberOfLines={1}>
                                     {option.alternateText}
                                 </Text>
-                            </>
-                        )}
+                            ) : (
+                                <>
+                                    <Text style={textUnreadStyle} numberOfLines={1}>
+                                        {option.text}
+                                    </Text>
+                                    <Text style={[...textUnreadStyle, styles.textMicro]} numberOfLines={1}>
+                                        {option.alternateText}
+                                    </Text>
+                                </>
+                            )}
+                        </View>
                     </View>
-                </View>
-            </TouchableOpacity>
+                </TouchableOpacity>
             </PressableLink>
-            {isUserRow && (
+            {isUserRow && isChatSwitcher && (
                 <View>
                     <TouchableOpacity
                         style={[styles.chatSwitcherItemButton]}
@@ -120,6 +124,7 @@ const ChatSwitcherRow = ({
 };
 
 ChatSwitcherRow.propTypes = propTypes;
+ChatSwitcherRow.defaultProps = defaultProps;
 ChatSwitcherRow.displayName = 'ChatSwitcherRow';
 
 export default ChatSwitcherRow;

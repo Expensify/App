@@ -40,6 +40,7 @@ const ChatSwitcherList = ({
                     optionIsFocused={index === focusedIndex}
                     onSelectRow={onSelectRow}
                     onAddToGroup={onAddToGroup}
+                    isChatSwitcher={true}
                 />
             )}
             extraData={focusedIndex}
