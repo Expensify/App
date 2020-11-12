@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import Str from 'js-libs/lib/str';
 import styles from '../styles/StyleSheet';
-import Str from '../libs/Str';
 import PDFView from './PDFView';
 import ImageView from './ImageView';
 

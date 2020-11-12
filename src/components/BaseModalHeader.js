@@ -10,12 +10,13 @@ const propTypes = {
     // Title of the modal
     title: PropTypes.string,
 
-    // Method passed down to update visibility of the modal
-    setModalVisiblity: PropTypes.func.isRequired,
+    // Method to trigger when pressing close button of the modal
+    onCloseButtonPress: PropTypes.func,
 };
 
 const defaultProps = {
     title: '',
+    onCloseButtonPress: null,
 };
 
 const BaseModalHeader = props => (
@@ -34,7 +35,7 @@ const BaseModalHeader = props => (
             </View>
             <View style={[styles.reportOptions, styles.flexRow]}>
                 <TouchableOpacity
-                    onPress={() => props.setModalVisiblity(false)}
+                    onPress={props.onCloseButtonPress}
                     style={[styles.touchableButtonImage, styles.mr0]}
                 >
                     <Image

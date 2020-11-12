@@ -15,10 +15,6 @@ const propTypes = {
     sourceURL: PropTypes.string.isRequired,
 };
 
-const defaultProps = {
-    style: {}
-};
-
 const ImageThumbnailWithModal = props => (
     <BaseImageModal
         pinToEdges
@@ -28,7 +24,6 @@ const ImageThumbnailWithModal = props => (
 );
 
 ImageThumbnailWithModal.propTypes = propTypes;
-ImageThumbnailWithModal.defaultProps = defaultProps;
 ImageThumbnailWithModal.displayName = 'ImageThumbnailWithModal';
 
 export default ImageThumbnailWithModal;
