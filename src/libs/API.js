@@ -86,22 +86,6 @@ function queueRequest(command, data) {
 }
 
 /**
- * @param {object} parameters
- * @param {string} parameters.partnerUserID
- * @returns {Promise}
- */
-function deleteLogin(parameters) {
-    return queueRequest('DeleteLogin', {
-        authToken,
-        partnerUserID: parameters.partnerUserID,
-        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-        doNotRetry: true,
-    })
-        .catch(error => Onyx.merge(ONYXKEYS.SESSION, {error: error.message}));
-}
-
-/**
  * @param {string} login
  * @param {string} password
  * @returns {Promise}
@@ -398,6 +382,5 @@ function authenticate(parameters) {
 
 export {
     authenticate,
-    deleteLogin,
     getAuthToken,
 };

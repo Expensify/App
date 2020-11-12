@@ -1,4 +1,7 @@
 import _ from 'underscore';
+import Onyx from 'react-native-onyx';
+import CONFIG from '../CONFIG';
+import ONYXKEYS from '../ONYXKEYS';
 
 export default function API(network, args) {
     if (!network) {
@@ -53,6 +56,24 @@ export default function API(network, args) {
     }
 
     return {
+        /**
+         * @param {object} parameters
+         * @param {string} parameters.partnerUserID
+         * @returns {Promise}
+         */
+        deleteLogin(parameters) {
+            const commandName = 'DeleteLogin';
+            requireParameters(['partnerUserID'],
+                parameters, commandName);
+
+            const finalParameters = {...parameters};
+            finalParameters.partnerName = CONFIG.EXPENSIFY.PARTNER_NAME;
+            finalParameters.partnerPassword = CONFIG.EXPENSIFY.PARTNER_PASSWORD;
+            finalParameters.doNotRetry = true;
+
+            return performPOSTRequest(commandName, finalParameters);
+        },
+
         /**
          * @param {object} parameters
          * @param {string} parameters.returnValueList
