@@ -13,10 +13,6 @@ const propTypes = {
 
     // URL to full-sized image
     sourceURL: PropTypes.string.isRequired,
-
-    // Any additional styles to apply to the image thumbnail
-    // eslint-disable-next-line react/forbid-prop-types
-    style: PropTypes.any,
 };
 
 const defaultProps = {
@@ -28,7 +24,6 @@ const ImageThumbnailWithModal = props => (
         pinToEdges={false}
         previewSourceURL={props.previewSourceURL}
         sourceURL={props.sourceURL}
-        style={props.style}
     />
 );
 
