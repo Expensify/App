@@ -6,16 +6,22 @@ import {
     Dimensions,
     Animated,
     Easing,
-    Keyboard
+    Keyboard,
+    Pressable,
 } from 'react-native';
 import _ from 'underscore';
 import {SafeAreaInsetsContext, SafeAreaProvider} from 'react-native-safe-area-context';
+import {withOnyx} from 'react-native-onyx';
 import {Route} from '../../libs/Router';
 import styles, {getSafeAreaPadding} from '../../styles/StyleSheet';
 import Header from './HeaderView';
 import Sidebar from './sidebar/SidebarView';
 import Main from './MainView';
-import {hide as hideSidebar, show as showSidebar} from '../../libs/actions/Sidebar';
+import {
+    hide as hideSidebar,
+    show as showSidebar,
+    setIsAnimating as setSideBarIsAnimating,
+} from '../../libs/actions/Sidebar';
 import {
     subscribeToReportCommentEvents,
     fetchAll as fetchAllReports,
@@ -24,8 +30,7 @@ import {fetch as fetchPersonalDetails} from '../../libs/actions/PersonalDetails'
 import * as Pusher from '../../libs/Pusher/pusher';
 import UnreadIndicatorUpdater from '../../libs/UnreadIndicatorUpdater';
 import ROUTES from '../../ROUTES';
-import IONKEYS from '../../IONKEYS';
-import withIon from '../../components/withIon';
+import ONYXKEYS from '../../ONYXKEYS';
 import NetworkConnection from '../../libs/NetworkConnection';
 
 const windowSize = Dimensions.get('window');
@@ -33,9 +38,11 @@ const widthBreakPoint = 1000;
 
 const propTypes = {
     isSidebarShown: PropTypes.bool,
+    isChatSwitcherActive: PropTypes.bool,
 };
 const defaultProps = {
     isSidebarShown: true,
+    isChatSwitcherActive: false,
 };
 
 class App extends React.Component {
@@ -51,8 +58,8 @@ class App extends React.Component {
         this.showHamburger = this.showHamburger.bind(this);
         this.toggleHamburgerBasedOnDimensions = this.toggleHamburgerBasedOnDimensions.bind(this);
 
-        // Note: This null check is only necessary because withIon passes null for bound props
-        //       that are null-initialized initialized in Ion, and defaultProps only replaces for `undefined` values
+        // Note: This null check is only necessary because withOnyx passes null for bound props
+        //       that are null-initialized initialized in Onyx, and defaultProps only replaces for `undefined` values
         this.animationTranslateX = new Animated.Value(
             !_.isNull(props.isSidebarShown) && !props.isSidebarShown ? -300 : 0
         );
@@ -77,6 +84,10 @@ class App extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        if (!prevProps.isChatSwitcherActive && this.props.isChatSwitcherActive) {
+            this.showHamburger();
+        }
+
         if (this.props.isSidebarShown === prevProps.isSidebarShown) {
             // Nothing changed, don't trigger animation or re-render
             return;
@@ -107,7 +118,7 @@ class App extends React.Component {
      * Only changes hamburger state on small screens (e.g. Mobile and mWeb)
      */
     dismissHamburger() {
-        if (!this.props.isSidebarShown) {
+        if (!this.state.isHamburgerEnabled || !this.props.isSidebarShown) {
             return;
         }
 
@@ -135,6 +146,7 @@ class App extends React.Component {
     animateHamburger(hamburgerIsShown) {
         const animationFinalValue = hamburgerIsShown ? -300 : 0;
 
+        setSideBarIsAnimating(true);
         Animated.timing(this.animationTranslateX, {
             toValue: animationFinalValue,
             duration: 200,
@@ -143,6 +155,10 @@ class App extends React.Component {
         }).start(({finished}) => {
             if (finished && hamburgerIsShown) {
                 hideSidebar();
+            }
+
+            if (finished) {
+                setSideBarIsAnimating(false);
             }
         });
     }
@@ -197,19 +213,23 @@ class App extends React.Component {
                                     <Sidebar
                                         insets={insets}
                                         onLinkClick={this.toggleHamburger}
-                                        onChatSwitcherFocus={this.showHamburger}
+                                        isChatSwitcherActive={this.props.isChatSwitcherActive}
                                     />
                                 </Animated.View>
-                                <View
-                                    onTouchStart={this.dismissHamburger}
-                                    style={[styles.appContent, appContentStyle, styles.flex1, styles.flexColumn]}
+                                <Pressable
+                                    style={[styles.flex1]}
+                                    onPress={this.dismissHamburger}
                                 >
-                                    <Header
-                                        shouldShowHamburgerButton={this.state.isHamburgerEnabled}
-                                        onHamburgerButtonClicked={this.toggleHamburger}
-                                    />
-                                    <Main />
-                                </View>
+                                    <View
+                                        style={[styles.appContent, appContentStyle, styles.flex1, styles.flexColumn]}
+                                    >
+                                        <Header
+                                            shouldShowHamburgerButton={this.state.isHamburgerEnabled}
+                                            onHamburgerButtonClicked={this.toggleHamburger}
+                                        />
+                                        <Main />
+                                    </View>
+                                </Pressable>
                             </Route>
                         </View>
                     )}
@@ -222,10 +242,14 @@ class App extends React.Component {
 App.propTypes = propTypes;
 App.defaultProps = defaultProps;
 
-export default withIon(
+export default withOnyx(
     {
         isSidebarShown: {
-            key: IONKEYS.IS_SIDEBAR_SHOWN
+            key: ONYXKEYS.IS_SIDEBAR_SHOWN
+        },
+        isChatSwitcherActive: {
+            key: ONYXKEYS.IS_CHAT_SWITCHER_ACTIVE,
+            initWithStoredValues: false,
         },
     },
 )(App);
