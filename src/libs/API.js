@@ -403,8 +403,8 @@ function authenticate(parameters) {
  * @param {number} parameters.sequenceNumber
  * @returns {Promise}
  */
-function updateLastAccessed(parameters) {
-    return queueRequest('Report_UpdateLastAccessed', {
+function updateLastRead(parameters) {
+    return queueRequest('Report_UpdateLastRead', {
         authToken,
         accountID: parameters.accountID,
         reportID: parameters.reportID,
@@ -525,7 +525,7 @@ export {
     getAuthToken,
     getPersonalDetails,
     getReportHistory,
-    updateLastAccessed,
+    updateLastRead,
     setNameValuePair,
     togglePinnedReport,
     logToServer,

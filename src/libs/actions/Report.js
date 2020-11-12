@@ -68,7 +68,7 @@ function getUnreadActionCount(report) {
         `lastReadActionID_${currentUserAccountID}`,
     ]) || lodashGet(report, [
         'reportNameValuePairs',
-        `lastAccessed_${currentUserAccountID}`,
+        `lastRead_${currentUserAccountID}`,
         'actionID',
     ]);
 
@@ -118,7 +118,7 @@ function getSimplifiedReportObject(report) {
         isPinned: report.isPinned,
         lastVisitedTimestamp: lodashGet(report, [
             'reportNameValuePairs',
-            `lastAccessed_${currentUserAccountID}`,
+            `lastRead_${currentUserAccountID}`,
             'timestamp'
         ], 0)
     };
@@ -188,12 +188,12 @@ function fetchChatReportsByIDs(chatList) {
 }
 
 /**
- * Update the lastReadActionID in local memory
+ * Update the lastRead actionID and timestamp in local memory and Onyx
  *
  * @param {Number} reportID
  * @param {Number} sequenceNumber
  */
-function setLocalLastReadActionID(reportID, sequenceNumber) {
+function setLocalLastRead(reportID, sequenceNumber) {
     lastReadActionIDs[reportID] = sequenceNumber;
 
     // Update the report optimistically
@@ -217,7 +217,7 @@ function updateReportWithNewAction(reportID, reportAction) {
     // last read actionID has been updated in the server but not necessarily reflected
     // locally so we must first update it and then calculate the unread (which should be 0)
     if (isFromCurrentUser) {
-        setLocalLastReadActionID(reportID, newMaxSequenceNumber);
+        setLocalLastRead(reportID, newMaxSequenceNumber);
     }
 
     // Always merge the reportID into Onyx
@@ -543,10 +543,10 @@ function updateLastReadActionID(reportID, sequenceNumber) {
         return;
     }
 
-    setLocalLastReadActionID(reportID, sequenceNumber);
+    setLocalLastRead(reportID, sequenceNumber);
 
     // Mark the report as not having any unread items
-    API.updateLastAccessed({
+    API.updateLastRead({
         accountID: currentUserAccountID,
         reportID,
         sequenceNumber,
