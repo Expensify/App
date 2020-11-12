@@ -6,6 +6,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import md5 from '../md5';
 import CONST from '../../CONST';
 import NetworkConnection from '../NetworkConnection';
+import expensifyAPI from '../expensifyAPI';
 
 let currentUserEmail;
 Onyx.connect({
@@ -134,7 +135,7 @@ function fetch() {
  * @param {String} emailList
  */
 function getForEmails(emailList) {
-    API.getPersonalDetails(emailList)
+    expensifyAPI.getPersonalDetails(emailList)
         .then((data) => {
             const details = _.pick(data, emailList.split(','));
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, formatPersonalDetails(details));

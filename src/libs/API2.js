@@ -54,6 +54,18 @@ export default function API(network, args) {
 
     return {
         /**
+         * @param {object} parameters
+         * @param {string} parameters.emailList
+         * @returns {Promise}
+         */
+        getPersonalDetails(parameters) {
+            const commandName = 'PersonalDetails_GetForEmails';
+            requireParameters(['emailList'],
+                parameters, commandName);
+            return performPOSTRequest(commandName, parameters);
+        },
+
+        /**
          * @param {Object} parameters
          * @param {String} parameters.message
          * @param {Object} parameters.parameters

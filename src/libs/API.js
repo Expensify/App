@@ -464,18 +464,6 @@ function get(parameters) {
     });
 }
 
-/**
- * @param {object} parameters
- * @param {string} parameters.emailList
- * @returns {Promise}
- */
-function getPersonalDetails(parameters) {
-    return queueRequest('PersonalDetails_GetForEmails', {
-        authToken,
-        emailList: parameters,
-    });
-}
-
 export {
     authenticate,
     addReportComment,
@@ -483,7 +471,6 @@ export {
     deleteLogin,
     get,
     getAuthToken,
-    getPersonalDetails,
     getReportHistory,
     setLastReadActionID,
 };
