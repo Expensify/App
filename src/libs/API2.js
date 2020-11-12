@@ -14,14 +14,17 @@ export default function API(network, args) {
     /**
      * Triggers the callback for an specific jsonCodes
      *
-     * @param {String} networkPromise
+     * @param {Promise} networkPromise
+     * @param {string} originalCommand
+     * @param {object} [originalParameters]
+     * @param {string} [originalType]
      */
-    function attachJSONCodeCallbacks(networkPromise) {
+    function attachJSONCodeCallbacks(networkPromise, originalCommand, originalParameters, originalType) {
         networkPromise.then((response) => {
             let defaultHandlerWasUsed = false;
             _.each(defaultHandlers[response.jsonCode], (callback) => {
                 defaultHandlerWasUsed = true;
-                callback(response);
+                callback(response, originalCommand, originalParameters, originalType, this);
             });
 
             if (defaultHandlerWasUsed) {
@@ -77,7 +80,7 @@ export default function API(network, args) {
         const networkPromise = network.post(command, finalParameters, type);
 
         // Attach any JSONCode callbacks to our promise
-        attachJSONCodeCallbacks(networkPromise);
+        attachJSONCodeCallbacks(networkPromise, command, parameters, type);
 
         return networkPromise;
     }
@@ -104,6 +107,7 @@ export default function API(network, args) {
 
         /**
          * @param {object} parameters
+         * @param {string} parameters.useExpensifyLogin
          * @param {string} parameters.partnerName
          * @param {string} parameters.partnerPassword
          * @param {string} parameters.partnerUserID
@@ -115,6 +119,7 @@ export default function API(network, args) {
             const commandName = 'Authenticate';
 
             requireParameters([
+                'useExpensifyLogin',
                 'partnerName',
                 'partnerPassword',
                 'partnerUserID',
@@ -129,7 +134,6 @@ export default function API(network, args) {
                 // When authenticating for the first time, we pass useExpensifyLogin as true so we check
                 // for credentials for the expensify partnerID to let users authenticate with their expensify user
                 // and password.
-                useExpensifyLogin: true,
                 partnerName: parameters.partnerUserID,
                 partnerPassword: parameters.partnerPassword,
                 partnerUserID: parameters.partnerUserID,
