@@ -15,6 +15,7 @@ import Visibility from '../Visibility';
 import ROUTES from '../../ROUTES';
 import NetworkConnection from '../NetworkConnection';
 import {hide as hideSidebar} from './Sidebar';
+import expensifyAPI from '../expensifyAPI';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -536,7 +537,7 @@ function updateLastReadActionID(reportID, sequenceNumber) {
     setLocalLastReadActionID(reportID, sequenceNumber);
 
     // Mark the report as not having any unread items
-    API.setLastReadActionID({
+    expensifyAPI.Report.setLastReadActionID({
         accountID: currentUserAccountID,
         reportID,
         sequenceNumber,
