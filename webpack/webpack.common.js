@@ -51,7 +51,7 @@ module.exports = {
                  * use JSX/JS that needs to be transformed by babel.
                  */
                 exclude: [
-                    /node_modules\/(?!(react-native-render-html|react-native-webview)\/).*|\.native\.js$/,
+                    /node_modules\/(?!(react-native-render-html|react-native-webview|react-native-onyx)\/).*|\.native\.js$/,
                     platformExclude
                 ],
             },

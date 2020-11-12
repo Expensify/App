@@ -2,19 +2,19 @@ import React from 'react';
 import {Image, View, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import {withOnyx} from 'react-native-onyx';
 import styles, {getSafeAreaMargins} from '../../../styles/StyleSheet';
 import Text from '../../../components/Text';
 import AppLinks from './AppLinks';
 import {signOut} from '../../../libs/actions/Session';
-import IONKEYS from '../../../IONKEYS';
-import withIon from '../../../components/withIon';
+import ONYXKEYS from '../../../ONYXKEYS';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
 
 const propTypes = {
     // Safe area insets required for mobile devices margins
     insets: SafeAreaInsetPropTypes.isRequired,
 
-    /* Ion Props */
+    /* Onyx Props */
 
     // The personal details of the person who is logged in
     myPersonalDetails: PropTypes.shape({
@@ -78,9 +78,9 @@ SidebarBottom.propTypes = propTypes;
 SidebarBottom.defaultProps = defaultProps;
 SidebarBottom.displayName = 'SidebarBottom';
 
-export default withIon({
+export default withOnyx({
     myPersonalDetails: {
-        key: IONKEYS.MY_PERSONAL_DETAILS,
+        key: ONYXKEYS.MY_PERSONAL_DETAILS,
     },
-    network: {key: IONKEYS.NETWORK},
+    network: {key: ONYXKEYS.NETWORK},
 })(SidebarBottom);
