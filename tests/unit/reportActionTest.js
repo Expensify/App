@@ -1,14 +1,15 @@
 import moment from 'moment';
-import Ion from '../../src/libs/Ion';
-import IONKEYS from '../../src/IONKEYS';
+import Onyx from 'react-native-onyx';
+import ONYXKEYS from '../../src/ONYXKEYS';
 import {addAction, subscribeToReportCommentEvents} from '../../src/libs/actions/Report';
 import * as Pusher from '../../src/libs/Pusher/pusher';
 
 const resolveAllPromises = () => new Promise(setImmediate);
 
-Ion.registerLogger(() => {});
-Ion.init({
-    keys: IONKEYS,
+Onyx.registerLogger(() => {});
+Onyx.init({
+    keys: ONYXKEYS,
+    registerStorageEventListener: () => {},
 });
 
 jest.mock('../../node_modules/urbanairship-react-native', () => {
@@ -52,33 +53,33 @@ describe('Report Action', () => {
             timestamp: 1604682894,
         };
 
-        const mockIonCallback = jest.fn();
+        const mockOnyxCallback = jest.fn();
 
         Pusher.init();
 
         // Set up fake accountID, email, and reportActions key
-        await Ion.set(IONKEYS.SESSION, {accountID: 1, email: 'test@test.com'});
-        await Ion.set(IONKEYS.MY_PERSONAL_DETAILS, {});
+        await Onyx.set(ONYXKEYS.SESSION, {accountID: 1, email: 'test@test.com'});
+        await Onyx.set(ONYXKEYS.MY_PERSONAL_DETAILS, {});
 
         // Simulate fetching a brand new report and actions
-        await Ion.set(`${IONKEYS.COLLECTION.REPORT}${reportID}`, {
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
             reportID,
             reportName: 'Test User',
         });
 
-        await Ion.set(`${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
             [CREATED_ACTION.sequenceNumber]: CREATED_ACTION,
         });
 
-        Ion.connect({
-            key: `${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        Onyx.connect({
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             initWithStoredValues: false,
             callback: (val) => {
                 try {
-                    mockIonCallback(val);
+                    mockOnyxCallback(val);
 
                     // Verify that the optimistic comment has a loading state
-                    if (mockIonCallback.mock.calls.length === 1) {
+                    if (mockOnyxCallback.mock.calls.length === 1) {
                         expect(val[0]).toStrictEqual(CREATED_ACTION);
                         expect(val[1]).toBeTruthy();
                         expect(val[1].loading).toBe(true);
