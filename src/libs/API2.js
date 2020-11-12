@@ -69,7 +69,7 @@ export default function API(network, args) {
      * @param {Object} [parameters] A map of parameter names to their values
      * @param {string} [type]
      *
-     * @returns {APIDeferred} An APIDeferred representing the promise of this request
+     * @returns {Promise}
      */
     function performPOSTRequest(command, parameters, type = 'post') {
         // If there was an enhanceParameters() method supplied in our args, then we will call that here
@@ -81,6 +81,8 @@ export default function API(network, args) {
 
         // Attach any JSONCode callbacks to our promise
         attachJSONCodeCallbacks(networkPromise);
+
+        return networkPromise;
     }
 
     return {

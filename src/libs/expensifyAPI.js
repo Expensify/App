@@ -42,6 +42,7 @@ Onyx.connect({
  */
 function handleAuthFailures(jsonCode, response) {
     console.debug('Network Error', jsonCode, response);
+    Onyx.merge(ONYXKEYS.API, {isAuthenticating});
 }
 
 
@@ -66,3 +67,16 @@ const expensifyAPI = API(network, {
 expensifyAPI.registerDefaultHandler(expensifyAPI.JSON_CODES.AUTH_FAILURES, handleAuthFailures);
 
 export default expensifyAPI;
+
+/**
+ * Access the current authToken
+ *
+ * @returns {string}
+ */
+function getAuthToken() {
+    return authToken;
+}
+
+export {
+    getAuthToken,
+};

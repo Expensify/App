@@ -328,14 +328,6 @@ Pusher.registerSocketEventCallback((eventName) => {
 });
 
 /**
- * Get the authToken that the network uses
- * @returns {string}
- */
-function getAuthToken() {
-    return authToken;
-}
-
-/**
  * @param {object} parameters
  * @param {string} parameters.partnerUserID
  * @param {string} parameters.partnerUserSecret
@@ -389,5 +381,4 @@ function authenticate(parameters) {
 
 export {
     authenticate,
-    getAuthToken,
 };
