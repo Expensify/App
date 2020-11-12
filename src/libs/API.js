@@ -126,23 +126,6 @@ function createLogin(login, password) {
         });
 }
 
-
-/**
- * Sets API data in the store when we make a successful "Authenticate"/"CreateLogin" request
- *
- * @param {object} data
- * @param {string} exitTo
- */
-function setSuccessfulSignInData(data, exitTo) {
-    PushNotification.register(data.accountID);
-
-    const redirectTo = exitTo ? Str.normalizeUrl(exitTo) : ROUTES.ROOT;
-    Onyx.multiSet({
-        [ONYXKEYS.SESSION]: _.pick(data, 'authToken', 'accountID', 'email'),
-        [ONYXKEYS.APP_REDIRECT_TO]: redirectTo
-    });
-}
-
 /**
  * Makes an API request.
  *

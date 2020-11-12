@@ -40,6 +40,7 @@ function setSuccessfulSignInData(data, exitTo) {
  */
 function signIn(partnerUserID, partnerUserSecret, twoFactorAuthCode = '', exitTo) {
     Onyx.merge(ONYXKEYS.SESSION, {loading: true, error: ''});
+
     expensifyAPI.authenticate({
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
@@ -50,11 +51,36 @@ function signIn(partnerUserID, partnerUserSecret, twoFactorAuthCode = '', exitTo
 
         // After the user authenticates, create a new login for the user so that we can reauthenticate when the
         // authtoken expires
-        .then((response) => {
-            Onyx.merge(ONYXKEYS.SESSION, {authToken: response.authToken})
-                .then(() => {
-                    expensifyAPI.createLogin(Str.guid('react-native-chat-'), Str.guid())
-                        .then(() => setSuccessfulSignInData(response, exitTo));
+        .then((authenticateResponse) => {
+            const login = Str.guid('react-native-chat-');
+            const password = Str.guid();
+
+            expensifyAPI.createLogin({
+                authToken: authenticateResponse.authToken,
+                partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+                partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+                partnerUserID: login,
+                partnerUserSecret: password,
+            })
+                .then((createLoginResponse) => {
+                    if (createLoginResponse.jsonCode !== 200) {
+                        throw new Error(createLoginResponse.message);
+                    }
+
+                    setSuccessfulSignInData(createLoginResponse, exitTo);
+
+                    if (credentials && credentials.login) {
+                        // If we have an old login for some reason, we should delete it before storing the new details
+                        expensifyAPI.deleteLogin({
+                            partnerUserID: credentials.login,
+                            partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+                            partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+                            doNotRetry: true,
+                        })
+                            .catch(error => Onyx.merge(ONYXKEYS.SESSION, {error: error.message}));
+                    }
+
+                    Onyx.merge(ONYXKEYS.CREDENTIALS, {login, password});
                 });
         })
         .catch((error) => {
