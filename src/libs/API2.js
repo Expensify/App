@@ -122,6 +122,18 @@ export default function API(network, args) {
             /**
              * @param {object} parameters
              * @param {number} parameters.reportID
+             * @returns {Promise}
+             */
+            getHistory(parameters) {
+                const commandName = 'Report_GetHistory';
+                requireParameters(['reportID'],
+                    parameters, commandName);
+                return performPOSTRequest(commandName, parameters);
+            },
+
+            /**
+             * @param {object} parameters
+             * @param {number} parameters.reportID
              * @param {boolean} parameters.pinnedValue
              * @returns {Promise}
              */
