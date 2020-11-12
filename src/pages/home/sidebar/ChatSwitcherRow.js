@@ -20,7 +20,11 @@ const propTypes = {
     onSelectRow: PropTypes.func.isRequired,
 
     // Callback that adds a user to the pending list of Group DM users
-    onAddToGroup: PropTypes.func.isRequired,
+    onAddToGroup: PropTypes.func,
+};
+
+const defaultProps = {
+    onAddToGroup: ()=>{},
 };
 
 const ChatSwitcherRow = ({

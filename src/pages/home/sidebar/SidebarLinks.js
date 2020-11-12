@@ -3,6 +3,7 @@ import {View, ScrollView} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import lodashOrderby from 'lodash.orderby';
+import get from 'lodash.get';
 import styles from '../../../styles/StyleSheet';
 import Text from '../../../components/Text';
 import SidebarLink from './SidebarLink';
@@ -12,6 +13,8 @@ import ChatSwitcherView from './ChatSwitcherView';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
 import compose from '../../../libs/compose';
 import {withRouter} from '../../../libs/Router';
+import ChatSwitcher from "../../../../../Web-Expensify/concierge/js/app/chat/switcher/ChatSwitcher";
+import ChatSwitcherRow from "./ChatSwitcherRow";
 
 const propTypes = {
     // These are from withRouter
@@ -34,10 +37,13 @@ const propTypes = {
     })),
 
     isChatSwitcherActive: PropTypes.bool,
+
+    personalDetails: PropTypes.object,
 };
 const defaultProps = {
     reports: {},
     isChatSwitcherActive: false,
+    personalDetails: {},
 };
 
 const SidebarLinks = (props) => {
@@ -80,17 +86,25 @@ const SidebarLinks = (props) => {
                 </View>
                 {/* A report will not have a report name if it hasn't been fetched from the server yet */}
                 {/* so nothing is rendered */}
-                {_.map(reportsToDisplay, report => report.reportName && (
-                    <SidebarLink
-                        key={report.reportID}
-                        reportID={report.reportID}
-                        reportName={report.reportName}
-                        isUnread={report.unreadActionCount > 0}
-                        onLinkClick={onLinkClick}
-                        isActiveReport={report.reportID === reportIDInUrl}
-                        isPinned={report.isPinned}
-                    />
-                ))}
+                {_.map(reportsToDisplay, (report) => {
+                    const participantDetails = report.participants.length === 1 ? get(props.personalDetails, report.participants[0], '') : '';
+                    const avatarUrl = participantDetails ? participantDetails.avatarURL : ''
+                    return report.reportName && (
+                        <ChatSwitcherRow
+                            option={{
+                                text: participantDetails ? participantDetails.displayName : report.reportName,
+                                alternateText: participantDetails ? report.reportName : '',
+                                type: participantDetails ? OPTION_TYPE.USER : OPTION_TYPE.REPORT,
+                                icon: participantDetails ? personalDetail.avatarURL : '',
+                            }}
+                            onSelectRow={onLinkClick}
+                            optionIsFocused="false"
+                            onAddToGroup={}
+                        />
+                );
+                }
+
+                )}
             </ScrollView>
         </View>
     );
@@ -105,6 +119,9 @@ export default compose(
     withIon({
         reports: {
             key: IONKEYS.COLLECTION.REPORT,
+        },
+        personalDetails: {
+            key: IONKEYS.PERSONAL_DETAILS,
         },
     }),
 )(SidebarLinks);
