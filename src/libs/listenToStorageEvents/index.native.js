@@ -3,6 +3,6 @@
  * you can't have multiple native clients open at the same time on the same
  * device
  */
-function addStorageEventHandler() {}
+function listenToStorageEvents() {}
 
-export default addStorageEventHandler;
+export default listenToStorageEvents;

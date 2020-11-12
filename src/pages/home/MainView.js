@@ -2,9 +2,9 @@ import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import {withOnyx} from 'react-native-onyx';
 import ReportView from './report/ReportView';
-import withIon from '../../components/withIon';
-import IONKEYS from '../../IONKEYS';
+import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/StyleSheet';
 import {withRouter} from '../../libs/Router';
 import compose from '../../libs/compose';
@@ -14,7 +14,7 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     match: PropTypes.object.isRequired,
 
-    /* Ion Props */
+    /* Onyx Props */
 
     // List of reports to display
     reports: PropTypes.objectOf(PropTypes.shape({
@@ -77,9 +77,9 @@ MainView.defaultProps = defaultProps;
 
 export default compose(
     withRouter,
-    withIon({
+    withOnyx({
         reports: {
-            key: IONKEYS.COLLECTION.REPORT,
+            key: ONYXKEYS.COLLECTION.REPORT,
         },
     }),
 )(MainView);
