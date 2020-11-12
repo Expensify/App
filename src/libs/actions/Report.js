@@ -552,7 +552,7 @@ function updateLastReadActionID(reportID, sequenceNumber) {
 function togglePinnedState(report) {
     const pinnedValue = !report.isPinned;
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {isPinned: pinnedValue});
-    API.togglePinnedReport({
+    expensifyAPI.Report.togglePinnedReport({
         reportID: report.reportID,
         pinnedValue,
     });

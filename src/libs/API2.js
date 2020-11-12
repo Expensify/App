@@ -71,6 +71,19 @@ export default function API(network, args) {
         Report: {
             /**
              * @param {object} parameters
+             * @param {number} parameters.reportID
+             * @param {boolean} parameters.pinnedValue
+             * @returns {Promise}
+             */
+            togglePinnedReport(parameters) {
+                const commandName = 'Report_TogglePinned';
+                requireParameters(['reportID', 'pinnedValue'],
+                    parameters, commandName);
+                return performPOSTRequest(commandName, parameters);
+            },
+
+            /**
+             * @param {object} parameters
              * @param {number} parameters.accountID
              * @param {number} parameters.reportID
              * @param {number} parameters.sequenceNumber
