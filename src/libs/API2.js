@@ -1,9 +1,5 @@
 import _ from 'underscore';
-import Str from 'js-libs/lib/str';
-import Onyx from 'react-native-onyx';
 import HttpUtils from './HttpUtils';
-import CONFIG from '../CONFIG';
-import ONYXKEYS from '../ONYXKEYS';
 
 export default function API(network, args) {
     if (!network) {
@@ -151,7 +147,30 @@ export default function API(network, args) {
                 });
         },
 
-        createLogin() {},
+        /**
+         * @param {object} parameters
+         * @param {string} parameters.authToken
+         * @param {string} parameters.partnerName
+         * @param {string} parameters.partnerPassword
+         * @param {string} parameters.partnerUserID
+         * @param {string} parameters.partnerUserSecret
+         * @returns {Promise}
+         */
+        createLogin(parameters) {
+            const commandName = 'CreateLogin';
+            requireParameters([
+                'authToken',
+                'partnerName',
+                'partnerPassword',
+                'partnerUserID',
+                'partnerUserSecret',
+            ], parameters, commandName);
+
+            // Using xhr instead of request to avoid re-try logic on API commands which return  a 407 authToken expired
+            // in the response, and we call CreateLogin after getting a successful response to Authenticate so
+            // it's unlikely that we'll get a 407.
+            return HttpUtils.xhr(commandName, parameters);
+        },
 
         /**
          * @param {object} parameters
