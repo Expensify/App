@@ -63,6 +63,7 @@ const lastReadActionIDs = {};
  */
 function getUnreadActionCount(report) {
     // @todo remove the first check as part of cleanup https://github.com/Expensify/Expensify/issues/145243
+    // since we migrating our data from lastReadActionID_ value to lastRead_ object.
     const usersLastReadActionID = lodashGet(report, [
         'reportNameValuePairs',
         `lastReadActionID_${currentUserAccountID}`,
