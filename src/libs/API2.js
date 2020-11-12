@@ -8,19 +8,29 @@ export default function API(network, args) {
     /**
      * @private
      *
-     * @param {String} command Name of the command to run
-     * @param {Object} [parameters] A map of parameter names to their values
-     * @param {string} [type]
-     *
-     * @returns {APIDeferred} An APIDeferred representing the promise of this request
+     * Maps jsonCode => array of callback functions
      */
-    function performPOSTRequest(command, parameters, type = 'post') {
-        // If there was an enhanceParameters() method supplied in our args, then we will call that here
-        const finalParameters = (args && _.isFunction(args.enhanceParameters))
-            ? args.enhanceParameters(parameters)
-            : parameters;
+    const defaultHandlers = {};
 
-        return network.post(command, finalParameters, type);
+    /**
+     * Triggers the callback for an specific jsonCodes
+     *
+     * @param {String} networkPromise
+     */
+    function attachJSONCodeCallbacks(networkPromise) {
+        networkPromise.then((response) => {
+            let defaultHandlerWasUsed = false;
+            _.each(defaultHandlers[response.jsonCode], (callback) => {
+                defaultHandlerWasUsed = true;
+                callback(response);
+            });
+
+            if (defaultHandlerWasUsed) {
+                // Prevent other handlers from being triggered on this promise
+                throw new Error('A default handler was used for this request');
+            }
+            return response;
+        });
     }
 
     /**
@@ -52,7 +62,47 @@ export default function API(network, args) {
         });
     }
 
+    /**
+     * @private
+     *
+     * @param {String} command Name of the command to run
+     * @param {Object} [parameters] A map of parameter names to their values
+     * @param {string} [type]
+     *
+     * @returns {APIDeferred} An APIDeferred representing the promise of this request
+     */
+    function performPOSTRequest(command, parameters, type = 'post') {
+        // If there was an enhanceParameters() method supplied in our args, then we will call that here
+        const finalParameters = (args && _.isFunction(args.enhanceParameters))
+            ? args.enhanceParameters(parameters)
+            : parameters;
+
+        const networkPromise = network.post(command, finalParameters, type);
+
+        // Attach any JSONCode callbacks to our promise
+        attachJSONCodeCallbacks(networkPromise);
+    }
+
     return {
+        /**
+         * Register a callback function to be called when specific json codes are returned
+         *
+         * @param  {Number[]} jsonCodes
+         * @param  {Function} callback
+         */
+        registerDefaultHandler(jsonCodes, callback) {
+            if (!_(callback).isFunction()) {
+                return;
+            }
+
+            jsonCodes.forEach((jsonCode) => {
+                if (!defaultHandlers[jsonCode]) {
+                    defaultHandlers[jsonCode] = [];
+                }
+                defaultHandlers[jsonCode].push(callback);
+            });
+        },
+
         /**
          * @param {object} parameters
          * @param {string} parameters.partnerUserID
@@ -172,6 +222,12 @@ export default function API(network, args) {
                     parameters, commandName);
                 return performPOSTRequest(commandName, parameters);
             }
+        },
+
+        JSON_CODES: {
+            AUTH_FAILURES: [
+                407, // AuthToken Invalid/Expired
+            ],
         },
     };
 }

@@ -4,6 +4,8 @@ import HttpUtils from './HttpUtils';
 import NetworkConnection from './NetworkConnection';
 import ONYXKEYS from '../ONYXKEYS';
 
+let isQueuePaused = false;
+
 // Queue for network requests so we don't lose actions done by the user while offline
 let networkRequestQueue = [];
 
@@ -31,11 +33,10 @@ function processNetworkRequestQueue() {
     }
 
     // @TODO figure out how reauthenticating will work
-    // // Don't make any requests until we're done re-authenticating since we'll use the new authToken
-    // // from that response for the subsequent network requests
-    // if (reauthenticating || networkRequestQueue.length === 0) {
-    //     return;
-    // }
+    // Don't make any requests when the queue is paused
+    if (isQueuePaused || networkRequestQueue.length === 0) {
+        return;
+    }
 
     _.each(networkRequestQueue, (queuedRequest) => {
         HttpUtils.xhr(queuedRequest.command, queuedRequest.data, queuedRequest.type)
@@ -88,6 +89,31 @@ export default function Network() {
          */
         post(command, data, type) {
             return queueRequest(command, data, type);
+        },
+
+        /**
+         * Prevent the network queue from being processed
+         */
+        pauseRequestQueue() {
+            isQueuePaused = true;
+        },
+
+        /**
+         * Allow the network queue to continue to be processed
+         */
+        unpauseRequestQueue() {
+            isQueuePaused = false;
+        },
+
+        /**
+         * Adds a request to networkRequestQueue
+         *
+         * @param {string} command
+         * @param {mixed} data
+         * @param {string} type
+         */
+        queueRequest(...params) {
+            queueRequest(...params);
         },
     };
 }
