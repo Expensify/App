@@ -19,9 +19,6 @@ Onyx.connect({
 function addAuthToken(data) {
     const request = data;
 
-    // Concierge does not save its authToken in cookies. By not using cookies there is no overlap between the Concierge authToken
-    //  and the cookie authToken that Expensify homepage uses. Hence we set api_setCookie here to false so that we don't
-    // interfere with the cookie authToken that Expensify homepage uses.
     request.authToken = authToken;
     request.api_setCookie = false;
     return request;

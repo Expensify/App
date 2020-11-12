@@ -1,13 +1,6 @@
 import _ from 'underscore';
 
 export default function API(network, args) {
-    /**
-     * @private
-     *
-     * Maps jsonCode => array of callback functions
-     */
-    const defaultHandlers = {};
-
     if (!network) {
         throw new Error('Cannot instantiate API without a Network object');
     }
@@ -17,11 +10,7 @@ export default function API(network, args) {
      *
      * @param {String} command Name of the command to run
      * @param {Object} [parameters] A map of parameter names to their values
-     * @param {String} [returnedPropertyName] The value of the property that you want to return if you don't want to
-     *                      return the whole response JSON
-     * @param {Boolean} [keepalive] Whether or not the request should be kept alive if the browser is closed in the
-     *                      middle of the request
-     * @param {Boolean} [checkCodeRevision] Whether or not the code revision should be validated
+     * @param {string} [type]
      *
      * @returns {APIDeferred} An APIDeferred representing the promise of this request
      */
@@ -57,6 +46,7 @@ export default function API(network, args) {
                     parametersCopy.password = '<redacted>';
                 }
                 const keys = _(parametersCopy).keys().join(', ') || 'none';
+                // eslint-disable-next-line max-len
                 throw new Error(`Parameter ${parameterName} is required for "${commandName}". Supplied parameters: ${keys}`);
             }
         });
