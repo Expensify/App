@@ -121,8 +121,7 @@ class ChatSwitcherView extends React.Component {
 
     /**
      * Get the chat report options created from props.report. Additionally these chat report options will also determine
-     * if its a 1:1 DM or not. If it is a 1:1 DM we'll save the participant login and the type as user so that we can
-     * reject the same in personalDetailOptions to not deal with dupes.
+     * if its a 1:1 DM or not. If it is a 1:1 DM we'll save the DM participant login and the type as user.
      *
      * @param {Boolean} sortByLastVisited
      * @param {Boolean} excludeGroupDMs
@@ -399,7 +398,9 @@ class ChatSwitcherView extends React.Component {
         const isGroupChat = this.state.groupUsers.length > 0;
         const chatReportOptions = this.getChatReportsOptions(false, isGroupChat);
 
-        // Get a list of all users we can send messages to and make their details generic
+        // Get a list of all users we can send messages to and make their details generic. We will also reject any
+        // personalDetails logins that exist in chatReportOptions which will remove our dupes since we'll use
+        // chatReportOptions as our first source of truth if the 1:1 chat DM exists there.
         const personalDetailOptions = _.chain(this.props.personalDetails)
             .values()
             .reject(personalDetail => _.findWhere(chatReportOptions, {login: personalDetail.login}))
