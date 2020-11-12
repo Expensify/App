@@ -2,6 +2,7 @@ import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import ExpensiMark from 'js-libs/lib/ExpensiMark';
+import Str from 'js-libs/lib/str';
 import Onyx from 'react-native-onyx';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -15,7 +16,6 @@ import Visibility from '../Visibility';
 import ROUTES from '../../ROUTES';
 import NetworkConnection from '../NetworkConnection';
 import {hide as hideSidebar} from './Sidebar';
-import guid from '../guid';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -504,7 +504,7 @@ function addAction(reportID, text, file) {
 
     // Generate a client guid so we can identify this later when it
     // returns via Pusher with the real sequenceNumber
-    const tempActionID = `${Date.now()}_${guid()}`;
+    const tempActionID = `${Date.now()}_${Str.guid()}`;
 
     // Optimistically add the new comment to the store before waiting to save it to the server
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
