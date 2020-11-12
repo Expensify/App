@@ -1,8 +1,7 @@
 import 'react-native';
 import {render} from '@testing-library/react-native';
 import React from 'react';
-import Ion from '../../src/libs/Ion';
-import withIon from '../../src/components/withIon';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import ViewWithText from '../components/ViewWithText';
 
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
@@ -12,27 +11,28 @@ const TEST_KEY = 'test';
 jest.mock('../../node_modules/@react-native-community/async-storage',
     () => require('./mocks/@react-native-community/async-storage'));
 
-Ion.registerLogger(() => {});
-Ion.init({
+Onyx.registerLogger(() => {});
+Onyx.init({
     keys: {
         TEST_KEY,
         COLLECTION: {},
     },
+    registerStorageEventListener: () => {},
 });
 
-describe('withIon', () => {
-    it('should render with the test data when using withIon', () => {
+describe('withOnyx', () => {
+    it('should render with the test data when using withOnyx', () => {
         let result;
 
-        Ion.set(TEST_KEY, 'test1')
+        Onyx.set(TEST_KEY, 'test1')
             .then(() => {
-                const TestComponentWithIon = withIon({
+                const TestComponentWithOnyx = withOnyx({
                     text: {
                         key: TEST_KEY,
                     },
                 })(ViewWithText);
 
-                result = render(<TestComponentWithIon />);
+                result = render(<TestComponentWithOnyx />);
                 return waitForPromisesToResolve();
             })
             .then(() => {

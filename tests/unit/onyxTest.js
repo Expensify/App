@@ -1,30 +1,31 @@
 import 'react-native';
-import Ion from '../../src/libs/Ion';
+import Onyx from 'react-native-onyx';
 
 const TEST_KEY = 'test';
 
 jest.mock('../../node_modules/@react-native-community/async-storage',
     () => require('./mocks/@react-native-community/async-storage'));
 
-Ion.registerLogger(() => {});
-Ion.init({
+Onyx.registerLogger(() => {});
+Onyx.init({
     keys: {
         TEST_KEY,
-        COLLECTION: {},
+        COLLECTOnyx: {},
     },
+    registerStorageEventListener: () => {},
 });
 
-describe('Ion', () => {
+describe('Onyx', () => {
     let connectionID;
 
     afterEach((done) => {
-        Ion.disconnect(connectionID);
-        Ion.clear().then(done);
+        Onyx.disconnect(connectionID);
+        Onyx.clear().then(done);
     });
 
     it('should set a simple key', (done) => {
         const mockCallback = jest.fn();
-        connectionID = Ion.connect({
+        connectionID = Onyx.connect({
             key: TEST_KEY,
             initWithStoredValues: false,
             callback: (value) => {
@@ -40,12 +41,12 @@ describe('Ion', () => {
         });
 
         // Set a simple key
-        Ion.set(TEST_KEY, 'test');
+        Onyx.set(TEST_KEY, 'test');
     });
 
     it('should merge an object with another object', (done) => {
         const mockCallback = jest.fn();
-        connectionID = Ion.connect({
+        connectionID = Onyx.connect({
             key: TEST_KEY,
             initWithStoredValues: false,
             callback: (value) => {
@@ -70,13 +71,13 @@ describe('Ion', () => {
             }
         });
 
-        Ion.set(TEST_KEY, {test1: 'test1'});
-        Ion.merge(TEST_KEY, {test2: 'test2'});
+        Onyx.set(TEST_KEY, {test1: 'test1'});
+        Onyx.merge(TEST_KEY, {test2: 'test2'});
     });
 
     it('should notify subscribers when data has been cleared', (done) => {
         const mockCallback = jest.fn();
-        connectionID = Ion.connect({
+        connectionID = Onyx.connect({
             key: TEST_KEY,
             initWithStoredValues: false,
             callback: (value) => {
@@ -96,13 +97,13 @@ describe('Ion', () => {
             }
         });
 
-        Ion.set(TEST_KEY, 'test');
-        Ion.clear();
+        Onyx.set(TEST_KEY, 'test');
+        Onyx.clear();
     });
 
     it('should not notify subscribers after they have disconnected', (done) => {
         const mockCallback = jest.fn();
-        connectionID = Ion.connect({
+        connectionID = Onyx.connect({
             key: TEST_KEY,
             initWithStoredValues: false,
             callback: (value) => {
@@ -111,10 +112,10 @@ describe('Ion', () => {
             }
         });
 
-        Ion.set(TEST_KEY, 'test')
+        Onyx.set(TEST_KEY, 'test')
             .then(() => {
-                Ion.disconnect(connectionID);
-                return Ion.set(TEST_KEY, 'test updated');
+                Onyx.disconnect(connectionID);
+                return Onyx.set(TEST_KEY, 'test updated');
             })
             .then(() => {
                 try {
@@ -128,7 +129,7 @@ describe('Ion', () => {
 
     it('should merge arrays by appending new items to the end of a value', (done) => {
         const mockCallback = jest.fn();
-        connectionID = Ion.connect({
+        connectionID = Onyx.connect({
             key: TEST_KEY,
             initWithStoredValues: false,
             callback: (value) => {
@@ -148,7 +149,7 @@ describe('Ion', () => {
             }
         });
 
-        Ion.set(TEST_KEY, ['test1']);
-        Ion.merge(TEST_KEY, ['test2', 'test3', 'test4']);
+        Onyx.set(TEST_KEY, ['test1']);
+        Onyx.merge(TEST_KEY, ['test2', 'test3', 'test4']);
     });
 });
