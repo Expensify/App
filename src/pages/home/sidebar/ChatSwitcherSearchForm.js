@@ -106,7 +106,6 @@ const ChatSwitcherSearchForm = props => (
                                     // everything when we try to remove a user or start
                                     // the conversation
                                     // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                                    onBlur={() => {}}
                                     onChangeText={props.onChangeText}
                                     onFocus={props.onFocus}
                                     onKeyPress={props.onKeyPress}
@@ -139,7 +138,6 @@ const ChatSwitcherSearchForm = props => (
                     ref={props.forwardedRef}
                     style={[styles.textInput, styles.textInputReversed, styles.flex1]}
                     value={props.searchValue}
-                    onBlur={() => {}}
                     onChangeText={props.onChangeText}
                     onFocus={props.onFocus}
                     onKeyPress={props.onKeyPress}

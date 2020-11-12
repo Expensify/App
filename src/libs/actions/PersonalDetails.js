@@ -132,10 +132,26 @@ function fetch() {
  * Get personal details for a list of emails.
  *
  * @param {String} emailList
- * @return {Promise}
+ * @param {Object} reports
  */
-function getForEmails(emailList) {
-    return API.getPersonalDetails(emailList);
+function getForEmails(emailList, reports) {
+    API.getPersonalDetails(emailList)
+        .then((data) => {
+            const details = _.pick(data, emailList.split(','));
+            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, formatPersonalDetails(details));
+
+            // The personalDetails of the participants contain their avatar images. Here we'll go over each
+            // report and based on the participants we'll link up their avatars to report icons.
+            _.each(reports, (report) => {
+                if (report.participants.length === 1) {
+                    const dmParticipant = report.participants[0];
+                    const icon = lodashGet(details, [dmParticipant, 'avatar']);
+                    if (icon) {
+                        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {icon});
+                    }
+                }
+            });
+        });
 }
 
 // When the app reconnects from being offline, fetch all of the personal details
