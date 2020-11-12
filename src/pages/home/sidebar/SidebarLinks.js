@@ -12,7 +12,7 @@ import ChatSwitcherView from './ChatSwitcherView';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
 import compose from '../../../libs/compose';
 import {withRouter} from '../../../libs/Router';
-import ChatSwitcherRow from "./ChatSwitcherRow";
+import ChatSwitcherRow from './ChatSwitcherRow';
 
 const propTypes = {
     // These are from withRouter
@@ -97,11 +97,10 @@ const SidebarLinks = (props) => {
                                 reportID: report.reportID,
                             }}
                             onSelectRow={onLinkClick}
-                            optionIsFocused={false}
+                            optionIsFocused={report.reportID === reportIDInUrl}
                         />
                     );
-                }
-                )}
+                })}
             </ScrollView>
         </View>
     );
