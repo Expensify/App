@@ -74,15 +74,9 @@ function queueRequest(command, data, type) {
 }
 
 /**
- * @param {String} endpoint
- *
  * @returns {Object}
  */
-export default function Network(endpoint) {
-    if (!endpoint) {
-        throw new Error('Cannot instantiate Network without an url endpoint');
-    }
-
+export default function Network() {
     return {
         /**
          * Perform a queued post request
