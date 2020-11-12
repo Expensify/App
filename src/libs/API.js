@@ -452,24 +452,11 @@ function addReportComment(parameters) {
     });
 }
 
-/**
- * @param {object} parameters
- * @param {string} parameters.returnValueList
- * @returns {Promise}
- */
-function get(parameters) {
-    return queueRequest('Get', {
-        authToken,
-        ...parameters,
-    });
-}
-
 export {
     authenticate,
     addReportComment,
     createChatReport,
     deleteLogin,
-    get,
     getAuthToken,
     getReportHistory,
     setLastReadActionID,

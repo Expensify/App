@@ -140,7 +140,7 @@ function getChatReportName(sharedReportList) {
  */
 function fetchChatReportsByIDs(chatList) {
     let fetchedReports;
-    return API.get({
+    return expensifyAPI.get({
         returnValueList: 'reportStuff',
         reportIDList: chatList.join(','),
         shouldLoadOptionalKeys: true,
@@ -358,7 +358,7 @@ function unsubscribeFromReportChannel(reportID) {
  * @returns {Promise} only used internally when fetchAll() is called
  */
 function fetchChatReports() {
-    return API.get({
+    return expensifyAPI.get({
         returnValueList: 'chatList',
     })
 
@@ -434,7 +434,7 @@ function fetchOrCreateChatReport(participants) {
             reportID = data.reportID;
 
             // Make a request to get all the information about the report
-            return API.get({
+            return expensifyAPI.get({
                 returnValueList: 'reportStuff',
                 reportIDList: reportID,
                 shouldLoadOptionalKeys: true,
