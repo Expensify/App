@@ -1,6 +1,5 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
-import Str from 'js-libs/lib/str';
 import ONYXKEYS from '../ONYXKEYS';
 import HttpUtils from './HttpUtils';
 import NetworkConnection from './NetworkConnection';
@@ -8,7 +7,6 @@ import CONFIG from '../CONFIG';
 import * as Pusher from './Pusher/pusher';
 import ROUTES from '../ROUTES';
 import redirectToSignIn from './actions/SignInRedirect';
-import PushNotification from './Notification/PushNotification';
 import expensifyAPI from './expensifyAPI';
 
 // Queue for network requests so we don't lose actions done by the user while offline
@@ -53,78 +51,6 @@ Onyx.connect({
     }
 });
 
-/**
- * Does this command require an authToken?
- *
- * @param {String} command
- * @return {Boolean}
- */
-function isAuthTokenRequired(command) {
-    return !_.contains(['Log'], command);
-}
-
-/**
- * Adds a request to networkRequestQueue
- *
- * @param {string} command
- * @param {mixed} data
- * @returns {Promise}
- */
-function queueRequest(command, data) {
-    return new Promise((resolve, reject) => {
-        // Add the write request to a queue of actions to perform
-        networkRequestQueue.push({
-            command,
-            data,
-            resolve,
-            reject,
-        });
-
-        // Try to fire off the request as soon as it's queued so we don't add a delay to every queued command
-        // eslint-disable-next-line no-use-before-define
-        processNetworkRequestQueue();
-    });
-}
-
-/**
- * @param {string} login
- * @param {string} password
- * @returns {Promise}
- */
-function createLogin(login, password) {
-    if (!authToken) {
-        throw new Error('createLogin() can\'t be called when there is no authToken');
-    }
-
-    // Using xhr instead of request becasue request has logic to re-try API commands when we get a 407 authToken expired
-    // in the response, and we call CreateLogin after getting a successful resposne to Authenticate so it's unlikely
-    // that we'll get a 407.
-    return HttpUtils.xhr('CreateLogin', {
-        authToken,
-        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-        partnerUserID: login,
-        partnerUserSecret: password,
-    })
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                throw new Error(response.message);
-            }
-
-            if (credentials && credentials.login) {
-                // If we have an old login for some reason, we should delete it before storing the new details
-                expensifyAPI.deleteLogin({
-                    partnerUserID: credentials.login,
-                    partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-                    partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-                    doNotRetry: true,
-                })
-                    .catch(error => Onyx.merge(ONYXKEYS.SESSION, {error: error.message}));
-            }
-
-            Onyx.merge(ONYXKEYS.CREDENTIALS, {login, password});
-        });
-}
 
 /**
  * Makes an API request.
@@ -221,39 +147,6 @@ function request(command, parameters, type = 'post') {
             throw new Error(`API Command ${command} failed`);
         });
 }
-
-/**
- * Process the networkRequestQueue by looping through the queue and attempting to make the requests
- */
-function processNetworkRequestQueue() {
-    if (isOffline) {
-        // Two things will bring the app online again...
-        // 1. Pusher reconnecting (see registerSocketEventCallback in this file)
-        // 2. Getting a 200 response back from the API (happens right below)
-
-        // Make a simple request every second to see if the API is online again
-        HttpUtils.xhr('Get', {doNotRetry: true})
-            .then(() => NetworkConnection.setOfflineStatus(false));
-        return;
-    }
-
-    // Don't make any requests until we're done re-authenticating since we'll use the new authToken
-    // from that response for the subsequent network requests
-    if (reauthenticating || networkRequestQueue.length === 0) {
-        return;
-    }
-
-    _.each(networkRequestQueue, (queuedRequest) => {
-        request(queuedRequest.command, queuedRequest.data)
-            .then(queuedRequest.resolve)
-            .catch(queuedRequest.reject);
-    });
-
-    networkRequestQueue = [];
-}
-
-// Process our write queue very often
-setInterval(processNetworkRequestQueue, 1000);
 
 /**
  * Pusher.reconnect() calls disconnect and connect on the

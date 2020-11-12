@@ -71,7 +71,7 @@ export default function API(network, args) {
     function performPOSTRequest(command, parameters, type = 'post') {
         // If there was an enhanceParameters() method supplied in our args, then we will call that here
         const finalParameters = (args && _.isFunction(args.enhanceParameters))
-            ? args.enhanceParameters(parameters)
+            ? args.enhanceParameters(command, parameters)
             : parameters;
 
         const networkPromise = network.post(command, finalParameters, type);
