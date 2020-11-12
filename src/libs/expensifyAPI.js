@@ -3,6 +3,7 @@ import Network from './Network';
 import API from './API2';
 import ONYXKEYS from '../ONYXKEYS';
 
+const network = Network();
 
 let authToken;
 Onyx.connect({
@@ -24,7 +25,7 @@ function addAuthToken(data) {
     return request;
 }
 
-const expensifyAPI = API(Network('/api.php'), {
+const expensifyAPI = API(network, {
     enhanceParameters: addAuthToken,
 });
 
