@@ -3,8 +3,17 @@ import _ from 'underscore';
 import Network from './Network';
 import API from './API2';
 import ONYXKEYS from '../ONYXKEYS';
+import redirectToSignIn from './actions/SignInRedirect';
+import CONFIG from '../CONFIG';
+import HttpUtils from './HttpUtils';
 
 const network = Network();
+
+let credentials;
+Onyx.connect({
+    key: ONYXKEYS.CREDENTIALS,
+    callback: val => credentials = val,
+});
 
 let authToken;
 Onyx.connect({
@@ -37,12 +46,61 @@ Onyx.connect({
 /**
  * Callback function used to handle API auth failures
  *
- * @param {Number} jsonCode
- * @param {Object} response
+ * @param {Object} originalResponse
+ * @param {string} originalCommand
+ * @param {object} [originalParameters]
+ * @param {string} [originalType]
+ * @param {expensifyAPI} thisExpensifyAPI
  */
-function handleAuthFailures(jsonCode, response) {
-    console.debug('Network Error', jsonCode, response);
-    Onyx.merge(ONYXKEYS.API, {isAuthenticating});
+function handleAuthFailures(originalResponse, originalCommand, originalParameters, originalType, thisExpensifyAPI) {
+    if (originalParameters.doNotRetry) {
+        return;
+    }
+
+    Onyx.merge(ONYXKEYS.API, {isAuthenticating: true});
+
+    thisExpensifyAPI.authenticate({
+        useExpensifyLogin: false,
+        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+        partnerUserID: credentials.login,
+        partnerUserSecret: credentials.password,
+    })
+        .then((response) => {
+            Onyx.merge(ONYXKEYS.API, {isAuthenticating: false});
+
+            // If authentication fails throw so that we hit
+            // the catch below and redirect to sign in
+            if (response.jsonCode !== 200) {
+                throw new Error(response.message);
+            }
+
+            // Update authToken in Onyx store otherwise subsequent API calls will use the expired one
+            Onyx.merge(ONYXKEYS.SESSION, _.pick(response, 'authToken'));
+        })
+
+        // Use HttpUtils here so that retry logic is avoided. Since this code is already doing a re-try, that
+        // would create an infinite loop
+        .then(() => HttpUtils.xhr(originalCommand, originalParameters, originalType))
+
+        .catch((error) => {
+            Onyx.merge(ONYXKEYS.API, {isAuthenticating: false});
+            redirectToSignIn(error.message);
+
+            // If the request failed, we need to put the request object back into the queue as long as there is no
+            // doNotRetry option set in the parametersWithAuthToken
+            if (originalParameters.doNotRetry !== true) {
+                network.post(originalCommand, originalParameters, originalType);
+            }
+
+            // If we already have an error, throw that so we do not swallow it
+            if (error instanceof Error) {
+                throw error;
+            }
+
+            // Throw a generic error so we can pass the error up the chain
+            throw new Error(`API Command ${originalCommand} failed`);
+        });
 }
 
 /**
@@ -66,6 +124,16 @@ function addAuthTokenToParameters(command, parameters) {
     const finalParameters = {...parameters};
 
     if (isAuthTokenRequired(command)) {
+        // If we end up here with no authToken it means we are trying to make
+        // an API request before we are signed in. In this case, we should just
+        // cancel this and all other requests and set isAuthenticating to false.
+        if (!authToken) {
+            console.error('A request was made without an authToken', {command, parameters});
+            Onyx.merge(ONYXKEYS.API, {isAuthenticating: false});
+            redirectToSignIn();
+            return;
+        }
+
         finalParameters.authToken = authToken;
     }
 

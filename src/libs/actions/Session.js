@@ -42,6 +42,7 @@ function signIn(partnerUserID, partnerUserSecret, twoFactorAuthCode = '', exitTo
     Onyx.merge(ONYXKEYS.SESSION, {loading: true, error: ''});
 
     expensifyAPI.authenticate({
+        useExpensifyLogin: true,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         partnerUserID,
