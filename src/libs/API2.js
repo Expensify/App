@@ -93,6 +93,22 @@ export default function API(network, args) {
         },
 
         Report: {
+
+
+            /**
+             * @param {object} parameters
+             * @param {string} parameters.reportComment
+             * @param {number} parameters.reportID
+             * @param {object} [parameters.file]
+             * @returns {Promise}
+             */
+            addComment(parameters) {
+                const commandName = 'Report_AddComment';
+                requireParameters(['reportComment', 'reportID'],
+                    parameters, commandName);
+                return performPOSTRequest(commandName, parameters);
+            },
+
             /**
              * @param {object} parameters
              * @param {number} parameters.reportID

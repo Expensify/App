@@ -463,7 +463,7 @@ function fetchOrCreateChatReport(participants) {
  *
  * @param {number} reportID
  * @param {string} text
- * @param {object} file
+ * @param {object} [file]
  */
 function addAction(reportID, text, file) {
     const actionKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
@@ -514,7 +514,7 @@ function addAction(reportID, text, file) {
         }
     });
 
-    API.addReportComment({
+    expensifyAPI.Report.addComment({
         reportID,
         reportComment: htmlComment,
         file
