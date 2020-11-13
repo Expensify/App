@@ -1,6 +1,5 @@
 import _ from 'underscore';
 import Pusher from './library';
-import CONFIG from '../../CONFIG';
 
 let socket;
 const socketEventCallbacks = [];
