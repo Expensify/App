@@ -87,7 +87,7 @@ function formatPersonalDetails(personalDetailsList) {
  * Get the timezone of the logged in user
  */
 function fetchTimezone() {
-    expensifyAPI.get({
+    expensifyAPI.Get({
         returnValueList: 'nameValuePairs',
         name: 'timeZone',
     })
@@ -104,7 +104,7 @@ function fetchTimezone() {
  * Get the personal details for our organization
  */
 function fetch() {
-    expensifyAPI.get({
+    expensifyAPI.Get({
         returnValueList: 'personalDetailsList',
     })
         .then((data) => {
@@ -134,7 +134,7 @@ function fetch() {
  * @param {String} emailList
  */
 function getForEmails(emailList) {
-    expensifyAPI.getPersonalDetails({emailList})
+    expensifyAPI.PersonalDetails_GetForEmails({emailList})
         .then((data) => {
             const details = _.pick(data, emailList.split(','));
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, formatPersonalDetails(details));

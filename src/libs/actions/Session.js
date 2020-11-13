@@ -41,7 +41,7 @@ function setSuccessfulSignInData(data, exitTo) {
 function signIn(partnerUserID, partnerUserSecret, twoFactorAuthCode = '', exitTo) {
     Onyx.merge(ONYXKEYS.SESSION, {loading: true, error: ''});
 
-    expensifyAPI.authenticate({
+    expensifyAPI.Authenticate({
         useExpensifyLogin: true,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
@@ -56,7 +56,7 @@ function signIn(partnerUserID, partnerUserSecret, twoFactorAuthCode = '', exitTo
             const login = Str.guid('react-native-chat-');
             const password = Str.guid();
 
-            expensifyAPI.createLogin({
+            expensifyAPI.CreateLogin({
                 authToken: authenticateResponse.authToken,
                 partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
                 partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
@@ -72,7 +72,7 @@ function signIn(partnerUserID, partnerUserSecret, twoFactorAuthCode = '', exitTo
 
                     if (credentials && credentials.login) {
                         // If we have an old login for some reason, we should delete it before storing the new details
-                        expensifyAPI.deleteLogin({
+                        expensifyAPI.DeleteLogin({
                             partnerUserID: credentials.login,
                             partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
                             partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
@@ -101,7 +101,7 @@ function signOut() {
         return;
     }
 
-    expensifyAPI.deleteLogin({
+    expensifyAPI.DeleteLogin({
         partnerUserID: credentials.login,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
