@@ -52,6 +52,22 @@ const mainWindow = (() => {
 
             // List the Expensify Chat instance under the Window menu, even when it's hidden
             const systemMenu = Menu.getApplicationMenu();
+            systemMenu.append(new MenuItem({
+                label: 'History',
+                submenu: [
+                    {
+                        role: 'back',
+                        label: 'Back',
+                        accelerator: process.platform === 'darwin' ? 'Cmd+[' : 'Shift+[',
+                        click: () => {console.log('Going backward!')}
+                    },
+                    {
+                        role: 'forward',
+                        label: 'Forward',
+                        accelerator: process.platform === 'darwin' ? 'Cmd+]' : 'Shift+]',
+                        click: () => {console.log('Going forward!')}
+                    }]
+            }));
             const windowMenu = systemMenu.items.find(item => item.role === 'windowmenu');
             windowMenu.submenu.append(new MenuItem({type: 'separator'}));
             windowMenu.submenu.append(new MenuItem({
