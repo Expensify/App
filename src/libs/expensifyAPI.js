@@ -7,6 +7,8 @@ import redirectToSignIn from './actions/SignInRedirect';
 import CONFIG from '../CONFIG';
 import HttpUtils from './HttpUtils';
 
+let expensifyAPI;
+
 let credentials;
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
@@ -50,14 +52,14 @@ Onyx.connect({
  * @param {string} [originalType]
  * @param {expensifyAPI} thisExpensifyAPI
  */
-function handleAuthFailures(originalResponse, originalCommand, originalParameters, originalType, thisExpensifyAPI) {
+function handleAuthFailures(originalResponse, originalCommand, originalParameters, originalType) {
     if (originalParameters.doNotRetry) {
         return;
     }
 
     Onyx.merge(ONYXKEYS.API, {isAuthenticating: true});
 
-    thisExpensifyAPI.authenticate({
+    expensifyAPI.authenticate({
         useExpensifyLogin: false,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
@@ -139,7 +141,7 @@ function addAuthTokenToParameters(command, parameters) {
     return finalParameters;
 }
 
-const expensifyAPI = API(Network, {
+expensifyAPI = API(Network, {
     enhanceParameters: addAuthTokenToParameters,
 });
 

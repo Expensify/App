@@ -24,7 +24,7 @@ export default function API(network, args) {
             let defaultHandlerWasUsed = false;
             _.each(defaultHandlers[response.jsonCode], (callback) => {
                 defaultHandlerWasUsed = true;
-                callback(response, originalCommand, originalParameters, originalType, this);
+                callback(response, originalCommand, originalParameters, originalType);
             });
 
             if (defaultHandlerWasUsed) {
