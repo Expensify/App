@@ -134,7 +134,7 @@ export default function API(network, args) {
                 // When authenticating for the first time, we pass useExpensifyLogin as true so we check
                 // for credentials for the expensify partnerID to let users authenticate with their expensify user
                 // and password.
-                partnerName: parameters.partnerUserID,
+                partnerName: parameters.partnerName,
                 partnerPassword: parameters.partnerPassword,
                 partnerUserID: parameters.partnerUserID,
                 partnerUserSecret: parameters.partnerUserSecret,
