@@ -12,7 +12,7 @@ import ChatSwitcherView from './ChatSwitcherView';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
 import compose from '../../../libs/compose';
 import {withRouter} from '../../../libs/Router';
-import ChatSwitcherRow from './ChatSwitcherRow';
+import ChatLinkRow from './ChatLinkRow';
 
 const propTypes = {
     // These are from withRouter
@@ -87,7 +87,7 @@ const SidebarLinks = (props) => {
                 {_.map(reportsToDisplay, (report) => {
                     const participantDetails = get(report, 'participants.length', 0) === 1 ? get(props.personalDetails, report.participants[0], '') : '';
                     return report.reportName && (
-                        <ChatSwitcherRow
+                        <ChatLinkRow
                             key={report.reportID}
                             option={{
                                 text: participantDetails ? participantDetails.displayName : report.reportName,

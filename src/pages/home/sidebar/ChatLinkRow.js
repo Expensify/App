@@ -24,6 +24,7 @@ const propTypes = {
     // Callback that adds a user to the pending list of Group DM users
     onAddToGroup: PropTypes.func,
 
+    // A flag to indicate whether this comes from the Chat Switcher so we can display the group button
     isChatSwitcher: PropTypes.bool,
 };
 
@@ -32,7 +33,7 @@ const defaultProps = {
     isChatSwitcher: false,
 };
 
-const ChatSwitcherRow = ({
+const ChatLinkRow = ({
     option,
     optionIsFocused,
     onSelectRow,
@@ -123,8 +124,8 @@ const ChatSwitcherRow = ({
     );
 };
 
-ChatSwitcherRow.propTypes = propTypes;
-ChatSwitcherRow.defaultProps = defaultProps;
-ChatSwitcherRow.displayName = 'ChatSwitcherRow';
+ChatLinkRow.propTypes = propTypes;
+ChatLinkRow.defaultProps = defaultProps;
+ChatLinkRow.displayName = 'ChatLinkRow';
 
-export default ChatSwitcherRow;
+export default ChatLinkRow;
