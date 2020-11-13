@@ -10,7 +10,7 @@ let activeClients;
 Onyx.connect({
     key: ONYXKEYS.ACTIVE_CLIENTS,
     callback: (val) => {
-        activeClients = _.isNull(val) ? [] : val;
+        activeClients = !val ? [] : val;
         if (activeClients.length >= maxClients) {
             activeClients.shift();
             Onyx.set(ONYXKEYS.ACTIVE_CLIENTS, activeClients);
