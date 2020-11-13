@@ -2,13 +2,13 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {View, Image, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
+import {withOnyx} from 'react-native-onyx';
 import styles, {colors} from '../../../styles/StyleSheet';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 import sendIcon from '../../../../assets/images/icon-send.png';
-import IONKEYS from '../../../IONKEYS';
+import ONYXKEYS from '../../../ONYXKEYS';
 import paperClipIcon from '../../../../assets/images/icon-paper-clip.png';
-import AttachmentPicker from '../../../libs/AttachmentPicker';
-import withIon from '../../../components/withIon';
+import AttachmentPicker from '../../../components/AttachmentPicker';
 import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs/actions/Report';
 import ReportTypingIndicator from './ReportTypingIndicator';
 
@@ -37,7 +37,6 @@ class ReportActionCompose extends React.Component {
         this.submitForm = this.submitForm.bind(this);
         this.triggerSubmitShortcut = this.triggerSubmitShortcut.bind(this);
         this.submitForm = this.submitForm.bind(this);
-        this.showAttachmentPicker = this.showAttachmentPicker.bind(this);
         this.setIsFocused = this.setIsFocused.bind(this);
         this.comment = '';
         this.state = {
@@ -73,8 +72,8 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
-     * Save our report comment in Ion. We debounce this method in the constructor so that it's not called too often
-     * to update Ion and re-render this component.
+     * Save our report comment in Onyx. We debounce this method in the constructor so that it's not called too often
+     * to update Onyx and re-render this component.
      *
      * @param {string} comment
      */
@@ -83,7 +82,7 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
-     * Update the value of the comment in Ion
+     * Update the value of the comment in Onyx
      *
      * @param {string} newComment
      */
@@ -128,22 +127,6 @@ class ReportActionCompose extends React.Component {
         this.setTextInputShouldClear(true);
     }
 
-    /**
-     * Handle the attachment icon being tapped
-     *
-     * @param {SyntheticEvent} e
-     */
-    showAttachmentPicker(e) {
-        e.preventDefault();
-
-        AttachmentPicker.show((response) => {
-            console.debug(`Attachment selected: ${response.uri}, ${response.type}, ${response.name}, ${response.size}`);
-
-            addAction(this.props.reportID, '', AttachmentPicker.getDataForUpload(response));
-            this.textInput.focus();
-        });
-    }
-
     render() {
         return (
             <View style={[styles.chatItemCompose]}>
@@ -153,17 +136,29 @@ class ReportActionCompose extends React.Component {
                     styles.flexRow
                 ]}
                 >
-                    <TouchableOpacity
-                        onPress={this.showAttachmentPicker}
-                        style={[styles.chatItemAttachButton]}
-                        underlayColor={colors.componentBG}
-                    >
-                        <Image
-                            style={[styles.chatItemSubmitButtonIcon]}
-                            resizeMode="contain"
-                            source={paperClipIcon}
-                        />
-                    </TouchableOpacity>
+                    <AttachmentPicker>
+                        {({openPicker}) => (
+                            <TouchableOpacity
+                                onPress={(e) => {
+                                    e.preventDefault();
+                                    openPicker({
+                                        onPicked: (file) => {
+                                            addAction(this.props.reportID, '', file);
+                                            this.setTextInputShouldClear(true);
+                                        },
+                                    });
+                                }}
+                                style={[styles.chatItemAttachButton]}
+                                underlayColor={colors.componentBG}
+                            >
+                                <Image
+                                    style={[styles.chatItemSubmitButtonIcon]}
+                                    resizeMode="contain"
+                                    source={paperClipIcon}
+                                />
+                            </TouchableOpacity>
+                        )}
+                    </AttachmentPicker>
                     <TextInputFocusable
                         multiline
                         ref={el => this.textInput = el}
@@ -201,8 +196,8 @@ class ReportActionCompose extends React.Component {
 ReportActionCompose.propTypes = propTypes;
 ReportActionCompose.defaultProps = defaultProps;
 
-export default withIon({
+export default withOnyx({
     comment: {
-        key: ({reportID}) => `${IONKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
+        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
     },
 })(ReportActionCompose);
