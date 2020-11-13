@@ -69,12 +69,12 @@ class App extends React.Component {
 
     componentDidMount() {
         NetworkConnection.listenForReconnect();
+        PusherConnection();
         Pusher.init({
             appKey: CONFIG.PUSHER.APP_KEY,
             cluster: CONFIG.PUSHER.CLUSTER,
             apiRoot: CONFIG.EXPENSIFY.API_ROOT,
         }).then(subscribeToReportCommentEvents);
-        PusherConnection();
 
         // Fetch all the personal details
         fetchPersonalDetails();
