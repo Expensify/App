@@ -5,7 +5,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import redirectToSignIn from './SignInRedirect';
 import expensifyAPI from '../expensifyAPI';
 import CONFIG from '../../CONFIG';
-import PushNotification from '../Notification/PushNotification/index.native';
+import PushNotification from '../Notification/PushNotification';
 import ROUTES from '../../ROUTES';
 
 let credentials;
