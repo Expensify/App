@@ -115,7 +115,7 @@ export default function API(network, args) {
          * @param {string} parameters.twoFactorAuthCode
          * @returns {Promise}
          */
-        authenticate(parameters) {
+        Authenticate(parameters) {
             const commandName = 'Authenticate';
 
             requireParameters([
@@ -132,7 +132,7 @@ export default function API(network, args) {
             // to get a new authToken and then fire the original api command again
             return network.post(commandName, {
                 // When authenticating for the first time, we pass useExpensifyLogin as true so we check
-                // for credentials for the expensify partnerID to let users authenticate with their expensify user
+                // for credentials for the expensify partnerID to let users Authenticate with their expensify user
                 // and password.
                 useExpensifyLogin: parameters.useExpensifyLogin,
                 partnerName: parameters.partnerName,
@@ -142,7 +142,7 @@ export default function API(network, args) {
                 twoFactorAuthCode: parameters.twoFactorAuthCode,
             })
                 .then((response) => {
-                    // If we didn't get a 200 response from authenticate we either failed to authenticate with
+                    // If we didn't get a 200 response from Authenticate we either failed to Authenticate with
                     // an expensify login or the login credentials we created after the initial authentication.
                     // In both cases, we need the user to sign in again with their expensify credentials
                     if (response.jsonCode !== 200) {
@@ -154,6 +154,18 @@ export default function API(network, args) {
 
         /**
          * @param {object} parameters
+         * @param {string} parameters.emailList
+         * @returns {Promise}
+         */
+        CreateChatReport(parameters) {
+            const commandName = 'CreateChatReport';
+            requireParameters(['emailList'],
+                parameters, commandName);
+            return performPOSTRequest(commandName, parameters);
+        },
+
+        /**
+         * @param {object} parameters
          * @param {string} parameters.authToken
          * @param {string} parameters.partnerName
          * @param {string} parameters.partnerPassword
@@ -161,7 +173,7 @@ export default function API(network, args) {
          * @param {string} parameters.partnerUserSecret
          * @returns {Promise}
          */
-        createLogin(parameters) {
+        CreateLogin(parameters) {
             const commandName = 'CreateLogin';
             requireParameters([
                 'authToken',
@@ -185,7 +197,7 @@ export default function API(network, args) {
          * @param {string} parameters.doNotRetry
          * @returns {Promise}
          */
-        deleteLogin(parameters) {
+        DeleteLogin(parameters) {
             const commandName = 'DeleteLogin';
             requireParameters(['partnerUserID', 'partnerName', 'partnerPassword', 'doNotRetry'],
                 parameters, commandName);
@@ -197,7 +209,7 @@ export default function API(network, args) {
          * @param {string} parameters.returnValueList
          * @returns {Promise}
          */
-        get(parameters) {
+        Get(parameters) {
             const commandName = 'Get';
             requireParameters(['returnValueList'],
                 parameters, commandName);
@@ -209,7 +221,7 @@ export default function API(network, args) {
          * @param {string} parameters.emailList
          * @returns {Promise}
          */
-        getPersonalDetails(parameters) {
+        PersonalDetails_GetForEmails(parameters) {
             const commandName = 'PersonalDetails_GetForEmails';
             requireParameters(['emailList'],
                 parameters, commandName);
@@ -231,71 +243,57 @@ export default function API(network, args) {
             return performPOSTRequest(commandName, parameters);
         },
 
-        Report: {
-            /**
-             * @param {object} parameters
-             * @param {string} parameters.reportComment
-             * @param {number} parameters.reportID
-             * @param {object} [parameters.file]
-             * @returns {Promise}
-             */
-            addComment(parameters) {
-                const commandName = 'Report_AddComment';
-                requireParameters(['reportComment', 'reportID'],
-                    parameters, commandName);
-                return performPOSTRequest(commandName, parameters);
-            },
+        /**
+         * @param {object} parameters
+         * @param {string} parameters.reportComment
+         * @param {number} parameters.reportID
+         * @param {object} [parameters.file]
+         * @returns {Promise}
+         */
+        Report_AddComment(parameters) {
+            const commandName = 'Report_AddComment';
+            requireParameters(['reportComment', 'reportID'],
+                parameters, commandName);
+            return performPOSTRequest(commandName, parameters);
+        },
 
-            /**
-             * @param {object} parameters
-             * @param {string} parameters.emailList
-             * @returns {Promise}
-             */
-            createChat(parameters) {
-                const commandName = 'CreateChatReport';
-                requireParameters(['emailList'],
-                    parameters, commandName);
-                return performPOSTRequest(commandName, parameters);
-            },
+        /**
+         * @param {object} parameters
+         * @param {number} parameters.reportID
+         * @returns {Promise}
+         */
+        Report_GetHistory(parameters) {
+            const commandName = 'Report_GetHistory';
+            requireParameters(['reportID'],
+                parameters, commandName);
+            return performPOSTRequest(commandName, parameters);
+        },
 
-            /**
-             * @param {object} parameters
-             * @param {number} parameters.reportID
-             * @returns {Promise}
-             */
-            getHistory(parameters) {
-                const commandName = 'Report_GetHistory';
-                requireParameters(['reportID'],
-                    parameters, commandName);
-                return performPOSTRequest(commandName, parameters);
-            },
+        /**
+         * @param {object} parameters
+         * @param {number} parameters.reportID
+         * @param {boolean} parameters.pinnedValue
+         * @returns {Promise}
+         */
+        Report_TogglePinned(parameters) {
+            const commandName = 'Report_TogglePinned';
+            requireParameters(['reportID', 'pinnedValue'],
+                parameters, commandName);
+            return performPOSTRequest(commandName, parameters);
+        },
 
-            /**
-             * @param {object} parameters
-             * @param {number} parameters.reportID
-             * @param {boolean} parameters.pinnedValue
-             * @returns {Promise}
-             */
-            togglePinnedReport(parameters) {
-                const commandName = 'Report_TogglePinned';
-                requireParameters(['reportID', 'pinnedValue'],
-                    parameters, commandName);
-                return performPOSTRequest(commandName, parameters);
-            },
-
-            /**
-             * @param {object} parameters
-             * @param {number} parameters.accountID
-             * @param {number} parameters.reportID
-             * @param {number} parameters.sequenceNumber
-             * @returns {Promise}
-             */
-            setLastReadActionID(parameters) {
-                const commandName = 'Report_SetLastReadActionID';
-                requireParameters(['accountID', 'reportID', 'sequenceNumber'],
-                    parameters, commandName);
-                return performPOSTRequest(commandName, parameters);
-            }
+        /**
+         * @param {object} parameters
+         * @param {number} parameters.accountID
+         * @param {number} parameters.reportID
+         * @param {number} parameters.sequenceNumber
+         * @returns {Promise}
+         */
+        Report_SetLastReadActionID(parameters) {
+            const commandName = 'Report_SetLastReadActionID';
+            requireParameters(['accountID', 'reportID', 'sequenceNumber'],
+                parameters, commandName);
+            return performPOSTRequest(commandName, parameters);
         },
 
         JSON_CODES: {
