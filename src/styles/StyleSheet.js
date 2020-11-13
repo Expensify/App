@@ -855,14 +855,7 @@ const styles = {
         fontWeight: '700',
     },
 
-    imageModal: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: colors.black,
-    },
-
-    imageModalContainer: {
+    modalViewContainer: {
         backgroundColor: colors.componentBG,
         borderColor: colors.border,
         borderWidth: 1,
@@ -870,7 +863,7 @@ const styles = {
         height: '100%',
     },
 
-    imageModalHeader: {
+    modalHeaderBar: {
         overflow: 'hidden',
         height: 87,
         justifyContent: 'center',
@@ -884,7 +877,7 @@ const styles = {
         backgroundColor: colors.componentBG,
     },
 
-    imageModalCenterContainer: {
+    modalCenterContentContainer: {
         flex: 1,
         flexDirection: 'column',
         justifyContent: 'center',
@@ -897,11 +890,6 @@ const styles = {
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
-        overflow: 'hidden',
-    },
-
-    imageModalImageContainer: {
-        margin: 50,
         overflow: 'hidden',
     },
 };
