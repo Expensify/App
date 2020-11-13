@@ -7,8 +7,6 @@ import redirectToSignIn from './actions/SignInRedirect';
 import CONFIG from '../CONFIG';
 import HttpUtils from './HttpUtils';
 
-let expensifyAPI;
-
 let credentials;
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
@@ -41,6 +39,48 @@ Onyx.connect({
 
         isAuthenticating = val && val.isAuthenticating;
     },
+});
+
+/**
+ * Does this command require an authToken?
+ *
+ * @param {String} command
+ * @return {Boolean}
+ */
+function isAuthTokenRequired(command) {
+    return !_.contains(['Log'], command);
+}
+
+/**
+ * Adds CSRF and AuthToken to our request data
+ *
+ * @param {string} command
+ * @param {Object} parameters
+ * @returns {Object}
+ */
+function addAuthTokenToParameters(command, parameters) {
+    const finalParameters = {...parameters};
+
+    if (isAuthTokenRequired(command)) {
+        // If we end up here with no authToken it means we are trying to make
+        // an API request before we are signed in. In this case, we should just
+        // cancel this and all other requests and set isAuthenticating to false.
+        if (!authToken) {
+            console.error('A request was made without an authToken', {command, parameters});
+            Onyx.merge(ONYXKEYS.API, {isAuthenticating: false});
+            redirectToSignIn();
+            return;
+        }
+
+        finalParameters.authToken = authToken;
+    }
+
+    finalParameters.api_setCookie = false;
+    return finalParameters;
+}
+
+const expensifyAPI = API(Network, {
+    enhanceParameters: addAuthTokenToParameters,
 });
 
 /**
@@ -102,48 +142,6 @@ function handleAuthFailures(originalResponse, originalCommand, originalParameter
             throw new Error(`API Command ${originalCommand} failed`);
         });
 }
-
-/**
- * Does this command require an authToken?
- *
- * @param {String} command
- * @return {Boolean}
- */
-function isAuthTokenRequired(command) {
-    return !_.contains(['Log'], command);
-}
-
-/**
- * Adds CSRF and AuthToken to our request data
- *
- * @param {string} command
- * @param {Object} parameters
- * @returns {Object}
- */
-function addAuthTokenToParameters(command, parameters) {
-    const finalParameters = {...parameters};
-
-    if (isAuthTokenRequired(command)) {
-        // If we end up here with no authToken it means we are trying to make
-        // an API request before we are signed in. In this case, we should just
-        // cancel this and all other requests and set isAuthenticating to false.
-        if (!authToken) {
-            console.error('A request was made without an authToken', {command, parameters});
-            Onyx.merge(ONYXKEYS.API, {isAuthenticating: false});
-            redirectToSignIn();
-            return;
-        }
-
-        finalParameters.authToken = authToken;
-    }
-
-    finalParameters.api_setCookie = false;
-    return finalParameters;
-}
-
-expensifyAPI = API(Network, {
-    enhanceParameters: addAuthTokenToParameters,
-});
 
 // Register handler for auth failures
 expensifyAPI.registerDefaultHandler(expensifyAPI.JSON_CODES.AUTH_FAILURES, handleAuthFailures);
