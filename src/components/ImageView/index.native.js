@@ -28,6 +28,8 @@ const defaultProps = {
     sourceURL: '',
     imageHeight: 300,
     imageWidth: 300,
+
+    // Default cropHeight accounts for the modal header height of 60
     cropHeight: Dimensions.get('window').height - 60,
     cropWidth: Dimensions.get('window').width,
     style: {},
