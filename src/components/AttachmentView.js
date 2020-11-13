@@ -23,7 +23,7 @@ const defaultProps = {
 
 const AttachmentView = props => (
     <>
-        {(Str.isPDF(props.sourceURL)) ? (
+        {Str.isPDF(props.sourceURL) ? (
             <PDFView
                 sourceURL={props.sourceURL}
                 style={styles.imageModalPDF}

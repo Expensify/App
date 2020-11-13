@@ -34,8 +34,6 @@ class ReportActionItemFragment extends React.PureComponent {
     constructor(props) {
         super(props);
 
-        this.alterNode = this.alterNode.bind(this);
-
         // Define the custom render methods
         // For <a> tags, the <Anchor> attribute is used to be more cross-platform friendly
         this.customRenderers = {
@@ -69,47 +67,32 @@ class ReportActionItemFragment extends React.PureComponent {
                     {children}
                 </InlineCodeBlock>
             ),
-            img: (htmlAttribs, children, convertedCSSStyles, passProps) => (
-                <ImageThumbnailWithModal
-                    previewSourceURL={htmlAttribs.preview}
-                    sourceURL={htmlAttribs.src}
-                    key={passProps.key}
-                />
-            ),
+            img: (htmlAttribs, children, convertedCSSStyles, passProps) => {
+                // Attaches authTokens as a URL parameter to load image attachments
+                let previewSource = htmlAttribs['data-expensify-source']
+                    ? `${htmlAttribs.src}?authToken=${getAuthToken()}`
+                    : htmlAttribs.src;
+
+                let source = htmlAttribs['data-expensify-source']
+                    ? `${htmlAttribs['data-expensify-source']}?authToken=${getAuthToken()}`
+                    : htmlAttribs.src;
+
+                // Update the image URL so the images can be accessed in a dev envrionment
+                if (!Config.IS_IN_PRODUCTION) {
+                    const devAPIURL = Config.EXPENSIFY.API_ROOT.replace('/api?', '');
+                    const imageURLHostname = 'https://www.expensify.com.dev';
+                    previewSource = previewSource.replace(imageURLHostname, devAPIURL);
+                    source = source.replace(imageURLHostname, devAPIURL);
+                }
+                return (
+                    <ImageThumbnailWithModal
+                        previewSourceURL={previewSource}
+                        sourceURL={source}
+                        key={passProps.key}
+                    />
+                );
+            },
         };
-    }
-
-    /**
-     * Function to edit HTML on the fly before it's rendered, currently this attaches authTokens as a URL parameter to
-     * load image attachments and updates the image URL if the config is not on production.
-     *
-     * @param {object} node
-     * @returns {object}
-     */
-    alterNode(node) {
-        const htmlNode = node;
-
-        if (htmlNode.name === 'img') {
-            let previewSource = htmlNode.attribs['data-expensify-source']
-                ? `${htmlNode.attribs.src}?authToken=${getAuthToken()}`
-                : htmlNode.attribs.src;
-
-            let source = htmlNode.attribs['data-expensify-source']
-                ? `${htmlNode.attribs['data-expensify-source']}?authToken=${getAuthToken()}`
-                : htmlNode.attribs.src;
-
-            // Update the image URL so the images can be accessed in a dev envrionment
-            if (!Config.IS_IN_PRODUCTION) {
-                const devAPIURL = Config.EXPENSIFY.API_ROOT.replace('/api?', '');
-                const imageURLHostname = 'https://www.expensify.com.dev';
-                previewSource = previewSource.replace(imageURLHostname, devAPIURL);
-                source = source.replace(imageURLHostname, devAPIURL);
-            }
-
-            htmlNode.attribs.preview = previewSource;
-            htmlNode.attribs.src = source;
-            return htmlNode;
-        }
     }
 
     render() {
@@ -141,7 +124,6 @@ class ReportActionItemFragment extends React.PureComponent {
                             tagsStyles={webViewStyles.tagStyles}
                             onLinkPress={(event, href) => Linking.openURL(href)}
                             html={fragment.html}
-                            alterNode={this.alterNode}
                             imagesMaxWidth={Math.min(maxImageDimensions, windowWidth * 0.8)}
                             imagesInitialDimensions={{width: maxImageDimensions, height: maxImageDimensions}}
                         />
