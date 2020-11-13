@@ -11,6 +11,7 @@ import Text from '../../../components/Text';
 import AnchorForCommentsOnly from '../../../components/AnchorForCommentsOnly';
 import ImageThumbnailWithModal from '../../../components/ImageThumbnailWithModal';
 import InlineCodeBlock from '../../../components/InlineCodeBlock';
+import {getAuthToken} from '../../../libs/API';
 
 const propTypes = {
     // The message fragment needing to be displayed
@@ -31,8 +32,6 @@ const defaultProps = {
 class ReportActionItemFragment extends React.PureComponent {
     constructor(props) {
         super(props);
-
-        this.alterNode = this.alterNode.bind(this);
 
         // Define the custom render methods
         // For <a> tags, the <Anchor> attribute is used to be more cross-platform friendly
@@ -69,32 +68,16 @@ class ReportActionItemFragment extends React.PureComponent {
             ),
             img: (htmlAttribs, children, convertedCSSStyles, passProps) => (
                 <ImageThumbnailWithModal
-                    previewSourceURL={htmlAttribs.preview}
-                    sourceURL={htmlAttribs.src}
-                    isExpensifyAttachment={htmlAttribs.isExpensifyAttachment}
+                    previewSourceURL={htmlAttribs['data-expensify-source']
+                        ? `${htmlAttribs.src}?authToken=${getAuthToken()}`
+                        : htmlAttribs.src}
+                    sourceURL={htmlAttribs['data-expensify-source']
+                        ? `${htmlAttribs['data-expensify-source']}?authToken=${getAuthToken()}`
+                        : htmlAttribs.src}
                     key={passProps.key}
                 />
             ),
         };
-    }
-
-    /**
-     * Function to edit HTML on the fly before it's rendered, currently this attaches authTokens as a URL parameter to
-     * load image attachments.
-     *
-     * @param {object} node
-     * @returns {object}
-     */
-    alterNode(node) {
-        const htmlNode = node;
-
-        // We only want to attach auth tokens to images that come from Expensify attachments
-        if (htmlNode.name === 'img' && htmlNode.attribs['data-expensify-source']) {
-            htmlNode.attribs.preview = node.attribs.src;
-            htmlNode.attribs.src = htmlNode.attribs['data-expensify-source'];
-            htmlNode.attribs.isExpensifyAttachment = true;
-            return htmlNode;
-        }
     }
 
     render() {
@@ -126,7 +109,6 @@ class ReportActionItemFragment extends React.PureComponent {
                             tagsStyles={webViewStyles.tagStyles}
                             onLinkPress={(event, href) => Linking.openURL(href)}
                             html={fragment.html}
-                            alterNode={this.alterNode}
                             imagesMaxWidth={Math.min(maxImageDimensions, windowWidth * 0.8)}
                             imagesInitialDimensions={{width: maxImageDimensions, height: maxImageDimensions}}
                         />

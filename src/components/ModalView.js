@@ -39,7 +39,7 @@ const defaultProps = {
 const ModalView = props => (
     <>
         {props.pinToEdges ? (
-            <View style={styles.imageModalContainer}>
+            <View style={styles.modalViewContainer}>
                 <BaseModalHeader
                     title="Attachment"
                     onCloseButtonPress={props.onCloseButtonPress}
@@ -48,14 +48,14 @@ const ModalView = props => (
             </View>
         ) : (
             <TouchableOpacity
-                style={styles.imageModalCenterContainer}
+                style={styles.modalCenterContentContainer}
                 activeOpacity={1}
                 onPress={props.onCloseButtonPress}
             >
                 <TouchableWithoutFeedback style={{cursor: 'none'}}>
                     <View
                         style={{
-                            ...styles.imageModalContainer,
+                            ...styles.modalViewContainer,
                             width: props.modalWidth,
                             height: props.modalHeight
                         }}

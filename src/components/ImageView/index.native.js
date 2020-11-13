@@ -3,13 +3,6 @@ import PropTypes from 'prop-types';
 import {View, Dimensions, Image} from 'react-native';
 import ImgZoom from 'react-native-image-pan-zoom';
 
-/**
- * On the native layer, we use a image library to handle zoom functionality
- *
- * @param props
- * @returns {JSX.Element}
- */
-
 const propTypes = {
     // URL to full-sized image
     sourceURL: PropTypes.string,
@@ -39,6 +32,13 @@ const defaultProps = {
     cropWidth: Dimensions.get('window').width,
     style: {},
 };
+
+/**
+ * On the native layer, we use a image library to handle zoom functionality
+ *
+ * @param props
+ * @returns {JSX.Element}
+ */
 
 const ImageView = props => (
     <View style={props.style}>

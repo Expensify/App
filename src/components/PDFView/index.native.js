@@ -4,13 +4,6 @@ import {View, Dimensions} from 'react-native';
 import Pdf from 'react-native-pdf';
 import styles from '../../styles/StyleSheet';
 
-/**
- * On the native layer, we use a pdf library to display PDFs
- *
- * @param props
- * @returns {JSX.Element}
- */
-
 const propTypes = {
     // URL to full-sized image
     sourceURL: PropTypes.string,
@@ -24,6 +17,13 @@ const defaultProps = {
     sourceURL: '',
     style: {},
 };
+
+/**
+ * On the native layer, we use a pdf library to display PDFs
+ *
+ * @param props
+ * @returns {JSX.Element}
+ */
 
 const PDFView = props => (
     <View style={[styles.flex1, props.style]}>

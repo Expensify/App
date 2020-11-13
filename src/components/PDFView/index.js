@@ -3,13 +3,6 @@ import PropTypes from 'prop-types';
 import {WebView} from 'react-native-webview';
 import CONST from '../../CONST';
 
-/**
- * On web, we use a WebView pointed to a pdf renderer
- *
- * @param props
- * @returns {JSX.Element}
- */
-
 const propTypes = {
     // URL to full-sized image
     sourceURL: PropTypes.string,
@@ -23,6 +16,13 @@ const defaultProps = {
     sourceURL: '',
     style: {},
 };
+
+/**
+ * On web, we use a WebView pointed to a pdf renderer
+ *
+ * @param props
+ * @returns {JSX.Element}
+ */
 
 const PDFView = props => (
     <WebView

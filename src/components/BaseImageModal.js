@@ -96,7 +96,7 @@ class BaseImageModal extends React.Component {
      *
      * @param {Boolean} visibility
      */
-    setModalVisiblity = (visibility) => {
+    setModalVisiblity(visibility) {
         this.setState({visible: visibility});
     }
 

@@ -20,7 +20,7 @@ const defaultProps = {
 };
 
 const BaseModalHeader = props => (
-    <View style={styles.imageModalHeader}>
+    <View style={styles.modalHeaderBar}>
         <View style={[
             styles.dFlex,
             styles.flexRow,
