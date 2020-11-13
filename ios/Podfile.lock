@@ -332,9 +332,9 @@ PODS:
     - React-Core
   - react-native-pdf (6.2.2):
     - React-Core
-  - react-native-progress-bar-android (1.0.3):
+  - react-native-progress-bar-android (1.0.4):
     - React
-  - react-native-progress-view (1.2.1):
+  - react-native-progress-view (1.2.3):
     - React
   - react-native-safe-area-context (3.1.8):
     - React-Core
@@ -646,8 +646,8 @@ SPEC CHECKSUMS:
   react-native-image-picker: 32d1ad2c0024ca36161ae0d5c2117e2d6c441f11
   react-native-netinfo: e36c1bb6df27ab84aa933679b3f5bbf9d180b18f
   react-native-pdf: 4b5a9e4465a6a3b399e91dc4838eb44ddf716d1f
-  react-native-progress-bar-android: d1b109b86c699d36f6a7099dab1a117dc1d66d3c
-  react-native-progress-view: 0b937488a5730aeec461b00c4eb438e1fe626015
+  react-native-progress-bar-android: ce95a69f11ac580799021633071368d08aaf9ad8
+  react-native-progress-view: 5816e8a6be812c2b122c6225a2a3db82d9008640
   react-native-safe-area-context: 01158a92c300895d79dee447e980672dc3fb85a6
   react-native-webview: 2e330b109bfd610e9818bf7865d1979f898960a7
   React-RCTActionSheet: 53ea72699698b0b47a6421cb1c8b4ab215a774aa
