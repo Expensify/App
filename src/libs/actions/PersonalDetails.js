@@ -1,21 +1,21 @@
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
-import Ion from '../Ion';
+import Onyx from 'react-native-onyx';
 import * as API from '../API';
-import IONKEYS from '../../IONKEYS';
+import ONYXKEYS from '../../ONYXKEYS';
 import md5 from '../md5';
 import CONST from '../../CONST';
 import NetworkConnection from '../NetworkConnection';
 
 let currentUserEmail;
-Ion.connect({
-    key: IONKEYS.SESSION,
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
     callback: val => currentUserEmail = val ? val.email : null,
 });
 
 let personalDetails;
-Ion.connect({
-    key: IONKEYS.PERSONAL_DETAILS,
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS,
     callback: val => personalDetails = val,
 });
 
@@ -93,7 +93,7 @@ function fetchTimezone() {
     })
         .then((data) => {
             const timezone = lodashGet(data, 'nameValuePairs.timeZone.selected', 'America/Los_Angeles');
-            Ion.merge(IONKEYS.MY_PERSONAL_DETAILS, {timezone});
+            Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {timezone});
         });
 
     // Refresh the timezone every 30 minutes
@@ -109,15 +109,15 @@ function fetch() {
     })
         .then((data) => {
             const allPersonalDetails = formatPersonalDetails(data.personalDetailsList);
-            Ion.merge(IONKEYS.PERSONAL_DETAILS, allPersonalDetails);
+            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, allPersonalDetails);
 
             const myPersonalDetails = allPersonalDetails[currentUserEmail]
                 || {avatarURL: getAvatar(undefined, currentUserEmail)};
 
             // Set my personal details so they can be easily accessed and subscribed to on their own key
-            Ion.merge(IONKEYS.MY_PERSONAL_DETAILS, myPersonalDetails);
+            Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, myPersonalDetails);
 
-            // Get the timezone and put it in Ion
+            // Get the timezone and put it in Onyx
             fetchTimezone();
         })
         .catch(error => console.error('Error fetching personal details', error));
@@ -137,7 +137,7 @@ function getForEmails(emailList) {
     API.getPersonalDetails(emailList)
         .then((data) => {
             const details = _.pick(data, emailList.split(','));
-            Ion.merge(IONKEYS.PERSONAL_DETAILS, formatPersonalDetails(details));
+            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, formatPersonalDetails(details));
         });
 }
 
