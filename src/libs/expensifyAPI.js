@@ -7,6 +7,9 @@ import redirectToSignIn from './actions/SignInRedirect';
 import CONFIG from '../CONFIG';
 import HttpUtils from './HttpUtils';
 
+// Have a local variable for when the API is authenticating
+let isAuthenticating;
+
 let credentials;
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
@@ -19,27 +22,14 @@ Onyx.connect({
     callback: val => authToken = val ? val.authToken : null,
 });
 
-// Connect to the state of the API so that the network queue can be paused while the API
-// is authenticating.
-let isAuthenticating;
-Onyx.connect({
-    key: ONYXKEYS.API,
-    callback: (val) => {
-        if (_.isUndefined(val) || val === null) {
-            return;
-        }
-
-        if (val.isAuthenticating === true && !isAuthenticating) {
-            Network.pauseRequestQueue();
-        }
-
-        if (val.isAuthenticating === false && isAuthenticating === true) {
-            Network.unpauseRequestQueue();
-        }
-
-        isAuthenticating = val && val.isAuthenticating;
-    },
-});
+/**
+ * Access the current authToken
+ *
+ * @returns {string}
+ */
+function getAuthToken() {
+    return authToken;
+}
 
 /**
  * Does this command require an authToken?
@@ -67,7 +57,7 @@ function addAuthTokenToParameters(command, parameters) {
         // cancel this and all other requests and set isAuthenticating to false.
         if (!authToken) {
             console.error('A request was made without an authToken', {command, parameters});
-            Onyx.merge(ONYXKEYS.API, {isAuthenticating: false});
+            Network.unpauseRequestQueue();
             redirectToSignIn();
             return;
         }
@@ -79,9 +69,8 @@ function addAuthTokenToParameters(command, parameters) {
     return finalParameters;
 }
 
-const expensifyAPI = API(Network, {
-    enhanceParameters: addAuthTokenToParameters,
-});
+const expensifyAPI = API(Network);
+Network.registerParameterEnhancer(addAuthTokenToParameters);
 
 /**
  * Callback function used to handle API auth failures
@@ -90,16 +79,26 @@ const expensifyAPI = API(Network, {
  * @param {string} originalCommand
  * @param {object} [originalParameters]
  * @param {string} [originalType]
- * @param {expensifyAPI} thisExpensifyAPI
  */
 function handleAuthFailures(originalResponse, originalCommand, originalParameters, originalType) {
+    // There are some API requests that should not be retried when there is an auth failure
+    // like creating and deleting logins
     if (originalParameters.doNotRetry) {
         return;
     }
 
-    Onyx.merge(ONYXKEYS.API, {isAuthenticating: true});
+    // When the authentication process is running, and more API requests will be requeued and they will
+    // be performed after authentication is done.
+    if (isAuthenticating) {
+        Network.queueRequest(originalCommand, originalParameters, originalType);
+        return;
+    }
 
-    expensifyAPI.authenticate({
+    // Prevent any more requests from being processed while authentication happens
+    Network.pauseRequestQueue();
+    isAuthenticating = true;
+
+    expensifyAPI.Authenticate({
         useExpensifyLogin: false,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
@@ -107,39 +106,37 @@ function handleAuthFailures(originalResponse, originalCommand, originalParameter
         partnerUserSecret: credentials.password,
     })
         .then((response) => {
-            Onyx.merge(ONYXKEYS.API, {isAuthenticating: false});
-
             // If authentication fails throw so that we hit
             // the catch below and redirect to sign in
             if (response.jsonCode !== 200) {
                 throw new Error(response.message);
             }
 
-            // Update authToken in Onyx store otherwise subsequent API calls will use the expired one
-            Onyx.merge(ONYXKEYS.SESSION, _.pick(response, 'authToken'));
+            // Update authToken in Onyx and in our local variables so that API requests will use the
+            // new authToken
+            Onyx.merge(ONYXKEYS.SESSION, {authToken: response.authToken});
+            authToken = response.authToken;
+
+            // The authentication process is finished so the network can be unpaused to continue
+            // processing requests
+            isAuthenticating = false;
+            Network.unpauseRequestQueue();
         })
 
-        // Use HttpUtils here so that retry logic is avoided. Since this code is already doing a re-try, that
-        // would create an infinite loop
-        .then(() => HttpUtils.xhr(originalCommand, originalParameters, originalType))
+        // Now that the API is authenticated, make the original request again with the new authToken
+        // Use HttpUtils here so that retry logic is avoided. Since this code is triggered from a rety attempt
+        // it can create an infinite loop
+        .then(() => {
+            const params = addAuthTokenToParameters(originalCommand, originalParameters);
+            HttpUtils.xhr(originalCommand, params, originalType);
+        })
 
         .catch((error) => {
-            Onyx.merge(ONYXKEYS.API, {isAuthenticating: false});
+            // If authentication fails, then the network can be unpaused and app is redirected
+            // so the sign on screen.
+            Network.unpauseRequestQueue();
+            isAuthenticating = false;
             redirectToSignIn(error.message);
-
-            // If the request failed, we need to put the request object back into the queue as long as there is no
-            // doNotRetry option set in the parametersWithAuthToken
-            if (originalParameters.doNotRetry !== true) {
-                Network.post(originalCommand, originalParameters, originalType);
-            }
-
-            // If we already have an error, throw that so we do not swallow it
-            if (error instanceof Error) {
-                throw error;
-            }
-
-            // Throw a generic error so we can pass the error up the chain
-            throw new Error(`API Command ${originalCommand} failed`);
         });
 }
 
@@ -147,15 +144,6 @@ function handleAuthFailures(originalResponse, originalCommand, originalParameter
 expensifyAPI.registerDefaultHandler(expensifyAPI.JSON_CODES.AUTH_FAILURES, handleAuthFailures);
 
 export default expensifyAPI;
-
-/**
- * Access the current authToken
- *
- * @returns {string}
- */
-function getAuthToken() {
-    return authToken;
-}
 
 export {
     getAuthToken,
