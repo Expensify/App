@@ -81,7 +81,7 @@ class BaseImageModal extends React.Component {
                 const imageHeight = height / scaleFactor;
 
                 if (this.isComponentMounted) {
-                    this.setState({imageWidth: screenWidth, imageHeight});
+                    this.setState({imageWidth: screenWidth, imageHeight, calculatedImageSize: true});
                 }
             });
         }
