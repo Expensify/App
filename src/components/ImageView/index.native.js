@@ -28,7 +28,7 @@ const defaultProps = {
     sourceURL: '',
     imageHeight: 300,
     imageWidth: 300,
-    cropHeight: Dimensions.get('window').height,
+    cropHeight: Dimensions.get('window').height - 60,
     cropWidth: Dimensions.get('window').width,
     style: {},
 };

@@ -62,7 +62,7 @@ class BaseImageModal extends React.Component {
 
         // Scale image for thumbnail preview
         Image.getSize(this.props.previewSourceURL, (width, height) => {
-            const screenWidth = 300;
+            const screenWidth = 250;
             const scaleFactor = width / screenWidth;
             const imageHeight = height / scaleFactor;
 
@@ -76,12 +76,19 @@ class BaseImageModal extends React.Component {
         // Only calculate image size if the modal is visible and if we haven't already done this
         if (this.state.visible && !this.state.calculatedImageSize) {
             Image.getSize(this.props.sourceURL, (width, height) => {
-                const screenWidth = this.props.pinToEdges ? Dimensions.get('window').width : this.props.modalImageWidth;
-                const scaleFactor = width / screenWidth;
-                const imageHeight = height / scaleFactor;
+                const modalWidth = this.props.pinToEdges ? Dimensions.get('window').width : this.props.modalImageWidth;
+                let imageHeight = height;
+                let imageWidth = width;
+
+                // Only resize if the image width is larger than the modal width
+                if (width > modalWidth) {
+                    const scaleFactor = width / modalWidth;
+                    imageHeight = height / scaleFactor;
+                    imageWidth = modalWidth;
+                }
 
                 if (this.isComponentMounted) {
-                    this.setState({imageWidth: screenWidth, imageHeight, calculatedImageSize: true});
+                    this.setState({imageWidth, imageHeight, calculatedImageSize: true});
                 }
             });
         }

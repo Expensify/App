@@ -40,7 +40,7 @@ const BaseModalHeader = props => (
                 >
                     <Image
                         resizeMode="contain"
-                        style={[styles.LHNToggleIcon]}
+                        style={[styles.attachmentCloseIcon]}
                         source={exitIcon}
                     />
                 </TouchableOpacity>

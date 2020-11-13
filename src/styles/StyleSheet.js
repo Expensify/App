@@ -571,6 +571,11 @@ const styles = {
         width: 18,
     },
 
+    attachmentCloseIcon: {
+        height: 20,
+        width: 20,
+    },
+
     chatContent: {
         flex: 4,
         justifyContent: 'flex-end',
@@ -865,11 +870,13 @@ const styles = {
 
     modalHeaderBar: {
         overflow: 'hidden',
-        height: 87,
+        height: 60,
         justifyContent: 'center',
         display: 'flex',
         paddingLeft: 20,
         paddingRight: 20,
+        borderBottomWidth: 1,
+        borderColor: colors.border,
     },
 
     imageModalPDF: {
