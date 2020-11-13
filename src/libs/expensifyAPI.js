@@ -1,13 +1,11 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
-import Network from './Network';
+import * as Network from './Network';
 import API from './API';
 import ONYXKEYS from '../ONYXKEYS';
 import redirectToSignIn from './actions/SignInRedirect';
 import CONFIG from '../CONFIG';
 import HttpUtils from './HttpUtils';
-
-const network = Network();
 
 let credentials;
 Onyx.connect({
@@ -32,11 +30,11 @@ Onyx.connect({
         }
 
         if (val.isAuthenticating === true && !isAuthenticating) {
-            network.pauseRequestQueue();
+            Network.pauseRequestQueue();
         }
 
         if (val.isAuthenticating === false && isAuthenticating === true) {
-            network.unpauseRequestQueue();
+            Network.unpauseRequestQueue();
         }
 
         isAuthenticating = val && val.isAuthenticating;
@@ -90,7 +88,7 @@ function handleAuthFailures(originalResponse, originalCommand, originalParameter
             // If the request failed, we need to put the request object back into the queue as long as there is no
             // doNotRetry option set in the parametersWithAuthToken
             if (originalParameters.doNotRetry !== true) {
-                network.post(originalCommand, originalParameters, originalType);
+                Network.post(originalCommand, originalParameters, originalType);
             }
 
             // If we already have an error, throw that so we do not swallow it
@@ -141,7 +139,7 @@ function addAuthTokenToParameters(command, parameters) {
     return finalParameters;
 }
 
-const expensifyAPI = API(network, {
+const expensifyAPI = API(Network, {
     enhanceParameters: addAuthTokenToParameters,
 });
 
