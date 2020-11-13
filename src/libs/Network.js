@@ -32,7 +32,6 @@ function processNetworkRequestQueue() {
         return;
     }
 
-    // @TODO figure out how reauthenticating will work
     // Don't make any requests when the queue is paused
     if (isQueuePaused || networkRequestQueue.length === 0) {
         return;
