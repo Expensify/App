@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import HttpUtils from './HttpUtils';
 
-export default function API(network, args) {
+export default function API(network) {
     if (!network) {
         throw new Error('Cannot instantiate API without a Network object');
     }
@@ -28,9 +28,10 @@ export default function API(network, args) {
             });
 
             if (defaultHandlerWasUsed) {
-                // Prevent other handlers from being triggered on this promise
+                // Throw an error to prevent other handlers from being triggered on this promise
                 throw new Error('A default handler was used for this request');
             }
+
             return response;
         });
     }
@@ -72,12 +73,7 @@ export default function API(network, args) {
      * @returns {Promise}
      */
     function performPOSTRequest(command, parameters, type = 'post') {
-        // If there was an enhanceParameters() method supplied in our args, then we will call that here
-        const finalParameters = (args && _.isFunction(args.enhanceParameters))
-            ? args.enhanceParameters(command, parameters)
-            : parameters;
-
-        const networkPromise = network.post(command, finalParameters, type);
+        const networkPromise = network.post(command, parameters, type);
 
         // Attach any JSONCode callbacks to our promise
         attachJSONCodeCallbacks(networkPromise, command, parameters, type);
@@ -87,8 +83,6 @@ export default function API(network, args) {
 
     return {
         /**
-         * Register a callback function to be called when specific json codes are returned
-         *
          * @param  {Number[]} jsonCodes
          * @param  {Function} callback
          */
@@ -107,30 +101,26 @@ export default function API(network, args) {
 
         /**
          * @param {object} parameters
-         * @param {string} parameters.useExpensifyLogin
+         * @param {string} [parameters.useExpensifyLogin]
          * @param {string} parameters.partnerName
          * @param {string} parameters.partnerPassword
          * @param {string} parameters.partnerUserID
          * @param {string} parameters.partnerUserSecret
-         * @param {string} parameters.twoFactorAuthCode
+         * @param {string} [parameters.twoFactorAuthCode]
          * @returns {Promise}
          */
         Authenticate(parameters) {
             const commandName = 'Authenticate';
 
             requireParameters([
-                'useExpensifyLogin',
                 'partnerName',
                 'partnerPassword',
                 'partnerUserID',
                 'partnerUserSecret',
-                'twoFactorAuthCode',
             ], parameters, commandName);
 
-            // We treat Authenticate in a special way because unlike other commands, this one can't fail
-            // with 407 authToken expired. When other api commands fail with this error we call Authenticate
-            // to get a new authToken and then fire the original api command again
-            return network.post(commandName, {
+            // Using xhr instead of request to avoid re-try logic
+            return HttpUtils.xhr(commandName, {
                 // When authenticating for the first time, we pass useExpensifyLogin as true so we check
                 // for credentials for the expensify partnerID to let users Authenticate with their expensify user
                 // and password.

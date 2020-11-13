@@ -9,6 +9,8 @@ let isQueuePaused = false;
 // Queue for network requests so we don't lose actions done by the user while offline
 let networkRequestQueue = [];
 
+let paramEnhancer;
+
 // We subscribe to changes to the online/offline status of the network to determine when we should fire off API calls
 // vs queueing them for later.
 let isOffline;
@@ -33,12 +35,20 @@ function processNetworkRequestQueue() {
     }
 
     // Don't make any requests when the queue is paused
-    if (isQueuePaused || networkRequestQueue.length === 0) {
+    if (isQueuePaused) {
+        return;
+    }
+
+    // When the queue length is empty an early return is performed since nothing needs to be processed
+    if (networkRequestQueue.length === 0) {
         return;
     }
 
     _.each(networkRequestQueue, (queuedRequest) => {
-        HttpUtils.xhr(queuedRequest.command, queuedRequest.data, queuedRequest.type)
+        const finalParameters = paramEnhancer
+            ? paramEnhancer(queuedRequest.command, queuedRequest.data)
+            : queuedRequest.data;
+        HttpUtils.xhr(queuedRequest.command, finalParameters, queuedRequest.type)
             .then(queuedRequest.resolve)
             .catch(queuedRequest.reject);
     });
@@ -99,9 +109,14 @@ function unpauseRequestQueue() {
     isQueuePaused = false;
 }
 
+function registerParameterEnhancer(callback) {
+    paramEnhancer = callback;
+}
+
 export {
     post,
     pauseRequestQueue,
     unpauseRequestQueue,
     queueRequest,
+    registerParameterEnhancer,
 };
