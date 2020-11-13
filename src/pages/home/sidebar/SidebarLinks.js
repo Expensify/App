@@ -88,6 +88,7 @@ const SidebarLinks = (props) => {
                     const participantDetails = get(report, 'participants.length', 0) === 1 ? get(props.personalDetails, report.participants[0], '') : '';
                     return report.reportName && (
                         <ChatSwitcherRow
+                            key={report.reportID}
                             option={{
                                 text: participantDetails ? participantDetails.displayName : report.reportName,
                                 alternateText: participantDetails ? participantDetails.login : '',
@@ -95,6 +96,7 @@ const SidebarLinks = (props) => {
                                 icon: participantDetails ? participantDetails.avatarURL : '',
                                 login: participantDetails ? participantDetails.login : '',
                                 reportID: report.reportID,
+                                isUnread: report.unreadActionCount > 0,
                             }}
                             onSelectRow={onLinkClick}
                             optionIsFocused={report.reportID === reportIDInUrl}
