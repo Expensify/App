@@ -74,45 +74,34 @@ function queueRequest(command, data, type) {
 }
 
 /**
- * @returns {Object}
+ * Perform a queued post request
+ *
+ * @param {string} command
+ * @param {mixed} data
+ * @param {string} type
+ * @returns {Promise}
  */
-export default function Network() {
-    return {
-        /**
-         * Perform a queued post request
-         *
-         * @param {string} command
-         * @param {mixed} data
-         * @param {string} type
-         * @returns {Promise}
-         */
-        post(command, data, type) {
-            return queueRequest(command, data, type);
-        },
-
-        /**
-         * Prevent the network queue from being processed
-         */
-        pauseRequestQueue() {
-            isQueuePaused = true;
-        },
-
-        /**
-         * Allow the network queue to continue to be processed
-         */
-        unpauseRequestQueue() {
-            isQueuePaused = false;
-        },
-
-        /**
-         * Adds a request to networkRequestQueue
-         *
-         * @param {string} command
-         * @param {mixed} data
-         * @param {string} type
-         */
-        queueRequest(...params) {
-            queueRequest(...params);
-        },
-    };
+function post(command, data, type) {
+    return queueRequest(command, data, type);
 }
+
+/**
+ * Prevent the network queue from being processed
+ */
+function pauseRequestQueue() {
+    isQueuePaused = true;
+}
+
+/**
+ * Allow the network queue to continue to be processed
+ */
+function unpauseRequestQueue() {
+    isQueuePaused = false;
+}
+
+export {
+    post,
+    pauseRequestQueue,
+    unpauseRequestQueue,
+    queueRequest,
+};
