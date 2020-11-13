@@ -24,7 +24,7 @@ const propTypes = {
     // Callback that adds a user to the pending list of Group DM users
     onAddToGroup: PropTypes.func,
 
-    isChatSwitcher: PropTypes.bool
+    isChatSwitcher: PropTypes.bool,
 };
 
 const defaultProps = {
