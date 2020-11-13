@@ -28,10 +28,12 @@ import {
 } from '../../libs/actions/Report';
 import {fetch as fetchPersonalDetails} from '../../libs/actions/PersonalDetails';
 import * as Pusher from '../../libs/Pusher/pusher';
+import PusherConnection from '../../libs/PusherConnection';
 import UnreadIndicatorUpdater from '../../libs/UnreadIndicatorUpdater';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
 import NetworkConnection from '../../libs/NetworkConnection';
+import CONFIG from '../../CONFIG';
 
 const windowSize = Dimensions.get('window');
 const widthBreakPoint = 1000;
@@ -67,7 +69,12 @@ class App extends React.Component {
 
     componentDidMount() {
         NetworkConnection.listenForReconnect();
-        Pusher.init().then(subscribeToReportCommentEvents);
+        Pusher.init({
+            appKey: CONFIG.PUSHER.APP_KEY,
+            cluster: CONFIG.PUSHER.CLUSTER,
+            apiRoot: CONFIG.EXPENSIFY.API_ROOT,
+        }).then(subscribeToReportCommentEvents);
+        PusherConnection();
 
         // Fetch all the personal details
         fetchPersonalDetails();
