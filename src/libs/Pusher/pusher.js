@@ -1,8 +1,6 @@
 import _ from 'underscore';
-import Onyx from 'react-native-onyx';
 import Pusher from './library';
 import CONFIG from '../../CONFIG';
-import ONYXKEYS from '../../ONYXKEYS';
 
 let socket;
 const socketEventCallbacks = [];
@@ -21,12 +19,15 @@ function callSocketEventCallbacks(eventName, data) {
 /**
  * Initialize our pusher lib
  *
- * @param {String} appKey
+ * @param {Object} args
+ * @param {String} args.appKey
+ * @param {String} args.cluster
+ * @param {String} args.apiRoot
  * @param {Object} [params]
  * @public
  * @returns {Promise} resolves when Pusher has connected
  */
-function init(appKey, params) {
+function init(args, params) {
     return new Promise((resolve) => {
         if (socket) {
             return resolve();
@@ -40,15 +41,15 @@ function init(appKey, params) {
         // };
 
         const options = {
-            cluster: CONFIG.PUSHER.CLUSTER,
-            authEndpoint: `${CONFIG.EXPENSIFY.API_ROOT}command=Push_Authenticate`,
+            cluster: args.cluster,
+            authEndpoint: `${args.apiRoot}command=Push_Authenticate`,
         };
 
         if (customAuthorizer) {
             options.authorizer = customAuthorizer;
         }
 
-        socket = new Pusher(CONFIG.PUSHER.APP_KEY, options);
+        socket = new Pusher(args.appKey, options);
 
         // If we want to pass params in our requests to api.php we'll need to add it to socket.config.auth.params
         // as per the documentation
@@ -377,67 +378,6 @@ function reconnect() {
     socket.connect();
 }
 
-let authToken;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: val => authToken = val ? val.authToken : null,
-});
-
-/**
- * Pusher.reconnect() calls disconnect and connect on the
- * Pusher socket. In some cases, the authorizer might fail
- * or an error will be returned due to an out of date authToken.
- * Reconnect will preserve our existing subscriptions and retry
- * connecting until it succeeds. We're throttling this call so
- * that we retry as few times as possible.
- */
-const reconnectToPusher = _.throttle(reconnect, 1000);
-
-/**
- * When authTokens expire they will automatically be refreshed.
- * The authorizer helps make sure that we are always passing the
- * current valid token to generate the signed auth response
- * needed to subscribe to Pusher channels.
- */
-registerCustomAuthorizer((channel, {authEndpoint}) => ({
-    authorize: (socketID, callback) => {
-        console.debug('[Network] Attempting to authorize Pusher');
-
-        const formData = new FormData();
-        formData.append('socket_id', socketID);
-        formData.append('channel_name', channel.name);
-        formData.append('authToken', authToken);
-
-        return fetch(authEndpoint, {
-            method: 'POST',
-            body: formData,
-        })
-            .then(authResponse => authResponse.json())
-            .then(data => callback(null, data))
-            .catch((error) => {
-                reconnectToPusher();
-                console.debug('[Network] Failed to authorize Pusher');
-                callback(new Error(`Error calling auth endpoint: ${error.message}`));
-            });
-    },
-}));
-
-/**
- * Events that happen on the pusher socket are used to determine if the app is online or offline. The offline setting
- * is stored in Onyx so the rest of the app has access to it.
- *
- * @params {string} eventName
- */
-registerSocketEventCallback((eventName) => {
-    switch (eventName) {
-        case 'error':
-            reconnectToPusher();
-            break;
-        default:
-            break;
-    }
-});
-
 if (window) {
     /**
      * Pusher socket for debugging purposes
@@ -459,4 +399,6 @@ export {
     sendChunkedEvent,
     disconnect,
     reconnect,
+    registerSocketEventCallback,
+    registerCustomAuthorizer,
 };

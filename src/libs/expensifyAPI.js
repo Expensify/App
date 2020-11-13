@@ -27,7 +27,7 @@ let isAuthenticating;
 Onyx.connect({
     key: ONYXKEYS.API,
     callback: (val) => {
-        if (_.isUndefined(val)) {
+        if (_.isUndefined(val) || val === null) {
             return;
         }
 
