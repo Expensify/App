@@ -24,6 +24,9 @@ const propTypes = {
     // Method to trigger when pressing close button of the modal
     onCloseButtonPress: PropTypes.func,
 
+    // Title of the modal header
+    modalTitle: PropTypes.string,
+
     // Any children to display
     children: PropTypes.node,
 };
@@ -32,7 +35,8 @@ const defaultProps = {
     pinToEdges: false,
     modalWidth: Dimensions.get('window').width * 0.8,
     modalHeight: Dimensions.get('window').height * 0.8,
-    onCloseButtonPress: null,
+    onCloseButtonPress: () => {},
+    modalTitle: '',
     children: null,
 };
 
@@ -52,7 +56,7 @@ const ModalView = props => (
                 activeOpacity={1}
                 onPress={props.onCloseButtonPress}
             >
-                <TouchableWithoutFeedback style={{cursor: 'none'}}>
+                <TouchableWithoutFeedback>
                     <View
                         style={{
                             ...styles.modalViewContainer,
@@ -60,7 +64,7 @@ const ModalView = props => (
                             height: props.modalHeight
                         }}
                     >
-                        <BaseModalHeader title="Attachment" onCloseButtonPress={props.onCloseButtonPress} />
+                        <BaseModalHeader title={props.modalTitle} onCloseButtonPress={props.onCloseButtonPress} />
                         {props.children}
                     </View>
                 </TouchableWithoutFeedback>

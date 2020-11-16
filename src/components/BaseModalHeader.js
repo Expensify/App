@@ -16,7 +16,7 @@ const propTypes = {
 
 const defaultProps = {
     title: '',
-    onCloseButtonPress: null,
+    onCloseButtonPress: () => {},
 };
 
 const BaseModalHeader = props => (

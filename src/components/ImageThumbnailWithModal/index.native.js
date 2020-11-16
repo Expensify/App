@@ -20,6 +20,7 @@ const ImageThumbnailWithModal = props => (
         pinToEdges
         previewSourceURL={props.previewSourceURL}
         sourceURL={props.sourceURL}
+        modalTitle="Attachment"
     />
 );
 

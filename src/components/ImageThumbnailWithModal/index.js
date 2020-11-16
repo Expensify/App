@@ -14,6 +14,7 @@ const ImageThumbnailWithModal = props => (
     <BaseImageModal
         previewSourceURL={props.previewSourceURL}
         sourceURL={props.sourceURL}
+        modalTitle="Attachment"
     />
 );
 

@@ -14,10 +14,10 @@ const propTypes = {
     imageWidth: PropTypes.number,
 
     // Window Height
-    cropHeight: PropTypes.number,
+    windowHeight: PropTypes.number,
 
     // Window Width
-    cropWidth: PropTypes.number,
+    windowWidth: PropTypes.number,
 
     // Any additional styles to apply
     // eslint-disable-next-line react/forbid-prop-types
@@ -29,9 +29,9 @@ const defaultProps = {
     imageHeight: 300,
     imageWidth: 300,
 
-    // Default cropHeight accounts for the modal header height of 73
-    cropHeight: Dimensions.get('window').height - 73,
-    cropWidth: Dimensions.get('window').width,
+    // Default windowHeight accounts for the modal header height of 73
+    windowHeight: Dimensions.get('window').height - 73,
+    windowWidth: Dimensions.get('window').width,
     style: {},
 };
 
@@ -45,8 +45,8 @@ const defaultProps = {
 const ImageView = props => (
     <View style={props.style}>
         <ImgZoom
-            cropWidth={props.cropWidth}
-            cropHeight={props.cropHeight}
+            cropWidth={props.windowWidth}
+            cropHeight={props.windowHeight}
             imageWidth={props.imageWidth}
             imageHeight={props.imageHeight}
         >
