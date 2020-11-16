@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View, Dimensions} from 'react-native';
-import Pdf from 'react-native-pdf';
+import PDF from 'react-native-pdf';
 import styles from '../../styles/StyleSheet';
 
 const propTypes = {
@@ -27,7 +27,7 @@ const defaultProps = {
 
 const PDFView = props => (
     <View style={[styles.flex1, props.style]}>
-        <Pdf
+        <PDF
             source={{uri: props.sourceURL}}
             style={[
                 styles.imageModalPDF,
