@@ -52,7 +52,7 @@ const mainWindow = (() => {
 
             // List the Expensify Chat instance under the Window menu, even when it's hidden
             const systemMenu = Menu.getApplicationMenu();
-            systemMenu.append(new MenuItem({
+            systemMenu.insert(4, new MenuItem({
                 label: 'History',
                 submenu: [{
                     role: 'back',
