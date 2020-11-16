@@ -308,6 +308,7 @@ const styles = {
         color: colors.text,
         fontFamily: fontFamily.GTA,
         fontSize: 15,
+        outline: 'none',
         paddingLeft: 12,
         paddingRight: 12,
         paddingTop: 10,
