@@ -13,6 +13,7 @@ import ImageThumbnailWithModal from '../../../components/ImageThumbnailWithModal
 import InlineCodeBlock from '../../../components/InlineCodeBlock';
 import {getAuthToken} from '../../../libs/API';
 import Config from '../../../CONFIG';
+import CONST from '../../../CONST';
 
 const propTypes = {
     // The message fragment needing to be displayed
@@ -80,10 +81,10 @@ class ReportActionItemFragment extends React.PureComponent {
                 // Update the image URL so the images can be accessed in a dev envrionment
                 if (!Config.IS_IN_PRODUCTION) {
                     const devAPIURL = Config.EXPENSIFY.API_ROOT.replace('/api?', '');
-                    const imageURLHostname = 'https://www.expensify.com.dev';
-                    previewSource = previewSource.replace(imageURLHostname, devAPIURL);
-                    source = source.replace(imageURLHostname, devAPIURL);
+                    previewSource = previewSource.replace(CONST.EXPENSIFY_DEV_URL, devAPIURL);
+                    source = source.replace(CONST.EXPENSIFY_DEV_URL, devAPIURL);
                 }
+
                 return (
                     <ImageThumbnailWithModal
                         previewSourceURL={previewSource}

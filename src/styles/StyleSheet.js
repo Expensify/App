@@ -574,6 +574,7 @@ const styles = {
     attachmentCloseIcon: {
         height: 20,
         width: 20,
+        padding: 0,
     },
 
     chatContent: {
@@ -869,14 +870,15 @@ const styles = {
     },
 
     modalHeaderBar: {
+        fontFamily: fontFamily.GTA,
         overflow: 'hidden',
-        height: 60,
         justifyContent: 'center',
         display: 'flex',
-        paddingLeft: 20,
+        paddingLeft: 32,
         paddingRight: 20,
         borderBottomWidth: 1,
         borderColor: colors.border,
+        height: 73,
     },
 
     imageModalPDF: {
