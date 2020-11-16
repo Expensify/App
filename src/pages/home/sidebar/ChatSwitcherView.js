@@ -3,7 +3,7 @@ import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
-import Str from 'js-libs/lib/str';
+import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../../ONYXKEYS';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import ChatSwitcherList from './ChatSwitcherList';
