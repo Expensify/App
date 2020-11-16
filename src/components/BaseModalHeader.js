@@ -4,7 +4,7 @@ import {
     View, Image, TouchableOpacity, Text
 } from 'react-native';
 import styles from '../styles/StyleSheet';
-import exitIcon from '../../assets/images/icon-x.png';
+import exitIcon from '../../assets/images/icon-x--20x20.png';
 
 const propTypes = {
     // Title of the modal
@@ -30,8 +30,10 @@ const BaseModalHeader = props => (
             styles.overflowHidden
         ]}
         >
-            <View>
-                <Text numberOfLines={1} style={[styles.navText]}>{props.title}</Text>
+            <View style={[styles.flex1]}>
+                <Text numberOfLines={1} style={[styles.navText]}>
+                    {props.title}
+                </Text>
             </View>
             <View style={[styles.reportOptions, styles.flexRow]}>
                 <TouchableOpacity
