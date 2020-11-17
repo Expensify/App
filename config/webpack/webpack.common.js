@@ -54,9 +54,6 @@ module.exports = {
                     /node_modules\/(?!(react-native-render-html|react-native-webview|react-native-onyx)\/).*|\.native\.js$/,
                     platformExclude
                 ],
-                options: {
-                    configFile: './config/babel.config.js',
-                },
             },
             {
                 test: /\.js$/,
