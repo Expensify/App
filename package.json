@@ -54,7 +54,7 @@
     "react-native-document-picker": "^4.0.0",
     "react-native-image-picker": "^2.3.3",
     "react-native-keyboard-spacer": "^0.4.1",
-    "react-native-onyx": "git+https://git@github.com:Expensify/react-native-onyx.git#4aeb4716013d430d9f6f658aa0ac3bdf04a16684",
+    "react-native-onyx": "git+https://git@github.com:Expensify/react-native-onyx.git#6d57e20054f58f20a51322f3d5af0ff381f0313b",
     "react-native-render-html": "^4.2.3",
     "react-native-safe-area-context": "^3.1.4",
     "react-native-web": "^0.13.5",
