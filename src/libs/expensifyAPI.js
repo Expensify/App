@@ -38,7 +38,7 @@ function getAuthToken() {
  * @return {Boolean}
  */
 function isAuthTokenRequired(command) {
-    return !_.contains(['Log'], command);
+    return !_.contains(['Log', 'Authenticate'], command);
 }
 
 /**
@@ -51,7 +51,7 @@ function isAuthTokenRequired(command) {
 function addAuthTokenToParameters(command, parameters) {
     const finalParameters = {...parameters};
 
-    if (isAuthTokenRequired(command)) {
+    if (isAuthTokenRequired(command) && !parameters.authToken) {
         // If we end up here with no authToken it means we are trying to make
         // an API request before we are signed in. In this case, we should just
         // cancel this and all other requests and set isAuthenticating to false.
