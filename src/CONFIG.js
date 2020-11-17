@@ -4,7 +4,11 @@ import Config from 'react-native-config';
 export default {
     AUTH_TOKEN_EXPIRATION_TIME: 1000 * 60 * 90,
     EXPENSIFY: {
-        API_ROOT: Config.EXPENSIFY_API_ROOT,
+        API_ROOT: Config.NGROK_URL
+            ? `${Config.NGROK_URL}/api?`
+            : `${Config.EXPENSIFY_SITE_ROOT}api?`,
+        NGROK_URL: Config.NGROK_URL,
+        CASH_SITE_ROOT: Config.EXPENSIFY_CASH_ROOT,
         SITE_ROOT: Config.EXPENSIFY_SITE_ROOT,
         PARTNER_NAME: Config.EXPENSIFY_PARTNER_NAME,
         PARTNER_PASSWORD: Config.EXPENSIFY_PARTNER_PASSWORD,
