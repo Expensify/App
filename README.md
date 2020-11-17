@@ -78,10 +78,16 @@ You can use any IDE or code editing tool for developing on any platform. Use you
 
 ## Running the tests 🎰
 ### Unit tests
+Unit tests are valuable when you want to test one component. They should be short, fast, and ideally only test one thing.
+Often times in order to write a unit test, you may need to mock data, a component, or library. We use the library [Jest](https://jestjs.io/)
+to help run our Unit tests. 
+
 * To run the **Jest unit tests**: `npm run test`
 
 ### End to end tests
-[Detox](https://github.com/wix/Detox) is a _"Gray box end-to-end testing and automation library"_
+End to end tests are valuable when we do not want to mock data and run against the actual compiled app on iOS or Android.
+In order to run the end to end tests, we have to compile the iOS or Android app, then launch a simulator, then run tests.
+We use [Detox](https://github.com/wix/Detox) a _"Gray box end-to-end testing and automation library"_ to help with our end to end testing.
 
 You are first required to build the tests, then you can run them: 
 1. To build the **Detox end to end tests**: `npm run detox-build`
