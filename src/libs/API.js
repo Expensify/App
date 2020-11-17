@@ -1,6 +1,13 @@
 import _ from 'underscore';
 import HttpUtils from './HttpUtils';
 
+/**
+ * NOTE!!!!
+ * Do not add any business or application logic to this file.
+ * The sole purpose of this file is to provide access to all API commands
+ * without any preference of the network layer (it could be fetch, or $.ajax or XHR).
+ */
+
 export default function API(network) {
     if (!network) {
         throw new Error('Cannot instantiate API without a Network object');
