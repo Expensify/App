@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import HttpUtils from './HttpUtils';
 
 /**
  * NOTE!!!!
@@ -126,8 +125,7 @@ export default function API(network) {
                 'partnerUserSecret',
             ], parameters, commandName);
 
-            // Using xhr instead of request to avoid re-try logic
-            return HttpUtils.xhr(commandName, {
+            return performPOSTRequest(commandName, {
                 // When authenticating for the first time, we pass useExpensifyLogin as true so we check
                 // for credentials for the expensify partnerID to let users Authenticate with their expensify user
                 // and password.
@@ -137,6 +135,7 @@ export default function API(network) {
                 partnerUserID: parameters.partnerUserID,
                 partnerUserSecret: parameters.partnerUserSecret,
                 twoFactorAuthCode: parameters.twoFactorAuthCode,
+                doNotRetry: true,
             })
                 .then((response) => {
                     // If we didn't get a 200 response from Authenticate we either failed to Authenticate with
@@ -179,11 +178,7 @@ export default function API(network) {
                 'partnerUserID',
                 'partnerUserSecret',
             ], parameters, commandName);
-
-            // Using xhr instead of request to avoid re-try logic on API commands which return  a 407 authToken expired
-            // in the response, and we call CreateLogin after getting a successful response to Authenticate so
-            // it's unlikely that we'll get a 407.
-            return HttpUtils.xhr(commandName, parameters);
+            return performPOSTRequest(commandName, parameters);
         },
 
         /**
