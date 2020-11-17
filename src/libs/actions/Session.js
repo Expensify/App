@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import Str from 'js-libs/lib/str';
+import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import redirectToSignIn from './SignInRedirect';
