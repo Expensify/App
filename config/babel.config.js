@@ -26,5 +26,5 @@ module.exports = ({caller}) => {
     // For `react-native` (iOS/Android) caller will be "metro"
     // For `webpack` (Web) caller will be "@babel-loader"
     const runningIn = caller(({name}) => name);
-    return runningIn === 'metro' ? metro : webpack;
+    return ['metro', 'babel-jest'].includes(runningIn) ? metro : webpack;
 };

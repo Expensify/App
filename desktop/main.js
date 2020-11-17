@@ -94,6 +94,12 @@ const mainWindow = (() => {
                 event.returnValue = browserWindow.isFocused();
             });
 
+            // This allows the renderer process to bring the app
+            // back into focus if it's minimized or hidden.
+            ipcMain.on(ELECTRON_EVENTS.REQUEST_FOCUS_APP, () => {
+                browserWindow.show();
+            });
+
             // Listen to badge updater event emitted by the render process
             // and update the app badge count (MacOS only)
             ipcMain.on(ELECTRON_EVENTS.REQUEST_UPDATE_BADGE_COUNT, (event, totalCount) => {

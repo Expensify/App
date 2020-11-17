@@ -1,13 +1,12 @@
 import _ from 'underscore';
-import Ion from './Ion';
-import IONKEYS from '../IONKEYS';
+import Onyx from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
+import ONYXKEYS from '../ONYXKEYS';
 import HttpUtils from './HttpUtils';
 import NetworkConnection from './NetworkConnection';
 import CONFIG from '../CONFIG';
 import * as Pusher from './Pusher/pusher';
 import ROUTES from '../ROUTES';
-import Str from './Str';
-import guid from './guid';
 import redirectToSignIn from './actions/SignInRedirect';
 import PushNotification from './Notification/PushNotification';
 
@@ -20,38 +19,48 @@ let networkRequestQueue = [];
 let reauthenticating = false;
 
 let authToken;
-Ion.connect({
-    key: IONKEYS.SESSION,
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
     callback: val => authToken = val ? val.authToken : null,
 });
 
 // We subscribe to changes to the online/offline status of the network to determine when we should fire off API calls
 // vs queueing them for later.
 let isOffline;
-Ion.connect({
-    key: IONKEYS.NETWORK,
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
     callback: val => isOffline = val && val.isOffline,
 });
 
-// When the user authenticates for the first time we create a login and store credentials in Ion.
+// When the user authenticates for the first time we create a login and store credentials in Onyx.
 // When the user's authToken expires we use this login to re-authenticate and get a new authToken
 // and use that new authToken in subsequent API calls
 let credentials;
-Ion.connect({
-    key: IONKEYS.CREDENTIALS,
+Onyx.connect({
+    key: ONYXKEYS.CREDENTIALS,
     callback: ionCredentials => credentials = ionCredentials,
 });
 
 // If we are ever being redirected to the sign in page, the user is currently unauthenticated, so we should clear the
 // network request queue, to prevent DDoSing our own API
-Ion.connect({
-    key: IONKEYS.APP_REDIRECT_TO,
+Onyx.connect({
+    key: ONYXKEYS.APP_REDIRECT_TO,
     callback: (redirectTo) => {
         if (redirectTo && redirectTo.startsWith(ROUTES.SIGNIN)) {
             networkRequestQueue = [];
         }
     }
 });
+
+/**
+ * Does this command require an authToken?
+ *
+ * @param {String} command
+ * @return {Boolean}
+ */
+function isAuthTokenRequired(command) {
+    return !_.contains(['Log'], command);
+}
 
 /**
  * Adds a request to networkRequestQueue
@@ -89,7 +98,7 @@ function deleteLogin(parameters) {
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         doNotRetry: true,
     })
-        .catch(error => Ion.merge(IONKEYS.SESSION, {error: error.message}));
+        .catch(error => Onyx.merge(ONYXKEYS.SESSION, {error: error.message}));
 }
 
 /**
@@ -122,7 +131,7 @@ function createLogin(login, password) {
                 deleteLogin({partnerUserID: credentials.login});
             }
 
-            Ion.merge(IONKEYS.CREDENTIALS, {login, password});
+            Onyx.merge(ONYXKEYS.CREDENTIALS, {login, password});
         });
 }
 
@@ -137,9 +146,9 @@ function setSuccessfulSignInData(data, exitTo) {
     PushNotification.register(data.accountID);
 
     const redirectTo = exitTo ? Str.normalizeUrl(exitTo) : ROUTES.ROOT;
-    Ion.multiSet({
-        [IONKEYS.SESSION]: _.pick(data, 'authToken', 'accountID', 'email'),
-        [IONKEYS.APP_REDIRECT_TO]: redirectTo
+    Onyx.multiSet({
+        [ONYXKEYS.SESSION]: _.pick(data, 'authToken', 'accountID', 'email'),
+        [ONYXKEYS.APP_REDIRECT_TO]: redirectTo
     });
 }
 
@@ -164,7 +173,7 @@ function request(command, parameters, type = 'post') {
     // If we end up here with no authToken it means we are trying to make
     // an API request before we are signed in. In this case, we should just
     // cancel this and all other requests and set reauthenticating to false.
-    if (!authToken) {
+    if (!authToken && isAuthTokenRequired(command)) {
         console.error('A request was made without an authToken', {command, parameters});
         reauthenticating = false;
         redirectToSignIn();
@@ -172,7 +181,7 @@ function request(command, parameters, type = 'post') {
     }
 
     // Add authToken automatically to all commands
-    const parametersWithAuthToken = {...parameters, ...{authToken}};
+    const parametersWithAuthToken = {...parameters, authToken};
 
     // Make the http request, and if we get 407 jsonCode in the response,
     // re-authenticate to get a fresh authToken and make the original http request again
@@ -209,8 +218,8 @@ function request(command, parameters, type = 'post') {
                         // Update the authToken that will be used to retry the command since the one we have is expired
                         parametersWithAuthToken.authToken = response.authToken;
 
-                        // Update authToken in Ion store otherwise subsequent API calls will use the expired one
-                        Ion.merge(IONKEYS.SESSION, _.pick(response, 'authToken'));
+                        // Update authToken in Onyx store otherwise subsequent API calls will use the expired one
+                        Onyx.merge(ONYXKEYS.SESSION, _.pick(response, 'authToken'));
                         return response;
                     })
                     .then(() => HttpUtils.xhr(command, parametersWithAuthToken, type))
@@ -313,7 +322,7 @@ Pusher.registerCustomAuthorizer((channel, {authEndpoint}) => ({
 
 /**
  * Events that happen on the pusher socket are used to determine if the app is online or offline. The offline setting
- * is stored in Ion so the rest of the app has access to it.
+ * is stored in Onyx so the rest of the app has access to it.
  *
  * @params {string} eventName
  */
@@ -344,7 +353,7 @@ function getAuthToken() {
  * @returns {Promise}
  */
 function authenticate(parameters) {
-    Ion.merge(IONKEYS.SESSION, {loading: true, error: ''});
+    Onyx.merge(ONYXKEYS.SESSION, {loading: true, error: ''});
 
     // We treat Authenticate in a special way because unlike other commands, this one can't fail
     // with 407 authToken expired. When other api commands fail with this error we call Authenticate
@@ -376,15 +385,15 @@ function authenticate(parameters) {
         // After the user authenticates, create a new login for the user so that we can reauthenticate when the
         // authtoken expires
         .then(response => (
-            createLogin(Str.generateDeviceLoginID(), guid())
+            createLogin(Str.guid('react-native-chat-'), Str.guid())
                 .then(() => setSuccessfulSignInData(response, parameters.exitTo))
         ))
         .catch((error) => {
             console.error(error);
             console.debug('[SIGNIN] Request error');
-            Ion.merge(IONKEYS.SESSION, {error: error.message});
+            Onyx.merge(ONYXKEYS.SESSION, {error: error.message});
         })
-        .finally(() => Ion.merge(IONKEYS.SESSION, {loading: false}));
+        .finally(() => Onyx.merge(ONYXKEYS.SESSION, {loading: false}));
 }
 
 /**
@@ -481,6 +490,32 @@ function setNameValuePair(parameters) {
     });
 }
 
+/**
+ * @param {object} parameters
+ * @param {number} parameters.reportID
+ * @param {boolean} parameters.pinnedValue
+ * @returns {Promise}
+ */
+function togglePinnedReport(parameters) {
+    return queueRequest('Report_TogglePinned', {
+        authToken,
+        reportID: parameters.reportID,
+        pinnedValue: parameters.pinnedValue,
+    });
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.message
+ * @param {Object} parameters.parameters
+ * @param {String} parameters.expensifyCashAppVersion
+ * @param {String} [parameters.email]
+ * @returns {Promise}
+ */
+function logToServer(parameters) {
+    return queueRequest('Log', parameters);
+}
+
 export {
     authenticate,
     addReportComment,
@@ -492,4 +527,6 @@ export {
     getReportHistory,
     setLastReadActionID,
     setNameValuePair,
+    togglePinnedReport,
+    logToServer,
 };
