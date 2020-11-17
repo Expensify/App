@@ -1,12 +1,12 @@
 import moment from 'moment';
 import 'moment-timezone';
-import Str from './Str';
-import Ion from './Ion';
-import IONKEYS from '../IONKEYS';
+import Onyx from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
+import ONYXKEYS from '../ONYXKEYS';
 
 let timezone;
-Ion.connect({
-    key: IONKEYS.MY_PERSONAL_DETAILS,
+Onyx.connect({
+    key: ONYXKEYS.MY_PERSONAL_DETAILS,
     callback: val => timezone = val ? val.timezone : 'America/Los_Angeles',
 });
 

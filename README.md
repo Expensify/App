@@ -3,8 +3,8 @@
 # Philosophy
 This application is built with the following principles.
 1. **Data Flow** - Ideally, this is how data flows through the app:
-    1. Server pushes data to the disk of any client (Server -> Pusher event -> Action listening to pusher event -> Ion). Currently the code only does this with report comments. Until we make more server changes, this steps is actually done by the client requesting data from the server via XHR and then storing the response in Ion.
-    1. Disk pushes data to the UI (Ion -> withIon()/connect() -> React component).
+    1. Server pushes data to the disk of any client (Server -> Pusher event -> Action listening to pusher event -> Onyx). Currently the code only does this with report comments. Until we make more server changes, this steps is actually done by the client requesting data from the server via XHR and then storing the response in Onyx.
+    1. Disk pushes data to the UI (Onyx -> withOnyx()/connect() -> React component).
     1. UI pushes data to people's brains (React component -> device screen).
     1. Brain pushes data into UI inputs (Device input -> React component).
     1. UI inputs push data to the server (React component -> Action -> XHR to server).
@@ -13,22 +13,22 @@ This application is built with the following principles.
     - All data that is brought into the app and is necessary to display the app when offline should be stored on disk in persistent storage (eg. localStorage on browser platforms). [AsyncStorage](https://react-native-community.github.io/async-storage/) is a cross-platform abstraction layer that is used to access persistent storage.
     - All data that is displayed, comes from persistent storage.
 1. **UI Binds to data on disk** 
-    - Ion is a Pub/Sub library to connect the application to the data stored on disk.
-    - UI components subscribe to Ion (using `withIon()`) and any change to the Ion data is published to the component by calling `setState()` with the changed data.
-    - Libraries subscribe to Ion (with `Ion.connect()`) and any change to the Ion data is published to the callback with the changed data.
-    - The UI should never call any Ion methods except for `Ion.connect()`. That is the job of Actions (see next section).
+    - Onyx is a Pub/Sub library to connect the application to the data stored on disk.
+    - UI components subscribe to Onyx (using `withOnyx()`) and any change to the Onyx data is published to the component by calling `setState()` with the changed data.
+    - Libraries subscribe to Onyx (with `Onyx.connect()`) and any change to the Onyx data is published to the callback with the changed data.
+    - The UI should never call any Onyx methods except for `Onyx.connect()`. That is the job of Actions (see next section).
     - The UI always triggers an Action when something needs to happen (eg. a person inputs data, the UI triggers an Action with this data).
     - The UI should be as flexible as possible when it comes to:
-        - Incomplete or missing data. Always assume data is incomplete or not there. For example, when a comment is pushed to the client from a pusher event, it's possible that Ion does not have data for that report yet. That's OK. A partial report object is added to Ion for the report key `report_1234 = {reportID: 1234, isUnread: true}`. Then there is code that monitors Ion for reports with incomplete data, and calls `fetchChatReportsByIDs(1234)` to get the full data for that report. The UI should be able to gracefully handle the report object not being complete. In this example, the sidebar wouldn't display any report that doesn't have a report name.
+        - Incomplete or missing data. Always assume data is incomplete or not there. For example, when a comment is pushed to the client from a pusher event, it's possible that Onyx does not have data for that report yet. That's OK. A partial report object is added to Onyx for the report key `report_1234 = {reportID: 1234, isUnread: true}`. Then there is code that monitors Onyx for reports with incomplete data, and calls `fetchChatReportsByIDs(1234)` to get the full data for that report. The UI should be able to gracefully handle the report object not being complete. In this example, the sidebar wouldn't display any report that doesn't have a report name.
         - The order that actions are done in. All actions should be done in parallel instead of sequence. 
             - Parallel actions are asynchronous methods that don't return promises. Any number of these actions can be called at one time and it doesn't matter what order they happen in or when they complete.
             - In-Sequence actions are asynchronous methods that return promises. This is necessary when one asynchronous method depends on the results from a previous asynchronous method. Example: Making an XHR to `command=CreateChatReport` which returns a reportID which is used to call `command=Get&rvl=reportStuff`.
-1. **Actions manage Ion Data** 
+1. **Actions manage Onyx Data** 
     - When data needs to be written to or read from the server, this is done through Actions only.
     - Public action methods should never return anything (not data or a promise). This is done to ensure that action methods can be called in parallel with no dependency on other methods (see discussion above).
-    - Actions should favor using `Ion.merge()` over `Ion.set()` so that other values in an object aren't completely overwritten.
-    - In general, the operations that happen inside an action should be done in parallel and not in sequence (eg. don't use the promise of one Ion method to trigger a second Ion method). Ion is built so that every operation is done in parallel and it doesn't matter what order they finish in. XHRs on the other hand need to be handled in sequence with promise chains in order to access and act upon the response.
-    - If an Action needs to access data stored on disk, use a local variable and `Ion.connect()`
+    - Actions should favor using `Onyx.merge()` over `Onyx.set()` so that other values in an object aren't completely overwritten.
+    - In general, the operations that happen inside an action should be done in parallel and not in sequence (eg. don't use the promise of one Onyx method to trigger a second Onyx method). Onyx is built so that every operation is done in parallel and it doesn't matter what order they finish in. XHRs on the other hand need to be handled in sequence with promise chains in order to access and act upon the response.
+    - If an Action needs to access data stored on disk, use a local variable and `Onyx.connect()`
     - Data should be optimistically stored on disk whenever possible without waiting for a server response. Example of creating a new optimistic comment:
         1. user adds a comment 
         2. comment is shown in the UI (by mocking the expected response from the server) 
@@ -77,7 +77,15 @@ You can use any IDE or code editing tool for developing on any platform. Use you
  * To run the **Development app**, run: `npm run desktop`, this will start a new Electron process running on your MacOS desktop in the `dist/Mac` folder.
 
 ## Running the tests 🎰
-* To run the **Jest Unit Tests**: `npm run test`
+### Unit tests
+* To run the **Jest unit tests**: `npm run test`
+
+### End to end tests
+[Detox](https://github.com/wix/Detox) is a _"Gray box end-to-end testing and automation library"_
+
+You are first required to build the tests, then you can run them: 
+1. To build the **Detox end to end tests**: `npm run detox-build`
+2. To run the **Detox end to end tests**: `npm run detox-test`
 
 ## Troubleshooting
 1. If you are having issues with **_Getting Started_**, please reference [React Native's Documentation](https://reactnative.dev/docs/environment-setup)
@@ -99,35 +107,35 @@ Our React Native Android app now uses the `Hermes` JS engine which requires your
 ## Things to know or brush up on before jumping into the code
 1. The major difference between React-Native and React are the [components](https://reactnative.dev/docs/components-and-apis) that are used in the `render()` method. Everything else is exactly the same. If you learn React, you've already learned 98% of React-Native.
 1. The application uses [React-Router](https://reactrouter.com/native/guides/quick-start) for navigating between parts of the app.
-1. [Higher Order Components](https://reactjs.org/docs/higher-order-components.html) are used to connect React components to persistent storage via Ion.
+1. [Higher Order Components](https://reactjs.org/docs/higher-order-components.html) are used to connect React components to persistent storage via Onyx.
 
 ## Structure of the app
 These are the main pieces of the application.
 
-### Ion
+### Onyx
 This is a persistent storage solution wrapped in a Pub/Sub library. In general that means:
 
-- Ion stores and retrieves data from persistent storage
+- Onyx stores and retrieves data from persistent storage
 - Data is stored as key/value pairs, where the value can be anything from a single piece of data to a complex object
 - Collections of data are usually not stored as a single key (eg. an array with multiple objects), but as individual keys+ID (eg. `report_1234`, `report_4567`, etc.). Store collections as individual keys when a component will bind directly to one of those keys. For example: reports are stored as individual keys because `SidebarLink.js` binds to the individual report keys for each link. However, report actions are stored as an array of objects because nothing binds directly to a single report action.
-- Ion allows other code to subscribe to changes in data, and then publishes change events whenever data is changed
-- Anything needing to read Ion data needs to:
+- Onyx allows other code to subscribe to changes in data, and then publishes change events whenever data is changed
+- Anything needing to read Onyx data needs to:
     1. Know what key the data is stored in (for web, you can find this by looking in the JS console > Application > local storage)
-    2. Subscribe to changes of the data for a particular key or set of keys. React components use `withIon()` and non-React libs use `Ion.connect()`.
-    3. Get initialized with the current value of that key from persistent storage (Ion does this by calling `setState()` or triggering the `callback` with the values currently on disk as part of the connection process)
-- Subscribing to Ion keys is done using a constant defined in `IONKEYS`. Each Ion key represents either a collection of items or a specific entry in storage. For example, since all reports are stored as individual keys like `report_1234`, if code needs to know about all the reports (eg. display a list of them in the nav menu), then it would subscribe to the key `IONKEYS.COLLECTION.REPORT`.
+    2. Subscribe to changes of the data for a particular key or set of keys. React components use `withOnyx()` and non-React libs use `Onyx.connect()`.
+    3. Get initialized with the current value of that key from persistent storage (Onyx does this by calling `setState()` or triggering the `callback` with the values currently on disk as part of the connection process)
+- Subscribing to Onyx keys is done using a constant defined in `ONYXKEYS`. Each Onyx key represents either a collection of items or a specific entry in storage. For example, since all reports are stored as individual keys like `report_1234`, if code needs to know about all the reports (eg. display a list of them in the nav menu), then it would subscribe to the key `ONYXKEYS.COLLECTION.REPORT`.
 
 ### Actions
 Actions are responsible for managing what is on disk. This is usually:
 
-- Subscribing to Pusher events to receive data from the server that will get put immediately into Ion
-- Making XHRs to request necessary data from the server and then immediately putting that data into Ion
+- Subscribing to Pusher events to receive data from the server that will get put immediately into Onyx
+- Making XHRs to request necessary data from the server and then immediately putting that data into Onyx
 - Handling any business logic with input coming from the UI layer
 
 ### The UI layer
 This layer is solely responsible for:
 
-- Reflecting exactly the data that is in persistent storage by using `withIon()` to bind to Ion data.
+- Reflecting exactly the data that is in persistent storage by using `withOnyx()` to bind to Onyx data.
 - Taking user input and passing it to an action
 
 ### Directory structure
@@ -149,7 +157,7 @@ Files should be named after the component/function/constants they export, respec
 - If you export a component named `Text` the file/directory should be named `Text` 
 - If you export a function named `guid` the file/directory should be named `guid`. 
 - For files that are utilities that export several functions/classes use the UpperCamelCase version ie: `DateUtils`.
-- HOCs should be named in camelCase like withIon.
+- HOCs should be named in camelCase like withOnyx.
 - All React components should be PascalCase (a.k.a. UpperCamelCase 🐫).
 
 ## Platform-Specific File Extensions
@@ -169,28 +177,28 @@ we should prefer making `CreateTransaction` return the data it just created inst
 
 ### Storage Eviction
 
-Different platforms come with varying storage capacities and Ion has a way to gracefully fail when those storage limits are encountered. When Ion fails to set or modify a key the following steps are taken:
-1. Ion looks at a list of recently accessed keys (access is defined as subscribed to or modified) and locates the key that was least recently accessed
+Different platforms come with varying storage capacities and Onyx has a way to gracefully fail when those storage limits are encountered. When Onyx fails to set or modify a key the following steps are taken:
+1. Onyx looks at a list of recently accessed keys (access is defined as subscribed to or modified) and locates the key that was least recently accessed
 2. It then deletes this key and retries the original operation
 
-By default, Ion will not evict anything from storage and will presume all keys are "unsafe" to remove unless explicitly told otherwise.
+By default, Onyx will not evict anything from storage and will presume all keys are "unsafe" to remove unless explicitly told otherwise.
 
 **To flag a key as safe for removal:**
-- Add the key to the `safeEvictionKeys` option in `Ion.init(options)`
-- Implement `canEvict` in the Ion config for each component subscribing to a key
+- Add the key to the `safeEvictionKeys` option in `Onyx.init(options)`
+- Implement `canEvict` in the Onyx config for each component subscribing to a key
 - The key will only be deleted when all subscribers return `true` for `canEvict`
 
 e.g.
 ```js
-Ion.init({
-    safeEvictionKeys: [IONKEYS.COLLECTION.REPORT_ACTIONS],
+Onyx.init({
+    safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
 });
 ```
 
 ```js
-export default withIon({
+export default withOnyx({
     reportActions: {
-        key: ({reportID}) => `${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
         canEvict: props => !props.isActiveReport,
     },
 })(ReportActionsView);

@@ -2,9 +2,9 @@ import React from 'react';
 import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import withIon from '../../../components/withIon';
-import IONKEYS from '../../../IONKEYS';
-import Str from '../../../libs/Str';
+import {withOnyx} from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
+import ONYXKEYS from '../../../ONYXKEYS';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import ChatSwitcherList from './ChatSwitcherList';
 import ChatSwitcherSearchForm from './ChatSwitcherSearchForm';
@@ -12,6 +12,7 @@ import {fetchOrCreateChatReport} from '../../../libs/actions/Report';
 import {redirect} from '../../../libs/actions/App';
 import ROUTES from '../../../ROUTES';
 import styles from '../../../styles/StyleSheet';
+import * as ChatSwitcher from '../../../libs/actions/ChatSwitcher';
 
 const OPTION_TYPE = {
     USER: 'user',
@@ -33,16 +34,10 @@ const personalDetailsPropTypes = PropTypes.shape({
 });
 
 const propTypes = {
-    // A method that is triggered when the TextInput gets focus
-    onFocus: PropTypes.func.isRequired,
-
-    // A method that is triggered when the TextInput loses focus
-    onBlur: PropTypes.func.isRequired,
-
     // Toggles the hamburger menu open and closed
     onLinkClick: PropTypes.func.isRequired,
 
-    /* Ion Props */
+    /* Onyx Props */
 
     // All of the personal details for everyone
     // The keys of this object are the logins of the users, and the values are an object
@@ -60,11 +55,16 @@ const propTypes = {
         // The email of the person who is currently logged in
         email: PropTypes.string.isRequired,
     }),
+
+    isSidebarAnimating: PropTypes.bool,
+    isChatSwitcherActive: PropTypes.bool,
 };
 const defaultProps = {
     personalDetails: {},
     reports: {},
     session: null,
+    isSidebarAnimating: false,
+    isChatSwitcherActive: false,
 };
 
 class ChatSwitcherView extends React.Component {
@@ -96,11 +96,20 @@ class ChatSwitcherView extends React.Component {
     componentDidMount() {
         // Listen for the Command+K key being pressed so the focus can be given to the chat switcher
         KeyboardShortcut.subscribe('K', () => {
-            if (this.textInput) {
-                this.props.onFocus();
-                this.textInput.focus();
-            }
+            ChatSwitcher.show();
+            this.textInput.focus();
         }, ['meta'], true);
+    }
+
+    componentDidUpdate(prevProps) {
+        // Check if the sidebar was animating but is no longer animating and
+        // if the chat switcher is active then focus the input
+        if (prevProps.isSidebarAnimating
+                && !this.props.isSidebarAnimating
+                && this.props.isChatSwitcherActive
+        ) {
+            this.textInput.focus();
+        }
     }
 
     componentWillUnmount() {
@@ -222,7 +231,7 @@ class ChatSwitcherView extends React.Component {
         }, () => {
             if (blurAfterReset) {
                 this.textInput.blur();
-                this.props.onBlur();
+                ChatSwitcher.hide();
             }
         });
     }
@@ -232,7 +241,7 @@ class ChatSwitcherView extends React.Component {
      * and the logo is hidden
      */
     triggerOnFocusCallback() {
-        this.props.onFocus();
+        ChatSwitcher.show();
         this.setState({
             isLogoVisible: false,
             isClearButtonVisible: true,
@@ -350,10 +359,11 @@ class ChatSwitcherView extends React.Component {
             .map(report => ({
                 text: report.reportName,
                 alternateText: report.reportName,
-                searchText: report.reportName,
+                searchText: report.reportName ?? '',
                 reportID: report.reportID,
                 type: OPTION_TYPE.REPORT,
                 participants: report.participants,
+                isUnread: report.unreadActionCount > 0
             }))
             .value();
 
@@ -414,7 +424,7 @@ class ChatSwitcherView extends React.Component {
                         }
                     }}
                     onChangeText={this.updateSearch}
-                    onClearButtonClick={this.reset}
+                    onClearButtonClick={() => this.reset()}
                     onFocus={this.triggerOnFocusCallback}
                     onKeyPress={this.handleKeyPress}
                     groupUsers={this.state.groupUsers}
@@ -449,14 +459,18 @@ class ChatSwitcherView extends React.Component {
 ChatSwitcherView.propTypes = propTypes;
 ChatSwitcherView.defaultProps = defaultProps;
 
-export default withIon({
+export default withOnyx({
     personalDetails: {
-        key: IONKEYS.PERSONAL_DETAILS,
+        key: ONYXKEYS.PERSONAL_DETAILS,
     },
     reports: {
-        key: IONKEYS.COLLECTION.REPORT
+        key: ONYXKEYS.COLLECTION.REPORT
     },
     session: {
-        key: IONKEYS.SESSION,
+        key: ONYXKEYS.SESSION,
+    },
+    isSidebarAnimating: {
+        key: ONYXKEYS.IS_SIDEBAR_ANIMATING,
+        initFromStoredValues: false,
     },
 })(ChatSwitcherView);

@@ -4,7 +4,7 @@ import {
     Linking, ActivityIndicator, View, Dimensions
 } from 'react-native';
 import PropTypes from 'prop-types';
-import Str from '../../../libs/Str';
+import Str from 'expensify-common/lib/str';
 import ReportActionFragmentPropTypes from './ReportActionFragmentPropTypes';
 import styles, {webViewStyles, colors} from '../../../styles/StyleSheet';
 import Text from '../../../components/Text';
@@ -18,10 +18,14 @@ const propTypes = {
 
     // Is this fragment an attachment?
     isAttachment: PropTypes.bool,
+
+    // Does this fragment belong to a reportAction that has not yet loaded?
+    loading: PropTypes.bool,
 };
 
 const defaultProps = {
-    isAttachment: false
+    isAttachment: false,
+    loading: false,
 };
 
 class ReportActionItemFragment extends React.PureComponent {
@@ -41,6 +45,7 @@ class ReportActionItemFragment extends React.PureComponent {
                     // a new window. On Desktop this means that we will
                     // skip the default Save As... download prompt
                     // and defer to whatever browser the user has.
+                    // eslint-disable-next-line react/jsx-props-no-multi-spaces
                     target={htmlAttribs.target || '_blank'}
                     rel={htmlAttribs.rel || 'noopener noreferrer'}
                     style={passProps.style}
@@ -89,7 +94,7 @@ class ReportActionItemFragment extends React.PureComponent {
         switch (fragment.type) {
             case 'COMMENT':
                 // If this is an attachment placeholder, return the placeholder component
-                if (this.props.isAttachment && fragment.html === fragment.text) {
+                if (this.props.isAttachment && this.props.loading) {
                     return (
                         <View style={[styles.chatItemAttachmentPlaceholder]}>
                             <ActivityIndicator

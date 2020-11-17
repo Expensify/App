@@ -274,6 +274,10 @@ const styles = {
         fontWeight: '700'
     },
 
+    reportOptions: {
+        marginLeft: 8,
+    },
+
     typingIndicator: {
         height: 15,
         marginBottom: 5,
@@ -766,6 +770,7 @@ const styles = {
         marginTop: 5,
         marginBottom: 5,
         marginLeft: 3,
+        padding: 0,
     },
 
     chatSwticherPillWrapper: {
@@ -802,13 +807,6 @@ const styles = {
 
     hamburgerOpen: {
         width: 300,
-    },
-
-    chatSwitcherItemList: {
-        flex: 1,
-        flexGrow: 1,
-        scrollbarWidth: 'none',
-        overflow: 'scroll',
     },
 
     chatSwitcherAvatar: {
