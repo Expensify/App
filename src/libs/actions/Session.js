@@ -62,6 +62,7 @@ function signIn(partnerUserID, partnerUserSecret, twoFactorAuthCode = '', exitTo
                 partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
                 partnerUserID: login,
                 partnerUserSecret: password,
+                doNotRetry: true,
             })
                 .then((createLoginResponse) => {
                     if (createLoginResponse.jsonCode !== 200) {
