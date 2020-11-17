@@ -9,7 +9,6 @@ import {
     Keyboard,
     Pressable,
 } from 'react-native';
-import _ from 'underscore';
 import {SafeAreaInsetsContext, SafeAreaProvider} from 'react-native-safe-area-context';
 import {withOnyx} from 'react-native-onyx';
 import {Route} from '../../libs/Router';
@@ -58,10 +57,8 @@ class App extends React.Component {
         this.showHamburger = this.showHamburger.bind(this);
         this.toggleHamburgerBasedOnDimensions = this.toggleHamburgerBasedOnDimensions.bind(this);
 
-        // Note: This null check is only necessary because withOnyx passes null for bound props
-        //       that are null-initialized initialized in Onyx, and defaultProps only replaces for `undefined` values
         this.animationTranslateX = new Animated.Value(
-            !_.isNull(props.isSidebarShown) && !props.isSidebarShown ? -300 : 0
+            !props.isSidebarShown ? -300 : 0
         );
     }
 
