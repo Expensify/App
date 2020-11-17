@@ -873,6 +873,12 @@ const webViewStyles = {
         paddingBottom: 2,
         alignSelf: 'flex-start',
     },
+    blockquoteTagStyle: {
+        borderLeftColor: colors.border,
+        borderLeftWidth: 4,
+        paddingLeft: 12,
+        marginTop: 12,
+    },
     tagStyles: {
         em: {
             fontFamily: fontFamily.GTA_ITALIC,
