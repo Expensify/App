@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import Str from 'js-libs/lib/str';
+import Str from 'expensify-common/lib/str';
 import styles from '../styles/StyleSheet';
 import PDFView from './PDFView';
 import ImageView from './ImageView';

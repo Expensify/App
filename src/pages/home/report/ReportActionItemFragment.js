@@ -13,7 +13,6 @@ import ImageThumbnailWithModal from '../../../components/ImageThumbnailWithModal
 import InlineCodeBlock from '../../../components/InlineCodeBlock';
 import {getAuthToken} from '../../../libs/API';
 import Config from '../../../CONFIG';
-import CONST from '../../../CONST';
 
 const propTypes = {
     // The message fragment needing to be displayed
@@ -80,9 +79,9 @@ class ReportActionItemFragment extends React.PureComponent {
 
                 // Update the image URL so the images can be accessed in a dev envrionment
                 if (!Config.IS_IN_PRODUCTION) {
-                    const devAPIURL = Config.EXPENSIFY.API_ROOT.replace('/api?', '');
-                    previewSource = previewSource.replace(CONST.EXPENSIFY_DEV_URL, devAPIURL);
-                    source = source.replace(CONST.EXPENSIFY_DEV_URL, devAPIURL);
+                    const devURL = Config.EXPENSIFY.NGROK_URL || Config.EXPENSIFY.SITE_ROOT;
+                    previewSource = previewSource.replace(Config.EXPENSIFY.SITE_ROOT, devURL);
+                    source = source.replace(Config.EXPENSIFY.SITE_ROOT, devURL);
                 }
 
                 return (
