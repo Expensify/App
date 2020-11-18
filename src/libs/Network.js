@@ -37,20 +37,22 @@ function processNetworkRequestQueue() {
         return;
     }
 
-    // Don't make any requests when the queue is paused
-    if (isQueuePaused) {
-        return;
-    }
-
     // When the queue length is empty an early return is performed since nothing needs to be processed
     if (networkRequestQueue.length === 0) {
         return;
     }
 
     _.each(networkRequestQueue, (queuedRequest) => {
+        // Don't make any requests when the queue is paused or when a specific request
+        // needs to be made, even when the queue is paused (like re-authenticating)
+        if (isQueuePaused && queuedRequest.data.forceNetworkRequest !== true) {
+            return;
+        }
+
         const finalParameters = _.isFunction(paramEnhancer)
             ? paramEnhancer(queuedRequest.command, queuedRequest.data)
             : queuedRequest.data;
+
         HttpUtils.xhr(queuedRequest.command, finalParameters, queuedRequest.type)
             .then(queuedRequest.resolve)
             .catch(queuedRequest.reject);
