@@ -9,6 +9,9 @@ let isQueuePaused = false;
 // Queue for network requests so we don't lose actions done by the user while offline
 let networkRequestQueue = [];
 
+// This is an optional function that this lib can be configured with (via registerParameterEnhancer())
+// that accepts all request parameters and returns a new copy of them. This allows other code to inject
+// parameters such as authTokens or CSRF tokens, etc.
 let paramEnhancer;
 
 // We subscribe to changes to the online/offline status of the network to determine when we should fire off API calls
