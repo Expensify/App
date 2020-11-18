@@ -18,31 +18,6 @@ export default function API(network) {
     const defaultHandlers = {};
 
     /**
-     * Triggers the callback for an specific jsonCodes
-     *
-     * @param {Promise} networkPromise
-     * @param {string} originalCommand
-     * @param {object} [originalParameters]
-     * @param {string} [originalType]
-     */
-    function attachJSONCodeCallbacks(networkPromise, originalCommand, originalParameters, originalType) {
-        networkPromise.then((response) => {
-            let defaultHandlerWasUsed = false;
-            _.each(defaultHandlers[response.jsonCode], (callback) => {
-                defaultHandlerWasUsed = true;
-                callback(response, originalCommand, originalParameters, originalType);
-            });
-
-            if (defaultHandlerWasUsed) {
-                // Throw an error to prevent other handlers from being triggered on this promise
-                throw new Error('A default handler was used for this request');
-            }
-
-            return response;
-        });
-    }
-
-    /**
      * @throws {Error} If the "parameters" object has a null or undefined value for any of the given parameterNames
      *
      * @param {String[]} parameterNames Array of the required parameter names
@@ -79,8 +54,22 @@ export default function API(network) {
     function request(command, parameters, type = 'post') {
         const networkPromise = network.post(command, parameters, type);
 
-        // Attach any JSONCode callbacks to our promise
-        attachJSONCodeCallbacks(networkPromise, command, parameters, type);
+        // Setup the default handlers to work with different response codes
+        networkPromise.then((response) => {
+            let defaultHandlerWasUsed = false;
+
+            _.each(defaultHandlers[response.jsonCode], (callback) => {
+                defaultHandlerWasUsed = true;
+                callback(response, command, parameters, type);
+            });
+
+            if (defaultHandlerWasUsed) {
+                // Throw an error to prevent other handlers from being triggered on this promise
+                throw new Error('A default handler was used for this request');
+            }
+
+            return response;
+        });
 
         return networkPromise;
     }
