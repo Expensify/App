@@ -58,13 +58,13 @@ const mainWindow = (() => {
                     role: 'back',
                     label: 'Back',
                     accelerator: process.platform === 'darwin' ? 'Cmd+[' : 'Shift+[',
-                    click: () => { console.log('Going backward!'); }
+                    click: () => { browserWindow.webContents.goBack(); }
                 },
                 {
                     role: 'forward',
                     label: 'Forward',
                     accelerator: process.platform === 'darwin' ? 'Cmd+]' : 'Shift+]',
-                    click: () => { console.log('Going forward!'); }
+                    click: () => { browserWindow.webContents.goForward(); }
                 }]
             }));
             const windowMenu = systemMenu.items.find(item => item.role === 'windowmenu');
