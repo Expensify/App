@@ -141,7 +141,9 @@ function handleAuthFailures(originalResponse, originalCommand, originalParameter
 }
 
 // Register handler for auth failures
-expensifyAPI.registerDefaultHandler(expensifyAPI.JSON_CODES.AUTH_FAILURES, handleAuthFailures);
+expensifyAPI.registerDefaultHandler([
+    407, // AuthToken Invalid/Expired
+], handleAuthFailures);
 
 export default expensifyAPI;
 

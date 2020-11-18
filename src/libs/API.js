@@ -274,11 +274,5 @@ export default function API(network) {
                 parameters, commandName);
             return request(commandName, parameters);
         },
-
-        JSON_CODES: {
-            AUTH_FAILURES: [
-                407, // AuthToken Invalid/Expired
-            ],
-        },
     };
 }
