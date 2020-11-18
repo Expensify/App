@@ -76,7 +76,7 @@ export default function API(network) {
      *
      * @returns {Promise}
      */
-    function performPOSTRequest(command, parameters, type = 'post') {
+    function request(command, parameters, type = 'post') {
         const networkPromise = network.post(command, parameters, type);
 
         // Attach any JSONCode callbacks to our promise
@@ -123,7 +123,7 @@ export default function API(network) {
                 'partnerUserSecret',
             ], parameters, commandName);
 
-            return performPOSTRequest(commandName, {
+            return request(commandName, {
                 // When authenticating for the first time, we pass useExpensifyLogin as true so we check
                 // for credentials for the expensify partnerID to let users Authenticate with their expensify user
                 // and password.
@@ -155,7 +155,7 @@ export default function API(network) {
             const commandName = 'CreateChatReport';
             requireParameters(['emailList'],
                 parameters, commandName);
-            return performPOSTRequest(commandName, parameters);
+            return request(commandName, parameters);
         },
 
         /**
@@ -176,7 +176,7 @@ export default function API(network) {
                 'partnerUserID',
                 'partnerUserSecret',
             ], parameters, commandName);
-            return performPOSTRequest(commandName, parameters);
+            return request(commandName, parameters);
         },
 
         /**
@@ -191,7 +191,7 @@ export default function API(network) {
             const commandName = 'DeleteLogin';
             requireParameters(['partnerUserID', 'partnerName', 'partnerPassword', 'doNotRetry'],
                 parameters, commandName);
-            return performPOSTRequest(commandName, parameters);
+            return request(commandName, parameters);
         },
 
         /**
@@ -203,7 +203,7 @@ export default function API(network) {
             const commandName = 'Get';
             requireParameters(['returnValueList'],
                 parameters, commandName);
-            return performPOSTRequest(commandName, parameters);
+            return request(commandName, parameters);
         },
 
         /**
@@ -215,7 +215,7 @@ export default function API(network) {
             const commandName = 'PersonalDetails_GetForEmails';
             requireParameters(['emailList'],
                 parameters, commandName);
-            return performPOSTRequest(commandName, parameters);
+            return request(commandName, parameters);
         },
 
         /**
@@ -230,7 +230,7 @@ export default function API(network) {
             const commandName = 'Log';
             requireParameters(['message', 'parameters', 'expensifyCashAppVersion'],
                 parameters, commandName);
-            return performPOSTRequest(commandName, parameters);
+            return request(commandName, parameters);
         },
 
         /**
@@ -244,7 +244,7 @@ export default function API(network) {
             const commandName = 'Report_AddComment';
             requireParameters(['reportComment', 'reportID'],
                 parameters, commandName);
-            return performPOSTRequest(commandName, parameters);
+            return request(commandName, parameters);
         },
 
         /**
@@ -256,7 +256,7 @@ export default function API(network) {
             const commandName = 'Report_GetHistory';
             requireParameters(['reportID'],
                 parameters, commandName);
-            return performPOSTRequest(commandName, parameters);
+            return request(commandName, parameters);
         },
 
         /**
@@ -269,7 +269,7 @@ export default function API(network) {
             const commandName = 'Report_TogglePinned';
             requireParameters(['reportID', 'pinnedValue'],
                 parameters, commandName);
-            return performPOSTRequest(commandName, parameters);
+            return request(commandName, parameters);
         },
 
         /**
@@ -283,7 +283,7 @@ export default function API(network) {
             const commandName = 'Report_SetLastReadActionID';
             requireParameters(['accountID', 'reportID', 'sequenceNumber'],
                 parameters, commandName);
-            return performPOSTRequest(commandName, parameters);
+            return request(commandName, parameters);
         },
 
         JSON_CODES: {
