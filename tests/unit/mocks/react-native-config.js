@@ -6,6 +6,7 @@ export default {
     PUSHER_APP_KEY: 'ac6d22b891daae55283a',
     PUSHER_AUTH_URL: 'https://www.expensify.com.dev',
     NGROK_URL: '',
+    USE_NGROK: false,
     PARTNER_USER_ID: '',
     PARTNER_USER_SECRET: ''
 };
