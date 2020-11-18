@@ -55,13 +55,11 @@ export default function API(network) {
                 || parameters[parameterName] === null
                 || parameters[parameterName] === undefined
             ) {
-                const parametersCopy = _.clone(parameters);
-                if (_(parametersCopy).has('authToken')) {
-                    parametersCopy.authToken = '<redacted>';
-                }
-                if (_(parametersCopy).has('password')) {
-                    parametersCopy.password = '<redacted>';
-                }
+                const propertiesToRedact = ['authToken', 'password', 'partnerUserSecret', 'twoFactorAuthCode'];
+                const parametersCopy = _.chain(parameters)
+                    .clone()
+                    .mapObject((val, key) => (_.contains(propertiesToRedact, key) ? '<redacted>' : val))
+                    .value();
                 const keys = _(parametersCopy).keys().join(', ') || 'none';
                 // eslint-disable-next-line max-len
                 throw new Error(`Parameter ${parameterName} is required for "${commandName}". Supplied parameters: ${keys}`);
