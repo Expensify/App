@@ -168,7 +168,7 @@ class ReportActionCompose extends React.Component {
                         onChangeText={this.updateComment}
                         onKeyPress={this.triggerSubmitShortcut}
                         style={[styles.textInput, styles.textInputCompose, styles.flex4]}
-                        defaultValue={this.props.comment || ''}
+                        defaultValue={this.props.comment}
                         maxLines={16} // This is the same that slack has
                         onFocus={() => this.setIsFocused(true)}
                         onBlur={() => this.setIsFocused(false)}
