@@ -148,8 +148,8 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled rootProject.ext.multiDexEnabled
-        versionCode 186
-        versionName "1.0.1-185"
+        versionCode 188
+        versionName "1.0.1-187"
     }
     splits {
         abi {

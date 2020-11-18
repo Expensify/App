@@ -1,6 +1,6 @@
 {
   "name": "react-native-chat",
-  "version": "1.0.1-185",
+  "version": "1.0.1-187",
   "author": "Expensify, Inc.",
   "homepage": "https://expensify.com",
   "description": "Expensify Chat",
@@ -58,7 +58,7 @@
     "react-native-image-picker": "^2.3.3",
     "react-native-keyboard-spacer": "^0.4.1",
     "react-native-pdf": "^6.2.2",
-    "react-native-onyx": "git+https://git@github.com:Expensify/react-native-onyx.git#ef8744a5d2af75d786baa580239fc380534fb89d",
+    "react-native-onyx": "git+https://git@github.com:Expensify/react-native-onyx.git#3638b1818dcd8cf7ff8aef1ca984ceba55cca806",
     "react-native-render-html": "^4.2.3",
     "react-native-safe-area-context": "^3.1.4",
     "react-native-web": "^0.14.0",
