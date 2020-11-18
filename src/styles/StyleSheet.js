@@ -877,7 +877,7 @@ const webViewStyles = {
         borderLeftColor: colors.border,
         borderLeftWidth: 4,
         paddingLeft: 12,
-        marginTop: 12,
+        marginTop: 4,
     },
     tagStyles: {
         em: {
