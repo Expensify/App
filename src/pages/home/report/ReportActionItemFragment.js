@@ -78,10 +78,13 @@ class ReportActionItemFragment extends React.PureComponent {
                     : htmlAttribs.src;
 
                 // Update the image URL so the images can be accessed in a dev envrionment
+                // URLs do not need to be changed in production
                 if (!Config.IS_IN_PRODUCTION) {
-                    const devURL = Config.EXPENSIFY.NGROK_URL || Config.EXPENSIFY.SITE_ROOT;
-                    previewSource = previewSource.replace(Config.EXPENSIFY.SITE_ROOT, devURL);
-                    source = source.replace(Config.EXPENSIFY.SITE_ROOT, devURL);
+                    previewSource = previewSource.replace(
+                        Config.EXPENSIFY.DEFAULT_SITE_ROOT,
+                        Config.EXPENSIFY.SITE_ROOT
+                    );
+                    source = source.replace(Config.EXPENSIFY.DEFAULT_SITE_ROOT, Config.EXPENSIFY.SITE_ROOT);
                 }
 
                 return (
