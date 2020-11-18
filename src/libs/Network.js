@@ -48,7 +48,7 @@ function processNetworkRequestQueue() {
     }
 
     _.each(networkRequestQueue, (queuedRequest) => {
-        const finalParameters = paramEnhancer
+        const finalParameters = _.isFunction(paramEnhancer)
             ? paramEnhancer(queuedRequest.command, queuedRequest.data)
             : queuedRequest.data;
         HttpUtils.xhr(queuedRequest.command, finalParameters, queuedRequest.type)
