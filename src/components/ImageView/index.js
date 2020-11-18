@@ -13,19 +13,18 @@ const propTypes = {
     imageWidth: PropTypes.number,
 
     // Any additional styles to apply
-    // eslint-disable-next-line react/forbid-prop-types
-    style: PropTypes.any,
+    wrapperStyle: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
 };
 
 const defaultProps = {
     sourceURL: '',
     imageHeight: 300,
     imageWidth: 300,
-    style: {},
+    wrapperStyle: {},
 };
 
 const ImageView = props => (
-    <View style={props.style}>
+    <View style={props.wrapperStyle}>
         <Image
             source={{uri: props.sourceURL}}
             style={{

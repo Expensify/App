@@ -3,6 +3,10 @@ import PropTypes from 'prop-types';
 import {View, Dimensions, Image} from 'react-native';
 import ImgZoom from 'react-native-image-pan-zoom';
 
+/**
+ * On the native layer, we use a image library to handle zoom functionality
+ */
+
 const propTypes = {
     // URL to full-sized image
     sourceURL: PropTypes.string,
@@ -20,8 +24,7 @@ const propTypes = {
     windowWidth: PropTypes.number,
 
     // Any additional styles to apply
-    // eslint-disable-next-line react/forbid-prop-types
-    style: PropTypes.any,
+    wrapperStyle: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
 };
 
 const defaultProps = {
@@ -32,18 +35,11 @@ const defaultProps = {
     // Default windowHeight accounts for the modal header height of 73
     windowHeight: Dimensions.get('window').height - 73,
     windowWidth: Dimensions.get('window').width,
-    style: {},
+    wrapperStyle: {},
 };
 
-/**
- * On the native layer, we use a image library to handle zoom functionality
- *
- * @param props
- * @returns {JSX.Element}
- */
-
 const ImageView = props => (
-    <View style={props.style}>
+    <View style={props.wrapperStyle}>
         <ImgZoom
             cropWidth={props.windowWidth}
             cropHeight={props.windowHeight}

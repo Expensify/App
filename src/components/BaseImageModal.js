@@ -61,16 +61,18 @@ class BaseImageModal extends React.Component {
             thumbnailHeight: 200,
             isModalOpen: false,
         };
+
+        this.setModalVisiblity = this.setModalVisiblity.bind(this);
+
+        // Property to check if we have already calculated the image size for inside the modal
+        // so we don't need to grab the image and resize it again
+        this.calculatedModalImageSize = false;
     }
 
     componentDidMount() {
         // If the component unmounts by the time getSize() is finished, it will throw a warning
         // So this is to prevent setting state if the component isn't mounted
         this.isComponentMounted = true;
-
-        // Property to check if we have already calculated the image size for inside the modal
-        // so we don't need to grab the image and resize it again
-        this.calculatedModalImageSize = false;
 
         // Scale image for thumbnail preview
         Image.getSize(this.props.previewSourceURL, (width, height) => {
