@@ -1,15 +1,8 @@
-import Onyx from 'react-native-onyx';
 import _ from 'underscore';
-import ONYXKEYS from '../ONYXKEYS';
 import * as Pusher from './Pusher/pusher';
+import expensifyAPI from './expensifyAPI';
 
 function init() {
-    let authToken;
-    Onyx.connect({
-        key: ONYXKEYS.SESSION,
-        callback: val => authToken = val ? val.authToken : null,
-    });
-
     /**
      * Pusher.reconnect() calls disconnect and connect on the
      * Pusher socket. In some cases, the authorizer might fail
@@ -26,21 +19,21 @@ function init() {
      * current valid token to generate the signed auth response
      * needed to subscribe to Pusher channels.
      */
-    Pusher.registerCustomAuthorizer((channel, {authEndpoint}) => ({
+    Pusher.registerCustomAuthorizer(channel => ({
         authorize: (socketID, callback) => {
             console.debug('[Network] Attempting to authorize Pusher');
 
-            const formData = new FormData();
-            formData.append('socket_id', socketID);
-            formData.append('channel_name', channel.name);
-            formData.append('authToken', authToken);
-
-            return fetch(authEndpoint, {
-                method: 'POST',
-                body: formData,
+            expensifyAPI.Push_Authenticate({
+                socket_id: socketID,
+                channel_name: channel.name,
+                doNotRetry: true,
             })
-                .then(authResponse => authResponse.json())
-                .then(data => callback(null, data))
+                .then((data) => {
+                    if (data.jsonCode === 407) {
+                        throw new Error(data.title);
+                    }
+                    callback(null, data);
+                })
                 .catch((error) => {
                     reconnectToPusher();
                     console.debug('[Network] Failed to authorize Pusher');

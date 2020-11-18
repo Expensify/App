@@ -123,6 +123,9 @@ export default function API(network) {
                 partnerUserSecret: parameters.partnerUserSecret,
                 twoFactorAuthCode: parameters.twoFactorAuthCode,
                 doNotRetry: true,
+
+                // Force this request to be made because the network queue is paused when re-authentication is happening
+                forceNetworkRequest: true,
             })
                 .then((response) => {
                     // If we didn't get a 200 response from Authenticate we either failed to Authenticate with
@@ -203,6 +206,19 @@ export default function API(network) {
         PersonalDetails_GetForEmails(parameters) {
             const commandName = 'PersonalDetails_GetForEmails';
             requireParameters(['emailList'],
+                parameters, commandName);
+            return request(commandName, parameters);
+        },
+
+        /**
+         * @param {object} parameters
+         * @param {string} parameters.socket_id
+         * @param {string} parameters.channel_name
+         * @returns {Promise}
+         */
+        Push_Authenticate(parameters) {
+            const commandName = 'Push_Authenticate';
+            requireParameters(['socket_id', 'channel_name'],
                 parameters, commandName);
             return request(commandName, parameters);
         },
