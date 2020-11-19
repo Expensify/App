@@ -41,7 +41,7 @@ function init(args, params) {
 
         const options = {
             cluster: args.cluster,
-            authEndpoint: `${args.apiRoot}command=Push_Authenticate`,
+            authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Push_Authenticate`,
         };
 
         if (customAuthorizer) {
