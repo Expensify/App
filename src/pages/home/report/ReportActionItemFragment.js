@@ -81,10 +81,13 @@ class ReportActionItemFragment extends React.PureComponent {
                 // URLs do not need to be changed in production
                 if (!Config.IS_IN_PRODUCTION) {
                     previewSource = previewSource.replace(
-                        Config.EXPENSIFY.DEFAULT_SITE_ROOT,
-                        Config.EXPENSIFY.SITE_ROOT
+                        Config.EXPENSIFY.URL_EXPENSIFY_COM,
+                        Config.EXPENSIFY.URL_EXPENSIFY_API
                     );
-                    source = source.replace(Config.EXPENSIFY.DEFAULT_SITE_ROOT, Config.EXPENSIFY.SITE_ROOT);
+                    source = source.replace(
+                        Config.EXPENSIFY.URL_EXPENSIFY_COM,
+                        Config.EXPENSIFY.URL_EXPENSIFY_API
+                    );
                 }
 
                 return (
