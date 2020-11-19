@@ -20,6 +20,7 @@ const colors = {
     textSupporting: '#7D8B8F',
     red: '#E84A3B',
     buttonBG: '#8A8A8A',
+    modalBackdrop: '#00000080',
 };
 
 const styles = {
@@ -155,6 +156,10 @@ const styles = {
 
     bgHighlight3: {
         backgroundColor: 'pink',
+    },
+
+    overflowHidden: {
+        overflow: 'hidden',
     },
 
     h4: {
@@ -566,6 +571,12 @@ const styles = {
         width: 18,
     },
 
+    attachmentCloseIcon: {
+        height: 20,
+        width: 20,
+        padding: 0,
+    },
+
     chatContent: {
         flex: 4,
         justifyContent: 'flex-end',
@@ -848,6 +859,47 @@ const styles = {
         fontSize: 11,
         lineHeight: 16,
         fontWeight: '700',
+    },
+
+    modalViewContainer: {
+        backgroundColor: colors.componentBG,
+        borderColor: colors.border,
+        borderWidth: 1,
+        borderRadius: 20,
+        height: '100%',
+    },
+
+    modalHeaderBar: {
+        fontFamily: fontFamily.GTA,
+        overflow: 'hidden',
+        justifyContent: 'center',
+        display: 'flex',
+        paddingLeft: 32,
+        paddingRight: 20,
+        borderBottomWidth: 1,
+        borderColor: colors.border,
+        height: 73,
+    },
+
+    imageModalPDF: {
+        flex: 1,
+        backgroundColor: colors.componentBG,
+    },
+
+    modalCenterContentContainer: {
+        flex: 1,
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: colors.modalBackdrop,
+    },
+
+    imageModalImageCenterContainer: {
+        flex: 1,
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        overflow: 'hidden',
     },
 };
 
