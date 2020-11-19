@@ -44,7 +44,7 @@ function processHTTPRequest(url, method = 'get', body = null) {
 function xhr(command, data, type = 'post') {
     const formData = new FormData();
     _.each(data, (val, key) => formData.append(key, val));
-    return processHTTPRequest(`${CONFIG.EXPENSIFY.URL_EXPENSIFY_API}api?command=${command}`, type, formData);
+    return processHTTPRequest(`${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=${command}`, type, formData);
 }
 
 /**
