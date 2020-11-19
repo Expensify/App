@@ -51,6 +51,16 @@ This application is built with the following principles.
 
 You can use any IDE or code editing tool for developing on any platform. Use your favorite!
 
+## Setting up ngrok
+Ngrok makes the our locally-hosted web application appear to be hosted on a subdomain of ngrok.com.  This allows us to avoid many of our cross-domain issues with our API and is required for doing local development on android or viewing images on mobile.
+
+1. Set up a permanent [ngrok route](https://stackoverflow.com/c/expensify/questions/3382)
+2. Replace the value `NGROK_URL` in your `.env` file with the ngrok route you just set up
+3. Set the `USE_NGROK` in your `.env` to true
+4. Start ngrok with the name you previously set (`Expensidev/script/ngrok.sh thienlnam`)
+
+Now, all of your API calls will be using the ngrok route.
+
 ## Running the web app 🕸
 * To run a **Development Server**: `npm run web`
 * To build a **production build**: `npm run build`
@@ -69,7 +79,7 @@ You can use any IDE or code editing tool for developing on any platform. Use you
 ## Running the Android app 🤖
 * To install the Android dependencies, run: `npm install`, then `gradle` will install all linked dependencies
 * Running via `ngrok` is required to communicate with the API
-    * Start ngrok (`Expensidev/script/ngrok.sh`), replace `expensify.com.dev` value in `.env` with your ngrok value
+    * Follow the instructions under the section `Setting up ngrok`
 * To run a on a **Development Emulator**: `npm run android`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 

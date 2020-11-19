@@ -68,6 +68,17 @@ module.exports = {
                 },
             },
 
+            // Rule for react-native-web-webview
+            {
+                test: /postMock.html$/,
+                use: {
+                    loader: 'file-loader',
+                    options: {
+                        name: '[name].[ext]',
+                    },
+                },
+            },
+
             // Gives the ability to load local images
             {
                 test: /\.(png|jpe?g|gif)$/i,
@@ -83,6 +94,7 @@ module.exports = {
         alias: {
             'react-native-config': 'react-web-config',
             'react-native$': 'react-native-web',
+            'react-native-webview': 'react-native-web-webview',
         },
 
         // React Native libraries may have web-specific module implementations that appear with the extension `.web.js`
