@@ -77,18 +77,15 @@ class ReportActionItemFragment extends React.PureComponent {
                     ? `${htmlAttribs['data-expensify-source']}?authToken=${getAuthToken()}`
                     : htmlAttribs.src;
 
-                // Update the image URL so the images can be accessed in a dev envrionment
-                // URLs do not need to be changed in production
-                if (!Config.IS_IN_PRODUCTION) {
-                    previewSource = previewSource.replace(
-                        Config.EXPENSIFY.URL_EXPENSIFY_COM,
-                        Config.EXPENSIFY.URL_EXPENSIFY_API
-                    );
-                    source = source.replace(
-                        Config.EXPENSIFY.URL_EXPENSIFY_COM,
-                        Config.EXPENSIFY.URL_EXPENSIFY_API
-                    );
-                }
+                // Update the image URL so the images can be accessed depending on the config environment
+                previewSource = previewSource.replace(
+                    Config.EXPENSIFY.URL_EXPENSIFY_COM,
+                    Config.EXPENSIFY.URL_API_ROOT
+                );
+                source = source.replace(
+                    Config.EXPENSIFY.URL_EXPENSIFY_COM,
+                    Config.EXPENSIFY.URL_API_ROOT
+                );
 
                 return (
                     <ImageThumbnailWithModal
