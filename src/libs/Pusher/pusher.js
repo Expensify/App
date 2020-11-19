@@ -39,7 +39,7 @@ function init(appKey, params) {
 
         const options = {
             cluster: CONFIG.PUSHER.CLUSTER,
-            authEndpoint: `${CONFIG.EXPENSIFY.API_ROOT}command=Push_Authenticate`,
+            authEndpoint: `${CONFIG.EXPENSIFY.URL_EXPENSIFY_API}api?command=Push_Authenticate`,
         };
 
         if (customAuthorizer) {

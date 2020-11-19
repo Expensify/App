@@ -44,7 +44,7 @@ function processHTTPRequest(url, method = 'get', body = null) {
 function xhr(command, data, type = 'post') {
     const formData = new FormData();
     _.each(data, (val, key) => formData.append(key, val));
-    return processHTTPRequest(`${CONFIG.EXPENSIFY.API_ROOT}command=${command}`, type, formData);
+    return processHTTPRequest(`${CONFIG.EXPENSIFY.URL_EXPENSIFY_API}api?command=${command}`, type, formData);
 }
 
 /**
@@ -54,7 +54,7 @@ function xhr(command, data, type = 'post') {
  * @returns {Promise<Response>}
  */
 function download(relativePath) {
-    const siteRoot = CONFIG.EXPENSIFY.CASH_SITE_ROOT;
+    const siteRoot = CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH;
 
     // Strip leading slashes and periods from relative path, if present
     const strippedRelativePath = relativePath.charAt(0) === '/' || relativePath.charAt(0) === '.'
