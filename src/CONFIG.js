@@ -3,7 +3,7 @@ import Config from 'react-native-config';
 
 // Ngrok helps us avoid many of our cross-domain issues with connecting to our API
 // and is reqired for viewing images on mobile and for developing on android
-// To enable, set the USE_NGROK value to true in dev and update the NGROK_URL
+// To enable, set the USE_NGROK value to true in .env and update the NGROK_URL
 const expensifyAPIPath = Config.USE_NGROK === 'true' && Config.NGROK_URL
     ? Config.NGROK_URL
     : Config.EXPENSIFY_URL_COM;
