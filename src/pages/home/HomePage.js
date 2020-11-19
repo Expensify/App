@@ -70,7 +70,7 @@ class App extends React.Component {
         Pusher.init({
             appKey: CONFIG.PUSHER.APP_KEY,
             cluster: CONFIG.PUSHER.CLUSTER,
-            apiRoot: CONFIG.EXPENSIFY.API_ROOT,
+            authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Push_Authenticate`,
         }).then(subscribeToReportCommentEvents);
 
         // Fetch all the personal details

@@ -21,7 +21,7 @@ function callSocketEventCallbacks(eventName, data) {
  * @param {Object} args
  * @param {String} args.appKey
  * @param {String} args.cluster
- * @param {String} args.apiRoot
+ * @param {String} args.authEndpoint
  * @param {Object} [params]
  * @public
  * @returns {Promise} resolves when Pusher has connected
@@ -41,7 +41,7 @@ function init(args, params) {
 
         const options = {
             cluster: args.cluster,
-            authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Push_Authenticate`,
+            authEndpoint: args.authEndpoint,
         };
 
         if (customAuthorizer) {
