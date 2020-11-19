@@ -9,8 +9,10 @@ import ReportActionFragmentPropTypes from './ReportActionFragmentPropTypes';
 import styles, {webViewStyles, colors} from '../../../styles/StyleSheet';
 import Text from '../../../components/Text';
 import AnchorForCommentsOnly from '../../../components/AnchorForCommentsOnly';
-import {getAuthToken} from '../../../libs/API';
+import ImageThumbnailWithModal from '../../../components/ImageThumbnailWithModal';
 import InlineCodeBlock from '../../../components/InlineCodeBlock';
+import {getAuthToken} from '../../../libs/API';
+import Config from '../../../CONFIG';
 
 const propTypes = {
     // The message fragment needing to be displayed
@@ -31,8 +33,6 @@ const defaultProps = {
 class ReportActionItemFragment extends React.PureComponent {
     constructor(props) {
         super(props);
-
-        this.alterNode = this.alterNode.bind(this);
 
         // Define the custom render methods
         // For <a> tags, the <Anchor> attribute is used to be more cross-platform friendly
@@ -75,24 +75,35 @@ class ReportActionItemFragment extends React.PureComponent {
                     {children}
                 </View>
             ),
+            img: (htmlAttribs, children, convertedCSSStyles, passProps) => {
+                // Attaches authTokens as a URL parameter to load image attachments
+                let previewSource = htmlAttribs['data-expensify-source']
+                    ? `${htmlAttribs.src}?authToken=${getAuthToken()}`
+                    : htmlAttribs.src;
+
+                let source = htmlAttribs['data-expensify-source']
+                    ? `${htmlAttribs['data-expensify-source']}?authToken=${getAuthToken()}`
+                    : htmlAttribs.src;
+
+                // Update the image URL so the images can be accessed depending on the config environment
+                previewSource = previewSource.replace(
+                    Config.EXPENSIFY.URL_EXPENSIFY_COM,
+                    Config.EXPENSIFY.URL_API_ROOT
+                );
+                source = source.replace(
+                    Config.EXPENSIFY.URL_EXPENSIFY_COM,
+                    Config.EXPENSIFY.URL_API_ROOT
+                );
+
+                return (
+                    <ImageThumbnailWithModal
+                        previewSourceURL={previewSource}
+                        sourceURL={source}
+                        key={passProps.key}
+                    />
+                );
+            },
         };
-    }
-
-    /**
-     * Function to edit HTML on the fly before it's rendered, currently this attaches authTokens as a URL parameter to
-     * load image attachments.
-     *
-     * @param {object} node
-     * @returns {object}
-     */
-    alterNode(node) {
-        const htmlNode = node;
-
-        // We only want to attach auth tokens to images that come from Expensify attachments
-        if (htmlNode.name === 'img' && htmlNode.attribs['data-expensify-source']) {
-            htmlNode.attribs.src = `${node.attribs.src}?authToken=${getAuthToken()}`;
-            return htmlNode;
-        }
     }
 
     render() {
@@ -124,7 +135,6 @@ class ReportActionItemFragment extends React.PureComponent {
                             tagsStyles={webViewStyles.tagStyles}
                             onLinkPress={(event, href) => Linking.openURL(href)}
                             html={fragment.html}
-                            alterNode={this.alterNode}
                             imagesMaxWidth={Math.min(maxImageDimensions, windowWidth * 0.8)}
                             imagesInitialDimensions={{width: maxImageDimensions, height: maxImageDimensions}}
                         />
