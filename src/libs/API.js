@@ -90,53 +90,6 @@ function requireParameters(parameterNames, parameters, commandName) {
 }
 
 /**
- * @param {object} parameters
- * @param {string} [parameters.useExpensifyLogin]
- * @param {string} parameters.partnerName
- * @param {string} parameters.partnerPassword
- * @param {string} parameters.partnerUserID
- * @param {string} parameters.partnerUserSecret
- * @param {string} [parameters.twoFactorAuthCode]
- * @returns {Promise}
- */
-function authenticateWithAPI(parameters) {
-    const commandName = 'Authenticate';
-
-    requireParameters([
-        'partnerName',
-        'partnerPassword',
-        'partnerUserID',
-        'partnerUserSecret',
-    ], parameters, commandName);
-
-    // eslint-disable-next-line no-use-before-define
-    return request(commandName, {
-        // When authenticating for the first time, we pass useExpensifyLogin as true so we check
-        // for credentials for the expensify partnerID to let users Authenticate with their expensify user
-        // and password.
-        useExpensifyLogin: parameters.useExpensifyLogin,
-        partnerName: parameters.partnerName,
-        partnerPassword: parameters.partnerPassword,
-        partnerUserID: parameters.partnerUserID,
-        partnerUserSecret: parameters.partnerUserSecret,
-        twoFactorAuthCode: parameters.twoFactorAuthCode,
-        doNotRetry: true,
-
-        // Force this request to be made because the network queue is paused when re-authentication is happening
-        forceNetworkRequest: true,
-    })
-        .then((response) => {
-            // If we didn't get a 200 response from Authenticate we either failed to Authenticate with
-            // an expensify login or the login credentials we created after the initial authentication.
-            // In both cases, we need the user to sign in again with their expensify credentials
-            if (response.jsonCode !== 200) {
-                throw new Error(response.message);
-            }
-            return response;
-        });
-}
-
-/**
  * Function used to handle expired auth tokens. It re-authenticates with the API and
  * then replays the original request
  *
@@ -163,7 +116,8 @@ function handleExpiredAuthToken(originalResponse, originalCommand, originalParam
     Network.pauseRequestQueue();
     isAuthenticating = true;
 
-    authenticateWithAPI({
+    // eslint-disable-next-line no-use-before-define
+    Authenticate({
         useExpensifyLogin: false,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
@@ -189,7 +143,7 @@ function handleExpiredAuthToken(originalResponse, originalCommand, originalParam
         })
 
         // Now that the API is authenticated, make the original request again with the new authToken
-        // Use HttpUtils here so that retry logic is avoided. Since this code is triggered from a rety attempt
+        // Use HttpUtils here so that retry logic is avoided. Since this code is triggered from a retry attempt
         // it can create an infinite loop
         .then(() => {
             const params = addAuthTokenToParameters(originalCommand, originalParameters);
@@ -253,7 +207,40 @@ function getAuthToken() {
  * @returns {Promise}
  */
 function Authenticate(parameters) {
-    return authenticateWithAPI(parameters);
+    const commandName = 'Authenticate';
+
+    requireParameters([
+        'partnerName',
+        'partnerPassword',
+        'partnerUserID',
+        'partnerUserSecret',
+    ], parameters, commandName);
+
+    // eslint-disable-next-line no-use-before-define
+    return request(commandName, {
+        // When authenticating for the first time, we pass useExpensifyLogin as true so we check
+        // for credentials for the expensify partnerID to let users Authenticate with their expensify user
+        // and password.
+        useExpensifyLogin: parameters.useExpensifyLogin,
+        partnerName: parameters.partnerName,
+        partnerPassword: parameters.partnerPassword,
+        partnerUserID: parameters.partnerUserID,
+        partnerUserSecret: parameters.partnerUserSecret,
+        twoFactorAuthCode: parameters.twoFactorAuthCode,
+        doNotRetry: true,
+
+        // Force this request to be made because the network queue is paused when re-authentication is happening
+        forceNetworkRequest: true,
+    })
+        .then((response) => {
+            // If we didn't get a 200 response from Authenticate we either failed to Authenticate with
+            // an expensify login or the login credentials we created after the initial authentication.
+            // In both cases, we need the user to sign in again with their expensify credentials
+            if (response.jsonCode !== 200) {
+                throw new Error(response.message);
+            }
+            return response;
+        });
 }
 
 /**
