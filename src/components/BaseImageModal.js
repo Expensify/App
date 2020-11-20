@@ -3,10 +3,10 @@ import PropTypes from 'prop-types';
 import {
     View, Image, TouchableOpacity, Dimensions
 } from 'react-native';
+import Modal from 'react-native-modal';
 import AttachmentView from './AttachmentView';
 import styles, {webViewStyles} from '../styles/StyleSheet';
 import ModalView from './ModalView';
-import Modal from 'react-native-modal';
 
 /**
  * Modal component consisting of an image thumbnail which triggers a modal with a larger image display
