@@ -22,6 +22,9 @@ jest.mock('../../node_modules/react-native-image-picker',
     () => require('./mocks/react-native-image-picker'));
 jest.mock('../../node_modules/urbanairship-react-native',
     () => require('./mocks/urbanairship-react-native'));
+jest.mock('../../node_modules/react-native-pdf',
+    () => require('./mocks/react-native-pdf'));
+
 
 describe('AppComponent', () => {
     it('renders correctly', () => {
