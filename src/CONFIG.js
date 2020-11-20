@@ -1,11 +1,32 @@
+import _ from 'underscore';
 import {Platform} from 'react-native';
 import Config from 'react-native-config';
+
+// Let's make everyone's life just a bit easier
+// by adding / to the end of any config URL's if it's not already present
+if (_.isString(Config.NGROK_URL) && !Config.NGROK_URL.endsWith('/')) {
+    Config.NGROK_URL += '/';
+}
+if (_.isString(Config.EXPENSIFY_URL_CASH) && !Config.EXPENSIFY_URL_CASH.endsWith('/')) {
+    Config.EXPENSIFY_URL_CASH += '/';
+}
+if (_.isString(Config.EXPENSIFY_URL_COM) && !Config.EXPENSIFY_URL_COM.endsWith('/')) {
+    Config.EXPENSIFY_URL_COM += '/';
+}
+
+// Ngrok helps us avoid many of our cross-domain issues with connecting to our API
+// and is reqired for viewing images on mobile and for developing on android
+// To enable, set the USE_NGROK value to true in .env and update the NGROK_URL
+const expensifyURLRoot = Config.USE_NGROK === 'true' && Config.NGROK_URL
+    ? Config.NGROK_URL
+    : Config.EXPENSIFY_URL_COM;
 
 export default {
     AUTH_TOKEN_EXPIRATION_TIME: 1000 * 60 * 90,
     EXPENSIFY: {
-        API_ROOT: Config.EXPENSIFY_API_ROOT,
-        SITE_ROOT: Config.EXPENSIFY_SITE_ROOT,
+        URL_EXPENSIFY_COM: Config.EXPENSIFY_URL_COM,
+        URL_EXPENSIFY_CASH: Config.EXPENSIFY_URL_CASH,
+        URL_API_ROOT: expensifyURLRoot,
         PARTNER_NAME: Config.EXPENSIFY_PARTNER_NAME,
         PARTNER_PASSWORD: Config.EXPENSIFY_PARTNER_PASSWORD,
     },

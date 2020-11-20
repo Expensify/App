@@ -1,7 +1,7 @@
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
-import ExpensiMark from 'js-libs/lib/ExpensiMark';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Onyx from 'react-native-onyx';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';

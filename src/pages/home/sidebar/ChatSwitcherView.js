@@ -5,7 +5,7 @@ import _ from 'underscore';
 import lodashOrderby from 'lodash.orderby';
 import lodashGet from 'lodash.get';
 import {withOnyx} from 'react-native-onyx';
-import Str from 'js-libs/lib/str';
+import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../../ONYXKEYS';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import ChatSwitcherList from './ChatSwitcherList';
