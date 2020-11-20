@@ -3,7 +3,7 @@ import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import redirectToSignIn from './SignInRedirect';
-import expensifyAPI from '../expensifyAPI';
+import API from '../API';
 import CONFIG from '../../CONFIG';
 import PushNotification from '../Notification/PushNotification';
 import ROUTES from '../../ROUTES';
@@ -41,7 +41,7 @@ function setSuccessfulSignInData(data, exitTo) {
 function signIn(partnerUserID, partnerUserSecret, twoFactorAuthCode = '', exitTo) {
     Onyx.merge(ONYXKEYS.SESSION, {loading: true, error: ''});
 
-    expensifyAPI.Authenticate({
+    API.Authenticate({
         useExpensifyLogin: true,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
@@ -56,7 +56,7 @@ function signIn(partnerUserID, partnerUserSecret, twoFactorAuthCode = '', exitTo
             const login = Str.guid('react-native-chat-');
             const password = Str.guid();
 
-            expensifyAPI.CreateLogin({
+            API.CreateLogin({
                 authToken: authenticateResponse.authToken,
                 partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
                 partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
@@ -73,7 +73,7 @@ function signIn(partnerUserID, partnerUserSecret, twoFactorAuthCode = '', exitTo
 
                     if (credentials && credentials.login) {
                         // If we have an old login for some reason, we should delete it before storing the new details
-                        expensifyAPI.DeleteLogin({
+                        API.DeleteLogin({
                             partnerUserID: credentials.login,
                             partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
                             partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
@@ -102,7 +102,7 @@ function signOut() {
         return;
     }
 
-    expensifyAPI.DeleteLogin({
+    API.DeleteLogin({
         partnerUserID: credentials.login,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,

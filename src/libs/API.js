@@ -1,21 +1,71 @@
 import _ from 'underscore';
+import CONFIG from '../CONFIG';
+import Onyx from 'react-native-onyx';
+import ONYXKEYS from '../ONYXKEYS';
+import HttpUtils from './HttpUtils';
+import redirectToSignIn from './actions/SignInRedirect';
+import * as Network from './Network';
+
+// Have a local variable for when the API is authenticating
+let isAuthenticating;
+
+let credentials;
+Onyx.connect({
+    key: ONYXKEYS.CREDENTIALS,
+    callback: val => credentials = val,
+});
+
+let authToken;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: val => authToken = val ? val.authToken : null,
+});
 
 /**
- * NOTE!!!!
- * Do not add any business or application logic to this file.
- * The sole purpose of this file is to provide access to all API commands
- * without any preference of the network layer (it could be fetch, or $.ajax or XHR).
+ * Does this command require an authToken?
+ *
+ * @param {String} command
+ * @return {Boolean}
  */
+function isAuthTokenRequired(command) {
+    return !_.contains(['Log', 'Authenticate'], command);
+}
+
+/**
+ * Adds CSRF and AuthToken to our request data
+ *
+ * @param {string} command
+ * @param {Object} parameters
+ * @returns {Object}
+ */
+function addAuthTokenToParameters(command, parameters) {
+    const finalParameters = {...parameters};
+
+    if (isAuthTokenRequired(command) && !parameters.authToken) {
+        // If we end up here with no authToken it means we are trying to make
+        // an API request before we are signed in. In this case, we should just
+        // cancel this and all other requests and set isAuthenticating to false.
+        if (!authToken) {
+            console.error('A request was made without an authToken', {command, parameters});
+            Network.unpauseRequestQueue();
+            redirectToSignIn();
+            return;
+        }
+
+        finalParameters.authToken = authToken;
+    }
+
+    finalParameters.api_setCookie = false;
+    return finalParameters;
+}
 
 export default function API(network) {
     if (!network) {
         throw new Error('Cannot instantiate API without a Network object');
     }
 
-    /**
-     * Maps jsonCode => array of callback functions
-     */
-    const defaultHandlers = {};
+    // Tie into the network layer to add auth token to the parameters of all requests
+    network.registerParameterEnhancer(addAuthTokenToParameters);
 
     /**
      * @throws {Error} If the "parameters" object has a null or undefined value for any of the given parameterNames
@@ -36,10 +86,127 @@ export default function API(network) {
                     .mapObject((val, key) => (_.contains(propertiesToRedact, key) ? '<redacted>' : val))
                     .value();
                 const keys = _(parametersCopy).keys().join(', ') || 'none';
-                // eslint-disable-next-line max-len
-                throw new Error(`Parameter ${parameterName} is required for "${commandName}". Supplied parameters: ${keys}`);
+
+                let error = `Parameter ${parameterName} is required for "${commandName}". `;
+                error += `Supplied parameters: ${keys}`;
+                throw new Error(error);
             }
         });
+    }
+
+    /**
+     * @param {object} parameters
+     * @param {string} [parameters.useExpensifyLogin]
+     * @param {string} parameters.partnerName
+     * @param {string} parameters.partnerPassword
+     * @param {string} parameters.partnerUserID
+     * @param {string} parameters.partnerUserSecret
+     * @param {string} [parameters.twoFactorAuthCode]
+     * @returns {Promise}
+     */
+    function authenticateWithAPI(parameters) {
+        const commandName = 'Authenticate';
+
+        requireParameters([
+            'partnerName',
+            'partnerPassword',
+            'partnerUserID',
+            'partnerUserSecret',
+        ], parameters, commandName);
+
+        return request(commandName, {
+            // When authenticating for the first time, we pass useExpensifyLogin as true so we check
+            // for credentials for the expensify partnerID to let users Authenticate with their expensify user
+            // and password.
+            useExpensifyLogin: parameters.useExpensifyLogin,
+            partnerName: parameters.partnerName,
+            partnerPassword: parameters.partnerPassword,
+            partnerUserID: parameters.partnerUserID,
+            partnerUserSecret: parameters.partnerUserSecret,
+            twoFactorAuthCode: parameters.twoFactorAuthCode,
+            doNotRetry: true,
+
+            // Force this request to be made because the network queue is paused when re-authentication is happening
+            forceNetworkRequest: true,
+        })
+            .then((response) => {
+                // If we didn't get a 200 response from Authenticate we either failed to Authenticate with
+                // an expensify login or the login credentials we created after the initial authentication.
+                // In both cases, we need the user to sign in again with their expensify credentials
+                if (response.jsonCode !== 200) {
+                    throw new Error(response.message);
+                }
+                return response;
+            });
+    }
+
+    /**
+     * Function used to handle expired auth tokens. It re-authenticates with the API and
+     * then replays the original request
+     *
+     * @param {Object} originalResponse
+     * @param {string} originalCommand
+     * @param {object} [originalParameters]
+     * @param {string} [originalType]
+     */
+    function handleExpiredAuthToken(originalResponse, originalCommand, originalParameters, originalType) {
+        // There are some API requests that should not be retried when there is an auth failure
+        // like creating and deleting logins
+        if (originalParameters.doNotRetry) {
+            return;
+        }
+
+        // When the authentication process is running, and more API requests will be requeued and they will
+        // be performed after authentication is done.
+        if (isAuthenticating) {
+            network.queueRequest(originalCommand, originalParameters, originalType);
+            return;
+        }
+
+        // Prevent any more requests from being processed while authentication happens
+        network.pauseRequestQueue();
+        isAuthenticating = true;
+
+        authenticateWithAPI({
+            useExpensifyLogin: false,
+            partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+            partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+            partnerUserID: credentials.login,
+            partnerUserSecret: credentials.password,
+        })
+            .then((response) => {
+                // If authentication fails throw so that we hit
+                // the catch below and redirect to sign in
+                if (response.jsonCode !== 200) {
+                    throw new Error(response.message);
+                }
+
+                // Update authToken in Onyx and in our local variables so that API requests will use the
+                // new authToken
+                Onyx.merge(ONYXKEYS.SESSION, {authToken: response.authToken});
+                authToken = response.authToken;
+
+                // The authentication process is finished so the network can be unpaused to continue
+                // processing requests
+                isAuthenticating = false;
+                network.unpauseRequestQueue();
+            })
+
+            // Now that the API is authenticated, make the original request again with the new authToken
+            // Use HttpUtils here so that retry logic is avoided. Since this code is triggered from a rety attempt
+            // it can create an infinite loop
+            .then(() => {
+                const params = addAuthTokenToParameters(originalCommand, originalParameters);
+                HttpUtils.xhr(originalCommand, params, originalType);
+            })
+
+            .catch((error) => {
+                // If authentication fails, then the network can be unpaused and app is redirected
+                // so the sign on screen.
+                network.unpauseRequestQueue();
+                isAuthenticating = false;
+                redirectToSignIn(error.message);
+            });
     }
 
     /**
@@ -56,14 +223,11 @@ export default function API(network) {
 
         // Setup the default handlers to work with different response codes
         networkPromise.then((response) => {
-            let defaultHandlerWasUsed = false;
 
-            _.each(defaultHandlers[response.jsonCode], (callback) => {
-                defaultHandlerWasUsed = true;
-                callback(response, command, parameters, type);
-            });
+            // Handle expired auth tokens properly
+            if (response.jsonCode === 407) {
+                handleExpiredAuthToken(response, command, parameters, type);
 
-            if (defaultHandlerWasUsed) {
                 // Throw an error to prevent other handlers from being triggered on this promise
                 throw new Error('A default handler was used for this request');
             }
@@ -76,20 +240,12 @@ export default function API(network) {
 
     return {
         /**
-         * @param  {Number[]} jsonCodes
-         * @param  {Function} callback
+         * Access the current authToken
+         *
+         * @returns {string}
          */
-        registerDefaultHandler(jsonCodes, callback) {
-            if (!_(callback).isFunction()) {
-                return;
-            }
-
-            jsonCodes.forEach((jsonCode) => {
-                if (!defaultHandlers[jsonCode]) {
-                    defaultHandlers[jsonCode] = [];
-                }
-                defaultHandlers[jsonCode].push(callback);
-            });
+        getAuthToken() {
+            return authToken;
         },
 
         /**
@@ -103,39 +259,7 @@ export default function API(network) {
          * @returns {Promise}
          */
         Authenticate(parameters) {
-            const commandName = 'Authenticate';
-
-            requireParameters([
-                'partnerName',
-                'partnerPassword',
-                'partnerUserID',
-                'partnerUserSecret',
-            ], parameters, commandName);
-
-            return request(commandName, {
-                // When authenticating for the first time, we pass useExpensifyLogin as true so we check
-                // for credentials for the expensify partnerID to let users Authenticate with their expensify user
-                // and password.
-                useExpensifyLogin: parameters.useExpensifyLogin,
-                partnerName: parameters.partnerName,
-                partnerPassword: parameters.partnerPassword,
-                partnerUserID: parameters.partnerUserID,
-                partnerUserSecret: parameters.partnerUserSecret,
-                twoFactorAuthCode: parameters.twoFactorAuthCode,
-                doNotRetry: true,
-
-                // Force this request to be made because the network queue is paused when re-authentication is happening
-                forceNetworkRequest: true,
-            })
-                .then((response) => {
-                    // If we didn't get a 200 response from Authenticate we either failed to Authenticate with
-                    // an expensify login or the login credentials we created after the initial authentication.
-                    // In both cases, we need the user to sign in again with their expensify credentials
-                    if (response.jsonCode !== 200) {
-                        throw new Error(response.message);
-                    }
-                    return response;
-                });
+            authenticateWithAPI(parameters);
         },
 
         /**

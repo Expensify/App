@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import * as Pusher from './Pusher/pusher';
-import expensifyAPI from './expensifyAPI';
+import API from './API';
 
 function init() {
     /**
@@ -23,7 +23,7 @@ function init() {
         authorize: (socketID, callback) => {
             console.debug('[Network] Attempting to authorize Pusher');
 
-            expensifyAPI.Push_Authenticate({
+            API.Push_Authenticate({
                 socket_id: socketID,
                 channel_name: channel.name,
                 doNotRetry: true,
