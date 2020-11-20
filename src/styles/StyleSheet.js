@@ -566,6 +566,11 @@ const styles = {
         width: 18,
     },
 
+    LHNPencilIcon: {
+        height: 16,
+        width: 16,
+    },
+
     chatContent: {
         flex: 4,
         justifyContent: 'flex-end',
