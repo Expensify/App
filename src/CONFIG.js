@@ -8,6 +8,18 @@ const expensifyURLRoot = Config.USE_NGROK === 'true' && Config.NGROK_URL
     ? Config.NGROK_URL
     : Config.EXPENSIFY_URL_COM;
 
+// Let's make everyone's life just a bit easier
+// by adding / to the end of any config URL's if it's not already present
+if (!Config.NGROK_URL.endsWith('/')) {
+    Config.NGROK_URL += '/';
+}
+if (!Config.EXPENSIFY_URL_CASH.endsWith('/')) {
+    Config.EXPENSIFY_URL_CASH += '/';
+}
+if (!Config.EXPENSIFY_URL_COM.endsWith('/')) {
+    Config.EXPENSIFY_URL_COM += '/';
+}
+
 export default {
     AUTH_TOKEN_EXPIRATION_TIME: 1000 * 60 * 90,
     EXPENSIFY: {
