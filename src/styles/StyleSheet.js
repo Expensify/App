@@ -761,6 +761,10 @@ const styles = {
         paddingLeft: 5,
     },
 
+    chatSwitcherUserText: {
+        maxWidth: 180,
+    },
+
     chatSwitcherPillsInput: {
         alignItems: 'flex-start',
         alignSelf: 'flex-start',
