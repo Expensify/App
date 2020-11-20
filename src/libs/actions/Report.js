@@ -14,7 +14,7 @@ import Visibility from '../Visibility';
 import ROUTES from '../../ROUTES';
 import NetworkConnection from '../NetworkConnection';
 import {hide as hideSidebar} from './Sidebar';
-import API from '../API';
+import * as API from '../API';
 
 let currentUserEmail;
 let currentUserAccountID;

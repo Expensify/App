@@ -5,7 +5,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import md5 from '../md5';
 import CONST from '../../CONST';
 import NetworkConnection from '../NetworkConnection';
-import API from '../API';
+import * as API from '../API';
 
 let currentUserEmail;
 Onyx.connect({
