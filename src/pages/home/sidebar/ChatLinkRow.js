@@ -11,7 +11,6 @@ import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
 import ROUTES from '../../../ROUTES';
 import pencilIcon from '../../../../assets/images/icon-pencil.png';
 import PressableLink from '../../../components/PressableLink';
-import paperClipIcon from "../../../../assets/images/icon-paper-clip.png";
 
 const propTypes = {
     // Option to allow the user to choose from can be type 'report' or 'user'

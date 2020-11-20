@@ -21,8 +21,10 @@ class ReportTypingIndicator extends React.Component {
     constructor(props) {
         super(props);
 
-        const usersTyping = Object.keys(props.userTypingStatuses)
-            .filter(login => props.userTypingStatuses[login]);
+        const usersTyping = props.userTypingStatuses
+            ? Object.keys(props.userTypingStatuses)
+                .filter(login => props.userTypingStatuses[login])
+            : [];
         this.state = {usersTyping};
     }
 
