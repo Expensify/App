@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import * as Pusher from './Pusher/pusher';
-import API from './API';
+import * as API from './API';
 
 function init() {
     /**

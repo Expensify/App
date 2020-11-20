@@ -3,7 +3,7 @@ import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import redirectToSignIn from './SignInRedirect';
-import API from '../API';
+import * as API from '../API';
 import CONFIG from '../../CONFIG';
 import PushNotification from '../Notification/PushNotification';
 import ROUTES from '../../ROUTES';
