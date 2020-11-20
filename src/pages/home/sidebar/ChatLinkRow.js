@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {
@@ -76,7 +77,7 @@ const ChatLinkRow = ({
                         ]}
                     >
                         {
-                            option.icon
+                            !_.isEmpty(option.icon)
                             && (
                                 <View style={[styles.chatSwitcherAvatar, styles.mr2]}>
                                     <Image
