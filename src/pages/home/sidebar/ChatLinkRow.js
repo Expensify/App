@@ -87,7 +87,7 @@ const ChatLinkRow = ({
                                 </View>
                             )
                         }
-                        <View style={styles.chatSwitcherUserText}>
+                        <View style={isChatSwitcher ? styles.chatSwitcherUserText : {}}>
                             {option.text === option.alternateText ? (
                                 <Text style={textUnreadStyle} numberOfLines={1}>
                                     {option.alternateText}
