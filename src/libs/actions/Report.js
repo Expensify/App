@@ -14,7 +14,7 @@ import Visibility from '../Visibility';
 import ROUTES from '../../ROUTES';
 import NetworkConnection from '../NetworkConnection';
 import {hide as hideSidebar} from './Sidebar';
-import expensifyAPI from '../expensifyAPI';
+import API from '../API';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -139,7 +139,7 @@ function getChatReportName(sharedReportList) {
  */
 function fetchChatReportsByIDs(chatList) {
     let fetchedReports;
-    return expensifyAPI.Get({
+    return API.Get({
         returnValueList: 'reportStuff',
         reportIDList: chatList.join(','),
         shouldLoadOptionalKeys: true,
@@ -357,7 +357,7 @@ function unsubscribeFromReportChannel(reportID) {
  * @returns {Promise} only used internally when fetchAll() is called
  */
 function fetchChatReports() {
-    return expensifyAPI.Get({
+    return API.Get({
         returnValueList: 'chatList',
     })
 
@@ -371,7 +371,7 @@ function fetchChatReports() {
  * @param {number} reportID
  */
 function fetchActions(reportID) {
-    expensifyAPI.Report_GetHistory({reportID})
+    API.Report_GetHistory({reportID})
         .then((data) => {
             const indexedData = _.indexBy(data.history, 'sequenceNumber');
             const maxSequenceNumber = _.chain(data.history)
@@ -424,7 +424,7 @@ function fetchOrCreateChatReport(participants) {
         throw new Error('fetchOrCreateChatReport() must have at least two participants');
     }
 
-    expensifyAPI.CreateChatReport({
+    API.CreateChatReport({
         emailList: participants.join(','),
     })
 
@@ -433,7 +433,7 @@ function fetchOrCreateChatReport(participants) {
             reportID = data.reportID;
 
             // Make a request to get all the information about the report
-            return expensifyAPI.Get({
+            return API.Get({
                 returnValueList: 'reportStuff',
                 reportIDList: reportID,
                 shouldLoadOptionalKeys: true,
@@ -513,7 +513,7 @@ function addAction(reportID, text, file) {
         }
     });
 
-    expensifyAPI.Report_AddComment({
+    API.Report_AddComment({
         reportID,
         reportComment: htmlComment,
         file
@@ -536,7 +536,7 @@ function updateLastReadActionID(reportID, sequenceNumber) {
     setLocalLastReadActionID(reportID, sequenceNumber);
 
     // Mark the report as not having any unread items
-    expensifyAPI.Report_SetLastReadActionID({
+    API.Report_SetLastReadActionID({
         accountID: currentUserAccountID,
         reportID,
         sequenceNumber,
@@ -551,7 +551,7 @@ function updateLastReadActionID(reportID, sequenceNumber) {
 function togglePinnedState(report) {
     const pinnedValue = !report.isPinned;
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {isPinned: pinnedValue});
-    expensifyAPI.Report_TogglePinned({
+    API.Report_TogglePinned({
         reportID: report.reportID,
         pinnedValue,
     });
