@@ -16,7 +16,7 @@ module.exports = {
     },
     output: {
         filename: '[name]-[hash].bundle.js',
-        path: path.resolve(__dirname, '../dist'),
+        path: path.resolve(__dirname, '../../dist'),
     },
     plugins: [
         new CleanWebpackPlugin(),
@@ -65,6 +65,18 @@ module.exports = {
                 options: {
                     cache: false,
                     emitWarning: true,
+                    configFile: './config/.eslintrc.js',
+                },
+            },
+
+            // Rule for react-native-web-webview
+            {
+                test: /postMock.html$/,
+                use: {
+                    loader: 'file-loader',
+                    options: {
+                        name: '[name].[ext]',
+                    },
                 },
             },
 
@@ -83,6 +95,8 @@ module.exports = {
         alias: {
             'react-native-config': 'react-web-config',
             'react-native$': 'react-native-web',
+            'react-native-webview': 'react-native-web-webview',
+            'react-native-modal': 'modal-enhanced-react-native-web',
         },
 
         // React Native libraries may have web-specific module implementations that appear with the extension `.web.js`
