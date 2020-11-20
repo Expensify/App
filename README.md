@@ -51,6 +51,16 @@ This application is built with the following principles.
 
 You can use any IDE or code editing tool for developing on any platform. Use your favorite!
 
+## Setting up ngrok
+Ngrok makes the our locally-hosted web application appear to be hosted on a subdomain of ngrok.com.  This allows us to avoid many of our cross-domain issues with our API and is required for doing local development on android or viewing images on mobile.
+
+1. Set up a permanent [ngrok route](https://stackoverflow.com/c/expensify/questions/3382)
+2. Replace the value `NGROK_URL` in your `.env` file with the ngrok route you just set up
+3. Set the `USE_NGROK` in your `.env` to true
+4. Start ngrok with the name you previously set (`Expensidev/script/ngrok.sh thienlnam`)
+
+Now, all of your API calls will be using the ngrok route.
+
 ## Running the web app 🕸
 * To run a **Development Server**: `npm run web`
 * To build a **production build**: `npm run build`
@@ -69,7 +79,7 @@ You can use any IDE or code editing tool for developing on any platform. Use you
 ## Running the Android app 🤖
 * To install the Android dependencies, run: `npm install`, then `gradle` will install all linked dependencies
 * Running via `ngrok` is required to communicate with the API
-    * Start ngrok (`Expensidev/script/ngrok.sh`), replace `expensify.com.dev` value in `.env` with your ngrok value
+    * Follow the instructions under the section `Setting up ngrok`
 * To run a on a **Development Emulator**: `npm run android`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
@@ -78,10 +88,16 @@ You can use any IDE or code editing tool for developing on any platform. Use you
 
 ## Running the tests 🎰
 ### Unit tests
+Unit tests are valuable when you want to test one component. They should be short, fast, and ideally only test one thing.
+Often times in order to write a unit test, you may need to mock data, a component, or library. We use the library [Jest](https://jestjs.io/)
+to help run our Unit tests. 
+
 * To run the **Jest unit tests**: `npm run test`
 
 ### End to end tests
-[Detox](https://github.com/wix/Detox) is a _"Gray box end-to-end testing and automation library"_
+End to end tests are valuable when we do not want to mock data and run against the actual compiled app on iOS or Android.
+In order to run the end to end tests, we have to compile the iOS or Android app, then launch a simulator, then run tests.
+We use [Detox](https://github.com/wix/Detox) a _"Gray box end-to-end testing and automation library"_ to help with our end to end testing.
 
 You are first required to build the tests, then you can run them: 
 1. To build the **Detox end to end tests**: `npm run detox-build`

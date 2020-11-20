@@ -34,13 +34,18 @@ const propTypes = {
         unreadActionCount: PropTypes.number,
     })),
 
-    // List of draft comments
+    // List of draft comments. We don't know the shape, since the keys include the report numbers
+    // eslint-disable-next-line react/forbid-prop-types
     comments: PropTypes.object,
 
     isChatSwitcherActive: PropTypes.bool,
 
     // List of users' personal details
-    personalDetails: PropTypes.object,
+    personalDetails: PropTypes.objectOf(PropTypes.shape({
+        login: PropTypes.string.isRequired,
+        avatarURL: PropTypes.string.isRequired,
+        displayName: PropTypes.string.isRequired,
+    })),
 };
 
 const defaultProps = {
@@ -61,7 +66,8 @@ const SidebarLinks = (props) => {
         'asc'
     ]);
 
-    // Filter the reports so that the only reports shown are pinned, unread, have draft comments (but are not the open one), and the one matching the URL
+    // Filter the reports so that the only reports shown are pinned, unread, have draft
+    // comments (but are not the open one), and the one matching the URL
     // eslint-disable-next-line max-len
     const reportsToDisplay = _.filter(sortedReports, report => (report.isPinned || (report.unreadActionCount > 0) || report.reportID === reportIDInUrl || (report.reportID !== reportIDInUrl && get(props.comments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '').length > 0)));
 
@@ -91,7 +97,8 @@ const SidebarLinks = (props) => {
                 {/* A report will not have a report name if it hasn't been fetched from the server yet */}
                 {/* so nothing is rendered */}
                 {_.map(reportsToDisplay, (report) => {
-                    const participantDetails = get(report, 'participants.length', 0) === 1 ? get(props.personalDetails, report.participants[0], '') : '';
+                    const participantDetails = get(report, 'participants.length', 0) === 1
+                        ? get(props.personalDetails, report.participants[0], '') : '';
                     return report.reportName && (
                         <ChatLinkRow
                             key={report.reportID}
@@ -103,6 +110,8 @@ const SidebarLinks = (props) => {
                                 login: participantDetails ? participantDetails.login : '',
                                 reportID: report.reportID,
                                 isUnread: report.unreadActionCount > 0,
+
+                                // eslint-disable-next-line max-len
                                 hasDraftComment: report.reportID !== reportIDInUrl && get(props.comments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '').length > 0
                             }}
                             onSelectRow={onLinkClick}
