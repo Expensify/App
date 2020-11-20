@@ -25,6 +25,10 @@ const colors = {
 
 const styles = {
     // Utility classes
+    m0: {
+        margin: 0,
+    },
+
     mr0: {
         marginRight: 0,
     },

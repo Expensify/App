@@ -96,6 +96,7 @@ module.exports = {
             'react-native-config': 'react-web-config',
             'react-native$': 'react-native-web',
             'react-native-webview': 'react-native-web-webview',
+            'react-native-modal': 'modal-enhanced-react-native-web',
         },
 
         // React Native libraries may have web-specific module implementations that appear with the extension `.web.js`

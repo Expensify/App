@@ -1,11 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {
-    View, Image, Modal, TouchableOpacity, Dimensions
+    View, Image, TouchableOpacity, Dimensions
 } from 'react-native';
 import AttachmentView from './AttachmentView';
 import styles, {webViewStyles} from '../styles/StyleSheet';
 import ModalView from './ModalView';
+import Modal from 'react-native-modal';
 
 /**
  * Modal component consisting of an image thumbnail which triggers a modal with a larger image display
@@ -142,6 +143,7 @@ class BaseImageModal extends React.Component {
                     onRequestClose={() => this.setModalVisiblity(false)}
                     visible={this.state.isModalOpen}
                     transparent
+                    style={styles.m0}
                 >
                     <ModalView
                         pinToEdges={this.props.pinToEdges}
