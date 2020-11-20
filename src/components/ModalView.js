@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {
-    View, TouchableOpacity, Dimensions, TouchableWithoutFeedback
+    View, SafeAreaView, TouchableOpacity, Dimensions, TouchableWithoutFeedback
 } from 'react-native';
 import BaseModalHeader from './BaseModalHeader';
 import styles from '../styles/StyleSheet';
@@ -43,13 +43,13 @@ const defaultProps = {
 const ModalView = props => (
     <>
         {props.pinToEdges ? (
-            <View style={styles.modalViewContainer}>
+            <SafeAreaView style={styles.modalViewContainer}>
                 <BaseModalHeader
                     title="Attachment"
                     onCloseButtonPress={props.onCloseButtonPress}
                 />
                 {props.children}
-            </View>
+            </SafeAreaView>
         ) : (
             <TouchableOpacity
                 style={styles.modalCenterContentContainer}
