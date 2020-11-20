@@ -1,5 +1,5 @@
 import React from 'react';
-import {TextInput} from 'react-native';
+import {TextInput, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 
@@ -13,6 +13,10 @@ const propTypes = {
     // A ref to forward to the text input
     forwardedRef: PropTypes.func.isRequired,
 
+    // General styles to apply to the text input
+    // eslint-disable-next-line react/forbid-prop-types
+    style: PropTypes.any,
+
     // If the input should clear, it actually gets intercepted instead of .clear()
     shouldClear: PropTypes.bool,
 
@@ -24,6 +28,7 @@ const defaultProps = {
     maxLines: -1,
     shouldClear: false,
     onClear: () => {},
+    style: null,
 };
 
 /**
@@ -103,6 +108,9 @@ class TextInputFocusable extends React.Component {
     }
 
     render() {
+        const propStyles = StyleSheet.flatten(this.props.style);
+        propStyles.outline = 'none';
+        const propsWithoutStyles = _.omit(this.props, 'style');
         return (
             <TextInput
                 ref={el => this.textInput = el}
@@ -110,8 +118,9 @@ class TextInputFocusable extends React.Component {
                     this.updateNumberOfLines();
                 }}
                 numberOfLines={this.state.numberOfLines}
+                style={propStyles}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
-                {...this.props}
+                {...propsWithoutStyles}
             />
         );
     }
