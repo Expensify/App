@@ -1,8 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {
-    View, Image, Modal, TouchableOpacity, Dimensions
+    View, Image, TouchableOpacity, Dimensions
 } from 'react-native';
+import Modal from 'react-native-modal';
 import AttachmentView from './AttachmentView';
 import styles, {webViewStyles} from '../styles/StyleSheet';
 import ModalView from './ModalView';
@@ -144,6 +145,7 @@ class BaseImageModal extends React.Component {
                     onRequestClose={() => this.setModalVisiblity(false)}
                     visible={this.state.isModalOpen}
                     transparent
+                    style={styles.m0}
                 >
                     <ModalView
                         pinToEdges={this.props.pinToEdges}
