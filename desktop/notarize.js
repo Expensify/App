@@ -1,5 +1,5 @@
 const {notarize} = require('electron-notarize');
-const electron = require('./electron.config');
+const electron = require('../config/electron.config');
 
 exports.default = async function notarizing(context) {
     const {electronPlatformName, appOutDir} = context;
