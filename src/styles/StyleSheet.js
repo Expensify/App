@@ -502,7 +502,6 @@ const styles = {
 
     sidebarLinkText: {
         color: colors.icon,
-        fontFamily: fontFamily.GTA,
         fontSize: 13,
         textDecorationLine: 'none',
         overflow: 'hidden',
@@ -527,11 +526,13 @@ const styles = {
     },
 
     chatSwitcherDisplayName: {
+        fontFamily: fontFamily.GTA,
         height: 16,
         lineHeight: 16,
     },
 
     chatSwitcherLogin: {
+        fontFamily: fontFamily.GTA,
         height: 12,
         lineHeight: 12,
     },
