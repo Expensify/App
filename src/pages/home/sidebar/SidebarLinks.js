@@ -35,8 +35,7 @@ const propTypes = {
     })),
 
     // List of draft comments. We don't know the shape, since the keys include the report numbers
-    // eslint-disable-next-line react/forbid-prop-types
-    comments: PropTypes.object,
+    comments: PropTypes.objectOf(PropTypes.string),
 
     isChatSwitcherActive: PropTypes.bool,
 
@@ -55,6 +54,7 @@ const defaultProps = {
     personalDetails: {},
 };
 
+
 const SidebarLinks = (props) => {
     const {onLinkClick} = props;
     const reportIDInUrl = parseInt(props.match.params.reportID, 10);
@@ -65,11 +65,13 @@ const SidebarLinks = (props) => {
         'desc',
         'asc'
     ]);
+    const hasComment = reportID => get(props.comments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, '').length > 0;
 
     // Filter the reports so that the only reports shown are pinned, unread, have draft
     // comments (but are not the open one), and the one matching the URL
-    // eslint-disable-next-line max-len
-    const reportsToDisplay = _.filter(sortedReports, report => (report.isPinned || (report.unreadActionCount > 0) || report.reportID === reportIDInUrl || (report.reportID !== reportIDInUrl && get(props.comments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '').length > 0)));
+    const reportsToDisplay = _.filter(sortedReports, report => (report.isPinned || (report.unreadActionCount > 0)
+            || report.reportID === reportIDInUrl
+            || (report.reportID !== reportIDInUrl && hasComment(report.reportID))));
 
     // Update styles to hide the report links if they should not be visible
     const sidebarLinksStyle = !props.isChatSwitcherActive
@@ -110,9 +112,7 @@ const SidebarLinks = (props) => {
                                 login: participantDetails ? participantDetails.login : '',
                                 reportID: report.reportID,
                                 isUnread: report.unreadActionCount > 0,
-
-                                // eslint-disable-next-line max-len
-                                hasDraftComment: report.reportID !== reportIDInUrl && get(props.comments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '').length > 0
+                                hasDraftComment: report.reportID !== reportIDInUrl && hasComment(report.reportID)
                             }}
                             onSelectRow={onLinkClick}
                             optionIsFocused={report.reportID === reportIDInUrl}
