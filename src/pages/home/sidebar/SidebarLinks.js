@@ -36,7 +36,8 @@ const propTypes = {
 
     isChatSwitcherActive: PropTypes.bool,
 
-    // List of personal details
+
+    // List of users' personal details
     personalDetails: PropTypes.objectOf(PropTypes.shape({
         login: PropTypes.string.isRequired,
         avatarURL: PropTypes.string.isRequired,
