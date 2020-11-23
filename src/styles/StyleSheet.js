@@ -483,6 +483,7 @@ const styles = {
     chatLinkRowPressable: {
         minWidth: 0,
         textDecorationLine: 'none',
+        flex: 1,
     },
 
     sidebarLink: {
