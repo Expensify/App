@@ -61,7 +61,7 @@ const ChatLinkRow = ({
             <PressableLink
                 onClick={() => onSelectRow(option)}
                 to={ROUTES.getReportRoute(option.reportID)}
-                style={styles.textDecorationNoLine}
+                style={styles.chatLinkRowPressable}
             >
                 <TouchableOpacity
                     onPress={() => onSelectRow(option)}
@@ -87,7 +87,7 @@ const ChatLinkRow = ({
                                 </View>
                             )
                         }
-                        <View style={isChatSwitcher ? styles.chatSwitcherUserText : {}}>
+                        <View style={styles.flex1}>
                             {option.text === option.alternateText ? (
                                 <Text style={textUnreadStyle} numberOfLines={1}>
                                     {option.alternateText}
