@@ -1,8 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {
-    View, Image, Modal, TouchableOpacity, Dimensions
+    View, Image, TouchableOpacity, Dimensions
 } from 'react-native';
+import Modal from 'react-native-modal';
 import AttachmentView from './AttachmentView';
 import styles, {webViewStyles} from '../styles/StyleSheet';
 import ModalView from './ModalView';
@@ -92,15 +93,17 @@ class BaseImageModal extends React.Component {
         // Only calculate image size if the modal is visible and if we haven't already done this
         if (this.state.isModalOpen && !this.calculatedModalImageSize) {
             Image.getSize(this.props.sourceURL, (width, height) => {
+                // Unlike the image width, we do allow the image to span the full modal height
+                const modalHeight = this.props.pinToEdges ? Dimensions.get('window').height : this.props.modalHeight;
                 const modalWidth = this.props.pinToEdges ? Dimensions.get('window').width : this.props.modalImageWidth;
                 let imageHeight = height;
                 let imageWidth = width;
 
-                // Only resize if the image width is larger than the modal width
-                if (width > modalWidth) {
-                    const scaleFactor = width / modalWidth;
+                // Resize image to fit within the modal, if necessary
+                if (width > modalWidth || height > modalHeight) {
+                    const scaleFactor = Math.max(width / modalWidth, height / modalHeight);
                     imageHeight = height / scaleFactor;
-                    imageWidth = modalWidth;
+                    imageWidth = width / scaleFactor;
                 }
 
                 if (this.isComponentMounted) {
@@ -142,6 +145,7 @@ class BaseImageModal extends React.Component {
                     onRequestClose={() => this.setModalVisiblity(false)}
                     visible={this.state.isModalOpen}
                     transparent
+                    style={styles.m0}
                 >
                     <ModalView
                         pinToEdges={this.props.pinToEdges}

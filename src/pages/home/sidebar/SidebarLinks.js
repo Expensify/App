@@ -36,7 +36,12 @@ const propTypes = {
 
     isChatSwitcherActive: PropTypes.bool,
 
-    personalDetails: PropTypes.object,
+    // List of users' personal details
+    personalDetails: PropTypes.objectOf(PropTypes.shape({
+        login: PropTypes.string.isRequired,
+        avatarURL: PropTypes.string.isRequired,
+        displayName: PropTypes.string.isRequired,
+    })),
 };
 const defaultProps = {
     reports: {},
@@ -85,7 +90,8 @@ const SidebarLinks = (props) => {
                 {/* A report will not have a report name if it hasn't been fetched from the server yet */}
                 {/* so nothing is rendered */}
                 {_.map(reportsToDisplay, (report) => {
-                    const participantDetails = get(report, 'participants.length', 0) === 1 ? get(props.personalDetails, report.participants[0], '') : '';
+                    const participantDetails = get(report, 'participants.length', 0) === 1
+                        ? get(props.personalDetails, report.participants[0], '') : '';
                     return report.reportName && (
                         <ChatLinkRow
                             key={report.reportID}
