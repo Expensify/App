@@ -89,7 +89,7 @@ const ChatLinkRow = ({
                         }
                         <View style={[styles.flex1]}>
                             {option.text === option.alternateText ? (
-                                <Text style={[textUnreadStyle]} numberOfLines={1}>
+                                <Text style={[styles.chatSwitcherDisplayName, textUnreadStyle]} numberOfLines={1}>
                                     {option.alternateText}
                                 </Text>
                             ) : (
@@ -97,7 +97,7 @@ const ChatLinkRow = ({
                                     <Text style={textUnreadStyle} numberOfLines={1}>
                                         {option.text}
                                     </Text>
-                                    <Text style={[textStyle, styles.textMicro]} numberOfLines={1}>
+                                    <Text style={[styles.chatSwitcherLogin, textStyle, styles.textMicro]} numberOfLines={1}>
                                         {option.alternateText}
                                     </Text>
                                 </>
