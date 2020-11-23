@@ -480,6 +480,11 @@ const styles = {
         backgroundColor: colors.heading,
     },
 
+    chatLinkRowPressable: {
+        minWidth: 0,
+        textDecorationLine: 'none',
+    },
+
     sidebarLink: {
         textDecorationLine: 'none',
     },
@@ -759,10 +764,6 @@ const styles = {
         paddingRight: 3,
         paddingBottom: 0,
         paddingLeft: 5,
-    },
-
-    chatSwitcherUserText: {
-        maxWidth: 180,
     },
 
     chatSwitcherPillsInput: {
