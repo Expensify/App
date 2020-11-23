@@ -97,7 +97,10 @@ const ChatLinkRow = ({
                                     <Text style={textUnreadStyle} numberOfLines={1}>
                                         {option.text}
                                     </Text>
-                                    <Text style={[styles.chatSwitcherLogin, textStyle, styles.textMicro]} numberOfLines={1}>
+                                    <Text
+                                        style={[styles.chatSwitcherLogin, textStyle, styles.textMicro]}
+                                        numberOfLines={1}
+                                    >
                                         {option.alternateText}
                                     </Text>
                                 </>

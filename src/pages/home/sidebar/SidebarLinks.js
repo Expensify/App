@@ -50,7 +50,6 @@ const defaultProps = {
 };
 
 const SidebarLinks = (props) => {
-    const {onLinkClick} = props;
     const reportIDInUrl = parseInt(props.match.params.reportID, 10);
     const sortedReports = lodashOrderby(props.reports, [
         'isPinned',
@@ -72,7 +71,7 @@ const SidebarLinks = (props) => {
         <View style={[styles.flex1, {marginTop: props.insets.top}]}>
             <View style={[styles.sidebarHeader]}>
                 <ChatSwitcherView
-                    onLinkClick={onLinkClick}
+                    onLinkClick={props.onLinkClick}
                     isChatSwitcherActive={props.isChatSwitcherActive}
                 />
             </View>
@@ -104,7 +103,7 @@ const SidebarLinks = (props) => {
                                 reportID: report.reportID,
                                 isUnread: report.unreadActionCount > 0,
                             }}
-                            onSelectRow={onLinkClick}
+                            onSelectRow={props.onLinkClick}
                             optionIsFocused={report.reportID === reportIDInUrl}
                         />
                     );
