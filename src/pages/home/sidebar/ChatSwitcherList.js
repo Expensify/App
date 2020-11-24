@@ -29,7 +29,8 @@ const ChatSwitcherList = ({
     onSelectRow,
     onAddToGroup,
 }) => (
-    <View style={[styles.flex1]}>
+    options.length > 0 && (
+    <View style={[styles.flex1, styles.mt1]}>
         <FlatList
             showsVerticalScrollIndicator={false}
             data={options}
@@ -49,6 +50,7 @@ const ChatSwitcherList = ({
         />
         <KeyboardSpacer />
     </View>
+    )
 );
 
 ChatSwitcherList.propTypes = propTypes;
