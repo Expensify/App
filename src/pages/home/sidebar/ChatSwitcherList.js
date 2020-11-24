@@ -30,23 +30,27 @@ const ChatSwitcherList = ({
     onAddToGroup,
 }) => (
     <View style={[styles.flex1]}>
-        <FlatList
-            showsVerticalScrollIndicator={false}
-            data={options}
-            keyExtractor={option => (option.type === 'user' ? option.alternateText : String(option.reportID))}
-            renderItem={({item, index}) => (
-                <ChatLinkRow
-                    option={item}
-                    optionIsFocused={index === focusedIndex}
-                    onSelectRow={onSelectRow}
-                    onAddToGroup={onAddToGroup}
-                    isChatSwitcher
+        {options.length > 0 && (
+            <View style={[styles.mt4]}>
+                <FlatList
+                    showsVerticalScrollIndicator={false}
+                    data={options}
+                    keyExtractor={option => (option.type === 'user' ? option.alternateText : String(option.reportID))}
+                    renderItem={({item, index}) => (
+                        <ChatLinkRow
+                            option={item}
+                            optionIsFocused={index === focusedIndex}
+                            onSelectRow={onSelectRow}
+                            onAddToGroup={onAddToGroup}
+                            isChatSwitcher
+                        />
+                    )}
+                    extraData={focusedIndex}
+                    ListFooterComponent={View}
+                    ListFooterComponentStyle={[styles.p1]}
                 />
-            )}
-            extraData={focusedIndex}
-            ListFooterComponent={View}
-            ListFooterComponentStyle={[styles.p1]}
-        />
+            </View>
+        )}
         <KeyboardSpacer />
     </View>
 );
