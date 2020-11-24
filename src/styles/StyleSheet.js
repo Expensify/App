@@ -480,6 +480,12 @@ const styles = {
         backgroundColor: colors.heading,
     },
 
+    chatLinkRowPressable: {
+        minWidth: 0,
+        textDecorationLine: 'none',
+        flex: 1,
+    },
+
     sidebarLink: {
         textDecorationLine: 'none',
     },
@@ -487,7 +493,7 @@ const styles = {
     sidebarLinkInner: {
         alignItems: 'center',
         flexDirection: 'row',
-        height: 44,
+        height: 48,
         paddingTop: 10,
         paddingRight: 8,
         paddingBottom: 10,
@@ -506,15 +512,29 @@ const styles = {
         borderRadius: 8,
         textDecorationLine: 'none',
     },
+
     sidebarLinkTextUnread: {
         fontWeight: '600',
         color: colors.textReversed,
     },
+
     sidebarLinkActiveText: {
         color: colors.textReversed,
         fontSize: 13,
         textDecorationLine: 'none',
         overflow: 'hidden',
+    },
+
+    chatSwitcherDisplayName: {
+        fontFamily: fontFamily.GTA,
+        height: 16,
+        lineHeight: 16,
+    },
+
+    chatSwitcherLogin: {
+        fontFamily: fontFamily.GTA,
+        height: 12,
+        lineHeight: 12,
     },
 
     unreadBadge: {
