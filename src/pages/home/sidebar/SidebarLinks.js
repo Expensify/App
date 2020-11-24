@@ -64,7 +64,10 @@ const SidebarLinks = (props) => {
         'desc',
         'asc'
     ]);
-    const hasComment = reportID => get(props.comments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, '').length > 0;
+    function hasComment (reportID) {
+        const reportComments = get(props.comments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, '');
+        return reportComments.length > 0;
+    }
 
     // Filter the reports so that the only reports shown are pinned, unread, have draft
     // comments (but are not the open one), and the one matching the URL
