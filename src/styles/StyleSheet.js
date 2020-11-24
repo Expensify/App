@@ -19,6 +19,7 @@ const colors = {
     textBackground: '#F0F0F0',
     textReversed: '#FFFFFF',
     textSupporting: '#7D8B8F',
+    transparent: 'transparent',
     red: '#E84A3B',
     buttonBG: '#8A8A8A',
     modalBackdrop: '#00000080',

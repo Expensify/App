@@ -8,7 +8,7 @@ import {
     View,
     StyleSheet,
 } from 'react-native';
-import styles from '../../../styles/StyleSheet';
+import styles, {colors} from '../../../styles/StyleSheet';
 import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
 import ROUTES from '../../../ROUTES';
 import PressableLink from '../../../components/PressableLink';
@@ -67,6 +67,7 @@ const ChatLinkRow = ({
                     styles.flexGrow1,
                     styles.chatSwitcherItemAvatarNameWrapper,
                 ])}
+                underlayColor={colors.transparent}
             >
                 <View
                     style={[
