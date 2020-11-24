@@ -7,7 +7,7 @@
  * Adds the outlineWidth property to an object to be used when styling
  *
  * @param {object} obj
- * @param {number] }val
+ * @param {number} val
  * @returns {object}
  */
 function withOutlineWidth(obj, val) {
