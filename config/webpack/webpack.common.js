@@ -51,6 +51,7 @@ module.exports = {
                  * use JSX/JS that needs to be transformed by babel.
                  */
                 exclude: [
+                    // eslint-disable-next-line max-len
                     /node_modules\/(?!(react-native-render-html|react-native-webview|react-native-onyx)\/).*|\.native\.js$/,
                     platformExclude
                 ],
