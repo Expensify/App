@@ -58,7 +58,7 @@ const defaultProps = {
 };
 
 const ChatSwitcherSearchForm = props => (
-    <View style={[styles.flexRow]}>
+    <View style={[styles.flexRow, styles.mb4]}>
         {props.isLogoVisible && (
             <View style={[styles.mr2, styles.ml2]}>
                 <Image
