@@ -19,6 +19,7 @@ import {
     Switch
 } from './libs/Router';
 import ROUTES from './ROUTES';
+import PushNotification from './libs/Notification/PushNotification';
 
 // Initialize the store when the app loads for the first time
 Onyx.init({
@@ -85,6 +86,9 @@ class Expensify extends Component {
             authToken: session ? session.authToken : null,
             isLoading: false,
         });
+        if (session) {
+            PushNotification.register(session.accountID);
+        }
     }
 
     render() {
