@@ -20,10 +20,15 @@ const colors = {
     textSupporting: '#7D8B8F',
     red: '#E84A3B',
     buttonBG: '#8A8A8A',
+    modalBackdrop: '#00000080',
 };
 
 const styles = {
     // Utility classes
+    m0: {
+        margin: 0,
+    },
+
     mr0: {
         marginRight: 0,
     },
@@ -155,6 +160,10 @@ const styles = {
 
     bgHighlight3: {
         backgroundColor: 'pink',
+    },
+
+    overflowHidden: {
+        overflow: 'hidden',
     },
 
     h4: {
@@ -471,6 +480,12 @@ const styles = {
         backgroundColor: colors.heading,
     },
 
+    chatLinkRowPressable: {
+        minWidth: 0,
+        textDecorationLine: 'none',
+        flex: 1,
+    },
+
     sidebarLink: {
         textDecorationLine: 'none',
     },
@@ -478,7 +493,7 @@ const styles = {
     sidebarLinkInner: {
         alignItems: 'center',
         flexDirection: 'row',
-        height: 44,
+        height: 48,
         paddingTop: 10,
         paddingRight: 8,
         paddingBottom: 10,
@@ -497,15 +512,29 @@ const styles = {
         borderRadius: 8,
         textDecorationLine: 'none',
     },
+
     sidebarLinkTextUnread: {
         fontWeight: '600',
         color: colors.textReversed,
     },
+
     sidebarLinkActiveText: {
         color: colors.textReversed,
         fontSize: 13,
         textDecorationLine: 'none',
         overflow: 'hidden',
+    },
+
+    chatSwitcherDisplayName: {
+        fontFamily: fontFamily.GTA,
+        height: 16,
+        lineHeight: 16,
+    },
+
+    chatSwitcherLogin: {
+        fontFamily: fontFamily.GTA,
+        height: 12,
+        lineHeight: 12,
     },
 
     unreadBadge: {
@@ -564,6 +593,12 @@ const styles = {
     LHNToggleIcon: {
         height: 15,
         width: 18,
+    },
+
+    attachmentCloseIcon: {
+        height: 20,
+        width: 20,
+        padding: 0,
     },
 
     chatContent: {
@@ -848,6 +883,47 @@ const styles = {
         fontSize: 11,
         lineHeight: 16,
         fontWeight: '700',
+    },
+
+    modalViewContainer: {
+        backgroundColor: colors.componentBG,
+        borderColor: colors.border,
+        borderWidth: 1,
+        borderRadius: 20,
+        height: '100%',
+    },
+
+    modalHeaderBar: {
+        fontFamily: fontFamily.GTA,
+        overflow: 'hidden',
+        justifyContent: 'center',
+        display: 'flex',
+        paddingLeft: 32,
+        paddingRight: 20,
+        borderBottomWidth: 1,
+        borderColor: colors.border,
+        height: 73,
+    },
+
+    imageModalPDF: {
+        flex: 1,
+        backgroundColor: colors.componentBG,
+    },
+
+    modalCenterContentContainer: {
+        flex: 1,
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: colors.modalBackdrop,
+    },
+
+    imageModalImageCenterContainer: {
+        flex: 1,
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        overflow: 'hidden',
     },
 };
 

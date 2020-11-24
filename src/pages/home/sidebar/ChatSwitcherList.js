@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {View, FlatList} from 'react-native';
 import styles from '../../../styles/StyleSheet';
 import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
-import ChatSwitcherRow from './ChatSwitcherRow';
+import ChatLinkRow from './ChatLinkRow';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
 
 const propTypes = {
@@ -35,11 +35,12 @@ const ChatSwitcherList = ({
             data={options}
             keyExtractor={option => (option.type === 'user' ? option.alternateText : String(option.reportID))}
             renderItem={({item, index}) => (
-                <ChatSwitcherRow
+                <ChatLinkRow
                     option={item}
                     optionIsFocused={index === focusedIndex}
                     onSelectRow={onSelectRow}
                     onAddToGroup={onAddToGroup}
+                    isChatSwitcher
                 />
             )}
             extraData={focusedIndex}
