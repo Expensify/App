@@ -16,7 +16,6 @@ function pushNotificationEventCallback(eventType, notification) {
     const actionMap = notificationEventActionMap[eventType] || {};
     let payload = lodashGet(notification, 'extras.payload');
 
-    console.log('pushNotificationEventCallback called:');
     // On Android, some notification payloads are sent as a JSON string rather than an object
     if (_.isString(payload)) {
         payload = JSON.parse(payload);
@@ -73,8 +72,6 @@ function register(accountID) {
                 console.debug('[PUSH_NOTIFICATIONS] User has disabled visible push notifications for this app.');
             }
         });
-
-    // UrbanAirship.setUserNotificationsEnabled(true);
 
     // Register this device as a named user in AirshipAPI.
     // Regardless of the user's opt-in status, we still want to receive silent push notifications.
