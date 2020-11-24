@@ -391,8 +391,6 @@
 				"${PODS_ROOT}/Airship/Airship/AirshipMessageCenter/Resources/UADefaultMessageCenterMessageViewController.xib",
 				"${PODS_ROOT}/Airship/Airship/AirshipMessageCenter/Resources/UAMessageCenterActions.plist",
 				"${PODS_ROOT}/Airship/Airship/AirshipMessageCenter/Resources/UAMessageCenterListCell.xib",
-				"${PODS_ROOT}/Airship/Airship/AirshipMessageCenter/Resources/UAMessageCenterListViewController.xib",
-				"${PODS_ROOT}/Airship/Airship/AirshipMessageCenter/Resources/UAMessageCenterMessageViewController.xib",
 				"${PODS_ROOT}/Airship/Airship/AirshipMessageCenter/Resources/UAMessageCenterPlaceholderIcon.png",
 				"${PODS_ROOT}/Airship/Airship/AirshipMessageCenter/Resources/UAInbox.xcdatamodeld",
 				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/AccessibilityResources.bundle",
@@ -450,8 +448,6 @@
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UADefaultMessageCenterMessageViewController.nib",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAMessageCenterActions.plist",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAMessageCenterListCell.nib",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAMessageCenterListViewController.nib",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAMessageCenterMessageViewController.nib",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAMessageCenterPlaceholderIcon.png",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAInbox.momd",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/AccessibilityResources.bundle",
@@ -519,8 +515,6 @@
 				"${PODS_ROOT}/Airship/Airship/AirshipMessageCenter/Resources/UADefaultMessageCenterMessageViewController.xib",
 				"${PODS_ROOT}/Airship/Airship/AirshipMessageCenter/Resources/UAMessageCenterActions.plist",
 				"${PODS_ROOT}/Airship/Airship/AirshipMessageCenter/Resources/UAMessageCenterListCell.xib",
-				"${PODS_ROOT}/Airship/Airship/AirshipMessageCenter/Resources/UAMessageCenterListViewController.xib",
-				"${PODS_ROOT}/Airship/Airship/AirshipMessageCenter/Resources/UAMessageCenterMessageViewController.xib",
 				"${PODS_ROOT}/Airship/Airship/AirshipMessageCenter/Resources/UAMessageCenterPlaceholderIcon.png",
 				"${PODS_ROOT}/Airship/Airship/AirshipMessageCenter/Resources/UAInbox.xcdatamodeld",
 				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/AccessibilityResources.bundle",
@@ -578,8 +572,6 @@
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UADefaultMessageCenterMessageViewController.nib",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAMessageCenterActions.plist",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAMessageCenterListCell.nib",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAMessageCenterListViewController.nib",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAMessageCenterMessageViewController.nib",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAMessageCenterPlaceholderIcon.png",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UAInbox.momd",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/AccessibilityResources.bundle",
@@ -746,7 +738,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = ReactNativeChat/Chat.entitlements;
-				CODE_SIGN_IDENTITY = "iPhone Distribution";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 368M544MTT;
@@ -762,7 +754,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.chat.expensify.chat;
 				PRODUCT_NAME = Chat;
-				PROVISIONING_PROFILE_SPECIFIER = chat_expensify_appstore;
+				PROVISIONING_PROFILE_SPECIFIER = chat_expensify_development;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -777,7 +769,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = ReactNativeChat/Chat.entitlements;
-				CODE_SIGN_IDENTITY = "iPhone Distribution";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 368M544MTT;
@@ -792,7 +784,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.chat.expensify.chat;
 				PRODUCT_NAME = Chat;
-				PROVISIONING_PROFILE_SPECIFIER = chat_expensify_appstore;
+				PROVISIONING_PROFILE_SPECIFIER = chat_expensify_development;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";

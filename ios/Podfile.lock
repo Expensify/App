@@ -1,15 +1,15 @@
 PODS:
-  - Airship (13.5.4):
-    - Airship/Automation (= 13.5.4)
-    - Airship/Core (= 13.5.4)
-    - Airship/ExtendedActions (= 13.5.4)
-    - Airship/MessageCenter (= 13.5.4)
-  - Airship/Automation (13.5.4):
+  - Airship (14.0.1):
+    - Airship/Automation (= 14.0.1)
+    - Airship/Core (= 14.0.1)
+    - Airship/ExtendedActions (= 14.0.1)
+    - Airship/MessageCenter (= 14.0.1)
+  - Airship/Automation (14.0.1):
     - Airship/Core
-  - Airship/Core (13.5.4)
-  - Airship/ExtendedActions (13.5.4):
+  - Airship/Core (14.0.1)
+  - Airship/ExtendedActions (14.0.1):
     - Airship/Core
-  - Airship/MessageCenter (13.5.4):
+  - Airship/MessageCenter (14.0.1):
     - Airship/Core
   - boost-for-react-native (1.63.0)
   - CocoaAsyncSocket (7.6.4)
@@ -124,7 +124,7 @@ PODS:
     - GoogleUtilities/Network (~> 6.7)
     - "GoogleUtilities/NSData+zlib (~> 6.7)"
     - nanopb (~> 1.30906.0)
-  - GoogleDataTransport (7.5.0):
+  - GoogleDataTransport (7.5.1):
     - nanopb (~> 1.30906.0)
   - GoogleUtilities/AppDelegateSwizzler (6.7.2):
     - GoogleUtilities/Environment
@@ -409,8 +409,8 @@ PODS:
     - Firebase/Crashlytics (~> 6.34.0)
     - React-Core
     - RNFBApp
-  - urbanairship-react-native (8.1.0):
-    - Airship (= 13.5.4)
+  - urbanairship-react-native (9.0.1):
+    - Airship (= 14.0.1)
     - React
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
@@ -583,7 +583,7 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  Airship: cbbd372a4ffc8dcfeacec01fd623155ec41f33ed
+  Airship: 842b4f28face4db0042a8a929703df33753ac033
   boost-for-react-native: 39c7adb57c4e60d6c5479dd8623128eb5b3f0f2c
   CocoaAsyncSocket: 694058e7c0ed05a9e217d1b3c7ded962f4180845
   CocoaLibEvent: 2fab71b8bd46dd33ddb959f7928ec5909f838e3f
@@ -606,7 +606,7 @@ SPEC CHECKSUMS:
   Folly: b73c3869541e86821df3c387eb0af5f65addfab4
   glog: 40a13f7840415b9a77023fbcae0f1e6f43192af3
   GoogleAppMeasurement: a6a3a066369828db64eda428cb2856dc1cdc7c4e
-  GoogleDataTransport: 445302b7da4216da63071a4c29e7023f47192e5a
+  GoogleDataTransport: f56af7caa4ed338dc8e138a5d7c5973e66440833
   GoogleUtilities: 7f2f5a07f888cdb145101d6042bc4422f57e70b3
   nanopb: 59317e09cf1f1a0af72f12af412d54edf52603fc
   OpenSSL-Universal: ff34003318d5e1163e9529b08470708e389ffcdd
@@ -642,10 +642,10 @@ SPEC CHECKSUMS:
   RNFBAnalytics: 2dc4dd9e2445faffca041b10447a23a71dcdabf8
   RNFBApp: 7eacc7da7ab19f96c05e434017d44a9f09410da8
   RNFBCrashlytics: 4870c14cf8833053b6b5648911abefe1923854d2
-  urbanairship-react-native: fa123940041a6a13ab7dac192e32833c53754f00
+  urbanairship-react-native: b948f8d55fff0013e595ebbe84804e46d18c745b
   Yoga: 7d13633d129fd179e01b8953d38d47be90db185a
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
 PODFILE CHECKSUM: d03a22d8299d9564ca7fc55d0a779f6fbf0d2b37
 
-COCOAPODS: 1.9.3
+COCOAPODS: 1.10.0
