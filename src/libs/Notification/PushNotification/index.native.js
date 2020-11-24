@@ -67,14 +67,14 @@ function pushNotificationEventCallback(eventType, notification) {
  */
 function register(accountID) {
     // Get permissions to display push notifications (prompts user on iOS, but not Android)
-    // UrbanAirship.enableUserPushNotifications()
-    //     .then((isEnabled) => {
-    //         if (!isEnabled) {
-    //             console.debug('[PUSH_NOTIFICATIONS] User has disabled visible push notifications for this app.');
-    //         }
-    //     });
+    UrbanAirship.enableUserPushNotifications()
+        .then((isEnabled) => {
+            if (!isEnabled) {
+                console.debug('[PUSH_NOTIFICATIONS] User has disabled visible push notifications for this app.');
+            }
+        });
 
-    UrbanAirship.setUserNotificationsEnabled(true);
+    // UrbanAirship.setUserNotificationsEnabled(true);
 
     // Register this device as a named user in AirshipAPI.
     // Regardless of the user's opt-in status, we still want to receive silent push notifications.
@@ -83,14 +83,12 @@ function register(accountID) {
 
     // Setup event listeners
     UrbanAirship.addListener(EventType.PushReceived, (notification) => {
-        console.debug('UrbanAirship - PushReceived: ' + JSON.stringify(notification));
         pushNotificationEventCallback(EventType.PushReceived, notification);
     });
 
     // Note: the NotificationResponse event has a nested PushReceived event,
     // so event.notification refers to the same thing as notification above ^
     UrbanAirship.addListener(EventType.NotificationResponse, (event) => {
-        console.debug('UrbanAirship - NotificationResponse: ' + JSON.stringify(event));
         pushNotificationEventCallback(EventType.NotificationResponse, event.notification);
     });
 }
@@ -132,7 +130,6 @@ function bind(notificationType, callback, triggerEvent) {
  * @param {Function} callback
  */
 function onReceived(notificationType, callback) {
-    console.log('PushNotification - onReceived:');
     bind(notificationType, callback, EventType.PushReceived);
 }
 
@@ -143,7 +140,6 @@ function onReceived(notificationType, callback) {
  * @param {Function} callback
  */
 function onSelected(notificationType, callback) {
-    console.log('PushNotification - onSelected:');
     bind(notificationType, callback, EventType.NotificationResponse);
 }
 

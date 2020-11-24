@@ -286,18 +286,15 @@ function subscribeToReportCommentEvents() {
     }
 
     Pusher.subscribe(pusherChannelName, 'reportComment', (pushJSON) => {
-        console.debug('Pusher.subscribe: ' + JSON.stringify(pushJSON));
         updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
     });
 
     PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, reportAction}) => {
-        console.debug('PushNotification.onReceived:');
         updateReportWithNewAction(reportID, reportAction);
     });
 
     // Open correct report when push notification is clicked
     PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, ({reportID}) => {
-        console.debug('PushNotification.onSelected:');
         redirect(ROUTES.getReportRoute(reportID));
         hideSidebar();
     });
