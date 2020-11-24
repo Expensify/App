@@ -1,6 +1,7 @@
 // We place items a percentage to the safe area on the top or bottom of the screen
 import fontFamily from './fontFamily';
 import italic from './italic';
+import outlineWidth from './outlineWidth';
 
 const safeInsertPercentage = 0.7;
 
@@ -324,20 +325,17 @@ const styles = {
         textAlignVertical: 'center',
     },
 
-    textInputReversed: {
+    textInputReversed: outlineWidth({
         backgroundColor: colors.heading,
         borderColor: colors.text,
         color: colors.textReversed,
-        outlineWidth: 0,
-    },
+    }, 0),
 
     textInputReversedFocus: {
         borderColor: colors.icon,
     },
 
-    textInputNoOutline: {
-        outlineWidth: 0,
-    },
+    textInputNoOutline: outlineWidth({}, 0),
 
     formLabel: {
         fontSize: 13,
@@ -701,17 +699,16 @@ const styles = {
         minHeight: 40,
     },
 
-    textInputCompose: {
+    textInputCompose: outlineWidth({
         borderWidth: 0,
         borderRadius: 0,
-        outlineWidth: 0,
         height: 'auto',
         minHeight: 38,
         paddingTop: 10,
         paddingRight: 8,
         paddingBottom: 10,
         paddingLeft: 8,
-    },
+    }, 0),
 
     chatItemSubmitButton: {
         alignSelf: 'flex-end',
