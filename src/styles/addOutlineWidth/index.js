@@ -1,10 +1,10 @@
 /**
- * Web and desktop platforms support the "outlineWidth" property, so it
+ * Web and desktop platforms support the "addOutlineWidth" property, so it
  * can be added to the object
  */
 
 /**
- * Adds the outlineWidth property to an object to be used when styling
+ * Adds the addOutlineWidth property to an object to be used when styling
  *
  * @param {object} obj
  * @param {number} val
