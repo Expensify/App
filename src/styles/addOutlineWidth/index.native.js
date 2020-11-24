@@ -1,5 +1,5 @@
 /**
- * Native platforms don't support the "outlineWidth" property, so this
+ * Native platforms don't support the "addOutlineWidth" property, so this
  * function is a no-op
  */
 

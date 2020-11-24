@@ -1,7 +1,7 @@
 // We place items a percentage to the safe area on the top or bottom of the screen
 import fontFamily from './fontFamily';
 import italic from './italic';
-import outlineWidth from './outlineWidth';
+import addOutlineWidth from './addOutlineWidth';
 
 const safeInsertPercentage = 0.7;
 
@@ -325,7 +325,7 @@ const styles = {
         textAlignVertical: 'center',
     },
 
-    textInputReversed: outlineWidth({
+    textInputReversed: addOutlineWidth({
         backgroundColor: colors.heading,
         borderColor: colors.text,
         color: colors.textReversed,
@@ -335,7 +335,7 @@ const styles = {
         borderColor: colors.icon,
     },
 
-    textInputNoOutline: outlineWidth({}, 0),
+    textInputNoOutline: addOutlineWidth({}, 0),
 
     formLabel: {
         fontSize: 13,
@@ -699,7 +699,7 @@ const styles = {
         minHeight: 40,
     },
 
-    textInputCompose: outlineWidth({
+    textInputCompose: addOutlineWidth({
         borderWidth: 0,
         borderRadius: 0,
         height: 'auto',
