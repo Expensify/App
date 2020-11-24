@@ -6,6 +6,7 @@ import {
     Text,
     TouchableOpacity,
     View,
+    StyleSheet,
 } from 'react-native';
 import styles from '../../../styles/StyleSheet';
 import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
@@ -61,11 +62,11 @@ const ChatLinkRow = ({
             <PressableLink
                 onClick={() => onSelectRow(option)}
                 to={ROUTES.getReportRoute(option.reportID)}
-                style={[
+                style={StyleSheet.flatten([
                     styles.chatLinkRowPressable,
                     styles.flexGrow1,
                     styles.chatSwitcherItemAvatarNameWrapper,
-                ]}
+                ])}
             >
                 <View
                     style={[
