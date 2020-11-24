@@ -64,9 +64,9 @@ const SidebarLinks = (props) => {
         'desc',
         'asc'
     ]);
-    function hasComment (reportID) {
-        const reportComments = get(props.comments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, '');
-        return reportComments.length > 0;
+    function hasComment(reportID) {
+        const allComments = get(props.comments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, '');
+        return allComments.length > 0;
     }
 
     // Filter the reports so that the only reports shown are pinned, unread, have draft
