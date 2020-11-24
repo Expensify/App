@@ -5,10 +5,9 @@
 
 /**
  * @param {object} obj
- * @param {number] }val
  * @returns {object}
  */
-function withOutlineWidth(obj, val) {
+function withOutlineWidth(obj) {
     return obj;
 }
 
