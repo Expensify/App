@@ -36,7 +36,6 @@ const propTypes = {
 
     isChatSwitcherActive: PropTypes.bool,
 
-
     // List of users' personal details
     personalDetails: PropTypes.objectOf(PropTypes.shape({
         login: PropTypes.string.isRequired,
