@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {
@@ -61,7 +62,7 @@ const ChatLinkRow = ({
             <PressableLink
                 onClick={() => onSelectRow(option)}
                 to={ROUTES.getReportRoute(option.reportID)}
-                style={styles.textDecorationNoLine}
+                style={styles.chatLinkRowPressable}
             >
                 <TouchableOpacity
                     onPress={() => onSelectRow(option)}
@@ -77,7 +78,7 @@ const ChatLinkRow = ({
                         ]}
                     >
                         {
-                            option.icon
+                            !_.isEmpty(option.icon)
                             && (
                                 <View style={[styles.chatSwitcherAvatar, styles.mr2]}>
                                     <Image
@@ -89,7 +90,7 @@ const ChatLinkRow = ({
                         }
                         <View style={[styles.flex1]}>
                             {option.text === option.alternateText ? (
-                                <Text style={textUnreadStyle} numberOfLines={1}>
+                                <Text style={[styles.chatSwitcherDisplayName, textUnreadStyle]} numberOfLines={1}>
                                     {option.alternateText}
                                 </Text>
                             ) : (
@@ -97,7 +98,10 @@ const ChatLinkRow = ({
                                     <Text style={textUnreadStyle} numberOfLines={1}>
                                         {option.text}
                                     </Text>
-                                    <Text style={[textStyle, styles.textMicro]} numberOfLines={1}>
+                                    <Text
+                                        style={[styles.chatSwitcherLogin, textStyle, styles.textMicro]}
+                                        numberOfLines={1}
+                                    >
                                         {option.alternateText}
                                     </Text>
                                 </>
