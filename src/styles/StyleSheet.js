@@ -54,12 +54,16 @@ const styles = {
         marginLeft: 8,
     },
 
-    mt2: {
-        marginTop: 20,
-    },
     mt1: {
         marginTop: 10,
     },
+    mt2: {
+        marginTop: 20,
+    },
+    mt4: {
+        marginTop: 16,
+    },
+
     mb1: {
         marginBottom: 4,
     },
