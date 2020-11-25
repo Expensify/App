@@ -392,6 +392,7 @@ const styles = {
         paddingBottom: 16,
         paddingLeft: 12,
         flex: 1,
+        flexGrow: 0,
     },
 
     sidebarHeaderLogo: {
