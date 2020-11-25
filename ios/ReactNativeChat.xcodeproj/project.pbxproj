@@ -754,7 +754,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.chat.expensify.chat;
 				PRODUCT_NAME = Chat;
-				PROVISIONING_PROFILE_SPECIFIER = chat_expensify_development;
+				PROVISIONING_PROFILE_SPECIFIER = chat_expensify_appstore;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
