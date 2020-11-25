@@ -6,8 +6,9 @@ import {
     Text,
     TouchableOpacity,
     View,
+    StyleSheet,
 } from 'react-native';
-import styles from '../../../styles/StyleSheet';
+import styles, {colors} from '../../../styles/StyleSheet';
 import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
 import ROUTES from '../../../ROUTES';
 import PressableLink from '../../../components/PressableLink';
@@ -61,53 +62,50 @@ const ChatLinkRow = ({
             <PressableLink
                 onClick={() => onSelectRow(option)}
                 to={ROUTES.getReportRoute(option.reportID)}
-                style={styles.chatLinkRowPressable}
+                style={StyleSheet.flatten([
+                    styles.chatLinkRowPressable,
+                    styles.flexGrow1,
+                    styles.chatSwitcherItemAvatarNameWrapper,
+                ])}
+                underlayColor={colors.transparent}
             >
-                <TouchableOpacity
-                    onPress={() => onSelectRow(option)}
+                <View
                     style={[
-                        styles.flexGrow1,
-                        styles.chatSwitcherItemAvatarNameWrapper,
+                        styles.flexRow,
+                        styles.alignItemsCenter,
                     ]}
                 >
-                    <View
-                        style={[
-                            styles.flexRow,
-                            styles.alignItemsCenter,
-                        ]}
-                    >
-                        {
-                            !_.isEmpty(option.icon)
-                            && (
-                                <View style={[styles.chatSwitcherAvatar, styles.mr2]}>
-                                    <Image
-                                        source={{uri: option.icon}}
-                                        style={[styles.chatSwitcherAvatarImage]}
-                                    />
-                                </View>
-                            )
-                        }
-                        <View style={[styles.flex1]}>
-                            {option.text === option.alternateText ? (
-                                <Text style={[styles.chatSwitcherDisplayName, textUnreadStyle]} numberOfLines={1}>
+                    {
+                        !_.isEmpty(option.icon)
+                        && (
+                            <View style={[styles.chatSwitcherAvatar, styles.mr2]}>
+                                <Image
+                                    source={{uri: option.icon}}
+                                    style={[styles.chatSwitcherAvatarImage]}
+                                />
+                            </View>
+                        )
+                    }
+                    <View style={[styles.flex1]}>
+                        {option.text === option.alternateText ? (
+                            <Text style={[styles.chatSwitcherDisplayName, textUnreadStyle]} numberOfLines={1}>
+                                {option.alternateText}
+                            </Text>
+                        ) : (
+                            <>
+                                <Text style={textUnreadStyle} numberOfLines={1}>
+                                    {option.text}
+                                </Text>
+                                <Text
+                                    style={[styles.chatSwitcherLogin, textStyle, styles.textMicro]}
+                                    numberOfLines={1}
+                                >
                                     {option.alternateText}
                                 </Text>
-                            ) : (
-                                <>
-                                    <Text style={textUnreadStyle} numberOfLines={1}>
-                                        {option.text}
-                                    </Text>
-                                    <Text
-                                        style={[styles.chatSwitcherLogin, textStyle, styles.textMicro]}
-                                        numberOfLines={1}
-                                    >
-                                        {option.alternateText}
-                                    </Text>
-                                </>
-                            )}
-                        </View>
+                            </>
+                        )}
                     </View>
-                </TouchableOpacity>
+                </View>
             </PressableLink>
             {isUserRow && isChatSwitcher && (
                 <View>
