@@ -124,15 +124,14 @@ class ChatSwitcherView extends React.Component {
      * if its a 1:1 DM or not. If it is a 1:1 DM we'll save the DM participant login and the type as user.
      *
      * @param {Boolean} sortByLastVisited
-     * @param {Boolean} excludeGroupDMs
      * @returns {Object}
      */
-    getChatReportsOptions(sortByLastVisited = true, excludeGroupDMs = false) {
-        const chatReports = sortByLastVisited
-            ? lodashOrderby(this.props.reports, ['lastVisitedTimestamp'], ['desc'])
-            : this.props.reports;
+    getChatReportsOptions(sortByLastVisited = true) {
+        // If we have at least one group user then let's only get 1:1 DM chat options since we cannot add group
+        // DMs at this point.
+        const excludeGroupDMs = this.state.groupUsers.length > 0;
 
-        return _.chain(chatReports)
+        const chatReports = _.chain(this.props.reports)
             .values()
             .filter((report) => {
                 if (_.isEmpty(report.reportName)) {
@@ -141,9 +140,18 @@ class ChatSwitcherView extends React.Component {
                 if (sortByLastVisited && !report.lastVisitedTimestamp) {
                     return false;
                 }
+                // Remove any previously selected group user so that it doesn't show as a dupe
+                const isInGroupUsers = _.some(this.state.groupUsers, ({login}) => {
+                    const participants = lodashGet(report, 'participants', []);
+                    const isSingleUserPrivateDMReport = participants.length === 1;
+                    return isSingleUserPrivateDMReport && login === participants[0];
+                });
+                if (isInGroupUsers) {
+                    return false;
+                }
                 if (excludeGroupDMs) {
                     const participants = lodashGet(report, 'participants', []);
-                    const isGroupDM = participants.length > 0;
+                    const isGroupDM = participants.length > 1;
                     return !isGroupDM;
                 }
                 return true;
@@ -163,9 +171,16 @@ class ChatSwitcherView extends React.Component {
                     login,
                     type: isSingleUserPrivateDMReport ? OPTION_TYPE.USER : OPTION_TYPE.REPORT,
                     isUnread: report.unreadActionCount > 0,
+                    lastVisitedTimestamp: report.lastVisitedTimestamp,
                 };
             })
             .value();
+
+        // If we are not sorting by lastVisited then let's sort it such that 1:1 user reports are on top with group DMs
+        // on the bottom. This would ensure our search UI is clean than having 1:1 reports show up in the middle.
+        return sortByLastVisited
+            ? lodashOrderby(chatReports, ['lastVisitedTimestamp'], ['desc'])
+            : lodashOrderby(chatReports, ['type'], ['desc']);
     }
 
     /**
@@ -367,7 +382,7 @@ class ChatSwitcherView extends React.Component {
             if (this.state.groupUsers.length > 0) {
                 // If we have groupLogins we only want to reset the options not
                 // the entire state which would clear out the list of groupUsers
-                this.setState({options: [], search: ''});
+                this.setState({options: this.getChatReportsOptions(true), search: ''});
                 return;
             }
 
@@ -392,11 +407,9 @@ class ChatSwitcherView extends React.Component {
         // A Set is used here so that duplicate values are automatically removed.
         const matches = new Set();
 
-        // If we have at least one group user then let's only get 1:1 DM chat options since we cannot add group
-        // DMs at this point. We don't want to sort our chatReportOptions by lastVisited since we'll let the regex
+        // We don't want to sort our chatReportOptions by lastVisited since we'll let the regex
         // matches order our options.
-        const isGroupChat = this.state.groupUsers.length > 0;
-        const chatReportOptions = this.getChatReportsOptions(false, isGroupChat);
+        const chatReportOptions = this.getChatReportsOptions(false);
 
         // Get a list of all users we can send messages to and make their details generic. We will also reject any
         // personalDetails logins that exist in chatReportOptions which will remove our dupes since we'll use
