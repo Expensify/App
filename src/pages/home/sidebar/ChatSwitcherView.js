@@ -435,15 +435,6 @@ class ChatSwitcherView extends React.Component {
                         matches.add(option);
                     }
 
-                    // If is is a single user private DM report, add the isUnread property to the
-                    // user UI equivalent.
-                    if (isSingleUserPrivateDMReport) {
-                        const userOption = _.find(searchOptions, opt => opt.login === option.participants[0]);
-                        if (userOption) {
-                            userOption.isUnread = option.isUnread;
-                        }
-                    }
-
                     if (matches.size === this.maxSearchResults) {
                         break;
                     }
