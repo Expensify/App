@@ -76,6 +76,7 @@ const SidebarLinks = (props) => {
                 />
             </View>
             <ScrollView
+                keyboardShouldPersistTaps="always"
                 style={sidebarLinksStyle}
                 bounces={false}
                 indicatorStyle="white"

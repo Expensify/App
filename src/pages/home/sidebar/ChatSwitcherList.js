@@ -32,6 +32,7 @@ const ChatSwitcherList = ({
     <View style={[styles.flex1]}>
         {options.length > 0 && (
             <FlatList
+                keyboardShouldPersistTaps="always"
                 showsVerticalScrollIndicator={false}
                 data={options}
                 keyExtractor={option => (option.type === 'user' ? option.alternateText : String(option.reportID))}
