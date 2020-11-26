@@ -275,7 +275,7 @@ class ChatSwitcherView extends React.Component {
     reset(blurAfterReset = true) {
         this.setState({
             search: '',
-            options: this.getChatReportsOptions(),
+            options: blurAfterReset ? [] : this.getChatReportsOptions(),
             focusedIndex: 0,
             isLogoVisible: blurAfterReset,
             isClearButtonVisible: !blurAfterReset,
