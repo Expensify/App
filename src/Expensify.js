@@ -71,8 +71,29 @@ class Expensify extends Component {
     componentDidMount() {
         Onyx.connect({
             key: ONYXKEYS.SESSION,
-            callback: this.removeLoadingState,
+            callback: this.somethingElse,
         });
+    }
+    /**
+     * When the authToken is updated, the app should remove the loading state and handle the authToken
+     *
+     * @param {object} session
+     */
+    somethingElse(session) {
+        this.registerNotifications(session);
+        this.removeLoadingState(session);
+    }
+
+    /**
+     * When the authToken is updated, the app should remove the loading state and handle the authToken
+     *
+     * @param {object} session
+     * @param {string} session.accountID
+     */
+    registerNotifications(session) {
+        if (session) {
+            PushNotification.register(session.accountID);
+        }
     }
 
     /**
