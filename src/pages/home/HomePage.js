@@ -44,6 +44,7 @@ const defaultProps = {
     isChatSwitcherActive: false,
 };
 
+// This just a comment I'll remove it latter.
 class App extends React.Component {
     constructor(props) {
         super(props);
