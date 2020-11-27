@@ -15,11 +15,7 @@ import {redirect} from '../../../libs/actions/App';
 import ROUTES from '../../../ROUTES';
 import styles from '../../../styles/StyleSheet';
 import * as ChatSwitcher from '../../../libs/actions/ChatSwitcher';
-
-const OPTION_TYPE = {
-    USER: 'user',
-    REPORT: 'report',
-};
+import CONST from '../../../CONST';
 
 const MAX_GROUP_DM_LENGTH = 8;
 
@@ -140,6 +136,7 @@ class ChatSwitcherView extends React.Component {
                 if (sortByLastVisited && !report.lastVisitedTimestamp) {
                     return false;
                 }
+
                 // Remove any previously selected group user so that it doesn't show as a dupe
                 const isInGroupUsers = _.some(this.state.groupUsers, ({login}) => {
                     const participants = lodashGet(report, 'participants', []);
@@ -158,8 +155,8 @@ class ChatSwitcherView extends React.Component {
             })
             .map((report) => {
                 const participants = lodashGet(report, 'participants', []);
-                const isSingleUserPrivateDMReport = participants.length === 1;
-                const login = isSingleUserPrivateDMReport ? report.participants[0] : '';
+                const isSingleUserChat = participants.length === 1;
+                const login = isSingleUserChat ? report.participants[0] : '';
                 return {
                     text: report.reportName,
                     alternateText: report.reportName,
@@ -169,7 +166,7 @@ class ChatSwitcherView extends React.Component {
                     participants,
                     icon: report.icon,
                     login,
-                    type: isSingleUserPrivateDMReport ? OPTION_TYPE.USER : OPTION_TYPE.REPORT,
+                    type: isSingleUserChat ? CONST.REPORT.SINGLE_USER_CHAT : CONST.REPORT.GROUP_CHAT,
                     isUnread: report.unreadActionCount > 0,
                     lastVisitedTimestamp: report.lastVisitedTimestamp,
                 };
@@ -190,10 +187,10 @@ class ChatSwitcherView extends React.Component {
      */
     selectRow(option) {
         switch (option.type) {
-            case OPTION_TYPE.USER:
+            case CONST.REPORT.SINGLE_USER_CHAT:
                 this.selectUser(option);
                 break;
-            case OPTION_TYPE.REPORT:
+            case CONST.REPORT.GROUP_CHAT:
                 this.selectReport(option);
                 break;
             default:
@@ -424,7 +421,7 @@ class ChatSwitcherView extends React.Component {
                     : `${personalDetail.displayName} ${personalDetail.login}`,
                 icon: personalDetail.avatarURL,
                 login: personalDetail.login,
-                type: OPTION_TYPE.USER,
+                type: CONST.REPORT.SINGLE_USER_CHAT,
             }))
             .value();
 

@@ -5,6 +5,7 @@ import styles from '../../../styles/StyleSheet';
 import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
 import ChatLinkRow from './ChatLinkRow';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
+import CONST from '../../../CONST';
 
 const propTypes = {
     // The index of the option that is currently in focus
@@ -34,7 +35,9 @@ const ChatSwitcherList = ({
             <FlatList
                 showsVerticalScrollIndicator={false}
                 data={options}
-                keyExtractor={option => (option.type === 'user' ? option.alternateText : String(option.reportID))}
+                keyExtractor={option => (
+                    option.type === CONST.REPORT.SINGLE_USER_CHAT ? option.alternateText : String(option.reportID)
+                )}
                 renderItem={({item, index}) => (
                     <ChatLinkRow
                         option={item}
