@@ -134,7 +134,7 @@ const styles = {
     },
 
     flexWrap: {
-        flexWrap: 'wrap'
+        flexWrap: 'wrap',
     },
 
     flexGrow1: {
@@ -283,7 +283,7 @@ const styles = {
     navText: {
         color: colors.heading,
         fontSize: 17,
-        fontWeight: '700'
+        fontWeight: '700',
     },
 
     reportOptions: {
@@ -836,7 +836,7 @@ const styles = {
             height: 0,
         },
         shadowOpacity: 0.3,
-        shadowRadius: 20
+        shadowRadius: 20,
     },
 
     hamburgerOpen: {
@@ -934,20 +934,6 @@ const baseCodeTagStyles = {
 };
 
 const webViewStyles = {
-    preTagStyle: {
-        ...baseCodeTagStyles,
-        paddingTop: 4,
-        paddingBottom: 5,
-        paddingRight: 8,
-        paddingLeft: 8,
-    },
-    codeTagStyle: {
-        ...baseCodeTagStyles,
-        paddingLeft: 5,
-        paddingRight: 5,
-        paddingBottom: 2,
-        alignSelf: 'flex-start',
-    },
     tagStyles: {
         em: {
             fontFamily: fontFamily.GTA_ITALIC,
@@ -956,7 +942,7 @@ const webViewStyles = {
 
         del: {
             textDecorationLine: 'line-through',
-            textDecorationStyle: 'solid'
+            textDecorationStyle: 'solid',
         },
 
         strong: {
@@ -965,14 +951,29 @@ const webViewStyles = {
         },
 
         a: {
-            color: colors.blue
+            color: colors.blue,
+            textDecorationColor: colors.blue
         },
 
         pre: {
+            ...baseCodeTagStyles,
+            paddingTop: 4,
+            paddingBottom: 5,
+            paddingRight: 8,
+            paddingLeft: 8,
             fontFamily: fontFamily.MONOSPACE,
+
+            // override user agent styles
+            marginTop: 0,
+            marginBottom: 0
         },
 
         code: {
+            ...baseCodeTagStyles,
+            paddingLeft: 5,
+            paddingRight: 5,
+            paddingBottom: 2,
+            alignSelf: 'flex-start',
             fontFamily: fontFamily.MONOSPACE,
         },
 
@@ -980,16 +981,15 @@ const webViewStyles = {
             borderColor: colors.border,
             borderRadius: 8,
             borderWidth: 1,
-        }
+        },
     },
 
     baseFontStyle: {
         color: colors.text,
         fontSize: 15,
         fontFamily: fontFamily.GTA,
-    }
+    },
 };
-
 
 /**
  * Takes safe area insets and returns padding to use for a View
@@ -998,7 +998,10 @@ const webViewStyles = {
  * @returns {{paddingBottom: number, paddingTop: number}}
  */
 function getSafeAreaPadding(insets) {
-    return {paddingTop: insets.top, paddingBottom: insets.bottom * safeInsertPercentage};
+    return {
+        paddingTop: insets.top,
+        paddingBottom: insets.bottom * safeInsertPercentage,
+    };
 }
 
 /**
