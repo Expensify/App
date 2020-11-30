@@ -19,6 +19,7 @@ import {
     Switch
 } from './libs/Router';
 import ROUTES from './ROUTES';
+import PushNotification from './libs/Notification/PushNotification';
 
 // Initialize the store when the app loads for the first time
 Onyx.init({
@@ -74,6 +75,12 @@ class Expensify extends Component {
         });
     }
 
+    componentDidUpdate(prevProps, prevState) {
+        if (this.state.accountID && this.state.accountID !== prevState.accountID) {
+            PushNotification.register(this.state.accountID);
+        }
+    }
+
     /**
      * When the authToken is updated, the app should remove the loading state and handle the authToken
      *
@@ -83,6 +90,7 @@ class Expensify extends Component {
     removeLoadingState(session) {
         this.setState({
             authToken: session ? session.authToken : null,
+            accountID: session ? session.accountID : null,
             isLoading: false,
         });
     }
