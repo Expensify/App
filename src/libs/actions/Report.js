@@ -310,6 +310,9 @@ function subscribeToReportTypingEvents(reportID) {
         return;
     }
 
+    // Make sure we have a clean Typing indicator before subscribing to typing events
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, {});
+
     const pusherChannelName = getReportChannelName(reportID);
 
     // Typing status is an object with the shape {[login]: Boolean} (e.g. {yuwen@expensify.com: true}), where the value
