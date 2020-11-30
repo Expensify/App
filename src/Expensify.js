@@ -19,6 +19,7 @@ import {
     Switch
 } from './libs/Router';
 import ROUTES from './ROUTES';
+import PushNotification from './libs/Notification/PushNotification';
 
 // Initialize the store when the app loads for the first time
 Onyx.init({
@@ -83,6 +84,7 @@ class Expensify extends Component {
     removeLoadingState(session) {
         this.setState({
             authToken: session ? session.authToken : null,
+            accountID: session ? session.accountID : null,
             isLoading: false,
         });
     }
@@ -93,6 +95,9 @@ class Expensify extends Component {
             return (
                 <View style={styles.genericView} />
             );
+        }
+        if (this.state.accountID) {
+            PushNotification.register(this.state.accountID);
         }
         const redirectTo = !this.state.authToken ? ROUTES.SIGNIN : this.props.redirectTo;
         return (
