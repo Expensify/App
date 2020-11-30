@@ -6,7 +6,6 @@ import HttpUtils from './HttpUtils';
 import redirectToSignIn from './actions/SignInRedirect';
 import * as Network from './Network';
 
-// Have a local variable for when the API is authenticating
 let isAuthenticating;
 
 let credentials;
