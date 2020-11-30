@@ -75,6 +75,12 @@ class Expensify extends Component {
         });
     }
 
+    componentDidUpdate() {
+        if (this.state.accountID) {
+            PushNotification.register(this.state.accountID);
+        }
+    }
+
     /**
      * When the authToken is updated, the app should remove the loading state and handle the authToken
      *
@@ -95,9 +101,6 @@ class Expensify extends Component {
             return (
                 <View style={styles.genericView} />
             );
-        }
-        if (this.state.accountID) {
-            PushNotification.register(this.state.accountID);
         }
         const redirectTo = !this.state.authToken ? ROUTES.SIGNIN : this.props.redirectTo;
         return (
