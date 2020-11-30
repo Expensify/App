@@ -27,7 +27,7 @@ import {
 } from '../../libs/actions/Report';
 import {fetch as fetchPersonalDetails} from '../../libs/actions/PersonalDetails';
 import * as Pusher from '../../libs/Pusher/pusher';
-import PusherConnectionManager from '../../libs/PusherConnectionManager';
+import * as PusherConnectionManager from '../../libs/PusherConnectionManager';
 import UnreadIndicatorUpdater from '../../libs/UnreadIndicatorUpdater';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -66,7 +66,7 @@ class App extends React.Component {
 
     componentDidMount() {
         NetworkConnection.listenForReconnect();
-        PusherConnectionManager();
+        PusherConnectionManager.init();
         Pusher.init({
             appKey: CONFIG.PUSHER.APP_KEY,
             cluster: CONFIG.PUSHER.CLUSTER,
