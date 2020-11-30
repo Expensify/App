@@ -12,7 +12,7 @@ let networkRequestQueue = [];
 // This is an optional function that this lib can be configured with (via registerParameterEnhancer())
 // that accepts all request parameters and returns a new copy of them. This allows other code to inject
 // parameters such as authTokens or CSRF tokens, etc.
-let paramEnhancer;
+let enhanceParameters;
 
 // We subscribe to changes to the online/offline status of the network to determine when we should fire off API calls
 // vs queueing them for later.
@@ -49,8 +49,8 @@ function processNetworkRequestQueue() {
             return;
         }
 
-        const finalParameters = _.isFunction(paramEnhancer)
-            ? paramEnhancer(queuedRequest.command, queuedRequest.data)
+        const finalParameters = _.isFunction(enhanceParameters)
+            ? enhanceParameters(queuedRequest.command, queuedRequest.data)
             : queuedRequest.data;
 
         HttpUtils.xhr(queuedRequest.command, finalParameters, queuedRequest.type)
@@ -115,7 +115,7 @@ function unpauseRequestQueue() {
 }
 
 function registerParameterEnhancer(callback) {
-    paramEnhancer = callback;
+    enhanceParameters = callback;
 }
 
 export {
