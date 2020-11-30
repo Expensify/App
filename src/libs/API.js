@@ -146,11 +146,9 @@ function handleExpiredAuthToken(originalResponse, originalCommand, originalParam
         })
 
         // Now that the API is authenticated, make the original request again with the new authToken
-        // Use HttpUtils here so that retry logic is avoided. Since this code is triggered from a retry attempt
-        // it can create an infinite loop
         .then(() => {
             const params = addAuthTokenToParameters(originalCommand, originalParameters);
-            HttpUtils.xhr(originalCommand, params, originalType);
+            Network.post(originalCommand, params, originalType);
         })
 
         .catch((error) => {
