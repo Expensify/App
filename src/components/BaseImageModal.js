@@ -94,7 +94,9 @@ class BaseImageModal extends React.Component {
         if (this.state.isModalOpen && !this.calculatedModalImageSize) {
             Image.getSize(this.props.sourceURL, (width, height) => {
                 // Unlike the image width, we do allow the image to span the full modal height
-                const modalHeight = this.props.pinToEdges ? Dimensions.get('window').height : this.props.modalHeight;
+                const modalHeight = this.props.pinToEdges
+                    ? Dimensions.get('window').height
+                    : this.props.modalHeight - (styles.modalHeaderBar.height || 0);
                 const modalWidth = this.props.pinToEdges ? Dimensions.get('window').width : this.props.modalImageWidth;
                 let imageHeight = height;
                 let imageWidth = width;
