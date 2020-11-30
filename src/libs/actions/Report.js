@@ -158,17 +158,11 @@ function fetchChatReportsByIDs(chatList) {
         .then(({reports}) => {
             fetchedReports = reports;
 
-            // Build array of all participant emails so we can
-            // get the personal details.
-            let participantEmails = [];
-
             // Process the reports and store them in Onyx
             const simplifiedReports = [];
             _.each(fetchedReports, (report) => {
                 const newReport = getSimplifiedReportObject(report);
-
                 simplifiedReports.push(newReport);
-                participantEmails.push(newReport.participants);
 
                 if (lodashGet(report, 'reportNameValuePairs.type') === 'chat') {
                     newReport.reportName = getChatReportName(report.sharedReportList);
@@ -178,11 +172,8 @@ function fetchChatReportsByIDs(chatList) {
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, newReport);
             });
 
-            // Fetch the person details if there are any
-            participantEmails = _.unique(participantEmails);
-            if (participantEmails && participantEmails.length > 0) {
-                PersonalDetails.getForEmails(participantEmails.join(','), simplifiedReports);
-            }
+            // Fetch the personal details if there are any
+            PersonalDetails.getFromReportParticipants(simplifiedReports);
 
             return _.map(fetchedReports, report => report.reportID);
         });
