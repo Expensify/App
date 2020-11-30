@@ -54,6 +54,10 @@ function addAuthTokenToParameters(command, parameters) {
         finalParameters.authToken = authToken;
     }
 
+
+    // This application does not save its authToken in cookies like the classic Expensify app.
+    // Setting api_setCookie to false will ensure that the Expensify API doesn't set any cookies
+    // and prevents interfering with the cookie authToken that Expensify classic uses.
     finalParameters.api_setCookie = false;
     return finalParameters;
 }
