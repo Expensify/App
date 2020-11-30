@@ -1,6 +1,7 @@
 // We place items a percentage to the safe area on the top or bottom of the screen
 import fontFamily from './fontFamily';
 import italic from './italic';
+import addOutlineWidth from './addOutlineWidth';
 
 const safeInsertPercentage = 0.7;
 
@@ -18,6 +19,7 @@ const colors = {
     textBackground: '#F0F0F0',
     textReversed: '#FFFFFF',
     textSupporting: '#7D8B8F',
+    transparent: 'transparent',
     red: '#E84A3B',
     buttonBG: '#8A8A8A',
     modalBackdrop: '#00000080',
@@ -59,6 +61,7 @@ const styles = {
     mt1: {
         marginTop: 10,
     },
+
     mb1: {
         marginBottom: 4,
     },
@@ -324,20 +327,17 @@ const styles = {
         textAlignVertical: 'center',
     },
 
-    textInputReversed: {
+    textInputReversed: addOutlineWidth({
         backgroundColor: colors.heading,
         borderColor: colors.text,
         color: colors.textReversed,
-        outlineWidth: 0,
-    },
+    }, 0),
 
     textInputReversedFocus: {
         borderColor: colors.icon,
     },
 
-    textInputNoOutline: {
-        outlineWidth: 0,
-    },
+    textInputNoOutline: addOutlineWidth({}, 0),
 
     formLabel: {
         fontSize: 13,
@@ -480,6 +480,12 @@ const styles = {
         backgroundColor: colors.heading,
     },
 
+    chatLinkRowPressable: {
+        minWidth: 0,
+        textDecorationLine: 'none',
+        flex: 1,
+    },
+
     sidebarLink: {
         textDecorationLine: 'none',
     },
@@ -487,7 +493,7 @@ const styles = {
     sidebarLinkInner: {
         alignItems: 'center',
         flexDirection: 'row',
-        height: 44,
+        height: 48,
         paddingTop: 10,
         paddingRight: 8,
         paddingBottom: 10,
@@ -506,15 +512,29 @@ const styles = {
         borderRadius: 8,
         textDecorationLine: 'none',
     },
+
     sidebarLinkTextUnread: {
         fontWeight: '600',
         color: colors.textReversed,
     },
+
     sidebarLinkActiveText: {
         color: colors.textReversed,
         fontSize: 13,
         textDecorationLine: 'none',
         overflow: 'hidden',
+    },
+
+    chatSwitcherDisplayName: {
+        fontFamily: fontFamily.GTA,
+        height: 16,
+        lineHeight: 16,
+    },
+
+    chatSwitcherLogin: {
+        fontFamily: fontFamily.GTA,
+        height: 12,
+        lineHeight: 12,
     },
 
     unreadBadge: {
@@ -681,17 +701,16 @@ const styles = {
         minHeight: 40,
     },
 
-    textInputCompose: {
+    textInputCompose: addOutlineWidth({
         borderWidth: 0,
         borderRadius: 0,
-        outlineWidth: 0,
         height: 'auto',
         minHeight: 38,
         paddingTop: 10,
         paddingRight: 8,
         paddingBottom: 10,
         paddingLeft: 8,
-    },
+    }, 0),
 
     chatItemSubmitButton: {
         alignSelf: 'flex-end',
