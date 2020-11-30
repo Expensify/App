@@ -77,7 +77,7 @@ class Expensify extends Component {
 
     componentDidUpdate(prevProps, prevState) {
         if (this.state.accountID && this.state.accountID !== prevState.accountID) {
-            PushNotifications.register(this.state.accountID);
+            PushNotification.register(this.state.accountID);
         }
     }
 
