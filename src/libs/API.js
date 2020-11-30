@@ -2,7 +2,6 @@ import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import CONFIG from '../CONFIG';
 import ONYXKEYS from '../ONYXKEYS';
-import HttpUtils from './HttpUtils';
 import redirectToSignIn from './actions/SignInRedirect';
 import * as Network from './Network';
 
