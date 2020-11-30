@@ -71,30 +71,8 @@ class Expensify extends Component {
     componentDidMount() {
         Onyx.connect({
             key: ONYXKEYS.SESSION,
-            callback: this.somethingElse,
+            callback: this.removeLoadingState,
         });
-    }
-
-    /**
-     * When the authToken is updated, the app should remove the loading state and handle the authToken
-     *
-     * @param {object} session
-     */
-    somethingElse(session) {
-        // this.registerNotifications(session);
-        this.removeLoadingState(session);
-    }
-
-    /**
-     * When the authToken is updated, the app should remove the loading state and handle the authToken
-     *
-     * @param {object} session
-     * @param {string} session.accountID
-     */
-    registerNotifications(session) {
-        if (session) {
-            PushNotification.register(session.accountID);
-        }
     }
 
     /**
@@ -106,6 +84,7 @@ class Expensify extends Component {
     removeLoadingState(session) {
         this.setState({
             authToken: session ? session.authToken : null,
+            accountID: session ? session.accountID : null,
             isLoading: false,
         });
     }
@@ -116,6 +95,9 @@ class Expensify extends Component {
             return (
                 <View style={styles.genericView} />
             );
+        }
+        if (this.state.accountID) {
+            PushNotification.register(this.state.accountID);
         }
         const redirectTo = !this.state.authToken ? ROUTES.SIGNIN : this.props.redirectTo;
         return (
