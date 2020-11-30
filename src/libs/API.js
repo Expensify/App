@@ -142,10 +142,8 @@ function handleExpiredAuthToken(originalResponse, originalCommand, originalParam
             // processing requests
             isAuthenticating = false;
             Network.unpauseRequestQueue();
-        })
 
-        // Now that the API is authenticated, make the original request again with the new authToken
-        .then(() => {
+            // Now that the API is authenticated, make the original request again with the new authToken
             const params = addAuthTokenToParameters(originalCommand, originalParameters);
             Network.post(originalCommand, params, originalType);
         })
