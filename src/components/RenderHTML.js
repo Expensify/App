@@ -25,6 +25,14 @@ const EXTRA_FONTS = [
     fontFamily.SYSTEM,
 ];
 
+/**
+ * Compute images maximum width from the available screen width. This function
+ * is used by the HTML component in the default renderer for img tags to scale
+ * down images that would otherwise overflow horizontally.
+ * 
+ * @param {number} contentWidth - The content width provided to the HTML
+ * component.
+ */
 function computeImagesMaxWidth(contentWidth) {
     return Math.min(MAX_IMG_DIMENSIONS, contentWidth);
 }
@@ -100,6 +108,7 @@ function ImgRenderer({key, tnode}) {
     );
 }
 
+// Define default element models for these renderers.
 AnchorRenderer.model = defaultHTMLElementModels.a;
 CodeRenderer.model = defaultHTMLElementModels.code;
 ImgRenderer.model = defaultHTMLElementModels.img;
