@@ -27,9 +27,10 @@ Onyx.connect({
  */
 function processNetworkRequestQueue() {
     if (isOffline) {
-        // Two things will bring the app online again...
+        // Several things will bring the app online again...
         // 1. Pusher reconnecting (see registerSocketEventCallback in this file)
         // 2. Getting a 200 response back from the API (happens right below)
+        // 3. NetInfo triggering an event that the network is back online
 
         // Make a simple request every second to see if the API is online again
         HttpUtils.xhr('Get', {doNotRetry: true})
