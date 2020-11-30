@@ -65,7 +65,7 @@ function pushNotificationEventCallback(eventType, notification) {
  * @param {string|int} accountID
  */
 function register(accountID) {
-    if(UrbanAirship.getNamedUser() === accountID.toString()) {
+    if (UrbanAirship.getNamedUser() === accountID.toString()) {
         // No need to register again for this accountID.
         return;
     }
