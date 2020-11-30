@@ -66,14 +66,14 @@ function processNetworkRequestQueue() {
 setInterval(processNetworkRequestQueue, 1000);
 
 /**
- * Adds a request to networkRequestQueue
+ * Perform a queued post request
  *
  * @param {string} command
  * @param {mixed} data
  * @param {string} type
  * @returns {Promise}
  */
-function queueRequest(command, data, type) {
+function post(command, data, type) {
     return new Promise((resolve, reject) => {
         // Add the write request to a queue of actions to perform
         networkRequestQueue.push({
@@ -90,18 +90,6 @@ function queueRequest(command, data, type) {
 }
 
 /**
- * Perform a queued post request
- *
- * @param {string} command
- * @param {mixed} data
- * @param {string} type
- * @returns {Promise}
- */
-function post(command, data, type) {
-    return queueRequest(command, data, type);
-}
-
-/**
  * Prevent the network queue from being processed
  */
 function pauseRequestQueue() {
@@ -115,6 +103,13 @@ function unpauseRequestQueue() {
     isQueuePaused = false;
 }
 
+/**
+ * Register a function that will accept all the parameters being sent in a request
+ * and will return a new set of parameters to send instead. Useful for adding data to every request
+ * like auth or CRSF tokens.
+ *
+ * @param {function} callback
+ */
 function registerParameterEnhancer(callback) {
     enhanceParameters = callback;
 }
@@ -123,6 +118,5 @@ export {
     post,
     pauseRequestQueue,
     unpauseRequestQueue,
-    queueRequest,
     registerParameterEnhancer,
 };
