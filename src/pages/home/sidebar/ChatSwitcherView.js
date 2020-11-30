@@ -169,6 +169,7 @@ class ChatSwitcherView extends React.Component {
                     type: isSingleUserChat ? CONST.REPORT.SINGLE_USER_CHAT : CONST.REPORT.GROUP_CHAT,
                     isUnread: report.unreadActionCount > 0,
                     lastVisitedTimestamp: report.lastVisitedTimestamp,
+                    keyForList: String(report.reportID),
                 };
             })
             .value();
@@ -309,6 +310,9 @@ class ChatSwitcherView extends React.Component {
         this.setState(prevState => ({
             isLogoVisible: false,
             isClearButtonVisible: true,
+
+            // When the search bar is empty let's show the default chat report options sorted by last visited. If the
+            // search bar is not empty that means some text is present hence on focus let's not update the options.
             options: prevState.search === '' ? this.getChatReportsOptions() : prevState.options,
         }));
     }
@@ -379,7 +383,7 @@ class ChatSwitcherView extends React.Component {
             if (this.state.groupUsers.length > 0) {
                 // If we have groupLogins we only want to reset the options not
                 // the entire state which would clear out the list of groupUsers
-                this.setState({options: this.getChatReportsOptions(true), search: ''});
+                this.setState({options: this.getChatReportsOptions(), search: ''});
                 return;
             }
 
@@ -422,6 +426,7 @@ class ChatSwitcherView extends React.Component {
                 icon: personalDetail.avatarURL,
                 login: personalDetail.login,
                 type: CONST.REPORT.SINGLE_USER_CHAT,
+                keyForList: personalDetail.login,
             }))
             .value();
 

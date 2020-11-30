@@ -129,15 +129,24 @@ function fetch() {
 }
 
 /**
- * Get personal details for a list of emails.
+ * Get personal details from report participants.
  *
- * @param {String} emailList
  * @param {Object} reports
  */
-function getForEmails(emailList, reports) {
-    API.getPersonalDetails(emailList)
+function getFromReportParticipants(reports) {
+    const participantEmails = _.chain(reports)
+        .pluck('participants')
+        .flatten()
+        .unique()
+        .value();
+
+    if (participantEmails.length === 0) {
+        return;
+    }
+
+    API.getPersonalDetails(participantEmails.join(','))
         .then((data) => {
-            const details = _.pick(data, emailList.split(','));
+            const details = _.pick(data, participantEmails);
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, formatPersonalDetails(details));
 
             // The personalDetails of the participants contain their avatar images. Here we'll go over each
@@ -160,7 +169,6 @@ NetworkConnection.onReconnect(fetch);
 export {
     fetch,
     fetchTimezone,
-    getForEmails,
+    getFromReportParticipants,
     getDisplayName,
-    formatPersonalDetails,
 };
