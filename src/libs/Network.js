@@ -44,8 +44,8 @@ function processNetworkRequestQueue() {
     }
 
     _.each(networkRequestQueue, (queuedRequest) => {
-        // Don't make any requests when the queue is paused or when a specific request
-        // needs to be made, even when the queue is paused (like re-authenticating)
+        // Some requests must be allowed to run even when the queue is paused e.g. an authentication request
+        // that pauses the network queue while authentication happens, then unpauses it when it's done.
         if (isQueuePaused && queuedRequest.data.forceNetworkRequest !== true) {
             return;
         }
