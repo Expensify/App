@@ -111,7 +111,7 @@ function handleExpiredAuthToken(originalResponse, originalCommand, originalParam
     // When the authentication process is running, and more API requests will be requeued and they will
     // be performed after authentication is done.
     if (isAuthenticating) {
-        Network.queueRequest(originalCommand, originalParameters, originalType);
+        Network.post(originalCommand, originalParameters, originalType);
         return;
     }
 
