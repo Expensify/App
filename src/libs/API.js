@@ -65,8 +65,8 @@ function isAuthTokenRequired(command) {
 /**
  * Adds a request to networkRequestQueue
  *
- * @param {string} command
- * @param {mixed} data
+ * @param {String} command
+ * @param {*} data
  * @returns {Promise}
  */
 function queueRequest(command, data) {
@@ -86,8 +86,8 @@ function queueRequest(command, data) {
 }
 
 /**
- * @param {object} parameters
- * @param {string} parameters.partnerUserID
+ * @param {Object} parameters
+ * @param {String} parameters.partnerUserID
  * @returns {Promise}
  */
 function deleteLogin(parameters) {
@@ -102,8 +102,8 @@ function deleteLogin(parameters) {
 }
 
 /**
- * @param {string} login
- * @param {string} password
+ * @param {String} login
+ * @param {String} password
  * @returns {Promise}
  */
 function createLogin(login, password) {
@@ -139,8 +139,8 @@ function createLogin(login, password) {
 /**
  * Sets API data in the store when we make a successful "Authenticate"/"CreateLogin" request
  *
- * @param {object} data
- * @param {string} exitTo
+ * @param {Object} data
+ * @param {String} exitTo
  */
 function setSuccessfulSignInData(data, exitTo) {
     PushNotification.register(data.accountID);
@@ -159,9 +159,9 @@ function setSuccessfulSignInData(data, exitTo) {
  * expired, this function automatically makes an API call to Authenticate and get a fresh authToken, and retries the
  * original API command
  *
- * @param {string} command
- * @param {object} parameters
- * @param {string} [type]
+ * @param {String} command
+ * @param {Object} parameters
+ * @param {String} [type]
  * @returns {Promise}
  */
 function request(command, parameters, type = 'post') {
@@ -324,7 +324,7 @@ Pusher.registerCustomAuthorizer((channel, {authEndpoint}) => ({
  * Events that happen on the pusher socket are used to determine if the app is online or offline. The offline setting
  * is stored in Onyx so the rest of the app has access to it.
  *
- * @params {string} eventName
+ * @params {String} eventName
  */
 Pusher.registerSocketEventCallback((eventName) => {
     switch (eventName) {
@@ -338,18 +338,18 @@ Pusher.registerSocketEventCallback((eventName) => {
 
 /**
  * Get the authToken that the network uses
- * @returns {string}
+ * @returns {String}
  */
 function getAuthToken() {
     return authToken;
 }
 
 /**
- * @param {object} parameters
- * @param {string} parameters.partnerUserID
- * @param {string} parameters.partnerUserSecret
- * @param {string} parameters.twoFactorAuthCode
- * @param {string} [parameters.exitTo]
+ * @param {Object} parameters
+ * @param {String} parameters.partnerUserID
+ * @param {String} parameters.partnerUserSecret
+ * @param {String} parameters.twoFactorAuthCode
+ * @param {String} [parameters.exitTo]
  * @returns {Promise}
  */
 function authenticate(parameters) {
@@ -397,10 +397,10 @@ function authenticate(parameters) {
 }
 
 /**
- * @param {object} parameters
- * @param {number} parameters.accountID
- * @param {number} parameters.reportID
- * @param {number} parameters.sequenceNumber
+ * @param {Object} parameters
+ * @param {Number} parameters.accountID
+ * @param {Number} parameters.reportID
+ * @param {Number} parameters.sequenceNumber
  * @returns {Promise}
  */
 function setLastReadActionID(parameters) {
@@ -413,8 +413,8 @@ function setLastReadActionID(parameters) {
 }
 
 /**
- * @param {object} parameters
- * @param {number} parameters.reportID
+ * @param {Object} parameters
+ * @param {Number} parameters.reportID
  * @returns {Promise}
  */
 function getReportHistory(parameters) {
@@ -425,8 +425,8 @@ function getReportHistory(parameters) {
 }
 
 /**
- * @param {object} parameters
- * @param {string} parameters.emailList
+ * @param {Object} parameters
+ * @param {String} parameters.emailList
  * @returns {Promise}
  */
 function createChatReport(parameters) {
@@ -437,10 +437,10 @@ function createChatReport(parameters) {
 }
 
 /**
- * @param {object} parameters
- * @param {string} parameters.reportComment
- * @param {object} parameters.file
- * @param {number} parameters.reportID
+ * @param {Object} parameters
+ * @param {String} parameters.reportComment
+ * @param {Object} parameters.file
+ * @param {Number} parameters.reportID
  * @returns {Promise}
  */
 function addReportComment(parameters) {
@@ -453,8 +453,8 @@ function addReportComment(parameters) {
 }
 
 /**
- * @param {object} parameters
- * @param {string} parameters.returnValueList
+ * @param {Object} parameters
+ * @param {String} parameters.returnValueList
  * @returns {Promise}
  */
 function get(parameters) {
@@ -465,8 +465,8 @@ function get(parameters) {
 }
 
 /**
- * @param {object} parameters
- * @param {string} parameters.emailList
+ * @param {Object} parameters
+ * @param {String} parameters.emailList
  * @returns {Promise}
  */
 function getPersonalDetails(parameters) {
@@ -477,9 +477,9 @@ function getPersonalDetails(parameters) {
 }
 
 /**
- * @param {object} parameters
- * @param {string} parameters.name
- * @param {mixed} parameters.value
+ * @param {Object} parameters
+ * @param {String} parameters.name
+ * @param {*} parameters.value
  * @returns {Promise}
  */
 function setNameValuePair(parameters) {
@@ -491,9 +491,9 @@ function setNameValuePair(parameters) {
 }
 
 /**
- * @param {object} parameters
- * @param {number} parameters.reportID
- * @param {boolean} parameters.pinnedValue
+ * @param {Object} parameters
+ * @param {Number} parameters.reportID
+ * @param {Boolean} parameters.pinnedValue
  * @returns {Promise}
  */
 function togglePinnedReport(parameters) {

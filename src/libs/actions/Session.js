@@ -12,10 +12,10 @@ Onyx.connect({
 /**
  * Sign in with the API
  *
- * @param {string} partnerUserID
- * @param {string} partnerUserSecret
- * @param {string} twoFactorAuthCode
- * @param {string} exitTo
+ * @param {String} partnerUserID
+ * @param {String} partnerUserSecret
+ * @param {String} twoFactorAuthCode
+ * @param {String} exitTo
  */
 function signIn(partnerUserID, partnerUserSecret, twoFactorAuthCode = '', exitTo) {
     API.authenticate({
