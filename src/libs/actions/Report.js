@@ -53,7 +53,7 @@ const typingWatchTimers = {};
 const reportMaxSequenceNumbers = {};
 
 // Keeps track of the last read for each report
-const lastReadActionIDs = {};
+const lastReadSequenceNumbers = {};
 
 /**
  * Checks the report to see if there are any unread action items
@@ -64,29 +64,29 @@ const lastReadActionIDs = {};
 function getUnreadActionCount(report) {
     // @todo remove the first check as part of cleanup https://github.com/Expensify/Expensify/issues/145243
     // since we migrating our data from lastReadActionID_ value to lastRead_ object.
-    const usersLastReadActionID = lodashGet(report, [
+    const lastReadSequenceNumber = lodashGet(report, [
         'reportNameValuePairs',
         `lastReadActionID_${currentUserAccountID}`,
     ]) || lodashGet(report, [
         'reportNameValuePairs',
         `lastRead_${currentUserAccountID}`,
-        'actionID',
+        'sequenceNumber',
     ]);
 
     // Save the lastReadActionID locally so we can access this later
-    lastReadActionIDs[report.reportID] = usersLastReadActionID;
+    lastReadSequenceNumbers[report.reportID] = lastReadSequenceNumber;
 
     if (report.reportActionList.length === 0) {
         return 0;
     }
 
-    if (!usersLastReadActionID) {
+    if (!lastReadSequenceNumber) {
         return report.reportActionList.length;
     }
 
     // There are unread items if the last one the user has read is less
     // than the highest sequence number we have
-    const unreadActionCount = report.reportActionList.length - usersLastReadActionID;
+    const unreadActionCount = report.reportActionList.length - lastReadSequenceNumber;
     return Math.max(0, unreadActionCount);
 }
 
@@ -186,7 +186,7 @@ function fetchChatReportsByIDs(chatList) {
  * @param {Number} sequenceNumber
  */
 function setLocalLastRead(reportID, sequenceNumber) {
-    lastReadActionIDs[reportID] = sequenceNumber;
+    lastReadSequenceNumbers[reportID] = sequenceNumber;
 
     // Update the report optimistically
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
@@ -217,7 +217,7 @@ function updateReportWithNewAction(reportID, reportAction) {
     // by handleReportChanged
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         reportID,
-        unreadActionCount: newMaxSequenceNumber - (lastReadActionIDs[reportID] || 0),
+        unreadActionCount: newMaxSequenceNumber - (lastReadSequenceNumbers[reportID] || 0),
         maxSequenceNumber: reportAction.sequenceNumber,
     });
 
