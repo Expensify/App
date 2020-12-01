@@ -84,8 +84,8 @@ class Expensify extends Component {
     /**
      * When the authToken is updated, the app should remove the loading state and handle the authToken
      *
-     * @param {object} session
-     * @param {string} session.authToken
+     * @param {Object} session
+     * @param {String} session.authToken
      */
     removeLoadingState(session) {
         this.setState({

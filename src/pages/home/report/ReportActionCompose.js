@@ -56,7 +56,7 @@ class ReportActionCompose extends React.Component {
     /**
      * Updates the Highlight state of the composer
      *
-     * @param {boolean} shouldHighlight
+     * @param {Boolean} shouldHighlight
      */
     setIsFocused(shouldHighlight) {
         this.setState({isFocused: shouldHighlight});
@@ -65,7 +65,7 @@ class ReportActionCompose extends React.Component {
     /**
      * Updates the should clear state of the composer
      *
-     * @param {boolean} shouldClear
+     * @param {Boolean} shouldClear
      */
     setTextInputShouldClear(shouldClear) {
         this.setState({textInputShouldClear: shouldClear});
@@ -75,7 +75,7 @@ class ReportActionCompose extends React.Component {
      * Save our report comment in Onyx. We debounce this method in the constructor so that it's not called too often
      * to update Onyx and re-render this component.
      *
-     * @param {string} comment
+     * @param {String} comment
      */
     debouncedSaveReportComment(comment) {
         saveReportComment(this.props.reportID, comment || '');
@@ -84,7 +84,7 @@ class ReportActionCompose extends React.Component {
     /**
      * Update the value of the comment in Onyx
      *
-     * @param {string} newComment
+     * @param {String} newComment
      */
     updateComment(newComment) {
         this.comment = newComment;

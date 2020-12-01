@@ -26,7 +26,7 @@ const triggerReconnectionCallbacks = _.throttle(() => {
  * Called when the offline status of the app changes and if the network is "reconnecting" (going from offline to online)
  * then all of the reconnection callbacks are triggered
  *
- * @param {boolean} isCurrentlyOffline
+ * @param {Boolean} isCurrentlyOffline
  */
 function setOfflineStatus(isCurrentlyOffline) {
     Onyx.merge(ONYXKEYS.NETWORK, {isOffline: isCurrentlyOffline});
