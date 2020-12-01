@@ -1,10 +1,8 @@
 import React, {Component} from 'react';
-import {TouchableOpacity, Text, Image} from 'react-native';
 import Modal from 'react-native-modal';
 import PropTypes from 'prop-types';
-
 import {
-    View, Dimensions
+    View, Dimensions, TouchableOpacity, Text, Image
 } from 'react-native';
 import AttachmentView from '../AttachmentView';
 import styles, {colors} from '../../styles/StyleSheet';
@@ -22,11 +20,23 @@ const propTypes = {
 
     // Title of the modal header
     title: PropTypes.string,
+
+    // Optional source URL for the image shown inside the .
+    // If not passed in via props must be specified when modal is opened.
+    sourceURL: PropTypes.string,
+
+    // Optional callback to fire when we want to preview an image and approve it for use.
+    onConfirm: PropTypes.func,
+
+    // A function as a child to pass modal launching methods to
+    children: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
     pinToEdges: false,
     title: '',
+    sourceURL: null,
+    onConfirm: null,
 };
 
 class ImageModal extends Component {
@@ -34,19 +44,17 @@ class ImageModal extends Component {
         super(props);
 
         // If pinToEdges is false, the default modal width and height will take up about 80% of the screen
-        this.modalWidth = Dimensions.get('window').width * 0.8,
-        this.modalHeight = Dimensions.get('window').height * 0.8,
+        this.modalWidth = Dimensions.get('window').width * 0.8;
+        this.modalHeight = Dimensions.get('window').height * 0.8;
 
         // The image inside the modal shouldn't span the entire width of the modal
         // unless it is full screen so the default is 20% smaller than the width of the modal
-        this.modalImageWidth = Dimensions.get('window').width * 0.6,
-
+        this.modalImageWidth = Dimensions.get('window').width * 0.6;
 
         this.state = {
             isModalOpen: false,
             imageWidth: 300,
             imageHeight: 300,
-            sourceURL: '',
             file: null,
             sourceURL: props.sourceURL,
         };
@@ -57,7 +65,25 @@ class ImageModal extends Component {
         this.calculateImageSize();
     }
 
+    componentDidUpdate(prevProps, prevState) {
+        // Only calculate image size if the source has changed
+        if (!prevState.sourceURL !== this.state.sourceURL) {
+            this.calculateImageSize();
+        }
+    }
+
+    componentWillUnmount() {
+        this.isComponentMounted = false;
+    }
+
+    /**
+     * Preloads the image by getting the size and setting dimensions to state.
+     */
     calculateImageSize() {
+        if (!this.state.sourceURL) {
+            return;
+        }
+
         Image.getSize(this.state.sourceURL, (width, height) => {
             // Unlike the image width, we do allow the image to span the full modal height
             const modalHeight = this.props.pinToEdges
@@ -78,17 +104,6 @@ class ImageModal extends Component {
                 this.setState({imageWidth, imageHeight});
             }
         });
-    }
-
-    componentDidUpdate(prevProps, prevState) {
-        // Only calculate image size if the source has changed
-        if (!prevState.sourceURL !== this.state.sourceURL) {
-            this.calculateImageSize();
-        }
-    }
-
-    componentWillUnmount() {
-        this.isComponentMounted = false;
     }
 
     render() {
@@ -116,30 +131,29 @@ class ImageModal extends Component {
                                     sourceURL={this.state.sourceURL}
                                     imageHeight={this.state.imageHeight}
                                     imageWidth={this.state.imageWidth}
-                                    onConfirm={this.props.onConfirm}
                                 />
                             )}
                         </View>
-                            {/* If we have an onConfirm method show a confirmation button */}
-                            {this.props.onConfirm && (
-                                <TouchableOpacity
-                                    style={[styles.button, styles.buttonSuccess, styles.buttonConfirm]}
-                                    underlayColor={colors.componentBG}
-                                    onPress={() => {
-                                        this.props.onConfirm(this.state.file);
-                                        this.setState({isModalOpen: false});
-                                    }}
+                        {/* If we have an onConfirm method show a confirmation button */}
+                        {this.props.onConfirm && (
+                            <TouchableOpacity
+                                style={[styles.button, styles.buttonSuccess, styles.buttonConfirm]}
+                                underlayColor={colors.componentBG}
+                                onPress={() => {
+                                    this.props.onConfirm(this.state.file);
+                                    this.setState({isModalOpen: false});
+                                }}
+                            >
+                                <Text
+                                    style={[
+                                        styles.buttonText,
+                                        styles.buttonSuccessText
+                                    ]}
                                 >
-                                    <Text
-                                        style={[
-                                            styles.buttonText,
-                                            styles.buttonSuccessText
-                                        ]}
-                                    >
-                                        Upload
-                                    </Text>
-                                </TouchableOpacity>
-                            )}
+                                    Upload
+                                </Text>
+                            </TouchableOpacity>
+                        )}
                     </ModalView>
                 </Modal>
                 {this.props.children({
