@@ -40,12 +40,12 @@ const defaultProps = {
     pinToEdges: false,
 
     // If pinToEdges is false, the default modal width and height will take up about 80% of the screen
-    modalWidth: Dimensions.get('window').width * 0.8,
-    modalHeight: Dimensions.get('window').height * 0.8,
+    modalWidth: Dimensions.get('window').width * 0.90,
+    modalHeight: Dimensions.get('window').height * 0.90,
 
     // The image inside the modal shouldn't span the entire width of the modal
-    // unless it is full screen so the default is 20% smaller than the width of the modal
-    modalImageWidth: Dimensions.get('window').width * 0.6,
+    // unless it is full screen so the default is 10% smaller than the width of the modal
+    modalImageWidth: Dimensions.get('window').width * 0.80,
     modalTitle: '',
     previewSourceURL: '',
     sourceURL: '',
@@ -58,8 +58,8 @@ class BaseImageModal extends React.Component {
         this.state = {
             imageWidth: 300,
             imageHeight: 300,
-            thumbnailWidth: 200,
-            thumbnailHeight: 200,
+            thumbnailWidth: 250,
+            thumbnailHeight: 250,
             isModalOpen: false,
         };
 
@@ -84,7 +84,10 @@ class BaseImageModal extends React.Component {
             const imageHeight = height / scaleFactor;
 
             if (this.isComponentMounted) {
-                this.setState({thumbnailWidth: thumbnailScreenWidth, thumbnailHeight: imageHeight});
+                // If getSize failed, we will just use the size defaults in the state
+                if (width != 0 && height != 0) {
+                    this.setState({thumbnailWidth: thumbnailScreenWidth, thumbnailHeight: imageHeight});
+                }
             }
         });
     }
@@ -109,8 +112,11 @@ class BaseImageModal extends React.Component {
                 }
 
                 if (this.isComponentMounted) {
-                    this.setState({imageWidth, imageHeight});
-                    this.calculatedModalImageSize = true;
+                    // If getSize failed, we will just use the size defaults in state
+                    if (width != 0 && height != 0) {
+                        this.setState({imageWidth, imageHeight});
+                        this.calculatedModalImageSize = true;
+                    }
                 }
             });
         }

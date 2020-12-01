@@ -33,8 +33,8 @@ const propTypes = {
 
 const defaultProps = {
     pinToEdges: false,
-    modalWidth: Dimensions.get('window').width * 0.8,
-    modalHeight: Dimensions.get('window').height * 0.8,
+    modalWidth: Dimensions.get('window').width * 0.90,
+    modalHeight: Dimensions.get('window').height * 0.90,
     onCloseButtonPress: () => {},
     modalTitle: '',
     children: null,
@@ -45,7 +45,7 @@ const ModalView = props => (
         {props.pinToEdges ? (
             <SafeAreaView style={styles.modalViewContainer}>
                 <BaseModalHeader
-                    title="Attachment"
+                    title={props.modalTitle}
                     onCloseButtonPress={props.onCloseButtonPress}
                 />
                 {props.children}
@@ -64,7 +64,10 @@ const ModalView = props => (
                             height: props.modalHeight
                         }}
                     >
-                        <BaseModalHeader title={props.modalTitle} onCloseButtonPress={props.onCloseButtonPress} />
+                        <BaseModalHeader 
+                            title={props.modalTitle}
+                            onCloseButtonPress={props.onCloseButtonPress}
+                        />
                         {props.children}
                     </View>
                 </TouchableWithoutFeedback>

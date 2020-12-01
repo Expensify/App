@@ -281,6 +281,7 @@ const styles = {
     },
 
     navText: {
+        fontFamily: fontFamily.GTA,
         color: colors.heading,
         fontSize: 17,
         fontWeight: '700'
@@ -893,12 +894,11 @@ const styles = {
         backgroundColor: colors.componentBG,
         borderColor: colors.border,
         borderWidth: 1,
-        borderRadius: 20,
+        borderRadius: 12,
         height: '100%',
     },
 
     modalHeaderBar: {
-        fontFamily: fontFamily.GTA,
         overflow: 'hidden',
         justifyContent: 'center',
         display: 'flex',
