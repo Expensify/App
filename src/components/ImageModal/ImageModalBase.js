@@ -10,8 +10,8 @@ import ModalView from '../ModalView';
 import ModalHeader from '../ModalHeader';
 
 /**
- * Modal component consisting of an image thumbnail which triggers a modal with a larger image display
- * Used for smaller image previews that also need to be viewed full-sized like in report comments
+ * Modal render prop component that exposes modal launching triggers that can be used
+ * to display a full size image or PDF modally with optional confirmation button.
  */
 
 const propTypes = {
