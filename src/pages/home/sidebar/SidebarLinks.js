@@ -68,8 +68,8 @@ const SidebarLinks = (props) => {
     /**
      * Check if the report has a draft comment
      *
-     * @param {number} reportID
-     * @returns {boolean}
+     * @param {Number} reportID
+     * @returns {Boolean}
      */
     function hasComment(reportID) {
         const allComments = get(props.comments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, '');

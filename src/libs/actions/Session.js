@@ -17,8 +17,8 @@ Onyx.connect({
 /**
  * Sets API data in the store when we make a successful "Authenticate"/"CreateLogin" request
  *
- * @param {object} data
- * @param {string} exitTo
+ * @param {Object} data
+ * @param {String} exitTo
  */
 function setSuccessfulSignInData(data, exitTo) {
     PushNotification.register(data.accountID);
@@ -33,10 +33,10 @@ function setSuccessfulSignInData(data, exitTo) {
 /**
  * Sign in with the API
  *
- * @param {string} partnerUserID
- * @param {string} partnerUserSecret
- * @param {string} [twoFactorAuthCode]
- * @param {string} [exitTo]
+ * @param {String} partnerUserID
+ * @param {String} partnerUserSecret
+ * @param {String} [twoFactorAuthCode]
+ * @param {String} [exitTo]
  */
 function signIn(partnerUserID, partnerUserSecret, twoFactorAuthCode = '', exitTo) {
     Onyx.merge(ONYXKEYS.SESSION, {loading: true, error: ''});
