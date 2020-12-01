@@ -241,6 +241,11 @@ const styles = {
         borderWidth: 0,
     },
 
+    buttonConfirm: {
+        margin: 30,
+        padding: 20,
+    },
+
     buttonSuccessText: {
         color: colors.textReversed,
     },
@@ -895,6 +900,7 @@ const styles = {
         borderWidth: 1,
         borderRadius: 20,
         height: '100%',
+        alignItems: 'center',
     },
 
     modalHeaderBar: {
@@ -907,6 +913,7 @@ const styles = {
         borderBottomWidth: 1,
         borderColor: colors.border,
         height: 73,
+        width: '100%',
     },
 
     imageModalPDF: {

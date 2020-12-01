@@ -9,6 +9,7 @@ import {
 import AttachmentView from '../AttachmentView';
 import styles, {colors} from '../../styles/StyleSheet';
 import ModalView from '../ModalView';
+import ModalHeader from '../ModalHeader';
 
 /**
  * Modal component consisting of an image thumbnail which triggers a modal with a larger image display
@@ -103,9 +104,12 @@ class ImageModal extends Component {
                         pinToEdges={this.props.pinToEdges}
                         modalWidth={this.modalWidth}
                         modalHeight={this.modalHeight}
-                        modalTitle={this.props.title}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
                     >
+                        <ModalHeader
+                            title={this.props.title}
+                            onCloseButtonPress={() => this.setState({isModalOpen: false})}
+                        />
                         <View style={styles.imageModalImageCenterContainer}>
                             {this.state.sourceURL && (
                                 <AttachmentView
@@ -115,11 +119,11 @@ class ImageModal extends Component {
                                     onConfirm={this.props.onConfirm}
                                 />
                             )}
-
+                        </View>
                             {/* If we have an onConfirm method show a confirmation button */}
                             {this.props.onConfirm && (
                                 <TouchableOpacity
-                                    style={[styles.button, styles.buttonSuccess]}
+                                    style={[styles.button, styles.buttonSuccess, styles.buttonConfirm]}
                                     underlayColor={colors.componentBG}
                                     onPress={() => {
                                         this.props.onConfirm(this.state.file);
@@ -136,7 +140,6 @@ class ImageModal extends Component {
                                     </Text>
                                 </TouchableOpacity>
                             )}
-                        </View>
                     </ModalView>
                 </Modal>
                 {this.props.children({
