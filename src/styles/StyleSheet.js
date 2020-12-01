@@ -595,6 +595,11 @@ const styles = {
         width: 18,
     },
 
+    LHNPencilIcon: {
+        height: 16,
+        width: 16,
+    },
+
     attachmentCloseIcon: {
         height: 20,
         width: 20,
