@@ -4,9 +4,16 @@
  */
 import ReactNativeKeyboardSpacer from 'react-native-keyboard-spacer';
 import React from 'react';
+import {Dimensions} from 'react-native';
+
+function hasSafeAreas() {
+    const dims = Dimensions.get('window');
+    const heightsIphonesWithNotches = [812, 896, 844, 926];
+    return (heightsIphonesWithNotches.includes(dims.height) || heightsIphonesWithNotches.includes(dims.width));
+}
 
 const KeyboardSpacer = () => (
-    <ReactNativeKeyboardSpacer topSpacing={-36} />
+    <ReactNativeKeyboardSpacer topSpacing={hasSafeAreas() ? -30 : 0} />
 );
 
 export default KeyboardSpacer;

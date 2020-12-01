@@ -1,4 +1,4 @@
-name: automerge
+name: Automerge PR
 
 # This workflow is triggered by a pull request that is labeled
 on:
@@ -33,8 +33,10 @@ jobs:
                   fields: workflow, repo
                   custom_payload: |
                       {
+                        channel: '#announce',
                         attachments: [{
                           color: "#DB4545",
+                          pretext: `<!here>`,
                           text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
                         }]
                       }
