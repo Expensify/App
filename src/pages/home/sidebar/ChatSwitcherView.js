@@ -281,20 +281,20 @@ class ChatSwitcherView extends React.Component {
     }
 
     /**
-     * Reset the component to it's default state and blur the input
+     * Reset the component to it's default state and blur the input if we are no longer searching
      *
-     * @param {boolean} blurAfterReset
+     * @param {boolean} continueSearchingAfterReset
      */
-    reset(blurAfterReset = true) {
+    reset(continueSearchingAfterReset = false) {
         this.setState({
             search: '',
-            options: blurAfterReset ? [] : this.getChatReportsOptions(),
+            options: continueSearchingAfterReset ? this.getChatReportsOptions() : [],
             focusedIndex: 0,
-            isLogoVisible: blurAfterReset,
-            isClearButtonVisible: !blurAfterReset,
+            isLogoVisible: !continueSearchingAfterReset,
+            isClearButtonVisible: continueSearchingAfterReset,
             groupUsers: [],
         }, () => {
-            if (blurAfterReset) {
+            if (!continueSearchingAfterReset) {
                 this.textInput.blur();
                 ChatSwitcher.hide();
             }
