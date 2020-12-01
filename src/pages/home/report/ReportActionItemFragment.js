@@ -67,6 +67,14 @@ class ReportActionItemFragment extends React.PureComponent {
                     {children}
                 </InlineCodeBlock>
             ),
+            blockquote: (htmlAttribs, children, convertedCSSStyles, passProps) => (
+                <View
+                    key={passProps.key}
+                    style={webViewStyles.blockquoteTagStyle}
+                >
+                    {children}
+                </View>
+            ),
             img: (htmlAttribs, children, convertedCSSStyles, passProps) => {
                 // Attaches authTokens as a URL parameter to load image attachments
                 let previewSource = htmlAttribs['data-expensify-source']
