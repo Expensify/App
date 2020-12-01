@@ -17,15 +17,9 @@ if (_.isString(Config.EXPENSIFY_URL_COM) && !Config.EXPENSIFY_URL_COM.endsWith('
 // Ngrok helps us avoid many of our cross-domain issues with connecting to our API
 // and is reqired for viewing images on mobile and for developing on android
 // To enable, set the USE_NGROK value to true in .env and update the NGROK_URL
-let expensifyURLRoot;
-
-if (Config.USE_NGROK === 'true' && Config.NGROK_URL) {
-    expensifyURLRoot = Config.NGROK_URL;
-} else if (Config.USE_PROXY) {
-    expensifyURLRoot = '';
-} else {
-    expensifyURLRoot = Config.EXPENSIFY_URL_COM;
-}
+const expensifyURLRoot = Config.USE_NGROK === 'true' && Config.NGROK_URL
+    ? Config.NGROK_URL
+    : Config.EXPENSIFY_URL_COM;
 
 export default {
     AUTH_TOKEN_EXPIRATION_TIME: 1000 * 60 * 90,
