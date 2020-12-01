@@ -64,7 +64,7 @@ const ModalView = props => (
                             height: props.modalHeight
                         }}
                     >
-                        <BaseModalHeader 
+                        <BaseModalHeader
                             title={props.modalTitle}
                             onCloseButtonPress={props.onCloseButtonPress}
                         />
@@ -72,7 +72,6 @@ const ModalView = props => (
                     </View>
                 </TouchableWithoutFeedback>
             </TouchableOpacity>
-
         )}
     </>
 );

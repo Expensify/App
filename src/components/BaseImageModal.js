@@ -85,7 +85,7 @@ class BaseImageModal extends React.Component {
 
             if (this.isComponentMounted) {
                 // If getSize failed, we will just use the size defaults in the state
-                if (width != 0 && height != 0) {
+                if (width !== 0 && height !== 0) {
                     this.setState({thumbnailWidth: thumbnailScreenWidth, thumbnailHeight: imageHeight});
                 }
             }
@@ -113,7 +113,7 @@ class BaseImageModal extends React.Component {
 
                 if (this.isComponentMounted) {
                     // If getSize failed, we will just use the size defaults in state
-                    if (width != 0 && height != 0) {
+                    if (width !== 0 && height !== 0) {
                         this.setState({imageWidth, imageHeight});
                         this.calculatedModalImageSize = true;
                     }
