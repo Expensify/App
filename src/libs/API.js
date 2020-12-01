@@ -356,6 +356,18 @@ function Report_AddComment(parameters) {
 }
 
 /**
+ * @param {object} parameters
+ * @param {String} parameters.name
+ * @param {number} parameters.value
+ */
+function logMetricsWithGraphite(parameters) {
+    return queueRequest('Graphite_Timer', {
+        name: parameters.name,
+        value: parameters.value
+    });
+}
+
+/**
  * @param {Object} parameters
  * @param {Number} parameters.reportID
  * @returns {Promise}
