@@ -377,7 +377,7 @@ class ChatSwitcherView extends React.Component {
             if (matches.size < this.maxSearchResults) {
                 for (let j = 0; j < searchOptions.length; j++) {
                     const option = searchOptions[j];
-                    const valueToSearch = option.searchText.replace(new RegExp(/&nbsp;/g), '');
+                    const valueToSearch = option.searchText && option.searchText.replace(new RegExp(/&nbsp;/g), '');
                     const isMatch = matchRegexes[i].test(valueToSearch);
 
                     // We want to avoid adding single user private DM reports

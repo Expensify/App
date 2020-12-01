@@ -3,7 +3,6 @@ import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Onyx from 'react-native-onyx';
-import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Pusher from '../Pusher/pusher';
 import LocalNotification from '../Notification/LocalNotification';
@@ -15,6 +14,7 @@ import Visibility from '../Visibility';
 import ROUTES from '../../ROUTES';
 import NetworkConnection from '../NetworkConnection';
 import {hide as hideSidebar} from './Sidebar';
+import * as API from '../API';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -139,7 +139,7 @@ function getChatReportName(sharedReportList) {
  */
 function fetchChatReportsByIDs(chatList) {
     let fetchedReports;
-    return API.get({
+    return API.Get({
         returnValueList: 'reportStuff',
         reportIDList: chatList.join(','),
         shouldLoadOptionalKeys: true,
@@ -360,7 +360,7 @@ function unsubscribeFromReportChannel(reportID) {
  * @returns {Promise} only used internally when fetchAll() is called
  */
 function fetchChatReports() {
-    return API.get({
+    return API.Get({
         returnValueList: 'chatList',
     })
 
@@ -374,7 +374,7 @@ function fetchChatReports() {
  * @param {number} reportID
  */
 function fetchActions(reportID) {
-    API.getReportHistory({reportID})
+    API.Report_GetHistory({reportID})
         .then((data) => {
             const indexedData = _.indexBy(data.history, 'sequenceNumber');
             const maxSequenceNumber = _.chain(data.history)
@@ -427,7 +427,7 @@ function fetchOrCreateChatReport(participants) {
         throw new Error('fetchOrCreateChatReport() must have at least two participants');
     }
 
-    API.createChatReport({
+    API.CreateChatReport({
         emailList: participants.join(','),
     })
 
@@ -436,7 +436,7 @@ function fetchOrCreateChatReport(participants) {
             reportID = data.reportID;
 
             // Make a request to get all the information about the report
-            return API.get({
+            return API.Get({
                 returnValueList: 'reportStuff',
                 reportIDList: reportID,
                 shouldLoadOptionalKeys: true,
@@ -465,7 +465,7 @@ function fetchOrCreateChatReport(participants) {
  *
  * @param {number} reportID
  * @param {string} text
- * @param {object} file
+ * @param {object} [file]
  */
 function addAction(reportID, text, file) {
     const actionKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
@@ -516,7 +516,7 @@ function addAction(reportID, text, file) {
         }
     });
 
-    API.addReportComment({
+    API.Report_AddComment({
         reportID,
         reportComment: htmlComment,
         file
@@ -539,7 +539,7 @@ function updateLastReadActionID(reportID, sequenceNumber) {
     setLocalLastReadActionID(reportID, sequenceNumber);
 
     // Mark the report as not having any unread items
-    API.setLastReadActionID({
+    API.Report_SetLastReadActionID({
         accountID: currentUserAccountID,
         reportID,
         sequenceNumber,
@@ -554,7 +554,7 @@ function updateLastReadActionID(reportID, sequenceNumber) {
 function togglePinnedState(report) {
     const pinnedValue = !report.isPinned;
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {isPinned: pinnedValue});
-    API.togglePinnedReport({
+    API.Report_TogglePinned({
         reportID: report.reportID,
         pinnedValue,
     });
