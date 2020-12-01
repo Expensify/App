@@ -2,7 +2,6 @@ import React, {Component} from 'react';
 import {
     SafeAreaView,
     Text,
-    StatusBar,
     TouchableOpacity,
     TextInput,
     Image,
@@ -11,21 +10,23 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import {withOnyx} from 'react-native-onyx';
 import CONFIG from '../CONFIG';
 import compose from '../libs/compose';
-import {withRouter} from '../libs/Router';
+import {withRouter, Redirect} from '../libs/Router';
+import ROUTES from '../ROUTES';
 import {signIn} from '../libs/actions/Session';
-import IONKEYS from '../IONKEYS';
-import withIon from '../components/withIon';
+import ONYXKEYS from '../ONYXKEYS';
 import styles, {colors} from '../styles/StyleSheet';
 import logo from '../../assets/images/expensify-logo_reversed.png';
+import CustomStatusBar from '../components/CustomStatusBar';
 
 const propTypes = {
     // These are from withRouter
     // eslint-disable-next-line react/forbid-prop-types
     match: PropTypes.object.isRequired,
 
-    /* Ion Props */
+    /* Onyx Props */
 
     // The session of the logged in person
     session: PropTypes.shape({
@@ -54,12 +55,6 @@ class App extends Component {
         };
     }
 
-    componentDidMount() {
-        StatusBar.setBarStyle('light-content', true);
-        StatusBar.setBackgroundColor('transparent', true);
-        StatusBar.setTranslucent(true);
-    }
-
     /**
      * Sign into the application when the form is submitted
      */
@@ -71,10 +66,18 @@ class App extends Component {
     }
 
     render() {
-        const isLoading = this.props.session && this.props.session.loading;
+        const session = this.props.session || {};
+
+        // If we end up on the sign in page and have an authToken then
+        // we are signed in and should be brought back to the site root
+        if (session.authToken) {
+            return <Redirect to={ROUTES.ROOT} />;
+        }
+
+        const isLoading = session.loading;
         return (
             <>
-                <StatusBar />
+                <CustomStatusBar />
                 <SafeAreaView style={[styles.signInPage]}>
                     <View style={[styles.signInPageInner]}>
                         <View style={[styles.signInPageLogo]}>
@@ -150,7 +153,7 @@ App.defaultProps = defaultProps;
 
 export default compose(
     withRouter,
-    withIon({
-        session: {key: IONKEYS.SESSION},
+    withOnyx({
+        session: {key: ONYXKEYS.SESSION},
     })
 )(App);

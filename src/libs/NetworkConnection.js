@@ -1,8 +1,8 @@
 import _ from 'underscore';
 import {AppState} from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
-import Ion from './Ion';
-import IONKEYS from '../IONKEYS';
+import Onyx from 'react-native-onyx';
+import ONYXKEYS from '../ONYXKEYS';
 
 // NetInfo.addEventListener() returns a function used to unsubscribe the
 // listener so we must create a reference to it and call it in stopListeningForReconnect()
@@ -29,7 +29,7 @@ const triggerReconnectionCallbacks = _.throttle(() => {
  * @param {boolean} isCurrentlyOffline
  */
 function setOfflineStatus(isCurrentlyOffline) {
-    Ion.merge(IONKEYS.NETWORK, {isOffline: isCurrentlyOffline});
+    Onyx.merge(ONYXKEYS.NETWORK, {isOffline: isCurrentlyOffline});
 
     // When reconnecting, ie, going from offline to online, all the reconnection callbacks
     // are triggered (this is usually Actions that need to re-download data from the server)
@@ -76,12 +76,12 @@ function listenForReconnect() {
 
     // When a device is put to sleep, NetInfo is not always able to detect
     // when connectivity has been lost. As a failsafe we will capture the time
-    // every two seconds and if the last time recorded is greater than 5 seconds
+    // every two seconds and if the last time recorded is greater than 20 seconds
     // we know that the computer has been asleep.
     lastTime = (new Date()).getTime();
     sleepTimer = setInterval(() => {
         const currentTime = (new Date()).getTime();
-        if (currentTime > (lastTime + 5000)) {
+        if (currentTime > (lastTime + 20000)) {
             triggerReconnectionCallbacks();
         }
         lastTime = currentTime;

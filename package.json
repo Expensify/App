@@ -1,6 +1,6 @@
 {
   "name": "react-native-chat",
-  "version": "1.0.1-134",
+  "version": "1.0.1-215",
   "author": "Expensify, Inc.",
   "homepage": "https://expensify.com",
   "description": "Expensify Chat",
@@ -9,34 +9,44 @@
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "ipad": "react-native run-ios --simulator=\"iPad Pro (12.9-inch) (4th generation)\"",
-    "desktop": "webpack --config webpack.dev.js --platform desktop && electron main.js",
+    "desktop": "webpack --config config/webpack/webpack.dev.js --platform desktop && electron desktop/main.js",
     "start": "react-native start",
-    "web": "webpack-dev-server --open --config webpack.dev.js",
-    "build": "webpack --config webpack.prod.js",
-    "desktop-build": "webpack --config webpack.prod.js --platform desktop && electron-builder --config desktop/electron.config.js --publish always",
+    "web": "webpack-dev-server --open --config config/webpack/webpack.dev.js",
+    "build": "webpack --config config/webpack/webpack.prod.js",
+    "desktop-build": "webpack --config config/webpack/webpack.prod.js --platform desktop && electron-builder --config config/electron.config.js --publish always",
     "ios-build": "fastlane ios build",
     "android-build": "fastlane android build",
     "test": "jest",
-    "lint": "eslint .",
+    "lint": "eslint . --config config/.eslintrc.js",
     "postversion": "react-native-version",
-    "print-version": "echo $npm_package_version"
+    "print-version": "echo $npm_package_version",
+    "detox-build": "detox build --configuration ios.sim.debug",
+    "detox-test": "detox test --configuration ios.sim.debug"
   },
   "dependencies": {
+    "@babel/plugin-proposal-class-properties": "^7.12.1",
     "@react-native-community/async-storage": "^1.11.0",
     "@react-native-community/netinfo": "^5.9.6",
+    "@react-native-community/progress-bar-android": "^1.0.4",
+    "@react-native-community/progress-view": "^1.2.3",
     "@react-native-community/push-notification-ios": "^1.5.0",
+    "@react-native-firebase/analytics": "^7.6.7",
+    "@react-native-firebase/app": "^8.4.5",
+    "@react-native-firebase/crashlytics": "^8.4.9",
     "babel-plugin-transform-remove-console": "^6.9.4",
     "dotenv": "^8.2.0",
     "electron-context-menu": "^2.3.0",
     "electron-log": "^4.2.4",
     "electron-serve": "^1.0.0",
     "electron-updater": "^4.3.4",
+    "expensify-common": "git+https://git@github.com:Expensify/expensify-common.git#971b9535fb188589ba85e2987de9ad9d648d5eb1",
     "file-loader": "^6.0.0",
     "html-entities": "^1.3.1",
-    "js-libs": "git+https://git@github.com:Expensify/JS-Libs.git#804bdb252b4db2967aa2113c4024dd6068d1eb32",
     "lodash.get": "^4.4.2",
     "lodash.has": "^4.5.2",
+    "lodash.merge": "^4.6.2",
     "lodash.orderby": "^4.6.0",
+    "modal-enhanced-react-native-web": "^0.2.0",
     "moment": "^2.27.0",
     "moment-timezone": "^0.5.31",
     "prop-types": "^15.7.2",
@@ -45,20 +55,25 @@
     "react-dom": "^16.13.1",
     "react-native": "0.63.3",
     "react-native-config": "^1.3.3",
-    "@react-native-firebase/analytics": "^7.6.7",
-    "@react-native-firebase/app": "^8.4.5",
-    "@react-native-firebase/crashlytics": "^8.4.9",
+    "react-native-document-picker": "^4.0.0",
+    "react-native-image-pan-zoom": "^2.1.12",
     "react-native-image-picker": "^2.3.3",
     "react-native-keyboard-spacer": "^0.4.1",
+    "react-native-modal": "^11.5.6",
+    "react-native-pdf": "^6.2.2",
+    "react-native-onyx": "git+https://git@github.com:Expensify/react-native-onyx.git#8e29d1807382c8a1325c92858c551f6b19e1aaad",
     "react-native-render-html": "^4.2.3",
     "react-native-safe-area-context": "^3.1.4",
-    "react-native-web": "^0.13.5",
-    "react-native-webview": "^10.6.0",
+    "react-native-web": "^0.14.0",
+    "react-native-web-webview": "^1.0.2",
+    "react-native-webview": "^10.10.0",
     "react-router-dom": "^5.2.0",
     "react-router-native": "^5.2.0",
     "react-web-config": "^1.0.0",
+    "rn-fetch-blob": "^0.12.0",
     "save": "^2.4.0",
-    "underscore": "^1.10.2"
+    "underscore": "^1.10.2",
+    "urbanairship-react-native": "^9.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.11.1",
@@ -66,6 +81,8 @@
     "@babel/preset-react": "^7.10.4",
     "@babel/runtime": "^7.11.2",
     "@react-native-community/eslint-config": "^2.0.0",
+    "@testing-library/jest-native": "^3.4.2",
+    "@testing-library/react-native": "^7.0.2",
     "babel-eslint": "^10.1.0",
     "babel-jest": "^26.2.2",
     "babel-loader": "^8.1.0",
@@ -74,6 +91,7 @@
     "babel-plugin-transform-class-properties": "^6.24.1",
     "clean-webpack-plugin": "^3.0.0",
     "copy-webpack-plugin": "^6.0.3",
+    "detox": "^17.8.3",
     "electron": "^9.2.0",
     "electron-builder": "^22.8.0",
     "electron-notarize": "^1.0.0",
@@ -81,8 +99,12 @@
     "eslint": "^7.6.0",
     "eslint-config-expensify": "^2.0.11",
     "eslint-loader": "^4.0.2",
+    "eslint-plugin-detox": "^1.0.0",
+    "eslint-plugin-jest": "^24.1.0",
     "html-webpack-plugin": "^4.3.0",
-    "jest": "^26.2.2",
+    "jest": "^26.5.2",
+    "jest-circus": "^26.5.2",
+    "jest-cli": "^26.5.2",
     "metro-react-native-babel-preset": "^0.61.0",
     "react-hot-loader": "^4.12.21",
     "react-native-version": "^4.0.0",
@@ -93,6 +115,29 @@
     "webpack-merge": "^5.1.1"
   },
   "jest": {
-    "preset": "react-native"
+    "preset": "react-native",
+    "transform": {
+      "^.+\\.jsx?$": "babel-jest"
+    },
+    "transformIgnorePatterns": [
+      "node_modules/(?!react-native)/"
+    ],
+    "testPathIgnorePatterns": [
+      "<rootDir>/node_modules/",
+      "<rootDir>/tests/unit/mocks/"
+    ],
+    "testMatch": [
+      "**/tests/unit/**/*.[jt]s?(x)",
+      "**/?(*.)+(spec|test).[jt]s?(x)"
+    ],
+    "globals": {
+      "__DEV__": true,
+      "WebSocket": {}
+    },
+    "timers": "fake",
+    "testEnvironment": "jsdom",
+    "setupFilesAfterEnv": [
+      "@testing-library/jest-native/extend-expect"
+    ]
   }
 }

@@ -1,17 +1,18 @@
 import React from 'react';
-import {View, Keyboard} from 'react-native';
+import {View, Keyboard, AppState} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
+import {withOnyx} from 'react-native-onyx';
 import Text from '../../../components/Text';
-import withIon from '../../../components/withIon';
 import {fetchActions, updateLastReadActionID} from '../../../libs/actions/Report';
-import IONKEYS from '../../../IONKEYS';
+import ONYXKEYS from '../../../ONYXKEYS';
 import ReportActionItem from './ReportActionItem';
 import styles from '../../../styles/StyleSheet';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import {lastItem} from '../../../libs/CollectionUtils';
+import Visibility from '../../../libs/Visibility';
 
 const propTypes = {
     // The ID of the report actions will be created for
@@ -20,7 +21,7 @@ const propTypes = {
     // Is this report currently in view?
     isActiveReport: PropTypes.bool.isRequired,
 
-    /* Ion Props */
+    /* Onyx Props */
 
     // Array of report actions for this report
     reportActions: PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
@@ -52,6 +53,11 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidMount() {
+        this.visibilityChangeEvent = AppState.addEventListener('change', () => {
+            if (this.props.isActiveReport && Visibility.isVisible()) {
+                setTimeout(this.recordMaxAction, 3000);
+            }
+        });
         if (this.props.isActiveReport) {
             this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
         }
@@ -78,7 +84,7 @@ class ReportActionsView extends React.Component {
 
             // When the number of actions change, wait three seconds, then record the max action
             // This will make the unread indicator go away if you receive comments in the same chat you're looking at
-            if (this.props.isActiveReport) {
+            if (this.props.isActiveReport && Visibility.isVisible()) {
                 setTimeout(this.recordMaxAction, 3000);
             }
 
@@ -101,6 +107,9 @@ class ReportActionsView extends React.Component {
     componentWillUnmount() {
         if (this.keyboardEvent) {
             this.keyboardEvent.remove();
+        }
+        if (this.visibilityChangeEvent) {
+            this.visibilityChangeEvent.remove();
         }
     }
 
@@ -243,12 +252,12 @@ class ReportActionsView extends React.Component {
 ReportActionsView.propTypes = propTypes;
 ReportActionsView.defaultProps = defaultProps;
 
-export default withIon({
+export default withOnyx({
     reportActions: {
-        key: ({reportID}) => `${IONKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
         canEvict: props => !props.isActiveReport,
     },
     session: {
-        key: IONKEYS.SESSION,
+        key: ONYXKEYS.SESSION,
     },
 })(ReportActionsView);

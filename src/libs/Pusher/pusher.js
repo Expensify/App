@@ -39,7 +39,7 @@ function init(appKey, params) {
 
         const options = {
             cluster: CONFIG.PUSHER.CLUSTER,
-            authEndpoint: `${CONFIG.EXPENSIFY.API_ROOT}command=Push_Authenticate`,
+            authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Push_Authenticate`,
         };
 
         if (customAuthorizer) {
@@ -358,6 +358,11 @@ function registerCustomAuthorizer(authorizer) {
  * Disconnect from Pusher
  */
 function disconnect() {
+    if (!socket) {
+        console.error('[Pusher] Attempting to disconnect from Pusher before initialisation has occured, ignoring.');
+        return;
+    }
+
     socket.disconnect();
     socket = null;
 }

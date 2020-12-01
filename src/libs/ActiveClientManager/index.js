@@ -1,19 +1,19 @@
 import _ from 'underscore';
-import guid from '../guid';
-import Ion from '../Ion';
-import IONKEYS from '../../IONKEYS';
+import Onyx from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
+import ONYXKEYS from '../../ONYXKEYS';
 
-const clientID = guid();
+const clientID = Str.guid();
 const maxClients = 20;
 
 let activeClients;
-Ion.connect({
-    key: IONKEYS.ACTIVE_CLIENTS,
+Onyx.connect({
+    key: ONYXKEYS.ACTIVE_CLIENTS,
     callback: (val) => {
-        activeClients = _.isNull(val) ? [] : val;
+        activeClients = !val ? [] : val;
         if (activeClients.length >= maxClients) {
             activeClients.shift();
-            Ion.set(IONKEYS.ACTIVE_CLIENTS, activeClients);
+            Onyx.set(ONYXKEYS.ACTIVE_CLIENTS, activeClients);
         }
     },
 });
@@ -22,7 +22,7 @@ Ion.connect({
  * Add our client ID to the list of active IDs
  */
 function init() {
-    Ion.merge(IONKEYS.ACTIVE_CLIENTS, [clientID]);
+    Onyx.merge(ONYXKEYS.ACTIVE_CLIENTS, [clientID]);
 }
 
 /**

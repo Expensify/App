@@ -4,13 +4,15 @@ import {
     Linking, ActivityIndicator, View, Dimensions
 } from 'react-native';
 import PropTypes from 'prop-types';
-import Str from '../../../libs/Str';
+import Str from 'expensify-common/lib/str';
 import ReportActionFragmentPropTypes from './ReportActionFragmentPropTypes';
 import styles, {webViewStyles, colors} from '../../../styles/StyleSheet';
 import Text from '../../../components/Text';
 import AnchorForCommentsOnly from '../../../components/AnchorForCommentsOnly';
-import {getAuthToken} from '../../../libs/API';
+import ImageThumbnailWithModal from '../../../components/ImageThumbnailWithModal';
 import InlineCodeBlock from '../../../components/InlineCodeBlock';
+import {getAuthToken} from '../../../libs/API';
+import Config from '../../../CONFIG';
 
 const propTypes = {
     // The message fragment needing to be displayed
@@ -18,17 +20,19 @@ const propTypes = {
 
     // Is this fragment an attachment?
     isAttachment: PropTypes.bool,
+
+    // Does this fragment belong to a reportAction that has not yet loaded?
+    loading: PropTypes.bool,
 };
 
 const defaultProps = {
-    isAttachment: false
+    isAttachment: false,
+    loading: false,
 };
 
 class ReportActionItemFragment extends React.PureComponent {
     constructor(props) {
         super(props);
-
-        this.alterNode = this.alterNode.bind(this);
 
         // Define the custom render methods
         // For <a> tags, the <Anchor> attribute is used to be more cross-platform friendly
@@ -41,6 +45,7 @@ class ReportActionItemFragment extends React.PureComponent {
                     // a new window. On Desktop this means that we will
                     // skip the default Save As... download prompt
                     // and defer to whatever browser the user has.
+                    // eslint-disable-next-line react/jsx-props-no-multi-spaces
                     target={htmlAttribs.target || '_blank'}
                     rel={htmlAttribs.rel || 'noopener noreferrer'}
                     style={passProps.style}
@@ -62,24 +67,43 @@ class ReportActionItemFragment extends React.PureComponent {
                     {children}
                 </InlineCodeBlock>
             ),
+            blockquote: (htmlAttribs, children, convertedCSSStyles, passProps) => (
+                <View
+                    key={passProps.key}
+                    style={webViewStyles.blockquoteTagStyle}
+                >
+                    {children}
+                </View>
+            ),
+            img: (htmlAttribs, children, convertedCSSStyles, passProps) => {
+                // Attaches authTokens as a URL parameter to load image attachments
+                let previewSource = htmlAttribs['data-expensify-source']
+                    ? `${htmlAttribs.src}?authToken=${getAuthToken()}`
+                    : htmlAttribs.src;
+
+                let source = htmlAttribs['data-expensify-source']
+                    ? `${htmlAttribs['data-expensify-source']}?authToken=${getAuthToken()}`
+                    : htmlAttribs.src;
+
+                // Update the image URL so the images can be accessed depending on the config environment
+                previewSource = previewSource.replace(
+                    Config.EXPENSIFY.URL_EXPENSIFY_COM,
+                    Config.EXPENSIFY.URL_API_ROOT
+                );
+                source = source.replace(
+                    Config.EXPENSIFY.URL_EXPENSIFY_COM,
+                    Config.EXPENSIFY.URL_API_ROOT
+                );
+
+                return (
+                    <ImageThumbnailWithModal
+                        previewSourceURL={previewSource}
+                        sourceURL={source}
+                        key={passProps.key}
+                    />
+                );
+            },
         };
-    }
-
-    /**
-     * Function to edit HTML on the fly before it's rendered, currently this attaches authTokens as a URL parameter to
-     * load image attachments.
-     *
-     * @param {object} node
-     * @returns {object}
-     */
-    alterNode(node) {
-        const htmlNode = node;
-
-        // We only want to attach auth tokens to images that come from Expensify attachments
-        if (htmlNode.name === 'img' && htmlNode.attribs['data-expensify-source']) {
-            htmlNode.attribs.src = `${node.attribs.src}?authToken=${getAuthToken()}`;
-            return htmlNode;
-        }
     }
 
     render() {
@@ -89,7 +113,7 @@ class ReportActionItemFragment extends React.PureComponent {
         switch (fragment.type) {
             case 'COMMENT':
                 // If this is an attachment placeholder, return the placeholder component
-                if (this.props.isAttachment && fragment.html === fragment.text) {
+                if (this.props.isAttachment && this.props.loading) {
                     return (
                         <View style={[styles.chatItemAttachmentPlaceholder]}>
                             <ActivityIndicator
@@ -111,7 +135,6 @@ class ReportActionItemFragment extends React.PureComponent {
                             tagsStyles={webViewStyles.tagStyles}
                             onLinkPress={(event, href) => Linking.openURL(href)}
                             html={fragment.html}
-                            alterNode={this.alterNode}
                             imagesMaxWidth={Math.min(maxImageDimensions, windowWidth * 0.8)}
                             imagesInitialDimensions={{width: maxImageDimensions, height: maxImageDimensions}}
                         />

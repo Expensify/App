@@ -1,38 +1,54 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {
-    StatusBar,
     View,
     Dimensions,
     Animated,
     Easing,
-    Keyboard
+    Keyboard,
+    Pressable,
 } from 'react-native';
 import {SafeAreaInsetsContext, SafeAreaProvider} from 'react-native-safe-area-context';
+import {withOnyx} from 'react-native-onyx';
 import {Route} from '../../libs/Router';
 import styles, {getSafeAreaPadding} from '../../styles/StyleSheet';
 import Header from './HeaderView';
 import Sidebar from './sidebar/SidebarView';
 import Main from './MainView';
 import {
+    hide as hideSidebar,
+    show as showSidebar,
+    setIsAnimating as setSideBarIsAnimating,
+} from '../../libs/actions/Sidebar';
+import {
     subscribeToReportCommentEvents,
     fetchAll as fetchAllReports,
-    fetchPinnedReportIDs
 } from '../../libs/actions/Report';
 import {fetch as fetchPersonalDetails} from '../../libs/actions/PersonalDetails';
 import * as Pusher from '../../libs/Pusher/pusher';
 import UnreadIndicatorUpdater from '../../libs/UnreadIndicatorUpdater';
 import ROUTES from '../../ROUTES';
+import ONYXKEYS from '../../ONYXKEYS';
 import NetworkConnection from '../../libs/NetworkConnection';
+import CustomStatusBar from '../../components/CustomStatusBar';
 
 const windowSize = Dimensions.get('window');
 const widthBreakPoint = 1000;
 
-export default class App extends React.Component {
+const propTypes = {
+    isSidebarShown: PropTypes.bool,
+    isChatSwitcherActive: PropTypes.bool,
+};
+const defaultProps = {
+    isSidebarShown: true,
+    isChatSwitcherActive: false,
+};
+
+class App extends React.Component {
     constructor(props) {
         super(props);
 
         this.state = {
-            hamburgerShown: true,
             isHamburgerEnabled: windowSize.width <= widthBreakPoint,
         };
 
@@ -40,7 +56,10 @@ export default class App extends React.Component {
         this.dismissHamburger = this.dismissHamburger.bind(this);
         this.showHamburger = this.showHamburger.bind(this);
         this.toggleHamburgerBasedOnDimensions = this.toggleHamburgerBasedOnDimensions.bind(this);
-        this.animationTranslateX = new Animated.Value(!this.state.hamburgerShown ? -300 : 0);
+
+        this.animationTranslateX = new Animated.Value(
+            !props.isSidebarShown ? -300 : 0
+        );
     }
 
     componentDidMount() {
@@ -50,17 +69,23 @@ export default class App extends React.Component {
         // Fetch all the personal details
         fetchPersonalDetails();
 
-        // Fetch the reportIDs that should be pinned then fetch all the reports
-        fetchPinnedReportIDs()
-            .then(fetchAllReports);
+        fetchAllReports();
 
         UnreadIndicatorUpdater.listenForReportChanges();
 
         Dimensions.addEventListener('change', this.toggleHamburgerBasedOnDimensions);
+    }
 
-        StatusBar.setBarStyle('dark-content', true);
-        StatusBar.setBackgroundColor('transparent', true);
-        StatusBar.setTranslucent(true);
+    componentDidUpdate(prevProps) {
+        if (!prevProps.isChatSwitcherActive && this.props.isChatSwitcherActive) {
+            this.showHamburger();
+        }
+
+        if (this.props.isSidebarShown === prevProps.isSidebarShown) {
+            // Nothing changed, don't trigger animation or re-render
+            return;
+        }
+        this.animateHamburger(prevProps.isSidebarShown);
     }
 
     componentWillUnmount() {
@@ -73,10 +98,10 @@ export default class App extends React.Component {
      */
     toggleHamburgerBasedOnDimensions({window: changedWindow}) {
         this.setState({isHamburgerEnabled: changedWindow.width <= widthBreakPoint});
-        if (!this.state.hamburgerShown && changedWindow.width > widthBreakPoint) {
-            this.setState({hamburgerShown: true});
-        } else if (this.state.hamburgerShown && changedWindow.width < widthBreakPoint) {
-            this.setState({hamburgerShown: false});
+        if (!this.props.isSidebarShown && changedWindow.width > widthBreakPoint) {
+            showSidebar();
+        } else if (this.props.isSidebarShown && changedWindow.width < widthBreakPoint) {
+            hideSidebar();
         }
     }
 
@@ -86,7 +111,7 @@ export default class App extends React.Component {
      * Only changes hamburger state on small screens (e.g. Mobile and mWeb)
      */
     dismissHamburger() {
-        if (!this.state.hamburgerShown) {
+        if (!this.state.isHamburgerEnabled || !this.props.isSidebarShown) {
             return;
         }
 
@@ -99,7 +124,7 @@ export default class App extends React.Component {
      * Only changes hamburger state on smaller screens (e.g. Mobile and mWeb)
      */
     showHamburger() {
-        if (this.state.hamburgerShown) {
+        if (this.props.isSidebarShown) {
             return;
         }
 
@@ -114,16 +139,19 @@ export default class App extends React.Component {
     animateHamburger(hamburgerIsShown) {
         const animationFinalValue = hamburgerIsShown ? -300 : 0;
 
+        setSideBarIsAnimating(true);
         Animated.timing(this.animationTranslateX, {
             toValue: animationFinalValue,
             duration: 200,
             easing: Easing.ease,
             useNativeDriver: false
         }).start(({finished}) => {
-            // If the hamburger is currently shown, we want to hide it only after the animation is complete
-            // Otherwise, we can't see the animation
             if (finished && hamburgerIsShown) {
-                this.setState({hamburgerShown: false});
+                hideSidebar();
+            }
+
+            if (finished) {
+                setSideBarIsAnimating(false);
             }
         });
     }
@@ -137,25 +165,26 @@ export default class App extends React.Component {
             return;
         }
 
-        const hamburgerIsShown = this.state.hamburgerShown;
-
-        // If the hamburger currently is not shown, we want to immediately make it visible for the animation
-        if (!hamburgerIsShown) {
-            this.setState({hamburgerShown: true});
+        // If the hamburger currently is not shown, we want to make it visible before the animation
+        if (!this.props.isSidebarShown) {
+            showSidebar();
+            return;
         }
+
+        // Otherwise, we want to hide it after the animation
         Keyboard.dismiss();
-        this.animateHamburger(hamburgerIsShown);
+        this.animateHamburger(true);
     }
 
     render() {
-        const hamburgerStyle = this.state.isHamburgerEnabled && this.state.hamburgerShown
+        const hamburgerStyle = this.state.isHamburgerEnabled && this.props.isSidebarShown
             ? styles.hamburgerOpenAbsolute : styles.hamburgerOpen;
-        const visibility = this.state.hamburgerShown ? styles.dFlex : styles.dNone;
+        const visibility = !this.state.isHamburgerEnabled || this.props.isSidebarShown ? styles.dFlex : styles.dNone;
         const appContentWrapperStyle = !this.state.isHamburgerEnabled ? styles.appContentWrapperLarge : null;
         const appContentStyle = !this.state.isHamburgerEnabled ? styles.appContentRounded : null;
         return (
             <SafeAreaProvider>
-                <StatusBar />
+                <CustomStatusBar />
                 <SafeAreaInsetsContext.Consumer style={[styles.flex1, styles.h100p]}>
                     {insets => (
                         <View
@@ -177,19 +206,23 @@ export default class App extends React.Component {
                                     <Sidebar
                                         insets={insets}
                                         onLinkClick={this.toggleHamburger}
-                                        onChatSwitcherFocus={this.showHamburger}
+                                        isChatSwitcherActive={this.props.isChatSwitcherActive}
                                     />
                                 </Animated.View>
-                                <View
-                                    onTouchStart={this.dismissHamburger}
-                                    style={[styles.appContent, appContentStyle, styles.flex1, styles.flexColumn]}
+                                <Pressable
+                                    style={[styles.flex1]}
+                                    onPress={this.dismissHamburger}
                                 >
-                                    <Header
-                                        shouldShowHamburgerButton={this.state.isHamburgerEnabled}
-                                        onHamburgerButtonClicked={this.toggleHamburger}
-                                    />
-                                    <Main />
-                                </View>
+                                    <View
+                                        style={[styles.appContent, appContentStyle, styles.flex1, styles.flexColumn]}
+                                    >
+                                        <Header
+                                            shouldShowHamburgerButton={this.state.isHamburgerEnabled}
+                                            onHamburgerButtonClicked={this.toggleHamburger}
+                                        />
+                                        <Main />
+                                    </View>
+                                </Pressable>
                             </Route>
                         </View>
                     )}
@@ -198,3 +231,18 @@ export default class App extends React.Component {
         );
     }
 }
+
+App.propTypes = propTypes;
+App.defaultProps = defaultProps;
+
+export default withOnyx(
+    {
+        isSidebarShown: {
+            key: ONYXKEYS.IS_SIDEBAR_SHOWN
+        },
+        isChatSwitcherActive: {
+            key: ONYXKEYS.IS_CHAT_SWITCHER_ACTIVE,
+            initWithStoredValues: false,
+        },
+    },
+)(App);

@@ -1,6 +1,7 @@
 // We place items a percentage to the safe area on the top or bottom of the screen
 import fontFamily from './fontFamily';
 import italic from './italic';
+import addOutlineWidth from './addOutlineWidth';
 
 const safeInsertPercentage = 0.7;
 
@@ -18,11 +19,18 @@ const colors = {
     textBackground: '#F0F0F0',
     textReversed: '#FFFFFF',
     textSupporting: '#7D8B8F',
+    transparent: 'transparent',
     red: '#E84A3B',
+    buttonBG: '#8A8A8A',
+    modalBackdrop: '#00000080',
 };
 
 const styles = {
     // Utility classes
+    m0: {
+        margin: 0,
+    },
+
     mr0: {
         marginRight: 0,
     },
@@ -52,6 +60,10 @@ const styles = {
     },
     mt1: {
         marginTop: 10,
+    },
+
+    mb1: {
+        marginBottom: 4,
     },
     mb2: {
         marginBottom: 8,
@@ -101,12 +113,20 @@ const styles = {
         flexDirection: 'column',
     },
 
+    flexJustifyCenter: {
+        justifyContent: 'center',
+    },
+
     flexJustifyEnd: {
         justifyContent: 'flex-end',
     },
 
     flexJustifySpaceBetween: {
         justifyContent: 'space-between',
+    },
+
+    flexAlignSelfStretch: {
+        alignSelf: 'stretch',
     },
 
     alignItemsCenter: {
@@ -133,23 +153,59 @@ const styles = {
         display: 'none',
     },
 
+    bgHighlight: {
+        backgroundColor: 'yellow',
+    },
+
+    bgHighlight2: {
+        backgroundColor: 'green',
+    },
+
+    bgHighlight3: {
+        backgroundColor: 'pink',
+    },
+
+    overflowHidden: {
+        overflow: 'hidden',
+    },
+
+    h4: {
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: '700',
+        fontSize: 13,
+    },
+
     textP: {
         color: colors.text,
         fontSize: 15,
         lineHeight: 20,
     },
 
-    h3: {
-        color: '#FFFFFF',
-        fontWeight: '600',
+    textLabel: {
+        color: colors.text,
+        fontSize: 13,
+        lineHeight: 18,
     },
 
     textMicro: {
         fontSize: 11,
     },
 
+    textStrong: {
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: '600',
+    },
+
+    textDecorationNoLine: {
+        textDecorationLine: 'none',
+    },
+
     colorReversed: {
         color: colors.textReversed,
+    },
+
+    colorMutedReversed: {
+        color: colors.icon,
     },
 
     button: {
@@ -162,8 +218,22 @@ const styles = {
 
     buttonText: {
         color: colors.text,
+        fontFamily: fontFamily.GTA_BOLD,
         fontWeight: '700',
         textAlign: 'center',
+    },
+
+    buttonSmall: {
+        height: 28,
+        paddingTop: 6,
+        paddingRight: 10,
+        paddingBottom: 6,
+        paddingLeft: 10,
+    },
+
+    buttonSmallText: {
+        fontSize: 11,
+        lineHeight: 16,
     },
 
     buttonSuccess: {
@@ -183,15 +253,54 @@ const styles = {
         width: 40,
     },
 
+    pill: {
+        borderRadius: 14,
+        backgroundColor: colors.text,
+        height: 28,
+        flexDirection: 'row',
+        paddingTop: 6,
+        paddingBottom: 6,
+        paddingLeft: 7,
+        paddingRight: 7,
+        alignItems: 'center',
+    },
+
+    pillText: {
+        color: colors.componentBG,
+        weight: '400',
+        fontSize: 11,
+        lineHeight: 16,
+        marginRight: 4,
+        userSelect: 'none',
+        maxWidth: 160,
+    },
+
+    pillCancelIcon: {
+        width: 12,
+        height: 12,
+    },
+
     navText: {
         color: colors.heading,
         fontSize: 17,
         fontWeight: '700'
     },
 
-    navSubText: {
+    reportOptions: {
+        marginLeft: 8,
+    },
+
+    typingIndicator: {
+        height: 15,
+        marginBottom: 5,
+        marginTop: 5,
+    },
+
+    typingIndicatorSubText: {
         color: colors.textSupporting,
+        fontFamily: fontFamily.GTA,
         fontSize: 11,
+        marginLeft: 48,
     },
 
     // Actions
@@ -211,23 +320,24 @@ const styles = {
         color: colors.text,
         fontFamily: fontFamily.GTA,
         fontSize: 15,
-        padding: 12,
+        paddingLeft: 12,
+        paddingRight: 12,
+        paddingTop: 10,
+        paddingBottom: 10,
         textAlignVertical: 'center',
     },
 
-    textInputReversed: {
+    textInputReversed: addOutlineWidth({
         backgroundColor: colors.heading,
-        borderRadius: 8,
         borderColor: colors.text,
-        borderWidth: 1,
         color: colors.textReversed,
-        padding: 12,
-        outlineWidth: 0,
-    },
+    }, 0),
 
     textInputReversedFocus: {
         borderColor: colors.icon,
     },
+
+    textInputNoOutline: addOutlineWidth({}, 0),
 
     formLabel: {
         fontSize: 13,
@@ -349,7 +459,6 @@ const styles = {
         flexGrow: 100,
         scrollbarWidth: 'none',
         overflow: 'scroll',
-        paddingTop: 4,
         paddingBottom: 4,
         paddingLeft: 12,
         paddingRight: 12,
@@ -360,30 +469,35 @@ const styles = {
         fontSize: 15,
         fontWeight: '700',
         paddingTop: 8,
-        paddingRight: 12,
+        paddingRight: 8,
         paddingBottom: 8,
-        paddingLeft: 12,
+        paddingLeft: 8,
     },
 
     sidebarListItem: {
-        height: 40,
         justifyContent: 'center',
         textDecorationLine: 'none',
+        backgroundColor: colors.heading,
+    },
+
+    chatLinkRowPressable: {
+        minWidth: 0,
+        textDecorationLine: 'none',
+        flex: 1,
     },
 
     sidebarLink: {
-        height: 40,
-        paddingTop: 8,
-        paddingRight: 12,
-        paddingBottom: 8,
-        paddingLeft: 12,
         textDecorationLine: 'none',
     },
 
     sidebarLinkInner: {
         alignItems: 'center',
         flexDirection: 'row',
-        height: 24,
+        height: 48,
+        paddingTop: 10,
+        paddingRight: 8,
+        paddingBottom: 10,
+        paddingLeft: 8,
     },
 
     sidebarLinkText: {
@@ -394,24 +508,33 @@ const styles = {
     },
 
     sidebarLinkActive: {
-        backgroundColor: colors.blue,
+        backgroundColor: colors.text,
         borderRadius: 8,
-        height: 40,
-        paddingTop: 8,
-        paddingRight: 12,
-        paddingBottom: 8,
-        paddingLeft: 12,
         textDecorationLine: 'none',
     },
+
     sidebarLinkTextUnread: {
         fontWeight: '600',
         color: colors.textReversed,
     },
+
     sidebarLinkActiveText: {
         color: colors.textReversed,
         fontSize: 13,
         textDecorationLine: 'none',
         overflow: 'hidden',
+    },
+
+    chatSwitcherDisplayName: {
+        fontFamily: fontFamily.GTA,
+        height: 16,
+        lineHeight: 16,
+    },
+
+    chatSwitcherLogin: {
+        fontFamily: fontFamily.GTA,
+        height: 12,
+        lineHeight: 12,
     },
 
     unreadBadge: {
@@ -470,6 +593,17 @@ const styles = {
     LHNToggleIcon: {
         height: 15,
         width: 18,
+    },
+
+    LHNPencilIcon: {
+        height: 16,
+        width: 16,
+    },
+
+    attachmentCloseIcon: {
+        height: 20,
+        width: 20,
+        padding: 0,
     },
 
     chatContent: {
@@ -551,7 +685,7 @@ const styles = {
 
     chatItemCompose: {
         minHeight: 65,
-        paddingBottom: 20,
+        marginBottom: 5,
         paddingLeft: 20,
         paddingRight: 20,
         display: 'flex',
@@ -572,17 +706,16 @@ const styles = {
         minHeight: 40,
     },
 
-    textInputCompose: {
+    textInputCompose: addOutlineWidth({
         borderWidth: 0,
         borderRadius: 0,
-        outlineWidth: 0,
         height: 'auto',
         minHeight: 38,
         paddingTop: 10,
         paddingRight: 8,
         paddingBottom: 10,
         paddingLeft: 8,
-    },
+    }, 0),
 
     chatItemSubmitButton: {
         alignSelf: 'flex-end',
@@ -630,12 +763,69 @@ const styles = {
     },
 
     chatSwitcherInputClear: {
-        alignSelf: 'center',
+        alignSelf: 'flex-end',
+        height: 40,
+        justifyContent: 'center',
     },
 
     chatSwitcherInputClearIcon: {
         height: 24,
         width: 24,
+    },
+
+    chatSwitcherGroupDMContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: colors.textSupporting,
+        paddingTop: 0,
+        paddingRight: 3,
+        paddingBottom: 0,
+        paddingLeft: 5,
+    },
+
+    chatSwitcherPillsInput: {
+        alignItems: 'flex-start',
+        alignSelf: 'flex-start',
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        maxWidth: 190,
+        overflow: 'hidden',
+    },
+
+    chatSwitcherInputGroup: {
+        minWidth: 1,
+    },
+
+    chatSwitcherGroupDMTextInput: {
+        backgroundColor: colors.sidebar,
+        color: colors.textReversed,
+        fontFamily: fontFamily.GTA,
+        fontSize: 15,
+        flexGrow: 1,
+        height: 28,
+        width: 186,
+        marginTop: 5,
+        marginBottom: 5,
+        marginLeft: 3,
+        padding: 0,
+    },
+
+    chatSwticherPillWrapper: {
+        marginTop: 5,
+        marginRight: 4,
+    },
+
+    chatSwitcherGo: {
+        borderRadius: 6,
+        height: 32,
+        marginBottom: 3,
+    },
+
+    chatSwitcherMessage: {
+        paddingLeft: 12,
+        paddingRight: 12,
     },
 
     hamburgerOpenAbsolute: {
@@ -658,13 +848,6 @@ const styles = {
         width: 300,
     },
 
-    chatSwitcherItemList: {
-        flex: 1,
-        flexGrow: 1,
-        scrollbarWidth: 'none',
-        overflow: 'scroll',
-    },
-
     chatSwitcherAvatar: {
         backgroundColor: colors.text,
         borderRadius: 14,
@@ -678,17 +861,73 @@ const styles = {
         width: 28,
     },
 
-    chatSwitcherItem: {
-        padding: 12,
-    },
-
     chatSwitcherItemText: {
         color: colors.text,
     },
 
-    chatSwitcherItemFocused: {
-        backgroundColor: colors.blue,
+    chatSwitcherItemAvatarNameWrapper: {
+        minWidth: 0,
+        flex: 1,
+    },
+
+    chatSwitcherItemButton: {
+        backgroundColor: 'rgba(255, 255, 255, 0.15)',
+        paddingTop: 6,
+        paddingRight: 8,
+        paddingBottom: 6,
+        paddingLeft: 8,
         borderRadius: 8,
+        height: 28,
+        marginLeft: 4,
+    },
+
+    chatSwitcherItemButtonText: {
+        color: colors.componentBG,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: 11,
+        lineHeight: 16,
+        fontWeight: '700',
+    },
+
+    modalViewContainer: {
+        backgroundColor: colors.componentBG,
+        borderColor: colors.border,
+        borderWidth: 1,
+        borderRadius: 20,
+        height: '100%',
+    },
+
+    modalHeaderBar: {
+        fontFamily: fontFamily.GTA,
+        overflow: 'hidden',
+        justifyContent: 'center',
+        display: 'flex',
+        paddingLeft: 32,
+        paddingRight: 20,
+        borderBottomWidth: 1,
+        borderColor: colors.border,
+        height: 73,
+    },
+
+    imageModalPDF: {
+        flex: 1,
+        backgroundColor: colors.componentBG,
+    },
+
+    modalCenterContentContainer: {
+        flex: 1,
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: colors.modalBackdrop,
+    },
+
+    imageModalImageCenterContainer: {
+        flex: 1,
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        overflow: 'hidden',
     },
 };
 
@@ -713,6 +952,13 @@ const webViewStyles = {
         paddingRight: 5,
         paddingBottom: 2,
         alignSelf: 'flex-start',
+    },
+    blockquoteTagStyle: {
+        borderLeftColor: colors.border,
+        borderLeftWidth: 4,
+        paddingLeft: 12,
+        marginTop: 4,
+        marginBottom: 4,
     },
     tagStyles: {
         em: {

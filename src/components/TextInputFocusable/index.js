@@ -1,12 +1,9 @@
 import React from 'react';
-import {TextInput} from 'react-native';
+import {TextInput, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 
 const propTypes = {
-    // A ref to forward to the text input
-    forwardedRef: PropTypes.func.isRequired,
-
     // Maximum number of lines in the text input
     maxLines: PropTypes.number,
 
@@ -15,11 +12,27 @@ const propTypes = {
 
     // Callback method to handle pasting a file
     onPasteFile: PropTypes.func,
+
+    // A ref to forward to the text input
+    forwardedRef: PropTypes.func.isRequired,
+
+    // General styles to apply to the text input
+    // eslint-disable-next-line react/forbid-prop-types
+    style: PropTypes.any,
+
+    // If the input should clear, it actually gets intercepted instead of .clear()
+    shouldClear: PropTypes.bool,
+
+    // When the input has cleared whoever owns this input should know about it
+    onClear: PropTypes.func,
 };
 
 const defaultProps = {
     maxLines: -1,
     onPasteFile: () => {},
+    shouldClear: false,
+    onClear: () => {},
+    style: null,
 };
 
 /**
@@ -53,6 +66,12 @@ class TextInputFocusable extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        if (!prevProps.shouldClear && this.props.shouldClear) {
+            this.textInput.clear();
+            // eslint-disable-next-line react/no-did-update-set-state
+            this.setState({numberOfLines: 1});
+            this.props.onClear();
+        }
         if (prevProps.defaultValue !== this.props.defaultValue) {
             this.updateNumberOfLines();
         }
@@ -119,6 +138,9 @@ class TextInputFocusable extends React.Component {
     }
 
     render() {
+        const propStyles = StyleSheet.flatten(this.props.style);
+        propStyles.outline = 'none';
+        const propsWithoutStyles = _.omit(this.props, 'style');
         return (
             <TextInput
                 ref={el => this.textInput = el}
@@ -126,8 +148,9 @@ class TextInputFocusable extends React.Component {
                     this.updateNumberOfLines();
                 }}
                 numberOfLines={this.state.numberOfLines}
+                style={propStyles}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
-                {...this.props}
+                {...propsWithoutStyles}
             />
         );
     }
