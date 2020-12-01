@@ -11,6 +11,7 @@ import paperClipIcon from '../../../../assets/images/icon-paper-clip.png';
 import AttachmentPicker from '../../../components/AttachmentPicker';
 import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs/actions/Report';
 import ReportTypingIndicator from './ReportTypingIndicator';
+import ImageModal from '../../../components/ImageModal/ImageModalBase';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -159,23 +160,32 @@ class ReportActionCompose extends React.Component {
                             </TouchableOpacity>
                         )}
                     </AttachmentPicker>
-                    <TextInputFocusable
-                        multiline
-                        ref={el => this.textInput = el}
-                        textAlignVertical="top"
-                        placeholder="Write something..."
-                        placeholderTextColor={colors.textSupporting}
-                        onChangeText={this.updateComment}
-                        onKeyPress={this.triggerSubmitShortcut}
-                        style={[styles.textInput, styles.textInputCompose, styles.flex4]}
-                        defaultValue={this.props.comment}
-                        maxLines={16} // This is the same that slack has
-                        onFocus={() => this.setIsFocused(true)}
-                        onBlur={() => this.setIsFocused(false)}
-                        onPasteFile={file => addAction(this.props.reportID, '', file)}
-                        shouldClear={this.state.textInputShouldClear}
-                        onClear={() => this.setTextInputShouldClear(false)}
-                    />
+                    <ImageModal
+                        title="Upload Attachment"
+                        onConfirm={file => {
+                            addAction(this.props.reportID, '', file);
+                        }}
+                    >
+                        {({displayFileInModal}) => (
+                            <TextInputFocusable
+                                multiline
+                                ref={el => this.textInput = el}
+                                textAlignVertical="top"
+                                placeholder="Write something..."
+                                placeholderTextColor={colors.textSupporting}
+                                onChangeText={this.updateComment}
+                                onKeyPress={this.triggerSubmitShortcut}
+                                style={[styles.textInput, styles.textInputCompose, styles.flex4]}
+                                defaultValue={this.props.comment}
+                                maxLines={16} // This is the same that slack has
+                                onFocus={() => this.setIsFocused(true)}
+                                onBlur={() => this.setIsFocused(false)}
+                                onPasteFile={(file) => displayFileInModal({file})}
+                                shouldClear={this.state.textInputShouldClear}
+                                onClear={() => this.setTextInputShouldClear(false)}
+                            />
+                        )}
+                    </ImageModal>
                     <TouchableOpacity
                         style={[styles.chatItemSubmitButton, styles.buttonSuccess]}
                         onPress={this.submitForm}

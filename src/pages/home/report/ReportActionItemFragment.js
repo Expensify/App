@@ -1,7 +1,7 @@
 import React from 'react';
 import HTML from 'react-native-render-html';
 import {
-    Linking, ActivityIndicator, View, Dimensions
+    Linking, ActivityIndicator, View, Dimensions, TouchableOpacity,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
@@ -9,8 +9,9 @@ import ReportActionFragmentPropTypes from './ReportActionFragmentPropTypes';
 import styles, {webViewStyles, colors} from '../../../styles/StyleSheet';
 import Text from '../../../components/Text';
 import AnchorForCommentsOnly from '../../../components/AnchorForCommentsOnly';
-import ImageThumbnailWithModal from '../../../components/ImageThumbnailWithModal';
+import ImageModal from '../../../components/ImageModal';
 import InlineCodeBlock from '../../../components/InlineCodeBlock';
+import ThumbnailImage from '../../../components/ThumbnailImage';
 import {getAuthToken} from '../../../libs/API';
 import Config from '../../../CONFIG';
 
@@ -96,11 +97,22 @@ class ReportActionItemFragment extends React.PureComponent {
                 );
 
                 return (
-                    <ImageThumbnailWithModal
-                        previewSourceURL={previewSource}
+                    <ImageModal
+                        title="Attachment"
                         sourceURL={source}
                         key={passProps.key}
-                    />
+                    >
+                        {({show}) => (
+                            <TouchableOpacity
+                                onPress={() => show()}
+                            >
+                                <ThumbnailImage
+                                    previewSourceURL={previewSource}
+                                    style={webViewStyles.tagStyles.img}
+                                />
+                            </TouchableOpacity>
+                        )}
+                    </ImageModal>
                 );
             },
         };
