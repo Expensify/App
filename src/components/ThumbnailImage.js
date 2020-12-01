@@ -1,5 +1,15 @@
 import React, {Component} from 'react';
 import {Image} from 'react-native';
+import PropTypes from 'prop-types';
+
+const propTypes = {
+    // Source URL for the preview image
+    previewSourceURL: PropTypes.string.isRequired,
+
+    // Any additional styles to apply
+    // eslint-disable-next-line react/forbid-prop-types
+    style: PropTypes.any,
+};
 
 class ThumbnailImage extends Component {
     constructor(props) {
@@ -50,4 +60,5 @@ class ThumbnailImage extends Component {
     }
 }
 
+ThumbnailImage.propTypes = propTypes;
 export default ThumbnailImage;

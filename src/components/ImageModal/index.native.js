@@ -1,13 +1,6 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import ImageModalBase from './ImageModalBase';
-
-const propTypes = {
-    // Title of Modal
-    title: PropTypes.string.isRequired,
-
-    sourceURL: PropTypes.string.sourceURL,
-};
+import propTypes from './imageModalPropTypes';
 
 const defaultProps = {
     sourceURL: null,
@@ -15,6 +8,7 @@ const defaultProps = {
 
 const ImageModal = props => (
     <ImageModalBase
+        // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         pinToEdges
     >
