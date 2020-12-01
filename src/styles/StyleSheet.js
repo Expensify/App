@@ -595,6 +595,11 @@ const styles = {
         width: 18,
     },
 
+    LHNPencilIcon: {
+        height: 16,
+        width: 16,
+    },
+
     attachmentCloseIcon: {
         height: 20,
         width: 20,
@@ -947,6 +952,13 @@ const webViewStyles = {
         paddingRight: 5,
         paddingBottom: 2,
         alignSelf: 'flex-start',
+    },
+    blockquoteTagStyle: {
+        borderLeftColor: colors.border,
+        borderLeftWidth: 4,
+        paddingLeft: 12,
+        marginTop: 4,
+        marginBottom: 4,
     },
     tagStyles: {
         em: {
