@@ -140,7 +140,7 @@ class ReportActionCompose extends React.Component {
                 >
                     <ImageModal
                         title="Upload Attachment"
-                        onConfirm={file => {
+                        onConfirm={(file) => {
                             addAction(this.props.reportID, '', file);
                             this.setTextInputShouldClear(true);
                         }}
@@ -154,7 +154,7 @@ class ReportActionCompose extends React.Component {
                                                 e.preventDefault();
                                                 openPicker({
                                                     onPicked: (file) => {
-                                                        displayFileInModal({file})
+                                                        displayFileInModal({file});
                                                     },
                                                 });
                                             }}
@@ -182,7 +182,7 @@ class ReportActionCompose extends React.Component {
                                     maxLines={16} // This is the same that slack has
                                     onFocus={() => this.setIsFocused(true)}
                                     onBlur={() => this.setIsFocused(false)}
-                                    onPasteFile={(file) => displayFileInModal({file})}
+                                    onPasteFile={file => displayFileInModal({file})}
                                     shouldClear={this.state.textInputShouldClear}
                                     onClear={() => this.setTextInputShouldClear(false)}
                                 />
