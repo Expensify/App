@@ -26,7 +26,9 @@ const server = http.createServer((request, response) => {
             });
         }
 
-        // Files need to be treated differently from regular fields
+        // Files need to be treated differently from regular fields since they
+        // are downloaded to a /tmp directory and must be re-streamed when
+        // calling the production API
         if (!_.isEmpty(files)) {
             const file = files.file[0];
             body.append('file', fs.createReadStream(file.path), file.originalFilename);
