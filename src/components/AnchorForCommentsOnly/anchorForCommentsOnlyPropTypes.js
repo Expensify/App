@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 /**
  * Text based component that is passed a URL to open onPress
  */
-const propTypes = {
+const anchorForCommentsOnlyPropTypes = {
     // The URL to open
     href: PropTypes.string,
 
@@ -24,4 +24,4 @@ const propTypes = {
     style: PropTypes.any,
 };
 
-export default propTypes;
+export default anchorForCommentsOnlyPropTypes;

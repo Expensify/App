@@ -1,6 +1,6 @@
 import React from 'react';
 import {StyleSheet} from 'react-native';
-import propTypes from './propTypes';
+import anchorForCommentsOnlyPropTypes from './anchorForCommentsOnlyPropTypes';
 
 const defaultProps = {
     href: '',
@@ -30,7 +30,7 @@ const AnchorForCommentsOnly = ({
     </a>
 );
 
-AnchorForCommentsOnly.propTypes = propTypes;
+AnchorForCommentsOnly.propTypes = anchorForCommentsOnlyPropTypes;
 AnchorForCommentsOnly.defaultProps = defaultProps;
 AnchorForCommentsOnly.displayName = 'AnchorForCommentsOnly';
 
