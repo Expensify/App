@@ -1,6 +1,6 @@
 import React from 'react';
 import {Linking, StyleSheet, Text} from 'react-native';
-import propTypes from './propTypes';
+import anchorForCommentsOnlyPropTypes from './anchorForCommentsOnlyPropTypes';
 
 const defaultProps = {
     href: '',
@@ -20,7 +20,7 @@ const AnchorForCommentsOnly = ({
     <Text style={StyleSheet.flatten(style)} onPress={() => Linking.openURL(href)} {...props}>{children}</Text>
 );
 
-AnchorForCommentsOnly.propTypes = propTypes;
+AnchorForCommentsOnly.propTypes = anchorForCommentsOnlyPropTypes;
 AnchorForCommentsOnly.defaultProps = defaultProps;
 AnchorForCommentsOnly.displayName = 'AnchorForCommentsOnly';
 
