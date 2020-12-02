@@ -67,7 +67,7 @@ class ImageModal extends Component {
 
     componentDidUpdate(prevProps, prevState) {
         // Only calculate image size if the source has changed
-        if (!prevState.sourceURL !== this.state.sourceURL) {
+        if (prevState.sourceURL !== this.state.sourceURL) {
             this.calculateImageSize();
         }
     }
@@ -147,7 +147,8 @@ class ImageModal extends Component {
                                 <Text
                                     style={[
                                         styles.buttonText,
-                                        styles.buttonSuccessText
+                                        styles.buttonSuccessText,
+                                        styles.buttonConfirmText,
                                     ]}
                                 >
                                     Upload
@@ -158,8 +159,12 @@ class ImageModal extends Component {
                 </Modal>
                 {this.props.children({
                     displayFileInModal: ({file}) => {
-                        const source = URL.createObjectURL(file);
-                        this.setState({isModalOpen: true, sourceURL: source, file});
+                        if (file instanceof File) {
+                            const source = URL.createObjectURL(file);
+                            this.setState({isModalOpen: true, sourceURL: source, file});
+                        } else {
+                            this.setState({isModalOpen: true, sourceURL: file.uri, file});
+                        }
                     },
                     show: () => {
                         this.setState({isModalOpen: true});

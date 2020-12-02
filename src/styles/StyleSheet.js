@@ -242,8 +242,12 @@ const styles = {
     },
 
     buttonConfirm: {
-        margin: 30,
-        padding: 20,
+        margin: 20,
+    },
+
+    buttonConfirmText: {
+        paddingLeft: 20,
+        paddingRight: 20,
     },
 
     buttonSuccessText: {

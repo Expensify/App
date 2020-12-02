@@ -11,7 +11,7 @@ import paperClipIcon from '../../../../assets/images/icon-paper-clip.png';
 import AttachmentPicker from '../../../components/AttachmentPicker';
 import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs/actions/Report';
 import ReportTypingIndicator from './ReportTypingIndicator';
-import ImageModal from '../../../components/ImageModal/ImageModalBase';
+import ImageModal from '../../../components/ImageModal';
 
 const propTypes = {
     // A method to call when the form is submitted
