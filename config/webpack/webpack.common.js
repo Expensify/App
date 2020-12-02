@@ -30,6 +30,9 @@ module.exports = {
             patterns: [
                 {from: 'web/favicon.png'},
                 {from: 'web/favicon-unread.png'},
+                {from: 'pdf-viewer/viewer.html', to: 'pdf-viewer/web/viewer.html'},
+                {from: 'node_modules/pdfjs-dist/web', to: 'pdf-viewer/web'},
+                {from: 'node_modules/pdfjs-dist/build', to: 'pdf-viewer/build'},
             ],
         }),
 
