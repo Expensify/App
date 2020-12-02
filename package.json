@@ -49,7 +49,7 @@
     "modal-enhanced-react-native-web": "^0.2.0",
     "moment": "^2.27.0",
     "moment-timezone": "^0.5.31",
-    "pdfjs-dist": "^2.5.207",
+    "pdfjs": "git+https://git@github.com:marcaaron/pdf.js.git#gh-pages",
     "prop-types": "^15.7.2",
     "pusher-js": "^7.0.0",
     "react": "^16.13.1",
