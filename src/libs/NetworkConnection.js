@@ -58,7 +58,7 @@ function listenForReconnect() {
     // for a few minutes, but eventually disconnects causing a delay when the app
     // returns from the background. So, if we are returning from the background
     // and we are online we should trigger our reconnection callbacks.
-    appStateChangeCallback = (state) => {
+    appStateChangeCallback = function (state) {
         console.debug('[AppState] state changed:', state);
         const nextStateIsActive = state === 'active';
 
