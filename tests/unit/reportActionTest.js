@@ -3,6 +3,8 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import {addAction, subscribeToReportCommentEvents} from '../../src/libs/actions/Report';
 import * as Pusher from '../../src/libs/Pusher/pusher';
+import PusherConnectionManager from '../../src/libs/PusherConnectionManager';
+import CONFIG from '../../src/CONFIG';
 
 const resolveAllPromises = () => new Promise(setImmediate);
 
@@ -24,12 +26,25 @@ jest.mock('../../node_modules/@react-native-community/async-storage', () => (
     require('./mocks/@react-native-community/async-storage')
 ));
 
+// jest.mock('../../src/libs/Network', () => {
+//     return {
+//         post: () => {},
+//         registerParameterEnhancer: (params) => {
+//             return params;
+//         },
+//     };
+// });
+
 jest.mock('../../node_modules/@react-native-community/push-notification-ios', () => (
     require('./mocks/@react-native-community/push-notification-ios')
 ));
 
 jest.mock('pusher-js/react-native', () => (
     require('pusher-js-mock').PusherMock
+));
+
+jest.mock('../../node_modules/react-native-config', () => (
+    require('./mocks/react-native-config')
 ));
 
 jest.mock('../../node_modules/@react-native-community/netinfo', () => (
@@ -55,7 +70,12 @@ describe('Report Action', () => {
 
         const mockOnyxCallback = jest.fn();
 
-        Pusher.init();
+        PusherConnectionManager.init();
+        Pusher.init({
+            appKey: CONFIG.PUSHER.APP_KEY,
+            cluster: CONFIG.PUSHER.CLUSTER,
+            authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Push_Authenticate`,
+        });
 
         // Set up fake accountID, email, and reportActions key
         await Onyx.set(ONYXKEYS.SESSION, {accountID: 1, email: 'test@test.com'});

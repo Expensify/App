@@ -75,7 +75,7 @@ setInterval(processNetworkRequestQueue, 1000);
  * @returns {Promise}
  */
 function post(command, data, type) {
-    // Mock all post requests
+    // // Mock all post requests
     if (CONFIG.IS_JEST_RUNNING) {
         return Promise.resolve();
     }
