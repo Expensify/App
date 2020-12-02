@@ -1,8 +1,8 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
-import {View, Platform} from 'react-native';
+import {View} from 'react-native';
 import styles from '../../styles/StyleSheet';
-import propTypes from './propTypes';
+import inlineCodeBlockPropTypes from './inlineCodeBlockPropTypes';
 
 const InlineCodeBlock = ({
     TDefaultRenderer,
@@ -13,13 +13,13 @@ const InlineCodeBlock = ({
     <View
         style={{
             ...boxModelStyle,
-            ...Platform.select({ios: styles.mbn5, default: null}),
+            ...styles.mbn5,
         }}
     >
         <TDefaultRenderer style={textStyle} {...defaultRendererProps} />
     </View>
 );
 
-InlineCodeBlock.propTypes = propTypes;
+InlineCodeBlock.propTypes = inlineCodeBlockPropTypes;
 InlineCodeBlock.displayName = 'InlineCodeBlock';
 export default InlineCodeBlock;
