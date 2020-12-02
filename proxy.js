@@ -5,6 +5,12 @@ const multiparty = require('multiparty');
 const FormData = require('form-data');
 const fs = require('fs');
 
+/**
+ * Local proxy server that hits the production endpoint
+ * to get around CORS issues. We use this so that it's
+ * possible to work on the app within a limited development
+ * environment that has no local API.
+ */
 const server = http.createServer((request, response) => {
     const form = new multiparty.Form();
     form.parse(request, (err, fields, files) => {
