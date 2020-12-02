@@ -30,6 +30,8 @@ module.exports = {
             patterns: [
                 {from: 'web/favicon.png'},
                 {from: 'web/favicon-unread.png'},
+
+                // These files are copied over as per instructions here https://github.com/mozilla/pdf.js/wiki/Setup-pdf.js-in-a-website#examples
                 {from: 'node_modules/pdfjs/web', to: 'pdf-viewer/web'},
                 {from: 'node_modules/pdfjs/build', to: 'pdf-viewer/build'},
             ],
