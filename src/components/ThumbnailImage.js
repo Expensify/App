@@ -11,6 +11,10 @@ const propTypes = {
     style: PropTypes.any,
 };
 
+const defaultProps = {
+    style: {},
+};
+
 class ThumbnailImage extends Component {
     constructor(props) {
         super(props);
@@ -61,4 +65,5 @@ class ThumbnailImage extends Component {
 }
 
 ThumbnailImage.propTypes = propTypes;
+ThumbnailImage.defaultProps = defaultProps;
 export default ThumbnailImage;
