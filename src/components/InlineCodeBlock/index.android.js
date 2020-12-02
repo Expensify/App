@@ -1,4 +1,6 @@
+/* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
+import {View} from 'react-native';
 import inlineCodeBlockPropTypes from './inlineCodeBlockPropTypes';
 
 const InlineCodeBlock = ({
@@ -7,11 +9,9 @@ const InlineCodeBlock = ({
     boxModelStyle,
     textStyle,
 }) => (
-    <TDefaultRenderer
-        style={{...boxModelStyle, ...textStyle}}
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...defaultRendererProps}
-    />
+    <View style={boxModelStyle}>
+        <TDefaultRenderer style={textStyle} {...defaultRendererProps} />
+    </View>
 );
 
 InlineCodeBlock.propTypes = inlineCodeBlockPropTypes;
