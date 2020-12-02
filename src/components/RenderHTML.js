@@ -29,9 +29,10 @@ const EXTRA_FONTS = [
  * Compute images maximum width from the available screen width. This function
  * is used by the HTML component in the default renderer for img tags to scale
  * down images that would otherwise overflow horizontally.
- * 
+ *
  * @param {number} contentWidth - The content width provided to the HTML
  * component.
+ * @returns {number} The minimum between contentWidth and MAX_IMG_DIMENSIONS
  */
 function computeImagesMaxWidth(contentWidth) {
     return Math.min(MAX_IMG_DIMENSIONS, contentWidth);
@@ -59,9 +60,7 @@ function AnchorRenderer({tnode, key, style}) {
 }
 
 function CodeRenderer({
-    key,
-    style,
-    TDefaultRenderer, ...defaultRendererProps
+    key, style, TDefaultRenderer, ...defaultRendererProps
 }) {
     // We split wrapper and inner styles
     // "boxModelStyle" corresponds to border, margin, padding and backgroundColor
