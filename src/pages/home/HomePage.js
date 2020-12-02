@@ -26,10 +26,12 @@ import {
 } from '../../libs/actions/Report';
 import {fetch as fetchPersonalDetails} from '../../libs/actions/PersonalDetails';
 import * as Pusher from '../../libs/Pusher/pusher';
+import PusherConnectionManager from '../../libs/PusherConnectionManager';
 import UnreadIndicatorUpdater from '../../libs/UnreadIndicatorUpdater';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
 import NetworkConnection from '../../libs/NetworkConnection';
+import CONFIG from '../../CONFIG';
 import CustomStatusBar from '../../components/CustomStatusBar';
 
 const windowSize = Dimensions.get('window');
@@ -64,7 +66,12 @@ class App extends React.Component {
 
     componentDidMount() {
         NetworkConnection.listenForReconnect();
-        Pusher.init().then(subscribeToReportCommentEvents);
+        PusherConnectionManager.init();
+        Pusher.init({
+            appKey: CONFIG.PUSHER.APP_KEY,
+            cluster: CONFIG.PUSHER.CLUSTER,
+            authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Push_Authenticate`,
+        }).then(subscribeToReportCommentEvents);
 
         // Fetch all the personal details
         fetchPersonalDetails();

@@ -12,7 +12,7 @@ import AnchorForCommentsOnly from '../../../components/AnchorForCommentsOnly';
 import ImageModal from '../../../components/ImageModal';
 import InlineCodeBlock from '../../../components/InlineCodeBlock';
 import ThumbnailImage from '../../../components/ThumbnailImage';
-import {getAuthToken} from '../../../libs/API';
+import * as API from '../../../libs/API';
 import Config from '../../../CONFIG';
 
 const propTypes = {
@@ -79,11 +79,11 @@ class ReportActionItemFragment extends React.PureComponent {
             img: (htmlAttribs, children, convertedCSSStyles, passProps) => {
                 // Attaches authTokens as a URL parameter to load image attachments
                 let previewSource = htmlAttribs['data-expensify-source']
-                    ? `${htmlAttribs.src}?authToken=${getAuthToken()}`
+                    ? `${htmlAttribs.src}?authToken=${API.getAuthToken()}`
                     : htmlAttribs.src;
 
                 let source = htmlAttribs['data-expensify-source']
-                    ? `${htmlAttribs['data-expensify-source']}?authToken=${getAuthToken()}`
+                    ? `${htmlAttribs['data-expensify-source']}?authToken=${API.getAuthToken()}`
                     : htmlAttribs.src;
 
                 // Update the image URL so the images can be accessed depending on the config environment
