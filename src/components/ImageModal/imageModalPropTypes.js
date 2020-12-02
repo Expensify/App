@@ -5,7 +5,7 @@ export default {
     title: PropTypes.string.isRequired,
 
     // Optional image or PDF source URL
-    sourceURL: PropTypes.string.sourceURL,
+    sourceURL: PropTypes.string,
 
     // Function as a child
     children: PropTypes.func.isRequired,
