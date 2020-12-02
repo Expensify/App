@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {
-    StatusBar,
     View,
     Dimensions,
     Animated,
@@ -9,7 +8,6 @@ import {
     Keyboard,
     Pressable,
 } from 'react-native';
-import _ from 'underscore';
 import {SafeAreaInsetsContext, SafeAreaProvider} from 'react-native-safe-area-context';
 import {withOnyx} from 'react-native-onyx';
 import {Route} from '../../libs/Router';
@@ -28,10 +26,13 @@ import {
 } from '../../libs/actions/Report';
 import {fetch as fetchPersonalDetails} from '../../libs/actions/PersonalDetails';
 import * as Pusher from '../../libs/Pusher/pusher';
+import PusherConnectionManager from '../../libs/PusherConnectionManager';
 import UnreadIndicatorUpdater from '../../libs/UnreadIndicatorUpdater';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
 import NetworkConnection from '../../libs/NetworkConnection';
+import CONFIG from '../../CONFIG';
+import CustomStatusBar from '../../components/CustomStatusBar';
 
 const windowSize = Dimensions.get('window');
 const widthBreakPoint = 1000;
@@ -58,16 +59,19 @@ class App extends React.Component {
         this.showHamburger = this.showHamburger.bind(this);
         this.toggleHamburgerBasedOnDimensions = this.toggleHamburgerBasedOnDimensions.bind(this);
 
-        // Note: This null check is only necessary because withOnyx passes null for bound props
-        //       that are null-initialized initialized in Onyx, and defaultProps only replaces for `undefined` values
         this.animationTranslateX = new Animated.Value(
-            !_.isNull(props.isSidebarShown) && !props.isSidebarShown ? -300 : 0
+            !props.isSidebarShown ? -300 : 0
         );
     }
 
     componentDidMount() {
         NetworkConnection.listenForReconnect();
-        Pusher.init().then(subscribeToReportCommentEvents);
+        PusherConnectionManager.init();
+        Pusher.init({
+            appKey: CONFIG.PUSHER.APP_KEY,
+            cluster: CONFIG.PUSHER.CLUSTER,
+            authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Push_Authenticate`,
+        }).then(subscribeToReportCommentEvents);
 
         // Fetch all the personal details
         fetchPersonalDetails();
@@ -77,10 +81,6 @@ class App extends React.Component {
         UnreadIndicatorUpdater.listenForReportChanges();
 
         Dimensions.addEventListener('change', this.toggleHamburgerBasedOnDimensions);
-
-        StatusBar.setBarStyle('dark-content', true);
-        StatusBar.setBackgroundColor('transparent', true);
-        StatusBar.setTranslucent(true);
     }
 
     componentDidUpdate(prevProps) {
@@ -191,7 +191,7 @@ class App extends React.Component {
         const appContentStyle = !this.state.isHamburgerEnabled ? styles.appContentRounded : null;
         return (
             <SafeAreaProvider>
-                <StatusBar />
+                <CustomStatusBar />
                 <SafeAreaInsetsContext.Consumer style={[styles.flex1, styles.h100p]}>
                     {insets => (
                         <View

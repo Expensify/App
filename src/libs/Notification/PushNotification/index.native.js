@@ -65,6 +65,11 @@ function pushNotificationEventCallback(eventType, notification) {
  * @param {string|int} accountID
  */
 function register(accountID) {
+    if (UrbanAirship.getNamedUser() === accountID.toString()) {
+        // No need to register again for this accountID.
+        return;
+    }
+
     // Get permissions to display push notifications (prompts user on iOS, but not Android)
     UrbanAirship.enableUserPushNotifications()
         .then((isEnabled) => {

@@ -3,7 +3,7 @@ import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
-import Str from 'js-libs/lib/str';
+import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../../ONYXKEYS';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import ChatSwitcherList from './ChatSwitcherList';
@@ -359,7 +359,7 @@ class ChatSwitcherView extends React.Component {
             .map(report => ({
                 text: report.reportName,
                 alternateText: report.reportName,
-                searchText: report.reportName,
+                searchText: report.reportName ?? '',
                 reportID: report.reportID,
                 type: OPTION_TYPE.REPORT,
                 participants: report.participants,
@@ -377,7 +377,7 @@ class ChatSwitcherView extends React.Component {
             if (matches.size < this.maxSearchResults) {
                 for (let j = 0; j < searchOptions.length; j++) {
                     const option = searchOptions[j];
-                    const valueToSearch = option.searchText.replace(new RegExp(/&nbsp;/g), '');
+                    const valueToSearch = option.searchText && option.searchText.replace(new RegExp(/&nbsp;/g), '');
                     const isMatch = matchRegexes[i].test(valueToSearch);
 
                     // We want to avoid adding single user private DM reports
@@ -394,6 +394,15 @@ class ChatSwitcherView extends React.Component {
                     // Make sure we don't include the same option twice (automatically handled be using a `Set`)
                     if (isMatch && !isSingleUserPrivateDMReport && !isInGroupUsers) {
                         matches.add(option);
+                    }
+
+                    // If is is a single user private DM report, add the isUnread property to the
+                    // user UI equivalent.
+                    if (isSingleUserPrivateDMReport) {
+                        const userOption = _.find(searchOptions, opt => opt.login === option.participants[0]);
+                        if (userOption) {
+                            userOption.isUnread = option.isUnread;
+                        }
                     }
 
                     if (matches.size === this.maxSearchResults) {
