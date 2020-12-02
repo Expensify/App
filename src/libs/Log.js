@@ -1,6 +1,6 @@
-import Logger from 'js-libs/lib/Logger';
+import Logger from 'expensify-common/lib/Logger';
 import Onyx from 'react-native-onyx';
-import {logToServer} from './API';
+import * as API from './API';
 import CONFIG from '../CONFIG';
 import getPlatform from './getPlatform';
 import {version} from '../../package.json';
@@ -34,10 +34,10 @@ function serverLoggingCallback(params) {
         requestParams.email = email;
     }
 
-    logToServer(requestParams);
+    API.Log(requestParams);
 }
 
-// Note: We are importing Logger from JS-Libs because it is
+// Note: We are importing Logger from expensify-common because it is
 // used by other platforms. The server and client logging
 // callback methods are passed in here so we can decouple
 // the logging library from the logging methods.

@@ -52,6 +52,21 @@ const mainWindow = (() => {
 
             // List the Expensify Chat instance under the Window menu, even when it's hidden
             const systemMenu = Menu.getApplicationMenu();
+            systemMenu.insert(4, new MenuItem({
+                label: 'History',
+                submenu: [{
+                    role: 'back',
+                    label: 'Back',
+                    accelerator: process.platform === 'darwin' ? 'Cmd+[' : 'Shift+[',
+                    click: () => { browserWindow.webContents.goBack(); }
+                },
+                {
+                    role: 'forward',
+                    label: 'Forward',
+                    accelerator: process.platform === 'darwin' ? 'Cmd+]' : 'Shift+]',
+                    click: () => { browserWindow.webContents.goForward(); }
+                }]
+            }));
             const windowMenu = systemMenu.items.find(item => item.role === 'windowmenu');
             windowMenu.submenu.append(new MenuItem({type: 'separator'}));
             windowMenu.submenu.append(new MenuItem({
@@ -82,6 +97,16 @@ const mainWindow = (() => {
                 if (!quitting) {
                     evt.preventDefault();
                     browserWindow.hide();
+                }
+            });
+
+            // Initiating a browser-back or browser-forward with mouse buttons should navigate history.
+            browserWindow.on('app-command', (e, cmd) => {
+                if (cmd === 'browser-backward') {
+                    browserWindow.webContents.goBack();
+                }
+                if (cmd === 'browser-forward') {
+                    browserWindow.webContents.goForward();
                 }
             });
 
