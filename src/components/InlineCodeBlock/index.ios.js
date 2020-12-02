@@ -1,25 +1,18 @@
-/* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
+import PropTypes from 'prop-types';
 import {View} from 'react-native';
-import styles from '../../styles/StyleSheet';
-import inlineCodeBlockPropTypes from './inlineCodeBlockPropTypes';
+import styles, {webViewStyles} from '../../styles/StyleSheet';
 
-const InlineCodeBlock = ({
-    TDefaultRenderer,
-    defaultRendererProps,
-    boxModelStyle,
-    textStyle,
-}) => (
-    <View
-        style={{
-            ...boxModelStyle,
-            ...styles.mbn5,
-        }}
-    >
-        <TDefaultRenderer style={textStyle} {...defaultRendererProps} />
+const propTypes = {
+    children: PropTypes.node.isRequired,
+};
+
+const InlineCodeBlock = ({children}) => (
+    <View style={[webViewStyles.codeTagStyle, styles.mbn5]}>
+        {children}
     </View>
 );
 
-InlineCodeBlock.propTypes = inlineCodeBlockPropTypes;
+InlineCodeBlock.propTypes = propTypes;
 InlineCodeBlock.displayName = 'InlineCodeBlock';
 export default InlineCodeBlock;
