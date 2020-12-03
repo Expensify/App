@@ -10,7 +10,6 @@ import styles, {webViewStyles, colors} from '../../../styles/StyleSheet';
 import Text from '../../../components/Text';
 import AnchorForCommentsOnly from '../../../components/AnchorForCommentsOnly';
 import InlineCodeBlock from '../../../components/InlineCodeBlock';
-import * as API from '../../../libs/API';
 import ImageThumbnailWithModal from '../../../components/ImageThumbnailWithModal';
 import Config from '../../../CONFIG';
 
