@@ -26,6 +26,7 @@ const server = http.createServer((request, response) => {
     });
 
     proxyRequest.on('error', (error) => {
+        /* eslint-disable-next-line no-console */
         console.log(error);
     });
 });
