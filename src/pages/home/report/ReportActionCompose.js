@@ -11,7 +11,7 @@ import paperClipIcon from '../../../../assets/images/icon-paper-clip.png';
 import AttachmentPicker from '../../../components/AttachmentPicker';
 import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs/actions/Report';
 import ReportTypingIndicator from './ReportTypingIndicator';
-import ImageModal from '../../../components/ImageModal';
+import AttachmentModal from '../../../components/AttachmentModal';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -138,7 +138,7 @@ class ReportActionCompose extends React.Component {
                         styles.flexRow
                     ]}
                 >
-                    <ImageModal
+                    <AttachmentModal
                         title="Upload Attachment"
                         onConfirm={(file) => {
                             addAction(this.props.reportID, '', file);
@@ -189,7 +189,7 @@ class ReportActionCompose extends React.Component {
 
                             </>
                         )}
-                    </ImageModal>
+                    </AttachmentModal>
                     <TouchableOpacity
                         style={[styles.chatItemSubmitButton, styles.buttonSuccess]}
                         onPress={this.submitForm}
