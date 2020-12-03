@@ -2,8 +2,6 @@ import Logger from 'expensify-common/lib/Logger';
 import Onyx from 'react-native-onyx';
 import * as API from './API';
 import CONFIG from '../CONFIG';
-import getPlatform from './getPlatform';
-import {version} from '../../package.json';
 import ONYXKEYS from '../ONYXKEYS';
 
 let email;
@@ -20,21 +18,7 @@ Onyx.connect({
  * @param {String} params.message
  */
 function serverLoggingCallback(params) {
-    const requestParams = {
-        message: params.message,
-        parameters: JSON.stringify(params.parameters || {}),
-        expensifyCashAppVersion: `expensifyCash[${getPlatform()}]${version}`,
-    };
-
-    // If we are logging something and have no email
-    // then we do not want to include this. If we pass
-    // this as null or undefined that will literally
-    // appear in the logs instead of we@dont.know
-    if (email) {
-        requestParams.email = email;
-    }
-
-    API.Log(requestParams);
+    API.Log([email, ...params]);
 }
 
 // Note: We are importing Logger from expensify-common because it is

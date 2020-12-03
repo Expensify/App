@@ -4,6 +4,8 @@ import CONFIG from '../CONFIG';
 import ONYXKEYS from '../ONYXKEYS';
 import redirectToSignIn from './actions/SignInRedirect';
 import * as Network from './Network';
+import getPlatform from './getPlatform';
+import {version} from '../../package.json';
 
 let isAuthenticating;
 
@@ -305,15 +307,28 @@ function Get(parameters) {
  * @param {Object} parameters
  * @param {String} parameters.message
  * @param {Object} parameters.parameters
- * @param {String} parameters.expensifyCashAppVersion
  * @param {String} [parameters.email]
  * @returns {Promise}
  */
 function Log(parameters) {
     const commandName = 'Log';
-    requireParameters(['message', 'parameters', 'expensifyCashAppVersion'],
+    requireParameters(['message', 'parameters'],
         parameters, commandName);
-    return request(commandName, parameters);
+
+    const requestParams = {
+        message: parameters.message,
+        parameters: JSON.stringify(parameters.parameters || {}),
+        expensifyCashAppVersion: `expensifyCash[${getPlatform()}]${version}`,
+    };
+
+    // If we are logging something and have no email
+    // then we do not want to include this. If we pass
+    // this as null or undefined that will literally
+    // appear in the logs instead of we@dont.know
+    if (parameters.email) {
+        requestParams.email = parameters.email;
+    }
+    return request(commandName, requestParams);
 }
 
 /**
