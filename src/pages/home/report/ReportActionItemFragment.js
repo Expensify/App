@@ -9,7 +9,7 @@ import ReportActionFragmentPropTypes from './ReportActionFragmentPropTypes';
 import styles, {webViewStyles, colors} from '../../../styles/StyleSheet';
 import Text from '../../../components/Text';
 import AnchorForCommentsOnly from '../../../components/AnchorForCommentsOnly';
-import ImageModal from '../../../components/ImageModal';
+import AttachmentModal from '../../../components/AttachmentModal';
 import InlineCodeBlock from '../../../components/InlineCodeBlock';
 import ThumbnailImage from '../../../components/ThumbnailImage';
 import * as API from '../../../libs/API';
@@ -97,7 +97,7 @@ class ReportActionItemFragment extends React.PureComponent {
                 );
 
                 return (
-                    <ImageModal
+                    <AttachmentModal
                         title="Attachment"
                         sourceURL={source}
                         key={passProps.key}
@@ -112,7 +112,7 @@ class ReportActionItemFragment extends React.PureComponent {
                                 />
                             </TouchableOpacity>
                         )}
-                    </ImageModal>
+                    </AttachmentModal>
                 );
             },
         };

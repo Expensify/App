@@ -39,7 +39,7 @@ const defaultProps = {
     onConfirm: null,
 };
 
-class ImageModal extends Component {
+class AttachmentModalBase extends Component {
     constructor(props) {
         super(props);
 
@@ -131,6 +131,7 @@ class ImageModal extends Component {
                                     sourceURL={this.state.sourceURL}
                                     imageHeight={this.state.imageHeight}
                                     imageWidth={this.state.imageWidth}
+                                    file={this.state.file}
                                 />
                             )}
                         </View>
@@ -175,6 +176,6 @@ class ImageModal extends Component {
     }
 }
 
-ImageModal.propTypes = propTypes;
-ImageModal.defaultProps = defaultProps;
-export default ImageModal;
+AttachmentModalBase.propTypes = propTypes;
+AttachmentModalBase.defaultProps = defaultProps;
+export default AttachmentModalBase;
