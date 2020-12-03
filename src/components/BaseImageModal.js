@@ -4,7 +4,6 @@ import {
     View, Image, TouchableOpacity, Dimensions
 } from 'react-native';
 import Modal from 'react-native-modal';
-import Str from 'expensify-common/lib/str';
 import {withOnyx} from 'react-native-onyx';
 import AttachmentView from './AttachmentView';
 import styles, {webViewStyles} from '../styles/StyleSheet';
