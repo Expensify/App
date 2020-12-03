@@ -1,17 +1,11 @@
 import React from 'react';
-import HTML from 'react-native-render-html';
-import {
-    Linking, ActivityIndicator, View, Dimensions
-} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import ReportActionFragmentPropTypes from './ReportActionFragmentPropTypes';
-import styles, {webViewStyles, colors} from '../../../styles/StyleSheet';
+import styles, {colors} from '../../../styles/StyleSheet';
+import RenderHTML from '../../../components/RenderHTML';
 import Text from '../../../components/Text';
-import AnchorForCommentsOnly from '../../../components/AnchorForCommentsOnly';
-import InlineCodeBlock from '../../../components/InlineCodeBlock';
-import ImageThumbnailWithModal from '../../../components/ImageThumbnailWithModal';
-import Config from '../../../CONFIG';
 
 const propTypes = {
     // The message fragment needing to be displayed
@@ -30,100 +24,8 @@ const defaultProps = {
 };
 
 class ReportActionItemFragment extends React.PureComponent {
-    constructor(props) {
-        super(props);
-
-        // Define the custom render methods
-        // For <a> tags, the <Anchor> attribute is used to be more cross-platform friendly
-        this.customRenderers = {
-            a: (htmlAttribs, children, convertedCSSStyles, passProps) => (
-                <AnchorForCommentsOnly
-                    href={htmlAttribs.href}
-
-                    // Unless otherwise specified open all links in
-                    // a new window. On Desktop this means that we will
-                    // skip the default Save As... download prompt
-                    // and defer to whatever browser the user has.
-                    // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                    target={htmlAttribs.target || '_blank'}
-                    rel={htmlAttribs.rel || 'noopener noreferrer'}
-                    style={passProps.style}
-                    key={passProps.key}
-                >
-                    {children}
-                </AnchorForCommentsOnly>
-            ),
-            pre: (htmlAttribs, children, convertedCSSStyles, passProps) => (
-                <View
-                    key={passProps.key}
-                    style={webViewStyles.preTagStyle}
-                >
-                    {children}
-                </View>
-            ),
-            code: (htmlAttribs, children, convertedCSSStyles, passProps) => (
-                <InlineCodeBlock key={passProps.key}>
-                    {children}
-                </InlineCodeBlock>
-            ),
-            blockquote: (htmlAttribs, children, convertedCSSStyles, passProps) => (
-                <View
-                    key={passProps.key}
-                    style={webViewStyles.blockquoteTagStyle}
-                >
-                    {children}
-                </View>
-            ),
-            img: (htmlAttribs, children, convertedCSSStyles, passProps) => {
-                // There are two kinds of images that need to be displayed:
-                //
-                //     - Chat Attachment images
-                //
-                //           Images uploaded by the user via the app or email.
-                //           These have a full-sized image `htmlAttribs['data-expensify-source']`
-                //           and a thumbnail `htmlAttribs.src`. Both of these URLs need to have
-                //           an authToken added to them in order to control who
-                //           can see the images.
-                //
-                //     - Non-Attachment Images
-                //
-                //           These could be hosted from anywhere (Expensify or another source)
-                //           and are not protected by any kind of access control e.g. certain
-                //           Concierge responder attachments are uploaded to S3 without any access
-                //           control and thus require no authToken to verify access.
-                //
-                const isAttachment = Boolean(htmlAttribs['data-expensify-source']);
-                let previewSource = htmlAttribs.src;
-                let source = isAttachment
-                    ? htmlAttribs['data-expensify-source']
-                    : htmlAttribs.src;
-
-                // Update the image URL so the images can be accessed depending on the config environment
-                previewSource = previewSource.replace(
-                    Config.EXPENSIFY.URL_EXPENSIFY_COM,
-                    Config.EXPENSIFY.URL_API_ROOT
-                );
-                source = source.replace(
-                    Config.EXPENSIFY.URL_EXPENSIFY_COM,
-                    Config.EXPENSIFY.URL_API_ROOT
-                );
-
-                return (
-                    <ImageThumbnailWithModal
-                        isAuthTokenRequired={isAttachment}
-                        previewSourceURL={previewSource}
-                        sourceURL={source}
-                        key={passProps.key}
-                    />
-                );
-            },
-        };
-    }
-
     render() {
         const {fragment} = this.props;
-        const maxImageDimensions = 512;
-        const windowWidth = Dimensions.get('window').width;
         switch (fragment.type) {
             case 'COMMENT':
                 // If this is an attachment placeholder, return the placeholder component
@@ -140,24 +42,11 @@ class ReportActionItemFragment extends React.PureComponent {
                 }
 
                 // Only render HTML if we have html in the fragment
-                return fragment.html !== fragment.text
-                    ? (
-                        <HTML
-                            textSelectable
-                            renderers={this.customRenderers}
-                            baseFontStyle={webViewStyles.baseFontStyle}
-                            tagsStyles={webViewStyles.tagStyles}
-                            onLinkPress={(event, href) => Linking.openURL(href)}
-                            html={fragment.html}
-                            imagesMaxWidth={Math.min(maxImageDimensions, windowWidth * 0.8)}
-                            imagesInitialDimensions={{width: maxImageDimensions, height: maxImageDimensions}}
-                        />
-                    )
-                    : (
-                        <Text selectable>
-                            {Str.htmlDecode(fragment.text)}
-                        </Text>
-                    );
+                return fragment.html !== fragment.text ? (
+                    <RenderHTML html={fragment.html} debug={false} />
+                ) : (
+                    <Text selectable>{Str.htmlDecode(fragment.text)}</Text>
+                );
             case 'TEXT':
                 return (
                     <Text
