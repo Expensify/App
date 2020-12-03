@@ -1,18 +1,19 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import {Text} from 'react-native';
-import {webViewStyles} from '../../styles/StyleSheet';
+import inlineCodeBlockPropTypes from './inlineCodeBlockPropTypes';
 
-const propTypes = {
-    children: PropTypes.node.isRequired,
-};
-
-const InlineCodeBlock = ({children}) => (
-    <Text style={[webViewStyles.codeTagStyle]}>
-        {children}
-    </Text>
+const InlineCodeBlock = ({
+    TDefaultRenderer,
+    defaultRendererProps,
+    boxModelStyle,
+    textStyle,
+}) => (
+    <TDefaultRenderer
+        style={{...boxModelStyle, ...textStyle}}
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...defaultRendererProps}
+    />
 );
 
-InlineCodeBlock.propTypes = propTypes;
+InlineCodeBlock.propTypes = inlineCodeBlockPropTypes;
 InlineCodeBlock.displayName = 'InlineCodeBlock';
 export default InlineCodeBlock;
