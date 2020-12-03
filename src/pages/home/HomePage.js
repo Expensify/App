@@ -217,6 +217,7 @@ class App extends React.Component {
                                     />
                                 </Animated.View>
                                 <Pressable
+                                    disabled={!this.props.isSidebarShown}
                                     style={[styles.flex1]}
                                     onPress={this.dismissHamburger}
                                 >
