@@ -75,7 +75,12 @@ class ReportActionItemFragment extends React.PureComponent {
                 </View>
             ),
             img: (htmlAttribs, children, convertedCSSStyles, passProps) => {
-                // Attaches authTokens as a URL parameter to load image attachments
+                // Chat attachments have both thumbnails and full size source.
+                // The thumbnail source will be under htmlAttribs.src and the
+                // full source is accessed via data-expensify-source.
+                // If the image source has a data-expensify-source attribute this
+                // means that it's a user attachment and that both it's source and
+                // previewSource will require an authToken
                 let previewSource = htmlAttribs['data-expensify-source']
                     ? `${htmlAttribs.src}?authToken=`
                     : htmlAttribs.src;
