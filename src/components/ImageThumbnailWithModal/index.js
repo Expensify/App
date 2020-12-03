@@ -18,7 +18,7 @@ const ImageThumbnailWithModal = props => (
         previewSourceURL={props.previewSourceURL}
         sourceURL={props.sourceURL}
         modalTitle="Attachment"
-        isAuthTokenRequired={isAuthTokenRequired}
+        isAuthTokenRequired={props.isAuthTokenRequired}
     />
 );
 
