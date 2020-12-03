@@ -107,8 +107,6 @@
     "jest-circus": "^26.5.2",
     "jest-cli": "^26.5.2",
     "metro-react-native-babel-preset": "^0.61.0",
-    "multiparty": "^4.2.2",
-    "node-fetch": "^2.6.1",
     "react-hot-loader": "^4.12.21",
     "react-native-version": "^4.0.0",
     "react-test-renderer": "16.13.1",
