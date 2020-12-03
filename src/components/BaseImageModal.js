@@ -5,10 +5,10 @@ import {
 } from 'react-native';
 import Modal from 'react-native-modal';
 import Str from 'expensify-common/lib/str';
+import {withOnyx} from 'react-native-onyx';
 import AttachmentView from './AttachmentView';
 import styles, {webViewStyles} from '../styles/StyleSheet';
 import ModalView from './ModalView';
-import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 
 /**
@@ -37,6 +37,11 @@ const propTypes = {
 
     // URL to full-sized image
     sourceURL: PropTypes.string,
+
+    // Current user session
+    session: PropTypes.shape({
+        authToken: PropTypes.string.isRequired,
+    }).isRequired,
 };
 
 const defaultProps = {
@@ -140,7 +145,7 @@ class BaseImageModal extends React.Component {
      */
     addAuthTokenToURL(url) {
         return Str.endsWith(url, '?authToken=')
-            ? `${url}${this.props.authToken}`
+            ? `${url}${this.props.session.authToken}`
             : url;
     }
 
