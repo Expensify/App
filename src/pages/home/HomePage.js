@@ -101,7 +101,7 @@ class App extends React.Component {
 
     /**
      * Fired when the windows dimensions changes
-     * @param {object} changedWindow
+     * @param {Object} changedWindow
      */
     toggleHamburgerBasedOnDimensions({window: changedWindow}) {
         this.setState({isHamburgerEnabled: changedWindow.width <= widthBreakPoint});
