@@ -13,8 +13,8 @@ module.exports = ({proxy}) => {
     const proxySettings = proxy
         ? {
             proxy: {
-                '/api': 'http://localhost:9000',
-                '/chat-attachments': 'http://localhost:9000',
+                '/api': 'http://[::1]:9000',
+                '/chat-attachments': 'http://[::1]:9000',
             },
         }
         : {};

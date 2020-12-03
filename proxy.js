@@ -1,9 +1,5 @@
-const _ = require('underscore');
 const http = require('http');
-const fetch = require('node-fetch');
-const multiparty = require('multiparty');
-const FormData = require('form-data');
-const fs = require('fs');
+const https = require('https');
 
 /**
  * Local proxy server that hits the production endpoint
@@ -12,52 +8,25 @@ const fs = require('fs');
  * environment that has no local API.
  */
 const server = http.createServer((request, response) => {
-    // We use multiparty to parse multipart/form-data which the
-    // API uses when making requests to our web API
-    const form = new multiparty.Form();
-    form.parse(request, (err, fields, files) => {
-        const body = !_.isEmpty(fields) || !_.isEmpty(files) ? new FormData() : '';
+    const proxyRequest = https.request({
+        hostname: 'www.expensify.com',
+        method: 'POST',
+        path: request.url,
+        headers: {
+            ...request.headers,
+            host: 'www.expensify.com',
+        },
+        port: 443,
+    });
 
-        if (!_.isEmpty(fields)) {
-            _.each(fields, (value, key) => {
-                // Arrays are not valid FormData values so we join those entries
-                // together if a client sends them.
-                body.append(key, value.join(','));
-            });
-        }
+    request.pipe(proxyRequest);
+    proxyRequest.on('response', (proxyResponse) => {
+        response.writeHead(proxyResponse.statusCode, proxyResponse.headers);
+        proxyResponse.pipe(response);
+    });
 
-        // Files need to be treated differently from regular fields since they
-        // are downloaded to a /tmp directory and must be re-streamed when
-        // calling the production API
-        if (!_.isEmpty(files)) {
-            const file = files.file[0];
-            body.append('file', fs.createReadStream(file.path), file.originalFilename);
-        }
-
-        // Re-make the request with the production endpoint
-        fetch(`https://www.expensify.com${request.url}`, {method: 'POST', body})
-            .then((res) => {
-                const contentType = res.headers.get('content-type');
-                response.setHeader('Content-Type', contentType);
-
-                if (contentType === 'application/json') {
-                    res.json().then(json => response.end(JSON.stringify(json)));
-                    return;
-                }
-
-                // If we have something other than JSON just return it as a buffer for
-                // now. Everything that is not JSON should be images, files, etc.
-                res.buffer()
-                    .then(buffer => response.end(buffer));
-            })
-            .catch((error) => {
-                // API errors should be returned as JSON responses. But if something
-                // goes wrong with the proxy we'll log it out for context
-
-                /* eslint-disable-next-line no-console */
-                console.log(`An error occurred: ${error}`);
-                response.end();
-            });
+    proxyRequest.on('error', (error) => {
+        console.log(error);
     });
 });
 
