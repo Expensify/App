@@ -42,6 +42,9 @@ const propTypes = {
     session: PropTypes.shape({
         authToken: PropTypes.string.isRequired,
     }).isRequired,
+
+    // Do the urls require an authToken?
+    isAuthTokenRequired: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
@@ -144,8 +147,8 @@ class BaseImageModal extends React.Component {
      * @returns {String}
      */
     addAuthTokenToURL(url) {
-        return Str.endsWith(url, '?authToken=')
-            ? `${url}${this.props.session.authToken}`
+        return this.props.isAuthTokenRequired
+            ? `${url}?authToken=${this.props.session.authToken}`
             : url;
     }
 
