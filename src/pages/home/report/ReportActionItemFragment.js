@@ -78,15 +78,13 @@ class ReportActionItemFragment extends React.PureComponent {
                 // Chat attachments have both thumbnails and full size source.
                 // The thumbnail source will be under htmlAttribs.src and the
                 // full source is accessed via data-expensify-source.
-                // If the image source has a data-expensify-source attribute this
-                // means that it's a user attachment and that both it's source and
-                // previewSource will require an authToken
-                let previewSource = htmlAttribs['data-expensify-source']
-                    ? `${htmlAttribs.src}?authToken=`
-                    : htmlAttribs.src;
-
-                let source = htmlAttribs['data-expensify-source']
-                    ? `${htmlAttribs['data-expensify-source']}?authToken=`
+                // If the image element has a data-expensify-source attribute this
+                // means that it's an attachment and that both it's source and
+                // previewSource require an authToken.
+                const isAttachment = Boolean(htmlAttribs['data-expensify-source']);
+                let previewSource = htmlAttribs.src;
+                let source = isAttachment
+                    ? htmlAttribs['data-expensify-source']
                     : htmlAttribs.src;
 
                 // Update the image URL so the images can be accessed depending on the config environment
@@ -101,6 +99,7 @@ class ReportActionItemFragment extends React.PureComponent {
 
                 return (
                     <ImageThumbnailWithModal
+                        isAuthTokenRequired={isAttachment}
                         previewSourceURL={previewSource}
                         sourceURL={source}
                         key={passProps.key}
