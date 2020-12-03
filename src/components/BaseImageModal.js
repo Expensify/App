@@ -39,13 +39,12 @@ const propTypes = {
 const defaultProps = {
     pinToEdges: false,
 
-    // If pinToEdges is false, the default modal width and height will take up about 80% of the screen
-    modalWidth: Dimensions.get('window').width * 0.90,
-    modalHeight: Dimensions.get('window').height * 0.90,
+    // If pinToEdges is false, then by default, the modal will be slightly smaller than full screen
+    modalWidth: Dimensions.get('window').width - 100,
+    modalHeight: Dimensions.get('window').height - 100,
 
-    // The image inside the modal shouldn't span the entire width of the modal
-    // unless it is full screen so the default is 10% smaller than the width of the modal
-    modalImageWidth: Dimensions.get('window').width * 0.80,
+    // The image inside the modal shouldn't span the entire width of the modal so make it slightly smaller than modal width
+    modalImageWidth: Dimensions.get('window').width - 150,
     modalTitle: '',
     previewSourceURL: '',
     sourceURL: '',
