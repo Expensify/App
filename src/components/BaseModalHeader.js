@@ -4,6 +4,7 @@ import {
     View, Image, TouchableOpacity, Text
 } from 'react-native';
 import styles from '../styles/StyleSheet';
+import downloadIcon from '../../assets/images/icon-paper-clip.png';
 import exitIcon from '../../assets/images/icon-x--20x20.png';
 
 const propTypes = {
@@ -36,6 +37,15 @@ const BaseModalHeader = props => (
                 </Text>
             </View>
             <View style={[styles.reportOptions, styles.flexRow]}>
+                <TouchableOpacity
+                    style={[styles.touchableButtonImage, styles.mr0]}
+                >
+                    <Image
+                        resizeMode="contian"
+                        style={[styles.attachmentCloseIcon]}
+                        source={downloadIcon}
+                    />
+                </TouchableOpacity>
                 <TouchableOpacity
                     onPress={props.onCloseButtonPress}
                     style={[styles.touchableButtonImage, styles.mr0]}
