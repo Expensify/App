@@ -4,11 +4,13 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import styles, {getSafeAreaMargins} from '../../../styles/StyleSheet';
+import RNFetchBlob from 'rn-fetch-blob';
 import Text from '../../../components/Text';
 import AppLinks from './AppLinks';
 import {signOut} from '../../../libs/actions/Session';
 import ONYXKEYS from '../../../ONYXKEYS';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
+import {TouchableOpacity} from 'react-native-web';
 
 const propTypes = {
     // Safe area insets required for mobile devices margins
@@ -37,6 +39,26 @@ const defaultProps = {
     network: null,
 };
 
+const checkPermission = async () => {
+    if (Platform.OS === 'iOS') {
+        downloadImage();
+    }
+}
+
+const downloadImage = () => {
+    let imageUrl = 'https://raw.githubusercontent.com/AboutReact/sampleresource/master/gift.png';
+    const { config, fs } = RNFetchBlob;
+    let options = {
+        fileCache: true,
+    }
+    config(options)
+        .fetch('GET', imageUrl)
+        .then(res => {
+            console.log('res ->', JSON.stringify(res));
+            alert('Image Downloaded Successfully');
+        });
+}
+
 const SidebarBottom = ({myPersonalDetails, network, insets}) => {
     const indicatorStyles = [
         styles.statusIndicator,
@@ -53,10 +75,13 @@ const SidebarBottom = ({myPersonalDetails, network, insets}) => {
     return (
         <View style={[styles.sidebarFooter, getSafeAreaMargins(insets)]}>
             <View style={[styles.sidebarFooterAvatar]}>
-                <Image
-                    source={{uri: myPersonalDetails.avatarURL}}
-                    style={[styles.actionAvatar]}
-                />
+                <TouchableOpacity
+                    onPress={checkPermission}>
+                    <Image
+                        source={{uri: myPersonalDetails.avatarURL}}
+                        style={[styles.actionAvatar]}
+                    />
+                </TouchableOpacity>
                 <View style={StyleSheet.flatten(indicatorStyles)} />
             </View>
             <View style={[styles.flexColumn]}>
