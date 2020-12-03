@@ -10,7 +10,6 @@ import styles, {webViewStyles, colors} from '../../../styles/StyleSheet';
 import Text from '../../../components/Text';
 import AnchorForCommentsOnly from '../../../components/AnchorForCommentsOnly';
 import InlineCodeBlock from '../../../components/InlineCodeBlock';
-import * as API from '../../../libs/API';
 import ImageThumbnailWithModal from '../../../components/ImageThumbnailWithModal';
 import Config from '../../../CONFIG';
 
@@ -76,13 +75,27 @@ class ReportActionItemFragment extends React.PureComponent {
                 </View>
             ),
             img: (htmlAttribs, children, convertedCSSStyles, passProps) => {
-                // Attaches authTokens as a URL parameter to load image attachments
-                let previewSource = htmlAttribs['data-expensify-source']
-                    ? `${htmlAttribs.src}?authToken=${API.getAuthToken()}`
-                    : htmlAttribs.src;
-
-                let source = htmlAttribs['data-expensify-source']
-                    ? `${htmlAttribs['data-expensify-source']}?authToken=${API.getAuthToken()}`
+                // There are two kinds of images that need to be displayed:
+                //
+                //     - Chat Attachment images
+                //
+                //           Images uploaded by the user via the app or email.
+                //           These have a full-sized image `htmlAttribs['data-expensify-source']`
+                //           and a thumbnail `htmlAttribs.src`. Both of these URLs need to have
+                //           an authToken added to them in order to control who
+                //           can see the images.
+                //
+                //     - Non-Attachment Images
+                //
+                //           These could be hosted from anywhere (Expensify or another source)
+                //           and are not protected by any kind of access control e.g. certain
+                //           Concierge responder attachments are uploaded to S3 without any access
+                //           control and thus require no authToken to verify access.
+                //
+                const isAttachment = Boolean(htmlAttribs['data-expensify-source']);
+                let previewSource = htmlAttribs.src;
+                let source = isAttachment
+                    ? htmlAttribs['data-expensify-source']
                     : htmlAttribs.src;
 
                 // Update the image URL so the images can be accessed depending on the config environment
@@ -97,6 +110,7 @@ class ReportActionItemFragment extends React.PureComponent {
 
                 return (
                     <ImageThumbnailWithModal
+                        isAuthTokenRequired={isAttachment}
                         previewSourceURL={previewSource}
                         sourceURL={source}
                         key={passProps.key}
