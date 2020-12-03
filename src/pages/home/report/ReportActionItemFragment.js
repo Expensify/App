@@ -78,11 +78,11 @@ class ReportActionItemFragment extends React.PureComponent {
             img: (htmlAttribs, children, convertedCSSStyles, passProps) => {
                 // Attaches authTokens as a URL parameter to load image attachments
                 let previewSource = htmlAttribs['data-expensify-source']
-                    ? `${htmlAttribs.src}?authToken=${API.getAuthToken()}`
+                    ? `${htmlAttribs.src}?authToken=`
                     : htmlAttribs.src;
 
                 let source = htmlAttribs['data-expensify-source']
-                    ? `${htmlAttribs['data-expensify-source']}?authToken=${API.getAuthToken()}`
+                    ? `${htmlAttribs['data-expensify-source']}?authToken=`
                     : htmlAttribs.src;
 
                 // Update the image URL so the images can be accessed depending on the config environment

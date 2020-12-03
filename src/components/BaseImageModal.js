@@ -4,9 +4,12 @@ import {
     View, Image, TouchableOpacity, Dimensions
 } from 'react-native';
 import Modal from 'react-native-modal';
+import Str from 'expensify-common/lib/str';
 import AttachmentView from './AttachmentView';
 import styles, {webViewStyles} from '../styles/StyleSheet';
 import ModalView from './ModalView';
+import {withOnyx} from 'react-native-onyx';
+import ONYXKEYS from '../ONYXKEYS';
 
 /**
  * Modal component consisting of an image thumbnail which triggers a modal with a larger image display
@@ -129,12 +132,24 @@ class BaseImageModal extends React.Component {
         this.setState({isModalOpen: visibility});
     }
 
+    /**
+     * Add authToken to this attachment URL if necessary
+     *
+     * @param {String} url
+     * @returns {String}
+     */
+    addAuthTokenToURL(url) {
+        return Str.endsWith(url, '?authToken=')
+            ? `${url}${this.props.authToken}`
+            : url;
+    }
+
     render() {
         return (
             <>
                 <TouchableOpacity onPress={() => this.setModalVisiblity(true)}>
                     <Image
-                        source={{uri: this.props.previewSourceURL}}
+                        source={{uri: this.addAuthTokenToURL(this.props.previewSourceURL)}}
                         style={{
                             ...webViewStyles.tagStyles.img,
                             width: this.state.thumbnailWidth,
@@ -158,7 +173,7 @@ class BaseImageModal extends React.Component {
                     >
                         <View style={styles.imageModalImageCenterContainer}>
                             <AttachmentView
-                                sourceURL={this.props.sourceURL}
+                                sourceURL={this.addAuthTokenToURL(this.props.sourceURL)}
                                 imageHeight={this.state.imageHeight}
                                 imageWidth={this.state.imageWidth}
                             />
@@ -173,4 +188,8 @@ class BaseImageModal extends React.Component {
 BaseImageModal.propTypes = propTypes;
 BaseImageModal.defaultProps = defaultProps;
 
-export default BaseImageModal;
+export default withOnyx({
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+})(BaseImageModal);
