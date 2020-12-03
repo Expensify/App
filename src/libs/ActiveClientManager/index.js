@@ -28,7 +28,7 @@ function init() {
 /**
  * The last GUID is the most recent GUID, so that should be the leader
  *
- * @returns {boolean}
+ * @returns {Boolean}
  */
 function isClientTheLeader() {
     return _.last(activeClients) === clientID;

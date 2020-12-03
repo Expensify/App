@@ -8,8 +8,8 @@ let customAuthorizer;
 /**
  * Trigger each of the socket event callbacks with the event information
  *
- * @param {string} eventName
- * @param {mixed} data
+ * @param {String} eventName
+ * @param {*} data
  */
 function callSocketEventCallbacks(eventName, data) {
     _.each(socketEventCallbacks, cb => cb(eventName, data));
@@ -339,7 +339,7 @@ function sendChunkedEvent(channelName, eventName, payload) {
 /**
  * Register a method that will be triggered when a socket event happens (like disconnecting)
  *
- * @param {function} cb
+ * @param {Function} cb
  */
 function registerSocketEventCallback(cb) {
     socketEventCallbacks.push(cb);

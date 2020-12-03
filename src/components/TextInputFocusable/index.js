@@ -70,11 +70,11 @@ class TextInputFocusable extends React.Component {
     /**
      * Calculates the max number of lines the text input can have
      *
-     * @param {number} lineHeight
-     * @param {number} paddingTopAndBottom
-     * @param {number} scrollHeight
+     * @param {Number} lineHeight
+     * @param {Number} paddingTopAndBottom
+     * @param {Number} scrollHeight
      *
-     * @returns {number}
+     * @returns {Number}
      */
     getNumberOfLines(lineHeight, paddingTopAndBottom, scrollHeight) {
         const maxLines = this.props.maxLines;
@@ -86,7 +86,6 @@ class TextInputFocusable extends React.Component {
     /**
      * Check the current scrollHeight of the textarea (minus any padding) and
      * divide by line height to get the total number of rows for the textarea.
-     *
      */
     updateNumberOfLines() {
         const computedStyle = window.getComputedStyle(this.textInput);

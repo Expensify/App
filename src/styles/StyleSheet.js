@@ -1006,8 +1006,8 @@ const webViewStyles = {
 /**
  * Takes safe area insets and returns padding to use for a View
  *
- * @param {object} insets
- * @returns {{paddingBottom: number, paddingTop: number}}
+ * @param {Object} insets
+ * @returns {Object}
  */
 function getSafeAreaPadding(insets) {
     return {paddingTop: insets.top, paddingBottom: insets.bottom * safeInsertPercentage};
@@ -1016,8 +1016,8 @@ function getSafeAreaPadding(insets) {
 /**
  * Takes safe area insets and returns margin to use for a View
  *
- * @param {object} insets
- * @returns {{marginBottom: number}}
+ * @param {Object} insets
+ * @returns {Object}
  */
 function getSafeAreaMargins(insets) {
     return {marginBottom: insets.bottom * safeInsertPercentage};
