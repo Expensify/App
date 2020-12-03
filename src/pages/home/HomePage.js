@@ -216,6 +216,7 @@ class App extends React.Component {
                                         isChatSwitcherActive={this.props.isChatSwitcherActive}
                                     />
                                 </Animated.View>
+                                {/* The following pressable allows us to click outside the LHN to close it, and should be enabled only if the LHN is open. */}
                                 <Pressable
                                     disabled={!this.props.isSidebarShown}
                                     style={[styles.flex1]}
