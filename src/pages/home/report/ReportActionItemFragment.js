@@ -75,12 +75,23 @@ class ReportActionItemFragment extends React.PureComponent {
                 </View>
             ),
             img: (htmlAttribs, children, convertedCSSStyles, passProps) => {
-                // Chat attachments have both thumbnails and full size source.
-                // The thumbnail source will be under htmlAttribs.src and the
-                // full source is accessed via data-expensify-source.
-                // If the image element has a data-expensify-source attribute this
-                // means that it's an attachment and that both it's source and
-                // previewSource require an authToken.
+                // There are two kinds of images that need to be displayed:
+                //
+                //     - Chat Attachment images
+                //
+                //           Images uploaded by the user via the app or email.
+                //           These have a full-sized image `htmlAttribs['data-expensify-source']`
+                //           and a thumbnail `htmlAttribs.src`. Both of these URLs need to have
+                //           an authToken added to them in order to control who
+                //           can see the images.
+                //
+                //     - Non-Attachment Images
+                //
+                //           These could be hosted from anywhere (Expensify or another source)
+                //           and are not protected by any kind of access control e.g. certain
+                //           Concierge responder attachments are uploaded to S3 without any access
+                //           control and thus require no authToken to verify access.
+                //
                 const isAttachment = Boolean(htmlAttribs['data-expensify-source']);
                 let previewSource = htmlAttribs.src;
                 let source = isAttachment
