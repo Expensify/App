@@ -99,8 +99,6 @@ class BaseImageModal extends React.Component {
             // a percentage of the screen width since it is relative to each screen
             const thumbnailScreenWidth = DEFAULT_THUMBNAIL_SIZE;
             const scaleFactor = width / thumbnailScreenWidth;
-
-            // Fall back to default thumbnail size to prevent divide-by-zero error if image fails to load
             const imageHeight = height / scaleFactor;
 
             if (this.isComponentMounted) {
@@ -129,8 +127,6 @@ class BaseImageModal extends React.Component {
                 // Resize image to fit within the modal, if necessary
                 if (width > modalWidth || height > modalHeight) {
                     const scaleFactor = Math.max(width / modalWidth, height / modalHeight);
-
-                    // Fallback to default size to prevent divide-by-zero error if for some reason the image didn't load
                     imageHeight = height / scaleFactor;
                     imageWidth = width / scaleFactor;
                 }
