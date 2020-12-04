@@ -129,6 +129,13 @@ class BaseImageModal extends React.Component {
         this.setState({isModalOpen: visibility});
     }
 
+    /**
+     * Downloads the attachment to the local filesystem.
+     */
+    downloadAttachment() {
+        console.log('Downoading attachment');
+    }
+
     render() {
         return (
             <>
@@ -155,6 +162,7 @@ class BaseImageModal extends React.Component {
                         modalHeight={this.props.modalHeight}
                         modalTitle={this.props.modalTitle}
                         onCloseButtonPress={() => this.setModalVisiblity(false)}
+                        onDownloadButtonPress={() => this.downloadAttachment()}
                     >
                         <View style={styles.imageModalImageCenterContainer}>
                             <AttachmentView

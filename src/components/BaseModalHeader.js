@@ -13,6 +13,9 @@ const propTypes = {
 
     // Method to trigger when pressing close button of the modal
     onCloseButtonPress: PropTypes.func,
+
+    // Method to trigger when pressing download button of the modal.
+    onDownloadButtonPress: PropTypes.func,
 };
 
 const defaultProps = {
@@ -38,10 +41,11 @@ const BaseModalHeader = props => (
             </View>
             <View style={[styles.reportOptions, styles.flexRow]}>
                 <TouchableOpacity
+                    onPress={props.onDownloadButtonPress}
                     style={[styles.touchableButtonImage, styles.mr0]}
                 >
                     <Image
-                        resizeMode="contian"
+                        resizeMode="contain"
                         style={[styles.attachmentCloseIcon]}
                         source={downloadIcon}
                     />

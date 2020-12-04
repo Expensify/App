@@ -47,6 +47,7 @@ const ModalView = props => (
                 <BaseModalHeader
                     title="Attachment"
                     onCloseButtonPress={props.onCloseButtonPress}
+                    onDownloadButtonPress={props.onDownloadButtonPress}
                 />
                 {props.children}
             </SafeAreaView>
