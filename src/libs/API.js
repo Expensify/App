@@ -46,7 +46,9 @@ function addAuthTokenToParameters(command, parameters) {
         // an API request before we are signed in. In this case, we should just
         // cancel this and all other requests and set isAuthenticating to false.
         if (!authToken) {
-            console.error('A request was made without an authToken', {command, parameters});
+            const errorMessage = 'A request was made without an authToken';
+            console.error(errorMessage, {command, parameters});
+            Log({message: errorMessage, parameters: {command, ...parameters}});
             Network.unpauseRequestQueue();
             redirectToSignIn();
             return;
