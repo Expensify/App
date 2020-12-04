@@ -15,6 +15,9 @@ import ONYXKEYS from '../ONYXKEYS';
  * Used for smaller image previews that also need to be viewed full-sized like in report comments
  */
 
+const DEFUALT_IMAGE_SIZE = 300;
+const DEFUALT_THUMBNAIL_SIZE = 250;
+
 const propTypes = {
     // Should modal go full screen
     pinToEdges: PropTypes.bool,
@@ -66,10 +69,10 @@ class BaseImageModal extends React.Component {
         super(props);
 
         this.state = {
-            imageWidth: 300,
-            imageHeight: 300,
-            thumbnailWidth: 200,
-            thumbnailHeight: 200,
+            imageWidth: DEFUALT_IMAGE_SIZE,
+            imageHeight: DEFUALT_IMAGE_SIZE,
+            thumbnailWidth: DEFUALT_THUMBNAIL_SIZE,
+            thumbnailHeight: DEFUALT_THUMBNAIL_SIZE,
             isModalOpen: false,
         };
 
@@ -89,9 +92,11 @@ class BaseImageModal extends React.Component {
         Image.getSize(this.addAuthTokenToURL(this.props.previewSourceURL), (width, height) => {
             // Width of the thumbnail works better as a constant than it does
             // a percentage of the screen width since it is relative to each screen
-            const thumbnailScreenWidth = 250;
+            const thumbnailScreenWidth = DEFUALT_THUMBNAIL_SIZE;
             const scaleFactor = width / thumbnailScreenWidth;
-            const imageHeight = (height / scaleFactor) || 250;
+
+            // Fall back to default thumbnail size to prevent divide-by-zero error if image fails to load
+            const imageHeight = (height / scaleFactor) || DEFUALT_THUMBNAIL_SIZE;
 
             if (this.isComponentMounted) {
                 this.setState({thumbnailWidth: thumbnailScreenWidth, thumbnailHeight: imageHeight});
@@ -114,8 +119,10 @@ class BaseImageModal extends React.Component {
                 // Resize image to fit within the modal, if necessary
                 if (width > modalWidth || height > modalHeight) {
                     const scaleFactor = Math.max(width / modalWidth, height / modalHeight);
-                    imageHeight = height / scaleFactor || 300;
-                    imageWidth = width / scaleFactor || 300;
+
+                    // Fall back to default size to prevent divide-by-zero error if for some reason the image didn't load
+                    imageHeight = height / scaleFactor || DEFUALT_IMAGE_SIZE;
+                    imageWidth = width / scaleFactor || DEFUALT_IMAGE_SIZE;
                 }
 
                 if (this.isComponentMounted) {
