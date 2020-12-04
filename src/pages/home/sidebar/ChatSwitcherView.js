@@ -359,9 +359,7 @@ class ChatSwitcherView extends React.Component {
             .map(report => ({
                 text: report.reportName,
                 alternateText: report.reportName,
-                searchText: report.participants.length < 10
-                    ? `${report.reportName} ${report.participants.join(' ')}`
-                    : report.reportName ?? '',
+                searchText: report.participants ? `${report.reportName} ${report.participants.join(' ')}` : report.reportName ?? '',
                 reportID: report.reportID,
                 type: OPTION_TYPE.REPORT,
                 participants: report.participants,
