@@ -541,7 +541,7 @@ function updateLastReadActionID(reportID, sequenceNumber) {
     setLocalLastRead(reportID, sequenceNumber);
 
     // Mark the report as not having any unread items
-    API.Report_SetLastReadActionID({
+    API.Report_UpdateLastRead({
         accountID: currentUserAccountID,
         reportID,
         sequenceNumber,
