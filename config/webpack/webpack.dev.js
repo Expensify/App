@@ -6,11 +6,11 @@ const common = require('./webpack.common.js');
 
 const env = dotenv.config({path: path.resolve(__dirname, '../../.env')}).parsed;
 
-module.exports = ({proxy}) => {
+module.exports = (parameters = {}) => {
     // Check if the proxy cli variable has been provided
     // and rewrite any requests to the local proxy server
     // e.g. webpack-dev-server --env.proxy=true
-    const proxySettings = proxy
+    const proxySettings = parameters.proxy
         ? {
             proxy: {
                 '/api': 'http://[::1]:9000',
