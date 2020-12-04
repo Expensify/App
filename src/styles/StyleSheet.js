@@ -971,6 +971,9 @@ const webViewStyles = {
             paddingLeft: 12,
             marginTop: 4,
             marginBottom: 4,
+
+            // Overwrite default HTML margin for blockquotes
+            marginLeft: 0,
         },
 
         pre: {
