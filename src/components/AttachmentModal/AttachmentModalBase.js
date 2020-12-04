@@ -30,6 +30,14 @@ const propTypes = {
 
     // A function as a child to pass modal launching methods to
     children: PropTypes.func.isRequired,
+
+    // Do the urls require an authToken?
+    isAuthTokenRequired: PropTypes.bool.isRequired,
+
+    // Current user session
+    session: PropTypes.shape({
+        authToken: PropTypes.string.isRequired,
+    }).isRequired,
 };
 
 const defaultProps = {
@@ -84,7 +92,7 @@ class AttachmentModalBase extends Component {
             return;
         }
 
-        Image.getSize(this.state.sourceURL, (width, height) => {
+        Image.getSize(this.addAuthTokenToURL(this.state.sourceURL), (width, height) => {
             // Unlike the image width, we do allow the image to span the full modal height
             const modalHeight = this.props.pinToEdges
                 ? Dimensions.get('window').height
@@ -104,6 +112,18 @@ class AttachmentModalBase extends Component {
                 this.setState({imageWidth, imageHeight});
             }
         });
+    }
+
+    /**
+     * Add authToken to this attachment URL if necessary
+     *
+     * @param {String} url
+     * @returns {String}
+     */
+    addAuthTokenToURL(url) {
+        return this.props.isAuthTokenRequired
+            ? `${url}?authToken=${this.props.session.authToken}`
+            : url;
     }
 
     render() {
@@ -128,7 +148,7 @@ class AttachmentModalBase extends Component {
                         <View style={styles.imageModalImageCenterContainer}>
                             {this.state.sourceURL && (
                                 <AttachmentView
-                                    sourceURL={this.state.sourceURL}
+                                    sourceURL={this.addAuthTokenToURL(this.state.sourceURL)}
                                     imageHeight={this.state.imageHeight}
                                     imageWidth={this.state.imageWidth}
                                     file={this.state.file}
@@ -178,4 +198,8 @@ class AttachmentModalBase extends Component {
 
 AttachmentModalBase.propTypes = propTypes;
 AttachmentModalBase.defaultProps = defaultProps;
-export default AttachmentModalBase;
+export default withOnyx({
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+})(AttachmentModalBase);

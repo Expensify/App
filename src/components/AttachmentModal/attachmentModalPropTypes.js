@@ -9,4 +9,7 @@ export default {
 
     // Function as a child
     children: PropTypes.func.isRequired,
+
+    // Do the urls require an authToken?
+    isAuthTokenRequired: PropTypes.bool.isRequired,
 };

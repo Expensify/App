@@ -1,6 +1,8 @@
 import React, {Component} from 'react';
 import {Image} from 'react-native';
 import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
+import ONYXKEYS from '../ONYXKEYS';
 
 const propTypes = {
     // Source URL for the preview image
@@ -9,6 +11,14 @@ const propTypes = {
     // Any additional styles to apply
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.any,
+
+    // Current user session
+    session: PropTypes.shape({
+        authToken: PropTypes.string.isRequired,
+    }).isRequired,
+
+    // Do the urls require an authToken?
+    isAuthTokenRequired: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
@@ -50,6 +60,18 @@ class ThumbnailImage extends Component {
         this.isComponentMounted = false;
     }
 
+    /**
+     * Add authToken to this attachment URL if necessary
+     *
+     * @param {String} url
+     * @returns {String}
+     */
+    addAuthTokenToURL(url) {
+        return this.props.isAuthTokenRequired
+            ? `${url}?authToken=${this.props.session.authToken}`
+            : url;
+    }
+
     render() {
         return (
             <Image
@@ -58,7 +80,7 @@ class ThumbnailImage extends Component {
                     width: this.state.thumbnailWidth,
                     height: this.state.thumbnailHeight,
                 }}
-                source={{uri: this.props.previewSourceURL}}
+                source={{uri: this.addAuthTokenToURL(this.props.previewSourceURL)}}
             />
         );
     }
@@ -66,4 +88,8 @@ class ThumbnailImage extends Component {
 
 ThumbnailImage.propTypes = propTypes;
 ThumbnailImage.defaultProps = defaultProps;
-export default ThumbnailImage;
+export default withOnyx({
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+})(ThumbnailImage);

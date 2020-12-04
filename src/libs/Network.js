@@ -68,9 +68,9 @@ setInterval(processNetworkRequestQueue, 1000);
 /**
  * Perform a queued post request
  *
- * @param {string} command
- * @param {mixed} data
- * @param {string} type
+ * @param {String} command
+ * @param {*} data
+ * @param {String} type
  * @returns {Promise}
  */
 function post(command, data, type) {
@@ -108,7 +108,7 @@ function unpauseRequestQueue() {
  * and will return a new set of parameters to send instead. Useful for adding data to every request
  * like auth or CRSF tokens.
  *
- * @param {function} callback
+ * @param {Function} callback
  */
 function registerParameterEnhancer(callback) {
     enhanceParameters = callback;
