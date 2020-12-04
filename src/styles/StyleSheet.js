@@ -93,6 +93,10 @@ const styles = {
         height: '100%',
     },
 
+    vh100: {
+        height: '100vh',
+    },
+
     flex0: {
         flex: 0,
     },
