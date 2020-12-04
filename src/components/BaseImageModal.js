@@ -91,7 +91,7 @@ class BaseImageModal extends React.Component {
             // a percentage of the screen width since it is relative to each screen
             const thumbnailScreenWidth = 250;
             const scaleFactor = width / thumbnailScreenWidth;
-            const imageHeight = height / scaleFactor;
+            const imageHeight = (height / scaleFactor) || 250;
 
             if (this.isComponentMounted) {
                 this.setState({thumbnailWidth: thumbnailScreenWidth, thumbnailHeight: imageHeight});
