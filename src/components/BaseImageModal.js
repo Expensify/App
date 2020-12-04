@@ -114,8 +114,8 @@ class BaseImageModal extends React.Component {
                 // Resize image to fit within the modal, if necessary
                 if (width > modalWidth || height > modalHeight) {
                     const scaleFactor = Math.max(width / modalWidth, height / modalHeight);
-                    imageHeight = height / scaleFactor;
-                    imageWidth = width / scaleFactor;
+                    imageHeight = height / scaleFactor || 300;
+                    imageWidth = width / scaleFactor || 300;
                 }
 
                 if (this.isComponentMounted) {
