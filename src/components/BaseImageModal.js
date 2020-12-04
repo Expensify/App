@@ -86,7 +86,7 @@ class BaseImageModal extends React.Component {
         this.isComponentMounted = true;
 
         // Scale image for thumbnail preview
-        Image.getSize(this.props.previewSourceURL, (width, height) => {
+        Image.getSize(this.addAuthTokenToURL(this.props.previewSourceURL), (width, height) => {
             // Width of the thumbnail works better as a constant than it does
             // a percentage of the screen width since it is relative to each screen
             const thumbnailScreenWidth = 250;
@@ -102,7 +102,7 @@ class BaseImageModal extends React.Component {
     componentDidUpdate() {
         // Only calculate image size if the modal is visible and if we haven't already done this
         if (this.state.isModalOpen && !this.calculatedModalImageSize) {
-            Image.getSize(this.props.sourceURL, (width, height) => {
+            Image.getSize(this.addAuthTokenToURL(this.props.sourceURL), (width, height) => {
                 // Unlike the image width, we do allow the image to span the full modal height
                 const modalHeight = this.props.pinToEdges
                     ? Dimensions.get('window').height
