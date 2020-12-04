@@ -26,10 +26,12 @@ import {
 } from '../../libs/actions/Report';
 import {fetch as fetchPersonalDetails} from '../../libs/actions/PersonalDetails';
 import * as Pusher from '../../libs/Pusher/pusher';
+import PusherConnectionManager from '../../libs/PusherConnectionManager';
 import UnreadIndicatorUpdater from '../../libs/UnreadIndicatorUpdater';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
 import NetworkConnection from '../../libs/NetworkConnection';
+import CONFIG from '../../CONFIG';
 import CustomStatusBar from '../../components/CustomStatusBar';
 
 const windowSize = Dimensions.get('window');
@@ -64,7 +66,12 @@ class App extends React.Component {
 
     componentDidMount() {
         NetworkConnection.listenForReconnect();
-        Pusher.init().then(subscribeToReportCommentEvents);
+        PusherConnectionManager.init();
+        Pusher.init({
+            appKey: CONFIG.PUSHER.APP_KEY,
+            cluster: CONFIG.PUSHER.CLUSTER,
+            authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Push_Authenticate`,
+        }).then(subscribeToReportCommentEvents);
 
         // Fetch all the personal details
         fetchPersonalDetails();
@@ -94,7 +101,7 @@ class App extends React.Component {
 
     /**
      * Fired when the windows dimensions changes
-     * @param {object} changedWindow
+     * @param {Object} changedWindow
      */
     toggleHamburgerBasedOnDimensions({window: changedWindow}) {
         this.setState({isHamburgerEnabled: changedWindow.width <= widthBreakPoint});
@@ -209,7 +216,11 @@ class App extends React.Component {
                                         isChatSwitcherActive={this.props.isChatSwitcherActive}
                                     />
                                 </Animated.View>
+                                {/* The following pressable allows us to click outside the LHN to close it,
+                                and should be enabled only if the LHN is open. Otherwise, it will capture
+                                some onPress events, causing scrolling issues. */}
                                 <Pressable
+                                    disabled={!this.props.isSidebarShown}
                                     style={[styles.flex1]}
                                     onPress={this.dismissHamburger}
                                 >

@@ -16,6 +16,11 @@ module.exports = merge(common, {
     plugins: [
         new webpack.DefinePlugin({
             __REACT_WEB_CONFIG__: JSON.stringify(env),
-        })
-    ]
+
+            // React Native JavaScript environment requires the global __DEV__ variable to be accessible.
+            // react-native-render-html uses variable to log exclusively during development.
+            // See https://reactnative.dev/docs/javascript-environment
+            __DEV__: true,
+        }),
+    ],
 });

@@ -1,6 +1,5 @@
 import _ from 'underscore';
 import Pusher from './library';
-import CONFIG from '../../CONFIG';
 
 let socket;
 const socketEventCallbacks = [];
@@ -9,8 +8,8 @@ let customAuthorizer;
 /**
  * Trigger each of the socket event callbacks with the event information
  *
- * @param {string} eventName
- * @param {mixed} data
+ * @param {String} eventName
+ * @param {*} data
  */
 function callSocketEventCallbacks(eventName, data) {
     _.each(socketEventCallbacks, cb => cb(eventName, data));
@@ -19,12 +18,15 @@ function callSocketEventCallbacks(eventName, data) {
 /**
  * Initialize our pusher lib
  *
- * @param {String} appKey
+ * @param {Object} args
+ * @param {String} args.appKey
+ * @param {String} args.cluster
+ * @param {String} args.authEndpoint
  * @param {Object} [params]
  * @public
  * @returns {Promise} resolves when Pusher has connected
  */
-function init(appKey, params) {
+function init(args, params) {
     return new Promise((resolve) => {
         if (socket) {
             return resolve();
@@ -38,15 +40,15 @@ function init(appKey, params) {
         // };
 
         const options = {
-            cluster: CONFIG.PUSHER.CLUSTER,
-            authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Push_Authenticate`,
+            cluster: args.cluster,
+            authEndpoint: args.authEndpoint,
         };
 
         if (customAuthorizer) {
             options.authorizer = customAuthorizer;
         }
 
-        socket = new Pusher(CONFIG.PUSHER.APP_KEY, options);
+        socket = new Pusher(args.appKey, options);
 
         // If we want to pass params in our requests to api.php we'll need to add it to socket.config.auth.params
         // as per the documentation
@@ -337,7 +339,7 @@ function sendChunkedEvent(channelName, eventName, payload) {
 /**
  * Register a method that will be triggered when a socket event happens (like disconnecting)
  *
- * @param {function} cb
+ * @param {Function} cb
  */
 function registerSocketEventCallback(cb) {
     socketEventCallbacks.push(cb);
@@ -394,8 +396,8 @@ export {
     isAlreadySubscribing,
     sendEvent,
     sendChunkedEvent,
-    registerSocketEventCallback,
-    registerCustomAuthorizer,
     disconnect,
     reconnect,
+    registerSocketEventCallback,
+    registerCustomAuthorizer,
 };

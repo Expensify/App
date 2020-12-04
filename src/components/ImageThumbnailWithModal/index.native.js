@@ -13,6 +13,9 @@ const propTypes = {
 
     // URL to full-sized image
     sourceURL: PropTypes.string.isRequired,
+
+    // Do the url passed require authToken?
+    isAuthTokenRequired: PropTypes.bool.isRequired,
 };
 
 const ImageThumbnailWithModal = props => (
@@ -21,6 +24,7 @@ const ImageThumbnailWithModal = props => (
         previewSourceURL={props.previewSourceURL}
         sourceURL={props.sourceURL}
         modalTitle="Attachment"
+        isAuthTokenRequired={props.isAuthTokenRequired}
     />
 );
 

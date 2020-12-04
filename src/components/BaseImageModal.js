@@ -4,9 +4,11 @@ import {
     View, Image, TouchableOpacity, Dimensions
 } from 'react-native';
 import Modal from 'react-native-modal';
+import {withOnyx} from 'react-native-onyx';
 import AttachmentView from './AttachmentView';
 import styles, {webViewStyles} from '../styles/StyleSheet';
 import ModalView from './ModalView';
+import ONYXKEYS from '../ONYXKEYS';
 
 /**
  * Modal component consisting of an image thumbnail which triggers a modal with a larger image display
@@ -34,6 +36,14 @@ const propTypes = {
 
     // URL to full-sized image
     sourceURL: PropTypes.string,
+
+    // Current user session
+    session: PropTypes.shape({
+        authToken: PropTypes.string.isRequired,
+    }).isRequired,
+
+    // Do the urls require an authToken?
+    isAuthTokenRequired: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
@@ -94,7 +104,9 @@ class BaseImageModal extends React.Component {
         if (this.state.isModalOpen && !this.calculatedModalImageSize) {
             Image.getSize(this.props.sourceURL, (width, height) => {
                 // Unlike the image width, we do allow the image to span the full modal height
-                const modalHeight = this.props.pinToEdges ? Dimensions.get('window').height : this.props.modalHeight;
+                const modalHeight = this.props.pinToEdges
+                    ? Dimensions.get('window').height
+                    : this.props.modalHeight - (styles.modalHeaderBar.height || 0);
                 const modalWidth = this.props.pinToEdges ? Dimensions.get('window').width : this.props.modalImageWidth;
                 let imageHeight = height;
                 let imageWidth = width;
@@ -127,12 +139,24 @@ class BaseImageModal extends React.Component {
         this.setState({isModalOpen: visibility});
     }
 
+    /**
+     * Add authToken to this attachment URL if necessary
+     *
+     * @param {String} url
+     * @returns {String}
+     */
+    addAuthTokenToURL(url) {
+        return this.props.isAuthTokenRequired
+            ? `${url}?authToken=${this.props.session.authToken}`
+            : url;
+    }
+
     render() {
         return (
             <>
                 <TouchableOpacity onPress={() => this.setModalVisiblity(true)}>
                     <Image
-                        source={{uri: this.props.previewSourceURL}}
+                        source={{uri: this.addAuthTokenToURL(this.props.previewSourceURL)}}
                         style={{
                             ...webViewStyles.tagStyles.img,
                             width: this.state.thumbnailWidth,
@@ -156,7 +180,7 @@ class BaseImageModal extends React.Component {
                     >
                         <View style={styles.imageModalImageCenterContainer}>
                             <AttachmentView
-                                sourceURL={this.props.sourceURL}
+                                sourceURL={this.addAuthTokenToURL(this.props.sourceURL)}
                                 imageHeight={this.state.imageHeight}
                                 imageWidth={this.state.imageWidth}
                             />
@@ -171,4 +195,8 @@ class BaseImageModal extends React.Component {
 BaseImageModal.propTypes = propTypes;
 BaseImageModal.defaultProps = defaultProps;
 
-export default BaseImageModal;
+export default withOnyx({
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+})(BaseImageModal);

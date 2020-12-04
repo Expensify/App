@@ -134,7 +134,7 @@ const styles = {
     },
 
     flexWrap: {
-        flexWrap: 'wrap'
+        flexWrap: 'wrap',
     },
 
     flexGrow1: {
@@ -283,7 +283,7 @@ const styles = {
     navText: {
         color: colors.heading,
         fontSize: 17,
-        fontWeight: '700'
+        fontWeight: '700',
     },
 
     reportOptions: {
@@ -595,6 +595,11 @@ const styles = {
         width: 18,
     },
 
+    LHNPencilIcon: {
+        height: 16,
+        width: 16,
+    },
+
     attachmentCloseIcon: {
         height: 20,
         width: 20,
@@ -836,7 +841,7 @@ const styles = {
             height: 0,
         },
         shadowOpacity: 0.3,
-        shadowRadius: 20
+        shadowRadius: 20,
     },
 
     hamburgerOpen: {
@@ -934,20 +939,11 @@ const baseCodeTagStyles = {
 };
 
 const webViewStyles = {
-    preTagStyle: {
-        ...baseCodeTagStyles,
-        paddingTop: 4,
-        paddingBottom: 5,
-        paddingRight: 8,
-        paddingLeft: 8,
-    },
-    codeTagStyle: {
-        ...baseCodeTagStyles,
-        paddingLeft: 5,
-        paddingRight: 5,
-        paddingBottom: 2,
-        alignSelf: 'flex-start',
-    },
+    // As of react-native-render-html v6, don't declare distinct styles for
+    // custom renderers, the API for custom renderers has changed. Declare the
+    // styles in the below "tagStyles" instead. If you need to reuse those
+    // styles from the renderer, just pass the "style" prop to the underlying
+    // component.
     tagStyles: {
         em: {
             fontFamily: fontFamily.GTA_ITALIC,
@@ -956,7 +952,7 @@ const webViewStyles = {
 
         del: {
             textDecorationLine: 'line-through',
-            textDecorationStyle: 'solid'
+            textDecorationStyle: 'solid',
         },
 
         strong: {
@@ -965,14 +961,37 @@ const webViewStyles = {
         },
 
         a: {
-            color: colors.blue
+            color: colors.blue,
+            textDecorationColor: colors.blue
+        },
+
+        blockquote: {
+            borderLeftColor: colors.border,
+            borderLeftWidth: 4,
+            paddingLeft: 12,
+            marginTop: 4,
+            marginBottom: 4,
         },
 
         pre: {
+            ...baseCodeTagStyles,
+            paddingTop: 4,
+            paddingBottom: 5,
+            paddingRight: 8,
+            paddingLeft: 8,
             fontFamily: fontFamily.MONOSPACE,
+
+            // override user agent styles
+            marginTop: 0,
+            marginBottom: 0
         },
 
         code: {
+            ...baseCodeTagStyles,
+            paddingLeft: 5,
+            paddingRight: 5,
+            paddingBottom: 2,
+            alignSelf: 'flex-start',
             fontFamily: fontFamily.MONOSPACE,
         },
 
@@ -980,32 +999,34 @@ const webViewStyles = {
             borderColor: colors.border,
             borderRadius: 8,
             borderWidth: 1,
-        }
+        },
     },
 
     baseFontStyle: {
         color: colors.text,
         fontSize: 15,
         fontFamily: fontFamily.GTA,
-    }
+    },
 };
-
 
 /**
  * Takes safe area insets and returns padding to use for a View
  *
- * @param {object} insets
- * @returns {{paddingBottom: number, paddingTop: number}}
+ * @param {Object} insets
+ * @returns {Object}
  */
 function getSafeAreaPadding(insets) {
-    return {paddingTop: insets.top, paddingBottom: insets.bottom * safeInsertPercentage};
+    return {
+        paddingTop: insets.top,
+        paddingBottom: insets.bottom * safeInsertPercentage,
+    };
 }
 
 /**
  * Takes safe area insets and returns margin to use for a View
  *
- * @param {object} insets
- * @returns {{marginBottom: number}}
+ * @param {Object} insets
+ * @returns {Object}
  */
 function getSafeAreaMargins(insets) {
     return {marginBottom: insets.bottom * safeInsertPercentage};
