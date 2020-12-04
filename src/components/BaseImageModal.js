@@ -120,7 +120,7 @@ class BaseImageModal extends React.Component {
                 if (width > modalWidth || height > modalHeight) {
                     const scaleFactor = Math.max(width / modalWidth, height / modalHeight);
 
-                    // Fall back to default size to prevent divide-by-zero error if for some reason the image didn't load
+                    // Fallback to default size to prevent divide-by-zero error if for some reason the image didn't load
                     imageHeight = height / scaleFactor || DEFUALT_IMAGE_SIZE;
                     imageWidth = width / scaleFactor || DEFUALT_IMAGE_SIZE;
                 }
