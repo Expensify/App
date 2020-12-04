@@ -134,14 +134,15 @@ class BaseImageModal extends React.Component {
      * Downloads the attachment to the local filesystem.
      */
     downloadAttachment() {
-        const { config, fs } = RNFetchBlob;
-        let options = {
-            fileCache: true,
-        }
-        config(options)
+        let dirs = RNFetchBlob.fs.dirs;
+        RNFetchBlob
+            .config({
+                fileCache: true,
+                path: dirs.PictureDir + '/testPic.jpg',
+            })
             .fetch('GET', this.props.sourceURL)
-            .then(res => {
-                console.log('Downloading attachment: ' + this.props.sourceURL);
+            .then((res) => {
+                console.log('Downloading attachment: ' + this.props.sourceURL + ' to: ' + res.path());
                 alert('Attachment downloaded successfully!');
             });
     }
