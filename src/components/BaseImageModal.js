@@ -90,13 +90,18 @@ class BaseImageModal extends React.Component {
 
         // Scale image for thumbnail preview
         Image.getSize(this.addAuthTokenToURL(this.props.previewSourceURL), (width, height) => {
+            if (!width || !height) {
+                // Image didn't load properly
+                return;
+            }
+
             // Width of the thumbnail works better as a constant than it does
             // a percentage of the screen width since it is relative to each screen
             const thumbnailScreenWidth = DEFAULT_THUMBNAIL_SIZE;
             const scaleFactor = width / thumbnailScreenWidth;
 
             // Fall back to default thumbnail size to prevent divide-by-zero error if image fails to load
-            const imageHeight = (height / scaleFactor) || DEFAULT_THUMBNAIL_SIZE;
+            const imageHeight = height / scaleFactor;
 
             if (this.isComponentMounted) {
                 this.setState({thumbnailWidth: thumbnailScreenWidth, thumbnailHeight: imageHeight});
@@ -108,6 +113,11 @@ class BaseImageModal extends React.Component {
         // Only calculate image size if the modal is visible and if we haven't already done this
         if (this.state.isModalOpen && !this.calculatedModalImageSize) {
             Image.getSize(this.addAuthTokenToURL(this.props.sourceURL), (width, height) => {
+                if (!width || !height) {
+                    // Image didn't load correctly
+                    return;
+                }
+
                 // Unlike the image width, we do allow the image to span the full modal height
                 const modalHeight = this.props.pinToEdges
                     ? Dimensions.get('window').height
@@ -121,8 +131,8 @@ class BaseImageModal extends React.Component {
                     const scaleFactor = Math.max(width / modalWidth, height / modalHeight);
 
                     // Fallback to default size to prevent divide-by-zero error if for some reason the image didn't load
-                    imageHeight = height / scaleFactor || DEFAULT_IMAGE_SIZE;
-                    imageWidth = width / scaleFactor || DEFAULT_IMAGE_SIZE;
+                    imageHeight = height / scaleFactor;
+                    imageWidth = width / scaleFactor;
                 }
 
                 if (this.isComponentMounted) {
