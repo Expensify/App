@@ -144,7 +144,7 @@ function getFromReportParticipants(reports) {
         return;
     }
 
-    API.PersonalDetails_GetForEmails(participantEmails.join(','))
+    API.PersonalDetails_GetForEmails({emailList: participantEmails.join(',')})
         .then((data) => {
             const details = _.pick(data, participantEmails);
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, formatPersonalDetails(details));
