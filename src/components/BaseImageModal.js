@@ -7,6 +7,7 @@ import Modal from 'react-native-modal';
 import AttachmentView from './AttachmentView';
 import styles, {webViewStyles} from '../styles/StyleSheet';
 import ModalView from './ModalView';
+import RNFetchBlob from 'rn-fetch-blob';
 
 /**
  * Modal component consisting of an image thumbnail which triggers a modal with a larger image display
@@ -132,8 +133,17 @@ class BaseImageModal extends React.Component {
     /**
      * Downloads the attachment to the local filesystem.
      */
-    downloadAttachment(sourceUrl) {
-        console.log('Downoading attachment: ' + sourceUrl);
+    downloadAttachment() {
+        const { config, fs } = RNFetchBlob;
+        let options = {
+            fileCache: true,
+        }
+        config(options)
+            .fetch('GET', this.props.sourceURL)
+            .then(res => {
+                console.log('Downloading attachment: ' + this.props.sourceURL);
+                alert('Attachment downloaded successfully!');
+            });
     }
 
     render() {
@@ -162,7 +172,7 @@ class BaseImageModal extends React.Component {
                         modalHeight={this.props.modalHeight}
                         modalTitle={this.props.modalTitle}
                         onCloseButtonPress={() => this.setModalVisiblity(false)}
-                        onDownloadButtonPress={() => this.downloadAttachment(this.props.sourceURL)}
+                        onDownloadButtonPress={() => this.downloadAttachment()}
                     >
                         <View style={styles.imageModalImageCenterContainer}>
                             <AttachmentView
