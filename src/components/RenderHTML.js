@@ -12,8 +12,8 @@ import {webViewStyles} from '../styles/StyleSheet';
 import fontFamily from '../styles/fontFamily';
 import AnchorForCommentsOnly from './AnchorForCommentsOnly';
 import InlineCodeBlock from './InlineCodeBlock';
-import AttachmentModal from '../components/AttachmentModal';
-import ThumbnailImage from '../components/ThumbnailImage';
+import AttachmentModal from './AttachmentModal';
+import ThumbnailImage from './ThumbnailImage';
 
 const MAX_IMG_DIMENSIONS = 512;
 
@@ -76,7 +76,7 @@ function CodeRenderer({
     );
 }
 
-function ImgRenderer({key, tnode}) {
+function ImgRenderer({tnode}) {
     const htmlAttribs = tnode.attributes;
 
     // There are two kinds of images that need to be displayed:
@@ -116,7 +116,6 @@ function ImgRenderer({key, tnode}) {
         <AttachmentModal
             title="Attachment"
             sourceURL={source}
-            key={passProps.key}
             isAuthTokenRequired={isAttachment}
         >
             {({show}) => (

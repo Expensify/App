@@ -4,6 +4,7 @@ import propTypes from './attachmentModalPropTypes';
 
 const defaultProps = {
     sourceURL: null,
+    isAuthTokenRequired: false,
 };
 
 const AttachmentModal = props => (

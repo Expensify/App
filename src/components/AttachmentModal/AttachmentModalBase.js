@@ -4,10 +4,12 @@ import PropTypes from 'prop-types';
 import {
     View, Dimensions, TouchableOpacity, Text, Image
 } from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import AttachmentView from '../AttachmentView';
 import styles, {colors} from '../../styles/StyleSheet';
 import ModalView from '../ModalView';
 import ModalHeader from '../ModalHeader';
+import ONYXKEYS from '../../ONYXKEYS';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
