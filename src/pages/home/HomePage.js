@@ -192,13 +192,13 @@ class App extends React.Component {
         return (
             <SafeAreaProvider>
                 <CustomStatusBar />
-                <SafeAreaInsetsContext.Consumer style={[styles.flex1, styles.h100p]}>
+                <SafeAreaInsetsContext.Consumer style={[styles.flex1, styles.vh100]}>
                     {insets => (
                         <View
                             style={[styles.appContentWrapper,
                                 appContentWrapperStyle,
                                 styles.flexRow,
-                                styles.h100p,
+                                styles.vh100,
                                 getSafeAreaPadding(insets)
                             ]}
                         >
