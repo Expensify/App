@@ -2,7 +2,7 @@
  * Listens for storage events so that multiple tabs can keep track of what
  * other tabs are doing
  *
- * @param {function} callback
+ * @param {Function} callback
  */
 function listenToStorageEvents(callback) {
     window.addEventListener('storage', (e) => {

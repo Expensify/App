@@ -22,9 +22,9 @@ Onyx.connect({
 /**
  * Returns the URL for a user's avatar and handles someone not having any avatar at all
  *
- * @param {object} personalDetail
- * @param {string} login
- * @returns {string}
+ * @param {Object} personalDetail
+ * @param {String} login
+ * @returns {String}
  */
 function getAvatar(personalDetail, login) {
     if (personalDetail && personalDetail.avatar) {
@@ -40,9 +40,9 @@ function getAvatar(personalDetail, login) {
 /**
  * Returns the displayName for a user
  *
- * @param {string} login
- * @param {object} [personalDetail]
- * @returns {string}
+ * @param {String} login
+ * @param {Object} [personalDetail]
+ * @returns {String}
  */
 function getDisplayName(login, personalDetail) {
     const userDetails = personalDetail || personalDetails[login];
