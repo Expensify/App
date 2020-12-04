@@ -11,5 +11,5 @@ export default {
     children: PropTypes.func.isRequired,
 
     // Do the urls require an authToken?
-    isAuthTokenRequired: PropTypes.bool.isRequired,
+    isAuthTokenRequired: PropTypes.bool,
 };
