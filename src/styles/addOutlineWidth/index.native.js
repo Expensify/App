@@ -4,8 +4,8 @@
  */
 
 /**
- * @param {object} obj
- * @returns {object}
+ * @param {Object} obj
+ * @returns {Object}
  */
 function withOutlineWidth(obj) {
     return obj;

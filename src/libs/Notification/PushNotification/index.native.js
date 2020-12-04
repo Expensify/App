@@ -9,8 +9,8 @@ const notificationEventActionMap = {};
 /**
  * Handle a push notification event, and trigger and bound actions.
  *
- * @param {string} eventType
- * @param {object} notification
+ * @param {String} eventType
+ * @param {Object} notification
  */
 function pushNotificationEventCallback(eventType, notification) {
     const actionMap = notificationEventActionMap[eventType] || {};
@@ -62,9 +62,14 @@ function pushNotificationEventCallback(eventType, notification) {
 /**
  * Register this device for push notifications for the given accountID.
  *
- * @param {string|int} accountID
+ * @param {String|Number} accountID
  */
 function register(accountID) {
+    if (UrbanAirship.getNamedUser() === accountID.toString()) {
+        // No need to register again for this accountID.
+        return;
+    }
+
     // Get permissions to display push notifications (prompts user on iOS, but not Android)
     UrbanAirship.enableUserPushNotifications()
         .then((isEnabled) => {
@@ -109,9 +114,9 @@ function deregister() {
  *       if we attempt to bind two callbacks to the PushReceived event for reportComment notifications,
  *       the second will overwrite the first.
  *
- * @param {string} notificationType
+ * @param {String} notificationType
  * @param {Function} callback
- * @param {string?} triggerEvent - The event that should trigger this callback. Should be one of UrbanAirship.EventType
+ * @param {String} [triggerEvent] - The event that should trigger this callback. Should be one of UrbanAirship.EventType
  */
 function bind(notificationType, callback, triggerEvent) {
     if (!notificationEventActionMap[triggerEvent]) {
@@ -123,7 +128,7 @@ function bind(notificationType, callback, triggerEvent) {
 /**
  * Bind a callback to be executed when a push notification of a given type is received.
  *
- * @param {string} notificationType
+ * @param {String} notificationType
  * @param {Function} callback
  */
 function onReceived(notificationType, callback) {
@@ -133,7 +138,7 @@ function onReceived(notificationType, callback) {
 /**
  * Bind a callback to be executed when a push notification of a given type is tapped by the user.
  *
- * @param {string} notificationType
+ * @param {String} notificationType
  * @param {Function} callback
  */
 function onSelected(notificationType, callback) {

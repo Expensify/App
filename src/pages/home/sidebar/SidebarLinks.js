@@ -34,6 +34,9 @@ const propTypes = {
         unreadActionCount: PropTypes.number,
     })),
 
+    // List of draft comments. We don't know the shape, since the keys include the report numbers
+    comments: PropTypes.objectOf(PropTypes.string),
+
     isChatSwitcherActive: PropTypes.bool,
 
     // List of users' personal details
@@ -43,11 +46,14 @@ const propTypes = {
         displayName: PropTypes.string.isRequired,
     })),
 };
+
 const defaultProps = {
     reports: {},
     isChatSwitcherActive: false,
+    comments: {},
     personalDetails: {},
 };
+
 
 const SidebarLinks = (props) => {
     const reportIDInUrl = parseInt(props.match.params.reportID, 10);
@@ -59,9 +65,22 @@ const SidebarLinks = (props) => {
         'asc'
     ]);
 
-    // Filter the reports so that the only reports shown are pinned, unread, and the one matching the URL
-    // eslint-disable-next-line max-len
-    const reportsToDisplay = _.filter(sortedReports, report => (report.isPinned || (report.unreadActionCount > 0) || report.reportID === reportIDInUrl));
+    /**
+     * Check if the report has a draft comment
+     *
+     * @param {Number} reportID
+     * @returns {Boolean}
+     */
+    function hasComment(reportID) {
+        const allComments = get(props.comments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, '');
+        return allComments.length > 0;
+    }
+
+    // Filter the reports so that the only reports shown are pinned, unread, have draft
+    // comments (but are not the open one), and the one matching the URL
+    const reportsToDisplay = _.filter(sortedReports, report => (report.isPinned || (report.unreadActionCount > 0)
+            || report.reportID === reportIDInUrl
+            || (report.reportID !== reportIDInUrl && hasComment(report.reportID))));
 
     // Update styles to hide the report links if they should not be visible
     const sidebarLinksStyle = !props.isChatSwitcherActive
@@ -76,6 +95,7 @@ const SidebarLinks = (props) => {
                 />
             </View>
             <ScrollView
+                keyboardShouldPersistTaps="always"
                 style={sidebarLinksStyle}
                 bounces={false}
                 indicatorStyle="white"
@@ -102,6 +122,7 @@ const SidebarLinks = (props) => {
                                 login: participantDetails ? participantDetails.login : '',
                                 reportID: report.reportID,
                                 isUnread: report.unreadActionCount > 0,
+                                hasDraftComment: report.reportID !== reportIDInUrl && hasComment(report.reportID)
                             }}
                             onSelectRow={props.onLinkClick}
                             optionIsFocused={report.reportID === reportIDInUrl}
@@ -122,6 +143,9 @@ export default compose(
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
+        },
+        comments: {
+            key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,

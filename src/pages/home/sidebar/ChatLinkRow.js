@@ -11,6 +11,7 @@ import {
 import styles, {colors} from '../../../styles/StyleSheet';
 import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
 import ROUTES from '../../../ROUTES';
+import pencilIcon from '../../../../assets/images/icon-pencil.png';
 import PressableLink from '../../../components/PressableLink';
 import CONST from '../../../CONST';
 
@@ -88,9 +89,9 @@ const ChatLinkRow = ({
                         )
                     }
                     <View style={[styles.flex1]}>
-                        {option.text === option.alternateText ? (
+                        {(option.text === option.alternateText || option.alternateText.length === 0) ? (
                             <Text style={[styles.chatSwitcherDisplayName, textUnreadStyle]} numberOfLines={1}>
-                                {option.alternateText}
+                                {option.text}
                             </Text>
                         ) : (
                             <>
@@ -122,6 +123,13 @@ const ChatLinkRow = ({
                         </Text>
                     </TouchableOpacity>
                 </View>
+            )}
+            {option.hasDraftComment && (
+                <Image
+                    style={[styles.LHNPencilIcon]}
+                    resizeMode="contain"
+                    source={pencilIcon}
+                />
             )}
         </View>
     );
