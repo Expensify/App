@@ -33,8 +33,8 @@ module.exports = {
 
                 // These files are copied over as per instructions here
                 // https://github.com/mozilla/pdf.js/wiki/Setup-pdf.js-in-a-website#examples
-                {from: 'node_modules/pdfjs/web', to: 'pdf-viewer/web'},
-                {from: 'node_modules/pdfjs/build', to: 'pdf-viewer/build'},
+                {from: 'src/vendor/pdf-js/web', to: 'pdf/web'},
+                {from: 'src/vendor/pdf-js/build', to: 'pdf/build'},
             ],
         }),
 
