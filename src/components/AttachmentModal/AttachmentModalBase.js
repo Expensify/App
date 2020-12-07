@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import Modal from 'react-native-modal';
 import PropTypes from 'prop-types';
 import {
-    View, Dimensions, TouchableOpacity, Text, Image
+    View, Dimensions, TouchableOpacity, Text,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import AttachmentView from '../AttachmentView';
@@ -10,6 +10,7 @@ import styles, {colors} from '../../styles/StyleSheet';
 import ModalView from '../ModalView';
 import ModalHeader from '../ModalHeader';
 import ONYXKEYS from '../../ONYXKEYS';
+import addAuthTokenToURL from '../../libs/addAuthTokenToURL';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -53,6 +54,8 @@ class AttachmentModalBase extends Component {
     constructor(props) {
         super(props);
 
+        this.updateImageDimensions = this.updateImageDimensions.bind(this);
+
         // If pinToEdges is false, the default modal width and height will take up about 80% of the screen
         this.modalWidth = Dimensions.get('window').width * 0.8;
         this.modalHeight = Dimensions.get('window').height * 0.8;
@@ -70,65 +73,35 @@ class AttachmentModalBase extends Component {
         };
     }
 
-    componentDidMount() {
-        this.isComponentMounted = true;
-        this.calculateImageSize();
-    }
-
-    componentDidUpdate(prevProps, prevState) {
-        // Only calculate image size if the source has changed
-        if (prevState.sourceURL !== this.state.sourceURL) {
-            this.calculateImageSize();
-        }
-    }
-
-    componentWillUnmount() {
-        this.isComponentMounted = false;
-    }
-
     /**
-     * Preloads the image by getting the size and setting dimensions to state.
+     * Update image dimensions once the size is fetched
      */
-    calculateImageSize() {
-        if (!this.state.sourceURL) {
-            return;
+    updateImageDimensions({width, height}) {
+        // Unlike the image width, we do allow the image to span the full modal height
+        const modalHeight = this.props.pinToEdges
+            ? Dimensions.get('window').height
+            : this.modalHeight - (styles.modalHeaderBar.height || 0);
+        const modalWidth = this.props.pinToEdges ? Dimensions.get('window').width : this.modalImageWidth;
+        let imageHeight = height;
+        let imageWidth = width;
+
+        // Resize image to fit within the modal, if necessary
+        if (width > modalWidth || height > modalHeight) {
+            const scaleFactor = Math.max(width / modalWidth, height / modalHeight);
+            imageHeight = height / scaleFactor;
+            imageWidth = width / scaleFactor;
         }
 
-        Image.getSize(this.addAuthTokenToURL(this.state.sourceURL), (width, height) => {
-            // Unlike the image width, we do allow the image to span the full modal height
-            const modalHeight = this.props.pinToEdges
-                ? Dimensions.get('window').height
-                : this.modalHeight - (styles.modalHeaderBar.height || 0);
-            const modalWidth = this.props.pinToEdges ? Dimensions.get('window').width : this.modalImageWidth;
-            let imageHeight = height;
-            let imageWidth = width;
-
-            // Resize image to fit within the modal, if necessary
-            if (width > modalWidth || height > modalHeight) {
-                const scaleFactor = Math.max(width / modalWidth, height / modalHeight);
-                imageHeight = height / scaleFactor;
-                imageWidth = width / scaleFactor;
-            }
-
-            if (this.isComponentMounted) {
-                this.setState({imageWidth, imageHeight});
-            }
-        });
-    }
-
-    /**
-     * Add authToken to this attachment URL if necessary
-     *
-     * @param {String} url
-     * @returns {String}
-     */
-    addAuthTokenToURL(url) {
-        return this.props.isAuthTokenRequired
-            ? `${url}?authToken=${this.props.session.authToken}`
-            : url;
+        this.setState({imageWidth, imageHeight});
     }
 
     render() {
+        const sourceURL = addAuthTokenToURL({
+            url: this.state.sourceURL,
+            authToken: this.props.session.authToken,
+            required: this.props.isAuthTokenRequired,
+        });
+
         return (
             <>
                 <Modal
@@ -150,9 +123,10 @@ class AttachmentModalBase extends Component {
                         <View style={styles.imageModalImageCenterContainer}>
                             {this.state.sourceURL && (
                                 <AttachmentView
-                                    sourceURL={this.addAuthTokenToURL(this.state.sourceURL)}
-                                    imageHeight={this.state.imageHeight}
-                                    imageWidth={this.state.imageWidth}
+                                    sourceURL={sourceURL}
+                                    height={this.state.imageHeight}
+                                    width={this.state.imageWidth}
+                                    onImagePrefetched={this.updateImageDimensions}
                                     file={this.state.file}
                                 />
                             )}

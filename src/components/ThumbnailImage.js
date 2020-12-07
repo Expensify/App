@@ -1,8 +1,9 @@
 import React, {Component} from 'react';
-import {Image} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
+import ImageWithSizeCalculation from './ImageWithSizeCalculation';
+import addAuthTokenToURL from '../libs/addAuthTokenToURL';
 
 const propTypes = {
     // Source URL for the preview image
@@ -29,58 +30,37 @@ class ThumbnailImage extends Component {
     constructor(props) {
         super(props);
 
+        this.updateImageSize = this.updateImageSize.bind(this);
+
         this.state = {
             thumbnailWidth: 200,
             thumbnailHeight: 200,
         };
-
-        this.isComponentMounted = false;
     }
 
-    componentDidMount() {
-        // If the component unmounts by the time getSize() is finished, it will throw a warning
-        // So this is to prevent setting state if the component isn't mounted
-        this.isComponentMounted = true;
-
-        // Scale image for thumbnail preview
-        Image.getSize(this.props.previewSourceURL, (width, height) => {
-            // Width of the thumbnail works better as a constant than it does
-            // a percentage of the screen width since it is relative to each screen
-            const thumbnailScreenWidth = 250;
-            const scaleFactor = width / thumbnailScreenWidth;
-            const imageHeight = height / scaleFactor;
-
-            if (this.isComponentMounted) {
-                this.setState({thumbnailWidth: thumbnailScreenWidth, thumbnailHeight: imageHeight});
-            }
-        });
-    }
-
-    componentWillUnmount() {
-        this.isComponentMounted = false;
-    }
-
-    /**
-     * Add authToken to this attachment URL if necessary
-     *
-     * @param {String} url
-     * @returns {String}
-     */
-    addAuthTokenToURL(url) {
-        return this.props.isAuthTokenRequired
-            ? `${url}?authToken=${this.props.session.authToken}`
-            : url;
+    updateImageSize({width, height}) {
+        // Width of the thumbnail works better as a constant than it does
+        // a percentage of the screen width since it is relative to each screen
+        const thumbnailScreenWidth = 250;
+        const scaleFactor = width / thumbnailScreenWidth;
+        const imageHeight = height / scaleFactor;
+        this.setState({thumbnailWidth: thumbnailScreenWidth, thumbnailHeight: imageHeight});
     }
 
     render() {
+        const url = addAuthTokenToURL({
+            url: this.props.previewSourceURL,
+            authToken: this.props.session.authToken,
+            required: this.props.isAuthTokenRequired,
+        });
+
         return (
-            <Image
-                style={{
-                    ...this.props.style,
-                    width: this.state.thumbnailWidth,
-                    height: this.state.thumbnailHeight,
-                }}
-                source={{uri: this.addAuthTokenToURL(this.props.previewSourceURL)}}
+            <ImageWithSizeCalculation
+                style={this.props.style}
+                width={this.state.thumbnailWidth}
+                height={this.state.thumbnailHeight}
+                url={url}
+                onMeasure={this.updateImageSize}
             />
         );
     }
