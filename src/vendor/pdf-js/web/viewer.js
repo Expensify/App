@@ -2351,7 +2351,7 @@ const PDFViewerApplication = {
 exports.PDFViewerApplication = PDFViewerApplication;
 let validateFileURL;
 {
-  const HOSTED_VIEWER_ORIGINS = ["null", "http://mozilla.github.io", "https://mozilla.github.io", "http://localhost:8080", "https://chat.expensify.com", "https://expensify.cash", "app://-"];
+  const HOSTED_VIEWER_ORIGINS = ["null", "http://mozilla.github.io", "https://mozilla.github.io", "http://localhost:8080", "http://localhost:8081", "http://localhost:8082", "https://chat.expensify.com", "https://expensify.cash", "https://www.expensify.cash", "https://www.expensify.com", "https://expensify.com", "app://-"];
 
   validateFileURL = function (file) {
     if (file === undefined) {
