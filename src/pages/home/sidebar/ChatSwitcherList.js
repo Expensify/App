@@ -29,9 +29,10 @@ const ChatSwitcherList = ({
     onSelectRow,
     onAddToGroup,
 }) => (
-    <View style={[styles.flex1]}>
-        {options.length > 0 && (
+    options.length > 0 && (
+        <View style={[styles.flex1, styles.mt1]}>
             <FlatList
+                keyboardShouldPersistTaps="always"
                 showsVerticalScrollIndicator={false}
                 data={options}
                 keyExtractor={option => (option.type === 'user' ? option.alternateText : String(option.reportID))}
@@ -48,9 +49,9 @@ const ChatSwitcherList = ({
                 ListFooterComponent={View}
                 ListFooterComponentStyle={[styles.p1]}
             />
-        )}
-        <KeyboardSpacer />
-    </View>
+            <KeyboardSpacer />
+        </View>
+    )
 );
 
 ChatSwitcherList.propTypes = propTypes;

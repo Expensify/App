@@ -14,7 +14,7 @@
  *     hoc3(config3),
  * )(Component)
  *
- * @returns {*|(function(...[*]): *)|(function(*): *)}
+ * @returns {Function}
  */
 export default function compose(...funcs) {
     if (funcs.length === 0) {
