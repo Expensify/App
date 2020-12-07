@@ -8,6 +8,8 @@ const safeInsertPercentage = 0.7;
 const colors = {
     componentBG: '#FFFFFF',
     background: '#FAFAFA',
+    whiteSmoke: '#F8F8F8',
+    whisper: '#EEEEEE',
     black: '#000000',
     blue: '#2EAAE2',
     border: '#ECECEC',
@@ -937,6 +939,25 @@ const styles = {
         alignItems: 'center',
         overflow: 'hidden',
         width: '100%',
+    },
+
+    defaultAttachmentView: {
+        backgroundColor: colors.whiteSmoke,
+        borderRadius: 4,
+        borderWidth: 1,
+        borderColor: colors.whisper,
+        flexDirection: 'row',
+        paddingTop: 10,
+        paddingBottom: 10,
+        paddingRight: 20,
+        paddingLeft: 20,
+        alignItems: 'center',
+    },
+
+    defaultAttachmentViewIcon: {
+        width: 47,
+        height: 60,
+        marginRight: 20,
     },
 };
 

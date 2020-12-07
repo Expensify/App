@@ -56,26 +56,11 @@ const AttachmentView = (props) => {
 
     return (
         <View
-            style={{
-                backgroundColor: '#F8F8F8',
-                borderRadius: 4,
-                borderWidth: 1,
-                borderColor: '#EEEEEE',
-                flexDirection: 'row',
-                paddingTop: 10,
-                paddingBottom: 10,
-                paddingRight: 20,
-                paddingLeft: 20,
-                alignItems: 'center',
-            }}
+            style={styles.defaultAttachmentView}
         >
             <Image
                 source={iconFile}
-                style={{
-                    width: 47,
-                    height: 60,
-                    marginRight: 20,
-                }}
+                style={styles.defaultAttachmentViewIcon}
             />
             <Text style={styles.textStrong}>{props.file && props.file.name}</Text>
         </View>
