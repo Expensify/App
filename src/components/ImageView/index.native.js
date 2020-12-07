@@ -10,7 +10,7 @@ import ImageWithSizeCalculation from '../ImageWithSizeCalculation';
 
 const propTypes = {
     // URL to full-sized image
-    url: PropTypes.string,
+    url: PropTypes.string.isRequired,
 
     // Image height
     height: PropTypes.number,
@@ -23,12 +23,12 @@ const propTypes = {
 };
 
 const defaultProps = {
-    sourceURL: '',
     height: 300,
     width: 300,
+    onMeasure: () => {},
 };
 
-const ImageView = props => {
+const ImageView = (props) => {
     // Default windowHeight accounts for the modal header height of 73
     const windowHeight = Dimensions.get('window').height - 73;
     const windowWidth = Dimensions.get('window').width;
@@ -49,7 +49,7 @@ const ImageView = props => {
             </ImgZoom>
         </View>
     );
-}
+};
 
 ImageView.propTypes = propTypes;
 ImageView.defaultProps = defaultProps;
