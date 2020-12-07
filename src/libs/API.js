@@ -21,6 +21,12 @@ Onyx.connect({
     callback: val => authToken = val ? val.authToken : null,
 });
 
+let email;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: val => email = val ? val.email : null,
+});
+
 /**
  * Does this command require an authToken?
  *
@@ -327,8 +333,8 @@ function Log(parameters) {
     // then we do not want to include this. If we pass
     // this as null or undefined that will literally
     // appear in the logs instead of we@dont.know
-    if (parameters.email) {
-        requestParams.email = parameters.email;
+    if (email) {
+        requestParams.email = email;
     }
     return request(commandName, requestParams);
 }

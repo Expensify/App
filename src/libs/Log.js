@@ -1,14 +1,6 @@
 import Logger from 'expensify-common/lib/Logger';
-import Onyx from 'react-native-onyx';
 import * as API from './API';
 import CONFIG from '../CONFIG';
-import ONYXKEYS from '../ONYXKEYS';
-
-let email;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: val => email = val ? val.email : null,
-});
 
 /**
  * Network interface for logger.
@@ -18,7 +10,7 @@ Onyx.connect({
  * @param {String} params.message
  */
 function serverLoggingCallback(params) {
-    API.Log([email, ...params]);
+    API.Log(params);
 }
 
 // Note: We are importing Logger from expensify-common because it is
