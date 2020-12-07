@@ -5,19 +5,30 @@
 import React from 'react';
 import {Pressable} from 'react-native';
 
+/**
+ * Returns the display name of a component
+ *
+ * @param {object} component
+ * @returns {string}
+ */
+function getDisplayName(component) {
+    return component.displayName || component.name || 'Component';
+}
+
 export default function (onSecondaryInteraction) {
     return (WrappedComponent) => {
-        const withSecondaryInteractionHandler = (props) => {
-            return (
-                <Pressable
-                    onLongPress={onSecondaryInteraction}
-                >
-                    <WrappedComponent
-                        {...props}
-                    />
-                </Pressable>
-            )
-        };
+        const withSecondaryInteractionHandler = props => (
+            <Pressable
+                onLongPress={onSecondaryInteraction}
+            >
+                <WrappedComponent
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...props}
+                />
+            </Pressable>
+        );
+
+        withSecondaryInteractionHandler.displayName = `withSecondaryInteractionHandler(${getDisplayName(WrappedComponent)})`;
         return withSecondaryInteractionHandler;
     };
-};
+}
