@@ -1,15 +1,15 @@
 PODS:
-  - Airship (13.5.4):
-    - Airship/Automation (= 13.5.4)
-    - Airship/Core (= 13.5.4)
-    - Airship/ExtendedActions (= 13.5.4)
-    - Airship/MessageCenter (= 13.5.4)
-  - Airship/Automation (13.5.4):
+  - Airship (14.0.1):
+    - Airship/Automation (= 14.0.1)
+    - Airship/Core (= 14.0.1)
+    - Airship/ExtendedActions (= 14.0.1)
+    - Airship/MessageCenter (= 14.0.1)
+  - Airship/Automation (14.0.1):
     - Airship/Core
-  - Airship/Core (13.5.4)
-  - Airship/ExtendedActions (13.5.4):
+  - Airship/Core (14.0.1)
+  - Airship/ExtendedActions (14.0.1):
     - Airship/Core
-  - Airship/MessageCenter (13.5.4):
+  - Airship/MessageCenter (14.0.1):
     - Airship/Core
   - boost-for-react-native (1.63.0)
   - CocoaAsyncSocket (7.6.4)
@@ -417,8 +417,8 @@ PODS:
     - Firebase/Crashlytics (~> 6.34.0)
     - React-Core
     - RNFBApp
-  - urbanairship-react-native (8.1.0):
-    - Airship (= 13.5.4)
+  - urbanairship-react-native (9.0.1):
+    - Airship (= 14.0.1)
     - React
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
@@ -603,7 +603,7 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  Airship: cbbd372a4ffc8dcfeacec01fd623155ec41f33ed
+  Airship: 842b4f28face4db0042a8a929703df33753ac033
   boost-for-react-native: 39c7adb57c4e60d6c5479dd8623128eb5b3f0f2c
   CocoaAsyncSocket: 694058e7c0ed05a9e217d1b3c7ded962f4180845
   CocoaLibEvent: 2fab71b8bd46dd33ddb959f7928ec5909f838e3f
@@ -666,7 +666,7 @@ SPEC CHECKSUMS:
   RNFBAnalytics: 2dc4dd9e2445faffca041b10447a23a71dcdabf8
   RNFBApp: 7eacc7da7ab19f96c05e434017d44a9f09410da8
   RNFBCrashlytics: 4870c14cf8833053b6b5648911abefe1923854d2
-  urbanairship-react-native: fa123940041a6a13ab7dac192e32833c53754f00
+  urbanairship-react-native: b948f8d55fff0013e595ebbe84804e46d18c745b
   Yoga: 7d13633d129fd179e01b8953d38d47be90db185a
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 

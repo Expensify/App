@@ -51,7 +51,7 @@ function xhr(command, data, type = 'post') {
  * Just download a file from the web server.
  *
  * @param {String} relativePath From the website root, NOT the API root. (no leading slash, ., or ..)
- * @returns {Promise<Response>}
+ * @returns {Promise}
  */
 function download(relativePath) {
     const siteRoot = CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH;

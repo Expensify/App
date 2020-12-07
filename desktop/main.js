@@ -100,6 +100,16 @@ const mainWindow = (() => {
                 }
             });
 
+            // Initiating a browser-back or browser-forward with mouse buttons should navigate history.
+            browserWindow.on('app-command', (e, cmd) => {
+                if (cmd === 'browser-backward') {
+                    browserWindow.webContents.goBack();
+                }
+                if (cmd === 'browser-forward') {
+                    browserWindow.webContents.goForward();
+                }
+            });
+
             app.on('before-quit', () => quitting = true);
             app.on('activate', () => browserWindow.show());
 
