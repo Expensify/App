@@ -35,7 +35,7 @@ class ReportActionItemFragment extends React.PureComponent {
                             <ActivityIndicator
                                 size="large"
                                 color={colors.textSupporting}
-                                style={[styles.h100p]}
+                                style={[styles.flex1]}
                             />
                         </View>
                     );

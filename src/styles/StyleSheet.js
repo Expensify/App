@@ -89,10 +89,6 @@ const styles = {
         paddingRight: 8,
     },
 
-    h100p: {
-        height: '100%',
-    },
-
     flex0: {
         flex: 0,
     },
