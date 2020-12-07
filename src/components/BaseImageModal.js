@@ -15,9 +15,6 @@ import ONYXKEYS from '../ONYXKEYS';
  * Used for smaller image previews that also need to be viewed full-sized like in report comments
  */
 
-const DEFAULT_IMAGE_SIZE = 300;
-const DEFAULT_THUMBNAIL_SIZE = 250;
-
 const propTypes = {
     // Should modal go full screen
     pinToEdges: PropTypes.bool,
@@ -69,10 +66,10 @@ class BaseImageModal extends React.Component {
         super(props);
 
         this.state = {
-            imageWidth: DEFAULT_IMAGE_SIZE,
-            imageHeight: DEFAULT_IMAGE_SIZE,
-            thumbnailWidth: DEFAULT_THUMBNAIL_SIZE,
-            thumbnailHeight: DEFAULT_THUMBNAIL_SIZE,
+            imageWidth: 300,
+            imageHeight: 300,
+            thumbnailWidth: 200,
+            thumbnailHeight: 200,
             isModalOpen: false,
         };
 
@@ -97,7 +94,7 @@ class BaseImageModal extends React.Component {
 
             // Width of the thumbnail works better as a constant than it does
             // a percentage of the screen width since it is relative to each screen
-            const thumbnailScreenWidth = DEFAULT_THUMBNAIL_SIZE;
+            const thumbnailScreenWidth = 250;
             const scaleFactor = width / thumbnailScreenWidth;
             const imageHeight = height / scaleFactor;
 
