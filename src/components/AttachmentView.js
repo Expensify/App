@@ -12,22 +12,25 @@ const propTypes = {
     sourceURL: PropTypes.string.isRequired,
 
     // Height of image
-    imageHeight: PropTypes.number,
+    height: PropTypes.number,
 
     // Width of image
-    imageWidth: PropTypes.number,
+    width: PropTypes.number,
 
     file: PropTypes.shape({
         name: PropTypes.string,
     }),
+
+    // Callback to fire once image has been measured
+    onImagePrefetched: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
-    imageHeight: 200,
-    imageWidth: 200,
+    height: 200,
+    width: 200,
     file: {
         name: 'Unknown Filename',
-    }
+    },
 };
 
 const AttachmentView = (props) => {
@@ -43,9 +46,10 @@ const AttachmentView = (props) => {
     if (Str.isImage(props.sourceURL)) {
         return (
             <ImageView
-                imageWidth={props.imageWidth}
-                imageHeight={props.imageHeight}
-                sourceURL={props.sourceURL}
+                width={props.width}
+                height={props.height}
+                url={props.sourceURL}
+                onMeasure={props.onImagePrefetched}
             />
         );
     }

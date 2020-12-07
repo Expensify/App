@@ -1,7 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, Dimensions, Image} from 'react-native';
+import {View, Dimensions} from 'react-native';
 import ImgZoom from 'react-native-image-pan-zoom';
+import ImageWithSizeCalculation from '../ImageWithSizeCalculation';
 
 /**
  * On the native layer, we use a image library to handle zoom functionality
@@ -9,50 +10,46 @@ import ImgZoom from 'react-native-image-pan-zoom';
 
 const propTypes = {
     // URL to full-sized image
-    sourceURL: PropTypes.string,
+    url: PropTypes.string,
 
     // Image height
-    imageHeight: PropTypes.number,
+    height: PropTypes.number,
 
     // Image width
-    imageWidth: PropTypes.number,
+    width: PropTypes.number,
 
-    // Window Height
-    windowHeight: PropTypes.number,
-
-    // Window Width
-    windowWidth: PropTypes.number,
-
-    // Any additional styles to apply
-    wrapperStyle: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
+    // Callback to fire when image is measured
+    onMeasure: PropTypes.func,
 };
 
 const defaultProps = {
     sourceURL: '',
-    imageHeight: 300,
-    imageWidth: 300,
-
-    // Default windowHeight accounts for the modal header height of 73
-    windowHeight: Dimensions.get('window').height - 73,
-    windowWidth: Dimensions.get('window').width,
-    wrapperStyle: {},
+    height: 300,
+    width: 300,
 };
 
-const ImageView = props => (
-    <View style={props.wrapperStyle}>
-        <ImgZoom
-            cropWidth={props.windowWidth}
-            cropHeight={props.windowHeight}
-            imageWidth={props.imageWidth}
-            imageHeight={props.imageHeight}
-        >
-            <Image
-                style={{width: props.imageWidth, height: props.imageHeight}}
-                source={{uri: props.sourceURL}}
-            />
-        </ImgZoom>
-    </View>
-);
+const ImageView = props => {
+    // Default windowHeight accounts for the modal header height of 73
+    const windowHeight = Dimensions.get('window').height - 73;
+    const windowWidth = Dimensions.get('window').width;
+
+    return (
+        <View>
+            <ImgZoom
+                cropWidth={windowWidth}
+                cropHeight={windowHeight}
+                imageWidth={props.width}
+                imageHeight={props.height}
+            >
+                <ImageWithSizeCalculation
+                    style={{width: props.width, height: props.height}}
+                    url={props.url}
+                    onMeasure={props.onMeasure}
+                />
+            </ImgZoom>
+        </View>
+    );
+}
 
 ImageView.propTypes = propTypes;
 ImageView.defaultProps = defaultProps;
