@@ -905,6 +905,7 @@ const styles = {
         borderRadius: 20,
         height: '100%',
         alignItems: 'center',
+        overflow: 'hidden',
     },
 
     modalHeaderBar: {
@@ -939,6 +940,7 @@ const styles = {
         justifyContent: 'center',
         alignItems: 'center',
         overflow: 'hidden',
+        width: '100%',
     },
 };
 
