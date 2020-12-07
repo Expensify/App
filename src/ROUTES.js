@@ -9,4 +9,5 @@ export default {
     SIGNIN: '/signin',
     SIGNIN_WITH_EXITTO: '/signIn/exitTo/:exitTo*',
     getSigninWithExitToRoute: exitTo => `/signin/exitTo${exitTo}`,
+    NOT_FOUND: '/404',
 };
