@@ -5,6 +5,7 @@ import Onyx, {withOnyx} from 'react-native-onyx';
 import {recordCurrentlyViewedReportID, recordCurrentRoute} from './libs/actions/App';
 import SignInPage from './pages/SignInPage';
 import HomePage from './pages/home/HomePage';
+import NotFoundPage from './pages/NotFound';
 import listenToStorageEvents from './libs/listenToStorageEvents';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import ONYXKEYS from './ONYXKEYS';
@@ -121,6 +122,7 @@ class Expensify extends Component {
                                 : <Redirect to={ROUTES.SIGNIN} />
                         )}
                     />
+                    <Route path={[ROUTES.NOT_FOUND]} component={NotFoundPage} />
                     <Route path={[ROUTES.SIGNIN_WITH_EXITTO, ROUTES.SIGNIN]} component={SignInPage} />
                     <Route path={[ROUTES.HOME, ROUTES.ROOT]} component={HomePage} />
                 </Switch>

@@ -8,6 +8,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/StyleSheet';
 import {withRouter} from '../../libs/Router';
 import compose from '../../libs/compose';
+import {fetchChatReport} from '../../libs/actions/Report';
 
 const propTypes = {
     // This comes from withRouter
@@ -27,6 +28,29 @@ const defaultProps = {
 };
 
 class MainView extends Component {
+    componentDidMount() {
+        const reportID = parseInt(this.props.match.params.reportID, 10);
+        this.fetchReportIfNeeded(reportID);
+    }
+
+    componentDidUpdate(prevProps) {
+        const previousReportID = parseInt(prevProps.match.params.reportID, 10);
+        const newReportID = parseInt(this.props.match.params.reportID, 10);
+
+        if (previousReportID !== newReportID) {
+            this.fetchReportIfNeeded(newReportID);
+        }
+    }
+
+    fetchReportIfNeeded(reportID) {
+        // Check to see if this report exists in the report list and if so do not fetch it.
+        if (_.find(this.props.reports, report => report.reportID === reportID)) {
+            return;
+        }
+
+        fetchChatReport(reportID);
+    }
+
     render() {
         const reportIDInUrl = parseInt(this.props.match.params.reportID, 10);
 
@@ -54,6 +78,7 @@ class MainView extends Component {
                 || report.unreadActionCount > 0
                 || report.reportID === reportIDInUrl
         ));
+
         return (
             <>
                 {_.map(reportsToDisplay, report => (
