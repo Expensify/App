@@ -58,8 +58,8 @@ const lastReadActionIDs = {};
 /**
  * Checks the report to see if there are any unread action items
  *
- * @param {object} report
- * @returns {boolean}
+ * @param {Object} report
+ * @returns {Boolean}
  */
 function getUnreadActionCount(report) {
     const usersLastReadActionID = lodashGet(report, [
@@ -97,11 +97,11 @@ function getParticipantEmailsFromReport({sharedReportList}) {
  * Only store the minimal amount of data in Onyx that needs to be stored
  * because space is limited
  *
- * @param {object} report
- * @param {number} report.reportID
- * @param {string} report.reportName
- * @param {object} report.reportNameValuePairs
- * @returns {object}
+ * @param {Object} report
+ * @param {Number} report.reportID
+ * @param {String} report.reportName
+ * @param {Object} report.reportNameValuePairs
+ * @returns {Object}
  */
 function getSimplifiedReportObject(report) {
     return {
@@ -118,8 +118,8 @@ function getSimplifiedReportObject(report) {
 /**
  * Returns a generated report title based on the participants
  *
- * @param {array} sharedReportList
- * @return {string}
+ * @param {Array} sharedReportList
+ * @return {String}
  */
 function getChatReportName(sharedReportList) {
     return _.chain(sharedReportList)
@@ -197,8 +197,8 @@ function setLocalLastReadActionID(reportID, sequenceNumber) {
 /**
  * Updates a report in the store with a new report action
  *
- * @param {number} reportID
- * @param {object} reportAction
+ * @param {Number} reportID
+ * @param {Object} reportAction
  */
 function updateReportWithNewAction(reportID, reportAction) {
     const newMaxSequenceNumber = reportAction.sequenceNumber;
@@ -264,8 +264,8 @@ function updateReportWithNewAction(reportID, reportAction) {
 /**
  * Get the private pusher channel name for a Report.
  *
- * @param {number} reportID
- * @returns {string}
+ * @param {Number} reportID
+ * @returns {String}
  */
 function getReportChannelName(reportID) {
     return `private-report-reportID-${reportID}`;
@@ -303,7 +303,7 @@ function subscribeToReportCommentEvents() {
 /**
  * Initialize our pusher subscriptions to listen for someone typing in a report.
  *
- * @param {number} reportID
+ * @param {Number} reportID
  */
 function subscribeToReportTypingEvents(reportID) {
     if (!reportID) {
@@ -341,7 +341,7 @@ function subscribeToReportTypingEvents(reportID) {
 /**
  * Remove our pusher subscriptions to listen for someone typing in a report.
  *
- * @param {number} reportID
+ * @param {Number} reportID
  */
 function unsubscribeFromReportChannel(reportID) {
     if (!reportID) {
@@ -371,7 +371,7 @@ function fetchChatReports() {
 /**
  * Get the actions of a report
  *
- * @param {number} reportID
+ * @param {Number} reportID
  */
 function fetchActions(reportID) {
     API.Report_GetHistory({reportID})
@@ -389,9 +389,9 @@ function fetchActions(reportID) {
 /**
  * Get all of our reports
  *
- * @param {boolean} shouldRedirectToReport this is set to false when the network reconnect
+ * @param {Boolean} shouldRedirectToReport this is set to false when the network reconnect
  *     code runs
- * @param {boolean} shouldFetchActions whether or not the actions of the reports should also be fetched
+ * @param {Boolean} shouldFetchActions whether or not the actions of the reports should also be fetched
  */
 function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false) {
     fetchChatReports()
@@ -418,7 +418,7 @@ function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false) {
  * Get the report ID, and then the actions, for a chat report for a specific
  * set of participants
  *
- * @param {string[]} participants
+ * @param {String[]} participants
  */
 function fetchOrCreateChatReport(participants) {
     let reportID;
@@ -463,9 +463,9 @@ function fetchOrCreateChatReport(participants) {
 /**
  * Add an action item to a report
  *
- * @param {number} reportID
- * @param {string} text
- * @param {object} [file]
+ * @param {Number} reportID
+ * @param {String} text
+ * @param {Object} [file]
  */
 function addAction(reportID, text, file) {
     const actionKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
@@ -527,8 +527,8 @@ function addAction(reportID, text, file) {
  * Updates the last read action ID on the report. It optimistically makes the change to the store, and then let's the
  * network layer handle the delayed write.
  *
- * @param {number} reportID
- * @param {number} sequenceNumber
+ * @param {Number} reportID
+ * @param {Number} sequenceNumber
  */
 function updateLastReadActionID(reportID, sequenceNumber) {
     const currentMaxSequenceNumber = reportMaxSequenceNumbers[reportID];
@@ -549,7 +549,7 @@ function updateLastReadActionID(reportID, sequenceNumber) {
 /**
  * Toggles the pinned state of the report
  *
- * @param {object} report
+ * @param {Object} report
  */
 function togglePinnedState(report) {
     const pinnedValue = !report.isPinned;
@@ -564,8 +564,8 @@ function togglePinnedState(report) {
  * Saves the comment left by the user as they are typing. By saving this data the user can switch between chats, close
  * tab, refresh etc without worrying about loosing what they typed out.
  *
- * @param {number} reportID
- * @param {string} comment
+ * @param {Number} reportID
+ * @param {String} comment
  */
 function saveReportComment(reportID, comment) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, comment);
@@ -574,7 +574,7 @@ function saveReportComment(reportID, comment) {
 /**
  * Broadcasts whether or not a user is typing on a report over the report's private pusher channel.
  *
- * @param {number} reportID
+ * @param {Number} reportID
  */
 function broadcastUserIsTyping(reportID) {
     const privateReportChannelName = getReportChannelName(reportID);
@@ -587,7 +587,7 @@ function broadcastUserIsTyping(reportID) {
  * When a report changes in Onyx, this fetches the report from the API if the report doesn't have a name
  * and it keeps track of the max sequence number on the report actions.
  *
- * @param {object} report
+ * @param {Object} report
  */
 function handleReportChanged(report) {
     if (!report) {
