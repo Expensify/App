@@ -54,6 +54,7 @@ function addAuthTokenToParameters(command, parameters) {
         if (!authToken) {
             const errorMessage = 'A request was made without an authToken';
             console.error(errorMessage, {command, parameters});
+            // eslint-disable-next-line no-use-before-define
             Log({message: errorMessage, parameters: {command, ...parameters}});
             Network.unpauseRequestQueue();
             redirectToSignIn();
