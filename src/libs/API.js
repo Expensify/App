@@ -32,7 +32,7 @@ function isAuthTokenRequired(command) {
 /**
  * Adds CSRF and AuthToken to our request data
  *
- * @param {string} command
+ * @param {String} command
  * @param {Object} parameters
  * @returns {Object}
  */
@@ -96,9 +96,9 @@ function requireParameters(parameterNames, parameters, commandName) {
  * then replays the original request
  *
  * @param {Object} originalResponse
- * @param {string} originalCommand
- * @param {object} [originalParameters]
- * @param {string} [originalType]
+ * @param {String} originalCommand
+ * @param {Object} [originalParameters]
+ * @param {String} [originalType]
  */
 function handleExpiredAuthToken(originalResponse, originalCommand, originalParameters, originalType) {
     // There are some API requests that should not be retried when there is an auth failure
@@ -162,7 +162,7 @@ function handleExpiredAuthToken(originalResponse, originalCommand, originalParam
  *
  * @param {String} command Name of the command to run
  * @param {Object} [parameters] A map of parameter names to their values
- * @param {string} [type]
+ * @param {String} [type]
  *
  * @returns {Promise}
  */
@@ -188,20 +188,20 @@ function request(command, parameters, type = 'post') {
 /**
  * Access the current authToken
  *
- * @returns {string}
+ * @returns {String}
  */
 function getAuthToken() {
     return authToken;
 }
 
 /**
- * @param {object} parameters
- * @param {string} [parameters.useExpensifyLogin]
- * @param {string} parameters.partnerName
- * @param {string} parameters.partnerPassword
- * @param {string} parameters.partnerUserID
- * @param {string} parameters.partnerUserSecret
- * @param {string} [parameters.twoFactorAuthCode]
+ * @param {Object} parameters
+ * @param {String} [parameters.useExpensifyLogin]
+ * @param {String} parameters.partnerName
+ * @param {String} parameters.partnerPassword
+ * @param {String} parameters.partnerUserID
+ * @param {String} parameters.partnerUserSecret
+ * @param {String} [parameters.twoFactorAuthCode]
  * @returns {Promise}
  */
 function Authenticate(parameters) {
@@ -254,12 +254,12 @@ function CreateChatReport(parameters) {
 }
 
 /**
- * @param {object} parameters
- * @param {string} parameters.authToken
- * @param {string} parameters.partnerName
- * @param {string} parameters.partnerPassword
- * @param {string} parameters.partnerUserID
- * @param {string} parameters.partnerUserSecret
+ * @param {Object} parameters
+ * @param {String} parameters.authToken
+ * @param {String} parameters.partnerName
+ * @param {String} parameters.partnerPassword
+ * @param {String} parameters.partnerUserID
+ * @param {String} parameters.partnerUserSecret
  * @returns {Promise}
  */
 function CreateLogin(parameters) {
@@ -275,11 +275,11 @@ function CreateLogin(parameters) {
 }
 
 /**
- * @param {object} parameters
- * @param {string} parameters.partnerUserID
- * @param {string} parameters.partnerName
- * @param {string} parameters.partnerPassword
- * @param {string} parameters.doNotRetry
+ * @param {Object} parameters
+ * @param {String} parameters.partnerUserID
+ * @param {String} parameters.partnerName
+ * @param {String} parameters.partnerPassword
+ * @param {String} parameters.doNotRetry
  * @returns {Promise}
  */
 function DeleteLogin(parameters) {
@@ -290,8 +290,8 @@ function DeleteLogin(parameters) {
 }
 
 /**
- * @param {object} parameters
- * @param {string} parameters.returnValueList
+ * @param {Object} parameters
+ * @param {String} parameters.returnValueList
  * @returns {Promise}
  */
 function Get(parameters) {
@@ -317,8 +317,8 @@ function Log(parameters) {
 }
 
 /**
- * @param {object} parameters
- * @param {string} parameters.emailList
+ * @param {Object} parameters
+ * @param {String} parameters.emailList
  * @returns {Promise}
  */
 function PersonalDetails_GetForEmails(parameters) {
@@ -329,9 +329,9 @@ function PersonalDetails_GetForEmails(parameters) {
 }
 
 /**
- * @param {object} parameters
- * @param {string} parameters.socket_id
- * @param {string} parameters.channel_name
+ * @param {Object} parameters
+ * @param {String} parameters.socket_id
+ * @param {String} parameters.channel_name
  * @returns {Promise}
  */
 function Push_Authenticate(parameters) {
@@ -342,10 +342,10 @@ function Push_Authenticate(parameters) {
 }
 
 /**
- * @param {object} parameters
- * @param {string} parameters.reportComment
- * @param {number} parameters.reportID
- * @param {object} [parameters.file]
+ * @param {Object} parameters
+ * @param {String} parameters.reportComment
+ * @param {Number} parameters.reportID
+ * @param {Object} [parameters.file]
  * @returns {Promise}
  */
 function Report_AddComment(parameters) {
@@ -356,8 +356,8 @@ function Report_AddComment(parameters) {
 }
 
 /**
- * @param {object} parameters
- * @param {number} parameters.reportID
+ * @param {Object} parameters
+ * @param {Number} parameters.reportID
  * @returns {Promise}
  */
 function Report_GetHistory(parameters) {
@@ -368,9 +368,9 @@ function Report_GetHistory(parameters) {
 }
 
 /**
- * @param {object} parameters
- * @param {number} parameters.reportID
- * @param {boolean} parameters.pinnedValue
+ * @param {Object} parameters
+ * @param {Number} parameters.reportID
+ * @param {Boolean} parameters.pinnedValue
  * @returns {Promise}
  */
 function Report_TogglePinned(parameters) {
@@ -381,10 +381,10 @@ function Report_TogglePinned(parameters) {
 }
 
 /**
- * @param {object} parameters
- * @param {number} parameters.accountID
- * @param {number} parameters.reportID
- * @param {number} parameters.sequenceNumber
+ * @param {Object} parameters
+ * @param {Number} parameters.accountID
+ * @param {Number} parameters.reportID
+ * @param {Number} parameters.sequenceNumber
  * @returns {Promise}
  */
 function Report_SetLastReadActionID(parameters) {
