@@ -110,6 +110,9 @@ class Expensify extends Component {
                 {/* Leave this as a ternary or else iOS throws an error about text not being wrapped in <Text> */}
                 {redirectTo ? <Redirect push to={redirectTo} /> : null}
                 <Route path="*" render={recordCurrentRoute} />
+
+                {/* We must record the currentlyViewedReportID when hitting the 404 page so */}
+                {/* that we do not try to redirect back to that report again */}
                 <Route path={[ROUTES.REPORT, ROUTES.NOT_FOUND]} exact render={recordCurrentlyViewedReportID} />
 
                 <Switch>
