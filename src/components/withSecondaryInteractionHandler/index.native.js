@@ -28,7 +28,8 @@ export default function (onSecondaryInteraction) {
             </Pressable>
         );
 
-        withSecondaryInteractionHandler.displayName = `withSecondaryInteractionHandler(${getDisplayName(WrappedComponent)})`;
+        withSecondaryInteractionHandler
+            .displayName = `withSecondaryInteractionHandler(${getDisplayName(WrappedComponent)})`;
         return withSecondaryInteractionHandler;
     };
 }
