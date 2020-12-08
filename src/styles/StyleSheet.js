@@ -928,9 +928,13 @@ const styles = {
         overflow: 'hidden',
     },
 
-    notFoundView: {
+    notFoundSafeArea: {
         flex: 1,
         backgroundColor: colors.arsenic,
+    },
+
+    notFoundView: {
+        flex: 1,
         alignItems: 'center',
         paddingTop: 40,
         paddingBottom: 40,
