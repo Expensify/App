@@ -89,10 +89,6 @@ const styles = {
         paddingRight: 8,
     },
 
-    h100p: {
-        height: '100%',
-    },
-
     flex0: {
         flex: 0,
     },
@@ -971,6 +967,9 @@ const webViewStyles = {
             paddingLeft: 12,
             marginTop: 4,
             marginBottom: 4,
+
+            // Overwrite default HTML margin for blockquotes
+            marginLeft: 0,
         },
 
         pre: {

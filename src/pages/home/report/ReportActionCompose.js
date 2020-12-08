@@ -38,7 +38,7 @@ class ReportActionCompose extends React.Component {
         this.triggerSubmitShortcut = this.triggerSubmitShortcut.bind(this);
         this.submitForm = this.submitForm.bind(this);
         this.setIsFocused = this.setIsFocused.bind(this);
-        this.comment = '';
+        this.comment = props.comment;
         this.state = {
             isFocused: false,
             textInputShouldClear: false
