@@ -1,3 +1,4 @@
+import {Platform} from 'react-native';
 import INTERFACE_TYPES from './INTERFACE_TYPES';
 
 export default {
@@ -7,6 +8,6 @@ export default {
      *
      * @returns {string}
      */
-    getInterfaceType: () => INTERFACE_TYPES.TOUCH_ONLY,
+    getInterfaceType: () => ((Platform.isPad() || false) ? INTERFACE_TYPES.HYBRID : INTERFACE_TYPES.TOUCH_ONLY),
     interfaceTypes: INTERFACE_TYPES,
 };
