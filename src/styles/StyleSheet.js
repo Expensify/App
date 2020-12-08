@@ -6,6 +6,7 @@ import addOutlineWidth from './addOutlineWidth';
 const safeInsertPercentage = 0.7;
 
 const colors = {
+    arsenic: '#39444B',
     componentBG: '#FFFFFF',
     background: '#FAFAFA',
     black: '#000000',
@@ -23,6 +24,7 @@ const colors = {
     red: '#E84A3B',
     buttonBG: '#8A8A8A',
     modalBackdrop: '#00000080',
+    pacificBlue: '#00a5d5',
 };
 
 const styles = {
@@ -925,6 +927,45 @@ const styles = {
         alignItems: 'center',
         overflow: 'hidden',
     },
+
+    notFoundView: {
+        flex: 1,
+        backgroundColor: colors.arsenic,
+        alignItems: 'center',
+        paddingTop: 40,
+        paddingBottom: 40,
+        justifyContent: 'space-between',
+    },
+
+    notFoundLogo: {
+        width: 202,
+        height: 63,
+    },
+
+    notFoundContent: {
+        alignItems: 'center',
+    },
+
+    notFoundTextHeader: {
+        color: colors.pacificBlue,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: 'bold',
+        fontSize: 150,
+    },
+
+    notFoundTextBody: {
+        color: colors.componentBG,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: 'bold',
+        fontSize: 16,
+    },
+
+    notFoundButtonText: {
+        color: colors.pacificBlue,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: 'bold',
+        fontSize: 16,
+    }
 };
 
 const baseCodeTagStyles = {
