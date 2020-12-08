@@ -49,15 +49,17 @@ class MainView extends Component {
      * @param {Number} reportID
      */
     canViewReport(reportID) {
+        // We get NaN when visiting #/r/home. In that case, we don't want to redirect.
         if (_.isNaN(reportID)) {
             return;
         }
 
+        // If the user has this report in their report list then we assume they can access it.
         if (_.find(this.props.reports, report => report.reportID === reportID)) {
             return;
         }
 
-        // Report doesn't exist redirect to /404
+        // Report doesn't exist redirect to /404.
         redirect(ROUTES.NOT_FOUND);
     }
 

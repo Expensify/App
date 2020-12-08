@@ -42,6 +42,8 @@ function recordCurrentRoute({match}) {
  * @param {String} match.params.reportID
  */
 function recordCurrentlyViewedReportID({match}) {
+    // If there's no reportID we unset the currentlyViewedReportID so that
+    // we do not attempt to redirect to the previously viewed report ID.
     if (!match.params.reportID) {
         Onyx.set(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, null);
         return;
