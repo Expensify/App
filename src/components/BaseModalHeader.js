@@ -4,7 +4,7 @@ import {
     View, Image, TouchableOpacity, Text
 } from 'react-native';
 import styles from '../styles/StyleSheet';
-import downloadIcon from '../../assets/images/icon-paper-clip.png';
+import downloadIcon from '../../assets/images/icon-download.png';
 import exitIcon from '../../assets/images/icon-x--20x20.png';
 
 const propTypes = {
