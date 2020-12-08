@@ -42,6 +42,11 @@ function recordCurrentRoute({match}) {
  * @param {String} match.params.reportID
  */
 function recordCurrentlyViewedReportID({match}) {
+    if (!match.params.reportID) {
+        Onyx.set(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, null);
+        return;
+    }
+
     Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, match.params.reportID);
 }
 

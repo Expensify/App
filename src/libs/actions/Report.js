@@ -414,19 +414,6 @@ function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false) {
         });
 }
 
-function updateReportDataAndRedirect(report) {
-    // Store only the absolute bare minimum of data in Onyx because space is limited
-    const newReport = getSimplifiedReportObject(report);
-    newReport.reportName = getChatReportName(report.sharedReportList);
-
-    // Merge the data into Onyx. Don't use set() here or multiSet() because then that would
-    // overwrite any existing data (like if they have unread messages)
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, newReport);
-
-    // Redirect the logged in person to the new report
-    redirect(ROUTES.getReportRoute(report.reportID));
-}
-
 /**
  * Get the report ID, and then the actions, for a chat report for a specific
  * set of participants
@@ -459,24 +446,17 @@ function fetchOrCreateChatReport(participants) {
         // Put the report object into Onyx
         .then((data) => {
             const report = data.reports[reportID];
-            updateReportDataAndRedirect(report);
-        });
-}
 
-function fetchChatReport(reportID) {
-    API.Get({
-        returnValueList: 'reportStuff',
-        reportIDList: reportID,
-        shouldLoadOptionalKeys: true,
-    })
-        .then((data) => {
-            if (data.jsonCode === 404) {
-                redirect(ROUTES.NOT_FOUND);
-                return;
-            }
+            // Store only the absolute bare minimum of data in Onyx because space is limited
+            const newReport = getSimplifiedReportObject(report);
+            newReport.reportName = getChatReportName(report.sharedReportList);
 
-            const report = data.reports[reportID];
-            updateReportDataAndRedirect(report);
+            // Merge the data into Onyx. Don't use set() here or multiSet() because then that would
+            // overwrite any existing data (like if they have unread messages)
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, newReport);
+
+            // Redirect the logged in person to the new report
+            redirect(ROUTES.getReportRoute(reportID));
         });
 }
 
@@ -638,7 +618,6 @@ export {
     fetchAll,
     fetchActions,
     fetchOrCreateChatReport,
-    fetchChatReport,
     addAction,
     updateLastReadActionID,
     subscribeToReportCommentEvents,
