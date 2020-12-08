@@ -4,7 +4,6 @@ module.exports = {
     extraMetadata: {
         main: './desktop/main.js',
     },
-    afterSign: 'desktop/notarize.js',
     mac: {
         category: 'public.app-category.finance',
         icon: './android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png',
@@ -18,11 +17,6 @@ module.exports = {
         artifactName: 'Chat.dmg',
         internetEnabled: true
     },
-    publish: [{
-        provider: 's3',
-        bucket: 'chat-test-expensify-com',
-        channel: 'latest'
-    }],
     files: [
         './dist/**/*',
         './desktop/*.js',
