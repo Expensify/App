@@ -26,7 +26,7 @@ const defaultProps = {
 
 const PDFView = props => (
     <WebView
-        source={{uri: `${CONST.MOZILLA_PDF_VIEWER_URL}?file=${encodeURIComponent(props.sourceURL)}`}}
+        source={{uri: `${CONST.PDF_VIEWER_URL}?file=${encodeURIComponent(props.sourceURL)}`}}
         style={props.style}
     />
 );
