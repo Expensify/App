@@ -49,7 +49,7 @@ class MainView extends Component {
      * @param {Number} reportID
      */
     canViewReport(reportID) {
-        // We get NaN when visiting #/r/home. In that case, we don't want to redirect.
+        // If we do not have a valid reportID then we cannot check for access.
         if (_.isNaN(reportID)) {
             return;
         }
