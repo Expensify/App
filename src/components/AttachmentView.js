@@ -43,7 +43,9 @@ const AttachmentView = (props) => {
         );
     }
 
-    if (Str.isImage(props.sourceURL)) {
+    // For this check we use both sourceURL and file.name since temporary file sourceURL is a blob
+    // both PDFs and images will appear as images when pasted into the the text field
+    if (Str.isImage(props.sourceURL) || (props.file && Str.isImage(props.file.name))) {
         return (
             <ImageView
                 width={props.width}
