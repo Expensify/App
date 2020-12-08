@@ -116,8 +116,8 @@ class ChatSwitcherView extends React.Component {
     }
 
     /**
-     * Get the chat report options created from props.report. Additionally these chat report options will also determine
-     * if its a 1:1 DM or not. If it is a 1:1 DM we'll save the DM participant login and the type as user.
+     * Get the chat report options created from props.reports. Additionally these chat report options will also
+     * determine if its a 1:1 DM or not. If it is a 1:1 DM we'll save the DM participant login and the type as user.
      *
      * @param {Boolean} sortByLastVisited
      * @returns {Object}
@@ -234,11 +234,7 @@ class ChatSwitcherView extends React.Component {
                     : [...users, option]
             ), []),
         }), () => {
-            if (this.state.groupUsers.length > 0) {
-                this.updateSearch(this.state.search);
-            } else {
-                this.reset(true);
-            }
+            this.updateSearch(this.state.search);
             this.textInput.focus();
         });
     }
@@ -288,18 +284,19 @@ class ChatSwitcherView extends React.Component {
     /**
      * Reset the component to it's default state and blur the input if we are no longer searching
      *
-     * @param {Boolean} continueSearchingAfterReset
+     * @param {Boolean} blurAfterReset
+     * @param {Boolean} resetOptions
      */
-    reset(continueSearchingAfterReset = false) {
+    reset(blurAfterReset = true, resetOptions = false) {
         this.setState({
             search: '',
-            options: continueSearchingAfterReset ? this.getChatReportsOptions() : [],
+            options: resetOptions ? this.getChatReportsOptions() : [],
             focusedIndex: 0,
-            isLogoVisible: !continueSearchingAfterReset,
-            isClearButtonVisible: continueSearchingAfterReset,
+            isLogoVisible: blurAfterReset,
+            isClearButtonVisible: !blurAfterReset,
             groupUsers: [],
         }, () => {
-            if (!continueSearchingAfterReset) {
+            if (blurAfterReset) {
                 this.textInput.blur();
                 ChatSwitcher.hide();
             }
@@ -392,7 +389,7 @@ class ChatSwitcherView extends React.Component {
                 return;
             }
 
-            this.reset(false);
+            this.reset(false, true);
             return;
         }
 

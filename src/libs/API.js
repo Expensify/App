@@ -389,10 +389,8 @@ function Report_TogglePinned(parameters) {
  */
 function Report_UpdateLastRead(parameters) {
     const commandName = 'Report_UpdateLastRead';
-    const params = {...parameters};
     requireParameters(['accountID', 'reportID', 'sequenceNumber'], parameters, commandName);
-    params.authToken = authToken;
-    return request(commandName, params);
+    return request(commandName, parameters);
 }
 
 export {
