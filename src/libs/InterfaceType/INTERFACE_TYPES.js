@@ -1,7 +1,7 @@
-const interfaceTypes = {
+const INTERFACE_TYPES = {
     TOUCH_ONLY: 'touchOnly',
     MOUSE_ONLY: 'mouseOnly',
     HYBRID: 'hybrid',
 };
 
-export default interfaceTypes;
+export default INTERFACE_TYPES;
