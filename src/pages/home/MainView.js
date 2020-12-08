@@ -8,7 +8,8 @@ import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/StyleSheet';
 import {withRouter} from '../../libs/Router';
 import compose from '../../libs/compose';
-import {fetchChatReport} from '../../libs/actions/Report';
+import ROUTES from '../../ROUTES';
+import {redirect} from '../../libs/actions/App';
 
 const propTypes = {
     // This comes from withRouter
@@ -30,7 +31,7 @@ const defaultProps = {
 class MainView extends Component {
     componentDidMount() {
         const reportID = parseInt(this.props.match.params.reportID, 10);
-        this.fetchReportIfNeeded(reportID);
+        this.canViewReport(reportID);
     }
 
     componentDidUpdate(prevProps) {
@@ -38,17 +39,26 @@ class MainView extends Component {
         const newReportID = parseInt(this.props.match.params.reportID, 10);
 
         if (previousReportID !== newReportID) {
-            this.fetchReportIfNeeded(newReportID);
+            this.canViewReport(newReportID);
         }
     }
 
-    fetchReportIfNeeded(reportID) {
-        // Check to see if this report exists in the report list and if so do not fetch it.
+    /**
+     * Check to see if this report exists in the report list and if not redirect to 404.
+     *
+     * @param {Number} reportID
+     */
+    canViewReport(reportID) {
+        if (_.isNaN(reportID)) {
+            return;
+        }
+
         if (_.find(this.props.reports, report => report.reportID === reportID)) {
             return;
         }
 
-        fetchChatReport(reportID);
+        // Report doesn't exist redirect to /404
+        redirect(ROUTES.NOT_FOUND);
     }
 
     render() {
