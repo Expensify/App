@@ -3,7 +3,10 @@ import fontFamily from './fontFamily';
 import italic from './italic';
 import addOutlineWidth from './addOutlineWidth';
 
-const safeInsertPercentage = 0.7;
+const variables = {
+    modalHeaderBarHeight: 73,
+    safeInsertPercentage: 0.7,
+};
 
 const colors = {
     componentBG: '#FFFFFF',
@@ -915,7 +918,7 @@ const styles = {
         paddingRight: 20,
         borderBottomWidth: 1,
         borderColor: colors.border,
-        height: 73,
+        height: variables.modalHeaderBarHeight,
         width: '100%',
     },
 
@@ -1051,7 +1054,7 @@ const webViewStyles = {
 function getSafeAreaPadding(insets) {
     return {
         paddingTop: insets.top,
-        paddingBottom: insets.bottom * safeInsertPercentage,
+        paddingBottom: insets.bottom * variables.safeInsertPercentage,
     };
 }
 
@@ -1062,10 +1065,10 @@ function getSafeAreaPadding(insets) {
  * @returns {Object}
  */
 function getSafeAreaMargins(insets) {
-    return {marginBottom: insets.bottom * safeInsertPercentage};
+    return {marginBottom: insets.bottom * variables.safeInsertPercentage};
 }
 
 export default styles;
 export {
-    getSafeAreaPadding, getSafeAreaMargins, colors, webViewStyles
+    getSafeAreaPadding, getSafeAreaMargins, colors, webViewStyles, variables,
 };
