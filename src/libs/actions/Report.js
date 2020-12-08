@@ -158,7 +158,10 @@ function fetchChatReportsByIDs(chatList) {
         .then(({reports}) => {
             fetchedReports = reports;
 
-            // Process the reports and store them in Onyx
+            // Process the reports and store them in Onyx. At the same time we'll save the simplified reports in this
+            // variable called simplifiedReports which hold the participants (minus the current user) for each report.
+            // Using this simplifiedReport we can call PersonalDetails.getFromReportParticipants to get the
+            // personal details of all the participants and even link up their avatars to report icons.
             const simplifiedReports = [];
             _.each(fetchedReports, (report) => {
                 const newReport = getSimplifiedReportObject(report);

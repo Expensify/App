@@ -19,6 +19,13 @@ Onyx.connect({
     callback: val => personalDetails = val,
 });
 
+function getDefaultAvatar(login) {
+    // There are 8 possible default avatars, so we choose which one this user has based
+    // on a simple hash of their login (which is converted from HEX to INT)
+    const loginHashBucket = (parseInt(md5(login).substring(0, 4), 16) % 8) + 1;
+    return `${CONST.CLOUDFRONT_URL}/images/avatars/avatar_${loginHashBucket}.png`;
+}
+
 /**
  * Returns the URL for a user's avatar and handles someone not having any avatar at all
  *
@@ -31,10 +38,7 @@ function getAvatar(personalDetail, login) {
         return personalDetail.avatar.replace(/&d=404$/, '');
     }
 
-    // There are 8 possible default avatars, so we choose which one this user has based
-    // on a simple hash of their login (which is converted from HEX to INT)
-    const loginHashBucket = (parseInt(md5(login).substring(0, 4), 16) % 8) + 1;
-    return `${CONST.CLOUDFRONT_URL}/images/avatars/avatar_${loginHashBucket}.png`;
+    return getDefaultAvatar(login);
 }
 
 /**
@@ -147,14 +151,14 @@ function getFromReportParticipants(reports) {
     API.PersonalDetails_GetForEmails({emailList: participantEmails.join(',')})
         .then((data) => {
             const details = _.pick(data, participantEmails);
-            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, formatPersonalDetails(details));
+            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, details);
 
             // The personalDetails of the participants contain their avatar images. Here we'll go over each
             // report and based on the participants we'll link up their avatars to report icons.
             _.each(reports, (report) => {
                 if (report.participants.length === 1) {
                     const dmParticipant = report.participants[0];
-                    const icon = lodashGet(details, [dmParticipant, 'avatar']);
+                    const icon = lodashGet(details, [dmParticipant, 'avatar'], getDefaultAvatar(dmParticipant));
                     if (icon) {
                         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {icon});
                     }
