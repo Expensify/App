@@ -49,7 +49,8 @@ export default function (onSecondaryInteraction) {
             }
         }
 
-        withSecondaryInteractionHandler.displayName = `withSecondaryInteractionHandler(${getDisplayName(WrappedComponent)})`;
+        withSecondaryInteractionHandler
+            .displayName = `withSecondaryInteractionHandler(${getDisplayName(WrappedComponent)})`;
         return withSecondaryInteractionHandler;
     };
 }
