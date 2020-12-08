@@ -309,14 +309,7 @@ class ChatSwitcherView extends React.Component {
      */
     triggerOnFocusCallback() {
         ChatSwitcher.show();
-        this.setState(prevState => ({
-            isLogoVisible: false,
-            isClearButtonVisible: true,
-
-            // When the search bar is empty let's show the default chat report options sorted by last visited. If the
-            // search bar is not empty that means some text is present hence on focus let's not update the options.
-            options: prevState.search === '' ? this.getChatReportsOptions() : prevState.options,
-        }));
+        this.updateSearch(this.state.search);
     }
 
     /**
