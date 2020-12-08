@@ -241,7 +241,6 @@ function Authenticate(parameters) {
         });
 }
 
-
 /**
  * @param {object} parameters
  * @param {string} parameters.emailList
@@ -389,12 +388,11 @@ function Report_TogglePinned(parameters) {
  * @returns {Promise}
  */
 function Report_UpdateLastRead(parameters) {
-    return request('Report_UpdateLastRead', {
-        authToken,
-        accountID: parameters.accountID,
-        reportID: parameters.reportID,
-        sequenceNumber: parameters.sequenceNumber,
-    });
+    const commandName = 'Report_UpdateLastRead';
+    const params = {...parameters};
+    requireParameters(['accountID', 'reportID', 'sequenceNumber'], parameters, commandName);
+    params.authToken = authToken;
+    return request(commandName, params);
 }
 
 export {
