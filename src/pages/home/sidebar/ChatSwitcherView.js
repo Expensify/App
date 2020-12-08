@@ -160,7 +160,7 @@ class ChatSwitcherView extends React.Component {
                 return {
                     text: report.reportName,
                     alternateText: report.reportName,
-                    searchText: report.participants.length < 10
+                    searchText: report.participants < 10
                         ? `${report.reportName} ${report.participants.join(' ')}`
                         : report.reportName ?? '',
                     reportID: report.reportID,
