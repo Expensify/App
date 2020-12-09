@@ -234,7 +234,6 @@ class ChatSwitcherView extends React.Component {
                     : [...users, option]
             ), []),
         }), () => {
-            this.updateSearch(this.state.search);
             this.textInput.focus();
         });
     }
