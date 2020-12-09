@@ -892,6 +892,7 @@ const styles = {
         borderWidth: 1,
         borderRadius: 12,
         height: '100%',
+        overflow: 'hidden',
     },
 
     modalHeaderBar: {
