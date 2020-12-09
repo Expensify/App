@@ -29,6 +29,9 @@ const propTypes = {
 
     // Any children to display
     children: PropTypes.node,
+
+    // Method to trigger when pressing the download button of the modal
+    onDownloadButtonPress: PropTypes.func,
 };
 
 const defaultProps = {
@@ -38,6 +41,7 @@ const defaultProps = {
     onCloseButtonPress: () => {},
     modalTitle: '',
     children: null,
+    onDownloadButtonPress: () => {},
 };
 
 const ModalView = props => (
