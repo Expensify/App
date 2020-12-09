@@ -29,8 +29,8 @@ const propTypes = {
 
 const defaultProps = {
     pinToEdges: false,
-    modalWidth: Dimensions.get('window').width - 100,
-    modalHeight: Dimensions.get('window').height - 100,
+    modalWidth: Dimensions.get('window').width * 0.8,
+    modalHeight: Dimensions.get('window').height * 0.8,
     onCloseButtonPress: () => {},
     children: null,
 };
