@@ -24,6 +24,8 @@ jest.mock('../../node_modules/urbanairship-react-native',
     () => require('./mocks/urbanairship-react-native'));
 jest.mock('../../node_modules/react-native-pdf',
     () => require('./mocks/react-native-pdf'));
+jest.mock('../../node_modules/rn-fetch-blob',
+    () => require('./mocks/rn-fetch-blob'));
 
 
 describe('AppComponent', () => {
