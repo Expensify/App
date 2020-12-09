@@ -186,8 +186,8 @@ class ChatSwitcherView extends React.Component {
     /**
      * Fetch the chat report and then redirect to the new report
      *
-     * @param {object} selectedOption
-     * @param {string} selectedOption.login
+     * @param {Object} selectedOption
+     * @param {String} selectedOption.login
      */
     selectUser(selectedOption) {
         // If there are group users saved start a group chat between
@@ -206,8 +206,8 @@ class ChatSwitcherView extends React.Component {
     /**
      * Fetch the chat report and then redirect to the new report
      *
-     * @param {object} option
-     * @param {string} option.reportID
+     * @param {Object} option
+     * @param {String} option.reportID
      */
     selectReport(option) {
         redirect(ROUTES.getReportRoute(option.reportID));
@@ -218,7 +218,7 @@ class ChatSwitcherView extends React.Component {
     /**
      * Reset the component to it's default state and blur the input
      *
-     * @param {boolean} blurAfterReset
+     * @param {Boolean} blurAfterReset
      */
     reset(blurAfterReset = true) {
         this.setState({
@@ -307,7 +307,7 @@ class ChatSwitcherView extends React.Component {
     /**
      * Every time the text changes in the TextInput, update the search value in the state
      *
-     * @param {string} value
+     * @param {String} value
      */
     updateSearch(value) {
         if (value === '') {
@@ -359,7 +359,9 @@ class ChatSwitcherView extends React.Component {
             .map(report => ({
                 text: report.reportName,
                 alternateText: report.reportName,
-                searchText: report.reportName ?? '',
+                searchText: report.participants
+                    ? `${report.reportName} ${report.participants.join(' ')}`
+                    : report.reportName ?? '',
                 reportID: report.reportID,
                 type: OPTION_TYPE.REPORT,
                 participants: report.participants,
@@ -377,7 +379,7 @@ class ChatSwitcherView extends React.Component {
             if (matches.size < this.maxSearchResults) {
                 for (let j = 0; j < searchOptions.length; j++) {
                     const option = searchOptions[j];
-                    const valueToSearch = option.searchText.replace(new RegExp(/&nbsp;/g), '');
+                    const valueToSearch = option.searchText && option.searchText.replace(new RegExp(/&nbsp;/g), '');
                     const isMatch = matchRegexes[i].test(valueToSearch);
 
                     // We want to avoid adding single user private DM reports

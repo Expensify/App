@@ -1,11 +1,11 @@
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import Onyx from 'react-native-onyx';
-import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import md5 from '../md5';
 import CONST from '../../CONST';
 import NetworkConnection from '../NetworkConnection';
+import * as API from '../API';
 
 let currentUserEmail;
 Onyx.connect({
@@ -22,9 +22,9 @@ Onyx.connect({
 /**
  * Returns the URL for a user's avatar and handles someone not having any avatar at all
  *
- * @param {object} personalDetail
- * @param {string} login
- * @returns {string}
+ * @param {Object} personalDetail
+ * @param {String} login
+ * @returns {String}
  */
 function getAvatar(personalDetail, login) {
     if (personalDetail && personalDetail.avatar) {
@@ -40,9 +40,9 @@ function getAvatar(personalDetail, login) {
 /**
  * Returns the displayName for a user
  *
- * @param {string} login
- * @param {object} [personalDetail]
- * @returns {string}
+ * @param {String} login
+ * @param {Object} [personalDetail]
+ * @returns {String}
  */
 function getDisplayName(login, personalDetail) {
     const userDetails = personalDetail || personalDetails[login];
@@ -87,7 +87,7 @@ function formatPersonalDetails(personalDetailsList) {
  * Get the timezone of the logged in user
  */
 function fetchTimezone() {
-    API.get({
+    API.Get({
         returnValueList: 'nameValuePairs',
         name: 'timeZone',
     })
@@ -104,7 +104,7 @@ function fetchTimezone() {
  * Get the personal details for our organization
  */
 function fetch() {
-    API.get({
+    API.Get({
         returnValueList: 'personalDetailsList',
     })
         .then((data) => {
@@ -134,7 +134,7 @@ function fetch() {
  * @param {String} emailList
  */
 function getForEmails(emailList) {
-    API.getPersonalDetails(emailList)
+    API.PersonalDetails_GetForEmails({emailList})
         .then((data) => {
             const details = _.pick(data, emailList.split(','));
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, formatPersonalDetails(details));

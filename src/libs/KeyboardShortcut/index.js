@@ -68,10 +68,10 @@ document.addEventListener('keydown', bindHandlerToKeyupEvent);
 const KeyboardShortcut = {
     /**
      * Subscribes to a keyboard event.
-     * @param {string} key The key code to watch
-     * @param {function} callback The callback to call
-     * @param {string|array} modifiers Can either be shift or control
-     * @param {bool} captureOnInputs Should we capture the event on inputs too?
+     * @param {String} key The key code to watch
+     * @param {Function} callback The callback to call
+     * @param {String|Array} modifiers Can either be shift or control
+     * @param {Boolean} captureOnInputs Should we capture the event on inputs too?
      */
     subscribe(key, callback, modifiers = 'shift', captureOnInputs = false) {
         const keyCode = key.charCodeAt(0);
@@ -83,7 +83,7 @@ const KeyboardShortcut = {
 
     /**
      * Unsubscribes to a keyboard event.
-     * @param {int} keyCode The key code to stop watching
+     * @param {Number} keyCode The key code to stop watching
      */
     unsubscribe(keyCode) {
         delete events[keyCode];

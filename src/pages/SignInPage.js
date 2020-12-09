@@ -20,6 +20,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import styles, {colors} from '../styles/StyleSheet';
 import logo from '../../assets/images/expensify-logo_reversed.png';
 import CustomStatusBar from '../components/CustomStatusBar';
+import updateUnread from '../libs/UnreadIndicatorUpdater/updateUnread';
 
 const propTypes = {
     // These are from withRouter
@@ -53,6 +54,11 @@ class App extends Component {
             password: CONFIG.LOGIN.PARTNER_USER_SECRET || '',
             twoFactorAuthCode: '',
         };
+    }
+
+    componentDidMount() {
+        // Always reset the unread counter to zero on this page
+        updateUnread(0);
     }
 
     /**
