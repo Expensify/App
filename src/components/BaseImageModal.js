@@ -5,11 +5,11 @@ import {
 } from 'react-native';
 import Modal from 'react-native-modal';
 import {withOnyx} from 'react-native-onyx';
+import RNFetchBlob from 'rn-fetch-blob';
 import AttachmentView from './AttachmentView';
 import styles, {webViewStyles} from '../styles/StyleSheet';
 import ModalView from './ModalView';
 import ONYXKEYS from '../ONYXKEYS';
-import RNFetchBlob from 'rn-fetch-blob';
 
 /**
  * Modal component consisting of an image thumbnail which triggers a modal with a larger image display
@@ -166,15 +166,15 @@ class BaseImageModal extends React.Component {
      * Downloads the attachment to the local filesystem.
      */
     downloadAttachment() {
-        let dirs = RNFetchBlob.fs.dirs;
+        const dirs = RNFetchBlob.fs.dirs;
         RNFetchBlob
             .config({
                 fileCache: true,
-                path: dirs.PictureDir + '/testPic.jpg',
+                path: `${dirs.PictureDir}/testPic.jpg`,
             })
             .fetch('GET', this.props.sourceURL)
             .then((res) => {
-                console.log('Downloading attachment: ' + this.props.sourceURL + ' to: ' + res.path());
+                console.log(`Downloading attachment: ${this.props.sourceURL} to: ${res.path()}`);
                 alert('Attachment downloaded successfully!');
             });
     }

@@ -21,6 +21,7 @@ const propTypes = {
 const defaultProps = {
     title: '',
     onCloseButtonPress: () => {},
+    onDownloadButtonPress: () => {},
 };
 
 const BaseModalHeader = props => (
