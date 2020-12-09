@@ -3,11 +3,16 @@ import fontFamily from './fontFamily';
 import italic from './italic';
 import addOutlineWidth from './addOutlineWidth';
 
-const safeInsertPercentage = 0.7;
+const variables = {
+    modalHeaderBarHeight: 73,
+    safeInsertPercentage: 0.7,
+};
 
 const colors = {
     componentBG: '#FFFFFF',
     background: '#FAFAFA',
+    whiteSmoke: '#F8F8F8',
+    whisper: '#EEEEEE',
     black: '#000000',
     blue: '#2EAAE2',
     border: '#ECECEC',
@@ -235,6 +240,15 @@ const styles = {
     buttonSuccess: {
         backgroundColor: colors.green,
         borderWidth: 0,
+    },
+
+    buttonConfirm: {
+        margin: 20,
+    },
+
+    buttonConfirmText: {
+        paddingLeft: 20,
+        paddingRight: 20,
     },
 
     buttonSuccessText: {
@@ -891,6 +905,8 @@ const styles = {
         borderWidth: 1,
         borderRadius: 20,
         height: '100%',
+        alignItems: 'center',
+        overflow: 'hidden',
     },
 
     modalHeaderBar: {
@@ -902,7 +918,8 @@ const styles = {
         paddingRight: 20,
         borderBottomWidth: 1,
         borderColor: colors.border,
-        height: 73,
+        height: variables.modalHeaderBarHeight,
+        width: '100%',
     },
 
     imageModalPDF: {
@@ -924,6 +941,26 @@ const styles = {
         justifyContent: 'center',
         alignItems: 'center',
         overflow: 'hidden',
+        width: '100%',
+    },
+
+    defaultAttachmentView: {
+        backgroundColor: colors.whiteSmoke,
+        borderRadius: 4,
+        borderWidth: 1,
+        borderColor: colors.whisper,
+        flexDirection: 'row',
+        paddingTop: 10,
+        paddingBottom: 10,
+        paddingRight: 20,
+        paddingLeft: 20,
+        alignItems: 'center',
+    },
+
+    defaultAttachmentViewIcon: {
+        width: 47,
+        height: 60,
+        marginRight: 20,
     },
 };
 
@@ -1017,7 +1054,7 @@ const webViewStyles = {
 function getSafeAreaPadding(insets) {
     return {
         paddingTop: insets.top,
-        paddingBottom: insets.bottom * safeInsertPercentage,
+        paddingBottom: insets.bottom * variables.safeInsertPercentage,
     };
 }
 
@@ -1028,10 +1065,10 @@ function getSafeAreaPadding(insets) {
  * @returns {Object}
  */
 function getSafeAreaMargins(insets) {
-    return {marginBottom: insets.bottom * safeInsertPercentage};
+    return {marginBottom: insets.bottom * variables.safeInsertPercentage};
 }
 
 export default styles;
 export {
-    getSafeAreaPadding, getSafeAreaMargins, colors, webViewStyles
+    getSafeAreaPadding, getSafeAreaMargins, colors, webViewStyles, variables,
 };

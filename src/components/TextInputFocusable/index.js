@@ -10,6 +10,9 @@ const propTypes = {
     // The default value of the comment box
     defaultValue: PropTypes.string.isRequired,
 
+    // Callback method to handle pasting a file
+    onPasteFile: PropTypes.func,
+
     // A ref to forward to the text input
     forwardedRef: PropTypes.func.isRequired,
 
@@ -26,6 +29,7 @@ const propTypes = {
 
 const defaultProps = {
     maxLines: -1,
+    onPasteFile: () => {},
     shouldClear: false,
     onClear: () => {},
     style: null,
@@ -53,6 +57,12 @@ class TextInputFocusable extends React.Component {
         if (this.props.forwardedRef && _.isFunction(this.props.forwardedRef)) {
             this.props.forwardedRef(this.textInput);
         }
+
+        // There is no onPaste for TextInput in react-native so we will add event
+        // listener here and unbind when the component unmounts
+        if (this.textInput) {
+            this.textInput.addEventListener('paste', this.checkForAttachment.bind(this));
+        }
     }
 
     componentDidUpdate(prevProps) {
@@ -64,6 +74,12 @@ class TextInputFocusable extends React.Component {
         }
         if (prevProps.defaultValue !== this.props.defaultValue) {
             this.updateNumberOfLines();
+        }
+    }
+
+    componentWillUnmount() {
+        if (this.textInput) {
+            this.textInput.removeEventListener('paste', this.checkForAttachment.bind(this));
         }
     }
 
@@ -81,6 +97,20 @@ class TextInputFocusable extends React.Component {
         let newNumberOfLines = Math.ceil((scrollHeight - paddingTopAndBottom) / lineHeight);
         newNumberOfLines = maxLines <= 0 ? newNumberOfLines : Math.min(newNumberOfLines, maxLines);
         return newNumberOfLines;
+    }
+
+    /**
+     * Check the paste event for an attachment and
+     * fire the callback with the selected file
+     *
+     * @param {ClipboardEvent} event
+     */
+    checkForAttachment(event) {
+        if (event.clipboardData.files.length > 0) {
+            // Prevent the default so we do not post the file name into the text box
+            event.preventDefault();
+            this.props.onPasteFile(event.clipboardData.files[0]);
+        }
     }
 
     /**

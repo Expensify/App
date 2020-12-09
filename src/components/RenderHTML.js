@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
 import PropTypes from 'prop-types';
-import {useWindowDimensions} from 'react-native';
+import {useWindowDimensions, TouchableOpacity} from 'react-native';
 import HTML, {
     defaultHTMLElementModels,
     TNodeChildrenRenderer,
@@ -11,8 +11,9 @@ import Config from '../CONFIG';
 import {webViewStyles} from '../styles/StyleSheet';
 import fontFamily from '../styles/fontFamily';
 import AnchorForCommentsOnly from './AnchorForCommentsOnly';
-import ImageThumbnailWithModal from './ImageThumbnailWithModal';
 import InlineCodeBlock from './InlineCodeBlock';
+import AttachmentModal from './AttachmentModal';
+import ThumbnailImage from './ThumbnailImage';
 
 const MAX_IMG_DIMENSIONS = 512;
 
@@ -75,7 +76,7 @@ function CodeRenderer({
     );
 }
 
-function ImgRenderer({key, tnode}) {
+function ImgRenderer({tnode}) {
     const htmlAttribs = tnode.attributes;
 
     // There are two kinds of images that need to be displayed:
@@ -112,12 +113,23 @@ function ImgRenderer({key, tnode}) {
     );
 
     return (
-        <ImageThumbnailWithModal
-            isAuthTokenRequired={isAttachment}
-            previewSourceURL={previewSource}
+        <AttachmentModal
+            title="Attachment"
             sourceURL={source}
-            key={key}
-        />
+            isAuthTokenRequired={isAttachment}
+        >
+            {({show}) => (
+                <TouchableOpacity
+                    onPress={() => show()}
+                >
+                    <ThumbnailImage
+                        previewSourceURL={previewSource}
+                        style={webViewStyles.tagStyles.img}
+                        isAuthTokenRequired={isAttachment}
+                    />
+                </TouchableOpacity>
+            )}
+        </AttachmentModal>
     );
 }
 
