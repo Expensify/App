@@ -49,11 +49,11 @@ const propTypes = {
 const defaultProps = {
     pinToEdges: false,
 
-    // If pinToEdges is false, then by default, the modal will be slightly smaller than full screen
+    // If pinToEdges is false, then the modal will be slightly smaller than full screen
     modalWidth: Dimensions.get('window').width - 100,
     modalHeight: Dimensions.get('window').height - 100,
 
-    // The image inside the modal shouldn't span the entire width of the modal so make it slightly smaller than modal width
+    // Adjust image width to be slightly smaller than modalWidth for padding
     modalImageWidth: Dimensions.get('window').width - 150,
     modalTitle: '',
     previewSourceURL: '',
