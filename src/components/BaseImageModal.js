@@ -50,11 +50,11 @@ const defaultProps = {
     pinToEdges: false,
 
     // If pinToEdges is false, then the modal will be slightly smaller than full screen
-    modalWidth: Dimensions.get('window').width - 100,
-    modalHeight: Dimensions.get('window').height - 100,
+    modalWidth: Dimensions.get('window').width - 40,
+    modalHeight: Dimensions.get('window').height - 40,
 
     // Adjust image width to be slightly smaller than modalWidth for padding
-    modalImageWidth: Dimensions.get('window').width - 150,
+    modalImageWidth: Dimensions.get('window').width - 80,
     modalTitle: '',
     previewSourceURL: '',
     sourceURL: '',
@@ -116,7 +116,7 @@ class BaseImageModal extends React.Component {
                 // If not pinToEdges, subtract some additional height so the image has some padding under the header
                 const modalHeight = this.props.pinToEdges
                     ? Dimensions.get('window').height
-                    : this.props.modalHeight - (styles.modalHeaderBar.height || 0) - 50;
+                    : this.props.modalHeight - (styles.modalHeaderBar.height || 0) - 40;
                 const modalWidth = this.props.pinToEdges ? Dimensions.get('window').width : this.props.modalImageWidth;
                 let imageHeight = height;
                 let imageWidth = width;
