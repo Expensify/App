@@ -132,7 +132,9 @@ class ReportActionCompose extends React.Component {
         return (
             <View style={[styles.chatItemCompose]}>
                 <View style={[
-                    (this.state.isFocused || this.state.isDraggingOver) ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
+                    (this.state.isFocused || this.state.isDraggingOver)
+                        ? styles.chatItemComposeBoxFocusedColor
+                        : styles.chatItemComposeBoxColor,
                     styles.chatItemComposeBox,
                     styles.flexRow
                 ]}
@@ -184,7 +186,7 @@ class ReportActionCompose extends React.Component {
                                     }}
                                     onDrop={(e) => {
                                         e.preventDefault();
-                                        console.log(e.dataTransfer.files);
+                                        displayFileInModal({file: e.dataTransfer.files[0]});
                                         this.setState({isDraggingOver: false});
                                     }}
                                     style={[styles.textInput, styles.textInputCompose, styles.flex4]}

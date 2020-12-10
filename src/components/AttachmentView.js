@@ -34,7 +34,7 @@ const defaultProps = {
 };
 
 const AttachmentView = (props) => {
-    if (Str.isPDF(props.sourceURL)) {
+    if (Str.isPDF(props.sourceURL) || (props.file && Str.isPDF(props.file.name))) {
         return (
             <PDFView
                 sourceURL={props.sourceURL}
