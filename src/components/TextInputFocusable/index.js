@@ -70,16 +70,12 @@ class TextInputFocusable extends React.Component {
             this.props.forwardedRef(this.textInput);
         }
 
-        // Handle the drag events
+        // There is no onPaste or onDrag for TextInput in react-native so we will add event
+        // listeners here and unbind when the component unmounts
         if (this.textInput) {
-            this.textInput.addEventListener('dragenter', this.handleDragEnter.bind(this));
-            this.textInput.addEventListener('dragleave', this.handleDragLeave.bind(this));
-            this.textInput.addEventListener('drop', this.handleDrop.bind(this));
-        }
-
-        // There is no onPaste for TextInput in react-native so we will add event
-        // listener here and unbind when the component unmounts
-        if (this.textInput) {
+            this.textInput.addEventListener('dragenter', this.props.onDragEnter);
+            this.textInput.addEventListener('dragleave', this.props.onDragLeave);
+            this.textInput.addEventListener('drop', this.props.onDrop);
             this.textInput.addEventListener('paste', this.checkForAttachment.bind(this));
         }
     }
@@ -98,9 +94,9 @@ class TextInputFocusable extends React.Component {
 
     componentWillUnmount() {
         if (this.textInput) {
-            this.textInput.removeEventListener('dragenter', this.handleDragEnter.bind(this));
-            this.textInput.removeEventListener('dragleave', this.handleDragLeave.bind(this));
-            this.textInput.removeEventListener('drop', this.handleDrop.bind(this));
+            this.textInput.removeEventListener('dragenter', this.props.onDragEnter);
+            this.textInput.removeEventListener('dragleave', this.props.onDragLeave);
+            this.textInput.removeEventListener('drop', this.props.onDrop);
             this.textInput.removeEventListener('paste', this.checkForAttachment.bind(this));
         }
     }
@@ -119,18 +115,6 @@ class TextInputFocusable extends React.Component {
         let newNumberOfLines = Math.ceil((scrollHeight - paddingTopAndBottom) / lineHeight);
         newNumberOfLines = maxLines <= 0 ? newNumberOfLines : Math.min(newNumberOfLines, maxLines);
         return newNumberOfLines;
-    }
-
-    handleDragEnter(e) {
-        this.props.onDragEnter(e);
-    }
-
-    handleDragLeave(e) {
-        this.props.onDragLeave(e);
-    }
-
-    handleDrop(e) {
-        this.props.onDrop(e);
     }
 
     /**
