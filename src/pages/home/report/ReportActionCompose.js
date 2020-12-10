@@ -178,12 +178,8 @@ class ReportActionCompose extends React.Component {
                                     placeholderTextColor={colors.textSupporting}
                                     onChangeText={this.updateComment}
                                     onKeyPress={this.triggerSubmitShortcut}
-                                    onDragEnter={() => {
-                                        this.setState({isDraggingOver: true});
-                                    }}
-                                    onDragLeave={() => {
-                                        this.setState({isDraggingOver: false});
-                                    }}
+                                    onDragEnter={() => this.setState({isDraggingOver: true})}
+                                    onDragLeave={() => this.setState({isDraggingOver: false})}
                                     onDrop={(e) => {
                                         e.preventDefault();
                                         displayFileInModal({file: e.dataTransfer.files[0]});
