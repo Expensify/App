@@ -8,6 +8,7 @@ import HomePage from './pages/home/HomePage';
 import listenToStorageEvents from './libs/listenToStorageEvents';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import ONYXKEYS from './ONYXKEYS';
+import Authenticator from './libs/Authenticator';
 
 import styles from './styles/StyleSheet';
 import Log from './libs/Log';
@@ -59,9 +60,8 @@ class Expensify extends Component {
 
         // Initialize this client as being an active client
         ActiveClientManager.init();
-
+        Authenticator.init();
         this.removeLoadingState = this.removeLoadingState.bind(this);
-
         this.state = {
             isLoading: true,
             authToken: null,
