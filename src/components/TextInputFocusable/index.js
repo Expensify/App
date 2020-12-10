@@ -73,6 +73,8 @@ class TextInputFocusable extends React.Component {
         // There is no onPaste or onDrag for TextInput in react-native so we will add event
         // listeners here and unbind when the component unmounts
         if (this.textInput) {
+            // Firefox will not allow dropping unless we call preventDefault on the dragover event
+            this.textInput.addEventListener('dragover', e => e.preventDefault());
             this.textInput.addEventListener('dragenter', this.props.onDragEnter);
             this.textInput.addEventListener('dragleave', this.props.onDragLeave);
             this.textInput.addEventListener('drop', this.props.onDrop);
@@ -94,6 +96,7 @@ class TextInputFocusable extends React.Component {
 
     componentWillUnmount() {
         if (this.textInput) {
+            this.textInput.addEventListener('dragover', e => e.preventDefault());
             this.textInput.removeEventListener('dragenter', this.props.onDragEnter);
             this.textInput.removeEventListener('dragleave', this.props.onDragLeave);
             this.textInput.removeEventListener('drop', this.props.onDrop);
