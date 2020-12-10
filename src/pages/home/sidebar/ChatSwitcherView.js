@@ -119,8 +119,7 @@ class ChatSwitcherView extends React.Component {
      * Get the chat report options created from props.reports. Additionally these chat report options will also
      * determine if its a 1:1 DM or not by checking if report.participant is with just one other person.
      * If it is a 1:1 DM we'll save the DM participant login and the type as user in the report option, this way
-     * we can filter out the same options from personalDetailOptions since we already have that 1:1 DM chat report and
-     * wouldn't need to make an unnecessary fetchOrCreateChatReport request via personalDetailOptions.
+     * we can filter out the same options from personalDetailOptions since we already have that 1:1 DM chat report.
      *
      * @param {Boolean} sortByLastVisited We set this to true when search text is empty and we set this false when
      *                                    search text is not empty since at that time we sort using matchRegexes.
