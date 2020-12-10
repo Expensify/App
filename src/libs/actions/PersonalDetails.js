@@ -1,30 +1,30 @@
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
-import Ion from '../Ion';
-import * as API from '../API';
-import IONKEYS from '../../IONKEYS';
+import Onyx from 'react-native-onyx';
+import ONYXKEYS from '../../ONYXKEYS';
 import md5 from '../md5';
 import CONST from '../../CONST';
 import NetworkConnection from '../NetworkConnection';
+import * as API from '../API';
 
 let currentUserEmail;
-Ion.connect({
-    key: IONKEYS.SESSION,
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
     callback: val => currentUserEmail = val ? val.email : null,
 });
 
 let personalDetails;
-Ion.connect({
-    key: IONKEYS.PERSONAL_DETAILS,
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS,
     callback: val => personalDetails = val,
 });
 
 /**
  * Returns the URL for a user's avatar and handles someone not having any avatar at all
  *
- * @param {object} personalDetail
- * @param {string} login
- * @returns {string}
+ * @param {Object} personalDetail
+ * @param {String} login
+ * @returns {String}
  */
 function getAvatar(personalDetail, login) {
     if (personalDetail && personalDetail.avatar) {
@@ -40,9 +40,9 @@ function getAvatar(personalDetail, login) {
 /**
  * Returns the displayName for a user
  *
- * @param {string} login
- * @param {object} [personalDetail]
- * @returns {string}
+ * @param {String} login
+ * @param {Object} [personalDetail]
+ * @returns {String}
  */
 function getDisplayName(login, personalDetail) {
     const userDetails = personalDetail || personalDetails[login];
@@ -87,13 +87,13 @@ function formatPersonalDetails(personalDetailsList) {
  * Get the timezone of the logged in user
  */
 function fetchTimezone() {
-    API.get({
+    API.Get({
         returnValueList: 'nameValuePairs',
         name: 'timeZone',
     })
         .then((data) => {
             const timezone = lodashGet(data, 'nameValuePairs.timeZone.selected', 'America/Los_Angeles');
-            Ion.merge(IONKEYS.MY_PERSONAL_DETAILS, {timezone});
+            Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {timezone});
         });
 
     // Refresh the timezone every 30 minutes
@@ -104,17 +104,20 @@ function fetchTimezone() {
  * Get the personal details for our organization
  */
 function fetch() {
-    API.get({
+    API.Get({
         returnValueList: 'personalDetailsList',
     })
         .then((data) => {
             const allPersonalDetails = formatPersonalDetails(data.personalDetailsList);
-            Ion.merge(IONKEYS.PERSONAL_DETAILS, allPersonalDetails);
+            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, allPersonalDetails);
+
+            const myPersonalDetails = allPersonalDetails[currentUserEmail]
+                || {avatarURL: getAvatar(undefined, currentUserEmail)};
 
             // Set my personal details so they can be easily accessed and subscribed to on their own key
-            Ion.merge(IONKEYS.MY_PERSONAL_DETAILS, allPersonalDetails[currentUserEmail] || {});
+            Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, myPersonalDetails);
 
-            // Get the timezone and put it in Ion
+            // Get the timezone and put it in Onyx
             fetchTimezone();
         })
         .catch(error => console.error('Error fetching personal details', error));
@@ -131,10 +134,10 @@ function fetch() {
  * @param {String} emailList
  */
 function getForEmails(emailList) {
-    API.getPersonalDetails(emailList)
+    API.PersonalDetails_GetForEmails({emailList})
         .then((data) => {
             const details = _.pick(data, emailList.split(','));
-            Ion.merge(IONKEYS.PERSONAL_DETAILS, formatPersonalDetails(details));
+            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, formatPersonalDetails(details));
         });
 }
 

@@ -1,8 +1,8 @@
 import _ from 'underscore';
 import {AppState} from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
-import Ion from './Ion';
-import IONKEYS from '../IONKEYS';
+import Onyx from 'react-native-onyx';
+import ONYXKEYS from '../ONYXKEYS';
 
 // NetInfo.addEventListener() returns a function used to unsubscribe the
 // listener so we must create a reference to it and call it in stopListeningForReconnect()
@@ -11,6 +11,7 @@ let sleepTimer;
 let lastTime;
 let isActive = false;
 let isOffline = false;
+let isListeningToAppStateChanges = false;
 
 // Holds all of the callbacks that need to be triggered when the network reconnects
 const reconnectionCallbacks = [];
@@ -26,10 +27,10 @@ const triggerReconnectionCallbacks = _.throttle(() => {
  * Called when the offline status of the app changes and if the network is "reconnecting" (going from offline to online)
  * then all of the reconnection callbacks are triggered
  *
- * @param {boolean} isCurrentlyOffline
+ * @param {Boolean} isCurrentlyOffline
  */
 function setOfflineStatus(isCurrentlyOffline) {
-    Ion.merge(IONKEYS.NETWORK, {isOffline: isCurrentlyOffline});
+    Onyx.merge(ONYXKEYS.NETWORK, {isOffline: isCurrentlyOffline});
 
     // When reconnecting, ie, going from offline to online, all the reconnection callbacks
     // are triggered (this is usually Actions that need to re-download data from the server)
@@ -73,15 +74,16 @@ function listenForReconnect() {
     // returns from the background. So, if we are returning from the background
     // and we are online we should trigger our reconnection callbacks.
     AppState.addEventListener('change', setAppState);
+    isListeningToAppStateChanges = true;
 
     // When a device is put to sleep, NetInfo is not always able to detect
     // when connectivity has been lost. As a failsafe we will capture the time
-    // every two seconds and if the last time recorded is greater than 5 seconds
+    // every two seconds and if the last time recorded is greater than 20 seconds
     // we know that the computer has been asleep.
     lastTime = (new Date()).getTime();
     sleepTimer = setInterval(() => {
         const currentTime = (new Date()).getTime();
-        if (currentTime > (lastTime + 5000)) {
+        if (currentTime > (lastTime + 20000)) {
             triggerReconnectionCallbacks();
         }
         lastTime = currentTime;
@@ -96,7 +98,9 @@ function stopListeningForReconnect() {
     if (unsubscribeFromNetInfo) {
         unsubscribeFromNetInfo();
     }
-    AppState.removeEventListener('change', setAppState);
+    if (isListeningToAppStateChanges) {
+        AppState.removeEventListener('change', setAppState);
+    }
 }
 
 /**
