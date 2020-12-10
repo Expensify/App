@@ -454,6 +454,9 @@ function fetchOrCreateChatReport(participants) {
             // Store only the absolute bare minimum of data in Onyx because space is limited
             const newReport = getSimplifiedReportObject(report);
             newReport.reportName = getChatReportName(report.sharedReportList);
+
+            // Optimistically update the last visited timestamp such that if the user immediately switches to another
+            // report the order is still maintained.
             newReport.lastVisitedTimestamp = Date.now();
 
             // Merge the data into Onyx. Don't use set() here or multiSet() because then that would
