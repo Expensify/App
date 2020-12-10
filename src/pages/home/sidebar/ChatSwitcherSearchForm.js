@@ -46,7 +46,7 @@ const propTypes = {
     // Begins / navigates to the chat between the various group users
     onConfirmUsers: PropTypes.func.isRequired,
 
-    // Users selected to begin a group chat
+    // Users selected to begin a group report DM
     usersToStartGroupReportWith: PropTypes.arrayOf(ChatSwitcherOptionPropTypes),
 };
 
