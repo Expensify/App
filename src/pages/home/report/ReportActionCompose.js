@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {View, Image, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
+import lodashGet from 'lodash.get';
 import {withOnyx} from 'react-native-onyx';
 import styles, {colors} from '../../../styles/StyleSheet';
 import TextInputFocusable from '../../../components/TextInputFocusable';
@@ -131,12 +132,13 @@ class ReportActionCompose extends React.Component {
     render() {
         return (
             <View style={[styles.chatItemCompose]}>
-                <View
-                    style={[
-                        this.state.isFocused ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
-                        styles.chatItemComposeBox,
-                        styles.flexRow
-                    ]}
+                <View style={[
+                    (this.state.isFocused || this.state.isDraggingOver)
+                        ? styles.chatItemComposeBoxFocusedColor
+                        : styles.chatItemComposeBoxColor,
+                    styles.chatItemComposeBox,
+                    styles.flexRow
+                ]}
                 >
                     <AttachmentModal
                         title="Upload Attachment"
@@ -177,6 +179,19 @@ class ReportActionCompose extends React.Component {
                                     placeholderTextColor={colors.textSupporting}
                                     onChangeText={this.updateComment}
                                     onKeyPress={this.triggerSubmitShortcut}
+                                    onDragEnter={() => this.setState({isDraggingOver: true})}
+                                    onDragLeave={() => this.setState({isDraggingOver: false})}
+                                    onDrop={(e) => {
+                                        e.preventDefault();
+
+                                        const file = lodashGet(e, ['dataTransfer', 'files', 0]);
+                                        if (!file) {
+                                            return;
+                                        }
+
+                                        displayFileInModal({file});
+                                        this.setState({isDraggingOver: false});
+                                    }}
                                     style={[styles.textInput, styles.textInputCompose, styles.flex4]}
                                     defaultValue={this.props.comment}
                                     maxLines={16} // This is the same that slack has
