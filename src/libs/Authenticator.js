@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../ONYXKEYS';
 import {reauthenticate} from './actions/Session';
 import {createLogin} from './actions/Credentials';
@@ -50,8 +51,7 @@ function init() {
             if (!session || !session.authToken || hasLogin) {
                 return;
             }
-
-            createLogin();
+            createLogin(Str.guid('react-native-chat-'), Str.guid());
         },
     });
 }

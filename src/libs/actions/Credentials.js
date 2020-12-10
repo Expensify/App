@@ -1,8 +1,8 @@
 import Onyx from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import ROUTES from '../../ROUTES';
+import Config from '../../CONFIG';
 
 let credentials;
 Onyx.connect({
@@ -27,7 +27,13 @@ function createLogin(login, password) {
     // Using xhr instead of request because request has logic to retry API commands when we get a 407 authToken expired
     // in the response, and we call CreateLogin after getting a successful response to Authenticate so it's unlikely
     // that we'll get a 407.
-    API.CreateLogin(Str.generateDeviceLoginID(), Str.generateDeviceLoginID())
+    API.CreateLogin({
+        partnerName: Config.EXPENSIFY.PARTNER_NAME,
+        partnerPassword: Config.EXPENSIFY.PARTNER_PASSWORD,
+        partnerUserID: login,
+        partnerUserSecret: password,
+        doNotRetry: true,
+    })
         .then((response) => {
             creatingLogin = false;
 
