@@ -1,17 +1,8 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
-import CONFIG from '../CONFIG';
 import ONYXKEYS from '../ONYXKEYS';
 import redirectToSignIn from './actions/SignInRedirect';
 import * as Network from './Network';
-
-let isAuthenticating;
-
-let credentials;
-Onyx.connect({
-    key: ONYXKEYS.CREDENTIALS,
-    callback: val => credentials = val,
-});
 
 let authToken;
 Onyx.connect({
@@ -42,7 +33,7 @@ function addAuthTokenToParameters(command, parameters) {
     if (isAuthTokenRequired(command) && !parameters.authToken) {
         // If we end up here with no authToken it means we are trying to make
         // an API request before we are signed in. In this case, we should just
-        // cancel this and all other requests and set isAuthenticating to false.
+        // cancel this and all other requests.
         if (!authToken) {
             console.error('A request was made without an authToken', {command, parameters});
             Network.unpauseRequestQueue();
@@ -95,66 +86,17 @@ function requireParameters(parameterNames, parameters, commandName) {
  * Function used to handle expired auth tokens. It re-authenticates with the API and
  * then replays the original request
  *
- * @param {Object} originalResponse
  * @param {String} originalCommand
  * @param {Object} [originalParameters]
  * @param {String} [originalType]
  */
-function handleExpiredAuthToken(originalResponse, originalCommand, originalParameters, originalType) {
-    // There are some API requests that should not be retried when there is an auth failure
-    // like creating and deleting logins
-    if (originalParameters.doNotRetry) {
-        return;
-    }
-
-    // When the authentication process is running, and more API requests will be requeued and they will
-    // be performed after authentication is done.
-    if (isAuthenticating) {
-        Network.post(originalCommand, originalParameters, originalType);
-        return;
-    }
-
-    // Prevent any more requests from being processed while authentication happens
-    Network.pauseRequestQueue();
-    isAuthenticating = true;
-
-    // eslint-disable-next-line no-use-before-define
-    Authenticate({
-        useExpensifyLogin: false,
-        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-        partnerUserID: credentials.login,
-        partnerUserSecret: credentials.password,
-    })
-        .then((response) => {
-            // If authentication fails throw so that we hit
-            // the catch below and redirect to sign in
-            if (response.jsonCode !== 200) {
-                throw new Error(response.message);
-            }
-
-            // Update authToken in Onyx and in our local variables so that API requests will use the
-            // new authToken
-            Onyx.merge(ONYXKEYS.SESSION, {authToken: response.authToken});
-            authToken = response.authToken;
-
-            // The authentication process is finished so the network can be unpaused to continue
-            // processing requests
-            isAuthenticating = false;
-            Network.unpauseRequestQueue();
-
-            // Now that the API is authenticated, make the original request again with the new authToken
-            const params = addAuthTokenToParameters(originalCommand, originalParameters);
-            Network.post(originalCommand, params, originalType);
-        })
-
-        .catch((error) => {
-            // If authentication fails, then the network can be unpaused and app is redirected
-            // so the sign on screen.
-            Network.unpauseRequestQueue();
-            isAuthenticating = false;
-            redirectToSignIn(error.message);
-        });
+function handleExpiredAuthToken(originalCommand, originalParameters, originalType) {
+    Onyx.set(ONYXKEYS.REAUTHENTICATING, {
+        isInProgress: true,
+        originalCommand,
+        originalParameters,
+        originalType
+    });
 }
 
 /**
@@ -173,7 +115,11 @@ function request(command, parameters, type = 'post') {
     networkPromise.then((response) => {
         // Handle expired auth tokens properly
         if (response.jsonCode === 407) {
-            handleExpiredAuthToken(response, command, parameters, type);
+            // There are some API requests that should not be retried when there is an auth failure
+            // like creating and deleting logins
+            if (!parameters.doNotRetry) {
+                handleExpiredAuthToken(command, parameters, type);
+            }
 
             // Throw an error to prevent other handlers from being triggered on this promise
             throw new Error('A default handler was used for this request');

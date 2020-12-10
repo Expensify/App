@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
+import * as Network from './Network';
 import ONYXKEYS from '../ONYXKEYS';
 import {reauthenticate} from './actions/Session';
 import {createLogin} from './actions/Credentials';
@@ -12,7 +13,7 @@ let credentials;
 // Indicates if we're in the process of re-authenticating. When an API call returns jsonCode 407 indicating that the
 // authToken expired, we set this to true, pause all API calls, re-authenticate, and then use the authToken from the
 // response in the subsequent API calls
-let reauthenticating = false;
+let isReauthenticating = false;
 
 function init() {
     Onyx.connect({
@@ -22,16 +23,24 @@ function init() {
 
     Onyx.connect({
         key: ONYXKEYS.REAUTHENTICATING,
-        callback: (isReauthenticating) => {
-            // Nothing has changed so do nothing
-            if (reauthenticating === isReauthenticating) {
+        callback: (reauthenticating) => {
+            if (isReauthenticating === reauthenticating.isInProgress) {
+                // When the authentication process is running, API requests will be requeued and they will
+                // be performed after authentication is done.
+                if (reauthenticating.isInProgress) {
+                    Network.post(
+                        reauthenticating.originalCommand,
+                        reauthenticating.originalParameters,
+                        reauthenticating.originalType
+                    );
+                }
                 return;
             }
 
-            reauthenticating = isReauthenticating;
+            isReauthenticating = reauthenticating.isInProgress;
 
             // When the app is no longer authenticating restart the network queue
-            if (!reauthenticating) {
+            if (!isReauthenticating) {
                 return;
             }
 

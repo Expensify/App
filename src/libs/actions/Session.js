@@ -3,6 +3,7 @@ import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import redirectToSignIn from './SignInRedirect';
+import * as Network from '../Network';
 import * as API from '../API';
 import CONFIG from '../../CONFIG';
 import PushNotification from '../Notification/PushNotification';
@@ -78,9 +79,16 @@ function signOut() {
 
 /**
  * Refreshes the authToken by calling Authenticate with the stored credentials
+ *
+ * @param {String} originalCommand
+ * @param {Object} [originalParameters]
+ * @param {String} [originalType]
  */
-function reauthenticate() {
+function reauthenticate(originalCommand, originalParameters, originalType) {
+    // Prevent any more requests from being processed while authentication happens
+    Network.pauseRequestQueue();
     API.Authenticate({
+        useExpensifyLogin: false,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         partnerUserID: credentials.login,
@@ -94,12 +102,21 @@ function reauthenticate() {
 
             // Update authToken in Onyx store otherwise subsequent API calls will use the expired one
             Onyx.merge(ONYXKEYS.SESSION, _.pick(response, 'authToken'));
+
+            // The authentication process is finished so the network can be unpaused to continue
+            // processing requests
+            Network.unpauseRequestQueue();
+            Network.post(originalCommand, originalParameters, originalType);
         })
         .catch((error) => {
             redirectToSignIn(error.message);
             return Promise.reject();
         })
-        .finally(() => Onyx.set(ONYXKEYS.REAUTHENTICATING, false));
+        .finally(() => {
+            Onyx.set(ONYXKEYS.REAUTHENTICATING, {
+                inProgress: false,
+            });
+        });
 }
 
 export {
