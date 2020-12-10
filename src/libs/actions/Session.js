@@ -111,7 +111,34 @@ function signOut() {
         .catch(error => Onyx.merge(ONYXKEYS.SESSION, {error: error.message}));
 }
 
+/**
+ * Refreshes the authToken by calling Authenticate with the stored credentials
+ */
+function reauthenticate() {
+    API.Authenticate({
+        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+        partnerUserID: credentials.login,
+        partnerUserSecret: credentials.password,
+    })
+        .then((response) => {
+            // If authentication fails throw so that we hit the catch below and redirect to sign in
+            if (response.jsonCode !== 200) {
+                throw new Error(response.message);
+            }
+
+            // Update authToken in Onyx store otherwise subsequent API calls will use the expired one
+            Onyx.merge(ONYXKEYS.SESSION, _.pick(response, 'authToken'));
+        })
+        .catch((error) => {
+            redirectToSignIn(error.message);
+            return Promise.reject();
+        })
+        .finally(() => Onyx.set(ONYXKEYS.REAUTHENTICATING, false));
+}
+
 export {
     signIn,
     signOut,
+    reauthenticate,
 };
