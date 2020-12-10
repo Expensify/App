@@ -164,7 +164,7 @@ function getFromReportParticipants(reports) {
             _.each(reports, (report) => {
                 if (report.participants.length === 1) {
                     const dmParticipant = report.participants[0];
-                    let icon = lodashGet(details, [dmParticipant, 'avatar'], '')
+                    let icon = lodashGet(details, [dmParticipant, 'avatar'], '');
                     if (!icon) {
                         icon = getDefaultAvatar(dmParticipant);
                     }
