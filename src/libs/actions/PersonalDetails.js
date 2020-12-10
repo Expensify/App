@@ -164,10 +164,11 @@ function getFromReportParticipants(reports) {
             _.each(reports, (report) => {
                 if (report.participants.length === 1) {
                     const dmParticipant = report.participants[0];
-                    const icon = lodashGet(details, [dmParticipant, 'avatar'], getDefaultAvatar(dmParticipant));
-                    if (icon) {
-                        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {icon});
+                    let icon = lodashGet(details, [dmParticipant, 'avatar'], '')
+                    if (!icon) {
+                        icon = getDefaultAvatar(dmParticipant);
                     }
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {icon});
                 }
             });
         });
