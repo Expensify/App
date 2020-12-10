@@ -49,42 +49,7 @@ function signIn(partnerUserID, partnerUserSecret, twoFactorAuthCode = '', exitTo
         partnerUserSecret,
         twoFactorAuthCode,
     })
-
-        // After the user authenticates, create a new login for the user so that we can reauthenticate when the
-        // authtoken expires
-        .then((authenticateResponse) => {
-            const login = Str.guid('react-native-chat-');
-            const password = Str.guid();
-
-            API.CreateLogin({
-                authToken: authenticateResponse.authToken,
-                partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-                partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-                partnerUserID: login,
-                partnerUserSecret: password,
-                doNotRetry: true,
-            })
-                .then((createLoginResponse) => {
-                    if (createLoginResponse.jsonCode !== 200) {
-                        throw new Error(createLoginResponse.message);
-                    }
-
-                    setSuccessfulSignInData(createLoginResponse, exitTo);
-
-                    if (credentials && credentials.login) {
-                        // If we have an old login for some reason, we should delete it before storing the new details
-                        API.DeleteLogin({
-                            partnerUserID: credentials.login,
-                            partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-                            partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-                            doNotRetry: true,
-                        })
-                            .catch(error => Onyx.merge(ONYXKEYS.SESSION, {error: error.message}));
-                    }
-
-                    Onyx.merge(ONYXKEYS.CREDENTIALS, {login, password});
-                });
-        })
+        .then(authenticateResponse => setSuccessfulSignInData(authenticateResponse, exitTo))
         .catch((error) => {
             console.error(error);
             console.debug('[SIGNIN] Request error');
