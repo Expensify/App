@@ -142,18 +142,17 @@ class ChatSwitcherView extends React.Component {
                 }
 
                 // Remove any previously selected group user so that it doesn't show as a dupe
-                const isInGroupUsers = _.some(this.state.usersToStartGroupReportWith, ({login}) => {
+                const isParticipantAlreadySelected = _.some(this.state.usersToStartGroupReportWith, ({login}) => {
                     const participants = lodashGet(report, 'participants', []);
-                    const isSingleUserPrivateDMReport = participants.length === 1;
-                    return isSingleUserPrivateDMReport && login === participants[0];
+                    const isSingleUserDM = participants.length === 1;
+                    return isSingleUserDM && login === participants[0];
                 });
-                if (isInGroupUsers) {
+                if (isParticipantAlreadySelected) {
                     return false;
                 }
                 if (onlyShowSingleUserDMs) {
                     const participants = lodashGet(report, 'participants', []);
-                    const isGroupDM = participants.length > 1;
-                    return !isGroupDM;
+                    return participants.length === 1;
                 }
                 return true;
             })
