@@ -456,7 +456,7 @@ function fetchOrCreateChatReport(participants) {
             newReport.reportName = getChatReportName(report.sharedReportList);
 
             // Optimistically update the last visited timestamp such that if the user immediately switches to another
-            // report the order is still maintained.
+            // report the last visited order is still maintained.
             newReport.lastVisitedTimestamp = Date.now();
 
             // Merge the data into Onyx. Don't use set() here or multiSet() because then that would
