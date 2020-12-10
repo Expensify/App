@@ -35,7 +35,7 @@ const ChatSwitcherList = ({
                 keyboardShouldPersistTaps="always"
                 showsVerticalScrollIndicator={false}
                 data={options}
-                keyExtractor={option => (option.type === 'user' ? option.alternateText : String(option.reportID))}
+                keyExtractor={option => option.keyForList}
                 renderItem={({item, index}) => (
                     <ChatLinkRow
                         option={item}
