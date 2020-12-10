@@ -46,12 +46,12 @@ const propTypes = {
     // Begins / navigates to the chat between the various group users
     onConfirmUsers: PropTypes.func.isRequired,
 
-    // Group DM user options that have been selected
-    groupUsers: PropTypes.arrayOf(ChatSwitcherOptionPropTypes),
+    // Users selected to begin a group chat
+    usersToStartGroupReportWith: PropTypes.arrayOf(ChatSwitcherOptionPropTypes),
 };
 
 const defaultProps = {
-    groupUsers: [],
+    usersToStartGroupReportWith: [],
 };
 
 const ChatSwitcherSearchForm = props => (
@@ -66,7 +66,7 @@ const ChatSwitcherSearchForm = props => (
             </View>
         )}
 
-        {props.groupUsers.length > 0
+        {props.usersToStartGroupReportWith.length > 0
             ? (
                 <View
                     style={[
@@ -76,7 +76,7 @@ const ChatSwitcherSearchForm = props => (
                 >
                     <View style={[styles.flexGrow1]}>
                         <View style={styles.chatSwitcherPillsInput}>
-                            {_.map(props.groupUsers, user => (
+                            {_.map(props.usersToStartGroupReportWith, user => (
                                 <View
                                     key={user.login}
                                     style={[styles.chatSwticherPillWrapper]}
