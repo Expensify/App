@@ -25,6 +25,15 @@ const propTypes = {
 
     // When the input has cleared whoever owns this input should know about it
     onClear: PropTypes.func,
+
+    // Callback to fire when a file has been dragged into the text input
+    onDragEnter: PropTypes.func,
+
+    // Callback to fire when the user is no longer dragging over the text input
+    onDragLeave: PropTypes.func,
+
+    // Callback to fire when a file is dropped on the text input
+    onDrop: PropTypes.func,
 };
 
 const defaultProps = {
@@ -33,6 +42,9 @@ const defaultProps = {
     shouldClear: false,
     onClear: () => {},
     style: null,
+    onDragEnter: () => {},
+    onDragLeave: () => {},
+    onDrop: () => {},
 };
 
 /**
