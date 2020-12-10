@@ -157,7 +157,7 @@ function getFromReportParticipants(reports) {
     API.PersonalDetails_GetForEmails({emailList: participantEmails.join(',')})
         .then((data) => {
             const details = _.pick(data, participantEmails);
-            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, details);
+            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, formatPersonalDetails(details));
 
             // The personalDetails of the participants contain their avatar images. Here we'll go over each
             // report and based on the participants we'll link up their avatars to report icons.
