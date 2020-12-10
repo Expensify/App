@@ -86,7 +86,7 @@ function signIn(partnerUserID, partnerUserSecret, twoFactorAuthCode = '', exitTo
                 });
         })
         .catch((error) => {
-            console.error(error);
+            console.debug(error);
             console.debug('[SIGNIN] Request error');
             Onyx.merge(ONYXKEYS.SESSION, {error: error.message});
         })
