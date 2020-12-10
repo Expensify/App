@@ -34,6 +34,8 @@ const defaultProps = {
 };
 
 const AttachmentView = (props) => {
+    // Check both sourceURL and file.name since PDFs dragged into the the text field
+    // will appear with a sourceURL that is a blob
     if (Str.isPDF(props.sourceURL) || (props.file && Str.isPDF(props.file.name))) {
         return (
             <PDFView
