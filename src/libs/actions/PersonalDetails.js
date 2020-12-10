@@ -120,7 +120,7 @@ function fetch() {
             // Get the timezone and put it in Onyx
             fetchTimezone();
         })
-        .catch(error => console.error('Error fetching personal details', error));
+        .catch(error => console.debug('Error fetching personal details', error));
 
     // Refresh the personal details every 30 minutes because there is no
     // pusher event that sends updated personal details data yet
