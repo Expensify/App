@@ -2,9 +2,9 @@ import React from 'react';
 import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import {withOnyx} from 'react-native-onyx';
 import compose from '../../../libs/compose';
-import withIon from '../../../components/withIon';
-import IONKEYS from '../../../IONKEYS';
+import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/StyleSheet';
 import {getDisplayName} from '../../../libs/actions/PersonalDetails';
 
@@ -21,15 +21,17 @@ class ReportTypingIndicator extends React.Component {
     constructor(props) {
         super(props);
 
-        const usersTyping = Object.keys(props.userTypingStatuses || {})
-            .filter(login => props.userTypingStatuses[login]);
+        const usersTyping = props.userTypingStatuses
+            ? Object.keys(props.userTypingStatuses)
+                .filter(login => props.userTypingStatuses[login])
+            : [];
         this.state = {usersTyping};
     }
 
     componentDidUpdate(prevProps) {
         // Make sure we only update the state if there's been a change in who's typing.
         if (!_.isEqual(prevProps.userTypingStatuses, this.props.userTypingStatuses)) {
-            const usersTyping = Object.keys(this.props.userTypingStatuses || {})
+            const usersTyping = Object.keys(this.props.userTypingStatuses)
                 .filter(login => this.props.userTypingStatuses[login]);
 
             // Suppressing because this is within a conditional, and hence we won't run into an infinite loop
@@ -83,9 +85,9 @@ ReportTypingIndicator.defaultProps = defaultProps;
 ReportTypingIndicator.displayName = 'ReportTypingIndicator';
 
 export default compose(
-    withIon({
+    withOnyx({
         userTypingStatuses: {
-            key: ({reportID}) => `${IONKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`,
+            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`,
         }
     }),
 )(ReportTypingIndicator);

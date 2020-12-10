@@ -17,12 +17,12 @@ jobs:
               with:
                 node-version: '14.x'
 
-            - uses: webfactory/ssh-agent@v0.4.0
+            - uses: webfactory/ssh-agent@v0.4.1
               with:
                   ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
             - name: Install node packages
-              run: npm ci
+              run: npm install
 
             - name: Decrypt Developer ID Certificate
               run: cd desktop && gpg --quiet --batch --yes --decrypt --passphrase="$DEVELOPER_ID_SECRET_PASSPHRASE" --output developer_id.p12 developer_id.p12.gpg

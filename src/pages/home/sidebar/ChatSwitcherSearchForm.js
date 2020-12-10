@@ -1,10 +1,19 @@
+import _ from 'underscore';
 import React from 'react';
-import {Image, TouchableOpacity, View} from 'react-native';
+import {
+    Image,
+    TouchableOpacity,
+    View,
+    Text
+} from 'react-native';
 import PropTypes from 'prop-types';
 import styles, {colors} from '../../../styles/StyleSheet';
 import logoCircle from '../../../../assets/images/expensify-logo-round.png';
 import TextInputWithFocusStyles from '../../../components/TextInputWithFocusStyles';
 import iconX from '../../../../assets/images/icon-x.png';
+import {getDisplayName} from '../../../libs/actions/PersonalDetails';
+import PillWithCancelButton from '../../../components/PillWithCancelButton';
+import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
 
 const propTypes = {
     // A ref to forward to the text input
@@ -33,10 +42,23 @@ const propTypes = {
 
     // A function to call when a key has been pressed in the input
     onKeyPress: PropTypes.func.isRequired,
+
+    // Remove selected user from group DM list
+    onRemoveFromGroup: PropTypes.func.isRequired,
+
+    // Begins / navigates to the chat between the various group users
+    onConfirmUsers: PropTypes.func.isRequired,
+
+    // Group DM user options that have been selected
+    groupUsers: PropTypes.arrayOf(ChatSwitcherOptionPropTypes),
+};
+
+const defaultProps = {
+    groupUsers: [],
 };
 
 const ChatSwitcherSearchForm = props => (
-    <View style={[styles.flexRow, styles.mb4]}>
+    <View style={[styles.flexRow]}>
         {props.isLogoVisible && (
             <View style={[styles.mr2, styles.ml2]}>
                 <Image
@@ -47,22 +69,91 @@ const ChatSwitcherSearchForm = props => (
             </View>
         )}
 
-        <TextInputWithFocusStyles
-            styleFocusIn={[styles.textInputReversedFocus]}
-            ref={props.forwardedRef}
-            style={[styles.textInput, styles.textInputReversed, styles.flex1, styles.mr2]}
-            value={props.searchValue}
-            onBlur={props.onBlur}
-            onChangeText={props.onChangeText}
-            onFocus={props.onFocus}
-            onKeyPress={props.onKeyPress}
-            placeholder="Find or start a chat"
-            placeholderTextColor={colors.icon}
-        />
+        {props.groupUsers.length > 0
+            ? (
+                <View
+                    style={[
+                        styles.chatSwitcherGroupDMContainer,
+                        styles.flex1,
+                    ]}
+                >
+                    <View style={[styles.flexGrow1]}>
+                        <View style={styles.chatSwitcherPillsInput}>
+                            {_.map(props.groupUsers, user => (
+                                <View
+                                    key={user.login}
+                                    style={[styles.chatSwticherPillWrapper]}
+                                >
+                                    <PillWithCancelButton
+                                        text={getDisplayName(user.login)}
+                                        onCancel={() => props.onRemoveFromGroup(user)}
+                                    />
+                                </View>
+                            ))}
+                            <View
+                                style={[
+                                    styles.chatSwitcherInputGroup,
+                                    styles.flexRow,
+                                    styles.flexGrow1,
+                                    styles.flexAlignSelfStretch,
+                                ]}
+                            >
+                                <TextInputWithFocusStyles
+                                    styleFocusIn={[styles.textInputNoOutline]}
+                                    ref={props.forwardedRef}
+                                    style={[styles.chatSwitcherGroupDMTextInput, styles.mb1]}
+                                    value={props.searchValue}
+
+                                    // We don't want to handle this blur event when
+                                    // we are composing a group DM since it will reset
+                                    // everything when we try to remove a user or start
+                                    // the conversation
+                                    // eslint-disable-next-line react/jsx-props-no-multi-spaces
+                                    onBlur={() => {}}
+                                    onChangeText={props.onChangeText}
+                                    onFocus={props.onFocus}
+                                    onKeyPress={props.onKeyPress}
+                                />
+                            </View>
+                        </View>
+                    </View>
+                    <View style={[styles.ml2, styles.flexJustifyEnd]}>
+                        <TouchableOpacity
+                            style={[styles.button, styles.buttonSmall, styles.buttonSuccess, styles.chatSwitcherGo]}
+                            onPress={props.onConfirmUsers}
+                            underlayColor={colors.componentBG}
+                        >
+                            <Text
+                                style={[
+                                    styles.buttonText,
+                                    styles.buttonSmallText,
+                                    styles.buttonSuccessText
+                                ]}
+                            >
+                                Go
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            )
+            : (
+                <TextInputWithFocusStyles
+                    styleFocusIn={[styles.textInputReversedFocus]}
+                    ref={props.forwardedRef}
+                    style={[styles.textInput, styles.textInputReversed, styles.flex1]}
+                    value={props.searchValue}
+                    onBlur={props.onBlur}
+                    onChangeText={props.onChangeText}
+                    onFocus={props.onFocus}
+                    onKeyPress={props.onKeyPress}
+                    placeholder="Find or start a chat"
+                    placeholderTextColor={colors.icon}
+                />
+            )}
 
         {props.isClearButtonVisible && (
             <TouchableOpacity
-                style={[styles.chatSwitcherInputClear]}
+                style={[styles.chatSwitcherInputClear, styles.ml2]}
                 onPress={props.onClearButtonClick}
                 underlayColor={colors.componentBG}
             >
@@ -77,6 +168,7 @@ const ChatSwitcherSearchForm = props => (
 );
 
 ChatSwitcherSearchForm.propTypes = propTypes;
+ChatSwitcherSearchForm.defaultProps = defaultProps;
 ChatSwitcherSearchForm.displayName = 'ChatSwitcherSearchForm';
 
 export default React.forwardRef((props, ref) => (

@@ -2,15 +2,16 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {View, Image, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
+import {withOnyx} from 'react-native-onyx';
 import styles, {colors} from '../../../styles/StyleSheet';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 import sendIcon from '../../../../assets/images/icon-send.png';
-import IONKEYS from '../../../IONKEYS';
+import ONYXKEYS from '../../../ONYXKEYS';
 import paperClipIcon from '../../../../assets/images/icon-paper-clip.png';
-import ImagePicker from '../../../libs/ImagePicker';
-import withIon from '../../../components/withIon';
+import AttachmentPicker from '../../../components/AttachmentPicker';
 import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs/actions/Report';
 import ReportTypingIndicator from './ReportTypingIndicator';
+import AttachmentModal from '../../../components/AttachmentModal';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -37,10 +38,12 @@ class ReportActionCompose extends React.Component {
         this.submitForm = this.submitForm.bind(this);
         this.triggerSubmitShortcut = this.triggerSubmitShortcut.bind(this);
         this.submitForm = this.submitForm.bind(this);
-        this.showAttachmentPicker = this.showAttachmentPicker.bind(this);
         this.setIsFocused = this.setIsFocused.bind(this);
-        this.comment = '';
-        this.state = {isFocused: false};
+        this.comment = props.comment;
+        this.state = {
+            isFocused: false,
+            textInputShouldClear: false
+        };
     }
 
     componentDidUpdate(prevProps) {
@@ -54,26 +57,35 @@ class ReportActionCompose extends React.Component {
     /**
      * Updates the Highlight state of the composer
      *
-     * @param {boolean} shouldHighlight
+     * @param {Boolean} shouldHighlight
      */
     setIsFocused(shouldHighlight) {
         this.setState({isFocused: shouldHighlight});
     }
 
     /**
-     * Save our report comment in Ion. We debounce this method in the constructor so that it's not called too often
-     * to update Ion and re-render this component.
+     * Updates the should clear state of the composer
      *
-     * @param {string} comment
+     * @param {Boolean} shouldClear
+     */
+    setTextInputShouldClear(shouldClear) {
+        this.setState({textInputShouldClear: shouldClear});
+    }
+
+    /**
+     * Save our report comment in Onyx. We debounce this method in the constructor so that it's not called too often
+     * to update Onyx and re-render this component.
+     *
+     * @param {String} comment
      */
     debouncedSaveReportComment(comment) {
         saveReportComment(this.props.reportID, comment || '');
     }
 
     /**
-     * Update the value of the comment in Ion
+     * Update the value of the comment in Onyx
      *
-     * @param {string} newComment
+     * @param {String} newComment
      */
     updateComment(newComment) {
         this.comment = newComment;
@@ -112,41 +124,8 @@ class ReportActionCompose extends React.Component {
         }
 
         this.props.onSubmit(trimmedComment);
-        this.textInput.clear();
         this.updateComment('');
-    }
-
-    /**
-     * Handle the attachment icon being tapped
-     *
-     * @param {SyntheticEvent} e
-     */
-    showAttachmentPicker(e) {
-        e.preventDefault();
-
-        /**
-         * See https://github.com/react-native-community/react-native-image-picker/blob/master/docs/Reference.md#options
-         * for option definitions
-         */
-        const options = {
-            storageOptions: {
-                skipBackup: true,
-            },
-        };
-
-        ImagePicker.showImagePicker(options, (response) => {
-            if (response.didCancel) {
-                return;
-            }
-
-            if (response.error) {
-                console.error(`Error occurred picking image: ${response.error}`);
-                return;
-            }
-
-            addAction(this.props.reportID, '', ImagePicker.getDataForUpload(response));
-            this.textInput.focus();
-        });
+        this.setTextInputShouldClear(true);
     }
 
     render() {
@@ -158,42 +137,69 @@ class ReportActionCompose extends React.Component {
                     styles.flexRow
                 ]}
                 >
-                    <TouchableOpacity
-                        onPress={this.showAttachmentPicker}
-                        style={[styles.chatItemAttachButton]}
-                        underlayColor={colors.componentBG}
+                    <AttachmentModal
+                        title="Upload Attachment"
+                        onConfirm={(file) => {
+                            addAction(this.props.reportID, '', file);
+                            this.setTextInputShouldClear(true);
+                        }}
                     >
-                        <Image
-                            style={[styles.chatItemSubmitButtonIcon]}
-                            resizeMode="contain"
-                            source={paperClipIcon}
-                        />
-                    </TouchableOpacity>
-                    <TextInputFocusable
-                        multiline
-                        textAlignVertical="top"
-                        placeholder="Write something..."
-                        ref={el => this.textInput = el}
-                        placeholderTextColor={colors.textSupporting}
-                        onChangeText={this.updateComment}
-                        onKeyPress={this.triggerSubmitShortcut}
-                        onDragEnter={() => {
-                            this.setState({isDraggingOver: true});
-                        }}
-                        onDragLeave={() => {
-                            this.setState({isDraggingOver: false});
-                        }}
-                        onDrop={(e) => {
-                            e.preventDefault();
-                            console.log(e.dataTransfer.files);
-                            this.setState({isDraggingOver: false});
-                        }}
-                        style={[styles.textInput, styles.textInputCompose, styles.flex4]}
-                        defaultValue={this.props.comment || ''}
-                        maxLines={16} // This is the same that slack has
-                        onFocus={() => this.setIsFocused(true)}
-                        onBlur={() => this.setIsFocused(false)}
-                    />
+                        {({displayFileInModal}) => (
+                            <>
+                                <AttachmentPicker>
+                                    {({openPicker}) => (
+                                        <TouchableOpacity
+                                            onPress={(e) => {
+                                                e.preventDefault();
+                                                openPicker({
+                                                    onPicked: (file) => {
+                                                        displayFileInModal({file});
+                                                    },
+                                                });
+                                            }}
+                                            style={[styles.chatItemAttachButton]}
+                                            underlayColor={colors.componentBG}
+                                        >
+                                            <Image
+                                                style={[styles.chatItemSubmitButtonIcon]}
+                                                resizeMode="contain"
+                                                source={paperClipIcon}
+                                            />
+                                        </TouchableOpacity>
+                                    )}
+                                </AttachmentPicker>
+                                <TextInputFocusable
+                                    multiline
+                                    ref={el => this.textInput = el}
+                                    textAlignVertical="top"
+                                    placeholder="Write something..."
+                                    placeholderTextColor={colors.textSupporting}
+                                    onChangeText={this.updateComment}
+                                    onKeyPress={this.triggerSubmitShortcut}
+                                    onDragEnter={() => {
+                                        this.setState({isDraggingOver: true});
+                                    }}
+                                    onDragLeave={() => {
+                                        this.setState({isDraggingOver: false});
+                                    }}
+                                    onDrop={(e) => {
+                                        e.preventDefault();
+                                        console.log(e.dataTransfer.files);
+                                        this.setState({isDraggingOver: false});
+                                    }}
+                                    style={[styles.textInput, styles.textInputCompose, styles.flex4]}
+                                    defaultValue={this.props.comment}
+                                    maxLines={16} // This is the same that slack has
+                                    onFocus={() => this.setIsFocused(true)}
+                                    onBlur={() => this.setIsFocused(false)}
+                                    onPasteFile={file => displayFileInModal({file})}
+                                    shouldClear={this.state.textInputShouldClear}
+                                    onClear={() => this.setTextInputShouldClear(false)}
+                                />
+
+                            </>
+                        )}
+                    </AttachmentModal>
                     <TouchableOpacity
                         style={[styles.chatItemSubmitButton, styles.buttonSuccess]}
                         onPress={this.submitForm}
@@ -211,11 +217,12 @@ class ReportActionCompose extends React.Component {
         );
     }
 }
+
 ReportActionCompose.propTypes = propTypes;
 ReportActionCompose.defaultProps = defaultProps;
 
-export default withIon({
+export default withOnyx({
     comment: {
-        key: ({reportID}) => `${IONKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
+        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
     },
 })(ReportActionCompose);

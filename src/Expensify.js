@@ -1,14 +1,16 @@
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import {recordCurrentlyViewedReportID, recordCurrentRoute} from './libs/actions/App';
 import SignInPage from './pages/SignInPage';
 import HomePage from './pages/home/HomePage';
-import Ion from './libs/Ion';
+import listenToStorageEvents from './libs/listenToStorageEvents';
 import * as ActiveClientManager from './libs/ActiveClientManager';
-import IONKEYS from './IONKEYS';
-import withIon from './components/withIon';
+import ONYXKEYS from './ONYXKEYS';
+
 import styles from './styles/StyleSheet';
+import Log from './libs/Log';
 
 import {
     Route,
@@ -17,16 +19,33 @@ import {
     Switch
 } from './libs/Router';
 import ROUTES from './ROUTES';
+import PushNotification from './libs/Notification/PushNotification';
 
 // Initialize the store when the app loads for the first time
-Ion.init({
-    safeEvictionKeys: [IONKEYS.COLLECTION.REPORT_ACTIONS],
+Onyx.init({
+    keys: ONYXKEYS,
+    safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+    initialKeyStates: {
+
+        // Clear any loading and error messages so they do not appear on app startup
+        [ONYXKEYS.SESSION]: {loading: false, error: ''},
+    },
+    registerStorageEventListener: (onStorageEvent) => {
+        listenToStorageEvents(onStorageEvent);
+    },
+});
+Onyx.registerLogger(({level, message}) => {
+    if (level === 'alert') {
+        Log.alert(message, 0, {}, false);
+    } else {
+        Log.client(message);
+    }
 });
 
 const propTypes = {
-    /* Ion Props */
+    /* Onyx Props */
 
-    // A route set by Ion that we will redirect to if present. Always empty on app init.
+    // A route set by Onyx that we will redirect to if present. Always empty on app init.
     redirectTo: PropTypes.string,
 };
 
@@ -50,27 +69,34 @@ class Expensify extends Component {
     }
 
     componentDidMount() {
-        Ion.connect({
-            key: IONKEYS.SESSION,
+        Onyx.connect({
+            key: ONYXKEYS.SESSION,
             callback: this.removeLoadingState,
         });
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        if (this.state.accountID && this.state.accountID !== prevState.accountID) {
+            PushNotification.register(this.state.accountID);
+        }
     }
 
     /**
      * When the authToken is updated, the app should remove the loading state and handle the authToken
      *
-     * @param {object} session
-     * @param {string} session.authToken
+     * @param {Object} session
+     * @param {String} session.authToken
      */
     removeLoadingState(session) {
         this.setState({
             authToken: session ? session.authToken : null,
+            accountID: session ? session.accountID : null,
             isLoading: false,
         });
     }
 
     render() {
-        // Until the authToken has been initialized from Ion, display a blank page
+        // Until the authToken has been initialized from Onyx, display a blank page
         if (this.state.isLoading) {
             return (
                 <View style={styles.genericView} />
@@ -81,7 +107,7 @@ class Expensify extends Component {
             <Router>
                 {/* If there is ever a property for redirecting, we do the redirect here */}
                 {/* Leave this as a ternary or else iOS throws an error about text not being wrapped in <Text> */}
-                {redirectTo ? <Redirect to={redirectTo} /> : null}
+                {redirectTo ? <Redirect push to={redirectTo} /> : null}
                 <Route path="*" render={recordCurrentRoute} />
                 <Route path={ROUTES.REPORT} exact render={recordCurrentlyViewedReportID} />
 
@@ -106,11 +132,11 @@ class Expensify extends Component {
 Expensify.propTypes = propTypes;
 Expensify.defaultProps = defaultProps;
 
-export default withIon({
+export default withOnyx({
     redirectTo: {
-        key: IONKEYS.APP_REDIRECT_TO,
+        key: ONYXKEYS.APP_REDIRECT_TO,
 
-        // Prevent the prefilling of Ion data or else the app will always redirect to what the last value was set to.
+        // Prevent the prefilling of Onyx data or else the app will always redirect to what the last value was set to.
         // This ends up in a situation where you go to a report, refresh the page, and then rather than seeing the
         // report you are brought back to the root of the site (ie. "/").
         initWithStoredValues: false,

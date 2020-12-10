@@ -1,16 +1,11 @@
 import React from 'react';
-import HTML from 'react-native-render-html';
-import {
-    Linking, ActivityIndicator, View, Dimensions
-} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import PropTypes from 'prop-types';
-import Str from '../../../libs/Str';
+import Str from 'expensify-common/lib/str';
 import ReportActionFragmentPropTypes from './ReportActionFragmentPropTypes';
-import styles, {webViewStyles, colors} from '../../../styles/StyleSheet';
+import styles, {colors} from '../../../styles/StyleSheet';
+import RenderHTML from '../../../components/RenderHTML';
 import Text from '../../../components/Text';
-import AnchorForCommentsOnly from '../../../components/AnchorForCommentsOnly';
-import {getAuthToken} from '../../../libs/API';
-import InlineCodeBlock from '../../../components/InlineCodeBlock';
 
 const propTypes = {
     // The message fragment needing to be displayed
@@ -18,109 +13,40 @@ const propTypes = {
 
     // Is this fragment an attachment?
     isAttachment: PropTypes.bool,
+
+    // Does this fragment belong to a reportAction that has not yet loaded?
+    loading: PropTypes.bool,
 };
 
 const defaultProps = {
-    isAttachment: false
+    isAttachment: false,
+    loading: false,
 };
 
 class ReportActionItemFragment extends React.PureComponent {
-    constructor(props) {
-        super(props);
-
-        this.alterNode = this.alterNode.bind(this);
-
-        // Define the custom render methods
-        // For <a> tags, the <Anchor> attribute is used to be more cross-platform friendly
-        this.customRenderers = {
-            a: (htmlAttribs, children, convertedCSSStyles, passProps) => (
-                <AnchorForCommentsOnly
-                    href={htmlAttribs.href}
-
-                    // Unless otherwise specified open all links in
-                    // a new window. On Desktop this means that we will
-                    // skip the default Save As... download prompt
-                    // and defer to whatever browser the user has.
-                    target={htmlAttribs.target || '_blank'}
-                    rel={htmlAttribs.rel || 'noopener noreferrer'}
-                    style={passProps.style}
-                    key={passProps.key}
-                >
-                    {children}
-                </AnchorForCommentsOnly>
-            ),
-            pre: (htmlAttribs, children, convertedCSSStyles, passProps) => (
-                <View
-                    key={passProps.key}
-                    style={webViewStyles.preTagStyle}
-                >
-                    {children}
-                </View>
-            ),
-            code: (htmlAttribs, children, convertedCSSStyles, passProps) => (
-                <InlineCodeBlock key={passProps.key}>
-                    {children}
-                </InlineCodeBlock>
-            ),
-        };
-    }
-
-    /**
-     * Function to edit HTML on the fly before it's rendered, currently this attaches authTokens as a URL parameter to
-     * load image attachments.
-     *
-     * @param {object} node
-     * @returns {object}
-     */
-    alterNode(node) {
-        const htmlNode = node;
-
-        // We only want to attach auth tokens to images that come from Expensify attachments
-        if (htmlNode.name === 'img' && htmlNode.attribs['data-expensify-source']) {
-            htmlNode.attribs.src = `${node.attribs.src}?authToken=${getAuthToken()}`;
-            return htmlNode;
-        }
-    }
-
     render() {
         const {fragment} = this.props;
-        const maxImageDimensions = 512;
-        const windowWidth = Dimensions.get('window').width;
         switch (fragment.type) {
             case 'COMMENT':
                 // If this is an attachment placeholder, return the placeholder component
-                if (this.props.isAttachment && fragment.html === fragment.text) {
+                if (this.props.isAttachment && this.props.loading) {
                     return (
                         <View style={[styles.chatItemAttachmentPlaceholder]}>
                             <ActivityIndicator
                                 size="large"
                                 color={colors.textSupporting}
-                                style={[styles.h100p]}
+                                style={[styles.flex1]}
                             />
                         </View>
                     );
                 }
 
                 // Only render HTML if we have html in the fragment
-                return fragment.html !== fragment.text
-                    ? (
-                        <HTML
-                            textSelectable
-                            renderers={this.customRenderers}
-                            baseFontStyle={webViewStyles.baseFontStyle}
-                            tagsStyles={webViewStyles.tagStyles}
-                            onLinkPress={(event, href) => Linking.openURL(href)}
-                            html={fragment.html}
-                            alterNode={this.alterNode}
-                            imagesMaxWidth={Math.min(maxImageDimensions, windowWidth * 0.8)}
-                            imagesInitialDimensions={{width: maxImageDimensions, height: maxImageDimensions}}
-                        />
-                    )
-                    : (
-                        <Text selectable>
-                            {Str.htmlDecode(fragment.text)}
-                        </Text>
-                    );
+                return fragment.html !== fragment.text ? (
+                    <RenderHTML html={fragment.html} debug={false} />
+                ) : (
+                    <Text selectable>{Str.htmlDecode(fragment.text)}</Text>
+                );
             case 'TEXT':
                 return (
                     <Text
