@@ -44,7 +44,7 @@ const ChatLinkRow = ({
     onAddToGroup,
     isChatSwitcher,
 }) => {
-    const isSingleUserChat = option.type === CONST.REPORT.SINGLE_USER_CHAT;
+    const isSingleUserDM = option.type === CONST.REPORT.SINGLE_USER_DM;
     const textStyle = optionIsFocused
         ? styles.sidebarLinkActiveText
         : styles.sidebarLinkText;
@@ -109,7 +109,7 @@ const ChatLinkRow = ({
                     </View>
                 </View>
             </PressableLink>
-            {isSingleUserChat && isChatSwitcher && (
+            {isSingleUserDM && isChatSwitcher && (
                 <View>
                     <TouchableOpacity
                         style={[styles.chatSwitcherItemButton]}
