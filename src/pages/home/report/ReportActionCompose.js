@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {View, Image, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
+import lodashGet from 'lodash.get';
 import {withOnyx} from 'react-native-onyx';
 import styles, {colors} from '../../../styles/StyleSheet';
 import TextInputFocusable from '../../../components/TextInputFocusable';
@@ -182,7 +183,13 @@ class ReportActionCompose extends React.Component {
                                     onDragLeave={() => this.setState({isDraggingOver: false})}
                                     onDrop={(e) => {
                                         e.preventDefault();
-                                        displayFileInModal({file: e.dataTransfer.files[0]});
+
+                                        const file = lodashGet(e, ['dataTransfer', 'files', 0]);
+                                        if (!file) {
+                                            return;
+                                        }
+
+                                        displayFileInModal({file});
                                         this.setState({isDraggingOver: false});
                                     }}
                                     style={[styles.textInput, styles.textInputCompose, styles.flex4]}
