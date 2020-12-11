@@ -25,8 +25,7 @@ export default {
     // Contains all the personalDetails the user has access to
     PERSONAL_DETAILS: 'personalDetails',
 
-    // Contains isInProgress (bool) denoting whether we're re-authenticating.
-    // Also contains originalCommand, originalParameters, and originalType to replay the original network request
+    // Indicates if we're in the process of reauthenticating
     REAUTHENTICATING: 'reauthenticating',
 
     // Information about the current session (authToken, accountID, email, loading, error)

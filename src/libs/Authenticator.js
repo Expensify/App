@@ -23,11 +23,14 @@ function init() {
     Onyx.connect({
         key: ONYXKEYS.REAUTHENTICATING,
         callback: (reauthenticating) => {
-            if (isReauthenticating === reauthenticating.isInProgress) {
+            if (!reauthenticating) {
+                return;
+            }
+            if (isReauthenticating === reauthenticating) {
                 return;
             }
 
-            isReauthenticating = reauthenticating.isInProgress;
+            isReauthenticating = reauthenticating;
 
             // When the app is no longer authenticating restart the network queue
             if (!isReauthenticating) {

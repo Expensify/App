@@ -105,11 +105,7 @@ function reauthenticate() {
             redirectToSignIn(error.message);
             return Promise.reject();
         })
-        .finally(() => {
-            Onyx.set(ONYXKEYS.REAUTHENTICATING, {
-                inProgress: false,
-            });
-        });
+        .finally(() => Onyx.set(ONYXKEYS.REAUTHENTICATING, false));
 }
 
 export {

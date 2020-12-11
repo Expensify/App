@@ -107,12 +107,7 @@ function request(command, parameters, type = 'post') {
                 Network.post(command, parameters, type);
 
                 // Trigger re-authentication
-                Onyx.set(ONYXKEYS.REAUTHENTICATING, {
-                    isInProgress: true,
-                    originalCommand: command,
-                    originalParameters: parameters,
-                    originalType: type,
-                });
+                Onyx.set(ONYXKEYS.REAUTHENTICATING, true);
             }
 
             // Throw an error to prevent other handlers from being triggered on this promise
