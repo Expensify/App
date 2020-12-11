@@ -51,6 +51,16 @@ This application is built with the following principles.
 
 You can use any IDE or code editing tool for developing on any platform. Use your favorite!
 
+## Setting up ngrok
+Ngrok makes the our locally-hosted web application appear to be hosted on a subdomain of ngrok.com.  This allows us to avoid many of our cross-domain issues with our API and is required for doing local development on android or viewing images on mobile.
+
+1. Set up a permanent [ngrok route](https://stackoverflow.com/c/expensify/questions/3382)
+2. Replace the value `NGROK_URL` in your `.env` file with the ngrok route you just set up
+3. Set the `USE_NGROK` in your `.env` to true
+4. Start ngrok with the name you previously set (`Expensidev/script/ngrok.sh thienlnam`)
+
+Now, all of your API calls will be using the ngrok route.
+
 ## Running the web app 🕸
 * To run a **Development Server**: `npm run web`
 * To build a **production build**: `npm run build`
@@ -69,19 +79,31 @@ You can use any IDE or code editing tool for developing on any platform. Use you
 ## Running the Android app 🤖
 * To install the Android dependencies, run: `npm install`, then `gradle` will install all linked dependencies
 * Running via `ngrok` is required to communicate with the API
-    * Start ngrok (`Expensidev/script/ngrok.sh`), replace `expensify.com.dev` value in `.env` with your ngrok value
+    * Follow the instructions under the section `Setting up ngrok`
 * To run a on a **Development Emulator**: `npm run android`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
 ## Running the MacOS desktop app 🖥
  * To run the **Development app**, run: `npm run desktop`, this will start a new Electron process running on your MacOS desktop in the `dist/Mac` folder.
 
+## Running the web app via production API proxy (Contributors) 🧑‍💻
+If you don't have full-access to Expensify's development environment you will need to run the app against the production API.
+* Copy the `.env.production` variables into your `.env` file
+* Set `EXPENSIFY_URL_COM` environment variable to be empty (Note: this means it should be `EXPENSIFY_URL_COM=`, not completely omitted)
+* Run the **Development Server**: `npm run proxy`
+
 ## Running the tests 🎰
 ### Unit tests
+Unit tests are valuable when you want to test one component. They should be short, fast, and ideally only test one thing.
+Often times in order to write a unit test, you may need to mock data, a component, or library. We use the library [Jest](https://jestjs.io/)
+to help run our Unit tests.
+
 * To run the **Jest unit tests**: `npm run test`
 
 ### End to end tests
-[Detox](https://github.com/wix/Detox) is a _"Gray box end-to-end testing and automation library"_
+End to end tests are valuable when we do not want to mock data and run against the actual compiled app on iOS or Android.
+In order to run the end to end tests, we have to compile the iOS or Android app, then launch a simulator, then run tests.
+We use [Detox](https://github.com/wix/Detox) a _"Gray box end-to-end testing and automation library"_ to help with our end to end testing.
 
 You are first required to build the tests, then you can run them: 
 1. To build the **Detox end to end tests**: `npm run detox-build`
@@ -117,7 +139,7 @@ This is a persistent storage solution wrapped in a Pub/Sub library. In general t
 
 - Onyx stores and retrieves data from persistent storage
 - Data is stored as key/value pairs, where the value can be anything from a single piece of data to a complex object
-- Collections of data are usually not stored as a single key (eg. an array with multiple objects), but as individual keys+ID (eg. `report_1234`, `report_4567`, etc.). Store collections as individual keys when a component will bind directly to one of those keys. For example: reports are stored as individual keys because `SidebarLink.js` binds to the individual report keys for each link. However, report actions are stored as an array of objects because nothing binds directly to a single report action.
+- Collections of data are usually not stored as a single key (eg. an array with multiple objects), but as individual keys+ID (eg. `report_1234`, `report_4567`, etc.). Store collections as individual keys when a component will bind directly to one of those keys. For example: reports are stored as individual keys because `ChatLinkRow.js` binds to the individual report keys for each link. However, report actions are stored as an array of objects because nothing binds directly to a single report action.
 - Onyx allows other code to subscribe to changes in data, and then publishes change events whenever data is changed
 - Anything needing to read Onyx data needs to:
     1. Know what key the data is stored in (for web, you can find this by looking in the JS console > Application > local storage)

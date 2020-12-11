@@ -2,7 +2,6 @@ import React, {Component} from 'react';
 import {
     SafeAreaView,
     Text,
-    StatusBar,
     TouchableOpacity,
     TextInput,
     Image,
@@ -20,6 +19,8 @@ import {signIn} from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
 import styles, {colors} from '../styles/StyleSheet';
 import logo from '../../assets/images/expensify-logo_reversed.png';
+import CustomStatusBar from '../components/CustomStatusBar';
+import updateUnread from '../libs/UnreadIndicatorUpdater/updateUnread';
 
 const propTypes = {
     // These are from withRouter
@@ -56,9 +57,8 @@ class App extends Component {
     }
 
     componentDidMount() {
-        StatusBar.setBarStyle('light-content', true);
-        StatusBar.setBackgroundColor('transparent', true);
-        StatusBar.setTranslucent(true);
+        // Always reset the unread counter to zero on this page
+        updateUnread(0);
     }
 
     /**
@@ -83,7 +83,7 @@ class App extends Component {
         const isLoading = session.loading;
         return (
             <>
-                <StatusBar />
+                <CustomStatusBar />
                 <SafeAreaView style={[styles.signInPage]}>
                     <View style={[styles.signInPageInner]}>
                         <View style={[styles.signInPageLogo]}>
