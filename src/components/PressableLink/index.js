@@ -1,5 +1,4 @@
 import React from 'react';
-import _ from 'underscore';
 import {Link} from '../../libs/Router';
 
 /**
