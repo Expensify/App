@@ -953,21 +953,21 @@ const styles = {
     notFoundTextHeader: {
         color: colors.pacificBlue,
         fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: 'bold',
+        fontWeight: '600',
         fontSize: 150,
     },
 
     notFoundTextBody: {
         color: colors.componentBG,
         fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: 'bold',
+        fontWeight: '600',
         fontSize: 16,
     },
 
     notFoundButtonText: {
         color: colors.pacificBlue,
         fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: 'bold',
+        fontWeight: '600',
         fontSize: 16,
     }
 };
