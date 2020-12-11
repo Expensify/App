@@ -43,9 +43,10 @@ const ImageView = (props) => {
                 imageHeight={props.height}
             >
                 <ImageWithSizeCalculation
-                    style={{width: props.width, height: props.height}}
                     url={props.url}
                     onMeasure={props.onMeasure}
+                    width={props.width}
+                    height={props.height}
                 />
             </ImgZoom>
         </View>
