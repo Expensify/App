@@ -36,7 +36,7 @@ jobs:
               run: git checkout -b version-bump-${{ github.sha }}
 
             - name: Generate version
-              run: npm version prerelease -m "Update version to %s"
+              uses: ../actions/bumpVersion
 
             - name: Push new version
               run: git push --set-upstream origin version-bump-${{ github.sha }}
