@@ -1,4 +1,5 @@
 import React from 'react';
+import _ from 'underscore';
 import {Link} from '../../libs/Router';
 
 /**
@@ -7,7 +8,7 @@ import {Link} from '../../libs/Router';
  * @returns {JSX.Element}
  */
 // eslint-disable-next-line react/jsx-props-no-spreading
-const PressableLink = props => (<Link {...props} />);
+const PressableLink = props => (<Link {..._.omit(props, ['underlayColor'])} />);
 
 PressableLink.displayName = 'PressableLink';
 
