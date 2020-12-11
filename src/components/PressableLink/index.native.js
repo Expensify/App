@@ -11,12 +11,12 @@ const propTypes = {
     onClick: PropTypes.func.isRequired,
 };
 
-// eslint-disable-next-line react/jsx-props-no-spreading
 const PressableLink = props => (
     <Link
         onPress={props.onClick}
-        {...props}
         underlayColor={colors.transparent}
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
     />
 );
 PressableLink.propTypes = propTypes;
