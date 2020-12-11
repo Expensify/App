@@ -1,36 +1,35 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, Image} from 'react-native';
+import {View} from 'react-native';
+import ImageWithSizeCalculation from '../ImageWithSizeCalculation';
 
 const propTypes = {
     // URL to full-sized image
-    sourceURL: PropTypes.string,
+    url: PropTypes.string,
 
     // Image height
-    imageHeight: PropTypes.number,
+    height: PropTypes.number,
 
     // Image width
-    imageWidth: PropTypes.number,
+    width: PropTypes.number,
 
-    // Any additional styles to apply
-    wrapperStyle: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
+    // Callback to fire when image is measured
+    onMeasure: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
-    sourceURL: '',
-    imageHeight: 300,
-    imageWidth: 300,
-    wrapperStyle: {},
+    url: '',
+    height: 300,
+    width: 300,
 };
 
 const ImageView = props => (
-    <View style={props.wrapperStyle}>
-        <Image
-            source={{uri: props.sourceURL}}
-            style={{
-                width: props.imageWidth,
-                height: props.imageHeight
-            }}
+    <View>
+        <ImageWithSizeCalculation
+            onMeasure={props.onMeasure}
+            url={props.url}
+            width={props.width}
+            height={props.height}
         />
     </View>
 );
