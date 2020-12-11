@@ -44,17 +44,17 @@ function processHTTPRequest(url, method = 'get', body = null) {
 function xhr(command, data, type = 'post') {
     const formData = new FormData();
     _.each(data, (val, key) => formData.append(key, val));
-    return processHTTPRequest(`${CONFIG.EXPENSIFY.API_ROOT}command=${command}`, type, formData);
+    return processHTTPRequest(`${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=${command}`, type, formData);
 }
 
 /**
  * Just download a file from the web server.
  *
  * @param {String} relativePath From the website root, NOT the API root. (no leading slash, ., or ..)
- * @returns {Promise<Response>}
+ * @returns {Promise}
  */
 function download(relativePath) {
-    const siteRoot = CONFIG.EXPENSIFY.SITE_ROOT;
+    const siteRoot = CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH;
 
     // Strip leading slashes and periods from relative path, if present
     const strippedRelativePath = relativePath.charAt(0) === '/' || relativePath.charAt(0) === '.'

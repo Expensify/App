@@ -1,12 +1,18 @@
 // We place items a percentage to the safe area on the top or bottom of the screen
 import fontFamily from './fontFamily';
 import italic from './italic';
+import addOutlineWidth from './addOutlineWidth';
 
-const safeInsertPercentage = 0.7;
+const variables = {
+    modalHeaderBarHeight: 73,
+    safeInsertPercentage: 0.7,
+};
 
 const colors = {
     componentBG: '#FFFFFF',
     background: '#FAFAFA',
+    whiteSmoke: '#F8F8F8',
+    whisper: '#EEEEEE',
     black: '#000000',
     blue: '#2EAAE2',
     border: '#ECECEC',
@@ -18,12 +24,18 @@ const colors = {
     textBackground: '#F0F0F0',
     textReversed: '#FFFFFF',
     textSupporting: '#7D8B8F',
+    transparent: 'transparent',
     red: '#E84A3B',
     buttonBG: '#8A8A8A',
+    modalBackdrop: '#00000080',
 };
 
 const styles = {
     // Utility classes
+    m0: {
+        margin: 0,
+    },
+
     mr0: {
         marginRight: 0,
     },
@@ -54,6 +66,7 @@ const styles = {
     mt1: {
         marginTop: 10,
     },
+
     mb1: {
         marginBottom: 4,
     },
@@ -79,10 +92,6 @@ const styles = {
     },
     pr2: {
         paddingRight: 8,
-    },
-
-    h100p: {
-        height: '100%',
     },
 
     flex0: {
@@ -126,7 +135,7 @@ const styles = {
     },
 
     flexWrap: {
-        flexWrap: 'wrap'
+        flexWrap: 'wrap',
     },
 
     flexGrow1: {
@@ -155,6 +164,10 @@ const styles = {
 
     bgHighlight3: {
         backgroundColor: 'pink',
+    },
+
+    overflowHidden: {
+        overflow: 'hidden',
     },
 
     h4: {
@@ -229,6 +242,15 @@ const styles = {
         borderWidth: 0,
     },
 
+    buttonConfirm: {
+        margin: 20,
+    },
+
+    buttonConfirmText: {
+        paddingLeft: 20,
+        paddingRight: 20,
+    },
+
     buttonSuccessText: {
         color: colors.textReversed,
     },
@@ -271,7 +293,7 @@ const styles = {
     navText: {
         color: colors.heading,
         fontSize: 17,
-        fontWeight: '700'
+        fontWeight: '700',
     },
 
     reportOptions: {
@@ -315,20 +337,17 @@ const styles = {
         textAlignVertical: 'center',
     },
 
-    textInputReversed: {
+    textInputReversed: addOutlineWidth({
         backgroundColor: colors.heading,
         borderColor: colors.text,
         color: colors.textReversed,
-        outlineWidth: 0,
-    },
+    }, 0),
 
     textInputReversedFocus: {
         borderColor: colors.icon,
     },
 
-    textInputNoOutline: {
-        outlineWidth: 0,
-    },
+    textInputNoOutline: addOutlineWidth({}, 0),
 
     formLabel: {
         fontSize: 13,
@@ -385,6 +404,7 @@ const styles = {
         paddingBottom: 16,
         paddingLeft: 12,
         flex: 1,
+        flexGrow: 0,
     },
 
     sidebarHeaderLogo: {
@@ -471,6 +491,12 @@ const styles = {
         backgroundColor: colors.heading,
     },
 
+    chatLinkRowPressable: {
+        minWidth: 0,
+        textDecorationLine: 'none',
+        flex: 1,
+    },
+
     sidebarLink: {
         textDecorationLine: 'none',
     },
@@ -478,7 +504,7 @@ const styles = {
     sidebarLinkInner: {
         alignItems: 'center',
         flexDirection: 'row',
-        height: 44,
+        height: 48,
         paddingTop: 10,
         paddingRight: 8,
         paddingBottom: 10,
@@ -497,15 +523,29 @@ const styles = {
         borderRadius: 8,
         textDecorationLine: 'none',
     },
+
     sidebarLinkTextUnread: {
         fontWeight: '600',
         color: colors.textReversed,
     },
+
     sidebarLinkActiveText: {
         color: colors.textReversed,
         fontSize: 13,
         textDecorationLine: 'none',
         overflow: 'hidden',
+    },
+
+    chatSwitcherDisplayName: {
+        fontFamily: fontFamily.GTA,
+        height: 16,
+        lineHeight: 16,
+    },
+
+    chatSwitcherLogin: {
+        fontFamily: fontFamily.GTA,
+        height: 12,
+        lineHeight: 12,
     },
 
     unreadBadge: {
@@ -564,6 +604,17 @@ const styles = {
     LHNToggleIcon: {
         height: 15,
         width: 18,
+    },
+
+    LHNPencilIcon: {
+        height: 16,
+        width: 16,
+    },
+
+    attachmentCloseIcon: {
+        height: 20,
+        width: 20,
+        padding: 0,
     },
 
     chatContent: {
@@ -666,17 +717,16 @@ const styles = {
         minHeight: 40,
     },
 
-    textInputCompose: {
+    textInputCompose: addOutlineWidth({
         borderWidth: 0,
         borderRadius: 0,
-        outlineWidth: 0,
         height: 'auto',
         minHeight: 38,
         paddingTop: 10,
         paddingRight: 8,
         paddingBottom: 10,
         paddingLeft: 8,
-    },
+    }, 0),
 
     chatItemSubmitButton: {
         alignSelf: 'flex-end',
@@ -802,7 +852,7 @@ const styles = {
             height: 0,
         },
         shadowOpacity: 0.3,
-        shadowRadius: 20
+        shadowRadius: 20,
     },
 
     hamburgerOpen: {
@@ -849,6 +899,70 @@ const styles = {
         lineHeight: 16,
         fontWeight: '700',
     },
+
+    modalViewContainer: {
+        backgroundColor: colors.componentBG,
+        borderColor: colors.border,
+        borderWidth: 1,
+        borderRadius: 20,
+        height: '100%',
+        alignItems: 'center',
+        overflow: 'hidden',
+    },
+
+    modalHeaderBar: {
+        fontFamily: fontFamily.GTA,
+        overflow: 'hidden',
+        justifyContent: 'center',
+        display: 'flex',
+        paddingLeft: 32,
+        paddingRight: 20,
+        borderBottomWidth: 1,
+        borderColor: colors.border,
+        height: variables.modalHeaderBarHeight,
+        width: '100%',
+    },
+
+    imageModalPDF: {
+        flex: 1,
+        backgroundColor: colors.componentBG,
+    },
+
+    modalCenterContentContainer: {
+        flex: 1,
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: colors.modalBackdrop,
+    },
+
+    imageModalImageCenterContainer: {
+        flex: 1,
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        overflow: 'hidden',
+        width: '100%',
+    },
+
+    defaultAttachmentView: {
+        backgroundColor: colors.whiteSmoke,
+        borderRadius: 4,
+        borderWidth: 1,
+        borderColor: colors.whisper,
+        flexDirection: 'row',
+        paddingTop: 10,
+        paddingBottom: 10,
+        paddingRight: 20,
+        paddingLeft: 20,
+        alignItems: 'center',
+    },
+
+    defaultAttachmentViewIcon: {
+        width: 47,
+        height: 60,
+        marginRight: 20,
+    },
 };
 
 const baseCodeTagStyles = {
@@ -859,20 +973,11 @@ const baseCodeTagStyles = {
 };
 
 const webViewStyles = {
-    preTagStyle: {
-        ...baseCodeTagStyles,
-        paddingTop: 4,
-        paddingBottom: 5,
-        paddingRight: 8,
-        paddingLeft: 8,
-    },
-    codeTagStyle: {
-        ...baseCodeTagStyles,
-        paddingLeft: 5,
-        paddingRight: 5,
-        paddingBottom: 2,
-        alignSelf: 'flex-start',
-    },
+    // As of react-native-render-html v6, don't declare distinct styles for
+    // custom renderers, the API for custom renderers has changed. Declare the
+    // styles in the below "tagStyles" instead. If you need to reuse those
+    // styles from the renderer, just pass the "style" prop to the underlying
+    // component.
     tagStyles: {
         em: {
             fontFamily: fontFamily.GTA_ITALIC,
@@ -881,7 +986,7 @@ const webViewStyles = {
 
         del: {
             textDecorationLine: 'line-through',
-            textDecorationStyle: 'solid'
+            textDecorationStyle: 'solid',
         },
 
         strong: {
@@ -890,14 +995,40 @@ const webViewStyles = {
         },
 
         a: {
-            color: colors.blue
+            color: colors.blue,
+            textDecorationColor: colors.blue
+        },
+
+        blockquote: {
+            borderLeftColor: colors.border,
+            borderLeftWidth: 4,
+            paddingLeft: 12,
+            marginTop: 4,
+            marginBottom: 4,
+
+            // Overwrite default HTML margin for blockquotes
+            marginLeft: 0,
         },
 
         pre: {
+            ...baseCodeTagStyles,
+            paddingTop: 4,
+            paddingBottom: 5,
+            paddingRight: 8,
+            paddingLeft: 8,
             fontFamily: fontFamily.MONOSPACE,
+
+            // override user agent styles
+            marginTop: 0,
+            marginBottom: 0
         },
 
         code: {
+            ...baseCodeTagStyles,
+            paddingLeft: 5,
+            paddingRight: 5,
+            paddingBottom: 2,
+            alignSelf: 'flex-start',
             fontFamily: fontFamily.MONOSPACE,
         },
 
@@ -905,38 +1036,40 @@ const webViewStyles = {
             borderColor: colors.border,
             borderRadius: 8,
             borderWidth: 1,
-        }
+        },
     },
 
     baseFontStyle: {
         color: colors.text,
         fontSize: 15,
         fontFamily: fontFamily.GTA,
-    }
+    },
 };
-
 
 /**
  * Takes safe area insets and returns padding to use for a View
  *
- * @param {object} insets
- * @returns {{paddingBottom: number, paddingTop: number}}
+ * @param {Object} insets
+ * @returns {Object}
  */
 function getSafeAreaPadding(insets) {
-    return {paddingTop: insets.top, paddingBottom: insets.bottom * safeInsertPercentage};
+    return {
+        paddingTop: insets.top,
+        paddingBottom: insets.bottom * variables.safeInsertPercentage,
+    };
 }
 
 /**
  * Takes safe area insets and returns margin to use for a View
  *
- * @param {object} insets
- * @returns {{marginBottom: number}}
+ * @param {Object} insets
+ * @returns {Object}
  */
 function getSafeAreaMargins(insets) {
-    return {marginBottom: insets.bottom * safeInsertPercentage};
+    return {marginBottom: insets.bottom * variables.safeInsertPercentage};
 }
 
 export default styles;
 export {
-    getSafeAreaPadding, getSafeAreaMargins, colors, webViewStyles
+    getSafeAreaPadding, getSafeAreaMargins, colors, webViewStyles, variables,
 };

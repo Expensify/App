@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
-import Str from 'js-libs/lib/str';
+import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 
 const clientID = Str.guid();
@@ -10,7 +10,7 @@ let activeClients;
 Onyx.connect({
     key: ONYXKEYS.ACTIVE_CLIENTS,
     callback: (val) => {
-        activeClients = _.isNull(val) ? [] : val;
+        activeClients = !val ? [] : val;
         if (activeClients.length >= maxClients) {
             activeClients.shift();
             Onyx.set(ONYXKEYS.ACTIVE_CLIENTS, activeClients);
@@ -28,7 +28,7 @@ function init() {
 /**
  * The last GUID is the most recent GUID, so that should be the leader
  *
- * @returns {boolean}
+ * @returns {Boolean}
  */
 function isClientTheLeader() {
     return _.last(activeClients) === clientID;

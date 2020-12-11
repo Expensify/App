@@ -1,6 +1,5 @@
 import _ from 'underscore';
 import Pusher from './library';
-import CONFIG from '../../CONFIG';
 
 let socket;
 const socketEventCallbacks = [];
@@ -9,8 +8,8 @@ let customAuthorizer;
 /**
  * Trigger each of the socket event callbacks with the event information
  *
- * @param {string} eventName
- * @param {mixed} data
+ * @param {String} eventName
+ * @param {*} data
  */
 function callSocketEventCallbacks(eventName, data) {
     _.each(socketEventCallbacks, cb => cb(eventName, data));
@@ -19,12 +18,15 @@ function callSocketEventCallbacks(eventName, data) {
 /**
  * Initialize our pusher lib
  *
- * @param {String} appKey
+ * @param {Object} args
+ * @param {String} args.appKey
+ * @param {String} args.cluster
+ * @param {String} args.authEndpoint
  * @param {Object} [params]
  * @public
  * @returns {Promise} resolves when Pusher has connected
  */
-function init(appKey, params) {
+function init(args, params) {
     return new Promise((resolve) => {
         if (socket) {
             return resolve();
@@ -38,15 +40,15 @@ function init(appKey, params) {
         // };
 
         const options = {
-            cluster: CONFIG.PUSHER.CLUSTER,
-            authEndpoint: `${CONFIG.EXPENSIFY.API_ROOT}command=Push_Authenticate`,
+            cluster: args.cluster,
+            authEndpoint: args.authEndpoint,
         };
 
         if (customAuthorizer) {
             options.authorizer = customAuthorizer;
         }
 
-        socket = new Pusher(CONFIG.PUSHER.APP_KEY, options);
+        socket = new Pusher(args.appKey, options);
 
         // If we want to pass params in our requests to api.php we'll need to add it to socket.config.auth.params
         // as per the documentation
@@ -60,7 +62,7 @@ function init(appKey, params) {
 
         // Listen for connection errors and log them
         socket.connection.bind('error', (error) => {
-            console.error('[Pusher] error', error);
+            console.debug('[Pusher] error', error);
             callSocketEventCallbacks('error', error);
         });
 
@@ -119,7 +121,7 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}, isChun
             try {
                 data = _.isObject(eventData) ? eventData : JSON.parse(eventData);
             } catch (err) {
-                console.error('Unable to parse JSON response from Pusher', 0, {error: err, eventData});
+                console.debug('Unable to parse JSON response from Pusher', 0, {error: err, eventData});
                 return;
             }
 
@@ -152,7 +154,7 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}, isChun
             try {
                 eventCallback(JSON.parse(chunkedEvent.chunks.join('')));
             } catch (err) {
-                console.error('[Pusher] Unable to parse chunked JSON response from Pusher', 0, {
+                console.debug('[Pusher] Unable to parse chunked JSON response from Pusher', 0, {
                     error: err,
                     eventData: chunkedEvent.chunks.join('')
                 });
@@ -259,8 +261,7 @@ function unsubscribe(channelName, eventName = '') {
         channel.unbind(eventName);
     } else {
         if (!channel.subscribed) {
-            // eslint-disable-next-line no-console
-            console.warn(`[Pusher] Attempted to unsubscribe from channel,
+            console.debug(`[Pusher] Attempted to unsubscribe from channel,
             but we are not subscribed to begin with`, 0, {channelName});
             return;
         }
@@ -337,7 +338,7 @@ function sendChunkedEvent(channelName, eventName, payload) {
 /**
  * Register a method that will be triggered when a socket event happens (like disconnecting)
  *
- * @param {function} cb
+ * @param {Function} cb
  */
 function registerSocketEventCallback(cb) {
     socketEventCallbacks.push(cb);
@@ -359,7 +360,7 @@ function registerCustomAuthorizer(authorizer) {
  */
 function disconnect() {
     if (!socket) {
-        console.error('[Pusher] Attempting to disconnect from Pusher before initialisation has occured, ignoring.');
+        console.debug('[Pusher] Attempting to disconnect from Pusher before initialisation has occured, ignoring.');
         return;
     }
 
@@ -394,8 +395,8 @@ export {
     isAlreadySubscribing,
     sendEvent,
     sendChunkedEvent,
-    registerSocketEventCallback,
-    registerCustomAuthorizer,
     disconnect,
     reconnect,
+    registerSocketEventCallback,
+    registerCustomAuthorizer,
 };
