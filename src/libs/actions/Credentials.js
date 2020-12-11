@@ -7,7 +7,7 @@ import Config from '../../CONFIG';
 let credentials;
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
-    callback: ionCredentials => credentials = ionCredentials,
+    callback: val => credentials = val,
 });
 
 // We should only ever be creating a single login at a time
