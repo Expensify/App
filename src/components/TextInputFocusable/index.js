@@ -25,6 +25,15 @@ const propTypes = {
 
     // When the input has cleared whoever owns this input should know about it
     onClear: PropTypes.func,
+
+    // Callback to fire when a file has been dragged into the text input
+    onDragEnter: PropTypes.func,
+
+    // Callback to fire when the user is no longer dragging over the text input
+    onDragLeave: PropTypes.func,
+
+    // Callback to fire when a file is dropped on the text input
+    onDrop: PropTypes.func,
 };
 
 const defaultProps = {
@@ -33,6 +42,9 @@ const defaultProps = {
     shouldClear: false,
     onClear: () => {},
     style: null,
+    onDragEnter: () => {},
+    onDragLeave: () => {},
+    onDrop: () => {},
 };
 
 /**
@@ -58,9 +70,14 @@ class TextInputFocusable extends React.Component {
             this.props.forwardedRef(this.textInput);
         }
 
-        // There is no onPaste for TextInput in react-native so we will add event
-        // listener here and unbind when the component unmounts
+        // There is no onPaste or onDrag for TextInput in react-native so we will add event
+        // listeners here and unbind when the component unmounts
         if (this.textInput) {
+            // Firefox will not allow dropping unless we call preventDefault on the dragover event
+            this.textInput.addEventListener('dragover', e => e.preventDefault());
+            this.textInput.addEventListener('dragenter', this.props.onDragEnter);
+            this.textInput.addEventListener('dragleave', this.props.onDragLeave);
+            this.textInput.addEventListener('drop', this.props.onDrop);
             this.textInput.addEventListener('paste', this.checkForAttachment.bind(this));
         }
     }
@@ -79,6 +96,10 @@ class TextInputFocusable extends React.Component {
 
     componentWillUnmount() {
         if (this.textInput) {
+            this.textInput.addEventListener('dragover', e => e.preventDefault());
+            this.textInput.removeEventListener('dragenter', this.props.onDragEnter);
+            this.textInput.removeEventListener('dragleave', this.props.onDragLeave);
+            this.textInput.removeEventListener('drop', this.props.onDrop);
             this.textInput.removeEventListener('paste', this.checkForAttachment.bind(this));
         }
     }

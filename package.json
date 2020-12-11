@@ -1,6 +1,6 @@
 {
   "name": "react-native-chat",
-  "version": "1.0.1-234",
+  "version": "1.0.1-240",
   "author": "Expensify, Inc.",
   "homepage": "https://expensify.com",
   "description": "Expensify Chat",
@@ -27,6 +27,7 @@
   "dependencies": {
     "@babel/plugin-proposal-class-properties": "^7.12.1",
     "@react-native-community/async-storage": "^1.11.0",
+    "@react-native-community/cli": "4.13.1",
     "@react-native-community/netinfo": "^5.9.6",
     "@react-native-community/progress-bar-android": "^1.0.4",
     "@react-native-community/progress-view": "^1.2.3",

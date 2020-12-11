@@ -53,7 +53,7 @@ const typingWatchTimers = {};
 const reportMaxSequenceNumbers = {};
 
 // Keeps track of the last read for each report
-const lastReadActionIDs = {};
+const lastReadSequenceNumbers = {};
 
 /**
  * Checks the report to see if there are any unread action items
@@ -62,25 +62,31 @@ const lastReadActionIDs = {};
  * @returns {Boolean}
  */
 function getUnreadActionCount(report) {
-    const usersLastReadActionID = lodashGet(report, [
+    // @todo remove the first check as part of cleanup https://github.com/Expensify/Expensify/issues/145243
+    // since we migrating our data from lastReadActionID_ value to lastRead_ object.
+    const lastReadSequenceNumber = lodashGet(report, [
         'reportNameValuePairs',
         `lastReadActionID_${currentUserAccountID}`,
+    ]) || lodashGet(report, [
+        'reportNameValuePairs',
+        `lastRead_${currentUserAccountID}`,
+        'sequenceNumber',
     ]);
 
     // Save the lastReadActionID locally so we can access this later
-    lastReadActionIDs[report.reportID] = usersLastReadActionID;
+    lastReadSequenceNumbers[report.reportID] = lastReadSequenceNumber;
 
     if (report.reportActionList.length === 0) {
         return 0;
     }
 
-    if (!usersLastReadActionID) {
+    if (!lastReadSequenceNumber) {
         return report.reportActionList.length;
     }
 
     // There are unread items if the last one the user has read is less
     // than the highest sequence number we have
-    const unreadActionCount = report.reportActionList.length - usersLastReadActionID;
+    const unreadActionCount = report.reportActionList.length - lastReadSequenceNumber;
     return Math.max(0, unreadActionCount);
 }
 
@@ -107,11 +113,15 @@ function getSimplifiedReportObject(report) {
     return {
         reportID: report.reportID,
         reportName: report.reportName,
-        reportNameValuePairs: report.reportNameValuePairs,
         unreadActionCount: getUnreadActionCount(report),
         maxSequenceNumber: report.reportActionList.length,
         participants: getParticipantEmailsFromReport(report),
         isPinned: report.isPinned,
+        lastVisitedTimestamp: lodashGet(report, [
+            'reportNameValuePairs',
+            `lastRead_${currentUserAccountID}`,
+            'timestamp'
+        ], 0)
     };
 }
 
@@ -148,15 +158,14 @@ function fetchChatReportsByIDs(chatList) {
         .then(({reports}) => {
             fetchedReports = reports;
 
-            // Build array of all participant emails so we can
-            // get the personal details.
-            let participantEmails = [];
-
-            // Process the reports and store them in Onyx
+            // Process the reports and store them in Onyx. At the same time we'll save the simplified reports in this
+            // variable called simplifiedReports which hold the participants (minus the current user) for each report.
+            // Using this simplifiedReport we can call PersonalDetails.getFromReportParticipants to get the
+            // personal details of all the participants and even link up their avatars to report icons.
+            const simplifiedReports = [];
             _.each(fetchedReports, (report) => {
                 const newReport = getSimplifiedReportObject(report);
-
-                participantEmails.push(newReport.participants);
+                simplifiedReports.push(newReport);
 
                 if (lodashGet(report, 'reportNameValuePairs.type') === 'chat') {
                     newReport.reportName = getChatReportName(report.sharedReportList);
@@ -166,31 +175,26 @@ function fetchChatReportsByIDs(chatList) {
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, newReport);
             });
 
-            // Fetch the person details if there are any
-            participantEmails = _.unique(participantEmails);
-            if (participantEmails && participantEmails.length !== 0) {
-                PersonalDetails.getForEmails(participantEmails.join(','));
-            }
+            // Fetch the personal details if there are any
+            PersonalDetails.getFromReportParticipants(simplifiedReports);
 
             return _.map(fetchedReports, report => report.reportID);
         });
 }
 
 /**
- * Update the lastReadActionID in Onyx and local memory.
+ * Update the lastRead actionID and timestamp in local memory and Onyx
  *
  * @param {Number} reportID
  * @param {Number} sequenceNumber
  */
-function setLocalLastReadActionID(reportID, sequenceNumber) {
-    lastReadActionIDs[reportID] = sequenceNumber;
+function setLocalLastRead(reportID, sequenceNumber) {
+    lastReadSequenceNumbers[reportID] = sequenceNumber;
 
-    // Update the lastReadActionID on the report optimistically
+    // Update the report optimistically
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         unreadActionCount: 0,
-        reportNameValuePairs: {
-            [`lastReadActionID_${currentUserAccountID}`]: sequenceNumber,
-        }
+        lastVisitedTimestamp: Date.now(),
     });
 }
 
@@ -208,7 +212,7 @@ function updateReportWithNewAction(reportID, reportAction) {
     // last read actionID has been updated in the server but not necessarily reflected
     // locally so we must first update it and then calculate the unread (which should be 0)
     if (isFromCurrentUser) {
-        setLocalLastReadActionID(reportID, newMaxSequenceNumber);
+        setLocalLastRead(reportID, newMaxSequenceNumber);
     }
 
     // Always merge the reportID into Onyx
@@ -216,7 +220,7 @@ function updateReportWithNewAction(reportID, reportAction) {
     // by handleReportChanged
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         reportID,
-        unreadActionCount: newMaxSequenceNumber - (lastReadActionIDs[reportID] || 0),
+        unreadActionCount: newMaxSequenceNumber - (lastReadSequenceNumbers[reportID] || 0),
         maxSequenceNumber: reportAction.sequenceNumber,
     });
 
@@ -451,6 +455,10 @@ function fetchOrCreateChatReport(participants) {
             const newReport = getSimplifiedReportObject(report);
             newReport.reportName = getChatReportName(report.sharedReportList);
 
+            // Optimistically update the last visited timestamp such that if the user immediately switches to another
+            // report the last visited order is still maintained.
+            newReport.lastVisitedTimestamp = Date.now();
+
             // Merge the data into Onyx. Don't use set() here or multiSet() because then that would
             // overwrite any existing data (like if they have unread messages)
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, newReport);
@@ -536,10 +544,10 @@ function updateLastReadActionID(reportID, sequenceNumber) {
         return;
     }
 
-    setLocalLastReadActionID(reportID, sequenceNumber);
+    setLocalLastRead(reportID, sequenceNumber);
 
     // Mark the report as not having any unread items
-    API.Report_SetLastReadActionID({
+    API.Report_UpdateLastRead({
         accountID: currentUserAccountID,
         reportID,
         sequenceNumber,

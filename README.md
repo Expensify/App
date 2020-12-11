@@ -89,7 +89,7 @@ Now, all of your API calls will be using the ngrok route.
 ## Running the web app via production API proxy (Contributors) 🧑‍💻
 If you don't have full-access to Expensify's development environment you will need to run the app against the production API.
 * Copy the `.env.production` variables into your `.env` file
-* Set `EXPENSIFY_URL_COM` environment variable to be empty
+* Set `EXPENSIFY_URL_COM` environment variable to be empty (Note: this means it should be `EXPENSIFY_URL_COM=`, not completely omitted)
 * Run the **Development Server**: `npm run proxy`
 
 ## Running the tests 🎰

@@ -60,6 +60,7 @@ class ReportActionsView extends React.Component {
         });
         if (this.props.isActiveReport) {
             this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
+            this.recordMaxAction();
         }
 
         fetchActions(this.props.reportID);
