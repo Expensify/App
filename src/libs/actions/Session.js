@@ -86,7 +86,6 @@ function signOut() {
  */
 function reauthenticate(originalCommand, originalParameters, originalType) {
     // Prevent any more requests from being processed while authentication happens
-    Network.pauseRequestQueue();
     API.Authenticate({
         useExpensifyLogin: false,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,

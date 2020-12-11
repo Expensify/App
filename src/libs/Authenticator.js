@@ -1,6 +1,5 @@
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
-import * as Network from './Network';
 import ONYXKEYS from '../ONYXKEYS';
 import {reauthenticate} from './actions/Session';
 import {createLogin} from './actions/Credentials';
@@ -25,15 +24,6 @@ function init() {
         key: ONYXKEYS.REAUTHENTICATING,
         callback: (reauthenticating) => {
             if (isReauthenticating === reauthenticating.isInProgress) {
-                // When the authentication process is running, API requests will be requeued and they will
-                // be performed after authentication is done.
-                if (reauthenticating.isInProgress) {
-                    Network.post(
-                        reauthenticating.originalCommand,
-                        reauthenticating.originalParameters,
-                        reauthenticating.originalType
-                    );
-                }
                 return;
             }
 

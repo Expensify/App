@@ -101,6 +101,12 @@ function request(command, parameters, type = 'post') {
             // There are some API requests that should not be retried when there is an auth failure
             // like creating and deleting logins
             if (!parameters.doNotRetry) {
+                // Pause network requests and then queue the original one with Network.post,
+                // that way once we're done re-authenticating the original request will fire off again
+                Network.pauseRequestQueue();
+                Network.post(command, parameters, type);
+
+                // Trigger re-authentication
                 Onyx.set(ONYXKEYS.REAUTHENTICATING, {
                     isInProgress: true,
                     originalCommand: command,
