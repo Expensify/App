@@ -56,13 +56,15 @@ class AttachmentModalBase extends Component {
 
         this.updateImageDimensions = this.updateImageDimensions.bind(this);
 
-        // If pinToEdges is false, the default modal width and height will take up about 80% of the screen
-        this.modalWidth = Dimensions.get('window').width * 0.8;
-        this.modalHeight = Dimensions.get('window').height * 0.8;
+        // If pinToEdges is false, the default modal size will be slightly smaller than full screen
+        this.modalWidth = Dimensions.get('window').width - 40;
+        this.modalHeight = Dimensions.get('window').height - 40;
 
-        // The image inside the modal shouldn't span the entire width of the modal
-        // unless it is full screen so the default is 20% smaller than the width of the modal
-        this.modalImageWidth = Dimensions.get('window').width * 0.6;
+        // Padding between image and modal
+        this.imagePadding = 40;
+
+        // Adjust image width to be slightly smaller than modalWidth for padding
+        this.modalImageWidth = this.modalWidth - this.imagePadding;
 
         this.state = {
             isModalOpen: false,
@@ -80,7 +82,7 @@ class AttachmentModalBase extends Component {
         // Unlike the image width, we do allow the image to span the full modal height
         const modalHeight = this.props.pinToEdges
             ? Dimensions.get('window').height
-            : this.modalHeight - (styles.modalHeaderBar.height || 0);
+            : this.modalHeight - (styles.modalHeaderBar.height || 0) - this.imagePadding;
         const modalWidth = this.props.pinToEdges ? Dimensions.get('window').width : this.modalImageWidth;
         let imageHeight = height;
         let imageWidth = width;
