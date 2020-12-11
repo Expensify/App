@@ -83,23 +83,6 @@ function requireParameters(parameterNames, parameters, commandName) {
 }
 
 /**
- * Function used to handle expired auth tokens. It re-authenticates with the API and
- * then replays the original request
- *
- * @param {String} originalCommand
- * @param {Object} [originalParameters]
- * @param {String} [originalType]
- */
-function handleExpiredAuthToken(originalCommand, originalParameters, originalType) {
-    Onyx.set(ONYXKEYS.REAUTHENTICATING, {
-        isInProgress: true,
-        originalCommand,
-        originalParameters,
-        originalType
-    });
-}
-
-/**
  * @private
  *
  * @param {String} command Name of the command to run
@@ -118,7 +101,12 @@ function request(command, parameters, type = 'post') {
             // There are some API requests that should not be retried when there is an auth failure
             // like creating and deleting logins
             if (!parameters.doNotRetry) {
-                handleExpiredAuthToken(command, parameters, type);
+                Onyx.set(ONYXKEYS.REAUTHENTICATING, {
+                    isInProgress: true,
+                    originalCommand: command,
+                    originalParameters: parameters,
+                    originalType: type,
+                });
             }
 
             // Throw an error to prevent other handlers from being triggered on this promise
