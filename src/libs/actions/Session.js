@@ -79,13 +79,8 @@ function signOut() {
 
 /**
  * Refreshes the authToken by calling Authenticate with the stored credentials
- *
- * @param {String} originalCommand
- * @param {Object} [originalParameters]
- * @param {String} [originalType]
  */
-function reauthenticate(originalCommand, originalParameters, originalType) {
-    // Prevent any more requests from being processed while authentication happens
+function reauthenticate() {
     API.Authenticate({
         useExpensifyLogin: false,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
@@ -105,7 +100,6 @@ function reauthenticate(originalCommand, originalParameters, originalType) {
             // The authentication process is finished so the network can be unpaused to continue
             // processing requests
             Network.unpauseRequestQueue();
-            Network.post(originalCommand, originalParameters, originalType);
         })
         .catch((error) => {
             redirectToSignIn(error.message);
