@@ -290,6 +290,7 @@ const styles = {
     },
 
     navText: {
+        fontFamily: fontFamily.GTA,
         color: colors.heading,
         fontSize: 17,
         fontWeight: '700',
@@ -876,18 +877,26 @@ const styles = {
         fontWeight: '700',
     },
 
+    modalViewContainerMobile: {
+        backgroundColor: colors.componentBG,
+        borderColor: colors.border,
+        borderWidth: 1,
+        height: '100%',
+        alignItems: 'center',
+        overflow: 'hidden',
+    },
+
     modalViewContainer: {
         backgroundColor: colors.componentBG,
         borderColor: colors.border,
         borderWidth: 1,
-        borderRadius: 20,
+        borderRadius: 12,
         height: '100%',
         alignItems: 'center',
         overflow: 'hidden',
     },
 
     modalHeaderBar: {
-        fontFamily: fontFamily.GTA,
         overflow: 'hidden',
         justifyContent: 'center',
         display: 'flex',
