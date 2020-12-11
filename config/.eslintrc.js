@@ -1,7 +1,7 @@
 module.exports = {
     extends: 'expensify',
     parser: 'babel-eslint',
-    ignorePatterns: ['src/vendor', '!.github/actions/*'],
+    ignorePatterns: ['../src/vendor', '!../.github/actions/*'],
     rules: {
         'react/jsx-filename-extension': [1, {extensions: ['.js']}],
     },
