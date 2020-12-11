@@ -8,7 +8,7 @@ import {Link} from '../../libs/Router';
  * @returns {JSX.Element}
  */
 // eslint-disable-next-line react/jsx-props-no-spreading
-const PressableLink = props => (<Link {..._.omit(props, ['underlayColor'])} />);
+const PressableLink = props => (<Link {...props} />);
 
 PressableLink.displayName = 'PressableLink';
 
