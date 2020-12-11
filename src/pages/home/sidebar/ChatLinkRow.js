@@ -69,7 +69,6 @@ const ChatLinkRow = ({
                     styles.flexGrow1,
                     styles.chatSwitcherItemAvatarNameWrapper,
                 ])}
-                underlayColor={colors.transparent}
             >
                 <View
                     style={[
