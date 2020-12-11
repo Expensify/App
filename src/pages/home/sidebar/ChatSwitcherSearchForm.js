@@ -55,9 +55,9 @@ const defaultProps = {
 };
 
 const ChatSwitcherSearchForm = props => (
-    <View style={[styles.flexRow]}>
+    <View style={[styles.flexRow, styles.sidebarHeaderTop]}>
         {props.isLogoVisible && (
-            <View style={[styles.mr2, styles.ml2]}>
+            <View style={[styles.mr2]}>
                 <Image
                     resizeMode="contain"
                     style={[styles.sidebarHeaderLogo]}
@@ -136,13 +136,13 @@ const ChatSwitcherSearchForm = props => (
                 <TextInputWithFocusStyles
                     styleFocusIn={[styles.textInputReversedFocus]}
                     ref={props.forwardedRef}
-                    style={[styles.textInput, styles.textInputReversed, styles.flex1]}
+                    style={[styles.textInput, styles.flex1]}
                     value={props.searchValue}
                     onChangeText={props.onChangeText}
                     onFocus={props.onFocus}
                     onKeyPress={props.onKeyPress}
                     placeholder="Find or start a chat"
-                    placeholderTextColor={colors.icon}
+                    placeholderTextColor={colors.textSupporting}
                 />
             )}
 

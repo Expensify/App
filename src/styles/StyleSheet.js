@@ -10,9 +10,8 @@ const variables = {
 
 const colors = {
     componentBG: '#FFFFFF',
-    background: '#FAFAFA',
-    whiteSmoke: '#F8F8F8',
-    whisper: '#EEEEEE',
+    background: '#FFFFFF',
+    grayLight: '#FAFAFA',
     black: '#000000',
     blue: '#2EAAE2',
     border: '#ECECEC',
@@ -194,7 +193,7 @@ const styles = {
 
     textStrong: {
         fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: '600',
+        fontWeight: '700',
     },
 
     textDecorationNoLine: {
@@ -394,16 +393,20 @@ const styles = {
 
     // Sidebar Styles
     sidebar: {
-        backgroundColor: colors.heading,
+        backgroundColor: colors.grayLight,
     },
 
     sidebarHeader: {
         minHeight: 72,
         paddingTop: 16,
-        paddingRight: 12,
         paddingBottom: 16,
-        paddingLeft: 12,
         flex: 1,
+        flexGrow: 0,
+    },
+
+    sidebarHeaderTop: {
+        paddingLeft: 20,
+        paddingRight: 20,
     },
 
     sidebarHeaderLogo: {
@@ -431,7 +434,7 @@ const styles = {
     },
 
     statusIndicator: {
-        borderColor: colors.heading,
+        borderColor: colors.grayLight,
         borderRadius: 7,
         borderWidth: 2,
         position: 'absolute',
@@ -451,13 +454,13 @@ const styles = {
     },
 
     sidebarFooterUsername: {
-        color: colors.textReversed,
+        color: colors.heading,
         fontSize: 15,
         fontWeight: '700',
     },
 
     sidebarFooterLink: {
-        color: colors.icon,
+        color: colors.textSupporting,
         fontSize: 11,
         textDecorationLine: 'none',
         fontFamily: fontFamily.GTA,
@@ -470,24 +473,11 @@ const styles = {
         scrollbarWidth: 'none',
         overflow: 'scroll',
         paddingBottom: 4,
-        paddingLeft: 12,
-        paddingRight: 12,
-    },
-
-    sidebarListHeader: {
-        color: colors.textReversed,
-        fontSize: 15,
-        fontWeight: '700',
-        paddingTop: 8,
-        paddingRight: 8,
-        paddingBottom: 8,
-        paddingLeft: 8,
     },
 
     sidebarListItem: {
         justifyContent: 'center',
         textDecorationLine: 'none',
-        backgroundColor: colors.heading,
     },
 
     chatLinkRowPressable: {
@@ -503,33 +493,32 @@ const styles = {
     sidebarLinkInner: {
         alignItems: 'center',
         flexDirection: 'row',
-        height: 48,
-        paddingTop: 10,
-        paddingRight: 8,
-        paddingBottom: 10,
-        paddingLeft: 8,
+        height: 64,
+        paddingTop: 12,
+        paddingRight: 20,
+        paddingBottom: 12,
+        paddingLeft: 20,
     },
 
     sidebarLinkText: {
-        color: colors.icon,
+        color: colors.text,
         fontSize: 13,
         textDecorationLine: 'none',
         overflow: 'hidden',
     },
 
     sidebarLinkActive: {
-        backgroundColor: colors.text,
-        borderRadius: 8,
+        backgroundColor: colors.border,
         textDecorationLine: 'none',
     },
 
     sidebarLinkTextUnread: {
-        fontWeight: '600',
-        color: colors.textReversed,
+        fontWeight: '700',
+        color: colors.heading,
     },
 
     sidebarLinkActiveText: {
-        color: colors.textReversed,
+        color: colors.text,
         fontSize: 13,
         textDecorationLine: 'none',
         overflow: 'hidden',
@@ -537,14 +526,15 @@ const styles = {
 
     chatSwitcherDisplayName: {
         fontFamily: fontFamily.GTA,
-        height: 16,
-        lineHeight: 16,
+        height: 20,
+        lineHeight: 20,
     },
 
     chatSwitcherLogin: {
+        color: colors.textSupporting,
         fontFamily: fontFamily.GTA,
-        height: 12,
-        lineHeight: 12,
+        height: 16,
+        lineHeight: 16,
     },
 
     unreadBadge: {
@@ -563,8 +553,9 @@ const styles = {
 
     // App Content Wrapper styles for large screens
     // The darker BG color allows the rounded corners to show through
+    // To do: get rid of this
     appContentWrapperLarge: {
-        backgroundColor: colors.heading,
+        backgroundColor: colors.background,
     },
 
     appContent: {
@@ -572,15 +563,14 @@ const styles = {
         overflow: 'hidden',
     },
 
+    // To do: get rid of this
     appContentRounded: {
-        borderTopLeftRadius: 12,
-        borderBottomLeftRadius: 12,
+        borderTopLeftRadius: 0,
+        borderBottomLeftRadius: 0,
     },
 
     appContentHeader: {
-        borderBottomWidth: 1,
-        borderBottomColor: colors.border,
-        height: 73,
+        height: 72,
         justifyContent: 'center',
         display: 'flex',
         paddingLeft: 20,
@@ -670,7 +660,7 @@ const styles = {
         fontSize: 15,
         height: 24,
         lineHeight: 20,
-        fontWeight: '600',
+        fontWeight: '700',
         paddingRight: 5,
         paddingBottom: 4,
     },
@@ -859,16 +849,16 @@ const styles = {
     },
 
     chatSwitcherAvatar: {
-        backgroundColor: colors.text,
-        borderRadius: 14,
-        height: 28,
+        backgroundColor: colors.icon,
+        borderRadius: 20,
+        height: 40,
         overflow: 'hidden',
-        width: 28,
+        width: 40,
     },
 
     chatSwitcherAvatarImage: {
-        height: 28,
-        width: 28,
+        height: 40,
+        width: 40,
     },
 
     chatSwitcherItemText: {
@@ -945,10 +935,10 @@ const styles = {
     },
 
     defaultAttachmentView: {
-        backgroundColor: colors.whiteSmoke,
+        backgroundColor: colors.background,
         borderRadius: 4,
         borderWidth: 1,
-        borderColor: colors.whisper,
+        borderColor: colors.grayLight,
         flexDirection: 'row',
         paddingTop: 10,
         paddingBottom: 10,
@@ -990,7 +980,7 @@ const webViewStyles = {
 
         strong: {
             fontFamily: fontFamily.GTA_BOLD,
-            fontWeight: '600',
+            fontWeight: '700',
         },
 
         a: {
