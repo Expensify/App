@@ -900,6 +900,15 @@ const styles = {
         fontWeight: '700',
     },
 
+    modalViewContainerMobile: {
+        backgroundColor: colors.componentBG,
+        borderColor: colors.border,
+        borderWidth: 1,
+        height: '100%',
+        alignItems: 'center',
+        overflow: 'hidden',
+    },
+
     modalViewContainer: {
         backgroundColor: colors.componentBG,
         borderColor: colors.border,

@@ -38,7 +38,7 @@ const defaultProps = {
 const ModalView = props => (
     <>
         {props.pinToEdges ? (
-            <SafeAreaView style={styles.modalViewContainer}>
+            <SafeAreaView style={styles.modalViewContainerMobile}>
                 {props.children}
             </SafeAreaView>
         ) : (
