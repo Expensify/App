@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import ROUTES from '../../ROUTES';
@@ -53,6 +54,22 @@ function createLogin(login, password) {
             Onyx.merge(ONYXKEYS.APP_REDIRECT_TO, ROUTES.ROOT);
         });
 }
+
+// Used to prevent calling CreateLogin more than once since this callback is triggered when we set
+// authToken, loading, error, etc
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (session) => {
+        // If we have an authToken but no login, it's the users first time signing in and we need to
+        // create a login for the user, so when the authToken expires we can get a new one with said login
+        const hasLogin = credentials && credentials.login;
+        if (!session || !session.authToken || hasLogin) {
+            return;
+        }
+        createLogin(Str.guid('react-native-chat-'), Str.guid());
+    },
+});
+
 
 export {
     // eslint-disable-next-line import/prefer-default-export
