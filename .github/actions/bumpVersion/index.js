@@ -31,6 +31,8 @@ exec('npm version prerelease -m "Update version to %s"', (err, stdout, stderr) =
                     console.log(`Setting npm version for this PR to ${newBuildNumber}`);
                     exec(`npm version ${newBuildNumber} -m "Update version to ${newBuildNumber}"`);
                 })
+        } else {
+            core.setFailed(err.message);
         }
     }
 })
