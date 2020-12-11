@@ -1,7 +1,6 @@
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../ONYXKEYS';
-import {reauthenticate} from './actions/Session';
 import {createLogin} from './actions/Credentials';
 
 // When the user authenticates for the first time we create a login and store credentials in Onyx.
@@ -9,37 +8,10 @@ import {createLogin} from './actions/Credentials';
 // and use that new authToken in subsequent API calls
 let credentials;
 
-// Indicates if we're in the process of re-authenticating. When an API call returns jsonCode 407 indicating that the
-// authToken expired, we set this to true, pause all API calls, re-authenticate, and then use the authToken from the
-// response in the subsequent API calls
-let isReauthenticating = false;
-
 function init() {
     Onyx.connect({
         key: ONYXKEYS.CREDENTIALS,
         callback: ionCredentials => credentials = ionCredentials,
-    });
-
-    Onyx.connect({
-        key: ONYXKEYS.REAUTHENTICATING,
-        callback: (reauthenticating) => {
-            if (!reauthenticating) {
-                return;
-            }
-            if (isReauthenticating === reauthenticating) {
-                return;
-            }
-
-            isReauthenticating = reauthenticating;
-
-            // When the app is no longer authenticating restart the network queue
-            if (!isReauthenticating) {
-                return;
-            }
-
-            // Otherwise let's refresh the authToken by calling reauthenticate
-            reauthenticate();
-        }
     });
 
     // Used to prevent calling CreateLogin more than once since this callback is triggered when we set

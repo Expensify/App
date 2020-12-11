@@ -16,6 +16,64 @@ Onyx.connect({
 });
 
 /**
+ * Refreshes the authToken by calling Authenticate with the stored credentials
+ */
+function reauthenticate() {
+    API.Authenticate({
+        useExpensifyLogin: false,
+        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+        partnerUserID: credentials.login,
+        partnerUserSecret: credentials.password,
+    })
+        .then((response) => {
+            // If authentication fails throw so that we hit the catch below and redirect to sign in
+            if (response.jsonCode !== 200) {
+                throw new Error(response.message);
+            }
+
+            // Update authToken in Onyx store otherwise subsequent API calls will use the expired one
+            Onyx.merge(ONYXKEYS.SESSION, _.pick(response, 'authToken'));
+
+            // The authentication process is finished so the network can be unpaused to continue
+            // processing requests
+            Network.unpauseRequestQueue();
+        })
+        .catch((error) => {
+            redirectToSignIn(error.message);
+            return Promise.reject();
+        })
+        .finally(() => Onyx.set(ONYXKEYS.REAUTHENTICATING, false));
+}
+
+// Indicates if we're in the process of re-authenticating. When an API call returns jsonCode 407 indicating that the
+// authToken expired, we set this to true, pause all API calls, re-authenticate, and then use the authToken from the
+// response in the subsequent API calls
+let isReauthenticating = false;
+Onyx.connect({
+    key: ONYXKEYS.REAUTHENTICATING,
+    callback: (reauthenticating) => {
+        if (!reauthenticating) {
+            return;
+        }
+        if (isReauthenticating === reauthenticating) {
+            return;
+        }
+
+        isReauthenticating = reauthenticating;
+
+        // When the app is no longer authenticating restart the network queue
+        if (!isReauthenticating) {
+            return;
+        }
+
+        // Otherwise let's refresh the authToken by calling reauthenticate
+        reauthenticate();
+    }
+});
+
+
+/**
  * Sets API data in the store when we make a successful "Authenticate"/"CreateLogin" request
  *
  * @param {Object} data
@@ -77,39 +135,7 @@ function signOut() {
         .catch(error => Onyx.merge(ONYXKEYS.SESSION, {error: error.message}));
 }
 
-/**
- * Refreshes the authToken by calling Authenticate with the stored credentials
- */
-function reauthenticate() {
-    API.Authenticate({
-        useExpensifyLogin: false,
-        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-        partnerUserID: credentials.login,
-        partnerUserSecret: credentials.password,
-    })
-        .then((response) => {
-            // If authentication fails throw so that we hit the catch below and redirect to sign in
-            if (response.jsonCode !== 200) {
-                throw new Error(response.message);
-            }
-
-            // Update authToken in Onyx store otherwise subsequent API calls will use the expired one
-            Onyx.merge(ONYXKEYS.SESSION, _.pick(response, 'authToken'));
-
-            // The authentication process is finished so the network can be unpaused to continue
-            // processing requests
-            Network.unpauseRequestQueue();
-        })
-        .catch((error) => {
-            redirectToSignIn(error.message);
-            return Promise.reject();
-        })
-        .finally(() => Onyx.set(ONYXKEYS.REAUTHENTICATING, false));
-}
-
 export {
     signIn,
     signOut,
-    reauthenticate,
 };

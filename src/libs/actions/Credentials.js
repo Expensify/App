@@ -27,6 +27,7 @@ function createLogin(login, password) {
     // Using doNotRetry:true here because we call CreateLogin after getting a successful response to Authenticate
     // so it's unlikely that we'll get a 407.
     API.CreateLogin({
+        authToken: API.getAuthToken(),
         partnerName: Config.EXPENSIFY.PARTNER_NAME,
         partnerPassword: Config.EXPENSIFY.PARTNER_PASSWORD,
         partnerUserID: login,
