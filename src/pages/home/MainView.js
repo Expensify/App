@@ -90,7 +90,6 @@ class MainView extends Component {
                 || report.unreadActionCount > 0
                 || report.reportID === reportIDInUrl
         ));
-
         return (
             <>
                 {_.map(reportsToDisplay, report => (
