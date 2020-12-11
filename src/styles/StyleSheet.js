@@ -264,7 +264,7 @@ const styles = {
 
     pill: {
         borderRadius: 14,
-        backgroundColor: colors.text,
+        backgroundColor: colors.border,
         height: 28,
         flexDirection: 'row',
         paddingTop: 6,
@@ -275,7 +275,7 @@ const styles = {
     },
 
     pillText: {
-        color: colors.componentBG,
+        color: colors.text,
         weight: '400',
         fontSize: 11,
         lineHeight: 16,
@@ -397,9 +397,9 @@ const styles = {
     },
 
     sidebarHeader: {
-        minHeight: 72,
-        paddingTop: 16,
-        paddingBottom: 16,
+        minHeight: 64,
+        paddingTop: 12,
+        paddingBottom: 12,
         flex: 1,
         flexGrow: 0,
     },
@@ -551,26 +551,13 @@ const styles = {
         color: colors.text,
     },
 
-    // App Content Wrapper styles for large screens
-    // The darker BG color allows the rounded corners to show through
-    // To do: get rid of this
-    appContentWrapperLarge: {
-        backgroundColor: colors.background,
-    },
-
     appContent: {
         backgroundColor: colors.background,
         overflow: 'hidden',
     },
 
-    // To do: get rid of this
-    appContentRounded: {
-        borderTopLeftRadius: 0,
-        borderBottomLeftRadius: 0,
-    },
-
     appContentHeader: {
-        height: 72,
+        height: 64,
         justifyContent: 'center',
         display: 'flex',
         paddingLeft: 20,
@@ -660,7 +647,7 @@ const styles = {
         fontSize: 15,
         height: 24,
         lineHeight: 20,
-        fontWeight: '700',
+        fontWeight: '600',
         paddingRight: 5,
         paddingBottom: 4,
     },
@@ -778,7 +765,7 @@ const styles = {
         flexWrap: 'wrap',
         borderRadius: 8,
         borderWidth: 1,
-        borderColor: colors.textSupporting,
+        borderColor: colors.border,
         paddingTop: 0,
         paddingRight: 3,
         paddingBottom: 0,
@@ -790,7 +777,7 @@ const styles = {
         alignSelf: 'flex-start',
         flexDirection: 'row',
         flexWrap: 'wrap',
-        maxWidth: 190,
+        maxWidth: 174,
         overflow: 'hidden',
     },
 
@@ -805,7 +792,7 @@ const styles = {
         fontSize: 15,
         flexGrow: 1,
         height: 28,
-        width: 186,
+        width: 174,
         marginTop: 5,
         marginBottom: 5,
         marginLeft: 3,
@@ -840,7 +827,7 @@ const styles = {
             width: 0,
             height: 0,
         },
-        shadowOpacity: 0.3,
+        shadowOpacity: 0.15,
         shadowRadius: 20,
     },
 
@@ -871,7 +858,7 @@ const styles = {
     },
 
     chatSwitcherItemButton: {
-        backgroundColor: 'rgba(255, 255, 255, 0.15)',
+        backgroundColor: 'rgba(198, 201, 202, 0.25)',
         paddingTop: 6,
         paddingRight: 8,
         paddingBottom: 6,
@@ -882,7 +869,7 @@ const styles = {
     },
 
     chatSwitcherItemButtonText: {
-        color: colors.componentBG,
+        color: colors.heading,
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: 11,
         lineHeight: 16,
@@ -980,7 +967,7 @@ const webViewStyles = {
 
         strong: {
             fontFamily: fontFamily.GTA_BOLD,
-            fontWeight: '700',
+            fontWeight: '600',
         },
 
         a: {

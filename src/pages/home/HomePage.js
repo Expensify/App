@@ -188,7 +188,6 @@ class App extends React.Component {
             ? styles.hamburgerOpenAbsolute : styles.hamburgerOpen;
         const visibility = !this.state.isHamburgerEnabled || this.props.isSidebarShown ? styles.dFlex : styles.dNone;
         const appContentWrapperStyle = !this.state.isHamburgerEnabled ? styles.appContentWrapperLarge : null;
-        const appContentStyle = !this.state.isHamburgerEnabled ? styles.appContentRounded : null;
         return (
             <SafeAreaProvider>
                 <CustomStatusBar />
@@ -225,7 +224,7 @@ class App extends React.Component {
                                     onPress={this.dismissHamburger}
                                 >
                                     <View
-                                        style={[styles.appContent, appContentStyle, styles.flex1, styles.flexColumn]}
+                                        style={[styles.appContent, styles.flex1, styles.flexColumn]}
                                     >
                                         <Header
                                             shouldShowHamburgerButton={this.state.isHamburgerEnabled}
