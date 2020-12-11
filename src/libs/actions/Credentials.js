@@ -24,9 +24,8 @@ function createLogin(login, password) {
 
     creatingLogin = true;
 
-    // Using xhr instead of request because request has logic to retry API commands when we get a 407 authToken expired
-    // in the response, and we call CreateLogin after getting a successful response to Authenticate so it's unlikely
-    // that we'll get a 407.
+    // Using doNotRetry:true here because we call CreateLogin after getting a successful response to Authenticate
+    // so it's unlikely that we'll get a 407.
     API.CreateLogin({
         partnerName: Config.EXPENSIFY.PARTNER_NAME,
         partnerPassword: Config.EXPENSIFY.PARTNER_PASSWORD,
