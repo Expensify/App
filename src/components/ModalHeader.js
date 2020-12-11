@@ -19,7 +19,7 @@ const defaultProps = {
     onCloseButtonPress: () => {},
 };
 
-const BaseModalHeader = props => (
+const ModalHeader = props => (
     <View style={styles.modalHeaderBar}>
         <View style={[
             styles.dFlex,
@@ -51,8 +51,8 @@ const BaseModalHeader = props => (
     </View>
 );
 
-BaseModalHeader.propTypes = propTypes;
-BaseModalHeader.defaultProps = defaultProps;
-BaseModalHeader.displayName = 'BaseModalHeader';
+ModalHeader.propTypes = propTypes;
+ModalHeader.defaultProps = defaultProps;
+ModalHeader.displayName = 'ModalHeader';
 
-export default BaseModalHeader;
+export default ModalHeader;

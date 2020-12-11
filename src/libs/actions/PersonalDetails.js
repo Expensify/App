@@ -20,6 +20,19 @@ Onyx.connect({
 });
 
 /**
+ * Helper method to return a default avatar
+ *
+ * @param {String} login
+ * @returns {String}
+ */
+function getDefaultAvatar(login) {
+    // There are 8 possible default avatars, so we choose which one this user has based
+    // on a simple hash of their login (which is converted from HEX to INT)
+    const loginHashBucket = (parseInt(md5(login).substring(0, 4), 16) % 8) + 1;
+    return `${CONST.CLOUDFRONT_URL}/images/avatars/avatar_${loginHashBucket}.png`;
+}
+
+/**
  * Returns the URL for a user's avatar and handles someone not having any avatar at all
  *
  * @param {Object} personalDetail
@@ -31,10 +44,7 @@ function getAvatar(personalDetail, login) {
         return personalDetail.avatar.replace(/&d=404$/, '');
     }
 
-    // There are 8 possible default avatars, so we choose which one this user has based
-    // on a simple hash of their login (which is converted from HEX to INT)
-    const loginHashBucket = (parseInt(md5(login).substring(0, 4), 16) % 8) + 1;
-    return `${CONST.CLOUDFRONT_URL}/images/avatars/avatar_${loginHashBucket}.png`;
+    return getDefaultAvatar(login);
 }
 
 /**
@@ -129,15 +139,38 @@ function fetch() {
 }
 
 /**
- * Get personal details for a list of emails.
+ * Get personal details from report participants.
  *
- * @param {String} emailList
+ * @param {Object} reports
  */
-function getForEmails(emailList) {
-    API.PersonalDetails_GetForEmails({emailList})
+function getFromReportParticipants(reports) {
+    const participantEmails = _.chain(reports)
+        .pluck('participants')
+        .flatten()
+        .unique()
+        .value();
+
+    if (participantEmails.length === 0) {
+        return;
+    }
+
+    API.PersonalDetails_GetForEmails({emailList: participantEmails.join(',')})
         .then((data) => {
-            const details = _.pick(data, emailList.split(','));
+            const details = _.pick(data, participantEmails);
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, formatPersonalDetails(details));
+
+            // The personalDetails of the participants contain their avatar images. Here we'll go over each
+            // report and based on the participants we'll link up their avatars to report icons.
+            _.each(reports, (report) => {
+                if (report.participants.length === 1) {
+                    const dmParticipant = report.participants[0];
+                    let icon = lodashGet(details, [dmParticipant, 'avatar'], '');
+                    if (!icon) {
+                        icon = getDefaultAvatar(dmParticipant);
+                    }
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {icon});
+                }
+            });
         });
 }
 
@@ -147,6 +180,6 @@ NetworkConnection.onReconnect(fetch);
 export {
     fetch,
     fetchTimezone,
-    getForEmails,
+    getFromReportParticipants,
     getDisplayName,
 };
