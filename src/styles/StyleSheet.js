@@ -154,6 +154,10 @@ const styles = {
         display: 'none',
     },
 
+    dInlineBlock: {
+        display: 'inline-block',
+    },
+
     bgHighlight: {
         backgroundColor: 'yellow',
     },
@@ -967,6 +971,8 @@ const styles = {
 const baseCodeTagStyles = {
     borderWidth: 1,
     borderRadius: 5,
+    marginTop: 4,
+    marginBottom: 4,
     borderColor: colors.border,
     backgroundColor: colors.textBackground,
 };
@@ -1016,10 +1022,6 @@ const webViewStyles = {
             paddingRight: 8,
             paddingLeft: 8,
             fontFamily: fontFamily.MONOSPACE,
-
-            // override user agent styles
-            marginTop: 0,
-            marginBottom: 0
         },
 
         code: {
