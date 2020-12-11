@@ -1,6 +1,7 @@
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -199,12 +200,12 @@ function setLocalLastRead(reportID, sequenceNumber) {
 }
 
 /**
- * Remove a temporary actionID
+ * Remove a specific action from a report by index.
  *
  * @param {Number} reportID
  * @param {String} actionID
  */
-function removeLoadingAction(reportID, actionID) {
+function removeLocalAction(reportID, actionID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         [actionID]: null,
     });
@@ -237,13 +238,10 @@ function updateReportWithNewAction(reportID, reportAction) {
         maxSequenceNumber: reportAction.sequenceNumber,
     });
 
-    // Check the reportAction for a clientGUID and remove the temporary action
-    // since we are about to merge in the real action with accurate sequenceNumber
-    const clientGUID = reportAction.clientGUID;
-    if (clientGUID) {
-        // Delete this item from the report since we are about to replace it at the
-        // correct action ID index
-        removeLoadingAction(reportID, clientGUID);
+    if (reportAction.clientGUID) {
+        // Remove the temporary action from the report since we are about to
+        // replace it with the real one (which has the true sequenceNumber)
+        removeLocalAction(reportID, reportAction.clientGUID);
     }
 
     // Add the action into Onyx
@@ -512,13 +510,16 @@ function addAction(reportID, text, file) {
         maxSequenceNumber: newSequenceNumber,
     });
 
-    // Generate a client guid so we can identify this later when it
-    // returns via Pusher with the real sequenceNumber
-    const tempActionID = `${Date.now()}_${Str.guid()}`;
+    // Generate a client id to store with the local action. Later, we
+    // will find and remove this action by referencing the action created
+    // in the server. We do this because it's not safe to assume that this
+    // action will use the next sequenceNumber. An action created by another
+    // user can overwrite that sequenceNumber if it is created before this one.
+    const temporaryReportActionID = `${Date.now()}_${Str.guid()}`;
 
     // Optimistically add the new comment to the store before waiting to save it to the server
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        [tempActionID]: {
+        [temporaryReportActionID]: {
             actionName: 'ADDCOMMENT',
             actorEmail: currentUserEmail,
             person: [
@@ -532,7 +533,7 @@ function addAction(reportID, text, file) {
 
             // Use the client generated ID as a temporary action ID
             // so we can remove it later
-            sequenceNumber: tempActionID,
+            sequenceNumber: temporaryReportActionID,
             avatar: myPersonalDetails.avatarURL,
             timestamp: moment().unix(),
             message: [
@@ -555,7 +556,7 @@ function addAction(reportID, text, file) {
         reportID,
         reportComment: htmlComment,
         file,
-        clientGUID: tempActionID,
+        clientGUID: temporaryReportActionID,
     });
 }
 

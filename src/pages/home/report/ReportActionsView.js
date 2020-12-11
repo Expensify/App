@@ -179,7 +179,7 @@ class ReportActionsView extends React.Component {
             // 2. We already set a comment someone has authored as the
             //    lastReadActionID_<accountID> rNVP on the server and should
             //    sync it locally when we handle it via Pusher or Airship
-            .filter(action => !action.loading)
+            .reject(action => action.loading)
             .pluck('sequenceNumber')
             .max()
             .value();
