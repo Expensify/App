@@ -55,6 +55,8 @@ class AttachmentModalBase extends Component {
         super(props);
 
         this.updateImageDimensions = this.updateImageDimensions.bind(this);
+        this.confirmAndClose = this.confirmAndClose.bind(this);
+        this.close = this.close.bind(this);
 
         // If pinToEdges is false, the default modal size will be slightly smaller than full screen
         this.modalWidth = Dimensions.get('window').width - 40;
@@ -95,6 +97,15 @@ class AttachmentModalBase extends Component {
         }
 
         this.setState({imageWidth, imageHeight});
+    }
+
+    close() {
+        this.setState({isModalOpen: false});
+    }
+
+    confirmAndClose() {
+        this.props.onConfirm(this.state.file);
+        this.close();
     }
 
     render() {
@@ -138,10 +149,7 @@ class AttachmentModalBase extends Component {
                             <TouchableOpacity
                                 style={[styles.button, styles.buttonSuccess, styles.buttonConfirm]}
                                 underlayColor={colors.componentBG}
-                                onPress={() => {
-                                    this.props.onConfirm(this.state.file);
-                                    this.setState({isModalOpen: false});
-                                }}
+                                onPress={this.confirmAndClose}
                             >
                                 <Text
                                     style={[

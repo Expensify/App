@@ -41,6 +41,7 @@ class ReportActionCompose extends React.Component {
         this.submitForm = this.submitForm.bind(this);
         this.setIsFocused = this.setIsFocused.bind(this);
         this.comment = props.comment;
+        this.modalRef = React.createRef();
         this.state = {
             isFocused: false,
             textInputShouldClear: false
@@ -146,6 +147,7 @@ class ReportActionCompose extends React.Component {
                             addAction(this.props.reportID, '', file);
                             this.setTextInputShouldClear(true);
                         }}
+                        ref={this.modalRef}
                     >
                         {({displayFileInModal}) => (
                             <>
@@ -157,6 +159,7 @@ class ReportActionCompose extends React.Component {
                                                 openPicker({
                                                     onPicked: (file) => {
                                                         displayFileInModal({file});
+                                                        this.modalRef.focus();
                                                     },
                                                 });
                                             }}
