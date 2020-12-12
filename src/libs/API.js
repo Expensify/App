@@ -345,13 +345,13 @@ function Push_Authenticate(parameters) {
  * @param {Object} parameters
  * @param {String} parameters.reportComment
  * @param {Number} parameters.reportID
- * @param {String} parameters.clientGUID
+ * @param {String} parameters.clientID
  * @param {Object} [parameters.file]
  * @returns {Promise}
  */
 function Report_AddComment(parameters) {
     const commandName = 'Report_AddComment';
-    requireParameters(['reportComment', 'reportID', 'clientGUID'],
+    requireParameters(['reportComment', 'reportID', 'clientID'],
         parameters, commandName);
     return request(commandName, parameters);
 }
