@@ -144,7 +144,6 @@ class ReportActionCompose extends React.Component {
                         title="Upload Attachment"
                         onConfirm={(file) => {
                             addAction(this.props.reportID, '', file);
-                            this.setTextInputShouldClear(true);
                         }}
                     >
                         {({displayFileInModal}) => (
