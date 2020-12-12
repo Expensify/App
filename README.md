@@ -1,5 +1,4 @@
 # React Native Chat
-
 # Philosophy
 This application is built with the following principles.
 1. **Data Flow** - Ideally, this is how data flows through the app:
