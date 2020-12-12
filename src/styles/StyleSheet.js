@@ -7,6 +7,9 @@ const variables = {
     contentHeaderHeight: 65,
     componentSizeNormal: 40,
     componentSizeSmall: 28,
+    fontSizeSmall: 11,
+    fontSizeLabel: 13,
+    fontSizeNormal: 15,
     safeInsertPercentage: 0.7,
 };
 
@@ -182,26 +185,20 @@ const styles = {
         overflow: 'hidden',
     },
 
-    h4: {
-        fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: '700',
-        fontSize: 13,
-    },
-
     textP: {
         color: uiColors.text,
-        fontSize: 15,
+        fontSize: variables.fontSizeNormal,
         lineHeight: 20,
     },
 
     textLabel: {
         color: uiColors.text,
-        fontSize: 13,
+        fontSize: variables.fontSizeLabel,
         lineHeight: 18,
     },
 
     textMicro: {
-        fontSize: 11,
+        fontSize: variables.fontSizeSmall,
     },
 
     textStrong: {
@@ -245,7 +242,7 @@ const styles = {
     },
 
     buttonSmallText: {
-        fontSize: 11,
+        fontSize: variables.fontSizeSmall,
         lineHeight: 16,
     },
 
@@ -290,7 +287,7 @@ const styles = {
     pillText: {
         color: uiColors.text,
         weight: '400',
-        fontSize: 11,
+        fontSize: variables.fontSizeSmall,
         lineHeight: 16,
         marginRight: 4,
         userSelect: 'none',
@@ -305,7 +302,7 @@ const styles = {
     navText: {
         fontFamily: fontFamily.GTA,
         color: uiColors.heading,
-        fontSize: 15,
+        fontSize: variables.fontSizeNormal,
         fontWeight: '700',
     },
 
@@ -322,7 +319,7 @@ const styles = {
     typingIndicatorSubText: {
         color: uiColors.textSupporting,
         fontFamily: fontFamily.GTA,
-        fontSize: 11,
+        fontSize: variables.fontSizeSmall,
         marginLeft: 48,
     },
 
@@ -342,7 +339,7 @@ const styles = {
         borderWidth: 1,
         color: uiColors.text,
         fontFamily: fontFamily.GTA,
-        fontSize: 15,
+        fontSize: variables.fontSizeNormal,
         paddingLeft: 12,
         paddingRight: 12,
         paddingTop: 10,
@@ -364,7 +361,7 @@ const styles = {
 
     formLabel: {
         color: uiColors.heading,
-        fontSize: 13,
+        fontSize: variables.fontSizeLabel,
         fontWeight: '600',
         lineHeight: 18,
         marginBottom: 4,
@@ -372,7 +369,7 @@ const styles = {
 
     formError: {
         color: uiColors.errorText,
-        fontSize: 13,
+        fontSize: variables.fontSizeLabel,
         lineHeight: 18,
         marginBottom: 4,
     },
@@ -471,13 +468,13 @@ const styles = {
 
     sidebarFooterUsername: {
         color: uiColors.heading,
-        fontSize: 15,
+        fontSize: variables.fontSizeLabel,
         fontWeight: '700',
     },
 
     sidebarFooterLink: {
         color: uiColors.textSupporting,
-        fontSize: 11,
+        fontSize: variables.fontSizeSmall,
         textDecorationLine: 'none',
         fontFamily: fontFamily.GTA,
         lineHeight: 20,
@@ -518,7 +515,7 @@ const styles = {
 
     sidebarLinkText: {
         color: uiColors.text,
-        fontSize: 15,
+        fontSize: variables.fontSizeLabel,
         textDecorationLine: 'none',
         overflow: 'hidden',
     },
@@ -535,7 +532,7 @@ const styles = {
 
     sidebarLinkActiveText: {
         color: uiColors.text,
-        fontSize: 15,
+        fontSize: variables.fontSizeLabel,
         textDecorationLine: 'none',
         overflow: 'hidden',
     },
@@ -654,7 +651,7 @@ const styles = {
 
     chatItemMessageHeaderSender: {
         color: uiColors.heading,
-        fontSize: 15,
+        fontSize: variables.fontSizeNormal,
         height: 24,
         lineHeight: 20,
         fontWeight: '600',
@@ -664,14 +661,14 @@ const styles = {
 
     chatItemMessageHeaderTimestamp: {
         color: uiColors.textSupporting,
-        fontSize: 11,
+        fontSize: variables.fontSizeSmall,
         height: 24,
         lineHeight: 20,
     },
 
     chatItemMessage: {
         color: uiColors.text,
-        fontSize: 15,
+        fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.GTA,
         lineHeight: 20,
         marginTop: -2,
@@ -799,7 +796,7 @@ const styles = {
         backgroundColor: uiColors.sidebar,
         color: uiColors.textReversed,
         fontFamily: fontFamily.GTA,
-        fontSize: 15,
+        fontSize: variables.fontSizeNormal,
         flexGrow: 1,
         height: variables.componentSizeSmall,
         width: 171,
@@ -881,7 +878,7 @@ const styles = {
     chatSwitcherItemButtonText: {
         color: uiColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
-        fontSize: 11,
+        fontSize: variables.fontSizeSmall,
         lineHeight: 16,
         fontWeight: '700',
     },
@@ -1035,7 +1032,7 @@ const webViewStyles = {
 
     baseFontStyle: {
         color: uiColors.text,
-        fontSize: 15,
+        fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.GTA,
     },
 };
