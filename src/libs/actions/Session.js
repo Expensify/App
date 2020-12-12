@@ -10,10 +10,15 @@ import PushNotification from '../Notification/PushNotification';
 import ROUTES from '../../ROUTES';
 
 let credentials;
-Onyx.connect({
-    key: ONYXKEYS.CREDENTIALS,
-    callback: val => credentials = val,
-});
+
+// Indicates if we're in the process of re-authenticating. When an API call returns jsonCode 407 indicating that the
+// authToken expired, we set this to true, pause all API calls, re-authenticate, and then use the authToken from the
+// response in the subsequent API calls
+let isReauthenticating = false;
+
+// Used to prevent calling CreateLogin more than once since this callback is triggered when we set
+// authToken, loading, error, etc
+let creatingLogin = false;
 
 /**
  * Refreshes the authToken by calling Authenticate with the stored credentials
@@ -45,33 +50,6 @@ function reauthenticate() {
         })
         .finally(() => Onyx.set(ONYXKEYS.REAUTHENTICATING, false));
 }
-
-// Indicates if we're in the process of re-authenticating. When an API call returns jsonCode 407 indicating that the
-// authToken expired, we set this to true, pause all API calls, re-authenticate, and then use the authToken from the
-// response in the subsequent API calls
-let isReauthenticating = false;
-Onyx.connect({
-    key: ONYXKEYS.REAUTHENTICATING,
-    callback: (reauthenticating) => {
-        if (!reauthenticating) {
-            return;
-        }
-        if (isReauthenticating === reauthenticating) {
-            return;
-        }
-
-        isReauthenticating = reauthenticating;
-
-        // When the app is no longer authenticating restart the network queue
-        if (!isReauthenticating) {
-            return;
-        }
-
-        // Otherwise let's refresh the authToken by calling reauthenticate
-        reauthenticate();
-    }
-});
-
 
 /**
  * Sets API data in the store when we make a successful "Authenticate"/"CreateLogin" request
@@ -135,9 +113,6 @@ function signOut() {
         .catch(error => Onyx.merge(ONYXKEYS.SESSION, {error: error.message}));
 }
 
-// We should only ever be creating a single login at a time
-let creatingLogin = false;
-
 /**
  * @param {string} login
  * @param {string} password
@@ -179,8 +154,6 @@ function createLogin(login, password) {
         });
 }
 
-// Used to prevent calling CreateLogin more than once since this callback is triggered when we set
-// authToken, loading, error, etc
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (session) => {
@@ -192,6 +165,33 @@ Onyx.connect({
         }
         createLogin(Str.guid('react-native-chat-'), Str.guid());
     },
+});
+
+Onyx.connect({
+    key: ONYXKEYS.CREDENTIALS,
+    callback: val => credentials = val,
+});
+
+Onyx.connect({
+    key: ONYXKEYS.REAUTHENTICATING,
+    callback: (reauthenticating) => {
+        if (!reauthenticating) {
+            return;
+        }
+        if (isReauthenticating === reauthenticating) {
+            return;
+        }
+
+        isReauthenticating = reauthenticating;
+
+        // When the app is no longer authenticating restart the network queue
+        if (!isReauthenticating) {
+            return;
+        }
+
+        // Otherwise let's refresh the authToken by calling reauthenticate
+        reauthenticate();
+    }
 });
 
 export {
