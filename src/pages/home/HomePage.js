@@ -81,6 +81,9 @@ class App extends React.Component {
         UnreadIndicatorUpdater.listenForReportChanges();
 
         Dimensions.addEventListener('change', this.toggleHamburgerBasedOnDimensions);
+
+        // Set up the hamburger correctly once on init
+        this.toggleHamburgerBasedOnDimensions({window: Dimensions.get('window')});
     }
 
     componentDidUpdate(prevProps) {
@@ -192,13 +195,13 @@ class App extends React.Component {
         return (
             <SafeAreaProvider>
                 <CustomStatusBar />
-                <SafeAreaInsetsContext.Consumer style={[styles.flex1, styles.h100p]}>
+                <SafeAreaInsetsContext.Consumer style={[styles.flex1]}>
                     {insets => (
                         <View
                             style={[styles.appContentWrapper,
                                 appContentWrapperStyle,
                                 styles.flexRow,
-                                styles.h100p,
+                                styles.flex1,
                                 getSafeAreaPadding(insets)
                             ]}
                         >
@@ -216,7 +219,11 @@ class App extends React.Component {
                                         isChatSwitcherActive={this.props.isChatSwitcherActive}
                                     />
                                 </Animated.View>
+                                {/* The following pressable allows us to click outside the LHN to close it,
+                                and should be enabled only if the LHN is open. Otherwise, it will capture
+                                some onPress events, causing scrolling issues. */}
                                 <Pressable
+                                    disabled={!this.props.isSidebarShown}
                                     style={[styles.flex1]}
                                     onPress={this.dismissHamburger}
                                 >

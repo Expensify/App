@@ -8,11 +8,12 @@ import {
     View,
     StyleSheet,
 } from 'react-native';
-import styles, {colors} from '../../../styles/StyleSheet';
+import styles from '../../../styles/StyleSheet';
 import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
 import ROUTES from '../../../ROUTES';
 import pencilIcon from '../../../../assets/images/icon-pencil.png';
 import PressableLink from '../../../components/PressableLink';
+import CONST from '../../../CONST';
 
 const propTypes = {
     // Option to allow the user to choose from can be type 'report' or 'user'
@@ -43,7 +44,7 @@ const ChatLinkRow = ({
     onAddToGroup,
     isChatSwitcher,
 }) => {
-    const isUserRow = option.type === 'user';
+    const isSingleUserDM = option.type === CONST.REPORT.SINGLE_USER_DM;
     const textStyle = optionIsFocused
         ? styles.sidebarLinkActiveText
         : styles.sidebarLinkText;
@@ -68,7 +69,6 @@ const ChatLinkRow = ({
                     styles.flexGrow1,
                     styles.chatSwitcherItemAvatarNameWrapper,
                 ])}
-                underlayColor={colors.transparent}
             >
                 <View
                     style={[
@@ -108,7 +108,7 @@ const ChatLinkRow = ({
                     </View>
                 </View>
             </PressableLink>
-            {isUserRow && isChatSwitcher && (
+            {isSingleUserDM && isChatSwitcher && (
                 <View>
                     <TouchableOpacity
                         style={[styles.chatSwitcherItemButton]}

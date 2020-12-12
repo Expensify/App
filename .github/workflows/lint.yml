@@ -1,6 +1,5 @@
 name: Lint JavaScript
 
-# Only lint on branches that aren't related to master and the deploy process
 on:
     push:
         branches-ignore:
@@ -8,6 +7,8 @@ on:
             - 'version-bump-*'
         tags-ignore:
             - '*'
+    pull_request_target:
+        types: [opened, synchronize]
 
 jobs:
     lint:

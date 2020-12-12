@@ -86,11 +86,17 @@ Now, all of your API calls will be using the ngrok route.
 ## Running the MacOS desktop app 🖥
  * To run the **Development app**, run: `npm run desktop`, this will start a new Electron process running on your MacOS desktop in the `dist/Mac` folder.
 
+## Running the web app via production API proxy (Contributors) 🧑‍💻
+If you don't have full-access to Expensify's development environment you will need to run the app against the production API.
+* Copy the `.env.production` variables into your `.env` file
+* Set `EXPENSIFY_URL_COM` environment variable to be empty (Note: this means it should be `EXPENSIFY_URL_COM=`, not completely omitted)
+* Run the **Development Server**: `npm run proxy`
+
 ## Running the tests 🎰
 ### Unit tests
 Unit tests are valuable when you want to test one component. They should be short, fast, and ideally only test one thing.
 Often times in order to write a unit test, you may need to mock data, a component, or library. We use the library [Jest](https://jestjs.io/)
-to help run our Unit tests. 
+to help run our Unit tests.
 
 * To run the **Jest unit tests**: `npm run test`
 
