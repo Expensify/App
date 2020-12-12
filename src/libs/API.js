@@ -190,7 +190,6 @@ function CreateChatReport(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.authToken
  * @param {String} parameters.partnerName
  * @param {String} parameters.partnerPassword
  * @param {String} parameters.partnerUserID
@@ -200,7 +199,6 @@ function CreateChatReport(parameters) {
 function CreateLogin(parameters) {
     const commandName = 'CreateLogin';
     requireParameters([
-        'authToken',
         'partnerName',
         'partnerPassword',
         'partnerUserID',

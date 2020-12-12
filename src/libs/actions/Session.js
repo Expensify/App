@@ -127,7 +127,6 @@ function createLogin(login, password) {
     // Using doNotRetry:true here because we call CreateLogin after getting a successful response to Authenticate
     // so it's unlikely that we'll get a 407.
     API.CreateLogin({
-        authToken: API.getAuthToken(),
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         partnerUserID: login,
@@ -145,12 +144,6 @@ function createLogin(login, password) {
                 API.DeleteLogin({partnerUserID: credentials.login});
             }
             Onyx.merge(ONYXKEYS.CREDENTIALS, {login, password});
-
-            // Now that we created a login to re-authenticate the user when the authToken expires,
-            // we redirect the user and clear the value of redirectTo since we don't need it anymore
-            // TODO update
-            // Onyx.merge(ONYXKEYS.APP_REDIRECT_TO, redirectTo);
-            Onyx.merge(ONYXKEYS.APP_REDIRECT_TO, ROUTES.ROOT);
         });
 }
 
