@@ -2,6 +2,7 @@
 import fontFamily from './fontFamily';
 import italic from './italic';
 import addOutlineWidth from './addOutlineWidth';
+import fontWeightBold from './fontWeight/bold';
 
 const safeInsertPercentage = 0.7;
 
@@ -24,7 +25,6 @@ const colors = {
     red: '#E84A3B',
     buttonBG: '#8A8A8A',
     modalBackdrop: '#00000080',
-    pacificBlue: '#00a5d5',
 };
 
 const styles = {
@@ -169,7 +169,7 @@ const styles = {
 
     h4: {
         fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: '700',
+        fontWeight: fontWeightBold,
         fontSize: 13,
     },
 
@@ -191,7 +191,7 @@ const styles = {
 
     textStrong: {
         fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: '600',
+        fontWeight: fontWeightBold,
     },
 
     textDecorationNoLine: {
@@ -217,7 +217,7 @@ const styles = {
     buttonText: {
         color: colors.text,
         fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: '700',
+        fontWeight: fontWeightBold,
         textAlign: 'center',
     },
 
@@ -884,7 +884,7 @@ const styles = {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: 11,
         lineHeight: 16,
-        fontWeight: '700',
+        fontWeight: fontWeightBold,
     },
 
     modalViewContainer: {
@@ -930,7 +930,7 @@ const styles = {
 
     notFoundSafeArea: {
         flex: 1,
-        backgroundColor: colors.arsenic,
+        backgroundColor: colors.heading,
     },
 
     notFoundView: {
@@ -951,23 +951,23 @@ const styles = {
     },
 
     notFoundTextHeader: {
-        color: colors.pacificBlue,
+        color: colors.blue,
         fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: '600',
+        fontWeight: fontWeightBold,
         fontSize: 150,
     },
 
     notFoundTextBody: {
         color: colors.componentBG,
         fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: '600',
+        fontWeight: fontWeightBold,
         fontSize: 16,
     },
 
     notFoundButtonText: {
-        color: colors.pacificBlue,
+        color: colors.blue,
         fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: '600',
+        fontWeight: fontWeightBold,
         fontSize: 16,
     }
 };
@@ -998,7 +998,7 @@ const webViewStyles = {
 
         strong: {
             fontFamily: fontFamily.GTA_BOLD,
-            fontWeight: '600',
+            fontWeight: fontWeightBold,
         },
 
         a: {
