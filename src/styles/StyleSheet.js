@@ -4,29 +4,49 @@ import italic from './italic';
 import addOutlineWidth from './addOutlineWidth';
 
 const variables = {
-    modalHeaderBarHeight: 73,
+    contentHeaderHeight: 65,
+    componentSizeNormal: 40,
+    componentSizeSmall: 28,
     safeInsertPercentage: 0.7,
 };
 
 const colors = {
-    componentBG: '#FFFFFF',
-    background: '#FFFFFF',
-    grayLight: '#FAFAFA',
+    white: '#FFFFFF',
+    gray1: '#FAFAFA',
+    gray2: '#ECECEC',
+    gray3: '#C6C9CA',
+    gray4: '#7D8B8F',
+    gray5: '#4A5960',
+    charcoal: '#37444C',
     black: '#000000',
     blue: '#2EAAE2',
-    border: '#ECECEC',
-    borderLight: '#E0E0E0',
     green: '#2ECB70',
-    heading: '#37444C',
-    icon: '#C6C9CA',
-    text: '#4A5960',
-    textBackground: '#F0F0F0',
-    textReversed: '#FFFFFF',
-    textSupporting: '#7D8B8F',
-    transparent: 'transparent',
     red: '#E84A3B',
-    buttonBG: '#8A8A8A',
-    modalBackdrop: '#00000080',
+    transparent: 'transparent',
+};
+
+const uiColors = {
+    shadow: colors.black,
+    link: colors.blue,
+    componentBG: colors.white,
+    appBG: colors.white,
+    sidebar: colors.gray1,
+    border: colors.gray2,
+    borderFocus: colors.blue,
+    icon: colors.gray3,
+    textSupporting: colors.gray4,
+    text: colors.gray5,
+    heading: colors.charcoal,
+    textBackground: colors.gray1,
+    textReversed: colors.white,
+    textMutedReversed: colors.gray3,
+    buttonSuccessBG: colors.green,
+    online: colors.green,
+    offline: colors.gray3,
+    errorText: colors.red,
+    sidebarButtonBG: 'rgba(198, 201, 202, 0.25)',
+    modalBackdrop: 'rgba(198, 201, 202, 0.5)',
+    pillBG: colors.gray2,
 };
 
 const styles = {
@@ -62,8 +82,13 @@ const styles = {
     mt2: {
         marginTop: 20,
     },
+
     mt1: {
-        marginTop: 10,
+        marginTop: 4,
+    },
+
+    mt3: {
+        marginTop: 12,
     },
 
     mb1: {
@@ -153,18 +178,6 @@ const styles = {
         display: 'none',
     },
 
-    bgHighlight: {
-        backgroundColor: 'yellow',
-    },
-
-    bgHighlight2: {
-        backgroundColor: 'green',
-    },
-
-    bgHighlight3: {
-        backgroundColor: 'pink',
-    },
-
     overflowHidden: {
         overflow: 'hidden',
     },
@@ -176,13 +189,13 @@ const styles = {
     },
 
     textP: {
-        color: colors.text,
+        color: uiColors.text,
         fontSize: 15,
         lineHeight: 20,
     },
 
     textLabel: {
-        color: colors.text,
+        color: uiColors.text,
         fontSize: 13,
         lineHeight: 18,
     },
@@ -201,30 +214,30 @@ const styles = {
     },
 
     colorReversed: {
-        color: colors.textReversed,
+        color: uiColors.textReversed,
     },
 
     colorMutedReversed: {
-        color: colors.icon,
+        color: uiColors.textMutedReversed,
     },
 
     button: {
-        borderColor: colors.border,
+        borderColor: uiColors.border,
         borderRadius: 8,
         borderWidth: 1,
-        height: 40,
+        height: variables.componentSizeNormal,
         justifyContent: 'center',
     },
 
     buttonText: {
-        color: colors.text,
+        color: uiColors.text,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: '700',
         textAlign: 'center',
     },
 
     buttonSmall: {
-        height: 28,
+        height: variables.componentSizeSmall,
         paddingTop: 6,
         paddingRight: 10,
         paddingBottom: 6,
@@ -237,7 +250,7 @@ const styles = {
     },
 
     buttonSuccess: {
-        backgroundColor: colors.green,
+        backgroundColor: uiColors.buttonSuccessBG,
         borderWidth: 0,
     },
 
@@ -251,21 +264,21 @@ const styles = {
     },
 
     buttonSuccessText: {
-        color: colors.textReversed,
+        color: uiColors.textReversed,
     },
 
     touchableButtonImage: {
         alignItems: 'center',
-        height: 40,
+        height: variables.componentSizeNormal,
         justifyContent: 'center',
         marginRight: 8,
-        width: 40,
+        width: variables.componentSizeNormal,
     },
 
     pill: {
         borderRadius: 14,
-        backgroundColor: colors.border,
-        height: 28,
+        backgroundColor: uiColors.pillBG,
+        height: variables.componentSizeSmall,
         flexDirection: 'row',
         paddingTop: 6,
         paddingBottom: 6,
@@ -275,7 +288,7 @@ const styles = {
     },
 
     pillText: {
-        color: colors.text,
+        color: uiColors.text,
         weight: '400',
         fontSize: 11,
         lineHeight: 16,
@@ -291,8 +304,8 @@ const styles = {
 
     navText: {
         fontFamily: fontFamily.GTA,
-        color: colors.heading,
-        fontSize: 17,
+        color: uiColors.heading,
+        fontSize: 15,
         fontWeight: '700',
     },
 
@@ -307,7 +320,7 @@ const styles = {
     },
 
     typingIndicatorSubText: {
-        color: colors.textSupporting,
+        color: uiColors.textSupporting,
         fontFamily: fontFamily.GTA,
         fontSize: 11,
         marginLeft: 48,
@@ -317,17 +330,17 @@ const styles = {
     actionAvatar: {
         borderRadius: 20,
         marginRight: 8,
-        height: 40,
-        width: 40,
+        height: variables.componentSizeNormal,
+        width: variables.componentSizeNormal,
     },
 
     textInput: {
-        backgroundColor: colors.componentBG,
+        backgroundColor: uiColors.componentBG,
         borderRadius: 8,
-        height: 40,
-        borderColor: colors.border,
+        height: variables.componentSizeNormal,
+        borderColor: uiColors.border,
         borderWidth: 1,
-        color: colors.text,
+        color: uiColors.text,
         fontFamily: fontFamily.GTA,
         fontSize: 15,
         paddingLeft: 12,
@@ -338,18 +351,19 @@ const styles = {
     },
 
     textInputReversed: addOutlineWidth({
-        backgroundColor: colors.heading,
-        borderColor: colors.text,
-        color: colors.textReversed,
+        backgroundColor: uiColors.heading,
+        borderColor: uiColors.text,
+        color: uiColors.textReversed,
     }, 0),
 
     textInputReversedFocus: {
-        borderColor: colors.icon,
+        borderColor: uiColors.icon,
     },
 
     textInputNoOutline: addOutlineWidth({}, 0),
 
     formLabel: {
+        color: uiColors.heading,
         fontSize: 13,
         fontWeight: '600',
         lineHeight: 18,
@@ -357,25 +371,33 @@ const styles = {
     },
 
     formError: {
-        color: colors.red,
+        color: uiColors.errorText,
         fontSize: 13,
         lineHeight: 18,
         marginBottom: 4,
     },
 
     signInPage: {
-        backgroundColor: colors.heading,
+        backgroundColor: uiColors.sidebar,
         height: '100%',
         padding: 20,
     },
 
+    signInPageLogo: {
+        alignItems: 'center',
+        height: variables.componentSizeNormal,
+        justifyContent: 'center',
+        width: '100%',
+        marginBottom: 24,
+    },
+
     signinLogo: {
-        height: 21,
-        width: 143,
+        height: variables.componentSizeNormal,
+        width: variables.componentSizeNormal,
     },
 
     genericView: {
-        backgroundColor: colors.heading,
+        backgroundColor: uiColors.heading,
         height: '100%',
     },
 
@@ -386,21 +408,14 @@ const styles = {
         width: '100%',
     },
 
-    signInPageLogo: {
-        height: 72,
-        justifyContent: 'center',
-        width: '100%',
-    },
-
     // Sidebar Styles
     sidebar: {
-        backgroundColor: colors.grayLight,
+        backgroundColor: uiColors.sidebar,
     },
 
     sidebarHeader: {
         minHeight: 64,
         paddingTop: 12,
-        paddingBottom: 12,
         flex: 1,
         flexGrow: 0,
     },
@@ -411,8 +426,8 @@ const styles = {
     },
 
     sidebarHeaderLogo: {
-        height: 40,
-        width: 40,
+        height: variables.componentSizeNormal,
+        width: variables.componentSizeNormal,
     },
 
     sidebarFooter: {
@@ -427,15 +442,15 @@ const styles = {
     },
 
     sidebarFooterAvatar: {
-        backgroundColor: colors.text,
+        backgroundColor: uiColors.text,
         borderRadius: 20,
-        height: 40,
+        height: variables.componentSizeNormal,
         marginRight: 12,
-        width: 40,
+        width: variables.componentSizeNormal,
     },
 
     statusIndicator: {
-        borderColor: colors.grayLight,
+        borderColor: uiColors.sidebar,
         borderRadius: 7,
         borderWidth: 2,
         position: 'absolute',
@@ -447,21 +462,21 @@ const styles = {
     },
 
     statusIndicatorOnline: {
-        backgroundColor: colors.green,
+        backgroundColor: uiColors.online,
     },
 
     statusIndicatorOffline: {
-        backgroundColor: colors.icon,
+        backgroundColor: uiColors.offline,
     },
 
     sidebarFooterUsername: {
-        color: colors.heading,
+        color: uiColors.heading,
         fontSize: 15,
         fontWeight: '700',
     },
 
     sidebarFooterLink: {
-        color: colors.textSupporting,
+        color: uiColors.textSupporting,
         fontSize: 11,
         textDecorationLine: 'none',
         fontFamily: fontFamily.GTA,
@@ -502,63 +517,57 @@ const styles = {
     },
 
     sidebarLinkText: {
-        color: colors.text,
-        fontSize: 13,
+        color: uiColors.text,
+        fontSize: 15,
         textDecorationLine: 'none',
         overflow: 'hidden',
     },
 
     sidebarLinkActive: {
-        backgroundColor: colors.border,
+        backgroundColor: uiColors.border,
         textDecorationLine: 'none',
     },
 
     sidebarLinkTextUnread: {
         fontWeight: '700',
-        color: colors.heading,
+        color: uiColors.heading,
     },
 
     sidebarLinkActiveText: {
-        color: colors.text,
-        fontSize: 13,
+        color: uiColors.text,
+        fontSize: 15,
         textDecorationLine: 'none',
         overflow: 'hidden',
     },
 
     chatSwitcherDisplayName: {
         fontFamily: fontFamily.GTA,
-        height: 20,
-        lineHeight: 20,
+        height: 22,
+        lineHeight: 22,
     },
 
     chatSwitcherLogin: {
-        color: colors.textSupporting,
+        color: uiColors.textSupporting,
         fontFamily: fontFamily.GTA,
         height: 16,
         lineHeight: 16,
     },
 
-    unreadBadge: {
-        backgroundColor: colors.green,
-        borderRadius: 15,
-        height: 10,
-        marginTop: 3,
-        width: 10,
-    },
-
     // App Content Wrapper styles
     appContentWrapper: {
-        backgroundColor: colors.background,
-        color: colors.text,
+        backgroundColor: uiColors.appBG,
+        color: uiColors.text,
     },
 
     appContent: {
-        backgroundColor: colors.background,
+        backgroundColor: uiColors.appBG,
         overflow: 'hidden',
     },
 
     appContentHeader: {
-        height: 64,
+        borderBottomWidth: 1,
+        borderColor: uiColors.border,
+        height: variables.contentHeaderHeight,
         justifyContent: 'center',
         display: 'flex',
         paddingLeft: 20,
@@ -572,10 +581,10 @@ const styles = {
 
     LHNToggle: {
         alignItems: 'center',
-        height: 40,
+        height: variables.componentSizeNormal,
         justifyContent: 'center',
         marginRight: 8,
-        width: 40,
+        width: variables.componentSizeNormal,
     },
 
     LHNToggleIcon: {
@@ -644,7 +653,7 @@ const styles = {
     },
 
     chatItemMessageHeaderSender: {
-        color: colors.heading,
+        color: uiColors.heading,
         fontSize: 15,
         height: 24,
         lineHeight: 20,
@@ -654,14 +663,14 @@ const styles = {
     },
 
     chatItemMessageHeaderTimestamp: {
-        color: colors.textSupporting,
+        color: uiColors.textSupporting,
         fontSize: 11,
         height: 24,
         lineHeight: 20,
     },
 
     chatItemMessage: {
-        color: colors.text,
+        color: uiColors.text,
         fontSize: 15,
         fontFamily: fontFamily.GTA,
         lineHeight: 20,
@@ -680,18 +689,18 @@ const styles = {
     },
 
     chatItemComposeBoxColor: {
-        borderColor: colors.border,
+        borderColor: uiColors.border,
     },
 
     chatItemComposeBoxFocusedColor: {
-        borderColor: colors.blue,
+        borderColor: uiColors.borderFocus,
     },
 
     chatItemComposeBox: {
-        backgroundColor: colors.componentBG,
+        backgroundColor: uiColors.componentBG,
         borderWidth: 1,
         borderRadius: 8,
-        minHeight: 40,
+        minHeight: variables.componentSizeNormal,
     },
 
     textInputCompose: addOutlineWidth({
@@ -730,7 +739,7 @@ const styles = {
     chatItemAttachButton: {
         alignItems: 'center',
         alignSelf: 'flex-end',
-        borderRightColor: colors.border,
+        borderRightColor: uiColors.border,
         borderRightWidth: 1,
         height: 26,
         marginBottom: 6,
@@ -740,8 +749,8 @@ const styles = {
     },
 
     chatItemAttachmentPlaceholder: {
-        backgroundColor: colors.border,
-        borderColor: colors.borderLight,
+        backgroundColor: uiColors.sidebar,
+        borderColor: uiColors.border,
         borderWidth: 1,
         borderRadius: 8,
         height: 150,
@@ -752,7 +761,7 @@ const styles = {
 
     chatSwitcherInputClear: {
         alignSelf: 'flex-end',
-        height: 40,
+        height: variables.componentSizeNormal,
         justifyContent: 'center',
     },
 
@@ -766,7 +775,7 @@ const styles = {
         flexWrap: 'wrap',
         borderRadius: 8,
         borderWidth: 1,
-        borderColor: colors.border,
+        borderColor: uiColors.border,
         paddingTop: 0,
         paddingRight: 3,
         paddingBottom: 0,
@@ -787,13 +796,13 @@ const styles = {
     },
 
     chatSwitcherGroupDMTextInput: {
-        backgroundColor: colors.sidebar,
-        color: colors.textReversed,
+        backgroundColor: uiColors.sidebar,
+        color: uiColors.textReversed,
         fontFamily: fontFamily.GTA,
         fontSize: 15,
         flexGrow: 1,
-        height: 28,
-        width: 174,
+        height: variables.componentSizeSmall,
+        width: 171,
         marginTop: 5,
         marginBottom: 5,
         marginLeft: 3,
@@ -823,7 +832,7 @@ const styles = {
         bottom: 0,
         zIndex: 2,
         width: 300,
-        shadowColor: colors.black,
+        shadowColor: uiColors.shadow,
         shadowOffset: {
             width: 0,
             height: 0,
@@ -837,20 +846,20 @@ const styles = {
     },
 
     chatSwitcherAvatar: {
-        backgroundColor: colors.icon,
+        backgroundColor: uiColors.icon,
         borderRadius: 20,
-        height: 40,
+        height: variables.componentSizeNormal,
         overflow: 'hidden',
-        width: 40,
+        width: variables.componentSizeNormal,
     },
 
     chatSwitcherAvatarImage: {
-        height: 40,
-        width: 40,
+        height: variables.componentSizeNormal,
+        width: variables.componentSizeNormal,
     },
 
     chatSwitcherItemText: {
-        color: colors.text,
+        color: uiColors.text,
     },
 
     chatSwitcherItemAvatarNameWrapper: {
@@ -859,18 +868,18 @@ const styles = {
     },
 
     chatSwitcherItemButton: {
-        backgroundColor: 'rgba(198, 201, 202, 0.25)',
+        backgroundColor: uiColors.sidebarButtonBG,
         paddingTop: 6,
         paddingRight: 8,
         paddingBottom: 6,
         paddingLeft: 8,
         borderRadius: 8,
-        height: 28,
+        height: variables.componentSizeSmall,
         marginLeft: 4,
     },
 
     chatSwitcherItemButtonText: {
-        color: colors.heading,
+        color: uiColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: 11,
         lineHeight: 16,
@@ -878,8 +887,8 @@ const styles = {
     },
 
     modalViewContainerMobile: {
-        backgroundColor: colors.componentBG,
-        borderColor: colors.border,
+        backgroundColor: uiColors.componentBG,
+        borderColor: uiColors.border,
         borderWidth: 1,
         height: '100%',
         alignItems: 'center',
@@ -887,8 +896,8 @@ const styles = {
     },
 
     modalViewContainer: {
-        backgroundColor: colors.componentBG,
-        borderColor: colors.border,
+        backgroundColor: uiColors.componentBG,
+        borderColor: uiColors.border,
         borderWidth: 1,
         borderRadius: 12,
         height: '100%',
@@ -903,14 +912,14 @@ const styles = {
         paddingLeft: 32,
         paddingRight: 20,
         borderBottomWidth: 1,
-        borderColor: colors.border,
-        height: variables.modalHeaderBarHeight,
+        borderColor: uiColors.border,
+        height: variables.contentHeaderHeight,
         width: '100%',
     },
 
     imageModalPDF: {
         flex: 1,
-        backgroundColor: colors.componentBG,
+        backgroundColor: uiColors.componentBG,
     },
 
     modalCenterContentContainer: {
@@ -918,7 +927,7 @@ const styles = {
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: colors.modalBackdrop,
+        backgroundColor: uiColors.modalBackdrop,
     },
 
     imageModalImageCenterContainer: {
@@ -931,10 +940,10 @@ const styles = {
     },
 
     defaultAttachmentView: {
-        backgroundColor: colors.background,
+        backgroundColor: uiColors.appBG,
         borderRadius: 4,
         borderWidth: 1,
-        borderColor: colors.grayLight,
+        borderColor: uiColors.border,
         flexDirection: 'row',
         paddingTop: 10,
         paddingBottom: 10,
@@ -953,8 +962,8 @@ const styles = {
 const baseCodeTagStyles = {
     borderWidth: 1,
     borderRadius: 5,
-    borderColor: colors.border,
-    backgroundColor: colors.textBackground,
+    borderColor: uiColors.border,
+    backgroundColor: uiColors.textBackground,
 };
 
 const webViewStyles = {
@@ -980,12 +989,12 @@ const webViewStyles = {
         },
 
         a: {
-            color: colors.blue,
-            textDecorationColor: colors.blue
+            color: uiColors.link,
+            textDecorationColor: uiColors.link,
         },
 
         blockquote: {
-            borderLeftColor: colors.border,
+            borderLeftColor: uiColors.border,
             borderLeftWidth: 4,
             paddingLeft: 12,
             marginTop: 4,
@@ -1018,14 +1027,14 @@ const webViewStyles = {
         },
 
         img: {
-            borderColor: colors.border,
+            borderColor: uiColors.border,
             borderRadius: 8,
             borderWidth: 1,
         },
     },
 
     baseFontStyle: {
-        color: colors.text,
+        color: uiColors.text,
         fontSize: 15,
         fontFamily: fontFamily.GTA,
     },
@@ -1056,5 +1065,5 @@ function getSafeAreaMargins(insets) {
 
 export default styles;
 export {
-    getSafeAreaPadding, getSafeAreaMargins, colors, webViewStyles, variables,
+    getSafeAreaPadding, getSafeAreaMargins, colors, uiColors, webViewStyles, variables,
 };

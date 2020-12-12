@@ -79,7 +79,7 @@ const ChatLinkRow = ({
                     {
                         !_.isEmpty(option.icon)
                         && (
-                            <View style={[styles.chatSwitcherAvatar, styles.mr2]}>
+                            <View style={[styles.chatSwitcherAvatar, styles.mr3]}>
                                 <Image
                                     source={{uri: option.icon}}
                                     style={[styles.chatSwitcherAvatarImage]}

@@ -7,7 +7,7 @@ import {
     Text
 } from 'react-native';
 import PropTypes from 'prop-types';
-import styles, {colors} from '../../../styles/StyleSheet';
+import styles, {uiColors} from '../../../styles/StyleSheet';
 import logoCircle from '../../../../assets/images/expensify-logo-round.png';
 import TextInputWithFocusStyles from '../../../components/TextInputWithFocusStyles';
 import iconX from '../../../../assets/images/icon-x.png';
@@ -57,7 +57,7 @@ const defaultProps = {
 const ChatSwitcherSearchForm = props => (
     <View style={[styles.flexRow, styles.sidebarHeaderTop]}>
         {props.isLogoVisible && (
-            <View style={[styles.mr2]}>
+            <View style={[styles.mr3]}>
                 <Image
                     resizeMode="contain"
                     style={[styles.sidebarHeaderLogo]}
@@ -117,7 +117,7 @@ const ChatSwitcherSearchForm = props => (
                         <TouchableOpacity
                             style={[styles.button, styles.buttonSmall, styles.buttonSuccess, styles.chatSwitcherGo]}
                             onPress={props.onConfirmUsers}
-                            underlayColor={colors.componentBG}
+                            underlayColor={uiColors.componentBG}
                         >
                             <Text
                                 style={[
@@ -142,7 +142,7 @@ const ChatSwitcherSearchForm = props => (
                     onFocus={props.onFocus}
                     onKeyPress={props.onKeyPress}
                     placeholder="Find or start a chat"
-                    placeholderTextColor={colors.textSupporting}
+                    placeholderTextColor={uiColors.textSupporting}
                 />
             )}
 
@@ -150,7 +150,7 @@ const ChatSwitcherSearchForm = props => (
             <TouchableOpacity
                 style={[styles.chatSwitcherInputClear, styles.ml2]}
                 onPress={props.onClearButtonClick}
-                underlayColor={colors.componentBG}
+                underlayColor={uiColors.componentBG}
             >
                 <Image
                     resizeMode="contain"

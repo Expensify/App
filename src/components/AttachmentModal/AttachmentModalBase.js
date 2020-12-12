@@ -6,7 +6,7 @@ import {
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import AttachmentView from '../AttachmentView';
-import styles, {colors} from '../../styles/StyleSheet';
+import styles, {uiColors} from '../../styles/StyleSheet';
 import ModalView from '../ModalView';
 import ModalHeader from '../ModalHeader';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -137,7 +137,7 @@ class AttachmentModalBase extends Component {
                         {this.props.onConfirm && (
                             <TouchableOpacity
                                 style={[styles.button, styles.buttonSuccess, styles.buttonConfirm]}
-                                underlayColor={colors.componentBG}
+                                underlayColor={uiColors.componentBG}
                                 onPress={() => {
                                     this.props.onConfirm(this.state.file);
                                     this.setState({isModalOpen: false});

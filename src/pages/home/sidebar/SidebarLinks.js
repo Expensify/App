@@ -98,7 +98,6 @@ const SidebarLinks = (props) => {
                 style={sidebarLinksStyle}
                 bounces={false}
                 indicatorStyle="white"
-                stickyHeaderIndices={[0]}
             >
                 {/* A report will not have a report name if it hasn't been fetched from the server yet */}
                 {/* so nothing is rendered */}
