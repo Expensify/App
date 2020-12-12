@@ -44,7 +44,7 @@ function addAuthTokenToParameters(command, parameters) {
         // an API request before we are signed in. In this case, we should just
         // cancel this and all other requests and set isAuthenticating to false.
         if (!authToken) {
-            console.error('A request was made without an authToken', {command, parameters});
+            console.debug('A request was made without an authToken', {command, parameters});
             Network.unpauseRequestQueue();
             redirectToSignIn();
             return;
@@ -399,10 +399,9 @@ function Report_TogglePinned(parameters) {
  * @param {Number} parameters.sequenceNumber
  * @returns {Promise}
  */
-function Report_SetLastReadActionID(parameters) {
-    const commandName = 'Report_SetLastReadActionID';
-    requireParameters(['accountID', 'reportID', 'sequenceNumber'],
-        parameters, commandName);
+function Report_UpdateLastRead(parameters) {
+    const commandName = 'Report_UpdateLastRead';
+    requireParameters(['accountID', 'reportID', 'sequenceNumber'], parameters, commandName);
     return request(commandName, parameters);
 }
 
@@ -419,5 +418,5 @@ export {
     Report_AddComment,
     Report_GetHistory,
     Report_TogglePinned,
-    Report_SetLastReadActionID
+    Report_UpdateLastRead
 };

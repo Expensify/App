@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import {
     View, SafeAreaView, TouchableOpacity, Dimensions, TouchableWithoutFeedback
 } from 'react-native';
-import BaseModalHeader from './BaseModalHeader';
 import styles from '../styles/StyleSheet';
 
 /**
@@ -24,9 +23,6 @@ const propTypes = {
     // Method to trigger when pressing close button of the modal
     onCloseButtonPress: PropTypes.func,
 
-    // Title of the modal header
-    modalTitle: PropTypes.string,
-
     // Any children to display
     children: PropTypes.node,
 };
@@ -36,18 +32,13 @@ const defaultProps = {
     modalWidth: Dimensions.get('window').width * 0.8,
     modalHeight: Dimensions.get('window').height * 0.8,
     onCloseButtonPress: () => {},
-    modalTitle: '',
     children: null,
 };
 
 const ModalView = props => (
     <>
         {props.pinToEdges ? (
-            <SafeAreaView style={styles.modalViewContainer}>
-                <BaseModalHeader
-                    title="Attachment"
-                    onCloseButtonPress={props.onCloseButtonPress}
-                />
+            <SafeAreaView style={styles.modalViewContainerMobile}>
                 {props.children}
             </SafeAreaView>
         ) : (
@@ -64,12 +55,10 @@ const ModalView = props => (
                             height: props.modalHeight
                         }}
                     >
-                        <BaseModalHeader title={props.modalTitle} onCloseButtonPress={props.onCloseButtonPress} />
                         {props.children}
                     </View>
                 </TouchableWithoutFeedback>
             </TouchableOpacity>
-
         )}
     </>
 );

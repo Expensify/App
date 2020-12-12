@@ -2,6 +2,8 @@ import React from 'react';
 import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import lodashOrderby from 'lodash.orderby';
+import lodashGet from 'lodash.get';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -13,11 +15,7 @@ import {redirect} from '../../../libs/actions/App';
 import ROUTES from '../../../ROUTES';
 import styles from '../../../styles/StyleSheet';
 import * as ChatSwitcher from '../../../libs/actions/ChatSwitcher';
-
-const OPTION_TYPE = {
-    USER: 'user',
-    REPORT: 'report',
-};
+import CONST from '../../../CONST';
 
 const MAX_GROUP_DM_LENGTH = 8;
 
@@ -77,6 +75,7 @@ class ChatSwitcherView extends React.Component {
         this.reset = this.reset.bind(this);
         this.selectUser = this.selectUser.bind(this);
         this.selectReport = this.selectReport.bind(this);
+        this.getReportsOptions = this.getReportsOptions.bind(this);
         this.triggerOnFocusCallback = this.triggerOnFocusCallback.bind(this);
         this.updateSearch = this.updateSearch.bind(this);
         this.selectRow = this.selectRow.bind(this);
@@ -89,7 +88,7 @@ class ChatSwitcherView extends React.Component {
             focusedIndex: 0,
             isLogoVisible: true,
             isClearButtonVisible: false,
-            groupUsers: [],
+            usersToStartGroupReportWith: [],
         };
     }
 
@@ -117,16 +116,86 @@ class ChatSwitcherView extends React.Component {
     }
 
     /**
+     * Get the report options created from props.reports. Additionally these report options will also
+     * determine if its a 1:1 DM or not by checking if report.participant is with just one other person.
+     * If it is a 1:1 DM we'll save the DM participant login and the type as user in the report option, this way
+     * we can filter out the same options from personalDetailOptions since we already have that 1:1 DM report.
+     *
+     * @param {Boolean} sortByLastVisited We set this to true when search text is empty and we set this false when
+     *                                    search text is not empty since at that time we sort using matchRegexes.
+     * @returns {Object}
+     */
+    getReportsOptions(sortByLastVisited = true) {
+        // If the user has already started creating a group DM, then only the single user DM options should
+        // be shown because only single users can be added to a group DM. An existing group
+        // DM cannot be added to a new group DM.
+        const onlyShowSingleUserDMs = this.state.usersToStartGroupReportWith.length > 0;
+
+        const reports = _.chain(this.props.reports)
+            .values()
+            .filter((report) => {
+                if (_.isEmpty(report.reportName)) {
+                    return false;
+                }
+                if (sortByLastVisited && !report.lastVisitedTimestamp) {
+                    return false;
+                }
+
+                // Remove any previously selected group user so that it doesn't show as a dupe
+                const isParticipantAlreadySelected = _.some(this.state.usersToStartGroupReportWith, ({login}) => {
+                    const participants = lodashGet(report, 'participants', []);
+                    const isSingleUserDM = participants.length === 1;
+                    return isSingleUserDM && login === participants[0];
+                });
+                if (isParticipantAlreadySelected) {
+                    return false;
+                }
+                if (onlyShowSingleUserDMs) {
+                    const participants = lodashGet(report, 'participants', []);
+                    return participants.length === 1;
+                }
+                return true;
+            })
+            .map((report) => {
+                const participants = lodashGet(report, 'participants', []);
+                const isSingleUserDM = participants.length === 1;
+                const login = isSingleUserDM ? report.participants[0] : '';
+                return {
+                    text: report.reportName,
+                    alternateText: report.reportName,
+                    searchText: report.participants < 10
+                        ? `${report.reportName} ${report.participants.join(' ')}`
+                        : report.reportName ?? '',
+                    reportID: report.reportID,
+                    participants,
+                    icon: report.icon,
+                    login,
+                    type: isSingleUserDM ? CONST.REPORT.SINGLE_USER_DM : CONST.REPORT.GROUP_USERS_DM,
+                    isUnread: report.unreadActionCount > 0,
+                    lastVisitedTimestamp: report.lastVisitedTimestamp,
+                    keyForList: String(report.reportID),
+                };
+            })
+            .value();
+
+        // If we are not sorting by lastVisited then let's sort it such that 1:1 user reports are on top with group DMs
+        // on the bottom. This would ensure our search UI is clean than having 1:1 reports show up in the middle.
+        return sortByLastVisited
+            ? lodashOrderby(reports, ['lastVisitedTimestamp'], ['desc'])
+            : lodashOrderby(reports, ['type'], ['desc']);
+    }
+
+    /**
      * Fires the correct method for the option type selected.
      *
      * @param {Object} option
      */
     selectRow(option) {
         switch (option.type) {
-            case OPTION_TYPE.USER:
+            case CONST.REPORT.SINGLE_USER_DM:
                 this.selectUser(option);
                 break;
-            case OPTION_TYPE.REPORT:
+            case CONST.REPORT.GROUP_USERS_DM:
                 this.selectReport(option);
                 break;
             default:
@@ -134,14 +203,14 @@ class ChatSwitcherView extends React.Component {
     }
 
     /**
-     * Adds a user to the groupUsers array and
+     * Adds a user to the usersToStartGroupReportWith array and
      * updates the options.
      *
      * @param {Object} option
      */
     addUserToGroup(option) {
         this.setState(prevState => ({
-            groupUsers: [...prevState.groupUsers, option],
+            usersToStartGroupReportWith: [...prevState.usersToStartGroupReportWith, option],
             search: '',
         }), () => {
             this.updateSearch('');
@@ -151,24 +220,23 @@ class ChatSwitcherView extends React.Component {
     }
 
     /**
-     * Removes a user from the groupUsers array and
+     * Removes a user from the usersToStartGroupReportWith array and
      * updates the options.
      *
      * @param {Object} [optionToRemove] remove last when no option provided
      */
     removeUserFromGroup(optionToRemove) {
         const selectedOption = !optionToRemove
-            ? _.last(this.state.groupUsers)
+            ? _.last(this.state.usersToStartGroupReportWith)
             : optionToRemove;
 
         this.setState(prevState => ({
-            groupUsers: _.reduce(prevState.groupUsers, (users, option) => (
+            usersToStartGroupReportWith: _.reduce(prevState.usersToStartGroupReportWith, (users, option) => (
                 option.login === selectedOption.login
                     ? users
                     : [...users, option]
             ), []),
         }), () => {
-            this.updateSearch(this.state.search);
             this.textInput.focus();
         });
     }
@@ -177,7 +245,7 @@ class ChatSwitcherView extends React.Component {
      * Begins the group
      */
     startGroupChat() {
-        const userLogins = _.map(this.state.groupUsers, option => option.login);
+        const userLogins = _.map(this.state.usersToStartGroupReportWith, option => option.login);
         fetchOrCreateChatReport([this.props.session.email, ...userLogins]);
         this.props.onLinkClick();
         this.reset();
@@ -192,8 +260,8 @@ class ChatSwitcherView extends React.Component {
     selectUser(selectedOption) {
         // If there are group users saved start a group chat between
         // the user that was just selected and everyone in the list
-        if (this.state.groupUsers.length > 0) {
-            const userLogins = _.map(this.state.groupUsers, option => option.login);
+        if (this.state.usersToStartGroupReportWith.length > 0) {
+            const userLogins = _.map(this.state.usersToStartGroupReportWith, option => option.login);
             fetchOrCreateChatReport([this.props.session.email, ...userLogins, selectedOption.login]);
         } else {
             fetchOrCreateChatReport([this.props.session.email, selectedOption.login]);
@@ -216,18 +284,19 @@ class ChatSwitcherView extends React.Component {
     }
 
     /**
-     * Reset the component to it's default state and blur the input
+     * Reset the component to it's default state and blur the input if we are no longer searching
      *
      * @param {Boolean} blurAfterReset
+     * @param {Boolean} resetOptions
      */
-    reset(blurAfterReset = true) {
+    reset(blurAfterReset = true, resetOptions = false) {
         this.setState({
             search: '',
-            options: [],
+            options: resetOptions ? this.getReportsOptions() : [],
             focusedIndex: 0,
             isLogoVisible: blurAfterReset,
             isClearButtonVisible: !blurAfterReset,
-            groupUsers: [],
+            usersToStartGroupReportWith: [],
         }, () => {
             if (blurAfterReset) {
                 this.textInput.blur();
@@ -242,10 +311,7 @@ class ChatSwitcherView extends React.Component {
      */
     triggerOnFocusCallback() {
         ChatSwitcher.show();
-        this.setState({
-            isLogoVisible: false,
-            isClearButtonVisible: true,
-        });
+        this.updateSearch(this.state.search);
     }
 
     /**
@@ -265,7 +331,7 @@ class ChatSwitcherView extends React.Component {
                 e.preventDefault();
                 break;
             case 'Backspace':
-                if (this.state.groupUsers.length > 0 && this.state.search === '') {
+                if (this.state.usersToStartGroupReportWith.length > 0 && this.state.search === '') {
                     // Remove the last user
                     this.removeUserFromGroup();
                 }
@@ -311,14 +377,14 @@ class ChatSwitcherView extends React.Component {
      */
     updateSearch(value) {
         if (value === '') {
-            if (this.state.groupUsers.length > 0) {
+            if (this.state.usersToStartGroupReportWith.length > 0) {
                 // If we have groupLogins we only want to reset the options not
-                // the entire state which would clear out the list of groupUsers
-                this.setState({options: [], search: ''});
+                // the entire state which would clear out the list of usersToStartGroupReportWith
+                this.setState({options: this.getReportsOptions(), search: ''});
                 return;
             }
 
-            this.reset(false);
+            this.reset(false, true);
             return;
         }
 
@@ -339,9 +405,16 @@ class ChatSwitcherView extends React.Component {
         // A Set is used here so that duplicate values are automatically removed.
         const matches = new Set();
 
-        // Get a list of all users we can send messages to and make their details generic
+        // We don't want to sort our chatReportOptions by lastVisited since we'll let the regex
+        // matches order our options.
+        const reportOptions = this.getReportsOptions(false);
+
+        // Get a list of all users we can send messages to and make their details generic. We will also reject any
+        // personalDetails logins that exist in chatReportOptions which will remove our dupes since we'll use
+        // chatReportOptions as our first source of truth if the 1:1 chat DM exists there.
         const personalDetailOptions = _.chain(this.props.personalDetails)
             .values()
+            .reject(personalDetail => _.findWhere(reportOptions, {login: personalDetail.login}))
             .map(personalDetail => ({
                 text: personalDetail.displayName,
                 alternateText: personalDetail.login,
@@ -349,29 +422,12 @@ class ChatSwitcherView extends React.Component {
                     : `${personalDetail.displayName} ${personalDetail.login}`,
                 icon: personalDetail.avatarURL,
                 login: personalDetail.login,
-                type: OPTION_TYPE.USER,
+                type: CONST.REPORT.SINGLE_USER_DM,
+                keyForList: personalDetail.login,
             }))
             .value();
 
-        // Get a list of all reports we can send messages to
-        const reportOptions = _.chain(this.props.reports)
-            .values()
-            .map(report => ({
-                text: report.reportName,
-                alternateText: report.reportName,
-                searchText: report.reportName ?? '',
-                reportID: report.reportID,
-                type: OPTION_TYPE.REPORT,
-                participants: report.participants,
-                isUnread: report.unreadActionCount > 0
-            }))
-            .value();
-
-        // If we have at least one group user then stop showing
-        // report options as we cannot add a report to a group DM
-        const searchOptions = this.state.groupUsers.length === 0
-            ? _.union(personalDetailOptions, reportOptions)
-            : personalDetailOptions;
+        const searchOptions = _.union(reportOptions, personalDetailOptions);
 
         for (let i = 0; i < matchRegexes.length; i++) {
             if (matches.size < this.maxSearchResults) {
@@ -380,29 +436,15 @@ class ChatSwitcherView extends React.Component {
                     const valueToSearch = option.searchText && option.searchText.replace(new RegExp(/&nbsp;/g), '');
                     const isMatch = matchRegexes[i].test(valueToSearch);
 
-                    // We want to avoid adding single user private DM reports
-                    // since we will prefer to show the user UI over the report name
-                    const isSingleUserPrivateDMReport = option.participants
-                        && option.participants.length === 1;
-
                     // We must also filter out any users who are already in the Group DM list
                     // so they can't be selected more than once
-                    const isInGroupUsers = _.some(this.state.groupUsers, groupOption => (
+                    const isInGroupUsers = _.some(this.state.usersToStartGroupReportWith, groupOption => (
                         groupOption.login === option.login
                     ));
 
-                    // Make sure we don't include the same option twice (automatically handled be using a `Set`)
-                    if (isMatch && !isSingleUserPrivateDMReport && !isInGroupUsers) {
+                    // Make sure we don't include the same option twice (automatically handled by using a `Set`)
+                    if (isMatch && !isInGroupUsers) {
                         matches.add(option);
-                    }
-
-                    // If is is a single user private DM report, add the isUnread property to the
-                    // user UI equivalent.
-                    if (isSingleUserPrivateDMReport) {
-                        const userOption = _.find(searchOptions, opt => opt.login === option.participants[0]);
-                        if (userOption) {
-                            userOption.isUnread = option.isUnread;
-                        }
                     }
 
                     if (matches.size === this.maxSearchResults) {
@@ -427,21 +469,16 @@ class ChatSwitcherView extends React.Component {
                     isClearButtonVisible={this.state.isClearButtonVisible}
                     isLogoVisible={this.state.isLogoVisible}
                     searchValue={this.state.search}
-                    onBlur={() => {
-                        if (this.state.search === '') {
-                            this.reset();
-                        }
-                    }}
                     onChangeText={this.updateSearch}
                     onClearButtonClick={() => this.reset()}
                     onFocus={this.triggerOnFocusCallback}
                     onKeyPress={this.handleKeyPress}
-                    groupUsers={this.state.groupUsers}
+                    usersToStartGroupReportWith={this.state.usersToStartGroupReportWith}
                     onRemoveFromGroup={this.removeUserFromGroup}
                     onConfirmUsers={this.startGroupChat}
                 />
 
-                {this.state.groupUsers.length === MAX_GROUP_DM_LENGTH
+                {this.state.usersToStartGroupReportWith.length === MAX_GROUP_DM_LENGTH
                     ? (
                         <View style={[styles.chatSwitcherMessage]}>
                             <Text style={[styles.h4, styles.mb1, styles.colorReversed]}>

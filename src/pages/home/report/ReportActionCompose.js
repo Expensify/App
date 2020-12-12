@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {View, Image, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
+import lodashGet from 'lodash.get';
 import {withOnyx} from 'react-native-onyx';
 import styles, {colors} from '../../../styles/StyleSheet';
 import TextInputFocusable from '../../../components/TextInputFocusable';
@@ -11,6 +12,7 @@ import paperClipIcon from '../../../../assets/images/icon-paper-clip.png';
 import AttachmentPicker from '../../../components/AttachmentPicker';
 import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs/actions/Report';
 import ReportTypingIndicator from './ReportTypingIndicator';
+import AttachmentModal from '../../../components/AttachmentModal';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -38,7 +40,7 @@ class ReportActionCompose extends React.Component {
         this.triggerSubmitShortcut = this.triggerSubmitShortcut.bind(this);
         this.submitForm = this.submitForm.bind(this);
         this.setIsFocused = this.setIsFocused.bind(this);
-        this.comment = '';
+        this.comment = props.comment;
         this.state = {
             isFocused: false,
             textInputShouldClear: false
@@ -131,50 +133,78 @@ class ReportActionCompose extends React.Component {
         return (
             <View style={[styles.chatItemCompose]}>
                 <View style={[
-                    this.state.isFocused ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
+                    (this.state.isFocused || this.state.isDraggingOver)
+                        ? styles.chatItemComposeBoxFocusedColor
+                        : styles.chatItemComposeBoxColor,
                     styles.chatItemComposeBox,
                     styles.flexRow
                 ]}
                 >
-                    <AttachmentPicker>
-                        {({openPicker}) => (
-                            <TouchableOpacity
-                                onPress={(e) => {
-                                    e.preventDefault();
-                                    openPicker({
-                                        onPicked: (file) => {
-                                            addAction(this.props.reportID, '', file);
-                                            this.setTextInputShouldClear(true);
-                                        },
-                                    });
-                                }}
-                                style={[styles.chatItemAttachButton]}
-                                underlayColor={colors.componentBG}
-                            >
-                                <Image
-                                    style={[styles.chatItemSubmitButtonIcon]}
-                                    resizeMode="contain"
-                                    source={paperClipIcon}
+                    <AttachmentModal
+                        title="Upload Attachment"
+                        onConfirm={(file) => {
+                            addAction(this.props.reportID, '', file);
+                            this.setTextInputShouldClear(true);
+                        }}
+                    >
+                        {({displayFileInModal}) => (
+                            <>
+                                <AttachmentPicker>
+                                    {({openPicker}) => (
+                                        <TouchableOpacity
+                                            onPress={(e) => {
+                                                e.preventDefault();
+                                                openPicker({
+                                                    onPicked: (file) => {
+                                                        displayFileInModal({file});
+                                                    },
+                                                });
+                                            }}
+                                            style={[styles.chatItemAttachButton]}
+                                            underlayColor={colors.componentBG}
+                                        >
+                                            <Image
+                                                style={[styles.chatItemSubmitButtonIcon]}
+                                                resizeMode="contain"
+                                                source={paperClipIcon}
+                                            />
+                                        </TouchableOpacity>
+                                    )}
+                                </AttachmentPicker>
+                                <TextInputFocusable
+                                    multiline
+                                    ref={el => this.textInput = el}
+                                    textAlignVertical="top"
+                                    placeholder="Write something..."
+                                    placeholderTextColor={colors.textSupporting}
+                                    onChangeText={this.updateComment}
+                                    onKeyPress={this.triggerSubmitShortcut}
+                                    onDragEnter={() => this.setState({isDraggingOver: true})}
+                                    onDragLeave={() => this.setState({isDraggingOver: false})}
+                                    onDrop={(e) => {
+                                        e.preventDefault();
+
+                                        const file = lodashGet(e, ['dataTransfer', 'files', 0]);
+                                        if (!file) {
+                                            return;
+                                        }
+
+                                        displayFileInModal({file});
+                                        this.setState({isDraggingOver: false});
+                                    }}
+                                    style={[styles.textInput, styles.textInputCompose, styles.flex4]}
+                                    defaultValue={this.props.comment}
+                                    maxLines={16} // This is the same that slack has
+                                    onFocus={() => this.setIsFocused(true)}
+                                    onBlur={() => this.setIsFocused(false)}
+                                    onPasteFile={file => displayFileInModal({file})}
+                                    shouldClear={this.state.textInputShouldClear}
+                                    onClear={() => this.setTextInputShouldClear(false)}
                                 />
-                            </TouchableOpacity>
+
+                            </>
                         )}
-                    </AttachmentPicker>
-                    <TextInputFocusable
-                        multiline
-                        ref={el => this.textInput = el}
-                        textAlignVertical="top"
-                        placeholder="Write something..."
-                        placeholderTextColor={colors.textSupporting}
-                        onChangeText={this.updateComment}
-                        onKeyPress={this.triggerSubmitShortcut}
-                        style={[styles.textInput, styles.textInputCompose, styles.flex4]}
-                        defaultValue={this.props.comment}
-                        maxLines={16} // This is the same that slack has
-                        onFocus={() => this.setIsFocused(true)}
-                        onBlur={() => this.setIsFocused(false)}
-                        shouldClear={this.state.textInputShouldClear}
-                        onClear={() => this.setTextInputShouldClear(false)}
-                    />
+                    </AttachmentModal>
                     <TouchableOpacity
                         style={[styles.chatItemSubmitButton, styles.buttonSuccess]}
                         onPress={this.submitForm}

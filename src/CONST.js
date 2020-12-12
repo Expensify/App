@@ -1,10 +1,13 @@
 const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
-const MOZILLA_PDF_VIEWER_URL = 'http://mozilla.github.com/pdf.js/web/viewer.html';
 
 const CONST = {
     CLOUDFRONT_URL,
-    MOZILLA_PDF_VIEWER_URL,
+    PDF_VIEWER_URL: '/pdf/web/viewer.html',
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
+    REPORT: {
+        SINGLE_USER_DM: 'singleUserDM',
+        GROUP_USERS_DM: 'groupUsersDM',
+    },
 };
 
 export default CONST;

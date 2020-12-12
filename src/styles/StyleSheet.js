@@ -3,11 +3,16 @@ import fontFamily from './fontFamily';
 import italic from './italic';
 import addOutlineWidth from './addOutlineWidth';
 
-const safeInsertPercentage = 0.7;
+const variables = {
+    modalHeaderBarHeight: 73,
+    safeInsertPercentage: 0.7,
+};
 
 const colors = {
     componentBG: '#FFFFFF',
     background: '#FAFAFA',
+    whiteSmoke: '#F8F8F8',
+    whisper: '#EEEEEE',
     black: '#000000',
     blue: '#2EAAE2',
     border: '#ECECEC',
@@ -89,10 +94,6 @@ const styles = {
         paddingRight: 8,
     },
 
-    h100p: {
-        height: '100%',
-    },
-
     flex0: {
         flex: 0,
     },
@@ -134,7 +135,7 @@ const styles = {
     },
 
     flexWrap: {
-        flexWrap: 'wrap'
+        flexWrap: 'wrap',
     },
 
     flexGrow1: {
@@ -241,6 +242,15 @@ const styles = {
         borderWidth: 0,
     },
 
+    buttonConfirm: {
+        margin: 20,
+    },
+
+    buttonConfirmText: {
+        paddingLeft: 20,
+        paddingRight: 20,
+    },
+
     buttonSuccessText: {
         color: colors.textReversed,
     },
@@ -281,9 +291,10 @@ const styles = {
     },
 
     navText: {
+        fontFamily: fontFamily.GTA,
         color: colors.heading,
         fontSize: 17,
-        fontWeight: '700'
+        fontWeight: '700',
     },
 
     reportOptions: {
@@ -394,6 +405,7 @@ const styles = {
         paddingBottom: 16,
         paddingLeft: 12,
         flex: 1,
+        flexGrow: 0,
     },
 
     sidebarHeaderLogo: {
@@ -841,7 +853,7 @@ const styles = {
             height: 0,
         },
         shadowOpacity: 0.3,
-        shadowRadius: 20
+        shadowRadius: 20,
     },
 
     hamburgerOpen: {
@@ -889,16 +901,26 @@ const styles = {
         fontWeight: '700',
     },
 
+    modalViewContainerMobile: {
+        backgroundColor: colors.componentBG,
+        borderColor: colors.border,
+        borderWidth: 1,
+        height: '100%',
+        alignItems: 'center',
+        overflow: 'hidden',
+    },
+
     modalViewContainer: {
         backgroundColor: colors.componentBG,
         borderColor: colors.border,
         borderWidth: 1,
-        borderRadius: 20,
+        borderRadius: 12,
         height: '100%',
+        alignItems: 'center',
+        overflow: 'hidden',
     },
 
     modalHeaderBar: {
-        fontFamily: fontFamily.GTA,
         overflow: 'hidden',
         justifyContent: 'center',
         display: 'flex',
@@ -906,7 +928,8 @@ const styles = {
         paddingRight: 20,
         borderBottomWidth: 1,
         borderColor: colors.border,
-        height: 73,
+        height: variables.modalHeaderBarHeight,
+        width: '100%',
     },
 
     imageModalPDF: {
@@ -928,6 +951,26 @@ const styles = {
         justifyContent: 'center',
         alignItems: 'center',
         overflow: 'hidden',
+        width: '100%',
+    },
+
+    defaultAttachmentView: {
+        backgroundColor: colors.whiteSmoke,
+        borderRadius: 4,
+        borderWidth: 1,
+        borderColor: colors.whisper,
+        flexDirection: 'row',
+        paddingTop: 10,
+        paddingBottom: 10,
+        paddingRight: 20,
+        paddingLeft: 20,
+        alignItems: 'center',
+    },
+
+    defaultAttachmentViewIcon: {
+        width: 47,
+        height: 60,
+        marginRight: 20,
     },
 };
 
@@ -939,27 +982,11 @@ const baseCodeTagStyles = {
 };
 
 const webViewStyles = {
-    preTagStyle: {
-        ...baseCodeTagStyles,
-        paddingTop: 4,
-        paddingBottom: 5,
-        paddingRight: 8,
-        paddingLeft: 8,
-    },
-    codeTagStyle: {
-        ...baseCodeTagStyles,
-        paddingLeft: 5,
-        paddingRight: 5,
-        paddingBottom: 2,
-        alignSelf: 'flex-start',
-    },
-    blockquoteTagStyle: {
-        borderLeftColor: colors.border,
-        borderLeftWidth: 4,
-        paddingLeft: 12,
-        marginTop: 4,
-        marginBottom: 4,
-    },
+    // As of react-native-render-html v6, don't declare distinct styles for
+    // custom renderers, the API for custom renderers has changed. Declare the
+    // styles in the below "tagStyles" instead. If you need to reuse those
+    // styles from the renderer, just pass the "style" prop to the underlying
+    // component.
     tagStyles: {
         em: {
             fontFamily: fontFamily.GTA_ITALIC,
@@ -968,7 +995,7 @@ const webViewStyles = {
 
         del: {
             textDecorationLine: 'line-through',
-            textDecorationStyle: 'solid'
+            textDecorationStyle: 'solid',
         },
 
         strong: {
@@ -977,14 +1004,40 @@ const webViewStyles = {
         },
 
         a: {
-            color: colors.blue
+            color: colors.blue,
+            textDecorationColor: colors.blue
+        },
+
+        blockquote: {
+            borderLeftColor: colors.border,
+            borderLeftWidth: 4,
+            paddingLeft: 12,
+            marginTop: 4,
+            marginBottom: 4,
+
+            // Overwrite default HTML margin for blockquotes
+            marginLeft: 0,
         },
 
         pre: {
+            ...baseCodeTagStyles,
+            paddingTop: 4,
+            paddingBottom: 5,
+            paddingRight: 8,
+            paddingLeft: 8,
             fontFamily: fontFamily.MONOSPACE,
+
+            // override user agent styles
+            marginTop: 0,
+            marginBottom: 0
         },
 
         code: {
+            ...baseCodeTagStyles,
+            paddingLeft: 5,
+            paddingRight: 5,
+            paddingBottom: 2,
+            alignSelf: 'flex-start',
             fontFamily: fontFamily.MONOSPACE,
         },
 
@@ -992,16 +1045,15 @@ const webViewStyles = {
             borderColor: colors.border,
             borderRadius: 8,
             borderWidth: 1,
-        }
+        },
     },
 
     baseFontStyle: {
         color: colors.text,
         fontSize: 15,
         fontFamily: fontFamily.GTA,
-    }
+    },
 };
-
 
 /**
  * Takes safe area insets and returns padding to use for a View
@@ -1010,7 +1062,10 @@ const webViewStyles = {
  * @returns {Object}
  */
 function getSafeAreaPadding(insets) {
-    return {paddingTop: insets.top, paddingBottom: insets.bottom * safeInsertPercentage};
+    return {
+        paddingTop: insets.top,
+        paddingBottom: insets.bottom * variables.safeInsertPercentage,
+    };
 }
 
 /**
@@ -1020,10 +1075,10 @@ function getSafeAreaPadding(insets) {
  * @returns {Object}
  */
 function getSafeAreaMargins(insets) {
-    return {marginBottom: insets.bottom * safeInsertPercentage};
+    return {marginBottom: insets.bottom * variables.safeInsertPercentage};
 }
 
 export default styles;
 export {
-    getSafeAreaPadding, getSafeAreaMargins, colors, webViewStyles
+    getSafeAreaPadding, getSafeAreaMargins, colors, webViewStyles, variables,
 };

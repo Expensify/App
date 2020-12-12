@@ -28,9 +28,6 @@ const propTypes = {
     // The current value of the search input
     searchValue: PropTypes.string.isRequired,
 
-    // A function to call when the input has been blurred
-    onBlur: PropTypes.func.isRequired,
-
     // A function to call when the text has changed in the input
     onChangeText: PropTypes.func.isRequired,
 
@@ -49,12 +46,12 @@ const propTypes = {
     // Begins / navigates to the chat between the various group users
     onConfirmUsers: PropTypes.func.isRequired,
 
-    // Group DM user options that have been selected
-    groupUsers: PropTypes.arrayOf(ChatSwitcherOptionPropTypes),
+    // Users selected to begin a group report DM
+    usersToStartGroupReportWith: PropTypes.arrayOf(ChatSwitcherOptionPropTypes),
 };
 
 const defaultProps = {
-    groupUsers: [],
+    usersToStartGroupReportWith: [],
 };
 
 const ChatSwitcherSearchForm = props => (
@@ -69,7 +66,7 @@ const ChatSwitcherSearchForm = props => (
             </View>
         )}
 
-        {props.groupUsers.length > 0
+        {props.usersToStartGroupReportWith.length > 0
             ? (
                 <View
                     style={[
@@ -79,7 +76,7 @@ const ChatSwitcherSearchForm = props => (
                 >
                     <View style={[styles.flexGrow1]}>
                         <View style={styles.chatSwitcherPillsInput}>
-                            {_.map(props.groupUsers, user => (
+                            {_.map(props.usersToStartGroupReportWith, user => (
                                 <View
                                     key={user.login}
                                     style={[styles.chatSwticherPillWrapper]}
@@ -109,7 +106,6 @@ const ChatSwitcherSearchForm = props => (
                                     // everything when we try to remove a user or start
                                     // the conversation
                                     // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                                    onBlur={() => {}}
                                     onChangeText={props.onChangeText}
                                     onFocus={props.onFocus}
                                     onKeyPress={props.onKeyPress}
@@ -142,7 +138,6 @@ const ChatSwitcherSearchForm = props => (
                     ref={props.forwardedRef}
                     style={[styles.textInput, styles.textInputReversed, styles.flex1]}
                     value={props.searchValue}
-                    onBlur={props.onBlur}
                     onChangeText={props.onChangeText}
                     onFocus={props.onFocus}
                     onKeyPress={props.onKeyPress}
