@@ -56,6 +56,11 @@ const reportMaxSequenceNumbers = {};
 // Keeps track of the last read for each report
 const lastReadSequenceNumbers = {};
 
+// Map of temporary report action IDs a.k.a. optimistic
+// comments. These should be cleared when replaced by
+// a recent fetch of report history.
+const temporaryReportActionIDs = {};
+
 /**
  * Checks the report to see if there are any unread action items
  *
@@ -212,8 +217,22 @@ function removeLocalAction(reportID, actionID) {
 }
 
 /**
+ * Remove all temporary actions from a local report.
+ *
+ * @param {Number} reportID
+ */
+function removeTemporaryActions(reportID) {
+    const actionIDs = temporaryReportActionIDs[reportID] || [];
+    _.each(actionIDs, actionID => removeLocalAction(reportID, actionID));
+
+    // Reset the temporary report action IDs back to their default.
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        temporaryReportActionIDs: [],
+    });
+}
+
+/**
  * Updates a report in the store with a new report action
- * from incoming Pusher or Airship event payload
  *
  * @param {Number} reportID
  * @param {Object} reportAction
@@ -400,6 +419,11 @@ function fetchChatReports() {
 function fetchActions(reportID) {
     API.Report_GetHistory({reportID})
         .then((data) => {
+            // We must remove all temporary actions so there will not be any
+            // stuck comments. At this point, we should be caught up and no
+            // longer need any optimistic comments.
+            removeTemporaryActions(reportID);
+
             const indexedData = _.indexBy(data.history, 'sequenceNumber');
             const maxSequenceNumber = _.chain(data.history)
                 .pluck('sequenceNumber')
@@ -517,6 +541,13 @@ function addAction(reportID, text, file) {
     // user can overwrite that sequenceNumber if it is created before this one.
     const temporaryReportActionID = `${Date.now()}_${Str.guid()}`;
 
+    // Add the temporary action ID to our report map so we can remove it
+    // when refetching report actions for a given report to clear out any
+    // stuck actions.
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        temporaryReportActionIDs: [...(temporaryReportActionIDs[reportID] || []), temporaryReportActionID],
+    });
+
     // Optimistically add the new comment to the store before waiting to save it to the server
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         [temporaryReportActionID]: {
@@ -557,7 +588,8 @@ function addAction(reportID, text, file) {
         reportComment: htmlComment,
         file,
         clientID: temporaryReportActionID,
-    });
+    })
+        .then(({reportAction}) => updateReportWithNewAction(reportID, reportAction));
 }
 
 /**
@@ -639,6 +671,9 @@ function handleReportChanged(report) {
 
     // Store the max sequence number for each report
     reportMaxSequenceNumbers[report.reportID] = report.maxSequenceNumber;
+
+    // Store temporary actions IDs for each report
+    temporaryReportActionIDs[report.reportID] = report.temporaryReportActionIDs;
 }
 
 Onyx.connect({
