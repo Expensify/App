@@ -238,10 +238,10 @@ function updateReportWithNewAction(reportID, reportAction) {
         maxSequenceNumber: reportAction.sequenceNumber,
     });
 
-    if (reportAction.clientGUID) {
+    if (reportAction.clientID) {
         // Remove the temporary action from the report since we are about to
         // replace it with the real one (which has the true sequenceNumber)
-        removeLocalAction(reportID, reportAction.clientGUID);
+        removeLocalAction(reportID, reportAction.clientID);
     }
 
     // Add the action into Onyx
@@ -556,7 +556,7 @@ function addAction(reportID, text, file) {
         reportID,
         reportComment: htmlComment,
         file,
-        clientGUID: temporaryReportActionID,
+        clientID: temporaryReportActionID,
     });
 }
 

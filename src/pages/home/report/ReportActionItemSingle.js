@@ -30,6 +30,8 @@ const ReportActionItemSingle = ({action}) => {
                         <ReportActionItemFragment
                             key={`person-${action.sequenceNumber}-${index}`}
                             fragment={fragment}
+                            isAttachment={action.isAttachment}
+                            isLoading={action.loading}
                         />
                     ))}
                     <ReportActionItemDate timestamp={action.timestamp} />
