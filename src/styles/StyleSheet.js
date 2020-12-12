@@ -770,6 +770,7 @@ const styles = {
     chatSwitcherGroupDMContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
+        backgroundColor: uiColors.appBG,
         borderRadius: 8,
         borderWidth: 1,
         borderColor: uiColors.border,
@@ -793,8 +794,8 @@ const styles = {
     },
 
     chatSwitcherGroupDMTextInput: {
-        backgroundColor: uiColors.sidebar,
-        color: uiColors.textReversed,
+        backgroundColor: uiColors.componentBG,
+        color: uiColors.text,
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeNormal,
         flexGrow: 1,
