@@ -4,6 +4,7 @@
   "author": "Expensify, Inc.",
   "homepage": "https://expensify.com",
   "description": "Expensify Chat",
+  "license": "MIT",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
