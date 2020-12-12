@@ -4,7 +4,7 @@ import {View, Image, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import {withOnyx} from 'react-native-onyx';
-import styles, {colors} from '../../../styles/StyleSheet';
+import styles, {uiColors} from '../../../styles/StyleSheet';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 import sendIcon from '../../../../assets/images/icon-send.png';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -161,7 +161,7 @@ class ReportActionCompose extends React.Component {
                                                 });
                                             }}
                                             style={[styles.chatItemAttachButton]}
-                                            underlayColor={colors.componentBG}
+                                            underlayColor={uiColors.componentBG}
                                         >
                                             <Image
                                                 style={[styles.chatItemSubmitButtonIcon]}
@@ -176,7 +176,7 @@ class ReportActionCompose extends React.Component {
                                     ref={el => this.textInput = el}
                                     textAlignVertical="top"
                                     placeholder="Write something..."
-                                    placeholderTextColor={colors.textSupporting}
+                                    placeholderTextColor={uiColors.textSupporting}
                                     onChangeText={this.updateComment}
                                     onKeyPress={this.triggerSubmitShortcut}
                                     onDragEnter={() => this.setState({isDraggingOver: true})}
@@ -208,7 +208,7 @@ class ReportActionCompose extends React.Component {
                     <TouchableOpacity
                         style={[styles.chatItemSubmitButton, styles.buttonSuccess]}
                         onPress={this.submitForm}
-                        underlayColor={colors.componentBG}
+                        underlayColor={uiColors.componentBG}
                     >
                         <Image
                             resizeMode="contain"

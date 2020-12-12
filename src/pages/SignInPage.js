@@ -17,8 +17,8 @@ import {withRouter, Redirect} from '../libs/Router';
 import ROUTES from '../ROUTES';
 import {signIn} from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
-import styles, {colors} from '../styles/StyleSheet';
-import logo from '../../assets/images/expensify-logo_reversed.png';
+import styles, {uiColors} from '../styles/StyleSheet';
+import logo from '../../assets/images/expensify-logo-round.png';
 import CustomStatusBar from '../components/CustomStatusBar';
 import updateUnread from '../libs/UnreadIndicatorUpdater/updateUnread';
 
@@ -94,9 +94,9 @@ class App extends Component {
                             />
                         </View>
                         <View style={[styles.mb4]}>
-                            <Text style={[styles.formLabel, styles.colorReversed]}>Login</Text>
+                            <Text style={[styles.formLabel]}>Login</Text>
                             <TextInput
-                                style={[styles.textInput, styles.textInputReversed]}
+                                style={[styles.textInput]}
                                 value={this.state.login}
                                 autoCompleteType="email"
                                 textContentType="username"
@@ -106,9 +106,9 @@ class App extends Component {
                             />
                         </View>
                         <View style={[styles.mb4]}>
-                            <Text style={[styles.formLabel, styles.colorReversed]}>Password</Text>
+                            <Text style={[styles.formLabel]}>Password</Text>
                             <TextInput
-                                style={[styles.textInput, styles.textInputReversed]}
+                                style={[styles.textInput]}
                                 secureTextEntry
                                 autoCompleteType="password"
                                 textContentType="password"
@@ -118,12 +118,12 @@ class App extends Component {
                             />
                         </View>
                         <View style={[styles.mb4]}>
-                            <Text style={[styles.formLabel, styles.colorReversed]}>Two Factor Code</Text>
+                            <Text style={[styles.formLabel]}>Two Factor Code</Text>
                             <TextInput
-                                style={[styles.textInput, styles.textInputReversed]}
+                                style={[styles.textInput]}
                                 value={this.state.twoFactorAuthCode}
                                 placeholder="Required when 2FA is enabled"
-                                placeholderTextColor={colors.icon}
+                                placeholderTextColor={uiColors.textSupporting}
                                 onChangeText={text => this.setState({twoFactorAuthCode: text})}
                                 onSubmitEditing={this.submitForm}
                             />
@@ -132,11 +132,11 @@ class App extends Component {
                             <TouchableOpacity
                                 style={[styles.button, styles.buttonSuccess, styles.mb4]}
                                 onPress={this.submitForm}
-                                underlayColor={colors.componentBG}
+                                underlayColor={uiColors.componentBG}
                                 disabled={isLoading}
                             >
                                 {isLoading ? (
-                                    <ActivityIndicator color={colors.textReversed} />
+                                    <ActivityIndicator color={uiColors.textReversed} />
                                 ) : (
                                     <Text style={[styles.buttonText, styles.buttonSuccessText]}>Log In</Text>
                                 )}

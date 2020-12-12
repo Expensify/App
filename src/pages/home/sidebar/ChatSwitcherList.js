@@ -30,7 +30,7 @@ const ChatSwitcherList = ({
     onAddToGroup,
 }) => (
     options.length > 0 && (
-        <View style={[styles.flex1, styles.mt1]}>
+        <View style={[styles.flex1, styles.mt3]}>
             <FlatList
                 keyboardShouldPersistTaps="always"
                 showsVerticalScrollIndicator={false}
