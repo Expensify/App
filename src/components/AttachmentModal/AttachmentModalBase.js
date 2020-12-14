@@ -5,6 +5,7 @@ import {
     View, Dimensions, TouchableOpacity, Text,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import FileSystem from '../../libs/FileSystemUtils';
 import AttachmentView from '../AttachmentView';
 import styles, {colors} from '../../styles/StyleSheet';
 import ModalView from '../ModalView';
@@ -101,6 +102,14 @@ class AttachmentModalBase extends Component {
         // eslint-disable-next-line no-console
         console.log(`Preparing to download attachment at ${this.props.sourceURL}`);
         alert('Attachment downloaded successfully!');
+
+        FileSystem.downloadFile({
+            fromUrl: this.props.sourceURL,
+            toFile: 'foo.jpg',
+        }).then((res) => {
+            // eslint-disable-next-line no-console
+            console.log(res);
+        });
     }
 
     render() {
