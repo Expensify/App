@@ -9,11 +9,11 @@ import {Graphite_Timer} from './API';
 export default function (startEvent, endEvent) {
     try {
         const eventTime = window.performance.measure(endEvent, startEvent, endEvent).duration;
-        console.debug(`REPORTSWITCH: endTimingEvent: ${JSON.stringify(eventTime)}`);
 
         Graphite_Timer({
             name: endEvent,
-            value: eventTime
+            value: eventTime,
+            referer: 'chat'
         });
 
         // Measures should be cleared once 'end' events occur
