@@ -159,7 +159,7 @@ class ReportActionCompose extends React.Component {
                                                 openPicker({
                                                     onPicked: (file) => {
                                                         displayFileInModal({file});
-                                                        this.modalRef.focus();
+                                                        this.textInput.focus();
                                                     },
                                                 });
                                             }}
