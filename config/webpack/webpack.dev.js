@@ -39,6 +39,6 @@ module.exports = (parameters = {}) => {
         ],
         node: {
             fs: 'empty',
-        },
+        }
     });
 };
