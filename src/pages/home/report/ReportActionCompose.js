@@ -102,9 +102,21 @@ class ReportActionCompose extends React.Component {
      * @param {Object} e
      */
     triggerSubmitShortcut(e) {
-        if (e && e.key === 'Enter' && !e.shiftKey) {
+        if (!e) {
+            return;
+        }
+
+        const modalIsOpen = lodashGet(this, ['modalRef', 'current', 'state', 'isModalOpen']);
+        if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            this.submitForm();
+            if (modalIsOpen) {
+                this.modalRef.current.confirmAndClose();
+            } else {
+                this.submitForm();
+            }
+        } else if (e.key === 'Escape' && modalIsOpen) {
+            e.preventDefault();
+            this.modalRef.current.close();
         }
     }
 
