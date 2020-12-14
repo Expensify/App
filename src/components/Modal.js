@@ -29,7 +29,7 @@ const defaultProps = {
     backgroundColor: colors.componentBG,
 };
 
-const Modal = props => {
+const Modal = (props) => {
     const windowDimensions = useWindowDimensions();
     const isSmallScreen = windowDimensions.width < variables.mobileResponsiveWidthBreakpoint;
 
@@ -41,13 +41,11 @@ const Modal = props => {
     let needsSafeAreaPadding = false;
 
     switch (props.type) {
-        /**
-         * A centered modal is one that has a visible backdrop
-         * and can be dismissed by clicking outside of the modal.
-         * This modal should take up the entire visible area when
-         * viewed on a smaller device (e.g. mobile or mobile web).
-         **/
         case 'centered':
+            // A centered modal is one that has a visible backdrop
+            // and can be dismissed by clicking outside of the modal.
+            // This modal should take up the entire visible area when
+            // viewed on a smaller device (e.g. mobile or mobile web).
             modalStyle = {
                 alignItems: 'center',
             };
@@ -102,7 +100,7 @@ const Modal = props => {
         >
             <CustomStatusBar />
             <SafeAreaInsetsContext.Consumer>
-                {insets => {
+                {(insets) => {
                     const {paddingTop, paddingBottom} = getSafeAreaPadding(insets);
                     return (
                         <View

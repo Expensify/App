@@ -1,9 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View, Dimensions} from 'react-native';
+import ImageZoom from 'react-native-image-pan-zoom';
 import ImageWithSizeCalculation from '../ImageWithSizeCalculation';
 import styles, {variables} from '../../styles/StyleSheet';
-import ImageZoom from 'react-native-image-pan-zoom';
 
 const propTypes = {
     // URL to full-sized image

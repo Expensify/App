@@ -1,10 +1,10 @@
 import React, {Component} from 'react';
-import Modal from './Modal';
 import PropTypes from 'prop-types';
 import {
     View, TouchableOpacity, Text,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import Modal from './Modal';
 import AttachmentView from './AttachmentView';
 import styles, {colors} from '../styles/StyleSheet';
 import ModalHeader from './ModalHeader';
