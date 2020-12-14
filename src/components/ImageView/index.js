@@ -9,7 +9,8 @@ const propTypes = {
 };
 
 const ImageView = props => (
-    <View style={[
+    <View
+        style={[
             styles.widthHeight100p,
             styles.alignItemsCenter,
             styles.flexJustifyCenter,
