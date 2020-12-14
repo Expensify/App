@@ -22,7 +22,7 @@ We are currently managing issue bounties via Upwork, if you'd like to participat
 1. [Open a PR](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request-from-a-fork) and be sure to fill in all the required information on the PR template.
 1. An Expensify engineer will be automatically assigned to review your PR
 1. You will need all checks to pass:
-	1. CLA - You must sign the CLA by following the CLA bot instructions
+	1. CLA - You must sign our [Contributor License Agreement](https://github.com/Expensify/ReactNativeChat/blob/master/CLA.md) by following the CLA bot instructions
 	1. Tests - All tests must pass before a merge of a pull request
 	1. Lint - All code must pass lint checks before a merge of a pull request
 
