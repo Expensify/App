@@ -86,9 +86,14 @@ const SidebarLinks = (props) => {
     const sidebarLinksStyle = !props.isChatSwitcherActive
         ? [styles.sidebarListContainer]
         : [styles.sidebarListContainer, styles.dNone];
+
+    const chatSwitcherStyle = props.isChatSwitcherActive
+        ? [styles.sidebarHeader, styles.flexGrow1]
+        : [styles.sidebarHeader, styles.flexGrow0];
+
     return (
         <View style={[styles.flex1, {marginTop: props.insets.top}]}>
-            <View style={[styles.sidebarHeader]}>
+            <View style={[chatSwitcherStyle]}>
                 <ChatSwitcherView
                     onLinkClick={props.onLinkClick}
                     isChatSwitcherActive={props.isChatSwitcherActive}
