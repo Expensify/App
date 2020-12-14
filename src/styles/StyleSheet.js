@@ -961,14 +961,14 @@ const styles = {
         color: colors.componentBG,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
-        fontSize: 16,
+        fontSize: 15,
     },
 
     notFoundButtonText: {
         color: colors.blue,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
-        fontSize: 16,
+        fontSize: 15,
     }
 };
 
