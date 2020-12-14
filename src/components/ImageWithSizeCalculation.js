@@ -70,9 +70,9 @@ class ImageWithSizeCalculation extends Component {
         return (
             <Image
                 style={{
-                    ...this.props.style,
                     width: '100%',
                     height: '100%',
+                    ...this.props.style,
                 }}
                 source={{uri: this.props.url}}
                 resizeMode="contain"
