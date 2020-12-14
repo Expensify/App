@@ -175,6 +175,9 @@ class App extends React.Component {
             return;
         }
 
+        // Dismiss keyboard before toggling sidebar
+        Keyboard.dismiss();
+
         // If the hamburger currently is not shown, we want to make it visible before the animation
         if (!this.props.isSidebarShown) {
             showSidebar();
@@ -182,7 +185,6 @@ class App extends React.Component {
         }
 
         // Otherwise, we want to hide it after the animation
-        Keyboard.dismiss();
         this.animateHamburger(true);
     }
 
