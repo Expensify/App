@@ -138,6 +138,10 @@ const styles = {
         flexWrap: 'wrap',
     },
 
+    flexGrow0: {
+        flexGrow: 0,
+    },
+
     flexGrow1: {
         flexGrow: 1,
     },
@@ -404,8 +408,6 @@ const styles = {
         paddingRight: 12,
         paddingBottom: 16,
         paddingLeft: 12,
-        flex: 1,
-        flexGrow: 0,
     },
 
     sidebarHeaderLogo: {
