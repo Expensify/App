@@ -419,8 +419,7 @@ const styles = {
     },
 
     sidebarHeaderTop: {
-        paddingLeft: 20,
-        paddingRight: 20,
+        paddingHorizontal: 20,
     },
 
     sidebarHeaderLogo: {
@@ -432,10 +431,9 @@ const styles = {
         alignItems: 'center',
         display: 'flex',
         flexDirection: 'row',
-        height: 85,
+        height: 84,
         justifyContent: 'flex-start',
-        paddingLeft: 24,
-        paddingRight: 24,
+        paddingHorizontal: 20,
         width: '100%',
     },
 
