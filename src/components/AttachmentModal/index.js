@@ -7,14 +7,15 @@ const defaultProps = {
     isAuthTokenRequired: false,
 };
 
-const AttachmentModal = props => (
+const AttachmentModal = React.forwardRef((props, ref) => (
     <AttachmentModalBase
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
+        ref={ref}
     >
         {props.children}
     </AttachmentModalBase>
-);
+));
 
 AttachmentModal.propTypes = propTypes;
 AttachmentModal.defaultProps = defaultProps;
