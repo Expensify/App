@@ -61,6 +61,8 @@ class ImageWithSizeCalculation extends Component {
             }
 
             this.props.onMeasure({width, height});
+        }, (error) => {
+            console.debug('Unable to fetch image to calculate size', {error});
         });
     }
 
@@ -73,7 +75,7 @@ class ImageWithSizeCalculation extends Component {
                     height: '100%',
                 }}
                 source={{uri: this.props.url}}
-                resizeMode="cover"
+                resizeMode="contain"
             />
         );
     }

@@ -10,11 +10,12 @@ const propTypes = {
 
 const ImageView = props => (
     <View style={[
-        styles.widthHeight100p,
-        styles.alignItemsCenter,
-        styles.flexJustifyCenter,
-        styles.overflowHidden,
-    ]}>
+            styles.widthHeight100p,
+            styles.alignItemsCenter,
+            styles.flexJustifyCenter,
+            styles.overflowHidden,
+        ]}
+    >
         <Image
             source={{uri: props.url}}
             style={styles.widthHeight100p}

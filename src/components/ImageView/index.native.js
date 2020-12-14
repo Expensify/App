@@ -1,28 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {View, Dimensions} from 'react-native';
 import ImageWithSizeCalculation from '../ImageWithSizeCalculation';
-import styles from '../../styles/StyleSheet';
+import styles, {variables} from '../../styles/StyleSheet';
 import ImageZoom from 'react-native-image-pan-zoom';
 
 const propTypes = {
     // URL to full-sized image
-    url: PropTypes.string,
-
-    // Image height
-    height: PropTypes.number,
-
-    // Image width
-    width: PropTypes.number,
-
-    // Callback to fire when image is measured
-    onMeasure: PropTypes.func.isRequired,
-};
-
-const defaultProps = {
-    url: '',
-    height: 300,
-    width: 300,
+    url: PropTypes.string.isRequired,
 };
 
 class ImageView extends React.Component {
@@ -55,8 +40,23 @@ class ImageView extends React.Component {
                     imageHeight={this.state.imageHeight}
                 >
                     <ImageWithSizeCalculation
+                        style={{
+                            width: this.state.imageWidth,
+                            height: this.state.imageHeight,
+                        }}
                         url={this.props.url}
-                        onMeasure={({width, height}) => this.setState({imageHeight: height, imageWidth: width})}
+                        onMeasure={({width, height}) => {
+                            let imageWidth = width;
+                            let imageHeight = height;
+
+                            if (width > windowWidth || height > windowHeight) {
+                                const scaleFactor = Math.max(width / windowWidth, height / windowHeight);
+                                imageHeight = height / scaleFactor;
+                                imageWidth = width / scaleFactor;
+                            }
+
+                            this.setState({imageHeight, imageWidth});
+                        }}
                     />
                 </ImageZoom>
             </View>
@@ -65,7 +65,6 @@ class ImageView extends React.Component {
 }
 
 ImageView.propTypes = propTypes;
-ImageView.defaultProps = defaultProps;
 ImageView.displayName = 'ImageView';
 
 export default ImageView;
