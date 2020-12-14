@@ -18,7 +18,7 @@ jobs:
                   PERSONAL_ACCESS_TOKEN : ${{ secrets.BOTIFY_TOKEN }}
               with:
                   path-to-signatures: '${{ github.repository }}/cla.json'
-                  path-to-document: '${{ github.repository }}/blob/master/CLA.md'
+                  path-to-cla-document: 'https://github.com/${{ github.repository }}/blob/master/CLA.md'
                   branch: 'master'
                   remote-organization-name: 'Expensify'
                   remote-repository-name: 'CLA'
