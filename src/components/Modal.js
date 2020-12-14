@@ -48,7 +48,6 @@ const Modal = props => {
          * viewed on a smaller device (e.g. mobile or mobile web).
          **/
         case 'centered':
-            const marginVertical = windowDimensions.height * 0.025;
             modalStyle = {
                 alignItems: 'center',
             };
@@ -63,11 +62,13 @@ const Modal = props => {
                 shadowRadius: 20,
 
                 flex: 1,
-                marginTop: isSmallScreen ? 0 : marginVertical,
-                marginBottom: isSmallScreen ? 0 : marginVertical,
-                borderRadius: isSmallScreen ? 0 : 20,
+                marginTop: isSmallScreen ? 0 : 20,
+                marginBottom: isSmallScreen ? 0 : 20,
+                borderRadius: isSmallScreen ? 0 : 12,
+                borderWidth: isSmallScreen ? 1 : 0,
+                borderColor: colors.border,
                 overflow: 'hidden',
-                width: isSmallScreen ? '100%' : '95%',
+                width: isSmallScreen ? '100%' : windowDimensions.width - 40,
             };
 
             swipeDirection = undefined;
