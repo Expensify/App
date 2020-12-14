@@ -7,6 +7,7 @@ import fontWeightBold from './fontWeight/bold';
 const variables = {
     modalHeaderBarHeight: 73,
     safeInsertPercentage: 0.7,
+    mobileResponsiveWidthBreakpoint: 1000,
 };
 
 const colors = {

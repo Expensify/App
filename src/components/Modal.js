@@ -4,9 +4,7 @@ import {View, useWindowDimensions} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import CustomStatusBar from './CustomStatusBar';
-import {getSafeAreaPadding, colors} from '../styles/StyleSheet';
-
-const WIDTH_BREAKPOINT = 1000;
+import {getSafeAreaPadding, colors, variables} from '../styles/StyleSheet';
 
 const propTypes = {
     // Callback method fired when the user has taken an action that
@@ -21,15 +19,19 @@ const propTypes = {
 
     // Style of modal to display
     type: PropTypes.string,
+
+    // Background color for the modal
+    backgroundColor: PropTypes.string,
 };
 
 const defaultProps = {
     type: '',
+    backgroundColor: colors.componentBG,
 };
 
 const Modal = props => {
     const windowDimensions = useWindowDimensions();
-    const isSmallScreen = windowDimensions.width < WIDTH_BREAKPOINT;
+    const isSmallScreen = windowDimensions.width < variables.mobileResponsiveWidthBreakpoint;
 
     let modalStyle;
     let modalContainerStyle;
@@ -104,6 +106,7 @@ const Modal = props => {
                     return (
                         <View
                             style={{
+                                backgroundColor: props.backgroundColor,
                                 paddingBottom,
                                 ...modalContainerStyle,
                                 paddingTop: needsSafeAreaPadding ? paddingTop : 20,
