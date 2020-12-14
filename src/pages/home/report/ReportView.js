@@ -6,6 +6,7 @@ import ReportActionCompose from './ReportActionCompose';
 import {addAction, subscribeToReportTypingEvents, unsubscribeFromReportChannel} from '../../../libs/actions/Report';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
 import styles from '../../../styles/StyleSheet';
+import recordTimingEvent from '../../../libs/recordTimingEvent';
 
 const propTypes = {
     // The ID of the report actions will be created for
@@ -20,6 +21,8 @@ const propTypes = {
 class ReportView extends React.PureComponent {
     componentDidMount() {
         subscribeToReportTypingEvents(this.props.reportID);
+        window.performance.mark('ReportSwitch_End');
+        recordTimingEvent('ReportSwitch_Start', 'ReportSwitch_End');
     }
 
     componentWillUnmount() {

@@ -191,6 +191,8 @@ class ChatSwitcherView extends React.Component {
      * @param {Object} option
      */
     selectRow(option) {
+        window.performance.mark('ReportSwitch_Start');
+
         switch (option.type) {
             case CONST.REPORT.SINGLE_USER_DM:
                 this.selectUser(option);
