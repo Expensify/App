@@ -6,12 +6,6 @@ const propTypes = {
     // Url for image to display
     url: PropTypes.string.isRequired,
 
-    // Height to render image
-    height: PropTypes.number.isRequired,
-
-    // Width to render image
-    width: PropTypes.number.isRequired,
-
     // Any additional styles to apply
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.any,
@@ -75,10 +69,11 @@ class ImageWithSizeCalculation extends Component {
             <Image
                 style={{
                     ...this.props.style,
-                    width: this.props.width,
-                    height: this.props.height,
+                    width: '100%',
+                    height: '100%',
                 }}
                 source={{uri: this.props.url}}
+                resizeMode="cover"
             />
         );
     }
