@@ -10,6 +10,9 @@ const propTypes = {
     // The default value of the comment box
     defaultValue: PropTypes.string.isRequired,
 
+    // Callback method to handle pasting a file
+    onPasteFile: PropTypes.func,
+
     // A ref to forward to the text input
     forwardedRef: PropTypes.func.isRequired,
 
@@ -22,13 +25,26 @@ const propTypes = {
 
     // When the input has cleared whoever owns this input should know about it
     onClear: PropTypes.func,
+
+    // Callback to fire when a file has been dragged into the text input
+    onDragEnter: PropTypes.func,
+
+    // Callback to fire when the user is no longer dragging over the text input
+    onDragLeave: PropTypes.func,
+
+    // Callback to fire when a file is dropped on the text input
+    onDrop: PropTypes.func,
 };
 
 const defaultProps = {
     maxLines: -1,
+    onPasteFile: () => {},
     shouldClear: false,
     onClear: () => {},
     style: null,
+    onDragEnter: () => {},
+    onDragLeave: () => {},
+    onDrop: () => {},
 };
 
 /**
@@ -53,6 +69,17 @@ class TextInputFocusable extends React.Component {
         if (this.props.forwardedRef && _.isFunction(this.props.forwardedRef)) {
             this.props.forwardedRef(this.textInput);
         }
+
+        // There is no onPaste or onDrag for TextInput in react-native so we will add event
+        // listeners here and unbind when the component unmounts
+        if (this.textInput) {
+            // Firefox will not allow dropping unless we call preventDefault on the dragover event
+            this.textInput.addEventListener('dragover', e => e.preventDefault());
+            this.textInput.addEventListener('dragenter', this.props.onDragEnter);
+            this.textInput.addEventListener('dragleave', this.props.onDragLeave);
+            this.textInput.addEventListener('drop', this.props.onDrop);
+            this.textInput.addEventListener('paste', this.checkForAttachment.bind(this));
+        }
     }
 
     componentDidUpdate(prevProps) {
@@ -64,6 +91,16 @@ class TextInputFocusable extends React.Component {
         }
         if (prevProps.defaultValue !== this.props.defaultValue) {
             this.updateNumberOfLines();
+        }
+    }
+
+    componentWillUnmount() {
+        if (this.textInput) {
+            this.textInput.addEventListener('dragover', e => e.preventDefault());
+            this.textInput.removeEventListener('dragenter', this.props.onDragEnter);
+            this.textInput.removeEventListener('dragleave', this.props.onDragLeave);
+            this.textInput.removeEventListener('drop', this.props.onDrop);
+            this.textInput.removeEventListener('paste', this.checkForAttachment.bind(this));
         }
     }
 
@@ -81,6 +118,20 @@ class TextInputFocusable extends React.Component {
         let newNumberOfLines = Math.ceil((scrollHeight - paddingTopAndBottom) / lineHeight);
         newNumberOfLines = maxLines <= 0 ? newNumberOfLines : Math.min(newNumberOfLines, maxLines);
         return newNumberOfLines;
+    }
+
+    /**
+     * Check the paste event for an attachment and
+     * fire the callback with the selected file
+     *
+     * @param {ClipboardEvent} event
+     */
+    checkForAttachment(event) {
+        if (event.clipboardData.files.length > 0) {
+            // Prevent the default so we do not post the file name into the text box
+            event.preventDefault();
+            this.props.onPasteFile(event.clipboardData.files[0]);
+        }
     }
 
     /**

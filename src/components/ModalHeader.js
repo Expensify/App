@@ -4,8 +4,8 @@ import {
     View, Image, TouchableOpacity, Text
 } from 'react-native';
 import styles from '../styles/StyleSheet';
-import downloadIcon from '../../assets/images/icon-download.png';
 import exitIcon from '../../assets/images/icon-x--20x20.png';
+import downloadIcon from '../../assets/images/icon-download.png';
 
 const propTypes = {
     // Title of the modal
@@ -14,7 +14,7 @@ const propTypes = {
     // Method to trigger when pressing close button of the modal
     onCloseButtonPress: PropTypes.func,
 
-    // Method to trigger when pressing download button of the modal.
+    // Method to trigger when pressing download button of the modal
     onDownloadButtonPress: PropTypes.func,
 };
 
@@ -24,7 +24,7 @@ const defaultProps = {
     onDownloadButtonPress: () => {},
 };
 
-const BaseModalHeader = props => (
+const ModalHeader = props => (
     <View style={styles.modalHeaderBar}>
         <View style={[
             styles.dFlex,
@@ -66,8 +66,8 @@ const BaseModalHeader = props => (
     </View>
 );
 
-BaseModalHeader.propTypes = propTypes;
-BaseModalHeader.defaultProps = defaultProps;
-BaseModalHeader.displayName = 'BaseModalHeader';
+ModalHeader.propTypes = propTypes;
+ModalHeader.defaultProps = defaultProps;
+ModalHeader.displayName = 'ModalHeader';
 
-export default BaseModalHeader;
+export default ModalHeader;

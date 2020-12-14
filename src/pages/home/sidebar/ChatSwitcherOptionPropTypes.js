@@ -12,4 +12,7 @@ export default PropTypes.shape({
 
     // The type of option we have e.g. user or report
     type: PropTypes.string,
+
+    // The option key provided to FlatList keyExtractor
+    keyForList: PropTypes.string,
 });

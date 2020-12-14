@@ -81,6 +81,9 @@ class App extends React.Component {
         UnreadIndicatorUpdater.listenForReportChanges();
 
         Dimensions.addEventListener('change', this.toggleHamburgerBasedOnDimensions);
+
+        // Set up the hamburger correctly once on init
+        this.toggleHamburgerBasedOnDimensions({window: Dimensions.get('window')});
     }
 
     componentDidUpdate(prevProps) {

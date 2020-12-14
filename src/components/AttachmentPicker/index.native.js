@@ -51,7 +51,7 @@ function showDocumentPicker(callback) {
 function show(callback) {
     RNImagePicker.showImagePicker(imagePickerOptions, (response) => {
         if (response.error) {
-            console.error(`Error during attachment selection: ${response.error}`);
+            console.debug(`Error during attachment selection: ${response.error}`);
         } else if (response.customButton) {
             showDocumentPicker(callback);
         } else if (!response.didCancel) {

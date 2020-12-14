@@ -27,7 +27,6 @@ jest.mock('../../node_modules/react-native-pdf',
 jest.mock('../../node_modules/rn-fetch-blob',
     () => require('./mocks/rn-fetch-blob'));
 
-
 describe('AppComponent', () => {
     it('renders correctly', () => {
         renderer.create(<App />);
