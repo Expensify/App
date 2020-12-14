@@ -7,6 +7,7 @@ const variables = {
     contentHeaderHeight: 65,
     componentSizeNormal: 40,
     componentSizeSmall: 28,
+    componentBorderRadius: 8,
     fontSizeSmall: 11,
     fontSizeLabel: 13,
     fontSizeNormal: 15,
@@ -220,7 +221,7 @@ const styles = {
 
     button: {
         borderColor: uiColors.border,
-        borderRadius: 8,
+        borderRadius: variables.componentBorderRadius,
         borderWidth: 1,
         height: variables.componentSizeNormal,
         justifyContent: 'center',
@@ -333,7 +334,7 @@ const styles = {
 
     textInput: {
         backgroundColor: uiColors.componentBG,
-        borderRadius: 8,
+        borderRadius: variables.componentBorderRadius,
         height: variables.componentSizeNormal,
         borderColor: uiColors.border,
         borderWidth: 1,
@@ -539,8 +540,9 @@ const styles = {
 
     chatSwitcherDisplayName: {
         fontFamily: fontFamily.GTA,
-        height: 22,
-        lineHeight: 22,
+        height: 18,
+        lineHeight: 18,
+        whiteSpace: 'nowrap',
     },
 
     chatSwitcherLogin: {
@@ -696,7 +698,7 @@ const styles = {
     chatItemComposeBox: {
         backgroundColor: uiColors.componentBG,
         borderWidth: 1,
-        borderRadius: 8,
+        borderRadius: variables.componentBorderRadius,
         minHeight: variables.componentSizeNormal,
     },
 
@@ -749,7 +751,7 @@ const styles = {
         backgroundColor: uiColors.sidebar,
         borderColor: uiColors.border,
         borderWidth: 1,
-        borderRadius: 8,
+        borderRadius: variables.componentBorderRadius,
         height: 150,
         textAlign: 'center',
         verticalAlign: 'middle',
@@ -771,7 +773,7 @@ const styles = {
         flexDirection: 'row',
         flexWrap: 'wrap',
         backgroundColor: uiColors.appBG,
-        borderRadius: 8,
+        borderRadius: variables.componentBorderRadius,
         borderWidth: 1,
         borderColor: uiColors.border,
         paddingTop: 0,
@@ -840,6 +842,8 @@ const styles = {
     },
 
     hamburgerOpen: {
+        borderRightWidth: 1,
+        borderColor: uiColors.border,
         width: 300,
     },
 
@@ -871,7 +875,7 @@ const styles = {
         paddingRight: 8,
         paddingBottom: 6,
         paddingLeft: 8,
-        borderRadius: 8,
+        borderRadius: variables.componentBorderRadius,
         height: variables.componentSizeSmall,
         marginLeft: 4,
     },
@@ -938,8 +942,8 @@ const styles = {
     },
 
     defaultAttachmentView: {
-        backgroundColor: uiColors.appBG,
-        borderRadius: 4,
+        backgroundColor: uiColors.sidebar,
+        borderRadius: variables.componentBorderRadius,
         borderWidth: 1,
         borderColor: uiColors.border,
         flexDirection: 'row',
@@ -1026,7 +1030,7 @@ const webViewStyles = {
 
         img: {
             borderColor: uiColors.border,
-            borderRadius: 8,
+            borderRadius: variables.componentBorderRadius,
             borderWidth: 1,
         },
     },
