@@ -824,6 +824,8 @@ const styles = {
     },
 
     hamburgerOpenAbsolute: {
+        borderRightWidth: 1,
+        borderColor: uiColors.border,
         position: 'absolute',
         left: 0,
         top: 0,
