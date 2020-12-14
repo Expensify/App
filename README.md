@@ -234,7 +234,7 @@ It will look at the current version and increment it by one build version (using
 The PR will be merged automatically by the GitHub workflow **automerge** to keep the version always up to date.
 
 When a new tag is pushed, it will trigger a deploy of all four clients:
-1. The **web** app automatically deploys via a GitHub Action in `.github/workflows/main.yml`
+1. The **Web** app automatically deploys via a GitHub Action in `.github/workflows/main.yml`
 2. The **MacOS desktop** app automatically deploys via a GitHub Action in `.github/workflows/desktop.yml`
 3. The **Android** app automatically deploys via a GitHub Action in `.github/workflows/android.yml`
 4. The **iOS** app automatically deploys via a GitHub Action in `.github/workflows/ios.yml`
