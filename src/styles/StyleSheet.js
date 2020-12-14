@@ -96,6 +96,11 @@ const styles = {
         paddingRight: 8,
     },
 
+    widthHeight100p: {
+        width: '100%',
+        height: '100%',
+    },
+
     flex0: {
         flex: 0,
     },
@@ -915,13 +920,9 @@ const styles = {
     },
 
     modalViewContainer: {
-        backgroundColor: colors.componentBG,
-        borderColor: colors.border,
-        borderWidth: 1,
-        borderRadius: 12,
-        height: '100%',
         alignItems: 'center',
-        overflow: 'hidden',
+        backgroundColor: colors.componentBG,
+        flex: 1,
     },
 
     modalHeaderBar: {
@@ -951,10 +952,8 @@ const styles = {
 
     imageModalImageCenterContainer: {
         flex: 1,
-        flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
-        overflow: 'hidden',
         width: '100%',
     },
 

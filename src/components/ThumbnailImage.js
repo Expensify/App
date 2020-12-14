@@ -1,9 +1,11 @@
 import React, {Component} from 'react';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import ImageWithSizeCalculation from './ImageWithSizeCalculation';
 import addAuthTokenToURL from '../libs/addAuthTokenToURL';
+import styles from '../styles/StyleSheet';
 
 const propTypes = {
     // Source URL for the preview image
@@ -55,13 +57,23 @@ class ThumbnailImage extends Component {
         });
 
         return (
-            <ImageWithSizeCalculation
-                style={this.props.style}
-                width={this.state.thumbnailWidth}
-                height={this.state.thumbnailHeight}
-                url={url}
-                onMeasure={this.updateImageSize}
-            />
+            <View
+                style={[
+                    {
+                        width: this.state.thumbnailWidth,
+                        height: this.state.thumbnailHeight,
+                    },
+                    styles.alignItemsCenter,
+                    styles.flexJustifyCenter,
+                    styles.overflowHidden,
+                ]}
+            >
+                <ImageWithSizeCalculation
+                    style={this.props.style}
+                    url={url}
+                    onMeasure={this.updateImageSize}
+                />
+            </View>
         );
     }
 }
