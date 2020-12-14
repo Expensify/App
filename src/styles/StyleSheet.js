@@ -2,6 +2,7 @@
 import fontFamily from './fontFamily';
 import italic from './italic';
 import addOutlineWidth from './addOutlineWidth';
+import fontWeightBold from './fontWeight/bold';
 
 const variables = {
     modalHeaderBarHeight: 73,
@@ -9,6 +10,7 @@ const variables = {
 };
 
 const colors = {
+    arsenic: '#39444B',
     componentBG: '#FFFFFF',
     background: '#FAFAFA',
     whiteSmoke: '#F8F8F8',
@@ -138,6 +140,10 @@ const styles = {
         flexWrap: 'wrap',
     },
 
+    flexGrow0: {
+        flexGrow: 0,
+    },
+
     flexGrow1: {
         flexGrow: 1,
     },
@@ -176,7 +182,7 @@ const styles = {
 
     h4: {
         fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: '700',
+        fontWeight: fontWeightBold,
         fontSize: 13,
     },
 
@@ -198,7 +204,7 @@ const styles = {
 
     textStrong: {
         fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: '600',
+        fontWeight: fontWeightBold,
     },
 
     textDecorationNoLine: {
@@ -224,7 +230,7 @@ const styles = {
     buttonText: {
         color: colors.text,
         fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: '700',
+        fontWeight: fontWeightBold,
         textAlign: 'center',
     },
 
@@ -295,6 +301,7 @@ const styles = {
     },
 
     navText: {
+        fontFamily: fontFamily.GTA,
         color: colors.heading,
         fontSize: 17,
         fontWeight: '700',
@@ -407,7 +414,6 @@ const styles = {
         paddingRight: 12,
         paddingBottom: 16,
         paddingLeft: 12,
-        flex: 1,
     },
 
     sidebarHeaderLogo: {
@@ -900,21 +906,29 @@ const styles = {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: 11,
         lineHeight: 16,
-        fontWeight: '700',
+        fontWeight: fontWeightBold,
+    },
+
+    modalViewContainerMobile: {
+        backgroundColor: colors.componentBG,
+        borderColor: colors.border,
+        borderWidth: 1,
+        height: '100%',
+        alignItems: 'center',
+        overflow: 'hidden',
     },
 
     modalViewContainer: {
         backgroundColor: colors.componentBG,
         borderColor: colors.border,
         borderWidth: 1,
-        borderRadius: 20,
+        borderRadius: 12,
         height: '100%',
         alignItems: 'center',
         overflow: 'hidden',
     },
 
     modalHeaderBar: {
-        fontFamily: fontFamily.GTA,
         overflow: 'hidden',
         justifyContent: 'center',
         display: 'flex',
@@ -966,6 +980,49 @@ const styles = {
         height: 60,
         marginRight: 20,
     },
+
+    notFoundSafeArea: {
+        flex: 1,
+        backgroundColor: colors.heading,
+    },
+
+    notFoundView: {
+        flex: 1,
+        alignItems: 'center',
+        paddingTop: 40,
+        paddingBottom: 40,
+        justifyContent: 'space-between',
+    },
+
+    notFoundLogo: {
+        width: 202,
+        height: 63,
+    },
+
+    notFoundContent: {
+        alignItems: 'center',
+    },
+
+    notFoundTextHeader: {
+        color: colors.blue,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        fontSize: 150,
+    },
+
+    notFoundTextBody: {
+        color: colors.componentBG,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        fontSize: 15,
+    },
+
+    notFoundButtonText: {
+        color: colors.blue,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        fontSize: 15,
+    }
 };
 
 const baseCodeTagStyles = {
@@ -996,7 +1053,7 @@ const webViewStyles = {
 
         strong: {
             fontFamily: fontFamily.GTA_BOLD,
-            fontWeight: '600',
+            fontWeight: fontWeightBold,
         },
 
         a: {
