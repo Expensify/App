@@ -161,7 +161,6 @@ This layer is solely responsible for:
 - Taking user input and passing it to an action
 
 ### Directory structure
-
 Almost all the code is located in the `src` folder, inside it there's some organization, we chose to name directories that are 
 created to house a collection of items in plural form and using camelCase (eg: pages, libs, etc), the main ones we have for now are:
 
@@ -172,7 +171,6 @@ created to house a collection of items in plural form and using camelCase (eg: p
 - styles: These files define styles used among components/pages
 
 ### File naming/structure
-
 Files should be named after the component/function/constants they export, respecting the casing used for it. ie: 
 
 - If you export a constant named `CONST` it's file/directory should be named the `CONST`.
@@ -192,8 +190,7 @@ In most cases, the code written for this repo should be platform-independent. In
 Note that `index.js` should be the default. i.e: If you have mobile-specific implementation in `index.native.js`, then the desktop/web implementation can be contained in a shared `index.js`. Furthermore, `index.native.js` should not be included in the same module as `index.ios.js` or `index.android.js`, nor should `index.js` be included in the same module as `index.website.js` or `index.desktop.js`.
 
 ### API building
-
-When adding new API commands (and preferrably when starting using a new one that was not yet used in this codebase) always
+When adding new API commands (and preferably when starting using a new one that was not yet used in this codebase) always
 prefer to return the created/updated data in the command itself, instead of saving and reloading. ie: if we call `CreateTransaction`,
 we should prefer making `CreateTransaction` return the data it just created instead of calling `CreateTransaction` then `Get` rvl=transactionList
 
@@ -239,13 +236,31 @@ When a new tag is pushed, it will trigger a deploy of all four clients:
 3. The **Android** app automatically deploys via a GitHub Action in `.github/workflows/android.yml`
 4. The **iOS** app automatically deploys via a GitHub Action in `.github/workflows/ios.yml`
 
+### Secrets
+The GitHub workflows require a large list of secrets to deploy, notify and test the code:
+1. `LARGE_SECRET_PASSPHRASE` - decrypts secrets stored in various encrypted files stored in GitHub repository:
+    1. `app/android/my-upload-key.keystore.gpg`
+    2. `app/android/android-fastlane-json-key.json.gpg`
+    3. `ios/chat_expensify_appstore.mobileprovision`
+    4. `ios/Certificates.p12.gpg`
+2. `SLACK_WEBHOOK` - Sends Slack notifications via Slack WebHook https://expensify.slack.com/services/B01AX48D7MM
+3. `BOTIFY_TOKEN` - Personal access token for @Botify user in GitHub
+4. `CSC_LINK` - Required to be set for desktop code signing: https://www.electron.build/code-signing.html#travis-appveyor-and-other-ci-servers
+5. `CSC_KEY_PASSWORD` - Required to be set for desktop code signing: https://www.electron.build/code-signing.html#travis-appveyor-and-other-ci-servers
+6. `APPLE_ID` - Required for notarizing desktop code in `desktop/notarize.js`
+7. `APPLE_ID_PASSWORD` - Required for notarizing desktop code in `desktop/notarize.js`
+8. `AWS_ACCESS_KEY_ID` - Required for hosting website and desktop compiled code
+9. `AWS_SECRET_ACCESS_KEY` - Required for hosting website and desktop compiled code
+10. `CLOUDFLARE_TOKEN` - Required for hosting website
+11. `SSH_PRIVATE_KEY` - Used for `npm install` private dependencies (will be removed when open source is done)
+
 ## Local production build
 Sometimes it might be beneficial to generate a local production version instead of testing on production. Follow the steps below for each client:
 
-## Local production build of the web app
+#### Local production build of the web app
 In order to generate a production web build, run `npm run build`, this will generate a production javascript build in the `dist/` folder.
 
-## Local production build of the MacOS desktop app
+#### Local production build of the MacOS desktop app
 In order to compile a production desktop build, run `npm run desktop-build`, this will generate a production app in the `dist/Mac` folder named `Chat.app`.
   
 #### Local production build the iOS app
