@@ -8,7 +8,7 @@ If you haven't yet, check out our README located [here](https://github.com/Expen
 If you have a question, we ask that you do not create an issue, and instead email it to reactnative@expensify.com.
 
 ## Reporting Vulnerabilities
-If you've found a vulnerability, please email reactnative@expensify.com instead of creating an issue.
+If you've found a vulnerability, please email reactnative@expensify.com with the subject `Vulnerability Report` instead of creating an issue.
 
 ## Filing Issues
 If you'd like to create a new issue, please first make sure the issue does not exist in the [issue list](https://github.com/Expensify/ReactNativeChat/issues). When creating a new issue, please include all the required information on the issue template.
@@ -27,4 +27,4 @@ We are currently managing issue bounties via Upwork, if you'd like to participat
 	1. Lint - All code must pass lint checks before a merge of a pull request
 
 #### Testing
-Upon submission of a PR, please include explicit testing steps for all platforms (Web, Desktop, iOS, and Android) to confirm the fix works as expected and there are no regressions.
+Upon submission of a PR, please include a numbered list of explicit testing steps for each platform (Web, Desktop, iOS, and Android) to confirm the fix works as expected and there are no regressions.
