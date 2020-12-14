@@ -381,8 +381,7 @@ const styles = {
     },
 
     sidebarHeaderTop: {
-        paddingLeft: 20,
-        paddingRight: 20,
+        paddingHorizontal: 20,
     },
 
     sidebarHeaderLogo: {
@@ -394,10 +393,9 @@ const styles = {
         alignItems: 'center',
         display: 'flex',
         flexDirection: 'row',
-        height: 85,
+        height: 84,
         justifyContent: 'flex-start',
-        paddingLeft: 24,
-        paddingRight: 24,
+        paddingHorizontal: 20,
         width: '100%',
     },
 
@@ -788,6 +786,8 @@ const styles = {
     },
 
     hamburgerOpenAbsolute: {
+        borderRightWidth: 1,
+        borderColor: uiColors.border,
         position: 'absolute',
         left: 0,
         top: 0,
