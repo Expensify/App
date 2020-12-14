@@ -42,7 +42,7 @@ const ModalHeader = props => (
             </View>
             <View style={[styles.reportOptions, styles.flexRow]}>
                 <TouchableOpacity
-                    onPress={props.onDownloadButtonPress()}
+                    onPress={props.onDownloadButtonPress}
                     style={[styles.touchableButtonImage, styles.mr0]}
                 >
                     <Image

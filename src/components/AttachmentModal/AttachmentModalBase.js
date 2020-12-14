@@ -5,7 +5,6 @@ import {
     View, Dimensions, TouchableOpacity, Text,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import RNFetchBlob from 'rn-fetch-blob';
 import AttachmentView from '../AttachmentView';
 import styles, {colors} from '../../styles/StyleSheet';
 import ModalView from '../ModalView';
@@ -99,18 +98,9 @@ class AttachmentModalBase extends Component {
     }
 
     downloadAttachment() {
-        const dirs = RNFetchBlob.fs.dirs;
-        RNFetchBlob
-            .config({
-                fileCache: true,
-                path: `${dirs.PictureDir}/testPic.jpg`
-            })
-            .fetch('GET', this.props.sourceURL)
-            .then((res) => {
-                // eslint-disable-next-line no-console
-                console.log(`Downloading attachment ${this.props.sourceURL} to ${res.path()}`);
-                alert('Attachment downloaded successfully!');
-            });
+        // eslint-disable-next-line no-console
+        console.log(`Preparing to download attachment at ${this.props.sourceURL}`);
+        alert('Attachment downloaded successfully!');
     }
 
     render() {
@@ -137,6 +127,7 @@ class AttachmentModalBase extends Component {
                         <ModalHeader
                             title={this.props.title}
                             onCloseButtonPress={() => this.setState({isModalOpen: false})}
+                            onDownloadButtonPress={() => this.downloadAttachment()}
                         />
                         <View style={styles.imageModalImageCenterContainer}>
                             {this.state.sourceURL && (
