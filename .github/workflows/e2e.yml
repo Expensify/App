@@ -1,13 +1,8 @@
 name: E2E iOS Tests
 
-# Only run e2e tests on branches that aren't related to master and the deploy process
 on:
-    push:
-        branches-ignore:
-            - 'master'
-            - 'version-bump-*'
-        tags-ignore:
-            - '*'
+    pull_request:
+        types: [opened, synchronize]
 
 env:
     DEVELOPER_DIR: /Applications/Xcode_11.5.app/Contents/Developer
