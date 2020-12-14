@@ -2,6 +2,7 @@
 import fontFamily from './fontFamily';
 import italic from './italic';
 import addOutlineWidth from './addOutlineWidth';
+import uiColors from './themes/default';
 
 const variables = {
     contentHeaderHeight: 65,
@@ -12,45 +13,6 @@ const variables = {
     fontSizeLabel: 13,
     fontSizeNormal: 15,
     safeInsertPercentage: 0.7,
-};
-
-const colors = {
-    white: '#FFFFFF',
-    gray1: '#FAFAFA',
-    gray2: '#ECECEC',
-    gray3: '#C6C9CA',
-    gray4: '#7D8B8F',
-    gray5: '#4A5960',
-    charcoal: '#37444C',
-    black: '#000000',
-    blue: '#2EAAE2',
-    green: '#2ECB70',
-    red: '#E84A3B',
-    transparent: 'transparent',
-};
-
-const uiColors = {
-    shadow: colors.black,
-    link: colors.blue,
-    componentBG: colors.white,
-    appBG: colors.white,
-    sidebar: colors.gray1,
-    border: colors.gray2,
-    borderFocus: colors.blue,
-    icon: colors.gray3,
-    textSupporting: colors.gray4,
-    text: colors.gray5,
-    heading: colors.charcoal,
-    textBackground: colors.gray1,
-    textReversed: colors.white,
-    textMutedReversed: colors.gray3,
-    buttonSuccessBG: colors.green,
-    online: colors.green,
-    offline: colors.gray3,
-    errorText: colors.red,
-    sidebarButtonBG: 'rgba(198, 201, 202, 0.25)',
-    modalBackdrop: 'rgba(198, 201, 202, 0.5)',
-    pillBG: colors.gray2,
 };
 
 const styles = {
@@ -1067,5 +1029,5 @@ function getSafeAreaMargins(insets) {
 
 export default styles;
 export {
-    getSafeAreaPadding, getSafeAreaMargins, colors, uiColors, webViewStyles, variables,
+    getSafeAreaPadding, getSafeAreaMargins, uiColors, webViewStyles, variables,
 };
