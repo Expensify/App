@@ -393,12 +393,12 @@ function fetchActions(reportID) {
 /**
  * Get all of our reports
  *
- * @param {Boolean} shouldRedirectToReport this is set to false when the network reconnect
- *     code runs
+ * @param {Boolean} shouldRedirectToReport this is set to false when the network reconnect code runs
  * @param {Boolean} shouldFetchActions whether or not the actions of the reports should also be fetched
+ * @returns {Function} returns promise
  */
 function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false) {
-    fetchChatReports()
+    return fetchChatReports()
         .then((reportIDs) => {
             if (shouldRedirectToReport && (currentURL === ROUTES.ROOT || currentURL === ROUTES.HOME)) {
                 // Redirect to either the last viewed report ID or the first report ID from our report collection

@@ -30,12 +30,15 @@ import PusherConnectionManager from '../../libs/PusherConnectionManager';
 import UnreadIndicatorUpdater from '../../libs/UnreadIndicatorUpdater';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
+import {Graphite_Timer} from '../../libs/API';
 import NetworkConnection from '../../libs/NetworkConnection';
 import CONFIG from '../../CONFIG';
 import CustomStatusBar from '../../components/CustomStatusBar';
 
 const windowSize = Dimensions.get('window');
 const widthBreakPoint = 1000;
+const pageInitTime = 'HomePage_Init';
+window.performance.mark(pageInitTime);
 
 const propTypes = {
     isSidebarShown: PropTypes.bool,
@@ -71,12 +74,19 @@ class App extends React.Component {
             appKey: CONFIG.PUSHER.APP_KEY,
             cluster: CONFIG.PUSHER.CLUSTER,
             authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Push_Authenticate`,
-        }).then(subscribeToReportCommentEvents);
+        })
+            .then(subscribeToReportCommentEvents)
+            .then(() => {
+                this.logTimingEvent('HomePage_ReportsSubscribed');
+                window.performance.clearMeasures();
+            });
 
         // Fetch all the personal details
         fetchPersonalDetails();
 
-        fetchAllReports();
+        fetchAllReports().then(() => {
+            this.logTimingEvent('HomePage_ReportsRetrieved');
+        });
 
         UnreadIndicatorUpdater.listenForReportChanges();
 
@@ -84,6 +94,8 @@ class App extends React.Component {
 
         // Set up the hamburger correctly once on init
         this.toggleHamburgerBasedOnDimensions({window: Dimensions.get('window')});
+
+        this.logTimingEvent('HomePage_Rendered');
     }
 
     componentDidUpdate(prevProps) {
@@ -184,6 +196,16 @@ class App extends React.Component {
         // Otherwise, we want to hide it after the animation
         Keyboard.dismiss();
         this.animateHamburger(true);
+    }
+
+    logTimingEvent(eventName) {
+        window.performance.mark(eventName);
+        const eventTime = window.performance.measure(eventName, pageInitTime, eventName).duration;
+
+        Graphite_Timer({
+            name: eventName,
+            value: eventTime
+        });
     }
 
     render() {
