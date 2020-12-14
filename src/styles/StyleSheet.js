@@ -911,15 +911,6 @@ const styles = {
         fontWeight: fontWeightBold,
     },
 
-    modalViewContainerMobile: {
-        backgroundColor: colors.componentBG,
-        borderColor: colors.border,
-        borderWidth: 1,
-        height: '100%',
-        alignItems: 'center',
-        overflow: 'hidden',
-    },
-
     modalViewContainer: {
         alignItems: 'center',
         backgroundColor: colors.componentBG,
