@@ -1,13 +1,7 @@
 name: Jest Unit Tests
 
 on:
-    push:
-        branches-ignore:
-            - 'master'
-            - 'version-bump-*'
-        tags-ignore:
-            - '*'
-    pull_request_target:
+    pull_request:
         types: [opened, synchronize]
 
 jobs:
