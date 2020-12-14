@@ -80,8 +80,8 @@ class App extends React.Component {
         fetchPersonalDetails();
 
         fetchAllReports().then(() => {
-            window.performance.mark('HomePage_ReportsRetieved');
-            recordTimingEvent('HomePage_Start', 'HomePage_ReportsRetieved');
+            window.performance.mark('HomePage_ReportsRetrieved');
+            recordTimingEvent('HomePage_Start', 'HomePage_ReportsRetrieved');
         });
 
         UnreadIndicatorUpdater.listenForReportChanges();

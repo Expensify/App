@@ -17,7 +17,7 @@ export default function (startEvent, endEvent) {
         });
 
         // Measures should be cleared once 'end' events occur
-        if (endEvent === 'HomePage_ReportsRetieved' || endEvent === 'ReportSwitch_End') {
+        if (endEvent === 'HomePage_ReportsRetrieved' || endEvent === 'ReportSwitch_End') {
             window.performance.clearMeasures(endEvent);
         }
     } catch (error) {
