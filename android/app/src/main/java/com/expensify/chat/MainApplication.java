@@ -1,6 +1,7 @@
 package com.expensify.chat;
 
 import android.content.Context;
+import android.database.CursorWindow;
 import androidx.multidex.MultiDexApplication;
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
@@ -10,6 +11,7 @@ import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.soloader.SoLoader;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Field;
 import java.util.List;
 
 public class MainApplication extends MultiDexApplication implements ReactApplication {
@@ -48,6 +50,17 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
       initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
       if (BuildConfig.DEBUG) {
           FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(false);
+      }
+
+      // Increase SQLite DB write size
+      try {
+        Field field = CursorWindow.class.getDeclaredField("sCursorWindowSize");
+        field.setAccessible(true);
+        field.set(null, 100 * 1024 * 1024); //the 100MB is the new size
+      } catch (Exception e) {
+        if (BuildConfig.DEBUG) {
+          e.printStackTrace();
+        }
       }
   }
 
