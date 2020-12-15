@@ -30,10 +30,11 @@ import PusherConnectionManager from '../../libs/PusherConnectionManager';
 import UnreadIndicatorUpdater from '../../libs/UnreadIndicatorUpdater';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
-import recordTimingEvent from '../../libs/recordTimingEvent';
+import Timing from '../../libs/Timing';
 import NetworkConnection from '../../libs/NetworkConnection';
 import CONFIG from '../../CONFIG';
 import CustomStatusBar from '../../components/CustomStatusBar';
+import CONST from '../../CONST';
 
 const windowSize = Dimensions.get('window');
 const widthBreakPoint = 1000;
@@ -47,7 +48,8 @@ const defaultProps = {
     isChatSwitcherActive: false,
 };
 
-window.performance.mark('HomePage_Start');
+Timing.start(CONST.TIMING.HOMEPAGE_RENDERED);
+Timing.start(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
 
 class App extends React.Component {
     constructor(props) {
@@ -80,8 +82,7 @@ class App extends React.Component {
         fetchPersonalDetails();
 
         fetchAllReports().then(() => {
-            window.performance.mark('HomePage_ReportsRetrieved');
-            recordTimingEvent('HomePage_Start', 'HomePage_ReportsRetrieved');
+            Timing.end(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
         });
 
         UnreadIndicatorUpdater.listenForReportChanges();
@@ -91,8 +92,7 @@ class App extends React.Component {
         // Set up the hamburger correctly once on init
         this.toggleHamburgerBasedOnDimensions({window: Dimensions.get('window')});
 
-        window.performance.mark('HomePage_ReportRendered');
-        recordTimingEvent('HomePage_Start', 'HomePage_ReportRendered');
+        Timing.end(CONST.TIMING.HOMEPAGE_RENDERED);
     }
 
     componentDidUpdate(prevProps) {
@@ -112,7 +112,7 @@ class App extends React.Component {
     }
 
     onLinkClicked() {
-        window.performance.mark('ReportSwitch_Start');
+        Timing.start(CONST.TIMING.SWITCH_REPORT);
         this.toggleHamburger();
     }
 
