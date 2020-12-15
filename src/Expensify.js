@@ -5,6 +5,7 @@ import Onyx, {withOnyx} from 'react-native-onyx';
 import {recordCurrentlyViewedReportID, recordCurrentRoute} from './libs/actions/App';
 import SignInPage from './pages/SignInPage';
 import HomePage from './pages/home/HomePage';
+import NotFoundPage from './pages/NotFound';
 import listenToStorageEvents from './libs/listenToStorageEvents';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import ONYXKEYS from './ONYXKEYS';
@@ -109,7 +110,10 @@ class Expensify extends Component {
                 {/* Leave this as a ternary or else iOS throws an error about text not being wrapped in <Text> */}
                 {redirectTo ? <Redirect push to={redirectTo} /> : null}
                 <Route path="*" render={recordCurrentRoute} />
-                <Route path={ROUTES.REPORT} exact render={recordCurrentlyViewedReportID} />
+
+                {/* We must record the currentlyViewedReportID when hitting the 404 page so */}
+                {/* that we do not try to redirect back to that report again */}
+                <Route path={[ROUTES.REPORT, ROUTES.NOT_FOUND]} exact render={recordCurrentlyViewedReportID} />
 
                 <Switch>
                     <Route
@@ -121,6 +125,7 @@ class Expensify extends Component {
                                 : <Redirect to={ROUTES.SIGNIN} />
                         )}
                     />
+                    <Route path={[ROUTES.NOT_FOUND]} component={NotFoundPage} />
                     <Route path={[ROUTES.SIGNIN_WITH_EXITTO, ROUTES.SIGNIN]} component={SignInPage} />
                     <Route path={[ROUTES.HOME, ROUTES.ROOT]} component={HomePage} />
                 </Switch>
