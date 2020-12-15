@@ -11,7 +11,7 @@ const CONST = {
     TIMING: {
         HOMEPAGE_RENDERED: 'homepage_rendered',
         HOMEPAGE_REPORTS_LOADED: 'homepage_reports_loaded',
-        SWITCH_REPORT: 'swtich_report'
+        SWITCH_REPORT: 'switch_report'
     },
 };
 
