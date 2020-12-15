@@ -11,7 +11,7 @@ import {
 import {SafeAreaInsetsContext, SafeAreaProvider} from 'react-native-safe-area-context';
 import {withOnyx} from 'react-native-onyx';
 import {Route} from '../../libs/Router';
-import styles, {getSafeAreaPadding} from '../../styles/StyleSheet';
+import styles, {getSafeAreaPadding, variables} from '../../styles/StyleSheet';
 import Header from './HeaderView';
 import Sidebar from './sidebar/SidebarView';
 import Main from './MainView';
@@ -35,7 +35,6 @@ import CONFIG from '../../CONFIG';
 import CustomStatusBar from '../../components/CustomStatusBar';
 
 const windowSize = Dimensions.get('window');
-const widthBreakPoint = 1000;
 
 const propTypes = {
     isSidebarShown: PropTypes.bool,
@@ -51,7 +50,7 @@ class App extends React.Component {
         super(props);
 
         this.state = {
-            isHamburgerEnabled: windowSize.width <= widthBreakPoint,
+            isHamburgerEnabled: windowSize.width <= variables.mobileResponsiveWidthBreakpoint,
         };
 
         this.toggleHamburger = this.toggleHamburger.bind(this);
@@ -107,10 +106,10 @@ class App extends React.Component {
      * @param {Object} changedWindow
      */
     toggleHamburgerBasedOnDimensions({window: changedWindow}) {
-        this.setState({isHamburgerEnabled: changedWindow.width <= widthBreakPoint});
-        if (!this.props.isSidebarShown && changedWindow.width > widthBreakPoint) {
+        this.setState({isHamburgerEnabled: changedWindow.width <= variables.mobileResponsiveWidthBreakpoint});
+        if (!this.props.isSidebarShown && changedWindow.width > variables.mobileResponsiveWidthBreakpoint) {
             showSidebar();
-        } else if (this.props.isSidebarShown && changedWindow.width < widthBreakPoint) {
+        } else if (this.props.isSidebarShown && changedWindow.width < variables.mobileResponsiveWidthBreakpoint) {
             hideSidebar();
         }
     }
