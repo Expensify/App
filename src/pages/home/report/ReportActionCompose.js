@@ -4,7 +4,8 @@ import {View, Image, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import {withOnyx} from 'react-native-onyx';
-import styles, {uiColors} from '../../../styles/StyleSheet';
+import styles from '../../../styles/styles';
+import themeColors from '../../../styles/themes/default';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 import sendIcon from '../../../../assets/images/icon-send.png';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -161,7 +162,7 @@ class ReportActionCompose extends React.Component {
                                                 });
                                             }}
                                             style={[styles.chatItemAttachButton]}
-                                            underlayColor={uiColors.componentBG}
+                                            underlayColor={themeColors.componentBG}
                                         >
                                             <Image
                                                 style={[styles.chatItemSubmitButtonIcon]}
@@ -176,7 +177,7 @@ class ReportActionCompose extends React.Component {
                                     ref={el => this.textInput = el}
                                     textAlignVertical="top"
                                     placeholder="Write something..."
-                                    placeholderTextColor={uiColors.textSupporting}
+                                    placeholderTextColor={themeColors.textSupporting}
                                     onChangeText={this.updateComment}
                                     onKeyPress={this.triggerSubmitShortcut}
                                     onDragEnter={() => this.setState({isDraggingOver: true})}
@@ -208,7 +209,7 @@ class ReportActionCompose extends React.Component {
                     <TouchableOpacity
                         style={[styles.chatItemSubmitButton, styles.buttonSuccess]}
                         onPress={this.submitForm}
-                        underlayColor={uiColors.componentBG}
+                        underlayColor={themeColors.componentBG}
                     >
                         <Image
                             resizeMode="contain"

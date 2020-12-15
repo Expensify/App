@@ -7,7 +7,8 @@ import {
     Text
 } from 'react-native';
 import PropTypes from 'prop-types';
-import styles, {uiColors} from '../../../styles/StyleSheet';
+import styles from '../../../styles/styles';
+import themeColors from '../../../styles/themes/default';
 import logoCircle from '../../../../assets/images/expensify-logo-round.png';
 import TextInputWithFocusStyles from '../../../components/TextInputWithFocusStyles';
 import iconX from '../../../../assets/images/icon-x.png';
@@ -117,7 +118,7 @@ const ChatSwitcherSearchForm = props => (
                         <TouchableOpacity
                             style={[styles.button, styles.buttonSmall, styles.buttonSuccess, styles.chatSwitcherGo]}
                             onPress={props.onConfirmUsers}
-                            underlayColor={uiColors.componentBG}
+                            underlayColor={themeColors.componentBG}
                         >
                             <Text
                                 style={[
@@ -142,7 +143,7 @@ const ChatSwitcherSearchForm = props => (
                     onFocus={props.onFocus}
                     onKeyPress={props.onKeyPress}
                     placeholder="Find or start a chat"
-                    placeholderTextColor={uiColors.textSupporting}
+                    placeholderTextColor={themeColors.textSupporting}
                 />
             )}
 
@@ -150,7 +151,7 @@ const ChatSwitcherSearchForm = props => (
             <TouchableOpacity
                 style={[styles.chatSwitcherInputClear, styles.ml2]}
                 onPress={props.onClearButtonClick}
-                underlayColor={uiColors.componentBG}
+                underlayColor={themeColors.componentBG}
             >
                 <Image
                     resizeMode="contain"

@@ -2,7 +2,7 @@
 import fontFamily from './fontFamily';
 import italic from './italic';
 import addOutlineWidth from './addOutlineWidth';
-import uiColors from './themes/default';
+import themeColors from './themes/default';
 import fontWeightBold from './fontWeight/bold';
 
 const variables = {
@@ -183,13 +183,13 @@ const styles = {
     },
 
     textP: {
-        color: uiColors.text,
+        color: themeColors.text,
         fontSize: variables.fontSizeNormal,
         lineHeight: 20,
     },
 
     textLabel: {
-        color: uiColors.text,
+        color: themeColors.text,
         fontSize: variables.fontSizeLabel,
         lineHeight: 18,
     },
@@ -208,15 +208,15 @@ const styles = {
     },
 
     colorReversed: {
-        color: uiColors.textReversed,
+        color: themeColors.textReversed,
     },
 
     colorMutedReversed: {
-        color: uiColors.textMutedReversed,
+        color: themeColors.textMutedReversed,
     },
 
     button: {
-        borderColor: uiColors.border,
+        borderColor: themeColors.border,
         borderRadius: variables.componentBorderRadius,
         borderWidth: 1,
         height: variables.componentSizeNormal,
@@ -224,7 +224,7 @@ const styles = {
     },
 
     buttonText: {
-        color: uiColors.text,
+        color: themeColors.text,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
@@ -244,7 +244,7 @@ const styles = {
     },
 
     buttonSuccess: {
-        backgroundColor: uiColors.buttonSuccessBG,
+        backgroundColor: themeColors.buttonSuccessBG,
         borderWidth: 0,
     },
 
@@ -258,7 +258,7 @@ const styles = {
     },
 
     buttonSuccessText: {
-        color: uiColors.textReversed,
+        color: themeColors.textReversed,
     },
 
     touchableButtonImage: {
@@ -271,7 +271,7 @@ const styles = {
 
     pill: {
         borderRadius: 14,
-        backgroundColor: uiColors.pillBG,
+        backgroundColor: themeColors.pillBG,
         height: variables.componentSizeSmall,
         flexDirection: 'row',
         paddingTop: 6,
@@ -282,7 +282,7 @@ const styles = {
     },
 
     pillText: {
-        color: uiColors.text,
+        color: themeColors.text,
         weight: '400',
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
@@ -299,7 +299,7 @@ const styles = {
 
     navText: {
         fontFamily: fontFamily.GTA,
-        color: uiColors.heading,
+        color: themeColors.heading,
         fontSize: variables.fontSizeNormal,
         fontWeight: '700',
     },
@@ -315,7 +315,7 @@ const styles = {
     },
 
     typingIndicatorSubText: {
-        color: uiColors.textSupporting,
+        color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeSmall,
         marginLeft: 48,
@@ -330,12 +330,12 @@ const styles = {
     },
 
     textInput: {
-        backgroundColor: uiColors.componentBG,
+        backgroundColor: themeColors.componentBG,
         borderRadius: variables.componentBorderRadius,
         height: variables.componentSizeNormal,
-        borderColor: uiColors.border,
+        borderColor: themeColors.border,
         borderWidth: 1,
-        color: uiColors.text,
+        color: themeColors.text,
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeNormal,
         paddingLeft: 12,
@@ -346,19 +346,19 @@ const styles = {
     },
 
     textInputReversed: addOutlineWidth({
-        backgroundColor: uiColors.heading,
-        borderColor: uiColors.text,
-        color: uiColors.textReversed,
+        backgroundColor: themeColors.heading,
+        borderColor: themeColors.text,
+        color: themeColors.textReversed,
     }, 0),
 
     textInputReversedFocus: {
-        borderColor: uiColors.icon,
+        borderColor: themeColors.icon,
     },
 
     textInputNoOutline: addOutlineWidth({}, 0),
 
     formLabel: {
-        color: uiColors.heading,
+        color: themeColors.heading,
         fontSize: variables.fontSizeLabel,
         fontWeight: '600',
         lineHeight: 18,
@@ -366,14 +366,14 @@ const styles = {
     },
 
     formError: {
-        color: uiColors.errorText,
+        color: themeColors.errorText,
         fontSize: variables.fontSizeLabel,
         lineHeight: 18,
         marginBottom: 4,
     },
 
     signInPage: {
-        backgroundColor: uiColors.sidebar,
+        backgroundColor: themeColors.sidebar,
         height: '100%',
         padding: 20,
     },
@@ -392,7 +392,7 @@ const styles = {
     },
 
     genericView: {
-        backgroundColor: uiColors.heading,
+        backgroundColor: themeColors.heading,
         height: '100%',
     },
 
@@ -405,7 +405,7 @@ const styles = {
 
     // Sidebar Styles
     sidebar: {
-        backgroundColor: uiColors.sidebar,
+        backgroundColor: themeColors.sidebar,
     },
 
     sidebarHeader: {
@@ -438,7 +438,7 @@ const styles = {
     },
 
     sidebarFooterAvatar: {
-        backgroundColor: uiColors.text,
+        backgroundColor: themeColors.text,
         borderRadius: 20,
         height: variables.componentSizeNormal,
         marginRight: 12,
@@ -446,7 +446,7 @@ const styles = {
     },
 
     statusIndicator: {
-        borderColor: uiColors.sidebar,
+        borderColor: themeColors.sidebar,
         borderRadius: 7,
         borderWidth: 2,
         position: 'absolute',
@@ -458,21 +458,21 @@ const styles = {
     },
 
     statusIndicatorOnline: {
-        backgroundColor: uiColors.online,
+        backgroundColor: themeColors.online,
     },
 
     statusIndicatorOffline: {
-        backgroundColor: uiColors.offline,
+        backgroundColor: themeColors.offline,
     },
 
     sidebarFooterUsername: {
-        color: uiColors.heading,
+        color: themeColors.heading,
         fontSize: variables.fontSizeLabel,
         fontWeight: '700',
     },
 
     sidebarFooterLink: {
-        color: uiColors.textSupporting,
+        color: themeColors.textSupporting,
         fontSize: variables.fontSizeSmall,
         textDecorationLine: 'none',
         fontFamily: fontFamily.GTA,
@@ -513,24 +513,24 @@ const styles = {
     },
 
     sidebarLinkText: {
-        color: uiColors.text,
+        color: themeColors.text,
         fontSize: variables.fontSizeLabel,
         textDecorationLine: 'none',
         overflow: 'hidden',
     },
 
     sidebarLinkActive: {
-        backgroundColor: uiColors.border,
+        backgroundColor: themeColors.border,
         textDecorationLine: 'none',
     },
 
     sidebarLinkTextUnread: {
         fontWeight: '700',
-        color: uiColors.heading,
+        color: themeColors.heading,
     },
 
     sidebarLinkActiveText: {
-        color: uiColors.text,
+        color: themeColors.text,
         fontSize: variables.fontSizeLabel,
         textDecorationLine: 'none',
         overflow: 'hidden',
@@ -544,7 +544,7 @@ const styles = {
     },
 
     chatSwitcherLogin: {
-        color: uiColors.textSupporting,
+        color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
         height: 16,
         lineHeight: 16,
@@ -552,18 +552,18 @@ const styles = {
 
     // App Content Wrapper styles
     appContentWrapper: {
-        backgroundColor: uiColors.appBG,
-        color: uiColors.text,
+        backgroundColor: themeColors.appBG,
+        color: themeColors.text,
     },
 
     appContent: {
-        backgroundColor: uiColors.appBG,
+        backgroundColor: themeColors.appBG,
         overflow: 'hidden',
     },
 
     appContentHeader: {
         borderBottomWidth: 1,
-        borderColor: uiColors.border,
+        borderColor: themeColors.border,
         height: variables.contentHeaderHeight,
         justifyContent: 'center',
         display: 'flex',
@@ -650,7 +650,7 @@ const styles = {
     },
 
     chatItemMessageHeaderSender: {
-        color: uiColors.heading,
+        color: themeColors.heading,
         fontSize: variables.fontSizeNormal,
         height: 24,
         lineHeight: 20,
@@ -660,14 +660,14 @@ const styles = {
     },
 
     chatItemMessageHeaderTimestamp: {
-        color: uiColors.textSupporting,
+        color: themeColors.textSupporting,
         fontSize: variables.fontSizeSmall,
         height: 24,
         lineHeight: 20,
     },
 
     chatItemMessage: {
-        color: uiColors.text,
+        color: themeColors.text,
         fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.GTA,
         lineHeight: 20,
@@ -686,15 +686,15 @@ const styles = {
     },
 
     chatItemComposeBoxColor: {
-        borderColor: uiColors.border,
+        borderColor: themeColors.border,
     },
 
     chatItemComposeBoxFocusedColor: {
-        borderColor: uiColors.borderFocus,
+        borderColor: themeColors.borderFocus,
     },
 
     chatItemComposeBox: {
-        backgroundColor: uiColors.componentBG,
+        backgroundColor: themeColors.componentBG,
         borderWidth: 1,
         borderRadius: variables.componentBorderRadius,
         minHeight: variables.componentSizeNormal,
@@ -736,7 +736,7 @@ const styles = {
     chatItemAttachButton: {
         alignItems: 'center',
         alignSelf: 'flex-end',
-        borderRightColor: uiColors.border,
+        borderRightColor: themeColors.border,
         borderRightWidth: 1,
         height: 26,
         marginBottom: 6,
@@ -746,8 +746,8 @@ const styles = {
     },
 
     chatItemAttachmentPlaceholder: {
-        backgroundColor: uiColors.sidebar,
-        borderColor: uiColors.border,
+        backgroundColor: themeColors.sidebar,
+        borderColor: themeColors.border,
         borderWidth: 1,
         borderRadius: variables.componentBorderRadius,
         height: 150,
@@ -770,10 +770,10 @@ const styles = {
     chatSwitcherGroupDMContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        backgroundColor: uiColors.appBG,
+        backgroundColor: themeColors.appBG,
         borderRadius: variables.componentBorderRadius,
         borderWidth: 1,
-        borderColor: uiColors.border,
+        borderColor: themeColors.border,
         paddingTop: 0,
         paddingRight: 3,
         paddingBottom: 0,
@@ -794,8 +794,8 @@ const styles = {
     },
 
     chatSwitcherGroupDMTextInput: {
-        backgroundColor: uiColors.componentBG,
-        color: uiColors.text,
+        backgroundColor: themeColors.componentBG,
+        color: themeColors.text,
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeNormal,
         flexGrow: 1,
@@ -823,14 +823,14 @@ const styles = {
 
     hamburgerOpenAbsolute: {
         borderRightWidth: 1,
-        borderColor: uiColors.border,
+        borderColor: themeColors.border,
         position: 'absolute',
         left: 0,
         top: 0,
         bottom: 0,
         zIndex: 2,
         width: 300,
-        shadowColor: uiColors.shadow,
+        shadowColor: themeColors.shadow,
         shadowOffset: {
             width: 0,
             height: 0,
@@ -841,12 +841,12 @@ const styles = {
 
     hamburgerOpen: {
         borderRightWidth: 1,
-        borderColor: uiColors.border,
+        borderColor: themeColors.border,
         width: 300,
     },
 
     chatSwitcherAvatar: {
-        backgroundColor: uiColors.icon,
+        backgroundColor: themeColors.icon,
         borderRadius: 20,
         height: variables.componentSizeNormal,
         overflow: 'hidden',
@@ -859,7 +859,7 @@ const styles = {
     },
 
     chatSwitcherItemText: {
-        color: uiColors.text,
+        color: themeColors.text,
     },
 
     chatSwitcherItemAvatarNameWrapper: {
@@ -868,7 +868,7 @@ const styles = {
     },
 
     chatSwitcherItemButton: {
-        backgroundColor: uiColors.sidebarButtonBG,
+        backgroundColor: themeColors.sidebarButtonBG,
         paddingTop: 6,
         paddingRight: 8,
         paddingBottom: 6,
@@ -879,7 +879,7 @@ const styles = {
     },
 
     chatSwitcherItemButtonText: {
-        color: uiColors.heading,
+        color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
@@ -887,8 +887,8 @@ const styles = {
     },
 
     modalViewContainerMobile: {
-        backgroundColor: uiColors.componentBG,
-        borderColor: uiColors.border,
+        backgroundColor: themeColors.componentBG,
+        borderColor: themeColors.border,
         borderWidth: 1,
         height: '100%',
         alignItems: 'center',
@@ -896,8 +896,8 @@ const styles = {
     },
 
     modalViewContainer: {
-        backgroundColor: uiColors.componentBG,
-        borderColor: uiColors.border,
+        backgroundColor: themeColors.componentBG,
+        borderColor: themeColors.border,
         borderWidth: 1,
         borderRadius: 12,
         height: '100%',
@@ -912,14 +912,14 @@ const styles = {
         paddingLeft: 32,
         paddingRight: 20,
         borderBottomWidth: 1,
-        borderColor: uiColors.border,
+        borderColor: themeColors.border,
         height: variables.contentHeaderHeight,
         width: '100%',
     },
 
     imageModalPDF: {
         flex: 1,
-        backgroundColor: uiColors.componentBG,
+        backgroundColor: themeColors.componentBG,
     },
 
     modalCenterContentContainer: {
@@ -927,7 +927,7 @@ const styles = {
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: uiColors.modalBackdrop,
+        backgroundColor: themeColors.modalBackdrop,
     },
 
     imageModalImageCenterContainer: {
@@ -940,10 +940,10 @@ const styles = {
     },
 
     defaultAttachmentView: {
-        backgroundColor: uiColors.sidebar,
+        backgroundColor: themeColors.sidebar,
         borderRadius: variables.componentBorderRadius,
         borderWidth: 1,
-        borderColor: uiColors.border,
+        borderColor: themeColors.border,
         flexDirection: 'row',
         paddingTop: 10,
         paddingBottom: 10,
@@ -1005,8 +1005,8 @@ const styles = {
 const baseCodeTagStyles = {
     borderWidth: 1,
     borderRadius: 5,
-    borderColor: uiColors.border,
-    backgroundColor: uiColors.textBackground,
+    borderColor: themeColors.border,
+    backgroundColor: themeColors.textBackground,
 };
 
 const webViewStyles = {
@@ -1032,12 +1032,12 @@ const webViewStyles = {
         },
 
         a: {
-            color: uiColors.link,
-            textDecorationColor: uiColors.link,
+            color: themeColors.link,
+            textDecorationColor: themeColors.link,
         },
 
         blockquote: {
-            borderLeftColor: uiColors.border,
+            borderLeftColor: themeColors.border,
             borderLeftWidth: 4,
             paddingLeft: 12,
             marginTop: 4,
@@ -1070,14 +1070,14 @@ const webViewStyles = {
         },
 
         img: {
-            borderColor: uiColors.border,
+            borderColor: themeColors.border,
             borderRadius: variables.componentBorderRadius,
             borderWidth: 1,
         },
     },
 
     baseFontStyle: {
-        color: uiColors.text,
+        color: themeColors.text,
         fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.GTA,
     },
@@ -1108,5 +1108,5 @@ function getSafeAreaMargins(insets) {
 
 export default styles;
 export {
-    getSafeAreaPadding, getSafeAreaMargins, uiColors, webViewStyles, variables,
+    getSafeAreaPadding, getSafeAreaMargins, themeColors, webViewStyles, variables,
 };

@@ -3,7 +3,8 @@ import {ActivityIndicator, View} from 'react-native';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import ReportActionFragmentPropTypes from './ReportActionFragmentPropTypes';
-import styles, {uiColors} from '../../../styles/StyleSheet';
+import styles from '../../../styles/styles';
+import themeColors from '../../../styles/themes/default';
 import RenderHTML from '../../../components/RenderHTML';
 import Text from '../../../components/Text';
 
@@ -34,7 +35,7 @@ class ReportActionItemFragment extends React.PureComponent {
                         <View style={[styles.chatItemAttachmentPlaceholder]}>
                             <ActivityIndicator
                                 size="large"
-                                color={uiColors.textSupporting}
+                                color={themeColors.textSupporting}
                                 style={[styles.flex1]}
                             />
                         </View>

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {Text as RNText} from 'react-native';
 import fontFamily from '../styles/fontFamily';
-import {uiColors} from '../styles/StyleSheet';
+import themeColors from '../styles/themes/default';
 
 const propTypes = {
     // The color of the text
@@ -27,7 +27,7 @@ const propTypes = {
     style: PropTypes.any,
 };
 const defaultProps = {
-    color: uiColors.text,
+    color: themeColors.text,
     fontSize: 15,
     family: 'GTA',
     textAlign: null,

@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View, FlatList} from 'react-native';
-import styles from '../../../styles/StyleSheet';
+import styles from '../../../styles/styles';
 import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
 import ChatLinkRow from './ChatLinkRow';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
