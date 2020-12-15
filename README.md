@@ -239,8 +239,8 @@ When a new tag is pushed, it will trigger a deploy of all four clients:
 ### Secrets
 The GitHub workflows require a large list of secrets to deploy, notify and test the code:
 1. `LARGE_SECRET_PASSPHRASE` - decrypts secrets stored in various encrypted files stored in GitHub repository:
-    1. `app/android/my-upload-key.keystore.gpg`
-    2. `app/android/android-fastlane-json-key.json.gpg`
+    1. `android/app/my-upload-key.keystore.gpg`
+    2. `android/app/android-fastlane-json-key.json.gpg`
     3. `ios/chat_expensify_appstore.mobileprovision`
     4. `ios/Certificates.p12.gpg`
 2. `SLACK_WEBHOOK` - Sends Slack notifications via Slack WebHook https://expensify.slack.com/services/B01AX48D7MM
