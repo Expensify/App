@@ -17,7 +17,8 @@ import {withRouter, Redirect} from '../libs/Router';
 import ROUTES from '../ROUTES';
 import {signIn} from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
-import styles, {uiColors} from '../styles/StyleSheet';
+import styles from '../styles/styles';
+import themeColors from '../styles/themes/default';
 import logo from '../../assets/images/expensify-logo-round.png';
 import CustomStatusBar from '../components/CustomStatusBar';
 import updateUnread from '../libs/UnreadIndicatorUpdater/updateUnread';
@@ -123,7 +124,7 @@ class App extends Component {
                                 style={[styles.textInput]}
                                 value={this.state.twoFactorAuthCode}
                                 placeholder="Required when 2FA is enabled"
-                                placeholderTextColor={uiColors.textSupporting}
+                                placeholderTextColor={themeColors.textSupporting}
                                 onChangeText={text => this.setState({twoFactorAuthCode: text})}
                                 onSubmitEditing={this.submitForm}
                             />
@@ -132,11 +133,11 @@ class App extends Component {
                             <TouchableOpacity
                                 style={[styles.button, styles.buttonSuccess, styles.mb4]}
                                 onPress={this.submitForm}
-                                underlayColor={uiColors.componentBG}
+                                underlayColor={themeColors.componentBG}
                                 disabled={isLoading}
                             >
                                 {isLoading ? (
-                                    <ActivityIndicator color={uiColors.textReversed} />
+                                    <ActivityIndicator color={themeColors.textReversed} />
                                 ) : (
                                     <Text style={[styles.buttonText, styles.buttonSuccessText]}>Log In</Text>
                                 )}

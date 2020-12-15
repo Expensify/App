@@ -8,7 +8,7 @@ import {
     View,
     StyleSheet,
 } from 'react-native';
-import styles from '../../../styles/StyleSheet';
+import styles from '../../../styles/styles';
 import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
 import ROUTES from '../../../ROUTES';
 import pencilIcon from '../../../../assets/images/icon-pencil.png';

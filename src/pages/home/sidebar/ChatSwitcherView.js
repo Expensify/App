@@ -13,7 +13,7 @@ import ChatSwitcherSearchForm from './ChatSwitcherSearchForm';
 import {fetchOrCreateChatReport} from '../../../libs/actions/Report';
 import {redirect} from '../../../libs/actions/App';
 import ROUTES from '../../../ROUTES';
-import styles from '../../../styles/StyleSheet';
+import styles from '../../../styles/styles';
 import * as ChatSwitcher from '../../../libs/actions/ChatSwitcher';
 import CONST from '../../../CONST';
 

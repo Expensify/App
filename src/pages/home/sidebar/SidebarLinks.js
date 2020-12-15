@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import lodashOrderby from 'lodash.orderby';
 import get from 'lodash.get';
 import {withOnyx} from 'react-native-onyx';
-import styles from '../../../styles/StyleSheet';
+import styles from '../../../styles/styles';
 import ONYXKEYS from '../../../ONYXKEYS';
 import ChatSwitcherView from './ChatSwitcherView';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
