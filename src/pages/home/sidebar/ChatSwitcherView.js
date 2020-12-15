@@ -162,7 +162,7 @@ class ChatSwitcherView extends React.Component {
                 const login = isSingleUserDM ? report.participants[0] : '';
                 return {
                     text: report.reportName,
-                    alternateText: report.reportName,
+                    alternateText: isSingleUserDM ? login : report.reportName,
                     searchText: report.participants < 10
                         ? `${report.reportName} ${report.participants.join(' ')}`
                         : report.reportName ?? '',
