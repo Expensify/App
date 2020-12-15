@@ -113,7 +113,7 @@ const ChatSwitcherSearchForm = props => (
                             </View>
                         </View>
                     </View>
-                    <View style={[styles.ml2, styles.flexJustifyEnd]}>
+                    <View style={[styles.ml1, styles.flexJustifyEnd]}>
                         <TouchableOpacity
                             style={[styles.button, styles.buttonSmall, styles.buttonSuccess, styles.chatSwitcherGo]}
                             onPress={props.onConfirmUsers}
