@@ -1,6 +1,6 @@
 import {Graphite_Timer} from './API';
 
-const timestampData = {};
+let timestampData = {};
 
 /**
  * Start a performance timing measurment
@@ -30,7 +30,15 @@ function end(eventName) {
     }
 }
 
+/**
+ * Clears all timing data
+ */
+function clearData() {
+    timestampData = {};
+}
+
 export default {
     start,
-    end
+    end,
+    clearData
 };
