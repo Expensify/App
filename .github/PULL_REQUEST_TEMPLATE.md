@@ -9,7 +9,8 @@ Fixes GH_LINK
 
 ### Tests
 <!--- 
-Add a numbered list of manual tests you performed on each platform that validates your changes work, and that there are no regressions present.
+Add a numbered list of manual tests you performed that validates your changes work on all platforms, and that there are no regressions present.
+Add any additional test steps if necessary if test steps are unique to a particular platform.
 Manual test steps should be written so that your reviewer can repeat and verify one or more expected outcomes.
 
 For example:
