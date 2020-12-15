@@ -1,3 +1,15 @@
-### DO NOT CREATE THIS ISSUE
+If you haven’t already, check out our [contributing guidelines](https://github.com/Expensify/ReactNativeChat/blob/master/CONTRIBUTING.md) for onboarding!
+___
 
-Please create your issue here instead: https://github.com/Expensify/Expensify/issues/new
+**Platform - version:**  
+
+**Action Performed (reproducible steps):**
+
+**Expected Result:**
+
+**Actual Result:**
+
+**Notes/Photos/Videos:** 
+ 
+**Logs - JS/Android/iOS (if applicable)**:
+
