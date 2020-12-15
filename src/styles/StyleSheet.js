@@ -62,7 +62,7 @@ const styles = {
     },
 
     ml1: {
-        marginLeft: 10,
+        marginLeft: 4,
     },
 
     ml2: {
@@ -174,6 +174,12 @@ const styles = {
 
     overflowHidden: {
         overflow: 'hidden',
+    },
+
+    h4: {
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeLabel,
+        fontWeight: fontWeightBold,
     },
 
     textP: {
@@ -779,7 +785,7 @@ const styles = {
         alignSelf: 'flex-start',
         flexDirection: 'row',
         flexWrap: 'wrap',
-        maxWidth: 174,
+        maxWidth: 177,
         overflow: 'hidden',
     },
 
@@ -794,10 +800,9 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         flexGrow: 1,
         height: variables.componentSizeSmall,
-        width: 171,
+        width: '100%',
         marginTop: 5,
         marginBottom: 5,
-        marginLeft: 3,
         padding: 0,
     },
 
@@ -813,8 +818,7 @@ const styles = {
     },
 
     chatSwitcherMessage: {
-        paddingLeft: 12,
-        paddingRight: 12,
+        padding: 20,
     },
 
     hamburgerOpenAbsolute: {
