@@ -78,7 +78,7 @@ class AttachmentModal extends Component {
                         />
                         <View style={styles.imageModalImageCenterContainer}>
                             {this.state.sourceURL && (
-                                <AttachmentView sourceURL={sourceURL} />
+                                <AttachmentView sourceURL={sourceURL} file={this.state.file} />
                             )}
                         </View>
 
