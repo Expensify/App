@@ -8,8 +8,15 @@
 Fixes GH_LINK
 
 ### Tests
-<Add a numbered list of tests you performed on each platform that validates your changes work, and that there are no regressions present.>
-<When listing steps, don't just say what you did, but explain how you did it. For example, if you uploaded an image did you do it using copy paste? Or the attachment icon?>
+<!--- 
+Add a numbered list of manual tests you performed on each platform that validates your changes work, and that there are no regressions present.
+Manual test steps should be written so that your reviewer can repeat and verify one or more expected outcomes.
+
+For example:
+1. Click on the text input to bring it into focus
+2. Upload an image via copy paste
+3. Verify a modal appears displaying a preview of that image 
+--->
 
 ### Screenshots
 <Add any necessary screenshots for all platforms if your change added or updated UI>
