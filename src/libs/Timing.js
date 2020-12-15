@@ -1,6 +1,6 @@
 import {Graphite_Timer} from './API';
 
-const timestamps = [];
+const timestampData = {};
 
 /**
  * Start a performance timing measurment
@@ -9,7 +9,8 @@ const timestamps = [];
  */
 function start(eventName) {
     console.debug(`Timing.start(${eventName})`);
-    timestamps.push(1);
+
+    timestampData[eventName] = Date.now();
 }
 
 /**
@@ -19,13 +20,17 @@ function start(eventName) {
  */
 function end(eventName) {
     console.debug(`Timing.end(${eventName})`);
-    const eventTime = 1;
 
-    Graphite_Timer({
-        name: eventName,
-        value: eventTime,
-        referer: 'chat'
-    });
+    if (eventName in timestampData) {
+        const eventTime = Date.now() - timestampData[eventName];
+        console.debug(`Timing: output: ${eventTime}`);
+
+        Graphite_Timer({
+            name: eventName,
+            value: eventTime,
+            referer: 'chat'
+        });
+    }
 }
 
 export default {
