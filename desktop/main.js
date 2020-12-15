@@ -71,8 +71,11 @@ const mainWindow = (() => {
             // On mac, pressing cmd++ actually sends a cmd+=. cmd++ is generally the zoom in shortcut, but this is
             // not properly listened for by electron. Adding in an invisible cmd+= listener fixes this.
             const viewWindow = systemMenu.items.find(item => item.role === 'viewmenu');
-            viewWindow.submenu.append(new MenuItem({role: 'zoomin', accelerator: 'CommandOrControl+=', visible: false}));
-            
+            viewWindow.submenu.append(new MenuItem({
+                role: 'zoomin',
+                accelerator: 'CommandOrControl+=',
+                visible: false
+            }));
             const windowMenu = systemMenu.items.find(item => item.role === 'windowmenu');
             windowMenu.submenu.append(new MenuItem({type: 'separator'}));
             windowMenu.submenu.append(new MenuItem({
