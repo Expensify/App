@@ -8,7 +8,7 @@ const AppLinks = () => (
     <>
         <Text
             style={[styles.sidebarFooterLink, styles.mr2]}
-            onPress={() => openURLInNewTab('https://chat.expensify.com/Chat.dmg')}
+            onPress={() => openURLInNewTab('https://expensify.cash/Chat.dmg')}
         >
             Desktop
         </Text>
