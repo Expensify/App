@@ -437,6 +437,8 @@ function fetchOrCreateChatReport(participants) {
         throw new Error('fetchOrCreateChatReport() must have at least two participants');
     }
 
+    Timing.start(CONST.TIMING.SWITCH_REPORT);
+
     API.CreateChatReport({
         emailList: participants.join(','),
     })
