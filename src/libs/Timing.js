@@ -12,7 +12,7 @@ function start(eventName) {
 }
 
 /**
- * End a performance timing measurment
+ * End a performance timing measurment, push to Grafana
  *
  * @param {String} eventName
  */

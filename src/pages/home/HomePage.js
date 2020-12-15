@@ -81,9 +81,7 @@ class App extends React.Component {
         // Fetch all the personal details
         fetchPersonalDetails();
 
-        fetchAllReports().then(() => {
-            Timing.end(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
-        });
+        fetchAllReports(true, false, true);
 
         UnreadIndicatorUpdater.listenForReportChanges();
 
