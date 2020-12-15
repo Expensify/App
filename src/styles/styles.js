@@ -1108,5 +1108,5 @@ function getSafeAreaMargins(insets) {
 
 export default styles;
 export {
-    getSafeAreaPadding, getSafeAreaMargins, themeColors, webViewStyles, variables,
+    getSafeAreaPadding, getSafeAreaMargins, webViewStyles, variables,
 };
