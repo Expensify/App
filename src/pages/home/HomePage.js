@@ -11,7 +11,8 @@ import {
 import {SafeAreaInsetsContext, SafeAreaProvider} from 'react-native-safe-area-context';
 import {withOnyx} from 'react-native-onyx';
 import {Route} from '../../libs/Router';
-import styles, {getSafeAreaPadding, variables} from '../../styles/StyleSheet';
+import styles, {getSafeAreaPadding} from '../../styles/StyleSheet';
+import variables from '../../styles/variables';
 import Header from './HeaderView';
 import Sidebar from './sidebar/SidebarView';
 import Main from './MainView';

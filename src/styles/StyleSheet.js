@@ -3,12 +3,7 @@ import fontFamily from './fontFamily';
 import italic from './italic';
 import addOutlineWidth from './addOutlineWidth';
 import fontWeightBold from './fontWeight/bold';
-
-const variables = {
-    modalHeaderBarHeight: 73,
-    safeInsertPercentage: 0.7,
-    mobileResponsiveWidthBreakpoint: 1000,
-};
+import variables from './variables';
 
 const colors = {
     arsenic: '#39444B',
@@ -913,7 +908,6 @@ const styles = {
 
     modalViewContainer: {
         alignItems: 'center',
-        backgroundColor: colors.componentBG,
         flex: 1,
     },
 
@@ -943,9 +937,10 @@ const styles = {
     },
 
     imageModalImageCenterContainer: {
-        flex: 1,
-        justifyContent: 'center',
         alignItems: 'center',
+        flex: 1,
+        padding: 20,
+        justifyContent: 'center',
         width: '100%',
     },
 
@@ -1118,5 +1113,5 @@ function getSafeAreaMargins(insets) {
 
 export default styles;
 export {
-    getSafeAreaPadding, getSafeAreaMargins, colors, webViewStyles, variables,
+    getSafeAreaPadding, getSafeAreaMargins, colors, webViewStyles,
 };
