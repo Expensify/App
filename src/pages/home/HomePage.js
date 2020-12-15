@@ -109,11 +109,6 @@ class App extends React.Component {
         Dimensions.removeEventListener('change', this.toggleHamburgerBasedOnDimensions);
     }
 
-    onLinkClicked() {
-        Timing.start(CONST.TIMING.SWITCH_REPORT);
-        this.toggleHamburger();
-    }
-
     /**
      * Fired when the windows dimensions changes
      * @param {Object} changedWindow
@@ -227,7 +222,7 @@ class App extends React.Component {
                                 >
                                     <Sidebar
                                         insets={insets}
-                                        onLinkClick={() => this.onLinkClicked}
+                                        onLinkClick={() => this.toggleHamburger}
                                         isChatSwitcherActive={this.props.isChatSwitcherActive}
                                     />
                                 </Animated.View>
