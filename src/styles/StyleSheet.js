@@ -3,6 +3,7 @@ import fontFamily from './fontFamily';
 import italic from './italic';
 import addOutlineWidth from './addOutlineWidth';
 import uiColors from './themes/default';
+import fontWeightBold from './fontWeight/bold';
 
 const variables = {
     contentHeaderHeight: 65,
@@ -13,6 +14,29 @@ const variables = {
     fontSizeLabel: 13,
     fontSizeNormal: 15,
     safeInsertPercentage: 0.7,
+};
+
+const colors = {
+    arsenic: '#39444B',
+    componentBG: '#FFFFFF',
+    background: '#FAFAFA',
+    whiteSmoke: '#F8F8F8',
+    whisper: '#EEEEEE',
+    black: '#000000',
+    blue: '#2EAAE2',
+    border: '#ECECEC',
+    borderLight: '#E0E0E0',
+    green: '#2ECB70',
+    heading: '#37444C',
+    icon: '#C6C9CA',
+    text: '#4A5960',
+    textBackground: '#F0F0F0',
+    textReversed: '#FFFFFF',
+    textSupporting: '#7D8B8F',
+    transparent: 'transparent',
+    red: '#E84A3B',
+    buttonBG: '#8A8A8A',
+    modalBackdrop: '#00000080',
 };
 
 const styles = {
@@ -128,6 +152,10 @@ const styles = {
         flexWrap: 'wrap',
     },
 
+    flexGrow0: {
+        flexGrow: 0,
+    },
+
     flexGrow1: {
         flexGrow: 1,
     },
@@ -166,7 +194,7 @@ const styles = {
 
     textStrong: {
         fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: '700',
+        fontWeight: fontWeightBold,
     },
 
     textDecorationNoLine: {
@@ -192,7 +220,7 @@ const styles = {
     buttonText: {
         color: uiColors.text,
         fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: '700',
+        fontWeight: fontWeightBold,
         textAlign: 'center',
     },
 
@@ -254,7 +282,8 @@ const styles = {
         lineHeight: 16,
         marginRight: 4,
         userSelect: 'none',
-        maxWidth: 160,
+        maxWidth: 144,
+        whiteSpace: 'nowrap',
     },
 
     pillCancelIcon: {
@@ -374,14 +403,17 @@ const styles = {
     },
 
     sidebarHeader: {
-        minHeight: 64,
-        paddingTop: 12,
-        flex: 1,
         flexGrow: 0,
+    },
+
+    sidebarHeaderActive: {
+        flexGrow: 1,
+        height: '100%',
     },
 
     sidebarHeaderTop: {
         paddingHorizontal: 20,
+        paddingVertical: 12,
     },
 
     sidebarHeaderLogo: {
@@ -847,7 +879,7 @@ const styles = {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
-        fontWeight: '700',
+        fontWeight: fontWeightBold,
     },
 
     modalViewContainerMobile: {
@@ -921,6 +953,49 @@ const styles = {
         height: 60,
         marginRight: 20,
     },
+
+    notFoundSafeArea: {
+        flex: 1,
+        backgroundColor: colors.heading,
+    },
+
+    notFoundView: {
+        flex: 1,
+        alignItems: 'center',
+        paddingTop: 40,
+        paddingBottom: 40,
+        justifyContent: 'space-between',
+    },
+
+    notFoundLogo: {
+        width: 202,
+        height: 63,
+    },
+
+    notFoundContent: {
+        alignItems: 'center',
+    },
+
+    notFoundTextHeader: {
+        color: colors.blue,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        fontSize: 150,
+    },
+
+    notFoundTextBody: {
+        color: colors.componentBG,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        fontSize: 15,
+    },
+
+    notFoundButtonText: {
+        color: colors.blue,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        fontSize: 15,
+    }
 };
 
 const baseCodeTagStyles = {
@@ -949,7 +1024,7 @@ const webViewStyles = {
 
         strong: {
             fontFamily: fontFamily.GTA_BOLD,
-            fontWeight: '600',
+            fontWeight: fontWeightBold,
         },
 
         a: {
