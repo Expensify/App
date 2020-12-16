@@ -38,7 +38,7 @@ const ModalHeader = props => (
             <View style={[styles.reportOptions, styles.flexRow]}>
                 <TouchableOpacity
                     onPress={props.onCloseButtonPress}
-                    style={[styles.touchableButtonImage, styles.mr0]}
+                    style={[styles.touchableButtonImage]}
                 >
                     <Image
                         resizeMode="contain"
