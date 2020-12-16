@@ -88,12 +88,14 @@ module.exports = {
 
             // Gives the ability to load local images
             {
-                test: /\.(png|jpe?g|gif)$/i,
-                use: [
-                    {
-                        loader: 'file-loader',
+                test: /\.(gif|jpe?g|png|svg)$/,
+                use: {
+                    loader: "file-loader",
+                    options: {
+                        name: "[name].[ext]",
+                        esModule: false,
                     },
-                ],
+                },
             },
         ],
     },

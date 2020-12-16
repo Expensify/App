@@ -266,7 +266,7 @@ const styles = {
         height: variables.componentSizeNormal,
         justifyContent: 'center',
         marginRight: 8,
-        width: variables.componentSizeNormal,
+        width: 32,
     },
 
     pill: {
@@ -581,12 +581,12 @@ const styles = {
         height: variables.componentSizeNormal,
         justifyContent: 'center',
         marginRight: 8,
-        width: variables.componentSizeNormal,
+        width: 32,
     },
 
     LHNToggleIcon: {
-        height: 15,
-        width: 18,
+        height: variables.componentSizeNormal,
+        width: 32,
     },
 
     LHNPencilIcon: {

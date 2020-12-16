@@ -6,9 +6,6 @@ import Text from '../../components/Text';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import {withRouter} from '../../libs/Router';
-import LHNToggle from '../../../assets/images/icon-menu-toggle.png';
-import pinEnabled from '../../../assets/images/pin-enabled.png';
-import pinDisabled from '../../../assets/images/pin-disabled.png';
 import compose from '../../libs/compose';
 import {togglePinnedState} from '../../libs/actions/Report';
 
@@ -46,9 +43,9 @@ const HeaderView = props => (
                     style={[styles.LHNToggle]}
                 >
                     <Image
+                        source={require('../../../assets/images/icon-menu-toggle.png')}
                         resizeMode="contain"
                         style={[styles.LHNToggleIcon]}
-                        source={LHNToggle}
                     />
                 </TouchableOpacity>
             )}
@@ -73,7 +70,7 @@ const HeaderView = props => (
                         >
                             <Image
                                 resizeMode="contain"
-                                source={props.report.isPinned ? pinEnabled : pinDisabled}
+                                source={props.report.isPinned ? require('../../../assets/images/pin-enabled.png') : require('../../../assets/images/pin-disabled.png')}
                                 style={[styles.reportPinIcon]}
                             />
                         </TouchableOpacity>
