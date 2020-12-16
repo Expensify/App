@@ -317,9 +317,9 @@ function Log(parameters) {
 }
 
 /**
- * @param {object} parameters
+ * @param {Object} parameters
  * @param {String} parameters.name
- * @param {number} parameters.value
+ * @param {Number} parameters.value
  * @returns {Promise}
  */
 function Graphite_Timer(parameters) {
