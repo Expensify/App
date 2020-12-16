@@ -4,7 +4,8 @@ import {View, useWindowDimensions} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import CustomStatusBar from '../CustomStatusBar';
-import {getSafeAreaPadding, colors} from '../../styles/StyleSheet';
+import {getSafeAreaPadding} from '../../styles/styles';
+import themeColors from '../../styles/themes/default';
 import getStyleForType from './getStyleForType';
 import MODAL_TYPE from './MODAL_TYPE';
 
@@ -29,7 +30,7 @@ const propTypes = {
 
 const defaultProps = {
     type: '',
-    backgroundColor: colors.componentBG,
+    backgroundColor: themeColors.componentBG,
 };
 
 const Modal = (props) => {

@@ -5,29 +5,7 @@ import addOutlineWidth from './addOutlineWidth';
 import themeColors from './themes/default';
 import fontWeightBold from './fontWeight/bold';
 import variables from './variables';
-
-const colors = {
-    arsenic: '#39444B',
-    componentBG: '#FFFFFF',
-    background: '#FAFAFA',
-    whiteSmoke: '#F8F8F8',
-    whisper: '#EEEEEE',
-    black: '#000000',
-    blue: '#2EAAE2',
-    border: '#ECECEC',
-    borderLight: '#E0E0E0',
-    green: '#2ECB70',
-    heading: '#37444C',
-    icon: '#C6C9CA',
-    text: '#4A5960',
-    textBackground: '#F0F0F0',
-    textReversed: '#FFFFFF',
-    textSupporting: '#7D8B8F',
-    transparent: 'transparent',
-    red: '#E84A3B',
-    buttonBG: '#8A8A8A',
-    modalBackdrop: '#00000080',
-};
+import colors from './colors';
 
 const styles = {
     // Utility classes
@@ -939,7 +917,7 @@ const styles = {
 
     notFoundSafeArea: {
         flex: 1,
-        backgroundColor: colors.heading,
+        backgroundColor: themeColors.heading,
     },
 
     notFoundView: {
@@ -967,7 +945,7 @@ const styles = {
     },
 
     notFoundTextBody: {
-        color: colors.componentBG,
+        color: themeColors.componentBG,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         fontSize: 15,

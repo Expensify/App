@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {View, Dimensions} from 'react-native';
 import ImageZoom from 'react-native-image-pan-zoom';
 import ImageWithSizeCalculation from '../ImageWithSizeCalculation';
-import styles from '../../styles/StyleSheet';
+import styles from '../../styles/styles';
 import variables from '../../styles/variables';
 
 /**
