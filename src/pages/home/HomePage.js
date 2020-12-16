@@ -223,7 +223,7 @@ class App extends React.Component {
                                 >
                                     <Sidebar
                                         insets={insets}
-                                        onLinkClick={() => this.toggleHamburger}
+                                        onLinkClick={this.toggleHamburger}
                                         isChatSwitcherActive={this.props.isChatSwitcherActive}
                                     />
                                 </Animated.View>
