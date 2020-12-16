@@ -13,7 +13,7 @@ import ChatSwitcherSearchForm from './ChatSwitcherSearchForm';
 import {fetchOrCreateChatReport} from '../../../libs/actions/Report';
 import {redirect} from '../../../libs/actions/App';
 import ROUTES from '../../../ROUTES';
-import styles from '../../../styles/StyleSheet';
+import styles from '../../../styles/styles';
 import * as ChatSwitcher from '../../../libs/actions/ChatSwitcher';
 import CONST from '../../../CONST';
 import Timing from '../../../libs/Timing';
@@ -484,10 +484,10 @@ class ChatSwitcherView extends React.Component {
                 {this.state.usersToStartGroupReportWith.length === MAX_GROUP_DM_LENGTH
                     ? (
                         <View style={[styles.chatSwitcherMessage]}>
-                            <Text style={[styles.h4, styles.mb1, styles.colorReversed]}>
+                            <Text style={[styles.h4, styles.mb1]}>
                                 Maximum participants reached
                             </Text>
-                            <Text style={[styles.textLabel, styles.colorMutedReversed]}>
+                            <Text style={[styles.textLabel]}>
                                 {'You\'ve reached the maximum number of participants for a group chat.'}
                             </Text>
                         </View>
