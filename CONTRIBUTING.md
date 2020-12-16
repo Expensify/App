@@ -5,7 +5,7 @@ Welcome! Thanks for checking out Expensify Cash and for taking the time to contr
 If you haven't yet, check out our README located [here](https://github.com/Expensify/ReactNativeChat/blob/master/README.md).
 
 ## Asking Questions
-If you have a question, we ask that you do not create an issue, and instead email it to reactnative@expensify.com.
+If you have a question, we ask that you do not create an issue, and instead email it to reactnative@expensify.com. To ask realtime questions while you're working on your issue, you can join our slack channel. Just send an email to reactnative@expensify.com with the subject "Slack Channel Invite" and we'll send you an invite!
 
 ## Reporting Vulnerabilities
 If you've found a vulnerability, please email reactnative@expensify.com with the subject `Vulnerability Report` instead of creating an issue.
