@@ -29,8 +29,8 @@ export default (type, windowDimensions) => {
                     width: 0,
                     height: 0,
                 },
-                shadowOpacity: 0.3,
-                shadowRadius: 20,
+                shadowOpacity: 0.1,
+                shadowRadius: 5,
 
                 flex: 1,
                 marginTop: isSmallScreen ? 0 : 20,
