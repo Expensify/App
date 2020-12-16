@@ -12,7 +12,7 @@ function start(eventName) {
 }
 
 /**
- * End performance timing. Measure the time between event start/end in milliseconds, and, push to Grafana
+ * End performance timing. Measure the time between event start/end in milliseconds, and push to Grafana
  *
  * @param {String} eventName
  */
