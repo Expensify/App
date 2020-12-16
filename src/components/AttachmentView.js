@@ -2,7 +2,7 @@ import React from 'react';
 import {View, Image, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
-import styles from '../styles/StyleSheet';
+import styles from '../styles/styles';
 import PDFView from './PDFView';
 import ImageView from './ImageView';
 import iconFile from '../../assets/images/icon-file.png';

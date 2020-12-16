@@ -7,7 +7,8 @@ import {
     Text
 } from 'react-native';
 import PropTypes from 'prop-types';
-import styles, {colors} from '../../../styles/StyleSheet';
+import styles from '../../../styles/styles';
+import themeColors from '../../../styles/themes/default';
 import logoCircle from '../../../../assets/images/expensify-logo-round.png';
 import TextInputWithFocusStyles from '../../../components/TextInputWithFocusStyles';
 import iconX from '../../../../assets/images/icon-x.png';
@@ -55,9 +56,9 @@ const defaultProps = {
 };
 
 const ChatSwitcherSearchForm = props => (
-    <View style={[styles.flexRow]}>
+    <View style={[styles.flexRow, styles.sidebarHeaderTop]}>
         {props.isLogoVisible && (
-            <View style={[styles.mr2, styles.ml2]}>
+            <View style={[styles.mr3]}>
                 <Image
                     resizeMode="contain"
                     style={[styles.sidebarHeaderLogo]}
@@ -113,11 +114,11 @@ const ChatSwitcherSearchForm = props => (
                             </View>
                         </View>
                     </View>
-                    <View style={[styles.ml2, styles.flexJustifyEnd]}>
+                    <View style={[styles.ml1, styles.flexJustifyEnd]}>
                         <TouchableOpacity
                             style={[styles.button, styles.buttonSmall, styles.buttonSuccess, styles.chatSwitcherGo]}
                             onPress={props.onConfirmUsers}
-                            underlayColor={colors.componentBG}
+                            underlayColor={themeColors.componentBG}
                         >
                             <Text
                                 style={[
@@ -136,13 +137,13 @@ const ChatSwitcherSearchForm = props => (
                 <TextInputWithFocusStyles
                     styleFocusIn={[styles.textInputReversedFocus]}
                     ref={props.forwardedRef}
-                    style={[styles.textInput, styles.textInputReversed, styles.flex1]}
+                    style={[styles.textInput, styles.flex1]}
                     value={props.searchValue}
                     onChangeText={props.onChangeText}
                     onFocus={props.onFocus}
                     onKeyPress={props.onKeyPress}
                     placeholder="Find or start a chat"
-                    placeholderTextColor={colors.icon}
+                    placeholderTextColor={themeColors.textSupporting}
                 />
             )}
 
@@ -150,7 +151,7 @@ const ChatSwitcherSearchForm = props => (
             <TouchableOpacity
                 style={[styles.chatSwitcherInputClear, styles.ml2]}
                 onPress={props.onClearButtonClick}
-                underlayColor={colors.componentBG}
+                underlayColor={themeColors.componentBG}
             >
                 <Image
                     resizeMode="contain"

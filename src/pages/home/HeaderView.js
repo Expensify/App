@@ -3,7 +3,7 @@ import {View, Image, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Text from '../../components/Text';
-import styles from '../../styles/StyleSheet';
+import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import {withRouter} from '../../libs/Router';
 import LHNToggle from '../../../assets/images/icon-menu-toggle.png';

@@ -6,6 +6,9 @@ import ImageWithSizeCalculation from '../ImageWithSizeCalculation';
 import styles from '../../styles/StyleSheet';
 import variables from '../../styles/variables';
 
+/**
+ * On the native layer, we use a image library to handle zoom functionality
+ */
 const propTypes = {
     // URL to full-sized image
     url: PropTypes.string.isRequired,
