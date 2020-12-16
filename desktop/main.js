@@ -27,12 +27,12 @@ app.commandLine.appendSwitch('disable-web-security');
 // See https://github.com/sindresorhus/electron-context-menu
 contextMenu();
 
-// Send all autoUpdater logs to a log file: ~/Library/Logs/react-native-chat/main.log
+// Send all autoUpdater logs to a log file: ~/Library/Logs/expensify.cash/main.log
 // See https://www.npmjs.com/package/electron-log
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = 'info';
 
-// Send all Console logs to a log file: ~/Library/Logs/react-native-chat/main.log
+// Send all Console logs to a log file: ~/Library/Logs/expensify.cash/main.log
 // See https://www.npmjs.com/package/electron-log
 Object.assign(console, log.functions);
 
@@ -79,7 +79,7 @@ const mainWindow = (() => {
             const windowMenu = systemMenu.items.find(item => item.role === 'windowmenu');
             windowMenu.submenu.append(new MenuItem({type: 'separator'}));
             windowMenu.submenu.append(new MenuItem({
-                label: 'Expensify Chat',
+                label: 'Expensify.cash',
                 accelerator: 'CmdOrCtrl+1',
                 click: () => browserWindow.show()
             }));
