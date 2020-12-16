@@ -11,7 +11,7 @@ import {
 import {SafeAreaInsetsContext, SafeAreaProvider} from 'react-native-safe-area-context';
 import {withOnyx} from 'react-native-onyx';
 import {Route} from '../../libs/Router';
-import styles, {getSafeAreaPadding} from '../../styles/StyleSheet';
+import styles, {getSafeAreaPadding} from '../../styles/styles';
 import variables from '../../styles/variables';
 import Header from './HeaderView';
 import Sidebar from './sidebar/SidebarView';
@@ -191,7 +191,6 @@ class App extends React.Component {
             ? styles.hamburgerOpenAbsolute : styles.hamburgerOpen;
         const visibility = !this.state.isHamburgerEnabled || this.props.isSidebarShown ? styles.dFlex : styles.dNone;
         const appContentWrapperStyle = !this.state.isHamburgerEnabled ? styles.appContentWrapperLarge : null;
-        const appContentStyle = !this.state.isHamburgerEnabled ? styles.appContentRounded : null;
         return (
             <SafeAreaProvider>
                 <CustomStatusBar />
@@ -228,7 +227,7 @@ class App extends React.Component {
                                     onPress={this.dismissHamburger}
                                 >
                                     <View
-                                        style={[styles.appContent, appContentStyle, styles.flex1, styles.flexColumn]}
+                                        style={[styles.appContent, styles.flex1, styles.flexColumn]}
                                     >
                                         <Header
                                             shouldShowHamburgerButton={this.state.isHamburgerEnabled}
