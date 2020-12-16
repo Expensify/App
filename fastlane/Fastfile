@@ -52,7 +52,7 @@ platform :ios do
 
     build_app(
         workspace: "./ios/ExpensifyCash.xcworkspace",
-        scheme: "ReactNativeChat"
+        scheme: "ExpensifyCash"
     )
   end
 
@@ -84,7 +84,7 @@ platform :ios do
 
     build_app(
         workspace: "./ios/ExpensifyCash.xcworkspace",
-        scheme: "ReactNativeChat"
+        scheme: "ExpensifyCash"
     )
 
     upload_to_testflight(
