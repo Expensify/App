@@ -10,7 +10,7 @@ import listenToStorageEvents from './libs/listenToStorageEvents';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import ONYXKEYS from './ONYXKEYS';
 
-import styles from './styles/StyleSheet';
+import styles from './styles/styles';
 import Log from './libs/Log';
 
 import {
