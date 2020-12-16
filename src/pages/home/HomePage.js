@@ -48,11 +48,11 @@ const defaultProps = {
     isChatSwitcherActive: false,
 };
 
-Timing.start(CONST.TIMING.HOMEPAGE_RENDERED);
-Timing.start(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
-
 class App extends React.Component {
     constructor(props) {
+        Timing.start(CONST.TIMING.HOMEPAGE_RENDERED);
+        Timing.start(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
+
         super(props);
 
         this.state = {
