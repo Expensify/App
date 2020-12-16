@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {Text} from 'react-native';
 import DateUtils from '../../../libs/DateUtils';
-import styles from '../../../styles/StyleSheet';
+import styles from '../../../styles/styles';
 
 const propTypes = {
     // UTC timestamp for when the action was created

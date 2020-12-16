@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {
     View, Image, TouchableOpacity, Text
 } from 'react-native';
-import styles from '../styles/StyleSheet';
+import styles from '../styles/styles';
 import exitIcon from '../../assets/images/icon-x--20x20.png';
 
 const propTypes = {
