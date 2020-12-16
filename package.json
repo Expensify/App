@@ -1,9 +1,9 @@
 {
-  "name": "react-native-chat",
-  "version": "1.0.1-255",
+  "name": "expensify.cash",
+  "version": "1.0.1-262",
   "author": "Expensify, Inc.",
-  "homepage": "https://expensify.com",
-  "description": "Expensify Chat",
+  "homepage": "https://expensify.cash",
+  "description": "Expensify.cash is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
   "license": "MIT",
   "private": true,
   "scripts": {

@@ -27,12 +27,12 @@ app.commandLine.appendSwitch('disable-web-security');
 // See https://github.com/sindresorhus/electron-context-menu
 contextMenu();
 
-// Send all autoUpdater logs to a log file: ~/Library/Logs/react-native-chat/main.log
+// Send all autoUpdater logs to a log file: ~/Library/Logs/expensify.cash/main.log
 // See https://www.npmjs.com/package/electron-log
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = 'info';
 
-// Send all Console logs to a log file: ~/Library/Logs/react-native-chat/main.log
+// Send all Console logs to a log file: ~/Library/Logs/expensify.cash/main.log
 // See https://www.npmjs.com/package/electron-log
 Object.assign(console, log.functions);
 
@@ -67,10 +67,19 @@ const mainWindow = (() => {
                     click: () => { browserWindow.webContents.goForward(); }
                 }]
             }));
+
+            // On mac, pressing cmd++ actually sends a cmd+=. cmd++ is generally the zoom in shortcut, but this is
+            // not properly listened for by electron. Adding in an invisible cmd+= listener fixes this.
+            const viewWindow = systemMenu.items.find(item => item.role === 'viewmenu');
+            viewWindow.submenu.append(new MenuItem({
+                role: 'zoomin',
+                accelerator: 'CommandOrControl+=',
+                visible: false
+            }));
             const windowMenu = systemMenu.items.find(item => item.role === 'windowmenu');
             windowMenu.submenu.append(new MenuItem({type: 'separator'}));
             windowMenu.submenu.append(new MenuItem({
-                label: 'Expensify Chat',
+                label: 'Expensify.cash',
                 accelerator: 'CmdOrCtrl+1',
                 click: () => browserWindow.show()
             }));

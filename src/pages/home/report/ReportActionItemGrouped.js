@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import ReportActionItemMessage from './ReportActionItemMessage';
-import styles from '../../../styles/StyleSheet';
+import styles from '../../../styles/styles';
 
 const propTypes = {
     // All the data of the action
