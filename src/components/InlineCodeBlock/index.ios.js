@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
 import {View} from 'react-native';
-import styles from '../../styles/StyleSheet';
+import styles from '../../styles/styles';
 import inlineCodeBlockPropTypes from './inlineCodeBlockPropTypes';
 
 const InlineCodeBlock = ({

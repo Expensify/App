@@ -3,7 +3,7 @@ import {Image, View, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
-import styles, {getSafeAreaMargins} from '../../../styles/StyleSheet';
+import styles, {getSafeAreaMargins} from '../../../styles/styles';
 import Text from '../../../components/Text';
 import AppLinks from './AppLinks';
 import {signOut} from '../../../libs/actions/Session';
