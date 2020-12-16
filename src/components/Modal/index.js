@@ -50,7 +50,8 @@ const Modal = (props) => {
             onSwipeComplete={props.onClose}
             swipeDirection={swipeDirection}
             isVisible={props.isVisible}
-            backdropOpacity={0.3}
+            backdropColor={themeColors.modalBackdrop}
+            backdropOpacity={0.5}
             backdropTransitionOutTiming={0}
             style={modalStyle}
             animationIn={animationIn}
