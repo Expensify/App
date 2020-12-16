@@ -43,8 +43,8 @@ export default (type, windowDimensions) => {
             };
 
             swipeDirection = undefined;
-            animationIn = 'fadeIn';
-            animationOut = 'fadeOut';
+            animationIn = isSmallScreen ? 'slideInRight' : 'fadeIn';
+            animationOut = isSmallScreen ? 'slideOutRight' : 'fadeOut';
             needsSafeAreaPadding = true;
             break;
         default:

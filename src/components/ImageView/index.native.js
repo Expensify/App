@@ -26,8 +26,9 @@ class ImageView extends React.Component {
 
     render() {
         // Default windowHeight accounts for the modal header height
-        const windowHeight = Dimensions.get('window').height - variables.modalHeaderBarHeight;
+        const windowHeight = Dimensions.get('window').height - variables.contentHeaderHeight;
         const windowWidth = Dimensions.get('window').width;
+
         return (
             <View
                 style={[
