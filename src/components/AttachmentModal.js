@@ -1,13 +1,14 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {
-    View, TouchableOpacity, Text,
+    View, TouchableOpacity, Text, Dimensions,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import MODAL_TYPE from './Modal/MODAL_TYPE';
 import ModalWithHeader from './ModalWithHeader';
 import AttachmentView from './AttachmentView';
 import styles, {colors} from '../styles/StyleSheet';
+import variables from '../styles/variables';
 import ONYXKEYS from '../ONYXKEYS';
 import addAuthTokenToURL from '../libs/addAuthTokenToURL';
 
@@ -64,6 +65,10 @@ class AttachmentModal extends Component {
             required: this.props.isAuthTokenRequired,
         });
 
+        const isSmallScreen = Dimensions.get('window').width < variables.mobileResponsiveWidthBreakpoint;
+        const attachmentViewStyles = isSmallScreen
+            ? [styles.imageModalImageCenterContainer]
+            : [styles.imageModalImageCenterContainer, {padding: 20}];
         return (
             <>
                 <ModalWithHeader
@@ -73,7 +78,7 @@ class AttachmentModal extends Component {
                     title={this.props.title}
                     backgroundColor={colors.componentBG}
                 >
-                    <View style={[styles.imageModalImageCenterContainer, {padding: 20}]}>
+                    <View style={attachmentViewStyles}>
                         {this.state.sourceURL && (
                             <AttachmentView sourceURL={sourceURL} file={this.state.file} />
                         )}
