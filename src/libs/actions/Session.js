@@ -53,7 +53,7 @@ function signIn(partnerUserID, partnerUserSecret, twoFactorAuthCode = '', exitTo
         // After the user authenticates, create a new login for the user so that we can reauthenticate when the
         // authtoken expires
         .then((authenticateResponse) => {
-            const login = Str.guid('react-native-chat-');
+            const login = Str.guid('expensify.cash-');
             const password = Str.guid();
 
             API.CreateLogin({
