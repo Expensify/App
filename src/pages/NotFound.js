@@ -6,7 +6,7 @@ import {
     TouchableOpacity,
     SafeAreaView,
 } from 'react-native';
-import styles from '../styles/StyleSheet';
+import styles from '../styles/styles';
 import logo from '../../assets/images/expensify-logo_reversed.png';
 import {redirect} from '../libs/actions/App';
 import ROUTES from '../ROUTES';
