@@ -1,4 +1,4 @@
-# React Native Chat
+# [Expensify.cash](https://Expensify.cash)
 
 # Philosophy
 This application is built with the following principles.

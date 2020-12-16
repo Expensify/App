@@ -36,7 +36,7 @@ export default {
         APP_KEY: Config.PUSHER_APP_KEY,
         CLUSTER: 'mt1',
     },
-    SITE_TITLE: 'Chat',
+    SITE_TITLE: 'Expensify.cash',
     FAVICON: {
         DEFAULT: 'favicon.png',
         UNREAD: 'favicon-unread.png'
