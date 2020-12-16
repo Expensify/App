@@ -86,16 +86,14 @@ module.exports = {
                 },
             },
 
-            // Gives the ability to load local images
+            // Gives the ability to load local images using @2x, @3x
             {
-                test: /\.(gif|jpe?g|png|svg)$/,
-                use: {
-                    loader: "file-loader",
-                    options: {
-                        name: "[name].[ext]",
-                        esModule: false,
-                    },
+                test: /\.(png|jpe?g|gif)$/,
+                options: {
+                    esModule: false,
+                    scalings: {'@2x': 2, '@3x': 3},
                 },
+                loader: 'react-native-web-image-loader',
             },
         ],
     },
