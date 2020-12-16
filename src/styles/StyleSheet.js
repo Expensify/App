@@ -939,7 +939,6 @@ const styles = {
     imageModalImageCenterContainer: {
         alignItems: 'center',
         flex: 1,
-        padding: 20,
         justifyContent: 'center',
         width: '100%',
     },
