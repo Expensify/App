@@ -4,14 +4,14 @@ module.exports = {
     configurations: {
         'ios.sim.debug': {
             binaryPath: 'ios/build/Build/Products/Debug-iphonesimulator/expensify.cash.app',
-            build: 'xcodebuild -workspace ios/ReactNativeChat.xcworkspace -scheme ReactNativeChat -configuration '
+            build: 'xcodebuild -workspace ios/ExpensifyCash.xcworkspace -scheme ReactNativeChat -configuration '
                 + 'Debug -sdk iphonesimulator -derivedDataPath ios/build | xcpretty',
             type: 'ios.simulator',
             name: 'iPhone 11'
         },
         'ios.sim.release': {
             binaryPath: 'ios/build/Build/Products/Release-iphonesimulator/expensify.cash.app',
-            build: 'xcodebuild -workspace ios/ReactNativeChat.xcworkspace -scheme ReactNativeChat -configuration '
+            build: 'xcodebuild -workspace ios/ExpensifyCash.xcworkspace -scheme ReactNativeChat -configuration '
                 + 'Release -sdk iphonesimulator -derivedDataPath ios/build | xcpretty',
             type: 'ios.simulator',
             name: 'iPhone 11'
