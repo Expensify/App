@@ -16,8 +16,8 @@
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
                BuildableName = "Chat.app"
-               BlueprintName = "ReactNativeChat"
-               ReferencedContainer = "container:ReactNativeChat.xcodeproj">
+               BlueprintName = "ExpensifyCash"
+               ReferencedContainer = "container:ExpensifyCash.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "ReactNativeChatTests.xctest"
-               BlueprintName = "ReactNativeChatTests"
-               ReferencedContainer = "container:ReactNativeChat.xcodeproj">
+               BuildableName = "ExpensifyCashTests.xctest"
+               BlueprintName = "ExpensifyCashTests"
+               ReferencedContainer = "container:ExpensifyCash.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -56,8 +56,8 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
             BuildableName = "Chat.app"
-            BlueprintName = "ReactNativeChat"
-            ReferencedContainer = "container:ReactNativeChat.xcodeproj">
+            BlueprintName = "ExpensifyCash"
+            ReferencedContainer = "container:ExpensifyCash.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -73,8 +73,8 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
             BuildableName = "Chat.app"
-            BlueprintName = "ReactNativeChat"
-            ReferencedContainer = "container:ReactNativeChat.xcodeproj">
+            BlueprintName = "ExpensifyCash"
+            ReferencedContainer = "container:ExpensifyCash.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
