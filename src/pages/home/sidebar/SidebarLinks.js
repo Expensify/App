@@ -5,8 +5,7 @@ import PropTypes from 'prop-types';
 import lodashOrderby from 'lodash.orderby';
 import get from 'lodash.get';
 import {withOnyx} from 'react-native-onyx';
-import styles from '../../../styles/StyleSheet';
-import Text from '../../../components/Text';
+import styles from '../../../styles/styles';
 import ONYXKEYS from '../../../ONYXKEYS';
 import ChatSwitcherView from './ChatSwitcherView';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
@@ -88,8 +87,8 @@ const SidebarLinks = (props) => {
         : [styles.sidebarListContainer, styles.dNone];
 
     const chatSwitcherStyle = props.isChatSwitcherActive
-        ? [styles.sidebarHeader, styles.flexGrow1]
-        : [styles.sidebarHeader, styles.flexGrow0];
+        ? [styles.sidebarHeader, styles.sidebarHeaderActive]
+        : [styles.sidebarHeader];
 
     return (
         <View style={[styles.flex1, {marginTop: props.insets.top}]}>
@@ -104,13 +103,7 @@ const SidebarLinks = (props) => {
                 style={sidebarLinksStyle}
                 bounces={false}
                 indicatorStyle="white"
-                stickyHeaderIndices={[0]}
             >
-                <View style={[styles.sidebarListItem]}>
-                    <Text style={[styles.sidebarListHeader]}>
-                        Chats
-                    </Text>
-                </View>
                 {/* A report will not have a report name if it hasn't been fetched from the server yet */}
                 {/* so nothing is rendered */}
                 {_.map(reportsToDisplay, (report) => {
