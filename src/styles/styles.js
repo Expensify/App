@@ -2,10 +2,17 @@
 import fontFamily from './fontFamily';
 import italic from './italic';
 import addOutlineWidth from './addOutlineWidth';
+import themeColors from './themes/default';
 import fontWeightBold from './fontWeight/bold';
 
 const variables = {
-    modalHeaderBarHeight: 73,
+    contentHeaderHeight: 65,
+    componentSizeNormal: 40,
+    componentSizeSmall: 28,
+    componentBorderRadius: 8,
+    fontSizeSmall: 11,
+    fontSizeLabel: 13,
+    fontSizeNormal: 15,
     safeInsertPercentage: 0.7,
 };
 
@@ -55,7 +62,7 @@ const styles = {
     },
 
     ml1: {
-        marginLeft: 10,
+        marginLeft: 4,
     },
 
     ml2: {
@@ -65,8 +72,13 @@ const styles = {
     mt2: {
         marginTop: 20,
     },
+
     mt1: {
-        marginTop: 10,
+        marginTop: 4,
+    },
+
+    mt3: {
+        marginTop: 12,
     },
 
     mb1: {
@@ -160,42 +172,30 @@ const styles = {
         display: 'none',
     },
 
-    bgHighlight: {
-        backgroundColor: 'yellow',
-    },
-
-    bgHighlight2: {
-        backgroundColor: 'green',
-    },
-
-    bgHighlight3: {
-        backgroundColor: 'pink',
-    },
-
     overflowHidden: {
         overflow: 'hidden',
     },
 
     h4: {
         fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeLabel,
         fontWeight: fontWeightBold,
-        fontSize: 13,
     },
 
     textP: {
-        color: colors.text,
-        fontSize: 15,
+        color: themeColors.text,
+        fontSize: variables.fontSizeNormal,
         lineHeight: 20,
     },
 
     textLabel: {
-        color: colors.text,
-        fontSize: 13,
+        color: themeColors.text,
+        fontSize: variables.fontSizeLabel,
         lineHeight: 18,
     },
 
     textMicro: {
-        fontSize: 11,
+        fontSize: variables.fontSizeSmall,
     },
 
     textStrong: {
@@ -208,30 +208,30 @@ const styles = {
     },
 
     colorReversed: {
-        color: colors.textReversed,
+        color: themeColors.textReversed,
     },
 
     colorMutedReversed: {
-        color: colors.icon,
+        color: themeColors.textMutedReversed,
     },
 
     button: {
-        borderColor: colors.border,
-        borderRadius: 8,
+        borderColor: themeColors.border,
+        borderRadius: variables.componentBorderRadius,
         borderWidth: 1,
-        height: 40,
+        height: variables.componentSizeNormal,
         justifyContent: 'center',
     },
 
     buttonText: {
-        color: colors.text,
+        color: themeColors.text,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
     },
 
     buttonSmall: {
-        height: 28,
+        height: variables.componentSizeSmall,
         paddingTop: 6,
         paddingRight: 10,
         paddingBottom: 6,
@@ -239,12 +239,12 @@ const styles = {
     },
 
     buttonSmallText: {
-        fontSize: 11,
+        fontSize: variables.fontSizeSmall,
         lineHeight: 16,
     },
 
     buttonSuccess: {
-        backgroundColor: colors.green,
+        backgroundColor: themeColors.buttonSuccessBG,
         borderWidth: 0,
     },
 
@@ -258,21 +258,21 @@ const styles = {
     },
 
     buttonSuccessText: {
-        color: colors.textReversed,
+        color: themeColors.textReversed,
     },
 
     touchableButtonImage: {
         alignItems: 'center',
-        height: 40,
+        height: variables.componentSizeNormal,
         justifyContent: 'center',
         marginRight: 8,
-        width: 40,
+        width: variables.componentSizeNormal,
     },
 
     pill: {
         borderRadius: 14,
-        backgroundColor: colors.text,
-        height: 28,
+        backgroundColor: themeColors.pillBG,
+        height: variables.componentSizeSmall,
         flexDirection: 'row',
         paddingTop: 6,
         paddingBottom: 6,
@@ -282,13 +282,14 @@ const styles = {
     },
 
     pillText: {
-        color: colors.componentBG,
+        color: themeColors.text,
         weight: '400',
-        fontSize: 11,
+        fontSize: variables.fontSizeSmall,
         lineHeight: 16,
         marginRight: 4,
         userSelect: 'none',
-        maxWidth: 160,
+        maxWidth: 144,
+        whiteSpace: 'nowrap',
     },
 
     pillCancelIcon: {
@@ -298,8 +299,8 @@ const styles = {
 
     navText: {
         fontFamily: fontFamily.GTA,
-        color: colors.heading,
-        fontSize: 17,
+        color: themeColors.heading,
+        fontSize: variables.fontSizeNormal,
         fontWeight: '700',
     },
 
@@ -314,9 +315,9 @@ const styles = {
     },
 
     typingIndicatorSubText: {
-        color: colors.textSupporting,
+        color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
-        fontSize: 11,
+        fontSize: variables.fontSizeSmall,
         marginLeft: 48,
     },
 
@@ -324,19 +325,19 @@ const styles = {
     actionAvatar: {
         borderRadius: 20,
         marginRight: 8,
-        height: 40,
-        width: 40,
+        height: variables.componentSizeNormal,
+        width: variables.componentSizeNormal,
     },
 
     textInput: {
-        backgroundColor: colors.componentBG,
-        borderRadius: 8,
-        height: 40,
-        borderColor: colors.border,
+        backgroundColor: themeColors.componentBG,
+        borderRadius: variables.componentBorderRadius,
+        height: variables.componentSizeNormal,
+        borderColor: themeColors.border,
         borderWidth: 1,
-        color: colors.text,
+        color: themeColors.text,
         fontFamily: fontFamily.GTA,
-        fontSize: 15,
+        fontSize: variables.fontSizeNormal,
         paddingLeft: 12,
         paddingRight: 12,
         paddingTop: 10,
@@ -345,44 +346,53 @@ const styles = {
     },
 
     textInputReversed: addOutlineWidth({
-        backgroundColor: colors.heading,
-        borderColor: colors.text,
-        color: colors.textReversed,
+        backgroundColor: themeColors.heading,
+        borderColor: themeColors.text,
+        color: themeColors.textReversed,
     }, 0),
 
     textInputReversedFocus: {
-        borderColor: colors.icon,
+        borderColor: themeColors.icon,
     },
 
     textInputNoOutline: addOutlineWidth({}, 0),
 
     formLabel: {
-        fontSize: 13,
+        color: themeColors.heading,
+        fontSize: variables.fontSizeLabel,
         fontWeight: '600',
         lineHeight: 18,
         marginBottom: 4,
     },
 
     formError: {
-        color: colors.red,
-        fontSize: 13,
+        color: themeColors.errorText,
+        fontSize: variables.fontSizeLabel,
         lineHeight: 18,
         marginBottom: 4,
     },
 
     signInPage: {
-        backgroundColor: colors.heading,
+        backgroundColor: themeColors.sidebar,
         height: '100%',
         padding: 20,
     },
 
+    signInPageLogo: {
+        alignItems: 'center',
+        height: variables.componentSizeNormal,
+        justifyContent: 'center',
+        width: '100%',
+        marginBottom: 24,
+    },
+
     signinLogo: {
-        height: 21,
-        width: 143,
+        height: variables.componentSizeNormal,
+        width: variables.componentSizeNormal,
     },
 
     genericView: {
-        backgroundColor: colors.heading,
+        backgroundColor: themeColors.heading,
         height: '100%',
     },
 
@@ -393,51 +403,50 @@ const styles = {
         width: '100%',
     },
 
-    signInPageLogo: {
-        height: 72,
-        justifyContent: 'center',
-        width: '100%',
-    },
-
     // Sidebar Styles
     sidebar: {
-        backgroundColor: colors.heading,
+        backgroundColor: themeColors.sidebar,
     },
 
     sidebarHeader: {
-        minHeight: 72,
-        paddingTop: 16,
-        paddingRight: 12,
-        paddingBottom: 16,
-        paddingLeft: 12,
+        flexGrow: 0,
+    },
+
+    sidebarHeaderActive: {
+        flexGrow: 1,
+        height: '100%',
+    },
+
+    sidebarHeaderTop: {
+        paddingHorizontal: 20,
+        paddingVertical: 12,
     },
 
     sidebarHeaderLogo: {
-        height: 40,
-        width: 40,
+        height: variables.componentSizeNormal,
+        width: variables.componentSizeNormal,
     },
 
     sidebarFooter: {
         alignItems: 'center',
         display: 'flex',
         flexDirection: 'row',
-        height: 85,
+        height: 84,
         justifyContent: 'flex-start',
-        paddingLeft: 24,
-        paddingRight: 24,
+        paddingHorizontal: 20,
         width: '100%',
     },
 
     sidebarFooterAvatar: {
-        backgroundColor: colors.text,
+        backgroundColor: themeColors.text,
         borderRadius: 20,
-        height: 40,
+        height: variables.componentSizeNormal,
         marginRight: 12,
-        width: 40,
+        width: variables.componentSizeNormal,
     },
 
     statusIndicator: {
-        borderColor: colors.heading,
+        borderColor: themeColors.sidebar,
         borderRadius: 7,
         borderWidth: 2,
         position: 'absolute',
@@ -449,22 +458,22 @@ const styles = {
     },
 
     statusIndicatorOnline: {
-        backgroundColor: colors.green,
+        backgroundColor: themeColors.online,
     },
 
     statusIndicatorOffline: {
-        backgroundColor: colors.icon,
+        backgroundColor: themeColors.offline,
     },
 
     sidebarFooterUsername: {
-        color: colors.textReversed,
-        fontSize: 15,
+        color: themeColors.heading,
+        fontSize: variables.fontSizeLabel,
         fontWeight: '700',
     },
 
     sidebarFooterLink: {
-        color: colors.icon,
-        fontSize: 11,
+        color: themeColors.textSupporting,
+        fontSize: variables.fontSizeSmall,
         textDecorationLine: 'none',
         fontFamily: fontFamily.GTA,
         lineHeight: 20,
@@ -476,24 +485,11 @@ const styles = {
         scrollbarWidth: 'none',
         overflow: 'scroll',
         paddingBottom: 4,
-        paddingLeft: 12,
-        paddingRight: 12,
-    },
-
-    sidebarListHeader: {
-        color: colors.textReversed,
-        fontSize: 15,
-        fontWeight: '700',
-        paddingTop: 8,
-        paddingRight: 8,
-        paddingBottom: 8,
-        paddingLeft: 8,
     },
 
     sidebarListItem: {
         justifyContent: 'center',
         textDecorationLine: 'none',
-        backgroundColor: colors.heading,
     },
 
     chatLinkRowPressable: {
@@ -509,84 +505,66 @@ const styles = {
     sidebarLinkInner: {
         alignItems: 'center',
         flexDirection: 'row',
-        height: 48,
-        paddingTop: 10,
-        paddingRight: 8,
-        paddingBottom: 10,
-        paddingLeft: 8,
+        height: 64,
+        paddingTop: 12,
+        paddingRight: 20,
+        paddingBottom: 12,
+        paddingLeft: 20,
     },
 
     sidebarLinkText: {
-        color: colors.icon,
-        fontSize: 13,
+        color: themeColors.text,
+        fontSize: variables.fontSizeLabel,
         textDecorationLine: 'none',
         overflow: 'hidden',
     },
 
     sidebarLinkActive: {
-        backgroundColor: colors.text,
-        borderRadius: 8,
+        backgroundColor: themeColors.border,
         textDecorationLine: 'none',
     },
 
     sidebarLinkTextUnread: {
-        fontWeight: '600',
-        color: colors.textReversed,
+        fontWeight: '700',
+        color: themeColors.heading,
     },
 
     sidebarLinkActiveText: {
-        color: colors.textReversed,
-        fontSize: 13,
+        color: themeColors.text,
+        fontSize: variables.fontSizeLabel,
         textDecorationLine: 'none',
         overflow: 'hidden',
     },
 
     chatSwitcherDisplayName: {
         fontFamily: fontFamily.GTA,
+        height: 18,
+        lineHeight: 18,
+        whiteSpace: 'nowrap',
+    },
+
+    chatSwitcherLogin: {
+        color: themeColors.textSupporting,
+        fontFamily: fontFamily.GTA,
         height: 16,
         lineHeight: 16,
     },
 
-    chatSwitcherLogin: {
-        fontFamily: fontFamily.GTA,
-        height: 12,
-        lineHeight: 12,
-    },
-
-    unreadBadge: {
-        backgroundColor: colors.green,
-        borderRadius: 15,
-        height: 10,
-        marginTop: 3,
-        width: 10,
-    },
-
     // App Content Wrapper styles
     appContentWrapper: {
-        backgroundColor: colors.background,
-        color: colors.text,
-    },
-
-    // App Content Wrapper styles for large screens
-    // The darker BG color allows the rounded corners to show through
-    appContentWrapperLarge: {
-        backgroundColor: colors.heading,
+        backgroundColor: themeColors.appBG,
+        color: themeColors.text,
     },
 
     appContent: {
-        backgroundColor: colors.background,
+        backgroundColor: themeColors.appBG,
         overflow: 'hidden',
-    },
-
-    appContentRounded: {
-        borderTopLeftRadius: 12,
-        borderBottomLeftRadius: 12,
     },
 
     appContentHeader: {
         borderBottomWidth: 1,
-        borderBottomColor: colors.border,
-        height: 73,
+        borderColor: themeColors.border,
+        height: variables.contentHeaderHeight,
         justifyContent: 'center',
         display: 'flex',
         paddingLeft: 20,
@@ -600,10 +578,10 @@ const styles = {
 
     LHNToggle: {
         alignItems: 'center',
-        height: 40,
+        height: variables.componentSizeNormal,
         justifyContent: 'center',
         marginRight: 8,
-        width: 40,
+        width: variables.componentSizeNormal,
     },
 
     LHNToggleIcon: {
@@ -672,8 +650,8 @@ const styles = {
     },
 
     chatItemMessageHeaderSender: {
-        color: colors.heading,
-        fontSize: 15,
+        color: themeColors.heading,
+        fontSize: variables.fontSizeNormal,
         height: 24,
         lineHeight: 20,
         fontWeight: '600',
@@ -682,15 +660,15 @@ const styles = {
     },
 
     chatItemMessageHeaderTimestamp: {
-        color: colors.textSupporting,
-        fontSize: 11,
+        color: themeColors.textSupporting,
+        fontSize: variables.fontSizeSmall,
         height: 24,
         lineHeight: 20,
     },
 
     chatItemMessage: {
-        color: colors.text,
-        fontSize: 15,
+        color: themeColors.text,
+        fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.GTA,
         lineHeight: 20,
         marginTop: -2,
@@ -708,18 +686,18 @@ const styles = {
     },
 
     chatItemComposeBoxColor: {
-        borderColor: colors.border,
+        borderColor: themeColors.border,
     },
 
     chatItemComposeBoxFocusedColor: {
-        borderColor: colors.blue,
+        borderColor: themeColors.borderFocus,
     },
 
     chatItemComposeBox: {
-        backgroundColor: colors.componentBG,
+        backgroundColor: themeColors.componentBG,
         borderWidth: 1,
-        borderRadius: 8,
-        minHeight: 40,
+        borderRadius: variables.componentBorderRadius,
+        minHeight: variables.componentSizeNormal,
     },
 
     textInputCompose: addOutlineWidth({
@@ -758,7 +736,7 @@ const styles = {
     chatItemAttachButton: {
         alignItems: 'center',
         alignSelf: 'flex-end',
-        borderRightColor: colors.border,
+        borderRightColor: themeColors.border,
         borderRightWidth: 1,
         height: 26,
         marginBottom: 6,
@@ -768,10 +746,10 @@ const styles = {
     },
 
     chatItemAttachmentPlaceholder: {
-        backgroundColor: colors.border,
-        borderColor: colors.borderLight,
+        backgroundColor: themeColors.sidebar,
+        borderColor: themeColors.border,
         borderWidth: 1,
-        borderRadius: 8,
+        borderRadius: variables.componentBorderRadius,
         height: 150,
         textAlign: 'center',
         verticalAlign: 'middle',
@@ -780,7 +758,7 @@ const styles = {
 
     chatSwitcherInputClear: {
         alignSelf: 'flex-end',
-        height: 40,
+        height: variables.componentSizeNormal,
         justifyContent: 'center',
     },
 
@@ -792,9 +770,10 @@ const styles = {
     chatSwitcherGroupDMContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        borderRadius: 8,
+        backgroundColor: themeColors.appBG,
+        borderRadius: variables.componentBorderRadius,
         borderWidth: 1,
-        borderColor: colors.textSupporting,
+        borderColor: themeColors.border,
         paddingTop: 0,
         paddingRight: 3,
         paddingBottom: 0,
@@ -806,7 +785,7 @@ const styles = {
         alignSelf: 'flex-start',
         flexDirection: 'row',
         flexWrap: 'wrap',
-        maxWidth: 190,
+        maxWidth: 177,
         overflow: 'hidden',
     },
 
@@ -815,16 +794,15 @@ const styles = {
     },
 
     chatSwitcherGroupDMTextInput: {
-        backgroundColor: colors.sidebar,
-        color: colors.textReversed,
+        backgroundColor: themeColors.componentBG,
+        color: themeColors.text,
         fontFamily: fontFamily.GTA,
-        fontSize: 15,
+        fontSize: variables.fontSizeNormal,
         flexGrow: 1,
-        height: 28,
-        width: 186,
+        height: variables.componentSizeSmall,
+        width: '100%',
         marginTop: 5,
         marginBottom: 5,
-        marginLeft: 3,
         padding: 0,
     },
 
@@ -840,45 +818,48 @@ const styles = {
     },
 
     chatSwitcherMessage: {
-        paddingLeft: 12,
-        paddingRight: 12,
+        padding: 20,
     },
 
     hamburgerOpenAbsolute: {
+        borderRightWidth: 1,
+        borderColor: themeColors.border,
         position: 'absolute',
         left: 0,
         top: 0,
         bottom: 0,
         zIndex: 2,
         width: 300,
-        shadowColor: colors.black,
+        shadowColor: themeColors.shadow,
         shadowOffset: {
             width: 0,
             height: 0,
         },
-        shadowOpacity: 0.3,
+        shadowOpacity: 0.15,
         shadowRadius: 20,
     },
 
     hamburgerOpen: {
+        borderRightWidth: 1,
+        borderColor: themeColors.border,
         width: 300,
     },
 
     chatSwitcherAvatar: {
-        backgroundColor: colors.text,
-        borderRadius: 14,
-        height: 28,
+        backgroundColor: themeColors.icon,
+        borderRadius: 20,
+        height: variables.componentSizeNormal,
         overflow: 'hidden',
-        width: 28,
+        width: variables.componentSizeNormal,
     },
 
     chatSwitcherAvatarImage: {
-        height: 28,
-        width: 28,
+        height: variables.componentSizeNormal,
+        width: variables.componentSizeNormal,
     },
 
     chatSwitcherItemText: {
-        color: colors.text,
+        color: themeColors.text,
     },
 
     chatSwitcherItemAvatarNameWrapper: {
@@ -887,27 +868,27 @@ const styles = {
     },
 
     chatSwitcherItemButton: {
-        backgroundColor: 'rgba(255, 255, 255, 0.15)',
+        backgroundColor: themeColors.sidebarButtonBG,
         paddingTop: 6,
         paddingRight: 8,
         paddingBottom: 6,
         paddingLeft: 8,
-        borderRadius: 8,
-        height: 28,
+        borderRadius: variables.componentBorderRadius,
+        height: variables.componentSizeSmall,
         marginLeft: 4,
     },
 
     chatSwitcherItemButtonText: {
-        color: colors.componentBG,
+        color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
-        fontSize: 11,
+        fontSize: variables.fontSizeSmall,
         lineHeight: 16,
         fontWeight: fontWeightBold,
     },
 
     modalViewContainerMobile: {
-        backgroundColor: colors.componentBG,
-        borderColor: colors.border,
+        backgroundColor: themeColors.componentBG,
+        borderColor: themeColors.border,
         borderWidth: 1,
         height: '100%',
         alignItems: 'center',
@@ -915,8 +896,8 @@ const styles = {
     },
 
     modalViewContainer: {
-        backgroundColor: colors.componentBG,
-        borderColor: colors.border,
+        backgroundColor: themeColors.componentBG,
+        borderColor: themeColors.border,
         borderWidth: 1,
         borderRadius: 12,
         height: '100%',
@@ -931,14 +912,14 @@ const styles = {
         paddingLeft: 32,
         paddingRight: 20,
         borderBottomWidth: 1,
-        borderColor: colors.border,
-        height: variables.modalHeaderBarHeight,
+        borderColor: themeColors.border,
+        height: variables.contentHeaderHeight,
         width: '100%',
     },
 
     imageModalPDF: {
         flex: 1,
-        backgroundColor: colors.componentBG,
+        backgroundColor: themeColors.componentBG,
     },
 
     modalCenterContentContainer: {
@@ -946,7 +927,7 @@ const styles = {
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: colors.modalBackdrop,
+        backgroundColor: themeColors.modalBackdrop,
     },
 
     imageModalImageCenterContainer: {
@@ -959,10 +940,10 @@ const styles = {
     },
 
     defaultAttachmentView: {
-        backgroundColor: colors.whiteSmoke,
-        borderRadius: 4,
+        backgroundColor: themeColors.sidebar,
+        borderRadius: variables.componentBorderRadius,
         borderWidth: 1,
-        borderColor: colors.whisper,
+        borderColor: themeColors.border,
         flexDirection: 'row',
         paddingTop: 10,
         paddingBottom: 10,
@@ -1024,8 +1005,8 @@ const styles = {
 const baseCodeTagStyles = {
     borderWidth: 1,
     borderRadius: 5,
-    borderColor: colors.border,
-    backgroundColor: colors.textBackground,
+    borderColor: themeColors.border,
+    backgroundColor: themeColors.textBackground,
 };
 
 const webViewStyles = {
@@ -1051,12 +1032,12 @@ const webViewStyles = {
         },
 
         a: {
-            color: colors.blue,
-            textDecorationColor: colors.blue
+            color: themeColors.link,
+            textDecorationColor: themeColors.link,
         },
 
         blockquote: {
-            borderLeftColor: colors.border,
+            borderLeftColor: themeColors.border,
             borderLeftWidth: 4,
             paddingLeft: 12,
             marginTop: 4,
@@ -1089,15 +1070,15 @@ const webViewStyles = {
         },
 
         img: {
-            borderColor: colors.border,
-            borderRadius: 8,
+            borderColor: themeColors.border,
+            borderRadius: variables.componentBorderRadius,
             borderWidth: 1,
         },
     },
 
     baseFontStyle: {
-        color: colors.text,
-        fontSize: 15,
+        color: themeColors.text,
+        fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.GTA,
     },
 };
@@ -1127,5 +1108,5 @@ function getSafeAreaMargins(insets) {
 
 export default styles;
 export {
-    getSafeAreaPadding, getSafeAreaMargins, colors, webViewStyles, variables,
+    getSafeAreaPadding, getSafeAreaMargins, webViewStyles, variables,
 };

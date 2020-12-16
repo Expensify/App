@@ -8,7 +8,7 @@ import HTML, {
     splitBoxModelStyle,
 } from 'react-native-render-html';
 import Config from '../CONFIG';
-import {webViewStyles} from '../styles/StyleSheet';
+import {webViewStyles} from '../styles/styles';
 import fontFamily from '../styles/fontFamily';
 import AnchorForCommentsOnly from './AnchorForCommentsOnly';
 import InlineCodeBlock from './InlineCodeBlock';
