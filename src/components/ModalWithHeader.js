@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import Modal from './Modal';
 import ModalHeader from './ModalHeader';
-import styles from '../styles/StyleSheet';
+import styles from '../styles/styles';
 
 const propTypes = {
     // Title for modal header

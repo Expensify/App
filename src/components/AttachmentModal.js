@@ -7,7 +7,8 @@ import {withOnyx} from 'react-native-onyx';
 import MODAL_TYPE from './Modal/MODAL_TYPE';
 import ModalWithHeader from './ModalWithHeader';
 import AttachmentView from './AttachmentView';
-import styles, {colors} from '../styles/StyleSheet';
+import styles from '../styles/styles';
+import themeColors from '../styles/themes/default';
 import variables from '../styles/variables';
 import ONYXKEYS from '../ONYXKEYS';
 import addAuthTokenToURL from '../libs/addAuthTokenToURL';
@@ -76,7 +77,7 @@ class AttachmentModal extends Component {
                     onClose={() => this.setState({isModalOpen: false})}
                     isVisible={this.state.isModalOpen}
                     title={this.props.title}
-                    backgroundColor={colors.componentBG}
+                    backgroundColor={themeColors.componentBG}
                 >
                     <View style={attachmentViewStyles}>
                         {this.state.sourceURL && (
@@ -88,7 +89,7 @@ class AttachmentModal extends Component {
                     {this.props.onConfirm && (
                         <TouchableOpacity
                             style={[styles.button, styles.buttonSuccess, styles.buttonConfirm]}
-                            underlayColor={colors.componentBG}
+                            underlayColor={themeColors.componentBG}
                             onPress={() => {
                                 this.props.onConfirm(this.state.file);
                                 this.setState({isModalOpen: false});

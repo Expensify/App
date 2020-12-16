@@ -5,7 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import ImageWithSizeCalculation from './ImageWithSizeCalculation';
 import addAuthTokenToURL from '../libs/addAuthTokenToURL';
-import styles from '../styles/StyleSheet';
+import styles from '../styles/styles';
 
 const propTypes = {
     // Source URL for the preview image

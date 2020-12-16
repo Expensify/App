@@ -1,5 +1,5 @@
 import MODAL_TYPE from './MODAL_TYPE';
-import {colors} from '../../styles/StyleSheet';
+import colors from '../../styles/colors';
 import variables from '../../styles/variables';
 
 export default (type, windowDimensions) => {
