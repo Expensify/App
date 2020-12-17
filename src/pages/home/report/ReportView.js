@@ -26,6 +26,12 @@ class ReportView extends React.PureComponent {
         Timing.end(CONST.TIMING.SWITCH_REPORT);
     }
 
+    componentDidUpdate(props) {
+        if (!props.isActiveReport) {
+            Timing.end(CONST.TIMING.SWITCH_REPORT);
+        }
+    }
+
     componentWillUnmount() {
         unsubscribeFromReportChannel(this.props.reportID);
     }

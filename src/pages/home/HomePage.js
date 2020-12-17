@@ -110,6 +110,14 @@ class App extends React.Component {
     }
 
     /**
+     * Method called when a pinned chat is selected.
+     */
+    onChatSelected() {
+        Timing.start(CONST.TIMING.SWITCH_REPORT);
+        this.toggleHamburger();
+    }
+
+    /**
      * Fired when the windows dimensions changes
      * @param {Object} changedWindow
      */
@@ -223,7 +231,9 @@ class App extends React.Component {
                                 >
                                     <Sidebar
                                         insets={insets}
-                                        onLinkClick={this.toggleHamburger}
+                                        onLinkClick={() => {
+                                            this.onChatSelected();
+                                        }}
                                         isChatSwitcherActive={this.props.isChatSwitcherActive}
                                     />
                                 </Animated.View>
