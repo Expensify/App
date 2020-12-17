@@ -22,9 +22,9 @@ function end(eventName) {
         const eventTime = Date.now() - timestampData[eventName];
 
         Graphite_Timer({
-            name: `${Platform.OS}.${eventName}`,
+            name: `expensify.cash.${eventName}`,
             value: eventTime,
-            referer: 'expensify.cash'
+            referer: `${Platform.OS}`
         });
 
         delete timestampData[eventName];
