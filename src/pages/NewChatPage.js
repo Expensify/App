@@ -1,22 +1,24 @@
 import React from 'react';
 import {View, FlatList} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import ModalHeader from '../components/ModalHeader';
 import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
-import TextInputWithFocusStyles from '../components/TextInputWithFocusStyles';
 import SubHeader from '../components/SubHeader';
 import ChatLinkRow from './home/sidebar/ChatLinkRow';
 import KeyboardSpacer from '../components/KeyboardSpacer';
-import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import {getContactList} from '../libs/actions/PersonalDetails';
 import {filterChatSearchOptions} from '../libs/SearchUtils';
+import ChatSearchInput from '../components/ChatSearchInput';
+import {fetchOrCreateChatReport} from '../libs/actions/Report';
 
 class NewChatPage extends React.Component {
     constructor(props) {
         super(props);
 
         this.updateOptions = this.updateOptions.bind(this);
+        this.selectOption = this.selectOption.bind(this);
+
         this.state = {
             options: getContactList(props.personalDetails),
             focusedIndex: 0,
@@ -29,8 +31,16 @@ class NewChatPage extends React.Component {
     }
 
     updateOptions(searchValue) {
-        const options = filterChatSearchOptions(searchValue, this.state.options);
-        this.setState({searchValue, options});
+        const contactList = getContactList(this.props.personalDetails);
+        this.setState({
+            searchValue,
+            options: filterChatSearchOptions(searchValue, contactList)
+        });
+    }
+
+    selectOption(option) {
+        const {email} = this.props.session;
+        fetchOrCreateChatReport([email, option.login]);
     }
 
     render() {
@@ -38,16 +48,41 @@ class NewChatPage extends React.Component {
             <View style={styles.flex1}>
                 <ModalHeader title="New Chat" />
                 <View style={styles.p2}>
-                    <TextInputWithFocusStyles
-                        styleFocusIn={[styles.textInputReversedFocus]}
+                    <ChatSearchInput
                         ref={el => this.textInput = el}
-                        style={[styles.textInput, styles.flex1]}
+                        onChange={this.updateOptions}
                         value={this.state.searchValue}
-                        onChangeText={this.updateOptions}
-                        // onFocus={this.props.onFocus}
-                        // onKeyPress={this.props.onKeyPress}
                         placeholder="Name, email or phone number"
-                        placeholderTextColor={themeColors.textSupporting}
+                        onEnterPress={() => {
+                            this.selectOption(this.state.options[this.state.focusedIndex]);
+                        }}
+                        onArrowDownPress={() => {
+                            let newFocusedIndex = this.state.focusedIndex + 1;
+
+                            // Wrap around to the top of the list
+                            if (newFocusedIndex > this.state.options.length - 1) {
+                                newFocusedIndex = 0;
+                            }
+
+                            this.setState({focusedIndex: newFocusedIndex});
+                        }}
+                        onArrowUpPress={() => {
+                            let newFocusedIndex = this.state.focusedIndex - 1;
+
+                            // Wrap around to the bottom of the list
+                            if (newFocusedIndex < 0) {
+                                newFocusedIndex = this.state.options.length - 1;
+                            }
+
+                            this.setState({focusedIndex: newFocusedIndex});
+                        }}
+                        onEscapePress={() => {
+                            this.setState({
+                                searchValue: '',
+                                options: getContactList(this.props.personalDetails),
+                                focusedIndex: 0,
+                            });
+                        }}
                     />
                 </View>
                 <SubHeader text="CONTACTS" />
@@ -64,7 +99,7 @@ class NewChatPage extends React.Component {
                             <ChatLinkRow
                                 option={item}
                                 optionIsFocused={index === this.state.focusedIndex}
-                                onSelectRow={() => {}}
+                                onSelectRow={this.selectOption}
                                 isChatSwitcher={false}
                             />
                         )}
@@ -82,5 +117,8 @@ class NewChatPage extends React.Component {
 export default withOnyx({
     personalDetails: {
         key: ONYXKEYS.PERSONAL_DETAILS,
+    },
+    session: {
+        key: ONYXKEYS.SESSION,
     },
 })(NewChatPage);

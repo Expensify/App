@@ -422,7 +422,7 @@ function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false) {
  * Get the report ID, and then the actions, for a chat report for a specific
  * set of participants
  *
- * @param {String[]} participants
+ * @param {Array<String>} participants
  */
 function fetchOrCreateChatReport(participants) {
     let reportID;

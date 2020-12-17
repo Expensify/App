@@ -15,6 +15,7 @@ import iconX from '../../../../assets/images/icon-x.png';
 import {getDisplayName} from '../../../libs/actions/PersonalDetails';
 import PillWithCancelButton from '../../../components/PillWithCancelButton';
 import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
+import ChatSearchInput from '../../../components/ChatSearchInput';
 
 const propTypes = {
     // A ref to forward to the text input
@@ -134,16 +135,13 @@ const ChatSwitcherSearchForm = props => (
                 </View>
             )
             : (
-                <TextInputWithFocusStyles
-                    styleFocusIn={[styles.textInputReversedFocus]}
+                <ChatSearchInput
                     ref={props.forwardedRef}
-                    style={[styles.textInput, styles.flex1]}
                     value={props.searchValue}
-                    onChangeText={props.onChangeText}
+                    onChange={props.onChangeText}
                     onFocus={props.onFocus}
                     onKeyPress={props.onKeyPress}
                     placeholder="Find or start a chat"
-                    placeholderTextColor={themeColors.textSupporting}
                 />
             )}
 
