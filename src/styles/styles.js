@@ -176,6 +176,10 @@ const styles = {
         overflow: 'hidden',
     },
 
+    height100percent: {
+        height: '100%',
+    },
+
     h4: {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeLabel,
@@ -406,6 +410,7 @@ const styles = {
     // Sidebar Styles
     sidebar: {
         backgroundColor: themeColors.sidebar,
+        height: '100%',
     },
 
     sidebarHeader: {

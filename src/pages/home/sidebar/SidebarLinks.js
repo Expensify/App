@@ -91,7 +91,7 @@ const SidebarLinks = (props) => {
         : [styles.sidebarHeader];
 
     return (
-        <View style={[styles.flex1, {marginTop: props.insets.top}]}>
+        <View style={[styles.flex1, styles.height100percent, {marginTop: props.insets.top}]}>
             <View style={[chatSwitcherStyle]}>
                 <ChatSwitcherView
                     onLinkClick={props.onLinkClick}
