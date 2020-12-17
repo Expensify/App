@@ -69,6 +69,9 @@ const styles = {
     p1: {
         padding: 10,
     },
+    p2: {
+        padding: 20,
+    },
     pr1: {
         paddingRight: 4,
     },
