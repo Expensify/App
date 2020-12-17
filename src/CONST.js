@@ -9,7 +9,7 @@ const CONST = {
         GROUP_USERS_DM: 'groupUsersDM',
     },
     TIMING: {
-        HOMEPAGE_RENDERED: 'homepage_rendered',
+        HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
         HOMEPAGE_REPORTS_LOADED: 'homepage_reports_loaded',
         SWITCH_REPORT: 'switch_report'
     },
