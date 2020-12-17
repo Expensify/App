@@ -42,6 +42,9 @@ export default (type, windowDimensions) => {
                 width: isSmallScreen ? '100%' : windowDimensions.width - 40,
             };
 
+            // The default swipe direction is swipeDown and by
+            // setting this to undefined we effectively disable the
+            // ability to swipe our modal
             swipeDirection = undefined;
             animationIn = isSmallScreen ? 'slideInRight' : 'fadeIn';
             animationOut = isSmallScreen ? 'slideOutRight' : 'fadeOut';
