@@ -2,7 +2,7 @@
 
 ## Security Rules 🔐
 1. Do **not** use `pull_request_target` trigger unless an external fork needs access to secrets, or a _write_ `GITHUB_TOKEN`.
-1. Do **not ever** write a `pull_request_targer` trigger with an explicit PR checkout, e.g. using `actions/checkout@v2`. This is [discussed further here](https://securitylab.github.com/research/github-actions-preventing-pwn-requests)
+1. Do **not ever** write a `pull_request_target` trigger with an explicit PR checkout, e.g. using `actions/checkout@v2`. This is [discussed further here](https://securitylab.github.com/research/github-actions-preventing-pwn-requests)
 1. **Do use** the `pull_request` trigger as it does not send internal secrets and only grants a _read_ `GITHUB_TOKEN`.   
 1. If an external action needs access to any secret (`GITHUB_TOKEN` or internal secret), use the commit hash to prevent a modification of underlying source code at that version.
 1. When creating secrets, use tightly scoped secrets that only allow access to that specific action's requirement
