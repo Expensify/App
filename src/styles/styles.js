@@ -962,6 +962,7 @@ const styles = {
 
     defaultModalContainer: {
         backgroundColor: themeColors.componentBG,
+        borderColor: colors.transparent,
     },
 };
 

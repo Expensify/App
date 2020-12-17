@@ -37,7 +37,6 @@ export default (type, windowDimensions) => {
                 marginBottom: isSmallScreen ? 0 : 20,
                 borderRadius: isSmallScreen ? 0 : 12,
                 borderWidth: isSmallScreen ? 1 : 0,
-                borderColor: colors.border,
                 overflow: 'hidden',
                 width: isSmallScreen ? '100%' : windowDimensions.width - 40,
             };
