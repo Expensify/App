@@ -12,16 +12,22 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
+            - name: Export Files Changed
+              id: changed
+              uses: futuratrepadeira/changed-files@v3.0.0
+              with:
+                repo-token: ${{ secrets.GITHUB_TOKEN }}
+
             - name: Check for an auto approve
               uses: hmarr/auto-approve-action@v2.0.0
               with:
                   github-token: ${{ secrets.GITHUB_TOKEN }}
-              if: github.event.label.name == 'automerge'
+              if: github.event.label.name == 'automerge' && github.actor == 'botify' && steps.changed.outputs.files_updated == 'android/app/build.gradle ios/ExpensifyCash/Info.plist ios/ExpensifyCashTests/Info.plist package-lock.json package.json' && steps.changed.outputs.files_created == '' && steps.changed.outputs.files_deleted == ''
 
             - name: Check for an auto merge
               uses: pascalgn/automerge-action@v0.9.0
               env:
-                  GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
             # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
             # the other workflows with the same change
