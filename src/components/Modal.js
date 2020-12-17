@@ -3,11 +3,11 @@ import PropTypes from 'prop-types';
 import {View, useWindowDimensions} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
-import CustomStatusBar from '../CustomStatusBar';
-import {getSafeAreaPadding} from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
-import getStyleForType from './getStyleForType';
-import MODAL_TYPE from './MODAL_TYPE';
+import CustomStatusBar from './CustomStatusBar';
+import {getSafeAreaPadding} from '../styles/styles';
+import themeColors from '../styles/themes/default';
+import getStyleForType from '../styles/getModalStyles';
+import CONST from '../CONST';
 
 const propTypes = {
     // Callback method fired when the user requests to close the modal
@@ -21,7 +21,7 @@ const propTypes = {
 
     // Style of modal to display
     type: PropTypes.oneOf([
-        MODAL_TYPE.CENTERED,
+        CONST.MODAL.MODAL_TYPE.CENTERED,
     ]),
 
     // Background color for the modal

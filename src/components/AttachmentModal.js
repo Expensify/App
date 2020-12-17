@@ -4,7 +4,7 @@ import {
     View, TouchableOpacity, Text, Dimensions,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import MODAL_TYPE from './Modal/MODAL_TYPE';
+import CONST from '../CONST';
 import ModalWithHeader from './ModalWithHeader';
 import AttachmentView from './AttachmentView';
 import styles from '../styles/styles';
@@ -73,7 +73,7 @@ class AttachmentModal extends Component {
         return (
             <>
                 <ModalWithHeader
-                    type={MODAL_TYPE.CENTERED}
+                    type={CONST.MODAL.MODAL_TYPE.CENTERED}
                     onClose={() => this.setState({isModalOpen: false})}
                     isVisible={this.state.isModalOpen}
                     title={this.props.title}
