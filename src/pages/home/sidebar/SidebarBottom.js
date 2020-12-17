@@ -9,6 +9,7 @@ import AppLinks from './AppLinks';
 import {signOut} from '../../../libs/actions/Session';
 import ONYXKEYS from '../../../ONYXKEYS';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
+import {version} from '../../../../package.json';
 
 const propTypes = {
     // Safe area insets required for mobile devices margins
@@ -69,6 +70,7 @@ const SidebarBottom = ({myPersonalDetails, network, insets}) => {
                     <AppLinks />
                     <Text style={[styles.sidebarFooterLink]} onPress={signOut}>Sign Out</Text>
                 </View>
+                <Text style={[styles.sidebarFooterLink]}>{version}</Text>
             </View>
         </View>
     );
