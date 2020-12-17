@@ -51,8 +51,8 @@ platform :ios do
     ENV["ENVFILE"]=".env.production"
 
     build_app(
-        workspace: "./ios/ReactNativeChat.xcworkspace",
-        scheme: "ReactNativeChat"
+        workspace: "./ios/ExpensifyCash.xcworkspace",
+        scheme: "ExpensifyCash"
     )
   end
 
@@ -83,8 +83,8 @@ platform :ios do
     )
 
     build_app(
-        workspace: "./ios/ReactNativeChat.xcworkspace",
-        scheme: "ReactNativeChat"
+        workspace: "./ios/ExpensifyCash.xcworkspace",
+        scheme: "ExpensifyCash"
     )
 
     upload_to_testflight(

@@ -1,0 +1,25 @@
+import colors from '../colors';
+
+export default {
+    shadow: colors.black,
+    link: colors.blue,
+    componentBG: colors.white,
+    appBG: colors.white,
+    sidebar: colors.gray1,
+    border: colors.gray2,
+    borderFocus: colors.blue,
+    icon: colors.gray3,
+    textSupporting: colors.gray4,
+    text: colors.gray5,
+    heading: colors.charcoal,
+    textBackground: colors.gray1,
+    textReversed: colors.white,
+    textMutedReversed: colors.gray3,
+    buttonSuccessBG: colors.green,
+    online: colors.green,
+    offline: colors.gray3,
+    errorText: colors.red,
+    sidebarButtonBG: 'rgba(198, 201, 202, 0.25)',
+    modalBackdrop: 'rgba(198, 201, 202, 0.5)',
+    pillBG: colors.gray2,
+};

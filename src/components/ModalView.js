@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {
     View, SafeAreaView, TouchableOpacity, Dimensions, TouchableWithoutFeedback
 } from 'react-native';
-import styles from '../styles/StyleSheet';
+import styles from '../styles/styles';
 
 /**
  * Renders an adjustable modal view and the children inside of it
