@@ -1,1 +1,1 @@
-Please report any and all security issues to security@expensify.com
+If you've found a vulnerability, please email security@expensify.com with the subject `Vulnerability Report` instead of creating an issue.
