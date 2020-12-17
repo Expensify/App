@@ -1,6 +1,10 @@
-# React Native Chat
+<div align="center">
+  <img src="https://use.expensify.com/assets/logo/download/expensify-app-logo_circular/expensify-app-logo_circular.png" width="64" height="64">
+</div>
 
-# Philosophy
+# [Expensify.cash](https://Expensify.cash)
+
+## Philosophy
 This application is built with the following principles.
 1. **Data Flow** - Ideally, this is how data flows through the app:
     1. Server pushes data to the disk of any client (Server -> Pusher event -> Action listening to pusher event -> Onyx). Currently the code only does this with report comments. Until we make more server changes, this steps is actually done by the client requesting data from the server via XHR and then storing the response in Onyx.
@@ -9,10 +13,10 @@ This application is built with the following principles.
     1. Brain pushes data into UI inputs (Device input -> React component).
     1. UI inputs push data to the server (React component -> Action -> XHR to server).
     1. Go to 1
-1. **Offline first** 
+1. **Offline first**
     - All data that is brought into the app and is necessary to display the app when offline should be stored on disk in persistent storage (eg. localStorage on browser platforms). [AsyncStorage](https://react-native-community.github.io/async-storage/) is a cross-platform abstraction layer that is used to access persistent storage.
     - All data that is displayed, comes from persistent storage.
-1. **UI Binds to data on disk** 
+1. **UI Binds to data on disk**
     - Onyx is a Pub/Sub library to connect the application to the data stored on disk.
     - UI components subscribe to Onyx (using `withOnyx()`) and any change to the Onyx data is published to the component by calling `setState()` with the changed data.
     - Libraries subscribe to Onyx (with `Onyx.connect()`) and any change to the Onyx data is published to the callback with the changed data.
@@ -20,27 +24,29 @@ This application is built with the following principles.
     - The UI always triggers an Action when something needs to happen (eg. a person inputs data, the UI triggers an Action with this data).
     - The UI should be as flexible as possible when it comes to:
         - Incomplete or missing data. Always assume data is incomplete or not there. For example, when a comment is pushed to the client from a pusher event, it's possible that Onyx does not have data for that report yet. That's OK. A partial report object is added to Onyx for the report key `report_1234 = {reportID: 1234, isUnread: true}`. Then there is code that monitors Onyx for reports with incomplete data, and calls `fetchChatReportsByIDs(1234)` to get the full data for that report. The UI should be able to gracefully handle the report object not being complete. In this example, the sidebar wouldn't display any report that doesn't have a report name.
-        - The order that actions are done in. All actions should be done in parallel instead of sequence. 
+        - The order that actions are done in. All actions should be done in parallel instead of sequence.
             - Parallel actions are asynchronous methods that don't return promises. Any number of these actions can be called at one time and it doesn't matter what order they happen in or when they complete.
             - In-Sequence actions are asynchronous methods that return promises. This is necessary when one asynchronous method depends on the results from a previous asynchronous method. Example: Making an XHR to `command=CreateChatReport` which returns a reportID which is used to call `command=Get&rvl=reportStuff`.
-1. **Actions manage Onyx Data** 
+1. **Actions manage Onyx Data**
     - When data needs to be written to or read from the server, this is done through Actions only.
     - Public action methods should never return anything (not data or a promise). This is done to ensure that action methods can be called in parallel with no dependency on other methods (see discussion above).
     - Actions should favor using `Onyx.merge()` over `Onyx.set()` so that other values in an object aren't completely overwritten.
     - In general, the operations that happen inside an action should be done in parallel and not in sequence (eg. don't use the promise of one Onyx method to trigger a second Onyx method). Onyx is built so that every operation is done in parallel and it doesn't matter what order they finish in. XHRs on the other hand need to be handled in sequence with promise chains in order to access and act upon the response.
     - If an Action needs to access data stored on disk, use a local variable and `Onyx.connect()`
     - Data should be optimistically stored on disk whenever possible without waiting for a server response. Example of creating a new optimistic comment:
-        1. user adds a comment 
-        2. comment is shown in the UI (by mocking the expected response from the server) 
-        3. comment is created in the server 
-        4. server responds 
+        1. user adds a comment
+        2. comment is shown in the UI (by mocking the expected response from the server)
+        3. comment is created in the server
+        4. server responds
         5. UI updates with data from the server
-        
+
 1. **Cross Platform 99.9999%**
     1. A feature isn't done until it works on all platforms.  Accordingly, don't even bother writing a platform-specific code block because you're just going to need to undo it.
     1. If the reason you can't write cross platform code is because there is a bug in ReactNative that is preventing it from working, the correct action is to fix RN and submit a PR upstream -- not to hack around RN bugs with platform-specific code paths.
     1. If there is a feature that simply doesn't exist on all platforms and thus doesn't exist in RN, rather than doing if (platform=iOS) { }, instead write a "shim" library that is implemented with NOOPs on the other platforms.  For example, rather than injecting platform-specific multi-tab code (which can only work on browsers, because it's the only platform with multiple tabs), write a TabManager class that just is NOOP for non-browser platforms.  This encapsulates the platform-specific code into a platform library, rather than sprinkling through the business logic.
     1. Put all platform specific code in dedicated files and folders, like /platform, and reject any PR that attempts to put platform-specific code anywhere else.  This maintains a strict separation between business logic and platform code.
+    
+----
 
 # Local development
 ## Getting started
@@ -89,8 +95,13 @@ Now, all of your API calls will be using the ngrok route.
 ## Running the web app via production API proxy (Contributors) 🧑‍💻
 If you don't have full-access to Expensify's development environment you will need to run the app against the production API.
 * Copy the `.env.production` variables into your `.env` file
-* Set `EXPENSIFY_URL_COM` environment variable to be empty (Note: this means it should be `EXPENSIFY_URL_COM=`, not completely omitted)
+* Set `EXPENSIFY_URL_COM` environment variable to be empty (**Note:** this means it should be `EXPENSIFY_URL_COM=`, not completely omitted)
 * Run the **Development Server**: `npm run proxy`
+
+## Running the desktop and mobile apps via production API (Contributors) 🧑‍💻
+If you don't have full-access to Expensify's development environment you will need to run the app against the production API.
+* Copy the `.env.production` variables into your `.env` file (**Note:** Reset `EXPENSIFY_URL_COM` if you previously deleted it)
+* Run the desktop, iOS, or Android builds via `npm run desktop`, `npm run ios`, `npm run android` respectively
 
 ## Running the tests 🎰
 ### Unit tests
@@ -105,7 +116,7 @@ End to end tests are valuable when we do not want to mock data and run against t
 In order to run the end to end tests, we have to compile the iOS or Android app, then launch a simulator, then run tests.
 We use [Detox](https://github.com/wix/Detox) a _"Gray box end-to-end testing and automation library"_ to help with our end to end testing.
 
-You are first required to build the tests, then you can run them: 
+You are first required to build the tests, then you can run them:
 1. To build the **Detox end to end tests**: `npm run detox-build`
 2. To run the **Detox end to end tests**: `npm run detox-test`
 
@@ -115,8 +126,8 @@ You are first required to build the tests, then you can run them:
 
 ## Debugging
 ### iOS
-1. If running on the iOS simulator pressing `⌘D` will open the debugging menu. 
-2. This will allow you to attach a debugger in your IDE, React Developer Tools, or your browser. 
+1. If running on the iOS simulator pressing `⌘D` will open the debugging menu.
+2. This will allow you to attach a debugger in your IDE, React Developer Tools, or your browser.
 3. For more information on how to attach a debugger, see [React Native Debugging Documentation](https://reactnative.dev/docs/debugging#chrome-developer-tools)
 
 ### Android
@@ -161,23 +172,21 @@ This layer is solely responsible for:
 - Taking user input and passing it to an action
 
 ### Directory structure
-
-Almost all the code is located in the `src` folder, inside it there's some organization, we chose to name directories that are 
+Almost all the code is located in the `src` folder, inside it there's some organization, we chose to name directories that are
 created to house a collection of items in plural form and using camelCase (eg: pages, libs, etc), the main ones we have for now are:
 
 - components: React native components that are re-used in several places.
 - libs: Library classes/functions, these are not React native components (ie: they are not UI)
-- pages: These are components that define pages in the app. The component that defines the page itself should be named 
+- pages: These are components that define pages in the app. The component that defines the page itself should be named
 `<pageName>Page` if there are components used only inside one page, they should live in its own directory named after the `<pageName>`.
 - styles: These files define styles used among components/pages
 
 ### File naming/structure
-
-Files should be named after the component/function/constants they export, respecting the casing used for it. ie: 
+Files should be named after the component/function/constants they export, respecting the casing used for it. ie:
 
 - If you export a constant named `CONST` it's file/directory should be named the `CONST`.
-- If you export a component named `Text` the file/directory should be named `Text` 
-- If you export a function named `guid` the file/directory should be named `guid`. 
+- If you export a component named `Text` the file/directory should be named `Text`
+- If you export a function named `guid` the file/directory should be named `guid`.
 - For files that are utilities that export several functions/classes use the UpperCamelCase version ie: `DateUtils`.
 - HOCs should be named in camelCase like withOnyx.
 - All React components should be PascalCase (a.k.a. UpperCamelCase 🐫).
@@ -192,8 +201,7 @@ In most cases, the code written for this repo should be platform-independent. In
 Note that `index.js` should be the default. i.e: If you have mobile-specific implementation in `index.native.js`, then the desktop/web implementation can be contained in a shared `index.js`. Furthermore, `index.native.js` should not be included in the same module as `index.ios.js` or `index.android.js`, nor should `index.js` be included in the same module as `index.website.js` or `index.desktop.js`.
 
 ### API building
-
-When adding new API commands (and preferrably when starting using a new one that was not yet used in this codebase) always
+When adding new API commands (and preferably when starting using a new one that was not yet used in this codebase) always
 prefer to return the created/updated data in the command itself, instead of saving and reloading. ie: if we call `CreateTransaction`,
 we should prefer making `CreateTransaction` return the data it just created instead of calling `CreateTransaction` then `Get` rvl=transactionList
 
@@ -226,6 +234,8 @@ export default withOnyx({
 })(ReportActionsView);
 ```
 
+----
+
 # Deploying
 ##  Continuous deployment / GitHub workflows
 Every PR merged into `master` will kick off the **Create a new version** GitHub workflow defined in `.github/workflows/version.yml`.
@@ -239,17 +249,35 @@ When a new tag is pushed, it will trigger a deploy of all four clients:
 3. The **Android** app automatically deploys via a GitHub Action in `.github/workflows/android.yml`
 4. The **iOS** app automatically deploys via a GitHub Action in `.github/workflows/ios.yml`
 
+### Secrets
+The GitHub workflows require a large list of secrets to deploy, notify and test the code:
+1. `LARGE_SECRET_PASSPHRASE` - decrypts secrets stored in various encrypted files stored in GitHub repository:
+    1. `android/app/my-upload-key.keystore.gpg`
+    2. `android/app/android-fastlane-json-key.json.gpg`
+    3. `ios/chat_expensify_appstore.mobileprovision`
+    4. `ios/Certificates.p12.gpg`
+2. `SLACK_WEBHOOK` - Sends Slack notifications via Slack WebHook https://expensify.slack.com/services/B01AX48D7MM
+3. `BOTIFY_TOKEN` - Personal access token for @Botify user in GitHub
+4. `CSC_LINK` - Required to be set for desktop code signing: https://www.electron.build/code-signing.html#travis-appveyor-and-other-ci-servers
+5. `CSC_KEY_PASSWORD` - Required to be set for desktop code signing: https://www.electron.build/code-signing.html#travis-appveyor-and-other-ci-servers
+6. `APPLE_ID` - Required for notarizing desktop code in `desktop/notarize.js`
+7. `APPLE_ID_PASSWORD` - Required for notarizing desktop code in `desktop/notarize.js`
+8. `AWS_ACCESS_KEY_ID` - Required for hosting website and desktop compiled code
+9. `AWS_SECRET_ACCESS_KEY` - Required for hosting website and desktop compiled code
+10. `CLOUDFLARE_TOKEN` - Required for hosting website
+11. `SSH_PRIVATE_KEY` - Used for `npm install` private dependencies (will be removed when open source is done)
+
 ## Local production build
 Sometimes it might be beneficial to generate a local production version instead of testing on production. Follow the steps below for each client:
 
-## Local production build of the web app
+#### Local production build of the web app
 In order to generate a production web build, run `npm run build`, this will generate a production javascript build in the `dist/` folder.
 
-## Local production build of the MacOS desktop app
+#### Local production build of the MacOS desktop app
 In order to compile a production desktop build, run `npm run desktop-build`, this will generate a production app in the `dist/Mac` folder named `Chat.app`.
-  
+
 #### Local production build the iOS app
-In order to compile a production iOS build, run `npm run ios-build`, this will generate a `Chat.ipa` in the root directory of this project. 
+In order to compile a production iOS build, run `npm run ios-build`, this will generate a `Chat.ipa` in the root directory of this project.
 
 #### Local production build the Android app
 To build an APK to share run (e.g. via Slack), run `npm run android-build`, this will generate a new APK in the `android/app` folder.

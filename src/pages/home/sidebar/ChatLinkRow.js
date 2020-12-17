@@ -8,7 +8,7 @@ import {
     View,
     StyleSheet,
 } from 'react-native';
-import styles from '../../../styles/StyleSheet';
+import styles from '../../../styles/styles';
 import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
 import ROUTES from '../../../ROUTES';
 import pencilIcon from '../../../../assets/images/icon-pencil.png';
@@ -79,7 +79,7 @@ const ChatLinkRow = ({
                     {
                         !_.isEmpty(option.icon)
                         && (
-                            <View style={[styles.chatSwitcherAvatar, styles.mr2]}>
+                            <View style={[styles.chatSwitcherAvatar, styles.mr3]}>
                                 <Image
                                     source={{uri: option.icon}}
                                     style={[styles.chatSwitcherAvatarImage]}
@@ -94,11 +94,11 @@ const ChatLinkRow = ({
                             </Text>
                         ) : (
                             <>
-                                <Text style={textUnreadStyle} numberOfLines={1}>
+                                <Text style={[styles.chatSwitcherDisplayName, textUnreadStyle]} numberOfLines={1}>
                                     {option.text}
                                 </Text>
                                 <Text
-                                    style={[styles.chatSwitcherLogin, textStyle, styles.textMicro]}
+                                    style={[textStyle, styles.textMicro, styles.chatSwitcherLogin]}
                                     numberOfLines={1}
                                 >
                                     {option.alternateText}

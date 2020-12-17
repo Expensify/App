@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {View, Dimensions} from 'react-native';
 import ImgZoom from 'react-native-image-pan-zoom';
 import ImageWithSizeCalculation from '../ImageWithSizeCalculation';
-import {variables} from '../../styles/StyleSheet';
+import {variables} from '../../styles/styles';
 
 /**
  * On the native layer, we use a image library to handle zoom functionality
