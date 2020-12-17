@@ -30,7 +30,7 @@ import PusherConnectionManager from '../../libs/PusherConnectionManager';
 import UnreadIndicatorUpdater from '../../libs/UnreadIndicatorUpdater';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
-import Timing from '../../libs/Timing';
+import Timing from '../../libs/actions/Timing';
 import NetworkConnection from '../../libs/NetworkConnection';
 import CONFIG from '../../CONFIG';
 import CustomStatusBar from '../../components/CustomStatusBar';

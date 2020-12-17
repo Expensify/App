@@ -1,4 +1,4 @@
-import {Graphite_Timer} from './API';
+import {Graphite_Timer} from '../API';
 
 let timestampData = {};
 
