@@ -16,7 +16,7 @@ import ROUTES from '../../../ROUTES';
 import styles from '../../../styles/styles';
 import * as ChatSwitcher from '../../../libs/actions/ChatSwitcher';
 import CONST from '../../../CONST';
-import Timing from '../../../libs/Timing';
+import Timing from '../../../libs/actions/Timing';
 
 const MAX_GROUP_DM_LENGTH = 8;
 

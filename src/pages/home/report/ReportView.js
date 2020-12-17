@@ -5,7 +5,7 @@ import ReportActionView from './ReportActionsView';
 import ReportActionCompose from './ReportActionCompose';
 import {addAction, subscribeToReportTypingEvents, unsubscribeFromReportChannel} from '../../../libs/actions/Report';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
-import Timing from '../../../libs/Timing';
+import Timing from '../../../libs/actions/Timing';
 import CONST from '../../../CONST';
 import styles from '../../../styles/styles';
 
