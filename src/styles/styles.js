@@ -101,6 +101,9 @@ const styles = {
     p1: {
         padding: 10,
     },
+    p2: {
+        padding: 20,
+    },
     pr1: {
         paddingRight: 4,
     },
@@ -1008,7 +1011,15 @@ const styles = {
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         fontSize: 15,
-    }
+    },
+
+    subHeader: {
+        color: themeColors.text,
+        fontWeight: fontWeightBold,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: 12,
+        padding: 20,
+    },
 };
 
 const baseCodeTagStyles = {

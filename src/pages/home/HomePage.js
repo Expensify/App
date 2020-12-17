@@ -33,6 +33,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import NetworkConnection from '../../libs/NetworkConnection';
 import CONFIG from '../../CONFIG';
 import CustomStatusBar from '../../components/CustomStatusBar';
+import NewChatPage from '../NewChatPage';
 
 const windowSize = Dimensions.get('window');
 const widthBreakPoint = 1000;
@@ -206,7 +207,7 @@ class App extends React.Component {
                                 getSafeAreaPadding(insets)
                             ]}
                         >
-                            <Route path={[ROUTES.REPORT, ROUTES.HOME]}>
+                            <Route path={[ROUTES.REPORT, ROUTES.HOME, ROUTES.NEW_CHAT]}>
                                 <Animated.View style={[
                                     hamburgerStyle,
                                     visibility,
@@ -236,6 +237,9 @@ class App extends React.Component {
                                             onHamburgerButtonClicked={this.toggleHamburger}
                                         />
                                         <Main />
+                                        <Route path={ROUTES.NEW_CHAT}>
+                                            <NewChatPage />
+                                        </Route>
                                     </View>
                                 </Pressable>
                             </Route>

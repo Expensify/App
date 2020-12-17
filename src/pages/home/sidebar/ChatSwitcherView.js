@@ -5,17 +5,18 @@ import _ from 'underscore';
 import lodashOrderby from 'lodash.orderby';
 import lodashGet from 'lodash.get';
 import {withOnyx} from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../../ONYXKEYS';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import ChatSwitcherList from './ChatSwitcherList';
 import ChatSwitcherSearchForm from './ChatSwitcherSearchForm';
 import {fetchOrCreateChatReport} from '../../../libs/actions/Report';
 import {redirect} from '../../../libs/actions/App';
+import {getContactList} from '../../../libs/actions/PersonalDetails';
 import ROUTES from '../../../ROUTES';
 import styles from '../../../styles/styles';
 import * as ChatSwitcher from '../../../libs/actions/ChatSwitcher';
 import CONST from '../../../CONST';
+import {filterChatSearchOptions} from '../../../libs/SearchUtils';
 
 const MAX_GROUP_DM_LENGTH = 8;
 
@@ -68,8 +69,6 @@ const defaultProps = {
 class ChatSwitcherView extends React.Component {
     constructor(props) {
         super(props);
-
-        this.maxSearchResults = 10;
 
         this.handleKeyPress = this.handleKeyPress.bind(this);
         this.reset = this.reset.bind(this);
@@ -390,21 +389,6 @@ class ChatSwitcherView extends React.Component {
 
         this.setState({search: value});
 
-        // Search our full list of options. We want:
-        // 1) Exact matches first
-        // 2) beginning-of-string matches second
-        // 3) middle-of-string matches last
-        const matchRegexes = [
-            new RegExp(`^${Str.escapeForRegExp(value)}$`, 'i'),
-            new RegExp(`^${Str.escapeForRegExp(value)}`, 'i'),
-            new RegExp(Str.escapeForRegExp(value), 'i'),
-        ];
-
-        // Because we want to regexes above to be listed in a specific order, the for loop below will end up adding
-        // duplicate options to the list (because one option can match multiple regex patterns).
-        // A Set is used here so that duplicate values are automatically removed.
-        const matches = new Set();
-
         // We don't want to sort our chatReportOptions by lastVisited since we'll let the regex
         // matches order our options.
         const reportOptions = this.getReportsOptions(false);
@@ -412,52 +396,23 @@ class ChatSwitcherView extends React.Component {
         // Get a list of all users we can send messages to and make their details generic. We will also reject any
         // personalDetails logins that exist in chatReportOptions which will remove our dupes since we'll use
         // chatReportOptions as our first source of truth if the 1:1 chat DM exists there.
-        const personalDetailOptions = _.chain(this.props.personalDetails)
-            .values()
-            .reject(personalDetail => _.findWhere(reportOptions, {login: personalDetail.login}))
-            .map(personalDetail => ({
-                text: personalDetail.displayName,
-                alternateText: personalDetail.login,
-                searchText: personalDetail.displayName === personalDetail.login ? personalDetail.login
-                    : `${personalDetail.displayName} ${personalDetail.login}`,
-                icon: personalDetail.avatarURL,
-                login: personalDetail.login,
-                type: CONST.REPORT.SINGLE_USER_DM,
-                keyForList: personalDetail.login,
-            }))
-            .value();
+        const personalDetailOptions = _.reject(
+            getContactList(this.props.personalDetails),
+            personalDetail => _.findWhere(reportOptions, {login: personalDetail.login})
+        );
 
         const searchOptions = _.union(reportOptions, personalDetailOptions);
 
-        for (let i = 0; i < matchRegexes.length; i++) {
-            if (matches.size < this.maxSearchResults) {
-                for (let j = 0; j < searchOptions.length; j++) {
-                    const option = searchOptions[j];
-                    const valueToSearch = option.searchText && option.searchText.replace(new RegExp(/&nbsp;/g), '');
-                    const isMatch = matchRegexes[i].test(valueToSearch);
-
-                    // We must also filter out any users who are already in the Group DM list
-                    // so they can't be selected more than once
-                    const isInGroupUsers = _.some(this.state.usersToStartGroupReportWith, groupOption => (
-                        groupOption.login === option.login
-                    ));
-
-                    // Make sure we don't include the same option twice (automatically handled by using a `Set`)
-                    if (isMatch && !isInGroupUsers) {
-                        matches.add(option);
-                    }
-
-                    if (matches.size === this.maxSearchResults) {
-                        break;
-                    }
-                }
-            } else {
-                break;
-            }
-        }
+        // We must also filter out any users who are already in the Group DM list
+        // so they can't be selected more than once
+        const newOptions = filterChatSearchOptions(value, searchOptions, (option) => {
+            return _.some(this.state.usersToStartGroupReportWith, groupOption => (
+                groupOption.login === option.login
+            ));
+        });
 
         this.setState({
-            options: Array.from(matches),
+            options: newOptions,
         });
     }
 
