@@ -8,6 +8,11 @@ const CONST = {
         SINGLE_USER_DM: 'singleUserDM',
         GROUP_USERS_DM: 'groupUsersDM',
     },
+    MODAL: {
+        MODAL_TYPE: {
+            CENTERED: 'centered',
+        },
+    },
 };
 
 export default CONST;

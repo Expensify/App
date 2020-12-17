@@ -1,6 +1,6 @@
-import MODAL_TYPE from './MODAL_TYPE';
-import colors from '../../styles/colors';
-import variables from '../../styles/variables';
+import CONST from '../CONST';
+import colors from './colors';
+import variables from './variables';
 
 export default (type, windowDimensions) => {
     const isSmallScreen = windowDimensions.width < variables.mobileResponsiveWidthBreakpoint;
@@ -13,7 +13,7 @@ export default (type, windowDimensions) => {
     let needsSafeAreaPadding = false;
 
     switch (type) {
-        case MODAL_TYPE.CENTERED:
+        case CONST.MODAL.MODAL_TYPE.CENTERED:
             // A centered modal is one that has a visible backdrop
             // and can be dismissed by clicking outside of the modal.
             // This modal should take up the entire visible area when
