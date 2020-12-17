@@ -958,7 +958,11 @@ const styles = {
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         fontSize: 15,
-    }
+    },
+
+    defaultModalContainer: {
+        backgroundColor: themeColors.componentBG,
+    },
 };
 
 const baseCodeTagStyles = {
