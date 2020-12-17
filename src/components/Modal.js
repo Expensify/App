@@ -6,7 +6,7 @@ import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import CustomStatusBar from './CustomStatusBar';
 import styles, {getSafeAreaPadding} from '../styles/styles';
 import themeColors from '../styles/themes/default';
-import getStyleForType from '../styles/getModalStyles';
+import getModalStyles from '../styles/getModalStyles';
 import CONST from '../CONST';
 
 const propTypes = {
@@ -37,7 +37,7 @@ const Modal = (props) => {
         animationIn,
         animationOut,
         needsSafeAreaPadding
-    } = getStyleForType(props.type, useWindowDimensions());
+    } = getModalStyles(props.type, useWindowDimensions());
 
     return (
         <ReactNativeModal
@@ -63,6 +63,9 @@ const Modal = (props) => {
                                 ...styles.defaultModalContainer,
                                 paddingBottom,
                                 ...modalContainerStyle,
+
+                                // This padding is based on the insets and could not neatly be
+                                // returned by getModalStyles to avoid passing this inline.
                                 paddingTop: needsSafeAreaPadding ? paddingTop : 20,
                             }}
                         >
