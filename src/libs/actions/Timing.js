@@ -1,4 +1,4 @@
-import {Platform} from 'react-native';
+import getPlatform from '../getPlatform';
 import {Graphite_Timer} from '../API';
 
 let timestampData = {};
@@ -24,7 +24,7 @@ function end(eventName) {
         Graphite_Timer({
             name: `expensify.cash.${eventName}`,
             value: eventTime,
-            referer: `${Platform.OS}`
+            referer: `${getPlatform()}`
         });
 
         delete timestampData[eventName];
