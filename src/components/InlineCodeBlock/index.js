@@ -1,6 +1,6 @@
 import React from 'react';
 import inlineCodeBlockPropTypes from './inlineCodeBlockPropTypes';
-import styles from '../../styles/StyleSheet';
+import styles from '../../styles/styles';
 
 const InlineCodeBlock = ({
     TDefaultRenderer,
