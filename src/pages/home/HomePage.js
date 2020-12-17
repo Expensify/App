@@ -50,7 +50,7 @@ const defaultProps = {
 
 class App extends React.Component {
     constructor(props) {
-        Timing.start(CONST.TIMING.HOMEPAGE_RENDERED);
+        Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
         Timing.start(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
 
         super(props);
@@ -90,7 +90,7 @@ class App extends React.Component {
         // Set up the hamburger correctly once on init
         this.toggleHamburgerBasedOnDimensions({window: Dimensions.get('window')});
 
-        Timing.end(CONST.TIMING.HOMEPAGE_RENDERED);
+        Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
     }
 
     componentDidUpdate(prevProps) {
