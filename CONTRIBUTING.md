@@ -8,7 +8,7 @@ If you haven't yet, check out our README located [here](https://github.com/Expen
 If you have a question, we ask that you do not create an issue, and instead email it to reactnative@expensify.com. To ask realtime questions while you're working on your issue, you can join our slack channel. Just send an email to reactnative@expensify.com with the subject "Slack Channel Invite" and we'll send you an invite!
 
 ## Reporting Vulnerabilities
-If you've found a vulnerability, please email reactnative@expensify.com with the subject `Vulnerability Report` instead of creating an issue.
+If you've found a vulnerability, please email security@expensify.com with the subject `Vulnerability Report` instead of creating an issue.
 
 ## Filing Issues
 If you'd like to create a new issue, please first make sure the issue does not exist in the [issue list](https://github.com/Expensify/ReactNativeChat/issues). When creating a new issue, please include all the required information on the issue template.
