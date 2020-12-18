@@ -7,6 +7,7 @@ import * as API from '../API';
 import CONFIG from '../../CONFIG';
 import PushNotification from '../Notification/PushNotification';
 import ROUTES from '../../ROUTES';
+import Timing from './Timing';
 
 let credentials;
 Onyx.connect({
@@ -96,6 +97,7 @@ function signIn(partnerUserID, partnerUserSecret, twoFactorAuthCode = '', exitTo
  * Clears the Onyx store and redirects user to the sign in page
  */
 function signOut() {
+    Timing.clearData();
     redirectToSignIn();
     if (!credentials || !credentials.login) {
         return;

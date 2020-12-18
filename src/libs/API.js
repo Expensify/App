@@ -26,7 +26,7 @@ Onyx.connect({
  * @return {Boolean}
  */
 function isAuthTokenRequired(command) {
-    return !_.contains(['Log', 'Authenticate'], command);
+    return !_.contains(['Log', 'Graphite_Timer', 'Authenticate'], command);
 }
 
 /**
@@ -319,6 +319,19 @@ function Log(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {String} parameters.name
+ * @param {Number} parameters.value
+ * @returns {Promise}
+ */
+function Graphite_Timer(parameters) {
+    const commandName = 'Graphite_Timer';
+    requireParameters(['name', 'value'],
+        parameters, commandName);
+    return request(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
  * @param {String} parameters.emailList
  * @returns {Promise}
  */
@@ -401,6 +414,7 @@ export {
     CreateLogin,
     DeleteLogin,
     Get,
+    Graphite_Timer,
     Log,
     PersonalDetails_GetForEmails,
     Push_Authenticate,

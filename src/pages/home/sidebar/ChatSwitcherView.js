@@ -16,6 +16,7 @@ import ROUTES from '../../../ROUTES';
 import styles from '../../../styles/styles';
 import * as ChatSwitcher from '../../../libs/actions/ChatSwitcher';
 import CONST from '../../../CONST';
+import Timing from '../../../libs/actions/Timing';
 
 const MAX_GROUP_DM_LENGTH = 8;
 
@@ -191,6 +192,8 @@ class ChatSwitcherView extends React.Component {
      * @param {Object} option
      */
     selectRow(option) {
+        Timing.start(CONST.TIMING.SWITCH_REPORT);
+
         switch (option.type) {
             case CONST.REPORT.SINGLE_USER_DM:
                 this.selectUser(option);
