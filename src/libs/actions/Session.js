@@ -112,7 +112,28 @@ function signOut() {
         .catch(error => Onyx.merge(ONYXKEYS.SESSION, {error: error.message}));
 }
 
+function hasAccount(login) {
+    API.GetAccountStatus({email: login})
+        .then((response) => {
+            if (response.jsonCode === 200) {
+                if (response.accountExists && response.canAccessChat) {
+                    // Store the login in the credentials and that this application can be accessed.
+                    // This will cause the password and 2FA form to show up
+                    Onyx.merge(ONYXKEYS.CREDENTIALS, {login, canAccessCash: true});
+                }
+
+                // Store just the login in the credentials.
+                // This will show the form for getting the user's GitHub handle
+                Onyx.merge(ONYXKEYS.CREDENTIALS, {login, canAccessCash: false});
+                return;
+            }
+
+            Onyx.merge(ONYXKEYS.SESSION, {error: response.message});
+        });
+}
+
 export {
     signIn,
     signOut,
+    hasAccount,
 };

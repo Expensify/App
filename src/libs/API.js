@@ -297,8 +297,18 @@ function DeleteLogin(parameters) {
  */
 function Get(parameters) {
     const commandName = 'Get';
-    requireParameters(['returnValueList'],
-        parameters, commandName);
+    requireParameters(['returnValueList'], parameters, commandName);
+    return request(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.email
+ * @returns {Promise}
+ */
+function GetAccountStatus(parameters) {
+    const commandName = 'GetAccountStatus';
+    requireParameters(['email'], parameters, commandName);
     return request(commandName, parameters);
 }
 

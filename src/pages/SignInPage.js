@@ -15,7 +15,7 @@ import CONFIG from '../CONFIG';
 import compose from '../libs/compose';
 import {withRouter, Redirect} from '../libs/Router';
 import ROUTES from '../ROUTES';
-import {signIn} from '../libs/actions/Session';
+import {signIn, hasAccount} from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
@@ -38,10 +38,20 @@ const propTypes = {
         // Stores if we are currently making an authentication request
         loading: PropTypes.bool,
     }),
+
+    // The credentials of the person signing in
+    credentials: PropTypes.shape({
+        // The login that was used when signing in
+        login: PropTypes.string,
+
+        // Whether or not the login used for signing in has access to this app
+        canAccessCash: PropTypes.bool,
+    }),
 };
 
 const defaultProps = {
     session: null,
+    credentials: null,
 };
 
 class App extends Component {
@@ -53,7 +63,10 @@ class App extends Component {
         this.state = {
             login: CONFIG.LOGIN.PARTNER_USER_ID || '',
             password: CONFIG.LOGIN.PARTNER_USER_SECRET || '',
+            githubUsername: '',
             twoFactorAuthCode: '',
+            isLoading: false,
+            formError: null,
         };
     }
 
@@ -66,10 +79,33 @@ class App extends Component {
      * Sign into the application when the form is submitted
      */
     submitForm() {
-        if (this.props.session && this.props.session.loading) {
+        let formIsValid = true;
+
+        if (!this.state.login.trim()) {
+            formIsValid = false;
+        }
+
+        if (!formIsValid) {
+            this.setState({
+                formError: 'Please fill out all fields',
+            });
             return;
         }
-        signIn(this.state.login, this.state.password, this.state.twoFactorAuthCode, this.props.match.params.exitTo);
+
+        // If there is no login in the credentials yet, then check if their account exists and if they have access
+        // to this application or not
+        if (!this.props.credentials.login) {
+            hasAccount(this.state.login);
+        }
+
+        // if (this.props.session && this.props.session.loading) {
+        //     return;
+        // }
+        // signIn(this.state.login, this.state.password, this.state.twoFactorAuthCode, this.props.match.params.exitTo);
+        this.setState({
+            formError: null,
+            isLoading: true,
+        });
     }
 
     render() {
@@ -104,9 +140,10 @@ class App extends Component {
                                 onChangeText={text => this.setState({login: text})}
                                 onSubmitEditing={this.submitForm}
                                 autoCapitalize="none"
+                                placeholder="Enter email or phone"
                             />
                         </View>
-                        <View style={[styles.mb4]}>
+                        {/* <View style={[styles.mb4]}>
                             <Text style={[styles.formLabel]}>Password</Text>
                             <TextInput
                                 style={[styles.textInput]}
@@ -129,14 +166,15 @@ class App extends Component {
                                 onSubmitEditing={this.submitForm}
                             />
                         </View>
+                        */}
                         <View>
                             <TouchableOpacity
                                 style={[styles.button, styles.buttonSuccess, styles.mb4]}
                                 onPress={this.submitForm}
                                 underlayColor={themeColors.componentBG}
-                                disabled={isLoading}
+                                disabled={this.state.isLoading}
                             >
-                                {isLoading ? (
+                                {this.state.isLoading ? (
                                     <ActivityIndicator color={themeColors.textReversed} />
                                 ) : (
                                     <Text style={[styles.buttonText, styles.buttonSuccessText]}>Log In</Text>
@@ -145,6 +183,11 @@ class App extends Component {
                             {this.props.session && !_.isEmpty(this.props.session.error) && (
                                 <Text style={[styles.formError]}>
                                     {this.props.session.error}
+                                </Text>
+                            )}
+                            {this.state.formError && (
+                                <Text style={[styles.formError]}>
+                                    {this.state.formError}
                                 </Text>
                             )}
                         </View>
@@ -162,5 +205,6 @@ export default compose(
     withRouter,
     withOnyx({
         session: {key: ONYXKEYS.SESSION},
+        credentials: {key: ONYXKEYS.CREDENTIALS},
     })
 )(App);
