@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
-import lodashOrderby from 'lodash.orderby';
+import lodashOrderBy from 'lodash.orderby';
 import Str from 'expensify-common/lib/str';
 import CONST from '../CONST';
 
@@ -54,62 +54,80 @@ function filterChatSearchOptions(searchValue, searchOptions, rejectMethod = () =
     return Array.from(matches);
 }
 
-function getRecentContactList(reports) {
-    const filteredReports = _.chain(reports)
-            .values()
-            .filter((report) => {
-                if (_.isEmpty(report.reportName)) {
-                    return false;
-                }
-
-                if (!report.lastVisitedTimestamp) {
-                    return false;
-                }
-
-                const participants = lodashGet(report, 'participants', []);
-                return participants.length === 1;
-            })
-            .map((report) => {
-                const participants = lodashGet(report, 'participants', []);
-                const login = report.participants[0];
-                return {
-                    text: report.reportName,
-                    alternateText: login,
-                    searchText: report.participants < 10
-                        ? `${report.reportName} ${report.participants.join(' ')}`
-                        : report.reportName ?? '',
-                    reportID: report.reportID,
-                    participants,
-                    icon: report.icon,
-                    login,
-                    type: CONST.REPORT.SINGLE_USER_DM,
-                    lastVisitedTimestamp: report.lastVisitedTimestamp,
-                    keyForList: String(report.reportID),
-                };
-            })
-            .value();
-
-    return lodashOrderby(filteredReports, ['lastVisitedTimestamp'], ['desc']).slice(0, 5);
+function reportHasMultipleParticipants(report) {
+    return lodashGet(report, 'participants', []).length > 1;
 }
 
-function getContactList(personalDetails) {
-    return _.chain(personalDetails)
-        .values()
-        .map(personalDetail => ({
-            text: personalDetail.displayName,
-            alternateText: personalDetail.login,
-            searchText: personalDetail.displayName === personalDetail.login ? personalDetail.login
-                : `${personalDetail.displayName} ${personalDetail.login}`,
-            icon: personalDetail.avatarURL,
-            login: personalDetail.login,
-            type: CONST.REPORT.SINGLE_USER_DM,
-            keyForList: personalDetail.login,
-        }))
-        .value();
+function isUserReportParticipant(report, login) {
+    const participants = lodashGet(report, 'participants', []);
+    return _.some(participants, (participantLogin) => participantLogin === login);
+}
+
+function getParticipantLogin(report) {
+    return lodashGet(report, ['participants', 0], '');
+}
+
+function createChatUserOption(personalDetail) {
+    return {
+        text: personalDetail.displayName,
+        alternateText: personalDetail.login,
+        searchText: personalDetail.displayName === personalDetail.login ? personalDetail.login
+            : `${personalDetail.displayName} ${personalDetail.login}`,
+        icon: personalDetail.avatarURL,
+        login: personalDetail.login,
+        type: CONST.REPORT.SINGLE_USER_DM,
+        keyForList: personalDetail.login,
+    };
+}
+
+function getChatSearchState(personalDetails, reports = {}, selectedUsers = []) {
+    // Start by getting the five most recent users that are not already selected
+    const orderedReports = lodashOrderBy(reports, ['lastVisitedTimestamp'], ['desc']);
+    const recentUsers = [];
+    const alreadySelectedUsers = [...selectedUsers];
+
+    for (let i = 0; i < orderedReports.length; i++) {
+        if (recentUsers.length === 5) {
+            break;
+        }
+
+        const report = orderedReports[i];
+
+        // Skip any reports where there are multiple users
+        if (reportHasMultipleParticipants(report)) {
+            continue;
+        }
+
+        // Check the reports that have only one user to see if any of our participants
+        // are on this report
+        if (_.some(alreadySelectedUsers, login => isUserReportParticipant(report, login))) {
+            continue;
+        }
+
+        const login = getParticipantLogin(report);
+        const personalDetail = personalDetails[login];
+        recentUsers.push(createChatUserOption(personalDetail));
+        alreadySelectedUsers.push(login);
+    }
+
+    const contacts = [];
+
+    // Next loop over all personal details removing any that are selectedUsers or recentUsers
+    _.each(personalDetails, (personalDetail, login) => {
+        if (_.some(alreadySelectedUsers, (selectedLogin) => selectedLogin === login)) {
+            return;
+        }
+
+        contacts.push(createChatUserOption(personalDetail));
+    });
+
+    return {
+        contacts,
+        recentUsers,
+    };
 }
 
 export {
     filterChatSearchOptions,
-    getRecentContactList,
-    getContactList,
+    getChatSearchState,
 };

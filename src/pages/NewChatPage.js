@@ -8,8 +8,8 @@ import SubHeader from '../components/SubHeader';
 import ChatLinkRow from './home/sidebar/ChatLinkRow';
 import KeyboardSpacer from '../components/KeyboardSpacer';
 import ONYXKEYS from '../ONYXKEYS';
-import {getContactList, getDefaultAvatar} from '../libs/actions/PersonalDetails';
-import {filterChatSearchOptions} from '../libs/SearchUtils';
+import {getDefaultAvatar} from '../libs/actions/PersonalDetails';
+import {filterChatSearchOptions, getChatSearchState} from '../libs/SearchUtils';
 import ChatSearchInput from '../components/ChatSearchInput';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import CONST from '../CONST';
@@ -21,8 +21,9 @@ class NewChatPage extends React.Component {
         this.updateOptions = this.updateOptions.bind(this);
         this.selectOption = this.selectOption.bind(this);
 
+        const {contacts} = getChatSearchState(props.personalDetails);
         this.state = {
-            options: getContactList(props.personalDetails),
+            options: contacts,
             focusedIndex: 0,
             searchValue: '',
             isSearchValuePotentialUser: false,
@@ -34,8 +35,8 @@ class NewChatPage extends React.Component {
     }
 
     updateOptions(searchValue) {
-        const contactList = getContactList(this.props.personalDetails);
-        let options = filterChatSearchOptions(searchValue, contactList);
+        const {contacts} = getChatSearchState(props.personalDetails);
+        let options = filterChatSearchOptions(searchValue, contacts);
         let isSearchValuePotentialUser = false;
 
         if (options.length === 0 && Str.isValidEmail(searchValue) || Str.isValidPhone(searchValue)) {
@@ -97,9 +98,10 @@ class NewChatPage extends React.Component {
                             this.setState({focusedIndex: newFocusedIndex});
                         }}
                         onEscapePress={() => {
+                            const {contacts} = getChatSearchState(this.props.personalDetails);
                             this.setState({
                                 searchValue: '',
-                                options: getContactList(this.props.personalDetails),
+                                options: contacts,
                                 focusedIndex: 0,
                             });
                         }}

@@ -9,7 +9,7 @@ import ChatLinkRow from './home/sidebar/ChatLinkRow';
 import KeyboardSpacer from '../components/KeyboardSpacer';
 import ONYXKEYS from '../ONYXKEYS';
 import {getDefaultAvatar} from '../libs/actions/PersonalDetails';
-import {filterChatSearchOptions, getRecentContactList, getContactList} from '../libs/SearchUtils';
+import {filterChatSearchOptions, getRecentContactList, getContactList, getChatSearchState} from '../libs/SearchUtils';
 import ChatSearchInput from '../components/ChatSearchInput';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import CONST from '../CONST';
@@ -21,8 +21,7 @@ class NewGroupPage extends React.Component {
         this.updateOptions = this.updateOptions.bind(this);
         this.selectOption = this.selectOption.bind(this);
 
-        const recentUsers = getRecentContactList(props.reports);
-        const contacts = getContactList(props.personalDetails);
+        const {contacts, recentUsers} = getChatSearchState(props.personalDetails, props.reports);
 
         this.state = {
             contacts,
@@ -39,18 +38,21 @@ class NewGroupPage extends React.Component {
     }
 
     updateOptions(searchValue) {
-        const contactList = getContactList(this.props.personalDetails);
-        let contacts = filterChatSearchOptions(searchValue, contactList);
+        const {contacts, recentUsers} = getChatSearchState(this.props.personalDetails, this.props.reports);
+        let filteredContacts = filterChatSearchOptions(searchValue, contacts);
+        let filteredRecentUsers = filterChatSearchOptions(searchValue, recentUsers);
+        const totalResultsLength = filteredContacts.length + filteredRecentUsers.length;
+
         let isSearchValuePotentialUser = false;
 
-        if (contacts.length === 0 && Str.isValidEmail(searchValue) || Str.isValidPhone(searchValue)) {
+        if (totalResultsLength === 0 && Str.isValidEmail(searchValue) || Str.isValidPhone(searchValue)) {
             // Check to see if the search value is a valid email or phone
-            contacts = [{
+            filteredContacts = [{
                 type: CONST.REPORT.SINGLE_USER_DM,
-                login: this.state.searchValue,
-                text: this.state.searchValue,
-                alternateText: this.state.searchValue,
-                icon: getDefaultAvatar(this.state.searchValue),
+                login: searchValue,
+                text: searchValue,
+                alternateText: searchValue,
+                icon: getDefaultAvatar(searchValue),
             }];
 
             isSearchValuePotentialUser = true;
@@ -58,12 +60,14 @@ class NewGroupPage extends React.Component {
 
         this.setState({
             searchValue,
-            contacts,
+            contacts: filteredContacts,
+            recentUsers: filteredRecentUsers,
             isSearchValuePotentialUser,
         });
     }
 
     selectOption(option) {
+        console.log(option);
         return;
         const {email} = this.props.session;
         fetchOrCreateChatReport([email, option.login]);
@@ -103,7 +107,9 @@ class NewGroupPage extends React.Component {
                         value={this.state.searchValue}
                         placeholder="Name, email or phone number"
                         onEnterPress={() => {
-                            // this.selectOption(this.state.contacts[this.state.focusedIndex]);
+                            const allOptions = this.state.selectedUsers
+                                .concat(this.state.recentUsers, this.state.contacts);
+                            this.selectOption(allOptions[this.state.focusedIndex]);
                         }}
                         onArrowDownPress={() => {
                             let newFocusedIndex = this.state.focusedIndex + 1;
@@ -126,11 +132,12 @@ class NewGroupPage extends React.Component {
                             this.setState({focusedIndex: newFocusedIndex});
                         }}
                         onEscapePress={() => {
+                            const {contacts, recentUsers} = getChatSearchState(this.props.personalDetails, this.props.reports);
                             this.setState({
                                 searchValue: '',
                                 selectedUsers: [],
-                                contacts: getContactList(this.props.personalDetails),
-                                recentUsers: getRecentContactList(props.reports),
+                                contacts,
+                                recentUsers,
                                 focusedIndex: 0,
                             });
                         }}

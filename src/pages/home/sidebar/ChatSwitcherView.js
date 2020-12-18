@@ -11,12 +11,11 @@ import ChatSwitcherList from './ChatSwitcherList';
 import ChatSwitcherSearchForm from './ChatSwitcherSearchForm';
 import {fetchOrCreateChatReport} from '../../../libs/actions/Report';
 import {redirect} from '../../../libs/actions/App';
-import {getContactList} from '../../../libs/actions/PersonalDetails';
 import ROUTES from '../../../ROUTES';
 import styles from '../../../styles/styles';
 import * as ChatSwitcher from '../../../libs/actions/ChatSwitcher';
 import CONST from '../../../CONST';
-import {filterChatSearchOptions} from '../../../libs/SearchUtils';
+import {filterChatSearchOptions, getChatSearchState} from '../../../libs/SearchUtils';
 
 const MAX_GROUP_DM_LENGTH = 8;
 
@@ -396,8 +395,9 @@ class ChatSwitcherView extends React.Component {
         // Get a list of all users we can send messages to and make their details generic. We will also reject any
         // personalDetails logins that exist in chatReportOptions which will remove our dupes since we'll use
         // chatReportOptions as our first source of truth if the 1:1 chat DM exists there.
+        const {contacts} = getChatSearchState(this.props.personalDetails);
         const personalDetailOptions = _.reject(
-            getContactList(this.props.personalDetails),
+            contacts,
             personalDetail => _.findWhere(reportOptions, {login: personalDetail.login})
         );
 
