@@ -394,6 +394,18 @@ function Report_UpdateLastRead(parameters) {
     return request(commandName, parameters);
 }
 
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.password
+ * @param {String} parameters.validateCode
+ * @returns {Promise}
+ */
+function SetPassword(parameters) {
+    const commandName = 'SetPassword';
+    requireParameters(['password', 'validateCode'], parameters, commandName);
+    return request(commandName, parameters);
+}
+
 export {
     getAuthToken,
     Authenticate,
@@ -407,5 +419,6 @@ export {
     Report_AddComment,
     Report_GetHistory,
     Report_TogglePinned,
-    Report_UpdateLastRead
+    Report_UpdateLastRead,
+    SetPassword,
 };
