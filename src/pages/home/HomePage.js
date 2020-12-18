@@ -112,7 +112,7 @@ class App extends React.Component {
     /**
      * Method called when a pinned chat is selected.
      */
-    onChatSelected() {
+    recordTimerAndToggleHamburger() {
         Timing.start(CONST.TIMING.SWITCH_REPORT);
         this.toggleHamburger();
     }
@@ -231,9 +231,7 @@ class App extends React.Component {
                                 >
                                     <Sidebar
                                         insets={insets}
-                                        onLinkClick={() => {
-                                            this.onChatSelected();
-                                        }}
+                                        onLinkClick={this.recordTimerAndToggleHamburger}
                                         isChatSwitcherActive={this.props.isChatSwitcherActive}
                                     />
                                 </Animated.View>
