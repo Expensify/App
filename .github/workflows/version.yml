@@ -13,7 +13,7 @@ jobs:
             - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
               with:
                   fetch-depth: 0
-                  token: ${{ secrets.BOTIFY_TOKEN }}
+                  token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
             - name: Setup Node
               uses: actions/setup-node@v1
@@ -52,7 +52,7 @@ jobs:
                     source_branch: version-bump-${{ github.sha }}
                     destination_branch: "master"
                     pr_label: "automerge"
-                    github_token: ${{ secrets.BOTIFY_TOKEN }}
+                    github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
             # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
             # the other workflows with the same change
