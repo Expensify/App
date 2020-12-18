@@ -14,7 +14,9 @@ import Visibility from '../Visibility';
 import ROUTES from '../../ROUTES';
 import NetworkConnection from '../NetworkConnection';
 import {hide as hideSidebar} from './Sidebar';
+import Timing from './Timing';
 import * as API from '../API';
+import CONST from '../../CONST';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -393,11 +395,11 @@ function fetchActions(reportID) {
 /**
  * Get all of our reports
  *
- * @param {Boolean} shouldRedirectToReport this is set to false when the network reconnect
- *     code runs
+ * @param {Boolean} shouldRedirectToReport this is set to false when the network reconnect code runs
  * @param {Boolean} shouldFetchActions whether or not the actions of the reports should also be fetched
+ * @param {Boolean} shouldRecordHomePageTiming whether or not performance timing should be measured
  */
-function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false) {
+function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false, shouldRecordHomePageTiming = false) {
     fetchChatReports()
         .then((reportIDs) => {
             if (shouldRedirectToReport && (currentURL === ROUTES.ROOT || currentURL === ROUTES.HOME)) {
@@ -414,6 +416,10 @@ function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false) {
                     console.debug(`[RECONNECT] Fetching report actions for report ${reportID}`);
                     fetchActions(reportID);
                 });
+            }
+
+            if (shouldRecordHomePageTiming) {
+                Timing.end(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
             }
         });
 }
