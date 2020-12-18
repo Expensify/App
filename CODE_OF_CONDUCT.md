@@ -1,5 +1,6 @@
-## Overview of Expensify
+# Expensify Code of Conduct
 
+## Overview of Expensify
 At Expensify, our unique approach to solving a real-world problem allows people to
 spend less time managing expenses and more time pursuing their real goals. Today,
 millions of people use Expensify across the globe — more than the rest of the industry
