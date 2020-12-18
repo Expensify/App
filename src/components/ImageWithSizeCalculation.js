@@ -6,12 +6,6 @@ const propTypes = {
     // Url for image to display
     url: PropTypes.string.isRequired,
 
-    // Height to render image
-    height: PropTypes.number.isRequired,
-
-    // Width to render image
-    width: PropTypes.number.isRequired,
-
     // Any additional styles to apply
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.any,
@@ -67,6 +61,8 @@ class ImageWithSizeCalculation extends Component {
             }
 
             this.props.onMeasure({width, height});
+        }, (error) => {
+            console.debug('Unable to fetch image to calculate size', {error});
         });
     }
 
@@ -74,11 +70,12 @@ class ImageWithSizeCalculation extends Component {
         return (
             <Image
                 style={{
+                    width: '100%',
+                    height: '100%',
                     ...this.props.style,
-                    width: this.props.width,
-                    height: this.props.height,
                 }}
                 source={{uri: this.props.url}}
+                resizeMode="contain"
             />
         );
     }
