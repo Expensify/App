@@ -67,7 +67,10 @@ class SetPasswordPage extends Component {
             return;
         }
 
-        this.setState({isLoading: true});
+        this.setState({
+            isLoading: true,
+            formError: null,
+        });
         setPassword(this.state.password, lodashGet(this.props.match.params, 'validateCode', ''));
     }
 
