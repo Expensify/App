@@ -63,7 +63,7 @@ const ChatLinkRow = ({
         >
             <PressableLink
                 onClick={() => onSelectRow(option)}
-                to={ROUTES.getReportRoute(option.reportID)}
+                // to={ROUTES.getReportRoute(option.reportID)}
                 style={StyleSheet.flatten([
                     styles.chatLinkRowPressable,
                     styles.flexGrow1,

@@ -11,4 +11,5 @@ export default {
     getSigninWithExitToRoute: exitTo => `/signin/exitTo${exitTo}`,
     NOT_FOUND: '/404',
     NEW_CHAT: '/new-chat',
+    NEW_GROUP: '/new-group',
 };

@@ -1,5 +1,6 @@
 import React from 'react';
-import {View, FlatList} from 'react-native';
+import Str from 'expensify-common/lib/str';
+import {View, FlatList, Text} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import ModalHeader from '../components/ModalHeader';
 import styles from '../styles/styles';
@@ -7,10 +8,11 @@ import SubHeader from '../components/SubHeader';
 import ChatLinkRow from './home/sidebar/ChatLinkRow';
 import KeyboardSpacer from '../components/KeyboardSpacer';
 import ONYXKEYS from '../ONYXKEYS';
-import {getContactList} from '../libs/actions/PersonalDetails';
+import {getContactList, getDefaultAvatar} from '../libs/actions/PersonalDetails';
 import {filterChatSearchOptions} from '../libs/SearchUtils';
 import ChatSearchInput from '../components/ChatSearchInput';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
+import CONST from '../CONST';
 
 class NewChatPage extends React.Component {
     constructor(props) {
@@ -23,6 +25,7 @@ class NewChatPage extends React.Component {
             options: getContactList(props.personalDetails),
             focusedIndex: 0,
             searchValue: '',
+            isSearchValuePotentialUser: false,
         };
     }
 
@@ -32,9 +35,26 @@ class NewChatPage extends React.Component {
 
     updateOptions(searchValue) {
         const contactList = getContactList(this.props.personalDetails);
+        let options = filterChatSearchOptions(searchValue, contactList);
+        let isSearchValuePotentialUser = false;
+
+        if (options.length === 0 && Str.isValidEmail(searchValue) || Str.isValidPhone(searchValue)) {
+            // Check to see if the search value is a valid email or phone
+            options = [{
+                type: CONST.REPORT.SINGLE_USER_DM,
+                login: this.state.searchValue,
+                text: this.state.searchValue,
+                alternateText: this.state.searchValue,
+                icon: getDefaultAvatar(this.state.searchValue),
+            }];
+
+            isSearchValuePotentialUser = true;
+        }
+
         this.setState({
             searchValue,
-            options: filterChatSearchOptions(searchValue, contactList)
+            options,
+            isSearchValuePotentialUser,
         });
     }
 
@@ -85,10 +105,20 @@ class NewChatPage extends React.Component {
                         }}
                     />
                 </View>
-                <SubHeader text="CONTACTS" />
+
+                {!this.state.isSearchValuePotentialUser && this.state.options.length > 0 && (
+                    <SubHeader text="CONTACTS" />
+                )}
 
                 {/* From ChatSwitcherList */}
                 <View style={[styles.flex1]}>
+                    {this.state.options.length === 0 && (
+                        <View style={[styles.ph2]}>
+                            <Text style={[styles.textLabel]}>
+                                Don't see who you're looking for? Type their email or phone number to invite them to chat.
+                            </Text>
+                        </View>
+                    )}
                     <FlatList
                         contentContainerStyle={styles.flex1}
                         keyboardShouldPersistTaps="always"

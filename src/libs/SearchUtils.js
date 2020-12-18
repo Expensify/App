@@ -1,4 +1,8 @@
+import _ from 'underscore';
+import lodashGet from 'lodash.get';
+import lodashOrderby from 'lodash.orderby';
 import Str from 'expensify-common/lib/str';
+import CONST from '../CONST';
 
 const MAX_SEARCH_RESULTS = 10;
 
@@ -50,6 +54,62 @@ function filterChatSearchOptions(searchValue, searchOptions, rejectMethod = () =
     return Array.from(matches);
 }
 
+function getRecentContactList(reports) {
+    const filteredReports = _.chain(reports)
+            .values()
+            .filter((report) => {
+                if (_.isEmpty(report.reportName)) {
+                    return false;
+                }
+
+                if (!report.lastVisitedTimestamp) {
+                    return false;
+                }
+
+                const participants = lodashGet(report, 'participants', []);
+                return participants.length === 1;
+            })
+            .map((report) => {
+                const participants = lodashGet(report, 'participants', []);
+                const login = report.participants[0];
+                return {
+                    text: report.reportName,
+                    alternateText: login,
+                    searchText: report.participants < 10
+                        ? `${report.reportName} ${report.participants.join(' ')}`
+                        : report.reportName ?? '',
+                    reportID: report.reportID,
+                    participants,
+                    icon: report.icon,
+                    login,
+                    type: CONST.REPORT.SINGLE_USER_DM,
+                    lastVisitedTimestamp: report.lastVisitedTimestamp,
+                    keyForList: String(report.reportID),
+                };
+            })
+            .value();
+
+    return lodashOrderby(filteredReports, ['lastVisitedTimestamp'], ['desc']).slice(0, 5);
+}
+
+function getContactList(personalDetails) {
+    return _.chain(personalDetails)
+        .values()
+        .map(personalDetail => ({
+            text: personalDetail.displayName,
+            alternateText: personalDetail.login,
+            searchText: personalDetail.displayName === personalDetail.login ? personalDetail.login
+                : `${personalDetail.displayName} ${personalDetail.login}`,
+            icon: personalDetail.avatarURL,
+            login: personalDetail.login,
+            type: CONST.REPORT.SINGLE_USER_DM,
+            keyForList: personalDetail.login,
+        }))
+        .value();
+}
+
 export {
     filterChatSearchOptions,
+    getRecentContactList,
+    getContactList,
 };

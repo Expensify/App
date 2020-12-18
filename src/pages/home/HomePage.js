@@ -34,6 +34,7 @@ import NetworkConnection from '../../libs/NetworkConnection';
 import CONFIG from '../../CONFIG';
 import CustomStatusBar from '../../components/CustomStatusBar';
 import NewChatPage from '../NewChatPage';
+import NewGroupPage from '../NewGroupPage';
 
 const windowSize = Dimensions.get('window');
 const widthBreakPoint = 1000;
@@ -207,7 +208,7 @@ class App extends React.Component {
                                 getSafeAreaPadding(insets)
                             ]}
                         >
-                            <Route path={[ROUTES.REPORT, ROUTES.HOME, ROUTES.NEW_CHAT]}>
+                            <Route path={[ROUTES.REPORT, ROUTES.HOME, ROUTES.NEW_CHAT, ROUTES.NEW_GROUP]}>
                                 <Animated.View style={[
                                     hamburgerStyle,
                                     visibility,
@@ -239,6 +240,9 @@ class App extends React.Component {
                                         <Main />
                                         <Route path={ROUTES.NEW_CHAT}>
                                             <NewChatPage />
+                                        </Route>
+                                        <Route path={ROUTES.NEW_GROUP}>
+                                            <NewGroupPage />
                                         </Route>
                                     </View>
                                 </Pressable>

@@ -174,22 +174,6 @@ function getFromReportParticipants(reports) {
         });
 }
 
-function getContactList(personalDetails) {
-    return _.chain(personalDetails)
-        .values()
-        .map(personalDetail => ({
-            text: personalDetail.displayName,
-            alternateText: personalDetail.login,
-            searchText: personalDetail.displayName === personalDetail.login ? personalDetail.login
-                : `${personalDetail.displayName} ${personalDetail.login}`,
-            icon: personalDetail.avatarURL,
-            login: personalDetail.login,
-            type: CONST.REPORT.SINGLE_USER_DM,
-            keyForList: personalDetail.login,
-        }))
-        .value();
-}
-
 // When the app reconnects from being offline, fetch all of the personal details
 NetworkConnection.onReconnect(fetch);
 
@@ -198,5 +182,5 @@ export {
     fetchTimezone,
     getFromReportParticipants,
     getDisplayName,
-    getContactList,
+    getDefaultAvatar,
 };

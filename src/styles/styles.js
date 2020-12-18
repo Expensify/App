@@ -110,6 +110,9 @@ const styles = {
     pr2: {
         paddingRight: 8,
     },
+    ph2: {
+        paddingHorizontal: 20,
+    },
 
     flex0: {
         flex: 0,
