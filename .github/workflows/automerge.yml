@@ -24,7 +24,7 @@ jobs:
               uses: hmarr/auto-approve-action@7782c7e2bdf62b4d79bdcded8332808fd2f179cd
               with:
                   github-token: ${{ secrets.GITHUB_TOKEN }}
-              if: github.event.label.name == 'automerge' && github.actor == 'botify' && steps.changed.outputs.files_updated == 'android/app/build.gradle ios/ExpensifyCash/Info.plist ios/ExpensifyCashTests/Info.plist package-lock.json package.json' && steps.changed.outputs.files_created == '' && steps.changed.outputs.files_deleted == ''
+              if: github.event.label.name == 'automerge' && github.actor == 'OSBotify' && steps.changed.outputs.files_updated == 'android/app/build.gradle ios/ExpensifyCash/Info.plist ios/ExpensifyCashTests/Info.plist package-lock.json package.json' && steps.changed.outputs.files_created == '' && steps.changed.outputs.files_deleted == ''
 
             - name: Check for an auto merge
               # Version: 0.12.0
