@@ -4,6 +4,9 @@ Welcome! Thanks for checking out Expensify Cash and for taking the time to contr
 ## Getting Started
 If you haven't yet, check out our README located [here](https://github.com/Expensify/ReactNativeChat/blob/master/README.md).
 
+## Code of Conduct
+This project and everyone participating in it is governed by the Expensify Code of Conduct. By participating, you are expected to uphold this code. Please report unacceptable behavior to [reactnative@expensify.com](mailto:reactnative@expensify.com).
+
 ## Asking Questions
 If you have a question, we ask that you do not create an issue, and instead email it to reactnative@expensify.com. To ask realtime questions while you're working on your issue, you can join our slack channel. Just send an email to reactnative@expensify.com with the subject "Slack Channel Invite" and we'll send you an invite!
 
