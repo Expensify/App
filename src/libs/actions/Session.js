@@ -7,7 +7,7 @@ import * as API from '../API';
 import CONFIG from '../../CONFIG';
 import PushNotification from '../Notification/PushNotification';
 import ROUTES from '../../ROUTES';
-import * as App from './App';
+import {redirect} from './App';
 
 let credentials;
 Onyx.connect({
@@ -24,10 +24,10 @@ Onyx.connect({
 function setSuccessfulSignInData(data, exitTo) {
     PushNotification.register(data.accountID);
 
-    const redirectTo = exitTo ? Str.normalizeUrl(exitTo) : ROUTES.ROOT;
+    const redirectURL = exitTo ? Str.normalizeUrl(exitTo) : ROUTES.ROOT;
     Onyx.multiSet({
         [ONYXKEYS.SESSION]: _.pick(data, 'authToken', 'accountID', 'email'),
-        [ONYXKEYS.APP_REDIRECT_TO]: redirectTo
+        [ONYXKEYS.APP_REDIRECT_TO]: redirectURL
     });
 }
 
@@ -126,7 +126,7 @@ function setPassword(password, validateCode) {
             // @TODO check for 200 response and log the user in properly (like the sign in flow).
             //  For now we can just redirect to root
             Onyx.merge(ONYXKEYS.CREDENTIALS, {password});
-            App.redirectTo('/');
+            redirect('/');
         });
 }
 
