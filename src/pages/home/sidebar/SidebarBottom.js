@@ -61,7 +61,7 @@ const SidebarBottom = ({myPersonalDetails, network, insets}) => {
             </View>
             <View style={[styles.flexColumn]}>
                 {myPersonalDetails.displayName && (
-                    <Text style={[styles.sidebarFooterUsername]}>
+                    <Text style={[styles.sidebarFooterUsername]} numberOfLines={1}>
                         {myPersonalDetails.displayName}
                     </Text>
                 )}
