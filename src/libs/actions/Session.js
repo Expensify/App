@@ -7,7 +7,7 @@ import * as API from '../API';
 import CONFIG from '../../CONFIG';
 import PushNotification from '../Notification/PushNotification';
 import ROUTES from '../../ROUTES';
-import App from './App';
+import * as App from './App';
 
 let credentials;
 Onyx.connect({

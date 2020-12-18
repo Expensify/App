@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash.get';
 import lodashHas from 'lodash.has';
 import compose from '../libs/compose';
 import {Redirect, withRouter} from '../libs/Router';
@@ -51,6 +52,7 @@ class SetPasswordPage extends Component {
         this.state = {
             password: '',
             isLoading: false,
+            formError: null,
         };
     }
 
@@ -58,8 +60,15 @@ class SetPasswordPage extends Component {
      * Sign into the application when the form is submitted
      */
     submitForm() {
+        if (!this.state.password.trim()) {
+            this.setState({
+                formError: 'Password cannot be blank',
+            });
+            return;
+        }
+
         this.setState({isLoading: true});
-        setPassword(this.state.password, this.props.match.validateCode);
+        setPassword(this.state.password, lodashGet(this.props.match.params, 'validateCode', ''));
     }
 
     render() {
@@ -82,7 +91,7 @@ class SetPasswordPage extends Component {
                             />
                         </View>
                         <View style={[styles.mb4]}>
-                            <Text style={[styles.formLabel]}>Password</Text>
+                            <Text style={[styles.formLabel]}>Enter a password</Text>
                             <TextInput
                                 style={[styles.textInput]}
                                 secureTextEntry
@@ -107,6 +116,11 @@ class SetPasswordPage extends Component {
                                 )}
                             </TouchableOpacity>
                         </View>
+                        {this.state.formError && (
+                            <Text style={[styles.formError]}>
+                                {this.state.formError}
+                            </Text>
+                        )}
                     </View>
                 </SafeAreaView>
             </>
