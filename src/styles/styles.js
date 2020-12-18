@@ -4,40 +4,8 @@ import italic from './italic';
 import addOutlineWidth from './addOutlineWidth';
 import themeColors from './themes/default';
 import fontWeightBold from './fontWeight/bold';
-
-const variables = {
-    contentHeaderHeight: 65,
-    componentSizeNormal: 40,
-    componentSizeSmall: 28,
-    componentBorderRadius: 8,
-    fontSizeSmall: 11,
-    fontSizeLabel: 13,
-    fontSizeNormal: 15,
-    safeInsertPercentage: 0.7,
-};
-
-const colors = {
-    arsenic: '#39444B',
-    componentBG: '#FFFFFF',
-    background: '#FAFAFA',
-    whiteSmoke: '#F8F8F8',
-    whisper: '#EEEEEE',
-    black: '#000000',
-    blue: '#2EAAE2',
-    border: '#ECECEC',
-    borderLight: '#E0E0E0',
-    green: '#2ECB70',
-    heading: '#37444C',
-    icon: '#C6C9CA',
-    text: '#4A5960',
-    textBackground: '#F0F0F0',
-    textReversed: '#FFFFFF',
-    textSupporting: '#7D8B8F',
-    transparent: 'transparent',
-    red: '#E84A3B',
-    buttonBG: '#8A8A8A',
-    modalBackdrop: '#00000080',
-};
+import variables from './variables';
+import colors from './colors';
 
 const styles = {
     // Utility classes
@@ -101,11 +69,19 @@ const styles = {
     p1: {
         padding: 10,
     },
+    p2: {
+        padding: 20,
+    },
     pr1: {
         paddingRight: 4,
     },
     pr2: {
         paddingRight: 8,
+    },
+
+    widthHeight100p: {
+        width: '100%',
+        height: '100%',
     },
 
     flex0: {
@@ -895,31 +871,16 @@ const styles = {
         fontWeight: fontWeightBold,
     },
 
-    modalViewContainerMobile: {
-        backgroundColor: themeColors.componentBG,
-        borderColor: themeColors.border,
-        borderWidth: 1,
-        height: '100%',
-        alignItems: 'center',
-        overflow: 'hidden',
-    },
-
     modalViewContainer: {
-        backgroundColor: themeColors.componentBG,
-        borderColor: themeColors.border,
-        borderWidth: 1,
-        borderRadius: 12,
-        height: '100%',
         alignItems: 'center',
-        overflow: 'hidden',
+        flex: 1,
     },
 
     modalHeaderBar: {
         overflow: 'hidden',
         justifyContent: 'center',
         display: 'flex',
-        paddingLeft: 32,
-        paddingRight: 20,
+        paddingLeft: 20,
         borderBottomWidth: 1,
         borderColor: themeColors.border,
         height: variables.contentHeaderHeight,
@@ -940,11 +901,9 @@ const styles = {
     },
 
     imageModalImageCenterContainer: {
-        flex: 1,
-        flexDirection: 'column',
-        justifyContent: 'center',
         alignItems: 'center',
-        overflow: 'hidden',
+        flex: 1,
+        justifyContent: 'center',
         width: '100%',
     },
 
@@ -969,7 +928,7 @@ const styles = {
 
     notFoundSafeArea: {
         flex: 1,
-        backgroundColor: colors.heading,
+        backgroundColor: themeColors.heading,
     },
 
     notFoundView: {
@@ -997,7 +956,7 @@ const styles = {
     },
 
     notFoundTextBody: {
-        color: colors.componentBG,
+        color: themeColors.componentBG,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         fontSize: 15,
@@ -1008,7 +967,12 @@ const styles = {
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         fontSize: 15,
-    }
+    },
+
+    defaultModalContainer: {
+        backgroundColor: themeColors.componentBG,
+        borderColor: colors.transparent,
+    },
 };
 
 const baseCodeTagStyles = {
@@ -1115,5 +1079,5 @@ function getSafeAreaMargins(insets) {
 
 export default styles;
 export {
-    getSafeAreaPadding, getSafeAreaMargins, webViewStyles, variables,
+    getSafeAreaPadding, getSafeAreaMargins, webViewStyles,
 };
