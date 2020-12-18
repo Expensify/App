@@ -13,6 +13,13 @@ const CONST = {
             CENTERED: 'centered',
         },
     },
+    TIMING: {
+        HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
+        HOMEPAGE_REPORTS_LOADED: 'homepage_reports_loaded',
+        SWITCH_REPORT: 'switch_report',
+        PINNED: 'pinned',
+        UNPINNED: 'unpinned'
+    }
 };
 
 export default CONST;
