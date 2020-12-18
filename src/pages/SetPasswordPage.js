@@ -35,7 +35,7 @@ const propTypes = {
         login: PropTypes.string,
 
         // The password used to log in the user
-        password: PropTypes.bool,
+        password: PropTypes.string,
     }),
 };
 
