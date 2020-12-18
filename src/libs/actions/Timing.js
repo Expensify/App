@@ -15,15 +15,20 @@ function start(eventName) {
 /**
  * End performance timing. Measure the time between event start/end in milliseconds, and push to Grafana
  *
- * @param {String} eventName
+ * @param {String} eventName - event name used as timestamp key
+ * @param {String} secondaryName - optional secondary event name, passed to grafana
  */
-function end(eventName) {
+function end(eventName, secondaryName) {
     if (eventName in timestampData) {
         const eventTime = Date.now() - timestampData[eventName];
-        console.debug(`Timing:${eventName}`, eventTime);
+        const grafanaEventName = secondaryName
+            ? `expensify.cash.${eventName}.${secondaryName}`
+            : `expensify.cash.${eventName}`;
+
+        console.debug(`Timing:${grafanaEventName}`, eventTime);
 
         Graphite_Timer({
-            name: `expensify.cash.${eventName}`,
+            name: grafanaEventName,
             value: eventTime,
             referer: `${getPlatform()}`
         });

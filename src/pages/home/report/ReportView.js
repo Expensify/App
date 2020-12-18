@@ -23,12 +23,12 @@ class ReportView extends React.PureComponent {
     componentDidMount() {
         subscribeToReportTypingEvents(this.props.reportID);
 
-        Timing.end(CONST.TIMING.SWITCH_REPORT);
+        Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.UNPINNED);
     }
 
     componentDidUpdate(props) {
         if (!props.isActiveReport) {
-            Timing.end(CONST.TIMING.SWITCH_REPORT);
+            Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.PINNED);
         }
     }
 
