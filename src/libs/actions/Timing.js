@@ -20,6 +20,7 @@ function start(eventName) {
 function end(eventName) {
     if (eventName in timestampData) {
         const eventTime = Date.now() - timestampData[eventName];
+        console.debug(`Timing:${eventName}`, eventTime);
 
         Graphite_Timer({
             name: `expensify.cash.${eventName}`,
