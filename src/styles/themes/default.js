@@ -20,6 +20,6 @@ export default {
     offline: colors.gray3,
     errorText: colors.red,
     sidebarButtonBG: 'rgba(198, 201, 202, 0.25)',
-    modalBackdrop: 'rgba(198, 201, 202, 0.5)',
+    modalBackdrop: colors.gray3,
     pillBG: colors.gray2,
 };
