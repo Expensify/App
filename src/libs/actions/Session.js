@@ -7,6 +7,7 @@ import * as API from '../API';
 import CONFIG from '../../CONFIG';
 import PushNotification from '../Notification/PushNotification';
 import ROUTES from '../../ROUTES';
+import App from './App';
 
 let credentials;
 Onyx.connect({
@@ -110,7 +111,25 @@ function signOut() {
         .catch(error => Onyx.merge(ONYXKEYS.SESSION, {error: error.message}));
 }
 
+/**
+ * Set the password for the current account
+ *
+ * @param {String} password
+ * @param {String} validateCode
+ */
+function setPassword(password, validateCode) {
+    API.SetPassword({
+        password,
+        validateCode,
+    })
+        .then(() => {
+            Onyx.merge(ONYXKEYS.CREDENTIALS, {password});
+            App.redirectTo('/');
+        });
+}
+
 export {
     signIn,
     signOut,
+    setPassword,
 };
