@@ -123,6 +123,8 @@ function setPassword(password, validateCode) {
         validateCode,
     })
         .then(() => {
+            // @TODO check for 200 response and log the user in properly (like the sign in flow).
+            //  For now we can just redirect to root
             Onyx.merge(ONYXKEYS.CREDENTIALS, {password});
             App.redirectTo('/');
         });
