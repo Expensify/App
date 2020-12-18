@@ -63,6 +63,7 @@ class App extends React.Component {
         this.dismissHamburger = this.dismissHamburger.bind(this);
         this.showHamburger = this.showHamburger.bind(this);
         this.toggleHamburgerBasedOnDimensions = this.toggleHamburgerBasedOnDimensions.bind(this);
+        this.recordTimerAndToggleHamburger = this.recordTimerAndToggleHamburger.bind(this);
 
         this.animationTranslateX = new Animated.Value(
             !props.isSidebarShown ? -300 : 0
