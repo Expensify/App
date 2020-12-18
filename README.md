@@ -257,7 +257,7 @@ The GitHub workflows require a large list of secrets to deploy, notify and test 
     3. `ios/chat_expensify_appstore.mobileprovision`
     4. `ios/Certificates.p12.gpg`
 2. `SLACK_WEBHOOK` - Sends Slack notifications via Slack WebHook https://expensify.slack.com/services/B01AX48D7MM
-3. `BOTIFY_TOKEN` - Personal access token for @Botify user in GitHub
+3. `OS_BOTIFY_TOKEN` - Personal access token for @OSBotify user in GitHub
 4. `CSC_LINK` - Required to be set for desktop code signing: https://www.electron.build/code-signing.html#travis-appveyor-and-other-ci-servers
 5. `CSC_KEY_PASSWORD` - Required to be set for desktop code signing: https://www.electron.build/code-signing.html#travis-appveyor-and-other-ci-servers
 6. `APPLE_ID` - Required for notarizing desktop code in `desktop/notarize.js`

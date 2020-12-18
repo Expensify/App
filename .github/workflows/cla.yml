@@ -1,4 +1,4 @@
-name: "CLA Assistant"
+name: CLA Assistant
 
 on:
     issue_comment:
@@ -10,12 +10,13 @@ jobs:
     CLA:
         runs-on: ubuntu-latest
         steps:
-            - name: "CLA Assistant"
+            - name: CLA Assistant
               if: (github.event.comment.body == 'recheck' || github.event.comment.body == 'I have read the CLA Document and I hereby sign the CLA') || github.event_name == 'pull_request_target'
-              uses: cla-assistant/github-action@v2.0.2-alpha
+              # Version: 2.0.2-alpha
+              uses: cla-assistant/github-action@5a4ef1e1a1f75bceafd9b12704f8a6da576bcf14
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  PERSONAL_ACCESS_TOKEN : ${{ secrets.BOTIFY_TOKEN }}
+                  PERSONAL_ACCESS_TOKEN : ${{ secrets.OS_BOTIFY_TOKEN }}
               with:
                   path-to-signatures: '${{ github.repository }}/cla.json'
                   path-to-document: 'https://github.com/${{ github.repository }}/blob/master/CLA.md'
