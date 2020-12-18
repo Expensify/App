@@ -57,7 +57,7 @@ class SetPasswordPage extends Component {
     }
 
     /**
-     * Sign into the application when the form is submitted
+     * Validate the form and then submit it
      */
     submitForm() {
         if (!this.state.password.trim()) {
