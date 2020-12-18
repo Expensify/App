@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import styles from '../../../styles/styles';
 import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
-import ROUTES from '../../../ROUTES';
 import pencilIcon from '../../../../assets/images/icon-pencil.png';
 import PressableLink from '../../../components/PressableLink';
 import CONST from '../../../CONST';
@@ -63,7 +62,6 @@ const ChatLinkRow = ({
         >
             <PressableLink
                 onClick={() => onSelectRow(option)}
-                to={ROUTES.getReportRoute(option.reportID)}
                 style={StyleSheet.flatten([
                     styles.chatLinkRowPressable,
                     styles.flexGrow1,
