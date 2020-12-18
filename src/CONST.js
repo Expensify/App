@@ -8,11 +8,16 @@ const CONST = {
         SINGLE_USER_DM: 'singleUserDM',
         GROUP_USERS_DM: 'groupUsersDM',
     },
+    MODAL: {
+        MODAL_TYPE: {
+            CENTERED: 'centered',
+        },
+    },
     TIMING: {
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
         HOMEPAGE_REPORTS_LOADED: 'homepage_reports_loaded',
         SWITCH_REPORT: 'switch_report'
-    },
+    }
 };
 
 export default CONST;

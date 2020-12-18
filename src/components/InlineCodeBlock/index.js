@@ -1,5 +1,6 @@
 import React from 'react';
 import inlineCodeBlockPropTypes from './inlineCodeBlockPropTypes';
+import styles from '../../styles/styles';
 
 const InlineCodeBlock = ({
     TDefaultRenderer,
@@ -8,7 +9,7 @@ const InlineCodeBlock = ({
     textStyle,
 }) => (
     <TDefaultRenderer
-        style={{...boxModelStyle, ...textStyle}}
+        style={{...boxModelStyle, ...textStyle, ...styles.dInlineBlock}}
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...defaultRendererProps}
     />

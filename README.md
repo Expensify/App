@@ -1,6 +1,10 @@
-# React Native Chat
+<div align="center">
+  <img src="https://use.expensify.com/assets/logo/download/expensify-app-logo_circular/expensify-app-logo_circular.png" width="64" height="64">
+</div>
 
-# Philosophy
+# [Expensify.cash](https://Expensify.cash)
+
+## Philosophy
 This application is built with the following principles.
 1. **Data Flow** - Ideally, this is how data flows through the app:
     1. Server pushes data to the disk of any client (Server -> Pusher event -> Action listening to pusher event -> Onyx). Currently the code only does this with report comments. Until we make more server changes, this steps is actually done by the client requesting data from the server via XHR and then storing the response in Onyx.
@@ -41,6 +45,8 @@ This application is built with the following principles.
     1. If the reason you can't write cross platform code is because there is a bug in ReactNative that is preventing it from working, the correct action is to fix RN and submit a PR upstream -- not to hack around RN bugs with platform-specific code paths.
     1. If there is a feature that simply doesn't exist on all platforms and thus doesn't exist in RN, rather than doing if (platform=iOS) { }, instead write a "shim" library that is implemented with NOOPs on the other platforms.  For example, rather than injecting platform-specific multi-tab code (which can only work on browsers, because it's the only platform with multiple tabs), write a TabManager class that just is NOOP for non-browser platforms.  This encapsulates the platform-specific code into a platform library, rather than sprinkling through the business logic.
     1. Put all platform specific code in dedicated files and folders, like /platform, and reject any PR that attempts to put platform-specific code anywhere else.  This maintains a strict separation between business logic and platform code.
+    
+----
 
 # Local development
 ## Getting started
@@ -227,6 +233,8 @@ export default withOnyx({
     },
 })(ReportActionsView);
 ```
+
+----
 
 # Deploying
 ##  Continuous deployment / GitHub workflows
