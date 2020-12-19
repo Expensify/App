@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import {withOnyx} from 'react-native-onyx';
+import {withOnyx, Onyx} from 'react-native-onyx';
 import CONFIG from '../../CONFIG';
 import compose from '../../libs/compose';
 import {withRouter, Redirect} from '../../libs/Router';
@@ -22,6 +22,9 @@ import themeColors from '../../styles/themes/default';
 import logo from '../../../assets/images/expensify-logo-round.png';
 import CustomStatusBar from '../../components/CustomStatusBar';
 import updateUnread from '../../libs/UnreadIndicatorUpdater/updateUnread/index';
+import LoginForm from './LoginForm';
+import GithubUsernameForm from './GithubUsernameForm';
+import PasswordForm from './PasswordForm';
 
 const propTypes = {
     // These are from withRouter
@@ -61,15 +64,10 @@ class App extends Component {
     constructor(props) {
         super(props);
 
+        this.submitLoginForm = this.submitLoginForm.bind(this);
+        this.submitGithubUsernameForm = this.submitGithubUsernameForm.bind(this);
+        this.submitPasswordForm = this.submitPasswordForm.bind(this);
         this.submitForm = this.submitForm.bind(this);
-
-        this.state = {
-            login: CONFIG.LOGIN.PARTNER_USER_ID || '',
-            password: CONFIG.LOGIN.PARTNER_USER_SECRET || '',
-            githubUsername: '',
-            twoFactorAuthCode: '',
-            formError: null,
-        };
     }
 
     componentDidMount() {
@@ -77,58 +75,16 @@ class App extends Component {
         updateUnread(0);
     }
 
-    /**
-     * Sign into the application when the form is submitted
-     */
-    submitForm() {
-        // If there is no login in the credentials yet, validate just the login field and
-        // check if their account exists or not
-        if (!this.props.credentials.login) {
-            if (!this.state.login.trim()) {
-                this.setState({formError: 'Please fill out all fields'});
-                return;
-            }
-            hasAccount(this.state.login);
-        }
+    submitLoginForm({login}) {
+        Onyx.merge(ONYXKEYS.CREDENTIALS, {login});
+    }
 
-        // If there is a login, then move onto account or login creation
-        if (this.props.credentials.login) {
-            // If the account did not exist, validate the github username field and
-            // then create a new account
-            if (!this.props.credentials.hasGithubUsername) {
-                if (!this.state.githubUsername.trim()) {
-                    this.setState({formError: 'Please fill out all fields'});
-                    return;
-                }
+    submitGithubUsernameForm({githubUsername}) {
+        Onyx.merge(ONYXKEYS.CREDENTIALS, {githubUsername});
+    }
 
-                // Save the github username for later when creating the account or login
-                setGitHubUsername(this.state.githubUsername);
-                return;
-            }
-
-            // If the account already existed, validate the
-            if (!this.state.password.trim() || !this.state.twoFactorAuthCode.trim()) {
-                this.setState({formError: 'Please fill out all fields'});
-                return;
-            }
-
-            if (this.props.credentials.accountExists) {
-                // Create login
-                // createLogin(this.state.login, this.state.password, this.state.twoFactorAuthCode);
-                return;
-            }
-
-            // Create account
-            createAccount(this.state.login, this.state.password, this.state.twoFactorAuthCode);
-        }
-
-        // if (this.props.session && this.props.session.loading) {
-        //     return;
-        // }
-        // signIn(this.state.login, this.state.password, this.state.twoFactorAuthCode, this.props.match.params.exitTo);
-        this.setState({
-            formError: null,
-        });
+    submitPasswordForm({password, twoFactorAuthCode}) {
+        Onyx.merge(ONYXKEYS.CREDENTIALS, {password, twoFactorAuthCode});
     }
 
     render() {
@@ -157,91 +113,27 @@ class App extends Component {
                         {!this.props.credentials.login
                             && !this.props.credentials.githubUsername
                             && !this.props.credentials.password && (
-                            <View style={[styles.mb4]}>
-                                <Text style={[styles.formLabel]}>Login</Text>
-                                <TextInput
-                                    style={[styles.textInput]}
-                                    value={this.state.login}
-                                    autoCompleteType="email"
-                                    textContentType="username"
-                                    onChangeText={text => this.setState({login: text})}
-                                    onSubmitEditing={this.submitForm}
-                                    autoCapitalize="none"
-                                    placeholder="Email or phone"
-                                />
-                            </View>
+                            <LoginForm onSubmit={this.submitLoginForm} />
                         )}
 
                         {this.props.credentials.login && (
                             <>
                                 {/* Show the GitHub Username field if the account doesn't have access to this app yet */}
                                 {!this.props.credentials.hasGithubUsername && (
-                                    <View style={[styles.mb4]}>
-                                        <Text style={[styles.formLabel]}>GitHub Username</Text>
-                                        <TextInput
-                                            style={[styles.textInput]}
-                                            value={this.state.githubUsername}
-                                            autoCompleteType="email"
-                                            textContentType="username"
-                                            onChangeText={text => this.setState({githubUsername: text})}
-                                            onSubmitEditing={this.submitForm}
-                                            autoCapitalize="none"
-                                        />
-                                    </View>
+                                    <GithubUsernameForm onSubmit={this.submitGithubUsernameForm} />
                                 )}
 
                                 {/* Show the password and 2FA fields if there is a github username */}
                                 {this.props.credentials.hasGithubUsername && (
-                                    <>
-                                        <View style={[styles.mb4]}>
-                                            <Text style={[styles.formLabel]}>Password</Text>
-                                            <TextInput
-                                                style={[styles.textInput]}
-                                                secureTextEntry
-                                                autoCompleteType="password"
-                                                textContentType="password"
-                                                value={this.state.password}
-                                                onChangeText={text => this.setState({password: text})}
-                                                onSubmitEditing={this.submitForm}
-                                            />
-                                        </View>
-                                        <View style={[styles.mb4]}>
-                                            <Text style={[styles.formLabel]}>Two Factor Code</Text>
-                                            <TextInput
-                                                style={[styles.textInput]}
-                                                value={this.state.twoFactorAuthCode}
-                                                placeholder="Required when 2FA is enabled"
-                                                placeholderTextColor={themeColors.textSupporting}
-                                                onChangeText={text => this.setState({twoFactorAuthCode: text})}
-                                                onSubmitEditing={this.submitForm}
-                                            />
-                                        </View>
-                                    </>
+                                    <PasswordForm onSubmit={this.submitPasswordForm} />
                                 )}
                             </>
                         )}
 
                         <View>
-                            <TouchableOpacity
-                                style={[styles.button, styles.buttonSuccess, styles.mb4]}
-                                onPress={this.submitForm}
-                                underlayColor={themeColors.componentBG}
-                                disabled={this.props.session.loading}
-                            >
-                                {this.props.session.loading ? (
-                                    <ActivityIndicator color={themeColors.textReversed} />
-                                ) : (
-                                    <Text style={[styles.buttonText, styles.buttonSuccessText]}>Log In</Text>
-                                )}
-                            </TouchableOpacity>
                             {this.props.session && !_.isEmpty(this.props.session.error) && (
                                 <Text style={[styles.formError]}>
                                     {this.props.session.error}
-                                </Text>
-                            )}
-                            {this.state.formError && (
-                                <Text style={[styles.formError]}>
-                                    {this.state.formError}
                                 </Text>
                             )}
                         </View>
