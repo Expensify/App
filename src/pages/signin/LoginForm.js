@@ -71,6 +71,8 @@ class LoginForm extends React.Component {
                     </Text>
                 )}
 
+                <View style={[styles.hr]} />
+
                 <View style={[styles.mt5]}>
                     <Text style={[styles.h3]}>
                         Welcome to the Expensify.cash beta
