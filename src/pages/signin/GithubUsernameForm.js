@@ -51,7 +51,7 @@ class GithubUsernameForm extends React.Component {
                         autoCompleteType="email"
                         textContentType="username"
                         onChangeText={text => this.setState({githubUsername: text})}
-                        onSubmitEditing={this.props.validateAndSubmitForm}
+                        onSubmitEditing={this.validateAndSubmitForm}
                         autoCapitalize="none"
                     />
                 </View>
@@ -59,7 +59,7 @@ class GithubUsernameForm extends React.Component {
                     <SubmitButton
                         text="Next"
                         isLoading={this.state.isLoading}
-                        onClick={this.props.validateAndSubmitForm}
+                        onClick={this.validateAndSubmitForm}
                     />
                 </View>
                 {this.state.formError && (
