@@ -256,11 +256,30 @@ function CreateChatReport(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {String} parameters.partnerName
+ * @param {String} parameters.partnerPassword
+ * @param {String} parameters.email
+ * @param {String} [parameters.githubUsername]
+ * @returns {Promise}
+ */
+function CreateAccount(parameters) {
+    const commandName = 'CreateAccount';
+    requireParameters([
+        'partnerName',
+        'partnerPassword',
+        'email',
+    ], parameters, commandName);
+    return request(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
  * @param {String} parameters.authToken
  * @param {String} parameters.partnerName
  * @param {String} parameters.partnerPassword
  * @param {String} parameters.partnerUserID
  * @param {String} parameters.partnerUserSecret
+ * @param {String} [parameters.githubUsername]
  * @returns {Promise}
  */
 function CreateLogin(parameters) {
@@ -417,13 +436,26 @@ function Report_UpdateLastRead(parameters) {
     return request(commandName, parameters);
 }
 
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.username
+ * @returns {Promise}
+ */
+function SetGithubUsername(parameters) {
+    const commandName = 'SetGithubUsername';
+    requireParameters(['username'], parameters, commandName);
+    return request(commandName, parameters);
+}
+
 export {
     getAuthToken,
     Authenticate,
     CreateChatReport,
+    CreateAccount,
     CreateLogin,
     DeleteLogin,
     Get,
+    GetAccountStatus,
     Graphite_Timer,
     Log,
     PersonalDetails_GetForEmails,
@@ -431,5 +463,6 @@ export {
     Report_AddComment,
     Report_GetHistory,
     Report_TogglePinned,
-    Report_UpdateLastRead
+    Report_UpdateLastRead,
+    SetGithubUsername,
 };

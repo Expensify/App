@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import {recordCurrentlyViewedReportID, recordCurrentRoute} from './libs/actions/App';
-import SignInPage from './pages/SignInPage';
+import SignInPage from './pages/signin/SignInPage';
 import HomePage from './pages/home/HomePage';
 import NotFoundPage from './pages/NotFound';
 import listenToStorageEvents from './libs/listenToStorageEvents';

@@ -112,23 +112,57 @@ function signOut() {
         .catch(error => Onyx.merge(ONYXKEYS.SESSION, {error: error.message}));
 }
 
+/**
+ * Checks the API to see if an account exists for the given login
+ *
+ * @param {String} login
+ */
 function hasAccount(login) {
+    Onyx.merge(ONYXKEYS.SESSION, {loading: true});
+
     API.GetAccountStatus({email: login})
         .then((response) => {
             if (response.jsonCode === 200) {
-                if (response.accountExists && response.canAccessChat) {
-                    // Store the login in the credentials and that this application can be accessed.
-                    // This will cause the password and 2FA form to show up
-                    Onyx.merge(ONYXKEYS.CREDENTIALS, {login, canAccessCash: true});
-                }
-
-                // Store just the login in the credentials.
-                // This will show the form for getting the user's GitHub handle
-                Onyx.merge(ONYXKEYS.CREDENTIALS, {login, canAccessCash: false});
+                Onyx.merge(ONYXKEYS.CREDENTIALS, {
+                    login,
+                    accountExists: response.accountExists,
+                    hasGithubUsername: response.hasGithubUsername,
+                });
+                Onyx.merge(ONYXKEYS.SESSION, {loading: false});
                 return;
             }
 
             Onyx.merge(ONYXKEYS.SESSION, {error: response.message});
+            Onyx.merge(ONYXKEYS.SESSION, {loading: false});
+        });
+}
+
+function createAccount(login, password, twoFactorAuthCode) {
+    // Call CreateAccount()
+}
+
+function createLogin(login, password, twoFactorAuthCode) {
+    // Call Authenticate()
+    // Call CreateLogin()
+}
+
+/**
+ * Puts the github username into Onyx so that it can be used when creating accounts or logins
+ *
+ * @param {String} username
+ */
+function setGitHubUsername(username) {
+    Onyx.merge(ONYXKEYS.SESSION, {loading: true});
+    API.SetGithubUsername({username})
+        .then((response) => {
+            if (response.jsonCode === 200) {
+                Onyx.merge(ONYXKEYS.CREDENTIALS, {githubUsername: username});
+                Onyx.merge(ONYXKEYS.SESSION, {loading: false});
+                return;
+            }
+
+            Onyx.merge(ONYXKEYS.SESSION, {error: response.message});
+            Onyx.merge(ONYXKEYS.SESSION, {loading: false});
         });
 }
 
@@ -136,4 +170,6 @@ export {
     signIn,
     signOut,
     hasAccount,
+    createAccount,
+    setGitHubUsername,
 };
