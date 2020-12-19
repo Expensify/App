@@ -19,6 +19,7 @@ import updateUnread from '../../libs/UnreadIndicatorUpdater/updateUnread/index';
 import LoginForm from './LoginForm';
 import GithubUsernameForm from './GithubUsernameForm';
 import PasswordForm from './PasswordForm';
+import ResendValidationForm from './ResendValidationForm';
 
 const propTypes = {
     /* Onyx Props */
@@ -53,6 +54,7 @@ class App extends Component {
         this.submitLoginForm = this.submitLoginForm.bind(this);
         this.submitGithubUsernameForm = this.submitGithubUsernameForm.bind(this);
         this.submitPasswordForm = this.submitPasswordForm.bind(this);
+        this.submitResendValidationLinkForm = this.submitResendValidationLinkForm.bind(this);
     }
 
     componentDidMount() {
@@ -60,16 +62,41 @@ class App extends Component {
         updateUnread(0);
     }
 
+    /**
+     * Check if the login that was entered has an account already or not
+     *
+     * @param {String} login
+     */
     submitLoginForm({login}) {
         Onyx.merge(ONYXKEYS.CREDENTIALS, {login});
     }
 
+    /**
+     * Save the github username to the server
+     *
+     * @param {String} githubUsername
+     */
     submitGithubUsernameForm({githubUsername}) {
         Onyx.merge(ONYXKEYS.CREDENTIALS, {githubUsername});
     }
 
+    /**
+     * Take the username and password and either:
+     *  - Create a login if the account already existed
+     *  - Create a new account if the account doesn't exist yet
+     *
+     * @param {String} password
+     * @param {String} twoFactorAuthCode
+     */
     submitPasswordForm({password, twoFactorAuthCode}) {
         Onyx.merge(ONYXKEYS.CREDENTIALS, {password, twoFactorAuthCode});
+    }
+
+    /**
+     * Resend the validation link
+     */
+    submitResendValidationLinkForm() {
+        // Resend link
     }
 
     render() {
@@ -92,6 +119,10 @@ class App extends Component {
         const showPasswordForm = this.props.credentials.login
             && this.props.credentials.githubUsername
             && !this.props.credentials.password;
+
+        const showResendValidationLinkForm = this.props.credentials.login
+            && this.props.credentials.githubUsername
+            && this.props.credentials.password;
 
         return (
             <>
@@ -116,6 +147,10 @@ class App extends Component {
 
                         {showPasswordForm && (
                             <PasswordForm onSubmit={this.submitPasswordForm} />
+                        )}
+
+                        {showResendValidationLinkForm && (
+                            <ResendValidationForm onSubmit={this.submitResendValidationLinkForm} />
                         )}
 
                         <View>
