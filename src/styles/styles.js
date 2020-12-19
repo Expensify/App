@@ -37,16 +37,20 @@ const styles = {
         marginLeft: 8,
     },
 
-    mt2: {
-        marginTop: 20,
-    },
-
     mt1: {
         marginTop: 4,
     },
-
+    mt2: {
+        marginTop: 8,
+    },
     mt3: {
         marginTop: 12,
+    },
+    mt4: {
+        marginTop: 16,
+    },
+    mt5: {
+        marginTop: 20,
     },
 
     mb1: {
@@ -61,7 +65,6 @@ const styles = {
     mb4: {
         marginBottom: 16,
     },
-
     mbn5: {
         marginBottom: -5,
     },
@@ -158,6 +161,17 @@ const styles = {
 
     height100percent: {
         height: '100%',
+    },
+
+    link: {
+        color: themeColors.link,
+        textDecorationColor: themeColors.link,
+    },
+
+    h3: {
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeNormal,
+        fontWeight: fontWeightBold,
     },
 
     h4: {
@@ -1006,10 +1020,7 @@ const webViewStyles = {
             fontWeight: fontWeightBold,
         },
 
-        a: {
-            color: themeColors.link,
-            textDecorationColor: themeColors.link,
-        },
+        a: styles.link,
 
         blockquote: {
             borderLeftColor: themeColors.border,
