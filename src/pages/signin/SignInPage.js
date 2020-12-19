@@ -53,7 +53,6 @@ class App extends Component {
         this.submitLoginForm = this.submitLoginForm.bind(this);
         this.submitGithubUsernameForm = this.submitGithubUsernameForm.bind(this);
         this.submitPasswordForm = this.submitPasswordForm.bind(this);
-        this.submitForm = this.submitForm.bind(this);
     }
 
     componentDidMount() {

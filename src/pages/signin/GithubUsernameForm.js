@@ -6,7 +6,7 @@ import SubmitButton from './SubmitButton';
 
 const propTypes = {
     // A function that is called when the form is submitted
-    onSubmit: PropTypes.function.isRequired,
+    onSubmit: PropTypes.func.isRequired,
 };
 
 class GithubUsernameForm extends React.Component {
