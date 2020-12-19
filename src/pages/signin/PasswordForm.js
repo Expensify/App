@@ -74,7 +74,7 @@ class PasswordForm extends React.Component {
                     <SubmitButton
                         text="Next"
                         isLoading={this.state.isLoading}
-                        onClick={this.props.validateAndSubmitForm}
+                        onClick={this.validateAndSubmitForm}
                     />
                 </View>
                 {this.state.formError && (

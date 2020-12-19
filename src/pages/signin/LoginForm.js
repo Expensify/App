@@ -51,7 +51,7 @@ class LoginForm extends React.Component {
                         autoCompleteType="email"
                         textContentType="username"
                         onChangeText={text => this.setState({login: text})}
-                        onSubmitEditing={this.props.validateAndSubmitForm}
+                        onSubmitEditing={this.validateAndSubmitForm}
                         autoCapitalize="none"
                         placeholder="Email or phone"
                     />
@@ -60,7 +60,7 @@ class LoginForm extends React.Component {
                     <SubmitButton
                         text="Next"
                         isLoading={this.state.isLoading}
-                        onClick={this.props.validateAndSubmitForm}
+                        onClick={this.validateAndSubmitForm}
                     />
                 </View>
                 {this.state.formError && (

@@ -2,23 +2,17 @@ import React, {Component} from 'react';
 import {
     SafeAreaView,
     Text,
-    TouchableOpacity,
-    TextInput,
     Image,
     View,
-    ActivityIndicator,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import {withOnyx, Onyx} from 'react-native-onyx';
-import CONFIG from '../../CONFIG';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import compose from '../../libs/compose';
-import {withRouter, Redirect} from '../../libs/Router';
+import {Redirect} from '../../libs/Router';
 import ROUTES from '../../ROUTES';
-import {signIn, hasAccount, setGitHubUsername} from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
 import logo from '../../../assets/images/expensify-logo-round.png';
 import CustomStatusBar from '../../components/CustomStatusBar';
 import updateUnread from '../../libs/UnreadIndicatorUpdater/updateUnread/index';
@@ -27,10 +21,6 @@ import GithubUsernameForm from './GithubUsernameForm';
 import PasswordForm from './PasswordForm';
 
 const propTypes = {
-    // These are from withRouter
-    // eslint-disable-next-line react/forbid-prop-types
-    match: PropTypes.object.isRequired,
-
     /* Onyx Props */
 
     // The session of the logged in person
@@ -44,14 +34,10 @@ const propTypes = {
 
     // The credentials of the person signing in
     credentials: PropTypes.shape({
-        // Whether or not the login that was entered has an existing account
-        accountExists: PropTypes.string,
-
-        // The login that was used when signing in
         login: PropTypes.string,
-
-        // Whether or not the login used for signing in has a GitHub username
-        hasGithubUsername: PropTypes.bool,
+        githubUsername: PropTypes.string,
+        password: PropTypes.string,
+        twoFactorAuthCode: PropTypes.string,
     }),
 };
 
@@ -96,6 +82,18 @@ class App extends Component {
             return <Redirect to={ROUTES.ROOT} />;
         }
 
+        const showLoginForm = !this.props.credentials.login
+            && !this.props.credentials.githubUsername
+            && !this.props.credentials.password;
+
+        const showGithubUsernameForm = this.props.credentials.login
+            && !this.props.credentials.githubUsername
+            && !this.props.credentials.password;
+
+        const showPasswordForm = this.props.credentials.login
+            && this.props.credentials.githubUsername
+            && !this.props.credentials.password;
+
         return (
             <>
                 <CustomStatusBar />
@@ -109,25 +107,16 @@ class App extends Component {
                             />
                         </View>
 
-                        {/* Show the input for collecting the login when there is no login. */}
-                        {!this.props.credentials.login
-                            && !this.props.credentials.githubUsername
-                            && !this.props.credentials.password && (
+                        {showLoginForm && (
                             <LoginForm onSubmit={this.submitLoginForm} />
                         )}
 
-                        {this.props.credentials.login && (
-                            <>
-                                {/* Show the GitHub Username field if the account doesn't have access to this app yet */}
-                                {!this.props.credentials.hasGithubUsername && (
-                                    <GithubUsernameForm onSubmit={this.submitGithubUsernameForm} />
-                                )}
+                        {showGithubUsernameForm && (
+                            <GithubUsernameForm onSubmit={this.submitGithubUsernameForm} />
+                        )}
 
-                                {/* Show the password and 2FA fields if there is a github username */}
-                                {this.props.credentials.hasGithubUsername && (
-                                    <PasswordForm onSubmit={this.submitPasswordForm} />
-                                )}
-                            </>
+                        {showPasswordForm && (
+                            <PasswordForm onSubmit={this.submitPasswordForm} />
                         )}
 
                         <View>
@@ -148,7 +137,6 @@ App.propTypes = propTypes;
 App.defaultProps = defaultProps;
 
 export default compose(
-    withRouter,
     withOnyx({
         session: {key: ONYXKEYS.SESSION},
         credentials: {key: ONYXKEYS.CREDENTIALS},
