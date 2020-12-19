@@ -20,7 +20,7 @@ If you've found a vulnerability, please email security@expensify.com with the su
 If you'd like to create a new issue, please first make sure the issue does not exist in the [issue list](https://github.com/Expensify/Expensify.cash/issues). When creating a new issue, please include all the required information on the issue template.
 
 ## Payment for Contributions
-We are currently managing payment via Upwork. If you'd like to be paid for your contributions, please apply to fix the issue from our [Upwork issue list](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2). Each issue will also link out to the associated Upwork job. 
+We are currently managing payment via Upwork. If you'd like to be paid for your contributions, please apply to fix the issue from our [Upwork issue list](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2). Each issue in this repo will also link out to the associated Upwork job. 
 
 ## Submitting a Pull Request
 #### Proposing a Change
