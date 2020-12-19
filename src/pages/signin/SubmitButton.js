@@ -14,7 +14,7 @@ const propTypes = {
     isLoading: PropTypes.bool.isRequired,
 
     // A function that is called when the button is clicked on
-    onClick: PropTypes.function.isRequired,
+    onClick: PropTypes.func.isRequired,
 };
 
 const SubmitButton = props => (
