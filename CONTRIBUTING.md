@@ -8,7 +8,7 @@ This guide is specifically for external contributors. For a general overview of 
 You can create as many accounts as needed in order to test your changes. You can create your test accounts directly from [expensify.cash](https://expensify.cash/). Right now, accounts can't chat with each other by default. If you want your test accounts to be able to chat with each other, post in the #expensify-contributors [Slack channel](https://github.com/Expensify/Expensify.cash/blob/master/CONTRIBUTING.md#asking-questions) to ask someone to add your test accounts to a policy that allows chatting.
 
 ## Code of Conduct
-This project and everyone participating in it is governed by the Expensify Code of Conduct. By participating, you are expected to uphold this code. Please report unacceptable behavior to [contributors@expensify.com](mailto:contributors@expensify.com).
+This project and everyone participating in it is governed by the Expensify [Code of Conduct](https://github.com/Expensify/Expensify.cash/blob/master/CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [contributors@expensify.com](mailto:contributors@expensify.com).
 
 ## Asking Questions
 The best way to ask questions is to join our #expensify-contributors Slack channel. To request an invite to the channel, just email contributors@expensify.com with the subject "Slack Channel Invite" and we'll send you an invite! Please do not create issues to ask questions. 
