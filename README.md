@@ -265,7 +265,6 @@ The GitHub workflows require a large list of secrets to deploy, notify and test 
 8. `AWS_ACCESS_KEY_ID` - Required for hosting website and desktop compiled code
 9. `AWS_SECRET_ACCESS_KEY` - Required for hosting website and desktop compiled code
 10. `CLOUDFLARE_TOKEN` - Required for hosting website
-11. `SSH_PRIVATE_KEY` - Used for `npm install` private dependencies (will be removed when open source is done)
 
 ## Local production build
 Sometimes it might be beneficial to generate a local production version instead of testing on production. Follow the steps below for each client:
