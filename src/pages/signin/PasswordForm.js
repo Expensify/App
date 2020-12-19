@@ -72,7 +72,7 @@ class PasswordForm extends React.Component {
                 </View>
                 <View>
                     <SubmitButton
-                        text="Next"
+                        text="Sign In"
                         isLoading={this.state.isLoading}
                         onClick={this.validateAndSubmitForm}
                     />
