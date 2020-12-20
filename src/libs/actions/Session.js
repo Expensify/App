@@ -169,10 +169,15 @@ function setGitHubUsername(username) {
         });
 }
 
+function resendValidationLink() {
+    // @TODO find the API to resend the validation link
+}
+
 export {
     createLoginOrAccount,
     hasAccount,
     setGitHubUsername,
     signIn,
     signOut,
+    resendValidationLink,
 };
