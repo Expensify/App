@@ -118,13 +118,15 @@ function signOut() {
         .catch(error => Onyx.merge(ONYXKEYS.SESSION, {error: error.message}));
 }
 
-function createAccount(login, password, twoFactorAuthCode) {
-    // Call CreateAccount()
+function createAccount(password, twoFactorAuthCode) {
+    // @TODO Call CreateAccount()
+    Onyx.merge(ONYXKEYS.CREDENTIALS, {password, twoFactorAuthCode});
 }
 
-function createLogin(login, password, twoFactorAuthCode) {
-    // Call Authenticate() then
-    // Call CreateLogin()
+function createLogin(password, twoFactorAuthCode) {
+    // @TODO Call Authenticate() then
+    // @TODO Call CreateLogin()
+    Onyx.merge(ONYXKEYS.CREDENTIALS, {password, twoFactorAuthCode});
 }
 
 /**
@@ -155,8 +157,12 @@ function hasAccount(login) {
  * @param {String} twoFactorAuthCode
  */
 function createLoginOrAccount(password, twoFactorAuthCode) {
-    // @TODO If the account already exists, create a login
-    // @TODO or else create an account
+    if (account.accountExists) {
+        createLogin(password, twoFactorAuthCode);
+        return;
+    }
+
+    createAccount(password, twoFactorAuthCode);
 }
 
 /**
