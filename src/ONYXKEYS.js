@@ -2,6 +2,11 @@
  * This is a file containing constants for all the top level keys in our store
  */
 export default {
+    // Holds information about the users account that is logging in
+    ACCOUNT: 'account',
+
+    // Holdes an array of client IDs which is used for multi-tabs on web in order to know
+    // which tab is the leader, and which ones are the followers
     ACTIVE_CLIENTS: 'activeClients2',
 
     // When this key is changed, the active page changes (see Expensify.js and `redirect` in actions/App.js)
