@@ -123,7 +123,7 @@ function createAccount(login, password, twoFactorAuthCode) {
 }
 
 function createLogin(login, password, twoFactorAuthCode) {
-    // Call Authenticate()
+    // Call Authenticate() then
     // Call CreateLogin()
 }
 
@@ -147,9 +147,16 @@ function hasAccount(login) {
         });
 }
 
-function createLoginOrAccount() {
-    // If the account already exists, create a login
-    // or else create an account
+/**
+ * Create a login or an account depending on if the user's account they are logging in
+ * with already had an account associated with it or not.
+ *
+ * @param {String} password
+ * @param {String} twoFactorAuthCode
+ */
+function createLoginOrAccount(password, twoFactorAuthCode) {
+    // @TODO If the account already exists, create a login
+    // @TODO or else create an account
 }
 
 /**
