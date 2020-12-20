@@ -15,6 +15,12 @@ Onyx.connect({
     callback: val => credentials = val,
 });
 
+let account;
+Onyx.connect({
+    key: ONYXKEYS.ACCOUNT,
+    callback: val => account = val,
+});
+
 /**
  * Sets API data in the store when we make a successful "Authenticate"/"CreateLogin" request
  *
@@ -112,6 +118,15 @@ function signOut() {
         .catch(error => Onyx.merge(ONYXKEYS.SESSION, {error: error.message}));
 }
 
+function createAccount(login, password, twoFactorAuthCode) {
+    // Call CreateAccount()
+}
+
+function createLogin(login, password, twoFactorAuthCode) {
+    // Call Authenticate()
+    // Call CreateLogin()
+}
+
 /**
  * Checks the API to see if an account exists for the given login
  *
@@ -132,13 +147,9 @@ function hasAccount(login) {
         });
 }
 
-function createAccount(login, password, twoFactorAuthCode) {
-    // Call CreateAccount()
-}
-
-function createLogin(login, password, twoFactorAuthCode) {
-    // Call Authenticate()
-    // Call CreateLogin()
+function createLoginOrAccount() {
+    // If the account already exists, create a login
+    // or else create an account
 }
 
 /**
@@ -147,24 +158,21 @@ function createLogin(login, password, twoFactorAuthCode) {
  * @param {String} username
  */
 function setGitHubUsername(username) {
-    Onyx.merge(ONYXKEYS.SESSION, {loading: true});
     API.SetGithubUsername({username})
         .then((response) => {
             if (response.jsonCode === 200) {
                 Onyx.merge(ONYXKEYS.CREDENTIALS, {githubUsername: username});
-                Onyx.merge(ONYXKEYS.SESSION, {loading: false});
                 return;
             }
 
             Onyx.merge(ONYXKEYS.SESSION, {error: response.message});
-            Onyx.merge(ONYXKEYS.SESSION, {loading: false});
         });
 }
 
 export {
+    createLoginOrAccount,
+    hasAccount,
+    setGitHubUsername,
     signIn,
     signOut,
-    hasAccount,
-    createAccount,
-    setGitHubUsername,
 };

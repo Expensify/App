@@ -5,6 +5,7 @@ import Onyx from 'react-native-onyx';
 import styles from '../../styles/styles';
 import SubmitButton from './SubmitButton';
 import ONYXKEYS from '../../ONYXKEYS';
+import {setGitHubUsername} from '../../libs/actions/Session';
 
 const propTypes = {
     // A function that is called when the form is submitted
@@ -38,9 +39,8 @@ class GithubUsernameForm extends React.Component {
             isLoading: true,
         });
 
-        Onyx.merge(ONYXKEYS.CREDENTIALS, {
-            githubUsername: this.state.githubUsername,
-        });
+        // Save the github username to their account
+        setGitHubUsername(this.state.githubUsername);
     }
 
     render() {
