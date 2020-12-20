@@ -45,7 +45,7 @@ function setSuccessfulSignInData(data, exitTo) {
  * @param {String} [twoFactorAuthCode]
  * @param {String} [exitTo]
  */
-function signIn(partnerUserID, partnerUserSecret, twoFactorAuthCode = '', exitTo) {
+function signIn_deprecated(partnerUserID, partnerUserSecret, twoFactorAuthCode = '', exitTo) {
     Onyx.merge(ONYXKEYS.SESSION, {loading: true, error: ''});
 
     API.Authenticate({
@@ -156,7 +156,7 @@ function hasAccount(login) {
  * @param {String} password
  * @param {String} twoFactorAuthCode
  */
-function createLoginOrAccount(password, twoFactorAuthCode) {
+function signIn(password, twoFactorAuthCode) {
     if (account.accountExists) {
         createLogin(password, twoFactorAuthCode);
         return;
@@ -187,10 +187,10 @@ function resendValidationLink() {
 }
 
 export {
-    createLoginOrAccount,
+    signIn,
     hasAccount,
     setGitHubUsername,
-    signIn,
+    signIn_deprecated,
     signOut,
     resendValidationLink,
 };

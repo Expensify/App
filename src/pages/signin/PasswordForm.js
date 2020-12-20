@@ -6,7 +6,7 @@ import styles from '../../styles/styles';
 import SubmitButton from './SubmitButton';
 import themeColors from '../../styles/themes/default';
 import ONYXKEYS from '../../ONYXKEYS';
-import {createLoginOrAccount} from '../../libs/actions/Session';
+import {signIn} from '../../libs/actions/Session';
 
 const propTypes = {
     // A function that is called when the form is submitted
@@ -41,7 +41,7 @@ class PasswordForm extends React.Component {
             isLoading: true,
         });
 
-        createLoginOrAccount(this.state.password, this.state.twoFactorAuthCode);
+        signIn(this.state.password, this.state.twoFactorAuthCode);
     }
 
     render() {
