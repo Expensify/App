@@ -28,9 +28,8 @@ class ResendValidationForm extends React.Component {
         this.setState({
             isLoading: true,
         });
-        this.props.onSubmit({
-            login: this.state.login,
-        });
+
+        // Resend link
     }
 
     render() {

@@ -48,55 +48,9 @@ const defaultProps = {
 };
 
 class App extends Component {
-    constructor(props) {
-        super(props);
-
-        this.submitLoginForm = this.submitLoginForm.bind(this);
-        this.submitGithubUsernameForm = this.submitGithubUsernameForm.bind(this);
-        this.submitPasswordForm = this.submitPasswordForm.bind(this);
-        this.submitResendValidationLinkForm = this.submitResendValidationLinkForm.bind(this);
-    }
-
     componentDidMount() {
         // Always reset the unread counter to zero on this page
         updateUnread(0);
-    }
-
-    /**
-     * Check if the login that was entered has an account already or not
-     *
-     * @param {String} login
-     */
-    submitLoginForm({login}) {
-        Onyx.merge(ONYXKEYS.CREDENTIALS, {login});
-    }
-
-    /**
-     * Save the github username to the server
-     *
-     * @param {String} githubUsername
-     */
-    submitGithubUsernameForm({githubUsername}) {
-        Onyx.merge(ONYXKEYS.CREDENTIALS, {githubUsername});
-    }
-
-    /**
-     * Take the username and password and either:
-     *  - Create a login if the account already existed
-     *  - Create a new account if the account doesn't exist yet
-     *
-     * @param {String} password
-     * @param {String} twoFactorAuthCode
-     */
-    submitPasswordForm({password, twoFactorAuthCode}) {
-        Onyx.merge(ONYXKEYS.CREDENTIALS, {password, twoFactorAuthCode});
-    }
-
-    /**
-     * Resend the validation link
-     */
-    submitResendValidationLinkForm() {
-        // Resend link
     }
 
     render() {
@@ -137,21 +91,13 @@ class App extends Component {
                             />
                         </View>
 
-                        {showLoginForm && (
-                            <LoginForm onSubmit={this.submitLoginForm} />
-                        )}
+                        {showLoginForm && <LoginForm />}
 
-                        {showGithubUsernameForm && (
-                            <GithubUsernameForm onSubmit={this.submitGithubUsernameForm} />
-                        )}
+                        {showGithubUsernameForm && <GithubUsernameForm />}
 
-                        {showPasswordForm && (
-                            <PasswordForm onSubmit={this.submitPasswordForm} />
-                        )}
+                        {showPasswordForm && <PasswordForm />}
 
-                        {showResendValidationLinkForm && (
-                            <ResendValidationForm onSubmit={this.submitResendValidationLinkForm} />
-                        )}
+                        {showResendValidationLinkForm && <ResendValidationForm />}
 
                         <View>
                             {this.props.session && !_.isEmpty(this.props.session.error) && (

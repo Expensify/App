@@ -1,9 +1,11 @@
 import React from 'react';
 import {Text, TextInput, View} from 'react-native';
 import PropTypes from 'prop-types';
+import Onyx from 'react-native-onyx';
 import styles from '../../styles/styles';
 import SubmitButton from './SubmitButton';
 import themeColors from '../../styles/themes/default';
+import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
     // A function that is called when the form is submitted
@@ -38,7 +40,7 @@ class PasswordForm extends React.Component {
             isLoading: true,
         });
 
-        this.props.onSubmit({
+        Onyx.merge(ONYXKEYS.CREDENTIALS, {
             password: this.state.password,
             twoFactorAuthCode: this.state.twoFactorAuthCode,
         });

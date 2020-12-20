@@ -1,8 +1,10 @@
 import React from 'react';
 import {Text, TextInput, View} from 'react-native';
 import PropTypes from 'prop-types';
+import Onyx from 'react-native-onyx';
 import styles from '../../styles/styles';
 import SubmitButton from './SubmitButton';
+import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
     // A function that is called when the form is submitted
@@ -35,7 +37,8 @@ class GithubUsernameForm extends React.Component {
             formError: null,
             isLoading: true,
         });
-        this.props.onSubmit({
+
+        Onyx.merge(ONYXKEYS.CREDENTIALS, {
             githubUsername: this.state.githubUsername,
         });
     }
