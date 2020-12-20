@@ -118,22 +118,17 @@ function signOut() {
  * @param {String} login
  */
 function hasAccount(login) {
-    Onyx.merge(ONYXKEYS.SESSION, {loading: true});
-
     API.GetAccountStatus({email: login})
         .then((response) => {
             if (response.jsonCode === 200) {
                 Onyx.merge(ONYXKEYS.CREDENTIALS, {
                     login,
+                });
+                Onyx.merge(ONYXKEYS.ACCOUNT, {
                     accountExists: response.accountExists,
                     hasGithubUsername: response.hasGithubUsername,
                 });
-                Onyx.merge(ONYXKEYS.SESSION, {loading: false});
-                return;
             }
-
-            Onyx.merge(ONYXKEYS.SESSION, {error: response.message});
-            Onyx.merge(ONYXKEYS.SESSION, {loading: false});
         });
 }
 

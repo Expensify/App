@@ -6,6 +6,7 @@ import styles from '../../styles/styles';
 import SubmitButton from './SubmitButton';
 import openURLInNewTab from '../../libs/openURLInNewTab';
 import ONYXKEYS from '../../ONYXKEYS';
+import {hasAccount} from '../../libs/actions/Session';
 
 const propTypes = {
     // A function that is called when the form is submitted
@@ -39,9 +40,8 @@ class LoginForm extends React.Component {
             isLoading: true,
         });
 
-        Onyx.merge(ONYXKEYS.CREDENTIALS, {
-            login: this.state.login,
-        });
+        // Check if this login has an account associated with it or not
+        hasAccount(this.state.login);
     }
 
     render() {
