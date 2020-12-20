@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import SubmitButton from './SubmitButton';
 import openURLInNewTab from '../../libs/openURLInNewTab';
+import {resendValidationLink} from '../../libs/actions/Session';
 
 const propTypes = {
     // A function that is called when the form is submitted
@@ -29,7 +30,7 @@ class ResendValidationForm extends React.Component {
             isLoading: true,
         });
 
-        // Resend link
+        resendValidationLink();
     }
 
     render() {
