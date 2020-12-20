@@ -259,7 +259,6 @@ function CreateChatReport(parameters) {
  * @param {String} parameters.partnerName
  * @param {String} parameters.partnerPassword
  * @param {String} parameters.email
- * @param {String} [parameters.githubUsername]
  * @returns {Promise}
  */
 function CreateAccount(parameters) {
@@ -279,7 +278,6 @@ function CreateAccount(parameters) {
  * @param {String} parameters.partnerPassword
  * @param {String} parameters.partnerUserID
  * @param {String} parameters.partnerUserSecret
- * @param {String} [parameters.githubUsername]
  * @returns {Promise}
  */
 function CreateLogin(parameters) {
