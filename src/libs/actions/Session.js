@@ -9,13 +9,13 @@ import PushNotification from '../Notification/PushNotification';
 import ROUTES from '../../ROUTES';
 import Timing from './Timing';
 
-let credentials;
+let credentials = {};
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
     callback: val => credentials = val,
 });
 
-let account;
+let account = {};
 Onyx.connect({
     key: ONYXKEYS.ACCOUNT,
     callback: val => account = val,
@@ -38,22 +38,35 @@ function setSuccessfulSignInData(data, exitTo) {
 }
 
 /**
- * Sign in with the API
+ * Create an account for the user logging in
  *
- * @param {String} partnerUserID
- * @param {String} partnerUserSecret
- * @param {String} [twoFactorAuthCode]
- * @param {String} [exitTo]
+ * @param {String} password
+ * @param {String} twoFactorAuthCode
+ * @param {String} exitTo
  */
-function signIn_deprecated(partnerUserID, partnerUserSecret, twoFactorAuthCode = '', exitTo) {
-    Onyx.merge(ONYXKEYS.SESSION, {loading: true, error: ''});
+function createAccount(password, twoFactorAuthCode, exitTo) {
+    // @TODO Call CreateAccount()
+    Onyx.merge(ONYXKEYS.CREDENTIALS, {password, twoFactorAuthCode});
+
+    // setSuccessfulSignInData(createLoginResponse, exitTo);
+}
+
+/**
+ * Create a login for the user who is logging in.
+ *
+ * @param {String} password
+ * @param {String} twoFactorAuthCode
+ * @param {String} exitTo
+ */
+function createLogin(password, twoFactorAuthCode, exitTo) {
+    Onyx.merge(ONYXKEYS.SESSION, {error: ''});
 
     API.Authenticate({
         useExpensifyLogin: true,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-        partnerUserID,
-        partnerUserSecret,
+        partnerUserID: credentials.login,
+        partnerUserSecret: password,
         twoFactorAuthCode,
     })
 
@@ -61,14 +74,14 @@ function signIn_deprecated(partnerUserID, partnerUserSecret, twoFactorAuthCode =
         // authtoken expires
         .then((authenticateResponse) => {
             const login = Str.guid('expensify.cash-');
-            const password = Str.guid();
+            const temporaryPassword = Str.guid();
 
             API.CreateLogin({
                 authToken: authenticateResponse.authToken,
                 partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
                 partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
                 partnerUserID: login,
-                partnerUserSecret: password,
+                partnerUserSecret: temporaryPassword,
                 doNotRetry: true,
             })
                 .then((createLoginResponse) => {
@@ -78,25 +91,23 @@ function signIn_deprecated(partnerUserID, partnerUserSecret, twoFactorAuthCode =
 
                     setSuccessfulSignInData(createLoginResponse, exitTo);
 
-                    if (credentials && credentials.login) {
-                        // If we have an old login for some reason, we should delete it before storing the new details
+                    // If we have an old login for some reason, we should delete it before storing the new details
+                    if (credentials.login) {
                         API.DeleteLogin({
                             partnerUserID: credentials.login,
                             partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
                             partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
                             doNotRetry: true,
                         })
-                            .catch(error => Onyx.merge(ONYXKEYS.SESSION, {error: error.message}));
+                            .catch(console.debug);
                     }
 
-                    Onyx.merge(ONYXKEYS.CREDENTIALS, {login, password});
+                    Onyx.merge(ONYXKEYS.CREDENTIALS, {password});
                 });
         })
         .catch((error) => {
-            console.debug('[SIGNIN] Request error', error);
             Onyx.merge(ONYXKEYS.SESSION, {error: error.message});
-        })
-        .finally(() => Onyx.merge(ONYXKEYS.SESSION, {loading: false}));
+        });
 }
 
 /**
@@ -116,17 +127,6 @@ function signOut() {
         doNotRetry: true,
     })
         .catch(error => Onyx.merge(ONYXKEYS.SESSION, {error: error.message}));
-}
-
-function createAccount(password, twoFactorAuthCode) {
-    // @TODO Call CreateAccount()
-    Onyx.merge(ONYXKEYS.CREDENTIALS, {password, twoFactorAuthCode});
-}
-
-function createLogin(password, twoFactorAuthCode) {
-    // @TODO Call Authenticate() then
-    // @TODO Call CreateLogin()
-    Onyx.merge(ONYXKEYS.CREDENTIALS, {password, twoFactorAuthCode});
 }
 
 /**
@@ -155,14 +155,15 @@ function hasAccount(login) {
  *
  * @param {String} password
  * @param {String} twoFactorAuthCode
+ * @param {String} exitTo
  */
-function signIn(password, twoFactorAuthCode) {
+function signIn(password, twoFactorAuthCode, exitTo) {
     if (account.accountExists) {
-        createLogin(password, twoFactorAuthCode);
+        createLogin(password, twoFactorAuthCode, exitTo);
         return;
     }
 
-    createAccount(password, twoFactorAuthCode);
+    createAccount(password, twoFactorAuthCode, exitTo);
 }
 
 /**
@@ -182,6 +183,10 @@ function setGitHubUsername(username) {
         });
 }
 
+/**
+ * Resend the validation link to the user that is validating their account
+ * this happens in the createAccount() flow
+ */
 function resendValidationLink() {
     // @TODO find the API to resend the validation link
 }
