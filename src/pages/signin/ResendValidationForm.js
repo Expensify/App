@@ -5,8 +5,8 @@ import SubmitButton from './SubmitButton';
 import {resendValidationLink} from '../../libs/actions/Session';
 
 class ResendValidationForm extends React.Component {
-    constructor() {
-        super();
+    constructor(props) {
+        super(props);
 
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
 
@@ -21,7 +21,7 @@ class ResendValidationForm extends React.Component {
      */
     validateAndSubmitForm() {
         this.setState({
-            formSuccess: 'Link has been resent',
+            formSuccess: 'Link has been re-sent',
         });
 
         resendValidationLink();

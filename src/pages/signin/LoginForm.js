@@ -6,8 +6,8 @@ import openURLInNewTab from '../../libs/openURLInNewTab';
 import {hasAccount} from '../../libs/actions/Session';
 
 class LoginForm extends React.Component {
-    constructor() {
-        super();
+    constructor(props) {
+        super(props);
 
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
 
