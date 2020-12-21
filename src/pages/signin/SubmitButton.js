@@ -58,4 +58,4 @@ SubmitButton.displayName = 'SubmitButton';
 
 export default withOnyx({
     session: {key: ONYXKEYS.SESSION},
-}, SubmitButton);
+})(SubmitButton);

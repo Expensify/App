@@ -12,6 +12,7 @@ class ResendValidationForm extends React.Component {
 
         this.state = {
             formSuccess: '',
+            isLoading: false,
         };
     }
 
