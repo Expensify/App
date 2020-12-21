@@ -380,7 +380,13 @@ function fetchChatReports() {
  * @param {Number} reportID
  */
 function fetchActions(reportID) {
-    API.Report_GetHistory({reportID})
+    API.Report_GetHistory({
+        reportID,
+
+        // Get the most recent action we have and provide this as an offset
+        // to prevent refetching large sets of data we already have
+        offset: reportMaxSequenceNumbers[reportID] || 0,
+    })
         .then((data) => {
             const indexedData = _.indexBy(data.history, 'sequenceNumber');
             const maxSequenceNumber = _.chain(data.history)
