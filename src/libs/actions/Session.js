@@ -111,7 +111,7 @@ function createAccount(password, twoFactorAuthCode, exitTo) {
  * @param {String} twoFactorAuthCode
  * @param {String} exitTo
  */
-function authenticateAndCreateAccount(password, twoFactorAuthCode, exitTo) {
+function authenticateAndCreateLogin(password, twoFactorAuthCode, exitTo) {
     Onyx.merge(ONYXKEYS.SESSION, {error: ''});
 
     API.Authenticate({
@@ -176,7 +176,7 @@ function hasAccount(login) {
  */
 function signIn(password, twoFactorAuthCode, exitTo) {
     if (account.accountExists) {
-        authenticateAndCreateAccount(password, twoFactorAuthCode, exitTo);
+        authenticateAndCreateLogin(password, twoFactorAuthCode, exitTo);
         return;
     }
 
