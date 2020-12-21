@@ -205,13 +205,13 @@ function setGitHubUsername(username) {
  * this happens in the createAccount() flow
  */
 function resendValidationLink() {
-    // @TODO find the API to resend the validation link
+    API.ResendValidateCode({email: credentials.login});
 }
 
 export {
-    signIn,
     hasAccount,
     setGitHubUsername,
+    signIn,
     signOut,
     resendValidationLink,
 };
