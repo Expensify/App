@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import compose from '../../libs/compose';
 import {Redirect} from '../../libs/Router';
 import ROUTES from '../../ROUTES';
@@ -26,11 +26,11 @@ const propTypes = {
 
     // The details about the account that the user is signing in with
     account: PropTypes.shape({
-        // Wether or not the account already exists
+        // Whether or not the account already exists
         accountExists: PropTypes.bool,
 
-        // Wether or not there has been a github username associated with the account
-        hasGithubUsername: PropTypes.bool,
+        // Whether or not there have been chat reports shared with this user
+        hasSharedChatReports: PropTypes.bool,
     }),
 
     // The credentials of the person signing in
@@ -75,21 +75,37 @@ class App extends Component {
         // @TODO figure out the real logic that needs to be used for showing the proper form
         // It will depend on if they had an account already, had a Github username already,
         // if they have access to this application, if they need to validate their account, etc.
-        const showLoginForm = !this.props.credentials.login
-            && !this.props.credentials.githubUsername
-            && !this.props.credentials.password;
 
+        // Show the login form if
+        // - A login has not been entered yet
+        const showLoginForm = !this.props.credentials.login;
+
+        // Show the GitHub username form if
+        // - A login has been entered
+        // - AND the user has chat reports shared with them
+        // - AND the user hasn't entered a GitHub username yet
+        // - AND a password hasn't been entered yet
         const showGithubUsernameForm = this.props.credentials.login
+            && !this.props.account.hasSharedChatReports
             && !this.props.credentials.githubUsername
-            && !this.props.account.hasGithubUsername;
-
-        const showPasswordForm = this.props.credentials.login
-            && this.props.credentials.githubUsername
             && !this.props.credentials.password;
 
-        const showResendValidationLinkForm = this.props.credentials.login
-            && this.props.credentials.githubUsername
-            && this.props.credentials.password;
+        // Show the password form if
+        // - A login has been entered
+        // - AND a GitHub username has been entered OR chat reports are shared with them
+        // - AND a password hasn't been entered yet
+        const showPasswordForm = this.props.credentials.login
+            && (
+                this.props.credentials.githubUsername
+                || this.props.account.hasSharedChatReports
+            )
+            && !this.props.credentials.password;
+
+        // Show the resend validation link form if
+        // - A password has been entered (ie. all the previous forms were done)
+        // - An account did not exist for the login that was entered (so a new account was created)
+        const showResendValidationLinkForm = this.props.credentials.password
+            && !this.props.account.accountExists;
 
         return (
             <>
