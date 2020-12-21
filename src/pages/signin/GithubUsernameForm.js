@@ -1,16 +1,8 @@
 import React from 'react';
 import {Text, TextInput, View} from 'react-native';
-import PropTypes from 'prop-types';
-import Onyx from 'react-native-onyx';
 import styles from '../../styles/styles';
 import SubmitButton from './SubmitButton';
-import ONYXKEYS from '../../ONYXKEYS';
 import {setGitHubUsername} from '../../libs/actions/Session';
-
-const propTypes = {
-    // A function that is called when the form is submitted
-    onSubmit: PropTypes.func.isRequired,
-};
 
 class GithubUsernameForm extends React.Component {
     constructor() {
@@ -74,7 +66,5 @@ class GithubUsernameForm extends React.Component {
         );
     }
 }
-
-GithubUsernameForm.propTypes = propTypes;
 
 export default GithubUsernameForm;

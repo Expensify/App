@@ -195,7 +195,6 @@ export {
     signIn,
     hasAccount,
     setGitHubUsername,
-    signIn_deprecated,
     signOut,
     resendValidationLink,
 };

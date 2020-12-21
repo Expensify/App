@@ -1,17 +1,9 @@
 import React from 'react';
 import {Text, TextInput, View} from 'react-native';
-import PropTypes from 'prop-types';
-import Onyx from 'react-native-onyx';
 import styles from '../../styles/styles';
 import SubmitButton from './SubmitButton';
 import openURLInNewTab from '../../libs/openURLInNewTab';
-import ONYXKEYS from '../../ONYXKEYS';
 import {hasAccount} from '../../libs/actions/Session';
-
-const propTypes = {
-    // A function that is called when the form is submitted
-    onSubmit: PropTypes.func.isRequired,
-};
 
 class LoginForm extends React.Component {
     constructor() {
@@ -110,7 +102,5 @@ class LoginForm extends React.Component {
         );
     }
 }
-
-LoginForm.propTypes = propTypes;
 
 export default LoginForm;
