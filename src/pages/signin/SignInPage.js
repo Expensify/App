@@ -45,9 +45,6 @@ const propTypes = {
     session: PropTypes.shape({
         // Error to display when there is a session error returned
         error: PropTypes.string,
-
-        // Stores if we are currently making an authentication request
-        loading: PropTypes.bool,
     }),
 };
 
