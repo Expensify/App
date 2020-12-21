@@ -1,9 +1,12 @@
 import React from 'react';
-import {Text, TextInput, View} from 'react-native';
+import {
+    Image, Text, TextInput, View, ScrollView
+} from 'react-native';
 import styles from '../../styles/styles';
 import SubmitButton from './SubmitButton';
 import openURLInNewTab from '../../libs/openURLInNewTab';
 import {fetchAccountDetails} from '../../libs/actions/Session';
+import welcomeScreenshot from '../../../assets/images/welcome-screenshot.png';
 
 class LoginForm extends React.Component {
     constructor(props) {
@@ -69,35 +72,34 @@ class LoginForm extends React.Component {
 
                 <View style={[styles.hr]} />
 
-                <View style={[styles.mt5]}>
-                    <Text style={[styles.h3]}>
-                        Welcome to the Expensify.cash beta
-                    </Text>
-                </View>
+                <View style={[styles.flex1, styles.height100percent]}>
+                    <ScrollView style={[styles.sidebarListContainer]}>
+                        <View style={[styles.mt5, styles.mb4]}>
+                            <Text style={[styles.h3]}>
+                                Welcome to the Expensify.cash beta
+                            </Text>
+                        </View>
 
-                <View style={[styles.mt4]}>
-                    <Text style={[styles.textP]}>
-                        Expensify.cash is the next generation of Expensify: a reimagination of payments based atop a
-                        {' '}
-                        foundation of chat. Best of all, it&apos;s fully open source!
-                    </Text>
-                </View>
+                        <View>
+                            <Text style={[styles.textP]}>
+                                Join the waitlist now to be first in line to experience the next-generation of financial collaboration.
+                            </Text>
+                        </View>
 
-                <View style={[styles.mt4]}>
-                    <Text style={[styles.textP]}>
-                        And yes you heard right -- there&apos;s cash involved! Check out
-                        {' '}
-                        <Text
-                            style={[styles.link, styles.mx1]}
-                            onPress={() => openURLInNewTab('https://testflight.apple.com/join/ucuXr4g5')}
-                        >
-                            the repository
-                        </Text>
-                        {' '}
-                        for the current list of issues that are available to work on. We&apos;re making new issues
-                        {' '}
-                        every day, so be sure to check back, and feel free to file your own.
-                    </Text>
+                        <View style={[styles.mt4, styles.mb4]}>
+                            <Text style={[styles.textP]}>
+                                Now how to code? Enter your Github handle after signup to join our open-source community and earn cash for code!
+                            </Text>
+                        </View>
+
+                        <View>
+                            <Image
+                                resizeMode="contain"
+                                style={[styles.signinWelcomeScreenshot]}
+                                source={welcomeScreenshot}
+                            />
+                        </View>
+                    </ScrollView>
                 </View>
             </>
         );

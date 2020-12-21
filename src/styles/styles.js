@@ -403,6 +403,11 @@ const styles = {
         width: variables.componentSizeNormal,
     },
 
+    signinWelcomeScreenshot: {
+        height: 580,
+        width: 325,
+    },
+
     genericView: {
         backgroundColor: themeColors.heading,
         height: '100%',
