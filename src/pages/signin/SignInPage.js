@@ -30,7 +30,7 @@ const propTypes = {
         accountExists: PropTypes.bool,
 
         // Whether or not there have been chat reports shared with this user
-        hasSharedChatReports: PropTypes.bool,
+        canAccessExpensifyCash: PropTypes.bool,
     }),
 
     // The credentials of the person signing in
@@ -82,29 +82,36 @@ class App extends Component {
 
         // Show the GitHub username form if
         // - A login has been entered
-        // - AND the user has chat reports shared with them
+        // - AND they do not have access to this app yet
         // - AND the user hasn't entered a GitHub username yet
         // - AND a password hasn't been entered yet
         const showGithubUsernameForm = this.props.credentials.login
-            && !this.props.account.hasSharedChatReports
+            && !this.props.account.canAccessExpensifyCash
             && !this.props.credentials.githubUsername
             && !this.props.credentials.password;
 
         // Show the password form if
         // - A login has been entered
-        // - AND a GitHub username has been entered OR chat reports are shared with them
+        // - AND a GitHub username has been entered OR they already have access to expensify cash
+        // - AND an account exists already for this login
         // - AND a password hasn't been entered yet
         const showPasswordForm = this.props.credentials.login
             && (
                 this.props.credentials.githubUsername
-                || this.props.account.hasSharedChatReports
+                || this.props.account.canAccessExpensifyCash
             )
+            && this.props.account.accountExists
             && !this.props.credentials.password;
 
         // Show the resend validation link form if
-        // - A password has been entered (ie. all the previous forms were done)
-        // - An account did not exist for the login that was entered (so a new account was created)
-        const showResendValidationLinkForm = this.props.credentials.password
+        // - A login has been entered
+        // - AND a GitHub username has been entered OR they already have access to this app
+        // - AND an account did not exist for that login
+        const showResendValidationLinkForm = this.props.credentials.login
+            && (
+                this.props.credentials.githubUsername
+                || this.props.account.canAccessExpensifyCash
+            )
             && !this.props.account.accountExists;
 
         return (

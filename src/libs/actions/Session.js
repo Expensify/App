@@ -38,51 +38,6 @@ function setSuccessfulSignInData(data, exitTo) {
 }
 
 /**
- * Create a login for the user that has a random login and a temporary password so that the app
- * can reauthenticate the user when the authToken expires
- *
- * @param {String} authToken
- * @param {String} password
- * @param {String} exitTo
- */
-function createLogin(authToken, password, exitTo) {
-    const login = Str.guid('expensify.cash-');
-    const temporaryPassword = Str.guid();
-
-    API.CreateLogin({
-        authToken,
-        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-        partnerUserID: login,
-        partnerUserSecret: temporaryPassword,
-        doNotRetry: true,
-    })
-        .then((createLoginResponse) => {
-            if (createLoginResponse.jsonCode !== 200) {
-                throw new Error(createLoginResponse.message);
-            }
-
-            setSuccessfulSignInData(createLoginResponse, exitTo);
-
-            // If we have an old login for some reason, we should delete it before storing the new details
-            if (credentials.login) {
-                API.DeleteLogin({
-                    partnerUserID: credentials.login,
-                    partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-                    partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-                    doNotRetry: true,
-                })
-                    .catch(console.debug);
-            }
-
-            Onyx.merge(ONYXKEYS.CREDENTIALS, {password});
-        })
-        .catch((error) => {
-            Onyx.merge(ONYXKEYS.SESSION, {error: error.message});
-        });
-}
-
-/**
  * Create an account for the user logging in
  *
  * @param {String} password
@@ -98,10 +53,9 @@ function createAccount(password, twoFactorAuthCode, exitTo) {
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         email: credentials.login,
         password,
-    })
-        .then((response) => {
-            createLogin(response.authToken, password, exitTo);
-        });
+    });
+
+    Onyx.merge(ONYXKEYS.CREDENTIALS, {password});
 }
 
 /**
@@ -122,8 +76,41 @@ function authenticateAndCreateLogin(password, twoFactorAuthCode, exitTo) {
         partnerUserSecret: password,
         twoFactorAuthCode,
     })
-        .then((response) => {
-            createLogin(response.authToken, password, exitTo);
+        .then((authenticateResponse) => {
+            const login = Str.guid('expensify.cash-');
+            const temporaryPassword = Str.guid();
+
+            API.CreateLogin({
+                authToken: authenticateResponse.authToken,
+                partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+                partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+                partnerUserID: login,
+                partnerUserSecret: temporaryPassword,
+                doNotRetry: true,
+            })
+                .then((createLoginResponse) => {
+                    if (createLoginResponse.jsonCode !== 200) {
+                        throw new Error(createLoginResponse.message);
+                    }
+
+                    setSuccessfulSignInData(createLoginResponse, exitTo);
+
+                    // If we have an old login for some reason, we should delete it before storing the new details
+                    if (credentials.login) {
+                        API.DeleteLogin({
+                            partnerUserID: credentials.login,
+                            partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+                            partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+                            doNotRetry: true,
+                        })
+                            .catch(console.debug);
+                    }
+
+                    Onyx.merge(ONYXKEYS.CREDENTIALS, {password});
+                })
+                .catch((error) => {
+                    Onyx.merge(ONYXKEYS.SESSION, {error: error.message});
+                });
         });
 }
 
@@ -160,7 +147,7 @@ function hasAccount(login) {
                 });
                 Onyx.merge(ONYXKEYS.ACCOUNT, {
                     accountExists: response.accountExists,
-                    hasSharedChatReports: response.hasSharedChatReports,
+                    canAccessExpensifyCash: response.canAccessExpensifyCash,
                 });
             }
         });
@@ -193,10 +180,11 @@ function setGitHubUsername(username) {
         .then((response) => {
             if (response.jsonCode === 200) {
                 Onyx.merge(ONYXKEYS.CREDENTIALS, {githubUsername: username});
-                Onyx.merge(ONYXKEYS.ACCOUNT, {hasSharedChatReports: true});
+                Onyx.merge(ONYXKEYS.ACCOUNT, {canAccessExpensifyCash: true});
                 return;
             }
 
+            // This request can fail if an invalid GitHub username was entered
             Onyx.merge(ONYXKEYS.SESSION, {error: response.message});
         });
 }
