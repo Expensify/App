@@ -77,7 +77,7 @@ function signOut() {
  *
  * @param {String} login
  */
-function hasAccount(login) {
+function fetchAccount(login) {
     API.GetAccountStatus({email: login})
         .then((response) => {
             if (response.jsonCode === 200) {
@@ -209,7 +209,7 @@ function setPassword(password, validateCode) {
 }
 
 export {
-    hasAccount,
+    fetchAccount,
     setGitHubUsername,
     setPassword,
     signIn,
