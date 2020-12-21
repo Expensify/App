@@ -72,9 +72,9 @@ class LoginForm extends React.Component {
 
                 <View style={[styles.hr]} />
 
-                <View style={[styles.flex1, styles.height100percent]}>
-                    <ScrollView style={[styles.sidebarListContainer]}>
-                        <View style={[styles.mt5, styles.mb4]}>
+                <ScrollView style={[styles.welcomeMessageScrollContainer]}>
+                    <View>
+                        <View style={[styles.mt5, styles.mb4, styles.alignItemsCenter]}>
                             <Text style={[styles.h3]}>
                                 Welcome to the Expensify.cash beta
                             </Text>
@@ -88,7 +88,7 @@ class LoginForm extends React.Component {
 
                         <View style={[styles.mt4, styles.mb4]}>
                             <Text style={[styles.textP]}>
-                                Now how to code? Enter your Github handle after signup to join our open-source community and earn cash for code!
+                                Know how to code? Enter your GitHub handle after signup to join our open-source community and earn cash for code!
                             </Text>
                         </View>
 
@@ -99,8 +99,8 @@ class LoginForm extends React.Component {
                                 source={welcomeScreenshot}
                             />
                         </View>
-                    </ScrollView>
-                </View>
+                    </View>
+                </ScrollView>
             </>
         );
     }

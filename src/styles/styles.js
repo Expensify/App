@@ -510,6 +510,13 @@ const styles = {
         textDecorationLine: 'none',
     },
 
+    welcomeMessageScrollContainer: {
+        height: 580,
+        scrollbarWidth: 'none',
+        overflow: 'scroll',
+        paddingBottom: 4,
+    },
+
     chatLinkRowPressable: {
         minWidth: 0,
         textDecorationLine: 'none',
