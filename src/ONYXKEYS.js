@@ -5,7 +5,7 @@ export default {
     // Holds information about the users account that is logging in
     ACCOUNT: 'account',
 
-    // Holdes an array of client IDs which is used for multi-tabs on web in order to know
+    // Holds an array of client IDs which is used for multi-tabs on web in order to know
     // which tab is the leader, and which ones are the followers
     ACTIVE_CLIENTS: 'activeClients2',
 

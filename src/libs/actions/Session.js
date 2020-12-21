@@ -94,8 +94,9 @@ function fetchAccount(login) {
 }
 
 /**
- * Create a login or an account depending on if the user's account they are logging in
- * with already had an account associated with it or not.
+ * Sign the user into the application. This will first authenticate their account
+ * then it will create a temporary login for them which is used when re-authenticating
+ * after an authToken expires.
  *
  * @param {String} password
  * @param {String} [twoFactorAuthCode]
