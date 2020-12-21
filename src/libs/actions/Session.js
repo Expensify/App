@@ -41,14 +41,16 @@ function setSuccessfulSignInData(data, exitTo) {
 /**
  * Create an account for the user logging in.
  * This will send them a notification with a link to click on to validate the account and set a password
+ *
+ * @params {String} login
  */
-function createAccount() {
+function createAccount(login) {
     Onyx.merge(ONYXKEYS.SESSION, {error: ''});
 
     API.CreateAccount({
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-        email: credentials.login,
+        email: login,
         githubUsername: credentials.githubUsername,
     });
 }
@@ -77,18 +79,20 @@ function signOut() {
  *
  * @param {String} login
  */
-function fetchAccount(login) {
+function fetchAccountDetails(login) {
     API.GetAccountStatus({email: login})
         .then((response) => {
             if (response.jsonCode === 200) {
-                Onyx.merge(ONYXKEYS.CREDENTIALS, {
-                    login,
-                });
+                Onyx.merge(ONYXKEYS.CREDENTIALS, {login});
                 Onyx.merge(ONYXKEYS.ACCOUNT, {
                     accountExists: response.accountExists,
                     canAccessExpensifyCash: response.canAccessExpensifyCash,
                     requiresTwoFactorAuth: response.requiresTwoFactorAuth,
                 });
+
+                if (!response.accountExists) {
+                    createAccount(login);
+                }
             }
         });
 }
@@ -162,11 +166,6 @@ function setGitHubUsername(username) {
             if (response.jsonCode === 200) {
                 Onyx.merge(ONYXKEYS.CREDENTIALS, {githubUsername: username});
                 Onyx.merge(ONYXKEYS.ACCOUNT, {canAccessExpensifyCash: true});
-
-                // Create a new account for this person if there was no account existing already
-                if (!account.accountExists) {
-                    createAccount();
-                }
                 return;
             }
 
@@ -210,7 +209,7 @@ function setPassword(password, validateCode) {
 }
 
 export {
-    fetchAccount,
+    fetchAccountDetails,
     setGitHubUsername,
     setPassword,
     signIn,
