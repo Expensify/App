@@ -43,7 +43,6 @@ class GithubUsernameForm extends React.Component {
                     <TextInput
                         style={[styles.textInput]}
                         value={this.state.githubUsername}
-                        autoCompleteType="email"
                         textContentType="username"
                         onChangeText={text => this.setState({githubUsername: text})}
                         onSubmitEditing={this.validateAndSubmitForm}
