@@ -24,13 +24,13 @@ import ResendValidationForm from './ResendValidationForm';
 const propTypes = {
     /* Onyx Props */
 
-    // The session of the logged in person
-    session: PropTypes.shape({
-        // Error to display when there is a session error returned
-        error: PropTypes.string,
+    // The details about the account that the user is signing in with
+    account: PropTypes.shape({
+        // Wether or not the account already exists
+        accountExists: PropTypes.bool,
 
-        // Stores if we are currently making an authentication request
-        loading: PropTypes.bool,
+        // Wether or not there has been a github username associated with the account
+        hasGithubUsername: PropTypes.bool,
     }),
 
     // The credentials of the person signing in
@@ -40,9 +40,19 @@ const propTypes = {
         password: PropTypes.string,
         twoFactorAuthCode: PropTypes.string,
     }),
+
+    // The session of the logged in person
+    session: PropTypes.shape({
+        // Error to display when there is a session error returned
+        error: PropTypes.string,
+
+        // Stores if we are currently making an authentication request
+        loading: PropTypes.bool,
+    }),
 };
 
 const defaultProps = {
+    account: {},
     session: null,
     credentials: {},
 };
@@ -62,13 +72,16 @@ class App extends Component {
             return <Redirect to={ROUTES.ROOT} />;
         }
 
+        // @TODO figure out the real logic that needs to be used for showing the proper form
+        // It will depend on if they had an account already, had a Github username already,
+        // if they have access to this application, if they need to validate their account, etc.
         const showLoginForm = !this.props.credentials.login
             && !this.props.credentials.githubUsername
             && !this.props.credentials.password;
 
         const showGithubUsernameForm = this.props.credentials.login
             && !this.props.credentials.githubUsername
-            && !this.props.credentials.password;
+            && !this.props.account.hasGithubUsername;
 
         const showPasswordForm = this.props.credentials.login
             && this.props.credentials.githubUsername
@@ -118,7 +131,8 @@ App.defaultProps = defaultProps;
 
 export default compose(
     withOnyx({
-        session: {key: ONYXKEYS.SESSION},
+        account: {key: ONYXKEYS.ACCOUNT},
         credentials: {key: ONYXKEYS.CREDENTIALS},
+        session: {key: ONYXKEYS.SESSION},
     })
 )(App);

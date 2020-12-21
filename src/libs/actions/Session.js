@@ -193,6 +193,7 @@ function setGitHubUsername(username) {
         .then((response) => {
             if (response.jsonCode === 200) {
                 Onyx.merge(ONYXKEYS.CREDENTIALS, {githubUsername: username});
+                Onyx.merge(ONYXKEYS.ACCOUNT, {hasGithubUsername: true});
                 return;
             }
 
