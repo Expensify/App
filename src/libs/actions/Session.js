@@ -16,12 +16,6 @@ Onyx.connect({
     callback: val => credentials = val,
 });
 
-let account = {};
-Onyx.connect({
-    key: ONYXKEYS.ACCOUNT,
-    callback: val => account = val,
-});
-
 /**
  * Sets API data in the store when we make a successful "Authenticate"/"CreateLogin" request
  *
@@ -42,7 +36,7 @@ function setSuccessfulSignInData(data, exitTo) {
  * Create an account for the user logging in.
  * This will send them a notification with a link to click on to validate the account and set a password
  *
- * @params {String} login
+ * @param {String} login
  */
 function createAccount(login) {
     Onyx.merge(ONYXKEYS.SESSION, {error: ''});
