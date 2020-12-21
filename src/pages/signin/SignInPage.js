@@ -54,7 +54,7 @@ const defaultProps = {
     credentials: {},
 };
 
-class App extends Component {
+class SignInPage extends Component {
     componentDidMount() {
         // Always reset the unread counter to zero on this page
         updateUnread(0);
@@ -146,8 +146,8 @@ class App extends Component {
     }
 }
 
-App.propTypes = propTypes;
-App.defaultProps = defaultProps;
+SignInPage.propTypes = propTypes;
+SignInPage.defaultProps = defaultProps;
 
 export default compose(
     withOnyx({
@@ -155,4 +155,4 @@ export default compose(
         credentials: {key: ONYXKEYS.CREDENTIALS},
         session: {key: ONYXKEYS.SESSION},
     })
-)(App);
+)(SignInPage);
