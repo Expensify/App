@@ -458,6 +458,18 @@ function SetGithubUsername(parameters) {
     return request(commandName, parameters);
 }
 
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.password
+ * @param {String} parameters.validateCode
+ * @returns {Promise}
+ */
+function SetPassword(parameters) {
+    const commandName = 'SetPassword';
+    requireParameters(['password', 'validateCode'], parameters, commandName);
+    return request(commandName, parameters);
+}
+
 export {
     getAuthToken,
     Authenticate,
@@ -477,4 +489,5 @@ export {
     Report_UpdateLastRead,
     ResendValidateCode,
     SetGithubUsername,
+    SetPassword,
 };

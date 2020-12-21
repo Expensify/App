@@ -38,11 +38,6 @@ jobs:
             aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
             aws-region: us-east-1
 
-        # Install node modules
-        - uses: webfactory/ssh-agent@v0.4.1
-          with:
-              ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
         - name: Install dependenices
           run: npm ci
 

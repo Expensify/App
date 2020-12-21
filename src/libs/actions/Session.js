@@ -7,6 +7,7 @@ import * as API from '../API';
 import CONFIG from '../../CONFIG';
 import PushNotification from '../Notification/PushNotification';
 import ROUTES from '../../ROUTES';
+import {redirect} from './App';
 import Timing from './Timing';
 
 let credentials = {};
@@ -30,10 +31,10 @@ Onyx.connect({
 function setSuccessfulSignInData(data, exitTo) {
     PushNotification.register(data.accountID);
 
-    const redirectTo = exitTo ? Str.normalizeUrl(exitTo) : ROUTES.ROOT;
+    const redirectURL = exitTo ? Str.normalizeUrl(exitTo) : ROUTES.ROOT;
     Onyx.multiSet({
         [ONYXKEYS.SESSION]: _.pick(data, 'authToken', 'accountID', 'email'),
-        [ONYXKEYS.APP_REDIRECT_TO]: redirectTo
+        [ONYXKEYS.APP_REDIRECT_TO]: redirectURL
     });
 }
 
@@ -188,9 +189,29 @@ function restartSignin() {
     Onyx.clear();
 }
 
+/**
+ * Set the password for the current account
+ *
+ * @param {String} password
+ * @param {String} validateCode
+ */
+function setPassword(password, validateCode) {
+    API.SetPassword({
+        password,
+        validateCode,
+    })
+        .then(() => {
+            // @TODO check for 200 response and log the user in properly (like the sign in flow).
+            //  For now we can just redirect to root
+            Onyx.merge(ONYXKEYS.CREDENTIALS, {password});
+            redirect('/');
+        });
+}
+
 export {
     hasAccount,
     setGitHubUsername,
+    setPassword,
     signIn,
     signOut,
     resendValidationLink,
