@@ -160,7 +160,7 @@ function hasAccount(login) {
                 });
                 Onyx.merge(ONYXKEYS.ACCOUNT, {
                     accountExists: response.accountExists,
-                    hasGithubUsername: response.hasGithubUsername,
+                    hasSharedChatReports: response.hasSharedChatReports,
                 });
             }
         });
@@ -193,7 +193,7 @@ function setGitHubUsername(username) {
         .then((response) => {
             if (response.jsonCode === 200) {
                 Onyx.merge(ONYXKEYS.CREDENTIALS, {githubUsername: username});
-                Onyx.merge(ONYXKEYS.ACCOUNT, {hasGithubUsername: true});
+                Onyx.merge(ONYXKEYS.ACCOUNT, {hasSharedChatReports: true});
                 return;
             }
 
