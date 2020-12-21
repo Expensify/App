@@ -4,7 +4,6 @@ import {
 } from 'react-native';
 import styles from '../../styles/styles';
 import SubmitButton from './SubmitButton';
-import openURLInNewTab from '../../libs/openURLInNewTab';
 import {fetchAccountDetails} from '../../libs/actions/Session';
 import welcomeScreenshot from '../../../assets/images/welcome-screenshot.png';
 
@@ -82,13 +81,17 @@ class LoginForm extends React.Component {
 
                         <View>
                             <Text style={[styles.textP]}>
-                                Join the waitlist now to be first in line to experience the next-generation of financial collaboration.
+                                Join the waitlist now to be first in line to experience the next-generation of
+                                {' '}
+                                financial collaboration.
                             </Text>
                         </View>
 
                         <View style={[styles.mt4, styles.mb4]}>
                             <Text style={[styles.textP]}>
-                                Know how to code? Enter your GitHub handle after signup to join our open-source community and earn cash for code!
+                                Know how to code? Enter your GitHub handle after signup to join our open-source
+                                {' '}
+                                community and earn cash for code!
                             </Text>
                         </View>
 
