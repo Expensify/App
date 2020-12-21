@@ -196,10 +196,18 @@ function resendValidationLink() {
     API.ResendValidateCode({email: credentials.login});
 }
 
+/**
+ * Restart the sign in process by clearing everything from Onyx
+ */
+function restartSignin() {
+    Onyx.clear();
+}
+
 export {
     hasAccount,
     setGitHubUsername,
     signIn,
     signOut,
     resendValidationLink,
+    restartSignin,
 };

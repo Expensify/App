@@ -44,6 +44,7 @@ class ResendValidationForm extends React.Component {
                         text="Resend Link"
                         isLoading={this.state.isLoading}
                         onClick={this.validateAndSubmitForm}
+                        showRestartButton={false}
                     />
                 </View>
 

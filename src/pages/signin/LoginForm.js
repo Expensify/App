@@ -57,6 +57,7 @@ class LoginForm extends React.Component {
                         text="Next"
                         isLoading={this.state.isLoading}
                         onClick={this.validateAndSubmitForm}
+                        showRestartButton={false}
                     />
                 </View>
 

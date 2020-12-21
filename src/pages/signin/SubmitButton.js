@@ -1,12 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {
-    ActivityIndicator, Text, TouchableOpacity
+    ActivityIndicator, Text, TouchableOpacity, View
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import ONYXKEYS from '../../ONYXKEYS';
+import {restartSignin} from '../../libs/actions/Session';
 
 const propTypes = {
     // The text for the button label
@@ -18,6 +19,9 @@ const propTypes = {
     // A function that is called when the button is clicked on
     onClick: PropTypes.func.isRequired,
 
+    // Whether or not to show the restart sign in button
+    showRestartButton: PropTypes.bool,
+
     /* Onyx Props */
 
     // The session of the logged in person
@@ -27,6 +31,7 @@ const propTypes = {
     }),
 };
 const defaultProps = {
+    showRestartButton: true,
     session: {},
 };
 
@@ -35,20 +40,36 @@ const SubmitButton = (props) => {
     // enabled so the form can be submitted again
     const isLoading = props.isLoading && !props.session.error;
     return (
-        <TouchableOpacity
-            style={[styles.button, styles.buttonSuccess, styles.mb4]}
-            onPress={props.onClick}
-            underlayColor={themeColors.componentBG}
-            disabled={isLoading}
-        >
-            {isLoading ? (
-                <ActivityIndicator color={themeColors.textReversed} />
-            ) : (
-                <Text style={[styles.buttonText, styles.buttonSuccessText]}>
-                    {props.text}
-                </Text>
+        <>
+            <TouchableOpacity
+                style={[styles.button, styles.buttonSuccess, styles.mb2]}
+                onPress={props.onClick}
+                underlayColor={themeColors.componentBG}
+                disabled={isLoading}
+            >
+                {isLoading ? (
+                    <ActivityIndicator color={themeColors.textReversed} />
+                ) : (
+                    <Text style={[styles.buttonText, styles.buttonSuccessText]}>
+                        {props.text}
+                    </Text>
+                )}
+            </TouchableOpacity>
+
+            {props.showRestartButton && (
+                <View style={[styles.mb4]}>
+                    <TouchableOpacity
+                        style={[styles.link]}
+                        onPress={restartSignin}
+                        underlayColor={themeColors.componentBG}
+                    >
+                        <Text style={[styles.link]}>
+                            Change Expensify login
+                        </Text>
+                    </TouchableOpacity>
+                </View>
             )}
-        </TouchableOpacity>
+        </>
     );
 };
 
