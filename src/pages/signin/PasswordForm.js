@@ -35,8 +35,8 @@ const defaultProps = {
 };
 
 class PasswordForm extends React.Component {
-    constructor() {
-        super();
+    constructor(props) {
+        super(props);
 
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
 

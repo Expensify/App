@@ -5,8 +5,8 @@ import SubmitButton from './SubmitButton';
 import {setGitHubUsername} from '../../libs/actions/Session';
 
 class GithubUsernameForm extends React.Component {
-    constructor() {
-        super();
+    constructor(props) {
+        super(props);
 
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
 
