@@ -53,7 +53,7 @@ class PasswordForm extends React.Component {
      */
     validateAndSubmitForm() {
         if (!this.state.password.trim()
-            || (this.props.requiresTwoFactorAuth && !this.state.twoFactorAuthCode.trim())
+            || (this.props.account.requiresTwoFactorAuth && !this.state.twoFactorAuthCode.trim())
         ) {
             this.setState({formError: 'Please fill out all fields'});
             return;
@@ -82,7 +82,7 @@ class PasswordForm extends React.Component {
                         onSubmitEditing={this.validateAndSubmitForm}
                     />
                 </View>
-                {this.props.requiresTwoFactorAuth && (
+                {this.props.account.requiresTwoFactorAuth && (
                     <View style={[styles.mb4]}>
                         <Text style={[styles.formLabel]}>Two Factor Code</Text>
                         <TextInput
