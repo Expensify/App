@@ -26,7 +26,7 @@ Onyx.connect({
  * @return {Boolean}
  */
 function isAuthTokenRequired(command) {
-    return !_.contains(['Log', 'Graphite_Timer', 'Authenticate'], command);
+    return !_.contains(['Log', 'Graphite_Timer', 'Authenticate', 'GetAccountStatus'], command);
 }
 
 /**
