@@ -17,6 +17,17 @@ const propTypes = {
 
     // A function that is called when the button is clicked on
     onClick: PropTypes.func.isRequired,
+
+    /* Onyx Props */
+
+    // The session of the logged in person
+    session: PropTypes.shape({
+        // Error to display when there is a session error returned
+        error: PropTypes.string,
+    }),
+};
+const defaultProps = {
+    session: {},
 };
 
 const SubmitButton = (props) => {
@@ -42,6 +53,7 @@ const SubmitButton = (props) => {
 };
 
 SubmitButton.propTypes = propTypes;
+SubmitButton.defaultProps = defaultProps;
 SubmitButton.displayName = 'SubmitButton';
 
 export default withOnyx({

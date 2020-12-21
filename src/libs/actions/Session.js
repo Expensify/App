@@ -38,14 +38,12 @@ function setSuccessfulSignInData(data, exitTo) {
 }
 
 /**
- * Create an account for the user logging in
+ * Create an account for the user logging in.
+ * This will send them a notification with a link to click on to validate the account and set a password
  *
  * @param {String} password
- * @param {String} twoFactorAuthCode
- * @param {String} exitTo
  */
-function createAccount(password, twoFactorAuthCode, exitTo) {
-    // @TODO figure out what is supposed to happen with twoFactorAuthCode in this flow
+function createAccount(password) {
     Onyx.merge(ONYXKEYS.SESSION, {error: ''});
 
     API.CreateAccount({
@@ -55,6 +53,7 @@ function createAccount(password, twoFactorAuthCode, exitTo) {
         password,
     });
 
+    // This will trigger the UI to show the resend validation link form
     Onyx.merge(ONYXKEYS.CREDENTIALS, {password});
 }
 
@@ -167,7 +166,7 @@ function signIn(password, twoFactorAuthCode, exitTo) {
         return;
     }
 
-    createAccount(password, twoFactorAuthCode, exitTo);
+    createAccount(password, twoFactorAuthCode);
 }
 
 /**
