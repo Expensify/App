@@ -1,16 +1,16 @@
 import React from 'react';
 import {Text, TextInput, View} from 'react-native';
 import PropTypes from 'prop-types';
-import Onyx from 'react-native-onyx';
+import {withRouter} from '../../libs/Router';
 import styles from '../../styles/styles';
 import SubmitButton from './SubmitButton';
 import themeColors from '../../styles/themes/default';
-import ONYXKEYS from '../../ONYXKEYS';
 import {signIn} from '../../libs/actions/Session';
 
 const propTypes = {
-    // A function that is called when the form is submitted
-    onSubmit: PropTypes.func.isRequired,
+    // These are from withRouter
+    // eslint-disable-next-line react/forbid-prop-types
+    match: PropTypes.object.isRequired,
 };
 
 class PasswordForm extends React.Component {
@@ -41,7 +41,7 @@ class PasswordForm extends React.Component {
             isLoading: true,
         });
 
-        signIn(this.state.password, this.state.twoFactorAuthCode);
+        signIn(this.state.password, this.state.twoFactorAuthCode, this.props.match.params.exitTo);
     }
 
     render() {
@@ -89,4 +89,4 @@ class PasswordForm extends React.Component {
 
 PasswordForm.propTypes = propTypes;
 
-export default PasswordForm;
+export default withRouter(PasswordForm);
