@@ -86,6 +86,7 @@ function hasAccount(login) {
                 Onyx.merge(ONYXKEYS.ACCOUNT, {
                     accountExists: response.accountExists,
                     canAccessExpensifyCash: response.canAccessExpensifyCash,
+                    requiresTwoFactorAuth: response.requiresTwoFactorAuth,
                 });
             }
         });
@@ -96,7 +97,7 @@ function hasAccount(login) {
  * with already had an account associated with it or not.
  *
  * @param {String} password
- * @param {String} twoFactorAuthCode
+ * @param {String} [twoFactorAuthCode]
  * @param {String} exitTo
  */
 function signIn(password, twoFactorAuthCode, exitTo) {
