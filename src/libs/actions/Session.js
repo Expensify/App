@@ -38,6 +38,52 @@ function setSuccessfulSignInData(data, exitTo) {
 }
 
 /**
+ * Create a login for the user that has a random login and a temporary password so that the app
+ * can reauthenticate the user when the authToken expires
+ *
+ * @param {String} authToken
+ * @param {String} password
+ * @param {String} exitTo
+ * @returns Promise
+ */
+function createLogin(authToken, password, exitTo) {
+    const login = Str.guid('expensify.cash-');
+    const temporaryPassword = Str.guid();
+
+    return API.CreateLogin({
+        authToken,
+        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+        partnerUserID: login,
+        partnerUserSecret: temporaryPassword,
+        doNotRetry: true,
+    })
+        .then((createLoginResponse) => {
+            if (createLoginResponse.jsonCode !== 200) {
+                throw new Error(createLoginResponse.message);
+            }
+
+            setSuccessfulSignInData(createLoginResponse, exitTo);
+
+            // If we have an old login for some reason, we should delete it before storing the new details
+            if (credentials.login) {
+                API.DeleteLogin({
+                    partnerUserID: credentials.login,
+                    partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+                    partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+                    doNotRetry: true,
+                })
+                    .catch(console.debug);
+            }
+
+            Onyx.merge(ONYXKEYS.CREDENTIALS, {password});
+        })
+        .catch((error) => {
+            Onyx.merge(ONYXKEYS.SESSION, {error: error.message});
+        });
+}
+
+/**
  * Create an account for the user logging in
  *
  * @param {String} password
@@ -45,6 +91,7 @@ function setSuccessfulSignInData(data, exitTo) {
  * @param {String} exitTo
  */
 function createAccount(password, twoFactorAuthCode, exitTo) {
+    // @TODO figure out what is supposed to happen with twoFactorAuthCode in this flow
     Onyx.merge(ONYXKEYS.SESSION, {error: ''});
 
     API.CreateAccount({
@@ -53,44 +100,8 @@ function createAccount(password, twoFactorAuthCode, exitTo) {
         email: credentials.login,
         password,
     })
-
-        // After the account is created, create a new login for the user so that we can reauthenticate when the
-        // authtoken expires
-        .then((createAccountResponse) => {
-            const login = Str.guid('expensify.cash-');
-            const temporaryPassword = Str.guid();
-
-            API.CreateLogin({
-                authToken: createAccountResponse.authToken,
-                partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-                partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-                partnerUserID: login,
-                partnerUserSecret: temporaryPassword,
-                doNotRetry: true,
-            })
-                .then((createLoginResponse) => {
-                    if (createLoginResponse.jsonCode !== 200) {
-                        throw new Error(createLoginResponse.message);
-                    }
-
-                    setSuccessfulSignInData(createLoginResponse, exitTo);
-
-                    // If we have an old login for some reason, we should delete it before storing the new details
-                    if (credentials.login) {
-                        API.DeleteLogin({
-                            partnerUserID: credentials.login,
-                            partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-                            partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-                            doNotRetry: true,
-                        })
-                            .catch(console.debug);
-                    }
-
-                    Onyx.merge(ONYXKEYS.CREDENTIALS, {password});
-                });
-        })
-        .catch((error) => {
-            Onyx.merge(ONYXKEYS.SESSION, {error: error.message});
+        .then((response) => {
+            createLogin(response.authToken, password, exitTo);
         });
 }
 
@@ -101,7 +112,7 @@ function createAccount(password, twoFactorAuthCode, exitTo) {
  * @param {String} twoFactorAuthCode
  * @param {String} exitTo
  */
-function createLogin(password, twoFactorAuthCode, exitTo) {
+function authenticateAndCreateAccount(password, twoFactorAuthCode, exitTo) {
     Onyx.merge(ONYXKEYS.SESSION, {error: ''});
 
     API.Authenticate({
@@ -112,44 +123,8 @@ function createLogin(password, twoFactorAuthCode, exitTo) {
         partnerUserSecret: password,
         twoFactorAuthCode,
     })
-
-        // After the user authenticates, create a new login for the user so that we can reauthenticate when the
-        // authtoken expires
-        .then((authenticateResponse) => {
-            const login = Str.guid('expensify.cash-');
-            const temporaryPassword = Str.guid();
-
-            API.CreateLogin({
-                authToken: authenticateResponse.authToken,
-                partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-                partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-                partnerUserID: login,
-                partnerUserSecret: temporaryPassword,
-                doNotRetry: true,
-            })
-                .then((createLoginResponse) => {
-                    if (createLoginResponse.jsonCode !== 200) {
-                        throw new Error(createLoginResponse.message);
-                    }
-
-                    setSuccessfulSignInData(createLoginResponse, exitTo);
-
-                    // If we have an old login for some reason, we should delete it before storing the new details
-                    if (credentials.login) {
-                        API.DeleteLogin({
-                            partnerUserID: credentials.login,
-                            partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-                            partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-                            doNotRetry: true,
-                        })
-                            .catch(console.debug);
-                    }
-
-                    Onyx.merge(ONYXKEYS.CREDENTIALS, {password});
-                });
-        })
-        .catch((error) => {
-            Onyx.merge(ONYXKEYS.SESSION, {error: error.message});
+        .then((response) => {
+            createLogin(response.authToken, password, exitTo);
         });
 }
 
@@ -202,7 +177,7 @@ function hasAccount(login) {
  */
 function signIn(password, twoFactorAuthCode, exitTo) {
     if (account.accountExists) {
-        createLogin(password, twoFactorAuthCode, exitTo);
+        authenticateAndCreateAccount(password, twoFactorAuthCode, exitTo);
         return;
     }
 
