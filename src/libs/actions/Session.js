@@ -51,6 +51,7 @@ function createAccount(password) {
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         email: credentials.login,
         password,
+        githubUsername: credentials.githubUsername,
     });
 
     // This will trigger the UI to show the resend validation link form
