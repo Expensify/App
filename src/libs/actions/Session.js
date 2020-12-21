@@ -45,10 +45,53 @@ function setSuccessfulSignInData(data, exitTo) {
  * @param {String} exitTo
  */
 function createAccount(password, twoFactorAuthCode, exitTo) {
-    // @TODO Call CreateAccount()
-    Onyx.merge(ONYXKEYS.CREDENTIALS, {password, twoFactorAuthCode});
+    Onyx.merge(ONYXKEYS.SESSION, {error: ''});
 
-    // setSuccessfulSignInData(createLoginResponse, exitTo);
+    API.CreateAccount({
+        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+        email: credentials.login,
+        password,
+    })
+
+        // After the account is created, create a new login for the user so that we can reauthenticate when the
+        // authtoken expires
+        .then((createAccountResponse) => {
+            const login = Str.guid('expensify.cash-');
+            const temporaryPassword = Str.guid();
+
+            API.CreateLogin({
+                authToken: createAccountResponse.authToken,
+                partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+                partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+                partnerUserID: login,
+                partnerUserSecret: temporaryPassword,
+                doNotRetry: true,
+            })
+                .then((createLoginResponse) => {
+                    if (createLoginResponse.jsonCode !== 200) {
+                        throw new Error(createLoginResponse.message);
+                    }
+
+                    setSuccessfulSignInData(createLoginResponse, exitTo);
+
+                    // If we have an old login for some reason, we should delete it before storing the new details
+                    if (credentials.login) {
+                        API.DeleteLogin({
+                            partnerUserID: credentials.login,
+                            partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+                            partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+                            doNotRetry: true,
+                        })
+                            .catch(console.debug);
+                    }
+
+                    Onyx.merge(ONYXKEYS.CREDENTIALS, {password});
+                });
+        })
+        .catch((error) => {
+            Onyx.merge(ONYXKEYS.SESSION, {error: error.message});
+        });
 }
 
 /**
