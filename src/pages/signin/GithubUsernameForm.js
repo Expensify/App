@@ -22,7 +22,7 @@ class GithubUsernameForm extends React.Component {
      */
     validateAndSubmitForm() {
         if (!this.state.githubUsername.trim()) {
-            this.setState({formError: 'Please fill out all fields'});
+            this.setState({formError: 'Please enter your GitHub username'});
             return;
         }
 
