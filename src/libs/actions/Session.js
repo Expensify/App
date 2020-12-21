@@ -44,13 +44,12 @@ function setSuccessfulSignInData(data, exitTo) {
  * @param {String} authToken
  * @param {String} password
  * @param {String} exitTo
- * @returns Promise
  */
 function createLogin(authToken, password, exitTo) {
     const login = Str.guid('expensify.cash-');
     const temporaryPassword = Str.guid();
 
-    return API.CreateLogin({
+    API.CreateLogin({
         authToken,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
