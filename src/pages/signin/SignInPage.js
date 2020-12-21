@@ -69,10 +69,6 @@ class SignInPage extends Component {
             return <Redirect to={ROUTES.ROOT} />;
         }
 
-        // @TODO figure out the real logic that needs to be used for showing the proper form
-        // It will depend on if they had an account already, had a Github username already,
-        // if they have access to this application, if they need to validate their account, etc.
-
         // Show the login form if
         // - A login has not been entered yet
         const showLoginForm = !this.props.credentials.login;

@@ -3,7 +3,7 @@ import {Text, TextInput, View} from 'react-native';
 import styles from '../../styles/styles';
 import SubmitButton from './SubmitButton';
 import openURLInNewTab from '../../libs/openURLInNewTab';
-import {fetchAccount} from '../../libs/actions/Session';
+import {fetchAccountDetails} from '../../libs/actions/Session';
 
 class LoginForm extends React.Component {
     constructor(props) {
@@ -33,7 +33,7 @@ class LoginForm extends React.Component {
         });
 
         // Check if this login has an account associated with it or not
-        fetchAccount(this.state.login);
+        fetchAccountDetails(this.state.login);
     }
 
     render() {
