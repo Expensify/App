@@ -711,6 +711,7 @@ const styles = {
     chatItemSubmitButtonIcon: {
         height: 20,
         width: 20,
+        margin: 'auto',
     },
 
     reportPinIcon: {
