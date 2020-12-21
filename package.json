@@ -76,7 +76,7 @@
     "rn-fetch-blob": "^0.12.0",
     "save": "^2.4.0",
     "underscore": "^1.10.2",
-    "urbanairship-react-native": "^9.0.1"
+    "urbanairship-react-native": "^10.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.11.1",
