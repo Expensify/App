@@ -371,7 +371,14 @@ const styles = {
     },
 
     formError: {
-        color: themeColors.errorText,
+        color: themeColors.textError,
+        fontSize: variables.fontSizeLabel,
+        lineHeight: 18,
+        marginBottom: 4,
+    },
+
+    formSuccess: {
+        color: themeColors.textSuccess,
         fontSize: variables.fontSizeLabel,
         lineHeight: 18,
         marginBottom: 4,

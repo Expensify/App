@@ -11,7 +11,7 @@ class ResendValidationForm extends React.Component {
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
 
         this.state = {
-            isLoading: false,
+            formSuccess: '',
         };
     }
 
@@ -20,10 +20,14 @@ class ResendValidationForm extends React.Component {
      */
     validateAndSubmitForm() {
         this.setState({
-            isLoading: true,
+            formSuccess: 'Link has been resent',
         });
 
         resendValidationLink();
+
+        setTimeout(() => {
+            this.setState({formSuccess: ''});
+        }, 5000);
     }
 
     render() {
@@ -41,6 +45,12 @@ class ResendValidationForm extends React.Component {
                         onClick={this.validateAndSubmitForm}
                     />
                 </View>
+
+                {this.state.formSuccess && (
+                    <Text style={[styles.formSuccess]}>
+                        {this.state.formSuccess}
+                    </Text>
+                )}
             </>
         );
     }
