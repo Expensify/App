@@ -1,6 +1,6 @@
 import React from 'react';
-import styles from '../styles/styles';
 import PropTypes from 'prop-types';
+import styles from '../styles/styles';
 
 const propTypes = {
     isOffline: PropTypes.func.isRequired,
@@ -15,8 +15,8 @@ const UserIndicator = ({isOffline}) => {
                 ...onlineStyle
             }}
         />
-    )
-}
+    );
+};
 
 UserIndicator.propTypes = propTypes;
 export default UserIndicator;
