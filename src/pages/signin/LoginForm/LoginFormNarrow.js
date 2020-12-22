@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-    Image, Text, TextInput, View, ScrollView
+    Image, Text, TextInput, View
 } from 'react-native';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
