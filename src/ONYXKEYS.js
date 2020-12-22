@@ -25,6 +25,9 @@ export default {
     // Contains all the personalDetails the user has access to
     PERSONAL_DETAILS: 'personalDetails',
 
+    //
+    COUNTRY_CODE_BY_IP: 'countryCodeByIP',
+
     // Information about the current session (authToken, accountID, email, loading, error)
     SESSION: 'session',
     IS_SIDEBAR_SHOWN: 'isSidebarShown',

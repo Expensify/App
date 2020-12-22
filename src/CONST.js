@@ -5,8 +5,8 @@ const CONST = {
     PDF_VIEWER_URL: '/pdf/web/viewer.html',
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
     REPORT: {
-        SINGLE_USER_DM: 'singleUserDM',
-        GROUP_USERS_DM: 'groupUsersDM',
+        REGULAR: 'regular',
+        PERSONAL_DETAIL: 'personalDetail',
     },
     MODAL: {
         MODAL_TYPE: {

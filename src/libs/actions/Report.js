@@ -469,6 +469,8 @@ function fetchOrCreateChatReport(participants) {
             // overwrite any existing data (like if they have unread messages)
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, newReport);
 
+            PersonalDetails.getFromReportParticipants([newReport]);
+
             // Redirect the logged in person to the new report
             redirect(ROUTES.getReportRoute(reportID));
         });
