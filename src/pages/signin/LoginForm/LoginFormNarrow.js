@@ -3,10 +3,11 @@ import {
     Image, Text, TextInput, View, ScrollView
 } from 'react-native';
 import styles from '../../../styles/styles';
+import themeColors from '../../../styles/themes/default';
 import SubmitButton from '../SubmitButton';
 import openURLInNewTab from '../../../libs/openURLInNewTab';
 import {fetchAccountDetails} from '../../../libs/actions/Session';
-import welcomeScreenshot from '../../../../assets/images/welcome-screenshot.jpg';
+import welcomeScreenshot from '../../../../assets/images/welcome-screenshot.png';
 
 class LoginFormNarrow extends React.Component {
     constructor(props) {
@@ -53,6 +54,7 @@ class LoginFormNarrow extends React.Component {
                         onSubmitEditing={this.validateAndSubmitForm}
                         autoCapitalize="none"
                         placeholder="Email or phone"
+                        placeholderTextColor={themeColors.textSupporting}
                     />
                 </View>
                 <View>
@@ -70,7 +72,7 @@ class LoginFormNarrow extends React.Component {
                     </Text>
                 )}
 
-                <ScrollView style={[styles.welcomeMessageScrollContainer, styles.mb5]}>
+                <ScrollView style={[styles.mb5]}>
                     <View>
                         <View style={[styles.mt5, styles.mb5]}>
                             <Image
@@ -80,19 +82,19 @@ class LoginFormNarrow extends React.Component {
                             />
                         </View>
 
-                        <View>
-                            <Text style={[styles.textP]}>
+                        <View style={[styles.mb6]}>
+                            <Text style={[styles.textLabel]}>
                                 With Expensify.cash, chat and payments are the same thing. Launching Summer 2021,
                                 {' '}
                                 join the waitlist to be first in line!
                             </Text>
                         </View>
 
-                        <View style={[styles.mt4, styles.mb4]}>
-                            <Text style={[styles.textP, styles.textStrong]}>
+                        <View>
+                            <Text style={[styles.textLabel, styles.textStrong, styles.mb1]}>
                                 Attention Open Source Developers:
                             </Text>
-                            <Text style={[styles.textP]}>
+                            <Text style={[styles.textLabel]}>
                                 Enter your Github handle to skip the wait and join our dev-only beta; help build
                                 {' '}
                                 tomorrow and

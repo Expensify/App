@@ -19,7 +19,7 @@ const SignInPageLayoutNarrow = ({children}) => (
             />
         </View>
 
-        <View style={[styles.mt5, styles.mb4]}>
+        <View style={[styles.mb6, styles.alignItemsCenter]}>
             <Text style={[styles.h1]}>
                 Expensify.cash
             </Text>
