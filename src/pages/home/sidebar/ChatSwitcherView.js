@@ -512,7 +512,7 @@ class ChatSwitcherView extends React.Component {
         let feedbackHeader = '';
         let feedbackMessage = '';
         if (this.state.usersToStartGroupReportWith.length === MAX_GROUP_DM_LENGTH) {
-            feedbackHeader = '';
+            feedbackHeader = 'Maximum participants reached';
             feedbackMessage = 'You\'ve reached the maximum number of participants for a group chat.';
         } else if (this.state.search && this.state.options.length === 0) {
             feedbackMessage = 'Don\'t see who you are looking for? Type their email/phone number to invite them.';
@@ -538,7 +538,7 @@ class ChatSwitcherView extends React.Component {
                     <View style={[styles.p2]}>
                         {feedbackHeader.length > 0 && (
                             <Text style={[styles.h4, styles.mb1]}>
-                                Maximum participants reached
+                                {feedbackHeader}
                             </Text>
                         )}
                         <Text style={[styles.textLabel]}>
