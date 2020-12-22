@@ -1,13 +1,46 @@
+import React from 'react';
 import {Dimensions} from 'react-native';
 import variables from '../../../styles/variables';
 import LoginFormNarrow from './LoginFormNarrow';
 import LoginFormWide from './LoginFormWide';
 
-const windowSize = Dimensions.get('window');
+class LoginForm extends React.Component {
+    constructor(props) {
+        super(props);
 
-// Use the proper layout depending on the window width
-const moduleToExport = (windowSize.width <= variables.mobileResponsiveWidthBreakpoint)
-    ? LoginFormNarrow
-    : LoginFormWide;
+        this.toggleScreenWidth = this.toggleScreenWidth.bind(this);
 
-export default moduleToExport;
+        this.state = {
+            isWideScreen: false,
+        };
+    }
+
+    componentDidMount() {
+        Dimensions.addEventListener('change', this.toggleScreenWidth);
+        this.toggleScreenWidth({window: Dimensions.get('window')});
+    }
+
+    componentWillUnmount() {
+        Dimensions.removeEventListener('change', this.toggleScreenWidth);
+    }
+
+    /**
+     * Fired when the windows dimensions changes
+     * @param {Object} changedWindow
+     */
+    toggleScreenWidth({window: changedWindow}) {
+        this.setState({
+            isWideScreen: changedWindow.width > variables.mobileResponsiveWidthBreakpoint,
+        });
+    }
+
+    render() {
+        return (
+            <>
+                {this.state.isWideScreen ? <LoginFormWide /> : <LoginFormNarrow />}
+            </>
+        );
+    }
+}
+
+export default LoginForm;
