@@ -442,6 +442,10 @@ function fetchOrCreateChatReport(participants) {
     })
 
         .then((data) => {
+            if (data.jsonCode === 400) {
+                throw new Error('Participant not found');
+            }
+
             // Set aside the reportID in a local variable so it can be accessed in the rest of the chain
             reportID = data.reportID;
 
@@ -473,6 +477,10 @@ function fetchOrCreateChatReport(participants) {
 
             // Redirect the logged in person to the new report
             redirect(ROUTES.getReportRoute(reportID));
+        })
+
+        .catch((error) => {
+            alert(error.message);
         });
 }
 
