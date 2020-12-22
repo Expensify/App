@@ -26,7 +26,14 @@ Onyx.connect({
  * @return {Boolean}
  */
 function isAuthTokenRequired(command) {
-    return !_.contains(['Log', 'Graphite_Timer', 'Authenticate', 'GetAccountStatus'], command);
+    return !_.contains([
+        'Log',
+        'Graphite_Timer',
+        'Authenticate',
+        'GetAccountStatus',
+        'SetGithubUsername',
+        'CreateAccount',
+    ], command);
 }
 
 /**
