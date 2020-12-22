@@ -1,5 +1,6 @@
 import React from 'react';
 import {Dimensions} from 'react-native';
+import _ from 'underscore';
 import variables from '../../../styles/variables';
 import SignInPageLayoutNarrow from './SignInPageLayoutNarrow';
 import SignInPageLayoutWide from './SignInPageLayoutWide';
@@ -8,10 +9,10 @@ class LoginForm extends React.Component {
     constructor(props) {
         super(props);
 
-        this.toggleScreenWidth = this.toggleScreenWidth.bind(this);
+        this.toggleScreenWidth = _.debounce(this.toggleScreenWidth.bind(this), 1000, true);
 
         this.state = {
-            isWideScreen: false,
+            isWideScreen: null,
         };
     }
 
@@ -35,6 +36,10 @@ class LoginForm extends React.Component {
     }
 
     render() {
+        if (this.state.isWideScreen === null) {
+            return null;
+        }
+
         return this.state.isWideScreen
             // eslint-disable-next-line react/jsx-props-no-spreading
             ? <SignInPageLayoutWide {...this.props} />
