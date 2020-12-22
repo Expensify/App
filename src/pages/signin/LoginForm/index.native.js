@@ -41,7 +41,7 @@ class LoginForm extends React.Component {
 
     render() {
         return (
-            <>
+            <View style={[styles.loginFormContainer]}>
                 <View style={[styles.mb4]}>
                     <Text style={[styles.formLabel]}>Sign up for the waitlist</Text>
                     <TextInput
@@ -109,7 +109,7 @@ class LoginForm extends React.Component {
                         </View>
                     </View>
                 </ScrollView>
-            </>
+            </View>
         );
     }
 }

@@ -1,12 +1,11 @@
 import React from 'react';
 import {
-    Image, Text, TextInput, View, ScrollView
+    Text, TextInput, View
 } from 'react-native';
 import styles from '../../../styles/styles';
 import SubmitButton from '../SubmitButton';
 import openURLInNewTab from '../../../libs/openURLInNewTab';
 import {fetchAccountDetails} from '../../../libs/actions/Session';
-import welcomeScreenshot from '../../../../assets/images/welcome-screenshot.jpg';
 
 class LoginForm extends React.Component {
     constructor(props) {
@@ -42,33 +41,36 @@ class LoginForm extends React.Component {
     render() {
         return (
             <>
-                <View style={[styles.mb4]}>
-                    <Text style={[styles.formLabel]}>Sign up for the waitlist</Text>
-                    <TextInput
-                        style={[styles.textInput]}
-                        value={this.state.login}
-                        autoCompleteType="email"
-                        textContentType="username"
-                        onChangeText={text => this.setState({login: text})}
-                        onSubmitEditing={this.validateAndSubmitForm}
-                        autoCapitalize="none"
-                        placeholder="Email or phone"
-                    />
-                </View>
-                <View>
-                    <SubmitButton
-                        text="Continue"
-                        isLoading={this.state.isLoading}
-                        onClick={this.validateAndSubmitForm}
-                        showRestartButton={false}
-                    />
-                </View>
+                <View style={[styles.loginFormContainer]}>
+                    <View style={[styles.mb4]}>
+                        <Text style={[styles.formLabel]}>Sign up for the waitlist</Text>
+                        <TextInput
+                            style={[styles.textInput]}
+                            value={this.state.login}
+                            autoCompleteType="email"
+                            textContentType="username"
+                            onChangeText={text => this.setState({login: text})}
+                            onSubmitEditing={this.validateAndSubmitForm}
+                            autoCapitalize="none"
+                            placeholder="Email or phone"
+                            autoFocus
+                        />
+                    </View>
+                    <View>
+                        <SubmitButton
+                            text="Continue"
+                            isLoading={this.state.isLoading}
+                            onClick={this.validateAndSubmitForm}
+                            showRestartButton={false}
+                        />
+                    </View>
 
-                {this.state.formError && (
-                    <Text style={[styles.formError]}>
-                        {this.state.formError}
-                    </Text>
-                )}
+                    {this.state.formError && (
+                        <Text style={[styles.formError]}>
+                            {this.state.formError}
+                        </Text>
+                    )}
+                </View>
 
                 <View>
                     <View>
