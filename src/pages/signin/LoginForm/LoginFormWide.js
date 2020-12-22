@@ -84,9 +84,9 @@ class LoginFormWide extends React.Component {
                             Attention Open Source Developers:
                         </Text>
                         <Text style={[styles.textP]}>
-                            Enter your Github handle to skip the wait and join our dev-only beta; help build
+                            Enter your Github handle on the next page to skip the wait and join our dev-only beta;
                             {' '}
-                            tomorrow and
+                            help build tomorrow and
                             {' '}
                             <Text
                                 style={[styles.link, styles.mx1]}
