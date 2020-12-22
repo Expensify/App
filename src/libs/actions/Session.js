@@ -7,6 +7,8 @@ import * as API from '../API';
 import CONFIG from '../../CONFIG';
 import PushNotification from '../Notification/PushNotification';
 import ROUTES from '../../ROUTES';
+import {redirect} from './App';
+import Timing from './Timing';
 
 let credentials;
 Onyx.connect({
@@ -23,10 +25,10 @@ Onyx.connect({
 function setSuccessfulSignInData(data, exitTo) {
     PushNotification.register(data.accountID);
 
-    const redirectTo = exitTo ? Str.normalizeUrl(exitTo) : ROUTES.ROOT;
+    const redirectURL = exitTo ? Str.normalizeUrl(exitTo) : ROUTES.ROOT;
     Onyx.multiSet({
         [ONYXKEYS.SESSION]: _.pick(data, 'authToken', 'accountID', 'email'),
-        [ONYXKEYS.APP_REDIRECT_TO]: redirectTo
+        [ONYXKEYS.APP_REDIRECT_TO]: redirectURL
     });
 }
 
@@ -53,7 +55,7 @@ function signIn(partnerUserID, partnerUserSecret, twoFactorAuthCode = '', exitTo
         // After the user authenticates, create a new login for the user so that we can reauthenticate when the
         // authtoken expires
         .then((authenticateResponse) => {
-            const login = Str.guid('react-native-chat-');
+            const login = Str.guid('expensify.cash-');
             const password = Str.guid();
 
             API.CreateLogin({
@@ -96,6 +98,7 @@ function signIn(partnerUserID, partnerUserSecret, twoFactorAuthCode = '', exitTo
  * Clears the Onyx store and redirects user to the sign in page
  */
 function signOut() {
+    Timing.clearData();
     redirectToSignIn();
     if (!credentials || !credentials.login) {
         return;
@@ -110,7 +113,27 @@ function signOut() {
         .catch(error => Onyx.merge(ONYXKEYS.SESSION, {error: error.message}));
 }
 
+/**
+ * Set the password for the current account
+ *
+ * @param {String} password
+ * @param {String} validateCode
+ */
+function setPassword(password, validateCode) {
+    API.SetPassword({
+        password,
+        validateCode,
+    })
+        .then(() => {
+            // @TODO check for 200 response and log the user in properly (like the sign in flow).
+            //  For now we can just redirect to root
+            Onyx.merge(ONYXKEYS.CREDENTIALS, {password});
+            redirect('/');
+        });
+}
+
 export {
     signIn,
     signOut,
+    setPassword,
 };

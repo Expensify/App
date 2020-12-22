@@ -26,7 +26,7 @@ Onyx.connect({
  * @return {Boolean}
  */
 function isAuthTokenRequired(command) {
-    return !_.contains(['Log', 'Authenticate'], command);
+    return !_.contains(['Log', 'Graphite_Timer', 'Authenticate'], command);
 }
 
 /**
@@ -226,6 +226,7 @@ function Authenticate(parameters) {
         partnerUserSecret: parameters.partnerUserSecret,
         twoFactorAuthCode: parameters.twoFactorAuthCode,
         doNotRetry: true,
+        isViaExpensifyCash: true,
 
         // Force this request to be made because the network queue is paused when re-authentication is happening
         forceNetworkRequest: true,
@@ -318,6 +319,19 @@ function Log(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {String} parameters.name
+ * @param {Number} parameters.value
+ * @returns {Promise}
+ */
+function Graphite_Timer(parameters) {
+    const commandName = 'Graphite_Timer';
+    requireParameters(['name', 'value'],
+        parameters, commandName);
+    return request(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
  * @param {String} parameters.emailList
  * @returns {Promise}
  */
@@ -393,6 +407,18 @@ function Report_UpdateLastRead(parameters) {
     return request(commandName, parameters);
 }
 
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.password
+ * @param {String} parameters.validateCode
+ * @returns {Promise}
+ */
+function SetPassword(parameters) {
+    const commandName = 'SetPassword';
+    requireParameters(['password', 'validateCode'], parameters, commandName);
+    return request(commandName, parameters);
+}
+
 export {
     getAuthToken,
     Authenticate,
@@ -400,11 +426,13 @@ export {
     CreateLogin,
     DeleteLogin,
     Get,
+    Graphite_Timer,
     Log,
     PersonalDetails_GetForEmails,
     Push_Authenticate,
     Report_AddComment,
     Report_GetHistory,
     Report_TogglePinned,
-    Report_UpdateLastRead
+    Report_UpdateLastRead,
+    SetPassword,
 };

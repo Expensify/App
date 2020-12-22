@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {
     View, Image, TouchableOpacity, Text
 } from 'react-native';
-import styles from '../styles/StyleSheet';
+import styles from '../styles/styles';
 import exitIcon from '../../assets/images/icon-x--20x20.png';
 import downloadIcon from '../../assets/images/icon-download.png';
 
@@ -53,7 +53,7 @@ const ModalHeader = props => (
                 </TouchableOpacity>
                 <TouchableOpacity
                     onPress={props.onCloseButtonPress}
-                    style={[styles.touchableButtonImage, styles.mr0]}
+                    style={[styles.touchableButtonImage]}
                 >
                     <Image
                         resizeMode="contain"

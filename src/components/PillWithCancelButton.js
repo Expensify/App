@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {Text, Image, TouchableOpacity} from 'react-native';
-import styles from '../styles/StyleSheet';
+import styles from '../styles/styles';
 import iconX from '../../assets/images/icon-x.png';
 
 const propTypes = {
