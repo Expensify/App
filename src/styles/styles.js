@@ -180,13 +180,6 @@ const styles = {
         fontWeight: fontWeightBold,
     },
 
-    hr: {
-        borderColor: themeColors.border,
-        borderWidth: 1,
-        height: 1,
-        marginVertical: 20,
-    },
-
     textP: {
         color: themeColors.text,
         fontSize: variables.fontSizeNormal,
