@@ -89,6 +89,9 @@ const styles = {
         width: '100%',
         height: '100%',
     },
+    width50p: {
+        width: '50%',
+    },
 
     flex0: {
         flex: 0,
@@ -393,6 +396,11 @@ const styles = {
     },
 
     signInPageLogo: {
+        height: variables.componentSizeLarge,
+        marginBottom: 24,
+    },
+
+    signInPageLogoNative: {
         alignItems: 'center',
         height: variables.componentSizeLarge,
         justifyContent: 'center',
