@@ -65,6 +65,9 @@ const styles = {
     mb4: {
         marginBottom: 16,
     },
+    mb5: {
+        marginBottom: 20,
+    },
     mbn5: {
         marginBottom: -5,
     },
@@ -168,6 +171,12 @@ const styles = {
         textDecorationColor: themeColors.link,
     },
 
+    h1: {
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeXLarge,
+        fontWeight: fontWeightBold,
+    },
+
     h3: {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeNormal,
@@ -178,13 +187,6 @@ const styles = {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeLabel,
         fontWeight: fontWeightBold,
-    },
-
-    hr: {
-        borderColor: themeColors.border,
-        borderWidth: 1,
-        height: 1,
-        marginVertical: 20,
     },
 
     textP: {
@@ -392,19 +394,19 @@ const styles = {
 
     signInPageLogo: {
         alignItems: 'center',
-        height: variables.componentSizeNormal,
+        height: variables.componentSizeLarge,
         justifyContent: 'center',
         width: '100%',
         marginBottom: 24,
     },
 
     signinLogo: {
-        height: variables.componentSizeNormal,
-        width: variables.componentSizeNormal,
+        height: variables.componentSizeLarge,
+        width: variables.componentSizeLarge,
     },
 
     signinWelcomeScreenshot: {
-        height: 580,
+        height: 388,
         width: 325,
     },
 
@@ -511,7 +513,7 @@ const styles = {
     },
 
     welcomeMessageScrollContainer: {
-        height: 580,
+        height: 582,
         scrollbarWidth: 'none',
         overflow: 'scroll',
         paddingBottom: 4,
