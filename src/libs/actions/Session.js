@@ -45,7 +45,6 @@ function createAccount(login) {
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         email: login,
-        githubUsername: credentials.githubUsername,
     });
 }
 
@@ -155,7 +154,7 @@ function signIn(password, twoFactorAuthCode, exitTo) {
  * @param {String} username
  */
 function setGitHubUsername(username) {
-    API.SetGithubUsername({username})
+    API.SetGithubUsername({githubUsername: username})
         .then((response) => {
             if (response.jsonCode === 200) {
                 Onyx.merge(ONYXKEYS.CREDENTIALS, {githubUsername: username});
