@@ -154,7 +154,7 @@ function signIn(password, twoFactorAuthCode, exitTo) {
  * @param {String} username
  */
 function setGitHubUsername(username) {
-    API.SetGithubUsername({githubUsername: username})
+    API.SetGithubUsername({email: credentials.login, githubUsername: username})
         .then((response) => {
             if (response.jsonCode === 200) {
                 Onyx.merge(ONYXKEYS.CREDENTIALS, {githubUsername: username});
