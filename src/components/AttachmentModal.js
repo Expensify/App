@@ -4,7 +4,7 @@ import {
     View, TouchableOpacity, Text, Dimensions,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import RNFS from 'react-native-fs';
+import fs from '../libs/FileSystemUtils';
 import CONST from '../CONST';
 import ModalWithHeader from './ModalWithHeader';
 import AttachmentView from './AttachmentView';
@@ -53,11 +53,25 @@ class AttachmentModal extends Component {
     constructor(props) {
         super(props);
 
+        this.downloadFile = this.downloadFile.bind(this);
+
         this.state = {
             isModalOpen: false,
             file: null,
             sourceURL: props.sourceURL,
         };
+    }
+
+    downloadFile() {
+        console.log(`Attempting to download ${this.state.sourceURL}`);
+
+        fs.writeFile('foo.txt', 'Hello world!', 'utf8')
+            .then(() => {
+                console.log('File written!');
+            })
+            .catch((err) => {
+                console.log(`foo.txt: ${err.message}`);
+            });
     }
 
     render() {
@@ -76,7 +90,7 @@ class AttachmentModal extends Component {
                 <ModalWithHeader
                     type={CONST.MODAL.MODAL_TYPE.CENTERED}
                     onClose={() => this.setState({isModalOpen: false})}
-                    onDownload={() => console.log("Download button pressed")}
+                    onDownload={() => this.downloadFile(this.state.sourceURL)}
                     isVisible={this.state.isModalOpen}
                     title={this.props.title}
                     backgroundColor={themeColors.componentBG}

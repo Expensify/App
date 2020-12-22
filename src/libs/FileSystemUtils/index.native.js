@@ -1,12 +1,6 @@
 /**
  * On native, we use the `react-native-fs` library to manage local files.
  */
-import {
-    DocumentDirectoryPath,
-    writeFile,
-} from 'react-native-fs';
+import * as fs from 'react-native-fs';
 
-export {
-    DocumentDirectoryPath,
-    writeFile,
-};
+export default fs;

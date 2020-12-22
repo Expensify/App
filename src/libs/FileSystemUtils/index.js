@@ -1,12 +1,6 @@
 /**
  * On web, we use the Node.js's `fs` library to manage local files.
  */
-import {
-    DocumentDirectoryPath,
-    writeFile,
-} from 'react-native-fs';
+import fs from 'fs';
 
-export {
-    DocumentDirectoryPath,
-    writeFile,
-};
+export default fs;
