@@ -25,7 +25,7 @@ We are currently managing payment via Upwork. If you'd like to be paid for your 
 ## Submitting a Pull Request
 #### Proposing a Change
 1. Fork this repository and create a new branch
-1. [Open a PR](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request-from-a-fork). Be sure to fill in all the required information on the PR template, and be sure all of your commits are signed.
+1. [Open a PR](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request-from-a-fork). Be sure to fill in all the required information on the PR template, and be sure all of your [commits are signed](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/signing-commits).
 1. An Expensify engineer will be automatically assigned to review your PR
 1. You will need all checks to pass:
 	1. CLA - You must sign our [Contributor License Agreement](https://github.com/Expensify/Expensify.cash/blob/master/CLA.md) by following the CLA bot instructions that will be posted on your PR
