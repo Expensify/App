@@ -445,13 +445,9 @@ class ChatSwitcherView extends React.Component {
                         groupOption.login === option.login
                     ));
 
-                    // We must ignore the user if it matches the currently logged in user.
-                    if (this.props.session.email === option.login) {
-                        continue;
-                    }
-
                     // Make sure we don't include the same option twice (automatically handled by using a `Set`)
-                    if (isMatch && !isInGroupUsers) {
+                    // We must also ignore the user if it matches the currently logged in user.
+                    if (isMatch && !isInGroupUsers && this.props.session.email !== option.login) {
                         matches.add(option);
                     }
 
