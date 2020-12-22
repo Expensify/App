@@ -418,6 +418,13 @@ const styles = {
     signInPageInner: {
         marginLeft: 'auto',
         marginRight: 'auto',
+        paddingHorizontal: 16,
+        width: '100%',
+    },
+
+    signInPageInnerNative: {
+        marginLeft: 'auto',
+        marginRight: 'auto',
         maxWidth: 325,
         width: '100%',
     },

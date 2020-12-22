@@ -1,21 +1,19 @@
 import React, {Component} from 'react';
 import {
-    SafeAreaView,
-    Text,
-    Image,
-    View,
+    Image, SafeAreaView, Text, View
 } from 'react-native';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import compose from '../../libs/compose';
 import {Redirect} from '../../libs/Router';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
-import logo from '../../../assets/images/expensify-logo-coin-2x.png';
 import CustomStatusBar from '../../components/CustomStatusBar';
 import updateUnread from '../../libs/UnreadIndicatorUpdater/updateUnread/index';
+import SignInPageLayout from './SignInPageLayout';
+import logo from '../../../assets/images/expensify-logo-coin-2x.png';
 import LoginForm from './LoginForm';
 import GithubUsernameForm from './GithubUsernameForm';
 import PasswordForm from './PasswordForm';
@@ -44,13 +42,16 @@ const propTypes = {
     // The session of the logged in person
     session: PropTypes.shape({
         // Error to display when there is a session error returned
+        authToken: PropTypes.string,
+
+        // Error to display when there is a session error returned
         error: PropTypes.string,
     }),
 };
 
 const defaultProps = {
     account: {},
-    session: null,
+    session: {},
     credentials: {},
 };
 
@@ -61,11 +62,9 @@ class SignInPage extends Component {
     }
 
     render() {
-        const session = this.props.session || {};
-
         // If we end up on the sign in page and have an authToken then
         // we are signed in and should be brought back to the site root
-        if (session.authToken) {
+        if (this.props.session.authToken) {
             return <Redirect to={ROUTES.ROOT} />;
         }
 
@@ -111,7 +110,7 @@ class SignInPage extends Component {
             <>
                 <CustomStatusBar />
                 <SafeAreaView style={[styles.signInPage]}>
-                    <View style={[styles.signInPageInner]}>
+                    <SignInPageLayout>
                         <View style={[styles.signInPageLogo]}>
                             <Image
                                 resizeMode="contain"
@@ -141,7 +140,7 @@ class SignInPage extends Component {
                                 </Text>
                             )}
                         </View>
-                    </View>
+                    </SignInPageLayout>
                 </SafeAreaView>
             </>
         );
