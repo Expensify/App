@@ -3,7 +3,6 @@ import {Text, TextInput, View} from 'react-native';
 import styles from '../../styles/styles';
 import SubmitButton from './SubmitButton';
 import {setGitHubUsername} from '../../libs/actions/Session';
-import openURLInNewTab from '../../libs/openURLInNewTab';
 
 class GithubUsernameForm extends React.Component {
     constructor(props) {
