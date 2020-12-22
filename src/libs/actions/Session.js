@@ -97,8 +97,8 @@ function fetchAccountDetails(login) {
  * after an authToken expires.
  *
  * @param {String} password
- * @param {String} [twoFactorAuthCode]
  * @param {String} exitTo
+ * @param {String} [twoFactorAuthCode]
  */
 function signIn(password, twoFactorAuthCode, exitTo) {
     Onyx.merge(ONYXKEYS.SESSION, {error: ''});
