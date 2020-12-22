@@ -111,20 +111,6 @@ class SignInPage extends Component {
                 <CustomStatusBar />
                 <SafeAreaView style={[styles.signInPage]}>
                     <SignInPageLayout>
-                        <View style={[styles.signInPageLogo]}>
-                            <Image
-                                resizeMode="contain"
-                                style={[styles.signinLogo]}
-                                source={logo}
-                            />
-                        </View>
-
-                        <View style={[styles.mt5, styles.mb4, styles.alignItemsCenter]}>
-                            <Text style={[styles.h1]}>
-                                Expensify.cash
-                            </Text>
-                        </View>
-
                         {showLoginForm && <LoginForm />}
 
                         {showGithubUsernameForm && <GithubUsernameForm />}

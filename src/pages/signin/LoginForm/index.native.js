@@ -2,11 +2,11 @@ import React from 'react';
 import {
     Image, Text, TextInput, View, ScrollView
 } from 'react-native';
-import styles from '../../styles/styles';
-import SubmitButton from './SubmitButton';
-import openURLInNewTab from '../../libs/openURLInNewTab';
-import {fetchAccountDetails} from '../../libs/actions/Session';
-import welcomeScreenshot from '../../../assets/images/welcome-screenshot.jpg';
+import styles from '../../../styles/styles';
+import SubmitButton from '../SubmitButton';
+import openURLInNewTab from '../../../libs/openURLInNewTab';
+import {fetchAccountDetails} from '../../../libs/actions/Session';
+import welcomeScreenshot from '../../../../assets/images/welcome-screenshot.jpg';
 
 class LoginForm extends React.Component {
     constructor(props) {
