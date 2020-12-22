@@ -7,7 +7,6 @@ import * as API from '../API';
 import CONFIG from '../../CONFIG';
 import PushNotification from '../Notification/PushNotification';
 import ROUTES from '../../ROUTES';
-import {redirect} from './App';
 import Timing from './Timing';
 
 let credentials = {};
@@ -41,11 +40,17 @@ function setSuccessfulSignInData(data, exitTo) {
 function createAccount(login) {
     Onyx.merge(ONYXKEYS.SESSION, {error: ''});
 
-    API.CreateAccount({
-        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+    API.User_SignUp({
         email: login,
-        githubUsername: credentials.githubUsername,
+    }).then((response) => {
+        if (response.jsonCode !== 200) {
+            let errorMessage = response.message || `Unknown API Error: ${response.jsonCode}`;
+            if (!response.message && response.jsonCode === 405) {
+                errorMessage = 'Cannot create an account that is under a controlled domain';
+            }
+            Onyx.merge(ONYXKEYS.SESSION, {error: errorMessage});
+            Onyx.merge(ONYXKEYS.CREDENTIALS, {login: null});
+        }
     });
 }
 
@@ -74,6 +79,8 @@ function signOut() {
  * @param {String} login
  */
 function fetchAccountDetails(login) {
+    Onyx.merge(ONYXKEYS.SESSION, {error: ''});
+
     API.GetAccountStatus({email: login})
         .then((response) => {
             if (response.jsonCode === 200) {
@@ -146,6 +153,9 @@ function signIn(password, exitTo, twoFactorAuthCode) {
                 .catch((error) => {
                     Onyx.merge(ONYXKEYS.SESSION, {error: error.message});
                 });
+        })
+        .catch((error) => {
+            Onyx.merge(ONYXKEYS.SESSION, {error: error.message});
         });
 }
 
@@ -155,7 +165,7 @@ function signIn(password, exitTo, twoFactorAuthCode) {
  * @param {String} username
  */
 function setGitHubUsername(username) {
-    API.SetGithubUsername({username})
+    API.SetGithubUsername({email: credentials.login, githubUsername: username})
         .then((response) => {
             if (response.jsonCode === 200) {
                 Onyx.merge(ONYXKEYS.CREDENTIALS, {githubUsername: username});
@@ -164,7 +174,7 @@ function setGitHubUsername(username) {
             }
 
             // This request can fail if an invalid GitHub username was entered
-            Onyx.merge(ONYXKEYS.SESSION, {error: response.message});
+            Onyx.merge(ONYXKEYS.SESSION, {error: 'Please enter a valid GitHub username'});
         });
 }
 
@@ -191,14 +201,19 @@ function restartSignin() {
  */
 function setPassword(password, validateCode) {
     API.SetPassword({
+        email: credentials.login,
         password,
         validateCode,
     })
-        .then(() => {
-            // @TODO check for 200 response and log the user in properly (like the sign in flow).
-            //  For now we can just redirect to root
-            Onyx.merge(ONYXKEYS.CREDENTIALS, {password});
-            redirect('/');
+        .then((response) => {
+            if (response.jsonCode === 200) {
+                Onyx.merge(ONYXKEYS.CREDENTIALS, {password});
+                setSuccessfulSignInData(response, '/home/');
+                return;
+            }
+
+            // This request can fail if the password is not complex enough
+            Onyx.merge(ONYXKEYS.SESSION, {error: response.message});
         });
 }
 
