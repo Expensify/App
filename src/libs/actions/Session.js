@@ -7,7 +7,6 @@ import * as API from '../API';
 import CONFIG from '../../CONFIG';
 import PushNotification from '../Notification/PushNotification';
 import ROUTES from '../../ROUTES';
-import {redirect} from './App';
 import Timing from './Timing';
 
 let credentials = {};
@@ -205,7 +204,6 @@ function setPassword(password, validateCode) {
     })
         .then((response) => {
             if (response.jsonCode === 200) {
-                debugger;
                 Onyx.merge(ONYXKEYS.CREDENTIALS, {password});
                 setSuccessfulSignInData(response, '/home/');
                 return;
