@@ -75,6 +75,7 @@ class AttachmentModal extends Component {
                 <ModalWithHeader
                     type={CONST.MODAL.MODAL_TYPE.CENTERED}
                     onClose={() => this.setState({isModalOpen: false})}
+                    onDownload={() => console.log("Download button pressed")}
                     isVisible={this.state.isModalOpen}
                     title={this.props.title}
                     backgroundColor={themeColors.componentBG}

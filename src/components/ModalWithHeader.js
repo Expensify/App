@@ -12,6 +12,9 @@ const propTypes = {
     // Callback to fire on request to close modal
     onClose: PropTypes.func.isRequired,
 
+    // Callback to fire on request to download attachment.
+    onDownload: PropTypes.func.isRequired,
+
     // Child elements to render after the header
     children: PropTypes.node.isRequired,
 };
@@ -25,6 +28,7 @@ const ModalWithHeader = props => (
             <ModalHeader
                 title={props.title}
                 onCloseButtonPress={props.onClose}
+                onDownloadButtonPress={props.onDownload}
             />
             {props.children}
         </View>
