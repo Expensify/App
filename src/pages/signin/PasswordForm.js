@@ -119,8 +119,6 @@ PasswordForm.defaultProps = defaultProps;
 export default compose(
     withRouter,
     withOnyx({
-        account: {
-            key: ({match}) => `${ONYXKEYS.COLLECTION.REPORT}${match.params.reportID}`,
-        },
+        account: {key: ONYXKEYS.ACCOUNT},
     }),
 )(PasswordForm);
