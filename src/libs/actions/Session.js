@@ -190,6 +190,7 @@ function restartSignin() {
  */
 function setPassword(password, validateCode) {
     API.SetPassword({
+        email: credentials.login,
         password,
         validateCode,
     })
