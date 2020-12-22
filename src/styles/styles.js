@@ -437,6 +437,11 @@ const styles = {
         width: '100%',
     },
 
+    loginFormContainer: {
+        maxWidth: 325,
+        width: '100%',
+    },
+
     // Sidebar Styles
     sidebar: {
         backgroundColor: themeColors.sidebar,

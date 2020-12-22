@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {
-    Image, SafeAreaView, Text, View
+    SafeAreaView, Text, View
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -13,7 +13,6 @@ import styles from '../../styles/styles';
 import CustomStatusBar from '../../components/CustomStatusBar';
 import updateUnread from '../../libs/UnreadIndicatorUpdater/updateUnread/index';
 import SignInPageLayout from './SignInPageLayout';
-import logo from '../../../assets/images/expensify-logo-coin-2x.png';
 import LoginForm from './LoginForm';
 import GithubUsernameForm from './GithubUsernameForm';
 import PasswordForm from './PasswordForm';

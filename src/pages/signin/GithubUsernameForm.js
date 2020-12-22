@@ -37,7 +37,7 @@ class GithubUsernameForm extends React.Component {
 
     render() {
         return (
-            <>
+            <View style={[styles.loginFormContainer]}>
                 <View style={[styles.mb4]}>
                     <Text style={[styles.formLabel]}>GitHub Username</Text>
                     <TextInput
@@ -47,6 +47,7 @@ class GithubUsernameForm extends React.Component {
                         onChangeText={text => this.setState({githubUsername: text})}
                         onSubmitEditing={this.validateAndSubmitForm}
                         autoCapitalize="none"
+                        autoFocus
                     />
                 </View>
                 <View>
@@ -61,7 +62,7 @@ class GithubUsernameForm extends React.Component {
                         {this.state.formError}
                     </Text>
                 )}
-            </>
+            </View>
         );
     }
 }
