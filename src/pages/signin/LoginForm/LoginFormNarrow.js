@@ -72,45 +72,41 @@ class LoginFormNarrow extends React.Component {
                     </Text>
                 )}
 
-                <ScrollView style={[styles.mb5]}>
-                    <View>
-                        <View style={[styles.mt5, styles.mb5]}>
-                            <Image
-                                resizeMode="contain"
-                                style={[styles.signinWelcomeScreenshot]}
-                                source={welcomeScreenshot}
-                            />
-                        </View>
+                <View style={[styles.mt5, styles.mb5]}>
+                    <Image
+                        resizeMode="contain"
+                        style={[styles.signinWelcomeScreenshot]}
+                        source={welcomeScreenshot}
+                    />
+                </View>
 
-                        <View style={[styles.mb6]}>
-                            <Text style={[styles.textLabel]}>
-                                With Expensify.cash, chat and payments are the same thing. Launching Summer 2021,
-                                {' '}
-                                join the waitlist to be first in line!
-                            </Text>
-                        </View>
+                <View style={[styles.mb6]}>
+                    <Text style={[styles.textLabel]}>
+                        With Expensify.cash, chat and payments are the same thing. Launching Summer 2021,
+                        {' '}
+                        join the waitlist to be first in line!
+                    </Text>
+                </View>
 
-                        <View>
-                            <Text style={[styles.textLabel, styles.textStrong, styles.mb1]}>
-                                Attention Open Source Developers:
-                            </Text>
-                            <Text style={[styles.textLabel]}>
-                                Enter your Github handle to skip the wait and join our dev-only beta; help build
-                                {' '}
-                                tomorrow and
-                                {' '}
-                                <Text
-                                    style={[styles.link, styles.mx1]}
-                                    onPress={() => openURLInNewTab('https://github.com/Expensify/Expensify.cash')}
-                                >
-                                    earn cash
-                                </Text>
-                                {' '}
-                                today!
-                            </Text>
-                        </View>
-                    </View>
-                </ScrollView>
+                <View>
+                    <Text style={[styles.textLabel, styles.textStrong, styles.mb1]}>
+                        Attention Open Source Developers:
+                    </Text>
+                    <Text style={[styles.textLabel]}>
+                        Enter your Github handle to skip the wait and join our dev-only beta; help build
+                        {' '}
+                        tomorrow and
+                        {' '}
+                        <Text
+                            style={[styles.link, styles.mx1]}
+                            onPress={() => openURLInNewTab('https://github.com/Expensify/Expensify.cash')}
+                        >
+                            earn cash
+                        </Text>
+                        {' '}
+                        today!
+                    </Text>
+                </View>
             </View>
         );
     }
