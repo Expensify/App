@@ -33,6 +33,7 @@ function isAuthTokenRequired(command) {
         'GetAccountStatus',
         'SetGithubUsername',
         'CreateAccount',
+        'SetPassword',
     ], command);
 }
 
@@ -472,7 +473,7 @@ function SetGithubUsername(parameters) {
  */
 function SetPassword(parameters) {
     const commandName = 'SetPassword';
-    requireParameters(['password', 'validateCode'], parameters, commandName);
+    requireParameters(['email', 'password', 'validateCode'], parameters, commandName);
     return request(commandName, parameters);
 }
 
