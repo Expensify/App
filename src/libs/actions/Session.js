@@ -153,6 +153,9 @@ function signIn(password, twoFactorAuthCode, exitTo) {
                 .catch((error) => {
                     Onyx.merge(ONYXKEYS.SESSION, {error: error.message});
                 });
+        })
+        .catch((error) => {
+            Onyx.merge(ONYXKEYS.SESSION, {error: error.message});
         });
 }
 
