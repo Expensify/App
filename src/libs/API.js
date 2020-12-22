@@ -275,7 +275,6 @@ function CreateAccount(parameters) {
         'partnerName',
         'partnerPassword',
         'email',
-        'githubUsername',
     ], parameters, commandName);
     return request(commandName, parameters);
 }
@@ -456,12 +455,12 @@ function ResendValidateCode(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.username
+ * @param {String} parameters.githubUsername
  * @returns {Promise}
  */
 function SetGithubUsername(parameters) {
     const commandName = 'SetGithubUsername';
-    requireParameters(['username'], parameters, commandName);
+    requireParameters(['githubUsername'], parameters, commandName);
     return request(commandName, parameters);
 }
 
