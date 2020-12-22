@@ -194,11 +194,16 @@ function setPassword(password, validateCode) {
         password,
         validateCode,
     })
-        .then(() => {
-            // @TODO check for 200 response and log the user in properly (like the sign in flow).
-            //  For now we can just redirect to root
-            Onyx.merge(ONYXKEYS.CREDENTIALS, {password});
-            redirect('/');
+        .then((response) => {
+            if (response.jsonCode === 200) {
+                debugger;
+                Onyx.merge(ONYXKEYS.CREDENTIALS, {password});
+                setSuccessfulSignInData(response, '/home/');
+                return;
+            }
+
+            // This request can fail if the password is not complex enough
+            Onyx.merge(ONYXKEYS.SESSION, {error: response.message});
         });
 }
 
