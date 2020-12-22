@@ -32,8 +32,8 @@ function isAuthTokenRequired(command) {
         'Authenticate',
         'GetAccountStatus',
         'SetGithubUsername',
-        'CreateAccount',
         'SetPassword',
+        'User_SignUp',
     ], command);
 }
 
@@ -264,17 +264,12 @@ function CreateChatReport(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.partnerName
- * @param {String} parameters.partnerPassword
  * @param {String} parameters.email
- * @param {String} parameters.githubUsername
  * @returns {Promise}
  */
-function CreateAccount(parameters) {
-    const commandName = 'CreateAccount';
+function User_SignUp(parameters) {
+    const commandName = 'User_SignUp';
     requireParameters([
-        'partnerName',
-        'partnerPassword',
         'email',
     ], parameters, commandName);
     return request(commandName, parameters);
@@ -481,7 +476,6 @@ export {
     getAuthToken,
     Authenticate,
     CreateChatReport,
-    CreateAccount,
     CreateLogin,
     DeleteLogin,
     Get,
@@ -497,4 +491,5 @@ export {
     ResendValidateCode,
     SetGithubUsername,
     SetPassword,
+    User_SignUp,
 };

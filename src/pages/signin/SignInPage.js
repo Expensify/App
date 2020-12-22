@@ -128,13 +128,16 @@ class SignInPage extends Component {
 
                         {showResendValidationLinkForm && <ResendValidationForm />}
 
-                        <View>
-                            {this.props.session && !_.isEmpty(this.props.session.error) && (
-                                <Text style={[styles.formError]}>
-                                    {this.props.session.error}
-                                </Text>
-                            )}
-                        </View>
+                        {/* Because of the custom layout of the login form, session errors are displayed differently */}
+                        {!showLoginForm && (
+                            <View>
+                                {this.props.session && !_.isEmpty(this.props.session.error) && (
+                                    <Text style={[styles.formError]}>
+                                        {this.props.session.error}
+                                    </Text>
+                                )}
+                            </View>
+                        )}
                     </View>
                 </SafeAreaView>
             </>

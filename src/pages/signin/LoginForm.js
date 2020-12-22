@@ -2,11 +2,28 @@ import React from 'react';
 import {
     Image, Text, TextInput, View, ScrollView
 } from 'react-native';
+import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
 import styles from '../../styles/styles';
 import SubmitButton from './SubmitButton';
 import {fetchAccountDetails} from '../../libs/actions/Session';
 import welcomeScreenshot from '../../../assets/images/welcome-screenshot.png';
+import compose from '../../libs/compose';
+import ONYXKEYS from '../../ONYXKEYS';
 
+const propTypes = {
+    /* Onyx Props */
+
+    // The session of the logged in person
+    session: PropTypes.shape({
+        // Error to display when there is a session error returned
+        error: PropTypes.string,
+    }),
+};
+
+const defaultProps = {
+    session: {},
+};
 class LoginForm extends React.Component {
     constructor(props) {
         super(props);
@@ -69,6 +86,12 @@ class LoginForm extends React.Component {
                     </Text>
                 )}
 
+                {this.props.session.error && (
+                    <Text style={[styles.formError]}>
+                        {this.props.session.error}
+                    </Text>
+                )}
+
                 <View style={[styles.hr]} />
 
                 <ScrollView style={[styles.welcomeMessageScrollContainer]}>
@@ -109,4 +132,11 @@ class LoginForm extends React.Component {
     }
 }
 
-export default LoginForm;
+LoginForm.propTypes = propTypes;
+LoginForm.defaultProps = defaultProps;
+
+export default compose(
+    withOnyx({
+        session: {key: ONYXKEYS.SESSION},
+    })
+)(LoginForm);

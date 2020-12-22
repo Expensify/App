@@ -41,10 +41,17 @@ function setSuccessfulSignInData(data, exitTo) {
 function createAccount(login) {
     Onyx.merge(ONYXKEYS.SESSION, {error: ''});
 
-    API.CreateAccount({
-        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+    API.User_SignUp({
         email: login,
+    }).then((response) => {
+        if (response.jsonCode !== 200) {
+            let errorMessage = response.message || `Unknown API Error: ${response.jsonCode}`;
+            if (!response.message && response.jsonCode === 405) {
+                errorMessage = 'Cannot create an account that is under a controlled domain';
+            }
+            Onyx.merge(ONYXKEYS.SESSION, {error: errorMessage});
+            Onyx.merge(ONYXKEYS.CREDENTIALS, {login: null});
+        }
     });
 }
 
@@ -73,6 +80,8 @@ function signOut() {
  * @param {String} login
  */
 function fetchAccountDetails(login) {
+    Onyx.merge(ONYXKEYS.SESSION, {error: ''});
+
     API.GetAccountStatus({email: login})
         .then((response) => {
             if (response.jsonCode === 200) {
