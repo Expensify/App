@@ -163,7 +163,7 @@ function setGitHubUsername(username) {
             }
 
             // This request can fail if an invalid GitHub username was entered
-            Onyx.merge(ONYXKEYS.SESSION, {error: response.message});
+            Onyx.merge(ONYXKEYS.SESSION, {error: 'Please enter a valid GitHub username'});
         });
 }
 
