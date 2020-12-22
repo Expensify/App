@@ -59,7 +59,7 @@ const SidebarBottom = ({myPersonalDetails, network, insets}) => {
                 />
                 {/* <View style={StyleSheet.flatten(indicatorStyles)} /> */}
                 <div style={{
-                    borderColor: "#FAFAFA",
+                    borderColor: '#FAFAFA',
                     borderRadius: 7,
                     borderWidth: 2,
                     position: 'absolute',
@@ -68,7 +68,7 @@ const SidebarBottom = ({myPersonalDetails, network, insets}) => {
                     height: 14,
                     width: 14,
                     zIndex: 10,
-                    backgroundColor: (network && network.isOffline) ? "#C6C9CA" : "#2ECB70"
+                    backgroundColor: (network && network.isOffline) ? '#C6C9CA' : '#2ECB70'
                 }} />
             </View>
             <View style={[styles.flexColumn]}>
