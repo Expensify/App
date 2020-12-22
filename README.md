@@ -1,8 +1,13 @@
 <div align="center">
-  <img src="https://use.expensify.com/assets/logo/download/expensify-app-logo_circular/expensify-app-logo_circular.png" width="64" height="64">
+    <a href="https://Expensify.cash">
+        <img src="https://raw.githubusercontent.com/Expensify/Expensify.cash/master/web/favicon.png" width="64" height="64" alt="Expensify.cash Icon">
+    </a>
+    <h1>
+        <a href="https://Expensify.cash">
+            Expensify.cash
+        </a>
+    </h1>
 </div>
-
-# [Expensify.cash](https://Expensify.cash)
 
 ## Philosophy
 This application is built with the following principles.
