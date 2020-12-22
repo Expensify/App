@@ -13,7 +13,7 @@ import {Redirect} from '../../libs/Router';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
-import logo from '../../../assets/images/expensify-logo-round.png';
+import logo from '../../../assets/images/expensify-logo-coin-2x.png';
 import CustomStatusBar from '../../components/CustomStatusBar';
 import updateUnread from '../../libs/UnreadIndicatorUpdater/updateUnread/index';
 import LoginForm from './LoginForm';
@@ -118,6 +118,12 @@ class SignInPage extends Component {
                                 style={[styles.signinLogo]}
                                 source={logo}
                             />
+                        </View>
+
+                        <View style={[styles.mt5, styles.mb4, styles.alignItemsCenter]}>
+                            <Text style={[styles.h1]}>
+                                Expensify.cash
+                            </Text>
                         </View>
 
                         {showLoginForm && <LoginForm />}
