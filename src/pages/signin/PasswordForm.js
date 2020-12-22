@@ -64,7 +64,7 @@ class PasswordForm extends React.Component {
             isLoading: true,
         });
 
-        signIn(this.state.password, this.state.twoFactorAuthCode, this.props.match.params.exitTo);
+        signIn(this.state.password, this.props.match.params.exitTo, this.state.twoFactorAuthCode);
     }
 
     render() {

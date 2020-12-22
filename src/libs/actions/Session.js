@@ -100,7 +100,7 @@ function fetchAccountDetails(login) {
  * @param {String} exitTo
  * @param {String} [twoFactorAuthCode]
  */
-function signIn(password, twoFactorAuthCode, exitTo) {
+function signIn(password, exitTo, twoFactorAuthCode) {
     Onyx.merge(ONYXKEYS.SESSION, {error: ''});
 
     API.Authenticate({
