@@ -35,7 +35,7 @@ class NewChatPage extends React.Component {
     }
 
     updateOptions(searchValue) {
-        const {contacts} = getChatSearchState(props.personalDetails);
+        const {contacts} = getChatSearchState(this.props.personalDetails);
         let options = filterChatSearchOptions(searchValue, contacts);
         let isSearchValuePotentialUser = false;
 
