@@ -460,7 +460,7 @@ function ResendValidateCode(parameters) {
  */
 function SetGithubUsername(parameters) {
     const commandName = 'SetGithubUsername';
-    requireParameters(['githubUsername'], parameters, commandName);
+    requireParameters(['email', 'githubUsername'], parameters, commandName);
     return request(commandName, parameters);
 }
 
