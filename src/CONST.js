@@ -7,6 +7,7 @@ const CONST = {
     REPORT: {
         REGULAR: 'regular',
         PERSONAL_DETAIL: 'personalDetail',
+        NEW_ENTRY: 'newEntry',
     },
     MODAL: {
         MODAL_TYPE: {

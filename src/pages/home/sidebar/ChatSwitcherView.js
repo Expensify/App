@@ -79,6 +79,7 @@ class ChatSwitcherView extends React.Component {
         this.handleKeyPress = this.handleKeyPress.bind(this);
         this.reset = this.reset.bind(this);
         this.selectUser = this.selectUser.bind(this);
+        this.selectNewUser = this.selectNewUser.bind(this);
         this.selectReport = this.selectReport.bind(this);
         this.getReportsOptions = this.getReportsOptions.bind(this);
         this.triggerOnFocusCallback = this.triggerOnFocusCallback.bind(this);
@@ -206,6 +207,9 @@ class ChatSwitcherView extends React.Component {
             case CONST.REPORT.PERSONAL_DETAIL:
                 this.selectUser(option);
                 break;
+            case CONST.REPORT.NEW_ENTRY:
+                this.selectNewUser(option);
+                break;
             default:
         }
     }
@@ -284,7 +288,7 @@ class ChatSwitcherView extends React.Component {
         if ((enteredText.includes('@') && Str.isValidEmail(enteredText)) || Str.isValidPhone(enteredText)) {
             this.selectUser(selectedOption);
         } else {
-            // throw an error
+            // Do some fancy error thing
         }
     }
 
@@ -481,7 +485,7 @@ class ChatSwitcherView extends React.Component {
                     text: searchStr,
                     alternateText: searchStr,
                     singleUserDM: true,
-                    type: CONST.REPORT.PERSONAL_DETAIL,
+                    type: CONST.REPORT.NEW_ENTRY,
                     keyForList: searchStr,
                     login: searchStr,
                 }];
@@ -494,7 +498,7 @@ class ChatSwitcherView extends React.Component {
                     text: phoneNumber,
                     alternateText: phoneNumber,
                     singleUserDM: true,
-                    type: CONST.REPORT.PERSONAL_DETAIL,
+                    type: CONST.REPORT.NEW_ENTRY,
                     keyForList: phoneNumber,
                     login: searchStr,
                 }];
