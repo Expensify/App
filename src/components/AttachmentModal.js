@@ -4,6 +4,7 @@ import {
     View, TouchableOpacity, Text, Dimensions,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import RNFS from 'react-native-fs';
 import CONST from '../CONST';
 import ModalWithHeader from './ModalWithHeader';
 import AttachmentView from './AttachmentView';
