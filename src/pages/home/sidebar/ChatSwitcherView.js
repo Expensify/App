@@ -221,14 +221,20 @@ class ChatSwitcherView extends React.Component {
      * @param {Object} option
      */
     addUserToGroup(option) {
-        this.setState(prevState => ({
-            usersToStartGroupReportWith: [...prevState.usersToStartGroupReportWith, option],
-            search: '',
-        }), () => {
-            this.updateSearch('');
+        if (option.type === CONST.REPORT.NEW_ENTRY && !this.isValidNewUser(option)) {
             this.textInput.clear();
-            this.textInput.focus();
-        });
+            this.updateSearch('');
+            alert('Invalid participant format');
+        } else {
+            this.setState(prevState => ({
+                usersToStartGroupReportWith: [...prevState.usersToStartGroupReportWith, option],
+                search: '',
+            }), () => {
+                this.updateSearch('');
+                this.textInput.clear();
+                this.textInput.focus();
+            });
+        }
     }
 
     /**
@@ -283,12 +289,30 @@ class ChatSwitcherView extends React.Component {
         this.reset();
     }
 
-    selectNewUser(selectedOption) {
+    /**
+     * Do a basic check to determine if the email / phone is valid.
+     *
+     * @param {Object} selectedOption
+     * @param {String} selectedOption.text
+     *
+     * @returns {Boolean}
+     */
+    isValidNewUser(selectedOption) {
         const enteredText = selectedOption.text;
-        if ((enteredText.includes('@') && Str.isValidEmail(enteredText)) || Str.isValidPhone(enteredText)) {
+        return (enteredText.includes('@') && Str.isValidEmail(enteredText)) || Str.isValidPhone(enteredText);
+    }
+
+    /**
+     * Checks if the entry is valid and then passes the option to select user so that we can fetch the chat report.
+     *
+     * @param {Object} selectedOption
+     */
+    selectNewUser(selectedOption) {
+        if (this.isValidNewUser(selectedOption)) {
             this.selectUser(selectedOption);
         } else {
-            // Do some fancy error thing
+            alert('Invalid participant format');
+            this.reset(false, true);
         }
     }
 
