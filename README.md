@@ -92,16 +92,14 @@ Now, all of your API calls will be using the ngrok route.
 ## Running the MacOS desktop app 🖥
  * To run the **Development app**, run: `npm run desktop`, this will start a new Electron process running on your MacOS desktop in the `dist/Mac` folder.
 
-## Running the web app via production API proxy (Contributors) 🧑‍💻
+## Running the apps via production API proxy (Contributors) 🧑‍💻
 If you don't have full-access to Expensify's development environment you will need to run the app against the production API.
 * Copy the `.env.production` variables into your `.env` file
 * Set `EXPENSIFY_URL_COM` environment variable to be empty (**Note:** this means it should be `EXPENSIFY_URL_COM=`, not completely omitted)
-* Run the **Development Server**: `npm run proxy`
-
-## Running the desktop and mobile apps via production API (Contributors) 🧑‍💻
-If you don't have full-access to Expensify's development environment you will need to run the app against the production API.
-* Copy the `.env.production` variables into your `.env` file (**Note:** Reset `EXPENSIFY_URL_COM` if you previously deleted it)
-* Run the desktop, iOS, or Android builds via `npm run desktop`, `npm run ios`, `npm run android` respectively
+* To run the web app, run the **Development Server**: `npm run proxy`
+* To run the desktop app: `npm run desktop`
+* To run the iOS app: `npm run ios`
+* To run the Android app: `npm run android`
 
 ## Running the tests 🎰
 ### Unit tests
