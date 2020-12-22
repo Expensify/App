@@ -86,7 +86,7 @@ class App extends Component {
             <>
                 <CustomStatusBar />
                 <SafeAreaView style={[styles.signInPage]}>
-                    <View style={[styles.signInPageInner]} accessibilityRole="form">
+                    <View style={[styles.signInPageInner]} accessibilityRole="menu">
                         <View style={[styles.signInPageLogo]}>
                             <Image
                                 resizeMode="contain"
