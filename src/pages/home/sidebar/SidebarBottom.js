@@ -57,7 +57,8 @@ const SidebarBottom = ({myPersonalDetails, network, insets}) => {
                     source={{uri: myPersonalDetails.avatarURL}}
                     style={[styles.actionAvatar]}
                 />
-                <View style={StyleSheet.flatten(indicatorStyles)} />
+                {/* <View style={StyleSheet.flatten(indicatorStyles)} /> */}
+                <UserIndicator isOffline={network && network.isOffline} />
             </View>
             <View style={[styles.flexColumn]}>
                 {myPersonalDetails.displayName && (
