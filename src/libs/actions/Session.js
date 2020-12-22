@@ -7,10 +7,9 @@ import * as API from '../API';
 import CONFIG from '../../CONFIG';
 import PushNotification from '../Notification/PushNotification';
 import ROUTES from '../../ROUTES';
-import {redirect} from './App';
 import Timing from './Timing';
 
-let credentials;
+let credentials = {};
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
     callback: val => credentials = val,
@@ -33,65 +32,26 @@ function setSuccessfulSignInData(data, exitTo) {
 }
 
 /**
- * Sign in with the API
+ * Create an account for the user logging in.
+ * This will send them a notification with a link to click on to validate the account and set a password
  *
- * @param {String} partnerUserID
- * @param {String} partnerUserSecret
- * @param {String} [twoFactorAuthCode]
- * @param {String} [exitTo]
+ * @param {String} login
  */
-function signIn(partnerUserID, partnerUserSecret, twoFactorAuthCode = '', exitTo) {
-    Onyx.merge(ONYXKEYS.SESSION, {loading: true, error: ''});
+function createAccount(login) {
+    Onyx.merge(ONYXKEYS.SESSION, {error: ''});
 
-    API.Authenticate({
-        useExpensifyLogin: true,
-        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-        partnerUserID,
-        partnerUserSecret,
-        twoFactorAuthCode,
-    })
-
-        // After the user authenticates, create a new login for the user so that we can reauthenticate when the
-        // authtoken expires
-        .then((authenticateResponse) => {
-            const login = Str.guid('expensify.cash-');
-            const password = Str.guid();
-
-            API.CreateLogin({
-                authToken: authenticateResponse.authToken,
-                partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-                partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-                partnerUserID: login,
-                partnerUserSecret: password,
-                doNotRetry: true,
-            })
-                .then((createLoginResponse) => {
-                    if (createLoginResponse.jsonCode !== 200) {
-                        throw new Error(createLoginResponse.message);
-                    }
-
-                    setSuccessfulSignInData(createLoginResponse, exitTo);
-
-                    if (credentials && credentials.login) {
-                        // If we have an old login for some reason, we should delete it before storing the new details
-                        API.DeleteLogin({
-                            partnerUserID: credentials.login,
-                            partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
-                            partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-                            doNotRetry: true,
-                        })
-                            .catch(error => Onyx.merge(ONYXKEYS.SESSION, {error: error.message}));
-                    }
-
-                    Onyx.merge(ONYXKEYS.CREDENTIALS, {login, password});
-                });
-        })
-        .catch((error) => {
-            console.debug('[SIGNIN] Request error', error);
-            Onyx.merge(ONYXKEYS.SESSION, {error: error.message});
-        })
-        .finally(() => Onyx.merge(ONYXKEYS.SESSION, {loading: false}));
+    API.User_SignUp({
+        email: login,
+    }).then((response) => {
+        if (response.jsonCode !== 200) {
+            let errorMessage = response.message || `Unknown API Error: ${response.jsonCode}`;
+            if (!response.message && response.jsonCode === 405) {
+                errorMessage = 'Cannot create an account that is under a controlled domain';
+            }
+            Onyx.merge(ONYXKEYS.SESSION, {error: errorMessage});
+            Onyx.merge(ONYXKEYS.CREDENTIALS, {login: null});
+        }
+    });
 }
 
 /**
@@ -114,6 +74,126 @@ function signOut() {
 }
 
 /**
+ * Checks the API to see if an account exists for the given login
+ *
+ * @param {String} login
+ */
+function fetchAccountDetails(login) {
+    Onyx.merge(ONYXKEYS.SESSION, {error: ''});
+
+    API.GetAccountStatus({email: login})
+        .then((response) => {
+            if (response.jsonCode === 200) {
+                Onyx.merge(ONYXKEYS.CREDENTIALS, {login});
+                Onyx.merge(ONYXKEYS.ACCOUNT, {
+                    accountExists: response.accountExists,
+                    canAccessExpensifyCash: response.canAccessExpensifyCash,
+                    requiresTwoFactorAuth: response.requiresTwoFactorAuth,
+                });
+
+                if (!response.accountExists) {
+                    createAccount(login);
+                }
+            }
+        });
+}
+
+/**
+ * Sign the user into the application. This will first authenticate their account
+ * then it will create a temporary login for them which is used when re-authenticating
+ * after an authToken expires.
+ *
+ * @param {String} password
+ * @param {String} [twoFactorAuthCode]
+ * @param {String} exitTo
+ */
+function signIn(password, twoFactorAuthCode, exitTo) {
+    Onyx.merge(ONYXKEYS.SESSION, {error: ''});
+
+    API.Authenticate({
+        useExpensifyLogin: true,
+        partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+        partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+        partnerUserID: credentials.login,
+        partnerUserSecret: password,
+        twoFactorAuthCode,
+    })
+        .then((authenticateResponse) => {
+            const login = Str.guid('expensify.cash-');
+            const temporaryPassword = Str.guid();
+
+            API.CreateLogin({
+                authToken: authenticateResponse.authToken,
+                partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+                partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+                partnerUserID: login,
+                partnerUserSecret: temporaryPassword,
+                doNotRetry: true,
+            })
+                .then((createLoginResponse) => {
+                    if (createLoginResponse.jsonCode !== 200) {
+                        throw new Error(createLoginResponse.message);
+                    }
+
+                    setSuccessfulSignInData(createLoginResponse, exitTo);
+
+                    // If we have an old login for some reason, we should delete it before storing the new details
+                    if (credentials.login) {
+                        API.DeleteLogin({
+                            partnerUserID: credentials.login,
+                            partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+                            partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+                            doNotRetry: true,
+                        })
+                            .catch(console.debug);
+                    }
+
+                    Onyx.merge(ONYXKEYS.CREDENTIALS, {password});
+                })
+                .catch((error) => {
+                    Onyx.merge(ONYXKEYS.SESSION, {error: error.message});
+                });
+        })
+        .catch((error) => {
+            Onyx.merge(ONYXKEYS.SESSION, {error: error.message});
+        });
+}
+
+/**
+ * Puts the github username into Onyx so that it can be used when creating accounts or logins
+ *
+ * @param {String} username
+ */
+function setGitHubUsername(username) {
+    API.SetGithubUsername({email: credentials.login, githubUsername: username})
+        .then((response) => {
+            if (response.jsonCode === 200) {
+                Onyx.merge(ONYXKEYS.CREDENTIALS, {githubUsername: username});
+                Onyx.merge(ONYXKEYS.ACCOUNT, {canAccessExpensifyCash: true});
+                return;
+            }
+
+            // This request can fail if an invalid GitHub username was entered
+            Onyx.merge(ONYXKEYS.SESSION, {error: 'Please enter a valid GitHub username'});
+        });
+}
+
+/**
+ * Resend the validation link to the user that is validating their account
+ * this happens in the createAccount() flow
+ */
+function resendValidationLink() {
+    API.ResendValidateCode({email: credentials.login});
+}
+
+/**
+ * Restart the sign in process by clearing everything from Onyx
+ */
+function restartSignin() {
+    Onyx.clear();
+}
+
+/**
  * Set the password for the current account
  *
  * @param {String} password
@@ -121,19 +201,28 @@ function signOut() {
  */
 function setPassword(password, validateCode) {
     API.SetPassword({
+        email: credentials.login,
         password,
         validateCode,
     })
-        .then(() => {
-            // @TODO check for 200 response and log the user in properly (like the sign in flow).
-            //  For now we can just redirect to root
-            Onyx.merge(ONYXKEYS.CREDENTIALS, {password});
-            redirect('/');
+        .then((response) => {
+            if (response.jsonCode === 200) {
+                Onyx.merge(ONYXKEYS.CREDENTIALS, {password});
+                setSuccessfulSignInData(response, '/home/');
+                return;
+            }
+
+            // This request can fail if the password is not complex enough
+            Onyx.merge(ONYXKEYS.SESSION, {error: response.message});
         });
 }
 
 export {
+    fetchAccountDetails,
+    setGitHubUsername,
+    setPassword,
     signIn,
     signOut,
-    setPassword,
+    resendValidationLink,
+    restartSignin,
 };
