@@ -8,7 +8,7 @@ export default {
     fontSizeLabel: 13,
     fontSizeNormal: 15,
     fontSizeLarge: 17,
-    fontSizeXLarge: 19,
+    fontSizeh1: 19,
     mobileResponsiveWidthBreakpoint: 1000,
     safeInsertPercentage: 0.7,
 };

@@ -70,8 +70,8 @@ class LoginFormWide extends React.Component {
                     )}
                 </View>
 
-                <View>
-                    <View>
+                <View style={[styles.mt6]}>
+                    <View style={[styles.mb6]}>
                         <Text style={[styles.textP]}>
                             With Expensify.cash, chat and payments are the same thing. Launching Summer 2021,
                             {' '}
@@ -79,8 +79,8 @@ class LoginFormWide extends React.Component {
                         </Text>
                     </View>
 
-                    <View style={[styles.mt4, styles.mb4]}>
-                        <Text style={[styles.textP, styles.textStrong]}>
+                    <View style={[styles.mb6]}>
+                        <Text style={[styles.textP, styles.textStrong, styles.mb1]}>
                             Attention Open Source Developers:
                         </Text>
                         <Text style={[styles.textP]}>
