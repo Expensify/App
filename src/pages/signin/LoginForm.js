@@ -6,7 +6,7 @@ import styles from '../../styles/styles';
 import SubmitButton from './SubmitButton';
 import openURLInNewTab from '../../libs/openURLInNewTab';
 import {fetchAccountDetails} from '../../libs/actions/Session';
-import welcomeScreenshot from '../../../assets/images/welcome-screenshot.png';
+import welcomeScreenshot from '../../../assets/images/welcome-screenshot.jpg';
 
 class LoginForm extends React.Component {
     constructor(props) {
