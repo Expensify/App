@@ -165,6 +165,8 @@ function signIn(password, exitTo, twoFactorAuthCode) {
  * @param {String} username
  */
 function setGitHubUsername(username) {
+    Onyx.merge(ONYXKEYS.SESSION, {error: ''});
+
     API.SetGithubUsername({email: credentials.login, githubUsername: username})
         .then((response) => {
             if (response.jsonCode === 200) {
