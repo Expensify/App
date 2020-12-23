@@ -347,19 +347,27 @@ const styles = {
         width: variables.componentSizeNormal,
     },
 
-    textInput: {
+    textInputContainer: {
+        flex: 1,
         backgroundColor: themeColors.componentBG,
         borderRadius: variables.componentBorderRadius,
-        height: variables.componentSizeNormal,
         borderColor: themeColors.border,
         borderWidth: 1,
-        color: themeColors.text,
-        fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeNormal,
         paddingLeft: 12,
         paddingRight: 12,
         paddingTop: 10,
         paddingBottom: 10,
+    },
+    textInput: {
+        backgroundColor: themeColors.componentBG,
+        height: variables.componentSizeNormal,
+        color: themeColors.text,
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeNormal,
+        paddingLeft: 0,
+        paddingRight: 0,
+        paddingTop: 0,
+        paddingBottom: 0,
         textAlignVertical: 'center',
     },
 
