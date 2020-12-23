@@ -108,8 +108,8 @@ You are first required to build the tests, then you can run them:
 2. To run the **Detox end to end tests**: `npm run detox-test`
 
 # Troubleshooting
-1. If you are having issues with [**_Getting Started_**](#getting-started), please reference [React Native's Documentation](https://reactnative.dev/docs/environment-setup)
-2. If you are running into issues communicating with the API please verify your `.env` file is set up correctly for the platform you are trying to run.
+1. If you are having issues with **_Getting Started_**, please reference [React Native's Documentation](https://reactnative.dev/docs/environment-setup)
+2. If you are running into issues communicating with the API please verify your `.env` file is [set up correctly](#getting-started) for the platform you are trying to run.
 
 # Debugging
 ## iOS
