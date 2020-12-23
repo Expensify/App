@@ -4,6 +4,7 @@ const CONST = {
     CLOUDFRONT_URL,
     PDF_VIEWER_URL: '/pdf/web/viewer.html',
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
+    UPWORK_URL: 'https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&user_location_match=2',
     REPORT: {
         SINGLE_USER_DM: 'singleUserDM',
         GROUP_USERS_DM: 'groupUsersDM',
