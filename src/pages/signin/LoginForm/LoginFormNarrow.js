@@ -8,6 +8,7 @@ import SubmitButton from '../SubmitButton';
 import openURLInNewTab from '../../../libs/openURLInNewTab';
 import {fetchAccountDetails} from '../../../libs/actions/Session';
 import welcomeScreenshot from '../../../../assets/images/welcome-screenshot.png';
+import CONST from '../../../CONST';
 
 class LoginFormNarrow extends React.Component {
     constructor(props) {
