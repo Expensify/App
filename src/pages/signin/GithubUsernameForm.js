@@ -38,29 +38,45 @@ class GithubUsernameForm extends React.Component {
     render() {
         return (
             <>
-                <View style={[styles.mb4]}>
-                    <Text style={[styles.formLabel]}>GitHub Username</Text>
-                    <TextInput
-                        style={[styles.textInput]}
-                        value={this.state.githubUsername}
-                        textContentType="username"
-                        onChangeText={text => this.setState({githubUsername: text})}
-                        onSubmitEditing={this.validateAndSubmitForm}
-                        autoCapitalize="none"
-                    />
+                <View style={[styles.loginFormContainer]}>
+                    <View style={[styles.mb4]}>
+                        <Text style={[styles.formLabel]}>GitHub Username</Text>
+                        <TextInput
+                            style={[styles.textInput]}
+                            value={this.state.githubUsername}
+                            textContentType="username"
+                            onChangeText={text => this.setState({githubUsername: text})}
+                            onSubmitEditing={this.validateAndSubmitForm}
+                            autoCapitalize="none"
+                            autoFocus
+                        />
+                    </View>
+                    <View>
+                        <SubmitButton
+                            text="Next"
+                            isLoading={this.state.isLoading}
+                            onClick={this.validateAndSubmitForm}
+                        />
+                    </View>
+                    {this.state.formError && (
+                        <Text style={[styles.formError]}>
+                            {this.state.formError}
+                        </Text>
+                    )}
                 </View>
-                <View>
-                    <SubmitButton
-                        text="Next"
-                        isLoading={this.state.isLoading}
-                        onClick={this.validateAndSubmitForm}
-                    />
-                </View>
-                {this.state.formError && (
-                    <Text style={[styles.formError]}>
-                        {this.state.formError}
+
+                <View style={[styles.mt4, styles.mb4]}>
+                    <Text style={[styles.textP, styles.textStrong]}>
+                        You&apos;re on the waitlist!
                     </Text>
-                )}
+                    <Text style={[styles.textP]}>
+                        Thanks for adding yourself to the waitlist. If you&apos;re a developer, just enter your
+                        {' '}
+                        GitHub username, and we&apos;ll grant you instant access to the dev-only beta. Otherwise,
+                        {' '}
+                        you&apos;re all set -- we&apos;ll let you know when to check back.
+                    </Text>
+                </View>
             </>
         );
     }
