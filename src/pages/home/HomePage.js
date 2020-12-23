@@ -206,8 +206,6 @@ class App extends React.Component {
 
     render() {
         const hamburgerStyle = styles.hamburgerOpenAbsolute;
-        // const hamburgerStyle = this.state.isHamburgerEnabled && this.props.isSidebarShown
-        //     ? styles.hamburgerOpenAbsolute : styles.hamburgerOpen;
         const visibility = !this.state.isHamburgerEnabled || this.props.isSidebarShown ? styles.dFlex : styles.dNone;
         const appContentWrapperStyle = !this.state.isHamburgerEnabled ? styles.appContentWrapperLarge : null;
         return (
