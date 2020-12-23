@@ -53,7 +53,7 @@ This application is built with the following principles.
 
 ----
 
-# Local development - Open Source Contributors and Employees
+# Local development
 
 These instructions should get you set up ready to work on the front-end code of Expensify.cash
 
