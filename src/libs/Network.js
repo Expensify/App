@@ -114,9 +114,17 @@ function registerParameterEnhancer(callback) {
     enhanceParameters = callback;
 }
 
+/**
+ * Clears the request queue
+ */
+function clearRequestQueue() {
+    networkRequestQueue = [];
+}
+
 export {
     post,
     pauseRequestQueue,
     unpauseRequestQueue,
     registerParameterEnhancer,
+    clearRequestQueue,
 };
