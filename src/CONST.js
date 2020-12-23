@@ -4,9 +4,9 @@ const CONST = {
     CLOUDFRONT_URL,
     PDF_VIEWER_URL: '/pdf/web/viewer.html',
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
-    REPORT: {
-        REGULAR: 'regular',
-        NEW_USER: 'newUser',
+    OPTION_TYPE: {
+        REPORT: 'report',
+        CONTACT: 'contact',
     },
     MODAL: {
         MODAL_TYPE: {

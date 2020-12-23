@@ -176,7 +176,7 @@ class ChatSwitcherView extends React.Component {
                     icon: report.icon,
                     login,
                     singleUserDM: isSingleUserDM,
-                    type: CONST.REPORT.REGULAR,
+                    type: CONST.OPTION_TYPE.REPORT,
                     isUnread: report.unreadActionCount > 0,
                     lastVisitedTimestamp: report.lastVisitedTimestamp,
                     keyForList: String(report.reportID),
@@ -200,10 +200,10 @@ class ChatSwitcherView extends React.Component {
         Timing.start(CONST.TIMING.SWITCH_REPORT);
 
         switch (option.type) {
-            case CONST.REPORT.REGULAR:
+            case CONST.OPTION_TYPE.REPORT:
                 this.selectReport(option);
                 break;
-            case CONST.REPORT.NEW_USER:
+            case CONST.OPTION_TYPE.CONTACT:
                 this.selectUser(option);
                 break;
             default:
@@ -430,7 +430,7 @@ class ChatSwitcherView extends React.Component {
                     : `${personalDetail.displayName} ${personalDetail.login}`,
                 icon: personalDetail.avatarURL,
                 login: personalDetail.login,
-                type: CONST.REPORT.NEW_USER,
+                type: CONST.OPTION_TYPE.CONTACT,
                 keyForList: personalDetail.login,
             }))
             .value();
@@ -472,7 +472,7 @@ class ChatSwitcherView extends React.Component {
                     text: searchStr,
                     alternateText: searchStr,
                     singleUserDM: true,
-                    type: CONST.REPORT.NEW_USER,
+                    type: CONST.OPTION_TYPE.CONTACT,
                     keyForList: searchStr,
                     login: searchStr,
                 }];
@@ -485,7 +485,7 @@ class ChatSwitcherView extends React.Component {
                     text: phoneNumber,
                     alternateText: phoneNumber,
                     singleUserDM: true,
-                    type: CONST.REPORT.NEW_USER,
+                    type: CONST.OPTION_TYPE.CONTACT,
                     keyForList: phoneNumber,
                     login: searchStr,
                 }];
