@@ -481,7 +481,7 @@ class ChatSwitcherView extends React.Component {
                     onConfirmUsers={this.startGroupChat}
                 />
 
-                {this.state.usersToStartGroupReportWith.length === MAX_GROUP_DM_LENGTH
+                {this.state.usersToStartGroupReportWith.filter(v => v.login !== this.props.session.email).length === MAX_GROUP_DM_LENGTH
                     ? (
                         <View style={[styles.chatSwitcherMessage]}>
                             <Text style={[styles.h4, styles.mb1]}>
