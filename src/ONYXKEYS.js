@@ -30,7 +30,8 @@ export default {
     // Contains all the personalDetails the user has access to
     PERSONAL_DETAILS: 'personalDetails',
 
-    //
+    // Saves the current country code by IP which is displayed when the user types a phone number without
+    // international code
     COUNTRY_CODE_BY_IP: 'countryCodeByIP',
 
     // Information about the current session (authToken, accountID, email, loading, error)

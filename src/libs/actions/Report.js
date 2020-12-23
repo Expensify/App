@@ -442,6 +442,8 @@ function fetchOrCreateChatReport(participants) {
     })
 
         .then((data) => {
+            debugger;
+
             // Set aside the reportID in a local variable so it can be accessed in the rest of the chain
             reportID = data.reportID;
 
@@ -469,10 +471,14 @@ function fetchOrCreateChatReport(participants) {
             // overwrite any existing data (like if they have unread messages)
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, newReport);
 
+            // Updates the personal details since its possible that a new participant was provided
             PersonalDetails.getFromReportParticipants([newReport]);
 
             // Redirect the logged in person to the new report
             redirect(ROUTES.getReportRoute(reportID));
+        })
+        .catch((error) => {
+            alert(error.message);
         });
 }
 
