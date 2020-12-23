@@ -4,6 +4,7 @@ import {fetchAccountDetails} from '../../../libs/actions/Session';
 import styles from '../../../styles/styles';
 import SubmitButton from '../SubmitButton';
 import openURLInNewTab from '../../../libs/openURLInNewTab';
+import CONST from '../../../CONST';
 
 class LoginFormWide extends React.Component {
     constructor(props) {
@@ -90,7 +91,7 @@ class LoginFormWide extends React.Component {
                             {' '}
                             <Text
                                 style={[styles.link, styles.mx1]}
-                                onPress={() => openURLInNewTab('https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2')}
+                                onPress={() => openURLInNewTab(CONST.UPWORK_URL)}
                             >
                                 earn cash
                             </Text>
