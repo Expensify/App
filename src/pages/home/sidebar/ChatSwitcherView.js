@@ -79,7 +79,6 @@ class ChatSwitcherView extends React.Component {
         this.handleKeyPress = this.handleKeyPress.bind(this);
         this.reset = this.reset.bind(this);
         this.selectUser = this.selectUser.bind(this);
-        this.selectNewUser = this.selectNewUser.bind(this);
         this.selectReport = this.selectReport.bind(this);
         this.getReportsOptions = this.getReportsOptions.bind(this);
         this.triggerOnFocusCallback = this.triggerOnFocusCallback.bind(this);
@@ -204,11 +203,8 @@ class ChatSwitcherView extends React.Component {
             case CONST.REPORT.REGULAR:
                 this.selectReport(option);
                 break;
-            case CONST.REPORT.PERSONAL_DETAIL:
+            case CONST.REPORT.NEW_USER:
                 this.selectUser(option);
-                break;
-            case CONST.REPORT.NEW_ENTRY:
-                this.selectNewUser(option);
                 break;
             default:
         }
@@ -221,20 +217,14 @@ class ChatSwitcherView extends React.Component {
      * @param {Object} option
      */
     addUserToGroup(option) {
-        if (option.type === CONST.REPORT.NEW_ENTRY && !this.isValidNewUser(option)) {
-            this.textInput.clear();
+        this.setState(prevState => ({
+            usersToStartGroupReportWith: [...prevState.usersToStartGroupReportWith, option],
+            search: '',
+        }), () => {
             this.updateSearch('');
-            alert('Invalid participant format');
-        } else {
-            this.setState(prevState => ({
-                usersToStartGroupReportWith: [...prevState.usersToStartGroupReportWith, option],
-                search: '',
-            }), () => {
-                this.updateSearch('');
-                this.textInput.clear();
-                this.textInput.focus();
-            });
-        }
+            this.textInput.clear();
+            this.textInput.focus();
+        });
     }
 
     /**
@@ -287,33 +277,6 @@ class ChatSwitcherView extends React.Component {
 
         this.props.onLinkClick();
         this.reset();
-    }
-
-    /**
-     * Do a basic check to determine if the email / phone is valid.
-     *
-     * @param {Object} selectedOption
-     * @param {String} selectedOption.text
-     *
-     * @returns {Boolean}
-     */
-    isValidNewUser(selectedOption) {
-        const enteredText = selectedOption.text;
-        return (enteredText.includes('@') && Str.isValidEmail(enteredText)) || Str.isValidPhone(enteredText);
-    }
-
-    /**
-     * Checks if the entry is valid and then passes the option to select user so that we can fetch the chat report.
-     *
-     * @param {Object} selectedOption
-     */
-    selectNewUser(selectedOption) {
-        if (this.isValidNewUser(selectedOption)) {
-            this.selectUser(selectedOption);
-        } else {
-            alert('Invalid participant format');
-            this.reset(false, true);
-        }
     }
 
     /**
@@ -467,7 +430,7 @@ class ChatSwitcherView extends React.Component {
                     : `${personalDetail.displayName} ${personalDetail.login}`,
                 icon: personalDetail.avatarURL,
                 login: personalDetail.login,
-                type: CONST.REPORT.PERSONAL_DETAIL,
+                type: CONST.REPORT.NEW_USER,
                 keyForList: personalDetail.login,
             }))
             .value();
@@ -504,25 +467,25 @@ class ChatSwitcherView extends React.Component {
         let options = Array.from(matches);
         if (options.length === 0) {
             const searchStr = value;
-            if (searchStr && searchStr.includes('@')) {
+            if (searchStr && searchStr.includes('@') && Str.isValidEmail(searchStr)) {
                 options = [{
                     text: searchStr,
                     alternateText: searchStr,
                     singleUserDM: true,
-                    type: CONST.REPORT.NEW_ENTRY,
+                    type: CONST.REPORT.NEW_USER,
                     keyForList: searchStr,
                     login: searchStr,
                 }];
             }
 
             const isPhoneNumber = /^[+|\d]+$/.test(searchStr);
-            if (searchStr && isPhoneNumber && searchStr.length > 7) {
+            if (searchStr && isPhoneNumber && Str.isValidPhone(searchStr)) {
                 const phoneNumber = searchStr.includes('+') ? searchStr : `+${this.props.countryCodeByIP}${searchStr}`;
                 options = [{
                     text: phoneNumber,
                     alternateText: phoneNumber,
                     singleUserDM: true,
-                    type: CONST.REPORT.NEW_ENTRY,
+                    type: CONST.REPORT.NEW_USER,
                     keyForList: phoneNumber,
                     login: searchStr,
                 }];
@@ -539,7 +502,7 @@ class ChatSwitcherView extends React.Component {
             feedbackHeader = 'Maximum participants reached';
             feedbackMessage = 'You\'ve reached the maximum number of participants for a group chat.';
         } else if (this.state.search && this.state.options.length === 0) {
-            feedbackMessage = 'Don\'t see who you are looking for? Type their email/phone number to invite them.';
+            feedbackMessage = 'Don\'t see who you are looking for? Type their valid email/phone number to invite them.';
         }
 
         return (
