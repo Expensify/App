@@ -91,11 +91,7 @@ class ReportActionCompose extends React.Component {
      * @param {String} newComment
      */
     updateComment(newComment) {
-        if (newComment) {
-            this.setState({submitButtoncolor: '#2ECB70'});
-        } else {
-            this.setState({submitButtoncolor: '#ECECEC'});
-        }
+        this.setState({submitButtoncolor: newComment ? '#2ECB70' : '#ECECEC'});
         this.comment = newComment;
         this.debouncedSaveReportComment(newComment);
         this.debouncedBroadcastUserIsTyping();
