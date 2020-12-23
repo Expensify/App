@@ -1,5 +1,5 @@
 import React from 'react';
-import {Image, View, StyleSheet, Platform} from 'react-native';
+import {Image, View, Platform} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -9,7 +9,7 @@ import AppLinks from './AppLinks';
 import {signOut} from '../../../libs/actions/Session';
 import ONYXKEYS from '../../../ONYXKEYS';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
-import UserIndicator from '../../../../../Expensify.cash1/src/components/UserIndicator';
+import UserIndicator from '../../../components/UserIndicator';
 
 const propTypes = {
     // Safe area insets required for mobile devices margins
