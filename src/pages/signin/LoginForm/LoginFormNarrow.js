@@ -99,7 +99,7 @@ class LoginFormNarrow extends React.Component {
                         {' '}
                         <Text
                             style={[styles.link, styles.mx1]}
-                            onPress={() => openURLInNewTab('https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2')}
+                            onPress={() => openURLInNewTab(CONST.UPWORK_URL)}
                         >
                             earn cash
                         </Text>
