@@ -3,7 +3,7 @@ import lodashGet from 'lodash.get';
 import lodashOrderBy from 'lodash.orderby';
 import Str from 'expensify-common/lib/str';
 import CONST from '../CONST';
-import { getDefaultAvatar } from './actions/PersonalDetails';
+import {getDefaultAvatar} from './actions/PersonalDetails';
 
 const MAX_SEARCH_RESULTS = 10;
 
@@ -81,11 +81,11 @@ function createChatUserOption(personalDetail) {
     };
 }
 
-function getChatSearchState(personalDetails, reports = {}, selectedUsers = []) {
+function getChatSearchState(personalDetails, reports = {}, selectedOptions = []) {
     // Start by getting the five most recent users that are not already selected
     const orderedReports = lodashOrderBy(reports, ['lastVisitedTimestamp'], ['desc']);
     const recentUsers = [];
-    const alreadySelectedUsers = [...selectedUsers];
+    const alreadySelectedOptions = [...selectedOptions];
 
     for (let i = 0; i < orderedReports.length; i++) {
         if (recentUsers.length === 5) {
@@ -101,7 +101,7 @@ function getChatSearchState(personalDetails, reports = {}, selectedUsers = []) {
 
         // Check the reports that have only one user to see if any of our participants
         // are on this report
-        if (_.some(alreadySelectedUsers, login => isUserReportParticipant(report, login))) {
+        if (_.some(alreadySelectedOptions, option => isUserReportParticipant(report, option.login))) {
             continue;
         }
 
@@ -117,14 +117,14 @@ function getChatSearchState(personalDetails, reports = {}, selectedUsers = []) {
         }
 
         recentUsers.push(createChatUserOption(personalDetail));
-        alreadySelectedUsers.push(login);
+        alreadySelectedOptions.push(login);
     }
 
     const contacts = [];
 
     // Next loop over all personal details removing any that are selectedUsers or recentUsers
     _.each(personalDetails, (personalDetail, login) => {
-        if (_.some(alreadySelectedUsers, (selectedLogin) => selectedLogin === login)) {
+        if (_.some(alreadySelectedOptions, (option) => option.login === login)) {
             return;
         }
         contacts.push(createChatUserOption(personalDetail));

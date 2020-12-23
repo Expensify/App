@@ -43,6 +43,8 @@ const ChatLinkRow = ({
     onSelectRow,
     onAddToGroup,
     isChatSwitcher,
+    isSelected,
+    showSelectedState,
 }) => {
     const isSingleUserDM = option.type === CONST.REPORT.SINGLE_USER_DM;
     const textStyle = optionIsFocused
@@ -122,6 +124,12 @@ const ChatLinkRow = ({
                         </Text>
                     </TouchableOpacity>
                 </View>
+            )}
+            {showSelectedState && isSelected && (
+                <Text>Selected</Text>
+            )}
+            {showSelectedState && !isSelected && (
+                <Text>Not Selected</Text>
             )}
             {option.hasDraftComment && (
                 <Image
