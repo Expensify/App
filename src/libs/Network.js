@@ -50,9 +50,17 @@ function processNetworkRequestQueue() {
             return;
         }
 
-        const finalParameters = _.isFunction(enhanceParameters)
-            ? enhanceParameters(queuedRequest.command, queuedRequest.data)
-            : queuedRequest.data;
+        let finalParameters;
+
+        try {
+            finalParameters = _.isFunction(enhanceParameters)
+                ? enhanceParameters(queuedRequest.command, queuedRequest.data)
+                : queuedRequest.data;
+        } catch (err) {
+            // Something went wrong when enhancing parameters assume we should not
+            // make this request at all.
+            return;
+        }
 
         HttpUtils.xhr(queuedRequest.command, finalParameters, queuedRequest.type)
             .then(queuedRequest.resolve)

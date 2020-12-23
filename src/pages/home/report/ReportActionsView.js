@@ -110,11 +110,12 @@ class ReportActionsView extends React.Component {
         if (this.keyboardEvent) {
             this.keyboardEvent.remove();
         }
+
         if (this.visibilityChangeEvent) {
             this.visibilityChangeEvent.remove();
         }
 
-        _.each(this.timers, clearTimeout);
+        _.each(this.timers, timer => clearTimeout(timer));
     }
 
     /**
