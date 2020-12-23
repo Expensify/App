@@ -1,5 +1,5 @@
 import React from 'react';
-import {Image, View, StyleSheet} from 'react-native';
+import {Image, View, StyleSheet, Platform} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -9,6 +9,7 @@ import AppLinks from './AppLinks';
 import {signOut} from '../../../libs/actions/Session';
 import ONYXKEYS from '../../../ONYXKEYS';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
+import UserIndicator from '../../../../../Expensify.cash1/src/components/UserIndicator';
 
 const propTypes = {
     // Safe area insets required for mobile devices margins
@@ -57,7 +58,13 @@ const SidebarBottom = ({myPersonalDetails, network, insets}) => {
                     source={{uri: myPersonalDetails.avatarURL}}
                     style={[styles.actionAvatar]}
                 />
-                <View style={StyleSheet.flatten(indicatorStyles)} />
+                {
+                    Platform.OS === 'web' ? (
+                        <UserIndicator isOffline={network && network.isOffline} />
+                    ) : (
+                        <View style={StyleSheet.flatten(indicatorStyles)} />
+                    )
+                }
             </View>
             <View style={[styles.flexColumn]}>
                 {myPersonalDetails.displayName && (
