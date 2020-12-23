@@ -33,7 +33,7 @@ class ResendValidationForm extends React.Component {
 
     render() {
         return (
-            <>
+            <View style={[styles.loginFormContainer]}>
                 <View>
                     <Text style={[styles.textP]}>
                         Please validate your account by clicking on the link we just sent you.
@@ -52,7 +52,7 @@ class ResendValidationForm extends React.Component {
                         {this.state.formSuccess}
                     </Text>
                 )}
-            </>
+            </View>
         );
     }
 }

@@ -52,6 +52,9 @@ const styles = {
     mt5: {
         marginTop: 20,
     },
+    mt6: {
+        marginTop: 24,
+    },
 
     mb1: {
         marginBottom: 4,
@@ -64,6 +67,12 @@ const styles = {
     },
     mb4: {
         marginBottom: 16,
+    },
+    mb5: {
+        marginBottom: 20,
+    },
+    mb6: {
+        marginBottom: 24,
     },
     mbn5: {
         marginBottom: -5,
@@ -85,6 +94,9 @@ const styles = {
     widthHeight100p: {
         width: '100%',
         height: '100%',
+    },
+    width50p: {
+        width: '50%',
     },
 
     flex0: {
@@ -168,6 +180,13 @@ const styles = {
         textDecorationColor: themeColors.link,
     },
 
+    h1: {
+        color: themeColors.heading,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeh1,
+        fontWeight: fontWeightBold,
+    },
+
     h3: {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeNormal,
@@ -182,6 +201,7 @@ const styles = {
 
     textP: {
         color: themeColors.text,
+        fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeNormal,
         lineHeight: 20,
     },
@@ -356,11 +376,10 @@ const styles = {
     textInputNoOutline: addOutlineWidth({}, 0),
 
     formLabel: {
-        color: themeColors.heading,
+        color: themeColors.text,
         fontSize: variables.fontSizeLabel,
-        fontWeight: '600',
         lineHeight: 18,
-        marginBottom: 4,
+        marginBottom: 8,
     },
 
     formError: {
@@ -379,26 +398,37 @@ const styles = {
 
     signInPage: {
         backgroundColor: themeColors.sidebar,
-        height: '100%',
         padding: 20,
+        minHeight: '100%',
     },
 
     signInPageLogo: {
-        alignItems: 'center',
-        height: variables.componentSizeNormal,
-        justifyContent: 'center',
-        width: '100%',
+        height: variables.componentSizeLarge,
         marginBottom: 24,
     },
 
+    signInPageLogoNative: {
+        alignItems: 'center',
+        height: variables.componentSizeLarge,
+        justifyContent: 'center',
+        width: '100%',
+        marginBottom: 20,
+        marginTop: 20,
+    },
+
     signinLogo: {
-        height: variables.componentSizeNormal,
-        width: variables.componentSizeNormal,
+        height: variables.componentSizeLarge,
+        width: variables.componentSizeLarge,
     },
 
     signinWelcomeScreenshot: {
-        height: 580,
-        width: 325,
+        height: 354,
+        width: 295,
+    },
+
+    signinWelcomeScreenshotWide: {
+        height: 592,
+        width: 295,
     },
 
     genericView: {
@@ -407,9 +437,22 @@ const styles = {
     },
 
     signInPageInner: {
+        paddingTop: 40,
         marginLeft: 'auto',
         marginRight: 'auto',
-        maxWidth: 325,
+        maxWidth: 800,
+        width: '100%',
+    },
+
+    signInPageInnerNative: {
+        marginLeft: 'auto',
+        marginRight: 'auto',
+        maxWidth: 295,
+        width: '100%',
+    },
+
+    loginFormContainer: {
+        maxWidth: 295,
         width: '100%',
     },
 
@@ -501,13 +544,6 @@ const styles = {
     sidebarListItem: {
         justifyContent: 'center',
         textDecorationLine: 'none',
-    },
-
-    welcomeMessageScrollContainer: {
-        height: 580,
-        scrollbarWidth: 'none',
-        overflow: 'scroll',
-        paddingBottom: 4,
     },
 
     chatLinkRowPressable: {
