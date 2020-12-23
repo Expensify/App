@@ -6,8 +6,7 @@ const CONST = {
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
     REPORT: {
         REGULAR: 'regular',
-        PERSONAL_DETAIL: 'personalDetail',
-        NEW_ENTRY: 'newEntry',
+        NEW_USER: 'newUser',
     },
     MODAL: {
         MODAL_TYPE: {
