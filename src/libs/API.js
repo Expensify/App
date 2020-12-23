@@ -56,7 +56,7 @@ function addAuthTokenToParameters(command, parameters) {
             Network.clearRequestQueue();
             redirectToSignIn();
 
-            // Throw so processRequestQueue stops making requests
+            // Throw so the request queue knows to not make this request
             throw new Error('A request was made without an authToken');
         }
 
