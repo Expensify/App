@@ -58,53 +58,31 @@ This application is built with the following principles.
 1. Install `node` & `npm`: `brew install node`
 2. Install `watchman`: `brew install watchman`
 3. Install dependencies: `npm install`
-4. Run `cp .env.example .env` and edit `.env` to have your local config options.
+4. Run `cp .env.production .env` and edit `.env` to have your local config options.
 
 You can use any IDE or code editing tool for developing on any platform. Use your favorite!
 
-## Setting up ngrok
-Ngrok makes the our locally-hosted web application appear to be hosted on a subdomain of ngrok.com.  This allows us to avoid many of our cross-domain issues with our API and is required for doing local development on android or viewing images on mobile.
-
-1. Set up a permanent [ngrok route](https://stackoverflow.com/c/expensify/questions/3382)
-2. Replace the value `NGROK_URL` in your `.env` file with the ngrok route you just set up
-3. Set the `USE_NGROK` in your `.env` to true
-4. Start ngrok with the name you previously set (`Expensidev/script/ngrok.sh thienlnam`)
-
-Now, all of your API calls will be using the ngrok route.
-
 ## Running the web app 🕸
-* To run a **Development Server**: `npm run web`
-* To build a **production build**: `npm run build`
+Contributors who don't have full-access to Expensify's development environment will need to run the app against the production API.
+* In the `.env` file set the `USE_WEB_PROXY` environment variable to `true` to indicate the proxy should be used
+* To run the web app, run the **Development Server**: `npm run proxy`
 * Changes applied to Javascript will be applied automatically via WebPack as configured in `webpack.dev.js`
 
 ## Running the iOS app 📱
 * To install the iOS dependencies, run: `npm install && cd ios/ && pod install`
+* In the `.env` file verify the `USE_WEB_PROXY` environment variable is `false` to indicate the proxy should not be used
 * To run a on a **Development Simulator**: `npm run ios`
-    * If the app is booting on a simulator for the first time, run the following two commands:
-    ```bash
-    xcrun simctl keychain booted add-root-cert ~/Expensidev/config/ssl/rootCA.crt #Adds root cert and trusts it
-    xcrun simctl keychain booted add-cert ~/Expensidev/config/ssl/expensify.com.dev.pem #Adds .dev cert and trusts it
-    ```
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
 ## Running the Android app 🤖
 * To install the Android dependencies, run: `npm install`, then `gradle` will install all linked dependencies
-* Running via `ngrok` is required to communicate with the API
-    * Follow the instructions under the section `Setting up ngrok`
+* In the `.env` file verify the `USE_WEB_PROXY` environment variable is `false` to indicate the proxy should not be used
 * To run a on a **Development Emulator**: `npm run android`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
 ## Running the MacOS desktop app 🖥
- * To run the **Development app**, run: `npm run desktop`, this will start a new Electron process running on your MacOS desktop in the `dist/Mac` folder.
-
-## Running the apps via production API proxy (Contributors) 🧑‍💻
-If you don't have full-access to Expensify's development environment you will need to run the app against the production API.
-* Copy the `.env.production` variables into your `.env` file
-* Set `EXPENSIFY_URL_COM` environment variable to be empty (**Note:** this means it should be `EXPENSIFY_URL_COM=`, not completely omitted)
-* To run the web app, run the **Development Server**: `npm run proxy`
-* To run the desktop app: `npm run desktop`
-* To run the iOS app: `npm run ios`
-* To run the Android app: `npm run android`
+* In the `.env` file verify the `USE_WEB_PROXY` environment variable is `false` to indicate the proxy should not be used
+* To run the **Development app**, run: `npm run desktop`, this will start a new Electron process running on your MacOS desktop in the `dist/Mac` folder.
 
 ## Running the tests 🎰
 ### Unit tests
@@ -125,7 +103,7 @@ You are first required to build the tests, then you can run them:
 
 ## Troubleshooting
 1. If you are having issues with **_Getting Started_**, please reference [React Native's Documentation](https://reactnative.dev/docs/environment-setup)
-2. If you are running into issues communicating with `expensify.com.dev` (CORS, SSL, etc.), running via `ngrok` is recommended, see step 3 in **_Getting Started_**
+2. If you are running into issues communicating with the API please verify your `.env` file is set up correctly for the platform you are trying to run.
 
 ## Debugging
 ### iOS
