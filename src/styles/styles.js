@@ -523,6 +523,10 @@ const styles = {
         color: themeColors.heading,
         fontSize: variables.fontSizeLabel,
         fontWeight: '700',
+        width: 200,
+        textOverflow: 'ellipsis',
+        overflow: 'hidden',
+        whiteSpace: 'nowrap',
     },
 
     sidebarFooterLink: {
@@ -701,16 +705,18 @@ const styles = {
         alignItems: 'center',
         display: 'flex',
         flexDirection: 'row',
+        flexWrap: 'wrap',
     },
 
     chatItemMessageHeaderSender: {
         color: themeColors.heading,
+        fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeNormal,
-        height: 24,
+        fontWeight: fontWeightBold,
         lineHeight: 20,
-        fontWeight: '600',
         paddingRight: 5,
         paddingBottom: 4,
+        wordBreak: 'break-word',
     },
 
     chatItemMessageHeaderTimestamp: {
