@@ -3,6 +3,7 @@ import lodashGet from 'lodash.get';
 import lodashOrderBy from 'lodash.orderby';
 import Str from 'expensify-common/lib/str';
 import CONST from '../CONST';
+import { getDefaultAvatar } from './actions/PersonalDetails';
 
 const MAX_SEARCH_RESULTS = 10;
 
@@ -105,7 +106,16 @@ function getChatSearchState(personalDetails, reports = {}, selectedUsers = []) {
         }
 
         const login = getParticipantLogin(report);
-        const personalDetail = personalDetails[login];
+        let personalDetail = personalDetails[login];
+
+        if (!personalDetail) {
+            personalDetail = {
+                displayName: login,
+                login: login,
+                avatarURL: getDefaultAvatar(login),
+            };
+        }
+
         recentUsers.push(createChatUserOption(personalDetail));
         alreadySelectedUsers.push(login);
     }
@@ -117,7 +127,6 @@ function getChatSearchState(personalDetails, reports = {}, selectedUsers = []) {
         if (_.some(alreadySelectedUsers, (selectedLogin) => selectedLogin === login)) {
             return;
         }
-
         contacts.push(createChatUserOption(personalDetail));
     });
 

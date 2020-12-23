@@ -9,7 +9,7 @@ import ChatLinkRow from './home/sidebar/ChatLinkRow';
 import KeyboardSpacer from '../components/KeyboardSpacer';
 import ONYXKEYS from '../ONYXKEYS';
 import {getDefaultAvatar} from '../libs/actions/PersonalDetails';
-import {filterChatSearchOptions, getRecentContactList, getContactList, getChatSearchState} from '../libs/SearchUtils';
+import {filterChatSearchOptions, getChatSearchState} from '../libs/SearchUtils';
 import ChatSearchInput from '../components/ChatSearchInput';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import CONST from '../CONST';
@@ -29,7 +29,7 @@ class NewGroupPage extends React.Component {
             selectedUsers: [],
             focusedIndex: 0,
             searchValue: '',
-            isSearchValuePotentialUser: false,
+            userToInvite: null,
         };
     }
 
@@ -42,27 +42,24 @@ class NewGroupPage extends React.Component {
         let filteredContacts = filterChatSearchOptions(searchValue, contacts);
         let filteredRecentUsers = filterChatSearchOptions(searchValue, recentUsers);
         const totalResultsLength = filteredContacts.length + filteredRecentUsers.length;
-
-        let isSearchValuePotentialUser = false;
+        let userToInvite = null;
 
         if (totalResultsLength === 0 && Str.isValidEmail(searchValue) || Str.isValidPhone(searchValue)) {
             // Check to see if the search value is a valid email or phone
-            filteredContacts = [{
+            userToInvite = {
                 type: CONST.REPORT.SINGLE_USER_DM,
                 login: searchValue,
                 text: searchValue,
                 alternateText: searchValue,
                 icon: getDefaultAvatar(searchValue),
-            }];
-
-            isSearchValuePotentialUser = true;
+            };
         }
 
         this.setState({
             searchValue,
             contacts: filteredContacts,
             recentUsers: filteredRecentUsers,
-            isSearchValuePotentialUser,
+            userToInvite,
         });
     }
 
@@ -74,23 +71,38 @@ class NewGroupPage extends React.Component {
     }
 
     render() {
+        const hasSelectableOptions = (this.state.recentUsers.length + this.state.contacts.length) > 0;
         const sections = [
             {
                 title: undefined,
                 data: this.state.selectedUsers,
                 indexOffset: 0,
+                shouldShow: true,
             },
             {
                 title: 'RECENTS',
                 data: this.state.recentUsers,
                 indexOffset: this.state.selectedUsers.length,
+                shouldShow: hasSelectableOptions,
             },
             {
                 title: 'CONTACTS',
                 data: this.state.contacts,
                 indexOffset: this.state.selectedUsers.length + this.state.recentUsers.length,
+                shouldShow: hasSelectableOptions,
             },
         ];
+
+        if (this.state.userToInvite) {
+            sections.push({
+                title: 'INVITE',
+                data: [this.state.userToInvite],
+                indexOffset: this.state.selectedUsers.length,
+                shouldShow: !hasSelectableOptions,
+            });
+        }
+
+        console.log(this.state.userToInvite);
 
         const totalLengthOfData =
             this.state.selectedUsers.length +
@@ -146,7 +158,7 @@ class NewGroupPage extends React.Component {
 
                 {/* From ChatSwitcherList */}
                 <View style={[styles.flex1]}>
-                    {this.state.contacts.length === 0 && (
+                    {!hasSelectableOptions && (
                         <View style={[styles.ph2]}>
                             <Text style={[styles.textLabel]}>
                                 Don't see who you're looking for? Type their email or phone number to invite them to chat.
@@ -167,7 +179,7 @@ class NewGroupPage extends React.Component {
                                 isChatSwitcher={false}
                             />
                         )}
-                        renderSectionHeader={({section: {title}}) => title && <SubHeader text={title} />}
+                        renderSectionHeader={({section: {title, shouldShow}}) => title && shouldShow && <SubHeader text={title} />}
                         extraData={this.state.focusedIndex}
                         ListFooterComponent={View}
                         ListFooterComponentStyle={[styles.p1]}
