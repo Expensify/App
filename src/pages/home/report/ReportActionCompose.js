@@ -45,7 +45,7 @@ class ReportActionCompose extends React.Component {
         this.state = {
             isFocused: false,
             textInputShouldClear: false,
-            submitButtoncolor:'#ECECEC'
+            submitButtoncolor: '#ECECEC'
         };
     }
 
@@ -92,9 +92,9 @@ class ReportActionCompose extends React.Component {
      */
     updateComment(newComment) {
         if (newComment) {
-            this.setState({submitButtoncolor:'#2ECB70'});
+            this.setState({submitButtoncolor: '#2ECB70'});
         } else {
-            this.setState({submitButtoncolor:'#ECECEC'});
+            this.setState({submitButtoncolor: '#ECECEC'});
         }
         this.comment = newComment;
         this.debouncedSaveReportComment(newComment);
@@ -213,7 +213,7 @@ class ReportActionCompose extends React.Component {
                         )}
                     </AttachmentModal>
                     <TouchableOpacity
-                        style={[styles.chatItemSubmitButton,styles.buttonSuccess,{backgroundColor:this.state.submitButtoncolor}]}
+                        style={[styles.chatItemSubmitButton, styles.buttonSuccess, {backgroundColor: this.state.submitButtoncolor}]}
                         onPress={this.submitForm}
                         underlayColor={themeColors.componentBG}
                     >
