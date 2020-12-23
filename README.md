@@ -59,7 +59,7 @@ These instructions should get you set up ready to work on the front-end code of 
 
 **Note:** Expensify engineers please refer to [these additional instructions](https://stackoverflow.com/c/expensify/questions/7699/7700) for testing against the local API.
 
-## Getting started
+## Getting Started
 1. Install `node` & `npm`: `brew install node`
 2. Install `watchman`: `brew install watchman`
 3. Install dependencies: `npm install`
@@ -108,7 +108,7 @@ You are first required to build the tests, then you can run them:
 2. To run the **Detox end to end tests**: `npm run detox-test`
 
 # Troubleshooting
-1. If you are having issues with **_Getting Started_**, please reference [React Native's Documentation](https://reactnative.dev/docs/environment-setup)
+1. If you are having issues with [**_Getting Started_**](#getting-started), please reference [React Native's Documentation](https://reactnative.dev/docs/environment-setup)
 2. If you are running into issues communicating with the API please verify your `.env` file is set up correctly for the platform you are trying to run.
 
 # Debugging
