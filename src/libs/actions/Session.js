@@ -141,6 +141,7 @@ function signIn(password, exitTo, twoFactorAuthCode) {
                     // If we have an old login for some reason, we should delete it before storing the new details
                     if (credentials.login) {
                         API.DeleteLogin({
+                            authToken: authenticateResponse.authToken,
                             partnerUserID: credentials.login,
                             partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
                             partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
