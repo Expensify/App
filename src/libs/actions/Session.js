@@ -104,10 +104,10 @@ function fetchAccountDetails(login) {
  * after an authToken expires.
  *
  * @param {String} password
- * @param {String} [twoFactorAuthCode]
  * @param {String} exitTo
+ * @param {String} [twoFactorAuthCode]
  */
-function signIn(password, twoFactorAuthCode, exitTo) {
+function signIn(password, exitTo, twoFactorAuthCode) {
     Onyx.merge(ONYXKEYS.SESSION, {error: ''});
 
     API.Authenticate({
@@ -165,6 +165,8 @@ function signIn(password, twoFactorAuthCode, exitTo) {
  * @param {String} username
  */
 function setGitHubUsername(username) {
+    Onyx.merge(ONYXKEYS.SESSION, {error: ''});
+
     API.SetGithubUsername({email: credentials.login, githubUsername: username})
         .then((response) => {
             if (response.jsonCode === 200) {
