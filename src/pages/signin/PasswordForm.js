@@ -64,12 +64,12 @@ class PasswordForm extends React.Component {
             isLoading: true,
         });
 
-        signIn(this.state.password, this.state.twoFactorAuthCode, this.props.match.params.exitTo);
+        signIn(this.state.password, this.props.match.params.exitTo, this.state.twoFactorAuthCode);
     }
 
     render() {
         return (
-            <>
+            <View style={[styles.loginFormContainer]}>
                 <View style={[styles.mb4]}>
                     <Text style={[styles.formLabel]}>Password</Text>
                     <TextInput
@@ -80,6 +80,7 @@ class PasswordForm extends React.Component {
                         value={this.state.password}
                         onChangeText={text => this.setState({password: text})}
                         onSubmitEditing={this.validateAndSubmitForm}
+                        autoFocus
                     />
                 </View>
                 {this.props.account.requiresTwoFactorAuth && (
@@ -107,7 +108,7 @@ class PasswordForm extends React.Component {
                         {this.state.formError}
                     </Text>
                 )}
-            </>
+            </View>
         );
     }
 }
@@ -118,8 +119,6 @@ PasswordForm.defaultProps = defaultProps;
 export default compose(
     withRouter,
     withOnyx({
-        account: {
-            key: ({match}) => `${ONYXKEYS.COLLECTION.REPORT}${match.params.reportID}`,
-        },
+        account: {key: ONYXKEYS.ACCOUNT},
     }),
 )(PasswordForm);
