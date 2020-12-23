@@ -58,7 +58,8 @@ function processNetworkRequestQueue() {
                 : queuedRequest.data;
         } catch (err) {
             // Something went wrong when enhancing parameters assume we should not
-            // make this request at all.
+            // make this request at all and clear the request queue
+            networkRequestQueue = [];
             return;
         }
 
@@ -122,17 +123,9 @@ function registerParameterEnhancer(callback) {
     enhanceParameters = callback;
 }
 
-/**
- * Clears the request queue
- */
-function clearRequestQueue() {
-    networkRequestQueue = [];
-}
-
 export {
     post,
     pauseRequestQueue,
     unpauseRequestQueue,
     registerParameterEnhancer,
-    clearRequestQueue,
 };
