@@ -266,6 +266,11 @@ const styles = {
         borderWidth: 0,
     },
 
+    buttonDisable: {
+        backgroundColor: themeColors.textMutedReversed,
+        borderWidth: 0,
+    },
+
     buttonConfirm: {
         margin: 20,
     },
