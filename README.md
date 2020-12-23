@@ -55,7 +55,9 @@ This application is built with the following principles.
 
 # Local development
 
-These instructions should get you set up ready to work on the front-end code of Expensify.cash
+These instructions should get you set up ready to work on the front-end code of Expensify.
+
+**Note:** Expensify engineers please refer to [these additional instructions](https://stackoverflow.com/c/expensify/questions/7699/7700) for testing against the local API.
 
 ## Getting started
 1. Install `node` & `npm`: `brew install node`
