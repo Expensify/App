@@ -4,7 +4,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
-import logo from '../../../../assets/images/expensify-logo-coin-2x.png';
+import logo from '../../../../assets/images/expensify-logo-round.png';
 import welcomeScreenshot from '../../../../assets/images/welcome-screenshot-wide.png';
 
 const propTypes = {
