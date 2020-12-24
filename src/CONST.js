@@ -7,7 +7,7 @@ const CONST = {
     UPWORK_URL: 'https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&user_location_match=2',
     OPTION_TYPE: {
         REPORT: 'report',
-        CONTACT: 'contact',
+        PERSONAL_DETAIL: 'personalDetail',
     },
     MODAL: {
         MODAL_TYPE: {
