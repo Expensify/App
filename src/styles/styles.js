@@ -800,9 +800,10 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderRadius: variables.componentBorderRadius,
         height: 150,
-        textAlign: 'center',
-        verticalAlign: 'middle',
         width: 200,
+        textAlign: 'center',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
 
     chatSwitcherInputClear: {
