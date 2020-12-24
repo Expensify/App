@@ -1,4 +1,5 @@
 // We place items a percentage to the safe area on the top or bottom of the screen
+import {StyleSheet} from 'react-native';
 import fontFamily from './fontFamily';
 import italic from './italic';
 import addOutlineWidth from './addOutlineWidth';
@@ -6,7 +7,6 @@ import themeColors from './themes/default';
 import fontWeightBold from './fontWeight/bold';
 import variables from './variables';
 import colors from './colors';
-import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
     // Utility classes
