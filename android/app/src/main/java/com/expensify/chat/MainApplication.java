@@ -58,9 +58,7 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
         field.setAccessible(true);
         field.set(null, 100 * 1024 * 1024); //the 100MB is the new size
       } catch (Exception e) {
-        if (BuildConfig.DEBUG) {
-          e.printStackTrace();
-        }
+        e.printStackTrace();
       }
   }
 
