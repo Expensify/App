@@ -412,6 +412,16 @@ function Report_GetHistory(parameters) {
     return request(commandName, parameters);
 }
 
+function Report_GetMultipleHistory(parameters) {
+    const commandName = 'Report_GetMultipleHistory';
+    requireParameters(
+        ['reportIDList', 'offsetList'],
+        parameters,
+        commandName
+    );
+    return request(commandName, parameters);
+}
+
 /**
  * @param {Object} parameters
  * @param {Number} parameters.reportID
@@ -486,6 +496,7 @@ export {
     Push_Authenticate,
     Report_AddComment,
     Report_GetHistory,
+    Report_GetMultipleHistory,
     Report_TogglePinned,
     Report_UpdateLastRead,
     ResendValidateCode,

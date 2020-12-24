@@ -63,7 +63,7 @@ class ReportActionsView extends React.Component {
             this.recordMaxAction();
         }
 
-        fetchActions(this.props.reportID);
+        fetchActions([this.props.reportID]);
     }
 
     componentDidUpdate(prevProps) {
@@ -96,7 +96,7 @@ class ReportActionsView extends React.Component {
         // read and bind the keyboard listener for this report
         if (!prevProps.isActiveReport && this.props.isActiveReport) {
             if (this.state.refetchNeeded) {
-                fetchActions(this.props.reportID);
+                fetchActions([this.props.reportID]);
                 this.setRefetchNeeded(false);
             }
 

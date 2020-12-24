@@ -377,18 +377,24 @@ function fetchChatReports() {
 /**
  * Get the actions of a report
  *
- * @param {Number} reportID
+ * @param {Array<Number>} reportIDList
  */
-function fetchActions(reportID) {
-    API.Report_GetHistory({reportID})
+function fetchActions(reportIDList) {
+    API.Report_GetMultipleHistory({
+        reportIDList: reportIDList.join(','),
+        offsetList: _.map(reportIDList, reportID => reportMaxSequenceNumbers[reportID] || 0).join(','),
+    })
         .then((data) => {
-            const indexedData = _.indexBy(data.history, 'sequenceNumber');
-            const maxSequenceNumber = _.chain(data.history)
-                .pluck('sequenceNumber')
-                .max()
-                .value();
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, indexedData);
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {maxSequenceNumber});
+            const {historyMap} = data;
+            _.each(historyMap, (history, reportID) => {
+                const indexedData = _.indexBy(history, 'sequenceNumber');
+                const maxSequenceNumber = _.chain(history)
+                    .pluck('sequenceNumber')
+                    .max()
+                    .value();
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, indexedData);
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {maxSequenceNumber});
+            });
         });
 }
 
@@ -412,10 +418,8 @@ function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false, sho
             }
 
             if (shouldFetchActions) {
-                _.each(reportIDs, (reportID) => {
-                    console.debug(`[RECONNECT] Fetching report actions for report ${reportID}`);
-                    fetchActions(reportID);
-                });
+                console.debug(`[RECONNECT] Fetching report actions for reportIDs: ${reportIDs.join(', ')}`);
+                fetchActions(reportIDs);
             }
 
             if (shouldRecordHomePageTiming) {
