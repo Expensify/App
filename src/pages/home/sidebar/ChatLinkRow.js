@@ -11,8 +11,8 @@ import {
 import styles from '../../../styles/styles';
 import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
 import pencilIcon from '../../../../assets/images/icon-pencil.png';
-import PressableLink from '../../../components/PressableLink';
 import CONST from '../../../CONST';
+import colors from '../../../styles/colors';
 
 const propTypes = {
     // Option to allow the user to choose from can be type 'report' or 'user'
@@ -60,8 +60,9 @@ const ChatLinkRow = ({
                 optionIsFocused ? styles.sidebarLinkActive : null
             ]}
         >
-            <PressableLink
-                onClick={() => onSelectRow(option)}
+            <TouchableOpacity
+                onPress={() => onSelectRow(option)}
+                underlayColor={colors.transparent}
                 style={StyleSheet.flatten([
                     styles.chatLinkRowPressable,
                     styles.flexGrow1,
@@ -105,7 +106,7 @@ const ChatLinkRow = ({
                         )}
                     </View>
                 </View>
-            </PressableLink>
+            </TouchableOpacity>
             {isSingleUserDM && isChatSwitcher && (
                 <View>
                     <TouchableOpacity
