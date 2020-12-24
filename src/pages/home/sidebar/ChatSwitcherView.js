@@ -439,7 +439,7 @@ class ChatSwitcherView extends React.Component {
                     const valueToSearch = option.searchText && option.searchText.replace(new RegExp(/&nbsp;/g), '');
                     const isMatch = matchRegexes[i].test(valueToSearch);
                     const isCurrentlyLoggedInUser = this.props.session.email === option.login;
-                    
+
                     // We must also filter out any users who are already in the Group DM list
                     // so they can't be selected more than once
                     const isInGroupUsers = _.some(this.state.usersToStartGroupReportWith, groupOption => (
