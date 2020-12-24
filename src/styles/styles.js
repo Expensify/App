@@ -297,13 +297,13 @@ const styles = StyleSheet.create({
     },
 
     pillText: {
+        flex: 1,
         color: themeColors.text,
         fontWeight: '400',
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
         marginRight: 4,
         maxWidth: 144,
-        whiteSpace: 'nowrap',
     },
 
     pillCancelIcon: {
