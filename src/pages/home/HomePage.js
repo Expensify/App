@@ -7,6 +7,7 @@ import {
     Easing,
     Keyboard,
     Pressable,
+    Platform
 } from 'react-native';
 import {SafeAreaInsetsContext, SafeAreaProvider} from 'react-native-safe-area-context';
 import {withOnyx} from 'react-native-onyx';
@@ -205,7 +206,13 @@ class App extends React.Component {
     }
 
     render() {
-        const hamburgerStyle = styles.hamburgerOpenAbsolute;
+        let hamburgerStyle;
+        if (Platform.OS === 'android') {
+            hamburgerStyle = styles.hamburgerOpenAbsolute;
+        } else {
+            hamburgerStyle = this.state.isHamburgerEnabled && this.props.isSidebarShown ? styles.hamburgerOpenAbsolute
+                : styles.hamburgerOpen;
+        }
         const visibility = !this.state.isHamburgerEnabled || this.props.isSidebarShown ? styles.dFlex : styles.dNone;
         const appContentWrapperStyle = !this.state.isHamburgerEnabled ? styles.appContentWrapperLarge : null;
         return (
