@@ -1060,7 +1060,7 @@ export const inlineStyles = {
     dInlineBlock: {
         display: 'inline-block',
     },
-}
+};
 
 const webViewStyles = {
     // As of react-native-render-html v6, don't declare distinct styles for
