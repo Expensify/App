@@ -3,12 +3,12 @@ require_relative '../node_modules/@react-native-community/cli-platform-ios/nativ
 
 platform :ios, '11.0'
 
-target 'ReactNativeChat' do
+target 'ExpensifyCash' do
   config = use_native_modules!
 
   use_react_native!(:path => config["reactNativePath"])
 
-  target 'ReactNativeChatTests' do
+  target 'ExpensifyCashTests' do
     inherit! :complete
     # Pods for testing
   end

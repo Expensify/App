@@ -6,7 +6,9 @@ export default {
     REPORT: '/r/:reportID',
     getReportRoute: reportID => `/r/${reportID}`,
     ROOT: '/',
+    SET_PASSWORD: '/setpassword/:validateCode',
     SIGNIN: '/signin',
     SIGNIN_WITH_EXITTO: '/signIn/exitTo/:exitTo*',
     getSigninWithExitToRoute: exitTo => `/signin/exitTo${exitTo}`,
+    NOT_FOUND: '/404',
 };
