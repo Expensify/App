@@ -6,8 +6,9 @@ import themeColors from './themes/default';
 import fontWeightBold from './fontWeight/bold';
 import variables from './variables';
 import colors from './colors';
+import { StyleSheet } from 'react-native';
 
-const styles = {
+const styles = StyleSheet.create({
     // Utility classes
     m0: {
         margin: 0,
@@ -1048,7 +1049,7 @@ const styles = {
         backgroundColor: themeColors.componentBG,
         borderColor: colors.transparent,
     },
-};
+});
 
 const baseCodeTagStyles = {
     borderWidth: 1,
