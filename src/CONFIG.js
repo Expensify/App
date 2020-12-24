@@ -14,7 +14,7 @@ if (_.isString(Config.EXPENSIFY_URL_COM) && !Config.EXPENSIFY_URL_COM.endsWith('
     Config.EXPENSIFY_URL_COM += '/';
 }
 
-const expensifyCom = Config.USE_WEB_PROXY ? '/' : Config.EXPENSIFY_URL_COM;
+const expensifyCom = Config.USE_WEB_PROXY === 'true' ? '/' : Config.EXPENSIFY_URL_COM;
 
 // Ngrok helps us avoid many of our cross-domain issues with connecting to our API
 // and is reqired for viewing images on mobile and for developing on android
