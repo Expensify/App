@@ -12,7 +12,6 @@ import styles from '../../../styles/styles';
 import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
 import pencilIcon from '../../../../assets/images/icon-pencil.png';
 import CONST from '../../../CONST';
-import colors from '../../../styles/colors';
 
 const propTypes = {
     // Option to allow the user to choose from can be type 'report' or 'user'
@@ -62,7 +61,7 @@ const ChatLinkRow = ({
         >
             <TouchableOpacity
                 onPress={() => onSelectRow(option)}
-                underlayColor={colors.transparent}
+                activeOpacity={0.8}
                 style={StyleSheet.flatten([
                     styles.chatLinkRowPressable,
                     styles.flexGrow1,
