@@ -164,10 +164,6 @@ const styles = StyleSheet.create({
         display: 'none',
     },
 
-    dInlineBlock: {
-        display: 'inline-block',
-    },
-
     overflowHidden: {
         overflow: 'hidden',
     },
@@ -1059,6 +1055,12 @@ const baseCodeTagStyles = {
     borderColor: themeColors.border,
     backgroundColor: themeColors.textBackground,
 };
+
+export const inlineStyles = {
+    dInlineBlock: {
+        display: 'inline-block',
+    },
+}
 
 const webViewStyles = {
     // As of react-native-render-html v6, don't declare distinct styles for
