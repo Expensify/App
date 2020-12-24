@@ -51,8 +51,8 @@ platform :ios do
     ENV["ENVFILE"]=".env.production"
 
     build_app(
-        workspace: "./ios/ReactNativeChat.xcworkspace",
-        scheme: "ReactNativeChat"
+        workspace: "./ios/ExpensifyCash.xcworkspace",
+        scheme: "ExpensifyCash"
     )
   end
 
@@ -83,14 +83,14 @@ platform :ios do
     )
 
     build_app(
-        workspace: "./ios/ReactNativeChat.xcworkspace",
-        scheme: "ReactNativeChat"
+        workspace: "./ios/ExpensifyCash.xcworkspace",
+        scheme: "ExpensifyCash"
     )
 
     upload_to_testflight(
         distribute_external: true,
         reject_build_waiting_for_review: true,
-        changelog: "Thank you for beta testing the Expensify Chat, this version includes bug fixes and improvements.",
+        changelog: "Thank you for beta testing Expensify.cash, this version includes bug fixes and improvements.",
         groups: ["Beta"],
         demo_account_required: true,
         beta_app_review_info: {

@@ -5,7 +5,7 @@ import _ from 'underscore';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import ReportActionItemMessage from './ReportActionItemMessage';
 import ReportActionItemFragment from './ReportActionItemFragment';
-import styles from '../../../styles/StyleSheet';
+import styles from '../../../styles/styles';
 import CONST from '../../../CONST';
 import ReportActionItemDate from './ReportActionItemDate';
 

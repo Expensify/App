@@ -3,13 +3,15 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import {recordCurrentlyViewedReportID, recordCurrentRoute} from './libs/actions/App';
-import SignInPage from './pages/SignInPage';
 import HomePage from './pages/home/HomePage';
+import NotFoundPage from './pages/NotFound';
+import SetPasswordPage from './pages/SetPasswordPage';
+import SignInPage from './pages/signin/SignInPage';
 import listenToStorageEvents from './libs/listenToStorageEvents';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import ONYXKEYS from './ONYXKEYS';
 
-import styles from './styles/StyleSheet';
+import styles from './styles/styles';
 import Log from './libs/Log';
 
 import {
@@ -102,27 +104,41 @@ class Expensify extends Component {
                 <View style={styles.genericView} />
             );
         }
-        const redirectTo = !this.state.authToken ? ROUTES.SIGNIN : this.props.redirectTo;
         return (
             <Router>
                 {/* If there is ever a property for redirecting, we do the redirect here */}
                 {/* Leave this as a ternary or else iOS throws an error about text not being wrapped in <Text> */}
-                {redirectTo ? <Redirect push to={redirectTo} /> : null}
+                {this.props.redirectTo ? <Redirect push to={this.props.redirectTo} /> : null}
                 <Route path="*" render={recordCurrentRoute} />
-                <Route path={ROUTES.REPORT} exact render={recordCurrentlyViewedReportID} />
+
+                {/* We must record the currentlyViewedReportID when hitting the 404 page so */}
+                {/* that we do not try to redirect back to that report again */}
+                <Route path={[ROUTES.REPORT, ROUTES.NOT_FOUND]} exact render={recordCurrentlyViewedReportID} />
 
                 <Switch>
                     <Route
                         exact
-                        path="/"
+                        path={ROUTES.ROOT}
                         render={() => (
                             this.state.authToken
                                 ? <Redirect to={ROUTES.HOME} />
                                 : <Redirect to={ROUTES.SIGNIN} />
                         )}
                     />
+
+                    <Route path={[ROUTES.SET_PASSWORD]} component={SetPasswordPage} />
+                    <Route path={[ROUTES.NOT_FOUND]} component={NotFoundPage} />
                     <Route path={[ROUTES.SIGNIN_WITH_EXITTO, ROUTES.SIGNIN]} component={SignInPage} />
-                    <Route path={[ROUTES.HOME, ROUTES.ROOT]} component={HomePage} />
+                    <Route
+                        path={[ROUTES.HOME, ROUTES.ROOT]}
+                        render={match => (
+
+                            // Need to do this for every page that the user needs to be logged in to access
+                            this.state.authToken
+                                ? <HomePage match={match} />
+                                : <Redirect to={ROUTES.SIGNIN} />
+                        )}
+                    />
                 </Switch>
             </Router>
         );
