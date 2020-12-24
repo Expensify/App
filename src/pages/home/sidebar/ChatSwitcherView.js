@@ -203,7 +203,7 @@ class ChatSwitcherView extends React.Component {
             case CONST.OPTION_TYPE.REPORT:
                 this.selectReport(option);
                 break;
-            case CONST.OPTION_TYPE.CONTACT:
+            case CONST.OPTION_TYPE.PERSONAL_DETAIL:
                 this.selectUser(option);
                 break;
             default:
@@ -430,7 +430,7 @@ class ChatSwitcherView extends React.Component {
                     : `${personalDetail.displayName} ${personalDetail.login}`,
                 icon: personalDetail.avatarURL,
                 login: personalDetail.login,
-                type: CONST.OPTION_TYPE.CONTACT,
+                type: CONST.OPTION_TYPE.PERSONAL_DETAIL,
                 keyForList: personalDetail.login,
             }))
             .value();
@@ -472,7 +472,7 @@ class ChatSwitcherView extends React.Component {
                     text: searchStr,
                     alternateText: searchStr,
                     singleUserDM: true,
-                    type: CONST.OPTION_TYPE.CONTACT,
+                    type: CONST.OPTION_TYPE.PERSONAL_DETAIL,
                     keyForList: searchStr,
                     login: searchStr,
                 }];
@@ -485,7 +485,7 @@ class ChatSwitcherView extends React.Component {
                     text: phoneNumber,
                     alternateText: phoneNumber,
                     singleUserDM: true,
-                    type: CONST.OPTION_TYPE.CONTACT,
+                    type: CONST.OPTION_TYPE.PERSONAL_DETAIL,
                     keyForList: phoneNumber,
                     login: searchStr,
                 }];
