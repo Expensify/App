@@ -266,6 +266,11 @@ const styles = {
         borderWidth: 0,
     },
 
+    buttonDeActive: {
+        backgroundColor: themeColors.offline,
+        borderWidth: 0,
+    },
+
     buttonConfirm: {
         margin: 20,
     },
