@@ -17,6 +17,7 @@ const PillWithCancelButton = props => (
         <Text
             style={styles.pillText}
             numberOfLines={1}
+            selectable={false}
         >
             {props.text}
         </Text>

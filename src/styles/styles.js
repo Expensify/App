@@ -302,7 +302,6 @@ const styles = StyleSheet.create({
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
         marginRight: 4,
-        userSelect: 'none',
         maxWidth: 144,
         whiteSpace: 'nowrap',
     },
