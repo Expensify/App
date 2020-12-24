@@ -6,14 +6,14 @@ import {
     Animated,
     Easing,
     Keyboard,
-    Pressable,
-    Platform
+    Pressable
 } from 'react-native';
 import {SafeAreaInsetsContext, SafeAreaProvider} from 'react-native-safe-area-context';
 import {withOnyx} from 'react-native-onyx';
 import {Route} from '../../libs/Router';
 import styles, {getSafeAreaPadding} from '../../styles/styles';
 import variables from '../../styles/variables';
+import hamburgerInputPadding from '../../styles/hamburgerInputPadding';
 import Header from './HeaderView';
 import Sidebar from './sidebar/SidebarView';
 import Main from './MainView';
@@ -206,10 +206,8 @@ class App extends React.Component {
     }
 
     render() {
-        let hamburgerStyle;
-        if (Platform.OS === 'android') {
-            hamburgerStyle = styles.hamburgerOpenAbsolute;
-        } else {
+        let hamburgerStyle = hamburgerInputPadding();
+        if (!hamburgerStyle) {
             hamburgerStyle = this.state.isHamburgerEnabled && this.props.isSidebarShown ? styles.hamburgerOpenAbsolute
                 : styles.hamburgerOpen;
         }
