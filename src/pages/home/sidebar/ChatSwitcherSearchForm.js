@@ -134,19 +134,19 @@ const ChatSwitcherSearchForm = props => (
                 </View>
             )
             : (
-              <View style={styles.textInputContainer}>
-                <TextInputWithFocusStyles
-                    styleFocusIn={[styles.textInputReversedFocus]}
-                    ref={props.forwardedRef}
-                    style={[styles.textInput, styles.flex1]}
-                    value={props.searchValue}
-                    onChangeText={props.onChangeText}
-                    onFocus={props.onFocus}
-                    onKeyPress={props.onKeyPress}
-                    placeholder="Find or start a chat"
-                    placeholderTextColor={themeColors.textSupporting}
-                />
-              </View>
+                <View style={styles.chatSwitcherTextInputContainer}>
+                    <TextInputWithFocusStyles
+                        styleFocusIn={[styles.textInputReversedFocus]}
+                        ref={props.forwardedRef}
+                        style={[styles.chatSwitcherTextInput, styles.flex1]}
+                        value={props.searchValue}
+                        onChangeText={props.onChangeText}
+                        onFocus={props.onFocus}
+                        onKeyPress={props.onKeyPress}
+                        placeholder="Find or start a chat"
+                        placeholderTextColor={themeColors.textSupporting}
+                    />
+                </View>
             )}
 
         {props.isClearButtonVisible && (

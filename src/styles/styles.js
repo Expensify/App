@@ -347,7 +347,7 @@ const styles = {
         width: variables.componentSizeNormal,
     },
 
-    textInputContainer: {
+    chatSwitcherTextInputContainer: {
         flex: 1,
         backgroundColor: themeColors.componentBG,
         borderRadius: variables.componentBorderRadius,
@@ -358,9 +358,11 @@ const styles = {
         paddingTop: 10,
         paddingBottom: 10,
     },
-    textInput: {
+
+    chatSwitcherTextInput: {
         backgroundColor: themeColors.componentBG,
         height: variables.componentSizeNormal,
+        borderColor: themeColors.componentBG,
         color: themeColors.text,
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeNormal,
@@ -368,6 +370,21 @@ const styles = {
         paddingRight: 0,
         paddingTop: 0,
         paddingBottom: 0,
+        textAlignVertical: 'center',
+    },
+    textInput: {
+        backgroundColor: themeColors.componentBG,
+        borderRadius: variables.componentBorderRadius,
+        height: variables.componentSizeNormal,
+        borderColor: themeColors.border,
+        borderWidth: 1,
+        color: themeColors.text,
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeNormal,
+        paddingLeft: 12,
+        paddingRight: 12,
+        paddingTop: 10,
+        paddingBottom: 10,
         textAlignVertical: 'center',
     },
 
