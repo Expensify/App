@@ -520,9 +520,7 @@ const styles = StyleSheet.create({
         fontSize: variables.fontSizeLabel,
         fontWeight: '700',
         width: 200,
-        textOverflow: 'ellipsis',
-        overflow: 'hidden',
-        whiteSpace: 'nowrap',
+        overflow: 'hidden'
     },
 
     sidebarFooterLink: {
@@ -594,7 +592,6 @@ const styles = StyleSheet.create({
         fontFamily: fontFamily.GTA,
         height: 18,
         lineHeight: 18,
-        whiteSpace: 'nowrap',
     },
 
     chatSwitcherLogin: {
@@ -712,7 +709,6 @@ const styles = StyleSheet.create({
         lineHeight: 20,
         paddingRight: 5,
         paddingBottom: 4,
-        wordBreak: 'break-word',
     },
 
     chatItemMessageHeaderTimestamp: {
@@ -729,8 +725,6 @@ const styles = StyleSheet.create({
         lineHeight: 20,
         marginTop: -2,
         marginBottom: -2,
-        whiteSpace: 'pre-wrap',
-        wordBreak: 'break-word',
     },
 
     chatItemCompose: {
