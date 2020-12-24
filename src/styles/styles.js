@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
 
     pillText: {
         color: themeColors.text,
-        weight: '400',
+        fontWeight: '400',
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
         marginRight: 4,
