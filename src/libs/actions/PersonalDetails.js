@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import Onyx from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import md5 from '../md5';
 import CONST from '../../CONST';
