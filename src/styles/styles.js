@@ -1110,6 +1110,8 @@ const webViewStyles = {
             paddingBottom: 2,
             alignSelf: 'flex-start',
             fontFamily: fontFamily.MONOSPACE,
+            backgroundColor: themeColors.codeBackground,
+            borderColor: themeColors.codeBorder,
         },
 
         img: {

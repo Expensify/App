@@ -1,17 +1,15 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
 import PropTypes from 'prop-types';
-import {useWindowDimensions, TouchableOpacity} from 'react-native';
+import {useWindowDimensions, TouchableOpacity, Text} from 'react-native';
 import HTML, {
     defaultHTMLElementModels,
     TNodeChildrenRenderer,
-    splitBoxModelStyle,
 } from 'react-native-render-html';
 import Config from '../CONFIG';
 import {webViewStyles} from '../styles/styles';
 import fontFamily from '../styles/fontFamily';
 import AnchorForCommentsOnly from './AnchorForCommentsOnly';
-import InlineCodeBlock from './InlineCodeBlock';
 import AttachmentModal from './AttachmentModal';
 import ThumbnailImage from './ThumbnailImage';
 
@@ -59,20 +57,16 @@ function AnchorRenderer({tnode, key, style}) {
     );
 }
 
-function CodeRenderer({
-    key, style, TDefaultRenderer, ...defaultRendererProps
-}) {
-    // We split wrapper and inner styles
-    // "boxModelStyle" corresponds to border, margin, padding and backgroundColor
-    const {boxModelStyle, otherStyle: textStyle} = splitBoxModelStyle(style);
+function CodeRenderer(htmlAttribs) {
     return (
-        <InlineCodeBlock
-            TDefaultRenderer={TDefaultRenderer}
-            boxModelStyle={boxModelStyle}
-            textStyle={textStyle}
-            defaultRendererProps={defaultRendererProps}
-            key={key}
-        />
+        <Text
+            style={{
+                ...webViewStyles.baseFontStyle,
+                ...webViewStyles.tagStyles.code,
+            }}
+        >
+            {htmlAttribs?.tnode?.data}
+        </Text>
     );
 }
 
