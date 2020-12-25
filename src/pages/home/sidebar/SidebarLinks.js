@@ -116,7 +116,7 @@ const SidebarLinks = (props) => {
                                 text: participantDetails ? participantDetails.displayName : report.reportName,
                                 alternateText: participantDetails ? participantDetails.login : '',
                                 type: participantDetails ? 'user' : 'report',
-                                icon: participantDetails ? participantDetails.avatarURL : '',
+                                icon: report.icon,
                                 login: participantDetails ? participantDetails.login : '',
                                 reportID: report.reportID,
                                 isUnread: report.unreadActionCount > 0,
