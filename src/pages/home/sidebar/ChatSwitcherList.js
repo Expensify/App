@@ -47,7 +47,7 @@ const ChatSwitcherList = ({
                 )}
                 extraData={focusedIndex}
                 ListFooterComponent={View}
-                ListFooterComponentStyle={[styles.p1]}
+                ListFooterComponentStyle={[styles.p3]}
             />
             <KeyboardSpacer />
         </View>
