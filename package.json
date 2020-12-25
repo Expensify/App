@@ -19,7 +19,7 @@
     "ios-build": "fastlane ios build",
     "android-build": "fastlane android build",
     "test": "jest",
-    "lint": "eslint . --config .eslintrc.js",
+    "lint": "eslint .",
     "postversion": "react-native-version",
     "print-version": "echo $npm_package_version",
     "detox-build": "detox build --configuration ios.sim.debug",
