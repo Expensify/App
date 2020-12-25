@@ -1,6 +1,9 @@
-// Reusable spacing utility styles loosely based on Bootstrap.
-// All styles should be incremented in units of 4
-// https://getbootstrap.com/docs/5.0/utilities/spacing
+/**
+ * Spacing utility styles with Bootstrap inspired naming.
+ * All styles should be incremented by units of 4.
+ *
+ * https://getbootstrap.com/docs/5.0/utilities/spacing
+ */
 export default {
     m0: {
         margin: 0,
