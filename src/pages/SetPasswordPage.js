@@ -2,11 +2,10 @@ import React, {Component} from 'react';
 import {
     SafeAreaView,
     Text,
-    TouchableOpacity,
     TextInput,
     Image,
     View,
-    ActivityIndicator,
+    Button,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -15,7 +14,6 @@ import lodashHas from 'lodash.has';
 import compose from '../libs/compose';
 import {Redirect, withRouter} from '../libs/Router';
 import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
 import logo from '../../assets/images/expensify-logo-round.png';
 import CustomStatusBar from '../components/CustomStatusBar';
 import {setPassword} from '../libs/actions/Session';
@@ -106,18 +104,12 @@ class SetPasswordPage extends Component {
                             />
                         </View>
                         <View>
-                            <TouchableOpacity
-                                style={[styles.button, styles.buttonSuccess, styles.mb4]}
+                            <Button
+                                containerStyles={[styles.mb4]}
                                 onPress={this.submitForm}
-                                underlayColor={themeColors.componentBG}
-                                disabled={this.state.isLoading}
-                            >
-                                {this.state.isLoading ? (
-                                    <ActivityIndicator color={themeColors.textReversed} />
-                                ) : (
-                                    <Text style={[styles.buttonText, styles.buttonSuccessText]}>Set Password</Text>
-                                )}
-                            </TouchableOpacity>
+                                isLoading={this.state.isLoading}
+                                text="Set Password"
+                            />
                         </View>
                         {this.state.formError && (
                             <Text style={[styles.formError]}>

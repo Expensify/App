@@ -13,6 +13,26 @@ const styles = {
         margin: 0,
     },
 
+    m1: {
+        margin: 4,
+    },
+
+    m2: {
+        margin: 8,
+    },
+
+    m3: {
+        margin: 12,
+    },
+
+    m4: {
+        margin: 16,
+    },
+
+    m5: {
+        margin: 20,
+    },
+
     mr0: {
         marginRight: 0,
     },
@@ -89,6 +109,13 @@ const styles = {
     },
     pr2: {
         paddingRight: 8,
+    },
+    pr5: {
+        paddingRight: 20,
+    },
+
+    pl5: {
+        paddingLeft: 20,
     },
 
     widthHeight100p: {
@@ -246,6 +273,7 @@ const styles = {
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
+        paddingHorizontal: 20,
     },
 
     buttonSmall: {
@@ -264,15 +292,6 @@ const styles = {
     buttonSuccess: {
         backgroundColor: themeColors.buttonSuccessBG,
         borderWidth: 0,
-    },
-
-    buttonConfirm: {
-        margin: 20,
-    },
-
-    buttonConfirmText: {
-        paddingLeft: 20,
-        paddingRight: 20,
     },
 
     buttonSuccessText: {
@@ -869,12 +888,6 @@ const styles = {
     chatSwticherPillWrapper: {
         marginTop: 5,
         marginRight: 4,
-    },
-
-    chatSwitcherGo: {
-        borderRadius: 6,
-        height: 32,
-        marginBottom: 3,
     },
 
     chatSwitcherMessage: {

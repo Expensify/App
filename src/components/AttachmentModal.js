@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {
-    View, TouchableOpacity, Text, Dimensions,
+    View, Dimensions,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '../CONST';
@@ -12,6 +12,7 @@ import themeColors from '../styles/themes/default';
 import variables from '../styles/variables';
 import ONYXKEYS from '../ONYXKEYS';
 import addAuthTokenToURL from '../libs/addAuthTokenToURL';
+import Button from './Button/Button';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -87,24 +88,14 @@ class AttachmentModal extends Component {
 
                     {/* If we have an onConfirm method show a confirmation button */}
                     {this.props.onConfirm && (
-                        <TouchableOpacity
-                            style={[styles.button, styles.buttonSuccess, styles.buttonConfirm]}
-                            underlayColor={themeColors.componentBG}
+                        <Button
+                            containerStyles={[styles.m5]}
+                            text="Upload"
                             onPress={() => {
                                 this.props.onConfirm(this.state.file);
                                 this.setState({isModalOpen: false});
                             }}
-                        >
-                            <Text
-                                style={[
-                                    styles.buttonText,
-                                    styles.buttonSuccessText,
-                                    styles.buttonConfirmText,
-                                ]}
-                            >
-                                Upload
-                            </Text>
-                        </TouchableOpacity>
+                        />
                     )}
                 </ModalWithHeader>
                 {this.props.children({

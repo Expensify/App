@@ -4,7 +4,6 @@ import {
     Image,
     TouchableOpacity,
     View,
-    Text
 } from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
@@ -15,6 +14,7 @@ import iconX from '../../../../assets/images/icon-x.png';
 import {getDisplayName} from '../../../libs/actions/PersonalDetails';
 import PillWithCancelButton from '../../../components/PillWithCancelButton';
 import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
+import Button from '../../../components/Button/Button';
 
 const propTypes = {
     // A ref to forward to the text input
@@ -115,21 +115,12 @@ const ChatSwitcherSearchForm = props => (
                         </View>
                     </View>
                     <View style={[styles.ml1, styles.flexJustifyEnd]}>
-                        <TouchableOpacity
-                            style={[styles.button, styles.buttonSmall, styles.buttonSuccess, styles.chatSwitcherGo]}
+                        <Button
+                            small
+                            text="Go"
+                            containerStyles={[styles.mb1]}
                             onPress={props.onConfirmUsers}
-                            underlayColor={themeColors.componentBG}
-                        >
-                            <Text
-                                style={[
-                                    styles.buttonText,
-                                    styles.buttonSmallText,
-                                    styles.buttonSuccessText
-                                ]}
-                            >
-                                Go
-                            </Text>
-                        </TouchableOpacity>
+                        />
                     </View>
                 </View>
             )

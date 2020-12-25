@@ -1,13 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {
-    ActivityIndicator, Text, TouchableOpacity, View
+    Text, TouchableOpacity, View
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import ONYXKEYS from '../../ONYXKEYS';
 import {restartSignin} from '../../libs/actions/Session';
+import Button from '../../components/Button/Button';
 
 const propTypes = {
     // The text for the button label
@@ -41,21 +42,12 @@ const SubmitButton = (props) => {
     const isLoading = props.isLoading && !props.session.error;
     return (
         <>
-            <TouchableOpacity
-                style={[styles.button, styles.buttonSuccess, styles.mb2]}
+            <Button
+                containerStyles={[styles.mb2]}
                 onPress={props.onClick}
-                underlayColor={themeColors.componentBG}
-                disabled={isLoading}
-            >
-                {isLoading ? (
-                    <ActivityIndicator color={themeColors.textReversed} />
-                ) : (
-                    <Text style={[styles.buttonText, styles.buttonSuccessText]}>
-                        {props.text}
-                    </Text>
-                )}
-            </TouchableOpacity>
-
+                text={props.text}
+                isLoading={isLoading}
+            />
             {props.showRestartButton && (
                 <View style={[styles.mb4]}>
                     <TouchableOpacity

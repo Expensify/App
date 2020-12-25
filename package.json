@@ -23,7 +23,8 @@
     "postversion": "react-native-version",
     "print-version": "echo $npm_package_version",
     "detox-build": "detox build --configuration ios.sim.debug",
-    "detox-test": "detox test --configuration ios.sim.debug"
+    "detox-test": "detox test --configuration ios.sim.debug",
+    "storybook": "start-storybook"
   },
   "dependencies": {
     "@babel/plugin-proposal-class-properties": "^7.12.1",
@@ -84,6 +85,7 @@
     "@babel/preset-react": "^7.10.4",
     "@babel/runtime": "^7.11.2",
     "@react-native-community/eslint-config": "^2.0.0",
+    "@storybook/react": "^6.1.11",
     "@testing-library/jest-native": "^3.4.2",
     "@testing-library/react-native": "^7.0.2",
     "babel-eslint": "^10.1.0",
@@ -94,6 +96,7 @@
     "babel-plugin-transform-class-properties": "^6.24.1",
     "clean-webpack-plugin": "^3.0.0",
     "copy-webpack-plugin": "^6.0.3",
+    "core-js": "^3.8.1",
     "detox": "^17.8.3",
     "electron": "^9.2.0",
     "electron-builder": "^22.8.0",
