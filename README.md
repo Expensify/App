@@ -70,6 +70,18 @@ You can use any IDE or code editing tool for developing on any platform. Use you
 ## Running the web app 🕸
 Contributors who don't have full-access to Expensify's development environment will need to run the app against the production API.
 * In the `.env` file set the `USE_WEB_PROXY` environment variable to `true` to indicate the proxy should be used
+* Add `127.0.0.1 expensify.cash.dev` to your hosts file (We recommend using [Gas Mask](https://github.com/2ndalpha/gasmask) to manage your hosts file)
+* Generate SSL certs for `expensify.cash.dev` by running the following:
+
+```
+brew install mkcert
+brew install nss
+mkcert -install
+mkcert expensify.cash.dev
+```
+
+**Note:** If you are using an operating system other than macOS please follow the `mkcert` installation instructions [here](https://github.com/FiloSottile/mkcert#installation)
+
 * To run the web app, run the **Development Server**: `npm run proxy`
 * Changes applied to Javascript will be applied automatically via WebPack as configured in `webpack.dev.js`
 
