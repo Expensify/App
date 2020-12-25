@@ -9,7 +9,6 @@ const propTypes = {
     small: PropTypes.bool,
     success: PropTypes.bool,
     containerStyles: PropTypes.arrayOf(PropTypes.object),
-    textStyles: PropTypes.arrayOf(PropTypes.object),
     text: PropTypes.string.isRequired,
     isLoading: PropTypes.bool,
 };
@@ -19,7 +18,6 @@ const defaulProps = {
     small: false,
     success: true,
     containerStyles: [],
-    textStyles: [],
     isLoading: false,
 };
 
@@ -51,10 +49,7 @@ const Button = (props) => {
                 <ActivityIndicator color={themeColors.textReversed} />
             ) : (
                 <Text
-                    style={[
-                        ...textStyles,
-                        ...props.textStyles,
-                    ]}
+                    style={textStyles}
                 >
                     {props.text}
                 </Text>
