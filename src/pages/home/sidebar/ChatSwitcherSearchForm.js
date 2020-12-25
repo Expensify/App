@@ -93,7 +93,7 @@ const ChatSwitcherSearchForm = props => (
                                     styles.chatSwitcherInputGroup,
                                     styles.flexRow,
                                     styles.flexGrow1,
-                                    styles.flexAlignSelfStretch,
+                                    styles.alignSelfStretch,
                                 ]}
                             >
                                 <TextInputWithFocusStyles
@@ -114,7 +114,7 @@ const ChatSwitcherSearchForm = props => (
                             </View>
                         </View>
                     </View>
-                    <View style={[styles.ml1, styles.flexJustifyEnd]}>
+                    <View style={[styles.ml1, styles.justifyContentEnd]}>
                         <TouchableOpacity
                             style={[styles.button, styles.buttonSmall, styles.buttonSuccess, styles.chatSwitcherGo]}
                             onPress={props.onConfirmUsers}

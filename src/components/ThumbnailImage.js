@@ -64,7 +64,7 @@ class ThumbnailImage extends Component {
                         height: this.state.thumbnailHeight,
                     },
                     styles.alignItemsCenter,
-                    styles.flexJustifyCenter,
+                    styles.justifyContentCenter,
                     styles.overflowHidden,
                 ]}
             >

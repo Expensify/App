@@ -6,93 +6,19 @@ import themeColors from './themes/default';
 import fontWeightBold from './fontWeight/bold';
 import variables from './variables';
 import colors from './colors';
-import spacingUtilityStyles from './utilities/spacing';
+import spacing from './utilities/spacing';
+import sizing from './utilities/sizing';
+import flex from './utilities/flex';
+import display from './utilities/display';
+import overflow from './utilities/overflow';
 
 const styles = {
-    ...spacingUtilityStyles,
-    widthHeight100p: {
-        width: '100%',
-        height: '100%',
-    },
-    width50p: {
-        width: '50%',
-    },
-
-    flex0: {
-        flex: 0,
-    },
-
-    flex1: {
-        flex: 1,
-    },
-
-    flex4: {
-        flex: 4,
-    },
-
-    flexRow: {
-        flexDirection: 'row',
-    },
-
-    flexColumn: {
-        flexDirection: 'column',
-    },
-
-    flexJustifyCenter: {
-        justifyContent: 'center',
-    },
-
-    flexJustifyEnd: {
-        justifyContent: 'flex-end',
-    },
-
-    flexJustifySpaceBetween: {
-        justifyContent: 'space-between',
-    },
-
-    flexAlignSelfStretch: {
-        alignSelf: 'stretch',
-    },
-
-    alignItemsCenter: {
-        alignItems: 'center',
-    },
-
-    flexWrap: {
-        flexWrap: 'wrap',
-    },
-
-    flexGrow0: {
-        flexGrow: 0,
-    },
-
-    flexGrow1: {
-        flexGrow: 1,
-    },
-
-    flexGrow4: {
-        flexGrow: 4,
-    },
-
-    dFlex: {
-        display: 'flex',
-    },
-
-    dNone: {
-        display: 'none',
-    },
-
-    dInlineBlock: {
-        display: 'inline-block',
-    },
-
-    overflowHidden: {
-        overflow: 'hidden',
-    },
-
-    height100percent: {
-        height: '100%',
-    },
+    // Add all of our utility and helper styles
+    ...spacing,
+    ...sizing,
+    ...flex,
+    ...display,
+    ...overflow,
 
     link: {
         color: themeColors.link,

@@ -55,7 +55,7 @@ const ChatLinkRow = ({
             style={[
                 styles.flexRow,
                 styles.alignItemsCenter,
-                styles.flexJustifySpaceBetween,
+                styles.justifyContentBetween,
                 styles.sidebarLink,
                 styles.sidebarLinkInner,
                 optionIsFocused ? styles.sidebarLinkActive : null
