@@ -1,3 +1,4 @@
+const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack');
 const {merge} = require('webpack-merge');
@@ -25,6 +26,10 @@ module.exports = (parameters = {}) => {
         devServer: {
             contentBase: path.join(__dirname, '../dist'),
             hot: true,
+            host: 'expensify.cash.dev',
+            https: true,
+            key: fs.readFileSync(path.resolve(__dirname, '../../expensify.cash.dev-key.pem')),
+            cert: fs.readFileSync(path.resolve(__dirname, '../../expensify.cash.dev.pem')),
             ...proxySettings,
         },
         plugins: [

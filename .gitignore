@@ -68,3 +68,7 @@ fastlane/screenshots
 
 # Local DEV config
 /.env
+
+# Local DEV SSL certs
+expensify.cash.dev.pem
+expensify.cash.dev-key.pem
