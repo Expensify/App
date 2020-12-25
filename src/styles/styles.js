@@ -1,4 +1,3 @@
-// We place items a percentage to the safe area on the top or bottom of the screen
 import fontFamily from './fontFamily';
 import italic from './italic';
 import addOutlineWidth from './addOutlineWidth';
