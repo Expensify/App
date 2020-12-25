@@ -6,91 +6,10 @@ import themeColors from './themes/default';
 import fontWeightBold from './fontWeight/bold';
 import variables from './variables';
 import colors from './colors';
+import spacingUtilityStyles from './utilities/spacing';
 
 const styles = {
-    // Utility classes
-    m0: {
-        margin: 0,
-    },
-
-    mr0: {
-        marginRight: 0,
-    },
-
-    mr1: {
-        marginRight: 4,
-    },
-
-    mr2: {
-        marginRight: 8,
-    },
-
-    mr3: {
-        marginRight: 12,
-    },
-
-    ml1: {
-        marginLeft: 4,
-    },
-
-    ml2: {
-        marginLeft: 8,
-    },
-
-    mt1: {
-        marginTop: 4,
-    },
-    mt2: {
-        marginTop: 8,
-    },
-    mt3: {
-        marginTop: 12,
-    },
-    mt4: {
-        marginTop: 16,
-    },
-    mt5: {
-        marginTop: 20,
-    },
-    mt6: {
-        marginTop: 24,
-    },
-
-    mb1: {
-        marginBottom: 4,
-    },
-    mb2: {
-        marginBottom: 8,
-    },
-    mb3: {
-        marginBottom: 12,
-    },
-    mb4: {
-        marginBottom: 16,
-    },
-    mb5: {
-        marginBottom: 20,
-    },
-    mb6: {
-        marginBottom: 24,
-    },
-    mbn5: {
-        marginBottom: -5,
-    },
-
-    p1: {
-        padding: 10,
-    },
-    p2: {
-        padding: 20,
-    },
-    pr1: {
-        paddingRight: 4,
-    },
-    pr2: {
-        paddingRight: 8,
-    },
-
+    ...spacingUtilityStyles,
     widthHeight100p: {
         width: '100%',
         height: '100%',
