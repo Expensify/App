@@ -466,31 +466,23 @@ class ChatSwitcherView extends React.Component {
             }
         }
 
-        let options = Array.from(matches);
+        const options = Array.from(matches);
         if (options.length === 0) {
-            const searchStr = value;
-            if (searchStr && searchStr.includes('@') && Str.isValidEmail(searchStr)) {
-                options = [{
-                    text: searchStr,
-                    alternateText: searchStr,
+            if (value && (Str.isValidEmail(value) || Str.isValidPhone(value))) {
+                let login = value;
+                if (Str.isValidPhone(value)) {
+                    // If the phone number doesn't have an international code then let's prefix it with the
+                    // current users international code based on their IP address.
+                    login = value.includes('+') ? value : `+${this.props.countryCodeByIP}${value}`;
+                }
+                options.push({
+                    text: login,
+                    alternateText: login,
                     singleUserDM: true,
                     type: CONST.OPTION_TYPE.PERSONAL_DETAIL,
-                    keyForList: searchStr,
-                    login: searchStr,
-                }];
-            }
-
-            const isPhoneNumber = /^[+|\d]+$/.test(searchStr);
-            if (searchStr && isPhoneNumber && Str.isValidPhone(searchStr)) {
-                const phoneNumber = searchStr.includes('+') ? searchStr : `+${this.props.countryCodeByIP}${searchStr}`;
-                options = [{
-                    text: phoneNumber,
-                    alternateText: phoneNumber,
-                    singleUserDM: true,
-                    type: CONST.OPTION_TYPE.PERSONAL_DETAIL,
-                    keyForList: phoneNumber,
-                    login: searchStr,
-                }];
+                    keyForList: login,
+                    login,
+                });
             }
         }
 
