@@ -139,8 +139,9 @@ function signIn(password, exitTo, twoFactorAuthCode) {
                     setSuccessfulSignInData(createLoginResponse, exitTo);
 
                     // If we have an old login for some reason, we should delete it before storing the new details
-                    if (credentials.login) {
+                    if (credentials.login && credentials.password) {
                         API.DeleteLogin({
+                            authToken: authenticateResponse.authToken,
                             partnerUserID: credentials.login,
                             partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
                             partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
@@ -149,7 +150,7 @@ function signIn(password, exitTo, twoFactorAuthCode) {
                             .catch(console.debug);
                     }
 
-                    Onyx.merge(ONYXKEYS.CREDENTIALS, {password});
+                    Onyx.merge(ONYXKEYS.CREDENTIALS, {login, password: temporaryPassword});
                 })
                 .catch((error) => {
                     Onyx.merge(ONYXKEYS.SESSION, {error: error.message});
