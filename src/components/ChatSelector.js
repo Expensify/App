@@ -1,33 +1,48 @@
-import _ from 'underscore';
 import React from 'react';
 import Str from 'expensify-common/lib/str';
-import {View, SectionList, Text} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import ModalHeader from './ModalHeader';
 import styles from '../styles/styles';
-import SubHeader from './SubHeader';
-import ChatLinkRow from '../pages/home/sidebar/ChatLinkRow';
-import KeyboardSpacer from './KeyboardSpacer';
-import ONYXKEYS from '../ONYXKEYS';
+import themeColors from '../styles/themes/default';
+import TextInputWithFocusStyles from './TextInputWithFocusStyles';
 import {getDefaultAvatar} from '../libs/actions/PersonalDetails';
-import {filterChatSearchOptions, getChatSearchState} from '../libs/SearchUtils';
-import ChatSearchInput from '../components/ChatSearchInput';
-import CONST from '../CONST';
+import {getChatListOptions} from '../libs/SearchUtils';
+import ChatSectionList from './ChatSectionList';
+import ONYXKEYS from '../ONYXKEYS';
 
 const propTypes = {
-    selectedOptions: PropTypes.array,
+    selectedOptions: PropTypes.arrayOf(PropTypes.string),
     canSelectMultipleOptions: PropTypes.bool,
     showContacts: PropTypes.bool,
-    showRecents: PropTypes.bool,
+    showRecentChats: PropTypes.bool,
     headerTitle: PropTypes.string.isRequired,
+    onClose: PropTypes.func,
+    placeholderText: PropTypes.string,
+    hideSectionHeaders: PropTypes.bool,
+    includeGroupChats: PropTypes.bool,
+    canInviteUsers: PropTypes.bool,
+    numberOfRecentChatsToShow: PropTypes.number,
+    onSelectOption: PropTypes.func,
+    onFocus: PropTypes.func,
+    onBackspacePress: PropTypes.func,
 };
 
 const defaultProps = {
     selectedOptions: [],
     canSelectMultipleOptions: false,
-    showContacts: true,
-    showRecents: false,
+    showContacts: false,
+    showRecentChats: false,
+    numberOfRecentChatsToShow: 5,
+    onClose: () => {},
+    placeholderText: 'Name, email or phone number',
+    hideSectionHeaders: false,
+    includeGroupChats: false,
+    canInviteUsers: false,
+    onSelectOption: () => {},
+    onFocus: () => {},
+    onBackspacePress: () => {},
 };
 
 class ChatSelector extends React.Component {
@@ -36,12 +51,13 @@ class ChatSelector extends React.Component {
 
         this.updateOptions = this.updateOptions.bind(this);
         this.selectOption = this.selectOption.bind(this);
+        this.handleKeyPress = this.handleKeyPress.bind(this);
 
-        const {contacts, recentUsers} = this.getInitialOptions();
+        const {contacts, recentChats} = this.getChatListOptions();
 
         this.state = {
             contacts,
-            recentUsers,
+            recentChats,
             focusedIndex: 0,
             searchValue: '',
             userToInvite: null,
@@ -58,24 +74,35 @@ class ChatSelector extends React.Component {
         }
     }
 
-    getInitialOptions() {
-        const personalDetails = this.props.showContacts ? this.props.personalDetails : {};
-        const reports = this.props.showRecents ? this.props.reports : {};
+    getChatListOptions(searchValue = '') {
         const selectedOptions = this.props.canSelectMultipleOptions ? this.props.selectedOptions : [];
-        return getChatSearchState(personalDetails, reports, selectedOptions);
+        return getChatListOptions(
+            this.props.personalDetails,
+            this.props.reports,
+            {},
+            {
+                searchValue,
+                includeContacts: this.props.showContacts,
+                includeRecentChats: this.props.showRecentChats,
+                includeGroupChats: this.props.includeGroupChats,
+                numberOfRecentChatsToShow: this.props.numberOfRecentChatsToShow,
+                selectedOptions,
+            }
+        );
     }
 
     updateOptions(searchValue) {
-        const {contacts, recentUsers} = this.getInitialOptions();
-        let filteredContacts = filterChatSearchOptions(searchValue, contacts);
-        let filteredRecentUsers = filterChatSearchOptions(searchValue, recentUsers);
-        const totalResultsLength = filteredContacts.length + filteredRecentUsers.length;
+        const {contacts, recentChats} = this.getChatListOptions(searchValue);
+        const totalResultsLength = contacts.length + recentChats.length;
         let userToInvite = null;
 
-        if (totalResultsLength === 0 && Str.isValidEmail(searchValue) || Str.isValidPhone(searchValue)) {
+        if (
+            this.props.canInviteUsers
+            && totalResultsLength === 0
+            && (Str.isValidEmail(searchValue) || Str.isValidPhone(searchValue))
+        ) {
             // Check to see if the search value is a valid email or phone
             userToInvite = {
-                type: CONST.REPORT.SINGLE_USER_DM,
                 login: searchValue,
                 text: searchValue,
                 alternateText: searchValue,
@@ -85,8 +112,8 @@ class ChatSelector extends React.Component {
 
         this.setState({
             searchValue,
-            contacts: filteredContacts,
-            recentUsers: filteredRecentUsers,
+            contacts,
+            recentChats,
             userToInvite,
         });
     }
@@ -95,8 +122,81 @@ class ChatSelector extends React.Component {
         this.props.onSelectOption(option);
     }
 
+    /**
+     * Delegate key presses to specific callbacks
+     *
+     * @param {SyntheticEvent} e
+     */
+    handleKeyPress(e) {
+        const totalLengthOfData = this.props.selectedOptions.length
+            + this.state.recentChats.length
+            + this.state.contacts.length;
+
+        switch (e.nativeEvent.key) {
+            case 'Enter': {
+                const allOptions = this.props.selectedOptions
+                    .concat(this.state.recentChats, this.state.contacts);
+                this.selectOption(allOptions[this.state.focusedIndex]);
+                e.preventDefault();
+                break;
+            }
+
+            case 'Backspace': {
+                this.props.onBackspacePress();
+                break;
+            }
+
+            case 'ArrowDown': {
+                this.setState((prevState) => {
+                    let newFocusedIndex = prevState.focusedIndex + 1;
+
+                    // Wrap around to the top of the list
+                    if (newFocusedIndex > totalLengthOfData - 1) {
+                        newFocusedIndex = 0;
+                    }
+
+                    return {focusedIndex: newFocusedIndex};
+                });
+
+
+                e.preventDefault();
+                break;
+            }
+
+            case 'ArrowUp': {
+                this.setState((prevState) => {
+                    let newFocusedIndex = prevState.focusedIndex - 1;
+
+                    // Wrap around to the bottom of the list
+                    if (newFocusedIndex < 0) {
+                        newFocusedIndex = totalLengthOfData - 1;
+                    }
+
+                    return {focusedIndex: newFocusedIndex};
+                });
+                e.preventDefault();
+                break;
+            }
+
+            case 'Tab':
+            case 'Escape': {
+                const {contacts, recentChats} = this.getChatListOptions('');
+                this.setState({
+                    searchValue: '',
+                    contacts,
+                    recentChats,
+                    focusedIndex: 0,
+                });
+                break;
+            }
+
+            default:
+                this.props.onFocus(e);
+        }
+    }
+
     render() {
-        const hasSelectableOptions = (this.state.recentUsers.length + this.state.contacts.length) > 0;
+        const hasSelectableOptions = (this.state.recentChats.length + this.state.contacts.length) > 0;
         const sections = [
             {
                 title: undefined,
@@ -106,17 +206,17 @@ class ChatSelector extends React.Component {
             },
         ];
 
-        if (this.props.showRecents) {
+        if (this.props.showRecentChats) {
             sections.push({
                 title: 'RECENTS',
-                data: this.state.recentUsers,
+                data: this.state.recentChats,
                 indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
                 shouldShow: hasSelectableOptions,
             });
         }
 
         if (this.props.showContacts) {
-            sections.push(            {
+            sections.push({
                 title: 'CONTACTS',
                 data: this.state.contacts,
                 indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
@@ -133,95 +233,38 @@ class ChatSelector extends React.Component {
             });
         }
 
-        const totalLengthOfData =
-            this.props.selectedOptions.length +
-            this.state.recentUsers.length +
-            this.state.contacts.length;
-
         return (
             <View style={styles.flex1}>
-                <ModalHeader title={this.props.headerTitle} />
+                <ModalHeader
+                    title={this.props.headerTitle}
+                    onCloseButtonPress={this.props.onClose}
+                />
                 <View style={styles.p2}>
-                    <ChatSearchInput
+                    <TextInputWithFocusStyles
+                        styleFocusIn={[styles.textInputReversedFocus]}
                         ref={el => this.textInput = el}
-                        onChange={this.updateOptions}
+                        style={[styles.textInput, styles.flex1]}
                         value={this.state.searchValue}
-                        placeholder="Name, email or phone number"
-                        onEnterPress={() => {
-                            const allOptions = this.props.selectedOptions
-                                .concat(this.state.recentUsers, this.state.contacts);
-                            this.selectOption(allOptions[this.state.focusedIndex]);
-                        }}
-                        onArrowDownPress={() => {
-                            let newFocusedIndex = this.state.focusedIndex + 1;
-
-                            // Wrap around to the top of the list
-                            if (newFocusedIndex > totalLengthOfData - 1) {
-                                newFocusedIndex = 0;
-                            }
-
-                            this.setState({focusedIndex: newFocusedIndex});
-                        }}
-                        onArrowUpPress={() => {
-                            let newFocusedIndex = this.state.focusedIndex - 1;
-
-                            // Wrap around to the bottom of the list
-                            if (newFocusedIndex < 0) {
-                                newFocusedIndex = totalLengthOfData - 1;
-                            }
-
-                            this.setState({focusedIndex: newFocusedIndex});
-                        }}
-                        onEscapePress={() => {
-                            const {contacts, recentUsers} = this.getInitialOptions();
-                            this.setState({
-                                searchValue: '',
-                                contacts,
-                                recentUsers,
-                                focusedIndex: 0,
-                            });
-                        }}
+                        onChangeText={this.updateOptions}
+                        onKeyPress={this.handleKeyPress}
+                        placeholder={this.props.placeholderText}
+                        placeholderTextColor={themeColors.textSupporting}
                     />
                 </View>
-
-                {/* From ChatSwitcherList */}
-                <View style={[styles.flex1]}>
-                    {!hasSelectableOptions && (
-                        <View style={[styles.ph2]}>
-                            <Text style={[styles.textLabel]}>
-                                Don't see who you're looking for? Type their email or phone number to invite them to chat.
-                            </Text>
-                        </View>
-                    )}
-                    <SectionList
-                        contentContainerStyle={styles.flex1}
-                        keyboardShouldPersistTaps="always"
-                        showsVerticalScrollIndicator={false}
-                        sections={sections}
-                        keyExtractor={option => option.keyForList}
-                        renderItem={({item, index, section}) => (
-                            <ChatLinkRow
-                                option={item}
-                                optionIsFocused={this.state.focusedIndex === (index + section.indexOffset)}
-                                onSelectRow={this.selectOption}
-                                isChatSwitcher={false}
-                                isSelected={_.find(this.props.selectedOptions, (option) => option.login === item.login)}
-                                showSelectedState={this.props.canSelectMultipleOptions}
-                            />
-                        )}
-                        renderSectionHeader={({section: {title, shouldShow}}) => {
-                            if (title && shouldShow) {
-                                return <SubHeader text={title} />;
-                            }
-
-                            return <View style={styles.mt1}/>;
-                        }}
-                        extraData={this.state.focusedIndex}
-                        ListFooterComponent={View}
-                        ListFooterComponentStyle={[styles.p1]}
-                    />
-                    <KeyboardSpacer />
-                </View>
+                <ChatSectionList
+                    sections={sections}
+                    onSelectRow={this.selectOption}
+                    headerMessage={
+                        (!hasSelectableOptions && this.props.canInviteUsers)
+                            // eslint-disable-next-line max-len
+                            ? 'Don\'t see who you\'re looking for? Type their email or phone number to invite them to chat.'
+                            : ''
+                    }
+                    focusedIndex={this.state.focusedIndex}
+                    selectedOptions={this.props.selectedOptions}
+                    canSelectMultipleOptions={this.props.canSelectMultipleOptions}
+                    hideSectionHeaders={this.props.hideSectionHeaders}
+                />
             </View>
         );
     }

@@ -1,17 +1,19 @@
 import React from 'react';
-import {View, ScrollView} from 'react-native';
+import {View} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
-import lodashOrderby from 'lodash.orderby';
-import get from 'lodash.get';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/styles';
 import ONYXKEYS from '../../../ONYXKEYS';
-import ChatSwitcherView from './ChatSwitcherView';
+import ChatSelector from '../../../components/ChatSelector';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
 import compose from '../../../libs/compose';
 import {withRouter} from '../../../libs/Router';
-import ChatLinkRow from './ChatLinkRow';
+import ChatSectionList from '../../../components/ChatSectionList';
+import * as ChatSwitcher from '../../../libs/actions/ChatSwitcher';
+import {redirect} from '../../../libs/actions/App';
+import ROUTES from '../../../ROUTES';
+import {getChatListOptions} from '../../../libs/SearchUtils';
 
 const propTypes = {
     // These are from withRouter
@@ -56,78 +58,58 @@ const defaultProps = {
 
 const SidebarLinks = (props) => {
     const reportIDInUrl = parseInt(props.match.params.reportID, 10);
-    const sortedReports = lodashOrderby(props.reports, [
-        'isPinned',
-        'reportName'
-    ], [
-        'desc',
-        'asc'
-    ]);
-
-    /**
-     * Check if the report has a draft comment
-     *
-     * @param {Number} reportID
-     * @returns {Boolean}
-     */
-    function hasComment(reportID) {
-        const allComments = get(props.comments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, '');
-        return allComments.length > 0;
-    }
-
-    // Filter the reports so that the only reports shown are pinned, unread, have draft
-    // comments (but are not the open one), and the one matching the URL
-    const reportsToDisplay = _.filter(sortedReports, report => (report.isPinned || (report.unreadActionCount > 0)
-            || report.reportID === reportIDInUrl
-            || (report.reportID !== reportIDInUrl && hasComment(report.reportID))));
-
-    // Update styles to hide the report links if they should not be visible
-    const sidebarLinksStyle = !props.isChatSwitcherActive
-        ? [styles.sidebarListContainer]
-        : [styles.sidebarListContainer, styles.dNone];
-
     const chatSwitcherStyle = props.isChatSwitcherActive
         ? [styles.sidebarHeader, styles.sidebarHeaderActive]
         : [styles.sidebarHeader];
 
+    const {recentChats} = getChatListOptions(
+        props.personalDetails,
+        props.reports,
+        props.comments,
+        {
+            includeRecentChats: true,
+            numberOfRecentChatsToShow: 50,
+            showPinnedChatsOnTop: true,
+        }
+    );
+
+    const sections = [{
+        title: '',
+        indexOffset: 0,
+        data: recentChats,
+        shouldShow: true,
+    }];
+
     return (
         <View style={[styles.flex1, styles.height100percent, {marginTop: props.insets.top}]}>
             <View style={[chatSwitcherStyle]}>
-                <ChatSwitcherView
-                    onLinkClick={props.onLinkClick}
-                    isChatSwitcherActive={props.isChatSwitcherActive}
-                />
+                {props.isChatSwitcherActive && (
+                    <ChatSelector
+                        headerTitle="Search"
+                        placeholderText="Find a chat"
+                        hideSectionHeaders
+                        showRecentChats
+                        includeGroupChats
+                        numberOfRecentChatsToShow={50}
+                        onSelectRow={props.onLinkClick}
+                        onClose={() => {
+                            ChatSwitcher.hide();
+                        }}
+                    />
+                )}
             </View>
-            <ScrollView
-                keyboardShouldPersistTaps="always"
-                style={sidebarLinksStyle}
-                bounces={false}
-                indicatorStyle="white"
-            >
-                {/* A report will not have a report name if it hasn't been fetched from the server yet */}
-                {/* so nothing is rendered */}
-                {_.map(reportsToDisplay, (report) => {
-                    const participantDetails = get(report, 'participants.length', 0) === 1
-                        ? get(props.personalDetails, report.participants[0], '') : '';
-                    return report.reportName && (
-                        <ChatLinkRow
-                            key={report.reportID}
-                            option={{
-                                text: participantDetails ? participantDetails.displayName : report.reportName,
-                                alternateText: participantDetails ? participantDetails.login : '',
-                                type: participantDetails ? 'user' : 'report',
-                                icon: participantDetails ? participantDetails.avatarURL : '',
-                                login: participantDetails ? participantDetails.login : '',
-                                reportID: report.reportID,
-                                isUnread: report.unreadActionCount > 0,
-                                hasDraftComment: report.reportID !== reportIDInUrl && hasComment(report.reportID)
-                            }}
-                            onSelectRow={props.onLinkClick}
-                            optionIsFocused={report.reportID === reportIDInUrl}
-                        />
-                    );
-                })}
-            </ScrollView>
+            {!props.isChatSwitcherActive && (
+                <ChatSectionList
+                    contentContainerStyles={[styles.sidebarListContainer]}
+                    sections={sections}
+                    focusedIndex={_.indexOf(recentChats, option => option.reportID === reportIDInUrl)}
+                    onSelectRow={(option) => {
+                        redirect(ROUTES.getReportRoute(option.reportID));
+                        props.onLinkClick();
+                    }}
+                    hideSectionHeaders
+                />
+            )}
         </View>
     );
 };

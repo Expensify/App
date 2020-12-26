@@ -20,6 +20,7 @@ const reconnectionCallbacks = [];
  * Loop over all reconnection callbacks and fire each one
  */
 const triggerReconnectionCallbacks = _.throttle(() => {
+    return;
     _.each(reconnectionCallbacks, callback => callback());
 }, 5000, {trailing: false});
 

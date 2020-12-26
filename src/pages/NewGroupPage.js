@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import ChatSelector from '../components/ChatSelector';
 
@@ -24,7 +25,7 @@ class NewGroupPage extends React.Component {
     /**
      * Removes a user from the usersToStartGroupReportWith array
      *
-     * @param {Object} [optionToRemove] remove last when no option provided
+     * @param {Object} [selectedOption] remove last when no option provided
      */
     removeUserFromGroup(selectedOption) {
         this.setState(prevState => ({
@@ -40,7 +41,10 @@ class NewGroupPage extends React.Component {
         return (
             <ChatSelector
                 headerTitle="New Group"
-                showRecents
+                showContacts
+                showRecentChats
+                numberOfRecentChatsToShow={5}
+                canInviteUsers
                 canSelectMultipleOptions
                 selectedOptions={this.state.usersToStartGroupReportWith}
                 onSelectOption={(option) => {

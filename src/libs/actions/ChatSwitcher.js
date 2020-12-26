@@ -15,6 +15,9 @@ function show() {
     Onyx.set(ONYXKEYS.IS_CHAT_SWITCHER_ACTIVE, true);
 }
 
+window.show = show;
+window.hide = hide;
+
 export {
     hide,
     show,

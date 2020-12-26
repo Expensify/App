@@ -4,16 +4,13 @@ import PropTypes from 'prop-types';
 import {
     Image,
     Text,
-    TouchableOpacity,
     View,
     StyleSheet,
 } from 'react-native';
 import styles from '../../../styles/styles';
 import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
-import ROUTES from '../../../ROUTES';
 import pencilIcon from '../../../../assets/images/icon-pencil.png';
 import PressableLink from '../../../components/PressableLink';
-import CONST from '../../../CONST';
 
 const propTypes = {
     // Option to allow the user to choose from can be type 'report' or 'user'
@@ -25,28 +22,25 @@ const propTypes = {
     // A function that is called when an option is selected. Selected option is passed as a param
     onSelectRow: PropTypes.func.isRequired,
 
-    // Callback that adds a user to the pending list of Group DM users
-    onAddToGroup: PropTypes.func,
+    // Denotes whether this row has been selected (for use in multiple selection mode)
+    isSelected: PropTypes.bool,
 
-    // A flag to indicate whether this comes from the Chat Switcher so we can display the group button
-    isChatSwitcher: PropTypes.bool,
+    // Whether we should include the selected state for the row or not
+    showSelectedState: PropTypes.bool,
 };
 
 const defaultProps = {
-    onAddToGroup: () => {},
-    isChatSwitcher: false,
+    isSelected: false,
+    showSelectedState: false,
 };
 
 const ChatLinkRow = ({
     option,
     optionIsFocused,
     onSelectRow,
-    onAddToGroup,
-    isChatSwitcher,
     isSelected,
     showSelectedState,
 }) => {
-    const isSingleUserDM = option.type === CONST.REPORT.SINGLE_USER_DM;
     const textStyle = optionIsFocused
         ? styles.sidebarLinkActiveText
         : styles.sidebarLinkText;
@@ -65,7 +59,6 @@ const ChatLinkRow = ({
         >
             <PressableLink
                 onClick={() => onSelectRow(option)}
-                // to={ROUTES.getReportRoute(option.reportID)}
                 style={StyleSheet.flatten([
                     styles.chatLinkRowPressable,
                     styles.flexGrow1,
@@ -110,21 +103,6 @@ const ChatLinkRow = ({
                     </View>
                 </View>
             </PressableLink>
-            {isSingleUserDM && isChatSwitcher && (
-                <View>
-                    <TouchableOpacity
-                        style={[styles.chatSwitcherItemButton]}
-                        onPress={() => onAddToGroup(option)}
-                    >
-                        <Text
-                            style={[styles.chatSwitcherItemButtonText]}
-                            numberOfLines={1}
-                        >
-                            Add
-                        </Text>
-                    </TouchableOpacity>
-                </View>
-            )}
             {showSelectedState && isSelected && (
                 <Text>Selected</Text>
             )}
