@@ -26,7 +26,9 @@ module.exports = (parameters = {}) => {
         devServer: {
             contentBase: path.join(__dirname, '../dist'),
             hot: true,
-            host: 'expensify.cash.dev',
+            public: 'expensify.cash.dev',
+            host: '0.0.0.0',
+            port: 443,
             https: true,
             key: fs.readFileSync(path.resolve(__dirname, '../../expensify.cash.dev-key.pem')),
             cert: fs.readFileSync(path.resolve(__dirname, '../../expensify.cash.dev.pem')),
