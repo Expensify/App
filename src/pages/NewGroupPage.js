@@ -12,28 +12,12 @@ class NewGroupPage extends React.Component {
     }
 
     /**
-     * Adds a user to the usersToStartGroupReportWith array
-     *
      * @param {Object} option
      */
-    addUserToGroup(option) {
+    toggleUser(option) {
+        // Doesn't toggle yet just adds them for now...
         this.setState(prevState => ({
             usersToStartGroupReportWith: [...prevState.usersToStartGroupReportWith, option],
-        }));
-    }
-
-    /**
-     * Removes a user from the usersToStartGroupReportWith array
-     *
-     * @param {Object} [selectedOption] remove last when no option provided
-     */
-    removeUserFromGroup(selectedOption) {
-        this.setState(prevState => ({
-            usersToStartGroupReportWith: _.reduce(prevState.usersToStartGroupReportWith, (users, option) => (
-                option.login === selectedOption.login
-                    ? users
-                    : [...users, option]
-            ), []),
         }));
     }
 
@@ -48,10 +32,7 @@ class NewGroupPage extends React.Component {
                 canSelectMultipleOptions
                 selectedOptions={this.state.usersToStartGroupReportWith}
                 onSelectOption={(option) => {
-                    this.addUserToGroup(option);
-                }}
-                onRemoveOption={(option) => {
-                    this.removeUserFromGroup(option);
+                    this.toggleUser(option);
                 }}
             />
         );

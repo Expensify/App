@@ -103,6 +103,8 @@ const ChatLinkRow = ({
                     </View>
                 </View>
             </PressableLink>
+
+            {/* Temporary UI here this would be the green circle and checkmark eventually */}
             {showSelectedState && isSelected && (
                 <Text>Selected</Text>
             )}
