@@ -238,6 +238,9 @@ class App extends React.Component {
                                             onHamburgerButtonClicked={this.toggleHamburger}
                                         />
                                         <Main />
+
+                                        {/* This is temporary and these will be updated to open modally when
+                                        they mount for now they take the place of the report view */}
                                         <Route path={ROUTES.NEW_CHAT}>
                                             <NewChatPage />
                                         </Route>
