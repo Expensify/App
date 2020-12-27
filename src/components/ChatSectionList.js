@@ -46,7 +46,7 @@ const ChatSectionList = ({
                     return <SubHeader text={title} />;
                 }
 
-                return <View style={styles.mt1}/>;
+                return <View style={styles.mt1} />;
             }}
             extraData={focusedIndex}
             ListFooterComponent={View}
@@ -57,4 +57,3 @@ const ChatSectionList = ({
 );
 
 export default ChatSectionList;
-

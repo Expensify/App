@@ -71,7 +71,6 @@ class ChatSelector extends React.Component {
     }
 
     getChatListOptions(searchValue = '') {
-        const selectedOptions = this.props.canSelectMultipleOptions ? this.props.selectedOptions : [];
         return getChatListOptions(
             this.props.personalDetails,
             this.props.reports,
@@ -82,9 +81,48 @@ class ChatSelector extends React.Component {
                 includeRecentChats: this.props.showRecentChats,
                 includeGroupChats: this.props.includeGroupChats,
                 numberOfRecentChatsToShow: this.props.numberOfRecentChatsToShow,
-                selectedOptions,
+                selectedOptions: this.props.selectedOptions,
             }
         );
+    }
+
+    getSections() {
+        const sections = [];
+
+        sections.push(this.createSection(
+            undefined,
+            this.props.selectedOptions,
+            sections
+        ));
+
+        if (this.props.showRecentChats) {
+            sections.push(this.createSection(
+                'RECENTS',
+                this.state.recentChats,
+                this.state.recentChats.length > 0,
+                sections
+            ));
+        }
+
+        if (this.props.showContacts) {
+            sections.push(this.createSection(
+                'CONTACTS',
+                this.state.contacts,
+                this.state.contacts.length > 0,
+                sections
+            ));
+        }
+
+        if (this.state.userToInvite) {
+            sections.push(this.createSection(
+                undefined,
+                [this.state.userToInvite],
+                !((this.state.recentChats.length + this.state.contacts.length) > 0),
+                sections
+            ));
+        }
+
+        return sections;
     }
 
     updateOptions(searchValue) {
@@ -191,44 +229,18 @@ class ChatSelector extends React.Component {
         }
     }
 
+    createSection(title, sectionData, shouldShow = true, sections) {
+        return {
+            title,
+            data: sectionData,
+            shouldShow,
+            indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
+        };
+    }
+
     render() {
         const hasSelectableOptions = (this.state.recentChats.length + this.state.contacts.length) > 0;
-        const sections = [
-            {
-                title: undefined,
-                data: this.props.selectedOptions,
-                indexOffset: 0,
-                shouldShow: true,
-            },
-        ];
-
-        if (this.props.showRecentChats) {
-            sections.push({
-                title: 'RECENTS',
-                data: this.state.recentChats,
-                indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
-                shouldShow: hasSelectableOptions,
-            });
-        }
-
-        if (this.props.showContacts) {
-            sections.push({
-                title: 'CONTACTS',
-                data: this.state.contacts,
-                indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
-                shouldShow: hasSelectableOptions,
-            });
-        }
-
-        if (this.state.userToInvite) {
-            sections.push({
-                title: undefined,
-                data: [this.state.userToInvite],
-                indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
-                shouldShow: !hasSelectableOptions,
-            });
-        }
-
+        const sections = this.getSections();
         return (
             <View style={styles.flex1}>
                 <View style={styles.p2}>
