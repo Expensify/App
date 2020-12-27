@@ -12,6 +12,8 @@ import ChatSectionList from './ChatSectionList';
 import ONYXKEYS from '../ONYXKEYS';
 
 const propTypes = {
+    headerTitle: PropTypes.string,
+    headerMessage: PropTypes.string,
     selectedOptions: PropTypes.arrayOf(PropTypes.string),
     canSelectMultipleOptions: PropTypes.bool,
     showContacts: PropTypes.bool,
@@ -27,6 +29,8 @@ const propTypes = {
 };
 
 const defaultProps = {
+    headerTitle: '',
+    headerMessage: '',
     selectedOptions: [],
     canSelectMultipleOptions: false,
     showContacts: false,
@@ -92,6 +96,7 @@ class ChatSelector extends React.Component {
         sections.push(this.createSection(
             undefined,
             this.props.selectedOptions,
+            true,
             sections
         ));
 
@@ -221,6 +226,8 @@ class ChatSelector extends React.Component {
                     recentChats,
                     focusedIndex: 0,
                 });
+
+                // @todo add callback for on reset maybe...
                 break;
             }
 
@@ -258,11 +265,12 @@ class ChatSelector extends React.Component {
                 <ChatSectionList
                     sections={sections}
                     onSelectRow={this.selectOption}
+                    headerTitle={this.props.headerTitle}
                     headerMessage={
                         (!hasSelectableOptions && this.props.canInviteUsers)
                             // eslint-disable-next-line max-len
                             ? 'Don\'t see who you\'re looking for? Type their email or phone number to invite them to chat.'
-                            : ''
+                            : this.props.headerMessage
                     }
                     focusedIndex={this.state.focusedIndex}
                     selectedOptions={this.props.selectedOptions}

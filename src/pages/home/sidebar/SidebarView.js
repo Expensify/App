@@ -5,6 +5,8 @@ import styles from '../../../styles/styles';
 import SidebarBottom from './SidebarBottom';
 import SidebarLinks from './SidebarLinks';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
+import KeyboardShortcut from '../../../libs/KeyboardShortcut';
+import * as ChatSwitcher from '../../../libs/actions/ChatSwitcher';
 
 const propTypes = {
     // Toggles the hamburger menu open and closed
@@ -21,20 +23,33 @@ const defaultProps = {
     isChatSwitcherActive: false,
 };
 
-const SidebarView = props => (
-    <View style={[styles.flex1, styles.sidebar]}>
-        <SidebarLinks
-            onLinkClick={props.onLinkClick}
-            insets={props.insets}
-            isChatSwitcherActive={props.isChatSwitcherActive}
-        />
-        {!props.isChatSwitcherActive && (
-            <SidebarBottom insets={props.insets} />
-        )}
-    </View>
-);
+class SidebarView extends React.Component {
+    componentDidMount() {
+        KeyboardShortcut.subscribe('K', () => {
+            ChatSwitcher.show();
+        }, ['meta'], true);
+    }
+
+    componentWillUnmount() {
+        KeyboardShortcut.unsubscribe('K');
+    }
+
+    render() {
+        return (
+            <View style={[styles.flex1, styles.sidebar]}>
+                <SidebarLinks
+                    onLinkClick={this.props.onLinkClick}
+                    insets={this.props.insets}
+                    isChatSwitcherActive={this.props.isChatSwitcherActive}
+                />
+                {!this.props.isChatSwitcherActive && (
+                    <SidebarBottom insets={this.props.insets} />
+                )}
+            </View>
+        );
+    }
+}
 
 SidebarView.propTypes = propTypes;
 SidebarView.defaultProps = defaultProps;
-SidebarView.displayName = 'SidebarView';
 export default SidebarView;

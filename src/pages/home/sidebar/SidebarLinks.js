@@ -14,6 +14,7 @@ import * as ChatSwitcher from '../../../libs/actions/ChatSwitcher';
 import {redirect} from '../../../libs/actions/App';
 import ROUTES from '../../../ROUTES';
 import {getChatListOptions} from '../../../libs/ChatSearchUtils';
+import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 
 const propTypes = {
     // These are from withRouter
@@ -55,7 +56,6 @@ const defaultProps = {
     personalDetails: {},
 };
 
-
 const SidebarLinks = (props) => {
     const reportIDInUrl = parseInt(props.match.params.reportID, 10);
     const chatSwitcherStyle = props.isChatSwitcherActive
@@ -84,18 +84,20 @@ const SidebarLinks = (props) => {
         <View style={[styles.flex1, styles.height100percent, {marginTop: props.insets.top}]}>
             <View style={[chatSwitcherStyle]}>
                 {props.isChatSwitcherActive && (
-                    <ChatSelector
-                        headerTitle="Search"
-                        placeholderText="Find a chat"
-                        hideSectionHeaders
-                        showRecentChats
-                        includeGroupChats
-                        numberOfRecentChatsToShow={50}
-                        onSelectRow={props.onLinkClick}
-                        onClose={() => {
-                            ChatSwitcher.hide();
-                        }}
-                    />
+                    <>
+                        <HeaderWithCloseButton
+                            title="Search"
+                            onCloseButtonPress={() => ChatSwitcher.hide()}
+                        />
+                        <ChatSelector
+                            placeholderText="Find a chat"
+                            hideSectionHeaders
+                            showRecentChats
+                            includeGroupChats
+                            numberOfRecentChatsToShow={50}
+                            onSelectRow={props.onLinkClick}
+                        />
+                    </>
                 )}
             </View>
             {!props.isChatSwitcherActive && (

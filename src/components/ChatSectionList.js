@@ -10,6 +10,7 @@ const ChatSectionList = ({
     sections = [],
     onSelectRow = () => {},
     headerMessage = '',
+    headerTitle = '',
     focusedIndex = 0,
     selectedOptions = [],
     canSelectMultipleOptions = false,
@@ -19,6 +20,12 @@ const ChatSectionList = ({
     <View style={[styles.flex1]}>
         {headerMessage ? (
             <View style={[styles.ph2]}>
+                {headerTitle ? (
+                    <Text style={[styles.h4, styles.mb1]}>
+                        {headerTitle}
+                    </Text>
+                ) : null}
+
                 <Text style={[styles.textLabel]}>
                     {headerMessage}
                 </Text>
