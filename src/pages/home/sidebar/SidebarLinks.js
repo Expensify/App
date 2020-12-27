@@ -13,7 +13,7 @@ import ChatSectionList from '../../../components/ChatSectionList';
 import * as ChatSwitcher from '../../../libs/actions/ChatSwitcher';
 import {redirect} from '../../../libs/actions/App';
 import ROUTES from '../../../ROUTES';
-import {getChatListOptions} from '../../../libs/SearchUtils';
+import {getChatListOptions} from '../../../libs/ChatSearchUtils';
 
 const propTypes = {
     // These are from withRouter

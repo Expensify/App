@@ -920,7 +920,7 @@ const styles = {
         overflow: 'hidden',
     },
 
-    modalHeaderBar: {
+    headerBar: {
         overflow: 'hidden',
         justifyContent: 'center',
         display: 'flex',

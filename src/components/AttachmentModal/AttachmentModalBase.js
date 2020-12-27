@@ -9,7 +9,7 @@ import AttachmentView from '../AttachmentView';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import ModalView from '../ModalView';
-import ModalHeader from '../ModalHeader';
+import HeaderWithCloseButton from '../HeaderWithCloseButton';
 import ONYXKEYS from '../../ONYXKEYS';
 import addAuthTokenToURL from '../../libs/addAuthTokenToURL';
 
@@ -83,7 +83,7 @@ class AttachmentModalBase extends Component {
         // Unlike the image width, we do allow the image to span the full modal height
         const modalHeight = this.props.pinToEdges
             ? Dimensions.get('window').height
-            : this.modalHeight - (styles.modalHeaderBar.height || 0) - this.imagePadding;
+            : this.modalHeight - (styles.headerBar.height || 0) - this.imagePadding;
         const modalWidth = this.props.pinToEdges ? Dimensions.get('window').width : this.modalImageWidth;
         let imageHeight = height;
         let imageWidth = width;
@@ -119,7 +119,7 @@ class AttachmentModalBase extends Component {
                         modalHeight={this.modalHeight}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
                     >
-                        <ModalHeader
+                        <HeaderWithCloseButton
                             title={this.props.title}
                             onCloseButtonPress={() => this.setState({isModalOpen: false})}
                         />

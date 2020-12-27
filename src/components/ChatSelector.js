@@ -3,12 +3,11 @@ import Str from 'expensify-common/lib/str';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import ModalHeader from './ModalHeader';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import TextInputWithFocusStyles from './TextInputWithFocusStyles';
 import {getDefaultAvatar} from '../libs/actions/PersonalDetails';
-import {getChatListOptions} from '../libs/SearchUtils';
+import {getChatListOptions} from '../libs/ChatSearchUtils';
 import ChatSectionList from './ChatSectionList';
 import ONYXKEYS from '../ONYXKEYS';
 
@@ -17,8 +16,6 @@ const propTypes = {
     canSelectMultipleOptions: PropTypes.bool,
     showContacts: PropTypes.bool,
     showRecentChats: PropTypes.bool,
-    headerTitle: PropTypes.string.isRequired,
-    onClose: PropTypes.func,
     placeholderText: PropTypes.string,
     hideSectionHeaders: PropTypes.bool,
     includeGroupChats: PropTypes.bool,
@@ -35,7 +32,6 @@ const defaultProps = {
     showContacts: false,
     showRecentChats: false,
     numberOfRecentChatsToShow: 5,
-    onClose: () => {},
     placeholderText: 'Name, email or phone number',
     hideSectionHeaders: false,
     includeGroupChats: false,
@@ -235,10 +231,6 @@ class ChatSelector extends React.Component {
 
         return (
             <View style={styles.flex1}>
-                <ModalHeader
-                    title={this.props.headerTitle}
-                    onCloseButtonPress={this.props.onClose}
-                />
                 <View style={styles.p2}>
                     <TextInputWithFocusStyles
                         styleFocusIn={[styles.textInputReversedFocus]}

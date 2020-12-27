@@ -1,11 +1,10 @@
-import _ from 'underscore';
 import React from 'react';
 import ChatSelector from '../components/ChatSelector';
+import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 
 class NewGroupPage extends React.Component {
     constructor(props) {
         super(props);
-
         this.state = {
             usersToStartGroupReportWith: [],
         };
@@ -23,18 +22,23 @@ class NewGroupPage extends React.Component {
 
     render() {
         return (
-            <ChatSelector
-                headerTitle="New Group"
-                showContacts
-                showRecentChats
-                numberOfRecentChatsToShow={5}
-                canInviteUsers
-                canSelectMultipleOptions
-                selectedOptions={this.state.usersToStartGroupReportWith}
-                onSelectOption={(option) => {
-                    this.toggleUser(option);
-                }}
-            />
+            <>
+                <HeaderWithCloseButton
+                    title="New Group"
+                    onCloseButtonPress={() => {}}
+                />
+                <ChatSelector
+                    showContacts
+                    showRecentChats
+                    numberOfRecentChatsToShow={5}
+                    canInviteUsers
+                    canSelectMultipleOptions
+                    selectedOptions={this.state.usersToStartGroupReportWith}
+                    onSelectOption={(option) => {
+                        this.toggleUser(option);
+                    }}
+                />
+            </>
         );
     }
 }
