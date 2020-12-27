@@ -2,7 +2,6 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const path = require('path');
 
 module.exports = async ({ config }) => {
-    console.log(console.log(path.resolve(__dirname, '../assets')));
     config.resolve.alias = {
         'react-native$': 'react-native-web',
     };
