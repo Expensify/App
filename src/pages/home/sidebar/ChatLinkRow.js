@@ -50,6 +50,12 @@ const ChatLinkRow = ({
         : styles.sidebarLinkText;
     const textUnreadStyle = option.isUnread
         ? [textStyle, styles.sidebarLinkTextUnread] : [textStyle];
+    const groupAvatar2BorderStyle = !optionIsFocused
+        ? styles.chatSwitcherAvatar2ForGroupBorderInactive
+        : styles.chatSwitcherAvatar2ForGroupBorderActive;
+    const circularCount = (option.participants && option.participants.length > 2)
+        ? option.participants.length - 1
+        : null;
     return (
         <View
             style={[
@@ -76,14 +82,45 @@ const ChatLinkRow = ({
                         styles.alignItemsCenter,
                     ]}
                 >
+                    {/* FOR SINGLE USER DM WITH ICON */}
                     {
                         !_.isEmpty(option.icon)
                         && (
                             <View style={[styles.chatSwitcherAvatar, styles.mr3]}>
-                                <Image
-                                    source={{uri: option.icon}}
-                                    style={[styles.chatSwitcherAvatarImage]}
-                                />
+                                <View>
+                                    <Image
+                                        source={{uri: option.icon}}
+                                        style={[styles.chatSwitcherAvatarImage]}
+                                    />
+                                </View>
+                            </View>
+                        )
+                    }
+                    {/* FOR  GROUP CHAT WITH ONE OR TWO PARTICIPANTS' */}
+                    {
+                        Boolean(option.groupIcons && !option.icon && option.groupIcons.length)
+                        && (
+                            <View style={styles.chatSwitcherAvatarContainerForGroup}>
+                                <View style={styles.chatSwitcherAvatar1ForGroup}>
+                                    <Image
+                                        source={{uri: option.groupIcons[0]}}
+                                        style={[styles.chatSwitcherAvatarImageForGroup]}
+                                    />
+                                </View>
+                                <View style={[styles.chatSwitcherAvatar2ForGroup, groupAvatar2BorderStyle]}>
+                                    {
+                                        circularCount ? (
+                                            <Text style={styles.groupAvatarCircularCountText}>
+                                                {circularCount}
+                                            </Text>
+                                        ) : (
+                                            <Image
+                                                source={{uri: option.groupIcons[1]}}
+                                                style={[styles.chatSwitcherAvatarImageForGroup]}
+                                            />
+                                        )
+                                    }
+                                </View>
                             </View>
                         )
                     }

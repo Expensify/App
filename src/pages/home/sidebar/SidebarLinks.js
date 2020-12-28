@@ -107,8 +107,17 @@ const SidebarLinks = (props) => {
                 {/* A report will not have a report name if it hasn't been fetched from the server yet */}
                 {/* so nothing is rendered */}
                 {_.map(reportsToDisplay, (report) => {
+                    const participants = get(report, 'participants', []);
+                    const personalDetails = props.personalDetails ? props.personalDetails : {};
+                    const participant1Avatar = personalDetails[participants[0]]
+                        ? personalDetails[participants[0]].avatarURL
+                        : '';
+                    const participant2Avatar = personalDetails[participants[1]]
+                        ? personalDetails[participants[1]].avatarURL
+                        : '';
                     const participantDetails = get(report, 'participants.length', 0) === 1
-                        ? get(props.personalDetails, report.participants[0], '') : '';
+                        ? get(props.personalDetails, report.participants[0], '')
+                        : '';
                     return report.reportName && (
                         <ChatLinkRow
                             key={report.reportID}
@@ -117,6 +126,10 @@ const SidebarLinks = (props) => {
                                 alternateText: participantDetails ? participantDetails.login : '',
                                 type: participantDetails ? 'user' : 'report',
                                 icon: participantDetails ? participantDetails.avatarURL : '',
+                                participants,
+                                groupIcons: participants.length >= 2
+                                    ? [participant1Avatar, participant2Avatar]
+                                    : [],
                                 login: participantDetails ? participantDetails.login : '',
                                 reportID: report.reportID,
                                 isUnread: report.unreadActionCount > 0,
