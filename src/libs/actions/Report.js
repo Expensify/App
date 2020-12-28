@@ -58,9 +58,9 @@ const reportMaxSequenceNumbers = {};
 // Keeps track of the last read for each report
 const lastReadSequenceNumbers = {};
 
-// Map of temporary report action IDs a.k.a. optimistic
-// comments. These should be cleared when replaced by
-// a recent fetch of report history.
+// Map of temporary report action IDs a.k.a. optimistic comments. These should be cleared when replaced by a recent
+// fetch of report history since we will then be up to date and any temporary actions that are still waiting to be
+// replaced can be removed.
 const temporaryReportActionIDs = {};
 
 /**
@@ -207,27 +207,19 @@ function setLocalLastRead(reportID, sequenceNumber) {
 }
 
 /**
- * Remove a specific action from a report by index.
- *
- * @param {Number} reportID
- * @param {String} actionID
- */
-function removeLocalAction(reportID, actionID) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        [actionID]: null,
-    });
-}
-
-/**
  * Remove all temporary actions from a local report.
  *
  * @param {Number} reportID
  */
 function removeTemporaryActions(reportID) {
     const actionIDs = temporaryReportActionIDs[reportID] || [];
-    _.each(actionIDs, actionID => removeLocalAction(reportID, actionID));
+    const actionsToRemove = _.reduce(actionIDs, (actions, actionID) => ({
+        ...actions,
+        [actionID]: null,
+    }), {});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionsToRemove);
 
-    // Reset the temporary report action IDs back to their default.
+    // Reset the temporary report action IDs to an empty array
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         temporaryReportActionIDs: [],
     });
@@ -259,21 +251,22 @@ function updateReportWithNewAction(reportID, reportAction) {
         maxSequenceNumber: reportAction.sequenceNumber,
     });
 
+    const reportActionsToMerge = {};
     if (reportAction.clientID) {
         // Remove the temporary action from the report since we are about to
         // replace it with the real one (which has the true sequenceNumber)
-        removeLocalAction(reportID, reportAction.clientID);
+        reportActionsToMerge[reportAction.clientID] = null;
     }
 
     // Add the action into Onyx
     const messageText = lodashGet(reportAction, ['message', 0, 'text'], '');
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        [reportAction.sequenceNumber]: {
-            ...reportAction,
-            isAttachment: messageText === '[Attachment]',
-            loading: false,
-        },
-    });
+    reportActionsToMerge[reportAction.sequenceNumber] = {
+        ...reportAction,
+        isAttachment: messageText === '[Attachment]',
+        loading: false,
+    };
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
 
     if (!ActiveClientManager.isClientTheLeader()) {
         console.debug('[LOCAL_NOTIFICATION] Skipping notification because this client is not the leader');
@@ -545,11 +538,12 @@ function addAction(reportID, text, file) {
     // in the server. We do this because it's not safe to assume that this
     // action will use the next sequenceNumber. An action created by another
     // user can overwrite that sequenceNumber if it is created before this one.
-    const temporaryReportActionID = `${Date.now()}_${Str.guid()}`;
+    const temporaryReportActionID = Str.guid(`${Date.now()}_`);
 
-    // Add the temporary action ID to our report map so we can remove it
-    // when refetching report actions for a given report to clear out any
-    // stuck actions.
+    // Store the temporary action ID on the report the comment was added to.
+    // It will be removed later when refetching report actions in order to clear out any
+    // stuck actions (i.e. actions where the client never received a Pusher event, for
+    // whatever reason, from the server with the new action data
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         temporaryReportActionIDs: [...(temporaryReportActionIDs[reportID] || []), temporaryReportActionID],
     });
