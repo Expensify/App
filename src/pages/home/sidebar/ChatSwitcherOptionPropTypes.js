@@ -10,7 +10,7 @@ export default PropTypes.shape({
     // The URL of the person's avatar
     icon: PropTypes.string,
 
-    // URLS OF ONE OR TWO PARTICIPANTS' AVATAR FOR GROUP CHAT
+    // URLS OF FIRST TWO PARTICIPANTS' AVATAR FOR GROUP CHAT
     groupIcons: PropTypes.arrayOf(String),
 
     // The type of option we have e.g. user or report
