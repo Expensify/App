@@ -175,22 +175,22 @@ function handleExpiredAuthToken(originalResponse, originalCommand, originalParam
  * @returns {Promise}
  */
 function request(command, parameters, type = 'post') {
-    const networkPromise = Network.post(command, parameters, type);
+    return new Promise((resolve) => {
+        const networkPromise = Network.post(command, parameters, type);
 
-    // Setup the default handlers to work with different response codes
-    networkPromise.then((response) => {
-        // Handle expired auth tokens properly
-        if (response.jsonCode === 407) {
-            handleExpiredAuthToken(response, command, parameters, type);
+        // Setup the default handlers to work with different response codes
+        networkPromise.then((response) => {
+            // Handle expired auth tokens properly
+            if (response.jsonCode === 407) {
+                handleExpiredAuthToken(response, command, parameters, type, resolve);
 
-            // Throw an error to prevent other handlers from being triggered on this promise
-            throw new Error('A default handler was used for this request');
-        }
+                // Throw an error to prevent other handlers from being triggered on this promise
+                throw new Error('A default handler was used for this request');
+            }
 
-        return response;
+            resolve(response);
+        });
     });
-
-    return networkPromise;
 }
 
 /**
