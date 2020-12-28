@@ -107,6 +107,7 @@ function requireParameters(parameterNames, parameters, commandName) {
  * @param {String} originalCommand
  * @param {Object} [originalParameters]
  * @param {String} [originalType]
+ * @returns {Promise}
  */
 function handleExpiredAuthToken(originalResponse, originalCommand, originalParameters, originalType) {
     // There are some API requests that should not be retried when there is an auth failure
@@ -118,8 +119,7 @@ function handleExpiredAuthToken(originalResponse, originalCommand, originalParam
     // When the authentication process is running, and more API requests will be requeued and they will
     // be performed after authentication is done.
     if (isAuthenticating) {
-        Network.post(originalCommand, originalParameters, originalType);
-        return;
+        return Network.post(originalCommand, originalParameters, originalType);
     }
 
     // Prevent any more requests from being processed while authentication happens
@@ -127,7 +127,7 @@ function handleExpiredAuthToken(originalResponse, originalCommand, originalParam
     isAuthenticating = true;
 
     // eslint-disable-next-line no-use-before-define
-    Authenticate({
+    return Authenticate({
         useExpensifyLogin: false,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
@@ -153,7 +153,7 @@ function handleExpiredAuthToken(originalResponse, originalCommand, originalParam
 
             // Now that the API is authenticated, make the original request again with the new authToken
             const params = addAuthTokenToParameters(originalCommand, originalParameters);
-            Network.post(originalCommand, params, originalType);
+            return Network.post(originalCommand, params, originalType);
         })
 
         .catch((error) => {
