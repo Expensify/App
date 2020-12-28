@@ -58,10 +58,9 @@ const reportMaxSequenceNumbers = {};
 // Keeps track of the last read for each report
 const lastReadSequenceNumbers = {};
 
-// Map of temporary report action IDs a.k.a. optimistic comments. These should be cleared when replaced by a recent
-// fetch of report history since we will then be up to date and any temporary actions that are still waiting to be
-// replaced can be removed.
-const temporaryReportActionIDs = {};
+// Map of optimistic report action IDs. These should be cleared when replaced by a recent fetch of report history
+// since we will then be up to date and any optimistic actions that are still waiting to be replaced can be removed.
+const optimisticReportActionIDs = {};
 
 /**
  * Checks the report to see if there are any unread action items
@@ -207,21 +206,22 @@ function setLocalLastRead(reportID, sequenceNumber) {
 }
 
 /**
- * Remove all temporary actions from a local report.
+ * Remove all optimistic actions from report actions and reset the optimisticReportActionsIDs array. We do this
+ * to clear any stuck optimistic actions that have not be updated for whatever reason.
  *
  * @param {Number} reportID
  */
-function removeTemporaryActions(reportID) {
-    const actionIDs = temporaryReportActionIDs[reportID] || [];
+function removeOptimisticActions(reportID) {
+    const actionIDs = optimisticReportActionIDs[reportID] || [];
     const actionsToRemove = _.reduce(actionIDs, (actions, actionID) => ({
         ...actions,
         [actionID]: null,
     }), {});
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionsToRemove);
 
-    // Reset the temporary report action IDs to an empty array
+    // Reset the optimistic report action IDs to an empty array
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-        temporaryReportActionIDs: [],
+        optimisticReportActionIDs: [],
     });
 }
 
@@ -253,7 +253,7 @@ function updateReportWithNewAction(reportID, reportAction) {
 
     const reportActionsToMerge = {};
     if (reportAction.clientID) {
-        // Remove the temporary action from the report since we are about to
+        // Remove the optimistic action from the report since we are about to
         // replace it with the real one (which has the true sequenceNumber)
         reportActionsToMerge[reportAction.clientID] = null;
     }
@@ -414,10 +414,10 @@ function fetchChatReports() {
 function fetchActions(reportID) {
     API.Report_GetHistory({reportID})
         .then((data) => {
-            // We must remove all temporary actions so there will not be any
+            // We must remove all optimistic actions so there will not be any
             // stuck comments. At this point, we should be caught up and no
             // longer need any optimistic comments.
-            removeTemporaryActions(reportID);
+            removeOptimisticActions(reportID);
 
             const indexedData = _.indexBy(data.history, 'sequenceNumber');
             const maxSequenceNumber = _.chain(data.history)
@@ -534,22 +534,22 @@ function addAction(reportID, text, file) {
     });
 
     // Generate a clientID so we can save the optimistic action to storage with the clientID as key. Later, we will
-    // remove the temporary action when we add the real action created in the server. We do this because it's not
+    // remove the optimistic action when we add the real action created in the server. We do this because it's not
     // safe to assume that this will use the very next sequenceNumber. An action created by another can overwrite that
     // sequenceNumber if it is created before this one.
-    const temporaryReportActionID = Str.guid(`${Date.now()}_`);
+    const optimisticReportActionID = Str.guid(`${Date.now()}_`);
 
-    // Store the temporary action ID on the report the comment was added to.
+    // Store the optimistic action ID on the report the comment was added to.
     // It will be removed later when refetching report actions in order to clear out any
     // stuck actions (i.e. actions where the client never received a Pusher event, for
     // whatever reason, from the server with the new action data
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-        temporaryReportActionIDs: [...(temporaryReportActionIDs[reportID] || []), temporaryReportActionID],
+        optimisticReportActionIDs: [...(optimisticReportActionIDs[reportID] || []), optimisticReportActionID],
     });
 
     // Optimistically add the new comment to the store before waiting to save it to the server
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        [temporaryReportActionID]: {
+        [optimisticReportActionID]: {
             actionName: 'ADDCOMMENT',
             actorEmail: currentUserEmail,
             person: [
@@ -561,9 +561,9 @@ function addAction(reportID, text, file) {
             ],
             automatic: false,
 
-            // Use the client generated ID as a temporary action ID
+            // Use the client generated ID as a optimistic action ID
             // so we can remove it later
-            sequenceNumber: temporaryReportActionID,
+            sequenceNumber: optimisticReportActionID,
             avatar: myPersonalDetails.avatarURL,
             timestamp: moment().unix(),
             message: [
@@ -586,7 +586,7 @@ function addAction(reportID, text, file) {
         reportID,
         reportComment: htmlComment,
         file,
-        clientID: temporaryReportActionID,
+        clientID: optimisticReportActionID,
     })
         .then(({reportAction}) => updateReportWithNewAction(reportID, reportAction));
 }
@@ -671,8 +671,8 @@ function handleReportChanged(report) {
     // Store the max sequence number for each report
     reportMaxSequenceNumbers[report.reportID] = report.maxSequenceNumber;
 
-    // Store temporary actions IDs for each report
-    temporaryReportActionIDs[report.reportID] = report.temporaryReportActionIDs;
+    // Store optimistic actions IDs for each report
+    optimisticReportActionIDs[report.reportID] = report.optimisticReportActionIDs;
 }
 
 Onyx.connect({
