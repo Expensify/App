@@ -119,7 +119,7 @@ function handleExpiredAuthToken(originalResponse, originalCommand, originalParam
     // When the authentication process is running, and more API requests will be requeued and they will
     // be performed after authentication is done.
     if (isAuthenticating) {
-        return Network.post(originalCommand, originalParameters, originalType);
+        return request(originalCommand, originalParameters, originalType);
     }
 
     // Prevent any more requests from being processed while authentication happens
@@ -153,7 +153,7 @@ function handleExpiredAuthToken(originalResponse, originalCommand, originalParam
 
             // Now that the API is authenticated, make the original request again with the new authToken
             const params = addAuthTokenToParameters(originalCommand, originalParameters);
-            return Network.post(originalCommand, params, originalType);
+            return request(originalCommand, params, originalType);
         })
 
         .catch((error) => {
@@ -181,10 +181,7 @@ function request(command, parameters, type = 'post') {
     networkPromise.then((response) => {
         // Handle expired auth tokens properly
         if (response.jsonCode === 407) {
-            handleExpiredAuthToken(response, command, parameters, type);
-
-            // Throw an error to prevent other handlers from being triggered on this promise
-            throw new Error('A default handler was used for this request');
+            return handleExpiredAuthToken(response, command, parameters, type);
         }
 
         return response;
