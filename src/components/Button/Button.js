@@ -5,15 +5,38 @@ import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 
 const propTypes = {
+    /**
+     * Callback fired when the button is pressed.
+     */
     onPress: PropTypes.func,
+
+    /**
+     * Displays small version of the button
+     */
     small: PropTypes.bool,
+
+    /**
+     * Displays the button success color
+     */
     success: PropTypes.bool,
+
+    /**
+     * Additional styles for the outermost button container
+     */
     containerStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /**
+     * Text to display inside the button
+     */
     text: PropTypes.string.isRequired,
+
+    /**
+     * Replaces button text with a loading spinner
+     */
     isLoading: PropTypes.bool,
 };
 
-const defaulProps = {
+const defaultProps = {
     onPress: () => {},
     small: false,
     success: true,
@@ -21,7 +44,7 @@ const defaulProps = {
     isLoading: false,
 };
 
-const Button = (props) => {
+export const Button = (props) => {
     const containerStyles = [styles.button];
     const textStyles = [styles.buttonText];
 
@@ -46,7 +69,7 @@ const Button = (props) => {
             disabled={props.isLoading}
         >
             {props.isLoading ? (
-                <ActivityIndicator color={themeColors.textReversed} />
+                <ActivityIndicator color={props.success ? themeColors.textReversed : themeColors.text} />
             ) : (
                 <Text
                     style={textStyles}
@@ -60,6 +83,6 @@ const Button = (props) => {
 
 Button.displayName = 'Button';
 Button.propTypes = propTypes;
-Button.defaultProps = defaulProps;
+Button.defaultProps = defaultProps;
 
 export default Button;
