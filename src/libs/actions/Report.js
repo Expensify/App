@@ -533,11 +533,10 @@ function addAction(reportID, text, file) {
         maxSequenceNumber: newSequenceNumber,
     });
 
-    // Generate a client id to store with the local action. Later, we
-    // will find and remove this action by referencing the action created
-    // in the server. We do this because it's not safe to assume that this
-    // action will use the next sequenceNumber. An action created by another
-    // user can overwrite that sequenceNumber if it is created before this one.
+    // Generate a clientID so we can save the optimistic action to storage with the clientID as key. Later, we will
+    // remove the temporary action when we add the real action created in the server. We do this because it's not
+    // safe to assume that this will use the very next sequenceNumber. An action created by another can overwrite that
+    // sequenceNumber if it is created before this one.
     const temporaryReportActionID = Str.guid(`${Date.now()}_`);
 
     // Store the temporary action ID on the report the comment was added to.
