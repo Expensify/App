@@ -24,6 +24,8 @@ const expensifyURLRoot = Config.USE_NGROK === 'true' && Config.NGROK_URL
     : expensifyCom;
 
 export default {
+    APP_NAME: 'ExpensifyCash',
+    DISPLAY_NAME: 'Expensify Cash',
     AUTH_TOKEN_EXPIRATION_TIME: 1000 * 60 * 90,
     EXPENSIFY: {
         URL_EXPENSIFY_COM: expensifyCom,
