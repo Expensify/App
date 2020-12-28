@@ -486,6 +486,21 @@ function addAction(reportID, text, file) {
 
     // Convert the comment from MD into HTML because that's how it is stored in the database
     const parser = new ExpensiMark();
+
+    // Insert Email rule to ExpensMark rules
+    parser.rules.splice(2, 0, {
+        name: 'MD-Email', // For Markdown Email Link
+        regex: /\[([\w\\s\\d!?&#;]+)\]\((([a-zA-Z0-9])+@[a-zA-Z]+?(\.[a-zA-Z]{2,6})+)\)/gim,
+        replacement: '<a href="mailto:$2">$1</a>'
+    });
+    parser.rules.join();
+    parser.rules.splice(3, 0, {
+        name: 'Email', // For General Email Link
+        regex: /(?![^<]*>|[^<>]*<\\)([_*~]*?)(([a-zA-Z0-9])+@[a-zA-Z]+?(\.[a-zA-Z]{2,6})+)(?![^<]*(<\\pre>|<\\code>))/gim,
+        replacement: '<a href="mailto:$2">$2</a>'
+    });
+    parser.rules.join();
+    
     const htmlComment = parser.replace(text);
     const isAttachment = _.isEmpty(text) && file !== undefined;
 
