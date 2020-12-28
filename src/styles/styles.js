@@ -765,9 +765,9 @@ const styles = {
         borderRadius: 0,
         height: 'auto',
         minHeight: 38,
-        paddingTop: 10,
+        paddingTop: 0,
         paddingRight: 8,
-        paddingBottom: 10,
+        paddingBottom: 0,
         paddingLeft: 8,
     }, 0),
 
