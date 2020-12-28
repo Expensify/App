@@ -485,7 +485,7 @@ function addAction(reportID, text, file) {
     const actionKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
 
     // Convert the comment from MD into HTML because that's how it is stored in the database
-    let parser = new ExpensiMark();
+    const parser = new ExpensiMark();
 
     // Insert Email rule to ExpensMark rules
     parser.rules.splice(2, 0, {
