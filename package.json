@@ -13,7 +13,7 @@
     "desktop": "webpack --config config/webpack/webpack.dev.js --platform desktop && electron desktop/main.js",
     "start": "react-native start",
     "web": "webpack-dev-server --open --config config/webpack/webpack.dev.js",
-    "proxy": "node proxy.js & webpack-dev-server --open --config config/webpack/webpack.dev.js --env.proxy=true",
+    "proxy": "node web/proxy.js & webpack-dev-server --open --config config/webpack/webpack.dev.js --env.proxy=true",
     "build": "webpack --config config/webpack/webpack.prod.js",
     "desktop-build": "webpack --config config/webpack/webpack.prod.js --platform desktop && electron-builder --config config/electron.config.js --publish always",
     "ios-build": "fastlane ios build",
