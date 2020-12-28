@@ -500,7 +500,6 @@ function addAction(reportID, text, file) {
         replacement: '<a href="mailto:$2">$2</a>'
     });
     parser.rules.join();
-    
 
     const htmlComment = parser.replace(text);
     const isAttachment = _.isEmpty(text) && file !== undefined;
