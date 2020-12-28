@@ -94,7 +94,7 @@ const ChatLinkRow = ({
                             </View>
                         )
                     }
-                    {/* FOR  GROUP CHAT WITH ONE OR TWO PARTICIPANTS' */}
+                    {/* FOR  GROUP CHAT WITH TWO OR MORE PARTICIPANTS' */}
                     {
                         Boolean(option.groupIcons && !option.icon && option.groupIcons.length)
                         && (
