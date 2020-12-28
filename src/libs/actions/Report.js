@@ -491,6 +491,7 @@ function addAction(reportID, text, file) {
     parser.rules.splice(2, 0, {
         // For Markdown Email Link
         name: 'MD-Email',
+        // eslint-disable-next-line no-undef
         regex: /\[([\w\\s\\d!?&#;]+)\]\((([a-zA-Z0-9])+@[a-zA-Z]+?(\.[a-zA-Z]{2,6})+)\)/gim,
         replacement: '<a href="mailto:$2">$1</a>'
     });
@@ -498,6 +499,7 @@ function addAction(reportID, text, file) {
     parser.rules.splice(3, 0, {
         // For General Email Link
         name: 'Email',
+        // eslint-disable-next-line no-undef
         regex: /(?![^<]*>|[^<>]*<\\)([_*~]*?)(([a-zA-Z0-9])+@[a-zA-Z]+?(\.[a-zA-Z]{2,6})+)(?![^<]*(<\\pre>|<\\code>))/gim,
         replacement: '<a href="mailto:$2">$2</a>'
     });
