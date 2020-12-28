@@ -107,8 +107,9 @@ function requireParameters(parameterNames, parameters, commandName) {
  * @param {String} originalCommand
  * @param {Object} [originalParameters]
  * @param {String} [originalType]
+ * @param {Function} [resolve]
  */
-function handleExpiredAuthToken(originalResponse, originalCommand, originalParameters, originalType) {
+function handleExpiredAuthToken(originalResponse, originalCommand, originalParameters, originalType, resolve) {
     // There are some API requests that should not be retried when there is an auth failure
     // like creating and deleting logins
     if (originalParameters.doNotRetry) {
@@ -153,7 +154,7 @@ function handleExpiredAuthToken(originalResponse, originalCommand, originalParam
 
             // Now that the API is authenticated, make the original request again with the new authToken
             const params = addAuthTokenToParameters(originalCommand, originalParameters);
-            Network.post(originalCommand, params, originalType);
+            Network.post(originalCommand, params, originalType).then(resolve);
         })
 
         .catch((error) => {
