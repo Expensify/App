@@ -80,7 +80,7 @@ function signOut() {
  * @param {String} login
  */
 function fetchAccountDetails(login) {
-    Onyx.merge(ONYXKEYS.SESSION, {error: ''});
+    Onyx.merge(ONYXKEYS.SESSION, {error: '', isLoading: true});
 
     API.GetAccountStatus({email: login, isViaExpensifyCash: true})
         .then((response) => {
@@ -96,6 +96,9 @@ function fetchAccountDetails(login) {
                     createAccount(login);
                 }
             }
+        })
+        .finally(() => {
+            Onyx.merge(ONYXKEYS.SESSION, {isLoading: false});
         });
 }
 
