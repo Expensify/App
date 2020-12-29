@@ -41,10 +41,10 @@ export default {
     SITE_TITLE: 'Expensify.cash',
     FAVICON: {
         DEFAULT: 'favicon.png',
-        UNREAD: 'favicon-unread.png'
+        UNREAD: 'favicon-unread.png',
     },
     LOGIN: {
         PARTNER_USER_ID: Config.PARTNER_USER_ID,
         PARTNER_USER_SECRET: Config.PARTNER_USER_SECRET,
-    }
+    },
 };

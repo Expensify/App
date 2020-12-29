@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {
-    ActivityIndicator, Text, TouchableOpacity, View
+    ActivityIndicator, Text, TouchableOpacity, View,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../styles/styles';

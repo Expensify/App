@@ -59,7 +59,7 @@ const ChatLinkRow = ({
                 styles.flexJustifySpaceBetween,
                 styles.sidebarLink,
                 styles.sidebarLinkInner,
-                optionIsFocused ? styles.sidebarLinkActive : null
+                optionIsFocused ? styles.sidebarLinkActive : null,
             ]}
         >
             <PressableLink
