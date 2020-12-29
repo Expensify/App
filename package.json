@@ -1,6 +1,6 @@
 {
   "name": "expensify.cash",
-  "version": "1.0.1-297",
+  "version": "1.0.1-302",
   "author": "Expensify, Inc.",
   "homepage": "https://expensify.cash",
   "description": "Expensify.cash is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -19,7 +19,7 @@
     "ios-build": "fastlane ios build",
     "android-build": "fastlane android build",
     "test": "jest",
-    "lint": "eslint . --config config/.eslintrc.js",
+    "lint": "eslint .",
     "postversion": "react-native-version",
     "print-version": "echo $npm_package_version",
     "detox-build": "detox build --configuration ios.sim.debug",
