@@ -1,8 +1,25 @@
 import React from 'react';
 import {Text, View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import SubmitButton from './SubmitButton';
 import {resendValidationLink} from '../../libs/actions/Session';
+import ONYXKEYS from '../../ONYXKEYS';
+
+const propTypes = {
+    /* Onyx Props */
+
+    // The session of the logged in person
+    session: PropTypes.shape({
+        // Whether or not a sign on form is loading (being submitted)
+        isLoading: PropTypes.bool,
+    }),
+};
+
+const defaultProps = {
+    session: {},
+};
 
 class ResendValidationForm extends React.Component {
     constructor(props) {
@@ -12,7 +29,6 @@ class ResendValidationForm extends React.Component {
 
         this.state = {
             formSuccess: '',
-            isLoading: false,
         };
     }
 
@@ -42,7 +58,7 @@ class ResendValidationForm extends React.Component {
                 <View style={[styles.mt4]}>
                     <SubmitButton
                         text="Resend Link"
-                        isLoading={this.state.isLoading}
+                        isLoading={this.props.session.isLoading}
                         onClick={this.validateAndSubmitForm}
                     />
                 </View>
@@ -57,4 +73,9 @@ class ResendValidationForm extends React.Component {
     }
 }
 
-export default ResendValidationForm;
+ResendValidationForm.propTypes = propTypes;
+ResendValidationForm.defaultProps = defaultProps;
+
+export default withOnyx({
+    session: {key: ONYXKEYS.SESSION},
+})(ResendValidationForm);
