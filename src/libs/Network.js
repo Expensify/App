@@ -50,16 +50,13 @@ function processNetworkRequestQueue() {
             return;
         }
 
-        let finalParameters;
+        const finalParameters = _.isFunction(enhanceParameters)
+            ? enhanceParameters(queuedRequest.command, queuedRequest.data)
+            : queuedRequest.data;
 
-        try {
-            finalParameters = _.isFunction(enhanceParameters)
-                ? enhanceParameters(queuedRequest.command, queuedRequest.data)
-                : queuedRequest.data;
-        } catch (err) {
-            // Something went wrong when enhancing parameters assume we should not
-            // make this request at all and clear the request queue
-            networkRequestQueue = [];
+        // Check to see if the queue has paused again. It's possible that a call to enhanceParameters()
+        // has paused the queue and if this is the case we must return.
+        if (isQueuePaused) {
             return;
         }
 
@@ -123,9 +120,17 @@ function registerParameterEnhancer(callback) {
     enhanceParameters = callback;
 }
 
+/**
+ * Clear the queue so all pending requests will be cancelled
+ */
+function clearRequestQueue() {
+    networkRequestQueue = [];
+}
+
 export {
     post,
     pauseRequestQueue,
     unpauseRequestQueue,
     registerParameterEnhancer,
+    clearRequestQueue,
 };
