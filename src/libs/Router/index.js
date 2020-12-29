@@ -17,5 +17,5 @@ export {
     Redirect,
     Router,
     Switch,
-    withRouter
+    withRouter,
 };

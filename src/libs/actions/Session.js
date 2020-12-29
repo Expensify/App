@@ -27,7 +27,7 @@ function setSuccessfulSignInData(data, exitTo) {
     const redirectURL = exitTo ? Str.normalizeUrl(exitTo) : ROUTES.ROOT;
     Onyx.multiSet({
         [ONYXKEYS.SESSION]: _.pick(data, 'authToken', 'accountID', 'email'),
-        [ONYXKEYS.APP_REDIRECT_TO]: redirectURL
+        [ONYXKEYS.APP_REDIRECT_TO]: redirectURL,
     });
 }
 
@@ -42,7 +42,7 @@ function createAccount(login) {
 
     API.User_SignUp({
         email: login,
-        isViaExpensifyCash: true
+        isViaExpensifyCash: true,
     }).then((response) => {
         if (response.jsonCode !== 200) {
             let errorMessage = response.message || `Unknown API Error: ${response.jsonCode}`;

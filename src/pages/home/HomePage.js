@@ -67,7 +67,7 @@ class App extends React.Component {
         this.recordTimerAndToggleHamburger = this.recordTimerAndToggleHamburger.bind(this);
 
         this.animationTranslateX = new Animated.Value(
-            !props.isSidebarShown ? -300 : 0
+            !props.isSidebarShown ? -300 : 0,
         );
     }
 
@@ -131,7 +131,7 @@ class App extends React.Component {
 
         this.setState({
             windowWidth: changedWindow.width,
-            isHamburgerEnabled: changedWindow.width <= variables.mobileResponsiveWidthBreakpoint
+            isHamburgerEnabled: changedWindow.width <= variables.mobileResponsiveWidthBreakpoint,
         });
 
         if (!this.props.isSidebarShown && changedWindow.width > variables.mobileResponsiveWidthBreakpoint) {
@@ -180,7 +180,7 @@ class App extends React.Component {
             toValue: animationFinalValue,
             duration: 200,
             easing: Easing.ease,
-            useNativeDriver: false
+            useNativeDriver: false,
         }).start(({finished}) => {
             if (finished && hamburgerIsShown) {
                 hideSidebar();
@@ -229,7 +229,7 @@ class App extends React.Component {
                                 appContentWrapperStyle,
                                 styles.flexRow,
                                 styles.flex1,
-                                getSafeAreaPadding(insets)
+                                getSafeAreaPadding(insets),
                             ]}
                         >
                             <Route path={[ROUTES.REPORT, ROUTES.HOME]}>
@@ -237,7 +237,7 @@ class App extends React.Component {
                                     hamburgerStyle,
                                     visibility,
                                     {
-                                        transform: [{translateX: this.animationTranslateX}]
+                                        transform: [{translateX: this.animationTranslateX}],
                                     }]}
                                 >
                                     <Sidebar
@@ -279,7 +279,7 @@ App.defaultProps = defaultProps;
 export default withOnyx(
     {
         isSidebarShown: {
-            key: ONYXKEYS.IS_SIDEBAR_SHOWN
+            key: ONYXKEYS.IS_SIDEBAR_SHOWN,
         },
         isChatSwitcherActive: {
             key: ONYXKEYS.IS_CHAT_SWITCHER_ACTIVE,

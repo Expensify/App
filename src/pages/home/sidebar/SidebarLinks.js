@@ -58,10 +58,10 @@ const SidebarLinks = (props) => {
     const reportIDInUrl = parseInt(props.match.params.reportID, 10);
     const sortedReports = lodashOrderby(props.reports, [
         'isPinned',
-        'reportName'
+        'reportName',
     ], [
         'desc',
-        'asc'
+        'asc',
     ]);
 
     /**
@@ -120,7 +120,7 @@ const SidebarLinks = (props) => {
                                 login: participantDetails ? participantDetails.login : '',
                                 reportID: report.reportID,
                                 isUnread: report.unreadActionCount > 0,
-                                hasDraftComment: report.reportID !== reportIDInUrl && hasComment(report.reportID)
+                                hasDraftComment: report.reportID !== reportIDInUrl && hasComment(report.reportID),
                             }}
                             onSelectRow={props.onLinkClick}
                             optionIsFocused={report.reportID === reportIDInUrl}

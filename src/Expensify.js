@@ -18,7 +18,7 @@ import {
     Route,
     Router,
     Redirect,
-    Switch
+    Switch,
 } from './libs/Router';
 import ROUTES from './ROUTES';
 import PushNotification from './libs/Notification/PushNotification';

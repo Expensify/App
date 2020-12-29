@@ -515,7 +515,7 @@ export default withOnyx({
         key: ONYXKEYS.PERSONAL_DETAILS,
     },
     reports: {
-        key: ONYXKEYS.COLLECTION.REPORT
+        key: ONYXKEYS.COLLECTION.REPORT,
     },
     session: {
         key: ONYXKEYS.SESSION,
