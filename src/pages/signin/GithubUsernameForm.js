@@ -1,11 +1,14 @@
 import React from 'react';
-import {Text, TextInput, View} from 'react-native';
+import {
+    Text, TextInput, View
+} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import SubmitButton from './SubmitButton';
 import {setGitHubUsername} from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
+import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 
 const propTypes = {
     /* Onyx Props */
@@ -72,6 +75,7 @@ class GithubUsernameForm extends React.Component {
                             isLoading={this.props.session.isLoading}
                             onClick={this.validateAndSubmitForm}
                         />
+                        <ChangeExpensifyLoginLink />
                     </View>
                     {this.state.formError && (
                         <Text style={[styles.formError]}>

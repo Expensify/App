@@ -1,5 +1,7 @@
 import React from 'react';
-import {Text, TextInput, View} from 'react-native';
+import {
+    Text, TextInput, View
+} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {withRouter} from '../../libs/Router';
@@ -9,6 +11,7 @@ import themeColors from '../../styles/themes/default';
 import {signIn} from '../../libs/actions/Session';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
+import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 
 const propTypes = {
     // These are from withRouter
@@ -107,6 +110,7 @@ class PasswordForm extends React.Component {
                         isLoading={this.props.session.isLoading}
                         onClick={this.validateAndSubmitForm}
                     />
+                    <ChangeExpensifyLoginLink />
                 </View>
                 {this.state.formError && (
                     <Text style={[styles.formError]}>

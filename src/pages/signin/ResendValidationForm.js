@@ -6,6 +6,7 @@ import styles from '../../styles/styles';
 import SubmitButton from './SubmitButton';
 import {resendValidationLink} from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
+import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 
 const propTypes = {
     /* Onyx Props */
@@ -61,6 +62,7 @@ class ResendValidationForm extends React.Component {
                         isLoading={this.props.session.isLoading}
                         onClick={this.validateAndSubmitForm}
                     />
+                    <ChangeExpensifyLoginLink />
                 </View>
 
                 {this.state.formSuccess !== '' && (
