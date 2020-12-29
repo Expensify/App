@@ -2,10 +2,7 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const path = require('path');
 
 module.exports = async ({ config }) => {
-    config.resolve.alias = {
-        'react-native$': 'react-native-web',
-    };
-
+    config.resolve.alias['$react-native$'] = 'react-native-web';
     config.plugins.push(
         new CopyWebpackPlugin({
             patterns: [{

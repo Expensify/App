@@ -6,14 +6,14 @@ import themeColors from '../../styles/themes/default';
 
 const propTypes = {
     /**
-     Callback
-    */
+     * Callback fired when the button is pressed.
+     */
     onPress: PropTypes.func,
 
     /**
-     * Displays small version of the button
+     * Size to display the button at
      */
-    small: PropTypes.bool,
+    size: PropTypes.oneOf(['small', 'large']),
 
     /**
      * Displays the button success color
@@ -26,9 +26,9 @@ const propTypes = {
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
     /**
-     Text to display inside the button
-    */
-   text: PropTypes.string.isRequired,
+     * Text to display inside the button
+     */
+    text: PropTypes.string.isRequired,
 
     /**
      * Replaces button text with a loading spinner
@@ -38,17 +38,17 @@ const propTypes = {
 
 const defaultProps = {
     onPress: () => {},
-    small: false,
+    size: 'large',
     success: true,
     containerStyles: [],
     isLoading: false,
 };
 
-export default function Button(props) {
+const Button = (props) => {
     const containerStyles = [styles.button];
     const textStyles = [styles.buttonText];
 
-    if (props.small) {
+    if (props.size === 'small') {
         containerStyles.push(styles.buttonSmall);
         textStyles.push(styles.buttonSmallText);
     }
@@ -81,12 +81,7 @@ export default function Button(props) {
     );
 };
 
-Button.displayName = 'Button';
-Button.propTypes = {
-    /**
-     Text to display inside the button
-    */
-    text: PropTypes.string.isRequired,
-};
-
+Button.propTypes = propTypes;
 Button.defaultProps = defaultProps;
+
+export default Button;
