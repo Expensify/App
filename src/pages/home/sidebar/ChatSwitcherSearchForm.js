@@ -116,7 +116,7 @@ const ChatSwitcherSearchForm = props => (
                     </View>
                     <View style={[styles.ml1, styles.flexJustifyEnd]}>
                         <Button
-                            small
+                            size="small"
                             text="Go"
                             containerStyles={[styles.mb1]}
                             onPress={props.onConfirmUsers}
