@@ -9,88 +9,53 @@
     </h1>
 </div>
 
-## Philosophy
-This application is built with the following principles.
-1. **Data Flow** - Ideally, this is how data flows through the app:
-    1. Server pushes data to the disk of any client (Server -> Pusher event -> Action listening to pusher event -> Onyx). Currently the code only does this with report comments. Until we make more server changes, this steps is actually done by the client requesting data from the server via XHR and then storing the response in Onyx.
-    1. Disk pushes data to the UI (Onyx -> withOnyx()/connect() -> React component).
-    1. UI pushes data to people's brains (React component -> device screen).
-    1. Brain pushes data into UI inputs (Device input -> React component).
-    1. UI inputs push data to the server (React component -> Action -> XHR to server).
-    1. Go to 1
-1. **Offline first**
-    - All data that is brought into the app and is necessary to display the app when offline should be stored on disk in persistent storage (eg. localStorage on browser platforms). [AsyncStorage](https://react-native-community.github.io/async-storage/) is a cross-platform abstraction layer that is used to access persistent storage.
-    - All data that is displayed, comes from persistent storage.
-1. **UI Binds to data on disk**
-    - Onyx is a Pub/Sub library to connect the application to the data stored on disk.
-    - UI components subscribe to Onyx (using `withOnyx()`) and any change to the Onyx data is published to the component by calling `setState()` with the changed data.
-    - Libraries subscribe to Onyx (with `Onyx.connect()`) and any change to the Onyx data is published to the callback with the changed data.
-    - The UI should never call any Onyx methods except for `Onyx.connect()`. That is the job of Actions (see next section).
-    - The UI always triggers an Action when something needs to happen (eg. a person inputs data, the UI triggers an Action with this data).
-    - The UI should be as flexible as possible when it comes to:
-        - Incomplete or missing data. Always assume data is incomplete or not there. For example, when a comment is pushed to the client from a pusher event, it's possible that Onyx does not have data for that report yet. That's OK. A partial report object is added to Onyx for the report key `report_1234 = {reportID: 1234, isUnread: true}`. Then there is code that monitors Onyx for reports with incomplete data, and calls `fetchChatReportsByIDs(1234)` to get the full data for that report. The UI should be able to gracefully handle the report object not being complete. In this example, the sidebar wouldn't display any report that doesn't have a report name.
-        - The order that actions are done in. All actions should be done in parallel instead of sequence.
-            - Parallel actions are asynchronous methods that don't return promises. Any number of these actions can be called at one time and it doesn't matter what order they happen in or when they complete.
-            - In-Sequence actions are asynchronous methods that return promises. This is necessary when one asynchronous method depends on the results from a previous asynchronous method. Example: Making an XHR to `command=CreateChatReport` which returns a reportID which is used to call `command=Get&rvl=reportStuff`.
-1. **Actions manage Onyx Data**
-    - When data needs to be written to or read from the server, this is done through Actions only.
-    - Public action methods should never return anything (not data or a promise). This is done to ensure that action methods can be called in parallel with no dependency on other methods (see discussion above).
-    - Actions should favor using `Onyx.merge()` over `Onyx.set()` so that other values in an object aren't completely overwritten.
-    - In general, the operations that happen inside an action should be done in parallel and not in sequence (eg. don't use the promise of one Onyx method to trigger a second Onyx method). Onyx is built so that every operation is done in parallel and it doesn't matter what order they finish in. XHRs on the other hand need to be handled in sequence with promise chains in order to access and act upon the response.
-    - If an Action needs to access data stored on disk, use a local variable and `Onyx.connect()`
-    - Data should be optimistically stored on disk whenever possible without waiting for a server response. Example of creating a new optimistic comment:
-        1. user adds a comment
-        2. comment is shown in the UI (by mocking the expected response from the server)
-        3. comment is created in the server
-        4. server responds
-        5. UI updates with data from the server
+----
 
-1. **Cross Platform 99.9999%**
-    1. A feature isn't done until it works on all platforms.  Accordingly, don't even bother writing a platform-specific code block because you're just going to need to undo it.
-    1. If the reason you can't write cross platform code is because there is a bug in ReactNative that is preventing it from working, the correct action is to fix RN and submit a PR upstream -- not to hack around RN bugs with platform-specific code paths.
-    1. If there is a feature that simply doesn't exist on all platforms and thus doesn't exist in RN, rather than doing if (platform=iOS) { }, instead write a "shim" library that is implemented with NOOPs on the other platforms.  For example, rather than injecting platform-specific multi-tab code (which can only work on browsers, because it's the only platform with multiple tabs), write a TabManager class that just is NOOP for non-browser platforms.  This encapsulates the platform-specific code into a platform library, rather than sprinkling through the business logic.
-    1. Put all platform specific code in dedicated files and folders, like /platform, and reject any PR that attempts to put platform-specific code anywhere else.  This maintains a strict separation between business logic and platform code.
+* [Local Development](#local-development)
+* [Running The Tests](#running-the-tests)
+* [Debugging](#debugging)
+* [Structure of the app](#structure-of-the-app)
+* [Philosophy](#Philosophy)
+* [Deploying](#deploying)
 
 ----
 
 # Local development
+These instructions should get you set up ready to work on Expensify.cash 🙌
 
-These instructions should get you set up ready to work on the front-end code of Expensify.
-
-**Note:** Expensify engineers please refer to [these additional instructions](https://stackoverflow.com/c/expensify/questions/7699/7700) for testing against the local API.
-
-## Getting Started
+## Getting Started 
 1. Install `node` & `npm`: `brew install node`
 2. Install `watchman`: `brew install watchman`
 3. Install dependencies: `npm install`
-4. Run `cp .env.production .env` and edit `.env` to set up your local config options.
 
 You can use any IDE or code editing tool for developing on any platform. Use your favorite!
 
 ## Running the web app 🕸
-Contributors who don't have full-access to Expensify's development environment will need to run the app against the production API.
-* In the `.env` file set the `USE_WEB_PROXY` environment variable to `true` to indicate the proxy should be used
-* To run the web app, run the **Development Server**: `npm run proxy`
+* To run the **development web app**, run the: `npm run web`
 * Changes applied to Javascript will be applied automatically via WebPack as configured in `webpack.dev.js`
 
 ## Running the iOS app 📱
 * To install the iOS dependencies, run: `npm install && cd ios/ && pod install`
-* In the `.env` file verify the `USE_WEB_PROXY` environment variable is `false` to indicate the proxy should not be used
 * To run a on a **Development Simulator**: `npm run ios`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
 ## Running the Android app 🤖
 * To install the Android dependencies, run: `npm install`, then `gradle` will install all linked dependencies
-* In the `.env` file verify the `USE_WEB_PROXY` environment variable is `false` to indicate the proxy should not be used
 * To run a on a **Development Emulator**: `npm run android`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
 ## Running the MacOS desktop app 🖥
-* In the `.env` file verify the `USE_WEB_PROXY` environment variable is `false` to indicate the proxy should not be used
 * To run the **Development app**, run: `npm run desktop`, this will start a new Electron process running on your MacOS desktop in the `dist/Mac` folder.
 
-# Running the tests 🎰
+**Note:** Expensify engineers please refer to [these additional instructions](https://stackoverflow.com/c/expensify/questions/7699/7700) for testing against the local API.
 
+## Troubleshooting
+1. If you are having issues with **_Getting Started_**, please reference [React Native's Documentation](https://reactnative.dev/docs/environment-setup)
+2. If you are running into issues communicating with the API please verify your `.env` file is [set up correctly](#getting-started) for the platform you are trying to run.
+
+----
+
+# Running the tests
 ## Unit tests
 Unit tests are valuable when you want to test one component. They should be short, fast, and ideally only test one thing.
 Often times in order to write a unit test, you may need to mock data, a component, or library. We use the library [Jest](https://jestjs.io/)
@@ -107,12 +72,10 @@ You are first required to build the tests, then you can run them:
 1. To build the **Detox end to end tests**: `npm run detox-build`
 2. To run the **Detox end to end tests**: `npm run detox-test`
 
-# Troubleshooting
-1. If you are having issues with **_Getting Started_**, please reference [React Native's Documentation](https://reactnative.dev/docs/environment-setup)
-2. If you are running into issues communicating with the API please verify your `.env` file is [set up correctly](#getting-started) for the platform you are trying to run.
+----
 
 # Debugging
-## iOS
+### iOS
 1. If running on the iOS simulator pressing `⌘D` will open the debugging menu.
 2. This will allow you to attach a debugger in your IDE, React Developer Tools, or your browser.
 3. For more information on how to attach a debugger, see [React Native Debugging Documentation](https://reactnative.dev/docs/debugging#chrome-developer-tools)
@@ -222,6 +185,50 @@ export default withOnyx({
     },
 })(ReportActionsView);
 ```
+
+----
+
+# Philosophy
+This application is built with the following principles.
+1. **Data Flow** - Ideally, this is how data flows through the app:
+    1. Server pushes data to the disk of any client (Server -> Pusher event -> Action listening to pusher event -> Onyx). Currently the code only does this with report comments. Until we make more server changes, this steps is actually done by the client requesting data from the server via XHR and then storing the response in Onyx.
+    1. Disk pushes data to the UI (Onyx -> withOnyx()/connect() -> React component).
+    1. UI pushes data to people's brains (React component -> device screen).
+    1. Brain pushes data into UI inputs (Device input -> React component).
+    1. UI inputs push data to the server (React component -> Action -> XHR to server).
+    1. Go to 1
+1. **Offline first**
+    - All data that is brought into the app and is necessary to display the app when offline should be stored on disk in persistent storage (eg. localStorage on browser platforms). [AsyncStorage](https://react-native-community.github.io/async-storage/) is a cross-platform abstraction layer that is used to access persistent storage.
+    - All data that is displayed, comes from persistent storage.
+1. **UI Binds to data on disk**
+    - Onyx is a Pub/Sub library to connect the application to the data stored on disk.
+    - UI components subscribe to Onyx (using `withOnyx()`) and any change to the Onyx data is published to the component by calling `setState()` with the changed data.
+    - Libraries subscribe to Onyx (with `Onyx.connect()`) and any change to the Onyx data is published to the callback with the changed data.
+    - The UI should never call any Onyx methods except for `Onyx.connect()`. That is the job of Actions (see next section).
+    - The UI always triggers an Action when something needs to happen (eg. a person inputs data, the UI triggers an Action with this data).
+    - The UI should be as flexible as possible when it comes to:
+        - Incomplete or missing data. Always assume data is incomplete or not there. For example, when a comment is pushed to the client from a pusher event, it's possible that Onyx does not have data for that report yet. That's OK. A partial report object is added to Onyx for the report key `report_1234 = {reportID: 1234, isUnread: true}`. Then there is code that monitors Onyx for reports with incomplete data, and calls `fetchChatReportsByIDs(1234)` to get the full data for that report. The UI should be able to gracefully handle the report object not being complete. In this example, the sidebar wouldn't display any report that doesn't have a report name.
+        - The order that actions are done in. All actions should be done in parallel instead of sequence.
+            - Parallel actions are asynchronous methods that don't return promises. Any number of these actions can be called at one time and it doesn't matter what order they happen in or when they complete.
+            - In-Sequence actions are asynchronous methods that return promises. This is necessary when one asynchronous method depends on the results from a previous asynchronous method. Example: Making an XHR to `command=CreateChatReport` which returns a reportID which is used to call `command=Get&rvl=reportStuff`.
+1. **Actions manage Onyx Data**
+    - When data needs to be written to or read from the server, this is done through Actions only.
+    - Public action methods should never return anything (not data or a promise). This is done to ensure that action methods can be called in parallel with no dependency on other methods (see discussion above).
+    - Actions should favor using `Onyx.merge()` over `Onyx.set()` so that other values in an object aren't completely overwritten.
+    - In general, the operations that happen inside an action should be done in parallel and not in sequence (eg. don't use the promise of one Onyx method to trigger a second Onyx method). Onyx is built so that every operation is done in parallel and it doesn't matter what order they finish in. XHRs on the other hand need to be handled in sequence with promise chains in order to access and act upon the response.
+    - If an Action needs to access data stored on disk, use a local variable and `Onyx.connect()`
+    - Data should be optimistically stored on disk whenever possible without waiting for a server response. Example of creating a new optimistic comment:
+        1. user adds a comment
+        2. comment is shown in the UI (by mocking the expected response from the server)
+        3. comment is created in the server
+        4. server responds
+        5. UI updates with data from the server
+
+1. **Cross Platform 99.9999%**
+    1. A feature isn't done until it works on all platforms.  Accordingly, don't even bother writing a platform-specific code block because you're just going to need to undo it.
+    1. If the reason you can't write cross platform code is because there is a bug in ReactNative that is preventing it from working, the correct action is to fix RN and submit a PR upstream -- not to hack around RN bugs with platform-specific code paths.
+    1. If there is a feature that simply doesn't exist on all platforms and thus doesn't exist in RN, rather than doing if (platform=iOS) { }, instead write a "shim" library that is implemented with NOOPs on the other platforms.  For example, rather than injecting platform-specific multi-tab code (which can only work on browsers, because it's the only platform with multiple tabs), write a TabManager class that just is NOOP for non-browser platforms.  This encapsulates the platform-specific code into a platform library, rather than sprinkling through the business logic.
+    1. Put all platform specific code in dedicated files and folders, like /platform, and reject any PR that attempts to put platform-specific code anywhere else.  This maintains a strict separation between business logic and platform code.
 
 ----
 

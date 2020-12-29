@@ -1,5 +1,12 @@
 const http = require('http');
 const https = require('https');
+require('dotenv').config();
+
+if (process.env.USE_WEB_PROXY === 'false') {
+    /* eslint-disable-next-line no-console */
+    console.info('Skipping proxy as USE_WEB_PROXY was set to false.');
+    process.exit();
+}
 
 /**
  * Local proxy server that hits the production endpoint

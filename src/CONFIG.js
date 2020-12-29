@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import {Platform} from 'react-native';
 import Config from 'react-native-config';
+import getPlatform from './libs/getPlatform/index';
 
 // Let's make everyone's life just a bit easier
 // by adding / to the end of any config URL's if it's not already present
@@ -14,7 +15,7 @@ if (_.isString(Config.EXPENSIFY_URL_COM) && !Config.EXPENSIFY_URL_COM.endsWith('
     Config.EXPENSIFY_URL_COM += '/';
 }
 
-const expensifyCom = Config.USE_WEB_PROXY === 'true' ? '/' : Config.EXPENSIFY_URL_COM;
+const expensifyCom = getPlatform() === 'web' && Config.USE_WEB_PROXY === 'true' ? '/' : Config.EXPENSIFY_URL_COM;
 
 // Ngrok helps us avoid many of our cross-domain issues with connecting to our API
 // and is reqired for viewing images on mobile and for developing on android
