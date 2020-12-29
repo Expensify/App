@@ -467,23 +467,21 @@ class ChatSwitcherView extends React.Component {
         }
 
         const options = Array.from(matches);
-        if (options.length === 0) {
-            if (value && (Str.isValidEmail(value) || Str.isValidPhone(value))) {
-                let login = value;
-                if (Str.isValidPhone(value)) {
-                    // If the phone number doesn't have an international code then let's prefix it with the
-                    // current users international code based on their IP address.
-                    login = value.includes('+') ? value : `+${this.props.countryCodeByIP}${value}`;
-                }
-                options.push({
-                    text: login,
-                    alternateText: login,
-                    singleUserDM: true,
-                    type: CONST.OPTION_TYPE.PERSONAL_DETAIL,
-                    keyForList: login,
-                    login,
-                });
+        if (options.length === 0 && value && (Str.isValidEmail(value) || Str.isValidPhone(value))) {
+            let login = value;
+            if (Str.isValidPhone(value)) {
+                // If the phone number doesn't have an international code then let's prefix it with the
+                // current users international code based on their IP address.
+                login = value.includes('+') ? value : `+${this.props.countryCodeByIP}${value}`;
             }
+            options.push({
+                text: login,
+                alternateText: login,
+                singleUserDM: true,
+                type: CONST.OPTION_TYPE.PERSONAL_DETAIL,
+                keyForList: login,
+                login,
+            });
         }
 
         this.setState({options});

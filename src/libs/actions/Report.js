@@ -444,6 +444,7 @@ function fetchOrCreateChatReport(participants) {
         .then((data) => {
             if (data.jsonCode !== 200) {
                 alert(data.message);
+                return;
             }
 
             // Set aside the reportID in a local variable so it can be accessed in the rest of the chain
