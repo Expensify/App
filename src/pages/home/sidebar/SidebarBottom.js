@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, StyleSheet} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -9,7 +9,7 @@ import AppLinks from './AppLinks';
 import {signOut} from '../../../libs/actions/Session';
 import ONYXKEYS from '../../../ONYXKEYS';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
-import Avatar from '../../../components/Avatar';
+import Avatar from '../../../components/Avatar/Avatar';
 
 const propTypes = {
     // Safe area insets required for mobile devices margins
@@ -39,11 +39,6 @@ const defaultProps = {
 };
 
 const SidebarBottom = ({myPersonalDetails, network, insets}) => {
-    const indicatorStyles = [
-        styles.statusIndicator,
-        network && network.isOffline ? styles.statusIndicatorOffline : styles.statusIndicatorOnline
-    ];
-
     // On the very first sign in or after clearing storage these
     // details will not be present on the first render so we'll just
     // return nothing for now.
@@ -53,13 +48,12 @@ const SidebarBottom = ({myPersonalDetails, network, insets}) => {
 
     return (
         <View style={[styles.sidebarFooter, getSafeAreaMargins(insets)]}>
-            <View style={[styles.sidebarFooterAvatar]}>
-                <Avatar
-                    source={myPersonalDetails.avatarURL}
-                    style={[styles.actionAvatar]}
-                />
-                <View style={StyleSheet.flatten(indicatorStyles)} />
-            </View>
+            <Avatar
+                showIndicator
+                isIndicatorActive={network && !network.isOffline}
+                style={[styles.mr3]}
+                source={myPersonalDetails.avatarURL}
+            />
             <View style={[styles.flexColumn]}>
                 {myPersonalDetails.displayName && (
                     <Text style={[styles.sidebarFooterUsername]} numberOfLines={1}>

@@ -8,7 +8,7 @@ import ReportActionItemFragment from './ReportActionItemFragment';
 import styles from '../../../styles/styles';
 import CONST from '../../../CONST';
 import ReportActionItemDate from './ReportActionItemDate';
-import Avatar from '../../../components/Avatar';
+import Avatar from '../../../components/Avatar/Avatar';
 
 const propTypes = {
     // All the data of the action
@@ -22,7 +22,7 @@ const ReportActionItemSingle = ({action}) => {
     return (
         <View style={[styles.chatItem]}>
             <Avatar
-                style={[styles.actionAvatar]}
+                style={[styles.mr2]}
                 source={avatarUrl}
             />
             <View style={[styles.chatItemRight]}>

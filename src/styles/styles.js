@@ -359,12 +359,8 @@ const styles = {
     },
 
     // Actions
-    actionAvatar: {
+    avatarImage: {
         borderRadius: 20,
-        marginRight: 8,
-    },
-
-    avatarNormal: {
         height: variables.componentSizeNormal,
         width: variables.componentSizeNormal,
     },
@@ -513,11 +509,8 @@ const styles = {
         width: '100%',
     },
 
-    sidebarFooterAvatar: {
-        backgroundColor: themeColors.text,
-        borderRadius: 20,
+    componentSizeNormal: {
         height: variables.componentSizeNormal,
-        marginRight: 12,
         width: variables.componentSizeNormal,
     },
 
@@ -533,11 +526,11 @@ const styles = {
         zIndex: 10,
     },
 
-    statusIndicatorOnline: {
+    statusIndicatorActive: {
         backgroundColor: themeColors.online,
     },
 
-    statusIndicatorOffline: {
+    statusIndicatorInactive: {
         backgroundColor: themeColors.offline,
     },
 

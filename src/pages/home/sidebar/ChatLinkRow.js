@@ -14,7 +14,7 @@ import ROUTES from '../../../ROUTES';
 import pencilIcon from '../../../../assets/images/icon-pencil.png';
 import PressableLink from '../../../components/PressableLink';
 import CONST from '../../../CONST';
-import Avatar from '../../../components/Avatar';
+import Avatar from '../../../components/Avatar/Avatar';
 
 const propTypes = {
     // Option to allow the user to choose from can be type 'report' or 'user'

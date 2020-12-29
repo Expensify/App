@@ -44,6 +44,10 @@ const defaultProps = {
     isLoading: false,
 };
 
+/**
+ * Classic button component with an optional loading state.
+ */
+
 const Button = (props) => {
     const containerStyles = [styles.button];
     const textStyles = [styles.buttonText];
