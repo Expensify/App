@@ -162,13 +162,25 @@ function getFromReportParticipants(reports) {
             // The personalDetails of the participants contain their avatar images. Here we'll go over each
             // report and based on the participants we'll link up their avatars to report icons.
             _.each(reports, (report) => {
-                if (report.participants.length === 1) {
-                    const dmParticipant = report.participants[0];
-                    let icon = lodashGet(details, [dmParticipant, 'avatar'], '');
-                    if (!icon) {
-                        icon = getDefaultAvatar(dmParticipant);
-                    }
-                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {icon});
+                if (report.participants.length > 0) {
+                    // eslint-disable-next-line prefer-const
+                    let avatars = []; // Array of objects
+                    // eslint-disable-next-line array-callback-return
+                    report.participants.map((dmParticipant) => {
+                        const firstName = lodashGet(details, [dmParticipant, 'firstName'], '');
+                        let avatar = lodashGet(details, [dmParticipant, 'avatar'], '');
+                        if (!avatar) {
+                            avatar = getDefaultAvatar(dmParticipant);
+                        }
+                        avatars.push({firstName, avatar});
+                    });
+
+                    // Arrange avatars as the order of the alphabet for the first names.
+                    avatars.sort((first, second) => second.firstName - first.firstName);
+
+                    // Get the avatar URLs
+                    const icons = avatars.reverse().map(item => item.avatar);
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {icon: icons});
                 }
             });
         });

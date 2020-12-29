@@ -14,7 +14,7 @@ import ROUTES from '../../../ROUTES';
 import pencilIcon from '../../../../assets/images/icon-pencil.png';
 import PressableLink from '../../../components/PressableLink';
 import CONST from '../../../CONST';
-import Avatar from '../../../components/Avatar';
+import MultipleAvatars from '../../../components/MultipleAvatars';
 
 const propTypes = {
     // Option to allow the user to choose from can be type 'report' or 'user'
@@ -80,9 +80,10 @@ const ChatLinkRow = ({
                     {
                         !_.isEmpty(option.icon)
                         && (
-                            <View style={[styles.chatSwitcherAvatar, styles.mr3]}>
-                                <Avatar source={option.icon} />
-                            </View>
+                            <MultipleAvatars
+                                avatars={option.icon}
+                                optionIsFocused={optionIsFocused}
+                            />
                         )
                     }
                     <View style={[styles.flex1]}>
