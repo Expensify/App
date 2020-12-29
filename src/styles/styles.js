@@ -1,4 +1,3 @@
-import { Platform } from 'react-native'
 
 // We place items a percentage to the safe area on the top or bottom of the screen
 import fontFamily from './fontFamily';
@@ -8,6 +7,8 @@ import themeColors from './themes/default';
 import fontWeightBold from './fontWeight/bold';
 import variables from './variables';
 import colors from './colors';
+import { Platform } from 'react-native'
+
 const styles = {
 // Utility classes
 m0: {
@@ -688,16 +689,20 @@ borderRadius: variables.componentBorderRadius,
 minHeight: variables.componentSizeNormal,
 },
 
+/// Top Padding issue removed code...Start From Here////////////////////////
 textInputCompose: addOutlineWidth({
 borderWidth: 0,
 borderRadius: 0,
 height: 'auto',
 minHeight: 38,
-paddingTop: Platform.OS == 'ios' ? 10 : 0,
+paddingTop: Platform.OS == 'ios' ? 10 : 0,       // Set Value to Zero if Platform is Android.
 paddingRight: 8,
-paddingBottom: 0,
+paddingBottom: 0,                                // Set Value to Zero in Both Platforms.
 paddingLeft: 8,
 }, 0),
+
+/// Top Padding issue removed code...End From Here////////////////////////
+
 
 chatItemSubmitButton: {
 alignSelf: 'flex-end',
