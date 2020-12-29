@@ -45,7 +45,7 @@ jobs:
           run: npm run build
 
         - name: Build docs
-          run: npm run build-storybook
+          run: npm run build-storybook -- -o dist/docs
 
         - name: Deploy to S3
           run: aws s3 cp --recursive --acl public-read $GITHUB_WORKSPACE/dist s3://chat-test-expensify-com/
