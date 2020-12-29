@@ -362,6 +362,9 @@ const styles = {
     actionAvatar: {
         borderRadius: 20,
         marginRight: 8,
+    },
+
+    avatarNormal: {
         height: variables.componentSizeNormal,
         width: variables.componentSizeNormal,
     },
@@ -923,11 +926,6 @@ const styles = {
         borderRadius: 20,
         height: variables.componentSizeNormal,
         overflow: 'hidden',
-        width: variables.componentSizeNormal,
-    },
-
-    chatSwitcherAvatarImage: {
-        height: variables.componentSizeNormal,
         width: variables.componentSizeNormal,
     },
 
