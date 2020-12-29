@@ -38,9 +38,7 @@ const propTypes = {
 
 const defaultProps = {
     account: {},
-    session: {
-        isLoading: false,
-    },
+    session: {},
 };
 
 class PasswordForm extends React.Component {

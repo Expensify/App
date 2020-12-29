@@ -18,9 +18,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    session: {
-        isLoading: false,
-    },
+    session: {},
 };
 
 class ResendValidationForm extends React.Component {
@@ -65,7 +63,7 @@ class ResendValidationForm extends React.Component {
                     />
                 </View>
 
-                {this.state.formSuccess && (
+                {this.state.formSuccess !== '' && (
                     <Text style={[styles.formSuccess]}>
                         {this.state.formSuccess}
                     </Text>
