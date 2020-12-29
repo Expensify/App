@@ -6,8 +6,8 @@ import themeColors from '../../styles/themes/default';
 
 const propTypes = {
     /**
-     * Callback fired when the button is pressed.
-     */
+     Callback
+    */
     onPress: PropTypes.func,
 
     /**
@@ -26,9 +26,9 @@ const propTypes = {
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
     /**
-     * Text to display inside the button
-     */
-    text: PropTypes.string.isRequired,
+     Text to display inside the button
+    */
+   text: PropTypes.string.isRequired,
 
     /**
      * Replaces button text with a loading spinner
@@ -44,7 +44,7 @@ const defaultProps = {
     isLoading: false,
 };
 
-export const Button = (props) => {
+export default function Button(props) {
     const containerStyles = [styles.button];
     const textStyles = [styles.buttonText];
 
@@ -82,7 +82,11 @@ export const Button = (props) => {
 };
 
 Button.displayName = 'Button';
-Button.propTypes = propTypes;
-Button.defaultProps = defaultProps;
+Button.propTypes = {
+    /**
+     Text to display inside the button
+    */
+    text: PropTypes.string.isRequired,
+};
 
-export default Button;
+Button.defaultProps = defaultProps;
