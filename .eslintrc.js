@@ -20,6 +20,7 @@ module.exports = {
                     '.native.js',
                     '.ios.js',
                     '.android.js',
+                    '.config.js',
                 ],
             },
         },

@@ -18,8 +18,8 @@ const webpack = {
         development: {
             presets: defaultPresets,
             plugins: defaultPlugins,
-        }
-    }
+        },
+    },
 };
 
 const metro = {
