@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import {View, Image} from 'react-native';
 import styles from '../../styles/styles';
@@ -32,4 +32,4 @@ const ImageView = props => (
 ImageView.propTypes = propTypes;
 ImageView.displayName = 'ImageView';
 
-export default ImageView;
+export default memo(ImageView);
