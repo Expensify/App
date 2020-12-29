@@ -752,12 +752,54 @@ const styles = {
         width: 300,
     },
 
+    chatSwitcherSingleAvatar: {
+        height: variables.avatarSizeNormal,
+        width: variables.avatarSizeNormal,
+        borderRadius: variables.avatarSizeNormal,
+    },
+
+    chatSwitcherAvatar1: {
+        marginTop: -variables.componentSizeNormal / 2,
+        borderRadius: variables.avatarSizeNormal,
+    },
+
+    chatSwitcherAvatar2: {
+        marginTop: variables.componentSizeNormal / 2,
+        height: variables.avatarSizeNormal + 7,
+        width: variables.avatarSizeNormal + 7,
+        borderRadius: variables.avatarSizeNormal,
+        left: -variables.componentSizeNormal / 2,
+    },
+
+    chatSwitcherAvatarText: {
+        backgroundColor: themeColors.border,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: variables.avatarSizeNormal,
+        height: variables.avatarSizeNormal,
+        width: variables.avatarSizeNormal,
+    },
+
+    chatSwitcherAvatarInnerText: {
+        color: themeColors.text,
+        fontSize: variables.fontSizeNormal,
+    },
+
+    chatSwitcherAvatarSpace: {
+        top: 4,
+        left: 4,
+    },
+
     chatSwitcherAvatar: {
-        backgroundColor: themeColors.icon,
-        borderRadius: 20,
-        height: variables.componentSizeNormal,
-        overflow: 'hidden',
-        width: variables.componentSizeNormal,
+        backgroundColor: themeColors.sidebar,
+    },
+
+    chatSwitcherFocusedAvatar: {
+        backgroundColor: themeColors.border,
+    },
+
+    chatSwitcherEmptyAvatar1: {
+        marginRight: 8,
     },
 
     chatSwitcherItemText: {

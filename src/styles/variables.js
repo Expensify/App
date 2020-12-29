@@ -1,4 +1,5 @@
 export default {
+    avatarSizeNormal: 36,
     contentHeaderHeight: 65,
     componentSizeSmall: 28,
     componentSizeNormal: 40,
