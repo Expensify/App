@@ -24,7 +24,9 @@ const propTypes = {
 };
 
 const defaultProps = {
-    session: {},
+    session: {
+        isLoading: false,
+    },
 };
 
 class LoginFormNarrow extends React.Component {

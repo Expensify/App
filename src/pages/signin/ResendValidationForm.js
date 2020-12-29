@@ -18,7 +18,9 @@ const propTypes = {
 };
 
 const defaultProps = {
-    session: {},
+    session: {
+        isLoading: false,
+    },
 };
 
 class ResendValidationForm extends React.Component {
