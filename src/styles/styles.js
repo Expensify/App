@@ -943,9 +943,9 @@ const styles = {
         right: -3,
         justifyContent: 'center',
         alignItems: 'center',
-        height: 24 + 6,
+        height: 30,
         overflow: 'hidden',
-        width: 24 + 6,
+        width: 30,
         borderWidth: 3,
     },
     chatSwitcherAvatar2ForGroupInactive: {
