@@ -36,6 +36,6 @@ module.exports = (parameters = {}) => {
                 // See https://reactnative.dev/docs/javascript-environment
                 __DEV__: true,
             }),
-        ]
+        ],
     });
 };
