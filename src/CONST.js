@@ -14,9 +14,6 @@ const CONST = {
             CENTERED: 'centered',
         },
     },
-    LOGIN: {
-        EXPENSIFY_SMS_SUFFIX: '@expensify.sms'
-    },
     TIMING: {
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
         HOMEPAGE_REPORTS_LOADED: 'homepage_reports_loaded',
