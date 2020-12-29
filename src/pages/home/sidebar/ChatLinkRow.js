@@ -13,6 +13,7 @@ import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
 import ROUTES from '../../../ROUTES';
 import pencilIcon from '../../../../assets/images/icon-pencil.png';
 import PressableLink from '../../../components/PressableLink';
+import Avatar from '../../../components/Avatar';
 
 const propTypes = {
     // Option to allow the user to choose from can be type 'report' or 'user'
@@ -78,10 +79,7 @@ const ChatLinkRow = ({
                         !_.isEmpty(option.icon)
                         && (
                             <View style={[styles.chatSwitcherAvatar, styles.mr3]}>
-                                <Image
-                                    source={{uri: option.icon}}
-                                    style={[styles.chatSwitcherAvatarImage]}
-                                />
+                                <Avatar source={option.icon} />
                             </View>
                         )
                     }
