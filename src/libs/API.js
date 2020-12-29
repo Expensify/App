@@ -48,9 +48,8 @@ function addAuthTokenToParameters(command, parameters) {
     const finalParameters = {...parameters};
 
     if (isAuthTokenRequired(command) && !parameters.authToken) {
-        // If we end up here with no authToken it means we are trying to make
-        // an API request before we are signed in. In this case, we should just
-        // cancel this and all other requests and set isAuthenticating to false.
+        // If we end up here with no authToken it means we are trying to make an API request before we are signed
+        // in. In this case, we should cancel the current request and clear the request queue.
         if (!authToken) {
             redirectToSignIn();
 
