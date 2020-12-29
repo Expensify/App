@@ -3,8 +3,8 @@ import PropTypes from 'prop-types';
 import {
     ActivityIndicator, Text, TouchableOpacity
 } from 'react-native';
-import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
+import styles from '../styles/styles';
+import themeColors from '../styles/themes/default';
 
 const propTypes = {
     // The text for the button label
@@ -20,7 +20,7 @@ const defaultProps = {
     isLoading: false,
 };
 
-const SubmitButton = props => (
+const ButtonWithLoader = props => (
     <TouchableOpacity
         style={[styles.button, styles.buttonSuccess, styles.mb2]}
         onPress={props.onClick}
@@ -37,8 +37,8 @@ const SubmitButton = props => (
     </TouchableOpacity>
 );
 
-SubmitButton.propTypes = propTypes;
-SubmitButton.defaultProps = defaultProps;
-SubmitButton.displayName = 'SubmitButton';
+ButtonWithLoader.propTypes = propTypes;
+ButtonWithLoader.defaultProps = defaultProps;
+ButtonWithLoader.displayName = 'SubmitButton';
 
-export default SubmitButton;
+export default ButtonWithLoader;

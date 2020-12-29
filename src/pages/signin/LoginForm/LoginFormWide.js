@@ -4,7 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {fetchAccountDetails} from '../../../libs/actions/Session';
 import styles from '../../../styles/styles';
-import SubmitButton from '../SubmitButton';
+import ButtonWithLoader from '../../../components/ButtonWithLoader';
 import openURLInNewTab from '../../../libs/openURLInNewTab';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -71,7 +71,7 @@ class LoginFormWide extends React.Component {
                         />
                     </View>
                     <View>
-                        <SubmitButton
+                        <ButtonWithLoader
                             text="Continue"
                             isLoading={this.props.session.isLoading}
                             onClick={this.validateAndSubmitForm}

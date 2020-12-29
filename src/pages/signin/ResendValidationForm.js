@@ -3,7 +3,7 @@ import {Text, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
-import SubmitButton from './SubmitButton';
+import ButtonWithLoader from '../../components/ButtonWithLoader';
 import {resendValidationLink} from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
@@ -57,7 +57,7 @@ class ResendValidationForm extends React.Component {
                     </Text>
                 </View>
                 <View style={[styles.mt4]}>
-                    <SubmitButton
+                    <ButtonWithLoader
                         text="Resend Link"
                         isLoading={this.props.session.isLoading}
                         onClick={this.validateAndSubmitForm}
