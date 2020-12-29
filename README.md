@@ -9,14 +9,18 @@
     </h1>
 </div>
 
-----
-
+#### Table of contents
 * [Local Development](#local-development)
 * [Running The Tests](#running-the-tests)
 * [Debugging](#debugging)
 * [Structure of the app](#structure-of-the-app)
 * [Philosophy](#Philosophy)
 * [Deploying](#deploying)
+
+#### Additional Reading
+* [Contributing to Expensify.cash](https://github.com/Expensify/Expensify.cash/blob/master/CONTRIBUTING.md)
+* [Expensify Code of Conduct](https://github.com/Expensify/Expensify.cash/blob/master/CODE_OF_CONDUCT.md)
+* [Contributor License Agreement](https://github.com/Expensify/Expensify.cash/blob/master/CLA.md)
 
 ----
 
@@ -47,11 +51,11 @@ You can use any IDE or code editing tool for developing on any platform. Use you
 ## Running the MacOS desktop app 🖥
 * To run the **Development app**, run: `npm run desktop`, this will start a new Electron process running on your MacOS desktop in the `dist/Mac` folder.
 
-**Note:** Expensify engineers please refer to [these additional instructions](https://stackoverflow.com/c/expensify/questions/7699/7700) for testing against the local API.
-
 ## Troubleshooting
 1. If you are having issues with **_Getting Started_**, please reference [React Native's Documentation](https://reactnative.dev/docs/environment-setup)
 2. If you are running into issues communicating with the API please verify your `.env` file is [set up correctly](#getting-started) for the platform you are trying to run.
+
+**Note:** Expensify engineers please refer to [these additional instructions](https://stackoverflow.com/c/expensify/questions/7699/7700) for testing against the local API.
 
 ----
 
@@ -86,11 +90,6 @@ Our React Native Android app now uses the `Hermes` JS engine which requires your
 2. Use the `Configure...` button to add the Metro server address (typically `localhost:8081`, check your `Metro` output)
 3. You should now see a "Hermes React Native" target with an "inspect" link which can be used to bring up a debugger. If you don't see the "inspect" link, make sure the Metro server is running.
 4. You can now use the Chrome debug tools. See [React Native Debugging Hermes](https://reactnative.dev/docs/hermes#debugging-hermes-using-google-chromes-devtools)
-
-# Things to know or brush up on before jumping into the code
-1. The major difference between React-Native and React are the [components](https://reactnative.dev/docs/components-and-apis) that are used in the `render()` method. Everything else is exactly the same. If you learn React, you've already learned 98% of React-Native.
-1. The application uses [React-Router](https://reactrouter.com/native/guides/quick-start) for navigating between parts of the app.
-1. [Higher Order Components](https://reactjs.org/docs/higher-order-components.html) are used to connect React components to persistent storage via Onyx.
 
 ---
 
@@ -185,6 +184,11 @@ export default withOnyx({
     },
 })(ReportActionsView);
 ```
+
+## Things to know or brush up on before jumping into the code
+1. The major difference between React-Native and React are the [components](https://reactnative.dev/docs/components-and-apis) that are used in the `render()` method. Everything else is exactly the same. If you learn React, you've already learned 98% of React-Native.
+1. The application uses [React-Router](https://reactrouter.com/native/guides/quick-start) for navigating between parts of the app.
+1. [Higher Order Components](https://reactjs.org/docs/higher-order-components.html) are used to connect React components to persistent storage via Onyx.
 
 ----
 
