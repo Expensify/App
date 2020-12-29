@@ -55,9 +55,9 @@ function addAuthTokenToParameters(command, parameters) {
             redirectToSignIn();
 
             console.debug('A request was made without an authToken', {command, parameters});
-
-            // Throw so the request queue knows to not make this request
-            throw new Error('A request was made without an authToken');
+            Network.pauseRequestQueue();
+            Network.clearRequestQueue();
+            return;
         }
 
         finalParameters.authToken = authToken;
