@@ -57,7 +57,7 @@ const HeaderView = props => (
                     styles.flex1,
                     styles.flexRow,
                     styles.alignItemsCenter,
-                    styles.flexJustifySpaceBetween,
+                    styles.justifyContentBetween,
                 ]}
                 >
                     <View style={[styles.flex1]}>
