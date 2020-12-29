@@ -20,7 +20,9 @@ const propTypes = {
 };
 
 const defaultProps = {
-    session: {},
+    session: {
+        isLoading: false,
+    },
 };
 
 class LoginFormWide extends React.Component {
