@@ -35,7 +35,7 @@ These instructions should get you set up ready to work on Expensify.cash 🙌
 You can use any IDE or code editing tool for developing on any platform. Use your favorite!
 
 ## Running the web app 🕸
-* To run the **development web app**, run the: `npm run web`
+* To run the **development web app**: `npm run web`
 * Changes applied to Javascript will be applied automatically via WebPack as configured in `webpack.dev.js`
 
 ## Running the iOS app 📱
@@ -55,7 +55,7 @@ You can use any IDE or code editing tool for developing on any platform. Use you
 1. If you are having issues with **_Getting Started_**, please reference [React Native's Documentation](https://reactnative.dev/docs/environment-setup)
 2. If you are running into issues communicating with the API please verify your `.env` file is [set up correctly](#getting-started) for the platform you are trying to run.
 
-**Note:** Expensify engineers please refer to [these additional instructions](https://stackoverflow.com/c/expensify/questions/7699/7700) for testing against the local API.
+**Note:** Expensify engineers that will be testing with the API in your local dev environment please refer to [these additional instructions](https://stackoverflow.com/c/expensify/questions/7699/7700).
 
 ----
 
