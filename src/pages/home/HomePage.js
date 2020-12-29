@@ -6,7 +6,7 @@ import {
     Animated,
     Easing,
     Keyboard,
-    Pressable
+    Pressable,
 } from 'react-native';
 import {SafeAreaInsetsContext, SafeAreaProvider} from 'react-native-safe-area-context';
 import {withOnyx} from 'react-native-onyx';
