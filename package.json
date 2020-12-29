@@ -25,7 +25,7 @@
     "detox-build": "detox build --configuration ios.sim.debug",
     "detox-test": "detox test --configuration ios.sim.debug",
     "storybook": "start-storybook -p 6006",
-    "build-storybook": "build-storybook"
+    "build-storybook": "npm run build-storybook -- -o dist/docs"
   },
   "dependencies": {
     "@babel/plugin-proposal-class-properties": "^7.12.1",
