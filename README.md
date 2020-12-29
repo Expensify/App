@@ -18,9 +18,9 @@
 * [Deploying](#deploying)
 
 #### Additional Reading
-* [Contributing to Expensify.cash](https://github.com/Expensify/Expensify.cash/blob/master/CONTRIBUTING.md)
-* [Expensify Code of Conduct](https://github.com/Expensify/Expensify.cash/blob/master/CODE_OF_CONDUCT.md)
-* [Contributor License Agreement](https://github.com/Expensify/Expensify.cash/blob/master/CLA.md)
+* [Contributing to Expensify.cash](./CONTRIBUTING.md)
+* [Expensify Code of Conduct](./CODE_OF_CONDUCT.md)
+* [Contributor License Agreement](./CLA.md)
 
 ----
 
