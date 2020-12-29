@@ -26,7 +26,7 @@ const ModalHeader = props => (
             styles.flexRow,
             styles.alignItemsCenter,
             styles.flexGrow1,
-            styles.flexJustifySpaceBetween,
+            styles.justifyContentBetween,
             styles.overflowHidden,
         ]}
         >

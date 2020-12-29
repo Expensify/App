@@ -15,7 +15,7 @@ const propTypes = {
 const SignInPageLayoutWide = ({children}) => (
     <View style={[styles.signInPageInner]}>
         <View style={[styles.flex1, styles.flexRow]}>
-            <View style={[styles.flex1, styles.width50p, styles.alignItemsCenter]}>
+            <View style={[styles.flex1, styles.w50, styles.alignItemsCenter]}>
                 <View>
                     <Image
                         resizeMode="contain"
@@ -24,7 +24,7 @@ const SignInPageLayoutWide = ({children}) => (
                     />
                 </View>
             </View>
-            <View style={[styles.flex1, styles.width50p]}>
+            <View style={[styles.flex1, styles.w50]}>
                 <View style={[styles.signInPageLogo, styles.mt6, styles.mb5]}>
                     <Image
                         resizeMode="contain"
