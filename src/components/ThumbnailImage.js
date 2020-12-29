@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {PureComponent} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -28,7 +28,7 @@ const defaultProps = {
     style: {},
 };
 
-class ThumbnailImage extends Component {
+class ThumbnailImage extends PureComponent {
     constructor(props) {
         super(props);
 
