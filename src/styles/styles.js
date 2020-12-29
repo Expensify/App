@@ -931,36 +931,38 @@ const styles = {
         left: 0,
         justifyContent: 'center',
         alignItems: 'center',
-        height: variables.componentSizeNormal * 0.6,
+        height: 24,
         overflow: 'hidden',
-        width: variables.componentSizeNormal * 0.6,
+        width: 24,
     },
     chatSwitcherAvatar2ForGroup: {
         backgroundColor: themeColors.icon,
         borderRadius: 20,
         position: 'absolute',
-        bottom: 0,
-        right: 0,
+        bottom: -3,
+        right: -3,
         justifyContent: 'center',
         alignItems: 'center',
-        height: (variables.componentSizeNormal * 0.6) + 2,
+        height: 24 + 6,
         overflow: 'hidden',
-        width: (variables.componentSizeNormal * 0.6) + 2,
-        borderWidth: 2,
+        width: 24 + 6,
+        borderWidth: 3,
     },
-    chatSwitcherAvatar2ForGroupBorderInactive: {
+    chatSwitcherAvatar2ForGroupInactive: {
         borderColor: themeColors.sidebar,
+        backgroundColor: colors.gray2
     },
-    chatSwitcherAvatar2ForGroupBorderActive: {
+    chatSwitcherAvatar2ForGroupActive: {
         borderColor: themeColors.border,
+        backgroundColor: colors.gray1
     },
     chatSwitcherAvatarImageForGroup: {
-        height: variables.componentSizeNormal * 0.6,
-        width: variables.componentSizeNormal * 0.6,
+        height: 24,
+        width: 24,
     },
     groupAvatarCircularCountText: {
-        fontSize: variables.fontSizeLabel,
-        color: themeColors.text,
+        fontSize: variables.fontSizeSmall,
+        color: themeColors.textSupporting,
     },
     chatSwitcherItemText: {
         color: themeColors.text,

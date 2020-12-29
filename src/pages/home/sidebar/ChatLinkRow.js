@@ -50,9 +50,9 @@ const ChatLinkRow = ({
         : styles.sidebarLinkText;
     const textUnreadStyle = option.isUnread
         ? [textStyle, styles.sidebarLinkTextUnread] : [textStyle];
-    const groupAvatar2BorderStyle = !optionIsFocused
-        ? styles.chatSwitcherAvatar2ForGroupBorderInactive
-        : styles.chatSwitcherAvatar2ForGroupBorderActive;
+    const groupAvatar2DynamicStyles = !optionIsFocused
+        ? styles.chatSwitcherAvatar2ForGroupInactive
+        : styles.chatSwitcherAvatar2ForGroupActive;
     const circularCount = (option.participants && option.participants.length > 2)
         ? option.participants.length - 1
         : null;
@@ -105,7 +105,7 @@ const ChatLinkRow = ({
                                         style={[styles.chatSwitcherAvatarImageForGroup]}
                                     />
                                 </View>
-                                <View style={[styles.chatSwitcherAvatar2ForGroup, groupAvatar2BorderStyle]}>
+                                <View style={[styles.chatSwitcherAvatar2ForGroup, groupAvatar2DynamicStyles]}>
                                     {
                                         circularCount ? (
                                             <Text style={styles.groupAvatarCircularCountText}>
