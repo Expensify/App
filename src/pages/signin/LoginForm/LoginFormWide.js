@@ -1,10 +1,27 @@
 import React from 'react';
 import {Text, TextInput, View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import {fetchAccountDetails} from '../../../libs/actions/Session';
 import styles from '../../../styles/styles';
 import SubmitButton from '../SubmitButton';
 import openURLInNewTab from '../../../libs/openURLInNewTab';
 import CONST from '../../../CONST';
+import ONYXKEYS from '../../../ONYXKEYS';
+
+const propTypes = {
+    /* Onyx Props */
+
+    // The session of the logged in person
+    session: PropTypes.shape({
+        // Whether or not a sign on form is loading (being submitted)
+        isLoading: PropTypes.bool,
+    }),
+};
+
+const defaultProps = {
+    session: {},
+};
 
 class LoginFormWide extends React.Component {
     constructor(props) {
@@ -15,7 +32,6 @@ class LoginFormWide extends React.Component {
         this.state = {
             formError: false,
             login: '',
-            isLoading: false,
         };
     }
 
@@ -30,7 +46,6 @@ class LoginFormWide extends React.Component {
 
         this.setState({
             formError: null,
-            isLoading: true,
         });
 
         // Check if this login has an account associated with it or not
@@ -58,7 +73,7 @@ class LoginFormWide extends React.Component {
                     <View>
                         <SubmitButton
                             text="Continue"
-                            isLoading={this.state.isLoading}
+                            isLoading={this.props.session.isLoading}
                             onClick={this.validateAndSubmitForm}
                             showRestartButton={false}
                         />
@@ -105,4 +120,9 @@ class LoginFormWide extends React.Component {
     }
 }
 
-export default LoginFormWide;
+LoginFormWide.propTypes = propTypes;
+LoginFormWide.defaultProps = defaultProps;
+
+export default withOnyx({
+    session: {key: ONYXKEYS.SESSION},
+})(LoginFormWide);

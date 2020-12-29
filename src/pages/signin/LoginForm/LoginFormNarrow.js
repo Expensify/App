@@ -2,6 +2,8 @@ import React from 'react';
 import {
     Image, Text, TextInput, View
 } from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import SubmitButton from '../SubmitButton';
@@ -9,6 +11,21 @@ import openURLInNewTab from '../../../libs/openURLInNewTab';
 import {fetchAccountDetails} from '../../../libs/actions/Session';
 import welcomeScreenshot from '../../../../assets/images/welcome-screenshot.png';
 import CONST from '../../../CONST';
+import ONYXKEYS from '../../../ONYXKEYS';
+
+const propTypes = {
+    /* Onyx Props */
+
+    // The session of the logged in person
+    session: PropTypes.shape({
+        // Whether or not a sign on form is loading (being submitted)
+        isLoading: PropTypes.bool,
+    }),
+};
+
+const defaultProps = {
+    session: {},
+};
 
 class LoginFormNarrow extends React.Component {
     constructor(props) {
@@ -19,7 +36,6 @@ class LoginFormNarrow extends React.Component {
         this.state = {
             formError: false,
             login: '',
-            isLoading: false,
         };
     }
 
@@ -34,7 +50,6 @@ class LoginFormNarrow extends React.Component {
 
         this.setState({
             formError: null,
-            isLoading: true,
         });
 
         // Check if this login has an account associated with it or not
@@ -61,7 +76,7 @@ class LoginFormNarrow extends React.Component {
                 <View>
                     <SubmitButton
                         text="Continue"
-                        isLoading={this.state.isLoading}
+                        isLoading={this.props.session.isLoading}
                         onClick={this.validateAndSubmitForm}
                         showRestartButton={false}
                     />
@@ -113,4 +128,9 @@ class LoginFormNarrow extends React.Component {
     }
 }
 
-export default LoginFormNarrow;
+LoginFormNarrow.propTypes = propTypes;
+LoginFormNarrow.defaultProps = defaultProps;
+
+export default withOnyx({
+    session: {key: ONYXKEYS.SESSION},
+})(LoginFormNarrow);
