@@ -965,6 +965,7 @@ const styles = {
     groupAvatarCircularCountText: {
         fontSize: variables.fontSizeSmall,
         color: themeColors.textSupporting,
+        lineHeight: 24
     },
     chatSwitcherItemText: {
         color: themeColors.text,
