@@ -1,6 +1,8 @@
 const defaultPresets = ['@babel/preset-react', '@babel/preset-env'];
 const defaultPlugins = [
+    // Adding the commonjs: true option to react-native-web plugin can cause styling conflicts
     ['react-native-web'],
+
     '@babel/transform-runtime',
     '@babel/plugin-proposal-class-properties',
 
