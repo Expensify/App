@@ -174,7 +174,7 @@ function signIn(password, exitTo, twoFactorAuthCode) {
  * @param {String} username
  */
 function setGitHubUsername(username) {
-    Onyx.merge(ONYXKEYS.SESSION, {error: ''});
+    Onyx.merge(ONYXKEYS.SESSION, {error: '', isLoading: true});
 
     API.SetGithubUsername({email: credentials.login, githubUsername: username})
         .then((response) => {
@@ -186,6 +186,9 @@ function setGitHubUsername(username) {
 
             // This request can fail if an invalid GitHub username was entered
             Onyx.merge(ONYXKEYS.SESSION, {error: 'Please enter a valid GitHub username'});
+        })
+        .finally(() => {
+            Onyx.merge(ONYXKEYS.SESSION, {isLoading: false});
         });
 }
 
