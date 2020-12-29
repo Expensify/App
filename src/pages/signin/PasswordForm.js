@@ -28,10 +28,17 @@ const propTypes = {
         // Whether or not two factor authentication is required
         requiresTwoFactorAuth: PropTypes.bool,
     }),
+
+    // The session of the logged in person
+    session: PropTypes.shape({
+        // Whether or not a sign on form is loading (being submitted)
+        isLoading: PropTypes.bool,
+    }),
 };
 
 const defaultProps = {
     account: {},
+    session: {},
 };
 
 class PasswordForm extends React.Component {
@@ -44,7 +51,6 @@ class PasswordForm extends React.Component {
             formError: false,
             password: '',
             twoFactorAuthCode: '',
-            isLoading: false,
         };
     }
 
@@ -61,7 +67,6 @@ class PasswordForm extends React.Component {
 
         this.setState({
             formError: null,
-            isLoading: true,
         });
 
         signIn(this.state.password, this.props.match.params.exitTo, this.state.twoFactorAuthCode);
@@ -99,7 +104,7 @@ class PasswordForm extends React.Component {
                 <View>
                     <SubmitButton
                         text="Sign In"
-                        isLoading={this.state.isLoading}
+                        isLoading={this.props.session.isLoading}
                         onClick={this.validateAndSubmitForm}
                     />
                 </View>
@@ -120,5 +125,6 @@ export default compose(
     withRouter,
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
+        session: {key: ONYXKEYS.SESSION},
     }),
 )(PasswordForm);

@@ -112,7 +112,7 @@ function fetchAccountDetails(login) {
  * @param {String} [twoFactorAuthCode]
  */
 function signIn(password, exitTo, twoFactorAuthCode) {
-    Onyx.merge(ONYXKEYS.SESSION, {error: ''});
+    Onyx.merge(ONYXKEYS.SESSION, {error: '', isLoading: true});
 
     API.Authenticate({
         useExpensifyLogin: true,
@@ -158,10 +158,13 @@ function signIn(password, exitTo, twoFactorAuthCode) {
                 })
                 .catch((error) => {
                     Onyx.merge(ONYXKEYS.SESSION, {error: error.message});
+                })
+                .finally(() => {
+                    Onyx.merge(ONYXKEYS.SESSION, {isLoading: false});
                 });
         })
         .catch((error) => {
-            Onyx.merge(ONYXKEYS.SESSION, {error: error.message});
+            Onyx.merge(ONYXKEYS.SESSION, {error: error.message, isLoading: false});
         });
 }
 
