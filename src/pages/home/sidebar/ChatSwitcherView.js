@@ -164,8 +164,8 @@ class ChatSwitcherView extends React.Component {
                 return {
                     text: report.reportName,
                     alternateText: isSingleUserDM ? login : report.reportName,
-                    searchText: report.participants < 10
-                        ? `${report.reportName} ${report.participants.join(' ')}`
+                    searchText: participants.length < 10
+                        ? `${report.reportName} ${participants.join(' ')}`
                         : report.reportName ?? '',
                     reportID: report.reportID,
                     participants,
@@ -438,6 +438,7 @@ class ChatSwitcherView extends React.Component {
                     const option = searchOptions[j];
                     const valueToSearch = option.searchText && option.searchText.replace(new RegExp(/&nbsp;/g), '');
                     const isMatch = matchRegexes[i].test(valueToSearch);
+                    const isCurrentlyLoggedInUser = this.props.session.email === option.login;
 
                     // We must also filter out any users who are already in the Group DM list
                     // so they can't be selected more than once
@@ -446,7 +447,8 @@ class ChatSwitcherView extends React.Component {
                     ));
 
                     // Make sure we don't include the same option twice (automatically handled by using a `Set`)
-                    if (isMatch && !isInGroupUsers) {
+                    // We must also ignore the option if it matches the currently logged in user.
+                    if (isMatch && !isInGroupUsers && !isCurrentlyLoggedInUser) {
                         matches.add(option);
                     }
 
