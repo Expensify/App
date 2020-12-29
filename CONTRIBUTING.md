@@ -2,7 +2,7 @@
 Welcome! Thanks for checking out Expensify.cash and for taking the time to contribute!
 
 ## Getting Started
-This guide is specifically for external contributors. For a general overview of the repo, check out our README located [here](https://github.com/Expensify/Expensify.cash/blob/master/README.md). The part of the README to pay particular attention to is how to [run the app](https://github.com/Expensify/Expensify.cash#running-the-apps-via-production-api-proxy-contributors-) locally using our production API.
+This guide is specifically for external contributors. For a general overview of the repo, check out our README located [here](https://github.com/Expensify/Expensify.cash/blob/master/README.md). The part of the README to pay particular attention to is how to [run the app](https://github.com/Expensify/Expensify.cash#local-development) locally using our production API.
 
 #### Test Accounts
 You can create as many accounts as needed in order to test your changes. You can create your test accounts directly from [expensify.cash](https://expensify.cash/). Right now, accounts can't chat with each other by default. If you want your test accounts to be able to chat with each other, post in the #expensify-contributors [Slack channel](https://github.com/Expensify/Expensify.cash/blob/master/CONTRIBUTING.md#asking-questions) to ask someone to add your test accounts to a policy that allows chatting.
