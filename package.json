@@ -1,6 +1,6 @@
 {
   "name": "expensify.cash",
-  "version": "1.0.1-303",
+  "version": "1.0.1-304",
   "author": "Expensify, Inc.",
   "homepage": "https://expensify.cash",
   "description": "Expensify.cash is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -164,7 +164,11 @@
   "metro": {
     "resolver": {
       "sourceExts": [
-        "jsx", "js", "ts", "tsx", "json"
+        "jsx",
+        "js",
+        "ts",
+        "tsx",
+        "json"
       ]
     }
   },
