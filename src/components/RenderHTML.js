@@ -1,14 +1,14 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
 import PropTypes from 'prop-types';
-import {useWindowDimensions, TouchableOpacity} from 'react-native';
+import {useWindowDimensions, TouchableOpacity, Text, Platform} from 'react-native';
 import HTML, {
     defaultHTMLElementModels,
     TNodeChildrenRenderer,
     splitBoxModelStyle,
 } from 'react-native-render-html';
 import Config from '../CONFIG';
-import {webViewStyles} from '../styles/styles';
+import styles, {webViewStyles} from '../styles/styles';
 import fontFamily from '../styles/fontFamily';
 import AnchorForCommentsOnly from './AnchorForCommentsOnly';
 import InlineCodeBlock from './InlineCodeBlock';
@@ -141,7 +141,7 @@ ImgRenderer.model = defaultHTMLElementModels.img;
 // Define the custom render methods
 const renderers = {
     a: AnchorRenderer,
-    code: CodeRenderer,
+    code: Platform.OS === 'ios' ? (htmlAttribs) => <Text style={styles.codeMarkDownForIOS}>{htmlAttribs.tnode.data}</Text> : CodeRenderer,
     img: ImgRenderer,
 };
 
