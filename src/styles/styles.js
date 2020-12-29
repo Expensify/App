@@ -1046,6 +1046,13 @@ const styles = {
         backgroundColor: themeColors.componentBG,
         borderColor: colors.transparent,
     },
+
+    codeMarkDownForIOS: {
+        backgroundColor: '#ECECEC',
+        color: '#4A5960',
+        fontFamily: 'GTAmericaExpMono-Rg',
+
+    }
 };
 
 const baseCodeTagStyles = {
@@ -1122,13 +1129,6 @@ const webViewStyles = {
         fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.GTA,
     },
-    
-    codeMarkDownForIOS: {
-        backgroundColor: '#ECECEC',
-        color: '#4A5960',
-        fontFamily: 'GTAmericaExpMono-Rg',
-
-    }
 };
 
 /**
