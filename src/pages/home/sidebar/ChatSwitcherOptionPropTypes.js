@@ -10,13 +10,13 @@ export default PropTypes.shape({
     // The URL of the person's avatar
     icon: PropTypes.string,
 
-    // URLS OF FIRST TWO PARTICIPANTS' AVATAR FOR GROUP CHAT
+    // Avatar URLS of the first two participants in the group chat
     groupIcons: PropTypes.arrayOf(String),
 
     // The type of option we have e.g. user or report
     type: PropTypes.string,
 
-    // ARRAY OF THE LOGIN OF ALL USERS IN A CHAT
+    // Array of the login of all users in a chat
     participants: PropTypes.arrayOf(String),
 
     // The option key provided to FlatList keyExtractor

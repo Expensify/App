@@ -83,7 +83,7 @@ const ChatLinkRow = ({
                         styles.alignItemsCenter,
                     ]}
                 >
-                    {/* FOR SINGLE USER DM WITH ICON */}
+                    {/* For single user chat with icon */}
                     {
                         !_.isEmpty(option.icon)
                         && (
@@ -92,7 +92,7 @@ const ChatLinkRow = ({
                             </View>
                         )
                     }
-                    {/* FOR  GROUP CHAT WITH TWO OR MORE PARTICIPANTS' */}
+                    {/* For group chat with two or more participants */}
                     {
                         Boolean(option.groupIcons && !option.icon && option.groupIcons.length)
                         && (
