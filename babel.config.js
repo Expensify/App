@@ -1,5 +1,6 @@
 const defaultPresets = ['@babel/preset-react', '@babel/preset-env'];
 const defaultPlugins = [
+    ['react-native-web'],
     '@babel/transform-runtime',
     '@babel/plugin-proposal-class-properties',
 
