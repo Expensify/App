@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {withRouter} from '../../libs/Router';
 import styles from '../../styles/styles';
-import SubmitButton from './SubmitButton';
+import ButtonWithLoader from '../../components/ButtonWithLoader';
 import themeColors from '../../styles/themes/default';
 import {signIn} from '../../libs/actions/Session';
 import compose from '../../libs/compose';
@@ -105,7 +105,7 @@ class PasswordForm extends React.Component {
                     </View>
                 )}
                 <View>
-                    <SubmitButton
+                    <ButtonWithLoader
                         text="Sign In"
                         isLoading={this.props.session.isLoading}
                         onClick={this.validateAndSubmitForm}

@@ -6,7 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
-import SubmitButton from '../SubmitButton';
+import ButtonWithLoader from '../../../components/ButtonWithLoader';
 import openURLInNewTab from '../../../libs/openURLInNewTab';
 import {fetchAccountDetails} from '../../../libs/actions/Session';
 import welcomeScreenshot from '../../../../assets/images/welcome-screenshot.png';
@@ -74,7 +74,7 @@ class LoginFormNarrow extends React.Component {
                     />
                 </View>
                 <View>
-                    <SubmitButton
+                    <ButtonWithLoader
                         text="Continue"
                         isLoading={this.props.session.isLoading}
                         onClick={this.validateAndSubmitForm}
