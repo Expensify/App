@@ -9,7 +9,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 function fetchCountryCodeByRequestIP() {
     API.GetRequestCountryCode()
         .then((data) => {
-            Onyx.merge(ONYXKEYS.COUNTRY_CODE_BY_IP, data.countryCode || 1);
+            Onyx.merge(ONYXKEYS.COUNTRY_CODE, data.countryCode || 1);
         });
 }
 

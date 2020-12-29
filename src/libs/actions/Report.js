@@ -443,7 +443,7 @@ function fetchOrCreateChatReport(participants) {
 
         .then((data) => {
             if (data.jsonCode !== 200) {
-                throw new Error(data.message);
+                alert(data.message);
             }
 
             // Set aside the reportID in a local variable so it can be accessed in the rest of the chain
@@ -459,6 +459,9 @@ function fetchOrCreateChatReport(participants) {
 
         // Put the report object into Onyx
         .then((data) => {
+            if (data.reports.length === 0) {
+                return;
+            }
             const report = data.reports[reportID];
 
             // Store only the absolute bare minimum of data in Onyx because space is limited
@@ -478,9 +481,6 @@ function fetchOrCreateChatReport(participants) {
 
             // Redirect the logged in person to the new report
             redirect(ROUTES.getReportRoute(reportID));
-        })
-        .catch((error) => {
-            alert(error.message);
         });
 }
 

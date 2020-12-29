@@ -558,6 +558,6 @@ export default withOnyx({
         initFromStoredValues: false,
     },
     countryCodeByIP: {
-        key: ONYXKEYS.COUNTRY_CODE_BY_IP
+        key: ONYXKEYS.COUNTRY_CODE
     }
 })(ChatSwitcherView);
