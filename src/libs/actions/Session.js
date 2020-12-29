@@ -197,7 +197,11 @@ function setGitHubUsername(username) {
  * this happens in the createAccount() flow
  */
 function resendValidationLink() {
-    API.ResendValidateCode({email: credentials.login});
+    Onyx.merge(ONYXKEYS.SESSION, {isLoading: true});
+    API.ResendValidateCode({email: credentials.login})
+        .finally(() => {
+            Onyx.merge(ONYXKEYS.SESSION, {isLoading: false});
+        });
 }
 
 /**
