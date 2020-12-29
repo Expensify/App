@@ -78,7 +78,6 @@ class LoginFormNarrow extends React.Component {
                         text="Continue"
                         isLoading={this.props.session.isLoading}
                         onClick={this.validateAndSubmitForm}
-                        showRestartButton={false}
                     />
                 </View>
 
