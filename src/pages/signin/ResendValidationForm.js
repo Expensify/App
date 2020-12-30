@@ -11,15 +11,15 @@ import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 const propTypes = {
     /* Onyx Props */
 
-    // The session of the logged in person
-    session: PropTypes.shape({
+    // The details about the account that the user is signing in with
+    account: PropTypes.shape({
         // Whether or not a sign on form is loading (being submitted)
-        isLoading: PropTypes.bool,
+        loading: PropTypes.bool,
     }),
 };
 
 const defaultProps = {
-    session: {},
+    account: {},
 };
 
 class ResendValidationForm extends React.Component {
@@ -33,6 +33,12 @@ class ResendValidationForm extends React.Component {
         };
     }
 
+    componentWillUnmount() {
+        if (this.successMessageTimer) {
+            clearInterval(this.successMessageTimer);
+        }
+    }
+
     /**
      * Check that all the form fields are valid, then trigger the submit callback
      */
@@ -43,7 +49,7 @@ class ResendValidationForm extends React.Component {
 
         resendValidationLink();
 
-        setTimeout(() => {
+        this.successMessageTimer = setTimeout(() => {
             this.setState({formSuccess: ''});
         }, 5000);
     }
@@ -59,7 +65,7 @@ class ResendValidationForm extends React.Component {
                 <View style={[styles.mt4]}>
                     <ButtonWithLoader
                         text="Resend Link"
-                        isLoading={this.props.session.isLoading}
+                        isLoading={this.props.account.loading}
                         onClick={this.validateAndSubmitForm}
                     />
                     <ChangeExpensifyLoginLink />
@@ -79,5 +85,5 @@ ResendValidationForm.propTypes = propTypes;
 ResendValidationForm.defaultProps = defaultProps;
 
 export default withOnyx({
-    session: {key: ONYXKEYS.SESSION},
+    account: {key: ONYXKEYS.ACCOUNT},
 })(ResendValidationForm);

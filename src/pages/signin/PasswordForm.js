@@ -30,18 +30,14 @@ const propTypes = {
 
         // Whether or not two factor authentication is required
         requiresTwoFactorAuth: PropTypes.bool,
-    }),
 
-    // The session of the logged in person
-    session: PropTypes.shape({
         // Whether or not a sign on form is loading (being submitted)
-        isLoading: PropTypes.bool,
+        loading: PropTypes.bool,
     }),
 };
 
 const defaultProps = {
     account: {},
-    session: {},
 };
 
 class PasswordForm extends React.Component {
@@ -107,7 +103,7 @@ class PasswordForm extends React.Component {
                 <View>
                     <ButtonWithLoader
                         text="Sign In"
-                        isLoading={this.props.session.isLoading}
+                        isLoading={this.props.account.loading}
                         onClick={this.validateAndSubmitForm}
                     />
                     <ChangeExpensifyLoginLink />
@@ -129,6 +125,5 @@ export default compose(
     withRouter,
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
-        session: {key: ONYXKEYS.SESSION},
     }),
 )(PasswordForm);

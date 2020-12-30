@@ -12,15 +12,15 @@ import ONYXKEYS from '../../../ONYXKEYS';
 const propTypes = {
     /* Onyx Props */
 
-    // The session of the logged in person
-    session: PropTypes.shape({
+    // The details about the account that the user is signing in with
+    account: PropTypes.shape({
         // Whether or not a sign on form is loading (being submitted)
-        isLoading: PropTypes.bool,
+        loading: PropTypes.bool,
     }),
 };
 
 const defaultProps = {
-    session: {},
+    account: {},
 };
 
 class LoginFormWide extends React.Component {
@@ -73,7 +73,7 @@ class LoginFormWide extends React.Component {
                     <View>
                         <ButtonWithLoader
                             text="Continue"
-                            isLoading={this.props.session.isLoading}
+                            isLoading={this.props.account.loading}
                             onClick={this.validateAndSubmitForm}
                         />
                     </View>
@@ -123,5 +123,5 @@ LoginFormWide.propTypes = propTypes;
 LoginFormWide.defaultProps = defaultProps;
 
 export default withOnyx({
-    session: {key: ONYXKEYS.SESSION},
+    account: {key: ONYXKEYS.ACCOUNT},
 })(LoginFormWide);
