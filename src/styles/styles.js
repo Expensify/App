@@ -635,11 +635,6 @@ const styles = {
         width: 20,
     },
 
-    reportPinIcon: {
-        height: 20,
-        width: 20,
-    },
-
     chatItemAttachButton: {
         alignItems: 'center',
         alignSelf: 'flex-end',
