@@ -36,7 +36,7 @@ class ResendValidationForm extends React.Component {
 
     componentWillUnmount() {
         if (this.successMessageTimer) {
-            clearInterval(this.successMessageTimer);
+            clearTimeout(this.successMessageTimer);
         }
     }
 
