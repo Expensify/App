@@ -175,7 +175,6 @@ class ReportActionCompose extends React.Component {
                                 <TextInputFocusable
                                     multiline
                                     ref={el => this.textInput = el}
-                                    textAlignVertical="top"
                                     placeholder="Write something..."
                                     placeholderTextColor={themeColors.textSupporting}
                                     onChangeText={this.updateComment}

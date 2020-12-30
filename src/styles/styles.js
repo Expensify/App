@@ -1,4 +1,3 @@
-
 // We place items a percentage to the safe area on the top or bottom of the screen
 import fontFamily from './fontFamily';
 import italic from './italic';
@@ -7,989 +6,986 @@ import themeColors from './themes/default';
 import fontWeightBold from './fontWeight/bold';
 import variables from './variables';
 import colors from './colors';
-import { Platform } from 'react-native'
+import TextInputFocusable from "../components/TextInputFocusable";
 
 const styles = {
 // Utility classes
-m0: {
-margin: 0,
-},
+    m0: {
+        margin: 0,
+    },
 
-mr0: {
-marginRight: 0,
-},
+    mr0: {
+        marginRight: 0,
+    },
 
-mr1: {
-marginRight: 4,
-},
+    mr1: {
+        marginRight: 4,
+    },
 
-mr2: {
-marginRight: 8,
-},
+    mr2: {
+        marginRight: 8,
+    },
 
-mr3: {
-marginRight: 12,
-},
+    mr3: {
+        marginRight: 12,
+    },
 
-ml1: {
-marginLeft: 4,
-},
+    ml1: {
+        marginLeft: 4,
+    },
 
-ml2: {
-marginLeft: 8,
-},
+    ml2: {
+        marginLeft: 8,
+    },
 
-mt2: {
-marginTop: 20,
-},
+    mt2: {
+        marginTop: 20,
+    },
 
-mt1: {
-marginTop: 4,
-},
+    mt1: {
+        marginTop: 4,
+    },
 
-mt3: {
-marginTop: 12,
-},
+    mt3: {
+        marginTop: 12,
+    },
 
-mb1: {
-marginBottom: 4,
-},
-mb2: {
-marginBottom: 8,
-},
-mb3: {
-marginBottom: 12,
-},
-mb4: {
-marginBottom: 16,
-},
+    mb1: {
+        marginBottom: 4,
+    },
+    mb2: {
+        marginBottom: 8,
+    },
+    mb3: {
+        marginBottom: 12,
+    },
+    mb4: {
+        marginBottom: 16,
+    },
 
-mbn5: {
-marginBottom: -5,
-},
+    mbn5: {
+        marginBottom: -5,
+    },
 
-p1: {
-padding: 10,
-},
-p2: {
-padding: 20,
-},
-pr1: {
-paddingRight: 4,
-},
-pr2: {
-paddingRight: 8,
-},
+    p1: {
+        padding: 10,
+    },
+    p2: {
+        padding: 20,
+    },
+    pr1: {
+        paddingRight: 4,
+    },
+    pr2: {
+        paddingRight: 8,
+    },
 
-widthHeight100p: {
-width: '100%',
-height: '100%',
-},
+    widthHeight100p: {
+        width: '100%',
+        height: '100%',
+    },
 
-flex0: {
-flex: 0,
-},
+    flex0: {
+        flex: 0,
+    },
 
-flex1: {
-flex: 1,
-},
+    flex1: {
+        flex: 1,
+    },
 
-flex4: {
-flex: 4,
-},
+    flex4: {
+        flex: 4,
+    },
 
-flexRow: {
-flexDirection: 'row',
-},
+    flexRow: {
+        flexDirection: 'row',
+    },
 
-flexColumn: {
-flexDirection: 'column',
-},
+    flexColumn: {
+        flexDirection: 'column',
+    },
 
-flexJustifyCenter: {
-justifyContent: 'center',
-},
+    flexJustifyCenter: {
+        justifyContent: 'center',
+    },
 
-flexJustifyEnd: {
-justifyContent: 'flex-end',
-},
+    flexJustifyEnd: {
+        justifyContent: 'flex-end',
+    },
 
-flexJustifySpaceBetween: {
-justifyContent: 'space-between',
-},
+    flexJustifySpaceBetween: {
+        justifyContent: 'space-between',
+    },
 
-flexAlignSelfStretch: {
-alignSelf: 'stretch',
-},
+    flexAlignSelfStretch: {
+        alignSelf: 'stretch',
+    },
 
-alignItemsCenter: {
-alignItems: 'center',
-},
+    alignItemsCenter: {
+        alignItems: 'center',
+    },
 
-flexWrap: {
-flexWrap: 'wrap',
-},
+    flexWrap: {
+        flexWrap: 'wrap',
+    },
 
-flexGrow0: {
-flexGrow: 0,
-},
+    flexGrow0: {
+        flexGrow: 0,
+    },
 
-flexGrow1: {
-flexGrow: 1,
-},
+    flexGrow1: {
+        flexGrow: 1,
+    },
 
-flexGrow4: {
-flexGrow: 4,
-},
+    flexGrow4: {
+        flexGrow: 4,
+    },
 
-dFlex: {
-display: 'flex',
-},
+    dFlex: {
+        display: 'flex',
+    },
 
-dNone: {
-display: 'none',
-},
+    dNone: {
+        display: 'none',
+    },
 
-dInlineBlock: {
-display: 'inline-block',
-},
+    dInlineBlock: {
+        display: 'inline-block',
+    },
 
-overflowHidden: {
-overflow: 'hidden',
-},
+    overflowHidden: {
+        overflow: 'hidden',
+    },
 
-height100percent: {
-height: '100%',
-},
+    height100percent: {
+        height: '100%',
+    },
 
-h4: {
-fontFamily: fontFamily.GTA_BOLD,
-fontSize: variables.fontSizeLabel,
-fontWeight: fontWeightBold,
-},
+    h4: {
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeLabel,
+        fontWeight: fontWeightBold,
+    },
 
-textP: {
-color: themeColors.text,
-fontSize: variables.fontSizeNormal,
-lineHeight: 20,
-},
+    textP: {
+        color: themeColors.text,
+        fontSize: variables.fontSizeNormal,
+        lineHeight: 20,
+    },
 
-textLabel: {
-color: themeColors.text,
-fontSize: variables.fontSizeLabel,
-lineHeight: 18,
-},
+    textLabel: {
+        color: themeColors.text,
+        fontSize: variables.fontSizeLabel,
+        lineHeight: 18,
+    },
 
-textMicro: {
-fontSize: variables.fontSizeSmall,
-},
+    textMicro: {
+        fontSize: variables.fontSizeSmall,
+    },
 
-textStrong: {
-fontFamily: fontFamily.GTA_BOLD,
-fontWeight: fontWeightBold,
-},
+    textStrong: {
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+    },
 
-textDecorationNoLine: {
-textDecorationLine: 'none',
-},
+    textDecorationNoLine: {
+        textDecorationLine: 'none',
+    },
 
-colorReversed: {
-color: themeColors.textReversed,
-},
+    colorReversed: {
+        color: themeColors.textReversed,
+    },
 
-colorMutedReversed: {
-color: themeColors.textMutedReversed,
-},
+    colorMutedReversed: {
+        color: themeColors.textMutedReversed,
+    },
 
-button: {
-borderColor: themeColors.border,
-borderRadius: variables.componentBorderRadius,
-borderWidth: 1,
-height: variables.componentSizeNormal,
-justifyContent: 'center',
-},
+    button: {
+        borderColor: themeColors.border,
+        borderRadius: variables.componentBorderRadius,
+        borderWidth: 1,
+        height: variables.componentSizeNormal,
+        justifyContent: 'center',
+    },
 
-buttonText: {
-color: themeColors.text,
-fontFamily: fontFamily.GTA_BOLD,
-fontWeight: fontWeightBold,
-textAlign: 'center',
-},
+    buttonText: {
+        color: themeColors.text,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        textAlign: 'center',
+    },
 
-buttonSmall: {
-height: variables.componentSizeSmall,
-paddingTop: 6,
-paddingRight: 10,
-paddingBottom: 6,
-paddingLeft: 10,
-},
+    buttonSmall: {
+        height: variables.componentSizeSmall,
+        paddingTop: 6,
+        paddingRight: 10,
+        paddingBottom: 6,
+        paddingLeft: 10,
+    },
 
-buttonSmallText: {
-fontSize: variables.fontSizeSmall,
-lineHeight: 16,
-},
+    buttonSmallText: {
+        fontSize: variables.fontSizeSmall,
+        lineHeight: 16,
+    },
 
-buttonSuccess: {
-backgroundColor: themeColors.buttonSuccessBG,
-borderWidth: 0,
-},
+    buttonSuccess: {
+        backgroundColor: themeColors.buttonSuccessBG,
+        borderWidth: 0,
+    },
 
-buttonConfirm: {
-margin: 20,
-},
+    buttonConfirm: {
+        margin: 20,
+    },
 
-buttonConfirmText: {
-paddingLeft: 20,
-paddingRight: 20,
-},
+    buttonConfirmText: {
+        paddingLeft: 20,
+        paddingRight: 20,
+    },
 
-buttonSuccessText: {
-color: themeColors.textReversed,
-},
+    buttonSuccessText: {
+        color: themeColors.textReversed,
+    },
 
-touchableButtonImage: {
-alignItems: 'center',
-height: variables.componentSizeNormal,
-justifyContent: 'center',
-marginRight: 8,
-width: variables.componentSizeNormal,
-},
+    touchableButtonImage: {
+        alignItems: 'center',
+        height: variables.componentSizeNormal,
+        justifyContent: 'center',
+        marginRight: 8,
+        width: variables.componentSizeNormal,
+    },
 
-pill: {
-borderRadius: 14,
-backgroundColor: themeColors.pillBG,
-height: variables.componentSizeSmall,
-flexDirection: 'row',
-paddingTop: 6,
-paddingBottom: 6,
-paddingLeft: 7,
-paddingRight: 7,
-alignItems: 'center',
-},
+    pill: {
+        borderRadius: 14,
+        backgroundColor: themeColors.pillBG,
+        height: variables.componentSizeSmall,
+        flexDirection: 'row',
+        paddingTop: 6,
+        paddingBottom: 6,
+        paddingLeft: 7,
+        paddingRight: 7,
+        alignItems: 'center',
+    },
 
-pillText: {
-color: themeColors.text,
-weight: '400',
-fontSize: variables.fontSizeSmall,
-lineHeight: 16,
-marginRight: 4,
-userSelect: 'none',
-maxWidth: 144,
-whiteSpace: 'nowrap',
-},
+    pillText: {
+        color: themeColors.text,
+        weight: '400',
+        fontSize: variables.fontSizeSmall,
+        lineHeight: 16,
+        marginRight: 4,
+        userSelect: 'none',
+        maxWidth: 144,
+        whiteSpace: 'nowrap',
+    },
 
-pillCancelIcon: {
-width: 12,
-height: 12,
-},
+    pillCancelIcon: {
+        width: 12,
+        height: 12,
+    },
 
-navText: {
-fontFamily: fontFamily.GTA,
-color: themeColors.heading,
-fontSize: variables.fontSizeNormal,
-fontWeight: '700',
-},
+    navText: {
+        fontFamily: fontFamily.GTA,
+        color: themeColors.heading,
+        fontSize: variables.fontSizeNormal,
+        fontWeight: '700',
+    },
 
-reportOptions: {
-marginLeft: 8,
-},
+    reportOptions: {
+        marginLeft: 8,
+    },
 
-typingIndicator: {
-height: 15,
-marginBottom: 5,
-marginTop: 5,
-},
+    typingIndicator: {
+        height: 15,
+        marginBottom: 5,
+        marginTop: 5,
+    },
 
-typingIndicatorSubText: {
-color: themeColors.textSupporting,
-fontFamily: fontFamily.GTA,
-fontSize: variables.fontSizeSmall,
-marginLeft: 48,
-},
+    typingIndicatorSubText: {
+        color: themeColors.textSupporting,
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeSmall,
+        marginLeft: 48,
+    },
 
 // Actions
-actionAvatar: {
-borderRadius: 20,
-marginRight: 8,
-height: variables.componentSizeNormal,
-width: variables.componentSizeNormal,
-},
+    actionAvatar: {
+        borderRadius: 20,
+        marginRight: 8,
+        height: variables.componentSizeNormal,
+        width: variables.componentSizeNormal,
+    },
 
-textInput: {
-backgroundColor: themeColors.componentBG,
-borderRadius: variables.componentBorderRadius,
-height: variables.componentSizeNormal,
-borderColor: themeColors.border,
-borderWidth: 1,
-color: themeColors.text,
-fontFamily: fontFamily.GTA,
-fontSize: variables.fontSizeNormal,
-paddingLeft: 12,
-paddingRight: 12,
-paddingTop: 10,
-paddingBottom: 10,
-textAlignVertical: 'center',
+    textInput: {
+        backgroundColor: themeColors.componentBG,
+        borderRadius: variables.componentBorderRadius,
+        height: variables.componentSizeNormal,
+        borderColor: themeColors.border,
+        borderWidth: 1,
+        color: themeColors.text,
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeNormal,
+        paddingLeft: 12,
+        paddingRight: 12,
+        paddingTop: 10,
+        paddingBottom: 10,
+        textAlignVertical: 'center',
 
-},
+    },
 
-textInputReversed: addOutlineWidth({
-backgroundColor: themeColors.heading,
-borderColor: themeColors.text,
-color: themeColors.textReversed,
-}, 0),
+    textInputReversed: addOutlineWidth({
+        backgroundColor: themeColors.heading,
+        borderColor: themeColors.text,
+        color: themeColors.textReversed,
+    }, 0),
 
-textInputReversedFocus: {
-borderColor: themeColors.icon,
-},
+    textInputReversedFocus: {
+        borderColor: themeColors.icon,
+    },
 
-textInputNoOutline: addOutlineWidth({}, 0),
+    textInputNoOutline: addOutlineWidth({}, 0),
 
-formLabel: {
-color: themeColors.heading,
-fontSize: variables.fontSizeLabel,
-fontWeight: '600',
-lineHeight: 18,
-marginBottom: 4,
-},
+    formLabel: {
+        color: themeColors.heading,
+        fontSize: variables.fontSizeLabel,
+        fontWeight: '600',
+        lineHeight: 18,
+        marginBottom: 4,
+    },
 
-formError: {
-color: themeColors.errorText,
-fontSize: variables.fontSizeLabel,
-lineHeight: 18,
-marginBottom: 4,
-},
+    formError: {
+        color: themeColors.errorText,
+        fontSize: variables.fontSizeLabel,
+        lineHeight: 18,
+        marginBottom: 4,
+    },
 
-signInPage: {
-backgroundColor: themeColors.sidebar,
-height: '100%',
-padding: 20,
-},
+    signInPage: {
+        backgroundColor: themeColors.sidebar,
+        height: '100%',
+        padding: 20,
+    },
 
-signInPageLogo: {
-alignItems: 'center',
-height: variables.componentSizeNormal,
-justifyContent: 'center',
-width: '100%',
-marginBottom: 24,
-},
+    signInPageLogo: {
+        alignItems: 'center',
+        height: variables.componentSizeNormal,
+        justifyContent: 'center',
+        width: '100%',
+        marginBottom: 24,
+    },
 
-signinLogo: {
-height: variables.componentSizeNormal,
-width: variables.componentSizeNormal,
-},
+    signinLogo: {
+        height: variables.componentSizeNormal,
+        width: variables.componentSizeNormal,
+    },
 
-genericView: {
-backgroundColor: themeColors.heading,
-height: '100%',
-},
+    genericView: {
+        backgroundColor: themeColors.heading,
+        height: '100%',
+    },
 
-signInPageInner: {
-marginLeft: 'auto',
-marginRight: 'auto',
-maxWidth: 325,
-width: '100%',
-},
+    signInPageInner: {
+        marginLeft: 'auto',
+        marginRight: 'auto',
+        maxWidth: 325,
+        width: '100%',
+    },
 
 // Sidebar Styles
-sidebar: {
-backgroundColor: themeColors.sidebar,
-height: '100%',
-},
+    sidebar: {
+        backgroundColor: themeColors.sidebar,
+        height: '100%',
+    },
 
-sidebarHeader: {
-flexGrow: 0,
-},
+    sidebarHeader: {
+        flexGrow: 0,
+    },
 
-sidebarHeaderActive: {
-flexGrow: 1,
-height: '100%',
-},
+    sidebarHeaderActive: {
+        flexGrow: 1,
+        height: '100%',
+    },
 
-sidebarHeaderTop: {
-paddingHorizontal: 20,
-paddingVertical: 12,
-},
+    sidebarHeaderTop: {
+        paddingHorizontal: 20,
+        paddingVertical: 12,
+    },
 
-sidebarHeaderLogo: {
-height: variables.componentSizeNormal,
-width: variables.componentSizeNormal,
-},
+    sidebarHeaderLogo: {
+        height: variables.componentSizeNormal,
+        width: variables.componentSizeNormal,
+    },
 
-sidebarFooter: {
-alignItems: 'center',
-display: 'flex',
-flexDirection: 'row',
-height: 84,
-justifyContent: 'flex-start',
-paddingHorizontal: 20,
-width: '100%',
-},
+    sidebarFooter: {
+        alignItems: 'center',
+        display: 'flex',
+        flexDirection: 'row',
+        height: 84,
+        justifyContent: 'flex-start',
+        paddingHorizontal: 20,
+        width: '100%',
+    },
 
-sidebarFooterAvatar: {
-backgroundColor: themeColors.text,
-borderRadius: 20,
-height: variables.componentSizeNormal,
-marginRight: 12,
-width: variables.componentSizeNormal,
-},
+    sidebarFooterAvatar: {
+        backgroundColor: themeColors.text,
+        borderRadius: 20,
+        height: variables.componentSizeNormal,
+        marginRight: 12,
+        width: variables.componentSizeNormal,
+    },
 
-statusIndicator: {
-borderColor: themeColors.sidebar,
-borderRadius: 7,
-borderWidth: 2,
-position: 'absolute',
-right: -6,
-top: 3,
-height: 14,
-width: 14,
-zIndex: 10,
-},
+    statusIndicator: {
+        borderColor: themeColors.sidebar,
+        borderRadius: 7,
+        borderWidth: 2,
+        position: 'absolute',
+        right: -6,
+        top: 3,
+        height: 14,
+        width: 14,
+        zIndex: 10,
+    },
 
-statusIndicatorOnline: {
-backgroundColor: themeColors.online,
-},
+    statusIndicatorOnline: {
+        backgroundColor: themeColors.online,
+    },
 
-statusIndicatorOffline: {
-backgroundColor: themeColors.offline,
-},
+    statusIndicatorOffline: {
+        backgroundColor: themeColors.offline,
+    },
 
-sidebarFooterUsername: {
-color: themeColors.heading,
-fontSize: variables.fontSizeLabel,
-fontWeight: '700',
-},
+    sidebarFooterUsername: {
+        color: themeColors.heading,
+        fontSize: variables.fontSizeLabel,
+        fontWeight: '700',
+    },
 
-sidebarFooterLink: {
-color: themeColors.textSupporting,
-fontSize: variables.fontSizeSmall,
-textDecorationLine: 'none',
-fontFamily: fontFamily.GTA,
-lineHeight: 20,
-},
+    sidebarFooterLink: {
+        color: themeColors.textSupporting,
+        fontSize: variables.fontSizeSmall,
+        textDecorationLine: 'none',
+        fontFamily: fontFamily.GTA,
+        lineHeight: 20,
+    },
 
-sidebarListContainer: {
-flex: 1,
-flexGrow: 100,
-scrollbarWidth: 'none',
-overflow: 'scroll',
-paddingBottom: 4,
-},
+    sidebarListContainer: {
+        flex: 1,
+        flexGrow: 100,
+        scrollbarWidth: 'none',
+        overflow: 'scroll',
+        paddingBottom: 4,
+    },
 
-sidebarListItem: {
-justifyContent: 'center',
-textDecorationLine: 'none',
-},
+    sidebarListItem: {
+        justifyContent: 'center',
+        textDecorationLine: 'none',
+    },
 
-chatLinkRowPressable: {
-minWidth: 0,
-textDecorationLine: 'none',
-flex: 1,
-},
+    chatLinkRowPressable: {
+        minWidth: 0,
+        textDecorationLine: 'none',
+        flex: 1,
+    },
 
-sidebarLink: {
-textDecorationLine: 'none',
-},
+    sidebarLink: {
+        textDecorationLine: 'none',
+    },
 
-sidebarLinkInner: {
-alignItems: 'center',
-flexDirection: 'row',
-height: 64,
-paddingTop: 12,
-paddingRight: 20,
-paddingBottom: 12,
-paddingLeft: 20,
-},
+    sidebarLinkInner: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        height: 64,
+        paddingTop: 12,
+        paddingRight: 20,
+        paddingBottom: 12,
+        paddingLeft: 20,
+    },
 
-sidebarLinkText: {
-color: themeColors.text,
-fontSize: variables.fontSizeLabel,
-textDecorationLine: 'none',
-overflow: 'hidden',
-},
+    sidebarLinkText: {
+        color: themeColors.text,
+        fontSize: variables.fontSizeLabel,
+        textDecorationLine: 'none',
+        overflow: 'hidden',
+    },
 
-sidebarLinkActive: {
-backgroundColor: themeColors.border,
-textDecorationLine: 'none',
-},
+    sidebarLinkActive: {
+        backgroundColor: themeColors.border,
+        textDecorationLine: 'none',
+    },
 
-sidebarLinkTextUnread: {
-fontWeight: '700',
-color: themeColors.heading,
-},
+    sidebarLinkTextUnread: {
+        fontWeight: '700',
+        color: themeColors.heading,
+    },
 
-sidebarLinkActiveText: {
-color: themeColors.text,
-fontSize: variables.fontSizeLabel,
-textDecorationLine: 'none',
-overflow: 'hidden',
-},
+    sidebarLinkActiveText: {
+        color: themeColors.text,
+        fontSize: variables.fontSizeLabel,
+        textDecorationLine: 'none',
+        overflow: 'hidden',
+    },
 
-chatSwitcherDisplayName: {
-fontFamily: fontFamily.GTA,
-height: 18,
-lineHeight: 18,
-whiteSpace: 'nowrap',
-},
+    chatSwitcherDisplayName: {
+        fontFamily: fontFamily.GTA,
+        height: 18,
+        lineHeight: 18,
+        whiteSpace: 'nowrap',
+    },
 
-chatSwitcherLogin: {
-color: themeColors.textSupporting,
-fontFamily: fontFamily.GTA,
-height: 16,
-lineHeight: 16,
-},
+    chatSwitcherLogin: {
+        color: themeColors.textSupporting,
+        fontFamily: fontFamily.GTA,
+        height: 16,
+        lineHeight: 16,
+    },
 
 // App Content Wrapper styles
-appContentWrapper: {
-backgroundColor: themeColors.appBG,
-color: themeColors.text,
-},
+    appContentWrapper: {
+        backgroundColor: themeColors.appBG,
+        color: themeColors.text,
+    },
 
-appContent: {
-backgroundColor: themeColors.appBG,
-overflow: 'hidden',
-},
+    appContent: {
+        backgroundColor: themeColors.appBG,
+        overflow: 'hidden',
+    },
 
-appContentHeader: {
-borderBottomWidth: 1,
-borderColor: themeColors.border,
-height: variables.contentHeaderHeight,
-justifyContent: 'center',
-display: 'flex',
-paddingLeft: 20,
-paddingRight: 20,
-},
+    appContentHeader: {
+        borderBottomWidth: 1,
+        borderColor: themeColors.border,
+        height: variables.contentHeaderHeight,
+        justifyContent: 'center',
+        display: 'flex',
+        paddingLeft: 20,
+        paddingRight: 20,
+    },
 
-appContentHeaderTitle: {
-alignItems: 'center',
-flexDirection: 'row',
-},
+    appContentHeaderTitle: {
+        alignItems: 'center',
+        flexDirection: 'row',
+    },
 
-LHNToggle: {
-alignItems: 'center',
-height: variables.componentSizeNormal,
-justifyContent: 'center',
-marginRight: 8,
-width: variables.componentSizeNormal,
-},
+    LHNToggle: {
+        alignItems: 'center',
+        height: variables.componentSizeNormal,
+        justifyContent: 'center',
+        marginRight: 8,
+        width: variables.componentSizeNormal,
+    },
 
-LHNToggleIcon: {
-height: 15,
-width: 18,
-},
+    LHNToggleIcon: {
+        height: 15,
+        width: 18,
+    },
 
-LHNPencilIcon: {
-height: 16,
-width: 16,
-},
+    LHNPencilIcon: {
+        height: 16,
+        width: 16,
+    },
 
-attachmentCloseIcon: {
-height: 20,
-width: 20,
-padding: 0,
-},
+    attachmentCloseIcon: {
+        height: 20,
+        width: 20,
+        padding: 0,
+    },
 
-chatContent: {
-flex: 4,
-justifyContent: 'flex-end',
-},
+    chatContent: {
+        flex: 4,
+        justifyContent: 'flex-end',
+    },
 
-chatContentScrollView: {
-flexGrow: 1,
-justifyContent: 'flex-start',
-paddingVertical: 16,
-},
+    chatContentScrollView: {
+        flexGrow: 1,
+        justifyContent: 'flex-start',
+        paddingVertical: 16,
+    },
 
-chatContentEmpty: {
-paddingTop: 16,
-paddingBottom: 16,
-paddingLeft: 20,
-paddingRight: 20,
-},
+    chatContentEmpty: {
+        paddingTop: 16,
+        paddingBottom: 16,
+        paddingLeft: 20,
+        paddingRight: 20,
+    },
 
 // Chat Item
-chatItem: {
-display: 'flex',
-flexDirection: 'row',
-paddingTop: 8,
-paddingBottom: 8,
-paddingLeft: 20,
-paddingRight: 20,
-},
+    chatItem: {
+        display: 'flex',
+        flexDirection: 'row',
+        paddingTop: 8,
+        paddingBottom: 8,
+        paddingLeft: 20,
+        paddingRight: 20,
+    },
 
-chatItemRightGrouped: {
-flexGrow: 1,
-flexShrink: 1,
-flexBasis: 0,
-position: 'relative',
-marginLeft: 48,
-},
+    chatItemRightGrouped: {
+        flexGrow: 1,
+        flexShrink: 1,
+        flexBasis: 0,
+        position: 'relative',
+        marginLeft: 48,
+    },
 
-chatItemRight: {
-flexGrow: 1,
-flexShrink: 1,
-flexBasis: 0,
-position: 'relative',
-},
+    chatItemRight: {
+        flexGrow: 1,
+        flexShrink: 1,
+        flexBasis: 0,
+        position: 'relative',
+    },
 
-chatItemMessageHeader: {
-alignItems: 'center',
-display: 'flex',
-flexDirection: 'row',
-},
+    chatItemMessageHeader: {
+        alignItems: 'center',
+        display: 'flex',
+        flexDirection: 'row',
+    },
 
-chatItemMessageHeaderSender: {
-color: themeColors.heading,
-fontSize: variables.fontSizeNormal,
-height: 24,
-lineHeight: 20,
-fontWeight: '600',
-paddingRight: 5,
-paddingBottom: 4,
-},
+    chatItemMessageHeaderSender: {
+        color: themeColors.heading,
+        fontSize: variables.fontSizeNormal,
+        height: 24,
+        lineHeight: 20,
+        fontWeight: '600',
+        paddingRight: 5,
+        paddingBottom: 4,
+    },
 
-chatItemMessageHeaderTimestamp: {
-color: themeColors.textSupporting,
-fontSize: variables.fontSizeSmall,
-height: 24,
-lineHeight: 20,
-},
+    chatItemMessageHeaderTimestamp: {
+        color: themeColors.textSupporting,
+        fontSize: variables.fontSizeSmall,
+        height: 24,
+        lineHeight: 20,
+    },
 
-chatItemMessage: {
-color: themeColors.text,
-fontSize: variables.fontSizeNormal,
-fontFamily: fontFamily.GTA,
-lineHeight: 20,
-marginTop: -2,
-marginBottom: -2,
-whiteSpace: 'pre-wrap',
-wordBreak: 'break-word',
-},
+    chatItemMessage: {
+        color: themeColors.text,
+        fontSize: variables.fontSizeNormal,
+        fontFamily: fontFamily.GTA,
+        lineHeight: 20,
+        marginTop: -2,
+        marginBottom: -2,
+        whiteSpace: 'pre-wrap',
+        wordBreak: 'break-word',
+    },
 
-chatItemCompose: {
-minHeight: 65,
-marginBottom: 5,
-paddingLeft: 20,
-paddingRight: 20,
-display: 'flex',
-marginTop: 200,
-},
+    chatItemCompose: {
+        minHeight: 65,
+        marginBottom: 5,
+        paddingLeft: 20,
+        paddingRight: 20,
+        display: 'flex',
+        marginTop: 200,
+    },
 
-chatItemComposeBoxColor: {
-borderColor: themeColors.border,
-},
+    chatItemComposeBoxColor: {
+        borderColor: themeColors.border,
+    },
 
-chatItemComposeBoxFocusedColor: {
-borderColor: themeColors.borderFocus,
-},
+    chatItemComposeBoxFocusedColor: {
+        borderColor: themeColors.borderFocus,
+    },
 
-chatItemComposeBox: {
-backgroundColor: themeColors.componentBG,
-borderWidth: 1,
-borderRadius: variables.componentBorderRadius,
-minHeight: variables.componentSizeNormal,
-},
+    chatItemComposeBox: {
+        backgroundColor: themeColors.componentBG,
+        borderWidth: 1,
+        borderRadius: variables.componentBorderRadius,
+        minHeight: variables.componentSizeNormal,
+    },
 
-/// Top Padding issue removed code...Start From Here////////////////////////
-textInputCompose: addOutlineWidth({
-borderWidth: 0,
-borderRadius: 0,
-height: 'auto',
-minHeight: 38,
-paddingTop: Platform.OS == 'ios' ? 10 : 0,       // Set Value to Zero if Platform is Android.
-paddingRight: 8,
-paddingBottom: 0,                                // Set Value to Zero in Both Platforms.
-paddingLeft: 8,
-}, 0),
+    textInputCompose: addOutlineWidth({
+        borderWidth: 0,
+        borderRadius: 0,
+        height: 'auto',
+        minHeight: 38,
+        paddingTop: 10,
+        paddingRight: 8,
+        paddingBottom: 0,
+        paddingLeft: 8,
+        textAlignVertical: 'top',
+    }, 0),
 
-/// Top Padding issue removed code...End From Here////////////////////////
+    chatItemSubmitButton: {
+        alignSelf: 'flex-end',
+        borderRadius: 6,
+        height: 32,
+        paddingTop: 8,
+        paddingRight: 6,
+        paddingBottom: 8,
+        paddingLeft: 6,
+        margin: 3,
+        justifyContent: 'center',
+    },
 
+    chatItemSubmitButtonIcon: {
+        height: 20,
+        width: 20,
+    },
 
-chatItemSubmitButton: {
-alignSelf: 'flex-end',
-borderRadius: 6,
-height: 32,
-paddingTop: 8,
-paddingRight: 6,
-paddingBottom: 8,
-paddingLeft: 6,
-margin: 3,
-justifyContent: 'center',
-},
+    reportPinIcon: {
+        height: 20,
+        width: 20,
+    },
 
-chatItemSubmitButtonIcon: {
-height: 20,
-width: 20,
-},
+    chatItemAttachButton: {
+        alignItems: 'center',
+        alignSelf: 'flex-end',
+        borderRightColor: themeColors.border,
+        borderRightWidth: 1,
+        height: 26,
+        marginBottom: 6,
+        marginTop: 6,
+        justifyContent: 'center',
+        width: 39,
+    },
 
-reportPinIcon: {
-height: 20,
-width: 20,
-},
+    chatItemAttachmentPlaceholder: {
+        backgroundColor: themeColors.sidebar,
+        borderColor: themeColors.border,
+        borderWidth: 1,
+        borderRadius: variables.componentBorderRadius,
+        height: 150,
+        textAlign: 'center',
+        verticalAlign: 'middle',
+        width: 200,
+    },
 
-chatItemAttachButton: {
-alignItems: 'center',
-alignSelf: 'flex-end',
-borderRightColor: themeColors.border,
-borderRightWidth: 1,
-height: 26,
-marginBottom: 6,
-marginTop: 6,
-justifyContent: 'center',
-width: 39,
-},
+    chatSwitcherInputClear: {
+        alignSelf: 'flex-end',
+        height: variables.componentSizeNormal,
+        justifyContent: 'center',
+    },
 
-chatItemAttachmentPlaceholder: {
-backgroundColor: themeColors.sidebar,
-borderColor: themeColors.border,
-borderWidth: 1,
-borderRadius: variables.componentBorderRadius,
-height: 150,
-textAlign: 'center',
-verticalAlign: 'middle',
-width: 200,
-},
+    chatSwitcherInputClearIcon: {
+        height: 24,
+        width: 24,
+    },
 
-chatSwitcherInputClear: {
-alignSelf: 'flex-end',
-height: variables.componentSizeNormal,
-justifyContent: 'center',
-},
+    chatSwitcherGroupDMContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        backgroundColor: themeColors.appBG,
+        borderRadius: variables.componentBorderRadius,
+        borderWidth: 1,
+        borderColor: themeColors.border,
+        paddingTop: 0,
+        paddingRight: 3,
+        paddingBottom: 0,
+        paddingLeft: 5,
+    },
 
-chatSwitcherInputClearIcon: {
-height: 24,
-width: 24,
-},
+    chatSwitcherPillsInput: {
+        alignItems: 'flex-start',
+        alignSelf: 'flex-start',
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        maxWidth: 177,
+        overflow: 'hidden',
+    },
 
-chatSwitcherGroupDMContainer: {
-flexDirection: 'row',
-flexWrap: 'wrap',
-backgroundColor: themeColors.appBG,
-borderRadius: variables.componentBorderRadius,
-borderWidth: 1,
-borderColor: themeColors.border,
-paddingTop: 0,
-paddingRight: 3,
-paddingBottom: 0,
-paddingLeft: 5,
-},
+    chatSwitcherInputGroup: {
+        minWidth: 1,
+    },
 
-chatSwitcherPillsInput: {
-alignItems: 'flex-start',
-alignSelf: 'flex-start',
-flexDirection: 'row',
-flexWrap: 'wrap',
-maxWidth: 177,
-overflow: 'hidden',
-},
+    chatSwitcherGroupDMTextInput: {
+        backgroundColor: themeColors.componentBG,
+        color: themeColors.text,
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeNormal,
+        flexGrow: 1,
+        height: variables.componentSizeSmall,
+        width: '100%',
+        marginTop: 5,
+        marginBottom: 5,
+        padding: 0,
+    },
 
-chatSwitcherInputGroup: {
-minWidth: 1,
-},
+    chatSwticherPillWrapper: {
+        marginTop: 5,
+        marginRight: 4,
+    },
 
-chatSwitcherGroupDMTextInput: {
-backgroundColor: themeColors.componentBG,
-color: themeColors.text,
-fontFamily: fontFamily.GTA,
-fontSize: variables.fontSizeNormal,
-flexGrow: 1,
-height: variables.componentSizeSmall,
-width: '100%',
-marginTop: 5,
-marginBottom: 5,
-padding: 0,
-},
+    chatSwitcherGo: {
+        borderRadius: 6,
+        height: 32,
+        marginBottom: 3,
+    },
 
-chatSwticherPillWrapper: {
-marginTop: 5,
-marginRight: 4,
-},
+    chatSwitcherMessage: {
+        padding: 20,
+    },
 
-chatSwitcherGo: {
-borderRadius: 6,
-height: 32,
-marginBottom: 3,
-},
+    hamburgerOpenAbsolute: {
+        borderRightWidth: 1,
+        borderColor: themeColors.border,
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        bottom: 0,
+        zIndex: 2,
+        width: 300,
+        shadowColor: themeColors.shadow,
+        shadowOffset: {
+            width: 0,
+            height: 0,
+        },
+        shadowOpacity: 0.15,
+        shadowRadius: 20,
+    },
 
-chatSwitcherMessage: {
-padding: 20,
-},
+    hamburgerOpen: {
+        borderRightWidth: 1,
+        borderColor: themeColors.border,
+        width: 300,
+    },
 
-hamburgerOpenAbsolute: {
-borderRightWidth: 1,
-borderColor: themeColors.border,
-position: 'absolute',
-left: 0,
-top: 0,
-bottom: 0,
-zIndex: 2,
-width: 300,
-shadowColor: themeColors.shadow,
-shadowOffset: {
-width: 0,
-height: 0,
-},
-shadowOpacity: 0.15,
-shadowRadius: 20,
-},
+    chatSwitcherAvatar: {
+        backgroundColor: themeColors.icon,
+        borderRadius: 20,
+        height: variables.componentSizeNormal,
+        overflow: 'hidden',
+        width: variables.componentSizeNormal,
+    },
 
-hamburgerOpen: {
-borderRightWidth: 1,
-borderColor: themeColors.border,
-width: 300,
-},
+    chatSwitcherAvatarImage: {
+        height: variables.componentSizeNormal,
+        width: variables.componentSizeNormal,
+    },
 
-chatSwitcherAvatar: {
-backgroundColor: themeColors.icon,
-borderRadius: 20,
-height: variables.componentSizeNormal,
-overflow: 'hidden',
-width: variables.componentSizeNormal,
-},
+    chatSwitcherItemText: {
+        color: themeColors.text,
+    },
 
-chatSwitcherAvatarImage: {
-height: variables.componentSizeNormal,
-width: variables.componentSizeNormal,
-},
+    chatSwitcherItemAvatarNameWrapper: {
+        minWidth: 0,
+        flex: 1,
+    },
 
-chatSwitcherItemText: {
-color: themeColors.text,
-},
+    chatSwitcherItemButton: {
+        backgroundColor: themeColors.sidebarButtonBG,
+        paddingTop: 6,
+        paddingRight: 8,
+        paddingBottom: 6,
+        paddingLeft: 8,
+        borderRadius: variables.componentBorderRadius,
+        height: variables.componentSizeSmall,
+        marginLeft: 4,
+    },
 
-chatSwitcherItemAvatarNameWrapper: {
-minWidth: 0,
-flex: 1,
-},
+    chatSwitcherItemButtonText: {
+        color: themeColors.heading,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: 16,
+        fontWeight: fontWeightBold,
+    },
 
-chatSwitcherItemButton: {
-backgroundColor: themeColors.sidebarButtonBG,
-paddingTop: 6,
-paddingRight: 8,
-paddingBottom: 6,
-paddingLeft: 8,
-borderRadius: variables.componentBorderRadius,
-height: variables.componentSizeSmall,
-marginLeft: 4,
-},
+    modalViewContainer: {
+        alignItems: 'center',
+        flex: 1,
+    },
 
-chatSwitcherItemButtonText: {
-color: themeColors.heading,
-fontFamily: fontFamily.GTA_BOLD,
-fontSize: variables.fontSizeSmall,
-lineHeight: 16,
-fontWeight: fontWeightBold,
-},
+    modalHeaderBar: {
+        overflow: 'hidden',
+        justifyContent: 'center',
+        display: 'flex',
+        paddingLeft: 20,
+        borderBottomWidth: 1,
+        borderColor: themeColors.border,
+        height: variables.contentHeaderHeight,
+        width: '100%',
+    },
 
-modalViewContainer: {
-alignItems: 'center',
-flex: 1,
-},
+    imageModalPDF: {
+        flex: 1,
+        backgroundColor: themeColors.componentBG,
+    },
 
-modalHeaderBar: {
-overflow: 'hidden',
-justifyContent: 'center',
-display: 'flex',
-paddingLeft: 20,
-borderBottomWidth: 1,
-borderColor: themeColors.border,
-height: variables.contentHeaderHeight,
-width: '100%',
-},
+    modalCenterContentContainer: {
+        flex: 1,
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: themeColors.modalBackdrop,
+    },
 
-imageModalPDF: {
-flex: 1,
-backgroundColor: themeColors.componentBG,
-},
+    imageModalImageCenterContainer: {
+        alignItems: 'center',
+        flex: 1,
+        justifyContent: 'center',
+        width: '100%',
+    },
 
-modalCenterContentContainer: {
-flex: 1,
-flexDirection: 'column',
-justifyContent: 'center',
-alignItems: 'center',
-backgroundColor: themeColors.modalBackdrop,
-},
+    defaultAttachmentView: {
+        backgroundColor: themeColors.sidebar,
+        borderRadius: variables.componentBorderRadius,
+        borderWidth: 1,
+        borderColor: themeColors.border,
+        flexDirection: 'row',
+        paddingTop: 10,
+        paddingBottom: 10,
+        paddingRight: 20,
+        paddingLeft: 20,
+        alignItems: 'center',
+    },
 
-imageModalImageCenterContainer: {
-alignItems: 'center',
-flex: 1,
-justifyContent: 'center',
-width: '100%',
-},
+    defaultAttachmentViewIcon: {
+        width: 47,
+        height: 60,
+        marginRight: 20,
+    },
 
-defaultAttachmentView: {
-backgroundColor: themeColors.sidebar,
-borderRadius: variables.componentBorderRadius,
-borderWidth: 1,
-borderColor: themeColors.border,
-flexDirection: 'row',
-paddingTop: 10,
-paddingBottom: 10,
-paddingRight: 20,
-paddingLeft: 20,
-alignItems: 'center',
-},
+    notFoundSafeArea: {
+        flex: 1,
+        backgroundColor: themeColors.heading,
+    },
 
-defaultAttachmentViewIcon: {
-width: 47,
-height: 60,
-marginRight: 20,
-},
+    notFoundView: {
+        flex: 1,
+        alignItems: 'center',
+        paddingTop: 40,
+        paddingBottom: 40,
+        justifyContent: 'space-between',
+    },
 
-notFoundSafeArea: {
-flex: 1,
-backgroundColor: themeColors.heading,
-},
+    notFoundLogo: {
+        width: 202,
+        height: 63,
+    },
 
-notFoundView: {
-flex: 1,
-alignItems: 'center',
-paddingTop: 40,
-paddingBottom: 40,
-justifyContent: 'space-between',
-},
+    notFoundContent: {
+        alignItems: 'center',
+    },
 
-notFoundLogo: {
-width: 202,
-height: 63,
-},
+    notFoundTextHeader: {
+        color: colors.blue,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        fontSize: 150,
+    },
 
-notFoundContent: {
-alignItems: 'center',
-},
+    notFoundTextBody: {
+        color: themeColors.componentBG,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        fontSize: 15,
+    },
 
-notFoundTextHeader: {
-color: colors.blue,
-fontFamily: fontFamily.GTA_BOLD,
-fontWeight: fontWeightBold,
-fontSize: 150,
-},
+    notFoundButtonText: {
+        color: colors.blue,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        fontSize: 15,
+    },
 
-notFoundTextBody: {
-color: themeColors.componentBG,
-fontFamily: fontFamily.GTA_BOLD,
-fontWeight: fontWeightBold,
-fontSize: 15,
-},
-
-notFoundButtonText: {
-color: colors.blue,
-fontFamily: fontFamily.GTA_BOLD,
-fontWeight: fontWeightBold,
-fontSize: 15,
-},
-
-defaultModalContainer: {
-backgroundColor: themeColors.componentBG,
-borderColor: colors.transparent,
-},
+    defaultModalContainer: {
+        backgroundColor: themeColors.componentBG,
+        borderColor: colors.transparent,
+    },
 };
 
 const baseCodeTagStyles = {
-borderWidth: 1,
-borderRadius: 5,
-marginTop: 4,
-marginBottom: 4,
-borderColor: themeColors.border,
-backgroundColor: themeColors.textBackground,
+    borderWidth: 1,
+    borderRadius: 5,
+    marginTop: 4,
+    marginBottom: 4,
+    borderColor: themeColors.border,
+    backgroundColor: themeColors.textBackground,
 };
 
 const webViewStyles = {
@@ -998,94 +994,94 @@ const webViewStyles = {
 // styles in the below "tagStyles" instead. If you need to reuse those
 // styles from the renderer, just pass the "style" prop to the underlying
 // component.
-tagStyles: {
-em: {
-fontFamily: fontFamily.GTA_ITALIC,
-fontStyle: italic,
-},
+    tagStyles: {
+        em: {
+            fontFamily: fontFamily.GTA_ITALIC,
+            fontStyle: italic,
+        },
 
-del: {
-textDecorationLine: 'line-through',
-textDecorationStyle: 'solid',
-},
+        del: {
+            textDecorationLine: 'line-through',
+            textDecorationStyle: 'solid',
+        },
 
-strong: {
-fontFamily: fontFamily.GTA_BOLD,
-fontWeight: fontWeightBold,
-},
+        strong: {
+            fontFamily: fontFamily.GTA_BOLD,
+            fontWeight: fontWeightBold,
+        },
 
-a: {
-color: themeColors.link,
-textDecorationColor: themeColors.link,
-},
+        a: {
+            color: themeColors.link,
+            textDecorationColor: themeColors.link,
+        },
 
-blockquote: {
-borderLeftColor: themeColors.border,
-borderLeftWidth: 4,
-paddingLeft: 12,
-marginTop: 4,
-marginBottom: 4,
+        blockquote: {
+            borderLeftColor: themeColors.border,
+            borderLeftWidth: 4,
+            paddingLeft: 12,
+            marginTop: 4,
+            marginBottom: 4,
 
 // Overwrite default HTML margin for blockquotes
-marginLeft: 0,
-},
+            marginLeft: 0,
+        },
 
-pre: {
-...baseCodeTagStyles,
-paddingTop: 4,
-paddingBottom: 5,
-paddingRight: 8,
-paddingLeft: 8,
-fontFamily: fontFamily.MONOSPACE,
-},
+        pre: {
+            ...baseCodeTagStyles,
+            paddingTop: 4,
+            paddingBottom: 5,
+            paddingRight: 8,
+            paddingLeft: 8,
+            fontFamily: fontFamily.MONOSPACE,
+        },
 
-code: {
-...baseCodeTagStyles,
-paddingLeft: 5,
-paddingRight: 5,
-paddingBottom: 2,
-alignSelf: 'flex-start',
-fontFamily: fontFamily.MONOSPACE,
-},
+        code: {
+            ...baseCodeTagStyles,
+            paddingLeft: 5,
+            paddingRight: 5,
+            paddingBottom: 2,
+            alignSelf: 'flex-start',
+            fontFamily: fontFamily.MONOSPACE,
+        },
 
-img: {
-borderColor: themeColors.border,
-borderRadius: variables.componentBorderRadius,
-borderWidth: 1,
-},
-},
+        img: {
+            borderColor: themeColors.border,
+            borderRadius: variables.componentBorderRadius,
+            borderWidth: 1,
+        },
+    },
 
-baseFontStyle: {
-color: themeColors.text,
-fontSize: variables.fontSizeNormal,
-fontFamily: fontFamily.GTA,
-},
+    baseFontStyle: {
+        color: themeColors.text,
+        fontSize: variables.fontSizeNormal,
+        fontFamily: fontFamily.GTA,
+    },
 };
 
 /**
-* Takes safe area insets and returns padding to use for a View
-*
-* @param {Object} insets
-* @returns {Object}
-*/
+ * Takes safe area insets and returns padding to use for a View
+ *
+ * @param {Object} insets
+ * @returns {Object}
+ */
 function getSafeAreaPadding(insets) {
-return {
-paddingTop: insets.top,
-paddingBottom: insets.bottom * variables.safeInsertPercentage,
-};
+    return {
+        paddingTop: insets.top,
+        paddingBottom: insets.bottom * variables.safeInsertPercentage,
+    };
 }
 
 /**
-* Takes safe area insets and returns margin to use for a View
-*
-* @param {Object} insets
-* @returns {Object}
-*/
+ * Takes safe area insets and returns margin to use for a View
+ *
+ * @param {Object} insets
+ * @returns {Object}
+ */
 function getSafeAreaMargins(insets) {
-return { marginBottom: insets.bottom * variables.safeInsertPercentage };
+    return {marginBottom: insets.bottom * variables.safeInsertPercentage};
 }
 
 export default styles;
 export {
-getSafeAreaPadding, getSafeAreaMargins, webViewStyles,
+    getSafeAreaPadding, getSafeAreaMargins, webViewStyles,
 };
