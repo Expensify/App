@@ -10,9 +10,7 @@ import {
 } from 'react-native';
 import styles from '../../../styles/styles';
 import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
-import ROUTES from '../../../ROUTES';
 import pencilIcon from '../../../../assets/images/icon-pencil.png';
-import PressableLink from '../../../components/PressableLink';
 import MultipleAvatars from '../../../components/MultipleAvatars';
 
 const propTypes = {
@@ -60,9 +58,9 @@ const ChatLinkRow = ({
                 optionIsFocused ? styles.sidebarLinkActive : null
             ]}
         >
-            <PressableLink
-                onClick={() => onSelectRow(option)}
-                to={ROUTES.getReportRoute(option.reportID)}
+            <TouchableOpacity
+                onPress={() => onSelectRow(option)}
+                activeOpacity={0.8}
                 style={StyleSheet.flatten([
                     styles.chatLinkRowPressable,
                     styles.flexGrow1,
@@ -104,7 +102,7 @@ const ChatLinkRow = ({
                         )}
                     </View>
                 </View>
-            </PressableLink>
+            </TouchableOpacity>
             {option.singleUserDM && isChatSwitcher && (
                 <View>
                     <TouchableOpacity

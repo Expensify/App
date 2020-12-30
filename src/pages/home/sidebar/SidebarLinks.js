@@ -13,6 +13,8 @@ import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
 import compose from '../../../libs/compose';
 import {withRouter} from '../../../libs/Router';
 import ChatLinkRow from './ChatLinkRow';
+import {redirect} from '../../../libs/actions/App';
+import ROUTES from '../../../ROUTES';
 
 const propTypes = {
     // These are from withRouter
@@ -127,7 +129,10 @@ const SidebarLinks = (props) => {
                                 isUnread: report.unreadActionCount > 0,
                                 hasDraftComment: report.reportID !== reportIDInUrl && hasComment(report.reportID)
                             }}
-                            onSelectRow={props.onLinkClick}
+                            onSelectRow={() => {
+                                redirect(ROUTES.getReportRoute(report.reportID));
+                                props.onLinkClick();
+                            }}
                             optionIsFocused={report.reportID === reportIDInUrl}
                         />
                     );
