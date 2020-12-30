@@ -938,7 +938,7 @@ const styles = {
         width: 24,
     },
     chatSwitcherAvatar2ForGroup: {
-        backgroundColor: themeColors.icon,
+        backgroundColor: colors.gray3,
         borderRadius: 20,
         position: 'absolute',
         bottom: -3,
@@ -951,12 +951,10 @@ const styles = {
         borderWidth: 3,
     },
     chatSwitcherAvatar2ForGroupInactive: {
-        borderColor: themeColors.sidebar,
-        backgroundColor: colors.gray2
+        borderColor: themeColors.sidebar
     },
     chatSwitcherAvatar2ForGroupActive: {
-        borderColor: themeColors.border,
-        backgroundColor: colors.gray1
+        borderColor: themeColors.border
     },
     chatSwitcherAvatarImageForGroup: {
         height: 24,
@@ -964,7 +962,7 @@ const styles = {
     },
     groupAvatarCircularCountText: {
         fontSize: variables.fontSizeSmall,
-        color: themeColors.textSupporting,
+        color: themeColors.textReversed,
         lineHeight: 24
     },
     chatSwitcherItemText: {
