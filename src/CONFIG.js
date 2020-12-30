@@ -5,7 +5,7 @@ import getPlatform from './libs/getPlatform/index';
 
 /**
  * Let's make everyone's life just a bit easier by adding / to the end of any config URL's if it's not already present
- * @param {string} URL
+ * @param {String} URL
  * @returns {string}
  */
 function wrapWithBackslash(URL) {
@@ -18,8 +18,8 @@ function wrapWithBackslash(URL) {
 const expensifyCashURL = wrapWithBackslash(lodashGet(Config, 'URL_EXPENSIFY_CASH', 'https://expensify.cash/'));
 const expensifyURL = wrapWithBackslash(lodashGet(Config, 'EXPENSIFY_URL_COM', 'https://www.expensify.com/'));
 const ngrokURL = wrapWithBackslash(lodashGet(Config, 'NGROK_URL', ''));
-const useNgrok = lodashGet(Config, 'USE_NGROK', 'false') === true;
-const useWebProxy = lodashGet(Config, 'USE_WEB_PROXY', 'true') === true;
+const useNgrok = lodashGet(Config, 'USE_NGROK', 'false') === 'true';
+const useWebProxy = lodashGet(Config, 'USE_WEB_PROXY', 'true') === 'true';
 const expensifyComWithProxy = getPlatform() === 'web' && useWebProxy ? '/' : expensifyURL;
 
 // Ngrok helps us avoid many of our cross-domain issues with connecting to our API
