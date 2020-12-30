@@ -4,24 +4,25 @@ import {Platform} from 'react-native';
 import Config from 'react-native-config';
 import getPlatform from './libs/getPlatform/index';
 
-// Let's make everyone's life just a bit easier
-// by adding / to the end of any config URL's if it's not already present
-if (_.isString(Config.NGROK_URL) && !Config.NGROK_URL.endsWith('/')) {
-    Config.NGROK_URL += '/';
-}
-if (_.isString(Config.EXPENSIFY_URL_CASH) && !Config.EXPENSIFY_URL_CASH.endsWith('/')) {
-    Config.EXPENSIFY_URL_CASH += '/';
-}
-if (_.isString(Config.EXPENSIFY_URL_COM) && !Config.EXPENSIFY_URL_COM.endsWith('/')) {
-    Config.EXPENSIFY_URL_COM += '/';
-}
-
 // Set default values to contributor friendly values to make development work out of the box without an .env file
-const useNgrok = lodashGet(Config, 'USE_NGROK', 'false');
+let useNgrok = lodashGet(Config, 'USE_NGROK', 'false');
+let expensifyCashURL = lodashGet(Config, 'URL_EXPENSIFY_CASH', 'https://expensify.cash/');
+let expensifyURL = lodashGet(Config, 'EXPENSIFY_URL_COM', 'https://www.expensify.com/');
 const ngrokURL = lodashGet(Config, 'NGROK_URL', null);
 const useWebProxy = lodashGet(Config, 'USE_WEB_PROXY', 'false');
-const expensifyURL = lodashGet(Config, 'EXPENSIFY_URL_COM', 'https://www.expensify.com/');
 const expensifyComWithProxy = getPlatform() === 'web' && useWebProxy === 'true' ? '/' : expensifyURL;
+
+// Let's make everyone's life just a bit easier
+// by adding / to the end of any config URL's if it's not already present
+if (_.isString(useNgrok) && !useNgrok.endsWith('/')) {
+    useNgrok += '/';
+}
+if (_.isString(expensifyCashURL) && !expensifyCashURL.endsWith('/')) {
+    expensifyCashURL += '/';
+}
+if (_.isString(expensifyURL) && !expensifyURL.endsWith('/')) {
+    expensifyURL += '/';
+}
 
 // Ngrok helps us avoid many of our cross-domain issues with connecting to our API
 // and is required for viewing images on mobile and for developing on android
@@ -33,7 +34,7 @@ export default {
     AUTH_TOKEN_EXPIRATION_TIME: 1000 * 60 * 90,
     EXPENSIFY: {
         URL_EXPENSIFY_COM: expensifyComWithProxy,
-        URL_EXPENSIFY_CASH: lodashGet(Config, 'URL_EXPENSIFY_CASH', 'https://expensify.cash/'),
+        URL_EXPENSIFY_CASH: expensifyCashURL,
         URL_API_ROOT: expensifyURLRoot,
         PARTNER_NAME: lodashGet(Config, 'EXPENSIFY_PARTNER_NAME', 'chat-expensify-com'),
         PARTNER_PASSWORD: lodashGet(Config, 'EXPENSIFY_PARTNER_PASSWORD', 'e21965746fd75f82bb66'),
