@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import Onyx from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import md5 from '../md5';
 import CONST from '../../CONST';
@@ -55,10 +56,13 @@ function getAvatar(personalDetail, login) {
  * @returns {String}
  */
 function getDisplayName(login, personalDetail) {
+    // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms
+    // so that the option looks cleaner in our UI.
+    const userLogin = Str.removeSMSDomain(login);
     const userDetails = personalDetail || personalDetails[login];
 
     if (!userDetails) {
-        return login;
+        return userLogin;
     }
 
     if (userDetails.displayName) {
@@ -68,7 +72,7 @@ function getDisplayName(login, personalDetail) {
     const firstName = userDetails.firstName || '';
     const lastName = userDetails.lastName || '';
 
-    return (`${firstName} ${lastName}`).trim() || login;
+    return (`${firstName} ${lastName}`).trim() || userLogin;
 }
 
 /**
