@@ -323,11 +323,6 @@ const styles = {
         paddingVertical: 12,
     },
 
-    sidebarHeaderLogo: {
-        height: variables.componentSizeNormal,
-        width: variables.componentSizeNormal,
-    },
-
     sidebarFooter: {
         alignItems: 'center',
         display: 'flex',

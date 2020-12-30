@@ -1,6 +1,7 @@
+import ExpensifyCashLogoIcon from './ExpensifyCashLogoIcon';
 import PinIcon from './PinIcon';
 
 export {
-    // eslint-disable-next-line import/prefer-default-export
+    ExpensifyCashLogoIcon,
     PinIcon,
 };
