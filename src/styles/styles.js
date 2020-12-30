@@ -6,7 +6,6 @@ import themeColors from './themes/default';
 import fontWeightBold from './fontWeight/bold';
 import variables from './variables';
 import colors from './colors';
-import {Platform} from 'react-native'   // For Top Padding issue.....Import this Lib for Platform check.
 
 const styles = {
 // Utility classes
@@ -688,20 +687,17 @@ const styles = {
         minHeight: variables.componentSizeNormal,
     },
 
-/// Top Padding issue removed...code fixed Start From Here////////////////////////
     textInputCompose: addOutlineWidth({
         borderWidth: 0,
         borderRadius: 0,
         height: 'auto',
         minHeight: 38,
-        paddingTop: Platform.OS == 'ios' ? 10 : 0,       // Set Value to Zero if Platform is Android.
+        paddingTop: 10,
         paddingRight: 8,
-        paddingBottom: 0,                                // Set Value to Zero in Both Platforms.
+        paddingBottom: 0,
         paddingLeft: 8,
+        textAlignVertical: 'top',
     }, 0),
-
-/// Top Padding issue removed ...code fixed end From Here////////////////////////
-
 
     chatItemSubmitButton: {
         alignSelf: 'flex-end',

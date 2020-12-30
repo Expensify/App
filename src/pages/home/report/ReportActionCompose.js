@@ -175,6 +175,7 @@ class ReportActionCompose extends React.Component {
                                 <TextInputFocusable
                                     multiline
                                     ref={el => this.textInput = el}
+                                    
                                     placeholder="Write something..."
                                     placeholderTextColor={themeColors.textSupporting}
                                     onChangeText={this.updateComment}
@@ -217,7 +218,7 @@ class ReportActionCompose extends React.Component {
                         />
                     </TouchableOpacity>
                 </View>
-                <ReportTypingIndicator reportID={this.props.reportID} />
+                <ReportTypingIndicator reportID={this.props.reportID}/>
             </View>
         );
     }
