@@ -36,6 +36,7 @@ import NetworkConnection from '../../libs/NetworkConnection';
 import CONFIG from '../../CONFIG';
 import CustomStatusBar from '../../components/CustomStatusBar';
 import CONST from '../../CONST';
+import {fetchCountryCodeByRequestIP} from '../../libs/actions/GeoLocation';
 
 const windowSize = Dimensions.get('window');
 
@@ -84,6 +85,8 @@ class App extends React.Component {
         fetchPersonalDetails();
 
         fetchAllReports(true, false, true);
+
+        fetchCountryCodeByRequestIP();
 
         UnreadIndicatorUpdater.listenForReportChanges();
 
