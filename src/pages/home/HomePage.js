@@ -13,7 +13,6 @@ import {withOnyx} from 'react-native-onyx';
 import {Route} from '../../libs/Router';
 import styles, {getSafeAreaPadding} from '../../styles/styles';
 import variables from '../../styles/variables';
-import hamburgerInputPadding from '../../styles/hamburgerInputPadding';
 import Header from './HeaderView';
 import Sidebar from './sidebar/SidebarView';
 import Main from './MainView';
@@ -206,12 +205,9 @@ class App extends React.Component {
     }
 
     render() {
-        let hamburgerStyle = hamburgerInputPadding();
-        if (!hamburgerStyle) {
-            hamburgerStyle = this.state.isHamburgerEnabled && this.props.isSidebarShown ? styles.hamburgerOpenAbsolute
+        const hamburgerStyle = this.state.isHamburgerEnabled && this.props.isSidebarShown ? styles.hamburgerOpenAbsolute
                 : styles.hamburgerOpen;
-        }
-        const visibility = !this.state.isHamburgerEnabled || this.props.isSidebarShown ? styles.dFlex : styles.dNone;
+        const visibility = !this.state.isHamburgerEnabled || this.props.isSidebarShown ? styles.width300px : styles.width0px;
         const appContentWrapperStyle = !this.state.isHamburgerEnabled ? styles.appContentWrapperLarge : null;
         return (
             <SafeAreaProvider>
