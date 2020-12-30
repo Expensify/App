@@ -65,3 +65,6 @@ fastlane/screenshots
 
 # CocoaPods
 /ios/Pods/
+
+# Local DEV config
+/.env
