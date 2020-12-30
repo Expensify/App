@@ -1,8 +1,8 @@
 import {AppRegistry} from 'react-native';
-import {name as appName} from '../../app.json';
+import Config from '../CONFIG';
 
 export default function () {
-    AppRegistry.runApplication(appName, {
+    AppRegistry.runApplication(Config.APP_NAME, {
         rootTag: document.getElementById('root'),
     });
 }
