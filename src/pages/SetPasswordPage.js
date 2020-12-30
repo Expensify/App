@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import lodashHas from 'lodash.has';
 import compose from '../libs/compose';
@@ -21,6 +22,7 @@ import CustomStatusBar from '../components/CustomStatusBar';
 import {setPassword} from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
 import ROUTES from '../ROUTES';
+import ButtonWithLoader from '../components/ButtonWithLoader';
 
 const propTypes = {
     // These are from withRouter
@@ -28,6 +30,15 @@ const propTypes = {
     match: PropTypes.object.isRequired,
 
     /* Onyx Props */
+
+    // The details about the account that the user is signing in with
+    account: PropTypes.shape({
+        // An error message to display to the user
+        error: PropTypes.string,
+
+        // Whether or not a sign on form is loading (being submitted)
+        loading: PropTypes.bool,
+    }),
 
     // The credentials of the logged in person
     credentials: PropTypes.shape({
@@ -40,7 +51,8 @@ const propTypes = {
 };
 
 const defaultProps = {
-    credentials: null,
+    account: {},
+    credentials: {},
 };
 
 class SetPasswordPage extends Component {
@@ -51,7 +63,6 @@ class SetPasswordPage extends Component {
 
         this.state = {
             password: '',
-            isLoading: false,
             formError: null,
         };
     }
@@ -68,7 +79,6 @@ class SetPasswordPage extends Component {
         }
 
         this.setState({
-            isLoading: true,
             formError: null,
         });
         setPassword(this.state.password, lodashGet(this.props.match.params, 'validateCode', ''));
@@ -105,23 +115,19 @@ class SetPasswordPage extends Component {
                                 onSubmitEditing={this.submitForm}
                             />
                         </View>
-                        <View>
-                            <TouchableOpacity
-                                style={[styles.button, styles.buttonSuccess, styles.mb4]}
-                                onPress={this.submitForm}
-                                underlayColor={themeColors.componentBG}
-                                disabled={this.state.isLoading}
-                            >
-                                {this.state.isLoading ? (
-                                    <ActivityIndicator color={themeColors.textReversed} />
-                                ) : (
-                                    <Text style={[styles.buttonText, styles.buttonSuccessText]}>Set Password</Text>
-                                )}
-                            </TouchableOpacity>
-                        </View>
+                        <ButtonWithLoader
+                            text="Set Password"
+                            onClick={this.submitForm}
+                            isLoading={this.props.account.loading}
+                        />
                         {this.state.formError && (
                             <Text style={[styles.formError]}>
                                 {this.state.formError}
+                            </Text>
+                        )}
+                        {!_.isEmpty(this.props.account.error) && (
+                            <Text style={[styles.formError]}>
+                                {this.props.account.error}
                             </Text>
                         )}
                     </View>
@@ -138,5 +144,6 @@ export default compose(
     withRouter,
     withOnyx({
         credentials: {key: ONYXKEYS.CREDENTIALS},
+        account: {key: ONYXKEYS.ACCOUNT},
     }),
 )(SetPasswordPage);
