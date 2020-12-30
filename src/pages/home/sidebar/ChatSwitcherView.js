@@ -55,6 +55,9 @@ const propTypes = {
         email: PropTypes.string.isRequired,
     }),
 
+    // The country code of the user based on their IP address
+    countryCodeByIP: PropTypes.number,
+
     isSidebarAnimating: PropTypes.bool,
     isChatSwitcherActive: PropTypes.bool,
 };
@@ -64,6 +67,7 @@ const defaultProps = {
     session: null,
     isSidebarAnimating: false,
     isChatSwitcherActive: false,
+    countryCodeByIP: 1,
 };
 
 class ChatSwitcherView extends React.Component {
@@ -171,7 +175,8 @@ class ChatSwitcherView extends React.Component {
                     participants,
                     icons: report.icons,
                     login,
-                    type: isSingleUserDM ? CONST.REPORT.SINGLE_USER_DM : CONST.REPORT.GROUP_USERS_DM,
+                    singleUserDM: isSingleUserDM,
+                    type: CONST.OPTION_TYPE.REPORT,
                     isUnread: report.unreadActionCount > 0,
                     lastVisitedTimestamp: report.lastVisitedTimestamp,
                     keyForList: String(report.reportID),
@@ -195,11 +200,11 @@ class ChatSwitcherView extends React.Component {
         Timing.start(CONST.TIMING.SWITCH_REPORT);
 
         switch (option.type) {
-            case CONST.REPORT.SINGLE_USER_DM:
-                this.selectUser(option);
-                break;
-            case CONST.REPORT.GROUP_USERS_DM:
+            case CONST.OPTION_TYPE.REPORT:
                 this.selectReport(option);
+                break;
+            case CONST.OPTION_TYPE.PERSONAL_DETAIL:
+                this.selectUser(option);
                 break;
             default:
         }
@@ -426,7 +431,7 @@ class ChatSwitcherView extends React.Component {
                     : `${personalDetail.displayName} ${personalDetail.login}`,
                 icon: personalDetail.avatarURL,
                 login: personalDetail.login,
-                type: CONST.REPORT.SINGLE_USER_DM,
+                type: CONST.OPTION_TYPE.PERSONAL_DETAIL,
                 keyForList: personalDetail.login,
             }))
             .value();
@@ -462,12 +467,37 @@ class ChatSwitcherView extends React.Component {
             }
         }
 
-        this.setState({
-            options: Array.from(matches),
-        });
+        const options = Array.from(matches);
+        if (options.length === 0 && value && (Str.isValidEmail(value) || Str.isValidPhone(value))) {
+            let login = value;
+            if (Str.isValidPhone(value)) {
+                // If the phone number doesn't have an international code then let's prefix it with the
+                // current users international code based on their IP address.
+                login = value.includes('+') ? value : `+${this.props.countryCodeByIP}${value}`;
+            }
+            options.push({
+                text: login,
+                alternateText: login,
+                singleUserDM: true,
+                type: CONST.OPTION_TYPE.PERSONAL_DETAIL,
+                keyForList: login,
+                login,
+            });
+        }
+
+        this.setState({options});
     }
 
     render() {
+        let feedbackHeader = '';
+        let feedbackMessage = '';
+        if (this.state.usersToStartGroupReportWith.length === MAX_GROUP_DM_LENGTH) {
+            feedbackHeader = 'Maximum participants reached';
+            feedbackMessage = 'You\'ve reached the maximum number of participants for a group chat.';
+        } else if (this.state.search && this.state.options.length === 0) {
+            feedbackMessage = 'Don\'t see who you are looking for? Type their valid email/phone number to invite them.';
+        }
+
         return (
             <>
                 <ChatSwitcherSearchForm
@@ -484,17 +514,18 @@ class ChatSwitcherView extends React.Component {
                     onConfirmUsers={this.startGroupChat}
                 />
 
-                {this.state.usersToStartGroupReportWith.length === MAX_GROUP_DM_LENGTH
-                    ? (
-                        <View style={[styles.chatSwitcherMessage]}>
+                {feedbackMessage ? (
+                    <View style={[styles.p2]}>
+                        {feedbackHeader.length > 0 && (
                             <Text style={[styles.h4, styles.mb1]}>
-                                Maximum participants reached
+                                {feedbackHeader}
                             </Text>
-                            <Text style={[styles.textLabel]}>
-                                {'You\'ve reached the maximum number of participants for a group chat.'}
-                            </Text>
-                        </View>
-                    )
+                        )}
+                        <Text style={[styles.textLabel]}>
+                            {feedbackMessage}
+                        </Text>
+                    </View>
+                )
                     : (
                         <ChatSwitcherList
                             focusedIndex={this.state.focusedIndex}
@@ -525,4 +556,7 @@ export default withOnyx({
         key: ONYXKEYS.IS_SIDEBAR_ANIMATING,
         initFromStoredValues: false,
     },
+    countryCodeByIP: {
+        key: ONYXKEYS.COUNTRY_CODE
+    }
 })(ChatSwitcherView);

@@ -1,4 +1,3 @@
-// We place items a percentage to the safe area on the top or bottom of the screen
 import fontFamily from './fontFamily';
 import italic from './italic';
 import addOutlineWidth from './addOutlineWidth';
@@ -6,174 +5,19 @@ import themeColors from './themes/default';
 import fontWeightBold from './fontWeight/bold';
 import variables from './variables';
 import colors from './colors';
+import spacing from './utilities/spacing';
+import sizing from './utilities/sizing';
+import flex from './utilities/flex';
+import display from './utilities/display';
+import overflow from './utilities/overflow';
 
 const styles = {
-    // Utility classes
-    m0: {
-        margin: 0,
-    },
-
-    mr0: {
-        marginRight: 0,
-    },
-
-    mr1: {
-        marginRight: 4,
-    },
-
-    mr2: {
-        marginRight: 8,
-    },
-
-    mr3: {
-        marginRight: 12,
-    },
-
-    ml1: {
-        marginLeft: 4,
-    },
-
-    ml2: {
-        marginLeft: 8,
-    },
-
-    mt1: {
-        marginTop: 4,
-    },
-    mt2: {
-        marginTop: 8,
-    },
-    mt3: {
-        marginTop: 12,
-    },
-    mt4: {
-        marginTop: 16,
-    },
-    mt5: {
-        marginTop: 20,
-    },
-    mt6: {
-        marginTop: 24,
-    },
-
-    mb1: {
-        marginBottom: 4,
-    },
-    mb2: {
-        marginBottom: 8,
-    },
-    mb3: {
-        marginBottom: 12,
-    },
-    mb4: {
-        marginBottom: 16,
-    },
-    mb5: {
-        marginBottom: 20,
-    },
-    mb6: {
-        marginBottom: 24,
-    },
-    mbn5: {
-        marginBottom: -5,
-    },
-
-    p1: {
-        padding: 10,
-    },
-    p2: {
-        padding: 20,
-    },
-    pr1: {
-        paddingRight: 4,
-    },
-    pr2: {
-        paddingRight: 8,
-    },
-
-    widthHeight100p: {
-        width: '100%',
-        height: '100%',
-    },
-    width50p: {
-        width: '50%',
-    },
-
-    flex0: {
-        flex: 0,
-    },
-
-    flex1: {
-        flex: 1,
-    },
-
-    flex4: {
-        flex: 4,
-    },
-
-    flexRow: {
-        flexDirection: 'row',
-    },
-
-    flexColumn: {
-        flexDirection: 'column',
-    },
-
-    flexJustifyCenter: {
-        justifyContent: 'center',
-    },
-
-    flexJustifyEnd: {
-        justifyContent: 'flex-end',
-    },
-
-    flexJustifySpaceBetween: {
-        justifyContent: 'space-between',
-    },
-
-    flexAlignSelfStretch: {
-        alignSelf: 'stretch',
-    },
-
-    alignItemsCenter: {
-        alignItems: 'center',
-    },
-
-    flexWrap: {
-        flexWrap: 'wrap',
-    },
-
-    flexGrow0: {
-        flexGrow: 0,
-    },
-
-    flexGrow1: {
-        flexGrow: 1,
-    },
-
-    flexGrow4: {
-        flexGrow: 4,
-    },
-
-    dFlex: {
-        display: 'flex',
-    },
-
-    dNone: {
-        display: 'none',
-    },
-
-    dInlineBlock: {
-        display: 'inline-block',
-    },
-
-    overflowHidden: {
-        overflow: 'hidden',
-    },
-
-    height100percent: {
-        height: '100%',
-    },
+    // Add all of our utility and helper styles
+    ...spacing,
+    ...sizing,
+    ...flex,
+    ...display,
+    ...overflow,
 
     link: {
         color: themeColors.link,
@@ -878,10 +722,6 @@ const styles = {
         borderRadius: 6,
         height: 32,
         marginBottom: 3,
-    },
-
-    chatSwitcherMessage: {
-        padding: 20,
     },
 
     hamburgerOpenAbsolute: {
