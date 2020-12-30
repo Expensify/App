@@ -16,7 +16,7 @@ if (_.isString(Config.EXPENSIFY_URL_COM) && !Config.EXPENSIFY_URL_COM.endsWith('
     Config.EXPENSIFY_URL_COM += '/';
 }
 
-// Set default values to contributor friendly values to make development work out of the box with no .env file
+// Set default values to contributor friendly values to make development work out of the box without an .env file
 const useNgrok = lodashGet(Config, 'USE_NGROK', 'false');
 const ngrokURL = lodashGet(Config, 'NGROK_URL', null);
 const useWebProxy = lodashGet(Config, 'USE_WEB_PROXY', 'false');
