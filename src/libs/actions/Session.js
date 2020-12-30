@@ -80,7 +80,8 @@ function signOut() {
  * @param {String} login
  */
 function fetchAccountDetails(login) {
-    Onyx.merge(ONYXKEYS.SESSION, {error: '', isLoading: true});
+    Onyx.merge(ONYXKEYS.SESSION, {error: ''});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true});
 
     API.GetAccountStatus({email: login, isViaExpensifyCash: true})
         .then((response) => {
@@ -98,7 +99,7 @@ function fetchAccountDetails(login) {
             }
         })
         .finally(() => {
-            Onyx.merge(ONYXKEYS.SESSION, {isLoading: false});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
         });
 }
 
@@ -112,7 +113,8 @@ function fetchAccountDetails(login) {
  * @param {String} [twoFactorAuthCode]
  */
 function signIn(password, exitTo, twoFactorAuthCode) {
-    Onyx.merge(ONYXKEYS.SESSION, {error: '', isLoading: true});
+    Onyx.merge(ONYXKEYS.SESSION, {error: ''});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true});
 
     API.Authenticate({
         useExpensifyLogin: true,
@@ -160,11 +162,12 @@ function signIn(password, exitTo, twoFactorAuthCode) {
                     Onyx.merge(ONYXKEYS.SESSION, {error: error.message});
                 })
                 .finally(() => {
-                    Onyx.merge(ONYXKEYS.SESSION, {isLoading: false});
+                    Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
                 });
         })
         .catch((error) => {
-            Onyx.merge(ONYXKEYS.SESSION, {error: error.message, isLoading: false});
+            Onyx.merge(ONYXKEYS.SESSION, {error: error.message});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
         });
 }
 
@@ -174,7 +177,8 @@ function signIn(password, exitTo, twoFactorAuthCode) {
  * @param {String} username
  */
 function setGitHubUsername(username) {
-    Onyx.merge(ONYXKEYS.SESSION, {error: '', isLoading: true});
+    Onyx.merge(ONYXKEYS.SESSION, {error: ''});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true});
 
     API.SetGithubUsername({email: credentials.login, githubUsername: username})
         .then((response) => {
@@ -188,7 +192,7 @@ function setGitHubUsername(username) {
             Onyx.merge(ONYXKEYS.SESSION, {error: 'Please enter a valid GitHub username'});
         })
         .finally(() => {
-            Onyx.merge(ONYXKEYS.SESSION, {isLoading: false});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
         });
 }
 
@@ -197,10 +201,10 @@ function setGitHubUsername(username) {
  * this happens in the createAccount() flow
  */
 function resendValidationLink() {
-    Onyx.merge(ONYXKEYS.SESSION, {isLoading: true});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true});
     API.ResendValidateCode({email: credentials.login})
         .finally(() => {
-            Onyx.merge(ONYXKEYS.SESSION, {isLoading: false});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
         });
 }
 
