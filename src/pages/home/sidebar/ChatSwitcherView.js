@@ -426,7 +426,6 @@ class ChatSwitcherView extends React.Component {
             .map(personalDetail => ({
                 text: personalDetail.displayName,
                 alternateText: personalDetail.login,
-                participants: [personalDetail.login],
                 searchText: personalDetail.displayName === personalDetail.login ? personalDetail.login
                     : `${personalDetail.displayName} ${personalDetail.login}`,
                 icon: personalDetail.avatarURL,
