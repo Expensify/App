@@ -2,6 +2,7 @@ import React from 'react';
 import {Text, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import styles from '../../styles/styles';
 import ButtonWithLoader from '../../components/ButtonWithLoader';
 import {resendValidationLink} from '../../libs/actions/Session';
@@ -71,7 +72,7 @@ class ResendValidationForm extends React.Component {
                     <ChangeExpensifyLoginLink />
                 </View>
 
-                {this.state.formSuccess !== '' && (
+                {!_.isEmpty(this.state.formSuccess) && (
                     <Text style={[styles.formSuccess]}>
                         {this.state.formSuccess}
                     </Text>
