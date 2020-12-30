@@ -13,9 +13,6 @@ export default PropTypes.shape({
     // The type of option we have e.g. user or report
     type: PropTypes.string,
 
-    // Array of the login of all users in a chat
-    participants: PropTypes.arrayOf(String),
-
     // The option key provided to FlatList keyExtractor
     keyForList: PropTypes.string,
 });
