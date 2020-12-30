@@ -99,6 +99,14 @@ const styles = {
         width: '50%',
     },
 
+    width300px: {
+        width: 300
+    },
+
+    width0px: {
+        width: 0
+    },
+
     flex0: {
         flex: 0,
     },
@@ -883,7 +891,6 @@ const styles = {
         top: 0,
         bottom: 0,
         zIndex: 2,
-        width: 300,
         shadowColor: themeColors.shadow,
         shadowOffset: {
             width: 0,
