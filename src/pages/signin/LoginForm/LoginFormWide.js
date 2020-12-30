@@ -2,6 +2,7 @@ import React from 'react';
 import {Text, TextInput, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import {fetchAccountDetails} from '../../../libs/actions/Session';
 import styles from '../../../styles/styles';
 import ButtonWithLoader from '../../../components/ButtonWithLoader';
@@ -14,6 +15,9 @@ const propTypes = {
 
     // The details about the account that the user is signing in with
     account: PropTypes.shape({
+        // An error message to display to the user
+        error: PropTypes.string,
+
         // Whether or not a sign on form is loading (being submitted)
         loading: PropTypes.bool,
     }),
@@ -81,6 +85,12 @@ class LoginFormWide extends React.Component {
                     {this.state.formError && (
                         <Text style={[styles.formError]}>
                             {this.state.formError}
+                        </Text>
+                    )}
+
+                    {!_.isEmpty(this.props.account.error) && (
+                        <Text style={[styles.formError]}>
+                            {this.props.account.error}
                         </Text>
                     )}
                 </View>
