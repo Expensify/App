@@ -334,6 +334,14 @@ function GetAccountStatus(parameters) {
 }
 
 /**
+ * @returns {Promise}
+ */
+function GetRequestCountryCode() {
+    const commandName = 'GetRequestCountryCode';
+    return request(commandName, {});
+}
+
+/**
  * @param {Object} parameters
  * @param {String} parameters.message
  * @param {Object} parameters.parameters
@@ -480,6 +488,7 @@ export {
     DeleteLogin,
     Get,
     GetAccountStatus,
+    GetRequestCountryCode,
     Graphite_Timer,
     Log,
     PersonalDetails_GetForEmails,

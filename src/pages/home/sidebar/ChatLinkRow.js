@@ -11,7 +11,6 @@ import {
 import styles from '../../../styles/styles';
 import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
 import pencilIcon from '../../../../assets/images/icon-pencil.png';
-import CONST from '../../../CONST';
 import Avatar from '../../../components/Avatar';
 
 const propTypes = {
@@ -43,7 +42,6 @@ const ChatLinkRow = ({
     onAddToGroup,
     isChatSwitcher,
 }) => {
-    const isSingleUserDM = option.type === CONST.REPORT.SINGLE_USER_DM;
     const textStyle = optionIsFocused
         ? styles.sidebarLinkActiveText
         : styles.sidebarLinkText;
@@ -104,7 +102,7 @@ const ChatLinkRow = ({
                     </View>
                 </View>
             </TouchableOpacity>
-            {isSingleUserDM && isChatSwitcher && (
+            {option.singleUserDM && isChatSwitcher && (
                 <View>
                     <TouchableOpacity
                         style={[styles.chatSwitcherItemButton]}

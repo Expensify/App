@@ -442,6 +442,11 @@ function fetchOrCreateChatReport(participants) {
     })
 
         .then((data) => {
+            if (data.jsonCode !== 200) {
+                alert(data.message);
+                return;
+            }
+
             // Set aside the reportID in a local variable so it can be accessed in the rest of the chain
             reportID = data.reportID;
 
@@ -455,6 +460,9 @@ function fetchOrCreateChatReport(participants) {
 
         // Put the report object into Onyx
         .then((data) => {
+            if (data.reports.length === 0) {
+                return;
+            }
             const report = data.reports[reportID];
 
             // Store only the absolute bare minimum of data in Onyx because space is limited
@@ -468,6 +476,9 @@ function fetchOrCreateChatReport(participants) {
             // Merge the data into Onyx. Don't use set() here or multiSet() because then that would
             // overwrite any existing data (like if they have unread messages)
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, newReport);
+
+            // Updates the personal details since its possible that a new participant was provided
+            PersonalDetails.getFromReportParticipants([newReport]);
 
             // Redirect the logged in person to the new report
             redirect(ROUTES.getReportRoute(reportID));
