@@ -1,6 +1,6 @@
 {
   "name": "expensify.cash",
-  "version": "1.0.1-290",
+  "version": "1.0.1-307",
   "author": "Expensify, Inc.",
   "homepage": "https://expensify.cash",
   "description": "Expensify.cash is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -13,13 +13,13 @@
     "desktop": "webpack --config config/webpack/webpack.dev.js --platform desktop && electron desktop/main.js",
     "start": "react-native start",
     "web": "webpack-dev-server --open --config config/webpack/webpack.dev.js",
-    "proxy": "node proxy.js & webpack-dev-server --open --config config/webpack/webpack.dev.js --env.proxy=true",
+    "proxy": "node web/proxy.js & webpack-dev-server --open --config config/webpack/webpack.dev.js --env.proxy=true",
     "build": "webpack --config config/webpack/webpack.prod.js",
     "desktop-build": "webpack --config config/webpack/webpack.prod.js --platform desktop && electron-builder --config config/electron.config.js --publish always",
     "ios-build": "fastlane ios build",
     "android-build": "fastlane android build",
     "test": "jest",
-    "lint": "eslint . --config config/.eslintrc.js",
+    "lint": "eslint .",
     "postversion": "react-native-version",
     "print-version": "echo $npm_package_version",
     "detox-build": "detox build --configuration ios.sim.debug",
@@ -32,7 +32,6 @@
     "@react-native-community/netinfo": "^5.9.6",
     "@react-native-community/progress-bar-android": "^1.0.4",
     "@react-native-community/progress-view": "^1.2.3",
-    "@react-native-community/push-notification-ios": "^1.5.0",
     "@react-native-firebase/analytics": "^7.6.7",
     "@react-native-firebase/app": "^8.4.5",
     "@react-native-firebase/crashlytics": "^8.4.9",
@@ -64,8 +63,8 @@
     "react-native-keyboard-spacer": "^0.4.1",
     "react-native-modal": "^11.5.6",
     "react-native-onyx": "git+https://github.com/Expensify/react-native-onyx.git#783806e7a3d82d78025bb9025767f42c3964eff9",
-    "react-native-render-html": "^6.0.0-alpha.10",
     "react-native-pdf": "^6.2.2",
+    "react-native-render-html": "^6.0.0-alpha.10",
     "react-native-safe-area-context": "^3.1.4",
     "react-native-web": "^0.14.0",
     "react-native-web-webview": "^1.0.2",
@@ -76,7 +75,7 @@
     "rn-fetch-blob": "^0.12.0",
     "save": "^2.4.0",
     "underscore": "^1.10.2",
-    "urbanairship-react-native": "^9.0.1"
+    "urbanairship-react-native": "^10.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.11.1",
@@ -142,5 +141,40 @@
     "setupFilesAfterEnv": [
       "@testing-library/jest-native/extend-expect"
     ]
+  },
+  "detox": {
+    "testRunner": "jest",
+    "runnerConfig": "tests/e2e/config.json",
+    "configurations": {
+      "ios.sim.debug": {
+        "binaryPath": "ios/build/Build/Products/Debug-iphonesimulator/expensify.cash.app",
+        "build": "xcodebuild -workspace ios/ExpensifyCash.xcworkspace -scheme ExpensifyCash -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build | xcpretty",
+        "type": "ios.simulator",
+        "name": "iPhone 11"
+      },
+      "ios.sim.release": {
+        "binaryPath": "ios/build/Build/Products/Release-iphonesimulator/expensify.cash.app",
+        "build": "xcodebuild -workspace ios/ExpensifyCash.xcworkspace -scheme ExpensifyCash -configuration Release -sdk iphonesimulator -derivedDataPath ios/build | xcpretty",
+        "type": "ios.simulator",
+        "name": "iPhone 11"
+      }
+    }
+  },
+  "metro": {
+    "resolver": {
+      "sourceExts": [
+        "jsx",
+        "js",
+        "ts",
+        "tsx",
+        "json"
+      ]
+    }
+  },
+  "prettier": {
+    "bracketSpacing": false,
+    "jsxBracketSameLine": true,
+    "singleQuote": true,
+    "trailingComma": "all"
   }
 }

@@ -36,6 +36,7 @@ import NetworkConnection from '../../libs/NetworkConnection';
 import CONFIG from '../../CONFIG';
 import CustomStatusBar from '../../components/CustomStatusBar';
 import CONST from '../../CONST';
+import {fetchCountryCodeByRequestIP} from '../../libs/actions/GeoLocation';
 
 const windowSize = Dimensions.get('window');
 
@@ -56,6 +57,7 @@ class App extends React.Component {
         super(props);
 
         this.state = {
+            windowWidth: windowSize.width,
             isHamburgerEnabled: windowSize.width <= variables.mobileResponsiveWidthBreakpoint,
         };
 
@@ -83,6 +85,8 @@ class App extends React.Component {
         fetchPersonalDetails();
 
         fetchAllReports(true, false, true);
+
+        fetchCountryCodeByRequestIP();
 
         UnreadIndicatorUpdater.listenForReportChanges();
 
@@ -123,7 +127,16 @@ class App extends React.Component {
      * @param {Object} changedWindow
      */
     toggleHamburgerBasedOnDimensions({window: changedWindow}) {
-        this.setState({isHamburgerEnabled: changedWindow.width <= variables.mobileResponsiveWidthBreakpoint});
+        if (this.state.windowWidth === changedWindow.width) {
+            // Window width hasn't changed, don't toggle sidebar
+            return;
+        }
+
+        this.setState({
+            windowWidth: changedWindow.width,
+            isHamburgerEnabled: changedWindow.width <= variables.mobileResponsiveWidthBreakpoint
+        });
+
         if (!this.props.isSidebarShown && changedWindow.width > variables.mobileResponsiveWidthBreakpoint) {
             showSidebar();
         } else if (this.props.isSidebarShown && changedWindow.width < variables.mobileResponsiveWidthBreakpoint) {
