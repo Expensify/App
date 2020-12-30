@@ -15,6 +15,7 @@ import pencilIcon from '../../../../assets/images/icon-pencil.png';
 import PressableLink from '../../../components/PressableLink';
 import CONST from '../../../CONST';
 import Avatar from '../../../components/Avatar';
+import GroupAvatar from '../../../components/GroupAvatar';
 
 const propTypes = {
     // Option to allow the user to choose from can be type 'report' or 'user'
@@ -51,12 +52,6 @@ const ChatLinkRow = ({
         : styles.sidebarLinkText;
     const textUnreadStyle = option.isUnread
         ? [textStyle, styles.sidebarLinkTextUnread] : [textStyle];
-    const groupAvatar2DynamicStyles = !optionIsFocused
-        ? styles.chatSwitcherAvatar2ForGroupInactive
-        : styles.chatSwitcherAvatar2ForGroupActive;
-    const circularCount = (option.participants && option.participants.length > 2)
-        ? option.participants.length - 1
-        : null;
     return (
         <View
             style={[
@@ -85,38 +80,22 @@ const ChatLinkRow = ({
                 >
                     {/* For single user chat with icon */}
                     {
-                        !_.isEmpty(option.icon)
+                        !_.isEmpty(option.icons) && option.icons.length === 1
                         && (
                             <View style={[styles.chatSwitcherAvatar, styles.mr3]}>
-                                <Avatar source={option.icon} />
+                                <Avatar source={option.icons[0]} />
                             </View>
                         )
                     }
                     {/* For group chat with two or more participants */}
                     {
-                        Boolean(option.groupIcons && !option.icon && option.groupIcons.length)
+                        !_.isEmpty(option.icons) && option.icons.length > 1
                         && (
                             <View style={styles.chatSwitcherAvatarContainerForGroup}>
-                                <View style={styles.chatSwitcherAvatar1ForGroup}>
-                                    <Image
-                                        source={{uri: option.groupIcons[0]}}
-                                        style={[styles.chatSwitcherAvatarImageForGroup]}
-                                    />
-                                </View>
-                                <View style={[styles.chatSwitcherAvatar2ForGroup, groupAvatar2DynamicStyles]}>
-                                    {
-                                        circularCount ? (
-                                            <Text style={styles.groupAvatarCircularCountText}>
-                                                {circularCount}
-                                            </Text>
-                                        ) : (
-                                            <Image
-                                                source={{uri: option.groupIcons[1]}}
-                                                style={[styles.chatSwitcherAvatarImageForGroup]}
-                                            />
-                                        )
-                                    }
-                                </View>
+                                <GroupAvatar
+                                    icons={option.icons}
+                                    optionIsFocused={optionIsFocused}
+                                />
                             </View>
                         )
                     }

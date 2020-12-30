@@ -160,14 +160,7 @@ class ChatSwitcherView extends React.Component {
             .map((report) => {
                 const participants = lodashGet(report, 'participants', []);
                 const isSingleUserDM = participants.length === 1;
-                const isGroupDM = participants.length > 1;
-                const personalDetails = this.props.personalDetails || {};
-                const participant1Avatar = personalDetails[participants[0]]
-                    ? personalDetails[participants[0]].avatarURL : '';
-                const participant2Avatar = personalDetails[participants[1]]
-                    ? personalDetails[participants[1]].avatarURL : '';
                 const login = isSingleUserDM ? report.participants[0] : '';
-
                 return {
                     text: report.reportName,
                     alternateText: isSingleUserDM ? login : report.reportName,
@@ -176,9 +169,7 @@ class ChatSwitcherView extends React.Component {
                         : report.reportName ?? '',
                     reportID: report.reportID,
                     participants,
-                    groupIcons: isGroupDM && Boolean(participant1Avatar) && Boolean(participant2Avatar)
-                        ? [participant1Avatar, participant2Avatar] : [],
-                    icon: report.icon,
+                    icons: report.icons,
                     login,
                     type: isSingleUserDM ? CONST.REPORT.SINGLE_USER_DM : CONST.REPORT.GROUP_USERS_DM,
                     isUnread: report.unreadActionCount > 0,
