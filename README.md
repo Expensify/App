@@ -39,7 +39,7 @@ You can use any IDE or code editing tool for developing on any platform. Use you
 * Changes applied to Javascript will be applied automatically via WebPack as configured in `webpack.dev.js`
 
 ## Running the iOS app 📱
-* To install the iOS dependencies, run: `npm install && cd ios/ && pod install`
+* To install the iOS dependencies, run: `npm install && cd ios/ && pod install && cd ..`
 * To run a on a **Development Simulator**: `npm run ios`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
