@@ -2,11 +2,9 @@ import React, {Component} from 'react';
 import {
     SafeAreaView,
     Text,
-    TouchableOpacity,
     TextInput,
     Image,
     View,
-    ActivityIndicator,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -16,7 +14,6 @@ import lodashHas from 'lodash.has';
 import compose from '../libs/compose';
 import {Redirect, withRouter} from '../libs/Router';
 import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
 import logo from '../../assets/images/expensify-logo-round.png';
 import CustomStatusBar from '../components/CustomStatusBar';
 import {setPassword} from '../libs/actions/Session';
