@@ -91,7 +91,7 @@ class ReportActionCompose extends React.Component {
      */
     updateComment(newComment) {
         this.comment = newComment;
-        this.setState({textInputShouldClear: this.comment === '' ? true : false});
+        this.setState({textInputShouldClear: newComment.length <= 0 ? true : false});
         this.debouncedSaveReportComment(newComment);
         this.debouncedBroadcastUserIsTyping();
     }
