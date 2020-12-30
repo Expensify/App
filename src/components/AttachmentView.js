@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {memo} from 'react';
 import {View, Image, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
@@ -59,4 +59,4 @@ AttachmentView.propTypes = propTypes;
 AttachmentView.defaultProps = defaultProps;
 AttachmentView.displayName = 'AttachmentView';
 
-export default AttachmentView;
+export default memo(AttachmentView);

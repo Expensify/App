@@ -1,4 +1,3 @@
-// We place items a percentage to the safe area on the top or bottom of the screen
 import fontFamily from './fontFamily';
 import italic from './italic';
 import addOutlineWidth from './addOutlineWidth';
@@ -6,158 +5,36 @@ import themeColors from './themes/default';
 import fontWeightBold from './fontWeight/bold';
 import variables from './variables';
 import colors from './colors';
+import spacing from './utilities/spacing';
+import sizing from './utilities/sizing';
+import flex from './utilities/flex';
+import display from './utilities/display';
+import overflow from './utilities/overflow';
 
 const styles = {
-    // Utility classes
-    m0: {
-        margin: 0,
+    // Add all of our utility and helper styles
+    ...spacing,
+    ...sizing,
+    ...flex,
+    ...display,
+    ...overflow,
+
+    link: {
+        color: themeColors.link,
+        textDecorationColor: themeColors.link,
     },
 
-    mr0: {
-        marginRight: 0,
+    h1: {
+        color: themeColors.heading,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeh1,
+        fontWeight: fontWeightBold,
     },
 
-    mr1: {
-        marginRight: 4,
-    },
-
-    mr2: {
-        marginRight: 8,
-    },
-
-    mr3: {
-        marginRight: 12,
-    },
-
-    ml1: {
-        marginLeft: 4,
-    },
-
-    ml2: {
-        marginLeft: 8,
-    },
-
-    mt2: {
-        marginTop: 20,
-    },
-
-    mt1: {
-        marginTop: 4,
-    },
-
-    mt3: {
-        marginTop: 12,
-    },
-
-    mb1: {
-        marginBottom: 4,
-    },
-    mb2: {
-        marginBottom: 8,
-    },
-    mb3: {
-        marginBottom: 12,
-    },
-    mb4: {
-        marginBottom: 16,
-    },
-
-    mbn5: {
-        marginBottom: -5,
-    },
-
-    p1: {
-        padding: 10,
-    },
-    p2: {
-        padding: 20,
-    },
-    pr1: {
-        paddingRight: 4,
-    },
-    pr2: {
-        paddingRight: 8,
-    },
-
-    widthHeight100p: {
-        width: '100%',
-        height: '100%',
-    },
-
-    flex0: {
-        flex: 0,
-    },
-
-    flex1: {
-        flex: 1,
-    },
-
-    flex4: {
-        flex: 4,
-    },
-
-    flexRow: {
-        flexDirection: 'row',
-    },
-
-    flexColumn: {
-        flexDirection: 'column',
-    },
-
-    flexJustifyCenter: {
-        justifyContent: 'center',
-    },
-
-    flexJustifyEnd: {
-        justifyContent: 'flex-end',
-    },
-
-    flexJustifySpaceBetween: {
-        justifyContent: 'space-between',
-    },
-
-    flexAlignSelfStretch: {
-        alignSelf: 'stretch',
-    },
-
-    alignItemsCenter: {
-        alignItems: 'center',
-    },
-
-    flexWrap: {
-        flexWrap: 'wrap',
-    },
-
-    flexGrow0: {
-        flexGrow: 0,
-    },
-
-    flexGrow1: {
-        flexGrow: 1,
-    },
-
-    flexGrow4: {
-        flexGrow: 4,
-    },
-
-    dFlex: {
-        display: 'flex',
-    },
-
-    dNone: {
-        display: 'none',
-    },
-
-    dInlineBlock: {
-        display: 'inline-block',
-    },
-
-    overflowHidden: {
-        overflow: 'hidden',
-    },
-
-    height100percent: {
-        height: '100%',
+    h3: {
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeNormal,
+        fontWeight: fontWeightBold,
     },
 
     h4: {
@@ -168,6 +45,7 @@ const styles = {
 
     textP: {
         color: themeColors.text,
+        fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeNormal,
         lineHeight: 20,
     },
@@ -309,6 +187,9 @@ const styles = {
     actionAvatar: {
         borderRadius: 20,
         marginRight: 8,
+    },
+
+    avatarNormal: {
         height: variables.componentSizeNormal,
         width: variables.componentSizeNormal,
     },
@@ -342,15 +223,21 @@ const styles = {
     textInputNoOutline: addOutlineWidth({}, 0),
 
     formLabel: {
-        color: themeColors.heading,
+        color: themeColors.text,
         fontSize: variables.fontSizeLabel,
-        fontWeight: '600',
+        lineHeight: 18,
+        marginBottom: 8,
+    },
+
+    formError: {
+        color: themeColors.textError,
+        fontSize: variables.fontSizeLabel,
         lineHeight: 18,
         marginBottom: 4,
     },
 
-    formError: {
-        color: themeColors.errorText,
+    formSuccess: {
+        color: themeColors.textSuccess,
         fontSize: variables.fontSizeLabel,
         lineHeight: 18,
         marginBottom: 4,
@@ -358,21 +245,37 @@ const styles = {
 
     signInPage: {
         backgroundColor: themeColors.sidebar,
-        height: '100%',
         padding: 20,
+        minHeight: '100%',
     },
 
     signInPageLogo: {
-        alignItems: 'center',
-        height: variables.componentSizeNormal,
-        justifyContent: 'center',
-        width: '100%',
+        height: variables.componentSizeLarge,
         marginBottom: 24,
     },
 
+    signInPageLogoNative: {
+        alignItems: 'center',
+        height: variables.componentSizeLarge,
+        justifyContent: 'center',
+        width: '100%',
+        marginBottom: 20,
+        marginTop: 20,
+    },
+
     signinLogo: {
-        height: variables.componentSizeNormal,
-        width: variables.componentSizeNormal,
+        height: variables.componentSizeLarge,
+        width: variables.componentSizeLarge,
+    },
+
+    signinWelcomeScreenshot: {
+        height: 354,
+        width: 295,
+    },
+
+    signinWelcomeScreenshotWide: {
+        height: 592,
+        width: 295,
     },
 
     genericView: {
@@ -381,9 +284,22 @@ const styles = {
     },
 
     signInPageInner: {
+        paddingTop: 40,
         marginLeft: 'auto',
         marginRight: 'auto',
-        maxWidth: 325,
+        maxWidth: 800,
+        width: '100%',
+    },
+
+    signInPageInnerNative: {
+        marginLeft: 'auto',
+        marginRight: 'auto',
+        maxWidth: 295,
+        width: '100%',
+    },
+
+    loginFormContainer: {
+        maxWidth: 295,
         width: '100%',
     },
 
@@ -454,6 +370,10 @@ const styles = {
         color: themeColors.heading,
         fontSize: variables.fontSizeLabel,
         fontWeight: '700',
+        width: 200,
+        textOverflow: 'ellipsis',
+        overflow: 'hidden',
+        whiteSpace: 'nowrap',
     },
 
     sidebarFooterLink: {
@@ -632,16 +552,18 @@ const styles = {
         alignItems: 'center',
         display: 'flex',
         flexDirection: 'row',
+        flexWrap: 'wrap',
     },
 
     chatItemMessageHeaderSender: {
         color: themeColors.heading,
+        fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeNormal,
-        height: 24,
+        fontWeight: fontWeightBold,
         lineHeight: 20,
-        fontWeight: '600',
         paddingRight: 5,
         paddingBottom: 4,
+        wordBreak: 'break-word',
     },
 
     chatItemMessageHeaderTimestamp: {
@@ -838,11 +760,6 @@ const styles = {
         width: variables.componentSizeNormal,
     },
 
-    chatSwitcherAvatarImage: {
-        height: variables.componentSizeNormal,
-        width: variables.componentSizeNormal,
-    },
-
     chatSwitcherItemText: {
         color: themeColors.text,
     },
@@ -1006,10 +923,7 @@ const webViewStyles = {
             fontWeight: fontWeightBold,
         },
 
-        a: {
-            color: themeColors.link,
-            textDecorationColor: themeColors.link,
-        },
+        a: styles.link,
 
         blockquote: {
             borderLeftColor: themeColors.border,

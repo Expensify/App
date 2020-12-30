@@ -71,7 +71,7 @@ module.exports = {
                 options: {
                     cache: false,
                     emitWarning: true,
-                    configFile: './config/.eslintrc.js',
+                    configFile: path.resolve(__dirname, '../../.eslintrc.js'),
                 },
             },
 

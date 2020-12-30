@@ -1,8 +1,13 @@
 <div align="center">
-  <img src="https://use.expensify.com/assets/logo/download/expensify-app-logo_circular/expensify-app-logo_circular.png" width="64" height="64">
+    <a href="https://Expensify.cash">
+        <img src="https://raw.githubusercontent.com/Expensify/Expensify.cash/master/web/favicon.png" width="64" height="64" alt="Expensify.cash Icon">
+    </a>
+    <h1>
+        <a href="https://Expensify.cash">
+            Expensify.cash
+        </a>
+    </h1>
 </div>
-
-# [Expensify.cash](https://Expensify.cash)
 
 ## Philosophy
 This application is built with the following principles.
@@ -45,73 +50,55 @@ This application is built with the following principles.
     1. If the reason you can't write cross platform code is because there is a bug in ReactNative that is preventing it from working, the correct action is to fix RN and submit a PR upstream -- not to hack around RN bugs with platform-specific code paths.
     1. If there is a feature that simply doesn't exist on all platforms and thus doesn't exist in RN, rather than doing if (platform=iOS) { }, instead write a "shim" library that is implemented with NOOPs on the other platforms.  For example, rather than injecting platform-specific multi-tab code (which can only work on browsers, because it's the only platform with multiple tabs), write a TabManager class that just is NOOP for non-browser platforms.  This encapsulates the platform-specific code into a platform library, rather than sprinkling through the business logic.
     1. Put all platform specific code in dedicated files and folders, like /platform, and reject any PR that attempts to put platform-specific code anywhere else.  This maintains a strict separation between business logic and platform code.
-    
+
 ----
 
 # Local development
-## Getting started
+
+These instructions should get you set up ready to work on the front-end code of Expensify.
+
+**Note:** Expensify engineers please refer to [these additional instructions](https://stackoverflow.com/c/expensify/questions/7699/7700) for testing against the local API.
+
+## Getting Started
 1. Install `node` & `npm`: `brew install node`
 2. Install `watchman`: `brew install watchman`
 3. Install dependencies: `npm install`
-4. Run `cp .env.example .env` and edit `.env` to have your local config options.
+4. Run `cp .env.production .env` and edit `.env` to set up your local config options.
 
 You can use any IDE or code editing tool for developing on any platform. Use your favorite!
 
-## Setting up ngrok
-Ngrok makes the our locally-hosted web application appear to be hosted on a subdomain of ngrok.com.  This allows us to avoid many of our cross-domain issues with our API and is required for doing local development on android or viewing images on mobile.
-
-1. Set up a permanent [ngrok route](https://stackoverflow.com/c/expensify/questions/3382)
-2. Replace the value `NGROK_URL` in your `.env` file with the ngrok route you just set up
-3. Set the `USE_NGROK` in your `.env` to true
-4. Start ngrok with the name you previously set (`Expensidev/script/ngrok.sh thienlnam`)
-
-Now, all of your API calls will be using the ngrok route.
-
 ## Running the web app 🕸
-* To run a **Development Server**: `npm run web`
-* To build a **production build**: `npm run build`
+Contributors who don't have full-access to Expensify's development environment will need to run the app against the production API.
+* In the `.env` file set the `USE_WEB_PROXY` environment variable to `true` to indicate the proxy should be used
+* To run the web app, run the **Development Server**: `npm run proxy`
 * Changes applied to Javascript will be applied automatically via WebPack as configured in `webpack.dev.js`
 
 ## Running the iOS app 📱
 * To install the iOS dependencies, run: `npm install && cd ios/ && pod install`
+* In the `.env` file verify the `USE_WEB_PROXY` environment variable is `false` to indicate the proxy should not be used
 * To run a on a **Development Simulator**: `npm run ios`
-    * If the app is booting on a simulator for the first time, run the following two commands:
-    ```bash
-    xcrun simctl keychain booted add-root-cert ~/Expensidev/config/ssl/rootCA.crt #Adds root cert and trusts it
-    xcrun simctl keychain booted add-cert ~/Expensidev/config/ssl/expensify.com.dev.pem #Adds .dev cert and trusts it
-    ```
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
 ## Running the Android app 🤖
 * To install the Android dependencies, run: `npm install`, then `gradle` will install all linked dependencies
-* Running via `ngrok` is required to communicate with the API
-    * Follow the instructions under the section `Setting up ngrok`
+* In the `.env` file verify the `USE_WEB_PROXY` environment variable is `false` to indicate the proxy should not be used
 * To run a on a **Development Emulator**: `npm run android`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
 ## Running the MacOS desktop app 🖥
- * To run the **Development app**, run: `npm run desktop`, this will start a new Electron process running on your MacOS desktop in the `dist/Mac` folder.
+* In the `.env` file verify the `USE_WEB_PROXY` environment variable is `false` to indicate the proxy should not be used
+* To run the **Development app**, run: `npm run desktop`, this will start a new Electron process running on your MacOS desktop in the `dist/Mac` folder.
 
-## Running the web app via production API proxy (Contributors) 🧑‍💻
-If you don't have full-access to Expensify's development environment you will need to run the app against the production API.
-* Copy the `.env.production` variables into your `.env` file
-* Set `EXPENSIFY_URL_COM` environment variable to be empty (**Note:** this means it should be `EXPENSIFY_URL_COM=`, not completely omitted)
-* Run the **Development Server**: `npm run proxy`
+# Running the tests 🎰
 
-## Running the desktop and mobile apps via production API (Contributors) 🧑‍💻
-If you don't have full-access to Expensify's development environment you will need to run the app against the production API.
-* Copy the `.env.production` variables into your `.env` file (**Note:** Reset `EXPENSIFY_URL_COM` if you previously deleted it)
-* Run the desktop, iOS, or Android builds via `npm run desktop`, `npm run ios`, `npm run android` respectively
-
-## Running the tests 🎰
-### Unit tests
+## Unit tests
 Unit tests are valuable when you want to test one component. They should be short, fast, and ideally only test one thing.
 Often times in order to write a unit test, you may need to mock data, a component, or library. We use the library [Jest](https://jestjs.io/)
 to help run our Unit tests.
 
 * To run the **Jest unit tests**: `npm run test`
 
-### End to end tests
+## End to end tests
 End to end tests are valuable when we do not want to mock data and run against the actual compiled app on iOS or Android.
 In order to run the end to end tests, we have to compile the iOS or Android app, then launch a simulator, then run tests.
 We use [Detox](https://github.com/wix/Detox) a _"Gray box end-to-end testing and automation library"_ to help with our end to end testing.
@@ -120,32 +107,34 @@ You are first required to build the tests, then you can run them:
 1. To build the **Detox end to end tests**: `npm run detox-build`
 2. To run the **Detox end to end tests**: `npm run detox-test`
 
-## Troubleshooting
+# Troubleshooting
 1. If you are having issues with **_Getting Started_**, please reference [React Native's Documentation](https://reactnative.dev/docs/environment-setup)
-2. If you are running into issues communicating with `expensify.com.dev` (CORS, SSL, etc.), running via `ngrok` is recommended, see step 3 in **_Getting Started_**
+2. If you are running into issues communicating with the API please verify your `.env` file is [set up correctly](#getting-started) for the platform you are trying to run.
 
-## Debugging
-### iOS
+# Debugging
+## iOS
 1. If running on the iOS simulator pressing `⌘D` will open the debugging menu.
 2. This will allow you to attach a debugger in your IDE, React Developer Tools, or your browser.
 3. For more information on how to attach a debugger, see [React Native Debugging Documentation](https://reactnative.dev/docs/debugging#chrome-developer-tools)
 
-### Android
+## Android
 Our React Native Android app now uses the `Hermes` JS engine which requires your browser for remote debugging. These instructions are specific to Chrome since that's what the Hermes documentation provided.
 1. Navigate to `chrome://inspect`
 2. Use the `Configure...` button to add the Metro server address (typically `localhost:8081`, check your `Metro` output)
 3. You should now see a "Hermes React Native" target with an "inspect" link which can be used to bring up a debugger. If you don't see the "inspect" link, make sure the Metro server is running.
 4. You can now use the Chrome debug tools. See [React Native Debugging Hermes](https://reactnative.dev/docs/hermes#debugging-hermes-using-google-chromes-devtools)
 
-## Things to know or brush up on before jumping into the code
+# Things to know or brush up on before jumping into the code
 1. The major difference between React-Native and React are the [components](https://reactnative.dev/docs/components-and-apis) that are used in the `render()` method. Everything else is exactly the same. If you learn React, you've already learned 98% of React-Native.
 1. The application uses [React-Router](https://reactrouter.com/native/guides/quick-start) for navigating between parts of the app.
 1. [Higher Order Components](https://reactjs.org/docs/higher-order-components.html) are used to connect React components to persistent storage via Onyx.
 
-## Structure of the app
+---
+
+# Structure of the app
 These are the main pieces of the application.
 
-### Onyx
+## Onyx
 This is a persistent storage solution wrapped in a Pub/Sub library. In general that means:
 
 - Onyx stores and retrieves data from persistent storage
@@ -158,20 +147,20 @@ This is a persistent storage solution wrapped in a Pub/Sub library. In general t
     3. Get initialized with the current value of that key from persistent storage (Onyx does this by calling `setState()` or triggering the `callback` with the values currently on disk as part of the connection process)
 - Subscribing to Onyx keys is done using a constant defined in `ONYXKEYS`. Each Onyx key represents either a collection of items or a specific entry in storage. For example, since all reports are stored as individual keys like `report_1234`, if code needs to know about all the reports (eg. display a list of them in the nav menu), then it would subscribe to the key `ONYXKEYS.COLLECTION.REPORT`.
 
-### Actions
+## Actions
 Actions are responsible for managing what is on disk. This is usually:
 
 - Subscribing to Pusher events to receive data from the server that will get put immediately into Onyx
 - Making XHRs to request necessary data from the server and then immediately putting that data into Onyx
 - Handling any business logic with input coming from the UI layer
 
-### The UI layer
+## The UI layer
 This layer is solely responsible for:
 
 - Reflecting exactly the data that is in persistent storage by using `withOnyx()` to bind to Onyx data.
 - Taking user input and passing it to an action
 
-### Directory structure
+## Directory structure
 Almost all the code is located in the `src` folder, inside it there's some organization, we chose to name directories that are
 created to house a collection of items in plural form and using camelCase (eg: pages, libs, etc), the main ones we have for now are:
 
@@ -181,7 +170,7 @@ created to house a collection of items in plural form and using camelCase (eg: p
 `<pageName>Page` if there are components used only inside one page, they should live in its own directory named after the `<pageName>`.
 - styles: These files define styles used among components/pages
 
-### File naming/structure
+## File naming/structure
 Files should be named after the component/function/constants they export, respecting the casing used for it. ie:
 
 - If you export a constant named `CONST` it's file/directory should be named the `CONST`.
@@ -200,12 +189,12 @@ In most cases, the code written for this repo should be platform-independent. In
 
 Note that `index.js` should be the default. i.e: If you have mobile-specific implementation in `index.native.js`, then the desktop/web implementation can be contained in a shared `index.js`. Furthermore, `index.native.js` should not be included in the same module as `index.ios.js` or `index.android.js`, nor should `index.js` be included in the same module as `index.website.js` or `index.desktop.js`.
 
-### API building
+## API building
 When adding new API commands (and preferably when starting using a new one that was not yet used in this codebase) always
 prefer to return the created/updated data in the command itself, instead of saving and reloading. ie: if we call `CreateTransaction`,
 we should prefer making `CreateTransaction` return the data it just created instead of calling `CreateTransaction` then `Get` rvl=transactionList
 
-### Storage Eviction
+## Storage Eviction
 
 Different platforms come with varying storage capacities and Onyx has a way to gracefully fail when those storage limits are encountered. When Onyx fails to set or modify a key the following steps are taken:
 1. Onyx looks at a list of recently accessed keys (access is defined as subscribed to or modified) and locates the key that was least recently accessed
@@ -257,7 +246,7 @@ The GitHub workflows require a large list of secrets to deploy, notify and test 
     3. `ios/chat_expensify_appstore.mobileprovision`
     4. `ios/Certificates.p12.gpg`
 2. `SLACK_WEBHOOK` - Sends Slack notifications via Slack WebHook https://expensify.slack.com/services/B01AX48D7MM
-3. `BOTIFY_TOKEN` - Personal access token for @Botify user in GitHub
+3. `OS_BOTIFY_TOKEN` - Personal access token for @OSBotify user in GitHub
 4. `CSC_LINK` - Required to be set for desktop code signing: https://www.electron.build/code-signing.html#travis-appveyor-and-other-ci-servers
 5. `CSC_KEY_PASSWORD` - Required to be set for desktop code signing: https://www.electron.build/code-signing.html#travis-appveyor-and-other-ci-servers
 6. `APPLE_ID` - Required for notarizing desktop code in `desktop/notarize.js`
@@ -265,7 +254,6 @@ The GitHub workflows require a large list of secrets to deploy, notify and test 
 8. `AWS_ACCESS_KEY_ID` - Required for hosting website and desktop compiled code
 9. `AWS_SECRET_ACCESS_KEY` - Required for hosting website and desktop compiled code
 10. `CLOUDFLARE_TOKEN` - Required for hosting website
-11. `SSH_PRIVATE_KEY` - Used for `npm install` private dependencies (will be removed when open source is done)
 
 ## Local production build
 Sometimes it might be beneficial to generate a local production version instead of testing on production. Follow the steps below for each client:
