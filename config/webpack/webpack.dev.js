@@ -9,14 +9,14 @@ const env = dotenv.config({path: path.resolve(__dirname, '../../.env')}).parsed;
 module.exports = () => {
     // Check if the USE_WEB_PROXY variable has been provided
     // and rewrite any requests to the local proxy server
-    const proxySettings = process.env.USE_WEB_PROXY === 'true'
-        ? {
+    const proxySettings = process.env.USE_WEB_PROXY === 'false'
+        ? {}
+        : {
             proxy: {
                 '/api': 'http://[::1]:9000',
                 '/chat-attachments': 'http://[::1]:9000',
             },
-        }
-        : {};
+        };
 
     return merge(common, {
         mode: 'development',
