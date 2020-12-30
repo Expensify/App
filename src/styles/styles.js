@@ -725,7 +725,6 @@ const styles = {
     },
 
     hamburgerOpenAbsolute: {
-        borderRightWidth: 1,
         borderColor: themeColors.border,
         position: 'absolute',
         left: 0,
@@ -742,9 +741,18 @@ const styles = {
     },
 
     hamburgerOpen: {
-        borderRightWidth: 1,
         borderColor: themeColors.border,
         width: 300,
+    },
+
+    w300br1: {
+        width: 300,
+        borderRightWidth: 1,
+    },
+
+    w0br0: {
+        width: 0,
+        borderRightWidth: 0,
     },
 
     chatSwitcherAvatar: {
