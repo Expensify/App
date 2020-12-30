@@ -220,7 +220,7 @@ class App extends React.Component {
     render() {
         const hamburgerStyle = this.state.isHamburgerEnabled && this.props.isSidebarShown ? styles.hamburgerOpenAbsolute
                 : styles.hamburgerOpen;
-        const visibility = !this.state.isHamburgerEnabled || this.props.isSidebarShown ? styles.width300px : styles.width0px;
+        const visibility = !this.state.isHamburgerEnabled || this.props.isSidebarShown ? styles.w300 : styles.w0;
         const appContentWrapperStyle = !this.state.isHamburgerEnabled ? styles.appContentWrapperLarge : null;
         return (
             <SafeAreaProvider>

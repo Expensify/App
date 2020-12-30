@@ -15,4 +15,12 @@ export default {
     w50: {
         width: '50%',
     },
+
+    w300: {
+        width: 300,
+    },
+
+    w0: {
+        width: 0,
+    },
 };
