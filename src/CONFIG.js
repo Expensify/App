@@ -9,7 +9,7 @@ let useNgrok = lodashGet(Config, 'USE_NGROK', 'false');
 let expensifyCashURL = lodashGet(Config, 'URL_EXPENSIFY_CASH', 'https://expensify.cash/');
 let expensifyURL = lodashGet(Config, 'EXPENSIFY_URL_COM', 'https://www.expensify.com/');
 const ngrokURL = lodashGet(Config, 'NGROK_URL', null);
-const useWebProxy = lodashGet(Config, 'USE_WEB_PROXY', 'false');
+const useWebProxy = lodashGet(Config, 'USE_WEB_PROXY', 'true');
 const expensifyComWithProxy = getPlatform() === 'web' && useWebProxy === 'true' ? '/' : expensifyURL;
 
 // Let's make everyone's life just a bit easier
