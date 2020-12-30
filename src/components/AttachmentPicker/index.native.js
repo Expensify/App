@@ -54,6 +54,7 @@ function show(callback) {
         if (response.error) {
             if (response.error === 'Camera permissions not granted') {
                 Alert.alert(
+                    // eslint-disable-next-line max-len
                     'ExpensifyCash does not have access to your camera. To enable access, tap Settings and turn on Camera.',
                     '',
                     [
