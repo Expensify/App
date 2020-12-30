@@ -163,17 +163,6 @@
       }
     }
   },
-  "metro": {
-    "resolver": {
-      "sourceExts": [
-        "jsx",
-        "js",
-        "ts",
-        "tsx",
-        "json"
-      ]
-    }
-  },
   "prettier": {
     "bracketSpacing": false,
     "jsxBracketSameLine": true,
