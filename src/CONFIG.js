@@ -4,23 +4,23 @@ import {Platform} from 'react-native';
 import Config from 'react-native-config';
 import getPlatform from './libs/getPlatform/index';
 
-// Set default values to contributor friendly values to make development work out of the box without an .env file
-let useNgrok = lodashGet(Config, 'USE_NGROK', 'false');
+// Set default values to contributor friendly values to make develo:pment work out of the box without an .env file
 let expensifyCashURL = lodashGet(Config, 'URL_EXPENSIFY_CASH', 'https://expensify.cash/');
 let expensifyURL = lodashGet(Config, 'EXPENSIFY_URL_COM', 'https://www.expensify.com/');
-const ngrokURL = lodashGet(Config, 'NGROK_URL', null);
+let ngrokURL = lodashGet(Config, 'NGROK_URL', null);
+const useNgrok = lodashGet(Config, 'USE_NGROK', 'false');
 const useWebProxy = lodashGet(Config, 'USE_WEB_PROXY', 'true');
 const expensifyComWithProxy = getPlatform() === 'web' && useWebProxy === 'true' ? '/' : expensifyURL;
 
 // Let's make everyone's life just a bit easier
 // by adding / to the end of any config URL's if it's not already present
-if (_.isString(useNgrok) && !useNgrok.endsWith('/')) {
-    useNgrok += '/';
+if (_.isString(ngrokURL) && !ngrokURL.endsWith('/')) {
+    ngrokURL += '/';
 }
-if (_.isString(expensifyCashURL) && !expensifyCashURL.endsWith('/')) {
+if (!expensifyCashURL.endsWith('/')) {
     expensifyCashURL += '/';
 }
-if (_.isString(expensifyURL) && !expensifyURL.endsWith('/')) {
+if (!expensifyURL.endsWith('/')) {
     expensifyURL += '/';
 }
 
