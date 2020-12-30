@@ -24,44 +24,47 @@ const MultipleAvatars = (props) => {
                 <>
                     <View
                         style={[
-                            styles.chatSwitcherSingleAvatar,
-                            avatars.length > 1 ? styles.chatSwitcherAvatar1 : styles.chatSwitcherEmptyAvatar1,
+                            avatars.length > 1
+                                ? [styles.chatSwitcherSingleAvatar, styles.chatSwitcherAvatar1]
+                                : [styles.chatSwitcherBigAvatar, styles.chatSwitcherEmptyAvatar1],
                         ]}
                     >
                         <Image
                             source={{uri: avatars[0]}}
-                            style={styles.chatSwitcherSingleAvatar}
+                            style={avatars.length > 1 ? styles.chatSwitcherSingleAvatar : styles.chatSwitcherBigAvatar}
                         />
                     </View>
-                    <View
-                        style={[
-                            styles.chatSwitcherSingleAvatar,
-                            avatars.length > 1 ? styles.chatSwitcherAvatar2 : null,
-                            optionIsFocused ? styles.chatSwitcherFocusedAvatar : styles.chatSwitcherAvatar,
-                        ]}
-                    >
-                        {avatars.length > 2 && (
-                            <View
-                                style={[
-                                    styles.chatSwitcherAvatarText,
-                                    styles.chatSwitcherAvatarSpace,
-                                ]}
-                            >
-                                <Text style={styles.chatSwitcherAvatarInnerText}>
-                                    {avatars.length}
-                                </Text>
-                            </View>
-                        )}
-                        {avatars.length === 2 && (
-                            <Image
-                                source={{uri: avatars[1]}}
-                                style={[
-                                    styles.chatSwitcherSingleAvatar,
-                                    styles.chatSwitcherAvatarSpace,
-                                ]}
-                            />
-                        )}
-                    </View>
+                    {avatars.length > 1 && (
+                        <View
+                            style={[
+                                styles.chatSwitcherSingleAvatar,
+                                avatars.length > 1 ? styles.chatSwitcherAvatar2 : null,
+                                optionIsFocused ? styles.chatSwitcherFocusedAvatar : styles.chatSwitcherAvatar,
+                            ]}
+                        >
+                            {avatars.length > 2 && (
+                                <View
+                                    style={[
+                                        styles.chatSwitcherAvatarText,
+                                        styles.chatSwitcherAvatarSpace,
+                                    ]}
+                                >
+                                    <Text style={styles.chatSwitcherAvatarInnerText}>
+                                        {avatars.length}
+                                    </Text>
+                                </View>
+                            )}
+                            {avatars.length === 2 && (
+                                <Image
+                                    source={{uri: avatars[1]}}
+                                    style={[
+                                        styles.chatSwitcherSingleAvatar,
+                                        styles.chatSwitcherAvatarSpace,
+                                    ]}
+                                />
+                            )}
+                        </View>
+                    )}
                 </>
             )}
         </>
