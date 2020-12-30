@@ -108,7 +108,6 @@ const SidebarLinks = (props) => {
                 {/* A report will not have a report name if it hasn't been fetched from the server yet */}
                 {/* so nothing is rendered */}
                 {_.map(reportsToDisplay, (report) => {
-                    const participants = get(report, 'participants', []);
                     const participantDetails = get(report, 'participants.length', 0) === 1
                         ? get(props.personalDetails, report.participants[0], '') : '';
                     const login = participantDetails ? participantDetails.login : '';
@@ -119,9 +118,10 @@ const SidebarLinks = (props) => {
                                 text: participantDetails ? participantDetails.displayName : report.reportName,
                                 alternateText: Str.removeSMSDomain(login),
                                 type: participantDetails ? 'user' : 'report',
+
                                 // The icon for the row is set when we fetch personal details via
                                 // PersonalDetails.getFromReportParticipants()
-                                // There could be various icons when the chat is a group chat          
+                                // There could be various icons when the chat is a group chat
                                 icons: report.icons,
                                 login,
                                 reportID: report.reportID,
