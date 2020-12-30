@@ -266,7 +266,7 @@ const styles = {
         borderWidth: 0,
     },
 
-    buttonDeActive: {
+    buttonDisabled: {
         backgroundColor: themeColors.offline,
         borderWidth: 0,
     },
