@@ -31,16 +31,12 @@ jobs:
                pip3 install cloudflare
 
         - name: Configure AWS Credentials
-          uses: aws-actions/configure-aws-credentials@v1
+          # Version: 1.5.5
+          uses: aws-actions/configure-aws-credentials@e97d7fbc8e0e5af69631c13daa0f4b5a8d88165b
           with:
             aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
             aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
             aws-region: us-east-1
-
-        # Install node modules
-        - uses: webfactory/ssh-agent@v0.4.1
-          with:
-              ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
         - name: Install dependenices
           run: npm ci

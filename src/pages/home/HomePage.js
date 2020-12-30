@@ -31,9 +31,11 @@ import PusherConnectionManager from '../../libs/PusherConnectionManager';
 import UnreadIndicatorUpdater from '../../libs/UnreadIndicatorUpdater';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
+import Timing from '../../libs/actions/Timing';
 import NetworkConnection from '../../libs/NetworkConnection';
 import CONFIG from '../../CONFIG';
 import CustomStatusBar from '../../components/CustomStatusBar';
+import CONST from '../../CONST';
 
 const windowSize = Dimensions.get('window');
 
@@ -48,9 +50,13 @@ const defaultProps = {
 
 class App extends React.Component {
     constructor(props) {
+        Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
+        Timing.start(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
+
         super(props);
 
         this.state = {
+            windowWidth: windowSize.width,
             isHamburgerEnabled: windowSize.width <= variables.mobileResponsiveWidthBreakpoint,
         };
 
@@ -58,6 +64,7 @@ class App extends React.Component {
         this.dismissHamburger = this.dismissHamburger.bind(this);
         this.showHamburger = this.showHamburger.bind(this);
         this.toggleHamburgerBasedOnDimensions = this.toggleHamburgerBasedOnDimensions.bind(this);
+        this.recordTimerAndToggleHamburger = this.recordTimerAndToggleHamburger.bind(this);
 
         this.animationTranslateX = new Animated.Value(
             !props.isSidebarShown ? -300 : 0
@@ -76,7 +83,7 @@ class App extends React.Component {
         // Fetch all the personal details
         fetchPersonalDetails();
 
-        fetchAllReports();
+        fetchAllReports(true, false, true);
 
         UnreadIndicatorUpdater.listenForReportChanges();
 
@@ -84,6 +91,8 @@ class App extends React.Component {
 
         // Set up the hamburger correctly once on init
         this.toggleHamburgerBasedOnDimensions({window: Dimensions.get('window')});
+
+        Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
     }
 
     componentDidUpdate(prevProps) {
@@ -103,11 +112,28 @@ class App extends React.Component {
     }
 
     /**
+     * Method called when a pinned chat is selected.
+     */
+    recordTimerAndToggleHamburger() {
+        Timing.start(CONST.TIMING.SWITCH_REPORT);
+        this.toggleHamburger();
+    }
+
+    /**
      * Fired when the windows dimensions changes
      * @param {Object} changedWindow
      */
     toggleHamburgerBasedOnDimensions({window: changedWindow}) {
-        this.setState({isHamburgerEnabled: changedWindow.width <= variables.mobileResponsiveWidthBreakpoint});
+        if (this.state.windowWidth === changedWindow.width) {
+            // Window width hasn't changed, don't toggle sidebar
+            return;
+        }
+
+        this.setState({
+            windowWidth: changedWindow.width,
+            isHamburgerEnabled: changedWindow.width <= variables.mobileResponsiveWidthBreakpoint
+        });
+
         if (!this.props.isSidebarShown && changedWindow.width > variables.mobileResponsiveWidthBreakpoint) {
             showSidebar();
         } else if (this.props.isSidebarShown && changedWindow.width < variables.mobileResponsiveWidthBreakpoint) {
@@ -216,7 +242,7 @@ class App extends React.Component {
                                 >
                                     <Sidebar
                                         insets={insets}
-                                        onLinkClick={this.toggleHamburger}
+                                        onLinkClick={this.recordTimerAndToggleHamburger}
                                         isChatSwitcherActive={this.props.isChatSwitcherActive}
                                     />
                                 </Animated.View>
