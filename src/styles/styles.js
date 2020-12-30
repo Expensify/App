@@ -754,6 +754,12 @@ const styles = {
         borderRadius: variables.avatarSizeNormal,
     },
 
+    chatSwitcherBigAvatar: {
+        height: variables.componentSizeNormal,
+        width: variables.componentSizeNormal,
+        borderRadius: variables.componentSizeNormal,
+    },
+
     chatSwitcherAvatar1: {
         marginTop: -variables.componentSizeNormal / 2,
         borderRadius: variables.avatarSizeNormal,
@@ -795,7 +801,7 @@ const styles = {
     },
 
     chatSwitcherEmptyAvatar1: {
-        marginRight: 6,
+        marginRight: variables.componentSizeNormal - variables.avatarSizeNormal,
     },
 
     chatSwitcherItemText: {
