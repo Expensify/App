@@ -719,10 +719,6 @@ const styles = {
         marginBottom: 3,
     },
 
-    chatSwitcherMessage: {
-        padding: 20,
-    },
-
     hamburgerOpenAbsolute: {
         borderRightWidth: 1,
         borderColor: themeColors.border,
