@@ -6,7 +6,7 @@ import getPlatform from './libs/getPlatform/index';
 /**
  * Let's make everyone's life just a bit easier by adding / to the end of any config URL's if it's not already present
  * @param {String} URL
- * @returns {string}
+ * @returns {String}
  */
 function wrapWithBackslash(URL) {
     if (!URL.endsWith('/')) {
