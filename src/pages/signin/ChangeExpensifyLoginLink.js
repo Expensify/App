@@ -18,6 +18,6 @@ const ChangeExpensifyLoginLink = () => (
     </View>
 );
 
-ChangeExpensifyLoginLink.displayName = 'ChangeExpensifyLogin';
+ChangeExpensifyLoginLink.displayName = 'ChangeExpensifyLoginLink';
 
 export default ChangeExpensifyLoginLink;
