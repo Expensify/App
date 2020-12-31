@@ -125,8 +125,7 @@
       "node_modules/(?!react-native)/"
     ],
     "testPathIgnorePatterns": [
-      "<rootDir>/node_modules/",
-      "<rootDir>/tests/unit/mocks/"
+      "<rootDir>/node_modules/"
     ],
     "testMatch": [
       "**/tests/unit/**/*.[jt]s?(x)",

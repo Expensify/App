@@ -12,7 +12,7 @@ jest.mock('../../src/libs/HttpUtils', () => ({
     xhr: jest.fn(),
 }));
 
-test('Authenticate is called when authToken expires', async () => {
+test('Authenticate is called with saved credentials when a session expires', async () => {
     const TEST_USER_LOGIN = 'test@testguy.com';
 
     // Set up mock responses for all APIs that will be called
@@ -51,5 +51,5 @@ test('Authenticate is called when authToken expires', async () => {
 
     // Verify we made this request and the command is Authenticate
     expect(HttpUtils.xhr.mock.calls.length).toBe(1);
-    expect(HttpUtils.mock.calls[0][0]).toBe('Authenticate');
+    expect(HttpUtils.xhr.mock.calls[0][0]).toBe('Authenticate');
 });
