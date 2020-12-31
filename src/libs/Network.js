@@ -56,7 +56,7 @@ function processNetworkRequestQueue() {
 
         // Check to see if the queue has paused again. It's possible that a call to enhanceParameters()
         // has paused the queue and if this is the case we must return.
-        if (isQueuePaused) {
+        if (isQueuePaused && queuedRequest.data.forceNetworkRequest !== true) {
             return;
         }
 

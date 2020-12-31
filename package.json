@@ -130,6 +130,7 @@
     ],
     "testMatch": [
       "**/tests/unit/**/*.[jt]s?(x)",
+      "**/tests/actions/**/*.[jt]s?(x)",
       "**/?(*.)+(spec|test).[jt]s?(x)"
     ],
     "globals": {
