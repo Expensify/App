@@ -16,10 +16,12 @@ const webpack = {
         production: {
             presets: defaultPresets,
             plugins: [...defaultPlugins, 'transform-remove-console'],
+            sourceType: 'unambiguous',
         },
         development: {
             presets: defaultPresets,
             plugins: defaultPlugins,
+            sourceType: 'unambiguous',
         }
     }
 };
