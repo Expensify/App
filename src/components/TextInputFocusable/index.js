@@ -38,13 +38,13 @@ const propTypes = {
 
 const defaultProps = {
     maxLines: -1,
-    onPasteFile: () => {},
+    onPasteFile: () => { },
     shouldClear: false,
-    onClear: () => {},
+    onClear: () => { },
     style: null,
-    onDragEnter: () => {},
-    onDragLeave: () => {},
-    onDrop: () => {},
+    onDragEnter: () => { },
+    onDragLeave: () => { },
+    onDrop: () => { },
 };
 
 /**
@@ -122,15 +122,27 @@ class TextInputFocusable extends React.Component {
 
     /**
      * Check the paste event for an attachment and
-     * fire the callback with the selected file
+     * call onPasteFile from props with the selected file
      *
      * @param {ClipboardEvent} event
      */
     checkForAttachment(event) {
-        if (event.clipboardData.files.length > 0) {
+        const {files, types} = event.clipboardData;
+        if (files.length > 0) {
             // Prevent the default so we do not post the file name into the text box
             event.preventDefault();
             this.props.onPasteFile(event.clipboardData.files[0]);
+        }
+        if (types.includes('application/x-vnd.google-docs-embedded-chart-clip+wrapped')) {
+            event.preventDefault();
+            const chartHTMLString = event.clipboardData.getData(types[0]);
+            const domparser = new DOMParser();
+            fetch(domparser.parseFromString(chartHTMLString, types[0]).images[0].src)
+                .then(x => x.blob())
+                .then(x => new File([x], 'google-chart.png', {
+                    type: 'image/png',
+                }))
+                .then(this.props.onPasteFile);
         }
     }
 
