@@ -15,6 +15,7 @@ import iconX from '../../../../assets/images/icon-x.png';
 import {getDisplayName} from '../../../libs/actions/PersonalDetails';
 import PillWithCancelButton from '../../../components/PillWithCancelButton';
 import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
+import ChatSwitcherTextInput from './ChatSwitcherTextInput';
 
 const propTypes = {
     // A ref to forward to the text input
@@ -134,19 +135,17 @@ const ChatSwitcherSearchForm = props => (
                 </View>
             )
             : (
-                <View style={styles.chatSwitcherTextInputContainer}>
-                    <TextInputWithFocusStyles
-                        styleFocusIn={[styles.textInputReversedFocus]}
-                        ref={props.forwardedRef}
-                        style={[styles.chatSwitcherTextInput, styles.flex1]}
-                        value={props.searchValue}
-                        onChangeText={props.onChangeText}
-                        onFocus={props.onFocus}
-                        onKeyPress={props.onKeyPress}
-                        placeholder="Find or start a chat"
-                        placeholderTextColor={themeColors.textSupporting}
-                    />
-                </View>
+                <ChatSwitcherTextInput
+                    styleFocusIn={[styles.textInputReversedFocus]}
+                    ref={props.forwardedRef}
+                    style={[styles.textInput, styles.flex1]}
+                    value={props.searchValue}
+                    onChangeText={props.onChangeText}
+                    onFocus={props.onFocus}
+                    onKeyPress={props.onKeyPress}
+                    placeholder="Find or start a chat"
+                    placeholderTextColor={themeColors.textSupporting}
+                />
             )}
 
         {props.isClearButtonVisible && (
