@@ -742,11 +742,11 @@ const styles = {
 
     hamburgerOpen: {
         borderColor: themeColors.border,
-        width: 300,
+        width: variables.sideBarWidth,
     },
 
     sidebarVisible: {
-        width: 300,
+        width: variables.sideBarWidth,
         borderRightWidth: 1,
     },
 
