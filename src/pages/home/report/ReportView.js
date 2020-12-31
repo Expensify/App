@@ -1,9 +1,9 @@
 import React from 'react';
-import { View } from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ReportActionsView from './ReportActionsView';
 import ReportActionCompose from './ReportActionCompose';
-import { addAction, subscribeToReportTypingEvents, unsubscribeFromReportChannel } from '../../../libs/actions/Report';
+import {addAction, subscribeToReportTypingEvents, unsubscribeFromReportChannel} from '../../../libs/actions/Report';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
 import Timing from '../../../libs/actions/Timing';
 import CONST from '../../../CONST';

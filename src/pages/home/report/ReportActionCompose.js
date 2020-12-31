@@ -1,9 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { View, Image, TouchableOpacity } from 'react-native';
+import {View, Image, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
-import { withOnyx } from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import TextInputFocusable from '../../../components/TextInputFocusable';
@@ -11,7 +11,7 @@ import sendIcon from '../../../../assets/images/icon-send.png';
 import ONYXKEYS from '../../../ONYXKEYS';
 import paperClipIcon from '../../../../assets/images/icon-paper-clip.png';
 import AttachmentPicker from '../../../components/AttachmentPicker';
-import { addAction, saveReportComment, broadcastUserIsTyping } from '../../../libs/actions/Report';
+import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs/actions/Report';
 import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
 
@@ -62,7 +62,7 @@ class ReportActionCompose extends React.Component {
      * @param {Boolean} shouldHighlight
      */
     setIsFocused(shouldHighlight) {
-        this.setState({ isFocused: shouldHighlight });
+        this.setState({isFocused: shouldHighlight});
     }
 
     /**
@@ -71,7 +71,7 @@ class ReportActionCompose extends React.Component {
      * @param {Boolean} shouldClear
      */
     setTextInputShouldClear(shouldClear) {
-        this.setState({ textInputShouldClear: shouldClear });
+        this.setState({textInputShouldClear: shouldClear});
     }
 
     /**
@@ -150,16 +150,16 @@ class ReportActionCompose extends React.Component {
                         isModalOpen={this.props.isModalOpen}
                         setAttachmentModalData={this.setAttachmentModalData}
                     >
-                        {({ displayFileInModal }) => (
+                        {({displayFileInModal}) => (
                             <>
                                 <AttachmentPicker>
-                                    {({ openPicker }) => (
+                                    {({openPicker}) => (
                                         <TouchableOpacity
                                             onPress={(e) => {
                                                 e.preventDefault();
                                                 openPicker({
                                                     onPicked: (file) => {
-                                                        displayFileInModal({ file });
+                                                        displayFileInModal({file});
                                                     },
                                                 });
                                             }}
@@ -182,8 +182,8 @@ class ReportActionCompose extends React.Component {
                                     placeholderTextColor={themeColors.textSupporting}
                                     onChangeText={this.updateComment}
                                     onKeyPress={this.triggerSubmitShortcut}
-                                    onDragEnter={() => this.setState({ isDraggingOver: true })}
-                                    onDragLeave={() => this.setState({ isDraggingOver: false })}
+                                    onDragEnter={() => this.setState({isDraggingOver: true})}
+                                    onDragLeave={() => this.setState({isDraggingOver: false})}
                                     onDrop={(e) => {
                                         e.preventDefault();
 
@@ -192,15 +192,15 @@ class ReportActionCompose extends React.Component {
                                             return;
                                         }
 
-                                        displayFileInModal({ file });
-                                        this.setState({ isDraggingOver: false });
+                                        displayFileInModal({file});
+                                        this.setState({isDraggingOver: false});
                                     }}
                                     style={[styles.textInput, styles.textInputCompose, styles.flex4]}
                                     defaultValue={this.props.comment}
                                     maxLines={16} // This is the same that slack has
                                     onFocus={() => this.setIsFocused(true)}
                                     onBlur={() => this.setIsFocused(false)}
-                                    onPasteFile={file => displayFileInModal({ file })}
+                                    onPasteFile={file => displayFileInModal({file})}
                                     shouldClear={this.state.textInputShouldClear}
                                     onClear={() => this.setTextInputShouldClear(false)}
                                 />
@@ -231,6 +231,6 @@ ReportActionCompose.defaultProps = defaultProps;
 
 export default withOnyx({
     comment: {
-        key: ({ reportID }) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
+        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
     },
 })(ReportActionCompose);

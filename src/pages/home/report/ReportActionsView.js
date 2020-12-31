@@ -1,17 +1,17 @@
 import React from 'react';
-import { View, Keyboard, AppState } from 'react-native';
+import {View, Keyboard, AppState} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
-import { withOnyx } from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import Text from '../../../components/Text';
-import { fetchActions, updateLastReadActionID } from '../../../libs/actions/Report';
+import {fetchActions, updateLastReadActionID} from '../../../libs/actions/Report';
 import ONYXKEYS from '../../../ONYXKEYS';
 import ReportActionItem from './ReportActionItem';
 import styles from '../../../styles/styles';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import InvertedFlatList from '../../../components/InvertedFlatList';
-import { lastItem } from '../../../libs/CollectionUtils';
+import {lastItem} from '../../../libs/CollectionUtils';
 import Visibility from '../../../libs/Visibility';
 import AttachmentModal from '../../../components/AttachmentModal';
 
@@ -53,7 +53,7 @@ class ReportActionsView extends React.Component {
         this.state = {
             refetchNeeded: true,
             sourceURL: null,
-            file: { name: null },
+            file: {name: null},
             isAttachment: null,
             isModalOpen: false
         };
@@ -128,7 +128,7 @@ class ReportActionsView extends React.Component {
      * @param {Boolean} refetchNeeded
      */
     setRefetchNeeded(refetchNeeded) {
-        this.setState({ refetchNeeded });
+        this.setState({refetchNeeded});
     }
 
     /**
@@ -138,7 +138,7 @@ class ReportActionsView extends React.Component {
         this.sortedReportActions = _.chain(this.props.reportActions)
             .sortBy('sequenceNumber')
             .filter(action => action.actionName === 'ADDCOMMENT')
-            .map((item, index) => ({ action: item, index }))
+            .map((item, index) => ({action: item, index}))
             .value()
             .reverse();
     }
@@ -193,7 +193,7 @@ class ReportActionsView extends React.Component {
      */
     scrollToListBottom() {
         if (this.actionListElement) {
-            this.actionListElement.scrollToIndex({ animated: false, index: 0 });
+            this.actionListElement.scrollToIndex({animated: false, index: 0});
         }
         this.recordMaxAction();
     }
@@ -242,7 +242,7 @@ class ReportActionsView extends React.Component {
     setAttachmentModalData(modalData) {
         this.setState({
             ...modalData
-        })
+        });
     }
 
     /**
@@ -314,7 +314,7 @@ ReportActionsView.defaultProps = defaultProps;
 
 export default withOnyx({
     reportActions: {
-        key: ({ reportID }) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
         canEvict: props => !props.isActiveReport,
     },
     session: {

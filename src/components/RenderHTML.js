@@ -1,14 +1,14 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
 import PropTypes from 'prop-types';
-import { useWindowDimensions, TouchableOpacity } from 'react-native';
+import {useWindowDimensions, TouchableOpacity} from 'react-native';
 import HTML, {
     defaultHTMLElementModels,
     TNodeChildrenRenderer,
     splitBoxModelStyle,
 } from 'react-native-render-html';
 import Config from '../CONFIG';
-import { webViewStyles } from '../styles/styles';
+import {webViewStyles} from '../styles/styles';
 import fontFamily from '../styles/fontFamily';
 import AnchorForCommentsOnly from './AnchorForCommentsOnly';
 import InlineCodeBlock from './InlineCodeBlock';
@@ -39,17 +39,18 @@ function computeImagesMaxWidth(contentWidth) {
 }
 
 
-
 const propTypes = {
     html: PropTypes.string.isRequired,
     debug: PropTypes.bool,
 };
 
-const RenderHTML = React.memo(({ action, html, debug = false, setAttachmentModalData }) => {
-    const { width } = useWindowDimensions();
+const RenderHTML = React.memo(({
+    action, html, debug = false, setAttachmentModalData
+}) => {
+    const {width} = useWindowDimensions();
     const containerWidth = width * 0.8;
 
-    const AnchorRenderer = ({ tnode, key, style }) => {
+    const AnchorRenderer = ({tnode, key, style}) => {
         const htmlAttribs = tnode.attributes;
         return (
             <AnchorForCommentsOnly
@@ -68,14 +69,14 @@ const RenderHTML = React.memo(({ action, html, debug = false, setAttachmentModal
                 <TNodeChildrenRenderer tnode={tnode} />
             </AnchorForCommentsOnly>
         );
-    }
+    };
 
     const CodeRenderer = ({
         key, style, TDefaultRenderer, ...defaultRendererProps
     }) => {
         // We split wrapper and inner styles
         // "boxModelStyle" corresponds to border, margin, padding and backgroundColor
-        const { boxModelStyle, otherStyle: textStyle } = splitBoxModelStyle(style);
+        const {boxModelStyle, otherStyle: textStyle} = splitBoxModelStyle(style);
         return (
             <InlineCodeBlock
                 TDefaultRenderer={TDefaultRenderer}
@@ -85,9 +86,9 @@ const RenderHTML = React.memo(({ action, html, debug = false, setAttachmentModal
                 key={key}
             />
         );
-    }
+    };
 
-    const ImgRenderer = ({ tnode }) => {
+    const ImgRenderer = ({tnode}) => {
         const htmlAttribs = tnode.attributes;
 
         // There are two kinds of images that need to be displayed:
@@ -126,7 +127,9 @@ const RenderHTML = React.memo(({ action, html, debug = false, setAttachmentModal
         return (
             <TouchableOpacity
                 onPress={() => {
-                    setAttachmentModalData({ currentAction: action, sourceURL: previewSource, file: { name: source }, isModalOpen: true })
+                    setAttachmentModalData({
+                        currentAction: action, sourceURL: previewSource, file: {name: source}, isModalOpen: true
+                    });
                 }}
             >
                 <ThumbnailImage
@@ -136,7 +139,7 @@ const RenderHTML = React.memo(({ action, html, debug = false, setAttachmentModal
                 />
             </TouchableOpacity>
         );
-    }
+    };
 
     // Define default element models for these renderers.
     AnchorRenderer.model = defaultHTMLElementModels.a;
@@ -168,9 +171,7 @@ const RenderHTML = React.memo(({ action, html, debug = false, setAttachmentModal
             debug={debug}
         />
     );
-}, (prevProps, nextProps) => {
-    return prevProps.html === nextProps.html
-});
+}, (prevProps, nextProps) => prevProps.html === nextProps.html);
 
 RenderHTML.displayName = 'RenderHTML';
 RenderHTML.propTypes = propTypes;
