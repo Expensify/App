@@ -167,24 +167,15 @@ function getFromReportParticipants(reports) {
             // report and based on the participants we'll link up their avatars to report icons.
             _.each(reports, (report) => {
                 if (report.participants.length > 0) {
-                    // eslint-disable-next-line prefer-const
-                    let avatars = []; // Array of objects
-                    // eslint-disable-next-line array-callback-return
-                    report.participants.map((dmParticipant) => {
-                        const firstName = lodashGet(details, [dmParticipant, 'firstName'], '');
-                        let avatar = lodashGet(details, [dmParticipant, 'avatar'], '');
-                        if (!avatar) {
-                            avatar = getDefaultAvatar(dmParticipant);
-                        }
-                        avatars.push({firstName, avatar});
-                    });
+                    const avatars = reports.participants
+                        .map(dmParticipant => ({
+                            firstName: lodashGet(details, [dmParticipant, 'firstName'], ''),
+                            avatar: lodashGet(details, [dmParticipant, 'avatar'], getDefaultAvatar(dmParticipant)),
+                        }))
+                        .sort((first, second) => first.firstName - second.firstName)
+                        .map(item => item.avatar);
 
-                    // Arrange avatars as the order of the alphabet for the first names.
-                    avatars.sort((first, second) => second.firstName - first.firstName);
-
-                    // Get the avatar URLs
-                    const icons = avatars.reverse().map(item => item.avatar);
-                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {icon: icons});
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {icon: avatars});
                 }
             });
         });
