@@ -8,7 +8,7 @@ export default PropTypes.shape({
     alternateText: PropTypes.string.isRequired,
 
     // The array URLs of the person's avatar
-    icon: PropTypes.arrayOf(PropTypes.any),
+    icon: PropTypes.arrayOf(PropTypes.string),
 
     // The type of option we have e.g. user or report
     type: PropTypes.string,
