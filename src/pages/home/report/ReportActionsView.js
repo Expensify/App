@@ -132,6 +132,46 @@ class ReportActionsView extends React.Component {
     }
 
     /**
+     * Gets the next attachment based on the current action passed into the function
+     * and the direction being moved (to he left or to the right)
+     *
+     * @param {ReportActionPropTypes} action
+     * @param {Boolean} toRight
+     *
+     * @returns {ReportActionPropTypes}
+     */
+    getNextAttachment(action, toRight) {
+        const actions = Object.values(this.sortedReportActions).reverse();
+        const sequenceNumber = action.sequenceNumber;
+        const actionsToSearch = toRight ? actions.slice(sequenceNumber) : actions.slice(0, sequenceNumber !== 0 ? sequenceNumber - 1 : 0).reverse();
+        const nextAttachment = actionsToSearch.find(actionResult => actionResult.action.isAttachment);
+        if (nextAttachment) {
+            return nextAttachment;
+        }
+        const actionsToSearchFromBeginning = toRight ? actions : [...actions].reverse();
+        const nextAttachmentAfterLoop = actionsToSearchFromBeginning.find(actionResult => actionResult.action.isAttachment);
+        return nextAttachmentAfterLoop;
+    }
+
+    /**
+     * Sets the data needed for the modal in the state object
+     *
+     * @param {Object} args
+     * @param {ReportActionPropTypes} args.currentAction
+     * @param {String} args.sourceURL
+     * @param {Object} args.file
+     * @param {String} args.file.name
+     * @param {Boolean} args.isModalOpen
+     */
+    setAttachmentModalData({
+        currentAction, sourceURL, file, isModalOpen
+    }) {
+        this.setState({
+            currentAction, sourceURL, file, isModalOpen
+        });
+    }
+
+    /**
      * Updates and sorts the report actions by sequence number
      */
     updateSortedReportActions() {
@@ -227,45 +267,6 @@ class ReportActionsView extends React.Component {
                 setAttachmentModalData={this.setAttachmentModalData}
             />
         );
-    }
-
-    /**
-     * Sets the data needed for the modal in the state object
-     *
-     * @param {Object} args
-     * @param {ReportActionPropTypes} args.currentAction
-     * @param {String} args.sourceURL
-     * @param {Object} args.file
-     * @param {String} args.file.name
-     * @param {Boolean} args.isModalOpen
-     */
-    setAttachmentModalData(modalData) {
-        this.setState({
-            ...modalData
-        });
-    }
-
-    /**
-     * Gets the next attachment based on the current action passed into the function
-     * and the direction being moved (to he left or to the right)
-     *
-     * @param {ReportActionPropTypes} args.action
-     * @param {Boolean} args.toRight
-     *
-     * @returns {ReportActionPropTypes}
-     */
-    getNextAttachment(action, toRight) {
-        const actions = Object.values(this.sortedReportActions).reverse();
-        const sequenceNumber = action.sequenceNumber;
-        const actionsToSearch = toRight ? actions.slice(sequenceNumber) : actions.slice(0, sequenceNumber !== 0 ? sequenceNumber - 1 : 0).reverse();
-        const nextAttachment = actionsToSearch.find(action => action.action.isAttachment);
-        if (nextAttachment) {
-            return nextAttachment;
-        } else {
-            const actionsToSearch = toRight ? actions : [...actions].reverse();
-            const nextAttachmentAfterLoop = actionsToSearch.find(action => action.action.isAttachment);
-            return nextAttachmentAfterLoop;
-        }
     }
 
     render() {

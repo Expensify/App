@@ -12,7 +12,6 @@ import {webViewStyles} from '../styles/styles';
 import fontFamily from '../styles/fontFamily';
 import AnchorForCommentsOnly from './AnchorForCommentsOnly';
 import InlineCodeBlock from './InlineCodeBlock';
-import AttachmentModal from './AttachmentModal';
 import ThumbnailImage from './ThumbnailImage';
 
 const MAX_IMG_DIMENSIONS = 512;

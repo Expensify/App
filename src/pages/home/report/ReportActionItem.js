@@ -10,6 +10,9 @@ const propTypes = {
 
     // Should the comment have the appearance of being grouped with the previous comment?
     displayAsGroup: PropTypes.bool.isRequired,
+
+    // Allows setting of attachment modal data
+    setAttachmentModalData: PropTypes.func.isRequired
 };
 
 const ReportActionItem = props => (

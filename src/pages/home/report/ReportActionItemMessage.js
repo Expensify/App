@@ -9,6 +9,9 @@ import ReportActionPropTypes from './ReportActionPropTypes';
 const propTypes = {
     // The report action
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
+
+    // Allows setting of attachment modal data
+    setAttachmentModalData: PropTypes.func.isRequired
 };
 
 const ReportActionItemMessage = ({action, setAttachmentModalData}) => (
