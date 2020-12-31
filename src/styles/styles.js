@@ -725,14 +725,12 @@ const styles = {
     },
 
     hamburgerOpenAbsolute: {
-        borderRightWidth: 1,
         borderColor: themeColors.border,
         position: 'absolute',
         left: 0,
         top: 0,
         bottom: 0,
         zIndex: 2,
-        width: 300,
         shadowColor: themeColors.shadow,
         shadowOffset: {
             width: 0,
@@ -743,9 +741,18 @@ const styles = {
     },
 
     hamburgerOpen: {
-        borderRightWidth: 1,
         borderColor: themeColors.border,
         width: 300,
+    },
+
+    sidebarVisible: {
+        width: 300,
+        borderRightWidth: 1,
+    },
+
+    sidebarHidden: {
+        width: 0,
+        borderRightWidth: 0,
     },
 
     chatSwitcherSingleAvatar: {

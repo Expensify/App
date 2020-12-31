@@ -28,6 +28,9 @@ const propTypes = {
 
         // Whether or not there have been chat reports shared with this user
         canAccessExpensifyCash: PropTypes.bool,
+
+        // Error to display when there is an account error returned
+        error: PropTypes.string,
     }),
 
     // The credentials of the person signing in
@@ -42,9 +45,6 @@ const propTypes = {
     session: PropTypes.shape({
         // Error to display when there is a session error returned
         authToken: PropTypes.string,
-
-        // Error to display when there is a session error returned
-        error: PropTypes.string,
     }),
 };
 
@@ -121,9 +121,9 @@ class SignInPage extends Component {
                         {/* Because of the custom layout of the login form, session errors are displayed differently */}
                         {!showLoginForm && (
                             <View>
-                                {this.props.session && !_.isEmpty(this.props.session.error) && (
+                                {this.props.account && !_.isEmpty(this.props.account.error) && (
                                     <Text style={[styles.formError]}>
-                                        {this.props.session.error}
+                                        {this.props.account.error}
                                     </Text>
                                 )}
                             </View>
