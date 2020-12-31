@@ -34,3 +34,9 @@ We are currently managing payment via Upwork. If you'd like to be paid for your 
 
 #### Testing
 Upon submission of a PR, please include a numbered list of explicit testing steps for each platform (Web, Desktop, iOS, and Android) to confirm the fix works as expected and there are no regressions.
+
+#### Review Tips
+- If you have made a change and are ready for another review the best way to get your reviewer's attention is to leave a comment that says "Updated" on the PR itself.
+- Please do NOT ping individual reviewers in the Slack channel to get their attention and keep the conversation in GitHub whenever possible.
+- Patience is a virtue. Reviews can sometimes take place over the course of several days. If your PR has not been addressed after 3 days please leave a comment on the PR. If the PR goes without a response for another day please let us know via Slack.
+
