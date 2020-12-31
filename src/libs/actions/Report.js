@@ -525,8 +525,6 @@ function addAction(reportID, text, file) {
   // Convert the comment from MD into HTML because that's how it is stored in the database
   const parser = new ExpensiMark();
   const htmlComment = parser.replace(text).replace(/\&nbsp;/g, ' ');
-  //   htmlComment = htmlComment.replace(/<[^>]*>?/gm, '');
-  console.log(htmlComment.replace(/\&nbsp;/g, ' '));
   const isAttachment = _.isEmpty(text) && file !== undefined;
 
   // The new sequence number will be one higher than the highest
