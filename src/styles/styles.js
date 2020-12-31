@@ -745,12 +745,12 @@ const styles = {
         width: 300,
     },
 
-    w300br1: {
+    sidebarVisible: {
         width: 300,
         borderRightWidth: 1,
     },
 
-    w0br0: {
+    sidebarHidden: {
         width: 0,
         borderRightWidth: 0,
     },
