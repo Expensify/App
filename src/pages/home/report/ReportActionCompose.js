@@ -24,10 +24,14 @@ const propTypes = {
 
     // The ID of the report actions will be created for
     reportID: PropTypes.number.isRequired,
+
+    // Boolean indicating if the modal is currently open
+    isModalOpen: PropTypes.bool,
 };
 
 const defaultProps = {
     comment: '',
+    isModalOpen: false
 };
 
 class ReportActionCompose extends React.Component {
@@ -148,7 +152,6 @@ class ReportActionCompose extends React.Component {
                             this.setTextInputShouldClear(false);
                         }}
                         isModalOpen={this.props.isModalOpen}
-                        setAttachmentModalData={this.setAttachmentModalData}
                     >
                         {({displayFileInModal}) => (
                             <>

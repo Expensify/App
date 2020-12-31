@@ -38,9 +38,6 @@ const propTypes = {
     // ReportActionsView
     setAttachmentModalData: PropTypes.func,
 
-    // A boolean indicating if the modal is currently being diplayed
-    isModalOpen: PropTypes.bool,
-
     // The current action that the modal is currently displaying
     currentAction: PropTypes.shape(ReportActionPropTypes),
 
@@ -50,23 +47,21 @@ const propTypes = {
     // A function as a child to pass modal launching methods to
     children: PropTypes.func,
 
-    // Do the urls require an authToken?
-    isAuthTokenRequired: PropTypes.bool,
-
     // Current user session
     session: PropTypes.shape({
         authToken: PropTypes.string.isRequired,
     }).isRequired,
-
-
 };
 
 const defaultProps = {
     title: '',
     sourceURL: null,
+    file: {name: null},
     onConfirm: null,
-    isAuthTokenRequired: false,
-    isModalOpen: false,
+    currentAction: {
+        actionName: '', person: [], sequenceNumber: 0, timestamp: 0, message: []
+    },
+    children: null,
     setAttachmentModalData: () => { },
     getNextAttachment: () => { }
 };
@@ -83,13 +78,7 @@ class AttachmentModal extends Component {
 
     componentDidUpdate(prevProps) {
         if (prevProps.sourceURL !== this.props.sourceURL) {
-            console.log(this.props.currentAction);
-            this.setState({
-                sourceURL: this.props.sourceURL,
-                file: this.props.file,
-                isAuthTokenRequired: this.props.currentAction.isAttachment,
-                isModalOpen: true
-            });
+            this.setCurrentModalData(this.props);
         }
         if (this.state.isModalOpen) {
             document.addEventListener('keydown', this.handleKeyPress, false);
@@ -98,24 +87,25 @@ class AttachmentModal extends Component {
         }
     }
 
+    setCurrentModalData(props) {
+        this.setState({
+            sourceURL: props.sourceURL,
+            file: props.file,
+            isAuthTokenRequired: props.currentAction.isAttachment,
+            isModalOpen: true
+        });
+    }
+
     getAttachmentThumbnail(htmlString) {
-        const imgRex = /<img.*?src="(.*?)"[^>]+>/g;
-        const images = [];
-        let img;
-        while ((img = imgRex.exec(htmlString))) {
-            images.push(img[1]);
-        }
-        return images[0];
+        const imgRegx = /<img.*?src="(.*?)"[^>]+>/g;
+        const imageGroup = imgRegx.exec(htmlString);
+        return imageGroup[1];
     }
 
     getAttachmentSource(htmlString) {
-        const imgRex = /<img.*?data-expensify-source="(.*?)"[^>]+>/g;
-        const images = [];
-        let img;
-        while ((img = imgRex.exec(htmlString))) {
-            images.push(img[1]);
-        }
-        return images[0];
+        const imgRegx = /<img.*?data-expensify-source="(.*?)"[^>]+>/g;
+        const imageGroup = imgRegx.exec(htmlString);
+        return imageGroup[1];
     }
 
     handleKeyPress = (event) => {
@@ -188,7 +178,7 @@ class AttachmentModal extends Component {
                             });
                         } else {
                             this.setState({
-                                isModalOpen: true, sourceURL: source, file, isAuthTokenRequired: false
+                                isModalOpen: true, sourceURL: file.uri, file, isAuthTokenRequired: false
                             });
                         }
                     },

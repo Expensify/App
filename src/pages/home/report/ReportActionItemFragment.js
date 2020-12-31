@@ -3,6 +3,7 @@ import {ActivityIndicator, View} from 'react-native';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import ReportActionFragmentPropTypes from './ReportActionFragmentPropTypes';
+import ReportActionPropTypes from './ReportActionPropTypes';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import RenderHTML from '../../../components/RenderHTML';
@@ -17,6 +18,12 @@ const propTypes = {
 
     // Does this fragment belong to a reportAction that has not yet loaded?
     loading: PropTypes.bool,
+
+    // Allows setting of attachment modal data
+    setAttachmentModalData: PropTypes.func.isRequired,
+
+    // The current action for the fragment
+    action: PropTypes.shape(ReportActionPropTypes).isRequired
 };
 
 const defaultProps = {

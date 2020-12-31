@@ -13,6 +13,9 @@ import Avatar from '../../../components/Avatar';
 const propTypes = {
     // All the data of the action
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
+
+    // Allows setting of attachment modal data
+    setAttachmentModalData: PropTypes.func.isRequired
 };
 
 const ReportActionItemSingle = ({action, setAttachmentModalData}) => {
