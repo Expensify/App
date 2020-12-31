@@ -6,7 +6,7 @@ import redirectToSignIn from './actions/SignInRedirect';
 import * as Network from './Network';
 
 let isAuthenticating;
-
+const mockResponses = {};
 let credentials;
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
@@ -167,6 +167,21 @@ function handleExpiredAuthToken(originalResponse, originalCommand, originalParam
 }
 
 /**
+ * Gets the mock response and clears it since it is a single use response.
+ * We are returning a promise so that we can test the handlers.
+ *
+ * @private
+ * @param {String} command
+ * @returns {Promise}
+ */
+function getMockResponsePromise(command) {
+    const mockResponse = {...mockResponses[command]};
+    delete mockResponses[command]; // Delete the mock response as it is single use.
+
+    return new Promise(resolve => resolve(mockResponse));
+}
+
+/**
  * @private
  *
  * @param {String} command Name of the command to run
@@ -176,7 +191,9 @@ function handleExpiredAuthToken(originalResponse, originalCommand, originalParam
  * @returns {Promise}
  */
 function request(command, parameters, type = 'post') {
-    const networkPromise = Network.post(command, parameters, type);
+    const networkPromise = mockResponses[command]
+        ? getMockResponsePromise(command)
+        : Network.post(command, parameters, type);
 
     // Setup the default handlers to work with different response codes
     networkPromise.then((response) => {
@@ -481,7 +498,20 @@ function SetPassword(parameters) {
     return request(commandName, parameters);
 }
 
+/**
+ * If Jest is running we can set a mock response. This is useful for writing tests in an environment where
+ * the API cannot access any test database. Note: The mock response will be unset once used for the specified
+ * command.
+ *
+ * @param {String} command
+ * @param {Object} response
+ */
+function setMockResponse(command, response) {
+    mockResponses[command] = response;
+}
+
 export {
+    setMockResponse,
     getAuthToken,
     Authenticate,
     CreateChatReport,
