@@ -1,14 +1,14 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
 import PropTypes from 'prop-types';
-import {useWindowDimensions, TouchableOpacity} from 'react-native';
+import { useWindowDimensions, TouchableOpacity } from 'react-native';
 import HTML, {
     defaultHTMLElementModels,
     TNodeChildrenRenderer,
     splitBoxModelStyle,
 } from 'react-native-render-html';
 import Config from '../CONFIG';
-import {webViewStyles} from '../styles/styles';
+import { webViewStyles } from '../styles/styles';
 import fontFamily from '../styles/fontFamily';
 import AnchorForCommentsOnly from './AnchorForCommentsOnly';
 import InlineCodeBlock from './InlineCodeBlock';
@@ -38,121 +38,118 @@ function computeImagesMaxWidth(contentWidth) {
     return Math.min(MAX_IMG_DIMENSIONS, contentWidth);
 }
 
-function AnchorRenderer({tnode, key, style}) {
-    const htmlAttribs = tnode.attributes;
-    return (
-        <AnchorForCommentsOnly
-            href={htmlAttribs.href}
 
-            // Unless otherwise specified open all links in
-            // a new window. On Desktop this means that we will
-            // skip the default Save As... download prompt
-            // and defer to whatever browser the user has.
-            // eslint-disable-next-line react/jsx-props-no-multi-spaces
-            target={htmlAttribs.target || '_blank'}
-            rel={htmlAttribs.rel || 'noopener noreferrer'}
-            style={style}
-            key={key}
-        >
-            <TNodeChildrenRenderer tnode={tnode} />
-        </AnchorForCommentsOnly>
-    );
-}
-
-function CodeRenderer({
-    key, style, TDefaultRenderer, ...defaultRendererProps
-}) {
-    // We split wrapper and inner styles
-    // "boxModelStyle" corresponds to border, margin, padding and backgroundColor
-    const {boxModelStyle, otherStyle: textStyle} = splitBoxModelStyle(style);
-    return (
-        <InlineCodeBlock
-            TDefaultRenderer={TDefaultRenderer}
-            boxModelStyle={boxModelStyle}
-            textStyle={textStyle}
-            defaultRendererProps={defaultRendererProps}
-            key={key}
-        />
-    );
-}
-
-function ImgRenderer({tnode}) {
-    const htmlAttribs = tnode.attributes;
-
-    // There are two kinds of images that need to be displayed:
-    //
-    //     - Chat Attachment images
-    //
-    //           Images uploaded by the user via the app or email.
-    //           These have a full-sized image `htmlAttribs['data-expensify-source']`
-    //           and a thumbnail `htmlAttribs.src`. Both of these URLs need to have
-    //           an authToken added to them in order to control who
-    //           can see the images.
-    //
-    //     - Non-Attachment Images
-    //
-    //           These could be hosted from anywhere (Expensify or another source)
-    //           and are not protected by any kind of access control e.g. certain
-    //           Concierge responder attachments are uploaded to S3 without any access
-    //           control and thus require no authToken to verify access.
-    //
-    const isAttachment = Boolean(htmlAttribs['data-expensify-source']);
-    let previewSource = htmlAttribs.src;
-    let source = isAttachment
-        ? htmlAttribs['data-expensify-source']
-        : htmlAttribs.src;
-
-    // Update the image URL so the images can be accessed depending on the config environment
-    previewSource = previewSource.replace(
-        Config.EXPENSIFY.URL_EXPENSIFY_COM,
-        Config.EXPENSIFY.URL_API_ROOT,
-    );
-    source = source.replace(
-        Config.EXPENSIFY.URL_EXPENSIFY_COM,
-        Config.EXPENSIFY.URL_API_ROOT,
-    );
-
-    return (
-        <AttachmentModal
-            title="Attachment"
-            sourceURL={source}
-            isAuthTokenRequired={isAttachment}
-        >
-            {({show}) => (
-                <TouchableOpacity
-                    onPress={() => show()}
-                >
-                    <ThumbnailImage
-                        previewSourceURL={previewSource}
-                        style={webViewStyles.tagStyles.img}
-                        isAuthTokenRequired={isAttachment}
-                    />
-                </TouchableOpacity>
-            )}
-        </AttachmentModal>
-    );
-}
-
-// Define default element models for these renderers.
-AnchorRenderer.model = defaultHTMLElementModels.a;
-CodeRenderer.model = defaultHTMLElementModels.code;
-ImgRenderer.model = defaultHTMLElementModels.img;
-
-// Define the custom render methods
-const renderers = {
-    a: AnchorRenderer,
-    code: CodeRenderer,
-    img: ImgRenderer,
-};
 
 const propTypes = {
     html: PropTypes.string.isRequired,
     debug: PropTypes.bool,
 };
 
-const RenderHTML = ({html, debug = false}) => {
-    const {width} = useWindowDimensions();
+const RenderHTML = React.memo(({ action, html, debug = false, setAttachmentModalData }) => {
+    const { width } = useWindowDimensions();
     const containerWidth = width * 0.8;
+
+    const AnchorRenderer = ({ tnode, key, style }) => {
+        const htmlAttribs = tnode.attributes;
+        return (
+            <AnchorForCommentsOnly
+                href={htmlAttribs.href}
+
+                // Unless otherwise specified open all links in
+                // a new window. On Desktop this means that we will
+                // skip the default Save As... download prompt
+                // and defer to whatever browser the user has.
+                // eslint-disable-next-line react/jsx-props-no-multi-spaces
+                target={htmlAttribs.target || '_blank'}
+                rel={htmlAttribs.rel || 'noopener noreferrer'}
+                style={style}
+                key={key}
+            >
+                <TNodeChildrenRenderer tnode={tnode} />
+            </AnchorForCommentsOnly>
+        );
+    }
+
+    const CodeRenderer = ({
+        key, style, TDefaultRenderer, ...defaultRendererProps
+    }) => {
+        // We split wrapper and inner styles
+        // "boxModelStyle" corresponds to border, margin, padding and backgroundColor
+        const { boxModelStyle, otherStyle: textStyle } = splitBoxModelStyle(style);
+        return (
+            <InlineCodeBlock
+                TDefaultRenderer={TDefaultRenderer}
+                boxModelStyle={boxModelStyle}
+                textStyle={textStyle}
+                defaultRendererProps={defaultRendererProps}
+                key={key}
+            />
+        );
+    }
+
+    const ImgRenderer = ({ tnode }) => {
+        const htmlAttribs = tnode.attributes;
+
+        // There are two kinds of images that need to be displayed:
+        //
+        //     - Chat Attachment images
+        //
+        //           Images uploaded by the user via the app or email.
+        //           These have a full-sized image `htmlAttribs['data-expensify-source']`
+        //           and a thumbnail `htmlAttribs.src`. Both of these URLs need to have
+        //           an authToken added to them in order to control who
+        //           can see the images.
+        //
+        //     - Non-Attachment Images
+        //
+        //           These could be hosted from anywhere (Expensify or another source)
+        //           and are not protected by any kind of access control e.g. certain
+        //           Concierge responder attachments are uploaded to S3 without any access
+        //           control and thus require no authToken to verify access.
+        //
+        const isAttachment = Boolean(htmlAttribs['data-expensify-source']);
+        let previewSource = htmlAttribs.src;
+        let source = isAttachment
+            ? htmlAttribs['data-expensify-source']
+            : htmlAttribs.src;
+
+        // Update the image URL so the images can be accessed depending on the config environment
+        previewSource = previewSource.replace(
+            Config.EXPENSIFY.URL_EXPENSIFY_COM,
+            Config.EXPENSIFY.URL_API_ROOT,
+        );
+        source = source.replace(
+            Config.EXPENSIFY.URL_EXPENSIFY_COM,
+            Config.EXPENSIFY.URL_API_ROOT,
+        );
+
+        return (
+            <TouchableOpacity
+                onPress={() => {
+                    setAttachmentModalData({ currentAction: action, sourceURL: previewSource, file: { name: source }, isModalOpen: true })
+                }}
+            >
+                <ThumbnailImage
+                    previewSourceURL={previewSource}
+                    style={webViewStyles.tagStyles.img}
+                    isAuthTokenRequired={isAttachment}
+                />
+            </TouchableOpacity>
+        );
+    }
+
+    // Define default element models for these renderers.
+    AnchorRenderer.model = defaultHTMLElementModels.a;
+    CodeRenderer.model = defaultHTMLElementModels.code;
+    ImgRenderer.model = defaultHTMLElementModels.img;
+
+    // Define the custom render methods
+    const renderers = {
+        a: AnchorRenderer,
+        code: CodeRenderer,
+        img: ImgRenderer,
+    };
+
     return (
         <HTML
             textSelectable
@@ -171,7 +168,9 @@ const RenderHTML = ({html, debug = false}) => {
             debug={debug}
         />
     );
-};
+}, (prevProps, nextProps) => {
+    return prevProps.html === nextProps.html
+});
 
 RenderHTML.displayName = 'RenderHTML';
 RenderHTML.propTypes = propTypes;

@@ -15,8 +15,8 @@ const propTypes = {
 const ReportActionItem = props => (
     <>
         {!props.displayAsGroup
-            ? <ReportActionItemSingle action={props.action} />
-            : <ReportActionItemGrouped action={props.action} />}
+            ? <ReportActionItemSingle action={props.action} setAttachmentModalData={props.setAttachmentModalData} />
+            : <ReportActionItemGrouped action={props.action} setAttachmentModalData={props.setAttachmentModalData} />}
     </>
 );
 

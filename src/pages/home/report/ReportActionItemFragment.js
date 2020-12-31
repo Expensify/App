@@ -1,5 +1,5 @@
 import React from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import ReportActionFragmentPropTypes from './ReportActionFragmentPropTypes';
@@ -26,7 +26,7 @@ const defaultProps = {
 
 class ReportActionItemFragment extends React.PureComponent {
     render() {
-        const {fragment} = this.props;
+        const { fragment, setAttachmentModalData, action } = this.props;
         switch (fragment.type) {
             case 'COMMENT':
                 // If this is an attachment placeholder, return the placeholder component
@@ -44,10 +44,10 @@ class ReportActionItemFragment extends React.PureComponent {
 
                 // Only render HTML if we have html in the fragment
                 return fragment.html !== fragment.text ? (
-                    <RenderHTML html={fragment.html} debug={false} />
+                    <RenderHTML action={action} html={fragment.html} debug={false} setAttachmentModalData={setAttachmentModalData} />
                 ) : (
-                    <Text selectable>{Str.htmlDecode(fragment.text)}</Text>
-                );
+                        <Text selectable>{Str.htmlDecode(fragment.text)}</Text>
+                    );
             case 'TEXT':
                 return (
                     <Text

@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import { View } from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../../../styles/styles';
@@ -11,14 +11,16 @@ const propTypes = {
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
 };
 
-const ReportActionItemMessage = ({action}) => (
+const ReportActionItemMessage = ({ action, setAttachmentModalData }) => (
     <View style={[styles.chatItemMessage]}>
         {_.map(_.compact(action.message), (fragment, index) => (
             <ReportActionItemFragment
                 key={`actionFragment-${action.sequenceNumber}-${index}`}
+                action={action}
                 fragment={fragment}
                 isAttachment={action.isAttachment}
                 loading={action.loading}
+                setAttachmentModalData={setAttachmentModalData}
             />
         ))}
     </View>

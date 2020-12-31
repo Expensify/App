@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import { View } from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ReportActionPropTypes from './ReportActionPropTypes';
@@ -15,7 +15,7 @@ const propTypes = {
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
 };
 
-const ReportActionItemSingle = ({action}) => {
+const ReportActionItemSingle = ({ action, setAttachmentModalData }) => {
     const avatarUrl = action.automatic
         ? `${CONST.CLOUDFRONT_URL}/images/icons/concierge_2019.svg`
         : action.avatar;
@@ -29,13 +29,15 @@ const ReportActionItemSingle = ({action}) => {
                 <View style={[styles.chatItemMessageHeader]}>
                     {_.map(action.person, (fragment, index) => (
                         <ReportActionItemFragment
+                            action={action}
                             key={`person-${action.sequenceNumber}-${index}`}
                             fragment={fragment}
+                            setAttachmentModalData={setAttachmentModalData}
                         />
                     ))}
                     <ReportActionItemDate timestamp={action.timestamp} />
                 </View>
-                <ReportActionItemMessage action={action} />
+                <ReportActionItemMessage action={action} setAttachmentModalData={setAttachmentModalData} />
             </View>
         </View>
     );

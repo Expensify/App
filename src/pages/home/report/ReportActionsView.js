@@ -1,18 +1,19 @@
 import React from 'react';
-import {View, Keyboard, AppState} from 'react-native';
+import { View, Keyboard, AppState } from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
-import {withOnyx} from 'react-native-onyx';
+import { withOnyx } from 'react-native-onyx';
 import Text from '../../../components/Text';
-import {fetchActions, updateLastReadActionID} from '../../../libs/actions/Report';
+import { fetchActions, updateLastReadActionID } from '../../../libs/actions/Report';
 import ONYXKEYS from '../../../ONYXKEYS';
 import ReportActionItem from './ReportActionItem';
 import styles from '../../../styles/styles';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import InvertedFlatList from '../../../components/InvertedFlatList';
-import {lastItem} from '../../../libs/CollectionUtils';
+import { lastItem } from '../../../libs/CollectionUtils';
 import Visibility from '../../../libs/Visibility';
+import AttachmentModal from '../../../components/AttachmentModal';
 
 const propTypes = {
     // The ID of the report actions will be created for
@@ -45,10 +46,16 @@ class ReportActionsView extends React.Component {
         this.renderItem = this.renderItem.bind(this);
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
         this.recordMaxAction = this.recordMaxAction.bind(this);
+        this.setAttachmentModalData = this.setAttachmentModalData.bind(this);
+        this.getNextAttachment = this.getNextAttachment.bind(this);
         this.sortedReportActions = this.updateSortedReportActions();
 
         this.state = {
             refetchNeeded: true,
+            sourceURL: null,
+            file: { name: null },
+            isAttachment: null,
+            isModalOpen: false
         };
     }
 
@@ -121,7 +128,7 @@ class ReportActionsView extends React.Component {
      * @param {Boolean} refetchNeeded
      */
     setRefetchNeeded(refetchNeeded) {
-        this.setState({refetchNeeded});
+        this.setState({ refetchNeeded });
     }
 
     /**
@@ -131,7 +138,7 @@ class ReportActionsView extends React.Component {
         this.sortedReportActions = _.chain(this.props.reportActions)
             .sortBy('sequenceNumber')
             .filter(action => action.actionName === 'ADDCOMMENT')
-            .map((item, index) => ({action: item, index}))
+            .map((item, index) => ({ action: item, index }))
             .value()
             .reverse();
     }
@@ -186,7 +193,7 @@ class ReportActionsView extends React.Component {
      */
     scrollToListBottom() {
         if (this.actionListElement) {
-            this.actionListElement.scrollToIndex({animated: false, index: 0});
+            this.actionListElement.scrollToIndex({ animated: false, index: 0 });
         }
         this.recordMaxAction();
     }
@@ -217,8 +224,48 @@ class ReportActionsView extends React.Component {
                 displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
                 onLayout={onLayout}
                 needsLayoutCalculation={needsLayoutCalculation}
+                setAttachmentModalData={this.setAttachmentModalData}
             />
         );
+    }
+
+    /**
+     * Sets the data needed for the modal in the state object
+     *
+     * @param {Object} args
+     * @param {ReportActionPropTypes} args.currentAction
+     * @param {String} args.sourceURL
+     * @param {Object} args.file
+     * @param {String} args.file.name
+     * @param {Boolean} args.isModalOpen
+     */
+    setAttachmentModalData(modalData) {
+        this.setState({
+            ...modalData
+        })
+    }
+
+    /**
+     * Gets the next attachment based on the current action passed into the function
+     * and the direction being moved (to he left or to the right)
+     *
+     * @param {ReportActionPropTypes} args.action
+     * @param {Boolean} args.toRight
+     *
+     * @returns {ReportActionPropTypes}
+     */
+    getNextAttachment(action, toRight) {
+        const actions = Object.values(this.sortedReportActions).reverse();
+        const sequenceNumber = action.sequenceNumber;
+        const actionsToSearch = toRight ? actions.slice(sequenceNumber) : actions.slice(0, sequenceNumber !== 0 ? sequenceNumber - 1 : 0).reverse();
+        const nextAttachment = actionsToSearch.find(action => action.action.isAttachment);
+        if (nextAttachment) {
+            return nextAttachment;
+        } else {
+            const actionsToSearch = toRight ? actions : [...actions].reverse();
+            const nextAttachmentAfterLoop = actionsToSearch.find(action => action.action.isAttachment);
+            return nextAttachmentAfterLoop;
+        }
     }
 
     render() {
@@ -238,14 +285,26 @@ class ReportActionsView extends React.Component {
 
         this.updateSortedReportActions();
         return (
-            <InvertedFlatList
-                ref={el => this.actionListElement = el}
-                data={this.sortedReportActions}
-                renderItem={this.renderItem}
-                contentContainerStyle={[styles.chatContentScrollView]}
-                keyExtractor={item => `${item.action.sequenceNumber}`}
-                initialRowHeight={32}
-            />
+            <>
+                <AttachmentModal
+                    currentAction={this.state.currentAction}
+                    title="Attachment"
+                    sourceURL={this.state.sourceURL}
+                    file={this.state.file}
+                    isAuthTokenRequired={this.state.isAttachment}
+                    isModalOpen={this.state.isModalOpen}
+                    setAttachmentModalData={this.setAttachmentModalData}
+                    getNextAttachment={this.getNextAttachment}
+                />
+                <InvertedFlatList
+                    ref={el => this.actionListElement = el}
+                    data={this.sortedReportActions}
+                    renderItem={this.renderItem}
+                    contentContainerStyle={[styles.chatContentScrollView]}
+                    keyExtractor={item => `${item.action.sequenceNumber}`}
+                    initialRowHeight={32}
+                />
+            </>
         );
     }
 }
@@ -255,7 +314,7 @@ ReportActionsView.defaultProps = defaultProps;
 
 export default withOnyx({
     reportActions: {
-        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        key: ({ reportID }) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
         canEvict: props => !props.isActiveReport,
     },
     session: {

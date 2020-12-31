@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import { View } from 'react-native';
 import PropTypes from 'prop-types';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import ReportActionItemMessage from './ReportActionItemMessage';
@@ -10,10 +10,10 @@ const propTypes = {
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
 };
 
-const ReportActionItemGrouped = ({action}) => (
+const ReportActionItemGrouped = ({ action, setAttachmentModalData }) => (
     <View style={[styles.chatItem]}>
         <View style={[styles.chatItemRightGrouped]}>
-            <ReportActionItemMessage action={action} />
+            <ReportActionItemMessage action={action} setAttachmentModalData={setAttachmentModalData} />
         </View>
     </View>
 );
