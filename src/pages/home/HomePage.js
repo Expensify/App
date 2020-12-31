@@ -220,7 +220,13 @@ class App extends React.Component {
     render() {
         const hamburgerStyle = this.state.isHamburgerEnabled && this.props.isSidebarShown
             ? styles.hamburgerOpenAbsolute : styles.hamburgerOpen;
-        const visibility = !this.state.isHamburgerEnabled || this.props.isSidebarShown ? styles.sidebarVisible : styles.sidebarHidden;
+
+        // Note: The visibility state for the Animated.View below is set by modifying the width of the View.
+        // This is due to a known issue affecting Android where a TextInput's padding is not respected when a containing
+        // parent has the display: 'none' style. See: https://github.com/facebook/react-native/issues/16405
+        const visibility = !this.state.isHamburgerEnabled || this.props.isSidebarShown
+            ? styles.sidebarVisible
+            : styles.sidebarHidden;
         const appContentWrapperStyle = !this.state.isHamburgerEnabled ? styles.appContentWrapperLarge : null;
         return (
             <SafeAreaProvider>
