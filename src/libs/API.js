@@ -504,10 +504,11 @@ function SetPassword(parameters) {
  * Note: The mock response will be deleted once used for the specified command.
  *
  * @param {String} command
- * @param {Object} response
+ * @param {Number} [jsonCode]
+ * @param {Object} [response]
  */
-function setMockResponse(command, response) {
-    mockResponses[command] = response;
+function setMockResponse(command, jsonCode = 200, response = {}) {
+    mockResponses[command] = {jsonCode, ...response};
 }
 
 export {
