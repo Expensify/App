@@ -24,7 +24,8 @@ jest.mock('../../src/libs/HttpUtils', () => ({
 test('Authenticate is called with saved credentials when a session expires', () => {
     const TEST_USER_LOGIN = 'test@testguy.com';
 
-    // Set up mock responses for all APIs that will be called
+    // Set up mock responses for all APIs that will be called. The next time this command is called it will return
+    // jsonCode: 200 and the response here.
     API.setMockResponse('GetAccountStatus', 200, {
         accountExists: true,
         canAccessExpensifyCash: true,
