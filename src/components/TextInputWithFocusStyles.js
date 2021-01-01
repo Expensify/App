@@ -20,7 +20,7 @@ const propTypes = {
     style: PropTypes.any,
 
     // A function to call when the input has been blurred
-    onBlur: PropTypes.func.isRequired,
+    onBlur: PropTypes.func,
 
     // A function to call when the input has gotten focus
     onFocus: PropTypes.func.isRequired,
@@ -29,6 +29,7 @@ const defaultProps = {
     styleFocusIn: null,
     styleFocusOut: null,
     style: null,
+    onBlur: () => {},
 };
 
 class TextInputWithFocusStyles extends React.Component {

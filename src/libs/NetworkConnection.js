@@ -11,6 +11,7 @@ let sleepTimer;
 let lastTime;
 let isActive = false;
 let isOffline = false;
+let isListeningToAppStateChanges = false;
 
 // Holds all of the callbacks that need to be triggered when the network reconnects
 const reconnectionCallbacks = [];
@@ -26,7 +27,7 @@ const triggerReconnectionCallbacks = _.throttle(() => {
  * Called when the offline status of the app changes and if the network is "reconnecting" (going from offline to online)
  * then all of the reconnection callbacks are triggered
  *
- * @param {boolean} isCurrentlyOffline
+ * @param {Boolean} isCurrentlyOffline
  */
 function setOfflineStatus(isCurrentlyOffline) {
     Onyx.merge(ONYXKEYS.NETWORK, {isOffline: isCurrentlyOffline});
@@ -73,6 +74,7 @@ function listenForReconnect() {
     // returns from the background. So, if we are returning from the background
     // and we are online we should trigger our reconnection callbacks.
     AppState.addEventListener('change', setAppState);
+    isListeningToAppStateChanges = true;
 
     // When a device is put to sleep, NetInfo is not always able to detect
     // when connectivity has been lost. As a failsafe we will capture the time
@@ -95,8 +97,12 @@ function stopListeningForReconnect() {
     clearInterval(sleepTimer);
     if (unsubscribeFromNetInfo) {
         unsubscribeFromNetInfo();
+        unsubscribeFromNetInfo = undefined;
     }
-    AppState.removeEventListener('change', setAppState);
+    if (isListeningToAppStateChanges) {
+        AppState.removeEventListener('change', setAppState);
+        isListeningToAppStateChanges = false;
+    }
 }
 
 /**

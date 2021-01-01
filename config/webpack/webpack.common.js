@@ -30,6 +30,11 @@ module.exports = {
             patterns: [
                 {from: 'web/favicon.png'},
                 {from: 'web/favicon-unread.png'},
+
+                // These files are copied over as per instructions here
+                // https://github.com/mozilla/pdf.js/wiki/Setup-pdf.js-in-a-website#examples
+                {from: 'src/vendor/pdf-js/web', to: 'pdf/web'},
+                {from: 'src/vendor/pdf-js/js', to: 'pdf/build'},
             ],
         }),
 
@@ -52,7 +57,7 @@ module.exports = {
                  */
                 exclude: [
                     // eslint-disable-next-line max-len
-                    /node_modules\/(?!(react-native-render-html|react-native-webview|react-native-onyx)\/).*|\.native\.js$/,
+                    /node_modules\/(?!(react-native-webview|react-native-onyx)\/).*|\.native\.js$/,
                     platformExclude
                 ],
             },
@@ -66,7 +71,7 @@ module.exports = {
                 options: {
                     cache: false,
                     emitWarning: true,
-                    configFile: './config/.eslintrc.js',
+                    configFile: path.resolve(__dirname, '../../.eslintrc.js'),
                 },
             },
 
