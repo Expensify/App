@@ -499,9 +499,9 @@ function SetPassword(parameters) {
 }
 
 /**
- * If Jest is running we can set a mock response. This is useful for writing tests in an environment where
- * the API cannot access any test database. Note: The mock response will be unset once used for the specified
- * command.
+ * Intended to be used for testing only. While a test is running we provide the option to set a mock response.
+ * This provides a way to mock an API request and return data without actually making any network requests.
+ * Note: The mock response will be deleted once used for the specified command.
  *
  * @param {String} command
  * @param {Object} response
