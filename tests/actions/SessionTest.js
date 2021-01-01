@@ -25,8 +25,7 @@ test('Authenticate is called with saved credentials when a session expires', () 
     const TEST_USER_LOGIN = 'test@testguy.com';
 
     // Set up mock responses for all APIs that will be called
-    API.setMockResponse('GetAccountStatus', {
-        jsonCode: 200,
+    API.setMockResponse('GetAccountStatus', 200, {
         accountExists: true,
         canAccessExpensifyCash: true,
         requiresTwoFactorAuth: false,
@@ -40,14 +39,12 @@ test('Authenticate is called with saved credentials when a session expires', () 
     return waitForPromisesToResolve()
         .then(() => {
             // Next we will simulate signing in and make sure all API calls in this flow succeed.
-            API.setMockResponse('Authenticate', {
-                jsonCode: 200,
+            API.setMockResponse('Authenticate', 200, {
                 accountID: 1,
                 authToken: '12345',
                 email: TEST_USER_LOGIN,
             });
-            API.setMockResponse('CreateLogin', {
-                jsonCode: 200,
+            API.setMockResponse('CreateLogin', 200, {
                 accountID: 1,
                 authToken: '12345',
                 email: TEST_USER_LOGIN,
@@ -59,9 +56,7 @@ test('Authenticate is called with saved credentials when a session expires', () 
             // At this point we have an authToken. To simulate it expiring we'll just make another
             // request and mock the response so it returns 407. Once this happens we should attempt
             // to Re-Authenticate with the stored credentials.
-            API.setMockResponse('Get', {
-                jsonCode: 407,
-            });
+            API.setMockResponse('Get', 407);
             API.Get({returnValueList: 'chatList'});
             return waitForPromisesToResolve();
         })
