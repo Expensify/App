@@ -167,17 +167,17 @@ function handleExpiredAuthToken(originalResponse, originalCommand, originalParam
 }
 
 /**
- * Gets the mock response and clears it since it is a single use response.
- * We are returning a promise so that we can test the handlers.
+ * Locates the mock response data that was previously set and returns a Promise that immediately resolves with the mock
+ * response stored in the mockResponses map for a particular command. A mock response can only be used once so we delete
+ * it after use.
  *
  * @private
  * @param {String} command
  * @returns {Promise}
  */
-function getMockResponsePromise(command) {
+function createMockResponsePromise(command) {
     const mockResponse = {...mockResponses[command]};
-    delete mockResponses[command]; // Delete the mock response as it is single use.
-
+    delete mockResponses[command];
     return new Promise(resolve => resolve(mockResponse));
 }
 
@@ -192,7 +192,7 @@ function getMockResponsePromise(command) {
  */
 function request(command, parameters, type = 'post') {
     const networkPromise = mockResponses[command]
-        ? getMockResponsePromise(command)
+        ? createMockResponsePromise(command)
         : Network.post(command, parameters, type);
 
     // Setup the default handlers to work with different response codes
