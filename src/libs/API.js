@@ -5,8 +5,11 @@ import ONYXKEYS from '../ONYXKEYS';
 import redirectToSignIn from './actions/SignInRedirect';
 import * as Network from './Network';
 
+/**
+ * Used to set a mock functions for a given command while testing.
+ */
+let mockCommands = {};
 let isAuthenticating;
-const mockResponses = {};
 let credentials;
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
@@ -167,21 +170,6 @@ function handleExpiredAuthToken(originalResponse, originalCommand, originalParam
 }
 
 /**
- * Locates the mock response data that was previously set and returns a Promise that immediately resolves with the mock
- * response stored in the mockResponses map for a particular command. A mock response can only be used once so we delete
- * it after use.
- *
- * @private
- * @param {String} command
- * @returns {Promise}
- */
-function createMockResponsePromise(command) {
-    const mockResponse = {...mockResponses[command]};
-    delete mockResponses[command];
-    return new Promise(resolve => resolve(mockResponse));
-}
-
-/**
  * @private
  *
  * @param {String} command Name of the command to run
@@ -191,8 +179,8 @@ function createMockResponsePromise(command) {
  * @returns {Promise}
  */
 function request(command, parameters, type = 'post') {
-    const networkPromise = mockResponses[command]
-        ? createMockResponsePromise(command)
+    const networkPromise = mockCommands[command]
+        ? mockCommands[command]()
         : Network.post(command, parameters, type);
 
     // Setup the default handlers to work with different response codes
@@ -501,18 +489,24 @@ function SetPassword(parameters) {
 /**
  * Intended to be used for testing only. While a test is running we provide the option to set a mock response.
  * This provides a way to mock an API request and return data without actually making any network requests.
- * Note: The mock response will be deleted once used for the specified command.
  *
  * @param {String} command
- * @param {Number} [jsonCode]
- * @param {Object} [response]
+ * @param {Function} mockFunction
  */
-function setMockResponse(command, jsonCode = 200, response = {}) {
-    mockResponses[command] = {jsonCode, ...response};
+function setMockCommand(command, mockFunction) {
+    mockCommands[command] = mockFunction;
+}
+
+/**
+ * Clear all mock commands
+ */
+function resetMockCommands() {
+    mockCommands = {};
 }
 
 export {
-    setMockResponse,
+    setMockCommand,
+    resetMockCommands,
     getAuthToken,
     Authenticate,
     CreateChatReport,

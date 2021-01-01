@@ -17,6 +17,7 @@ jest.mock('../../src/libs/Notification/PushNotification', () => ({
 }));
 
 // We are mocking this method so that we can later test to see if it was called and what arguments it was called with.
+// We test HttpUtils.xhr() since this means that our API command turned into a network request and isn't only queued.
 jest.mock('../../src/libs/HttpUtils', () => ({
     xhr: jest.fn(),
 }));
@@ -26,11 +27,12 @@ test('Authenticate is called with saved credentials when a session expires', () 
 
     // Set up mock responses for all APIs that will be called. The next time this command is called it will return
     // jsonCode: 200 and the response here.
-    API.setMockResponse('GetAccountStatus', 200, {
+    API.setMockCommand('GetAccountStatus', jest.fn(() => Promise.resolve({
+        jsonCode: 200,
         accountExists: true,
         canAccessExpensifyCash: true,
         requiresTwoFactorAuth: false,
-    });
+    })));
 
     // Simulate user entering their login and populating the credentials.login
     fetchAccountDetails(TEST_USER_LOGIN);
@@ -39,27 +41,35 @@ test('Authenticate is called with saved credentials when a session expires', () 
     // failing assertions if we remove the return keyword.
     return waitForPromisesToResolve()
         .then(() => {
-            // Next we will simulate signing in and make sure all API calls in this flow succeed.
-            API.setMockResponse('Authenticate', 200, {
+            // Next we will simulate signing in and make sure all API calls in this flow succeed
+            const authenticateMock = jest.fn(() => Promise.resolve({
+                jsonCode: 200,
                 accountID: 1,
                 authToken: '12345',
                 email: TEST_USER_LOGIN,
-            });
-            API.setMockResponse('CreateLogin', 200, {
+            }));
+            API.setMockCommand('Authenticate', authenticateMock);
+            API.setMockCommand('CreateLogin', () => Promise.resolve({
+                jsonCode: 200,
                 accountID: 1,
                 authToken: '12345',
                 email: TEST_USER_LOGIN,
-            });
+            }));
             signIn('Password1');
+            expect(authenticateMock.mock.calls.length).toBe(1);
             return waitForPromisesToResolve();
         })
         .then(() => {
             // At this point we have an authToken. To simulate it expiring we'll just make another
             // request and mock the response so it returns 407. Once this happens we should attempt
-            // to Re-Authenticate with the stored credentials.
-            API.setMockResponse('Get', 407);
-            API.Get({returnValueList: 'chatList'});
-            return waitForPromisesToResolve();
+            // to Re-Authenticate with the stored credentials. We will also reset all the mocks we've set
+            // so that we can test that Authenticate is getting called via HttpUtils.xhr() and not just
+            // being put into the queue.
+            API.resetMockCommands();
+            API.setMockCommand('Get', () => Promise.resolve({
+                jsonCode: 407,
+            }));
+            return API.Get({returnValueList: 'chatList'});
         })
         .then(() => {
             // Finally, we verify we made this request and the command is Authenticate. If this assertion
