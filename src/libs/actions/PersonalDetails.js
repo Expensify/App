@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import Onyx from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import md5 from '../md5';
 import CONST from '../../CONST';
@@ -20,17 +21,12 @@ Onyx.connect({
 });
 
 /**
- * Returns the URL for a user's avatar and handles someone not having any avatar at all
+ * Helper method to return a default avatar
  *
- * @param {object} personalDetail
- * @param {string} login
- * @returns {string}
+ * @param {String} login
+ * @returns {String}
  */
-function getAvatar(personalDetail, login) {
-    if (personalDetail && personalDetail.avatar) {
-        return personalDetail.avatar.replace(/&d=404$/, '');
-    }
-
+function getDefaultAvatar(login) {
     // There are 8 possible default avatars, so we choose which one this user has based
     // on a simple hash of their login (which is converted from HEX to INT)
     const loginHashBucket = (parseInt(md5(login).substring(0, 4), 16) % 8) + 1;
@@ -38,17 +34,35 @@ function getAvatar(personalDetail, login) {
 }
 
 /**
+ * Returns the URL for a user's avatar and handles someone not having any avatar at all
+ *
+ * @param {Object} personalDetail
+ * @param {String} login
+ * @returns {String}
+ */
+function getAvatar(personalDetail, login) {
+    if (personalDetail && personalDetail.avatar) {
+        return personalDetail.avatar.replace(/&d=404$/, '');
+    }
+
+    return getDefaultAvatar(login);
+}
+
+/**
  * Returns the displayName for a user
  *
- * @param {string} login
- * @param {object} [personalDetail]
- * @returns {string}
+ * @param {String} login
+ * @param {Object} [personalDetail]
+ * @returns {String}
  */
 function getDisplayName(login, personalDetail) {
+    // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms
+    // so that the option looks cleaner in our UI.
+    const userLogin = Str.removeSMSDomain(login);
     const userDetails = personalDetail || personalDetails[login];
 
     if (!userDetails) {
-        return login;
+        return userLogin;
     }
 
     if (userDetails.displayName) {
@@ -58,7 +72,7 @@ function getDisplayName(login, personalDetail) {
     const firstName = userDetails.firstName || '';
     const lastName = userDetails.lastName || '';
 
-    return (`${firstName} ${lastName}`).trim() || login;
+    return (`${firstName} ${lastName}`).trim() || userLogin;
 }
 
 /**
@@ -120,7 +134,7 @@ function fetch() {
             // Get the timezone and put it in Onyx
             fetchTimezone();
         })
-        .catch(error => console.error('Error fetching personal details', error));
+        .catch(error => console.debug('Error fetching personal details', error));
 
     // Refresh the personal details every 30 minutes because there is no
     // pusher event that sends updated personal details data yet
@@ -129,15 +143,38 @@ function fetch() {
 }
 
 /**
- * Get personal details for a list of emails.
+ * Get personal details from report participants.
  *
- * @param {String} emailList
+ * @param {Object} reports
  */
-function getForEmails(emailList) {
-    API.PersonalDetails_GetForEmails({emailList})
+function getFromReportParticipants(reports) {
+    const participantEmails = _.chain(reports)
+        .pluck('participants')
+        .flatten()
+        .unique()
+        .value();
+
+    if (participantEmails.length === 0) {
+        return;
+    }
+
+    API.PersonalDetails_GetForEmails({emailList: participantEmails.join(',')})
         .then((data) => {
-            const details = _.pick(data, emailList.split(','));
+            const details = _.pick(data, participantEmails);
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, formatPersonalDetails(details));
+
+            // The personalDetails of the participants contain their avatar images. Here we'll go over each
+            // report and based on the participants we'll link up their avatars to report icons.
+            _.each(reports, (report) => {
+                if (report.participants.length === 1) {
+                    const dmParticipant = report.participants[0];
+                    let icon = lodashGet(details, [dmParticipant, 'avatar'], '');
+                    if (!icon) {
+                        icon = getDefaultAvatar(dmParticipant);
+                    }
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {icon});
+                }
+            });
         });
 }
 
@@ -147,6 +184,6 @@ NetworkConnection.onReconnect(fetch);
 export {
     fetch,
     fetchTimezone,
-    getForEmails,
+    getFromReportParticipants,
     getDisplayName,
 };

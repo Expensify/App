@@ -14,17 +14,20 @@ if (_.isString(Config.EXPENSIFY_URL_COM) && !Config.EXPENSIFY_URL_COM.endsWith('
     Config.EXPENSIFY_URL_COM += '/';
 }
 
+const expensifyCom = Config.USE_WEB_PROXY === 'true' ? '/' : Config.EXPENSIFY_URL_COM;
+
 // Ngrok helps us avoid many of our cross-domain issues with connecting to our API
 // and is reqired for viewing images on mobile and for developing on android
 // To enable, set the USE_NGROK value to true in .env and update the NGROK_URL
 const expensifyURLRoot = Config.USE_NGROK === 'true' && Config.NGROK_URL
     ? Config.NGROK_URL
-    : Config.EXPENSIFY_URL_COM;
+    : expensifyCom;
 
 export default {
+    APP_NAME: 'ExpensifyCash',
     AUTH_TOKEN_EXPIRATION_TIME: 1000 * 60 * 90,
     EXPENSIFY: {
-        URL_EXPENSIFY_COM: Config.EXPENSIFY_URL_COM,
+        URL_EXPENSIFY_COM: expensifyCom,
         URL_EXPENSIFY_CASH: Config.EXPENSIFY_URL_CASH,
         URL_API_ROOT: expensifyURLRoot,
         PARTNER_NAME: Config.EXPENSIFY_PARTNER_NAME,
@@ -37,7 +40,7 @@ export default {
         APP_KEY: Config.PUSHER_APP_KEY,
         CLUSTER: 'mt1',
     },
-    SITE_TITLE: 'Chat',
+    SITE_TITLE: 'Expensify.cash',
     FAVICON: {
         DEFAULT: 'favicon.png',
         UNREAD: 'favicon-unread.png'

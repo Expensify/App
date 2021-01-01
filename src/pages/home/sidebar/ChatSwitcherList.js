@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View, FlatList} from 'react-native';
-import styles from '../../../styles/StyleSheet';
+import styles from '../../../styles/styles';
 import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
 import ChatLinkRow from './ChatLinkRow';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
@@ -30,12 +30,12 @@ const ChatSwitcherList = ({
     onAddToGroup,
 }) => (
     options.length > 0 && (
-        <View style={[styles.flex1, styles.mt1]}>
+        <View style={[styles.flex1]}>
             <FlatList
                 keyboardShouldPersistTaps="always"
                 showsVerticalScrollIndicator={false}
                 data={options}
-                keyExtractor={option => (option.type === 'user' ? option.alternateText : String(option.reportID))}
+                keyExtractor={option => option.keyForList}
                 renderItem={({item, index}) => (
                     <ChatLinkRow
                         option={item}
@@ -47,7 +47,7 @@ const ChatSwitcherList = ({
                 )}
                 extraData={focusedIndex}
                 ListFooterComponent={View}
-                ListFooterComponentStyle={[styles.p1]}
+                ListFooterComponentStyle={[styles.p3]}
             />
             <KeyboardSpacer />
         </View>

@@ -8,8 +8,8 @@ let customAuthorizer;
 /**
  * Trigger each of the socket event callbacks with the event information
  *
- * @param {string} eventName
- * @param {mixed} data
+ * @param {String} eventName
+ * @param {*} data
  */
 function callSocketEventCallbacks(eventName, data) {
     _.each(socketEventCallbacks, cb => cb(eventName, data));
@@ -62,7 +62,7 @@ function init(args, params) {
 
         // Listen for connection errors and log them
         socket.connection.bind('error', (error) => {
-            console.error('[Pusher] error', error);
+            console.debug('[Pusher] error', error);
             callSocketEventCallbacks('error', error);
         });
 
@@ -121,7 +121,7 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}, isChun
             try {
                 data = _.isObject(eventData) ? eventData : JSON.parse(eventData);
             } catch (err) {
-                console.error('Unable to parse JSON response from Pusher', 0, {error: err, eventData});
+                console.debug('Unable to parse JSON response from Pusher', 0, {error: err, eventData});
                 return;
             }
 
@@ -154,7 +154,7 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}, isChun
             try {
                 eventCallback(JSON.parse(chunkedEvent.chunks.join('')));
             } catch (err) {
-                console.error('[Pusher] Unable to parse chunked JSON response from Pusher', 0, {
+                console.debug('[Pusher] Unable to parse chunked JSON response from Pusher', 0, {
                     error: err,
                     eventData: chunkedEvent.chunks.join('')
                 });
@@ -261,8 +261,7 @@ function unsubscribe(channelName, eventName = '') {
         channel.unbind(eventName);
     } else {
         if (!channel.subscribed) {
-            // eslint-disable-next-line no-console
-            console.warn(`[Pusher] Attempted to unsubscribe from channel,
+            console.debug(`[Pusher] Attempted to unsubscribe from channel,
             but we are not subscribed to begin with`, 0, {channelName});
             return;
         }
@@ -339,7 +338,7 @@ function sendChunkedEvent(channelName, eventName, payload) {
 /**
  * Register a method that will be triggered when a socket event happens (like disconnecting)
  *
- * @param {function} cb
+ * @param {Function} cb
  */
 function registerSocketEventCallback(cb) {
     socketEventCallbacks.push(cb);
@@ -361,7 +360,7 @@ function registerCustomAuthorizer(authorizer) {
  */
 function disconnect() {
     if (!socket) {
-        console.error('[Pusher] Attempting to disconnect from Pusher before initialisation has occured, ignoring.');
+        console.debug('[Pusher] Attempting to disconnect from Pusher before initialisation has occured, ignoring.');
         return;
     }
 

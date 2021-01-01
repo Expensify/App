@@ -9,8 +9,8 @@ const notificationEventActionMap = {};
 /**
  * Handle a push notification event, and trigger and bound actions.
  *
- * @param {string} eventType
- * @param {object} notification
+ * @param {String} eventType
+ * @param {Object} notification
  */
 function pushNotificationEventCallback(eventType, notification) {
     const actionMap = notificationEventActionMap[eventType] || {};
@@ -36,9 +36,7 @@ function pushNotificationEventCallback(eventType, notification) {
     // we'll assume pusher is connected so we'll ignore is and not fetch the same data twice.
     // However, we will allow NotificationResponse events through, so that tapping on a foreground notification
     // will take you to the relevant report.
-    // Note: We hope to prevent foreground notifications from appearing in the near future,
-    // so when that happens we can go back to ignoring all push notification callbacks when the app is in the foreground
-    if (AppState.currentState === 'active' && eventType === EventType.PushReceived) {
+    if (AppState.currentState === 'active') {
         console.debug('[PUSH_NOTIFICATION] Push received while app is in foreground, not executing any callback.');
         return;
     }
@@ -62,7 +60,7 @@ function pushNotificationEventCallback(eventType, notification) {
 /**
  * Register this device for push notifications for the given accountID.
  *
- * @param {string|int} accountID
+ * @param {String|Number} accountID
  */
 function register(accountID) {
     if (UrbanAirship.getNamedUser() === accountID.toString()) {
@@ -114,9 +112,9 @@ function deregister() {
  *       if we attempt to bind two callbacks to the PushReceived event for reportComment notifications,
  *       the second will overwrite the first.
  *
- * @param {string} notificationType
+ * @param {String} notificationType
  * @param {Function} callback
- * @param {string?} triggerEvent - The event that should trigger this callback. Should be one of UrbanAirship.EventType
+ * @param {String} [triggerEvent] - The event that should trigger this callback. Should be one of UrbanAirship.EventType
  */
 function bind(notificationType, callback, triggerEvent) {
     if (!notificationEventActionMap[triggerEvent]) {
@@ -128,7 +126,7 @@ function bind(notificationType, callback, triggerEvent) {
 /**
  * Bind a callback to be executed when a push notification of a given type is received.
  *
- * @param {string} notificationType
+ * @param {String} notificationType
  * @param {Function} callback
  */
 function onReceived(notificationType, callback) {
@@ -138,7 +136,7 @@ function onReceived(notificationType, callback) {
 /**
  * Bind a callback to be executed when a push notification of a given type is tapped by the user.
  *
- * @param {string} notificationType
+ * @param {String} notificationType
  * @param {Function} callback
  */
 function onSelected(notificationType, callback) {

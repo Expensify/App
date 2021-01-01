@@ -1,61 +1,76 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, Dimensions, Image} from 'react-native';
-import ImgZoom from 'react-native-image-pan-zoom';
+import {View, Dimensions} from 'react-native';
+import ImageZoom from 'react-native-image-pan-zoom';
+import ImageWithSizeCalculation from '../ImageWithSizeCalculation';
+import styles from '../../styles/styles';
+import variables from '../../styles/variables';
 
 /**
  * On the native layer, we use a image library to handle zoom functionality
  */
-
 const propTypes = {
     // URL to full-sized image
-    sourceURL: PropTypes.string,
-
-    // Image height
-    imageHeight: PropTypes.number,
-
-    // Image width
-    imageWidth: PropTypes.number,
-
-    // Window Height
-    windowHeight: PropTypes.number,
-
-    // Window Width
-    windowWidth: PropTypes.number,
-
-    // Any additional styles to apply
-    wrapperStyle: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
+    url: PropTypes.string.isRequired,
 };
 
-const defaultProps = {
-    sourceURL: '',
-    imageHeight: 300,
-    imageWidth: 300,
+class ImageView extends React.Component {
+    constructor(props) {
+        super(props);
 
-    // Default windowHeight accounts for the modal header height of 73
-    windowHeight: Dimensions.get('window').height - 73,
-    windowWidth: Dimensions.get('window').width,
-    wrapperStyle: {},
-};
+        this.state = {
+            imageWidth: 100,
+            imageHeight: 100,
+        };
+    }
 
-const ImageView = props => (
-    <View style={props.wrapperStyle}>
-        <ImgZoom
-            cropWidth={props.windowWidth}
-            cropHeight={props.windowHeight}
-            imageWidth={props.imageWidth}
-            imageHeight={props.imageHeight}
-        >
-            <Image
-                style={{width: props.imageWidth, height: props.imageHeight}}
-                source={{uri: props.sourceURL}}
-            />
-        </ImgZoom>
-    </View>
-);
+    render() {
+        // Default windowHeight accounts for the modal header height
+        const windowHeight = Dimensions.get('window').height - variables.contentHeaderHeight;
+        const windowWidth = Dimensions.get('window').width;
+
+        return (
+            <View
+                style={[
+                    styles.w100,
+                    styles.h100,
+                    styles.alignItemsCenter,
+                    styles.justifyContentCenter,
+                    styles.overflowHidden,
+                ]}
+            >
+                <ImageZoom
+                    cropWidth={windowWidth}
+                    cropHeight={windowHeight}
+                    imageWidth={this.state.imageWidth}
+                    imageHeight={this.state.imageHeight}
+                >
+                    <ImageWithSizeCalculation
+                        style={{
+                            width: this.state.imageWidth,
+                            height: this.state.imageHeight,
+                        }}
+                        url={this.props.url}
+                        onMeasure={({width, height}) => {
+                            let imageWidth = width;
+                            let imageHeight = height;
+
+                            if (width > windowWidth || height > windowHeight) {
+                                const scaleFactor = Math.max(width / windowWidth, height / windowHeight);
+                                imageHeight = height / scaleFactor;
+                                imageWidth = width / scaleFactor;
+                            }
+
+                            this.setState({imageHeight, imageWidth});
+                        }}
+                    />
+                </ImageZoom>
+            </View>
+        );
+    }
+}
 
 ImageView.propTypes = propTypes;
-ImageView.defaultProps = defaultProps;
 ImageView.displayName = 'ImageView';
 
 export default ImageView;

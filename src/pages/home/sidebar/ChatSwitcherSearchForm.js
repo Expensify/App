@@ -7,7 +7,8 @@ import {
     Text
 } from 'react-native';
 import PropTypes from 'prop-types';
-import styles, {colors} from '../../../styles/StyleSheet';
+import styles from '../../../styles/styles';
+import themeColors from '../../../styles/themes/default';
 import logoCircle from '../../../../assets/images/expensify-logo-round.png';
 import TextInputWithFocusStyles from '../../../components/TextInputWithFocusStyles';
 import iconX from '../../../../assets/images/icon-x.png';
@@ -28,9 +29,6 @@ const propTypes = {
     // The current value of the search input
     searchValue: PropTypes.string.isRequired,
 
-    // A function to call when the input has been blurred
-    onBlur: PropTypes.func.isRequired,
-
     // A function to call when the text has changed in the input
     onChangeText: PropTypes.func.isRequired,
 
@@ -49,18 +47,18 @@ const propTypes = {
     // Begins / navigates to the chat between the various group users
     onConfirmUsers: PropTypes.func.isRequired,
 
-    // Group DM user options that have been selected
-    groupUsers: PropTypes.arrayOf(ChatSwitcherOptionPropTypes),
+    // Users selected to begin a group report DM
+    usersToStartGroupReportWith: PropTypes.arrayOf(ChatSwitcherOptionPropTypes),
 };
 
 const defaultProps = {
-    groupUsers: [],
+    usersToStartGroupReportWith: [],
 };
 
 const ChatSwitcherSearchForm = props => (
-    <View style={[styles.flexRow]}>
+    <View style={[styles.flexRow, styles.sidebarHeaderTop]}>
         {props.isLogoVisible && (
-            <View style={[styles.mr2, styles.ml2]}>
+            <View style={[styles.mr3]}>
                 <Image
                     resizeMode="contain"
                     style={[styles.sidebarHeaderLogo]}
@@ -69,7 +67,7 @@ const ChatSwitcherSearchForm = props => (
             </View>
         )}
 
-        {props.groupUsers.length > 0
+        {props.usersToStartGroupReportWith.length > 0
             ? (
                 <View
                     style={[
@@ -79,7 +77,7 @@ const ChatSwitcherSearchForm = props => (
                 >
                     <View style={[styles.flexGrow1]}>
                         <View style={styles.chatSwitcherPillsInput}>
-                            {_.map(props.groupUsers, user => (
+                            {_.map(props.usersToStartGroupReportWith, user => (
                                 <View
                                     key={user.login}
                                     style={[styles.chatSwticherPillWrapper]}
@@ -95,7 +93,7 @@ const ChatSwitcherSearchForm = props => (
                                     styles.chatSwitcherInputGroup,
                                     styles.flexRow,
                                     styles.flexGrow1,
-                                    styles.flexAlignSelfStretch,
+                                    styles.alignSelfStretch,
                                 ]}
                             >
                                 <TextInputWithFocusStyles
@@ -109,7 +107,6 @@ const ChatSwitcherSearchForm = props => (
                                     // everything when we try to remove a user or start
                                     // the conversation
                                     // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                                    onBlur={() => {}}
                                     onChangeText={props.onChangeText}
                                     onFocus={props.onFocus}
                                     onKeyPress={props.onKeyPress}
@@ -117,11 +114,11 @@ const ChatSwitcherSearchForm = props => (
                             </View>
                         </View>
                     </View>
-                    <View style={[styles.ml2, styles.flexJustifyEnd]}>
+                    <View style={[styles.ml1, styles.justifyContentEnd]}>
                         <TouchableOpacity
                             style={[styles.button, styles.buttonSmall, styles.buttonSuccess, styles.chatSwitcherGo]}
                             onPress={props.onConfirmUsers}
-                            underlayColor={colors.componentBG}
+                            underlayColor={themeColors.componentBG}
                         >
                             <Text
                                 style={[
@@ -140,14 +137,13 @@ const ChatSwitcherSearchForm = props => (
                 <TextInputWithFocusStyles
                     styleFocusIn={[styles.textInputReversedFocus]}
                     ref={props.forwardedRef}
-                    style={[styles.textInput, styles.textInputReversed, styles.flex1]}
+                    style={[styles.textInput, styles.flex1]}
                     value={props.searchValue}
-                    onBlur={props.onBlur}
                     onChangeText={props.onChangeText}
                     onFocus={props.onFocus}
                     onKeyPress={props.onKeyPress}
                     placeholder="Find or start a chat"
-                    placeholderTextColor={colors.icon}
+                    placeholderTextColor={themeColors.textSupporting}
                 />
             )}
 
@@ -155,7 +151,7 @@ const ChatSwitcherSearchForm = props => (
             <TouchableOpacity
                 style={[styles.chatSwitcherInputClear, styles.ml2]}
                 onPress={props.onClearButtonClick}
-                underlayColor={colors.componentBG}
+                underlayColor={themeColors.componentBG}
             >
                 <Image
                     resizeMode="contain"

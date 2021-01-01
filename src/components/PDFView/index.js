@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import {WebView} from 'react-native-webview';
 import CONST from '../../CONST';
@@ -26,7 +26,7 @@ const defaultProps = {
 
 const PDFView = props => (
     <WebView
-        source={{uri: `${CONST.MOZILLA_PDF_VIEWER_URL}?file=${encodeURIComponent(props.sourceURL)}`}}
+        source={{uri: `${CONST.PDF_VIEWER_URL}?file=${encodeURIComponent(props.sourceURL)}`}}
         style={props.style}
     />
 );
@@ -35,4 +35,4 @@ PDFView.propTypes = propTypes;
 PDFView.defaultProps = defaultProps;
 PDFView.displayName = 'PDFView';
 
-export default PDFView;
+export default memo(PDFView);

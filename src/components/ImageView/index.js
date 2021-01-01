@@ -1,42 +1,35 @@
-import React from 'react';
+import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import {View, Image} from 'react-native';
+import styles from '../../styles/styles';
 
 const propTypes = {
     // URL to full-sized image
-    sourceURL: PropTypes.string,
-
-    // Image height
-    imageHeight: PropTypes.number,
-
-    // Image width
-    imageWidth: PropTypes.number,
-
-    // Any additional styles to apply
-    wrapperStyle: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
-};
-
-const defaultProps = {
-    sourceURL: '',
-    imageHeight: 300,
-    imageWidth: 300,
-    wrapperStyle: {},
+    url: PropTypes.string.isRequired,
 };
 
 const ImageView = props => (
-    <View style={props.wrapperStyle}>
+    <View
+        style={[
+            styles.w100,
+            styles.h100,
+            styles.alignItemsCenter,
+            styles.justifyContentCenter,
+            styles.overflowHidden,
+        ]}
+    >
         <Image
-            source={{uri: props.sourceURL}}
-            style={{
-                width: props.imageWidth,
-                height: props.imageHeight
-            }}
+            source={{uri: props.url}}
+            style={[
+                styles.w100,
+                styles.h100,
+            ]}
+            resizeMode="center"
         />
     </View>
 );
 
 ImageView.propTypes = propTypes;
-ImageView.defaultProps = defaultProps;
 ImageView.displayName = 'ImageView';
 
-export default ImageView;
+export default memo(ImageView);

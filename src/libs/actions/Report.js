@@ -15,7 +15,9 @@ import ROUTES from '../../ROUTES';
 import NetworkConnection from '../NetworkConnection';
 import {hide as hideSidebar} from './Sidebar';
 import CONFIG from '../../CONFIG';
+import Timing from './Timing';
 import * as API from '../API';
+import CONST from '../../CONST';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -54,34 +56,40 @@ const typingWatchTimers = {};
 const reportMaxSequenceNumbers = {};
 
 // Keeps track of the last read for each report
-const lastReadActionIDs = {};
+const lastReadSequenceNumbers = {};
 
 /**
  * Checks the report to see if there are any unread action items
  *
- * @param {object} report
- * @returns {boolean}
+ * @param {Object} report
+ * @returns {Boolean}
  */
 function getUnreadActionCount(report) {
-    const usersLastReadActionID = lodashGet(report, [
+    // @todo remove the first check as part of cleanup https://github.com/Expensify/Expensify/issues/145243
+    // since we migrating our data from lastReadActionID_ value to lastRead_ object.
+    const lastReadSequenceNumber = lodashGet(report, [
         'reportNameValuePairs',
         `lastReadActionID_${currentUserAccountID}`,
+    ]) || lodashGet(report, [
+        'reportNameValuePairs',
+        `lastRead_${currentUserAccountID}`,
+        'sequenceNumber',
     ]);
 
     // Save the lastReadActionID locally so we can access this later
-    lastReadActionIDs[report.reportID] = usersLastReadActionID;
+    lastReadSequenceNumbers[report.reportID] = lastReadSequenceNumber;
 
     if (report.reportActionList.length === 0) {
         return 0;
     }
 
-    if (!usersLastReadActionID) {
+    if (!lastReadSequenceNumber) {
         return report.reportActionList.length;
     }
 
     // There are unread items if the last one the user has read is less
     // than the highest sequence number we have
-    const unreadActionCount = report.reportActionList.length - usersLastReadActionID;
+    const unreadActionCount = report.reportActionList.length - lastReadSequenceNumber;
     return Math.max(0, unreadActionCount);
 }
 
@@ -98,29 +106,33 @@ function getParticipantEmailsFromReport({sharedReportList}) {
  * Only store the minimal amount of data in Onyx that needs to be stored
  * because space is limited
  *
- * @param {object} report
- * @param {number} report.reportID
- * @param {string} report.reportName
- * @param {object} report.reportNameValuePairs
- * @returns {object}
+ * @param {Object} report
+ * @param {Number} report.reportID
+ * @param {String} report.reportName
+ * @param {Object} report.reportNameValuePairs
+ * @returns {Object}
  */
 function getSimplifiedReportObject(report) {
     return {
         reportID: report.reportID,
         reportName: report.reportName,
-        reportNameValuePairs: report.reportNameValuePairs,
         unreadActionCount: getUnreadActionCount(report),
         maxSequenceNumber: report.reportActionList.length,
         participants: getParticipantEmailsFromReport(report),
         isPinned: report.isPinned,
+        lastVisitedTimestamp: lodashGet(report, [
+            'reportNameValuePairs',
+            `lastRead_${currentUserAccountID}`,
+            'timestamp'
+        ], 0)
     };
 }
 
 /**
  * Returns a generated report title based on the participants
  *
- * @param {array} sharedReportList
- * @return {string}
+ * @param {Array} sharedReportList
+ * @return {String}
  */
 function getChatReportName(sharedReportList) {
     return _.chain(sharedReportList)
@@ -149,15 +161,14 @@ function fetchChatReportsByIDs(chatList) {
         .then(({reports}) => {
             fetchedReports = reports;
 
-            // Build array of all participant emails so we can
-            // get the personal details.
-            let participantEmails = [];
-
-            // Process the reports and store them in Onyx
+            // Process the reports and store them in Onyx. At the same time we'll save the simplified reports in this
+            // variable called simplifiedReports which hold the participants (minus the current user) for each report.
+            // Using this simplifiedReport we can call PersonalDetails.getFromReportParticipants to get the
+            // personal details of all the participants and even link up their avatars to report icons.
+            const simplifiedReports = [];
             _.each(fetchedReports, (report) => {
                 const newReport = getSimplifiedReportObject(report);
-
-                participantEmails.push(newReport.participants);
+                simplifiedReports.push(newReport);
 
                 if (lodashGet(report, 'reportNameValuePairs.type') === 'chat') {
                     newReport.reportName = getChatReportName(report.sharedReportList);
@@ -167,39 +178,34 @@ function fetchChatReportsByIDs(chatList) {
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, newReport);
             });
 
-            // Fetch the person details if there are any
-            participantEmails = _.unique(participantEmails);
-            if (participantEmails && participantEmails.length !== 0) {
-                PersonalDetails.getForEmails(participantEmails.join(','));
-            }
+            // Fetch the personal details if there are any
+            PersonalDetails.getFromReportParticipants(simplifiedReports);
 
             return _.map(fetchedReports, report => report.reportID);
         });
 }
 
 /**
- * Update the lastReadActionID in Onyx and local memory.
+ * Update the lastRead actionID and timestamp in local memory and Onyx
  *
  * @param {Number} reportID
  * @param {Number} sequenceNumber
  */
-function setLocalLastReadActionID(reportID, sequenceNumber) {
-    lastReadActionIDs[reportID] = sequenceNumber;
+function setLocalLastRead(reportID, sequenceNumber) {
+    lastReadSequenceNumbers[reportID] = sequenceNumber;
 
-    // Update the lastReadActionID on the report optimistically
+    // Update the report optimistically
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         unreadActionCount: 0,
-        reportNameValuePairs: {
-            [`lastReadActionID_${currentUserAccountID}`]: sequenceNumber,
-        }
+        lastVisitedTimestamp: Date.now(),
     });
 }
 
 /**
  * Updates a report in the store with a new report action
  *
- * @param {number} reportID
- * @param {object} reportAction
+ * @param {Number} reportID
+ * @param {Object} reportAction
  */
 function updateReportWithNewAction(reportID, reportAction) {
     const newMaxSequenceNumber = reportAction.sequenceNumber;
@@ -209,7 +215,7 @@ function updateReportWithNewAction(reportID, reportAction) {
     // last read actionID has been updated in the server but not necessarily reflected
     // locally so we must first update it and then calculate the unread (which should be 0)
     if (isFromCurrentUser) {
-        setLocalLastReadActionID(reportID, newMaxSequenceNumber);
+        setLocalLastRead(reportID, newMaxSequenceNumber);
     }
 
     // Always merge the reportID into Onyx
@@ -217,7 +223,7 @@ function updateReportWithNewAction(reportID, reportAction) {
     // by handleReportChanged
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         reportID,
-        unreadActionCount: newMaxSequenceNumber - (lastReadActionIDs[reportID] || 0),
+        unreadActionCount: newMaxSequenceNumber - (lastReadSequenceNumbers[reportID] || 0),
         maxSequenceNumber: reportAction.sequenceNumber,
     });
 
@@ -265,8 +271,8 @@ function updateReportWithNewAction(reportID, reportAction) {
 /**
  * Get the private pusher channel name for a Report.
  *
- * @param {number} reportID
- * @returns {string}
+ * @param {Number} reportID
+ * @returns {String}
  */
 function getReportChannelName(reportID) {
     return `private-report-reportID-${reportID}`;
@@ -311,7 +317,7 @@ function subscribeToReportCommentEvents() {
 /**
  * Initialize our pusher subscriptions to listen for someone typing in a report.
  *
- * @param {number} reportID
+ * @param {Number} reportID
  */
 function subscribeToReportTypingEvents(reportID) {
     if (!reportID) {
@@ -349,7 +355,7 @@ function subscribeToReportTypingEvents(reportID) {
 /**
  * Remove our pusher subscriptions to listen for someone typing in a report.
  *
- * @param {number} reportID
+ * @param {Number} reportID
  */
 function unsubscribeFromReportChannel(reportID) {
     if (!reportID) {
@@ -379,7 +385,7 @@ function fetchChatReports() {
 /**
  * Get the actions of a report
  *
- * @param {number} reportID
+ * @param {Number} reportID
  */
 function fetchActions(reportID) {
     API.Report_GetHistory({reportID})
@@ -397,11 +403,11 @@ function fetchActions(reportID) {
 /**
  * Get all of our reports
  *
- * @param {boolean} shouldRedirectToReport this is set to false when the network reconnect
- *     code runs
- * @param {boolean} shouldFetchActions whether or not the actions of the reports should also be fetched
+ * @param {Boolean} shouldRedirectToReport this is set to false when the network reconnect code runs
+ * @param {Boolean} shouldFetchActions whether or not the actions of the reports should also be fetched
+ * @param {Boolean} shouldRecordHomePageTiming whether or not performance timing should be measured
  */
-function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false) {
+function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false, shouldRecordHomePageTiming = false) {
     fetchChatReports()
         .then((reportIDs) => {
             if (shouldRedirectToReport && (currentURL === ROUTES.ROOT || currentURL === ROUTES.HOME)) {
@@ -419,6 +425,10 @@ function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false) {
                     fetchActions(reportID);
                 });
             }
+
+            if (shouldRecordHomePageTiming) {
+                Timing.end(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
+            }
         });
 }
 
@@ -426,7 +436,7 @@ function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false) {
  * Get the report ID, and then the actions, for a chat report for a specific
  * set of participants
  *
- * @param {string[]} participants
+ * @param {String[]} participants
  */
 function fetchOrCreateChatReport(participants) {
     let reportID;
@@ -440,6 +450,11 @@ function fetchOrCreateChatReport(participants) {
     })
 
         .then((data) => {
+            if (data.jsonCode !== 200) {
+                alert(data.message);
+                return;
+            }
+
             // Set aside the reportID in a local variable so it can be accessed in the rest of the chain
             reportID = data.reportID;
 
@@ -453,15 +468,25 @@ function fetchOrCreateChatReport(participants) {
 
         // Put the report object into Onyx
         .then((data) => {
+            if (data.reports.length === 0) {
+                return;
+            }
             const report = data.reports[reportID];
 
             // Store only the absolute bare minimum of data in Onyx because space is limited
             const newReport = getSimplifiedReportObject(report);
             newReport.reportName = getChatReportName(report.sharedReportList);
 
+            // Optimistically update the last visited timestamp such that if the user immediately switches to another
+            // report the last visited order is still maintained.
+            newReport.lastVisitedTimestamp = Date.now();
+
             // Merge the data into Onyx. Don't use set() here or multiSet() because then that would
             // overwrite any existing data (like if they have unread messages)
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, newReport);
+
+            // Updates the personal details since its possible that a new participant was provided
+            PersonalDetails.getFromReportParticipants([newReport]);
 
             // Redirect the logged in person to the new report
             redirect(ROUTES.getReportRoute(reportID));
@@ -471,9 +496,9 @@ function fetchOrCreateChatReport(participants) {
 /**
  * Add an action item to a report
  *
- * @param {number} reportID
- * @param {string} text
- * @param {object} [file]
+ * @param {Number} reportID
+ * @param {String} text
+ * @param {Object} [file]
  */
 function addAction(reportID, text, file) {
     const actionKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
@@ -535,8 +560,8 @@ function addAction(reportID, text, file) {
  * Updates the last read action ID on the report. It optimistically makes the change to the store, and then let's the
  * network layer handle the delayed write.
  *
- * @param {number} reportID
- * @param {number} sequenceNumber
+ * @param {Number} reportID
+ * @param {Number} sequenceNumber
  */
 function updateLastReadActionID(reportID, sequenceNumber) {
     const currentMaxSequenceNumber = reportMaxSequenceNumbers[reportID];
@@ -544,10 +569,10 @@ function updateLastReadActionID(reportID, sequenceNumber) {
         return;
     }
 
-    setLocalLastReadActionID(reportID, sequenceNumber);
+    setLocalLastRead(reportID, sequenceNumber);
 
     // Mark the report as not having any unread items
-    API.Report_SetLastReadActionID({
+    API.Report_UpdateLastRead({
         accountID: currentUserAccountID,
         reportID,
         sequenceNumber,
@@ -557,7 +582,7 @@ function updateLastReadActionID(reportID, sequenceNumber) {
 /**
  * Toggles the pinned state of the report
  *
- * @param {object} report
+ * @param {Object} report
  */
 function togglePinnedState(report) {
     const pinnedValue = !report.isPinned;
@@ -572,8 +597,8 @@ function togglePinnedState(report) {
  * Saves the comment left by the user as they are typing. By saving this data the user can switch between chats, close
  * tab, refresh etc without worrying about loosing what they typed out.
  *
- * @param {number} reportID
- * @param {string} comment
+ * @param {Number} reportID
+ * @param {String} comment
  */
 function saveReportComment(reportID, comment) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, comment);
@@ -582,7 +607,7 @@ function saveReportComment(reportID, comment) {
 /**
  * Broadcasts whether or not a user is typing on a report over the report's private pusher channel.
  *
- * @param {number} reportID
+ * @param {Number} reportID
  */
 function broadcastUserIsTyping(reportID) {
     const privateReportChannelName = getReportChannelName(reportID);
@@ -595,7 +620,7 @@ function broadcastUserIsTyping(reportID) {
  * When a report changes in Onyx, this fetches the report from the API if the report doesn't have a name
  * and it keeps track of the max sequence number on the report actions.
  *
- * @param {object} report
+ * @param {Object} report
  */
 function handleReportChanged(report) {
     if (!report) {
@@ -604,7 +629,7 @@ function handleReportChanged(report) {
 
     // A report can be missing a name if a comment is received via pusher event
     // and the report does not yet exist in Onyx (eg. a new DM created with the logged in person)
-    if (report.reportName === undefined) {
+    if (report.reportID && report.reportName === undefined) {
         fetchChatReportsByIDs([report.reportID]);
     }
 
