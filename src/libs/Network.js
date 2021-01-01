@@ -3,7 +3,6 @@ import Onyx from 'react-native-onyx';
 import HttpUtils from './HttpUtils';
 import NetworkConnection from './NetworkConnection';
 import ONYXKEYS from '../ONYXKEYS';
-import CONFIG from '../CONFIG';
 
 let isQueuePaused = false;
 
@@ -83,11 +82,6 @@ setInterval(processNetworkRequestQueue, 1000);
  * @returns {Promise}
  */
 function post(command, data, type) {
-    // // Mock all post requests
-    if (CONFIG.IS_JEST_RUNNING) {
-        return Promise.resolve();
-    }
-
     return new Promise((resolve, reject) => {
         // Add the write request to a queue of actions to perform
         networkRequestQueue.push({

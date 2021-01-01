@@ -19,7 +19,6 @@
     "ios-build": "fastlane ios build",
     "android-build": "fastlane android build",
     "test": "jest",
-    "lint-tests": "eslint tests/**",
     "lint": "eslint .",
     "postversion": "react-native-version",
     "print-version": "echo $npm_package_version",
