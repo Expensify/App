@@ -294,7 +294,7 @@ function subscribeToReportCommentEvents() {
 
     // This check is to prevent duplicate subscriptions. The mock channels for jest
     // are always subscribed when created so we skip this check when testing or else it
-    // will prevent us from binding an even to the channel.
+    // will prevent us from binding an event to the channel.
     if (!CONFIG.IS_JEST_RUNNING && pusherSubscribedOrSubscribing) {
         return;
     }
