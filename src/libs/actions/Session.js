@@ -70,8 +70,9 @@ function signOut() {
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         doNotRetry: true,
-    })
-        .catch(error => Onyx.merge(ONYXKEYS.SESSION, {error: error.message}));
+    }).then(() => {
+        Onyx.clear();
+    }).catch(error => Onyx.merge(ONYXKEYS.SESSION, {error: error.message}));
 }
 
 /**
@@ -80,7 +81,7 @@ function signOut() {
  * @param {String} login
  */
 function fetchAccountDetails(login) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', loading: true});
+    Onyx.set(ONYXKEYS.ACCOUNT, {error: '', loading: true});
 
     API.GetAccountStatus({email: login, isViaExpensifyCash: true})
         .then((response) => {
