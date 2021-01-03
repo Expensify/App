@@ -167,7 +167,7 @@ function getFromReportParticipants(reports) {
             // report and based on the participants we'll link up their avatars to report icons.
             _.each(reports, (report) => {
                 if (report.participants.length > 0) {
-                    const avatars = reports.participants
+                    const avatars = report.participants
                         .map(dmParticipant => ({
                             firstName: lodashGet(details, [dmParticipant, 'firstName'], ''),
                             avatar: lodashGet(details, [dmParticipant, 'avatar'], getDefaultAvatar(dmParticipant)),
