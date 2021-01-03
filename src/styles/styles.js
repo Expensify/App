@@ -781,7 +781,7 @@ const styles = {
     },
 
     chatSwitcherAvatarText: {
-        backgroundColor: colors.gray3,
+        backgroundColor: themeColors.icon,
         justifyContent: 'center',
         alignItems: 'center',
         borderRadius: variables.avatarSizeNormal,
