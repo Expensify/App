@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import lodashOrderby from 'lodash.orderby';
 import get from 'lodash.get';
 import {withOnyx} from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
 import styles from '../../../styles/styles';
 import ONYXKEYS from '../../../ONYXKEYS';
 import ChatSwitcherView from './ChatSwitcherView';
@@ -12,6 +13,8 @@ import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
 import compose from '../../../libs/compose';
 import {withRouter} from '../../../libs/Router';
 import ChatLinkRow from './ChatLinkRow';
+import {redirect} from '../../../libs/actions/App';
+import ROUTES from '../../../ROUTES';
 
 const propTypes = {
     // These are from withRouter
@@ -91,7 +94,7 @@ const SidebarLinks = (props) => {
         : [styles.sidebarHeader];
 
     return (
-        <View style={[styles.flex1, styles.height100percent, {marginTop: props.insets.top}]}>
+        <View style={[styles.flex1, styles.h100, {marginTop: props.insets.top}]}>
             <View style={[chatSwitcherStyle]}>
                 <ChatSwitcherView
                     onLinkClick={props.onLinkClick}
@@ -109,20 +112,27 @@ const SidebarLinks = (props) => {
                 {_.map(reportsToDisplay, (report) => {
                     const participantDetails = get(report, 'participants.length', 0) === 1
                         ? get(props.personalDetails, report.participants[0], '') : '';
+                    const login = participantDetails ? participantDetails.login : '';
                     return report.reportName && (
                         <ChatLinkRow
                             key={report.reportID}
                             option={{
                                 text: participantDetails ? participantDetails.displayName : report.reportName,
-                                alternateText: participantDetails ? participantDetails.login : '',
+                                alternateText: Str.removeSMSDomain(login),
                                 type: participantDetails ? 'user' : 'report',
-                                icon: participantDetails ? participantDetails.avatarURL : '',
-                                login: participantDetails ? participantDetails.login : '',
+
+                                // The icon for the row is set when we fetch personal details via
+                                // PersonalDetails.getFromReportParticipants()
+                                icon: report.icon,
+                                login,
                                 reportID: report.reportID,
                                 isUnread: report.unreadActionCount > 0,
                                 hasDraftComment: report.reportID !== reportIDInUrl && hasComment(report.reportID)
                             }}
-                            onSelectRow={props.onLinkClick}
+                            onSelectRow={() => {
+                                redirect(ROUTES.getReportRoute(report.reportID));
+                                props.onLinkClick();
+                            }}
                             optionIsFocused={report.reportID === reportIDInUrl}
                         />
                     );

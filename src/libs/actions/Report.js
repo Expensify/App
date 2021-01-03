@@ -491,26 +491,48 @@ function fetchOrCreateChatReport(participants) {
         shouldLoadOptionalKeys: true,
       });
     })
+        .then((data) => {
+            if (data.jsonCode !== 200) {
+                alert(data.message);
+                return;
+            }
 
-    // Put the report object into Onyx
-    .then((data) => {
-      const report = data.reports[reportID];
+            // Set aside the reportID in a local variable so it can be accessed in the rest of the chain
+            reportID = data.reportID;
 
-      // Store only the absolute bare minimum of data in Onyx because space is limited
-      const newReport = getSimplifiedReportObject(report);
-      newReport.reportName = getChatReportName(report.sharedReportList);
+            // Make a request to get all the information about the report
+            return API.Get({
+                returnValueList: 'reportStuff',
+                reportIDList: reportID,
+                shouldLoadOptionalKeys: true,
+            });
+        })
 
-      // Optimistically update the last visited timestamp such that if the user immediately switches to another
-      // report the last visited order is still maintained.
-      newReport.lastVisitedTimestamp = Date.now();
+        // Put the report object into Onyx
+        .then((data) => {
+            if (data.reports.length === 0) {
+                return;
+            }
+            const report = data.reports[reportID];
 
-      // Merge the data into Onyx. Don't use set() here or multiSet() because then that would
-      // overwrite any existing data (like if they have unread messages)
-      Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, newReport);
+            // Store only the absolute bare minimum of data in Onyx because space is limited
+            const newReport = getSimplifiedReportObject(report);
+            newReport.reportName = getChatReportName(report.sharedReportList);
 
-      // Redirect the logged in person to the new report
-      redirect(ROUTES.getReportRoute(reportID));
-    });
+            // Optimistically update the last visited timestamp such that if the user immediately switches to another
+            // report the last visited order is still maintained.
+            newReport.lastVisitedTimestamp = Date.now();
+
+            // Merge the data into Onyx. Don't use set() here or multiSet() because then that would
+            // overwrite any existing data (like if they have unread messages)
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, newReport);
+
+            // Updates the personal details since its possible that a new participant was provided
+            PersonalDetails.getFromReportParticipants([newReport]);
+
+            // Redirect the logged in person to the new report
+            redirect(ROUTES.getReportRoute(reportID));
+        });
 }
 
 /**
@@ -649,18 +671,18 @@ function broadcastUserIsTyping(reportID) {
  * @param {Object} report
  */
 function handleReportChanged(report) {
-  if (!report) {
-    return;
-  }
+    if (!report) {
+        return;
+    }
 
-  // A report can be missing a name if a comment is received via pusher event
-  // and the report does not yet exist in Onyx (eg. a new DM created with the logged in person)
-  if (report.reportName === undefined) {
-    fetchChatReportsByIDs([report.reportID]);
-  }
+    // A report can be missing a name if a comment is received via pusher event
+    // and the report does not yet exist in Onyx (eg. a new DM created with the logged in person)
+    if (report.reportID && report.reportName === undefined) {
+        fetchChatReportsByIDs([report.reportID]);
+    }
 
-  // Store the max sequence number for each report
-  reportMaxSequenceNumbers[report.reportID] = report.maxSequenceNumber;
+    // Store the max sequence number for each report
+    reportMaxSequenceNumbers[report.reportID] = report.maxSequenceNumber;
 }
 
 Onyx.connect({

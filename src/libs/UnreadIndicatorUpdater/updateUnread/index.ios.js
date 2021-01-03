@@ -1,4 +1,4 @@
-import PushNotificationIOS from '@react-native-community/push-notification-ios';
+import {UrbanAirship} from 'urbanairship-react-native';
 
 /**
  * Set the App Icon badge with the number of
@@ -7,7 +7,7 @@ import PushNotificationIOS from '@react-native-community/push-notification-ios';
  * @param {Number} totalCount
  */
 function updateUnread(totalCount) {
-    PushNotificationIOS.setApplicationIconBadgeNumber(totalCount);
+    UrbanAirship.setBadgeNumber(totalCount);
 }
 
 export default updateUnread;
