@@ -4,7 +4,6 @@
  */
 import {
     NativeRouter as Router,
-    Link,
     Route,
     Redirect,
     Switch,
@@ -12,7 +11,6 @@ import {
 } from 'react-router-native';
 
 export {
-    Link,
     Route,
     Redirect,
     Router,
