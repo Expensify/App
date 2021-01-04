@@ -36,7 +36,11 @@ We are currently managing payment via Upwork. If you'd like to be paid for your 
 Upon submission of a PR, please include a numbered list of explicit testing steps for each platform (Web, Desktop, iOS, and Android) to confirm the fix works as expected and there are no regressions.
 
 #### Review Tips
+
+### Getting Attention
 - If you have made a change and are ready for another review the best way to get your reviewer's attention is to leave a comment that says "Updated" on the PR itself.
 - Please do NOT ping individual reviewers in the Slack channel to get their attention and keep the conversation in GitHub whenever possible.
 - Patience is a virtue. Reviews can sometimes take place over the course of several days. If your PR has not been addressed after 3 days please leave a comment on the PR. If the PR goes without a response for another day please let us know via Slack.
 
+### JavaScript Style
+- We have nothing against Prettier or any other automatic style fixers, but we generally don't use them here at Expensify. Do not use Prettier. The style changes these tools enforce don't always align with the ones we recommend and require in our eslint configs and can result in uncessary changes for our reviewers. Ignoring this advice will ultimately make your changes take longer to review as we will ask you to undo any style changes that are not relating to the important changes you are making.
