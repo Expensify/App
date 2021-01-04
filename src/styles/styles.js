@@ -725,14 +725,12 @@ const styles = {
     },
 
     hamburgerOpenAbsolute: {
-        borderRightWidth: 1,
         borderColor: themeColors.border,
         position: 'absolute',
         left: 0,
         top: 0,
         bottom: 0,
         zIndex: 2,
-        width: 300,
         shadowColor: themeColors.shadow,
         shadowOffset: {
             width: 0,
@@ -743,17 +741,74 @@ const styles = {
     },
 
     hamburgerOpen: {
-        borderRightWidth: 1,
         borderColor: themeColors.border,
-        width: 300,
+        width: variables.sideBarWidth,
+    },
+
+    sidebarVisible: {
+        width: variables.sideBarWidth,
+        borderRightWidth: 1,
+    },
+
+    sidebarHidden: {
+        width: 0,
+        borderRightWidth: 0,
+    },
+
+    chatSwitcherSingleAvatar: {
+        height: variables.avatarSizeNormal,
+        width: variables.avatarSizeNormal,
+        borderRadius: variables.avatarSizeNormal,
+    },
+
+    chatSwitcherBigAvatar: {
+        height: variables.componentSizeNormal,
+        width: variables.componentSizeNormal,
+        borderRadius: variables.componentSizeNormal,
+    },
+
+    chatSwitcherAvatar1: {
+        marginTop: -variables.componentSizeNormal / 2,
+        borderRadius: variables.avatarSizeNormal,
+    },
+
+    chatSwitcherAvatar2: {
+        marginTop: variables.avatarSizeNormal / 2,
+        height: variables.avatarSizeNormal + 6,
+        width: variables.avatarSizeNormal + 6,
+        borderRadius: variables.avatarSizeNormal + 6,
+        left: -variables.avatarSizeNormal / 2,
+    },
+
+    chatSwitcherAvatarText: {
+        backgroundColor: themeColors.icon,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: variables.avatarSizeNormal,
+        height: variables.avatarSizeNormal,
+        width: variables.avatarSizeNormal,
+    },
+
+    chatSwitcherAvatarInnerText: {
+        color: themeColors.textReversed,
+        fontSize: variables.fontSizeSmall,
+    },
+
+    chatSwitcherAvatarSpace: {
+        top: 3,
+        left: 3,
     },
 
     chatSwitcherAvatar: {
-        backgroundColor: themeColors.icon,
-        borderRadius: 20,
-        height: variables.componentSizeNormal,
-        overflow: 'hidden',
-        width: variables.componentSizeNormal,
+        backgroundColor: themeColors.sidebar,
+    },
+
+    chatSwitcherFocusedAvatar: {
+        backgroundColor: themeColors.border,
+    },
+
+    chatSwitcherEmptyAvatar1: {
+        marginRight: variables.componentSizeNormal - variables.avatarSizeNormal,
     },
 
     chatSwitcherItemText: {

@@ -10,10 +10,8 @@ import {
 } from 'react-native';
 import styles from '../../../styles/styles';
 import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
-import ROUTES from '../../../ROUTES';
 import pencilIcon from '../../../../assets/images/icon-pencil.png';
-import PressableLink from '../../../components/PressableLink';
-import Avatar from '../../../components/Avatar';
+import MultiAvatar from '../../../components/MultiAvatar';
 
 const propTypes = {
     // Option to allow the user to choose from can be type 'report' or 'user'
@@ -60,9 +58,9 @@ const ChatLinkRow = ({
                 optionIsFocused ? styles.sidebarLinkActive : null,
             ]}
         >
-            <PressableLink
-                onClick={() => onSelectRow(option)}
-                to={ROUTES.getReportRoute(option.reportID)}
+            <TouchableOpacity
+                onPress={() => onSelectRow(option)}
+                activeOpacity={0.8}
                 style={StyleSheet.flatten([
                     styles.chatLinkRowPressable,
                     styles.flexGrow1,
@@ -78,9 +76,10 @@ const ChatLinkRow = ({
                     {
                         !_.isEmpty(option.icon)
                         && (
-                            <View style={[styles.chatSwitcherAvatar, styles.mr3]}>
-                                <Avatar source={option.icon} />
-                            </View>
+                            <MultiAvatar
+                                avatarImageURLs={option.icon}
+                                optionIsFocused={optionIsFocused}
+                            />
                         )
                     }
                     <View style={[styles.flex1]}>
@@ -103,7 +102,7 @@ const ChatLinkRow = ({
                         )}
                     </View>
                 </View>
-            </PressableLink>
+            </TouchableOpacity>
             {option.singleUserDM && isChatSwitcher && (
                 <View>
                     <TouchableOpacity
