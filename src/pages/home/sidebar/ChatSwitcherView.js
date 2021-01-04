@@ -546,7 +546,7 @@ export default withOnyx({
         key: ONYXKEYS.PERSONAL_DETAILS,
     },
     reports: {
-        key: ONYXKEYS.COLLECTION.REPORT
+        key: ONYXKEYS.COLLECTION.REPORT,
     },
     session: {
         key: ONYXKEYS.SESSION,
@@ -556,6 +556,6 @@ export default withOnyx({
         initFromStoredValues: false,
     },
     countryCodeByIP: {
-        key: ONYXKEYS.COUNTRY_CODE
-    }
+        key: ONYXKEYS.COUNTRY_CODE,
+    },
 })(ChatSwitcherView);
