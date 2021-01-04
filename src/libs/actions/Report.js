@@ -621,7 +621,7 @@ function handleReportChanged(report) {
 
     // A report can be missing a name if a comment is received via pusher event
     // and the report does not yet exist in Onyx (eg. a new DM created with the logged in person)
-    if (report.reportName === undefined) {
+    if (report.reportID && report.reportName === undefined) {
         fetchChatReportsByIDs([report.reportID]);
     }
 
