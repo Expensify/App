@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {View, useWindowDimensions} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
@@ -38,6 +38,19 @@ const Modal = (props) => {
         animationOut,
         needsSafeAreaPadding
     } = getModalStyles(props.type, useWindowDimensions());
+
+    useEffect(() => {
+        const onKeyPressed = (event) => {
+            if (event.keyCode === 27) {
+                props.onClose();
+            }
+        };
+        document.addEventListener('keydown', onKeyPressed);
+
+        return () => {
+            document.removeEventListener('keydown', onKeyPressed);
+        };
+    }, []);
 
     return (
         <ReactNativeModal

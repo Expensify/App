@@ -57,22 +57,6 @@ class AttachmentModal extends Component {
             file: null,
             sourceURL: props.sourceURL,
         };
-
-        this.onKeyPressed = this.onKeyPressed.bind(this);
-    }
-
-    componentDidMount() {
-        document.addEventListener('keydown', this.onKeyPressed);
-    }
-
-    componentWillUnmount() {
-        document.removeEventListener('keydown', this.onKeyPressed);
-    }
-
-    onKeyPressed(event) {
-        if (this.state.isModalOpen && event.keyCode === 27) {
-            this.setState({isModalOpen: false});
-        }
     }
 
     render() {
