@@ -123,7 +123,7 @@ const SidebarLinks = (props) => {
 
                                 // The icon for the row is set when we fetch personal details via
                                 // PersonalDetails.getFromReportParticipants()
-                                icon: report.icon,
+                                icons: report.icons,
                                 login,
                                 reportID: report.reportID,
                                 isUnread: report.unreadActionCount > 0,

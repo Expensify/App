@@ -16,42 +16,42 @@ const defaultProps = {
     optionIsFocused: false,
 };
 
-const MultiAvatar = props => (
+const MultipleAvatars = props => (
     <>
         {props.avatarImageURLs !== undefined && (
             <>
                 <View
                     style={[
                         props.avatarImageURLs.length > 1
-                            ? [styles.chatSwitcherSingleAvatar, styles.chatSwitcherAvatar1]
-                            : [styles.chatSwitcherBigAvatar, styles.chatSwitcherEmptyAvatar1],
+                            ? [styles.singleAvatar, styles.singleLeftAvatar]
+                            : [styles.bigAvatar, styles.emptyAvatar],
                     ]}
                 >
                     <Image
                         source={{uri: props.avatarImageURLs[0]}}
                         style={
                             props.avatarImageURLs.length > 1
-                                ? styles.chatSwitcherSingleAvatar
-                                : styles.chatSwitcherBigAvatar
+                                ? styles.singleAvatar
+                                : styles.bigAvatar
                         }
                     />
                 </View>
                 {props.avatarImageURLs.length > 1 && (
                     <View
                         style={[
-                            styles.chatSwitcherSingleAvatar,
-                            props.avatarImageURLs.length > 1 ? styles.chatSwitcherAvatar2 : null,
-                            props.optionIsFocused ? styles.chatSwitcherFocusedAvatar : styles.chatSwitcherAvatar,
+                            styles.singleAvatar,
+                            props.avatarImageURLs.length > 1 ? styles.singleRightAvatar : null,
+                            props.optionIsFocused ? styles.focusedAvatar : styles.avatar,
                         ]}
                     >
                         {props.avatarImageURLs.length > 2 && (
                             <View
                                 style={[
-                                    styles.chatSwitcherAvatarText,
-                                    styles.chatSwitcherAvatarSpace,
+                                    styles.avatarText,
+                                    styles.avatarSpace,
                                 ]}
                             >
-                                <Text style={styles.chatSwitcherAvatarInnerText}>
+                                <Text style={styles.avatarInnerText}>
                                     {props.avatarImageURLs.length}
                                 </Text>
                             </View>
@@ -60,8 +60,8 @@ const MultiAvatar = props => (
                             <Image
                                 source={{uri: props.avatarImageURLs[1]}}
                                 style={[
-                                    styles.chatSwitcherSingleAvatar,
-                                    styles.chatSwitcherAvatarSpace,
+                                    styles.singleAvatar,
+                                    styles.avatarSpace,
                                 ]}
                             />
                         )}
@@ -72,6 +72,6 @@ const MultiAvatar = props => (
     </>
 );
 
-MultiAvatar.defaultProps = defaultProps;
-MultiAvatar.propTypes = propTypes;
-export default memo(MultiAvatar);
+MultipleAvatars.defaultProps = defaultProps;
+MultipleAvatars.propTypes = propTypes;
+export default memo(MultipleAvatars);
