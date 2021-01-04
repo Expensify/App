@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {PureComponent} from 'react';
 import {Image} from 'react-native';
 import PropTypes from 'prop-types';
 
@@ -25,7 +25,7 @@ const defaultProps = {
  * performing some calculation on a network image after fetching dimensions so
  * it can be appropriately resized.
  */
-class ImageWithSizeCalculation extends Component {
+class ImageWithSizeCalculation extends PureComponent {
     constructor(props) {
         super(props);
         this.isComponentMounted = false;
