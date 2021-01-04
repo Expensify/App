@@ -55,7 +55,7 @@ const ChatLinkRow = ({
                 styles.justifyContentBetween,
                 styles.sidebarLink,
                 styles.sidebarLinkInner,
-                optionIsFocused ? styles.sidebarLinkActive : null
+                optionIsFocused ? styles.sidebarLinkActive : null,
             ]}
         >
             <TouchableOpacity
