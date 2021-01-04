@@ -75,7 +75,6 @@ class AttachmentModal extends Component {
         }
     }
 
-
     render() {
         const sourceURL = addAuthTokenToURL({
             url: this.state.sourceURL,
