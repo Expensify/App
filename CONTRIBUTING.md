@@ -2,10 +2,10 @@
 Welcome! Thanks for checking out Expensify.cash and for taking the time to contribute!
 
 ## Getting Started
-This guide is specifically for external contributors. For a general overview of the repo, check out our README located [here](https://github.com/Expensify/Expensify.cash/blob/master/README.md). The part of the README to pay particular attention to is how to [run the app](https://github.com/Expensify/Expensify.cash#running-the-apps-via-production-api-proxy-contributors-) locally using our production API.
+This guide is specifically for external contributors. For a general overview of the repo, check out our README located [here](https://github.com/Expensify/Expensify.cash/blob/master/README.md). The part of the README to pay particular attention to is how to [run the app](https://github.com/Expensify/Expensify.cash#local-development) locally using our production API.
 
 #### Test Accounts
-You can create as many accounts as needed in order to test your changes. You can create your test accounts directly from [expensify.cash](https://expensify.cash/). Right now, accounts can't chat with each other by default. If you want your test accounts to be able to chat with each other, post in the #expensify-contributors [Slack channel](https://github.com/Expensify/Expensify.cash/blob/master/CONTRIBUTING.md#asking-questions) to ask someone to add your test accounts to a policy that allows chatting.
+You can create as many accounts as needed in order to test your changes directly from [expensify.cash](https://expensify.cash/). An initial account can be created when logging in for the first time and additional accounts can be invited by entering a valid email or phone in the "Find or start a chat" input then tapping the avatar.
 
 ## Code of Conduct
 This project and everyone participating in it is governed by the Expensify [Code of Conduct](https://github.com/Expensify/Expensify.cash/blob/master/CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [contributors@expensify.com](mailto:contributors@expensify.com).
@@ -34,3 +34,9 @@ We are currently managing payment via Upwork. If you'd like to be paid for your 
 
 #### Testing
 Upon submission of a PR, please include a numbered list of explicit testing steps for each platform (Web, Desktop, iOS, and Android) to confirm the fix works as expected and there are no regressions.
+
+#### Review Tips
+- If you have made a change and are ready for another review the best way to get your reviewer's attention is to leave a comment that says "Updated" on the PR itself.
+- Please do NOT ping individual reviewers in the Slack channel to get their attention and keep the conversation in GitHub whenever possible.
+- Patience is a virtue. Reviews can sometimes take place over the course of several days. If your PR has not been addressed after 3 days please leave a comment on the PR. If the PR goes without a response for another day please let us know via Slack.
+
