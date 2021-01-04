@@ -11,7 +11,7 @@ import {
 import styles from '../../../styles/styles';
 import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
 import pencilIcon from '../../../../assets/images/icon-pencil.png';
-import MultiAvatar from '../../../components/MultiAvatar';
+import MultipleAvatars from '../../../components/MultipleAvatars';
 
 const propTypes = {
     // Option to allow the user to choose from can be type 'report' or 'user'
@@ -74,10 +74,10 @@ const ChatLinkRow = ({
                     ]}
                 >
                     {
-                        !_.isEmpty(option.icon)
+                        !_.isEmpty(option.icons)
                         && (
-                            <MultiAvatar
-                                avatarImageURLs={option.icon}
+                            <MultipleAvatars
+                                avatarImageURLs={option.icons}
                                 optionIsFocused={optionIsFocused}
                             />
                         )
