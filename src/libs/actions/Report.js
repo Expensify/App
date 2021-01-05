@@ -324,6 +324,7 @@ function subscribeToReportTypingEvents(reportID) {
     // Typing status is an object with the shape {[login]: Boolean} (e.g. {yuwen@expensify.com: true}), where the value
     // is whether the user with that login is typing on the report or not.
     Pusher.subscribe(pusherChannelName, 'client-userIsTyping', (typingStatus) => {
+        let userObject = typingStatus;
         let login = _.first(_.keys(typingStatus));
         if (!login) {
             return;
@@ -333,13 +334,13 @@ function subscribeToReportTypingEvents(reportID) {
         // We need to make sure to handle that case or it will say "userLogin is typing..."
         if (login === 'userLogin') {
             login = typingStatus.userLogin;
-            typingStatus = {[typingStatus.userLogin] : true};
+            userObject = {[typingStatus.userLogin]: true};
         }
 
         // Use a combo of the reportID and the login as a key for holding our timers.
         const reportUserIdentifier = `${reportID}-${login}`;
         clearTimeout(typingWatchTimers[reportUserIdentifier]);
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, typingStatus);
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, userObject);
 
         // Wait for 1.5s of no additional typing events before setting the status back to false.
         typingWatchTimers[reportUserIdentifier] = setTimeout(() => {
