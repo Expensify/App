@@ -323,11 +323,6 @@ const styles = {
         paddingVertical: 12,
     },
 
-    sidebarHeaderLogo: {
-        height: variables.componentSizeNormal,
-        width: variables.componentSizeNormal,
-    },
-
     sidebarFooter: {
         alignItems: 'center',
         display: 'flex',
@@ -631,11 +626,6 @@ const styles = {
     },
 
     chatItemSubmitButtonIcon: {
-        height: 20,
-        width: 20,
-    },
-
-    reportPinIcon: {
         height: 20,
         width: 20,
     },
