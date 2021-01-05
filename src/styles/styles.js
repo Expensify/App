@@ -751,9 +751,9 @@ const styles = {
     },
 
     singleAvatar: {
-        height: variables.avatarSizeNormal,
-        width: variables.avatarSizeNormal,
-        borderRadius: variables.avatarSizeNormal,
+        height: 24,
+        width: 24,
+        borderRadius: 24,
     },
 
     avatarNormal: {
@@ -764,30 +764,29 @@ const styles = {
 
     singleLeftAvatar: {
         marginTop: -variables.componentSizeNormal / 2,
-        borderRadius: variables.avatarSizeNormal,
+        borderRadius: 24,
     },
 
     singleRightAvatar: {
-        marginTop: variables.avatarSizeNormal / 2,
-        height: variables.avatarSizeNormal + 6,
-        width: variables.avatarSizeNormal + 6,
-        borderRadius: variables.avatarSizeNormal + 6,
-        left: -variables.avatarSizeNormal / 2,
+        marginTop: 12,
+        height: 30,
+        width: 30,
+        borderRadius: 30,
+        left: -12,
     },
 
     avatarText: {
         backgroundColor: themeColors.icon,
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderRadius: variables.avatarSizeNormal,
-        height: variables.avatarSizeNormal,
-        width: variables.avatarSizeNormal,
+        borderRadius: 24,
+        height: 24,
+        width: 24,
     },
 
     avatarInnerText: {
         color: themeColors.textReversed,
         fontSize: variables.fontSizeSmall,
-        lineHeight: variables.avatarSizeNormal,
+        lineHeight: 24,
+        textAlign: 'center',
     },
 
     avatarSpace: {
@@ -804,7 +803,7 @@ const styles = {
     },
 
     emptyAvatar: {
-        marginRight: variables.componentSizeNormal - variables.avatarSizeNormal,
+        marginRight: variables.componentSizeNormal - 24,
     },
 
     chatSwitcherItemAvatarNameWrapper: {
