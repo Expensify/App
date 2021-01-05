@@ -45,6 +45,7 @@ class ReportActionCompose extends React.Component {
         this.state = {
             isFocused: false,
             textInputShouldClear: false,
+            isEmpty: this.props.comment.length > 0,
         };
     }
 
@@ -90,11 +91,7 @@ class ReportActionCompose extends React.Component {
      * @param {String} newComment
      */
     updateComment(newComment) {
-        if (newComment.length <= 0) {
-            this.setState({textInputShouldClear: true});
-        } else {
-            this.setState({textInputShouldClear: false});
-        }
+        this.setState({isEmpty: newComment.length > 0});
         this.comment = newComment;
         this.debouncedSaveReportComment(newComment);
         this.debouncedBroadcastUserIsTyping();
@@ -136,6 +133,7 @@ class ReportActionCompose extends React.Component {
     }
 
     render() {
+        const { isEmpty } = this.state;
         return (
             <View style={[styles.chatItemCompose]}>
                 <View style={[
@@ -212,7 +210,7 @@ class ReportActionCompose extends React.Component {
                         )}
                     </AttachmentModal>
                     <TouchableOpacity
-                        style={[styles.chatItemSubmitButton, this.comment !== '' ? styles.buttonSuccess : styles.buttonDisabled]}
+                        style={[styles.chatItemSubmitButton, isEmpty ? styles.buttonSuccess : styles.buttonDisabled]}
                         onPress={this.submitForm}
                         underlayColor={themeColors.componentBG}
                     >
