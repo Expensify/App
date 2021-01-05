@@ -324,9 +324,16 @@ function subscribeToReportTypingEvents(reportID) {
     // Typing status is an object with the shape {[login]: Boolean} (e.g. {yuwen@expensify.com: true}), where the value
     // is whether the user with that login is typing on the report or not.
     Pusher.subscribe(pusherChannelName, 'client-userIsTyping', (typingStatus) => {
-        const login = _.first(_.keys(typingStatus));
+        let login = _.first(_.keys(typingStatus));
         if (!login) {
             return;
+        }
+
+        // If the user is typing on expensify.com (like concierge) the format will actually be [userLogin: Concierge]
+        // We need to make sure to handle that case or it will say "userLogin is typing..."
+        if (login === 'userLogin') {
+            login = typingStatus.userLogin;
+            typingStatus = {[typingStatus.userLogin] : true};
         }
 
         // Use a combo of the reportID and the login as a key for holding our timers.
