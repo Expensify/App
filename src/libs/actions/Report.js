@@ -318,13 +318,13 @@ function subscribeToReportCommentEvents() {
  * @returns {Object}
  */
 function getNormalizedTypingStatus(typingStatus) {
-    let userObject = typingStatus;
+    let normalizedTypingStatus = typingStatus;
 
     if (_.first(_.keys(typingStatus)) === 'userLogin') {
-        userObject = {[typingStatus.userLogin]: true};
+        normalizedTypingStatus = {[typingStatus.userLogin]: true};
     }
 
-    return userObject;
+    return normalizedTypingStatus;
 }
 
 /**
