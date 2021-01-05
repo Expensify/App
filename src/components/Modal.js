@@ -4,6 +4,7 @@ import {View, Dimensions} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import CustomStatusBar from './CustomStatusBar';
+import KeyboardShortcut from '../libs/KeyboardShortcut';
 import styles, {getSafeAreaPadding} from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import getModalStyles from '../styles/getModalStyles';
@@ -37,29 +38,22 @@ class Modal extends Component {
             window: Dimensions.get('window'),
         };
 
-        this.onKeyPressed = this.onKeyPressed.bind(this);
         this.onDimensionChange = this.onDimensionChange.bind(this);
     }
 
     componentDidMount() {
-        document.addEventListener('keydown', this.onKeyPressed);
+        KeyboardShortcut.subscribe('Escape', this.props.onClose, [], true);
         Dimensions.addEventListener('change', this.onDimensionChange);
     }
 
     componentWillUnmount() {
-        document.removeEventListener('keydown', this.onKeyPressed);
+        KeyboardShortcut.unsubscribe('Escape');
         Dimensions.removeEventListener('change', this.onDimensionChange);
     }
 
     onDimensionChange(newDimensions) {
         const {window} = newDimensions;
         this.setState({window});
-    }
-
-    onKeyPressed(event) {
-        if (event.keyCode === 27) {
-            this.props.onClose();
-        }
     }
 
     render() {
