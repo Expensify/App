@@ -127,6 +127,43 @@ class TextInputFocusable extends React.Component {
      * @param {ClipboardEvent} event
      */
     checkForAttachment(event) {
+        // Test for Image base64 string or url favailable in html content
+        if (
+            event.clipboardData.getData('text/html').includes('data:')
+      || event.clipboardData.getData('text/html').includes('http')
+        ) {
+            let base64;
+            let url;
+
+            if (event.clipboardData.getData('text/html').includes('data:')) {
+                base64 = `${event.clipboardData
+                    .getData('text/html')
+                    .match(/data:.+"/im)}`;
+                base64 = base64.substring(0, base64.length - 1);
+            } else {
+                url = `${event.clipboardData
+                    .getData('text/html')
+                    .match(/https?.*?"/im)}`;
+                url = url.substring(0, url.length - 1).trim();
+            }
+
+            fetch(base64 || url)
+                .then(res => res.blob())
+                .then((blob) => {
+                    const mimeType = base64
+                        ? base64.match(/[^:]\w+\/[\w-+\d.]+(?=;|,)/)[0]
+                        : 'image/png';
+                    const extension = base64 ? base64.match(/[^:/]\w+(?=;|,)/)[0] : '.png';
+                    const randomString = Math.random().toString(36).substring(5);
+
+                    this.props.onPasteFile(
+                        new File([blob], `${randomString}.${extension}`, {type: mimeType}),
+                    );
+                });
+
+            return;
+        }
+
         if (event.clipboardData.files.length > 0) {
             // Prevent the default so we do not post the file name into the text box
             event.preventDefault();
