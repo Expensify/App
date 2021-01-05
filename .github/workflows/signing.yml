@@ -1,0 +1,14 @@
+name: Check for unsigned commits
+
+on:
+    pull_request:
+        types: [opened, synchronize]
+
+jobs:
+    lint:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v2
+
+            - name: Run check
+              run: ./.github/workflows/signing.sh
