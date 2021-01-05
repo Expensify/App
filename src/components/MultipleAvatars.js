@@ -52,7 +52,7 @@ const MultipleAvatars = props => (
                                 ]}
                             >
                                 <Text style={styles.avatarInnerText}>
-                                    {props.avatarImageURLs.length}
+                                    {props.avatarImageURLs.length - 1}
                                 </Text>
                             </View>
                         )}
