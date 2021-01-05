@@ -95,6 +95,17 @@ module.exports = {
                     },
                 ],
             },
+
+            // Load svg images
+            {
+                test: /\.svg$/,
+                exclude: /node_modules/,
+                use: [
+                    {
+                        loader: '@svgr/webpack',
+                    },
+                ],
+            },
         ],
     },
     resolve: {
