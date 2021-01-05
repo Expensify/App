@@ -428,7 +428,7 @@ class ChatSwitcherView extends React.Component {
                 alternateText: personalDetail.login,
                 searchText: personalDetail.displayName === personalDetail.login ? personalDetail.login
                     : `${personalDetail.displayName} ${personalDetail.login}`,
-                icons: _.isArray(personalDetail.avatarURL) ? personalDetail.avatarURL : [personalDetail.avatarURL],
+                icons: [personalDetail.avatarURL],
                 login: personalDetail.login,
                 type: CONST.OPTION_TYPE.PERSONAL_DETAIL,
                 keyForList: personalDetail.login,

@@ -24,7 +24,7 @@ const MultipleAvatars = props => (
                     style={[
                         props.avatarImageURLs.length > 1
                             ? [styles.singleAvatar, styles.singleLeftAvatar]
-                            : [styles.bigAvatar, styles.emptyAvatar],
+                            : [styles.avatarNormal, styles.emptyAvatar],
                     ]}
                 >
                     <Image
@@ -32,7 +32,7 @@ const MultipleAvatars = props => (
                         style={
                             props.avatarImageURLs.length > 1
                                 ? styles.singleAvatar
-                                : styles.bigAvatar
+                                : styles.avatarNormal
                         }
                     />
                 </View>
