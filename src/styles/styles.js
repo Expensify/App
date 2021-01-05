@@ -323,11 +323,6 @@ const styles = {
         paddingVertical: 12,
     },
 
-    sidebarHeaderLogo: {
-        height: variables.componentSizeNormal,
-        width: variables.componentSizeNormal,
-    },
-
     sidebarFooter: {
         alignItems: 'center',
         display: 'flex',
@@ -635,11 +630,6 @@ const styles = {
         width: 20,
     },
 
-    reportPinIcon: {
-        height: 20,
-        width: 20,
-    },
-
     chatItemAttachButton: {
         alignItems: 'center',
         alignSelf: 'flex-end',
@@ -755,12 +745,60 @@ const styles = {
         borderRightWidth: 0,
     },
 
-    chatSwitcherAvatar: {
-        backgroundColor: themeColors.icon,
-        borderRadius: 20,
+    chatSwitcherSingleAvatar: {
+        height: variables.avatarSizeNormal,
+        width: variables.avatarSizeNormal,
+        borderRadius: variables.avatarSizeNormal,
+    },
+
+    chatSwitcherBigAvatar: {
         height: variables.componentSizeNormal,
-        overflow: 'hidden',
         width: variables.componentSizeNormal,
+        borderRadius: variables.componentSizeNormal,
+    },
+
+    chatSwitcherAvatar1: {
+        marginTop: -variables.componentSizeNormal / 2,
+        borderRadius: variables.avatarSizeNormal,
+    },
+
+    chatSwitcherAvatar2: {
+        marginTop: variables.avatarSizeNormal / 2,
+        height: variables.avatarSizeNormal + 6,
+        width: variables.avatarSizeNormal + 6,
+        borderRadius: variables.avatarSizeNormal + 6,
+        left: -variables.avatarSizeNormal / 2,
+    },
+
+    chatSwitcherAvatarText: {
+        backgroundColor: themeColors.icon,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: variables.avatarSizeNormal,
+        height: variables.avatarSizeNormal,
+        width: variables.avatarSizeNormal,
+    },
+
+    chatSwitcherAvatarInnerText: {
+        color: themeColors.textReversed,
+        fontSize: variables.fontSizeSmall,
+    },
+
+    chatSwitcherAvatarSpace: {
+        top: 3,
+        left: 3,
+    },
+
+    chatSwitcherAvatar: {
+        backgroundColor: themeColors.sidebar,
+    },
+
+    chatSwitcherFocusedAvatar: {
+        backgroundColor: themeColors.border,
+    },
+
+    chatSwitcherEmptyAvatar1: {
+        marginRight: variables.componentSizeNormal - variables.avatarSizeNormal,
     },
 
     chatSwitcherItemText: {

@@ -11,7 +11,7 @@ import {
 import styles from '../../../styles/styles';
 import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
 import pencilIcon from '../../../../assets/images/icon-pencil.png';
-import Avatar from '../../../components/Avatar';
+import MultiAvatar from '../../../components/MultiAvatar';
 
 const propTypes = {
     // Option to allow the user to choose from can be type 'report' or 'user'
@@ -55,7 +55,7 @@ const ChatLinkRow = ({
                 styles.justifyContentBetween,
                 styles.sidebarLink,
                 styles.sidebarLinkInner,
-                optionIsFocused ? styles.sidebarLinkActive : null
+                optionIsFocused ? styles.sidebarLinkActive : null,
             ]}
         >
             <TouchableOpacity
@@ -76,9 +76,10 @@ const ChatLinkRow = ({
                     {
                         !_.isEmpty(option.icon)
                         && (
-                            <View style={[styles.chatSwitcherAvatar, styles.mr3]}>
-                                <Avatar source={option.icon} />
-                            </View>
+                            <MultiAvatar
+                                avatarImageURLs={option.icon}
+                                optionIsFocused={optionIsFocused}
+                            />
                         )
                     }
                     <View style={[styles.flex1]}>
