@@ -25,7 +25,7 @@ const CommentActionsMenu = props => (
     >
         {CommentActions.map((commentAction => (
             <Pressable>
-                {commentAction.text}
+                {commentAction.icon}
                 {props.reportID}
                 {props.reportActionID}
             </Pressable>
