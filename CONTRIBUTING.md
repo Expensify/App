@@ -25,7 +25,18 @@ We are currently managing payment via Upwork. If you'd like to be paid for your 
 ## Submitting a Pull Request
 #### Proposing a Change
 1. Fork this repository and create a new branch
-1. [Open a PR](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request-from-a-fork). Be sure to fill in all the required information on the PR template, and be sure all of your [commits are signed](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/signing-commits).
+1. ‼️ **Before you start writing any code** ️‼️, please be aware that we require all commits to be [signed](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/signing-commits). The easiest way to do that is to [generate a new GPG key](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/generating-a-new-gpg-key) and [add it to your Github account](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/adding-a-new-gpg-key-to-your-github-account). Once you've done that, you can automatically sign all your commits by adding the following to your `.gitconfig`:
+    ```
+    [commit]
+        gpgsign = true
+    [user]
+        email = <Your GH account email>
+        name = <Your Name>
+        signingkey = <your_signing_key>
+    [gpg]
+        program = gpg
+    ```
+1. [Open a PR](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request-from-a-fork). Be sure to fill in all the required information on the PR template.
 1. An Expensify engineer will be automatically assigned to review your PR
 1. You will need all checks to pass:
 	1. CLA - You must sign our [Contributor License Agreement](https://github.com/Expensify/Expensify.cash/blob/master/CLA.md) by following the CLA bot instructions that will be posted on your PR
