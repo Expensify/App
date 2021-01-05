@@ -1,6 +1,6 @@
-import React, {useEffect} from 'react';
+import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {View, useWindowDimensions} from 'react-native';
+import {View, Dimensions} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import CustomStatusBar from './CustomStatusBar';
@@ -29,67 +29,87 @@ const defaultProps = {
     type: '',
 };
 
-const Modal = (props) => {
-    const {
-        modalStyle,
-        modalContainerStyle,
-        swipeDirection,
-        animationIn,
-        animationOut,
-        needsSafeAreaPadding
-    } = getModalStyles(props.type, useWindowDimensions());
+class Modal extends Component {
+    constructor(props) {
+        super(props);
 
-    useEffect(() => {
-        const onKeyPressed = (event) => {
-            if (event.keyCode === 27) {
-                props.onClose();
-            }
+        this.state = {
+            window: Dimensions.get('window'),
         };
-        document.addEventListener('keydown', onKeyPressed);
 
-        return () => {
-            document.removeEventListener('keydown', onKeyPressed);
-        };
-    }, []);
+        this.onKeyPressed = this.onKeyPressed.bind(this);
+        this.onDimensionChange = this.onDimensionChange.bind(this);
+    }
 
-    return (
-        <ReactNativeModal
-            onBackdropPress={props.onClose}
-            onBackButtonPress={props.onClose}
-            onSwipeComplete={props.onClose}
-            swipeDirection={swipeDirection}
-            isVisible={props.isVisible}
-            backdropColor={themeColors.modalBackdrop}
-            backdropOpacity={0.5}
-            backdropTransitionOutTiming={0}
-            style={modalStyle}
-            animationIn={animationIn}
-            animationOut={animationOut}
-        >
-            <CustomStatusBar />
-            <SafeAreaInsetsContext.Consumer>
-                {(insets) => {
-                    const {paddingTop, paddingBottom} = getSafeAreaPadding(insets);
-                    return (
-                        <View
-                            style={{
-                                ...styles.defaultModalContainer,
-                                paddingBottom,
-                                ...modalContainerStyle,
+    componentDidMount() {
+        document.addEventListener('keydown', this.onKeyPressed);
+        Dimensions.addEventListener('change', this.onDimensionChange);
+    }
 
-                                // This padding is based on the insets and could not neatly be
-                                // returned by getModalStyles to avoid passing this inline.
-                                paddingTop: needsSafeAreaPadding ? paddingTop : 20,
-                            }}
-                        >
-                            {props.children}
-                        </View>
-                    );
-                }}
-            </SafeAreaInsetsContext.Consumer>
-        </ReactNativeModal>
-    );
-};
+    componentWillUnmount() {
+        document.removeEventListener('keydown', this.onKeyPressed);
+        Dimensions.removeEventListener('change', this.onDimensionChange);
+    }
+
+    onDimensionChange(newDimensions) {
+        const {window} = newDimensions;
+        this.setState({window});
+    }
+
+    onKeyPressed(event) {
+        if (event.keyCode === 27) {
+            this.props.onClose();
+        }
+    }
+
+    render() {
+        const {
+            modalStyle,
+            modalContainerStyle,
+            swipeDirection,
+            animationIn,
+            animationOut,
+            needsSafeAreaPadding
+        } = getModalStyles(this.props.type, this.state.window);
+        return (
+            <ReactNativeModal
+                onBackdropPress={this.props.onClose}
+                onBackButtonPress={this.props.onClose}
+                onSwipeComplete={this.props.onClose}
+                swipeDirection={swipeDirection}
+                isVisible={this.props.isVisible}
+                backdropColor={themeColors.modalBackdrop}
+                backdropOpacity={0.5}
+                backdropTransitionOutTiming={0}
+                style={modalStyle}
+                animationIn={animationIn}
+                animationOut={animationOut}
+            >
+                <CustomStatusBar />
+                <SafeAreaInsetsContext.Consumer>
+                    {(insets) => {
+                        const {paddingTop, paddingBottom} = getSafeAreaPadding(insets);
+                        return (
+                            <View
+                                style={{
+                                    ...styles.defaultModalContainer,
+                                    paddingBottom,
+                                    ...modalContainerStyle,
+
+                                    // This padding is based on the insets and could not neatly be
+                                    // returned by getModalStyles to avoid passing this inline.
+                                    paddingTop: needsSafeAreaPadding ? paddingTop : 20,
+                                }}
+                            >
+                                {this.props.children}
+                            </View>
+                        );
+                    }}
+                </SafeAreaInsetsContext.Consumer>
+            </ReactNativeModal>
+        );
+    }
+}
 
 Modal.propTypes = propTypes;
 Modal.defaultProps = defaultProps;
