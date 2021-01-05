@@ -14,5 +14,5 @@ function fetchCountryCodeByRequestIP() {
 }
 
 export {
-    fetchCountryCodeByRequestIP
+    fetchCountryCodeByRequestIP,
 };
