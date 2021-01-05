@@ -181,7 +181,10 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}, isChun
  *
  * @public
  */
-function subscribe(channelName, eventName, eventCallback = () => {}, isChunked = false) {
+// eslint-disable-next-line max-len
+function subscribe(channelName, eventName, eventCallback = () => {}, isChunked = false, onSubscriptionSucceeded = () => {}) {
+    let didBindEvent = false;
+
     return new Promise((resolve, reject) => {
         // We cannot call subscribe() before init(). Prevent any attempt to do this on dev.
         if (!socket) {
@@ -195,12 +198,16 @@ function subscribe(channelName, eventName, eventCallback = () => {}, isChunked =
         if (!channel || !channel.subscribed) {
             channel = socket.subscribe(channelName);
             channel.bind('pusher:subscription_succeeded', () => {
-                bindEventToChannel(channel, eventName, eventCallback, isChunked);
+                // The pusher:subscription_succeeded event can fire multiple times
+                // when we disconnect and reconnect. However, we only want to bind events
+                // once so we should prevent rebinding this way.
+                if (!didBindEvent) {
+                    bindEventToChannel(channel, eventName, eventCallback, isChunked);
+                    didBindEvent = true;
+                    resolve();
+                }
 
-                // Remove this event subscriber so we do not bind another
-                // event with each reconnect attempt
-                channel.unbind('pusher:subscription_succeeded');
-                resolve();
+                onSubscriptionSucceeded();
             });
 
             channel.bind('pusher:subscription_error', (status) => {

@@ -293,6 +293,10 @@ function subscribeToReportCommentEvents() {
 
     Pusher.subscribe(pusherChannelName, 'reportComment', (pushJSON) => {
         updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
+    }, false, () => {
+        // When we reconnect to this channel we want to trigger the reconnection callbacks to
+        // catch up on anything that we've missed
+        NetworkConnection.triggerReconnectionCallbacks();
     });
 
     PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, reportAction}) => {
