@@ -189,11 +189,6 @@ const styles = {
         marginRight: 8,
     },
 
-    avatarNormal: {
-        height: variables.componentSizeNormal,
-        width: variables.componentSizeNormal,
-    },
-
     textInput: {
         backgroundColor: themeColors.componentBG,
         borderRadius: variables.componentBorderRadius,
@@ -761,7 +756,7 @@ const styles = {
         borderRadius: variables.avatarSizeNormal,
     },
 
-    bigAvatar: {
+    avatarNormal: {
         height: variables.componentSizeNormal,
         width: variables.componentSizeNormal,
         borderRadius: variables.componentSizeNormal,
