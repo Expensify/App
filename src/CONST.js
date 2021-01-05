@@ -19,8 +19,8 @@ const CONST = {
         HOMEPAGE_REPORTS_LOADED: 'homepage_reports_loaded',
         SWITCH_REPORT: 'switch_report',
         HOT: 'hot',
-        COLD: 'cold'
-    }
+        COLD: 'cold',
+    },
 };
 
 export default CONST;
