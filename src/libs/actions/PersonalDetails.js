@@ -92,7 +92,7 @@ function formatPersonalDetails(personalDetailsList) {
                 login,
                 avatarURL,
                 displayName,
-            }
+            },
         };
     }, {});
 }
