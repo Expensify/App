@@ -7,15 +7,16 @@ const events = {};
  * @param {Event} event
  */
 function bindHandlerToKeyupEvent(event) {
-    if (events[event.keyCode] === undefined) {
+    if (events[event.key] === undefined) {
         return;
     }
 
     // The active callback is the last element in the array
-    const eventCallbacks = events[event.keyCode];
+    const eventCallbacks = events[event.key];
     const callback = eventCallbacks[eventCallbacks.length - 1];
 
     const pressedModifiers = _.all(callback.modifiers, (modifier) => {
+
         if (modifier === 'shift' && !event.shiftKey) {
             return false;
         }
@@ -25,11 +26,10 @@ function bindHandlerToKeyupEvent(event) {
         if (modifier === 'alt' && !event.altKey) {
             return false;
         }
-        if (modifier === 'meta' && !event.metaKey) {
-            return false;
-        }
-        return true;
+        return !(modifier === 'meta' && !event.metaKey);
+        
     });
+
 
     if (!pressedModifiers) {
         return;
@@ -74,19 +74,22 @@ const KeyboardShortcut = {
      * @param {Boolean} captureOnInputs Should we capture the event on inputs too?
      */
     subscribe(key, callback, modifiers = 'shift', captureOnInputs = false) {
-        const keyCode = key.charCodeAt(0);
-        if (events[keyCode] === undefined) {
-            events[keyCode] = [];
+
+        //enable support for special keys like Escape
+        //const keyCode =  key.charCodeAt(0);
+
+        if (events[key] === undefined) {
+            events[key] = [];
         }
-        events[keyCode].push({callback, modifiers: _.isArray(modifiers) ? modifiers : [modifiers], captureOnInputs});
+        events[key].push({callback, modifiers: _.isArray(modifiers) ? modifiers : [modifiers], captureOnInputs});
     },
 
     /**
      * Unsubscribes to a keyboard event.
-     * @param {Number} keyCode The key code to stop watching
+     * @param {String} key The key to stop watching
      */
-    unsubscribe(keyCode) {
-        delete events[keyCode];
+    unsubscribe(key) {
+        delete events[key];
     }
 };
 
