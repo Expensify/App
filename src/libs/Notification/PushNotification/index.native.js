@@ -24,7 +24,7 @@ function pushNotificationEventCallback(eventType, notification) {
     console.debug(`[PUSH_NOTIFICATION] ${eventType}`, {
         title: notification.title,
         message: notification.alert,
-        payload
+        payload,
     });
 
     if (!payload) {

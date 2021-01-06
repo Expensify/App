@@ -13,7 +13,7 @@ const promiseAllSettled = (arrayOfPromises) => {
     const wrappedPromises = arrayOfPromises.map(p => Promise.resolve(p)
         .then(
             val => ({status: 'fulfilled', value: val}),
-            err => ({status: 'rejected', reason: err})
+            err => ({status: 'rejected', reason: err}),
         ));
     return Promise.all(wrappedPromises);
 };

@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-    Text, TextInput, View
+    Text, TextInput, View,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
