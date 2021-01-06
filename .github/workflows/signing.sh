@@ -1,5 +1,7 @@
 #!/bin/bash
 
+git fetch -q origin master:master
+
 commit_list=$(git rev-list master..)
 declare -r commit_list
 
