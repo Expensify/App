@@ -189,11 +189,6 @@ const styles = {
         marginRight: 8,
     },
 
-    avatarNormal: {
-        height: variables.componentSizeNormal,
-        width: variables.componentSizeNormal,
-    },
-
     textInput: {
         backgroundColor: themeColors.componentBG,
         borderRadius: variables.componentBorderRadius,
@@ -321,11 +316,6 @@ const styles = {
     sidebarHeaderTop: {
         paddingHorizontal: 20,
         paddingVertical: 12,
-    },
-
-    sidebarHeaderLogo: {
-        height: variables.componentSizeNormal,
-        width: variables.componentSizeNormal,
     },
 
     sidebarFooter: {
@@ -635,11 +625,6 @@ const styles = {
         width: 20,
     },
 
-    reportPinIcon: {
-        height: 20,
-        width: 20,
-    },
-
     chatItemAttachButton: {
         alignItems: 'center',
         alignSelf: 'flex-end',
@@ -755,16 +740,60 @@ const styles = {
         borderRightWidth: 0,
     },
 
-    chatSwitcherAvatar: {
-        backgroundColor: themeColors.icon,
-        borderRadius: 20,
-        height: variables.componentSizeNormal,
-        overflow: 'hidden',
-        width: variables.componentSizeNormal,
+    singleAvatar: {
+        height: 24,
+        width: 24,
+        borderRadius: 24,
     },
 
-    chatSwitcherItemText: {
-        color: themeColors.text,
+    avatarNormal: {
+        height: variables.componentSizeNormal,
+        width: variables.componentSizeNormal,
+        borderRadius: variables.componentSizeNormal,
+    },
+
+    singleLeftAvatar: {
+        marginTop: -variables.componentSizeNormal / 2,
+        borderRadius: 24,
+    },
+
+    singleRightAvatar: {
+        marginTop: 12,
+        height: 30,
+        width: 30,
+        borderRadius: 30,
+        left: -12,
+    },
+
+    avatarText: {
+        backgroundColor: themeColors.icon,
+        borderRadius: 24,
+        height: 24,
+        width: 24,
+    },
+
+    avatarInnerText: {
+        color: themeColors.textReversed,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: 24,
+        textAlign: 'center',
+    },
+
+    avatarSpace: {
+        top: 3,
+        left: 3,
+    },
+
+    avatar: {
+        backgroundColor: themeColors.sidebar,
+    },
+
+    focusedAvatar: {
+        backgroundColor: themeColors.border,
+    },
+
+    emptyAvatar: {
+        marginRight: variables.componentSizeNormal - 24,
     },
 
     chatSwitcherItemAvatarNameWrapper: {

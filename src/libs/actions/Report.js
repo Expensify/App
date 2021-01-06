@@ -28,7 +28,7 @@ Onyx.connect({
             currentUserEmail = val.email;
             currentUserAccountID = val.accountID;
         }
-    }
+    },
 });
 
 let currentURL;
@@ -122,8 +122,8 @@ function getSimplifiedReportObject(report) {
         lastVisitedTimestamp: lodashGet(report, [
             'reportNameValuePairs',
             `lastRead_${currentUserAccountID}`,
-            'timestamp'
-        ], 0)
+            'timestamp',
+        ], 0),
     };
 }
 
@@ -263,7 +263,7 @@ function updateReportWithNewAction(reportID, reportAction) {
         onClick: () => {
             // Navigate to this report onClick
             redirect(ROUTES.getReportRoute(reportID));
-        }
+        },
     });
 }
 
@@ -518,8 +518,8 @@ function addAction(reportID, text, file) {
                 {
                     style: 'strong',
                     text: myPersonalDetails.displayName || currentUserEmail,
-                    type: 'TEXT'
-                }
+                    type: 'TEXT',
+                },
             ],
             automatic: false,
             sequenceNumber: newSequenceNumber,
@@ -533,18 +533,18 @@ function addAction(reportID, text, file) {
                     // Remove HTML from text when applying optimistic offline comment
                     text: isAttachment ? '[Attachment]'
                         : htmlComment.replace(/<[^>]*>?/gm, ''),
-                }
+                },
             ],
             isFirstItem: false,
             isAttachment,
             loading: true,
-        }
+        },
     });
 
     API.Report_AddComment({
         reportID,
         reportComment: htmlComment,
-        file
+        file,
     });
 }
 
@@ -631,7 +631,7 @@ function handleReportChanged(report) {
 
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    callback: handleReportChanged
+    callback: handleReportChanged,
 });
 
 // When the app reconnects from being offline, fetch all of the reports and their actions
