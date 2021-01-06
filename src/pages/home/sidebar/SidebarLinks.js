@@ -61,10 +61,10 @@ const SidebarLinks = (props) => {
     const reportIDInUrl = parseInt(props.match.params.reportID, 10);
     const sortedReports = lodashOrderby(props.reports, [
         'isPinned',
-        'reportName'
+        'reportName',
     ], [
         'desc',
-        'asc'
+        'asc',
     ]);
 
     /**
@@ -123,11 +123,11 @@ const SidebarLinks = (props) => {
 
                                 // The icon for the row is set when we fetch personal details via
                                 // PersonalDetails.getFromReportParticipants()
-                                icon: report.icon,
+                                icons: report.icons,
                                 login,
                                 reportID: report.reportID,
                                 isUnread: report.unreadActionCount > 0,
-                                hasDraftComment: report.reportID !== reportIDInUrl && hasComment(report.reportID)
+                                hasDraftComment: report.reportID !== reportIDInUrl && hasComment(report.reportID),
                             }}
                             onSelectRow={() => {
                                 redirect(ROUTES.getReportRoute(report.reportID));
