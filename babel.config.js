@@ -22,8 +22,8 @@ const webpack = {
             presets: defaultPresets,
             plugins: defaultPlugins,
             sourceType: 'unambiguous',
-        }
-    }
+        },
+    },
 };
 
 const metro = {
