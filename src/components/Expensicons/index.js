@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import themeColors from '../../styles/themes/default';
 import variables from '../../styles/variables';
@@ -39,7 +39,7 @@ const Expensicon = (props) => {
 Expensicon.propTypes = propTypes;
 Expensicon.defaultProps = defaultProps;
 
-export default Expensicon;
+export default memo(Expensicon);
 export {
     ICON_NAMES,
 };
