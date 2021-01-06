@@ -7,8 +7,7 @@ import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import {withRouter} from '../../libs/Router';
 import LHNToggle from '../../../assets/images/icon-menu-toggle.png';
-import Expensicon from '../../components/Expensicon';
-import ICON_NAMES from '../../components/Expensicon/ICON_NAMES';
+import Expensicon, {ICON_NAMES} from '../../components/Expensicons';
 import compose from '../../libs/compose';
 import {togglePinnedState} from '../../libs/actions/Report';
 

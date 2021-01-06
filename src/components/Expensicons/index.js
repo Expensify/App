@@ -40,3 +40,6 @@ Expensicon.propTypes = propTypes;
 Expensicon.defaultProps = defaultProps;
 
 export default Expensicon;
+export {
+    ICON_NAMES,
+};
