@@ -16,7 +16,6 @@ function bindHandlerToKeyupEvent(event) {
     const callback = eventCallbacks[eventCallbacks.length - 1];
 
     const pressedModifiers = _.all(callback.modifiers, (modifier) => {
-
         if (modifier === 'shift' && !event.shiftKey) {
             return false;
         }
@@ -29,17 +28,17 @@ function bindHandlerToKeyupEvent(event) {
         return !(modifier === 'meta' && !event.metaKey);
     });
 
-
     if (!pressedModifiers) {
         return;
     }
 
     // If configured to do so, prevent input text control to trigger this event
-    if (!callback.captureOnInputs && (
-        event.target.nodeName === 'INPUT'
-        || event.target.nodeName === 'TEXTAREA'
-        || event.target.contentEditable === 'true'
-    )) {
+    if (
+        !callback.captureOnInputs &&
+        (event.target.nodeName === 'INPUT' ||
+            event.target.nodeName === 'TEXTAREA' ||
+            event.target.contentEditable === 'true')
+    ) {
         return;
     }
 
@@ -73,14 +72,17 @@ const KeyboardShortcut = {
      * @param {Boolean} captureOnInputs Should we capture the event on inputs too?
      */
     subscribe(key, callback, modifiers = 'shift', captureOnInputs = false) {
-
         //enable support for special keys like Escape
         //const keyCode =  key.charCodeAt(0);
 
         if (events[key] === undefined) {
             events[key] = [];
         }
-        events[key].push({callback, modifiers: _.isArray(modifiers) ? modifiers : [modifiers], captureOnInputs});
+        events[key].push({
+            callback,
+            modifiers: _.isArray(modifiers) ? modifiers : [modifiers],
+            captureOnInputs,
+        });
     },
 
     /**
@@ -89,7 +91,7 @@ const KeyboardShortcut = {
      */
     unsubscribe(key) {
         delete events[key];
-    }
+    },
 };
 
 export default KeyboardShortcut;
