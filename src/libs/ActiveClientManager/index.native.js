@@ -10,5 +10,5 @@ function isClientTheLeader() {
 
 export {
     init,
-    isClientTheLeader
+    isClientTheLeader,
 };

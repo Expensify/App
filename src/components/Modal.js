@@ -37,7 +37,7 @@ const Modal = (props) => {
         swipeDirection,
         animationIn,
         animationOut,
-        needsSafeAreaPadding
+        needsSafeAreaPadding,
     } = getModalStyles(props.type, useWindowDimensions());
 
     //register escape key listener via effect

@@ -1,10 +1,31 @@
 import React from 'react';
 import {Text, TextInput, View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
+import _ from 'underscore';
 import {fetchAccountDetails} from '../../../libs/actions/Session';
 import styles from '../../../styles/styles';
-import SubmitButton from '../SubmitButton';
+import ButtonWithLoader from '../../../components/ButtonWithLoader';
 import openURLInNewTab from '../../../libs/openURLInNewTab';
 import CONST from '../../../CONST';
+import ONYXKEYS from '../../../ONYXKEYS';
+
+const propTypes = {
+    /* Onyx Props */
+
+    // The details about the account that the user is signing in with
+    account: PropTypes.shape({
+        // An error message to display to the user
+        error: PropTypes.string,
+
+        // Whether or not a sign on form is loading (being submitted)
+        loading: PropTypes.bool,
+    }),
+};
+
+const defaultProps = {
+    account: {},
+};
 
 class LoginFormWide extends React.Component {
     constructor(props) {
@@ -15,7 +36,6 @@ class LoginFormWide extends React.Component {
         this.state = {
             formError: false,
             login: '',
-            isLoading: false,
         };
     }
 
@@ -30,7 +50,6 @@ class LoginFormWide extends React.Component {
 
         this.setState({
             formError: null,
-            isLoading: true,
         });
 
         // Check if this login has an account associated with it or not
@@ -56,17 +75,22 @@ class LoginFormWide extends React.Component {
                         />
                     </View>
                     <View>
-                        <SubmitButton
+                        <ButtonWithLoader
                             text="Continue"
-                            isLoading={this.state.isLoading}
+                            isLoading={this.props.account.loading}
                             onClick={this.validateAndSubmitForm}
-                            showRestartButton={false}
                         />
                     </View>
 
                     {this.state.formError && (
                         <Text style={[styles.formError]}>
                             {this.state.formError}
+                        </Text>
+                    )}
+
+                    {!_.isEmpty(this.props.account.error) && (
+                        <Text style={[styles.formError]}>
+                            {this.props.account.error}
                         </Text>
                     )}
                 </View>
@@ -105,4 +129,9 @@ class LoginFormWide extends React.Component {
     }
 }
 
-export default LoginFormWide;
+LoginFormWide.propTypes = propTypes;
+LoginFormWide.defaultProps = defaultProps;
+
+export default withOnyx({
+    account: {key: ONYXKEYS.ACCOUNT},
+})(LoginFormWide);
