@@ -3,7 +3,6 @@ import {
     SafeAreaView,
     Text,
     TextInput,
-    Image,
     View,
 } from 'react-native';
 import PropTypes from 'prop-types';
@@ -14,11 +13,12 @@ import lodashHas from 'lodash.has';
 import compose from '../libs/compose';
 import {Redirect, withRouter} from '../libs/Router';
 import styles from '../styles/styles';
-import logo from '../../assets/images/expensify-logo-round.png';
+import {ExpensifyCashLogoIcon} from '../components/Expensicons';
 import CustomStatusBar from '../components/CustomStatusBar';
 import {setPassword} from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
 import ROUTES from '../ROUTES';
+import variables from '../styles/variables';
 import ButtonWithLoader from '../components/ButtonWithLoader';
 
 const propTypes = {
@@ -94,10 +94,9 @@ class SetPasswordPage extends Component {
                 <SafeAreaView style={[styles.signInPage]}>
                     <View style={[styles.signInPageInner]}>
                         <View style={[styles.signInPageLogo]}>
-                            <Image
-                                resizeMode="contain"
-                                style={[styles.signinLogo]}
-                                source={logo}
+                            <ExpensifyCashLogoIcon
+                                width={variables.componentSizeLarge}
+                                height={variables.componentSizeLarge}
                             />
                         </View>
                         <View style={[styles.mb4]}>

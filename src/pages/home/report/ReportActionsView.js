@@ -213,7 +213,7 @@ class ReportActionsView extends React.Component {
         item,
         index,
         onLayout,
-        needsLayoutCalculation
+        needsLayoutCalculation,
     }) {
         return (
             <ReportActionItem

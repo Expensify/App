@@ -11,17 +11,17 @@ module.exports = {
         hardenedRuntime: true,
         entitlements: 'desktop/entitlements.mac.plist',
         entitlementsInherit: 'desktop/entitlements.mac.plist',
-        type: 'distribution'
+        type: 'distribution',
     },
     dmg: {
         title: 'Expensify.cash',
         artifactName: 'Expensify.cash.dmg',
-        internetEnabled: true
+        internetEnabled: true,
     },
     publish: [{
         provider: 's3',
         bucket: 'chat-test-expensify-com',
-        channel: 'latest'
+        channel: 'latest',
     }],
     files: [
         './dist/**/*',
