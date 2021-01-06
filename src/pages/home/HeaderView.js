@@ -7,7 +7,8 @@ import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import {withRouter} from '../../libs/Router';
 import LHNToggle from '../../../assets/images/icon-menu-toggle.png';
-import {PinIcon} from '../../components/Expensicons';
+import Expensicon from '../../components/Expensicon';
+import ICON_NAMES from '../../components/Expensicon/ICON_NAMES';
 import compose from '../../libs/compose';
 import {togglePinnedState} from '../../libs/actions/Report';
 
@@ -66,7 +67,7 @@ const HeaderView = props => (
                             onPress={() => togglePinnedState(props.report)}
                             style={[styles.touchableButtonImage, styles.mr0]}
                         >
-                            <PinIcon height={20} width={20} isEnabled={props.report.isPinned} />
+                            <Expensicon name={ICON_NAMES.PIN} isEnabled={props.report.isPinned} />
                         </TouchableOpacity>
                     </View>
                 </View>
