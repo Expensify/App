@@ -8,7 +8,7 @@ import variables from './variables';
 import colors from './colors';
 
 const styles = {
-// Utility classes
+    // Utility classes
     m0: {
         margin: 0,
     },
@@ -40,11 +40,9 @@ const styles = {
     mt2: {
         marginTop: 20,
     },
-
     mt1: {
         marginTop: 4,
     },
-
     mt3: {
         marginTop: 12,
     },
@@ -536,7 +534,7 @@ const styles = {
         lineHeight: 16,
     },
 
-// App Content Wrapper styles
+    // App Content Wrapper styles
     appContentWrapper: {
         backgroundColor: themeColors.appBG,
         color: themeColors.text,
@@ -604,7 +602,7 @@ const styles = {
         paddingRight: 20,
     },
 
-// Chat Item
+    // Chat Item
     chatItem: {
         display: 'flex',
         flexDirection: 'row',
@@ -988,11 +986,11 @@ const baseCodeTagStyles = {
 };
 
 const webViewStyles = {
-// As of react-native-render-html v6, don't declare distinct styles for
-// custom renderers, the API for custom renderers has changed. Declare the
-// styles in the below "tagStyles" instead. If you need to reuse those
-// styles from the renderer, just pass the "style" prop to the underlying
-// component.
+   // As of react-native-render-html v6, don't declare distinct styles for
+   // custom renderers, the API for custom renderers has changed. Declare the
+   // styles in the below "tagStyles" instead. If you need to reuse those
+   // styles from the renderer, just pass the "style" prop to the underlying
+   // component.
     tagStyles: {
         em: {
             fontFamily: fontFamily.GTA_ITALIC,
@@ -1021,7 +1019,7 @@ const webViewStyles = {
             marginTop: 4,
             marginBottom: 4,
 
-// Overwrite default HTML margin for blockquotes
+            // Overwrite default HTML margin for blockquotes
             marginLeft: 0,
         },
 
