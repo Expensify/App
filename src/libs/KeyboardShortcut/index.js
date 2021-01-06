@@ -7,11 +7,16 @@ const events = {};
  * @param {Event} event
  */
 function bindHandlerToKeyupEvent(event) {
-  if (events[event.key] === undefined) {
-    return;
-  }
+    if (events[event.key] === undefined) {
+        return;
+    }
+
+    // The active callback is the last element in the array
+    const eventCallbacks = events[event.key];
+    const callback = eventCallbacks[eventCallbacks.length - 1];
 
     const pressedModifiers = _.all(callback.modifiers, (modifier) => {
+
         if (modifier === 'shift' && !event.shiftKey) {
             return false;
         }
@@ -24,43 +29,24 @@ function bindHandlerToKeyupEvent(event) {
         return !(modifier === 'meta' && !event.metaKey);
     });
 
+
     if (!pressedModifiers) {
         return;
     }
 
     // If configured to do so, prevent input text control to trigger this event
-    if (
-        !callback.captureOnInputs &&
-        (event.target.nodeName === 'INPUT' ||
-            event.target.nodeName === 'TEXTAREA' ||
-            event.target.contentEditable === 'true')
-    ) {
+    if (!callback.captureOnInputs && (
+        event.target.nodeName === 'INPUT'
+        || event.target.nodeName === 'TEXTAREA'
+        || event.target.contentEditable === 'true'
+    )) {
         return;
     }
-    if (modifier === 'alt' && !event.altKey) {
-      return false;
+
+    if (_.isFunction(callback.callback)) {
+        callback.callback(event);
     }
-    return !(modifier === 'meta' && !event.metaKey);
-  });
-
-  if (!pressedModifiers) {
-    return;
-  }
-
-  // If configured to do so, prevent input text control to trigger this event
-  if (
-    !callback.captureOnInputs &&
-    (event.target.nodeName === 'INPUT' ||
-      event.target.nodeName === 'TEXTAREA' ||
-      event.target.contentEditable === 'true')
-  ) {
-    return;
-  }
-
-  if (_.isFunction(callback.callback)) {
-    callback.callback(event);
-  }
-  event.preventDefault();
+    event.preventDefault();
 }
 
 // Make sure we don't add multiple listeners
@@ -79,7 +65,6 @@ document.addEventListener('keydown', bindHandlerToKeyupEvent);
  * The "subClass" is used by pages to bind /unbind with no worries
  */
 const KeyboardShortcut = {
-<<<<<<< HEAD
     /**
      * Subscribes to a keyboard event.
      * @param {String} key The key code to watch
@@ -88,17 +73,14 @@ const KeyboardShortcut = {
      * @param {Boolean} captureOnInputs Should we capture the event on inputs too?
      */
     subscribe(key, callback, modifiers = 'shift', captureOnInputs = false) {
+
         //enable support for special keys like Escape
         //const keyCode =  key.charCodeAt(0);
 
         if (events[key] === undefined) {
             events[key] = [];
         }
-        events[key].push({
-            callback,
-            modifiers: _.isArray(modifiers) ? modifiers : [modifiers],
-            captureOnInputs,
-        });
+        events[key].push({callback, modifiers: _.isArray(modifiers) ? modifiers : [modifiers], captureOnInputs});
     },
 
     /**
@@ -107,37 +89,7 @@ const KeyboardShortcut = {
      */
     unsubscribe(key) {
         delete events[key];
-    },
-=======
-  /**
-   * Subscribes to a keyboard event.
-   * @param {String} key The key code to watch
-   * @param {Function} callback The callback to call
-   * @param {String|Array} modifiers Can either be shift or control
-   * @param {Boolean} captureOnInputs Should we capture the event on inputs too?
-   */
-  subscribe(key, callback, modifiers = 'shift', captureOnInputs = false) {
-    //enable support for special keys like Escape
-    //const keyCode =  key.charCodeAt(0);
-
-    if (events[key] === undefined) {
-      events[key] = [];
     }
-    events[key].push({
-      callback,
-      modifiers: _.isArray(modifiers) ? modifiers : [modifiers],
-      captureOnInputs,
-    });
-  },
-
-  /**
-   * Unsubscribes to a keyboard event.
-   * @param {String} key The key to stop watching
-   */
-  unsubscribe(key) {
-    delete events[key];
-  },
->>>>>>> b325b1d51f7eeea317aeaa7551511725b8efd23e
 };
 
 export default KeyboardShortcut;
