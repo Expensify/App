@@ -44,7 +44,7 @@ class ReportActionCompose extends React.Component {
         this.comment = props.comment;
         this.state = {
             isFocused: false,
-            textInputShouldClear: false
+            textInputShouldClear: false,
         };
     }
 
@@ -138,7 +138,7 @@ class ReportActionCompose extends React.Component {
                         ? styles.chatItemComposeBoxFocusedColor
                         : styles.chatItemComposeBoxColor,
                     styles.chatItemComposeBox,
-                    styles.flexRow
+                    styles.flexRow,
                 ]}
                 >
                     <AttachmentModal
