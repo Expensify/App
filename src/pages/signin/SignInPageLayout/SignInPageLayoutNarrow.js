@@ -5,8 +5,7 @@ import {
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import variables from '../../../styles/variables';
-import Expensicon from '../../../components/Expensicon';
-import ICON_NAMES from '../../../components/Expensicon/ICON_NAMES';
+import Expensicon, {ICON_NAMES} from '../../../components/Expensicons';
 
 const propTypes = {
     // The children to show inside the layout

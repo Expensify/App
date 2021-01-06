@@ -4,8 +4,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
-import Expensicon from '../../../components/Expensicon';
-import ICON_NAMES from '../../../components/Expensicon/ICON_NAMES';
+import Expensicon, {ICON_NAMES} from '../../../components/Expensicons';
 import welcomeScreenshot from '../../../../assets/images/welcome-screenshot-wide.png';
 import variables from '../../../styles/variables';
 
