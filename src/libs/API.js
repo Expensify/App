@@ -113,7 +113,7 @@ function handleExpiredAuthToken(originalCommand, originalParameters, originalTyp
     // There are some API requests that should not be retried when there is an auth failure
     // like creating and deleting logins
     if (originalParameters.doNotRetry) {
-        return;
+        return new Promise(resolve => resolve());
     }
 
     // When the authentication process is running, and more API requests will be requeued and they will
