@@ -229,9 +229,6 @@ class App extends React.Component {
             : styles.sidebarHidden;
         const appContentWrapperStyle = !this.state.isHamburgerEnabled ? styles.appContentWrapperLarge : null;
 
-        // const flexDirection = this.props.isSidebarShown
-        //     ? styles.flexRow : styles.flexColumn;
-
         return (
             <SafeAreaProvider>
                 <CustomStatusBar />
