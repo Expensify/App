@@ -176,8 +176,10 @@ function request(command, parameters, type = 'post') {
                 // new promise created when calling handleExpiredAuthToken.
                 if (response.jsonCode === 407) {
                     // There are some API requests that should not be retried when there is an auth failure like
-                    // creating and deleting logins
+                    // creating and deleting logins. In those cases, they should handle the original response instead
+                    // of the new response created by handleExpiredAuthToken.
                     if (parameters.doNotRetry) {
+                        resolve(response);
                         return;
                     }
 
