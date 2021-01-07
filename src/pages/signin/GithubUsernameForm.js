@@ -1,8 +1,28 @@
 import React from 'react';
-import {Text, TextInput, View} from 'react-native';
+import {
+    Text, TextInput, View,
+} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
-import SubmitButton from './SubmitButton';
+import ButtonWithLoader from '../../components/ButtonWithLoader';
 import {setGitHubUsername} from '../../libs/actions/Session';
+import ONYXKEYS from '../../ONYXKEYS';
+import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
+
+const propTypes = {
+    /* Onyx Props */
+
+    // The details about the account that the user is signing in with
+    account: PropTypes.shape({
+        // Whether or not a sign on form is loading (being submitted)
+        loading: PropTypes.bool,
+    }),
+};
+
+const defaultProps = {
+    account: {},
+};
 
 class GithubUsernameForm extends React.Component {
     constructor(props) {
@@ -13,7 +33,6 @@ class GithubUsernameForm extends React.Component {
         this.state = {
             formError: false,
             githubUsername: '',
-            isLoading: false,
         };
     }
 
@@ -28,7 +47,6 @@ class GithubUsernameForm extends React.Component {
 
         this.setState({
             formError: null,
-            isLoading: true,
         });
 
         // Save the github username to their account
@@ -52,11 +70,12 @@ class GithubUsernameForm extends React.Component {
                         />
                     </View>
                     <View>
-                        <SubmitButton
+                        <ButtonWithLoader
                             text="Next"
-                            isLoading={this.state.isLoading}
+                            isLoading={this.props.account.loading}
                             onClick={this.validateAndSubmitForm}
                         />
+                        <ChangeExpensifyLoginLink />
                     </View>
                     {this.state.formError && (
                         <Text style={[styles.formError]}>
@@ -82,4 +101,9 @@ class GithubUsernameForm extends React.Component {
     }
 }
 
-export default GithubUsernameForm;
+GithubUsernameForm.propTypes = propTypes;
+GithubUsernameForm.defaultProps = defaultProps;
+
+export default withOnyx({
+    account: {key: ONYXKEYS.ACCOUNT},
+})(GithubUsernameForm);

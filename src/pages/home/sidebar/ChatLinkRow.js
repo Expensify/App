@@ -10,10 +10,8 @@ import {
 } from 'react-native';
 import styles from '../../../styles/styles';
 import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
-import ROUTES from '../../../ROUTES';
 import pencilIcon from '../../../../assets/images/icon-pencil.png';
-import PressableLink from '../../../components/PressableLink';
-import CONST from '../../../CONST';
+import MultipleAvatars from '../../../components/MultipleAvatars';
 
 const propTypes = {
     // Option to allow the user to choose from can be type 'report' or 'user'
@@ -44,7 +42,6 @@ const ChatLinkRow = ({
     onAddToGroup,
     isChatSwitcher,
 }) => {
-    const isSingleUserDM = option.type === CONST.REPORT.SINGLE_USER_DM;
     const textStyle = optionIsFocused
         ? styles.sidebarLinkActiveText
         : styles.sidebarLinkText;
@@ -55,15 +52,15 @@ const ChatLinkRow = ({
             style={[
                 styles.flexRow,
                 styles.alignItemsCenter,
-                styles.flexJustifySpaceBetween,
+                styles.justifyContentBetween,
                 styles.sidebarLink,
                 styles.sidebarLinkInner,
-                optionIsFocused ? styles.sidebarLinkActive : null
+                optionIsFocused ? styles.sidebarLinkActive : null,
             ]}
         >
-            <PressableLink
-                onClick={() => onSelectRow(option)}
-                to={ROUTES.getReportRoute(option.reportID)}
+            <TouchableOpacity
+                onPress={() => onSelectRow(option)}
+                activeOpacity={0.8}
                 style={StyleSheet.flatten([
                     styles.chatLinkRowPressable,
                     styles.flexGrow1,
@@ -77,14 +74,12 @@ const ChatLinkRow = ({
                     ]}
                 >
                     {
-                        !_.isEmpty(option.icon)
+                        !_.isEmpty(option.icons)
                         && (
-                            <View style={[styles.chatSwitcherAvatar, styles.mr3]}>
-                                <Image
-                                    source={{uri: option.icon}}
-                                    style={[styles.chatSwitcherAvatarImage]}
-                                />
-                            </View>
+                            <MultipleAvatars
+                                avatarImageURLs={option.icons}
+                                optionIsFocused={optionIsFocused}
+                            />
                         )
                     }
                     <View style={[styles.flex1]}>
@@ -107,8 +102,8 @@ const ChatLinkRow = ({
                         )}
                     </View>
                 </View>
-            </PressableLink>
-            {isSingleUserDM && isChatSwitcher && (
+            </TouchableOpacity>
+            {option.singleUserDM && isChatSwitcher && (
                 <View>
                     <TouchableOpacity
                         style={[styles.chatSwitcherItemButton]}
