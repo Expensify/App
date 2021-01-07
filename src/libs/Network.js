@@ -46,7 +46,9 @@ function processNetworkRequestQueue() {
     _.each(networkRequestQueue, (queuedRequest) => {
         // Some requests must be allowed to run even when the queue is paused e.g. an authentication request
         // that pauses the network queue while authentication happens, then unpauses it when it's done.
-        if (isQueuePaused && queuedRequest.data.forceNetworkRequest !== true) {
+        const shouldSkipRequest = isQueuePaused && queuedRequest.data.forceNetworkRequest !== true;
+
+        if (shouldSkipRequest) {
             return;
         }
 
@@ -56,7 +58,7 @@ function processNetworkRequestQueue() {
 
         // Check to see if the queue has paused again. It's possible that a call to enhanceParameters()
         // has paused the queue and if this is the case we must return.
-        if (isQueuePaused) {
+        if (shouldSkipRequest) {
             return;
         }
 

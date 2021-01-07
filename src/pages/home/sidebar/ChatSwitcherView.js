@@ -173,7 +173,7 @@ class ChatSwitcherView extends React.Component {
                         : report.reportName ?? '',
                     reportID: report.reportID,
                     participants,
-                    icon: report.icon,
+                    icons: report.icons,
                     login,
                     singleUserDM: isSingleUserDM,
                     type: CONST.OPTION_TYPE.REPORT,
@@ -428,7 +428,7 @@ class ChatSwitcherView extends React.Component {
                 alternateText: personalDetail.login,
                 searchText: personalDetail.displayName === personalDetail.login ? personalDetail.login
                     : `${personalDetail.displayName} ${personalDetail.login}`,
-                icon: personalDetail.avatarURL,
+                icons: [personalDetail.avatarURL],
                 login: personalDetail.login,
                 type: CONST.OPTION_TYPE.PERSONAL_DETAIL,
                 keyForList: personalDetail.login,
@@ -546,7 +546,7 @@ export default withOnyx({
         key: ONYXKEYS.PERSONAL_DETAILS,
     },
     reports: {
-        key: ONYXKEYS.COLLECTION.REPORT
+        key: ONYXKEYS.COLLECTION.REPORT,
     },
     session: {
         key: ONYXKEYS.SESSION,
@@ -556,6 +556,6 @@ export default withOnyx({
         initFromStoredValues: false,
     },
     countryCodeByIP: {
-        key: ONYXKEYS.COUNTRY_CODE
-    }
+        key: ONYXKEYS.COUNTRY_CODE,
+    },
 })(ChatSwitcherView);
