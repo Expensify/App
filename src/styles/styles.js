@@ -258,11 +258,6 @@ const styles = {
         marginTop: 20,
     },
 
-    signinLogo: {
-        height: variables.componentSizeLarge,
-        width: variables.componentSizeLarge,
-    },
-
     signinWelcomeScreenshot: {
         height: 354,
         width: 295,
