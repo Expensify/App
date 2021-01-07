@@ -7,8 +7,8 @@ export default PropTypes.shape({
     // The login of the user, or the name of the chat room
     alternateText: PropTypes.string.isRequired,
 
-    // The URL of the person's avatar
-    icon: PropTypes.string,
+    // The array URLs of the person's avatar
+    icon: PropTypes.arrayOf(PropTypes.string),
 
     // The type of option we have e.g. user or report
     type: PropTypes.string,

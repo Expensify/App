@@ -30,7 +30,7 @@ function end(eventName, secondaryName) {
         Graphite_Timer({
             name: grafanaEventName,
             value: eventTime,
-            referer: `${getPlatform()}`
+            referer: `${getPlatform()}`,
         });
 
         delete timestampData[eventName];
@@ -47,5 +47,5 @@ function clearData() {
 export default {
     start,
     end,
-    clearData
+    clearData,
 };

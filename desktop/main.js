@@ -4,7 +4,7 @@ const {
     Menu,
     MenuItem,
     shell,
-    ipcMain
+    ipcMain,
 } = require('electron');
 const serve = require('electron-serve');
 const contextMenu = require('electron-context-menu');
@@ -58,14 +58,14 @@ const mainWindow = (() => {
                     role: 'back',
                     label: 'Back',
                     accelerator: process.platform === 'darwin' ? 'Cmd+[' : 'Shift+[',
-                    click: () => { browserWindow.webContents.goBack(); }
+                    click: () => { browserWindow.webContents.goBack(); },
                 },
                 {
                     role: 'forward',
                     label: 'Forward',
                     accelerator: process.platform === 'darwin' ? 'Cmd+]' : 'Shift+]',
-                    click: () => { browserWindow.webContents.goForward(); }
-                }]
+                    click: () => { browserWindow.webContents.goForward(); },
+                }],
             }));
 
             // On mac, pressing cmd++ actually sends a cmd+=. cmd++ is generally the zoom in shortcut, but this is
@@ -74,14 +74,14 @@ const mainWindow = (() => {
             viewWindow.submenu.append(new MenuItem({
                 role: 'zoomin',
                 accelerator: 'CommandOrControl+=',
-                visible: false
+                visible: false,
             }));
             const windowMenu = systemMenu.items.find(item => item.role === 'windowmenu');
             windowMenu.submenu.append(new MenuItem({type: 'separator'}));
             windowMenu.submenu.append(new MenuItem({
                 label: 'Expensify.cash',
                 accelerator: 'CmdOrCtrl+1',
-                click: () => browserWindow.show()
+                click: () => browserWindow.show(),
             }));
             Menu.setApplicationMenu(systemMenu);
 
