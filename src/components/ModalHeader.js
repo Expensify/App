@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {
-    View, Image, TouchableOpacity, Text
+    View, Image, TouchableOpacity, Text,
 } from 'react-native';
 import styles from '../styles/styles';
 import exitIcon from '../../assets/images/icon-x--20x20.png';
@@ -26,8 +26,8 @@ const ModalHeader = props => (
             styles.flexRow,
             styles.alignItemsCenter,
             styles.flexGrow1,
-            styles.flexJustifySpaceBetween,
-            styles.overflowHidden
+            styles.justifyContentBetween,
+            styles.overflowHidden,
         ]}
         >
             <View style={[styles.flex1]}>

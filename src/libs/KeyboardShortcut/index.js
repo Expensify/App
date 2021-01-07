@@ -87,7 +87,7 @@ const KeyboardShortcut = {
      */
     unsubscribe(keyCode) {
         delete events[keyCode];
-    }
+    },
 };
 
 export default KeyboardShortcut;
