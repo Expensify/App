@@ -9,6 +9,16 @@ export default {
         margin: 0,
     },
 
+    mh2: {
+        marginRight: 4,
+        marginLeft: 4,
+    },
+
+    mv1: {
+        marginTop: 4,
+        marginBottom: 4,
+    },
+
     mr0: {
         marginRight: 0,
     },
@@ -23,6 +33,10 @@ export default {
 
     mr3: {
         marginRight: 12,
+    },
+
+    mr4: {
+        marginRight: 16,
     },
 
     ml1: {
