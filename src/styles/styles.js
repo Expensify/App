@@ -136,6 +136,16 @@ const styles = {
         width: variables.componentSizeNormal,
     },
 
+    boxShadowDefault: {
+        shadowColor: themeColors.shadow,
+        shadowOffset: {
+            width: -2,
+            height: 2,
+        },
+        shadowRadius: 4,
+        shadowOpacity: 0.15,
+    },
+
     pill: {
         borderRadius: 14,
         backgroundColor: themeColors.pillBG,

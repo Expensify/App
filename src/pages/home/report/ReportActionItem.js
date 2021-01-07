@@ -23,7 +23,7 @@ const reportActionContainerStyle = {
 
 const miniCommentActionsMenuWrapperStyle = {
     alignSelf: 'flex-start',
-    marginTop: -20,
+    marginTop: 0,
 };
 
 const ReportActionItem = props => (
