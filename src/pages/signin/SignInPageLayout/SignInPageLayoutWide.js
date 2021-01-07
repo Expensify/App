@@ -28,7 +28,7 @@ const SignInPageLayoutWide = ({children}) => (
             <View style={[styles.flex1, styles.w50]}>
                 <View style={[styles.signInPageLogo, styles.mt6, styles.mb5]}>
                     <Icon
-                        icon={BRAND_ASSETS.EXPENSIFY_CASH_LOGO}
+                        icon={BRAND_ASSETS.ExpensifyCashLogo}
                         width={variables.componentSizeLarge}
                         height={variables.componentSizeLarge}
                     />

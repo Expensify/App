@@ -61,7 +61,7 @@ const ChatSwitcherSearchForm = props => (
         {props.isLogoVisible && (
             <View style={[styles.mr3]}>
                 <Icon
-                    icon={BRAND_ASSETS.EXPENSIFY_CASH_LOGO}
+                    icon={BRAND_ASSETS.ExpensifyCashLogo}
                     width={variables.componentSizeNormal}
                     height={variables.componentSizeNormal}
                 />

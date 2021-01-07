@@ -95,7 +95,7 @@ class SetPasswordPage extends Component {
                     <View style={[styles.signInPageInner]}>
                         <View style={[styles.signInPageLogo]}>
                             <Icon
-                                icon={BRAND_ASSETS.EXPENSIFY_CASH_LOGO}
+                                icon={BRAND_ASSETS.ExpensifyCashLogo}
                                 width={variables.componentSizeLarge}
                                 height={variables.componentSizeLarge}
                             />

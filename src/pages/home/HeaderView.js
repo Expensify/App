@@ -70,7 +70,7 @@ const HeaderView = props => (
                             onPress={() => togglePinnedState(props.report)}
                             style={[styles.touchableButtonImage, styles.mr0]}
                         >
-                            <Icon icon={EXPENSICONS.PIN} isEnabled={props.report.isPinned} />
+                            <Icon icon={EXPENSICONS.Pin} isEnabled={props.report.isPinned} />
                         </TouchableOpacity>
                     </View>
                 </View>
