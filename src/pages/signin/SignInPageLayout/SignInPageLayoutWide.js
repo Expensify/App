@@ -5,7 +5,7 @@ import {
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import Icon from '../../../components/Icon';
-import BRAND_ASSETS from '../../../components/Icon/BRAND_ASSETS';
+import {ExpensifyCashLogo} from '../../../components/Icon/BRAND_ASSETS';
 import welcomeScreenshot from '../../../../assets/images/welcome-screenshot-wide.png';
 import variables from '../../../styles/variables';
 
@@ -29,7 +29,7 @@ const SignInPageLayoutWide = ({children}) => (
             <View style={[styles.flex1, styles.w50]}>
                 <View style={[styles.signInPageLogo, styles.mt6, styles.mb5]}>
                     <Icon
-                        icon={BRAND_ASSETS.ExpensifyCashLogo}
+                        icon={ExpensifyCashLogo}
                         width={variables.componentSizeLarge}
                         height={variables.componentSizeLarge}
                     />

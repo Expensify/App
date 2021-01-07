@@ -1,5 +1,6 @@
 import ExpensifyCashLogo from '../../../assets/images/expensify-cash.svg';
 
-export default {
+export {
+    // eslint-disable-next-line import/prefer-default-export
     ExpensifyCashLogo,
 };

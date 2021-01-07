@@ -3,8 +3,8 @@ import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import themeColors from '../../styles/themes/default';
 import variables from '../../styles/variables';
-import BRAND_ASSETS from './BRAND_ASSETS';
-import EXPENSICONS from './EXPENSICONS';
+import * as BRAND_ASSETS from './BRAND_ASSETS';
+import * as EXPENSICONS from './EXPENSICONS';
 
 const ICONS = _.extend(BRAND_ASSETS, EXPENSICONS);
 
