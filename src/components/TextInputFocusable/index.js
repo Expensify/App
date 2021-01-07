@@ -122,7 +122,7 @@ class TextInputFocusable extends React.Component {
     }
 
     /**
-     * Check the paste event for an attachment and
+     * Check the paste event for an attachment, parse the data and
      * call onPasteFile from props with the selected file
      *
      * @param {ClipboardEvent} event
@@ -135,23 +135,16 @@ class TextInputFocusable extends React.Component {
             event.preventDefault();
             this.props.onPasteFile(event.clipboardData.files[0]);
         }
-        if (types.includes('application/x-vnd.google-docs-embedded-chart-clip+wrapped')) {
-            event.preventDefault();
-            const chartHTMLString = event.clipboardData.getData(TEXT_HTML);
+        if (types.includes(TEXT_HTML)) {
             const domparser = new DOMParser();
-            fetch(domparser.parseFromString(chartHTMLString, TEXT_HTML).images[0].src)
-                .then(x => x.blob())
-                .then(x => new File([x], 'google-chart.png', {}))
-                .then(this.props.onPasteFile);
-        }
-        if (types.includes(TEXT_HTML && 'application/x-vnd.google-docs-image-clip+wrapped')) {
-            event.preventDefault();
-            const chartHTMLString = event.clipboardData.getData(TEXT_HTML);
-            const domparser = new DOMParser();
-            fetch(domparser.parseFromString(chartHTMLString, TEXT_HTML).images[0].src)
-                .then(x => x.blob())
-                .then(x => new File([x], `pasted_image.${mime.extension(x.type)}`, {}))
-                .then(this.props.onPasteFile);
+            const embededImages = domparser.parseFromString(event.clipboardData.getData(TEXT_HTML), TEXT_HTML).images;
+            if (embededImages.length > 0) {
+                event.preventDefault();
+                fetch(embededImages[0].src)
+                    .then(x => x.blob())
+                    .then(x => new File([x], `pasted_image.${mime.extension(x.type)}`, {}))
+                    .then(this.props.onPasteFile);
+            }
         }
     }
 

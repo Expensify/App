@@ -48,6 +48,7 @@
     "lodash.has": "^4.5.2",
     "lodash.merge": "^4.6.2",
     "lodash.orderby": "^4.6.0",
+    "mime-types": "^2.1.28",
     "modal-enhanced-react-native-web": "^0.2.0",
     "moment": "^2.27.0",
     "moment-timezone": "^0.5.31",
