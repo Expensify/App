@@ -11,7 +11,7 @@ import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import variables from '../../../styles/variables';
 import Icon from '../../../components/Icon';
-import BRAND_ASSETS from '../../../components/Icon/BRAND_ASSETS';
+import {ExpensifyCashLogo} from '../../../components/Icon/BRAND_ASSETS';
 import TextInputWithFocusStyles from '../../../components/TextInputWithFocusStyles';
 import iconX from '../../../../assets/images/icon-x.png';
 import {getDisplayName} from '../../../libs/actions/PersonalDetails';
@@ -62,7 +62,7 @@ const ChatSwitcherSearchForm = props => (
         {props.isLogoVisible && (
             <View style={[styles.mr3]}>
                 <Icon
-                    icon={BRAND_ASSETS.ExpensifyCashLogo}
+                    icon={ExpensifyCashLogo}
                     width={variables.componentSizeNormal}
                     height={variables.componentSizeNormal}
                 />
