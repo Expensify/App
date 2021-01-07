@@ -143,7 +143,8 @@ class TextInputFocusable extends React.Component {
                 fetch(embededImages[0].src)
                     .then(x => x.blob())
                     .then(x => new File([x], `pasted_image.${mime.extension(x.type)}`, {}))
-                    .then(this.props.onPasteFile);
+                    .then(this.props.onPasteFile)
+                    .catch();
             }
         }
     }
