@@ -2,6 +2,7 @@ import React from 'react';
 import {TextInput, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import mime from 'mime-types';
 
 const propTypes = {
     // Maximum number of lines in the text input
@@ -128,6 +129,7 @@ class TextInputFocusable extends React.Component {
      */
     checkForAttachment(event) {
         const {files, types} = event.clipboardData;
+        const TEXT_HTML = 'text/html';
         if (files.length > 0) {
             // Prevent the default so we do not post the file name into the text box
             event.preventDefault();
@@ -135,13 +137,20 @@ class TextInputFocusable extends React.Component {
         }
         if (types.includes('application/x-vnd.google-docs-embedded-chart-clip+wrapped')) {
             event.preventDefault();
-            const chartHTMLString = event.clipboardData.getData(types[0]);
+            const chartHTMLString = event.clipboardData.getData(TEXT_HTML);
             const domparser = new DOMParser();
-            fetch(domparser.parseFromString(chartHTMLString, types[0]).images[0].src)
+            fetch(domparser.parseFromString(chartHTMLString, TEXT_HTML).images[0].src)
                 .then(x => x.blob())
-                .then(x => new File([x], 'google-chart.png', {
-                    type: 'image/png',
-                }))
+                .then(x => new File([x], 'google-chart.png', {}))
+                .then(this.props.onPasteFile);
+        }
+        if (types.includes(TEXT_HTML && 'application/x-vnd.google-docs-image-clip+wrapped')) {
+            event.preventDefault();
+            const chartHTMLString = event.clipboardData.getData(TEXT_HTML);
+            const domparser = new DOMParser();
+            fetch(domparser.parseFromString(chartHTMLString, TEXT_HTML).images[0].src)
+                .then(x => x.blob())
+                .then(x => new File([x], `pasted_image.${mime.extension(x.type)}`, {}))
                 .then(this.props.onPasteFile);
         }
     }
