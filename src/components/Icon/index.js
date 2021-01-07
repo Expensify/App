@@ -9,9 +9,16 @@ import * as Expensicons from './Expensicons';
 const ICONS = _.extend(BrandAssets, Expensicons);
 
 const propTypes = {
+    /* The asset to render. */
     icon: PropTypes.oneOf(_.values(ICONS)).isRequired,
+
+    /* The width of the icon. */
     width: PropTypes.number,
+
+    /* The height of the icon. */
     height: PropTypes.number,
+
+    /* Whether or not the icon is enabled. */
     isEnabled: PropTypes.bool,
 };
 
