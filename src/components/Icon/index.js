@@ -43,7 +43,3 @@ Icon.propTypes = propTypes;
 Icon.defaultProps = defaultProps;
 
 export default memo(Icon);
-export {
-    BRAND_ASSETS,
-    EXPENSICONS,
-};

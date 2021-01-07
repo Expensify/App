@@ -4,7 +4,8 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
-import Icon, {BRAND_ASSETS} from '../../../components/Icon';
+import Icon from '../../../components/Icon';
+import BRAND_ASSETS from '../../../components/Icon/BRAND_ASSETS';
 import welcomeScreenshot from '../../../../assets/images/welcome-screenshot-wide.png';
 import variables from '../../../styles/variables';
 
