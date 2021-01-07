@@ -107,15 +107,9 @@ function requireParameters(parameterNames, parameters, commandName) {
  * @param {String} originalCommand
  * @param {Object} [originalParameters]
  * @param {String} [originalType]
- * @returns {Promise}
+ * @returns {Promise|undefined}
  */
 function handleExpiredAuthToken(originalCommand, originalParameters, originalType) {
-    // There are some API requests that should not be retried when there is an auth failure
-    // like creating and deleting logins
-    if (originalParameters.doNotRetry) {
-        return new Promise(resolve => resolve());
-    }
-
     // When the authentication process is running, and more API requests will be requeued and they will
     // be performed after authentication is done.
     if (isAuthenticating) {
@@ -178,6 +172,12 @@ function request(command, parameters, type = 'post') {
     return new Promise((resolve, reject) => {
         Network.post(command, parameters, type)
             .then((response) => {
+                // There are some API requests that should not be retried when there is an auth failure
+                // like creating and deleting logins
+                if (parameters.doNotRetry) {
+                    return;
+                }
+
                 // Handle expired auth tokens properly by making sure to pass the resolve and reject down to the
                 // new promise created when calling handleExpiredAuthToken
                 if (response.jsonCode === 407) {
