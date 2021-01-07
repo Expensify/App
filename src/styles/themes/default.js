@@ -18,7 +18,7 @@ export default {
     textReversed: colors.white,
     textMutedReversed: colors.gray3,
     buttonSuccessBG: colors.green,
-    gray2: colors.gray2,
+    buttonDisabledBG: colors.gray2,
     online: colors.green,
     offline: colors.gray3,
     sidebarButtonBG: 'rgba(198, 201, 202, 0.25)',
