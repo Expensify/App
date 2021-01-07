@@ -63,7 +63,7 @@ class Modal extends Component {
             swipeDirection,
             animationIn,
             animationOut,
-            needsSafeAreaPadding
+            needsSafeAreaPadding,
         } = getModalStyles(this.props.type, this.state.window);
         return (
             <ReactNativeModal
