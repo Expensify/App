@@ -266,7 +266,7 @@ const styles = {
         borderWidth: 0,
     },
 
-    buttonDisabledBG: {
+    buttonDisabled: {
         backgroundColor: themeColors.buttonDisabledBG,
         borderWidth: 0,
     },

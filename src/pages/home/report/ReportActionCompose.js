@@ -210,7 +210,7 @@ class ReportActionCompose extends React.Component {
                         )}
                     </AttachmentModal>
                     <TouchableOpacity
-                        style={[styles.chatItemSubmitButton, isEmpty ? styles.buttonSuccess : styles.buttonDisabledBG]}
+                        style={[styles.chatItemSubmitButton, isEmpty ? styles.buttonSuccess : styles.buttonDisabled]}
                         onPress={this.submitForm}
                         underlayColor={themeColors.componentBG}
                     >
