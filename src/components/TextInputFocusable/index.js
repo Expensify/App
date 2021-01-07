@@ -127,23 +127,27 @@ class TextInputFocusable extends React.Component {
      * @param {ClipboardEvent} event
      */
     checkForAttachment(event) {
-        // Test for Image base64 string or url favailable in html content
-        if (
-            event.clipboardData.getData('text/html').includes('data:')
-      || event.clipboardData.getData('text/html').includes('http')
-        ) {
+        const htmlData = event.clipboardData.getData('text/html');
+        const isBase64 = htmlData.includes('data:');
+        const isURL = htmlData.includes('http');
+
+        if (isBase64 || isURL) {
+            const mimeTypeFromBase64RegExp = /[^:]\w+\/[\w-+\d.]+(?=;|,)/;
+            const fileExtensionFromBase64RegExp = /[^:/]\w+(?=;|,)/;
+            const base64FromHTMLRegExp = /data:.*?"/im;
+            const urlFromHTMLRegExp = /https?.*?"/im;
             let base64;
             let url;
 
-            if (event.clipboardData.getData('text/html').includes('data:')) {
+            if (isBase64) {
                 base64 = `${event.clipboardData
                     .getData('text/html')
-                    .match(/data:.+"/im)}`;
+                    .match(base64FromHTMLRegExp)}`;
                 base64 = base64.substring(0, base64.length - 1);
             } else {
                 url = `${event.clipboardData
                     .getData('text/html')
-                    .match(/https?.*?"/im)}`;
+                    .match(urlFromHTMLRegExp)}`;
                 url = url.substring(0, url.length - 1).trim();
             }
 
@@ -151,9 +155,11 @@ class TextInputFocusable extends React.Component {
                 .then(res => res.blob())
                 .then((blob) => {
                     const mimeType = base64
-                        ? base64.match(/[^:]\w+\/[\w-+\d.]+(?=;|,)/)[0]
+                        ? base64.match(mimeTypeFromBase64RegExp)[0]
                         : 'image/png';
-                    const extension = base64 ? base64.match(/[^:/]\w+(?=;|,)/)[0] : '.png';
+                    const extension = base64
+                        ? base64.match(fileExtensionFromBase64RegExp)[0]
+                        : '.png';
                     const randomString = Math.random().toString(36).substring(5);
 
                     this.props.onPasteFile(
