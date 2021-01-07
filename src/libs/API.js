@@ -107,7 +107,6 @@ function requireParameters(parameterNames, parameters, commandName) {
  * @param {String} originalCommand
  * @param {Object} [originalParameters]
  * @param {String} [originalType]
- *
  * @returns {Promise}
  */
 function handleExpiredAuthToken(originalCommand, originalParameters, originalType) {
@@ -179,9 +178,9 @@ function request(command, parameters, type = 'post') {
     return new Promise((resolve, reject) => {
         Network.post(command, parameters, type)
             .then((response) => {
-                // Handle expired auth tokens properly
+                // Handle expired auth tokens properly by making sure to pass the resolve and reject down to the
+                // new promise created when calling handleExpiredAuthToken
                 if (response.jsonCode === 407) {
-                    console.log('auth token expired');
                     handleExpiredAuthToken(command, parameters, type)
                         .then(resolve)
                         .catch(reject);
