@@ -228,8 +228,9 @@ class App extends React.Component {
             ? styles.sidebarVisible
             : styles.sidebarHidden;
         const appContentWrapperStyle = !this.state.isHamburgerEnabled ? styles.appContentWrapperLarge : null;
-        const flexDirection = this.props.isSidebarShown
-            ? styles.flexRow : styles.flexColumn;
+
+        // const flexDirection = this.props.isSidebarShown
+        //     ? styles.flexRow : styles.flexColumn;
 
         return (
             <SafeAreaProvider>
@@ -239,7 +240,7 @@ class App extends React.Component {
                         <View
                             style={[styles.appContentWrapper,
                                 appContentWrapperStyle,
-                                flexDirection,
+                                styles.flexRow,
                                 styles.flex1,
                                 getSafeAreaPadding(insets),
                             ]}
@@ -267,7 +268,7 @@ class App extends React.Component {
                                     onPress={this.dismissHamburger}
                                 >
                                     <View
-                                        style={[styles.appContent, styles.flex1, styles.flexColumn, styles.flexShrink1]}
+                                        style={[styles.appContent, styles.flex1, styles.flexColumn]}
                                     >
                                         <Header
                                             shouldShowHamburgerButton={this.state.isHamburgerEnabled}
