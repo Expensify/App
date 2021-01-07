@@ -163,7 +163,7 @@ class TextInputFocusable extends React.Component {
         // affected by the previous row setting. If we don't, rows will be added but not removed on backspace/delete.
         this.setState({numberOfLines: 1}, () => {
             this.setState({
-                numberOfLines: this.getNumberOfLines(lineHeight, paddingTopAndBottom, this.textInput.scrollHeight)
+                numberOfLines: this.getNumberOfLines(lineHeight, paddingTopAndBottom, this.textInput.scrollHeight),
             });
         });
     }
