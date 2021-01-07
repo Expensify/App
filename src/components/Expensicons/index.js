@@ -13,8 +13,8 @@ const propTypes = {
 };
 
 const defaultProps = {
-    width: variables.iconSizeSmall,
-    height: variables.iconSizeSmall,
+    width: variables.iconSizeNormal,
+    height: variables.iconSizeNormal,
     isEnabled: false,
 };
 
