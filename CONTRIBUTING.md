@@ -25,7 +25,7 @@ We are currently managing payment via Upwork. If you'd like to be paid for your 
 ## Submitting a Pull Request
 #### Proposing a Change
 1. *Before writing any code* write a proposal for the solution in the issue
-1. Wait for Expensify to review and provide feedback on the proposal within the GH issue, and assigns the GH issue to you
+1. Wait for Expensify to review and provide feedback on the proposal within the GH issue, and assign the GH issue to you
 1. Fork this repository and create a new branch
 1. ‼️ **Before you start writing any code** ️‼️, please be aware that we require all commits to be [signed](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/signing-commits). The easiest way to do that is to [generate a new GPG key](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/generating-a-new-gpg-key) and [add it to your Github account](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/adding-a-new-gpg-key-to-your-github-account). Once you've done that, you can automatically sign all your commits by adding the following to your `.gitconfig`:
     ```
