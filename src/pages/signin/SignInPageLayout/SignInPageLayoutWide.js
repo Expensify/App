@@ -5,7 +5,7 @@ import {
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import Icon from '../../../components/Icon';
-import {ExpensifyCashLogo} from '../../../components/Icon/BRAND_ASSETS';
+import {ExpensifyCashLogo} from '../../../components/Icon/BrandAssets';
 import welcomeScreenshot from '../../../../assets/images/welcome-screenshot-wide.png';
 import variables from '../../../styles/variables';
 

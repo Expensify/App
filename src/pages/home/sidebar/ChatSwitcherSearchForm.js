@@ -11,7 +11,7 @@ import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import variables from '../../../styles/variables';
 import Icon from '../../../components/Icon';
-import {ExpensifyCashLogo} from '../../../components/Icon/BRAND_ASSETS';
+import {ExpensifyCashLogo} from '../../../components/Icon/BrandAssets';
 import TextInputWithFocusStyles from '../../../components/TextInputWithFocusStyles';
 import iconX from '../../../../assets/images/icon-x.png';
 import {getDisplayName} from '../../../libs/actions/PersonalDetails';

@@ -3,10 +3,10 @@ import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import themeColors from '../../styles/themes/default';
 import variables from '../../styles/variables';
-import * as BRAND_ASSETS from './BRAND_ASSETS';
-import * as EXPENSICONS from './EXPENSICONS';
+import * as BrandAssets from './BrandAssets';
+import * as Expensicons from './Expensicons';
 
-const ICONS = _.extend(BRAND_ASSETS, EXPENSICONS);
+const ICONS = _.extend(BrandAssets, Expensicons);
 
 const propTypes = {
     icon: PropTypes.oneOf(_.values(ICONS)).isRequired,
@@ -26,7 +26,7 @@ const Icon = (props) => {
     let fillColor = props.isEnabled ? themeColors.heading : themeColors.icon;
 
     // Do not pass a fill color for brand assets
-    if (_.contains(_.values(BRAND_ASSETS), props.icon)) {
+    if (_.contains(_.values(BrandAssets), props.icon)) {
         fillColor = undefined;
     }
 

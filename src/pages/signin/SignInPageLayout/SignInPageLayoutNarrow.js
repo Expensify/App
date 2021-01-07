@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import variables from '../../../styles/variables';
 import Icon from '../../../components/Icon';
-import {ExpensifyCashLogo} from '../../../components/Icon/BRAND_ASSETS';
+import {ExpensifyCashLogo} from '../../../components/Icon/BrandAssets';
 
 const propTypes = {
     // The children to show inside the layout

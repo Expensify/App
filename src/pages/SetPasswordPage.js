@@ -14,7 +14,7 @@ import compose from '../libs/compose';
 import {Redirect, withRouter} from '../libs/Router';
 import styles from '../styles/styles';
 import Icon from '../components/Icon';
-import {ExpensifyCashLogo} from '../components/Icon/BRAND_ASSETS';
+import {ExpensifyCashLogo} from '../components/Icon/BrandAssets';
 import CustomStatusBar from '../components/CustomStatusBar';
 import {setPassword} from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
