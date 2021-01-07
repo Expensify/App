@@ -1,12 +1,15 @@
+import _ from 'underscore';
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import themeColors from '../../styles/themes/default';
 import variables from '../../styles/variables';
-import Expensicons from './Icons';
-import ICON_NAMES from './ICON_NAMES';
+import BRAND_ASSETS from './BRAND_ASSETS';
+import EXPENSICONS from './EXPENSICONS';
+
+const ICONS = _.extend(BRAND_ASSETS, EXPENSICONS);
 
 const propTypes = {
-    name: PropTypes.oneOf(Object.values(ICON_NAMES)).isRequired,
+    icon: PropTypes.oneOf(_.values(ICONS)).isRequired,
     width: PropTypes.number,
     height: PropTypes.number,
     isEnabled: PropTypes.bool,
@@ -18,17 +21,17 @@ const defaultProps = {
     isEnabled: false,
 };
 
-const Expensicon = (props) => {
-    const Icon = Expensicons[props.name].icon;
+const Icon = (props) => {
+    const IconToRender = props.icon;
     let fillColor = props.isEnabled ? themeColors.heading : themeColors.icon;
 
-    // If we have a colored asset, do not pass a fill color
-    if (Expensicons[props.name].isAssetColored) {
+    // Do not pass a fill color for brand assets
+    if (_.contains(_.values(BRAND_ASSETS), props.icon)) {
         fillColor = undefined;
     }
 
     return (
-        <Icon
+        <IconToRender
             width={props.width}
             height={props.height}
             fill={fillColor}
@@ -36,10 +39,11 @@ const Expensicon = (props) => {
     );
 };
 
-Expensicon.propTypes = propTypes;
-Expensicon.defaultProps = defaultProps;
+Icon.propTypes = propTypes;
+Icon.defaultProps = defaultProps;
 
-export default memo(Expensicon);
+export default memo(Icon);
 export {
-    ICON_NAMES,
+    BRAND_ASSETS,
+    EXPENSICONS,
 };

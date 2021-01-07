@@ -10,7 +10,7 @@ import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import variables from '../../../styles/variables';
-import Expensicon, {ICON_NAMES} from '../../../components/Expensicons';
+import Icon, {BRAND_ASSETS} from '../../../components/Icon';
 import TextInputWithFocusStyles from '../../../components/TextInputWithFocusStyles';
 import iconX from '../../../../assets/images/icon-x.png';
 import {getDisplayName} from '../../../libs/actions/PersonalDetails';
@@ -60,8 +60,8 @@ const ChatSwitcherSearchForm = props => (
     <View style={[styles.flexRow, styles.sidebarHeaderTop]}>
         {props.isLogoVisible && (
             <View style={[styles.mr3]}>
-                <Expensicon
-                    name={ICON_NAMES.EXPENSIFY_CASH_LOGO}
+                <Icon
+                    icon={BRAND_ASSETS.EXPENSIFY_CASH_LOGO}
                     width={variables.componentSizeNormal}
                     height={variables.componentSizeNormal}
                 />
