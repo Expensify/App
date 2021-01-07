@@ -51,6 +51,12 @@ class Modal extends Component {
         Dimensions.removeEventListener('change', this.onDimensionChange);
     }
 
+    /**
+     * Stores the application window's width and height in a component state variable.
+     * Called each time the application's window dimensions or screen dimensions change.
+     * @link https://reactnative.dev/docs/dimensions
+     * @param {Object} newDimensions Dimension object containing updated window and screen dimensions
+     */
     onDimensionChange(newDimensions) {
         const {window} = newDimensions;
         this.setState({window});
