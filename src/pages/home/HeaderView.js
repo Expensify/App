@@ -52,20 +52,28 @@ const HeaderView = props => (
                 </TouchableOpacity>
             )}
             {props.report && props.report.reportName ? (
-                <View style={[
-                    styles.flex1,
-                    styles.flexRow,
-                    styles.alignItemsCenter,
-                    styles.justifyContentBetween,
-                ]}
+                <View
+                    style={[
+                        styles.flex1,
+                        styles.flexRow,
+                        styles.alignItemsCenter,
+                        styles.justifyContentBetween,
+                    ]}
                 >
-                    <View style={[styles.flex1, styles.width0]}>
-                        <Text numberOfLines={2} style={[styles.navText]}>
+                    <View
+                        style={[styles.flex1]}
+                    >
+                        <Text
+                            numberOfLines={2}
+                            style={[styles.navText]}
+                        >
                             {props.report.reportName}
                         </Text>
                     </View>
 
-                    <View style={[styles.reportOptions, styles.flexRow]}>
+                    <View
+                        style={[styles.reportOptions, styles.flexRow]}
+                    >
                         <TouchableOpacity
                             onPress={() => togglePinnedState(props.report)}
                             style={[styles.touchableButtonImage, styles.mr0]}
