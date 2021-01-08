@@ -45,7 +45,7 @@ class ReportActionCompose extends React.Component {
         this.state = {
             isFocused: false,
             textInputShouldClear: false,
-            isCommentEmpty: this.props.comment.length === 0,
+            isCommentEmpty: props.comment.length === 0,
         };
     }
 
