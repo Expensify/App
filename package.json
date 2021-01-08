@@ -1,6 +1,6 @@
 {
   "name": "expensify.cash",
-  "version": "1.0.1-326",
+  "version": "1.0.1-330",
   "author": "Expensify, Inc.",
   "homepage": "https://expensify.cash",
   "description": "Expensify.cash is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -128,11 +128,11 @@
       "node_modules/(?!react-native)/"
     ],
     "testPathIgnorePatterns": [
-      "<rootDir>/node_modules/",
-      "<rootDir>/tests/unit/mocks/"
+      "<rootDir>/node_modules/"
     ],
     "testMatch": [
       "**/tests/unit/**/*.[jt]s?(x)",
+      "**/tests/actions/**/*.[jt]s?(x)",
       "**/?(*.)+(spec|test).[jt]s?(x)"
     ],
     "globals": {

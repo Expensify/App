@@ -110,6 +110,11 @@ const styles = {
         borderWidth: 0,
     },
 
+    buttonDisable: {
+        backgroundColor: themeColors.buttonDisabledBG,
+        borderWidth: 0,
+    },
+
     buttonConfirm: {
         margin: 20,
     },
