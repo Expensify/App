@@ -42,12 +42,10 @@ class Modal extends Component {
     }
 
     componentDidMount() {
-        KeyboardShortcut.subscribe('Escape', this.props.onClose, [], true);
         Dimensions.addEventListener('change', this.onDimensionChange);
     }
 
     componentWillUnmount() {
-        KeyboardShortcut.unsubscribe('Escape');
         Dimensions.removeEventListener('change', this.onDimensionChange);
     }
 
@@ -75,6 +73,8 @@ class Modal extends Component {
             <ReactNativeModal
                 onBackdropPress={this.props.onClose}
                 onBackButtonPress={this.props.onClose}
+                onModalShow={() => KeyboardShortcut.subscribe('Escape', this.props.onClose, [], true)}
+                onModalHide={() => KeyboardShortcut.unsubscribe('Escape')}
                 onSwipeComplete={this.props.onClose}
                 swipeDirection={swipeDirection}
                 isVisible={this.props.isVisible}
