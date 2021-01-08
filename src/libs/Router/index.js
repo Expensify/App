@@ -4,7 +4,6 @@
  */
 import {
     HashRouter as Router,
-    Link,
     Route,
     Redirect,
     Switch,
@@ -12,10 +11,9 @@ import {
 } from 'react-router-dom';
 
 export {
-    Link,
     Route,
     Redirect,
     Router,
     Switch,
-    withRouter
+    withRouter,
 };
