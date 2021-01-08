@@ -110,7 +110,7 @@ function requireParameters(parameterNames, parameters, commandName) {
  * @param {String} originalCommand
  * @param {Object} [originalParameters]
  * @param {String} [originalType]
- * @returns {Promise|undefined}
+ * @returns {Promise}
  */
 function handleExpiredAuthToken(originalCommand, originalParameters, originalType) {
     // When the authentication process is running, and more API requests will be requeued and they will
