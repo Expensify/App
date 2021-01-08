@@ -3,12 +3,11 @@ import {View, Image, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Text from '../../components/Text';
-import styles from '../../styles/StyleSheet';
+import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import {withRouter} from '../../libs/Router';
 import LHNToggle from '../../../assets/images/icon-menu-toggle.png';
-import pinEnabled from '../../../assets/images/pin-enabled.png';
-import pinDisabled from '../../../assets/images/pin-disabled.png';
+import {PinIcon} from '../../components/Expensicons';
 import compose from '../../libs/compose';
 import {togglePinnedState} from '../../libs/actions/Report';
 
@@ -57,7 +56,7 @@ const HeaderView = props => (
                     styles.flex1,
                     styles.flexRow,
                     styles.alignItemsCenter,
-                    styles.flexJustifySpaceBetween
+                    styles.justifyContentBetween,
                 ]}
                 >
                     <View style={[styles.flex1]}>
@@ -71,11 +70,7 @@ const HeaderView = props => (
                             onPress={() => togglePinnedState(props.report)}
                             style={[styles.touchableButtonImage, styles.mr0]}
                         >
-                            <Image
-                                resizeMode="contain"
-                                source={props.report.isPinned ? pinEnabled : pinDisabled}
-                                style={[styles.reportPinIcon]}
-                            />
+                            <PinIcon height={20} width={20} isEnabled={props.report.isPinned} />
                         </TouchableOpacity>
                     </View>
                 </View>

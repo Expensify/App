@@ -31,7 +31,7 @@ function listenForReportChanges() {
 
             unreadActionCounts[report.reportID] = report.unreadActionCount || 0;
             throttledUpdatePageTitleAndUnreadCount();
-        }
+        },
     });
 }
 
