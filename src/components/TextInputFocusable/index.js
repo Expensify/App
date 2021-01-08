@@ -134,17 +134,22 @@ class TextInputFocusable extends React.Component {
             // Prevent the default so we do not post the file name into the text box
             event.preventDefault();
             this.props.onPasteFile(event.clipboardData.files[0]);
-        }
-        if (types.includes(TEXT_HTML)) {
+        } else if (types.includes(TEXT_HTML)) {
             const domparser = new DOMParser();
             const embededImages = domparser.parseFromString(event.clipboardData.getData(TEXT_HTML), TEXT_HTML).images;
             if (embededImages.length > 0) {
                 event.preventDefault();
                 fetch(embededImages[0].src)
-                    .then(x => x.blob())
+                    .then((response) => {
+                        if (!response.ok) { throw Error(response.statusText); }
+                        return response.blob();
+                    })
                     .then(x => new File([x], `pasted_image.${mime.extension(x.type)}`, {}))
                     .then(this.props.onPasteFile)
-                    .catch();
+                    .catch((error) => {
+                        console.debug(error);
+                        alert(`There was a problem getting the image you pasted. \n${error.message}`);
+                    });
             }
         }
     }
