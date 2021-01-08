@@ -4,6 +4,7 @@ import CONFIG from '../CONFIG';
 import ONYXKEYS from '../ONYXKEYS';
 import redirectToSignIn from './actions/SignInRedirect';
 import * as Network from './Network';
+import getErrorMessageFromErrorCode from './ErrorUtils';
 
 let isAuthenticating;
 
@@ -245,7 +246,8 @@ function Authenticate(parameters) {
             // an expensify login or the login credentials we created after the initial authentication.
             // In both cases, we need the user to sign in again with their expensify credentials
             if (response.jsonCode !== 200) {
-                throw new Error(response.message);
+                const errorMessage = getErrorMessageFromErrorCode(response.jsonCode);
+                throw new Error(errorMessage);
             }
             return response;
         });
