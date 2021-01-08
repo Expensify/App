@@ -23,4 +23,5 @@ export default {
     sidebarButtonBG: 'rgba(198, 201, 202, 0.25)',
     modalBackdrop: colors.gray3,
     pillBG: colors.gray2,
+    buttonDisabledBG: colors.gray2,
 };
