@@ -11,10 +11,9 @@ import messages from './messages';
 function getErrorMessage(type, error) {
     const code = error.split(' ')[0];
     if (!_.isEmpty(code)) {
-        const messageObj = _.filter(messages, {type: type, errorCode: +code.trim()});
-        if (!_.isEmpty(messageObj)) {
-            const foundMessage = messageObj[0];
-            return foundMessage.message;
+        const message = _.filter(messages, {type, errorCode: +code.trim()});
+        if (!_.isEmpty(message)) {
+            return message[0].message;
         }
     }
     return error;
