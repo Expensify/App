@@ -8,7 +8,7 @@ import CONFIG from '../../CONFIG';
 import PushNotification from '../Notification/PushNotification';
 import ROUTES from '../../ROUTES';
 import Timing from './Timing';
-import {getErrorMessage} from '../ErrorMessage';
+import getErrorMessage from '../ErrorMessage';
 
 let credentials = {};
 Onyx.connect({
