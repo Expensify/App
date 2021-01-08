@@ -12,6 +12,7 @@ import themeColors from '../styles/themes/default';
 import variables from '../styles/variables';
 import ONYXKEYS from '../ONYXKEYS';
 import addAuthTokenToURL from '../libs/addAuthTokenToURL';
+import downloadUrlFile from '../libs/downloadUrlFile';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -75,6 +76,7 @@ class AttachmentModal extends Component {
                 <ModalWithHeader
                     type={CONST.MODAL.MODAL_TYPE.CENTERED}
                     onClose={() => this.setState({isModalOpen: false})}
+                    onDownload={() => downloadUrlFile(sourceURL)}
                     isVisible={this.state.isModalOpen}
                     title={this.props.title}
                     backgroundColor={themeColors.componentBG}

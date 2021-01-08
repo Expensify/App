@@ -505,6 +505,12 @@ const styles = {
         padding: 0,
     },
 
+    attachmentDownloadIcon: {
+        height: 20,
+        width: 20,
+        padding: 0,
+    },
+
     chatContent: {
         flex: 4,
         justifyContent: 'flex-end',

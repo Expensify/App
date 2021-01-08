@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import styles from '../styles/styles';
 import exitIcon from '../../assets/images/icon-x--20x20.png';
+import downloadIcon from '../../assets/images/icon-download.png';
 
 const propTypes = {
     // Title of the modal
@@ -12,11 +13,15 @@ const propTypes = {
 
     // Method to trigger when pressing close button of the modal
     onCloseButtonPress: PropTypes.func,
+
+    // Method to trigger when pressing download button of the modal
+    onDownloadButtonPress: PropTypes.func,
 };
 
 const defaultProps = {
     title: '',
     onCloseButtonPress: () => {},
+    onDownloadButtonPress: () => {},
 };
 
 const ModalHeader = props => (
@@ -36,6 +41,16 @@ const ModalHeader = props => (
                 </Text>
             </View>
             <View style={[styles.reportOptions, styles.flexRow]}>
+                <TouchableOpacity
+                    onPress={props.onDownloadButtonPress}
+                    style={[styles.touchableButtonImage]}
+                >
+                    <Image
+                        resizeMode="contain"
+                        style={[styles.attachmentDownloadIcon]}
+                        source={downloadIcon}
+                    />
+                </TouchableOpacity>
                 <TouchableOpacity
                     onPress={props.onCloseButtonPress}
                     style={[styles.touchableButtonImage]}
