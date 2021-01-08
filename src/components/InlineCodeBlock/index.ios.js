@@ -13,7 +13,7 @@ const InlineCodeBlock = ({
     <View
         style={{
             ...boxModelStyle,
-            ...styles.mbn1,
+            ...styles.mbn5,
         }}
     >
         <TDefaultRenderer style={textStyle} {...defaultRendererProps} />

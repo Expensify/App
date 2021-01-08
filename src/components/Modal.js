@@ -36,7 +36,7 @@ const Modal = (props) => {
         swipeDirection,
         animationIn,
         animationOut,
-        needsSafeAreaPadding,
+        needsSafeAreaPadding
     } = getModalStyles(props.type, useWindowDimensions());
 
     return (

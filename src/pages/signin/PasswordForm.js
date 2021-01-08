@@ -1,17 +1,14 @@
 import React from 'react';
-import {
-    Text, TextInput, View,
-} from 'react-native';
+import {Text, TextInput, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {withRouter} from '../../libs/Router';
 import styles from '../../styles/styles';
-import ButtonWithLoader from '../../components/ButtonWithLoader';
+import SubmitButton from './SubmitButton';
 import themeColors from '../../styles/themes/default';
 import {signIn} from '../../libs/actions/Session';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
-import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 
 const propTypes = {
     // These are from withRouter
@@ -30,9 +27,6 @@ const propTypes = {
 
         // Whether or not two factor authentication is required
         requiresTwoFactorAuth: PropTypes.bool,
-
-        // Whether or not a sign on form is loading (being submitted)
-        loading: PropTypes.bool,
     }),
 };
 
@@ -50,6 +44,7 @@ class PasswordForm extends React.Component {
             formError: false,
             password: '',
             twoFactorAuthCode: '',
+            isLoading: false,
         };
     }
 
@@ -66,6 +61,7 @@ class PasswordForm extends React.Component {
 
         this.setState({
             formError: null,
+            isLoading: true,
         });
 
         signIn(this.state.password, this.props.match.params.exitTo, this.state.twoFactorAuthCode);
@@ -101,12 +97,11 @@ class PasswordForm extends React.Component {
                     </View>
                 )}
                 <View>
-                    <ButtonWithLoader
+                    <SubmitButton
                         text="Sign In"
-                        isLoading={this.props.account.loading}
+                        isLoading={this.state.isLoading}
                         onClick={this.validateAndSubmitForm}
                     />
-                    <ChangeExpensifyLoginLink />
                 </View>
                 {this.state.formError && (
                     <Text style={[styles.formError]}>

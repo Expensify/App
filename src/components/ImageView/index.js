@@ -1,4 +1,4 @@
-import React, {memo} from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import {View, Image} from 'react-native';
 import styles from '../../styles/styles';
@@ -11,19 +11,15 @@ const propTypes = {
 const ImageView = props => (
     <View
         style={[
-            styles.w100,
-            styles.h100,
+            styles.widthHeight100p,
             styles.alignItemsCenter,
-            styles.justifyContentCenter,
+            styles.flexJustifyCenter,
             styles.overflowHidden,
         ]}
     >
         <Image
             source={{uri: props.url}}
-            style={[
-                styles.w100,
-                styles.h100,
-            ]}
+            style={styles.widthHeight100p}
             resizeMode="center"
         />
     </View>
@@ -32,4 +28,4 @@ const ImageView = props => (
 ImageView.propTypes = propTypes;
 ImageView.displayName = 'ImageView';
 
-export default memo(ImageView);
+export default ImageView;

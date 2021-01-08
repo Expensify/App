@@ -2,7 +2,7 @@ import React, {
     useEffect,
     useRef,
     useCallback,
-    forwardRef,
+    forwardRef
 } from 'react';
 import PropTypes from 'prop-types';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
@@ -35,7 +35,7 @@ const InvertedFlatList = (props) => {
 
             currentRef.setNativeProps({
                 style: {
-                    transform: 'translate3d(0,0,0) scaleY(-1)',
+                    transform: 'translate3d(0,0,0) scaleY(-1)'
                 },
             });
         }

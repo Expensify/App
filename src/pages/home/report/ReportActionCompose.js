@@ -141,7 +141,7 @@ class ReportActionCompose extends React.Component {
                         ? styles.chatItemComposeBoxFocusedColor
                         : styles.chatItemComposeBoxColor,
                     styles.chatItemComposeBox,
-                    styles.flexRow,
+                    styles.flexRow
                 ]}
                 >
                     <AttachmentModal

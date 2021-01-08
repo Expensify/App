@@ -47,7 +47,7 @@ const Text = ({
     // If the style prop is an array of styles, we need to mix them all together
     const mergedStyles = !_.isArray(style) ? style : _.reduce(style, (finalStyles, s) => ({
         ...finalStyles,
-        ...s,
+        ...s
     }), {});
 
     const componentStyle = {

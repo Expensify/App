@@ -24,7 +24,7 @@ function pushNotificationEventCallback(eventType, notification) {
     console.debug(`[PUSH_NOTIFICATION] ${eventType}`, {
         title: notification.title,
         message: notification.alert,
-        payload,
+        payload
     });
 
     if (!payload) {
@@ -36,7 +36,9 @@ function pushNotificationEventCallback(eventType, notification) {
     // we'll assume pusher is connected so we'll ignore is and not fetch the same data twice.
     // However, we will allow NotificationResponse events through, so that tapping on a foreground notification
     // will take you to the relevant report.
-    if (AppState.currentState === 'active') {
+    // Note: We hope to prevent foreground notifications from appearing in the near future,
+    // so when that happens we can go back to ignoring all push notification callbacks when the app is in the foreground
+    if (AppState.currentState === 'active' && eventType === EventType.PushReceived) {
         console.debug('[PUSH_NOTIFICATION] Push received while app is in foreground, not executing any callback.');
         return;
     }

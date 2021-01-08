@@ -2,6 +2,7 @@ import {AppRegistry} from 'react-native';
 import checkForUpdates from '../libs/checkForUpdates';
 import Config from '../CONFIG';
 import HttpUtils from '../libs/HttpUtils';
+import {name as appName} from '../../app.json';
 import {version as currentVersion} from '../../package.json';
 import Visibility from '../libs/Visibility';
 
@@ -48,7 +49,7 @@ const webUpdater = () => ({
 });
 
 export default function () {
-    AppRegistry.runApplication(Config.APP_NAME, {
+    AppRegistry.runApplication(appName, {
         rootTag: document.getElementById('root'),
     });
 

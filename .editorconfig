@@ -3,6 +3,9 @@
 # Howto with your editor:
 #   Sublime: https://github.com/sindresorhus/editorconfig-sublime
 
+# top-most EditorConfig file
+root = true
+
 # Unix-style newlines with a newline ending every file
 [**]
 end_of_line = lf

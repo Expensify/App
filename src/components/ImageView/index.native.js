@@ -32,10 +32,9 @@ class ImageView extends React.Component {
         return (
             <View
                 style={[
-                    styles.w100,
-                    styles.h100,
+                    styles.widthHeight100p,
                     styles.alignItemsCenter,
-                    styles.justifyContentCenter,
+                    styles.flexJustifyCenter,
                     styles.overflowHidden,
                 ]}
             >

@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import Onyx from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import md5 from '../md5';
 import CONST from '../../CONST';
@@ -56,13 +55,10 @@ function getAvatar(personalDetail, login) {
  * @returns {String}
  */
 function getDisplayName(login, personalDetail) {
-    // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms
-    // so that the option looks cleaner in our UI.
-    const userLogin = Str.removeSMSDomain(login);
     const userDetails = personalDetail || personalDetails[login];
 
     if (!userDetails) {
-        return userLogin;
+        return login;
     }
 
     if (userDetails.displayName) {
@@ -72,7 +68,7 @@ function getDisplayName(login, personalDetail) {
     const firstName = userDetails.firstName || '';
     const lastName = userDetails.lastName || '';
 
-    return (`${firstName} ${lastName}`).trim() || userLogin;
+    return (`${firstName} ${lastName}`).trim() || login;
 }
 
 /**
@@ -92,7 +88,7 @@ function formatPersonalDetails(personalDetailsList) {
                 login,
                 avatarURL,
                 displayName,
-            },
+            }
         };
     }, {});
 }
@@ -166,15 +162,13 @@ function getFromReportParticipants(reports) {
             // The personalDetails of the participants contain their avatar images. Here we'll go over each
             // report and based on the participants we'll link up their avatars to report icons.
             _.each(reports, (report) => {
-                if (report.participants.length > 0) {
-                    const avatars = _.map(report.participants, dmParticipant => ({
-                        firstName: lodashGet(details, [dmParticipant, 'firstName'], ''),
-                        avatar: lodashGet(details, [dmParticipant, 'avatar'], getDefaultAvatar(dmParticipant)),
-                    }))
-                        .sort((first, second) => first.firstName - second.firstName)
-                        .map(item => item.avatar);
-
-                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {icons: avatars});
+                if (report.participants.length === 1) {
+                    const dmParticipant = report.participants[0];
+                    let icon = lodashGet(details, [dmParticipant, 'avatar'], '');
+                    if (!icon) {
+                        icon = getDefaultAvatar(dmParticipant);
+                    }
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {icon});
                 }
             });
         });

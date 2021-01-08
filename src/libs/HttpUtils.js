@@ -16,7 +16,7 @@ import NetworkConnection from './NetworkConnection';
 function processHTTPRequest(url, method = 'get', body = null) {
     return fetch(url, {
         method,
-        body,
+        body
     })
         .then(response => response.json())
 

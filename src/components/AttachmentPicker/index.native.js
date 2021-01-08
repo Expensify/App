@@ -1,7 +1,6 @@
 /**
  * The react native image/document pickers work for iOS/Android, but we want to wrap them both within AttachmentPicker
  */
-import {Alert, Linking} from 'react-native';
 import RNImagePicker from 'react-native-image-picker';
 import RNDocumentPicker from 'react-native-document-picker';
 import PropTypes from 'prop-types';
@@ -52,24 +51,6 @@ function showDocumentPicker(callback) {
 function show(callback) {
     RNImagePicker.showImagePicker(imagePickerOptions, (response) => {
         if (response.error) {
-            if (response.error === 'Camera permissions not granted') {
-                Alert.alert(
-                    // eslint-disable-next-line max-len
-                    'ExpensifyCash does not have access to your camera. To enable access, tap Settings and turn on Camera.',
-                    '',
-                    [
-                        {
-                            text: 'Cancel',
-                            style: 'cancel',
-                        },
-                        {
-                            text: 'Settings',
-                            onPress: () => Linking.openURL('app-settings:'),
-                        },
-                    ],
-                    {cancelable: false},
-                );
-            }
             console.debug(`Error during attachment selection: ${response.error}`);
         } else if (response.customButton) {
             showDocumentPicker(callback);

@@ -46,21 +46,13 @@ function processNetworkRequestQueue() {
     _.each(networkRequestQueue, (queuedRequest) => {
         // Some requests must be allowed to run even when the queue is paused e.g. an authentication request
         // that pauses the network queue while authentication happens, then unpauses it when it's done.
-        const shouldSkipRequest = isQueuePaused && queuedRequest.data.forceNetworkRequest !== true;
-
-        if (shouldSkipRequest) {
+        if (isQueuePaused && queuedRequest.data.forceNetworkRequest !== true) {
             return;
         }
 
         const finalParameters = _.isFunction(enhanceParameters)
             ? enhanceParameters(queuedRequest.command, queuedRequest.data)
             : queuedRequest.data;
-
-        // Check to see if the queue has paused again. It's possible that a call to enhanceParameters()
-        // has paused the queue and if this is the case we must return.
-        if (shouldSkipRequest) {
-            return;
-        }
 
         HttpUtils.xhr(queuedRequest.command, finalParameters, queuedRequest.type)
             .then(queuedRequest.resolve)
@@ -122,17 +114,9 @@ function registerParameterEnhancer(callback) {
     enhanceParameters = callback;
 }
 
-/**
- * Clear the queue so all pending requests will be cancelled
- */
-function clearRequestQueue() {
-    networkRequestQueue = [];
-}
-
 export {
     post,
     pauseRequestQueue,
     unpauseRequestQueue,
     registerParameterEnhancer,
-    clearRequestQueue,
 };

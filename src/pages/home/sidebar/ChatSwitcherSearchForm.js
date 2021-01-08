@@ -4,12 +4,12 @@ import {
     Image,
     TouchableOpacity,
     View,
-    Text,
+    Text
 } from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
-import {ExpensifyCashLogoIcon} from '../../../components/Expensicons';
+import logoCircle from '../../../../assets/images/expensify-logo-round.png';
 import TextInputWithFocusStyles from '../../../components/TextInputWithFocusStyles';
 import iconX from '../../../../assets/images/icon-x.png';
 import {getDisplayName} from '../../../libs/actions/PersonalDetails';
@@ -59,7 +59,11 @@ const ChatSwitcherSearchForm = props => (
     <View style={[styles.flexRow, styles.sidebarHeaderTop]}>
         {props.isLogoVisible && (
             <View style={[styles.mr3]}>
-                <ExpensifyCashLogoIcon />
+                <Image
+                    resizeMode="contain"
+                    style={[styles.sidebarHeaderLogo]}
+                    source={logoCircle}
+                />
             </View>
         )}
 
@@ -89,7 +93,7 @@ const ChatSwitcherSearchForm = props => (
                                     styles.chatSwitcherInputGroup,
                                     styles.flexRow,
                                     styles.flexGrow1,
-                                    styles.alignSelfStretch,
+                                    styles.flexAlignSelfStretch,
                                 ]}
                             >
                                 <TextInputWithFocusStyles
@@ -110,7 +114,7 @@ const ChatSwitcherSearchForm = props => (
                             </View>
                         </View>
                     </View>
-                    <View style={[styles.ml1, styles.justifyContentEnd]}>
+                    <View style={[styles.ml1, styles.flexJustifyEnd]}>
                         <TouchableOpacity
                             style={[styles.button, styles.buttonSmall, styles.buttonSuccess, styles.chatSwitcherGo]}
                             onPress={props.onConfirmUsers}
@@ -120,7 +124,7 @@ const ChatSwitcherSearchForm = props => (
                                 style={[
                                     styles.buttonText,
                                     styles.buttonSmallText,
-                                    styles.buttonSuccessText,
+                                    styles.buttonSuccessText
                                 ]}
                             >
                                 Go

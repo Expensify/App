@@ -1,11 +1,10 @@
 import React from 'react';
 import {
-    ScrollView, Text, View,
+    Image, ScrollView, Text, View
 } from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
-import variables from '../../../styles/variables';
-import {ExpensifyCashLogoIcon} from '../../../components/Expensicons';
+import logo from '../../../../assets/images/expensify-logo-round.png';
 
 const propTypes = {
     // The children to show inside the layout
@@ -17,9 +16,10 @@ const SignInPageLayoutNarrow = ({children}) => (
         <View>
             <View style={[styles.signInPageInnerNative]}>
                 <View style={[styles.signInPageLogoNative]}>
-                    <ExpensifyCashLogoIcon
-                        width={variables.componentSizeLarge}
-                        height={variables.componentSizeNormal}
+                    <Image
+                        resizeMode="contain"
+                        style={[styles.signinLogo]}
+                        source={logo}
                     />
                 </View>
 

@@ -1,35 +1,14 @@
 import React from 'react';
 import {
-    Image, Text, TextInput, View,
+    Image, Text, TextInput, View
 } from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import _ from 'underscore';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
-import ButtonWithLoader from '../../../components/ButtonWithLoader';
+import SubmitButton from '../SubmitButton';
 import openURLInNewTab from '../../../libs/openURLInNewTab';
 import {fetchAccountDetails} from '../../../libs/actions/Session';
 import welcomeScreenshot from '../../../../assets/images/welcome-screenshot.png';
 import CONST from '../../../CONST';
-import ONYXKEYS from '../../../ONYXKEYS';
-
-const propTypes = {
-    /* Onyx Props */
-
-    // The details about the account that the user is signing in with
-    account: PropTypes.shape({
-        // An error message to display to the user
-        error: PropTypes.string,
-
-        // Whether or not a sign on form is loading (being submitted)
-        loading: PropTypes.bool,
-    }),
-};
-
-const defaultProps = {
-    account: {},
-};
 
 class LoginFormNarrow extends React.Component {
     constructor(props) {
@@ -40,6 +19,7 @@ class LoginFormNarrow extends React.Component {
         this.state = {
             formError: false,
             login: '',
+            isLoading: false,
         };
     }
 
@@ -54,6 +34,7 @@ class LoginFormNarrow extends React.Component {
 
         this.setState({
             formError: null,
+            isLoading: true,
         });
 
         // Check if this login has an account associated with it or not
@@ -78,22 +59,17 @@ class LoginFormNarrow extends React.Component {
                     />
                 </View>
                 <View>
-                    <ButtonWithLoader
+                    <SubmitButton
                         text="Continue"
-                        isLoading={this.props.account.loading}
+                        isLoading={this.state.isLoading}
                         onClick={this.validateAndSubmitForm}
+                        showRestartButton={false}
                     />
                 </View>
 
                 {this.state.formError && (
                     <Text style={[styles.formError]}>
                         {this.state.formError}
-                    </Text>
-                )}
-
-                {!_.isEmpty(this.props.account.error) && (
-                    <Text style={[styles.formError]}>
-                        {this.props.account.error}
                     </Text>
                 )}
 
@@ -137,9 +113,4 @@ class LoginFormNarrow extends React.Component {
     }
 }
 
-LoginFormNarrow.propTypes = propTypes;
-LoginFormNarrow.defaultProps = defaultProps;
-
-export default withOnyx({
-    account: {key: ONYXKEYS.ACCOUNT},
-})(LoginFormNarrow);
+export default LoginFormNarrow;

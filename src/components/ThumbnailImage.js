@@ -1,4 +1,4 @@
-import React, {PureComponent} from 'react';
+import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -28,7 +28,7 @@ const defaultProps = {
     style: {},
 };
 
-class ThumbnailImage extends PureComponent {
+class ThumbnailImage extends Component {
     constructor(props) {
         super(props);
 
@@ -64,7 +64,7 @@ class ThumbnailImage extends PureComponent {
                         height: this.state.thumbnailHeight,
                     },
                     styles.alignItemsCenter,
-                    styles.justifyContentCenter,
+                    styles.flexJustifyCenter,
                     styles.overflowHidden,
                 ]}
             >

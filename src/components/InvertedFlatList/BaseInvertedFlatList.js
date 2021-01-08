@@ -20,7 +20,7 @@ const propTypes = {
     // Passed via forwardRef so we can access the FlatList ref
     innerRef: PropTypes.oneOfType([
         PropTypes.func,
-        PropTypes.shape({current: PropTypes.instanceOf(FlatList)}),
+        PropTypes.shape({current: PropTypes.instanceOf(FlatList)})
     ]).isRequired,
 
     // Should we measure these items and call getItemLayout?
@@ -81,7 +81,7 @@ class BaseInvertedFlatList extends Component {
             offset: _.isUndefined(lastMeasuredItem)
                 ? this.props.initialRowHeight * index
                 : lastMeasuredItem.offset + this.props.initialRowHeight,
-            index,
+            index
         };
     }
 

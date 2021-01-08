@@ -58,7 +58,7 @@ module.exports = {
                 exclude: [
                     // eslint-disable-next-line max-len
                     /node_modules\/(?!(react-native-webview|react-native-onyx)\/).*|\.native\.js$/,
-                    platformExclude,
+                    platformExclude
                 ],
             },
             {
@@ -66,12 +66,12 @@ module.exports = {
                 loader: 'eslint-loader',
                 exclude: [
                     /node_modules|\.native\.js$/,
-                    platformExclude,
+                    platformExclude
                 ],
                 options: {
                     cache: false,
                     emitWarning: true,
-                    configFile: path.resolve(__dirname, '../../.eslintrc.js'),
+                    configFile: './config/.eslintrc.js',
                 },
             },
 
@@ -92,17 +92,6 @@ module.exports = {
                 use: [
                     {
                         loader: 'file-loader',
-                    },
-                ],
-            },
-
-            // Load svg images
-            {
-                test: /\.svg$/,
-                exclude: /node_modules/,
-                use: [
-                    {
-                        loader: '@svgr/webpack',
                     },
                 ],
             },

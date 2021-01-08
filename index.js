@@ -4,8 +4,8 @@
 
 import {AppRegistry} from 'react-native';
 import App from './src/App';
-import Config from './src/CONFIG';
+import {name as appName} from './app.json';
 import additionalAppSetup from './src/setup';
 
-AppRegistry.registerComponent(Config.APP_NAME, () => App);
+AppRegistry.registerComponent(appName, () => App);
 additionalAppSetup();

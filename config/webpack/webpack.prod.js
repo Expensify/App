@@ -17,6 +17,6 @@ module.exports = merge(common, {
             // react-native-render-html uses variable to log exclusively during development.
             // See https://reactnative.dev/docs/javascript-environment
             __DEV__: false,
-        }),
+        })
     ],
 });

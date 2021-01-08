@@ -18,7 +18,7 @@ import {
     Route,
     Router,
     Redirect,
-    Switch,
+    Switch
 } from './libs/Router';
 import ROUTES from './ROUTES';
 import PushNotification from './libs/Notification/PushNotification';
@@ -30,8 +30,7 @@ Onyx.init({
     initialKeyStates: {
 
         // Clear any loading and error messages so they do not appear on app startup
-        [ONYXKEYS.SESSION]: {loading: false},
-        [ONYXKEYS.ACCOUNT]: {loading: false, error: ''},
+        [ONYXKEYS.SESSION]: {loading: false, error: ''},
     },
     registerStorageEventListener: (onStorageEvent) => {
         listenToStorageEvents(onStorageEvent);

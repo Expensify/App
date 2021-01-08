@@ -94,15 +94,16 @@ platform :ios do
         groups: ["Beta"],
         demo_account_required: true,
         beta_app_review_info: {
-            contact_email: ENV["APPLE_CONTACT_EMAIL"],
+            contact_email: "mobile@expensify.com",
             contact_first_name: "Andrew",
             contact_last_name: "Gable",
-            contact_phone: ENV["APPLE_CONTACT_PHONE"],
-            demo_account_name: ENV["APPLE_DEMO_EMAIL"],
-            demo_account_password: ENV["APPLE_DEMO_PASSWORD"],
+            contact_phone: "+1 916 698 2582",
+            demo_account_name: "andrew+empty@expensifail.com",
+            demo_account_password: "asdfASDF00",
             notes: "Use the account provided. Thank you for the review."
         }
     )
+
 
     upload_symbols_to_crashlytics(
       dsym_path: lane_context[SharedValues::DSYM_OUTPUT_PATH],

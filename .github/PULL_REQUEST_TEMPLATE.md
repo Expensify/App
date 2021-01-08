@@ -19,28 +19,5 @@ For example:
 3. Verify a modal appears displaying a preview of that image 
 --->
 
-### Tested On
-
-- [ ] Web
-- [ ] Mobile Web
-- [ ] Desktop
-- [ ] iOS
-- [ ] Android
-
 ### Screenshots
 <Add any necessary screenshots for all platforms if your change added or updated UI>
-
-#### Web
-<!-- Insert screenshots of your changes on the web platform or write "no changes"-->
-
-#### Mobile Web
-<!-- Insert screenshots of your changes on the web platform (from a mobile browser) or write "no changes"-->
-
-#### Desktop
-<!-- Insert screenshots of your changes on the desktop platform or write "no changes"-->
-
-#### iOS
-<!-- Insert screenshots of your changes on the iOS platform or write "no changes"-->
-
-#### Android
-<!-- Insert screenshots of your changes on the Android platform or write "no changes"-->
