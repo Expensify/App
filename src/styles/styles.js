@@ -111,7 +111,7 @@ const styles = {
     },
 
     buttonDisable: {
-        backgroundColor: themeColors.textMutedReversed,
+        backgroundColor: themeColors.buttonDisabledBG,
         borderWidth: 0,
     },
 
