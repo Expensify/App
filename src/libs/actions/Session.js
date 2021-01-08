@@ -70,9 +70,8 @@ function signOut() {
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         doNotRetry: true,
-    }).then(() => {
-        Onyx.clear();
-    }).catch(error => Onyx.merge(ONYXKEYS.SESSION, {error: error.message}));
+    })
+        .catch(error => Onyx.merge(ONYXKEYS.SESSION, {error: error.message}));
 }
 
 /**
