@@ -6,6 +6,7 @@ import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 // Set up manual mocks for methods used in the actions so our test does not fail.
 jest.mock('../../src/libs/Notification/PushNotification', () => ({
     register: () => {},
+    deregister: () => {},
 }));
 
 // We are mocking this method so that we can later test to see if it was called and what arguments it was called with.
