@@ -22,13 +22,13 @@ test('Authenticate is called with saved credentials when a session expires', () 
     const TEST_AUTH_TOKEN = '12345';
 
     // Set up mock responses for all APIs that will be called. The next time this command is called it will return
-    // jsonCode: 200 and the response here. We are setting a mock command
-    API.setMockCommand('GetAccountStatus', jest.fn(() => Promise.resolve({
+    // jsonCode: 200 and the response here.
+    API.setMockCommand('GetAccountStatus', () => Promise.resolve({
         jsonCode: 200,
         accountExists: true,
         canAccessExpensifyCash: true,
         requiresTwoFactorAuth: false,
-    })));
+    }));
 
     let credentials;
     Onyx.connect({
@@ -98,7 +98,7 @@ test('Authenticate is called with saved credentials when a session expires', () 
             // then it's possible we are about to break the re-authentication flow.
             expect(HttpUtils.xhr.mock.calls.length).toBe(1);
 
-            // Note: jest.fn() arguments are stored as a two dimensional array. [0][0] refers to the first
+            // Note: jest.fn() calls and arguments are stored as a two dimensional array. [0][0] refers to the first
             // argument of the first call made to our xhr() mock function.
             expect(HttpUtils.xhr.mock.calls[0][0]).toBe('Authenticate');
         });
