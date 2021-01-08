@@ -133,7 +133,7 @@ class ReportActionCompose extends React.Component {
     }
 
     render() {
-        const { isEmpty } = this.state;
+        const {isEmpty} = this.state;
         return (
             <View style={[styles.chatItemCompose]}>
                 <View style={[
