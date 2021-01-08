@@ -15,3 +15,24 @@
 ## Further Reading 📖
 1. https://securitylab.github.com/research/github-actions-preventing-pwn-requests
 1. https://stackoverflow.com/a/62143130/1858217
+
+## Secrets
+The GitHub workflows require a large list of secrets to deploy, notify and test the code:
+1. `LARGE_SECRET_PASSPHRASE` - decrypts secrets stored in various encrypted files stored in GitHub repository:
+   1. `android/app/my-upload-key.keystore.gpg`
+   2. `android/app/android-fastlane-json-key.json.gpg`
+   3. `ios/chat_expensify_appstore.mobileprovision`
+   4. `ios/Certificates.p12.gpg`
+2. `SLACK_WEBHOOK` - Sends Slack notifications via Slack WebHook https://expensify.slack.com/services/B01AX48D7MM
+3. `OS_BOTIFY_TOKEN` - Personal access token for @OSBotify user in GitHub
+4. `CSC_LINK` - Required to be set for desktop code signing: https://www.electron.build/code-signing.html#travis-appveyor-and-other-ci-servers
+5. `CSC_KEY_PASSWORD` - Required to be set for desktop code signing: https://www.electron.build/code-signing.html#travis-appveyor-and-other-ci-servers
+6. `APPLE_ID` - Required for notarizing desktop code in `desktop/notarize.js`
+7. `APPLE_ID_PASSWORD` - Required for notarizing desktop code in `desktop/notarize.js`
+8. `AWS_ACCESS_KEY_ID` - Required for hosting website and desktop compiled code
+9. `AWS_SECRET_ACCESS_KEY` - Required for hosting website and desktop compiled code
+10. `CLOUDFLARE_TOKEN` - Required for hosting website
+11. `APPLE_CONTACT_EMAIL` - Email used for contact between Expensify and Apple for https://appstoreconnect.apple.com/
+12. `APPLE_CONTACT_PHONE` - Phone number used for contact between Expensify and Apple for https://appstoreconnect.apple.com/
+13. `APPLE_DEMO_EMAIL` - Demo account email used for https://appstoreconnect.apple.com/
+14. `APPLE_DEMO_PASSWORD` - Demo account password used for https://appstoreconnect.apple.com/

@@ -69,7 +69,7 @@ class AttachmentModal extends Component {
         const isSmallScreen = Dimensions.get('window').width < variables.mobileResponsiveWidthBreakpoint;
         const attachmentViewStyles = isSmallScreen
             ? [styles.imageModalImageCenterContainer]
-            : [styles.imageModalImageCenterContainer, styles.p2];
+            : [styles.imageModalImageCenterContainer, styles.p5];
         return (
             <>
                 <ModalWithHeader
