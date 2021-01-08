@@ -8,7 +8,7 @@ import Text from '../../../components/Text';
 import {fetchActions, updateLastReadActionID} from '../../../libs/actions/Report';
 import ONYXKEYS from '../../../ONYXKEYS';
 import ReportActionItem from './ReportActionItem';
-import styles from '../../../styles/StyleSheet';
+import styles from '../../../styles/styles';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import {lastItem} from '../../../libs/CollectionUtils';
@@ -46,6 +46,7 @@ class ReportActionsView extends React.Component {
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
         this.recordMaxAction = this.recordMaxAction.bind(this);
         this.sortedReportActions = this.updateSortedReportActions();
+        this.timers = [];
 
         this.state = {
             refetchNeeded: true,
@@ -55,7 +56,7 @@ class ReportActionsView extends React.Component {
     componentDidMount() {
         this.visibilityChangeEvent = AppState.addEventListener('change', () => {
             if (this.props.isActiveReport && Visibility.isVisible()) {
-                setTimeout(this.recordMaxAction, 3000);
+                this.timers.push(setTimeout(this.recordMaxAction, 3000));
             }
         });
         if (this.props.isActiveReport) {
@@ -86,7 +87,7 @@ class ReportActionsView extends React.Component {
             // When the number of actions change, wait three seconds, then record the max action
             // This will make the unread indicator go away if you receive comments in the same chat you're looking at
             if (this.props.isActiveReport && Visibility.isVisible()) {
-                setTimeout(this.recordMaxAction, 3000);
+                this.timers.push(setTimeout(this.recordMaxAction, 3000));
             }
 
             return;
@@ -109,9 +110,12 @@ class ReportActionsView extends React.Component {
         if (this.keyboardEvent) {
             this.keyboardEvent.remove();
         }
+
         if (this.visibilityChangeEvent) {
             this.visibilityChangeEvent.remove();
         }
+
+        _.each(this.timers, timer => clearTimeout(timer));
     }
 
     /**
@@ -209,7 +213,7 @@ class ReportActionsView extends React.Component {
         item,
         index,
         onLayout,
-        needsLayoutCalculation
+        needsLayoutCalculation,
     }) {
         return (
             <ReportActionItem

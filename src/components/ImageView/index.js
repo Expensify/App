@@ -1,41 +1,35 @@
-import React from 'react';
+import React, {memo} from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
-import ImageWithSizeCalculation from '../ImageWithSizeCalculation';
+import {View, Image} from 'react-native';
+import styles from '../../styles/styles';
 
 const propTypes = {
     // URL to full-sized image
-    url: PropTypes.string,
-
-    // Image height
-    height: PropTypes.number,
-
-    // Image width
-    width: PropTypes.number,
-
-    // Callback to fire when image is measured
-    onMeasure: PropTypes.func.isRequired,
-};
-
-const defaultProps = {
-    url: '',
-    height: 300,
-    width: 300,
+    url: PropTypes.string.isRequired,
 };
 
 const ImageView = props => (
-    <View>
-        <ImageWithSizeCalculation
-            onMeasure={props.onMeasure}
-            url={props.url}
-            width={props.width}
-            height={props.height}
+    <View
+        style={[
+            styles.w100,
+            styles.h100,
+            styles.alignItemsCenter,
+            styles.justifyContentCenter,
+            styles.overflowHidden,
+        ]}
+    >
+        <Image
+            source={{uri: props.url}}
+            style={[
+                styles.w100,
+                styles.h100,
+            ]}
+            resizeMode="center"
         />
     </View>
 );
 
 ImageView.propTypes = propTypes;
-ImageView.defaultProps = defaultProps;
 ImageView.displayName = 'ImageView';
 
-export default ImageView;
+export default memo(ImageView);

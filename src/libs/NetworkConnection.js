@@ -97,9 +97,11 @@ function stopListeningForReconnect() {
     clearInterval(sleepTimer);
     if (unsubscribeFromNetInfo) {
         unsubscribeFromNetInfo();
+        unsubscribeFromNetInfo = undefined;
     }
     if (isListeningToAppStateChanges) {
         AppState.removeEventListener('change', setAppState);
+        isListeningToAppStateChanges = false;
     }
 }
 

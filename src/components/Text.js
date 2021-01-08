@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {Text as RNText} from 'react-native';
 import fontFamily from '../styles/fontFamily';
-import {colors} from '../styles/StyleSheet';
+import themeColors from '../styles/themes/default';
 
 const propTypes = {
     // The color of the text
@@ -27,7 +27,7 @@ const propTypes = {
     style: PropTypes.any,
 };
 const defaultProps = {
-    color: colors.text,
+    color: themeColors.text,
     fontSize: 15,
     family: 'GTA',
     textAlign: null,
@@ -47,7 +47,7 @@ const Text = ({
     // If the style prop is an array of styles, we need to mix them all together
     const mergedStyles = !_.isArray(style) ? style : _.reduce(style, (finalStyles, s) => ({
         ...finalStyles,
-        ...s
+        ...s,
     }), {});
 
     const componentStyle = {

@@ -3,12 +3,12 @@ require_relative '../node_modules/@react-native-community/cli-platform-ios/nativ
 
 platform :ios, '11.0'
 
-target 'ReactNativeChat' do
+target 'ExpensifyCash' do
   config = use_native_modules!
 
   use_react_native!(:path => config["reactNativePath"])
 
-  target 'ReactNativeChatTests' do
+  target 'ExpensifyCashTests' do
     inherit! :complete
     # Pods for testing
   end
@@ -20,5 +20,9 @@ target 'ReactNativeChat' do
   use_flipper!
   post_install do |installer|
     flipper_post_install(installer)
+
+    installer.pods_project.build_configurations.each do |config|
+      config.build_settings["EXCLUDED_ARCHS[sdk=iphonesimulator*]"] = "arm64"
+    end
   end
 end

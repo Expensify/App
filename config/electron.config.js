@@ -1,6 +1,6 @@
 module.exports = {
     appId: 'com.expensifyreactnative.chat',
-    productName: 'Chat',
+    productName: 'Expensify.cash',
     extraMetadata: {
         main: './desktop/main.js',
     },
@@ -11,17 +11,17 @@ module.exports = {
         hardenedRuntime: true,
         entitlements: 'desktop/entitlements.mac.plist',
         entitlementsInherit: 'desktop/entitlements.mac.plist',
-        type: 'distribution'
+        type: 'distribution',
     },
     dmg: {
-        title: 'Chat',
-        artifactName: 'Chat.dmg',
-        internetEnabled: true
+        title: 'Expensify.cash',
+        artifactName: 'Expensify.cash.dmg',
+        internetEnabled: true,
     },
     publish: [{
         provider: 's3',
         bucket: 'chat-test-expensify-com',
-        channel: 'latest'
+        channel: 'latest',
     }],
     files: [
         './dist/**/*',

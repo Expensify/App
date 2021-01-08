@@ -4,11 +4,12 @@ import {
     Image,
     TouchableOpacity,
     View,
-    Text
+    Text,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import styles, {colors} from '../../../styles/StyleSheet';
-import logoCircle from '../../../../assets/images/expensify-logo-round.png';
+import styles from '../../../styles/styles';
+import themeColors from '../../../styles/themes/default';
+import {ExpensifyCashLogoIcon} from '../../../components/Expensicons';
 import TextInputWithFocusStyles from '../../../components/TextInputWithFocusStyles';
 import iconX from '../../../../assets/images/icon-x.png';
 import {getDisplayName} from '../../../libs/actions/PersonalDetails';
@@ -55,14 +56,10 @@ const defaultProps = {
 };
 
 const ChatSwitcherSearchForm = props => (
-    <View style={[styles.flexRow]}>
+    <View style={[styles.flexRow, styles.sidebarHeaderTop]}>
         {props.isLogoVisible && (
-            <View style={[styles.mr2, styles.ml2]}>
-                <Image
-                    resizeMode="contain"
-                    style={[styles.sidebarHeaderLogo]}
-                    source={logoCircle}
-                />
+            <View style={[styles.mr3]}>
+                <ExpensifyCashLogoIcon />
             </View>
         )}
 
@@ -92,7 +89,7 @@ const ChatSwitcherSearchForm = props => (
                                     styles.chatSwitcherInputGroup,
                                     styles.flexRow,
                                     styles.flexGrow1,
-                                    styles.flexAlignSelfStretch,
+                                    styles.alignSelfStretch,
                                 ]}
                             >
                                 <TextInputWithFocusStyles
@@ -113,17 +110,17 @@ const ChatSwitcherSearchForm = props => (
                             </View>
                         </View>
                     </View>
-                    <View style={[styles.ml2, styles.flexJustifyEnd]}>
+                    <View style={[styles.ml1, styles.justifyContentEnd]}>
                         <TouchableOpacity
                             style={[styles.button, styles.buttonSmall, styles.buttonSuccess, styles.chatSwitcherGo]}
                             onPress={props.onConfirmUsers}
-                            underlayColor={colors.componentBG}
+                            underlayColor={themeColors.componentBG}
                         >
                             <Text
                                 style={[
                                     styles.buttonText,
                                     styles.buttonSmallText,
-                                    styles.buttonSuccessText
+                                    styles.buttonSuccessText,
                                 ]}
                             >
                                 Go
@@ -136,13 +133,13 @@ const ChatSwitcherSearchForm = props => (
                 <TextInputWithFocusStyles
                     styleFocusIn={[styles.textInputReversedFocus]}
                     ref={props.forwardedRef}
-                    style={[styles.textInput, styles.textInputReversed, styles.flex1]}
+                    style={[styles.textInput, styles.flex1]}
                     value={props.searchValue}
                     onChangeText={props.onChangeText}
                     onFocus={props.onFocus}
                     onKeyPress={props.onKeyPress}
                     placeholder="Find or start a chat"
-                    placeholderTextColor={colors.icon}
+                    placeholderTextColor={themeColors.textSupporting}
                 />
             )}
 
@@ -150,7 +147,7 @@ const ChatSwitcherSearchForm = props => (
             <TouchableOpacity
                 style={[styles.chatSwitcherInputClear, styles.ml2]}
                 onPress={props.onClearButtonClick}
-                underlayColor={colors.componentBG}
+                underlayColor={themeColors.componentBG}
             >
                 <Image
                     resizeMode="contain"
