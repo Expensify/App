@@ -34,5 +34,4 @@ const messages = [
         message: 'Your account has been locked.',
     },
 ];
-
 export default messages;

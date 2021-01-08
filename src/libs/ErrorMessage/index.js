@@ -18,4 +18,4 @@ function getErrorMessage(type, error) {
     }
     return error;
 }
-export {getErrorMessage};
+export default getErrorMessage;
