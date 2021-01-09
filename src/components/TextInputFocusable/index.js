@@ -39,13 +39,13 @@ const propTypes = {
 
 const defaultProps = {
     maxLines: -1,
-    onPasteFile: () => { },
+    onPasteFile: () => {},
     shouldClear: false,
-    onClear: () => { },
+    onClear: () => {},
     style: null,
-    onDragEnter: () => { },
-    onDragLeave: () => { },
-    onDrop: () => { },
+    onDragEnter: () => {},
+    onDragLeave: () => {},
+    onDrop: () => {},
 };
 
 /**
