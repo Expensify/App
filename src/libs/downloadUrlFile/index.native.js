@@ -32,7 +32,7 @@ const downloadUrlFile = (sourceURL) => {
             path: `${dirs.DownloadDir}/download.${fileExtension}`,
         },
 
-        path: `${dirs.DownloadDir}/download.${fileExtension}`
+        path: `${dirs.DownloadDir}/download.${fileExtension}`,
     }).fetch('GET', sourceURL, {}).then(() => {
         // console.log('File saved to ', response.path());
     }).catch(() => {
