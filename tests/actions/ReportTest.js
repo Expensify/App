@@ -61,8 +61,8 @@ describe('actions/Report', () => {
                     reportAction: REPORT_ACTION,
                 });
 
-                // Once this happens we should see the comment get processed by the callback so we must wait for
-                // for promises to resolve again/
+                // Once this happens we should see the comment get processed by the callback and added to the
+                // storage so we must wait for promises to resolve again and then verify the data is in Onyx.
                 return waitForPromisesToResolve();
             })
             .then(() => {
