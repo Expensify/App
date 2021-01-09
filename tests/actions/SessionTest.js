@@ -88,9 +88,13 @@ test('Authenticate is called with saved credentials when a session expires', () 
             // so we will mock that response with a new authToken and then verify that Onyx has our
             // data.
             HttpUtils.xhr
+
+                // This will make the call to API.Get() below return with an expired session code
                 .mockImplementationOnce(() => Promise.resolve({
                     jsonCode: 407,
                 }))
+
+                // The next call should be Authenticate since we are reauthenticating
                 .mockImplementationOnce(() => Promise.resolve({
                     jsonCode: 200,
                     accountID: TEST_USER_ACCOUNT_ID,
