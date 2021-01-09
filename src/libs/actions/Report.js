@@ -14,7 +14,6 @@ import Visibility from '../Visibility';
 import ROUTES from '../../ROUTES';
 import NetworkConnection from '../NetworkConnection';
 import {hide as hideSidebar} from './Sidebar';
-import CONFIG from '../../CONFIG';
 import Timing from './Timing';
 import * as API from '../API';
 import CONST from '../../CONST';
