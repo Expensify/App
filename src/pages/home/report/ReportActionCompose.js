@@ -45,6 +45,7 @@ class ReportActionCompose extends React.Component {
         this.state = {
             isFocused: false,
             textInputShouldClear: false,
+            isCommentEmpty: props.comment.length === 0,
         };
     }
 
@@ -90,6 +91,9 @@ class ReportActionCompose extends React.Component {
      * @param {String} newComment
      */
     updateComment(newComment) {
+        this.setState({
+            isCommentEmpty: newComment.length === 0,
+        });
         this.comment = newComment;
         this.debouncedSaveReportComment(newComment);
         this.debouncedBroadcastUserIsTyping();
@@ -207,9 +211,12 @@ class ReportActionCompose extends React.Component {
                         )}
                     </AttachmentModal>
                     <TouchableOpacity
-                        style={[styles.chatItemSubmitButton, styles.buttonSuccess]}
+                        style={[styles.chatItemSubmitButton,
+                            this.state.isCommentEmpty
+                                ? styles.buttonDisable : styles.buttonSuccess]}
                         onPress={this.submitForm}
                         underlayColor={themeColors.componentBG}
+                        disabled={this.state.isCommentEmpty}
                     >
                         <Image
                             resizeMode="contain"

@@ -10,6 +10,7 @@ import * as Network from '../../src/libs/Network';
 jest.mock('../../src/libs/Notification/PushNotification', () => ({
     // There is no need for a jest.fn() since we don't need to make assertions against it.
     register: () => {},
+    deregister: () => {},
 }));
 
 const originalNetworkPost = Network.post;
