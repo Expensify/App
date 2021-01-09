@@ -415,6 +415,8 @@ PODS:
     - Firebase/Crashlytics (~> 6.34.0)
     - React-Core
     - RNFBApp
+  - RNSVG (12.1.0):
+    - React
   - urbanairship-react-native (10.0.0):
     - Airship (= 14.2.0)
     - React-Core
@@ -483,6 +485,7 @@ DEPENDENCIES:
   - "RNFBAnalytics (from `../node_modules/@react-native-firebase/analytics`)"
   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
   - "RNFBCrashlytics (from `../node_modules/@react-native-firebase/crashlytics`)"
+  - RNSVG (from `../node_modules/react-native-svg`)
   - urbanairship-react-native (from `../node_modules/urbanairship-react-native`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
@@ -592,6 +595,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-firebase/app"
   RNFBCrashlytics:
     :path: "../node_modules/@react-native-firebase/crashlytics"
+  RNSVG:
+    :path: "../node_modules/react-native-svg"
   urbanairship-react-native:
     :path: "../node_modules/urbanairship-react-native"
   Yoga:
@@ -660,6 +665,7 @@ SPEC CHECKSUMS:
   RNFBAnalytics: 2dc4dd9e2445faffca041b10447a23a71dcdabf8
   RNFBApp: 7eacc7da7ab19f96c05e434017d44a9f09410da8
   RNFBCrashlytics: 4870c14cf8833053b6b5648911abefe1923854d2
+  RNSVG: ce9d996113475209013317e48b05c21ee988d42e
   urbanairship-react-native: dfb6dc22b2f41ccaadd636b73d51b448cd1b2bbc
   Yoga: 7d13633d129fd179e01b8953d38d47be90db185a
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a

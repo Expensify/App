@@ -5,8 +5,11 @@ import ONYXKEYS from '../ONYXKEYS';
 import redirectToSignIn from './actions/SignInRedirect';
 import * as Network from './Network';
 
+/**
+ * Used to set a mock functions for a given command while testing.
+ */
+let mockCommands = {};
 let isAuthenticating;
-
 let credentials;
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
@@ -104,23 +107,16 @@ function requireParameters(parameterNames, parameters, commandName) {
  * Function used to handle expired auth tokens. It re-authenticates with the API and
  * then replays the original request
  *
- * @param {Object} originalResponse
  * @param {String} originalCommand
  * @param {Object} [originalParameters]
  * @param {String} [originalType]
+ * @returns {Promise}
  */
-function handleExpiredAuthToken(originalResponse, originalCommand, originalParameters, originalType) {
-    // There are some API requests that should not be retried when there is an auth failure
-    // like creating and deleting logins
-    if (originalParameters.doNotRetry) {
-        return;
-    }
-
+function handleExpiredAuthToken(originalCommand, originalParameters, originalType) {
     // When the authentication process is running, and more API requests will be requeued and they will
     // be performed after authentication is done.
     if (isAuthenticating) {
-        Network.post(originalCommand, originalParameters, originalType);
-        return;
+        return Network.post(originalCommand, originalParameters, originalType);
     }
 
     // Prevent any more requests from being processed while authentication happens
@@ -128,7 +124,7 @@ function handleExpiredAuthToken(originalResponse, originalCommand, originalParam
     isAuthenticating = true;
 
     // eslint-disable-next-line no-use-before-define
-    Authenticate({
+    return Authenticate({
         useExpensifyLogin: false,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
@@ -154,7 +150,7 @@ function handleExpiredAuthToken(originalResponse, originalCommand, originalParam
 
             // Now that the API is authenticated, make the original request again with the new authToken
             const params = addAuthTokenToParameters(originalCommand, originalParameters);
-            Network.post(originalCommand, params, originalType);
+            return Network.post(originalCommand, params, originalType);
         })
 
         .catch((error) => {
@@ -176,22 +172,34 @@ function handleExpiredAuthToken(originalResponse, originalCommand, originalParam
  * @returns {Promise}
  */
 function request(command, parameters, type = 'post') {
-    const networkPromise = Network.post(command, parameters, type);
+    return new Promise((resolve, reject) => {
+        const networkPromise = mockCommands[command]
+            ? mockCommands[command]()
+            : Network.post(command, parameters, type);
 
-    // Setup the default handlers to work with different response codes
-    networkPromise.then((response) => {
-        // Handle expired auth tokens properly
-        if (response.jsonCode === 407) {
-            handleExpiredAuthToken(response, command, parameters, type);
+        networkPromise
+            .then((response) => {
+                // Handle expired auth tokens properly by making sure to pass the resolve and reject down to the
+                // new promise created when calling handleExpiredAuthToken.
+                if (response.jsonCode === 407) {
+                    // There are some API requests that should not be retried when there is an auth failure like
+                    // creating and deleting logins. In those cases, they should handle the original response instead
+                    // of the new response created by handleExpiredAuthToken.
+                    if (parameters.doNotRetry) {
+                        resolve(response);
+                        return;
+                    }
 
-            // Throw an error to prevent other handlers from being triggered on this promise
-            throw new Error('A default handler was used for this request');
-        }
+                    handleExpiredAuthToken(command, parameters, type)
+                        .then(resolve)
+                        .catch(reject);
+                    return;
+                }
 
-        return response;
+                resolve(response);
+            })
+            .catch(reject);
     });
-
-    return networkPromise;
 }
 
 /**
@@ -481,7 +489,27 @@ function SetPassword(parameters) {
     return request(commandName, parameters);
 }
 
+/**
+ * Intended to be used for testing only. While a test is running we provide the option to set a mock response.
+ * This provides a way to mock an API request and return data without actually making any network requests.
+ *
+ * @param {String} command
+ * @param {Function} mockFunction
+ */
+function setMockCommand(command, mockFunction) {
+    mockCommands[command] = mockFunction;
+}
+
+/**
+ * Clear all mock commands
+ */
+function resetMockCommands() {
+    mockCommands = {};
+}
+
 export {
+    setMockCommand,
+    resetMockCommands,
     getAuthToken,
     Authenticate,
     CreateChatReport,

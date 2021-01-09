@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {
-    SafeAreaView, Text, View
+    SafeAreaView, Text, View,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -143,5 +143,5 @@ export default compose(
         account: {key: ONYXKEYS.ACCOUNT},
         credentials: {key: ONYXKEYS.CREDENTIALS},
         session: {key: ONYXKEYS.SESSION},
-    })
+    }),
 )(SignInPage);

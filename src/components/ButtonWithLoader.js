@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {
-    ActivityIndicator, Text, TouchableOpacity
+    ActivityIndicator, Text, TouchableOpacity,
 } from 'react-native';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
