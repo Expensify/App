@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {View, Dimensions} from 'react-native';
 import PDF from 'react-native-pdf';
-import styles from '../../styles/StyleSheet';
+import styles from '../../styles/styles';
 
 const propTypes = {
     // URL to full-sized image
@@ -33,8 +33,8 @@ const PDFView = props => (
                 styles.imageModalPDF,
                 {
                     width: Dimensions.get('window').width,
-                    height: Dimensions.get('window').height
-                }
+                    height: Dimensions.get('window').height,
+                },
             ]}
         />
     </View>

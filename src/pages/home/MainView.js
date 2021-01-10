@@ -5,7 +5,7 @@ import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import ReportView from './report/ReportView';
 import ONYXKEYS from '../../ONYXKEYS';
-import styles from '../../styles/StyleSheet';
+import styles from '../../styles/styles';
 import {withRouter} from '../../libs/Router';
 import compose from '../../libs/compose';
 
