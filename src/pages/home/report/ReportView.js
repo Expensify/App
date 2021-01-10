@@ -5,7 +5,9 @@ import ReportActionView from './ReportActionsView';
 import ReportActionCompose from './ReportActionCompose';
 import {addAction, subscribeToReportTypingEvents, unsubscribeFromReportChannel} from '../../../libs/actions/Report';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
-import styles from '../../../styles/StyleSheet';
+import Timing from '../../../libs/actions/Timing';
+import CONST from '../../../CONST';
+import styles from '../../../styles/styles';
 
 const propTypes = {
     // The ID of the report actions will be created for
@@ -20,6 +22,14 @@ const propTypes = {
 class ReportView extends React.PureComponent {
     componentDidMount() {
         subscribeToReportTypingEvents(this.props.reportID);
+
+        Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD);
+    }
+
+    componentDidUpdate(props) {
+        if (!props.isActiveReport) {
+            Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.HOT);
+        }
     }
 
     componentWillUnmount() {

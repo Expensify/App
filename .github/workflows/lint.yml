@@ -1,13 +1,8 @@
 name: Lint JavaScript
 
-# Only lint on branches that aren't related to master and the deploy process
 on:
-    push:
-        branches-ignore:
-            - 'master'
-            - 'version-bump-*'
-        tags-ignore:
-            - '*'
+    pull_request:
+        types: [opened, synchronize]
 
 jobs:
     lint:
@@ -26,10 +21,6 @@ jobs:
               uses: actions/setup-node@v1
               with:
                   node-version: '14.x'
-
-            - uses: webfactory/ssh-agent@v0.4.1
-              with:
-                  ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
             - run: npm ci
 

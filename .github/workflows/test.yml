@@ -1,25 +1,20 @@
 name: Jest Unit Tests
 
-# Only run unit tests on branches that aren't related to master and the deploy process
 on:
-    push:
-        branches-ignore:
-            - 'master'
-            - 'version-bump-*'
-        tags-ignore:
-            - '*'
+    pull_request:
+        types: [opened, synchronize]
 
 jobs:
     test:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v2
+
             - name: Use Node.js
               uses: actions/setup-node@v1
-            - uses: webfactory/ssh-agent@v0.4.1
-              with:
-                  ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
             - run: npm install
+
             - run: npm run test
               env:
                   CI: true

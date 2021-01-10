@@ -13,9 +13,10 @@ import ChatSwitcherSearchForm from './ChatSwitcherSearchForm';
 import {fetchOrCreateChatReport} from '../../../libs/actions/Report';
 import {redirect} from '../../../libs/actions/App';
 import ROUTES from '../../../ROUTES';
-import styles from '../../../styles/StyleSheet';
+import styles from '../../../styles/styles';
 import * as ChatSwitcher from '../../../libs/actions/ChatSwitcher';
 import CONST from '../../../CONST';
+import Timing from '../../../libs/actions/Timing';
 
 const MAX_GROUP_DM_LENGTH = 8;
 
@@ -54,6 +55,9 @@ const propTypes = {
         email: PropTypes.string.isRequired,
     }),
 
+    // The country code of the user based on their IP address
+    countryCodeByIP: PropTypes.number,
+
     isSidebarAnimating: PropTypes.bool,
     isChatSwitcherActive: PropTypes.bool,
 };
@@ -63,6 +67,7 @@ const defaultProps = {
     session: null,
     isSidebarAnimating: false,
     isChatSwitcherActive: false,
+    countryCodeByIP: 1,
 };
 
 class ChatSwitcherView extends React.Component {
@@ -162,15 +167,16 @@ class ChatSwitcherView extends React.Component {
                 const login = isSingleUserDM ? report.participants[0] : '';
                 return {
                     text: report.reportName,
-                    alternateText: report.reportName,
-                    searchText: report.participants < 10
-                        ? `${report.reportName} ${report.participants.join(' ')}`
+                    alternateText: isSingleUserDM ? login : report.reportName,
+                    searchText: participants.length < 10
+                        ? `${report.reportName} ${participants.join(' ')}`
                         : report.reportName ?? '',
                     reportID: report.reportID,
                     participants,
-                    icon: report.icon,
+                    icons: report.icons,
                     login,
-                    type: isSingleUserDM ? CONST.REPORT.SINGLE_USER_DM : CONST.REPORT.GROUP_USERS_DM,
+                    singleUserDM: isSingleUserDM,
+                    type: CONST.OPTION_TYPE.REPORT,
                     isUnread: report.unreadActionCount > 0,
                     lastVisitedTimestamp: report.lastVisitedTimestamp,
                     keyForList: String(report.reportID),
@@ -191,12 +197,14 @@ class ChatSwitcherView extends React.Component {
      * @param {Object} option
      */
     selectRow(option) {
+        Timing.start(CONST.TIMING.SWITCH_REPORT);
+
         switch (option.type) {
-            case CONST.REPORT.SINGLE_USER_DM:
-                this.selectUser(option);
-                break;
-            case CONST.REPORT.GROUP_USERS_DM:
+            case CONST.OPTION_TYPE.REPORT:
                 this.selectReport(option);
+                break;
+            case CONST.OPTION_TYPE.PERSONAL_DETAIL:
+                this.selectUser(option);
                 break;
             default:
         }
@@ -420,9 +428,9 @@ class ChatSwitcherView extends React.Component {
                 alternateText: personalDetail.login,
                 searchText: personalDetail.displayName === personalDetail.login ? personalDetail.login
                     : `${personalDetail.displayName} ${personalDetail.login}`,
-                icon: personalDetail.avatarURL,
+                icons: [personalDetail.avatarURL],
                 login: personalDetail.login,
-                type: CONST.REPORT.SINGLE_USER_DM,
+                type: CONST.OPTION_TYPE.PERSONAL_DETAIL,
                 keyForList: personalDetail.login,
             }))
             .value();
@@ -435,6 +443,7 @@ class ChatSwitcherView extends React.Component {
                     const option = searchOptions[j];
                     const valueToSearch = option.searchText && option.searchText.replace(new RegExp(/&nbsp;/g), '');
                     const isMatch = matchRegexes[i].test(valueToSearch);
+                    const isCurrentlyLoggedInUser = this.props.session.email === option.login;
 
                     // We must also filter out any users who are already in the Group DM list
                     // so they can't be selected more than once
@@ -443,7 +452,8 @@ class ChatSwitcherView extends React.Component {
                     ));
 
                     // Make sure we don't include the same option twice (automatically handled by using a `Set`)
-                    if (isMatch && !isInGroupUsers) {
+                    // We must also ignore the option if it matches the currently logged in user.
+                    if (isMatch && !isInGroupUsers && !isCurrentlyLoggedInUser) {
                         matches.add(option);
                     }
 
@@ -456,12 +466,37 @@ class ChatSwitcherView extends React.Component {
             }
         }
 
-        this.setState({
-            options: Array.from(matches),
-        });
+        const options = Array.from(matches);
+        if (options.length === 0 && value && (Str.isValidEmail(value) || Str.isValidPhone(value))) {
+            let login = value;
+            if (Str.isValidPhone(value)) {
+                // If the phone number doesn't have an international code then let's prefix it with the
+                // current users international code based on their IP address.
+                login = value.includes('+') ? value : `+${this.props.countryCodeByIP}${value}`;
+            }
+            options.push({
+                text: login,
+                alternateText: login,
+                singleUserDM: true,
+                type: CONST.OPTION_TYPE.PERSONAL_DETAIL,
+                keyForList: login,
+                login,
+            });
+        }
+
+        this.setState({options});
     }
 
     render() {
+        let feedbackHeader = '';
+        let feedbackMessage = '';
+        if (this.state.usersToStartGroupReportWith.length === MAX_GROUP_DM_LENGTH) {
+            feedbackHeader = 'Maximum participants reached';
+            feedbackMessage = 'You\'ve reached the maximum number of participants for a group chat.';
+        } else if (this.state.search && this.state.options.length === 0) {
+            feedbackMessage = 'Don\'t see who you are looking for? Type their valid email/phone number to invite them.';
+        }
+
         return (
             <>
                 <ChatSwitcherSearchForm
@@ -478,17 +513,18 @@ class ChatSwitcherView extends React.Component {
                     onConfirmUsers={this.startGroupChat}
                 />
 
-                {this.state.usersToStartGroupReportWith.length === MAX_GROUP_DM_LENGTH
-                    ? (
-                        <View style={[styles.chatSwitcherMessage]}>
-                            <Text style={[styles.h4, styles.mb1, styles.colorReversed]}>
-                                Maximum participants reached
+                {feedbackMessage ? (
+                    <View style={[styles.p2]}>
+                        {feedbackHeader.length > 0 && (
+                            <Text style={[styles.h4, styles.mb1]}>
+                                {feedbackHeader}
                             </Text>
-                            <Text style={[styles.textLabel, styles.colorMutedReversed]}>
-                                {'You\'ve reached the maximum number of participants for a group chat.'}
-                            </Text>
-                        </View>
-                    )
+                        )}
+                        <Text style={[styles.textLabel]}>
+                            {feedbackMessage}
+                        </Text>
+                    </View>
+                )
                     : (
                         <ChatSwitcherList
                             focusedIndex={this.state.focusedIndex}
@@ -510,7 +546,7 @@ export default withOnyx({
         key: ONYXKEYS.PERSONAL_DETAILS,
     },
     reports: {
-        key: ONYXKEYS.COLLECTION.REPORT
+        key: ONYXKEYS.COLLECTION.REPORT,
     },
     session: {
         key: ONYXKEYS.SESSION,
@@ -518,5 +554,8 @@ export default withOnyx({
     isSidebarAnimating: {
         key: ONYXKEYS.IS_SIDEBAR_ANIMATING,
         initFromStoredValues: false,
+    },
+    countryCodeByIP: {
+        key: ONYXKEYS.COUNTRY_CODE,
     },
 })(ChatSwitcherView);
