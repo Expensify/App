@@ -2,7 +2,6 @@ import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {
-    Image,
     Text,
     TouchableOpacity,
     View,
@@ -10,7 +9,8 @@ import {
 } from 'react-native';
 import styles from '../../../styles/styles';
 import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
-import pencilIcon from '../../../../assets/images/icon-pencil.png';
+import Icon from '../../../components/Icon';
+import {Pencil} from '../../../components/Icon/Expensicons';
 import MultipleAvatars from '../../../components/MultipleAvatars';
 
 const propTypes = {
@@ -118,13 +118,7 @@ const ChatLinkRow = ({
                     </TouchableOpacity>
                 </View>
             )}
-            {option.hasDraftComment && (
-                <Image
-                    style={[styles.LHNPencilIcon]}
-                    resizeMode="contain"
-                    source={pencilIcon}
-                />
-            )}
+            {option.hasDraftComment && <Icon icon={Pencil} width={16} height={16} />}
         </View>
     );
 };

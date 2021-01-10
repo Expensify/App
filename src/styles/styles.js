@@ -154,11 +154,6 @@ const styles = {
         whiteSpace: 'nowrap',
     },
 
-    pillCancelIcon: {
-        width: 12,
-        height: 12,
-    },
-
     navText: {
         fontFamily: fontFamily.GTA,
         color: themeColors.heading,
@@ -479,17 +474,6 @@ const styles = {
         width: 18,
     },
 
-    LHNPencilIcon: {
-        height: 16,
-        width: 16,
-    },
-
-    attachmentCloseIcon: {
-        height: 20,
-        width: 20,
-        padding: 0,
-    },
-
     chatContent: {
         flex: 4,
         justifyContent: 'flex-end',
@@ -615,11 +599,6 @@ const styles = {
         justifyContent: 'center',
     },
 
-    chatItemSubmitButtonIcon: {
-        height: 20,
-        width: 20,
-    },
-
     chatItemAttachButton: {
         alignItems: 'center',
         alignSelf: 'flex-end',
@@ -647,11 +626,6 @@ const styles = {
         alignSelf: 'flex-end',
         height: variables.componentSizeNormal,
         justifyContent: 'center',
-    },
-
-    chatSwitcherInputClearIcon: {
-        height: 24,
-        width: 24,
     },
 
     chatSwitcherGroupDMContainer: {

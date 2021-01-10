@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
 import {
-    Image,
     TouchableOpacity,
     View,
     Text,
@@ -11,9 +10,9 @@ import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import variables from '../../../styles/variables';
 import Icon from '../../../components/Icon';
+import {Close} from '../../../components/Icon/Expensicons';
 import {ExpensifyCashLogo} from '../../../components/Icon/BrandAssets';
 import TextInputWithFocusStyles from '../../../components/TextInputWithFocusStyles';
-import iconX from '../../../../assets/images/icon-x.png';
 import {getDisplayName} from '../../../libs/actions/PersonalDetails';
 import PillWithCancelButton from '../../../components/PillWithCancelButton';
 import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
@@ -155,11 +154,7 @@ const ChatSwitcherSearchForm = props => (
                 onPress={props.onClearButtonClick}
                 underlayColor={themeColors.componentBG}
             >
-                <Image
-                    resizeMode="contain"
-                    style={[styles.chatSwitcherInputClearIcon]}
-                    source={iconX}
-                />
+                <Icon icon={Close} width={24} height={24} />
             </TouchableOpacity>
         )}
     </View>

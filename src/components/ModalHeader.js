@@ -1,10 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {
-    View, Image, TouchableOpacity, Text,
+    View, TouchableOpacity, Text,
 } from 'react-native';
 import styles from '../styles/styles';
-import exitIcon from '../../assets/images/icon-x--20x20.png';
+import Icon from './Icon';
+import {Close} from './Icon/Expensicons';
 
 const propTypes = {
     // Title of the modal
@@ -40,11 +41,7 @@ const ModalHeader = props => (
                     onPress={props.onCloseButtonPress}
                     style={[styles.touchableButtonImage]}
                 >
-                    <Image
-                        resizeMode="contain"
-                        style={[styles.attachmentCloseIcon]}
-                        source={exitIcon}
-                    />
+                    <Icon icon={Close} />
                 </TouchableOpacity>
             </View>
         </View>
