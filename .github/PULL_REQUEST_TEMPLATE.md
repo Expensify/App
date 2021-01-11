@@ -28,7 +28,7 @@ For example:
 - [ ] Android
 
 ### Screenshots
-<Add any necessary screenshots for all platforms if your change added or updated UI>
+<Add screenshots for all platforms tested. Pull requests won't be merged unless the screenshots show the app was tested on all platforms.>
 
 #### Web
 <!-- Insert screenshots of your changes on the web platform or write "no changes"-->
