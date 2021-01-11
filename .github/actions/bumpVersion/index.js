@@ -2,6 +2,10 @@ const {exec} = require('child_process');
 const core = require('@actions/core');
 const github = require('@actions/github');
 
+// Use Github Actions' default environment variables to get repo information
+// https://docs.github.com/en/free-pro-team@latest/actions/reference/environment-variables#default-environment-variables
+const [repoOwner, repoName] = process.env.GITHUB_REPOSITORY.split('/');
+
 const MAX_RETRIES = 10;
 let errCount = 0;
 let shouldRetry = false;
@@ -27,8 +31,8 @@ do {
                 console.log('Fetching tags from github...');
                 const octokit = github.getOctokit(core.getInput('token'));
                 octokit.listTags({
-                    owner: 'Expensify',
-                    repo: 'ReactNativeChat',
+                    owner: repoOwner,
+                    repo: repoName,
                 })
                     .then(tags => {
                         const highestBuildNumber = Math.max(...(tags.filter(tag =>
