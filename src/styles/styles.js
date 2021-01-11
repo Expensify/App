@@ -164,7 +164,7 @@ const styles = {
         height: 12,
     },
 
-    navText: {
+    headerText: {
         fontFamily: fontFamily.GTA,
         color: themeColors.heading,
         fontSize: variables.fontSizeNormal,
