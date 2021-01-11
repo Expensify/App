@@ -2,6 +2,7 @@ import React from 'react';
 import {TextInput, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import mime from 'mime-types';
 
 const propTypes = {
     // Maximum number of lines in the text input
@@ -121,16 +122,35 @@ class TextInputFocusable extends React.Component {
     }
 
     /**
-     * Check the paste event for an attachment and
-     * fire the callback with the selected file
+     * Check the paste event for an attachment, parse the data and
+     * call onPasteFile from props with the selected file
      *
      * @param {ClipboardEvent} event
      */
     checkForAttachment(event) {
-        if (event.clipboardData.files.length > 0) {
+        const {files, types} = event.clipboardData;
+        const TEXT_HTML = 'text/html';
+        if (files.length > 0) {
             // Prevent the default so we do not post the file name into the text box
             event.preventDefault();
             this.props.onPasteFile(event.clipboardData.files[0]);
+        } else if (types.includes(TEXT_HTML)) {
+            const domparser = new DOMParser();
+            const embededImages = domparser.parseFromString(event.clipboardData.getData(TEXT_HTML), TEXT_HTML).images;
+            if (embededImages.length > 0) {
+                event.preventDefault();
+                fetch(embededImages[0].src)
+                    .then((response) => {
+                        if (!response.ok) { throw Error(response.statusText); }
+                        return response.blob();
+                    })
+                    .then(x => new File([x], `pasted_image.${mime.extension(x.type)}`, {}))
+                    .then(this.props.onPasteFile)
+                    .catch((error) => {
+                        console.debug(error);
+                        alert(`There was a problem getting the image you pasted. \n${error.message}`);
+                    });
+            }
         }
     }
 
