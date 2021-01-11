@@ -57,11 +57,16 @@ class TextInputFocusable extends React.Component {
 
         this.state = {
             numberOfLines: 1,
+            selection: {
+                start: this.props.defaultValue.length,
+                end: this.props.defaultValue.length,
+            },
         };
     }
 
     componentDidMount() {
         this.focusInput();
+        this.updateNumberOfLines();
 
         // This callback prop is used by the parent component using the constructor to
         // get a ref to the inner textInput element e.g. if we do
@@ -184,6 +189,7 @@ class TextInputFocusable extends React.Component {
         return (
             <TextInput
                 ref={el => this.textInput = el}
+                selection={this.state.selection}
                 onChange={() => {
                     this.updateNumberOfLines();
                 }}
