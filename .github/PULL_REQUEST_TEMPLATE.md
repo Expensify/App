@@ -28,19 +28,19 @@ For example:
 - [ ] Android
 
 ### Screenshots
-<Add screenshots for all platforms tested. Pull requests won't be merged unless the screenshots show the app was tested on all platforms.>
+<!-- Add screenshots for all platforms tested. Pull requests won't be merged unless the screenshots show the app was tested on all platforms.-->
 
 #### Web
-<!-- Insert screenshots of your changes on the web platform or write "no changes"-->
+<!-- Insert screenshots of your changes on the web platform-->
 
 #### Mobile Web
-<!-- Insert screenshots of your changes on the web platform (from a mobile browser) or write "no changes"-->
+<!-- Insert screenshots of your changes on the web platform (from a mobile browser)-->
 
 #### Desktop
-<!-- Insert screenshots of your changes on the desktop platform or write "no changes"-->
+<!-- Insert screenshots of your changes on the desktop platform-->
 
 #### iOS
-<!-- Insert screenshots of your changes on the iOS platform or write "no changes"-->
+<!-- Insert screenshots of your changes on the iOS platform-->
 
 #### Android
-<!-- Insert screenshots of your changes on the Android platform or write "no changes"-->
+<!-- Insert screenshots of your changes on the Android platform-->
