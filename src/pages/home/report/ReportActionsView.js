@@ -1,18 +1,21 @@
-import React from 'react';
-import {View, Keyboard, AppState} from 'react-native';
+import {AppState, Keyboard, View} from 'react-native';
 import PropTypes from 'prop-types';
+import React from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import {withOnyx} from 'react-native-onyx';
-import Text from '../../../components/Text';
-import {fetchActions, updateLastReadActionID} from '../../../libs/actions/Report';
+import {fetchActions, updateLastReadActionID, clearAttachmentModalData} from '../../../libs/actions/Report';
+
+import AttachmentModal from '../../../components/AttachmentModal';
+import InvertedFlatList from '../../../components/InvertedFlatList';
 import ONYXKEYS from '../../../ONYXKEYS';
 import ReportActionItem from './ReportActionItem';
-import styles from '../../../styles/styles';
 import ReportActionPropTypes from './ReportActionPropTypes';
-import InvertedFlatList from '../../../components/InvertedFlatList';
-import {lastItem} from '../../../libs/CollectionUtils';
+import Text from '../../../components/Text';
 import Visibility from '../../../libs/Visibility';
+
+import {lastItem} from '../../../libs/CollectionUtils';
+import styles from '../../../styles/styles';
 
 const propTypes = {
     // The ID of the report actions will be created for
@@ -54,6 +57,7 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidMount() {
+        clearAttachmentModalData();
         this.visibilityChangeEvent = AppState.addEventListener('change', () => {
             if (this.props.isActiveReport && Visibility.isVisible()) {
                 this.timers.push(setTimeout(this.recordMaxAction, 3000));
@@ -242,14 +246,17 @@ class ReportActionsView extends React.Component {
 
         this.updateSortedReportActions();
         return (
-            <InvertedFlatList
-                ref={el => this.actionListElement = el}
-                data={this.sortedReportActions}
-                renderItem={this.renderItem}
-                contentContainerStyle={[styles.chatContentScrollView]}
-                keyExtractor={item => `${item.action.sequenceNumber}`}
-                initialRowHeight={32}
-            />
+            <>
+                <AttachmentModal sortedReportActions={this.sortedReportActions} />
+                <InvertedFlatList
+                    ref={el => this.actionListElement = el}
+                    data={this.sortedReportActions}
+                    renderItem={this.renderItem}
+                    contentContainerStyle={[styles.chatContentScrollView]}
+                    keyExtractor={item => `${item.action.sequenceNumber}`}
+                    initialRowHeight={32}
+                />
+            </>
         );
     }
 }

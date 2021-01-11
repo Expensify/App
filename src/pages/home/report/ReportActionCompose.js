@@ -1,19 +1,20 @@
-import React from 'react';
+import {Image, TouchableOpacity, View} from 'react-native';
 import PropTypes from 'prop-types';
-import {View, Image, TouchableOpacity} from 'react-native';
+import React from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import {withOnyx} from 'react-native-onyx';
+import {addAction, broadcastUserIsTyping, saveReportComment} from '../../../libs/actions/Report';
+
+import AttachmentPicker from '../../../components/AttachmentPicker';
+import ComposeAttachmentModal from '../../../components/ComposeAttachmentModal';
+import ONYXKEYS from '../../../ONYXKEYS';
+import ReportTypingIndicator from './ReportTypingIndicator';
+import TextInputFocusable from '../../../components/TextInputFocusable';
+import paperClipIcon from '../../../../assets/images/icon-paper-clip.png';
+import sendIcon from '../../../../assets/images/icon-send.png';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
-import TextInputFocusable from '../../../components/TextInputFocusable';
-import sendIcon from '../../../../assets/images/icon-send.png';
-import ONYXKEYS from '../../../ONYXKEYS';
-import paperClipIcon from '../../../../assets/images/icon-paper-clip.png';
-import AttachmentPicker from '../../../components/AttachmentPicker';
-import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs/actions/Report';
-import ReportTypingIndicator from './ReportTypingIndicator';
-import AttachmentModal from '../../../components/AttachmentModal';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -145,7 +146,7 @@ class ReportActionCompose extends React.Component {
                     styles.flexRow,
                 ]}
                 >
-                    <AttachmentModal
+                    <ComposeAttachmentModal
                         title="Upload Attachment"
                         onConfirm={(file) => {
                             addAction(this.props.reportID, '', file);
@@ -209,7 +210,7 @@ class ReportActionCompose extends React.Component {
 
                             </>
                         )}
-                    </AttachmentModal>
+                    </ComposeAttachmentModal>
                     <TouchableOpacity
                         style={[styles.chatItemSubmitButton,
                             this.state.isCommentEmpty

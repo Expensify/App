@@ -1,22 +1,23 @@
-import moment from 'moment';
-import _ from 'underscore';
-import lodashGet from 'lodash.get';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as Pusher from '../Pusher/pusher';
-import LocalNotification from '../Notification/LocalNotification';
-import PushNotification from '../Notification/PushNotification';
-import * as PersonalDetails from './PersonalDetails';
-import {redirect} from './App';
-import * as ActiveClientManager from '../ActiveClientManager';
-import Visibility from '../Visibility';
-import ROUTES from '../../ROUTES';
-import NetworkConnection from '../NetworkConnection';
-import {hide as hideSidebar} from './Sidebar';
-import Timing from './Timing';
+import _ from 'underscore';
+import lodashGet from 'lodash.get';
+import moment from 'moment';
 import * as API from '../API';
+import * as ActiveClientManager from '../ActiveClientManager';
+import * as PersonalDetails from './PersonalDetails';
+import * as Pusher from '../Pusher/pusher';
+
 import CONST from '../../CONST';
+import LocalNotification from '../Notification/LocalNotification';
+import NetworkConnection from '../NetworkConnection';
+import ONYXKEYS from '../../ONYXKEYS';
+import PushNotification from '../Notification/PushNotification';
+import ROUTES from '../../ROUTES';
+import Timing from './Timing';
+import Visibility from '../Visibility';
+import {hide as hideSidebar} from './Sidebar';
+import {redirect} from './App';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -649,6 +650,33 @@ function handleReportChanged(report) {
     reportMaxSequenceNumbers[report.reportID] = report.maxSequenceNumber;
 }
 
+/**
+ * Resets the Attachment Modal Data to default values.
+ */
+function clearAttachmentModalData() {
+    Onyx.set(ONYXKEYS.ATTACHMENT_MODAL, {
+        sourceURL: null, isAttachment: null, isModalOpen: false, file: null,
+    });
+}
+
+/**
+ * Sets the data for the attachment modal.
+ *
+ * @param {Object} reportID
+ * @param {String} reportID.sourceURL
+ * @param {Boolean} reportID.isAttachment
+ * @param {Boolean} reportID.isModalOpen
+ * @param {Object} reportID.file
+ * @param {String} reportID.file.name
+ */
+function setAttachmentModalData({
+    sourceURL, isAttachment, isModalOpen, file = null,
+}) {
+    Onyx.set(ONYXKEYS.ATTACHMENT_MODAL, {
+        sourceURL, isAttachment, isModalOpen, file,
+    });
+}
+
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     callback: handleReportChanged,
@@ -671,4 +699,6 @@ export {
     saveReportComment,
     broadcastUserIsTyping,
     togglePinnedState,
+    setAttachmentModalData,
+    clearAttachmentModalData,
 };

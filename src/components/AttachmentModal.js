@@ -1,17 +1,22 @@
+import {
+    Dimensions,
+    View,
+} from 'react-native';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {
-    View, TouchableOpacity, Text, Dimensions,
-} from 'react-native';
+import lodashGet from 'lodash.get';
 import {withOnyx} from 'react-native-onyx';
+import {clearAttachmentModalData, setAttachmentModalData} from '../libs/actions/Report';
+
+import AttachmentView from './AttachmentView';
 import CONST from '../CONST';
 import ModalWithHeader from './ModalWithHeader';
-import AttachmentView from './AttachmentView';
+import ONYXKEYS from '../ONYXKEYS';
+import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
+import addAuthTokenToURL from '../libs/addAuthTokenToURL';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import variables from '../styles/variables';
-import ONYXKEYS from '../ONYXKEYS';
-import addAuthTokenToURL from '../libs/addAuthTokenToURL';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -19,21 +24,19 @@ import addAuthTokenToURL from '../libs/addAuthTokenToURL';
  */
 
 const propTypes = {
-    // Title of the modal header
-    title: PropTypes.string,
+    // Array of report actions for this report
+    sortedReportActions: PropTypes.arrayOf(PropTypes.shape({
+        action: PropTypes.shape(ReportActionPropTypes),
+        index: PropTypes.number.isRequired,
+    })),
 
-    // Optional source URL for the image shown inside the .
-    // If not passed in via props must be specified when modal is opened.
-    sourceURL: PropTypes.string,
-
-    // Optional callback to fire when we want to preview an image and approve it for use.
-    onConfirm: PropTypes.func,
-
-    // A function as a child to pass modal launching methods to
-    children: PropTypes.func.isRequired,
-
-    // Do the urls require an authToken?
-    isAuthTokenRequired: PropTypes.bool,
+    // Current visible attachment
+    visibleAttachment: PropTypes.shape({
+        sourceURL: PropTypes.string,
+        isAttachment: PropTypes.bool,
+        isModalOpen: PropTypes.bool,
+        file: PropTypes.shape({name: PropTypes.string}),
+    }),
 
     // Current user session
     session: PropTypes.shape({
@@ -42,28 +45,91 @@ const propTypes = {
 };
 
 const defaultProps = {
-    title: '',
-    sourceURL: null,
-    onConfirm: null,
-    isAuthTokenRequired: false,
+    sortedReportActions: [],
+    visibleAttachment: {
+        sourceURL: null,
+        isAttachment: false,
+        isModalOpen: false,
+        file: {name: ''},
+    },
 };
 
 class AttachmentModal extends Component {
     constructor(props) {
         super(props);
 
+        this.handleKeyPress = this.handleKeyPress.bind(this);
+        this.getNextAttachment = this.getNextAttachment.bind(this);
+        this.getAttachmentSource = this.getAttachmentSource.bind(this);
+
         this.state = {
-            isModalOpen: false,
-            file: null,
-            sourceURL: props.sourceURL,
+            title: 'Attachment',
         };
+    }
+
+    componentDidUpdate(prevProps) {
+        const {visibleAttachment: {isModalOpen}} = this.props;
+        if (!prevProps.visibleAttachment.isModalOpen && isModalOpen) {
+            document.addEventListener('keydown', this.handleKeyPress, false);
+        } else {
+            document.removeEventListener('keydown', this.handleKeyPress, false);
+        }
+    }
+
+    // Using regex to get the src attribute from the html img tag
+    getAttachmentSource(htmlString) {
+        const imgRegx = /<img.*?data-expensify-source="(.*?)"[^>]+>/g;
+        const imageGroup = imgRegx.exec(htmlString);
+        return imageGroup[1];
+    }
+
+    // A function to get the next attachment based on the current attachment being show in the report.
+    getNextAttachment = (toRight) => {
+        const {sortedReportActions, visibleAttachment: {sourceURL}} = this.props;
+        const attachments = sortedReportActions.filter(sortedReportAction => sortedReportAction.action.isAttachment);
+        if (attachments.length <= 1) {
+            return;
+        }
+
+        // Finding the current attachment inside the report using the sourceURL
+        const currentAttachment = attachments.find((attachment) => {
+            const html = lodashGet(attachment, ['action', 'message', 0, 'html'], '');
+            return html.includes(sourceURL);
+        });
+        const actions = [...sortedReportActions].reverse();
+        const sequenceNumber = currentAttachment.action.sequenceNumber;
+        const actionsToSearch = toRight
+            ? actions.slice(sequenceNumber)
+            : actions.slice(0, sequenceNumber !== 0 ? sequenceNumber - 1 : 0).reverse();
+        let nextAttachment = actionsToSearch.find(actionResult => actionResult.action.isAttachment);
+
+        // If there is no next attachment in the left or right direction,
+        // then we need to loop to get the next attachment after the end of the array
+        if (!nextAttachment) {
+            const actionsToSearchFromBeginning = toRight ? actions : [...actions].reverse();
+            nextAttachment = actionsToSearchFromBeginning.find(actionResult => actionResult.action.isAttachment);
+        }
+        const html = lodashGet(nextAttachment, ['action', 'message', 0, 'html'], '');
+        const attachmentSource = this.getAttachmentSource(html);
+        setAttachmentModalData({
+            sourceURL: attachmentSource, isAttachment: true, isModalOpen: true, file: null,
+        });
+    }
+
+    // Function used to handle Left and Right key presses.
+    // This is a seperate function so that it can be subscribed/unsubscribed from the events
+    handleKeyPress = (event) => {
+        if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+            event.stopPropagation();
+            this.getNextAttachment(event.key === 'ArrowRight');
+        }
     }
 
     render() {
         const sourceURL = addAuthTokenToURL({
-            url: this.state.sourceURL,
+            url: this.props.visibleAttachment.sourceURL,
             authToken: this.props.session.authToken,
-            required: this.props.isAuthTokenRequired,
+            required: this.props.visibleAttachment.isAttachment,
         });
 
         const isSmallScreen = Dimensions.get('window').width < variables.mobileResponsiveWidthBreakpoint;
@@ -74,52 +140,17 @@ class AttachmentModal extends Component {
             <>
                 <ModalWithHeader
                     type={CONST.MODAL.MODAL_TYPE.CENTERED}
-                    onClose={() => this.setState({isModalOpen: false})}
-                    isVisible={this.state.isModalOpen}
-                    title={this.props.title}
+                    onClose={() => clearAttachmentModalData()}
+                    isVisible={this.props.visibleAttachment.isModalOpen}
+                    title={this.state.title}
                     backgroundColor={themeColors.componentBG}
                 >
                     <View style={attachmentViewStyles}>
-                        {this.state.sourceURL && (
-                            <AttachmentView sourceURL={sourceURL} file={this.state.file} />
+                        {this.props.visibleAttachment.sourceURL && (
+                            <AttachmentView sourceURL={sourceURL} file={this.props.visibleAttachment.file} />
                         )}
                     </View>
-
-                    {/* If we have an onConfirm method show a confirmation button */}
-                    {this.props.onConfirm && (
-                        <TouchableOpacity
-                            style={[styles.button, styles.buttonSuccess, styles.buttonConfirm]}
-                            underlayColor={themeColors.componentBG}
-                            onPress={() => {
-                                this.props.onConfirm(this.state.file);
-                                this.setState({isModalOpen: false});
-                            }}
-                        >
-                            <Text
-                                style={[
-                                    styles.buttonText,
-                                    styles.buttonSuccessText,
-                                    styles.buttonConfirmText,
-                                ]}
-                            >
-                                Upload
-                            </Text>
-                        </TouchableOpacity>
-                    )}
                 </ModalWithHeader>
-                {this.props.children({
-                    displayFileInModal: ({file}) => {
-                        if (file instanceof File) {
-                            const source = URL.createObjectURL(file);
-                            this.setState({isModalOpen: true, sourceURL: source, file});
-                        } else {
-                            this.setState({isModalOpen: true, sourceURL: file.uri, file});
-                        }
-                    },
-                    show: () => {
-                        this.setState({isModalOpen: true});
-                    },
-                })}
             </>
         );
     }
@@ -128,6 +159,7 @@ class AttachmentModal extends Component {
 AttachmentModal.propTypes = propTypes;
 AttachmentModal.defaultProps = defaultProps;
 export default withOnyx({
+    visibleAttachment: {key: ONYXKEYS.ATTACHMENT_MODAL},
     session: {
         key: ONYXKEYS.SESSION,
     },

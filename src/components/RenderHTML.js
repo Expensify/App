@@ -1,19 +1,20 @@
-/* eslint-disable react/prop-types */
-import React from 'react';
-import PropTypes from 'prop-types';
-import {useWindowDimensions, TouchableOpacity} from 'react-native';
 import HTML, {
-    defaultHTMLElementModels,
     TNodeChildrenRenderer,
+    defaultHTMLElementModels,
     splitBoxModelStyle,
 } from 'react-native-render-html';
-import Config from '../CONFIG';
-import {webViewStyles} from '../styles/styles';
-import fontFamily from '../styles/fontFamily';
+import {TouchableOpacity, useWindowDimensions} from 'react-native';
+
+import PropTypes from 'prop-types';
+import React from 'react';
 import AnchorForCommentsOnly from './AnchorForCommentsOnly';
+import Config from '../CONFIG';
 import InlineCodeBlock from './InlineCodeBlock';
-import AttachmentModal from './AttachmentModal';
+/* eslint-disable react/prop-types */
 import ThumbnailImage from './ThumbnailImage';
+import fontFamily from '../styles/fontFamily';
+import {setAttachmentModalData} from '../libs/actions/Report';
+import {webViewStyles} from '../styles/styles';
 
 const MAX_IMG_DIMENSIONS = 512;
 
@@ -113,23 +114,15 @@ function ImgRenderer({tnode}) {
     );
 
     return (
-        <AttachmentModal
-            title="Attachment"
-            sourceURL={source}
-            isAuthTokenRequired={isAttachment}
+        <TouchableOpacity
+            onPress={() => setAttachmentModalData({sourceURL: source, isAttachment, isModalOpen: true})}
         >
-            {({show}) => (
-                <TouchableOpacity
-                    onPress={() => show()}
-                >
-                    <ThumbnailImage
-                        previewSourceURL={previewSource}
-                        style={webViewStyles.tagStyles.img}
-                        isAuthTokenRequired={isAttachment}
-                    />
-                </TouchableOpacity>
-            )}
-        </AttachmentModal>
+            <ThumbnailImage
+                previewSourceURL={previewSource}
+                style={webViewStyles.tagStyles.img}
+                isAuthTokenRequired={isAttachment}
+            />
+        </TouchableOpacity>
     );
 }
 
