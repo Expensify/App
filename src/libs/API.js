@@ -168,6 +168,10 @@ function handleExpiredAuthToken(originalCommand, originalParameters, originalTyp
  * @returns {Promise}
  */
 function request(command, parameters, type = 'post') {
+    // Always set referer to https://expensify.cash/
+    // eslint-disable-next-line no-param-reassign
+    parameters.referer = CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH;
+
     return new Promise((resolve, reject) => {
         Network.post(command, parameters, type)
             .then((response) => {
