@@ -5,10 +5,6 @@ import ONYXKEYS from '../ONYXKEYS';
 import redirectToSignIn from './actions/SignInRedirect';
 import * as Network from './Network';
 
-/**
- * Used to set a mock functions for a given command while testing.
- */
-let mockCommands = {};
 let isAuthenticating;
 let credentials;
 Onyx.connect({
@@ -173,11 +169,7 @@ function handleExpiredAuthToken(originalCommand, originalParameters, originalTyp
  */
 function request(command, parameters, type = 'post') {
     return new Promise((resolve, reject) => {
-        const networkPromise = mockCommands[command]
-            ? mockCommands[command]()
-            : Network.post(command, parameters, type);
-
-        networkPromise
+        Network.post(command, parameters, type)
             .then((response) => {
                 // Handle expired auth tokens properly by making sure to pass the resolve and reject down to the
                 // new promise created when calling handleExpiredAuthToken.
@@ -489,27 +481,7 @@ function SetPassword(parameters) {
     return request(commandName, parameters);
 }
 
-/**
- * Intended to be used for testing only. While a test is running we provide the option to set a mock response.
- * This provides a way to mock an API request and return data without actually making any network requests.
- *
- * @param {String} command
- * @param {Function} mockFunction
- */
-function setMockCommand(command, mockFunction) {
-    mockCommands[command] = mockFunction;
-}
-
-/**
- * Clear all mock commands
- */
-function resetMockCommands() {
-    mockCommands = {};
-}
-
 export {
-    setMockCommand,
-    resetMockCommands,
     getAuthToken,
     Authenticate,
     CreateChatReport,
