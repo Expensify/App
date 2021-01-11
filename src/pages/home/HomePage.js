@@ -13,7 +13,6 @@ import {withOnyx} from 'react-native-onyx';
 import {Route} from '../../libs/Router';
 import styles, {getSafeAreaPadding} from '../../styles/styles';
 import variables from '../../styles/variables';
-import Header from './HeaderView';
 import Sidebar from './sidebar/SidebarView';
 import Main from './MainView';
 import {
@@ -37,6 +36,7 @@ import CONFIG from '../../CONFIG';
 import CustomStatusBar from '../../components/CustomStatusBar';
 import CONST from '../../CONST';
 import {fetchCountryCodeByRequestIP} from '../../libs/actions/GeoLocation';
+import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 
 const windowSize = Dimensions.get('window');
 
@@ -266,7 +266,7 @@ class App extends React.Component {
                                     <View
                                         style={[styles.appContent, styles.flex1, styles.flexColumn]}
                                     >
-                                        <Header
+                                        <HeaderWithCloseButton
                                             shouldShowHamburgerButton={this.state.isHamburgerEnabled}
                                             onHamburgerButtonClicked={this.toggleHamburger}
                                         />
