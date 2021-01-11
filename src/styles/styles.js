@@ -830,7 +830,7 @@ const styles = {
         flex: 1,
     },
 
-    modalHeaderBar: {
+    headerBar: {
         overflow: 'hidden',
         justifyContent: 'center',
         display: 'flex',

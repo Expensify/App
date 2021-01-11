@@ -7,10 +7,10 @@ import styles from '../styles/styles';
 import exitIcon from '../../assets/images/icon-x--20x20.png';
 
 const propTypes = {
-    // Title of the modal
+    // Title of the Header
     title: PropTypes.string,
 
-    // Method to trigger when pressing close button of the modal
+    // Method to trigger when pressing close button of the header
     onCloseButtonPress: PropTypes.func,
 };
 
@@ -19,8 +19,8 @@ const defaultProps = {
     onCloseButtonPress: () => {},
 };
 
-const ModalHeader = props => (
-    <View style={styles.modalHeaderBar}>
+const Header = props => (
+    <View style={styles.headerBar}>
         <View style={[
             styles.dFlex,
             styles.flexRow,
@@ -51,8 +51,8 @@ const ModalHeader = props => (
     </View>
 );
 
-ModalHeader.propTypes = propTypes;
-ModalHeader.defaultProps = defaultProps;
-ModalHeader.displayName = 'ModalHeader';
+Header.propTypes = propTypes;
+Header.defaultProps = defaultProps;
+Header.displayName = 'Header';
 
-export default ModalHeader;
+export default Header;

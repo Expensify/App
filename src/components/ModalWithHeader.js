@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import Modal from './Modal';
-import ModalHeader from './ModalHeader';
+import Header from './Header';
 import styles from '../styles/styles';
 
 const propTypes = {
@@ -22,7 +22,7 @@ const ModalWithHeader = props => (
         {...props}
     >
         <View style={[styles.modalViewContainer]}>
-            <ModalHeader
+            <Header
                 title={props.title}
                 onCloseButtonPress={props.onClose}
             />
