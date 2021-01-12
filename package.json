@@ -25,6 +25,8 @@
     "detox-test": "detox test --configuration ios.sim.debug"
   },
   "dependencies": {
+    "@actions/core": "^1.2.6",
+    "@actions/github": "^4.0.0",
     "@babel/plugin-proposal-class-properties": "^7.12.1",
     "@react-native-community/async-storage": "^1.11.0",
     "@react-native-community/cli": "4.13.1",
@@ -47,8 +49,8 @@
     "lodash.has": "^4.5.2",
     "lodash.merge": "^4.6.2",
     "lodash.orderby": "^4.6.0",
-    "mime-types": "^2.1.28",
     "metro-config": "^0.64.0",
+    "mime-types": "^2.1.28",
     "modal-enhanced-react-native-web": "^0.2.0",
     "moment": "^2.27.0",
     "moment-timezone": "^0.5.31",
@@ -80,8 +82,6 @@
     "urbanairship-react-native": "^10.0.0"
   },
   "devDependencies": {
-    "@actions/core": "^1.2.6",
-    "@actions/github": "^4.0.0",
     "@babel/core": "^7.11.1",
     "@babel/preset-env": "^7.11.0",
     "@babel/preset-react": "^7.10.4",
