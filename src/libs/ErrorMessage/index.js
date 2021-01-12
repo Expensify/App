@@ -4,7 +4,6 @@ import errorMessages from './errorMessages';
 /**
  * It's generic function to print any messages.
  *
- * @param {String} type
  * @param {String} error
  * @returns {String}
  */
