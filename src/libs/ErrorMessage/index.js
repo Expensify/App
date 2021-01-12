@@ -2,7 +2,7 @@ import _ from 'lodash';
 import errorMessages from './errorMessages';
 
 /**
- * It's generic function to print any messages.
+ * It's function to print handle error messages in the context of Authenticate.
  *
  * @param {String} error
  * @returns {String}

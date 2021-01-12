@@ -1,4 +1,4 @@
-const erroMessages = [
+const errorMessages = [
     {
         errorCode: 401,
         errorMessage: 'Incorrect login or password. Please try again.',
@@ -28,4 +28,4 @@ const erroMessages = [
         errorMessage: 'Your account has been locked.',
     },
 ];
-export default erroMessages;
+export default errorMessages;
