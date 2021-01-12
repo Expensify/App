@@ -40,7 +40,7 @@ const Modal = (props) => {
         needsSafeAreaPadding,
     } = getModalStyles(props.type, useWindowDimensions());
 
-    //register escape key listener via effect
+    // Register escape key listener via effect
     useEffect(()=>{
         KeyboardShortcut.subscribe('Escape', ()=> props.onClose(), 'special');
         return ()=> KeyboardShortcut.unsubscribe('Escape');

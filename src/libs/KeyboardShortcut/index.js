@@ -74,8 +74,8 @@ const KeyboardShortcut = {
      */
     subscribe(key, callback, modifiers = 'shift', captureOnInputs = false) {
 
-        //enable support for special keys like Escape
-        //const keyCode =  key.charCodeAt(0);
+        // Enable support for special keys like Escape
+       
 
         if (events[key] === undefined) {
             events[key] = [];
