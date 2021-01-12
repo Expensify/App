@@ -31,7 +31,7 @@ jobs:
 #              run: git checkout -b version-bump-${{ github.sha }}
 
             - name: Generate version
-              uses: Expensify/Expensify.cash/.github/actions/bumpVersion@master
+              uses: Expensify/Expensify.cash/.github/actions/bumpVersion@78400ff645ca753caa223fb4768aa2c5077a68db
 
 #            - name: Push new version
 #              run: git push --set-upstream origin version-bump-${{ github.sha }}
