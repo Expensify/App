@@ -2,4 +2,4 @@ name: 'Bump npm version'
 description: 'Increase the npm build version of the ReactNativeChat application'
 runs:
     using: 'node12'
-    main: '$GITHUB_REPOSITORY/.github/actions/bumpVersion/index.js'
+    main: ${{ github.repository }}/.github/actions/bumpVersion/index.js
