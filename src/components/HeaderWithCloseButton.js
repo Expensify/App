@@ -1,16 +1,17 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {
-    View, Image, TouchableOpacity, Text,
+    View, Image, TouchableOpacity,
 } from 'react-native';
 import styles from '../styles/styles';
 import exitIcon from '../../assets/images/icon-x--20x20.png';
+import Header from './Header';
 
 const propTypes = {
-    // Title of the modal
+    /** Title of the Header */
     title: PropTypes.string,
 
-    // Method to trigger when pressing close button of the modal
+    /** Method to trigger when pressing close button of the header */
     onCloseButtonPress: PropTypes.func,
 };
 
@@ -19,8 +20,8 @@ const defaultProps = {
     onCloseButtonPress: () => {},
 };
 
-const ModalHeader = props => (
-    <View style={styles.modalHeaderBar}>
+const HeaderWithCloseButton = props => (
+    <View style={styles.headerBar}>
         <View style={[
             styles.dFlex,
             styles.flexRow,
@@ -30,11 +31,7 @@ const ModalHeader = props => (
             styles.overflowHidden,
         ]}
         >
-            <View style={[styles.flex1]}>
-                <Text numberOfLines={1} style={[styles.navText]}>
-                    {props.title}
-                </Text>
-            </View>
+            <Header title={props.title} />
             <View style={[styles.reportOptions, styles.flexRow]}>
                 <TouchableOpacity
                     onPress={props.onCloseButtonPress}
@@ -51,8 +48,8 @@ const ModalHeader = props => (
     </View>
 );
 
-ModalHeader.propTypes = propTypes;
-ModalHeader.defaultProps = defaultProps;
-ModalHeader.displayName = 'ModalHeader';
+HeaderWithCloseButton.propTypes = propTypes;
+HeaderWithCloseButton.defaultProps = defaultProps;
+HeaderWithCloseButton.displayName = 'HeaderWithCloseButton';
 
-export default ModalHeader;
+export default HeaderWithCloseButton;
