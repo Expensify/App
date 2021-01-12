@@ -13,7 +13,7 @@ import {withOnyx} from 'react-native-onyx';
 import {Route} from '../../libs/Router';
 import styles, {getSafeAreaPadding} from '../../styles/styles';
 import variables from '../../styles/variables';
-import Header from './HeaderView';
+import HeaderView from './HeaderView';
 import Sidebar from './sidebar/SidebarView';
 import Main from './MainView';
 import {
@@ -228,6 +228,7 @@ class App extends React.Component {
             ? styles.sidebarVisible
             : styles.sidebarHidden;
         const appContentWrapperStyle = !this.state.isHamburgerEnabled ? styles.appContentWrapperLarge : null;
+
         return (
             <SafeAreaProvider>
                 <CustomStatusBar />
@@ -266,7 +267,7 @@ class App extends React.Component {
                                     <View
                                         style={[styles.appContent, styles.flex1, styles.flexColumn]}
                                     >
-                                        <Header
+                                        <HeaderView
                                             shouldShowHamburgerButton={this.state.isHamburgerEnabled}
                                             onHamburgerButtonClicked={this.toggleHamburger}
                                         />

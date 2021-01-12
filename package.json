@@ -1,6 +1,6 @@
 {
   "name": "expensify.cash",
-  "version": "1.0.1-332",
+  "version": "1.0.1-339",
   "author": "Expensify, Inc.",
   "homepage": "https://expensify.cash",
   "description": "Expensify.cash is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -48,6 +48,7 @@
     "lodash.has": "^4.5.2",
     "lodash.merge": "^4.6.2",
     "lodash.orderby": "^4.6.0",
+    "mime-types": "^2.1.28",
     "metro-config": "^0.64.0",
     "modal-enhanced-react-native-web": "^0.2.0",
     "moment": "^2.27.0",
@@ -80,8 +81,6 @@
     "urbanairship-react-native": "^10.0.0"
   },
   "devDependencies": {
-    "@actions/core": "^1.2.6",
-    "@actions/github": "^4.0.0",
     "@babel/core": "^7.11.1",
     "@babel/preset-env": "^7.11.0",
     "@babel/preset-react": "^7.10.4",

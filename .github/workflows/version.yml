@@ -1,5 +1,6 @@
 name: Create a new version
 
+on:
     push:
         branches: [master]
 
