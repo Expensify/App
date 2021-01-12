@@ -22,6 +22,7 @@ do {
     exec('npm version prerelease -m "Update version to %s"', (err, stdout, stderr) => {
         console.log(stdout);
         if (err) {
+            console.log(err);
             console.log(stderr);
 
             // It is possible that two PRs were merged in rapid succession.
