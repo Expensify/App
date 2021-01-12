@@ -23,7 +23,7 @@ function getErrorMessageFromErrorCode(errorCode) {
         case 405:
             return 'You do not have access to this application. Please add your GitHub username for access.';
         case 413:
-            return 'Your account has been locked after too many unsuccessfull attempts. Please try again after 1 hour.';
+            return 'Your account has been locked after too many unsuccessful attempts. Please try again after 1 hour.';
         default:
             return 'Something went wrong. Please try again later.';
     }
