@@ -263,3 +263,5 @@ In order to compile a production iOS build, run `npm run ios-build`, this will g
 
 #### Local production build the Android app
 To build an APK to share run (e.g. via Slack), run `npm run android-build`, this will generate a new APK in the `android/app` folder.
+
+##### Dummy change, remove me if you see me
