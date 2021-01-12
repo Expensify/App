@@ -1,9 +1,10 @@
 import Onyx from 'react-native-onyx';
-import {fetchAccountDetails, signIn} from '../../src/libs/actions/Session';
+import {fetchAccountDetails} from '../../src/libs/actions/Session';
 import * as API from '../../src/libs/API';
 import HttpUtils from '../../src/libs/HttpUtils';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import ONYXKEYS from '../../src/ONYXKEYS';
+import {signInWithTestUser} from '../utils/TestHelper';
 
 // Set up manual mocks for methods used in the actions so our test does not fail.
 jest.mock('../../src/libs/Notification/PushNotification', () => ({
@@ -22,15 +23,6 @@ test('Authenticate is called with saved credentials when a session expires', () 
     const TEST_INITIAL_AUTH_TOKEN = 'initialAuthToken';
     const TEST_REFRESHED_AUTH_TOKEN = 'refreshedAuthToken';
 
-    // Set up mock responses for all APIs that will be called. The next time this command is called it will return
-    // jsonCode: 200 and the response here.
-    HttpUtils.xhr.mockImplementation(() => Promise.resolve({
-        jsonCode: 200,
-        accountExists: true,
-        canAccessExpensifyCash: true,
-        requiresTwoFactorAuth: false,
-    }));
-
     let credentials;
     Onyx.connect({
         key: ONYXKEYS.CREDENTIALS,
@@ -43,36 +35,7 @@ test('Authenticate is called with saved credentials when a session expires', () 
         callback: val => session = val,
     });
 
-    // Simulate user entering their login and populating the credentials.login
-    fetchAccountDetails(TEST_USER_LOGIN);
-
-    // Note: In order for this test to work we must return a promise! It will pass even with
-    // failing assertions if we remove the return keyword.
-    return waitForPromisesToResolve()
-        .then(() => {
-            // Next we will simulate signing in and make sure all API calls in this flow succeed. Every time we add
-            // a mockImplementationOnce() we are altering what Network.post() will return.
-            HttpUtils.xhr
-
-                // First call to Authenticate
-                .mockImplementationOnce(() => Promise.resolve({
-                    jsonCode: 200,
-                    accountID: TEST_USER_ACCOUNT_ID,
-                    authToken: TEST_INITIAL_AUTH_TOKEN,
-                    email: TEST_USER_LOGIN,
-                }))
-
-                // Next call to CreateLogin
-                .mockImplementationOnce(() => Promise.resolve({
-                    jsonCode: 200,
-                    accountID: TEST_USER_ACCOUNT_ID,
-                    authToken: TEST_INITIAL_AUTH_TOKEN,
-                    email: TEST_USER_LOGIN,
-                }));
-
-            signIn('Password1');
-            return waitForPromisesToResolve();
-        })
+    return signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, 'Password1', TEST_INITIAL_AUTH_TOKEN)
         .then(() => {
             // Verify that our credentials were saved and that our session data is correct
             expect(credentials.login).toBe(TEST_USER_LOGIN);

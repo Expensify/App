@@ -4,25 +4,34 @@ import ONYXKEYS from '../../src/ONYXKEYS';
 import * as Pusher from '../../src/libs/Pusher/pusher';
 import PusherConnectionManager from '../../src/libs/PusherConnectionManager';
 import CONFIG from '../../src/CONFIG';
-import {subscribeToReportCommentEvents} from '../../src/libs/actions/Report';
+import {addAction, subscribeToReportCommentEvents} from '../../src/libs/actions/Report';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
+import PushNotification from '../../src/libs/Notification/PushNotification';
+import {signInWithTestUser, fetchPersonalDetailsForTestUser} from '../utils/TestHelper';
+
+PushNotification.register = () => {};
+PushNotification.deregister = () => {};
 
 describe('actions/Report', () => {
     it('should store a new report action in Onyx when one is handled via Pusher', () => {
+        const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_LOGIN = 'test@test.com';
         const REPORT_ID = 1;
         const ACTION_ID = 1;
         const REPORT_ACTION = {
             actionName: 'ADDCOMMENT',
+            actorAccountID: TEST_USER_ACCOUNT_ID,
+            actorEmail: TEST_USER_LOGIN,
             automatic: false,
-            created: 'Nov 6 2020 9:14am PST',
+            avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+            isAttachment: false,
+            isFirstItem: false,
+            loading: true,
             message: [{type: 'COMMENT', html: 'Testing a comment', text: 'Testing a comment'}],
             person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
+            sequenceNumber: ACTION_ID,
             shouldShow: true,
             timestamp: moment().unix(),
-            actorAccountID: 1,
-            sequenceNumber: ACTION_ID,
-            isAttachment: false,
-            loading: false,
         };
 
         // When using the Pusher mock the act of calling Pusher.isSubscribed will create a
@@ -46,10 +55,28 @@ describe('actions/Report', () => {
         });
 
         // Set up Onyx with some test user data
-        return Onyx.set(ONYXKEYS.SESSION, {accountID: 1, email: 'test@test.com'})
+        return signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
             .then(() => {
                 subscribeToReportCommentEvents();
                 return waitForPromisesToResolve();
+            })
+            .then(() => fetchPersonalDetailsForTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, {
+                [TEST_USER_LOGIN]: {
+                    accountID: TEST_USER_ACCOUNT_ID,
+                    email: TEST_USER_LOGIN,
+                    firstName: 'Test',
+                    lastName: 'User',
+                },
+            }))
+            .then(() => {
+                // This is a fire and forget response, but one it completes we should be able to verify that we
+                // have an "optimistic" report action in Onyx.
+                addAction(REPORT_ID, 'Testing a comment');
+                return waitForPromisesToResolve();
+            })
+            .then(() => {
+                const resultAction = reportActions[ACTION_ID];
+                expect(resultAction).toEqual(REPORT_ACTION);
             })
             .then(() => {
                 // Now that we are subscribed we need to simulate a reportComment action Pusher event.
@@ -66,6 +93,9 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 const resultAction = reportActions[ACTION_ID];
+
+                // Verify that our action is no longer in the loading state
+                REPORT_ACTION.loading = false;
                 expect(resultAction).toEqual(REPORT_ACTION);
             });
     });
