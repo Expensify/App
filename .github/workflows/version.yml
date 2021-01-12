@@ -29,11 +29,11 @@ jobs:
                 git checkout master
                 git config user.name botify
 
-            - name: Checkout new branch
-              run: git checkout -b version-bump-${{ github.sha }}
+#            - name: Checkout new branch
+#              run: git checkout -b version-bump-${{ github.sha }}
 
             - name: Generate version
-              uses: Expensify/Expensify.cash/.github/actions/bumpVersion@${{ github.head_ref }}
+              uses: Expensify/Expensify.cash/.github/actions/bumpVersion@151718c4d63a1fec80b91186b1d7d296120de81b
 
 #            - name: Push new version
 #              run: git push --set-upstream origin version-bump-${{ github.sha }}
