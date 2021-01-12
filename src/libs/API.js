@@ -37,13 +37,13 @@ function isAuthTokenRequired(command) {
 }
 
 /**
- * Adds CSRF and AuthToken to our request data
+ * Adds default values to our request data
  *
  * @param {String} command
  * @param {Object} parameters
  * @returns {Object}
  */
-function addAuthTokenToParameters(command, parameters) {
+function addDefaultValuesToParameters(command, parameters) {
     const finalParameters = {...parameters};
 
     if (isAuthTokenRequired(command) && !parameters.authToken) {
@@ -61,6 +61,8 @@ function addAuthTokenToParameters(command, parameters) {
         finalParameters.authToken = authToken;
     }
 
+    // Always set referer to https://expensify.cash/
+    finalParameters.referer = CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH;
 
     // This application does not save its authToken in cookies like the classic Expensify app.
     // Setting api_setCookie to false will ensure that the Expensify API doesn't set any cookies
@@ -70,7 +72,7 @@ function addAuthTokenToParameters(command, parameters) {
 }
 
 // Tie into the network layer to add auth token to the parameters of all requests
-Network.registerParameterEnhancer(addAuthTokenToParameters);
+Network.registerParameterEnhancer(addDefaultValuesToParameters);
 
 /**
  * @throws {Error} If the "parameters" object has a null or undefined value for any of the given parameterNames
@@ -145,7 +147,7 @@ function handleExpiredAuthToken(originalCommand, originalParameters, originalTyp
             Network.unpauseRequestQueue();
 
             // Now that the API is authenticated, make the original request again with the new authToken
-            const params = addAuthTokenToParameters(originalCommand, originalParameters);
+            const params = addDefaultValuesToParameters(originalCommand, originalParameters);
             return Network.post(originalCommand, params, originalType);
         })
 
