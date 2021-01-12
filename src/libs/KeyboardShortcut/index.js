@@ -16,7 +16,6 @@ function bindHandlerToKeyupEvent(event) {
     const callback = eventCallbacks[eventCallbacks.length - 1];
 
     const pressedModifiers = _.all(callback.modifiers, (modifier) => {
-
         if (modifier === 'shift' && !event.shiftKey) {
             return false;
         }
@@ -74,8 +73,8 @@ const KeyboardShortcut = {
      */
     subscribe(key, callback, modifiers = 'shift', captureOnInputs = false) {
 
-        //enable support for special keys like Escape
-        //const keyCode =  key.charCodeAt(0);
+        // Enable support for special keys like Escape
+       
 
         if (events[key] === undefined) {
             events[key] = [];
