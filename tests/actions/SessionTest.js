@@ -1,5 +1,4 @@
 import Onyx from 'react-native-onyx';
-import {fetchAccountDetails} from '../../src/libs/actions/Session';
 import * as API from '../../src/libs/API';
 import HttpUtils from '../../src/libs/HttpUtils';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
