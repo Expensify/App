@@ -156,7 +156,7 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}, isChun
             } catch (err) {
                 console.debug('[Pusher] Unable to parse chunked JSON response from Pusher', 0, {
                     error: err,
-                    eventData: chunkedEvent.chunks.join('')
+                    eventData: chunkedEvent.chunks.join(''),
                 });
             }
 
@@ -207,7 +207,7 @@ function subscribe(channelName, eventName, eventCallback = () => {}, isChunked =
                 if (status === 403) {
                     console.debug('[Pusher] Issue authenticating with Pusher during subscribe attempt.', 0, {
                         channelName,
-                        status
+                        status,
                     });
                 }
 
@@ -330,7 +330,7 @@ function sendChunkedEvent(channelName, eventName, payload) {
             id: msgId,
             index: i,
             chunk: payloadString.substr(i * chunkSize, chunkSize),
-            final: chunkSize * (i + 1) >= payloadString.length
+            final: chunkSize * (i + 1) >= payloadString.length,
         }, channelName);
     }
 }

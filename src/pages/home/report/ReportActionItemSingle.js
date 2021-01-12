@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Image} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ReportActionPropTypes from './ReportActionPropTypes';
@@ -8,6 +8,7 @@ import ReportActionItemFragment from './ReportActionItemFragment';
 import styles from '../../../styles/styles';
 import CONST from '../../../CONST';
 import ReportActionItemDate from './ReportActionItemDate';
+import Avatar from '../../../components/Avatar';
 
 const propTypes = {
     // All the data of the action
@@ -20,9 +21,9 @@ const ReportActionItemSingle = ({action}) => {
         : action.avatar;
     return (
         <View style={[styles.chatItem]}>
-            <Image
-                source={{uri: avatarUrl}}
+            <Avatar
                 style={[styles.actionAvatar]}
+                source={avatarUrl}
             />
             <View style={[styles.chatItemRight]}>
                 <View style={[styles.chatItemMessageHeader]}>
