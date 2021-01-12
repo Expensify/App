@@ -52,15 +52,16 @@ const HeaderView = props => (
                 </TouchableOpacity>
             )}
             {props.report && props.report.reportName ? (
-                <View style={[
-                    styles.flex1,
-                    styles.flexRow,
-                    styles.alignItemsCenter,
-                    styles.justifyContentBetween,
-                ]}
+                <View
+                    style={[
+                        styles.flex1,
+                        styles.flexRow,
+                        styles.alignItemsCenter,
+                        styles.justifyContentBetween,
+                    ]}
                 >
                     <View style={[styles.flex1]}>
-                        <Text numberOfLines={1} style={[styles.navText]}>
+                        <Text numberOfLines={2} style={[styles.navText]}>
                             {props.report.reportName}
                         </Text>
                     </View>

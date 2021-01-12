@@ -228,6 +228,7 @@ class App extends React.Component {
             ? styles.sidebarVisible
             : styles.sidebarHidden;
         const appContentWrapperStyle = !this.state.isHamburgerEnabled ? styles.appContentWrapperLarge : null;
+
         return (
             <SafeAreaProvider>
                 <CustomStatusBar />
