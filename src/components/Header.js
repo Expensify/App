@@ -11,7 +11,7 @@ const propTypes = {
 
 const Header = props => (
     <View style={[styles.flex1]}>
-        <Text numberOfLines={1} style={[styles.headerText]}>
+        <Text numberOfLines={2} style={[styles.headerText]}>
             {props.title}
         </Text>
     </View>
