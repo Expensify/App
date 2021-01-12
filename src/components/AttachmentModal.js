@@ -83,7 +83,11 @@ class AttachmentModal extends Component {
         return imageGroup[1];
     }
 
-    // A function to get the next attachment based on the current attachment being show in the report.
+    /**
+     * A function to get the next attachment based on the current attachment being show in the report.
+     *
+     * @param {Boolean} toRight
+     */
     getNextAttachment = (toRight) => {
         const {sortedReportActions, visibleAttachment: {sourceURL}} = this.props;
         const attachments = sortedReportActions.filter(sortedReportAction => sortedReportAction.action.isAttachment);
@@ -96,6 +100,9 @@ class AttachmentModal extends Component {
             const html = lodashGet(attachment, ['action', 'message', 0, 'html'], '');
             return html.includes(sourceURL);
         });
+        if (!currentAttachment) {
+            return;
+        }
         const actions = [...sortedReportActions].reverse();
         const sequenceNumber = currentAttachment.action.sequenceNumber;
         const actionsToSearch = toRight
