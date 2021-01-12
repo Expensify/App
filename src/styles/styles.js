@@ -164,7 +164,7 @@ const styles = {
         height: 12,
     },
 
-    navText: {
+    headerText: {
         fontFamily: fontFamily.GTA,
         color: themeColors.heading,
         fontSize: variables.fontSizeNormal,
@@ -830,7 +830,7 @@ const styles = {
         flex: 1,
     },
 
-    modalHeaderBar: {
+    headerBar: {
         overflow: 'hidden',
         justifyContent: 'center',
         display: 'flex',
