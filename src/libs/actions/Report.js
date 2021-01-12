@@ -29,7 +29,7 @@ Onyx.connect({
             currentUserEmail = val.email;
             currentUserAccountID = val.accountID;
         }
-    }
+    },
 });
 
 let currentURL;
@@ -127,8 +127,8 @@ function getSimplifiedReportObject(report) {
         lastVisitedTimestamp: lodashGet(report, [
             'reportNameValuePairs',
             `lastRead_${currentUserAccountID}`,
-            'timestamp'
-        ], 0)
+            'timestamp',
+        ], 0),
     };
 }
 
@@ -295,7 +295,7 @@ function updateReportWithNewAction(reportID, reportAction) {
         onClick: () => {
             // Navigate to this report onClick
             redirect(ROUTES.getReportRoute(reportID));
-        }
+        },
     });
 }
 
@@ -339,6 +339,27 @@ function subscribeToReportCommentEvents() {
 }
 
 /**
+ * There are 2 possibilities that we can receive via pusher for a user's typing status:
+ * 1. The "new" way from e.cash is passed as {[login]: Boolean} (e.g. {yuwen@expensify.com: true}), where the value
+ * is whether the user with that login is typing on the report or not.
+ * 2. The "old" way from e.com which is passed as {userLogin: login} (e.g. {userLogin: bstites@expensify.com})
+ *
+ * This method makes sure that no matter which we get, we return the "new" format
+ *
+ * @param {Object} typingStatus
+ * @returns {Object}
+ */
+function getNormalizedTypingStatus(typingStatus) {
+    let normalizedTypingStatus = typingStatus;
+
+    if (_.first(_.keys(typingStatus)) === 'userLogin') {
+        normalizedTypingStatus = {[typingStatus.userLogin]: true};
+    }
+
+    return normalizedTypingStatus;
+}
+
+/**
  * Initialize our pusher subscriptions to listen for someone typing in a report.
  *
  * @param {Number} reportID
@@ -352,11 +373,10 @@ function subscribeToReportTypingEvents(reportID) {
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, {});
 
     const pusherChannelName = getReportChannelName(reportID);
-
-    // Typing status is an object with the shape {[login]: Boolean} (e.g. {yuwen@expensify.com: true}), where the value
-    // is whether the user with that login is typing on the report or not.
     Pusher.subscribe(pusherChannelName, 'client-userIsTyping', (typingStatus) => {
-        const login = _.first(_.keys(typingStatus));
+        const normalizedTypingStatus = getNormalizedTypingStatus(typingStatus);
+        const login = _.first(_.keys(normalizedTypingStatus));
+
         if (!login) {
             return;
         }
@@ -364,7 +384,7 @@ function subscribeToReportTypingEvents(reportID) {
         // Use a combo of the reportID and the login as a key for holding our timers.
         const reportUserIdentifier = `${reportID}-${login}`;
         clearTimeout(typingWatchTimers[reportUserIdentifier]);
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, typingStatus);
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, normalizedTypingStatus);
 
         // Wait for 1.5s of no additional typing events before setting the status back to false.
         typingWatchTimers[reportUserIdentifier] = setTimeout(() => {
@@ -479,6 +499,11 @@ function fetchOrCreateChatReport(participants) {
     })
 
         .then((data) => {
+            if (data.jsonCode !== 200) {
+                alert(data.message);
+                return;
+            }
+
             // Set aside the reportID in a local variable so it can be accessed in the rest of the chain
             reportID = data.reportID;
 
@@ -492,6 +517,9 @@ function fetchOrCreateChatReport(participants) {
 
         // Put the report object into Onyx
         .then((data) => {
+            if (data.reports.length === 0) {
+                return;
+            }
             const report = data.reports[reportID];
 
             // Store only the absolute bare minimum of data in Onyx because space is limited
@@ -505,6 +533,9 @@ function fetchOrCreateChatReport(participants) {
             // Merge the data into Onyx. Don't use set() here or multiSet() because then that would
             // overwrite any existing data (like if they have unread messages)
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, newReport);
+
+            // Updates the personal details since its possible that a new participant was provided
+            PersonalDetails.getFromReportParticipants([newReport]);
 
             // Redirect the logged in person to the new report
             redirect(ROUTES.getReportRoute(reportID));
@@ -556,8 +587,8 @@ function addAction(reportID, text, file) {
                 {
                     style: 'strong',
                     text: myPersonalDetails.displayName || currentUserEmail,
-                    type: 'TEXT'
-                }
+                    type: 'TEXT',
+                },
             ],
             automatic: false,
 
@@ -574,7 +605,7 @@ function addAction(reportID, text, file) {
                     // Remove HTML from text when applying optimistic offline comment
                     text: isAttachment ? '[Attachment]'
                         : htmlComment.replace(/<[^>]*>?/gm, ''),
-                }
+                },
             ],
             isFirstItem: false,
             isAttachment,
@@ -664,7 +695,7 @@ function handleReportChanged(report) {
 
     // A report can be missing a name if a comment is received via pusher event
     // and the report does not yet exist in Onyx (eg. a new DM created with the logged in person)
-    if (report.reportName === undefined) {
+    if (report.reportID && report.reportName === undefined) {
         fetchChatReportsByIDs([report.reportID]);
     }
 
@@ -677,7 +708,7 @@ function handleReportChanged(report) {
 
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    callback: handleReportChanged
+    callback: handleReportChanged,
 });
 
 // When the app reconnects from being offline, fetch all of the reports and their actions

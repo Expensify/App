@@ -1,5 +1,5 @@
 import React from 'react';
-import {Image, View, StyleSheet} from 'react-native';
+import {View, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -9,6 +9,7 @@ import AppLinks from './AppLinks';
 import {signOut} from '../../../libs/actions/Session';
 import ONYXKEYS from '../../../ONYXKEYS';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
+import Avatar from '../../../components/Avatar';
 
 const propTypes = {
     // Safe area insets required for mobile devices margins
@@ -29,7 +30,7 @@ const propTypes = {
     network: PropTypes.shape({
         // Is the network currently offline or not
         isOffline: PropTypes.bool,
-    })
+    }),
 };
 
 const defaultProps = {
@@ -40,7 +41,7 @@ const defaultProps = {
 const SidebarBottom = ({myPersonalDetails, network, insets}) => {
     const indicatorStyles = [
         styles.statusIndicator,
-        network && network.isOffline ? styles.statusIndicatorOffline : styles.statusIndicatorOnline
+        network && network.isOffline ? styles.statusIndicatorOffline : styles.statusIndicatorOnline,
     ];
 
     // On the very first sign in or after clearing storage these
@@ -53,8 +54,8 @@ const SidebarBottom = ({myPersonalDetails, network, insets}) => {
     return (
         <View style={[styles.sidebarFooter, getSafeAreaMargins(insets)]}>
             <View style={[styles.sidebarFooterAvatar]}>
-                <Image
-                    source={{uri: myPersonalDetails.avatarURL}}
+                <Avatar
+                    source={myPersonalDetails.avatarURL}
                     style={[styles.actionAvatar]}
                 />
                 <View style={StyleSheet.flatten(indicatorStyles)} />

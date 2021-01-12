@@ -5,37 +5,37 @@ on:
         types: [opened, synchronize]
 
 env:
-    DEVELOPER_DIR: /Applications/Xcode_11.5.app/Contents/Developer
+    DEVELOPER_DIR: /Applications/Xcode_12.3.app/Contents/Developer
 
 jobs:
     test:
         runs-on: macos-10.15
         steps:
-          - uses: actions/checkout@v2
-          - uses: actions/setup-ruby@v1
+            - uses: actions/checkout@v2
+            - uses: actions/setup-ruby@v1
 
-          - name: Install bundler
-            run: gem install bundler
+            - name: Install bundler
+              run: gem install bundler
 
-          - name: Install gems
-            run: bundle install
+            - name: Install gems
+              run: bundle install
 
-          - name: Install node packages
-            run: npm install
+            - name: Install node packages
+              run: npm install
 
-          - name: Install detox
-            run: npm install -g detox-cli
+            - name: Install detox
+              run: npm install -g detox-cli
 
-          - name: Install cocoapods
-            run: cd ios && pod install --repo-update
+            - name: Install cocoapods
+              run: cd ios && pod install --repo-update
 
-          - name: Install brew depdencies
-            run: |
-              brew tap wix/brew
-              brew install applesimutils
+            - name: Install brew depdencies
+              run: |
+                brew tap wix/brew
+                brew install applesimutils
 
-          - name: Build tests
-            run: detox build --configuration ios.sim.release
+            - name: Build tests
+              run: detox build --configuration ios.sim.release
 
-          - name: Run tests
-            run: detox test --configuration ios.sim.release --cleanup --debug-synchronization 200 --loglevel trace
+            - name: Run tests
+              run: detox test --configuration ios.sim.release --cleanup --debug-synchronization 200 --loglevel trace

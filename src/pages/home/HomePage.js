@@ -13,7 +13,7 @@ import {withOnyx} from 'react-native-onyx';
 import {Route} from '../../libs/Router';
 import styles, {getSafeAreaPadding} from '../../styles/styles';
 import variables from '../../styles/variables';
-import Header from './HeaderView';
+import HeaderView from './HeaderView';
 import Sidebar from './sidebar/SidebarView';
 import Main from './MainView';
 import {
@@ -36,6 +36,7 @@ import NetworkConnection from '../../libs/NetworkConnection';
 import CONFIG from '../../CONFIG';
 import CustomStatusBar from '../../components/CustomStatusBar';
 import CONST from '../../CONST';
+import {fetchCountryCodeByRequestIP} from '../../libs/actions/GeoLocation';
 
 const windowSize = Dimensions.get('window');
 
@@ -67,7 +68,7 @@ class App extends React.Component {
         this.recordTimerAndToggleHamburger = this.recordTimerAndToggleHamburger.bind(this);
 
         this.animationTranslateX = new Animated.Value(
-            !props.isSidebarShown ? -300 : 0
+            !props.isSidebarShown ? -300 : 0,
         );
     }
 
@@ -84,6 +85,8 @@ class App extends React.Component {
         fetchPersonalDetails();
 
         fetchAllReports(true, false, true);
+
+        fetchCountryCodeByRequestIP();
 
         UnreadIndicatorUpdater.listenForReportChanges();
 
@@ -131,7 +134,7 @@ class App extends React.Component {
 
         this.setState({
             windowWidth: changedWindow.width,
-            isHamburgerEnabled: changedWindow.width <= variables.mobileResponsiveWidthBreakpoint
+            isHamburgerEnabled: changedWindow.width <= variables.mobileResponsiveWidthBreakpoint,
         });
 
         if (!this.props.isSidebarShown && changedWindow.width > variables.mobileResponsiveWidthBreakpoint) {
@@ -180,7 +183,7 @@ class App extends React.Component {
             toValue: animationFinalValue,
             duration: 200,
             easing: Easing.ease,
-            useNativeDriver: false
+            useNativeDriver: false,
         }).start(({finished}) => {
             if (finished && hamburgerIsShown) {
                 hideSidebar();
@@ -217,8 +220,15 @@ class App extends React.Component {
     render() {
         const hamburgerStyle = this.state.isHamburgerEnabled && this.props.isSidebarShown
             ? styles.hamburgerOpenAbsolute : styles.hamburgerOpen;
-        const visibility = !this.state.isHamburgerEnabled || this.props.isSidebarShown ? styles.dFlex : styles.dNone;
+
+        // Note: The visibility state for the Animated.View below is set by modifying the width of the View.
+        // This is due to a known issue affecting Android where a TextInput's padding is not respected when a containing
+        // parent has the display: 'none' style. See: https://github.com/facebook/react-native/issues/16405
+        const visibility = !this.state.isHamburgerEnabled || this.props.isSidebarShown
+            ? styles.sidebarVisible
+            : styles.sidebarHidden;
         const appContentWrapperStyle = !this.state.isHamburgerEnabled ? styles.appContentWrapperLarge : null;
+
         return (
             <SafeAreaProvider>
                 <CustomStatusBar />
@@ -229,7 +239,7 @@ class App extends React.Component {
                                 appContentWrapperStyle,
                                 styles.flexRow,
                                 styles.flex1,
-                                getSafeAreaPadding(insets)
+                                getSafeAreaPadding(insets),
                             ]}
                         >
                             <Route path={[ROUTES.REPORT, ROUTES.HOME]}>
@@ -237,7 +247,7 @@ class App extends React.Component {
                                     hamburgerStyle,
                                     visibility,
                                     {
-                                        transform: [{translateX: this.animationTranslateX}]
+                                        transform: [{translateX: this.animationTranslateX}],
                                     }]}
                                 >
                                     <Sidebar
@@ -257,7 +267,7 @@ class App extends React.Component {
                                     <View
                                         style={[styles.appContent, styles.flex1, styles.flexColumn]}
                                     >
-                                        <Header
+                                        <HeaderView
                                             shouldShowHamburgerButton={this.state.isHamburgerEnabled}
                                             onHamburgerButtonClicked={this.toggleHamburger}
                                         />
@@ -279,7 +289,7 @@ App.defaultProps = defaultProps;
 export default withOnyx(
     {
         isSidebarShown: {
-            key: ONYXKEYS.IS_SIDEBAR_SHOWN
+            key: ONYXKEYS.IS_SIDEBAR_SHOWN,
         },
         isChatSwitcherActive: {
             key: ONYXKEYS.IS_CHAT_SWITCHER_ACTIVE,

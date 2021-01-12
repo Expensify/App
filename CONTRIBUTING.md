@@ -2,10 +2,10 @@
 Welcome! Thanks for checking out Expensify.cash and for taking the time to contribute!
 
 ## Getting Started
-This guide is specifically for external contributors. For a general overview of the repo, check out our README located [here](https://github.com/Expensify/Expensify.cash/blob/master/README.md). The part of the README to pay particular attention to is how to [run the app](https://github.com/Expensify/Expensify.cash#running-the-apps-via-production-api-proxy-contributors-) locally using our production API.
+This guide is specifically for external contributors. For a general overview of the repo, check out our README located [here](https://github.com/Expensify/Expensify.cash/blob/master/README.md). The part of the README to pay particular attention to is how to [run the app](https://github.com/Expensify/Expensify.cash#local-development) locally using our production API.
 
 #### Test Accounts
-You can create as many accounts as needed in order to test your changes. You can create your test accounts directly from [expensify.cash](https://expensify.cash/). Right now, accounts can't chat with each other by default. If you want your test accounts to be able to chat with each other, post in the #expensify-contributors [Slack channel](https://github.com/Expensify/Expensify.cash/blob/master/CONTRIBUTING.md#asking-questions) to ask someone to add your test accounts to a policy that allows chatting.
+You can create as many accounts as needed in order to test your changes directly from [expensify.cash](https://expensify.cash/). An initial account can be created when logging in for the first time and additional accounts can be invited by entering a valid email or phone in the "Find or start a chat" input then tapping the avatar.
 
 ## Code of Conduct
 This project and everyone participating in it is governed by the Expensify [Code of Conduct](https://github.com/Expensify/Expensify.cash/blob/master/CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [contributors@expensify.com](mailto:contributors@expensify.com).
@@ -24,8 +24,21 @@ We are currently managing payment via Upwork. If you'd like to be paid for your 
 
 ## Submitting a Pull Request
 #### Proposing a Change
+1. **Before writing any code**, please post a proposal of the solution you plan to implement as a comment in the GH issue. This should include a brief technical explanation of the changes you will make.
+1. Wait for Expensify to review and provide feedback on the proposal within the GH issue, and assign the GH issue to you. Please do not move forward with creating a Pull Request until your proposal is approved
 1. Fork this repository and create a new branch
-1. [Open a PR](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request-from-a-fork). Be sure to fill in all the required information on the PR template, and be sure all of your [commits are signed](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/signing-commits).
+1. ‼️ **Before you start writing any code** ️‼️, please be aware that we require all commits to be [signed](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/signing-commits). The easiest way to do that is to [generate a new GPG key](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/generating-a-new-gpg-key) and [add it to your Github account](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/adding-a-new-gpg-key-to-your-github-account). Once you've done that, you can automatically sign all your commits by adding the following to your `.gitconfig`:
+    ```
+    [commit]
+        gpgsign = true
+    [user]
+        email = <Your GH account email>
+        name = <Your Name>
+        signingkey = <your_signing_key>
+    [gpg]
+        program = gpg
+    ```
+1. [Open a PR](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request-from-a-fork). Be sure to fill in all the required information on the PR template.
 1. An Expensify engineer will be automatically assigned to review your PR
 1. You will need all checks to pass:
 	1. CLA - You must sign our [Contributor License Agreement](https://github.com/Expensify/Expensify.cash/blob/master/CLA.md) by following the CLA bot instructions that will be posted on your PR
@@ -34,3 +47,13 @@ We are currently managing payment via Upwork. If you'd like to be paid for your 
 
 #### Testing
 Upon submission of a PR, please include a numbered list of explicit testing steps for each platform (Web, Desktop, iOS, and Android) to confirm the fix works as expected and there are no regressions.
+
+#### Review Tips
+
+### Getting Attention
+- If you have made a change and are ready for another review the best way to get your reviewer's attention is to leave a comment that says "Updated" on the PR itself.
+- Please do NOT ping individual reviewers in the Slack channel to get their attention and keep the conversation in GitHub whenever possible.
+- Patience is a virtue. Reviews can sometimes take place over the course of several days. If your PR has not been addressed after 3 days please leave a comment on the PR. If the PR goes without a response for another day please let us know via Slack.
+
+### JavaScript Style
+- We have nothing against Prettier or any other automatic style fixers, but we generally don't use them here at Expensify. Do not use Prettier. The style changes these tools enforce don't always align with the ones we recommend and require in our eslint configs and can result in uncessary changes for our reviewers. Ignoring this advice will ultimately make your changes take longer to review as we will ask you to undo any style changes that are not relating to the important changes you are making.
