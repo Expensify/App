@@ -22,7 +22,8 @@
     "postversion": "react-native-version",
     "print-version": "echo $npm_package_version",
     "detox-build": "detox build --configuration ios.sim.debug",
-    "detox-test": "detox test --configuration ios.sim.debug"
+    "detox-test": "detox test --configuration ios.sim.debug",
+    "gh-actions-build": "ncc build .github/actions/bumpVersion/bumpVersion.js -o .github/actions/bumpVersion/"
   },
   "dependencies": {
     "@babel/plugin-proposal-class-properties": "^7.12.1",
@@ -89,6 +90,7 @@
     "@svgr/webpack": "^5.5.0",
     "@testing-library/jest-native": "^3.4.2",
     "@testing-library/react-native": "^7.0.2",
+    "@vercel/ncc": "^0.27.0",
     "babel-eslint": "^10.1.0",
     "babel-jest": "^26.2.2",
     "babel-loader": "^8.1.0",
