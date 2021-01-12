@@ -72,9 +72,7 @@ const KeyboardShortcut = {
      * @param {Boolean} captureOnInputs Should we capture the event on inputs too?
      */
     subscribe(key, callback, modifiers = 'shift', captureOnInputs = false) {
-
         // Enable support for special keys like Escape
-       
 
         if (events[key] === undefined) {
             events[key] = [];

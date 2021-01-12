@@ -8,7 +8,7 @@ import styles, {getSafeAreaPadding} from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import getModalStyles from '../styles/getModalStyles';
 import CONST from '../CONST';
-import KeyboardShortcut from "../libs/KeyboardShortcut";
+import KeyboardShortcut from '../libs/KeyboardShortcut';
 
 const propTypes = {
     // Callback method fired when the user requests to close the modal
@@ -41,10 +41,10 @@ const Modal = (props) => {
     } = getModalStyles(props.type, useWindowDimensions());
 
     // Register escape key listener via effect
-    useEffect(()=>{
-        KeyboardShortcut.subscribe('Escape', ()=> props.onClose(), 'special');
-        return ()=> KeyboardShortcut.unsubscribe('Escape');
-    },[props]);
+    useEffect(() => {
+        KeyboardShortcut.subscribe('Escape', () => props.onClose(), 'special');
+        return () => KeyboardShortcut.unsubscribe('Escape');
+    }, [props]);
 
     return (
         <ReactNativeModal
