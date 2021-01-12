@@ -52,15 +52,14 @@ function addAuthTokenToParameters(command, parameters) {
 
     if (isAuthTokenRequired(command) && !parameters.authToken) {
         // If we end up here with no authToken it means we are trying to make an API request before we are signed in.
-        // In this case, we should cancel the current request and clear the queue.
+        // In this case, we should cancel the current request by pausing the queue and clearing the remaining requests.
         if (!authToken) {
             redirectToSignIn();
 
             console.debug('A request was made without an authToken', {command, parameters});
+            Network.pauseRequestQueue();
             Network.clearRequestQueue();
-
-            // Throw so the request queue knows to not make this request
-            throw new Error('A request was made without an authToken');
+            return;
         }
 
         finalParameters.authToken = authToken;
