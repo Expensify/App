@@ -8,7 +8,7 @@ import {subscribeToReportCommentEvents} from '../../src/libs/actions/Report';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 
 describe('actions/Report', () => {
-    it('should subscribe to the private-user-accountID channel and handle reportComment events', () => {
+    it('should store a new report action in Onyx when one is handled via Pusher', () => {
         const REPORT_ID = 1;
         const ACTION_ID = 1;
         const REPORT_ACTION = {
@@ -46,8 +46,7 @@ describe('actions/Report', () => {
         });
 
         // Set up Onyx with some test user data
-        Onyx.set(ONYXKEYS.SESSION, {accountID: 1, email: 'test@test.com'});
-        return waitForPromisesToResolve()
+        return Onyx.set(ONYXKEYS.SESSION, {accountID: 1, email: 'test@test.com'})
             .then(() => {
                 subscribeToReportCommentEvents();
                 return waitForPromisesToResolve();
