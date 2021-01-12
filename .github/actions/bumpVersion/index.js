@@ -15,9 +15,10 @@ const [repoOwner, repoName] = process.env.GITHUB_REPOSITORY.split('/');
 
 const MAX_RETRIES = 10;
 let errCount = 0;
-let shouldRetry = false;
+let shouldRetry;
 
 do {
+    shouldRetry = false;
     exec('npm version prerelease -m "Update version to %s"', (err, stdout, stderr) => {
         console.log(stdout);
         if (err) {
@@ -9099,7 +9100,7 @@ module.exports = JSON.parse("[[\"0\",\"\\u0000\",128],[\"a1\",\"｡\",62],[\"814
 /***/ ((module) => {
 
 "use strict";
-module.exports = {"i8":"1.0.1-332"};
+module.exports = {"i8":"1.0.1-339"};
 
 /***/ }),
 
