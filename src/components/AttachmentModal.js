@@ -6,8 +6,8 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash.get';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import {clearAttachmentModalData, setAttachmentModalData} from '../libs/actions/Report';
-
 import AttachmentView from './AttachmentView';
 import CONST from '../CONST';
 import ModalWithHeader from './ModalWithHeader';
@@ -71,7 +71,7 @@ class AttachmentModal extends Component {
         const {visibleAttachment: {isModalOpen}} = this.props;
         if (!prevProps.visibleAttachment.isModalOpen && isModalOpen) {
             document.addEventListener('keydown', this.handleKeyPress, false);
-        } else {
+        } else if (!isModalOpen) {
             document.removeEventListener('keydown', this.handleKeyPress, false);
         }
     }
@@ -90,7 +90,7 @@ class AttachmentModal extends Component {
      */
     getNextAttachment = (toRight) => {
         const {sortedReportActions, visibleAttachment: {sourceURL}} = this.props;
-        const attachments = sortedReportActions.filter(sortedReportAction => sortedReportAction.action.isAttachment);
+        const attachments = _.filter(sortedReportActions, sortedReportAction => sortedReportAction.action.isAttachment);
         if (attachments.length <= 1) {
             return;
         }
