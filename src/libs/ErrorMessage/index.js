@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import messages from './messages';
+import errorMessages from './errorMessages';
 
 /**
  * It's generic function to print any messages.
@@ -8,12 +8,12 @@ import messages from './messages';
  * @param {String} error
  * @returns {String}
  */
-function getErrorMessage(type, error) {
+function getErrorMessage(error) {
     const code = error.split(' ')[0];
     if (!_.isEmpty(code)) {
-        const message = _.filter(messages, {type, errorCode: +code.trim()});
-        if (!_.isEmpty(message)) {
-            return message[0].message;
+        const errorMessage = _.filter(errorMessages, {errorCode: +code.trim()});
+        if (!_.isEmpty(errorMessage)) {
+            return errorMessage[0].errorMessage;
         }
     }
     return error;
