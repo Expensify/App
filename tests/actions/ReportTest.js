@@ -36,7 +36,8 @@ describe('actions/Report', () => {
 
         // When using the Pusher mock the act of calling Pusher.isSubscribed will create a
         // channel already in a subscribed state. These methods are normally used to prevent
-        // duplicated subscriptions, but we don't need them for this test.
+        // duplicated subscriptions, but we don't need them for this test so forcing them to
+        // return false will make the testing less complex.
         Pusher.isSubscribed = jest.fn().mockReturnValue(false);
         Pusher.isAlreadySubscribing = jest.fn().mockReturnValue(false);
 
@@ -69,7 +70,7 @@ describe('actions/Report', () => {
                 },
             }))
             .then(() => {
-                // This is a fire and forget response, but one it completes we should be able to verify that we
+                // This is a fire and forget response, but once it completes we should be able to verify that we
                 // have an "optimistic" report action in Onyx.
                 addAction(REPORT_ID, 'Testing a comment');
                 return waitForPromisesToResolve();
@@ -77,26 +78,27 @@ describe('actions/Report', () => {
             .then(() => {
                 const resultAction = reportActions[ACTION_ID];
                 expect(resultAction).toEqual(REPORT_ACTION);
+                expect(resultAction.loading).toEqual(true);
             })
             .then(() => {
-                // Now that we are subscribed we need to simulate a reportComment action Pusher event.
-                // Then verify that action was handled correctly and merged into the reportActions.
+                // We subscribed to the Pusher channel above and now we need to simulate a reportComment action
+                // Pusher event so we can verify that action was handled correctly and merged into the reportActions.
                 const channel = Pusher.getChannel('private-user-accountID-1');
                 channel.emit('reportComment', {
                     reportID: REPORT_ID,
                     reportAction: REPORT_ACTION,
                 });
 
-                // Once this happens we should see the comment get processed by the callback and added to the
-                // storage so we must wait for promises to resolve again and then verify the data is in Onyx.
+                // Once a reportComment event is emitted to the Pusher channel we should see the comment get processed
+                // by the Pusher callback and added to the storage so we must wait for promises to resolve again and
+                // then verify the data is in Onyx.
                 return waitForPromisesToResolve();
             })
             .then(() => {
                 const resultAction = reportActions[ACTION_ID];
 
                 // Verify that our action is no longer in the loading state
-                REPORT_ACTION.loading = false;
-                expect(resultAction).toEqual(REPORT_ACTION);
+                expect(resultAction.loading).toEqual(false);
             });
     });
 });
