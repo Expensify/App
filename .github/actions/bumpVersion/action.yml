@@ -1,5 +1,9 @@
 name: 'Bump npm version'
 description: 'Increase the npm build version of the ReactNativeChat application'
+inputs:
+    githubToken:
+        description: Auth token for Expensify.cash Github
+        required: true
 runs:
     using: 'node12'
     main: './index.js'
