@@ -8,7 +8,7 @@ jobs:
 
         steps:
             # Version: 2.3.4
-            - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+            - uses: actions/checkout@0526674e0dda03e5b246eff23d716409e1e7ea00
               with:
                   fetch-depth: 0
                   token: ${{ secrets.OS_BOTIFY_TOKEN }}
