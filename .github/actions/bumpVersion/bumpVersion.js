@@ -26,7 +26,8 @@ do {
                     `retryCount: ${++errCount}`,
                 );
                 shouldRetry = true;
-                const currentPatchVersion = require('../../../package.json').version.slice(0, -4);
+                const currentPatchVersion = `v${require('../../../package.json').version.slice(0, -4)}`
+                console.log('Current patch version:', currentPatchVersion);
 
                 // Get the highest build version git tag from the repo
                 console.log('Fetching tags from github...');

@@ -33,7 +33,8 @@ do {
                     `retryCount: ${++errCount}`,
                 );
                 shouldRetry = true;
-                const currentPatchVersion = __nccwpck_require__(306)/* .version.slice */ .i8.slice(0, -4);
+                const currentPatchVersion = `v${__nccwpck_require__(306)/* .version.slice */ .i8.slice(0, -4)}`
+                console.log('Current patch version:', currentPatchVersion);
 
                 // Get the highest build version git tag from the repo
                 console.log('Fetching tags from github...');
