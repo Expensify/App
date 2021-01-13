@@ -22,13 +22,12 @@ do {
     exec('npm version prerelease -m "Update version to %s"', (err, stdout, stderr) => {
         console.log(stdout);
         if (err) {
-            console.log("My error here: ", err);
             console.log(stderr);
 
             // It is possible that two PRs were merged in rapid succession.
             // In this case, both PRs will attempt to update to the same npm version.
             // This will cause the deploy to fail with an exit code 128, saying the git tag for that version already exists.
-            if (err.code === 128 && errCount < MAX_RETRIES) {
+            if (errCount < MAX_RETRIES) {
                 console.log(
                     'Err: npm version conflict, attempting to automatically resolve',
                     `retryCount: ${++errCount}`,
@@ -59,7 +58,7 @@ do {
                         });
                     })
             } else {
-                core.setFailed(err.message);
+                core.setFailed(err);
             }
         }
     });
