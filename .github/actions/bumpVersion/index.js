@@ -45,9 +45,12 @@ do {
                     .then(response => {
                         const tags = response.data.map(tag => tag.name);
                         console.log('Tags: ', tags);
-                        const highestBuildNumber = Math.max(...(tags.filter(tag =>
-                            tag.name.startsWith(currentPatchVersion)
-                        )));
+                        const highestBuildNumber = Math.max(
+                            ...(tags
+                                .filter(tag => tag.startsWith(currentPatchVersion))
+                                .map(tag => tag.slice(-3))
+                            )
+                        );
                         console.log('Highest build number from current patch version:', highestBuildNumber);
 
                         const newBuildNumber = `${currentPatchVersion}-${highestBuildNumber + 1}`;
