@@ -8,7 +8,7 @@ jobs:
 
         steps:
             # Version: 2.3.4
-            - uses: actions/checkout@0526674e0dda03e5b246eff23d716409e1e7ea00
+            - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
               with:
                   fetch-depth: 0
                   token: ${{ secrets.OS_BOTIFY_TOKEN }}
@@ -31,7 +31,7 @@ jobs:
 #              run: git checkout -b version-bump-${{ github.sha }}
 
             - name: Generate version
-              uses: Expensify/Expensify.cash/.github/actions/bumpVersion@6696e8b3b7669a75c93c12c111b3d36b58b02df9
+              uses: Expensify/Expensify.cash/.github/actions/bumpVersion@0526674e0dda03e5b246eff23d716409e1e7ea00
 
 #            - name: Push new version
 #              run: git push --set-upstream origin version-bump-${{ github.sha }}
