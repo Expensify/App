@@ -1,6 +1,8 @@
 name: Create a new version
 
-on: push
+on:
+    push:
+        branches: [master]
 
 jobs:
     version:
