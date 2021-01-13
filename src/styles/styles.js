@@ -361,6 +361,19 @@ const styles = {
         backgroundColor: themeColors.offline,
     },
 
+    floatingActionButton: {
+        backgroundColor: themeColors.buttonSuccessBG,
+        position: 'absolute',
+        height: variables.componentSizeNormal,
+        width: variables.componentSizeNormal,
+        right: 20,
+        bottom: 24,
+        borderRadius: 999,
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer',
+    },
+
     sidebarFooterUsername: {
         color: themeColors.heading,
         fontSize: variables.fontSizeLabel,
