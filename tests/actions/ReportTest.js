@@ -24,14 +24,10 @@ describe('actions/Report', () => {
             actorEmail: TEST_USER_LOGIN,
             automatic: false,
             avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-            isAttachment: false,
-            isFirstItem: false,
-            loading: true,
             message: [{type: 'COMMENT', html: 'Testing a comment', text: 'Testing a comment'}],
             person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
             sequenceNumber: ACTION_ID,
             shouldShow: true,
-            timestamp: moment().unix(),
         };
 
         // When using the Pusher mock the act of calling Pusher.isSubscribed will create a
@@ -77,7 +73,8 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 const resultAction = reportActions[ACTION_ID];
-                expect(resultAction).toEqual(REPORT_ACTION);
+                expect(resultAction.message).toEqual(REPORT_ACTION.message);
+                expect(resultAction.person).toEqual(REPORT_ACTION.person);
                 expect(resultAction.loading).toEqual(true);
             })
             .then(() => {
