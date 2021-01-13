@@ -36,6 +36,7 @@ do {
                     repo: repoName,
                 })
                     .then(tags => {
+                        console.log('Tags: ', tags);
                         const highestBuildNumber = Math.max(...(tags.filter(tag =>
                             tag.name.startsWith(currentPatchVersion)
                         )));
@@ -50,6 +51,7 @@ do {
                             }
                         });
                     })
+                    .catch(exception => core.setFailed(exception))
             } else {
                 core.setFailed(err);
             }
