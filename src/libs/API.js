@@ -237,7 +237,6 @@ function Authenticate(parameters) {
         partnerUserSecret: parameters.partnerUserSecret,
         twoFactorAuthCode: parameters.twoFactorAuthCode,
         doNotRetry: true,
-        isViaExpensifyCash: true,
 
         // Force this request to be made because the network queue is paused when re-authentication is happening
         forceNetworkRequest: true,
