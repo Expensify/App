@@ -42,7 +42,7 @@ do {
                     owner: repoOwner,
                     repo: repoName,
                 })
-                    .then(tags => {
+                    .then(({data: tags}) => {
                         console.log('Tags: ', tags);
                         const highestBuildNumber = Math.max(...(tags.filter(tag =>
                             tag.name.startsWith(currentPatchVersion)
