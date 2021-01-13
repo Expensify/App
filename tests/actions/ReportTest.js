@@ -1,4 +1,3 @@
-import moment from 'moment';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import * as Pusher from '../../src/libs/Pusher/pusher';
