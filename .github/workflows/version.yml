@@ -31,7 +31,7 @@ jobs:
 #              run: git checkout -b version-bump-${{ github.sha }}
 
             - name: Generate version
-              uses: Expensify/Expensify.cash/.github/actions/bumpVersion@8605e782e79ace39c10ebb1428f6842784b1e637
+              uses: Expensify/Expensify.cash/.github/actions/bumpVersion@cdd09b923c7ade432ee09c7224bc9a136592601a
               with:
                   githubToken: ${{ secrets.OS_BOTIFY_TOKEN }}
 
