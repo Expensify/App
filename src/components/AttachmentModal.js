@@ -68,15 +68,20 @@ class AttachmentModal extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        const {visibleAttachment: {isModalOpen}} = this.props;
-        if (!prevProps.visibleAttachment.isModalOpen && isModalOpen) {
+        const {visibleAttachment} = this.props;
+        if (!prevProps.visibleAttachment.isModalOpen && visibleAttachment.isModalOpen) {
             document.addEventListener('keydown', this.handleKeyPress, false);
-        } else if (!isModalOpen) {
+        } else if (!visibleAttachment.isModalOpen) {
             document.removeEventListener('keydown', this.handleKeyPress, false);
         }
     }
 
-    // Using regex to get the src attribute from the html img tag
+    /**
+     * A function which uses regex to get the src attribute from the html img tag
+     *
+     * @param {String} htmlString
+     * @returns {String}
+     */
     getAttachmentSource(htmlString) {
         const imgRegx = /<img.*?data-expensify-source="(.*?)"[^>]+>/g;
         const imageGroup = imgRegx.exec(htmlString);
@@ -86,9 +91,9 @@ class AttachmentModal extends Component {
     /**
      * A function to get the next attachment based on the current attachment being show in the report.
      *
-     * @param {Boolean} toRight
+     * @param {String} direction
      */
-    getNextAttachment = (toRight) => {
+    getNextAttachment = (direction) => {
         const {sortedReportActions, visibleAttachment: {sourceURL}} = this.props;
         const attachments = _.filter(sortedReportActions, sortedReportAction => sortedReportAction.action.isAttachment);
         if (attachments.length <= 1) {
@@ -105,7 +110,7 @@ class AttachmentModal extends Component {
         }
         const actions = [...sortedReportActions].reverse();
         const sequenceNumber = currentAttachment.action.sequenceNumber;
-        const actionsToSearch = toRight
+        const actionsToSearch = direction === 'right'
             ? actions.slice(sequenceNumber)
             : actions.slice(0, sequenceNumber !== 0 ? sequenceNumber - 1 : 0).reverse();
         let nextAttachment = actionsToSearch.find(actionResult => actionResult.action.isAttachment);
@@ -113,7 +118,7 @@ class AttachmentModal extends Component {
         // If there is no next attachment in the left or right direction,
         // then we need to loop to get the next attachment after the end of the array
         if (!nextAttachment) {
-            const actionsToSearchFromBeginning = toRight ? actions : [...actions].reverse();
+            const actionsToSearchFromBeginning = direction === 'right' ? actions : [...actions].reverse();
             nextAttachment = actionsToSearchFromBeginning.find(actionResult => actionResult.action.isAttachment);
         }
         const html = lodashGet(nextAttachment, ['action', 'message', 0, 'html'], '');
@@ -123,12 +128,18 @@ class AttachmentModal extends Component {
         });
     }
 
-    // Function used to handle Left and Right key presses.
-    // This is a seperate function so that it can be subscribed/unsubscribed from the events
+    /**
+     * Function used to handle Left and Right key presses.
+     * This is a seperate function so that it can be subscribed/unsubscribed from the events
+     * @param {Object} event
+     * @param {String} event.key
+     * @param {Function} event.stopPropagation
+     */
     handleKeyPress = (event) => {
         if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
             event.stopPropagation();
-            this.getNextAttachment(event.key === 'ArrowRight');
+            const direction = event.key === 'ArrowRight' ? 'right' : 'left';
+            this.getNextAttachment(direction);
         }
     }
 

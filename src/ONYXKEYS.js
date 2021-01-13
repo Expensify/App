@@ -48,5 +48,6 @@ export default {
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
     },
 
+    // Stores the information for the current attachment being shown
     ATTACHMENT_MODAL: 'attachmentModalData',
 };
