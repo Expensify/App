@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import ReportActionItemGrouped from './ReportActionItemGrouped';
-import CommentActionsMenu from './CommentActionsMenu/CommentActionsMenu';
+import ReportActionContextMenu from './ReportActionContextMenu/ReportActionContextMenu';
 import Hoverable from '../../../components/Hoverable';
 import themeColors from '../../../styles/themes/default';
 import positioning from '../../../styles/utilities/positioning';
@@ -27,7 +27,7 @@ function getReportActionContainerStyle(isHovered = false) {
     };
 }
 
-const miniCommentActionsMenuWrapperStyle = {
+const miniReportActionContextMenuWrapperStyle = {
     ...positioning.r4,
     position: 'absolute',
 };
@@ -40,8 +40,8 @@ const ReportActionItem = props => (
                     {!props.displayAsGroup
                         ? <ReportActionItemSingle action={props.action} />
                         : <ReportActionItemGrouped action={props.action} />}
-                    <View style={miniCommentActionsMenuWrapperStyle}>
-                        <CommentActionsMenu reportID="" reportActionID="" isMini shouldShow={isHovered} />
+                    <View style={miniReportActionContextMenuWrapperStyle}>
+                        <ReportActionContextMenu reportID="" reportActionID="" isMini shouldShow={isHovered} />
                     </View>
                 </View>
             )}

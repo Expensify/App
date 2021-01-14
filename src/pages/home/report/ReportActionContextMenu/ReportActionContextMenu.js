@@ -2,9 +2,9 @@ import React from 'react';
 import {Pressable, View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../../../styles/styles';
-import getCommentActionsMenuStyles from '../../../../styles/getCommentActionsMenuStyles';
+import getReportActionContextMenuStyles from '../../../../styles/getReportActionContextMenuStyles';
 import getButtonState from '../../../../libs/getButtonState';
-import CommentActions from './CommentActions';
+import ContextActions from './ContextActions';
 import variables from '../../../../styles/variables';
 
 const propTypes = {
@@ -21,15 +21,15 @@ const defaultProps = {
     shouldShow: false,
 };
 
-const CommentActionsMenu = (props) => {
-    const {wrapperStyle, getButtonStyle} = getCommentActionsMenuStyles(props.isMini);
+const ReportActionContextMenu = (props) => {
+    const {wrapperStyle, getButtonStyle} = getReportActionContextMenuStyles(props.isMini);
     return props.shouldShow && (
         <View style={[
             ...wrapperStyle,
             styles.flex1,
         ]}
         >
-            {CommentActions.map(((commentAction) => {
+            {ContextActions.map(((commentAction) => {
                 const Icon = commentAction.icon;
                 return (
                     <Pressable style={({hovered, pressed}) => getButtonStyle(getButtonState(hovered, pressed))}>
@@ -47,7 +47,7 @@ const CommentActionsMenu = (props) => {
     );
 };
 
-CommentActionsMenu.propTypes = propTypes;
-CommentActionsMenu.defaultProps = defaultProps;
+ReportActionContextMenu.propTypes = propTypes;
+ReportActionContextMenu.defaultProps = defaultProps;
 
-export default CommentActionsMenu;
+export default ReportActionContextMenu;
