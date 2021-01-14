@@ -56,11 +56,11 @@ const miniWrapperStyle = [
  * @param {boolean} isMini
  * @returns {Object}
  */
-function getCommentActionsMenuStyles(isMini) {
+function getReportActionContextMenuStyles(isMini) {
     return {
         getButtonStyle: isMini ? getMiniButtonStyle : () => {},
         wrapperStyle: isMini ? miniWrapperStyle : [],
     };
 }
 
-export default getCommentActionsMenuStyles;
+export default getReportActionContextMenuStyles;
