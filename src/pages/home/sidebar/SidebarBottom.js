@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, StyleSheet} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -9,7 +9,6 @@ import AppLinks from './AppLinks';
 import {signOut} from '../../../libs/actions/Session';
 import ONYXKEYS from '../../../ONYXKEYS';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
-import Avatar from '../../../components/Avatar';
 
 const propTypes = {
     // Safe area insets required for mobile devices margins
@@ -26,24 +25,13 @@ const propTypes = {
         avatarURL: PropTypes.string,
     }),
 
-    // Information about the network
-    network: PropTypes.shape({
-        // Is the network currently offline or not
-        isOffline: PropTypes.bool,
-    }),
 };
 
 const defaultProps = {
     myPersonalDetails: {},
-    network: null,
 };
 
-const SidebarBottom = ({myPersonalDetails, network, insets}) => {
-    const indicatorStyles = [
-        styles.statusIndicator,
-        network && network.isOffline ? styles.statusIndicatorOffline : styles.statusIndicatorOnline,
-    ];
-
+const SidebarBottom = ({myPersonalDetails, insets}) => {
     // On the very first sign in or after clearing storage these
     // details will not be present on the first render so we'll just
     // return nothing for now.
@@ -53,13 +41,6 @@ const SidebarBottom = ({myPersonalDetails, network, insets}) => {
 
     return (
         <View style={[styles.sidebarFooter, getSafeAreaMargins(insets)]}>
-            <View style={[styles.sidebarFooterAvatar]}>
-                <Avatar
-                    source={myPersonalDetails.avatarURL}
-                    style={[styles.actionAvatar]}
-                />
-                <View style={StyleSheet.flatten(indicatorStyles)} />
-            </View>
             <View style={[styles.flexColumn]}>
                 {myPersonalDetails.displayName && (
                     <Text style={[styles.sidebarFooterUsername]} numberOfLines={1}>
@@ -83,5 +64,4 @@ export default withOnyx({
     myPersonalDetails: {
         key: ONYXKEYS.MY_PERSONAL_DETAILS,
     },
-    network: {key: ONYXKEYS.NETWORK},
 })(SidebarBottom);
