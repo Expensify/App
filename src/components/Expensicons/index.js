@@ -1,45 +1,17 @@
-import React, {memo} from 'react';
-import PropTypes from 'prop-types';
-import themeColors from '../../styles/themes/default';
-import variables from '../../styles/variables';
-import Expensicons from './Icons';
-import ICON_NAMES from './ICON_NAMES';
+import ClipboardIcon from './ClipboardIcon';
+import ExpensifyCashLogoIcon from './ExpensifyCashLogoIcon';
+import LinkCopyIcon from './LinkCopyIcon';
+import MailIcon from './MailIcon';
+import PencilIcon from './PencilIcon';
+import PinIcon from './PinIcon';
+import TrashIcon from './TrashIcon';
 
-const propTypes = {
-    name: PropTypes.oneOf(Object.values(ICON_NAMES)).isRequired,
-    width: PropTypes.number,
-    height: PropTypes.number,
-    isEnabled: PropTypes.bool,
-};
-
-const defaultProps = {
-    width: variables.iconSizeNormal,
-    height: variables.iconSizeNormal,
-    isEnabled: false,
-};
-
-const Expensicon = (props) => {
-    const Icon = Expensicons[props.name].icon;
-    let fillColor = props.isEnabled ? themeColors.heading : themeColors.icon;
-
-    // If we have a colored asset, do not pass a fill color
-    if (Expensicons[props.name].isAssetColored) {
-        fillColor = undefined;
-    }
-
-    return (
-        <Icon
-            width={props.width}
-            height={props.height}
-            fill={fillColor}
-        />
-    );
-};
-
-Expensicon.propTypes = propTypes;
-Expensicon.defaultProps = defaultProps;
-
-export default memo(Expensicon);
 export {
-    ICON_NAMES,
+    ClipboardIcon,
+    ExpensifyCashLogoIcon,
+    LinkCopyIcon,
+    MailIcon,
+    PencilIcon,
+    PinIcon,
+    TrashIcon,
 };
