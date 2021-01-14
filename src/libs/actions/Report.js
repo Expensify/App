@@ -64,14 +64,11 @@ const lastReadSequenceNumbers = {};
  * @returns {Boolean}
  */
 function getUnreadActionCount(report) {
-    // @todo remove the first check as part of cleanup https://github.com/Expensify/Expensify/issues/145243
-    // since we migrating our data from lastReadActionID_ value to lastRead_ object.
     const lastReadSequenceNumber = lodashGet(report, [
         'reportNameValuePairs',
         `lastRead_${currentUserAccountID}`,
         'sequenceNumber',
     ]);
-    debugger;
 
     // Save the lastReadActionID locally so we can access this later
     lastReadSequenceNumbers[report.reportID] = lastReadSequenceNumber;
