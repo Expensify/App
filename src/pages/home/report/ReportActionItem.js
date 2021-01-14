@@ -1,10 +1,11 @@
 import React from 'react';
-import {Pressable, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import ReportActionItemGrouped from './ReportActionItemGrouped';
 import CommentActionsMenu from './CommentActionsMenu/CommentActionsMenu';
+import Hoverable from '../../../components/Hoverable';
 import themeColors from '../../../styles/themes/default';
 import positioning from '../../../styles/utilities/positioning';
 
@@ -27,25 +28,24 @@ function getReportActionContainerStyle(isHovered = false) {
 }
 
 const miniCommentActionsMenuWrapperStyle = {
-    ...positioning.tn4,
     ...positioning.r4,
     position: 'absolute',
 };
 
 const ReportActionItem = props => (
     <>
-        <Pressable>
-            {({hovered}) => (
-                <View style={getReportActionContainerStyle(hovered)}>
+        <Hoverable>
+            {isHovered => (
+                <View style={getReportActionContainerStyle(isHovered)}>
                     {!props.displayAsGroup
                         ? <ReportActionItemSingle action={props.action} />
                         : <ReportActionItemGrouped action={props.action} />}
                     <View style={miniCommentActionsMenuWrapperStyle}>
-                        <CommentActionsMenu reportID="" reportActionID="" isMini shouldShow={hovered} />
+                        <CommentActionsMenu reportID="" reportActionID="" isMini shouldShow={isHovered} />
                     </View>
                 </View>
             )}
-        </Pressable>
+        </Hoverable>
     </>
 );
 
