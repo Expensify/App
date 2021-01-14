@@ -49,6 +49,7 @@ class ReportActionsView extends React.Component {
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
         this.recordMaxAction = this.recordMaxAction.bind(this);
         this.sortedReportActions = this.updateSortedReportActions();
+        this.sortedReportAttachments = this.updateSortedReportAttachments();
         this.timers = [];
 
         this.state = {
@@ -142,6 +143,18 @@ class ReportActionsView extends React.Component {
             .map((item, index) => ({action: item, index}))
             .value()
             .reverse();
+    }
+
+    /**
+     * Updates and sorts the report attachments by sequence number
+     */
+    updateSortedReportAttachments() {
+        this.sortedReportAttachments = _.chain(this.props.reportActions)
+            .sortBy('sequenceNumber')
+            .filter(action => action.actionName === 'ADDCOMMENT')
+            .filter(action => lodashGet(action, ['message', 0, 'text'], '') === '[Attachment]')
+            .map((item, index) => ({action: item, index}))
+            .value();
     }
 
     /**
@@ -245,9 +258,10 @@ class ReportActionsView extends React.Component {
         }
 
         this.updateSortedReportActions();
+        this.updateSortedReportAttachments();
         return (
             <>
-                <AttachmentModal sortedReportActions={this.sortedReportActions} />
+                <AttachmentModal sortedReportAttachments={this.sortedReportAttachments} />
                 <InvertedFlatList
                     ref={el => this.actionListElement = el}
                     data={this.sortedReportActions}

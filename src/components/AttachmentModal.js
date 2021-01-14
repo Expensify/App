@@ -17,6 +17,7 @@ import addAuthTokenToURL from '../libs/addAuthTokenToURL';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import variables from '../styles/variables';
+import KeyboardShortcut from '../libs/KeyboardShortcut';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -25,7 +26,7 @@ import variables from '../styles/variables';
 
 const propTypes = {
     // Array of report actions for this report
-    sortedReportActions: PropTypes.arrayOf(PropTypes.shape({
+    sortedReportAttachments: PropTypes.arrayOf(PropTypes.shape({
         action: PropTypes.shape(ReportActionPropTypes),
         index: PropTypes.number.isRequired,
     })),
@@ -45,7 +46,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    sortedReportActions: [],
+    sortedReportAttachments: [],
     visibleAttachment: {
         sourceURL: null,
         isAttachment: false,
@@ -70,9 +71,15 @@ class AttachmentModal extends Component {
     componentDidUpdate(prevProps) {
         const {visibleAttachment} = this.props;
         if (!prevProps.visibleAttachment.isModalOpen && visibleAttachment.isModalOpen) {
-            document.addEventListener('keydown', this.handleKeyPress, false);
+            KeyboardShortcut.subscribe("'", () => {
+                this.getNextAttachment('right');
+            }, [], false);
+            KeyboardShortcut.subscribe('%', () => {
+                this.getNextAttachment('left');
+            }, [], false);
         } else if (!visibleAttachment.isModalOpen) {
-            document.removeEventListener('keydown', this.handleKeyPress, false);
+            KeyboardShortcut.unsubscribe("'");
+            KeyboardShortcut.unsubscribe('%');
         }
     }
 
@@ -94,38 +101,34 @@ class AttachmentModal extends Component {
      * @param {String} direction
      */
     getNextAttachment = (direction) => {
-        const {sortedReportActions, visibleAttachment: {sourceURL}} = this.props;
-        const attachments = _.filter(sortedReportActions, sortedReportAction => sortedReportAction.action.isAttachment);
-        if (attachments.length <= 1) {
-            return;
-        }
+        const {sortedReportAttachments, visibleAttachment} = this.props;
 
         // Finding the current attachment inside the report using the sourceURL
-        const currentAttachment = attachments.find((attachment) => {
+        const currentAttachment = sortedReportAttachments.find((attachment) => {
             const html = lodashGet(attachment, ['action', 'message', 0, 'html'], '');
-            return html.includes(sourceURL);
+            return html.includes(visibleAttachment.sourceURL);
         });
+
         if (!currentAttachment) {
             return;
         }
-        const actions = [...sortedReportActions].reverse();
-        const sequenceNumber = currentAttachment.action.sequenceNumber;
-        const actionsToSearch = direction === 'right'
-            ? actions.slice(sequenceNumber)
-            : actions.slice(0, sequenceNumber !== 0 ? sequenceNumber - 1 : 0).reverse();
-        let nextAttachment = actionsToSearch.find(actionResult => actionResult.action.isAttachment);
 
-        // If there is no next attachment in the left or right direction,
-        // then we need to loop to get the next attachment after the end of the array
-        if (!nextAttachment) {
-            const actionsToSearchFromBeginning = direction === 'right' ? actions : [...actions].reverse();
-            nextAttachment = actionsToSearchFromBeginning.find(actionResult => actionResult.action.isAttachment);
+        const currentSequenceNumber = currentAttachment.action.sequenceNumber;
+        const nextAttachmentAction = _.chain(sortedReportAttachments)
+            .pluck('action')
+            .filter(action => (direction === 'right'
+                ? action.sequenceNumber > currentSequenceNumber
+                : action.sequenceNumber < currentSequenceNumber))
+            .first()
+            .value();
+
+        if (nextAttachmentAction) {
+            const html = lodashGet(nextAttachmentAction, ['message', 0, 'html'], '');
+            const attachmentSource = this.getAttachmentSource(html);
+            setAttachmentModalData({
+                sourceURL: attachmentSource, isAttachment: true, isModalOpen: true, file: null,
+            });
         }
-        const html = lodashGet(nextAttachment, ['action', 'message', 0, 'html'], '');
-        const attachmentSource = this.getAttachmentSource(html);
-        setAttachmentModalData({
-            sourceURL: attachmentSource, isAttachment: true, isModalOpen: true, file: null,
-        });
     }
 
     /**

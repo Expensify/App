@@ -667,7 +667,6 @@ function clearAttachmentModalData() {
  * @param {Boolean} reportID.isAttachment
  * @param {Boolean} reportID.isModalOpen
  * @param {Object} reportID.file
- * @param {String} reportID.file.name
  */
 function setAttachmentModalData({
     sourceURL, isAttachment, isModalOpen, file = null,
