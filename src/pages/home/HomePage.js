@@ -81,6 +81,7 @@ class App extends React.Component {
   }
 
   componentDidMount() {
+    console.log('Test');
     NetworkConnection.listenForReconnect();
     PusherConnectionManager.init();
     Pusher.init({
