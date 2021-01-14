@@ -5,6 +5,8 @@ import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import ReportActionItemGrouped from './ReportActionItemGrouped';
 import CommentActionsMenu from './CommentActionsMenu/CommentActionsMenu';
+import themeColors from '../../../styles/themes/default';
+import positioning from '../../../styles/utilities/positioning';
 
 const propTypes = {
     // All the data of the action item
@@ -14,23 +16,27 @@ const propTypes = {
     displayAsGroup: PropTypes.bool.isRequired,
 };
 
-const reportActionContainerStyle = {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-};
+function getReportActionContainerStyle(isHovered = false) {
+    return {
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: isHovered ? themeColors.activeComponentBG : themeColors.componentBG,
+    };
+}
 
 const miniCommentActionsMenuWrapperStyle = {
-    alignSelf: 'flex-start',
-    marginTop: 0,
+    ...positioning.tn4,
+    ...positioning.r4,
+    position: 'absolute',
 };
 
 const ReportActionItem = props => (
     <>
         <Pressable>
             {({hovered}) => (
-                <View style={reportActionContainerStyle}>
+                <View style={getReportActionContainerStyle(hovered)}>
                     {!props.displayAsGroup
                         ? <ReportActionItemSingle action={props.action} />
                         : <ReportActionItemGrouped action={props.action} />}

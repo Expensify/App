@@ -20,11 +20,10 @@ const defaultProps = {
 
 const CommentActionsMenu = (props) => {
     const {wrapperStyle, buttonStyle} = getCommentActionsMenuStyles(props.isMini);
-    return (
+    return props.shouldShow && (
         <View style={[
             ...wrapperStyle,
             styles.flex1,
-            props.shouldShow ? styles.dFlex : styles.dNone,
         ]}
         >
             {CommentActions.map((commentAction => (

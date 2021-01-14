@@ -5,11 +5,11 @@ import themeColors from './themes/default';
 const miniButtonStyle = [styles.p1, styles.mv1, styles.mh2];
 const miniWrapperStyle = [
     styles.flexRow,
-    styles.mr4,
     styles.boxShadowDefault,
     {
         borderRadius: variables.componentBorderRadius,
         borderWidth: 1,
+        backgroundColor: themeColors.componentBG,
         borderColor: themeColors.border,
     },
 ];
