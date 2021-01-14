@@ -5,6 +5,7 @@ import styles from '../../../styles/styles';
 import SidebarBottom from './SidebarBottom';
 import SidebarLinks from './SidebarLinks';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
+import FAB from '../../../components/FAB';
 
 const propTypes = {
     // Toggles the hamburger menu open and closed
@@ -15,6 +16,12 @@ const propTypes = {
 
     // when the chat switcher is selected
     isChatSwitcherActive: PropTypes.bool,
+
+    // Current state (active or not active) of the FAB
+    isFloatingActionButtonActive: PropTypes.bool.isRequired,
+
+    // Callback to fire on request to toggle the FAB
+    onFloatingActionButtonPress: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -31,6 +38,11 @@ const SidebarView = props => (
         {!props.isChatSwitcherActive && (
             <SidebarBottom insets={props.insets} />
         )}
+        <FAB
+            isActive={props.isFloatingActionButtonActive}
+            onPress={props.onFloatingActionButtonPress}
+            isHidden
+        />
     </View>
 );
 
