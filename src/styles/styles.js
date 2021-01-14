@@ -60,6 +60,10 @@ const styles = {
         fontSize: variables.fontSizeSmall,
     },
 
+    textLarge: {
+        fontSize: variables.fontSizeLarge,
+    },
+
     textStrong: {
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
@@ -333,11 +337,10 @@ const styles = {
         width: '100%',
     },
 
-    sidebarFooterAvatar: {
+    sidebarAvatar: {
         backgroundColor: themeColors.text,
         borderRadius: 20,
         height: variables.componentSizeNormal,
-        marginRight: 12,
         width: variables.componentSizeNormal,
     },
 
@@ -347,12 +350,11 @@ const styles = {
         borderWidth: 2,
         position: 'absolute',
         right: -6,
-        top: 3,
+        bottom: 3,
         height: 14,
         width: 14,
         zIndex: 10,
     },
-
     statusIndicatorOnline: {
         backgroundColor: themeColors.online,
     },
