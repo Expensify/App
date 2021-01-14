@@ -373,7 +373,6 @@ const styles = {
         borderRadius: 999,
         alignItems: 'center',
         justifyContent: 'center',
-        cursor: 'pointer',
     },
 
     sidebarFooterUsername: {
