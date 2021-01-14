@@ -28,7 +28,6 @@ function bindHandlerToKeyupEvent(event) {
         return !(modifier === 'meta' && !event.metaKey);
     });
 
-
     if (!pressedModifiers) {
         return;
     }
@@ -73,7 +72,6 @@ const KeyboardShortcut = {
      */
     subscribe(key, callback, modifiers = 'shift', captureOnInputs = false) {
         // Enable support for special keys like Escape
-
         if (events[key] === undefined) {
             events[key] = [];
         }
