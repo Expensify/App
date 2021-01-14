@@ -91,8 +91,6 @@ class ChatSwitcherView extends React.Component {
             search: '',
             options: [],
             focusedIndex: 0,
-            isLogoVisible: true,
-            isClearButtonVisible: false,
             usersToStartGroupReportWith: [],
         };
     }
@@ -103,6 +101,10 @@ class ChatSwitcherView extends React.Component {
             ChatSwitcher.show();
             this.textInput.focus();
         }, ['meta'], true);
+
+        if (this.props.isChatSwitcherActive) {
+            this.updateSearch(this.state.search);
+        }
     }
 
     componentDidUpdate(prevProps) {
@@ -302,8 +304,6 @@ class ChatSwitcherView extends React.Component {
             search: '',
             options: resetOptions ? this.getReportsOptions() : [],
             focusedIndex: 0,
-            isLogoVisible: blurAfterReset,
-            isClearButtonVisible: !blurAfterReset,
             usersToStartGroupReportWith: [],
         }, () => {
             if (blurAfterReset) {
@@ -318,7 +318,6 @@ class ChatSwitcherView extends React.Component {
      * and the logo is hidden
      */
     triggerOnFocusCallback() {
-        ChatSwitcher.show();
         this.updateSearch(this.state.search);
     }
 
@@ -501,8 +500,6 @@ class ChatSwitcherView extends React.Component {
             <>
                 <ChatSwitcherSearchForm
                     ref={el => this.textInput = el}
-                    isClearButtonVisible={this.state.isClearButtonVisible}
-                    isLogoVisible={this.state.isLogoVisible}
                     searchValue={this.state.search}
                     onChangeText={this.updateSearch}
                     onClearButtonClick={() => this.reset()}
