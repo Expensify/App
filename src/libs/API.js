@@ -1,10 +1,10 @@
+/* eslint-disable max-len */
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import CONFIG from '../CONFIG';
 import ONYXKEYS from '../ONYXKEYS';
 import redirectToSignIn from './actions/SignInRedirect';
 import * as Network from './Network';
-import getErrorMessageFromErrorCode from './ErrorUtils';
 
 let isAuthenticating;
 
@@ -246,8 +246,22 @@ function Authenticate(parameters) {
             // an expensify login or the login credentials we created after the initial authentication.
             // In both cases, we need the user to sign in again with their expensify credentials
             if (response.jsonCode !== 200) {
-                const errorMessage = getErrorMessageFromErrorCode(response.jsonCode);
-                throw new Error(errorMessage);
+                switch (response.jsonCode) {
+                    case 401:
+                        throw new Error('Incorrect login or password. Please try again.');
+                    case 402:
+                        throw new Error('You have 2FA enabled on this account. Please sign in using your email or phone number.');
+                    case 403:
+                        throw new Error('Invalid login or password. Please try again or reset your password.');
+                    case 404:
+                        throw new Error('We were unable to change your password. This is likely due to an expired password reset link in an old password reset email. We have emailed you a new link so you can try again. Check your Inbox and your Spam folder; it should arrive in just a few minutes.');
+                    case 405:
+                        throw new Error('You do not have access to this application. Please add your GitHub username for access.');
+                    case 413:
+                        throw new Error('Your account has been locked after too many unsuccessful attempts. Please try again after 1 hour.');
+                    default:
+                        throw new Error('Something went wrong. Please try again later.');
+                }
             }
             return response;
         });
