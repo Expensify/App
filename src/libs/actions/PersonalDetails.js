@@ -20,6 +20,12 @@ Onyx.connect({
     callback: val => personalDetails = val,
 });
 
+let isOffline;
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    callback: val => isOffline = val && val.isOffline,
+});
+
 /**
  * Helper method to return a default avatar
  *
@@ -101,6 +107,9 @@ function formatPersonalDetails(personalDetailsList) {
  * Get the timezone of the logged in user
  */
 function fetchTimezone() {
+    if (isOffline) {
+        return;
+    }
     API.Get({
         returnValueList: 'nameValuePairs',
         name: 'timeZone',
@@ -115,6 +124,9 @@ function fetchTimezone() {
  * Get the personal details for our organization
  */
 function fetch() {
+    if (isOffline) {
+        return;
+    }
     API.Get({
         returnValueList: 'personalDetailsList',
     })
@@ -127,9 +139,6 @@ function fetch() {
 
             // Set my personal details so they can be easily accessed and subscribed to on their own key
             Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, myPersonalDetails);
-
-            // Get the timezone and put it in Onyx
-            fetchTimezone();
         })
         .catch(error => console.debug('Error fetching personal details', error));
 }
