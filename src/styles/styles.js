@@ -321,6 +321,7 @@ const styles = {
     sidebarHeaderTop: {
         paddingHorizontal: 20,
         paddingVertical: 12,
+        minHeight: 64,
     },
 
     sidebarFooter: {

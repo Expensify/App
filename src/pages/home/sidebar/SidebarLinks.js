@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, ScrollView} from 'react-native';
+import {View, ScrollView, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import lodashOrderby from 'lodash.orderby';
@@ -15,6 +15,8 @@ import {withRouter} from '../../../libs/Router';
 import ChatLinkRow from './ChatLinkRow';
 import {redirect} from '../../../libs/actions/App';
 import ROUTES from '../../../ROUTES';
+import * as ChatSwitcher from '../../../libs/actions/ChatSwitcher';
+import {MagnifyingGlassIcon} from '../../../components/Expensicons';
 
 const propTypes = {
     // These are from withRouter
@@ -96,10 +98,20 @@ const SidebarLinks = (props) => {
     return (
         <View style={[styles.flex1, styles.h100, {marginTop: props.insets.top}]}>
             <View style={[chatSwitcherStyle]}>
-                <ChatSwitcherView
-                    onLinkClick={props.onLinkClick}
-                    isChatSwitcherActive={props.isChatSwitcherActive}
-                />
+                {!props.isChatSwitcherActive ? (
+                    <TouchableOpacity
+                        style={[styles.flexRow, styles.sidebarHeaderTop]}
+                        onPress={() => ChatSwitcher.show()}
+                    >
+                        <MagnifyingGlassIcon width={30} height={30} />
+                    </TouchableOpacity>
+                )
+                    : (
+                        <ChatSwitcherView
+                            onLinkClick={props.onLinkClick}
+                            isChatSwitcherActive={props.isChatSwitcherActive}
+                        />
+                    )}
             </View>
             <ScrollView
                 keyboardShouldPersistTaps="always"
