@@ -107,9 +107,6 @@ function formatPersonalDetails(personalDetailsList) {
  * Get the timezone of the logged in user
  */
 function fetchTimezone() {
-    if (isOffline) {
-        return;
-    }
     API.Get({
         returnValueList: 'nameValuePairs',
         name: 'timeZone',
@@ -124,9 +121,6 @@ function fetchTimezone() {
  * Get the personal details for our organization
  */
 function fetch() {
-    if (isOffline) {
-        return;
-    }
     API.Get({
         returnValueList: 'personalDetailsList',
     })
@@ -184,13 +178,16 @@ function getFromReportParticipants(reports) {
 // When the app reconnects from being offline, fetch all of the personal details
 NetworkConnection.onReconnect(fetch);
 
-// Refresh the personal details every 30 minutes because there is no
+// Refresh the personal details and timezone every 30 minutes because there is no
 // pusher event that sends updated personal details data yet
 // See https://github.com/Expensify/ReactNativeChat/issues/468
-setInterval(fetch, 1000 * 60 * 30);
-
-// Refresh the timezone every 30 minutes
-setInterval(fetchTimezone, 1000 * 60 * 30);
+setInterval(() => {
+    if (isOffline) {
+        return;
+    }
+    fetch();
+    fetchTimezone();
+}, 1000 * 60 * 30);
 
 export {
     fetch,
