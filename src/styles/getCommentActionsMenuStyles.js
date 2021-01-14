@@ -1,8 +1,43 @@
+import CONST from '../CONST';
 import styles from './styles';
 import variables from './variables';
 import themeColors from './themes/default';
 
-const miniButtonStyle = [styles.p1, styles.mv1, styles.mh2];
+/**
+ * Generate styles for the buttons in the mini comment actions menu.
+ *
+ * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
+ * @returns {Array}
+ */
+function getMiniButtonStyle(buttonState = CONST.BUTTON_STATES.DEFAULT) {
+    const defaultStyles = [styles.p1, styles.mv1, styles.mh2, {borderRadius: variables.componentBorderRadius}];
+    switch (buttonState) {
+        case CONST.BUTTON_STATES.HOVERED:
+            return [
+                ...defaultStyles,
+                {
+                    backgroundColor: themeColors.activeComponentBG,
+                    cursor: 'pointer',
+                },
+            ];
+        case CONST.BUTTON_STATES.PRESSED:
+            return [
+                styles.mv1,
+                styles.mh2,
+                {
+                    borderRadius: variables.componentBorderRadius,
+                    backgroundColor: themeColors.componentBG,
+                    cursor: 'pointer',
+                    borderWidth: 2,
+                    borderColor: themeColors.border,
+                },
+            ];
+        case CONST.BUTTON_STATES.DEFAULT:
+        default:
+            return defaultStyles;
+    }
+}
+
 const miniWrapperStyle = [
     styles.flexRow,
     styles.boxShadowDefault,
@@ -22,7 +57,7 @@ const miniWrapperStyle = [
  */
 function getCommentActionsMenuStyles(isMini) {
     return {
-        buttonStyle: isMini ? miniButtonStyle : [],
+        getButtonStyle: isMini ? getMiniButtonStyle : () => {},
         wrapperStyle: isMini ? miniWrapperStyle : [],
     };
 }
