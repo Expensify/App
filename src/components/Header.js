@@ -7,11 +7,18 @@ import Text from './Text';
 const propTypes = {
     /** Title of the Header */
     title: PropTypes.string.isRequired,
+
+    // Fontsize
+    textSize: PropTypes.oneOf(['default', 'large']),
+
 };
 
+const defaultProps = {
+    textSize: 'default',
+};
 const Header = props => (
     <View style={[styles.flex1]}>
-        <Text numberOfLines={2} style={[styles.headerText]}>
+        <Text numberOfLines={2} style={[styles.headerText, props.textSize === 'large' && styles.textLarge]}>
             {props.title}
         </Text>
     </View>
@@ -19,4 +26,5 @@ const Header = props => (
 
 Header.displayName = 'Header';
 Header.propTypes = propTypes;
+Header.defaultProps = defaultProps;
 export default Header;
