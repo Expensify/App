@@ -481,6 +481,7 @@ function SetPassword(parameters) {
     requireParameters(['email', 'password', 'validateCode'], parameters, commandName);
     return request(commandName, parameters);
 }
+
 /**
  * Display a error message in the UI when the API returns an authentication error.
  *
@@ -519,5 +520,5 @@ export {
     SetGithubUsername,
     SetPassword,
     User_SignUp,
-    GetSignInErrorMessage
+    GetSignInErrorMessage,
 };
