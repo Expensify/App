@@ -17,6 +17,8 @@ import {redirect} from '../../../libs/actions/App';
 import ROUTES from '../../../ROUTES';
 import * as ChatSwitcher from '../../../libs/actions/ChatSwitcher';
 import {MagnifyingGlassIcon} from '../../../components/Expensicons';
+import Header from '../../../components/Header';
+import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
 
 const propTypes = {
     // These are from withRouter
@@ -49,6 +51,21 @@ const propTypes = {
         avatarURL: PropTypes.string.isRequired,
         displayName: PropTypes.string.isRequired,
     })),
+
+    // The personal details of the person who is logged in
+    myPersonalDetails: PropTypes.shape({
+        // Display name of the current user from their personal details
+        displayName: PropTypes.string,
+
+        // Avatar URL of the current user from their personal details
+        avatarURL: PropTypes.string,
+    }),
+
+    // Information about the network
+    network: PropTypes.shape({
+        // Is the network currently offline or not
+        isOffline: PropTypes.bool,
+    }),
 };
 
 const defaultProps = {
@@ -56,6 +73,8 @@ const defaultProps = {
     isChatSwitcherActive: false,
     comments: {},
     personalDetails: {},
+    myPersonalDetails: {},
+    network: null,
 };
 
 
@@ -113,6 +132,19 @@ const SidebarLinks = (props) => {
                         />
                     )}
             </View>
+            <View style={[
+                styles.flexRow,
+                styles.sidebarHeaderTop,
+                styles.justifyContentBetween,
+                styles.alignItemsCenter,
+            ]}
+            >
+                <Header textSize="large" title="Chats" />
+                <AvatarWithIndicator
+                    source={props.myPersonalDetails.avatarURL}
+                    isActive={props.network && !props.network.isOffline}
+                />
+            </View>
             <ScrollView
                 keyboardShouldPersistTaps="always"
                 style={sidebarLinksStyle}
@@ -169,6 +201,12 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        myPersonalDetails: {
+            key: ONYXKEYS.MY_PERSONAL_DETAILS,
+        },
+        network: {
+            key: ONYXKEYS.NETWORK,
         },
     }),
 )(SidebarLinks);
