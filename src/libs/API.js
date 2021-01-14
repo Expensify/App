@@ -4,6 +4,7 @@ import CONFIG from '../CONFIG';
 import ONYXKEYS from '../ONYXKEYS';
 import redirectToSignIn from './actions/SignInRedirect';
 import * as Network from './Network';
+import authenticationErrorMessages from './ErrorMessage/authenticationErrorMessages';
 
 let isAuthenticating;
 
@@ -480,6 +481,22 @@ function SetPassword(parameters) {
     requireParameters(['email', 'password', 'validateCode'], parameters, commandName);
     return request(commandName, parameters);
 }
+/**
+ * Display a error message in the UI when the API returns an authentication error.
+ *
+ * @param {String} error
+ * @returns {String}
+ */
+function GetSignInErrorMessage(error) {
+    const code = error.split(' ')[0];
+    if (!_.isEmpty(code)) {
+        const errorMessage = _.filter(authenticationErrorMessages, {errorCode: +code.trim()});
+        if (!_.isEmpty(errorMessage)) {
+            return errorMessage[0].errorMessage;
+        }
+    }
+    return error;
+}
 
 export {
     getAuthToken,
@@ -502,4 +519,5 @@ export {
     SetGithubUsername,
     SetPassword,
     User_SignUp,
+    GetSignInErrorMessage
 };
