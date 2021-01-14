@@ -5,7 +5,6 @@ import styles from '../../../../styles/styles';
 import getCommentActionsMenuStyles from '../../../../styles/getCommentActionsMenuStyles';
 import getButtonState from '../../../../libs/getButtonState';
 import CommentActions from './CommentActions';
-import Expensicon from '../../../../components/Expensicons';
 import variables from '../../../../styles/variables';
 
 const propTypes = {
@@ -30,17 +29,20 @@ const CommentActionsMenu = (props) => {
             styles.flex1,
         ]}
         >
-            {CommentActions.map((commentAction => (
-                <Pressable style={({hovered, pressed}) => getButtonStyle(getButtonState(hovered, pressed))}>
-                    {({pressed}) => (
-                        <Expensicon
-                            name={commentAction.icon}
-                            width={pressed ? variables.iconSizeNormal + 4 : variables.iconSizeNormal}
-                            height={pressed ? variables.iconSizeNormal + 4 : variables.iconSizeNormal}
-                        />
-                    )}
-                </Pressable>
-            )))}
+            {CommentActions.map(((commentAction) => {
+                const Icon = commentAction.icon;
+                return (
+                    <Pressable style={({hovered, pressed}) => getButtonStyle(getButtonState(hovered, pressed))}>
+                        {({pressed}) => (
+                            <Icon
+                                width={variables.iconSizeNormal}
+                                height={variables.iconSizeNormal}
+                                isEnabled={pressed}
+                            />
+                        )}
+                    </Pressable>
+                );
+            }))}
         </View>
     );
 };
