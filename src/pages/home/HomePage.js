@@ -53,6 +53,7 @@ const defaultProps = {
 };
 
 class App extends React.Component {
+<<<<<<< HEAD
   constructor(props) {
     Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
     Timing.start(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
@@ -114,6 +115,30 @@ class App extends React.Component {
   componentDidUpdate(prevProps) {
     if (!prevProps.isChatSwitcherActive && this.props.isChatSwitcherActive) {
       this.showNavigationMenu();
+=======
+    constructor(props) {
+        Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
+        Timing.start(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
+
+        super(props);
+
+        this.state = {
+            windowWidth: windowSize.width,
+            isHamburgerEnabled: windowSize.width <= variables.mobileResponsiveWidthBreakpoint,
+            isFloatingAcionButtonActive: false,
+        };
+
+        this.toggleFab = this.toggleFab.bind(this);
+        this.toggleHamburger = this.toggleHamburger.bind(this);
+        this.dismissHamburger = this.dismissHamburger.bind(this);
+        this.showHamburger = this.showHamburger.bind(this);
+        this.toggleHamburgerBasedOnDimensions = this.toggleHamburgerBasedOnDimensions.bind(this);
+        this.recordTimerAndToggleHamburger = this.recordTimerAndToggleHamburger.bind(this);
+
+        this.animationTranslateX = new Animated.Value(
+            !props.isSidebarShown ? -300 : 0,
+        );
+>>>>>>> 4a1923e6a0a3c737a83af68c5939a356fd8dbf82
     }
 
     if (this.props.isSidebarShown === prevProps.isSidebarShown) {
@@ -177,6 +202,7 @@ class App extends React.Component {
       return;
     }
 
+<<<<<<< HEAD
     this.animateNavigationMenu(true);
   }
 
@@ -188,6 +214,38 @@ class App extends React.Component {
   showNavigationMenu() {
     if (this.props.isSidebarShown) {
       return;
+=======
+    /**
+     * Method called when we click the floating action button
+     * will trigger the animation
+     */
+    toggleFab() {
+        this.setState(state => ({
+            isFloatingAcionButtonActive: !state.isFloatingAcionButtonActive,
+        }));
+    }
+
+    /**
+     * Fired when the windows dimensions changes
+     * @param {Object} changedWindow
+     */
+    toggleHamburgerBasedOnDimensions({window: changedWindow}) {
+        if (this.state.windowWidth === changedWindow.width) {
+            // Window width hasn't changed, don't toggle sidebar
+            return;
+        }
+
+        this.setState({
+            windowWidth: changedWindow.width,
+            isHamburgerEnabled: changedWindow.width <= variables.mobileResponsiveWidthBreakpoint,
+        });
+
+        if (!this.props.isSidebarShown && changedWindow.width > variables.mobileResponsiveWidthBreakpoint) {
+            showSidebar();
+        } else if (this.props.isSidebarShown && changedWindow.width < variables.mobileResponsiveWidthBreakpoint) {
+            hideSidebar();
+        }
+>>>>>>> 4a1923e6a0a3c737a83af68c5939a356fd8dbf82
     }
 
     this.toggleNavigationMenu();
@@ -236,6 +294,7 @@ class App extends React.Component {
       return;
     }
 
+<<<<<<< HEAD
     // Otherwise, we want to hide it after the animation
     this.animateNavigationMenu(true);
   }
@@ -286,6 +345,72 @@ class App extends React.Component {
                   />
                 </Animated.View>
                 {/* The following pressable allows us to click outside the LHN to close it,
+=======
+    /**
+     * Method called when we want to toggle the hamburger menu opened and closed
+     * Only changes hamburger state on small screens (e.g. Mobile and mWeb)
+     */
+    toggleHamburger() {
+        if (!this.state.isHamburgerEnabled) {
+            return;
+        }
+
+        // Dismiss keyboard before toggling sidebar
+        Keyboard.dismiss();
+
+        // If the hamburger currently is not shown, we want to make it visible before the animation
+        if (!this.props.isSidebarShown) {
+            showSidebar();
+            return;
+        }
+
+        // Otherwise, we want to hide it after the animation
+        this.animateHamburger(true);
+    }
+
+    render() {
+        const hamburgerStyle = this.state.isHamburgerEnabled && this.props.isSidebarShown
+            ? styles.hamburgerOpenAbsolute : styles.hamburgerOpen;
+
+        // Note: The visibility state for the Animated.View below is set by modifying the width of the View.
+        // This is due to a known issue affecting Android where a TextInput's padding is not respected when a containing
+        // parent has the display: 'none' style. See: https://github.com/facebook/react-native/issues/16405
+        const visibility = !this.state.isHamburgerEnabled || this.props.isSidebarShown
+            ? styles.sidebarVisible
+            : styles.sidebarHidden;
+        const appContentWrapperStyle = !this.state.isHamburgerEnabled ? styles.appContentWrapperLarge : null;
+
+        return (
+            <SafeAreaProvider>
+                <CustomStatusBar />
+                <SafeAreaInsetsContext.Consumer style={[styles.flex1]}>
+                    {insets => (
+                        <View
+                            style={[styles.appContentWrapper,
+                                appContentWrapperStyle,
+                                styles.flexRow,
+                                styles.flex1,
+                                getSafeAreaPadding(insets),
+                            ]}
+                        >
+                            <Route path={[ROUTES.REPORT, ROUTES.HOME]}>
+                                <Animated.View style={[
+                                    hamburgerStyle,
+                                    visibility,
+                                    {
+                                        transform: [{translateX: this.animationTranslateX}],
+                                    }]}
+                                >
+                                    <Sidebar
+                                        insets={insets}
+                                        onLinkClick={this.recordTimerAndToggleHamburger}
+                                        isChatSwitcherActive={this.props.isChatSwitcherActive}
+                                        isFloatingActionButtonActive={this.state.isFloatingAcionButtonActive}
+                                        onFloatingActionButtonPress={this.toggleFab}
+                                    />
+                                </Animated.View>
+                                {/* The following pressable allows us to click outside the LHN to close it,
+>>>>>>> 4a1923e6a0a3c737a83af68c5939a356fd8dbf82
                                 and should be enabled only if the LHN is open. Otherwise, it will capture
                                 some onPress events, causing scrolling issues. */}
                 <View
