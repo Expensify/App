@@ -59,8 +59,10 @@ class App extends React.Component {
         this.state = {
             windowWidth: windowSize.width,
             isHamburgerEnabled: windowSize.width <= variables.mobileResponsiveWidthBreakpoint,
+            isFloatingAcionButtonActive: false,
         };
 
+        this.toggleFab = this.toggleFab.bind(this);
         this.toggleHamburger = this.toggleHamburger.bind(this);
         this.dismissHamburger = this.dismissHamburger.bind(this);
         this.showHamburger = this.showHamburger.bind(this);
@@ -120,6 +122,16 @@ class App extends React.Component {
     recordTimerAndToggleHamburger() {
         Timing.start(CONST.TIMING.SWITCH_REPORT);
         this.toggleHamburger();
+    }
+
+    /**
+     * Method called when we click the floating action button
+     * will trigger the animation
+     */
+    toggleFab() {
+        this.setState(state => ({
+            isFloatingAcionButtonActive: !state.isFloatingAcionButtonActive,
+        }));
     }
 
     /**
@@ -254,6 +266,8 @@ class App extends React.Component {
                                         insets={insets}
                                         onLinkClick={this.recordTimerAndToggleHamburger}
                                         isChatSwitcherActive={this.props.isChatSwitcherActive}
+                                        isFloatingActionButtonActive={this.state.isFloatingAcionButtonActive}
+                                        onFloatingActionButtonPress={this.toggleFab}
                                     />
                                 </Animated.View>
                                 {/* The following pressable allows us to click outside the LHN to close it,
