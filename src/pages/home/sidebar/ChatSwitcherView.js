@@ -102,9 +102,7 @@ class ChatSwitcherView extends React.Component {
             this.textInput.focus();
         }, ['meta'], true);
 
-        if (this.props.isChatSwitcherActive) {
-            this.updateSearch(this.state.search);
-        }
+        this.updateSearch(this.state.search);
     }
 
     componentDidUpdate(prevProps) {
