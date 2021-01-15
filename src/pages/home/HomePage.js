@@ -25,7 +25,7 @@ import {
     subscribeToReportCommentEvents,
     fetchAll as fetchAllReports,
 } from '../../libs/actions/Report';
-import {fetch as fetchPersonalDetails} from '../../libs/actions/PersonalDetails';
+import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import * as Pusher from '../../libs/Pusher/pusher';
 import PusherConnectionManager from '../../libs/PusherConnectionManager';
 import UnreadIndicatorUpdater from '../../libs/UnreadIndicatorUpdater';
@@ -83,15 +83,12 @@ class App extends React.Component {
             authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Push_Authenticate`,
         }).then(subscribeToReportCommentEvents);
 
-        // Fetch all the personal details
-        fetchPersonalDetails();
-
+        // Fetch some data we need on initialization
+        PersonalDetails.fetch();
+        PersonalDetails.fetchTimezone();
         fetchAllReports(true, false, true);
-
         fetchCountryCodeByRequestIP();
-
         UnreadIndicatorUpdater.listenForReportChanges();
-
         Dimensions.addEventListener('change', this.toggleHamburgerBasedOnDimensions);
 
         // Set up the hamburger correctly once on init
