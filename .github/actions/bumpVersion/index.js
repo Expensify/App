@@ -1,7 +1,6 @@
 /**
  * NOTE: This is a compiled file. DO NOT directly edit this file.
- */
-module.exports =
+ */module.exports =
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
