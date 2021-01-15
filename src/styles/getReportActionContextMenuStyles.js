@@ -17,7 +17,6 @@ function getMiniButtonStyle(buttonState = CONST.BUTTON_STATES.DEFAULT) {
                 ...defaultStyles,
                 {
                     backgroundColor: themeColors.activeComponentBG,
-                    cursor: 'pointer',
                 },
             ];
         case CONST.BUTTON_STATES.PRESSED:
@@ -27,7 +26,6 @@ function getMiniButtonStyle(buttonState = CONST.BUTTON_STATES.DEFAULT) {
                 {
                     borderRadius: variables.componentBorderRadius,
                     backgroundColor: themeColors.componentBG,
-                    cursor: 'pointer',
                     borderWidth: 3,
                     borderColor: themeColors.border,
                     padding: 1,
