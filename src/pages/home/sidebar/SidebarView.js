@@ -5,7 +5,6 @@ import styles from '../../../styles/styles';
 import SidebarBottom from './SidebarBottom';
 import SidebarLinks from './SidebarLinks';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
-import FAB from '../../../components/FAB';
 
 const propTypes = {
     // Toggles the navigationMenu menu open and closed
