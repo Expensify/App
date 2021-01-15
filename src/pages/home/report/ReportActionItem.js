@@ -24,6 +24,7 @@ function getReportActionContainerStyle(isHovered = false) {
         alignItems: 'center',
         justifyContent: 'space-between',
         backgroundColor: isHovered ? themeColors.activeComponentBG : themeColors.componentBG,
+        cursor: 'default',
     };
 }
 
