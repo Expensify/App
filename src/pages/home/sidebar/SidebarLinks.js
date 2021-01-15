@@ -120,7 +120,6 @@ const SidebarLinks = (props) => {
                 {props.isChatSwitcherActive && (
                     <ChatSwitcherView
                         onLinkClick={props.onLinkClick}
-                        isChatSwitcherActive={props.isChatSwitcherActive}
                     />
                 )}
             </View>
