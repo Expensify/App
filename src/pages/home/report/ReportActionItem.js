@@ -6,8 +6,8 @@ import ReportActionPropTypes from './ReportActionPropTypes';
 import ReportActionItemGrouped from './ReportActionItemGrouped';
 import ReportActionContextMenu from './ReportActionContextMenu/ReportActionContextMenu';
 import Hoverable from '../../../components/Hoverable';
-import themeColors from '../../../styles/themes/default';
-import positioning from '../../../styles/utilities/positioning';
+import styles from '../../../styles/styles';
+import getReportActionItemContainerStyles from '../../../styles/getReportActionItemContainerStyles';
 
 const propTypes = {
     // All the data of the action item
@@ -17,31 +17,15 @@ const propTypes = {
     displayAsGroup: PropTypes.bool.isRequired,
 };
 
-function getReportActionContainerStyle(isHovered = false) {
-    return {
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        backgroundColor: isHovered ? themeColors.activeComponentBG : themeColors.componentBG,
-        cursor: 'default',
-    };
-}
-
-const miniReportActionContextMenuWrapperStyle = {
-    ...positioning.r4,
-    position: 'absolute',
-};
-
 const ReportActionItem = props => (
     <>
         <Hoverable>
             {isHovered => (
-                <View style={getReportActionContainerStyle(isHovered)}>
+                <View style={getReportActionItemContainerStyles(isHovered)}>
                     {!props.displayAsGroup
                         ? <ReportActionItemSingle action={props.action} />
                         : <ReportActionItemGrouped action={props.action} />}
-                    <View style={miniReportActionContextMenuWrapperStyle}>
+                    <View style={styles.miniReportActionContextMenuWrapperStyle}>
                         <ReportActionContextMenu reportID="" reportActionID="" isMini shouldShow={isHovered} />
                     </View>
                 </View>

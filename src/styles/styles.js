@@ -10,6 +10,7 @@ import sizing from './utilities/sizing';
 import flex from './utilities/flex';
 import display from './utilities/display';
 import overflow from './utilities/overflow';
+import positioning from './utilities/positioning';
 
 const styles = {
     // Add all of our utility and helper styles
@@ -950,6 +951,11 @@ const styles = {
     defaultModalContainer: {
         backgroundColor: themeColors.componentBG,
         borderColor: colors.transparent,
+    },
+
+    miniReportActionContextMenuWrapperStyle: {
+        ...positioning.r4,
+        position: 'absolute',
     },
 };
 
