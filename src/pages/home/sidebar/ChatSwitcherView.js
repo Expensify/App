@@ -7,7 +7,6 @@ import lodashGet from 'lodash.get';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../../ONYXKEYS';
-import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import ChatSwitcherList from './ChatSwitcherList';
 import ChatSwitcherSearchForm from './ChatSwitcherSearchForm';
 import {fetchOrCreateChatReport} from '../../../libs/actions/Report';
@@ -94,12 +93,7 @@ class ChatSwitcherView extends React.Component {
     }
 
     componentDidMount() {
-        // Listen for the Command+K key being pressed so the focus can be given to the chat switcher
-        KeyboardShortcut.subscribe('K', () => {
-            ChatSwitcher.show();
-            this.textInput.focus();
-        }, ['meta'], true);
-
+        this.textInput.focus();
         this.updateSearch(this.state.search);
     }
 
@@ -111,10 +105,6 @@ class ChatSwitcherView extends React.Component {
         ) {
             this.textInput.focus();
         }
-    }
-
-    componentWillUnmount() {
-        KeyboardShortcut.unsubscribe('K');
     }
 
     /**
