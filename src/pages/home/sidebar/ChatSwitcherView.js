@@ -140,7 +140,7 @@ class ChatSwitcherView extends React.Component {
         // If the user has already started creating a group DM, then only the single user DM options should
         // be shown because only single users can be added to a group DM. An existing group
         // DM cannot be added to a new group DM.
-        const onlyShowSingleUserDMs =			this.state.usersToStartGroupReportWith.length > 0;
+        const onlyShowSingleUserDMs = this.state.usersToStartGroupReportWith.length > 0;
 
         const reports = _.chain(this.props.reports)
             .values()
@@ -478,10 +478,10 @@ class ChatSwitcherView extends React.Component {
             if (matches.size < this.maxSearchResults) {
                 for (let j = 0; j < searchOptions.length; j++) {
                     const option = searchOptions[j];
-                    const valueToSearch =						option.searchText
+                    const valueToSearch = option.searchText
                         && option.searchText.replace(new RegExp(/&nbsp;/g), '');
                     const isMatch = matchRegexes[i].test(valueToSearch);
-                    const isCurrentlyLoggedInUser =						this.props.session.email === option.login;
+                    const isCurrentlyLoggedInUser = this.props.session.email === option.login;
 
                     // We must also filter out any users who are already in the Group DM list
                     // so they can't be selected more than once
@@ -537,9 +537,9 @@ class ChatSwitcherView extends React.Component {
         let feedbackMessage = '';
         if (this.state.usersToStartGroupReportWith.length === MAX_GROUP_DM_LENGTH) {
             feedbackHeader = 'Maximum participants reached';
-            feedbackMessage =				"You've reached the maximum number of participants for a group chat.";
+            feedbackMessage = "You've reached the maximum number of participants for a group chat.";
         } else if (this.state.search && this.state.options.length === 0) {
-            feedbackMessage =				"Don't see who you are looking for? Type their valid email/phone number to invite them.";
+            feedbackMessage = "Don't see who you are looking for? Type their valid email/phone number to invite them.";
         }
 
         return (
