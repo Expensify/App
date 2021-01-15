@@ -188,4 +188,5 @@ export {
     fetchTimezone,
     getFromReportParticipants,
     getDisplayName,
+    getDefaultAvatar,
 };

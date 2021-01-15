@@ -1,0 +1,224 @@
+import _ from 'underscore';
+import * as ReportListUtils from '../../src/libs/ReportListUtils';
+
+describe('ReportListUtils', () => {
+    // Given a set of reports with both single participants and multiple participants some pinned and some not
+    const REPORTS = {
+        1: {
+            lastVisitedTimestamp: 1610666739295,
+            isPinned: false,
+            reportID: 1,
+            participants: ['tonystark@expensify.com', 'reedrichards@expensify.com'],
+            reportName: 'Iron Man, Mister Fantastic',
+        },
+        2: {
+            lastVisitedTimestamp: 1610666739296,
+            isPinned: false,
+            reportID: 2,
+            participants: ['peterparker@expensify.com'],
+            reportName: 'Spider-Man',
+        },
+
+        // This is the only report we are pinning in this test
+        3: {
+            lastVisitedTimestamp: 1610666739297,
+            isPinned: true,
+            reportID: 3,
+            participants: ['reedrichards@expensify.com'],
+            reportName: 'Mister Fantastic',
+        },
+        4: {
+            lastVisitedTimestamp: 1610666739298,
+            isPinned: false,
+            reportID: 4,
+            participants: ['tchalla@expensify.com'],
+            reportName: 'Black Panther',
+        },
+        5: {
+            lastVisitedTimestamp: 1610666739299,
+            isPinned: false,
+            reportID: 5,
+            participants: ['suestorm@expensify.com'],
+            reportName: 'Invisible Woman',
+        },
+        6: {
+            lastVisitedTimestamp: 1610666739300,
+            isPinned: false,
+            reportID: 6,
+            participants: ['thor@expensify.com'],
+            reportName: 'Thor',
+        },
+        7: {
+            lastVisitedTimestamp: 1610666739301,
+            isPinned: false,
+            reportID: 7,
+            participants: ['steverogers@expensify.com'],
+            reportName: 'Captain America',
+        },
+    };
+
+    // And a set of personalDetails some with existing reports and some without
+    const PERSONAL_DETAILS = {
+        // These exist in our reports
+        'reedrichards@expensify.com': {
+            displayName: 'Mister Fantastic',
+            login: 'reedrichards@expensify.com',
+        },
+        'tonystark@expensify.com': {
+            displayName: 'Iron Man',
+            login: 'tonystark@expensify.com',
+        },
+        'peterparker@expensify.com': {
+            displayName: 'Spider-Man',
+            login: 'peterparker@expensify.com',
+        },
+        'tchalla@expensify.com': {
+            displayName: 'Black Panther',
+            login: 'tchalla@expensify.com',
+        },
+        'suestorm@expensify.com': {
+            displayName: 'Invisible Woman',
+            login: 'suestorm@expensify.com',
+        },
+        'thor@expensify.com': {
+            displayName: 'Thor',
+            login: 'thor@expensify.com',
+        },
+        'steverogers@expensify.com': {
+            displayName: 'Captain America',
+            login: 'steverogers@expensify.com',
+        },
+
+        // These do not exist in reports at all
+        'natasharomanoff@expensify.com': {
+            displayName: 'Black Widow',
+            login: 'natasharomanoff@expensify.com',
+        },
+        'brucebanner@expensify.com': {
+            displayName: 'The Incredible Hulk',
+            login: 'brucebanner@expensify.com',
+        },
+    };
+
+    it('getSearchOptions()', () => {
+        // When we filter in the Search view without providing a searchValue
+        let results = ReportListUtils.getSearchOptions(REPORTS, {}, '');
+
+        // Then all options returned should be recentReports and none should be personalDetails
+        expect(results.personalDetails.length).toBe(0);
+
+        // Then all of the reports should be shown
+        expect(results.recentReports.length).toBe(_.size(REPORTS));
+
+        // Then pinned report should be listed first even though it is the oldest
+        expect(results.recentReports[0].login).toBe('reedrichards@expensify.com');
+
+        // When we filter again but provide a searchValue
+        results = ReportListUtils.getSearchOptions(REPORTS, {}, 'spider');
+
+        // Then only one option should be returned and it's the one matching the search value
+        expect(results.recentReports.length).toBe(1);
+        expect(results.recentReports[0].login).toBe('peterparker@expensify.com');
+
+        // When we filter again but provide a searchValue that should match multiple times
+        results = ReportListUtils.getSearchOptions(REPORTS, {}, 'fantastic');
+
+        // Then we get both values with the pinned value still on top
+        expect(results.recentReports.length).toBe(2);
+        expect(results.recentReports[0].text).toBe('Mister Fantastic');
+    });
+
+    it('getNewChatOptions()', () => {
+        // When we call getNewChatOptions() with no search value
+        let results = ReportListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, '');
+
+        // Then no reports should be returned, only personalDetails and all the personalDetails should be returned
+        expect(results.recentReports.length).toBe(0);
+        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS));
+
+        // Then the result which has an existing report should also have the reportID attached
+        const personalDetailWithExistingReport = _.find(
+            results.personalDetails,
+            personalDetail => personalDetail.login === 'reedrichards@expensify.com',
+        );
+        expect(personalDetailWithExistingReport.reportID).toBe(3);
+
+        // When we provide a search value that does not match any personal details
+        results = ReportListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, 'magneto');
+
+        // Then no options will be returned
+        expect(results.personalDetails.length).toBe(0);
+
+        // When we provide a search value that matches an email
+        results = ReportListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, 'peterparker@expensify.com');
+
+        // Then one option will be returned and it will be the correct option
+        expect(results.personalDetails.length).toBe(1);
+        expect(results.personalDetails[0].text).toBe('Spider-Man');
+
+        // When we provide a search value that matches a partial display name or email
+        results = ReportListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, 'man');
+
+        // Then several options will be returned and they will be each have the search string in their email or name
+        expect(results.personalDetails.length).toBe(4);
+        expect(results.personalDetails[0].text).toBe('Iron Man');
+        expect(results.personalDetails[1].text).toBe('Spider-Man');
+        expect(results.personalDetails[2].text).toBe('Invisible Woman');
+        expect(results.personalDetails[3].login).toBe('natasharomanoff@expensify.com');
+    });
+
+    it('getNewGroupOptions()', () => {
+        // When we call getNewGroupOptions() with no search value
+        let results = ReportListUtils.getNewGroupOptions(REPORTS, PERSONAL_DETAILS, '');
+
+        // Then we should expect only a maxmimum of 5 recent reports to be returned
+        expect(results.recentReports.length).toBe(5);
+
+        // And we should expect all the personalDetails to show (minus the 5 that are already showing)
+        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS) - 5);
+
+        // And none of our personalDetails should include any of the users with recent reports
+        const reportLogins = _.map(results.recentReports, reportOption => reportOption.login);
+        const personalDetailsOverlapWithReports = _.every(results.personalDetails, (
+            personalDetailOption => _.contains(reportLogins, personalDetailOption.login)
+        ));
+        expect(personalDetailsOverlapWithReports).toBe(false);
+
+        // When we search for an option that is only in a personalDetail with no existing report
+        results = ReportListUtils.getNewGroupOptions(REPORTS, PERSONAL_DETAILS, 'hulk');
+
+        // Then reports should return no results
+        expect(results.recentReports.length).toBe(0);
+
+        // And personalDetails should show just one option and it will be the one we expect
+        expect(results.personalDetails.length).toBe(1);
+        expect(results.personalDetails[0].login).toBe('brucebanner@expensify.com');
+
+        // When we search for an option that matches things in both personalDetails and reports
+        results = ReportListUtils.getNewGroupOptions(REPORTS, PERSONAL_DETAILS, 'man');
+
+        // Then all single participant reports that match will show up in the recentReports array
+        expect(results.recentReports.length).toBe(2);
+        expect(results.recentReports[0].text).toBe('Invisible Woman');
+        expect(results.recentReports[1].text).toBe('Spider-Man');
+
+        // And logins with no single participant reports will show up in personalDetails
+        expect(results.personalDetails.length).toBe(2);
+        expect(results.personalDetails[0].text).toBe('Iron Man');
+        expect(results.personalDetails[1].login).toBe('natasharomanoff@expensify.com');
+    });
+
+    it('getSidebarOptions()', () => {
+        // When we call getSidebarOptions() with no search value
+        const results = ReportListUtils.getSidebarOptions(REPORTS, {}, '');
+
+        // Then expect all of the reports to be shown both multiple and single participant
+        expect(results.recentReports.length).toBe(_.size(REPORTS));
+
+        // That no personalDetails are shown
+        expect(results.personalDetails.length).toBe(0);
+
+        // And the pinned report is first in the list of reports
+        expect(results.recentReports[0].login).toBe('reedrichards@expensify.com');
+    });
+});
