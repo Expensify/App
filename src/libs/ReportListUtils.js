@@ -102,14 +102,16 @@ function createOption(personalDetailList, report) {
         text: report ? report.reportName : personalDetail.displayName,
         alternateText: (!report || !hasMultipleParticipants) ? personalDetail.login : report.reportName,
         icons: report ? report.icons : [personalDetail.avatarURL],
-        login: personalDetailList.length < 2 ? personalDetail.login : null,
+
+        // It doesn't make sense to provide a login in the case of a report with multiple participants since
+        // there isn't any one single login to refer to for a report.
+        login: !hasMultipleParticipants ? personalDetail.login : null,
         reportID: report ? report.reportID : null,
         isUnread: report ? report.unreadActionCount > 0 : null,
         hasDraftComment: report && report.reportID !== activeReportID && hasComment(report.reportID),
         keyForList: report ? String(report.reportID) : personalDetail.login,
         searchText: getSearchText(report, personalDetailList),
         isPinned: report && report.isPinned,
-        hasMultipleParticipants,
     };
 }
 
@@ -230,14 +232,12 @@ function getOptions({
             const reportOption = allReportOptions[i];
 
             // Skip if we aren't including multiple participant reports and this report has multiple participants
-            if (!includeMultipleParticipantReports && reportOption.hasMultipleParticipants) {
+            if (!includeMultipleParticipantReports && !reportOption.login) {
                 continue;
             }
 
             // Check the report to see if it has a single participant and if the participant is already selected
-            if (!reportOption.hasMultipleParticipants
-                    && _.some(loginOptionsToExclude, option => option.login === reportOption.login)
-            ) {
+            if (reportOption.login && _.some(loginOptionsToExclude, option => option.login === reportOption.login)) {
                 continue;
             }
 
@@ -255,7 +255,7 @@ function getOptions({
             }
 
             // Add this login to the exclude list so it won't appear when we process the personal details
-            if (!reportOption.hasMultipleParticipants) {
+            if (reportOption.login) {
                 loginOptionsToExclude.push({login: reportOption.login});
             }
         }
