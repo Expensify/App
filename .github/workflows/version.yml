@@ -35,7 +35,7 @@ jobs:
             - name: Generate version
               uses: Expensify/Expensify.cash/.github/actions/bumpVersion@master
               with:
-                  githubToken: ${{ secrets.OS_BOTIFY_TOKEN }}
+                  GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
             - name: Push new version
               run: git push --set-upstream origin version-bump-${{ github.sha }}

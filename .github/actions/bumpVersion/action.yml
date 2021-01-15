@@ -1,7 +1,7 @@
 name: 'Bump npm version'
-description: 'Increase the npm build version of the ReactNativeChat application'
+description: 'Increase the npm build version based on git tags'
 inputs:
-    githubToken:
+    GITHUB_TOKEN:
         description: Auth token for Expensify.cash Github
         required: true
 runs:
