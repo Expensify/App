@@ -29,10 +29,7 @@ const NotFound = () => (
 					<Text style={styles.notFoundTextBody}>The chat you are looking for cannot be found.</Text>
 				</View>
 				<TouchableOpacity
-					onPress={() => {
-						console.log("");
-						redirect(ROUTES.HOME)
-					}}
+					onPress={() => redirect(ROUTES.HOME)}
 				>
 					<Text style={styles.notFoundButtonText}>Get me out of here</Text>
 				</TouchableOpacity>
