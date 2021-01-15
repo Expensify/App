@@ -178,9 +178,11 @@ function getFromReportParticipants(reports) {
 // When the app reconnects from being offline, fetch all of the personal details
 NetworkConnection.onReconnect(fetch);
 
-// Refresh the personal details and timezone every 30 minutes because there is no
+// Refresh the personal details and timezone now and then every 30 minutes because there is no
 // pusher event that sends updated personal details data yet
 // See https://github.com/Expensify/ReactNativeChat/issues/468
+fetch();
+fetchTimezone();
 setInterval(() => {
     if (isOffline) {
         return;
