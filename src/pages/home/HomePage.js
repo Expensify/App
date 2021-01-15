@@ -37,6 +37,8 @@ import CONFIG from '../../CONFIG';
 import CustomStatusBar from '../../components/CustomStatusBar';
 import CONST from '../../CONST';
 import {fetchCountryCodeByRequestIP} from '../../libs/actions/GeoLocation';
+import KeyboardShortcut from '../../libs/KeyboardShortcut';
+import * as ChatSwitcher from '../../libs/actions/ChatSwitcher';
 
 const windowSize = Dimensions.get('window');
 
@@ -98,6 +100,11 @@ class App extends React.Component {
         this.toggleHamburgerBasedOnDimensions({window: Dimensions.get('window')});
 
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
+
+        // Listen for the Command+K key being pressed so the focus can be given to the chat switcher
+        KeyboardShortcut.subscribe('K', () => {
+            ChatSwitcher.show();
+        }, ['meta'], true);
     }
 
     componentDidUpdate(prevProps) {
@@ -114,6 +121,7 @@ class App extends React.Component {
 
     componentWillUnmount() {
         Dimensions.removeEventListener('change', this.toggleHamburgerBasedOnDimensions);
+        KeyboardShortcut.unsubscribe('K');
     }
 
     /**
