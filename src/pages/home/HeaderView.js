@@ -6,7 +6,8 @@ import Header from '../../components/Header';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import {withRouter} from '../../libs/Router';
-import BackArrow from '../../../assets/images/chevron-left.png';
+import BackArrow from '../../../assets/images/back-left.svg';
+import themeColors from '../../styles/themes/default';
 import {PinIcon} from '../../components/Expensicons';
 import compose from '../../libs/compose';
 import {togglePinnedState} from '../../libs/actions/Report';
@@ -43,11 +44,7 @@ const HeaderView = (props) => (
         <Pressable
           onPress={props.onNavigationMenuButtonClicked}
           style={[styles.LHNToggle]}>
-          <Image
-            resizeMode="contain"
-            style={[styles.LHNToggleIcon]}
-            source={BackArrow}
-          />
+          <BackArrow height={20} width={20} fill={themeColors.icon} />
         </Pressable>
       )}
       {props.report && props.report.reportName ? (
