@@ -23,7 +23,7 @@
     "print-version": "echo $npm_package_version",
     "detox-build": "detox build --configuration ios.sim.debug",
     "detox-test": "detox test --configuration ios.sim.debug",
-    "gh-actions-build": "ncc build .github/actions/bumpVersion/bumpVersion.js -o .github/actions/bumpVersion/"
+    "gh-actions-build": "./.github/scripts/buildActions.sh"
   },
   "dependencies": {
     "@babel/plugin-proposal-class-properties": "^7.12.1",
