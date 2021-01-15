@@ -154,13 +154,13 @@ class App extends React.Component {
         });
 
         if (
-            !this.props.isSidebarShown &&
-            changedWindow.width > variables.mobileResponsiveWidthBreakpoint
+            !this.props.isSidebarShown
+            && changedWindow.width > variables.mobileResponsiveWidthBreakpoint
         ) {
             showSidebar();
         } else if (
-            this.props.isSidebarShown &&
-            changedWindow.width < variables.mobileResponsiveWidthBreakpoint
+            this.props.isSidebarShown
+            && changedWindow.width < variables.mobileResponsiveWidthBreakpoint
         ) {
             hideSidebar();
         }
@@ -240,18 +240,16 @@ class App extends React.Component {
     }
 
     render() {
-        const navigationMenuStyle =
-            this.state.isNavigationMenuEnabled && this.props.isSidebarShown
-                ? styles.navigationMenuOpenAbsolute
-                : styles.navigationMenuOpen;
+        const navigationMenuStyle = this.state.isNavigationMenuEnabled && this.props.isSidebarShown
+            ? styles.navigationMenuOpenAbsolute
+            : styles.navigationMenuOpen;
 
         // Note: The visibility state for the Animated.View below is set by modifying the width of the View.
         // This is due to a known issue affecting Android where a TextInput's padding is not respected when a containing
         // parent has the display: 'none' style. See: https://github.com/facebook/react-native/issues/16405
-        const visibility =
-            !this.state.isNavigationMenuEnabled || this.props.isSidebarShown
-                ? styles.sidebarVisible
-                : styles.sidebarHidden;
+        const visibility = !this.state.isNavigationMenuEnabled || this.props.isSidebarShown
+            ? styles.sidebarVisible
+            : styles.sidebarHidden;
         const appContentWrapperStyle = !this.state.isNavigationMenuEnabled
             ? styles.appContentWrapperLarge
             : null;
@@ -260,7 +258,7 @@ class App extends React.Component {
             <SafeAreaProvider>
                 <CustomStatusBar />
                 <SafeAreaInsetsContext.Consumer style={[styles.flex1]}>
-                    {(insets) => (
+                    {insets => (
                         <View
                             style={[
                                 styles.appContentWrapper,
@@ -268,7 +266,8 @@ class App extends React.Component {
                                 styles.flexRow,
                                 styles.flex1,
                                 getSafeAreaPadding(insets),
-                            ]}>
+                            ]}
+                        >
                             <Route path={[ROUTES.REPORT, ROUTES.HOME]}>
                                 <Animated.View
                                     style={[
@@ -277,7 +276,8 @@ class App extends React.Component {
                                         {
                                             transform: [{translateX: this.animationTranslateX}],
                                         },
-                                    ]}>
+                                    ]}
+                                >
                                     <Sidebar
                                         insets={insets}
                                         onLinkClick={this.recordTimerAndToggleNavigationMenu}
@@ -288,7 +288,8 @@ class App extends React.Component {
                                 and should be enabled only if the LHN is open. Otherwise, it will capture
                                 some onPress events, causing scrolling issues. */}
                                 <View
-                                    style={[styles.appContent, styles.flex1, styles.flexColumn]}>
+                                    style={[styles.appContent, styles.flex1, styles.flexColumn]}
+                                >
                                     <HeaderView
                                         shouldShowNavigationMenuButton={
                                             this.state.isNavigationMenuEnabled

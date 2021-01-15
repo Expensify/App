@@ -21,7 +21,7 @@ const defaultProps = {
     isChatSwitcherActive: false,
 };
 
-const SidebarView = (props) => (
+const SidebarView = props => (
     <View style={[styles.flex1, styles.sidebar]}>
         <SidebarLinks
             onLinkClick={props.onLinkClick}

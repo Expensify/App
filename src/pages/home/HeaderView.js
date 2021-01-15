@@ -37,13 +37,14 @@ const defaultProps = {
     report: null,
 };
 
-const HeaderView = (props) => (
+const HeaderView = props => (
     <View style={[styles.appContentHeader]}>
         <View style={[styles.appContentHeaderTitle]}>
             {props.shouldShowNavigationMenuButton && (
                 <Pressable
                     onPress={props.onNavigationMenuButtonClicked}
-                    style={[styles.LHNToggle]}>
+                    style={[styles.LHNToggle]}
+                >
                     <BackArrow height={20} width={20} fill={themeColors.icon} />
                 </Pressable>
             )}
@@ -54,12 +55,14 @@ const HeaderView = (props) => (
                         styles.flexRow,
                         styles.alignItemsCenter,
                         styles.justifyContentBetween,
-                    ]}>
+                    ]}
+                >
                     <Header title={props.report.reportName} />
                     <View style={[styles.reportOptions, styles.flexRow]}>
                         <Pressable
                             onPress={() => togglePinnedState(props.report)}
-                            style={[styles.touchableButtonImage, styles.mr0]}>
+                            style={[styles.touchableButtonImage, styles.mr0]}
+                        >
                             <PinIcon
                                 height={20}
                                 width={20}

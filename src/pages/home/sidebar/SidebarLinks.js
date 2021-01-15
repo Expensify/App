@@ -87,11 +87,10 @@ const SidebarLinks = (props) => {
     // comments (but are not the open one), and the one matching the URL
     const reportsToDisplay = _.filter(
         sortedReports,
-        (report) =>
-            report.isPinned ||
-            report.unreadActionCount > 0 ||
-            report.reportID === reportIDInUrl ||
-            (report.reportID !== reportIDInUrl && hasComment(report.reportID)),
+        report => report.isPinned
+            || report.unreadActionCount > 0
+            || report.reportID === reportIDInUrl
+            || (report.reportID !== reportIDInUrl && hasComment(report.reportID)),
     );
 
     // Update styles to hide the report links if they should not be visible
@@ -115,14 +114,14 @@ const SidebarLinks = (props) => {
                 keyboardShouldPersistTaps="always"
                 style={sidebarLinksStyle}
                 bounces={false}
-                indicatorStyle="white">
+                indicatorStyle="white"
+            >
                 {/* A report will not have a report name if it hasn't been fetched from the server yet */}
                 {/* so nothing is rendered */}
                 {_.map(reportsToDisplay, (report) => {
-                    const participantDetails =
-                        get(report, 'participants.length', 0) === 1
-                            ? get(props.personalDetails, report.participants[0], '')
-                            : '';
+                    const participantDetails = get(report, 'participants.length', 0) === 1
+                        ? get(props.personalDetails, report.participants[0], '')
+                        : '';
                     const login = participantDetails ? participantDetails.login : '';
                     return (
                         report.reportName && (
@@ -142,8 +141,8 @@ const SidebarLinks = (props) => {
                                     reportID: report.reportID,
                                     isUnread: report.unreadActionCount > 0,
                                     hasDraftComment:
-                                        report.reportID !== reportIDInUrl &&
-                                        hasComment(report.reportID),
+                                        report.reportID !== reportIDInUrl
+                                        && hasComment(report.reportID),
                                 }}
                                 onSelectRow={() => {
                                     redirect(ROUTES.getReportRoute(report.reportID));
