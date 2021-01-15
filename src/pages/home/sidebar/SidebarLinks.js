@@ -131,14 +131,12 @@ const SidebarLinks = (props) => {
             ]}
             >
                 <Header textSize="large" title="Chats" />
-                {!props.isChatSwitcherActive && (
-                    <TouchableOpacity
-                        style={[styles.flexRow, styles.sidebarHeaderTop]}
-                        onPress={() => ChatSwitcher.show()}
-                    >
-                        <MagnifyingGlassIcon width={20} height={20} />
-                    </TouchableOpacity>
-                )}
+                <TouchableOpacity
+                    style={[styles.flexRow, styles.sidebarHeaderTop]}
+                    onPress={() => ChatSwitcher.show()}
+                >
+                    <MagnifyingGlassIcon width={20} height={20} />
+                </TouchableOpacity>
                 <AvatarWithIndicator
                     source={props.myPersonalDetails.avatarURL}
                     isActive={props.network && !props.network.isOffline}
