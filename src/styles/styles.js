@@ -406,6 +406,27 @@ const styles = {
         textDecorationLine: 'none',
     },
 
+    sidebarCreateMenuContainer: {
+        paddingTop: 12,
+        paddingBottom: 20,
+        justifyContent: 'center',
+    },
+
+    sidebarCreateMenuItem: {
+        flexDirection: 'row',
+        cursor: 'pointer',
+        borderRadius: 0,
+        paddingHorizontal: 32,
+        paddingVertical: 16,
+    },
+
+    sidebarCreateMenuText: {
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeLabel,
+        fontWeight: fontWeightBold,
+        lineHeight: 20,
+    },
+
     chatLinkRowPressable: {
         minWidth: 0,
         textDecorationLine: 'none',
