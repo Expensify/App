@@ -12,9 +12,9 @@ import {
 	SafeAreaInsetsContext,
 	SafeAreaProvider,
 } from 'react-native-safe-area-context';
-import { withOnyx } from 'react-native-onyx';
-import { Route } from '../../libs/Router';
-import styles, { getSafeAreaPadding } from '../../styles/styles';
+import {withOnyx} from 'react-native-onyx';
+import {Route} from '../../libs/Router';
+import styles, {getSafeAreaPadding} from '../../styles/styles';
 import variables from '../../styles/variables';
 import HeaderView from './HeaderView';
 import Sidebar from './sidebar/SidebarView';
@@ -28,7 +28,7 @@ import {
 	subscribeToReportCommentEvents,
 	fetchAll as fetchAllReports,
 } from '../../libs/actions/Report';
-import { fetch as fetchPersonalDetails } from '../../libs/actions/PersonalDetails';
+import {fetch as fetchPersonalDetails} from '../../libs/actions/PersonalDetails';
 import * as Pusher from '../../libs/Pusher/pusher';
 import PusherConnectionManager from '../../libs/PusherConnectionManager';
 import UnreadIndicatorUpdater from '../../libs/UnreadIndicatorUpdater';
@@ -39,7 +39,7 @@ import NetworkConnection from '../../libs/NetworkConnection';
 import CONFIG from '../../CONFIG';
 import CustomStatusBar from '../../components/CustomStatusBar';
 import CONST from '../../CONST';
-import { fetchCountryCodeByRequestIP } from '../../libs/actions/GeoLocation';
+import {fetchCountryCodeByRequestIP} from '../../libs/actions/GeoLocation';
 
 const windowSize = Dimensions.get('window');
 
@@ -142,7 +142,7 @@ class App extends React.Component {
 	 * Fired when the windows dimensions changes
 	 * @param {Object} changedWindow
 	 */
-	toggleNavigationMenuBasedOnDimensions({ window: changedWindow }) {
+	toggleNavigationMenuBasedOnDimensions({window: changedWindow}) {
 		if (this.state.windowWidth === changedWindow.width) {
 			// Window width hasn't changed, don't toggle sidebar
 			return;
@@ -207,7 +207,7 @@ class App extends React.Component {
 			duration: 200,
 			easing: Easing.ease,
 			useNativeDriver: false,
-		}).start(({ finished }) => {
+		}).start(({finished}) => {
 			if (finished && navigationMenuIsShown) {
 				hideSidebar();
 			}
@@ -276,7 +276,7 @@ class App extends React.Component {
 										navigationMenuStyle,
 										visibility,
 										{
-											transform: [{ translateX: this.animationTranslateX }],
+											transform: [{translateX: this.animationTranslateX}],
 										},
 									]}>
 									<Sidebar

@@ -1,12 +1,12 @@
-import React, { Component } from 'react';
-import { View } from 'react-native';
+import React, {Component} from 'react';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import { withOnyx } from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import ReportView from './report/ReportView';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
-import { withRouter } from '../../libs/Router';
+import {withRouter} from '../../libs/Router';
 import compose from '../../libs/compose';
 
 const propTypes = {
@@ -35,7 +35,7 @@ class MainView extends Component {
 		let activeReportID;
 		const reportStyles = _.reduce(this.props.reports, (memo, report) => {
 			const isActiveReport = reportIDInUrl === report.reportID;
-			const finalData = { ...memo };
+			const finalData = {...memo};
 			let reportStyle;
 
 			if (isActiveReport) {

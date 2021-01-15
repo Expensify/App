@@ -1,19 +1,19 @@
 import React from 'react';
-import { View, ScrollView } from 'react-native';
+import {View, ScrollView} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import lodashOrderby from 'lodash.orderby';
 import get from 'lodash.get';
-import { withOnyx } from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import styles from '../../../styles/styles';
 import ONYXKEYS from '../../../ONYXKEYS';
 import ChatSwitcherView from './ChatSwitcherView';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
 import compose from '../../../libs/compose';
-import { withRouter } from '../../../libs/Router';
+import {withRouter} from '../../../libs/Router';
 import ChatLinkRow from './ChatLinkRow';
-import { redirect } from '../../../libs/actions/App';
+import {redirect} from '../../../libs/actions/App';
 import ROUTES from '../../../ROUTES';
 
 const propTypes = {
@@ -69,11 +69,11 @@ const SidebarLinks = (props) => {
 	);
 
 	/**
-	 * Check if the report has a draft comment
-	 *
-	 * @param {Number} reportID
-	 * @returns {Boolean}
-	 */
+		* Check if the report has a draft comment
+		*
+		* @param {Number} reportID
+		* @returns {Boolean}
+		*/
 	function hasComment(reportID) {
 		const allComments = get(
 			props.comments,
@@ -104,7 +104,7 @@ const SidebarLinks = (props) => {
 		: [styles.sidebarHeader];
 
 	return (
-		<View style={[styles.flex1, styles.h100, { marginTop: props.insets.top }]}>
+		<View style={[styles.flex1, styles.h100, {marginTop: props.insets.top}]}>
 			<View style={[chatSwitcherStyle]}>
 				<ChatSwitcherView
 					onLinkClick={props.onLinkClick}

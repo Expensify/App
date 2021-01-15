@@ -1,16 +1,16 @@
 import React from 'react';
-import { View, Image, Pressable } from 'react-native';
+import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
-import { withOnyx } from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import Header from '../../components/Header';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
-import { withRouter } from '../../libs/Router';
+import {withRouter} from '../../libs/Router';
 import BackArrow from '../../../assets/images/back-left.svg';
 import themeColors from '../../styles/themes/default';
-import { PinIcon } from '../../components/Expensicons';
+import {PinIcon} from '../../components/Expensicons';
 import compose from '../../libs/compose';
-import { togglePinnedState } from '../../libs/actions/Report';
+import {togglePinnedState} from '../../libs/actions/Report';
 
 const propTypes = {
 	// Toggles the navigationMenu open and closed
@@ -81,7 +81,7 @@ export default compose(
 	withRouter,
 	withOnyx({
 		report: {
-			key: ({ match }) => `${ONYXKEYS.COLLECTION.REPORT}${match.params.reportID}`,
+			key: ({match}) => `${ONYXKEYS.COLLECTION.REPORT}${match.params.reportID}`,
 		},
 	}),
 )(HeaderView);
