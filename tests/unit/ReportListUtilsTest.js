@@ -1,8 +1,5 @@
 import _ from 'underscore';
-import Onyx from 'react-native-onyx';
 import * as ReportListUtils from '../../src/libs/ReportListUtils';
-import * as TestHelper from '../utils/TestHelper';
-import ONYXKEYS from '../../src/ONYXKEYS';
 
 describe('ReportListUtils', () => {
     // Given a set of reports with both single participants and multiple participants some pinned and some not
@@ -104,39 +101,31 @@ describe('ReportListUtils', () => {
     };
 
     it('getSearchOptions()', () => {
-        Onyx.connect({
-            key: ONYXKEYS.COLLECTION.REPORT,
-            callback: val => console.log(val),
-        });
+        // When we filter in the Search view without providing a searchValue
+        let results = ReportListUtils.getSearchOptions(REPORTS, {}, '');
 
-        return TestHelper.fetchAllReportsAndPersonalDetails()
-            .then(() => {
-                // When we filter in the Search view without providing a searchValue
-                let results = ReportListUtils.getSearchOptions(REPORTS, {}, '');
+        // Then all options returned should be recentReports and none should be personalDetails
+        expect(results.personalDetails.length).toBe(0);
 
-                // Then all options returned should be recentReports and none should be personalDetails
-                expect(results.personalDetails.length).toBe(0);
+        // Then all of the reports should be shown
+        expect(results.recentReports.length).toBe(_.size(REPORTS));
 
-                // Then all of the reports should be shown
-                expect(results.recentReports.length).toBe(_.size(REPORTS));
+        // Then pinned report should be listed first even though it is the oldest
+        expect(results.recentReports[0].login).toBe('reedrichards@expensify.com');
 
-                // Then pinned report should be listed first even though it is the oldest
-                expect(results.recentReports[0].login).toBe('reedrichards@expensify.com');
+        // When we filter again but provide a searchValue
+        results = ReportListUtils.getSearchOptions(REPORTS, {}, 'spider');
 
-                // When we filter again but provide a searchValue
-                results = ReportListUtils.getSearchOptions(REPORTS, {}, 'spider');
+        // Then only one option should be returned and it's the one matching the search value
+        expect(results.recentReports.length).toBe(1);
+        expect(results.recentReports[0].login).toBe('peterparker@expensify.com');
 
-                // Then only one option should be returned and it's the one matching the search value
-                expect(results.recentReports.length).toBe(1);
-                expect(results.recentReports[0].login).toBe('peterparker@expensify.com');
+        // When we filter again but provide a searchValue that should match multiple times
+        results = ReportListUtils.getSearchOptions(REPORTS, {}, 'fantastic');
 
-                // When we filter again but provide a searchValue that should match multiple times
-                results = ReportListUtils.getSearchOptions(REPORTS, {}, 'fantastic');
-
-                // Then we get both values with the pinned value still on top
-                expect(results.recentReports.length).toBe(2);
-                expect(results.recentReports[0].text).toBe('Mister Fantastic');
-            });
+        // Then we get both values with the pinned value still on top
+        expect(results.recentReports.length).toBe(2);
+        expect(results.recentReports[0].text).toBe('Mister Fantastic');
     });
 
     it('getNewChatOptions()', () => {
