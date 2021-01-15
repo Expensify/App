@@ -59,6 +59,8 @@ const propTypes = {
     countryCodeByIP: PropTypes.number,
 
     isSidebarAnimating: PropTypes.bool,
+
+    // Current state of the chat switcher (active of inactive)
     isChatSwitcherActive: PropTypes.bool,
 };
 const defaultProps = {
@@ -106,6 +108,13 @@ class ChatSwitcherView extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        // Checks if the isChatSwitcherActive prop changed from false to true
+        // If the change happens, update the search value and focus on the input
+        if (!prevProps.isChatSwitcherActive && this.props.isChatSwitcherActive) {
+            this.updateSearch(this.state.search);
+            this.textInput.focus();
+        }
+
         // Check if the sidebar was animating but is no longer animating and
         // if the chat switcher is active then focus the input
         if (prevProps.isSidebarAnimating
@@ -319,7 +328,6 @@ class ChatSwitcherView extends React.Component {
      */
     triggerOnFocusCallback() {
         ChatSwitcher.show();
-        this.updateSearch(this.state.search);
     }
 
     /**
@@ -557,5 +565,9 @@ export default withOnyx({
     },
     countryCodeByIP: {
         key: ONYXKEYS.COUNTRY_CODE,
+    },
+    isChatSwitcherActive: {
+        key: ONYXKEYS.IS_CHAT_SWITCHER_ACTIVE,
+        initWithStoredValues: false,
     },
 })(ChatSwitcherView);

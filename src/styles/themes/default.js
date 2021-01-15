@@ -24,4 +24,5 @@ export default {
     modalBackdrop: colors.gray3,
     pillBG: colors.gray2,
     buttonDisabledBG: colors.gray2,
+    buttonHoveredBG: colors.gray1,
 };

@@ -21,6 +21,7 @@ import {
     show as showSidebar,
     setIsAnimating as setSideBarIsAnimating,
 } from '../../libs/actions/Sidebar';
+import {show as showChatSwitcher} from '../../libs/actions/ChatSwitcher';
 import {
     subscribeToReportCommentEvents,
     fetchAll as fetchAllReports,
@@ -37,6 +38,7 @@ import CONFIG from '../../CONFIG';
 import CustomStatusBar from '../../components/CustomStatusBar';
 import CONST from '../../CONST';
 import {fetchCountryCodeByRequestIP} from '../../libs/actions/GeoLocation';
+import {ChatBubbleIcon, UsersIcon} from '../../components/Expensicons';
 
 const windowSize = Dimensions.get('window');
 
@@ -59,10 +61,10 @@ class App extends React.Component {
         this.state = {
             windowWidth: windowSize.width,
             isHamburgerEnabled: windowSize.width <= variables.mobileResponsiveWidthBreakpoint,
-            isFloatingAcionButtonActive: false,
+            isCreateMenuActive: false,
         };
 
-        this.toggleFab = this.toggleFab.bind(this);
+        this.toggleCreateMenu = this.toggleCreateMenu.bind(this);
         this.toggleHamburger = this.toggleHamburger.bind(this);
         this.dismissHamburger = this.dismissHamburger.bind(this);
         this.showHamburger = this.showHamburger.bind(this);
@@ -70,8 +72,22 @@ class App extends React.Component {
         this.recordTimerAndToggleHamburger = this.recordTimerAndToggleHamburger.bind(this);
 
         this.animationTranslateX = new Animated.Value(
-            !props.isSidebarShown ? -300 : 0,
+            !props.isSidebarShown ? -variables.sideBarWidth : 0,
         );
+
+        // This format allows to set individual callbacks to each item
+        // while including mutual callbacks first
+        this.menuItemData = [
+            {icon: ChatBubbleIcon, text: 'New Chat', onPress: () => {}},
+            {icon: UsersIcon, text: 'New Icon', onPress: () => {}},
+        ].map(item => ({
+            ...item,
+            onPress: () => {
+                this.toggleCreateMenu();
+                showChatSwitcher();
+                item.onPress();
+            },
+        }));
     }
 
     componentDidMount() {
@@ -125,12 +141,17 @@ class App extends React.Component {
     }
 
     /**
-     * Method called when we click the floating action button
-     * will trigger the animation
+     * Method called either when:
+     * Pressing the floating action button to open the CreateMenu modal
+     * Selecting an item on CreateMenu or closing it by clicking outside of the modal component
      */
-    toggleFab() {
+    toggleCreateMenu() {
+        // Prevent from possibly toggling the create menu with the sidebar hidden
+        if (!this.props.isSidebarShown) {
+            return;
+        }
         this.setState(state => ({
-            isFloatingAcionButtonActive: !state.isFloatingAcionButtonActive,
+            isCreateMenuActive: !state.isCreateMenuActive,
         }));
     }
 
@@ -265,9 +286,9 @@ class App extends React.Component {
                                     <Sidebar
                                         insets={insets}
                                         onLinkClick={this.recordTimerAndToggleHamburger}
-                                        isChatSwitcherActive={this.props.isChatSwitcherActive}
-                                        isFloatingActionButtonActive={this.state.isFloatingAcionButtonActive}
-                                        onFloatingActionButtonPress={this.toggleFab}
+                                        isCreateMenuActive={this.state.isCreateMenuActive}
+                                        toggleCreateMenu={this.toggleCreateMenu}
+                                        menuItemData={this.menuItemData}
                                     />
                                 </Animated.View>
                                 {/* The following pressable allows us to click outside the LHN to close it,
