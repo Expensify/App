@@ -1,3 +1,6 @@
+/**
+ * NOTE: This is a compiled file. DO NOT directly edit this file.
+ */
 module.exports =
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
@@ -49,7 +52,7 @@ do {
                         const highestBuildNumber = Math.max(
                             ...(tags
                                 .filter(tag => tag.startsWith(currentPatchVersion))
-                                .map(tag => tag.slice(-3))
+                                .map(tag => tag.split('-')[1])
                             )
                         );
                         console.log('Highest build number from current patch version:', highestBuildNumber);
@@ -9107,7 +9110,7 @@ module.exports = JSON.parse("[[\"0\",\"\\u0000\",128],[\"a1\",\"｡\",62],[\"814
 /***/ ((module) => {
 
 "use strict";
-module.exports = {"i8":"1.0.1-339"};
+module.exports = {"i8":"1.0.1-348"};
 
 /***/ }),
 
