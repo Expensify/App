@@ -59,14 +59,12 @@ const propTypes = {
     countryCodeByIP: PropTypes.number,
 
     isSidebarAnimating: PropTypes.bool,
-    isChatSwitcherActive: PropTypes.bool,
 };
 const defaultProps = {
     personalDetails: {},
     reports: {},
     session: null,
     isSidebarAnimating: false,
-    isChatSwitcherActive: false,
     countryCodeByIP: 1,
 };
 
@@ -110,7 +108,6 @@ class ChatSwitcherView extends React.Component {
         // if the chat switcher is active then focus the input
         if (prevProps.isSidebarAnimating
                 && !this.props.isSidebarAnimating
-                && this.props.isChatSwitcherActive
         ) {
             this.textInput.focus();
         }
