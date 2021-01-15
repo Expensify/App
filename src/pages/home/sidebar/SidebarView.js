@@ -8,29 +8,29 @@ import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
 import FAB from '../../../components/FAB';
 
 const propTypes = {
-	// Toggles the navigationMenu menu open and closed
-	onLinkClick: PropTypes.func.isRequired,
+    // Toggles the navigationMenu menu open and closed
+    onLinkClick: PropTypes.func.isRequired,
 
-	// Safe area insets required for mobile devices margins
-	insets: SafeAreaInsetPropTypes.isRequired,
+    // Safe area insets required for mobile devices margins
+    insets: SafeAreaInsetPropTypes.isRequired,
 
-	// when the chat switcher is selected
-	isChatSwitcherActive: PropTypes.bool,
+    // when the chat switcher is selected
+    isChatSwitcherActive: PropTypes.bool,
 };
 
 const defaultProps = {
-	isChatSwitcherActive: false,
+    isChatSwitcherActive: false,
 };
 
 const SidebarView = (props) => (
-	<View style={[styles.flex1, styles.sidebar]}>
-		<SidebarLinks
-			onLinkClick={props.onLinkClick}
-			insets={props.insets}
-			isChatSwitcherActive={props.isChatSwitcherActive}
-		/>
-		{!props.isChatSwitcherActive && <SidebarBottom insets={props.insets} />}
-	</View>
+    <View style={[styles.flex1, styles.sidebar]}>
+        <SidebarLinks
+            onLinkClick={props.onLinkClick}
+            insets={props.insets}
+            isChatSwitcherActive={props.isChatSwitcherActive}
+        />
+        {!props.isChatSwitcherActive && <SidebarBottom insets={props.insets} />}
+    </View>
 );
 
 SidebarView.propTypes = propTypes;
