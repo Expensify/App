@@ -17,7 +17,7 @@ const MagnifyingGlassIcon = props => (
     <MagnifyingGlassSvg
         height={props.height}
         width={props.width}
-        fill={themeColors.heading}
+        fill={themeColors.icon}
     />
 );
 
