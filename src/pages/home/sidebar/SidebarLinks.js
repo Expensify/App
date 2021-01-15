@@ -116,22 +116,6 @@ const SidebarLinks = (props) => {
 
     return (
         <View style={[styles.flex1, styles.h100, {marginTop: props.insets.top}]}>
-            <View style={[chatSwitcherStyle]}>
-                {!props.isChatSwitcherActive ? (
-                    <TouchableOpacity
-                        style={[styles.flexRow, styles.sidebarHeaderTop]}
-                        onPress={() => ChatSwitcher.show()}
-                    >
-                        <MagnifyingGlassIcon width={30} height={30} />
-                    </TouchableOpacity>
-                )
-                    : (
-                        <ChatSwitcherView
-                            onLinkClick={props.onLinkClick}
-                            isChatSwitcherActive={props.isChatSwitcherActive}
-                        />
-                    )}
-            </View>
             <View style={[
                 styles.flexRow,
                 styles.sidebarHeaderTop,
@@ -140,6 +124,22 @@ const SidebarLinks = (props) => {
             ]}
             >
                 <Header textSize="large" title="Chats" />
+                <View style={[chatSwitcherStyle]}>
+                    {!props.isChatSwitcherActive ? (
+                        <TouchableOpacity
+                            style={[styles.flexRow, styles.sidebarHeaderTop]}
+                            onPress={() => ChatSwitcher.show()}
+                        >
+                            <MagnifyingGlassIcon width={20} height={20} />
+                        </TouchableOpacity>
+                    )
+                        : (
+                            <ChatSwitcherView
+                                onLinkClick={props.onLinkClick}
+                                isChatSwitcherActive={props.isChatSwitcherActive}
+                            />
+                        )}
+                </View>
                 <AvatarWithIndicator
                     source={props.myPersonalDetails.avatarURL}
                     isActive={props.network && !props.network.isOffline}
