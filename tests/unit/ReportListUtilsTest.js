@@ -1,7 +1,12 @@
 import _ from 'underscore';
+import Onyx from 'react-native-onyx';
 import * as ReportListUtils from '../../src/libs/ReportListUtils';
+import ONYXKEYS from '../../src/ONYXKEYS';
 
 describe('ReportListUtils', () => {
+    // Set the currently logged in user.
+    beforeEach(() => Onyx.set(ONYXKEYS.SESSION, {email: 'tonystark@expensify.com'}));
+
     // Given a set of reports with both single participants and multiple participants some pinned and some not
     const REPORTS = {
         1: {
@@ -133,8 +138,9 @@ describe('ReportListUtils', () => {
         let results = ReportListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, '');
 
         // Then no reports should be returned, only personalDetails and all the personalDetails should be returned
+        // minus the currently logged in user
         expect(results.recentReports.length).toBe(0);
-        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS));
+        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS) - 1);
 
         // Then the result which has an existing report should also have the reportID attached
         const personalDetailWithExistingReport = _.find(
@@ -160,11 +166,11 @@ describe('ReportListUtils', () => {
         results = ReportListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, 'man');
 
         // Then several options will be returned and they will be each have the search string in their email or name
-        expect(results.personalDetails.length).toBe(4);
-        expect(results.personalDetails[0].text).toBe('Iron Man');
-        expect(results.personalDetails[1].text).toBe('Spider-Man');
-        expect(results.personalDetails[2].text).toBe('Invisible Woman');
-        expect(results.personalDetails[3].login).toBe('natasharomanoff@expensify.com');
+        // even though the currently logged in user matches they should not show.
+        expect(results.personalDetails.length).toBe(3);
+        expect(results.personalDetails[0].text).toBe('Spider-Man');
+        expect(results.personalDetails[1].text).toBe('Invisible Woman');
+        expect(results.personalDetails[2].login).toBe('natasharomanoff@expensify.com');
     });
 
     it('getNewGroupOptions()', () => {
@@ -174,8 +180,9 @@ describe('ReportListUtils', () => {
         // Then we should expect only a maxmimum of 5 recent reports to be returned
         expect(results.recentReports.length).toBe(5);
 
-        // And we should expect all the personalDetails to show (minus the 5 that are already showing)
-        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS) - 5);
+        // And we should expect all the personalDetails to show (minus the 5 that are already
+        // showing and the currently logged in user)
+        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS) - 6);
 
         // And none of our personalDetails should include any of the users with recent reports
         const reportLogins = _.map(results.recentReports, reportOption => reportOption.login);
@@ -203,9 +210,8 @@ describe('ReportListUtils', () => {
         expect(results.recentReports[1].text).toBe('Spider-Man');
 
         // And logins with no single participant reports will show up in personalDetails
-        expect(results.personalDetails.length).toBe(2);
-        expect(results.personalDetails[0].text).toBe('Iron Man');
-        expect(results.personalDetails[1].login).toBe('natasharomanoff@expensify.com');
+        expect(results.personalDetails.length).toBe(1);
+        expect(results.personalDetails[0].login).toBe('natasharomanoff@expensify.com');
 
         // When we provide no selected options to getNewGroupOptions()
         results = ReportListUtils.getNewGroupOptions(
