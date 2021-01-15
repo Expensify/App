@@ -123,25 +123,27 @@ const SidebarLinks = (props) => {
                     />
                 )}
             </View>
-            <View style={[
-                styles.flexRow,
-                styles.sidebarHeaderTop,
-                styles.justifyContentBetween,
-                styles.alignItemsCenter,
-            ]}
-            >
-                <Header textSize="large" title="Chats" />
-                <TouchableOpacity
-                    style={[styles.flexRow, styles.sidebarHeaderTop]}
-                    onPress={() => ChatSwitcher.show()}
+            {!props.isChatSwitcherActive && (
+                <View style={[
+                    styles.flexRow,
+                    styles.sidebarHeaderTop,
+                    styles.justifyContentBetween,
+                    styles.alignItemsCenter,
+                ]}
                 >
-                    <MagnifyingGlassIcon width={20} height={20} />
-                </TouchableOpacity>
-                <AvatarWithIndicator
-                    source={props.myPersonalDetails.avatarURL}
-                    isActive={props.network && !props.network.isOffline}
-                />
-            </View>
+                    <Header textSize="large" title="Chats" />
+                    <TouchableOpacity
+                        style={[styles.flexRow, styles.sidebarHeaderTop]}
+                        onPress={() => ChatSwitcher.show()}
+                    >
+                        <MagnifyingGlassIcon width={20} height={20} />
+                    </TouchableOpacity>
+                    <AvatarWithIndicator
+                        source={props.myPersonalDetails.avatarURL}
+                        isActive={props.network && !props.network.isOffline}
+                    />
+                </View>
+            )}
             <ScrollView
                 keyboardShouldPersistTaps="always"
                 style={sidebarLinksStyle}
