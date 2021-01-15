@@ -1,5 +1,6 @@
 /* eslint-disable no-continue */
 import _ from 'underscore';
+import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash.get';
 import lodashOrderBy from 'lodash.orderby';
 import Str from 'expensify-common/lib/str';
@@ -11,6 +12,12 @@ import ONYXKEYS from '../ONYXKEYS';
  * be configured to display different results based on the options passed to the private getOptions() method. Public
  * methods should be named for the views they build options for and then exported for use in a component.
  */
+
+let currentUserLogin;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: val => currentUserLogin = val && val.email,
+});
 
 /**
  * Get participants for the report. Returns array of logins.
@@ -71,7 +78,7 @@ function createOption(personalDetailList, report, comments, activeReportID) {
     return {
         text: report ? report.reportName : personalDetail.displayName,
         alternateText: (!report || isSingleUserDM) ? personalDetail.login : report.reportName,
-        icon: report ? report.icon : personalDetail.avatarURL,
+        icons: report ? report.icons : [personalDetail.avatarURL],
         login: personalDetailList.length < 2 ? personalDetail.login : null,
         reportID: report ? report.reportID : null,
         isUnread: report ? report.unreadActionCount > 0 : null,
@@ -116,9 +123,11 @@ function getOptions(reports, personalDetails = {}, reportActions = {}, {
     // Start by getting specified n most recent users that are not already selected
     const orderedReports = lodashOrderBy(reports, ['lastVisitedTimestamp'], ['desc']);
     let recentReportOptions = [];
-    const pinnedReports = [];
+    const pinnedReportOptions = [];
     const personalDetailsOptions = [];
-    const loginsToExclude = [...selectedOptions];
+
+    // Always exclude already selected options and the currently logged in user
+    const loginOptionsToExclude = [...selectedOptions, {login: currentUserLogin}];
     const reportMapForLogins = {};
 
     for (let i = 0; i < orderedReports.length; i++) {
@@ -132,21 +141,23 @@ function getOptions(reports, personalDetails = {}, reportActions = {}, {
             reportMapForLogins[logins[0]] = report;
         }
 
-        if (recentReportOptions.length > 0 && recentReportOptions.length === maxRecentReportsToShow) {
-            break;
-        }
-
         if (!includeRecentReports) {
             continue;
         }
 
+        // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
+        if (recentReportOptions.length > 0 && recentReportOptions.length === maxRecentReportsToShow) {
+            break;
+        }
+
+        // Skip if we aren't including multiple participant reports and this report has multiple participants
         if (!includeMultipleParticipantReports && hasMultipleParticipants) {
             continue;
         }
 
         // Check the report to see if it has a single user and that the user is already selected
         if (!hasMultipleParticipants
-                && _.some(loginsToExclude, option => isUserReportParticipant(report, option.login))
+                && _.some(loginOptionsToExclude, option => isUserReportParticipant(report, option.login))
         ) {
             continue;
         }
@@ -160,6 +171,8 @@ function getOptions(reports, personalDetails = {}, reportActions = {}, {
             continue;
         }
 
+        // Try to find the personal detail in the personalDetails map and in the event that it can't be found
+        // generate one on the fly for that login.
         const reportPersonalDetails = _.map(logins, (login) => {
             let personalDetail = personalDetails[login];
 
@@ -179,7 +192,7 @@ function getOptions(reports, personalDetails = {}, reportActions = {}, {
         // If the report is pinned and we are using the option to display pinned reports on top then we need to
         // collect the pinned reports so we can sort them alphabetically once they are collected
         if (prioritizePinnedReports && report.isPinned) {
-            pinnedReports.push(option);
+            pinnedReportOptions.push(option);
         } else {
             recentReportOptions.push(option);
         }
@@ -188,19 +201,20 @@ function getOptions(reports, personalDetails = {}, reportActions = {}, {
         // then we will add this login to the exclude list so it won't appear
         // when we process the personal details
         if (logins.length === 1) {
-            loginsToExclude.push(logins[0]);
+            loginOptionsToExclude.push({login: logins[0]});
         }
     }
 
+    // If we are prioritizing our pinned reports then shift them to the front and sort them by report name
     if (prioritizePinnedReports) {
-        const sortedPinnedReports = lodashOrderBy(pinnedReports, ['reportName'], ['asc']);
+        const sortedPinnedReports = lodashOrderBy(pinnedReportOptions, ['reportName'], ['asc']);
         recentReportOptions = sortedPinnedReports.concat(recentReportOptions);
     }
 
     if (includePersonalDetails) {
         // Next loop over all personal details removing any that are selectedUsers or recentChats
         _.each(personalDetails, (personalDetail, login) => {
-            if (_.some(loginsToExclude, loginToExclude => loginToExclude === login)) {
+            if (_.some(loginOptionsToExclude, loginOptionToExclude => loginOptionToExclude.login === login)) {
                 return;
             }
 
