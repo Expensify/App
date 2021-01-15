@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import CONFIG from '../CONFIG';
@@ -250,14 +249,18 @@ function Authenticate(parameters) {
                     case 401:
                         throw new Error('Incorrect login or password. Please try again.');
                     case 402:
+                        // eslint-disable-next-line max-len
                         throw new Error('You have 2FA enabled on this account. Please sign in using your email or phone number.');
                     case 403:
                         throw new Error('Invalid login or password. Please try again or reset your password.');
                     case 404:
+                        // eslint-disable-next-line max-len
                         throw new Error('We were unable to change your password. This is likely due to an expired password reset link in an old password reset email. We have emailed you a new link so you can try again. Check your Inbox and your Spam folder; it should arrive in just a few minutes.');
                     case 405:
+                        // eslint-disable-next-line max-len
                         throw new Error('You do not have access to this application. Please add your GitHub username for access.');
                     case 413:
+                        // eslint-disable-next-line max-len
                         throw new Error('Your account has been locked after too many unsuccessful attempts. Please try again after 1 hour.');
                     default:
                         throw new Error('Something went wrong. Please try again later.');
