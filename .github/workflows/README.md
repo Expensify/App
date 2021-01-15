@@ -36,3 +36,38 @@ The GitHub workflows require a large list of secrets to deploy, notify and test 
 12. `APPLE_CONTACT_PHONE` - Phone number used for contact between Expensify and Apple for https://appstoreconnect.apple.com/
 13. `APPLE_DEMO_EMAIL` - Demo account email used for https://appstoreconnect.apple.com/
 14. `APPLE_DEMO_PASSWORD` - Demo account password used for https://appstoreconnect.apple.com/
+
+## Actions
+
+All these _workflows_ are comprised of atomic _actions_. Most of the time, we can use pre-made and independently maintained actions to create powerful workflows that meet our needs. However, when we want to do something very specific or have a more complex or robust action in mind, we can create our own _actions_.
+
+All our actions are stored in the neighboring directory [`.github/actions`](https://github.com/Expensify/Expensify.cash/tree/master/.github/actions). Each action is a module comprised of three parts:
+
+1) An [action metadata file](https://docs.github.com/en/free-pro-team@latest/actions/creating-actions/creating-a-javascript-action#creating-an-action-metadata-file) called `action.yml`. This describes the action, gives it a name, and defines its inputs and outputs.
+2) A Node.js script, whose name matches the module. This is where you can implement the custom logic for your action.
+3) A compiled file called index.js. This is a compiled output of the file from (2) and should _NEVER_ be directly modified.
+
+### Why do actions need to be compiled?
+
+From the [GitHub Actions documentation](https://docs.github.com/en/free-pro-team@latest/actions/creating-actions/creating-a-javascript-action#commit-tag-and-push-your-action-to-github):
+
+> GitHub downloads each action run in a workflow during runtime and executes it as a complete package of code before you can use workflow commands like run to interact with the runner machine. This means you must include any package dependencies required to run the JavaScript code. You'll need to check in the toolkit core and github packages to your action's repository.
+
+If you make any changes to an action's implementation, you must always recompile it in order for the changes to take effect. The action metadata file should use the compiled node.js executable script (`index.js`), _not_ the source file.
+
+### How are actions compiled?
+
+In order to bundle actions with their dependencies into a single Node.js executable script, we use [`ncc`](https://github.com/vercel/ncc). In order to make this easier, we've added an `npm` script to `package.json`, so you can just run `npm run gh-actions-build`. If you create a new action, make sure that you update the `npm` script in `package.json` to include your new action.
+
+### Important tips about creating GitHub Actions
+
+- When calling your GitHub Action from one of our workflows, you must:
+    - First call `@actions/checkout`.
+    - Use the absolute path of the action in GitHub, including the repo name, path, and branch ref, like so:
+      ```yaml
+      - name: Generate Version
+        uses: Expensify/Expensify.cash/.github/actions/bumpVersion@master
+      ```
+       Do not try to use a relative path.
+- Confusingly, paths in action metadata files (`action.yml`) _must_ use relative paths.
+- You can't use any dynamic values or environment variables in a `uses` statement
