@@ -13,11 +13,25 @@ import ONYXKEYS from '../ONYXKEYS';
  * methods should be named for the views they build options for and then exported for use in a component.
  */
 
-let currentUserLogin;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: val => currentUserLogin = val && val.email,
-});
+const reports = {};
+let personalDetails = {};
+const reportActions = {};
+
+let orderedReports;
+let allReportOptions;
+let allPersonalDetailsOptions;
+let activeReportID;
+
+/**
+ * Check if the report has a draft comment
+ *
+ * @param {Number} reportID
+ * @returns {Boolean}
+ */
+function hasComment(reportID) {
+    const allComments = lodashGet(reportActions, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, '');
+    return allComments.length > 0;
+}
 
 /**
  * Get participants for the report. Returns array of logins.
@@ -27,6 +41,76 @@ Onyx.connect({
  */
 function getParticipantLogins(report) {
     return lodashGet(report, ['participants'], []);
+}
+
+/**
+ * Returns the personal details for an array of logins
+ *
+ * @param {Array} logins
+ * @returns {Array}
+ */
+function getPersonalDetailsForLogins(logins) {
+    return _.map(logins, (login) => {
+        let personalDetail = personalDetails[login];
+
+        if (!personalDetail) {
+            personalDetail = {
+                login,
+                displayName: login,
+                avatarURL: getDefaultAvatar(login),
+            };
+        }
+
+        return personalDetail;
+    });
+}
+
+/**
+ * Returns a string with all relevant search terms
+ *
+ * @param {Object} report
+ * @param {Array} personalDetailList
+ * @return {String}
+ */
+function getSearchText(report, personalDetailList) {
+    const searchTerms = [];
+
+    _.each(personalDetailList, (personalDetail) => {
+        searchTerms.push(personalDetail.displayName);
+        searchTerms.push(personalDetail.login);
+    });
+
+    if (report) {
+        searchTerms.push(...report.reportName.split(',').map(name => name.trim()));
+        searchTerms.push(...report.participants);
+    }
+
+    return _.unique(searchTerms).join(' ');
+}
+
+/**
+ * Creates a report list option
+ *
+ * @param {Array<Object>} personalDetailList
+ * @param {Object} [report]
+ * @returns {Object}
+ */
+function createOption(personalDetailList, report) {
+    const hasMultipleParticipants = personalDetailList.length > 1;
+    const personalDetail = personalDetailList[0];
+    return {
+        text: report ? report.reportName : personalDetail.displayName,
+        alternateText: (!report || !hasMultipleParticipants) ? personalDetail.login : report.reportName,
+        icons: report ? report.icons : [personalDetail.avatarURL],
+        login: personalDetailList.length < 2 ? personalDetail.login : null,
+        reportID: report ? report.reportID : null,
+        isUnread: report ? report.unreadActionCount > 0 : null,
+        hasDraftComment: report && report.reportID !== activeReportID && hasComment(report.reportID),
+        keyForList: report ? String(report.reportID) : personalDetail.login,
+        searchText: getSearchText(report, personalDetailList),
+        isPinned: report && report.isPinned,
+        hasMultipleParticipants,
+    };
 }
 
 /**
@@ -40,53 +124,65 @@ function reportHasMultipleParticipants(report) {
 }
 
 /**
- * Is the login provided a report participant?
- *
- * @param {Object} report
- * @param {String} login
- * @returns {Boolean}
+ * Rebuild the options.
  */
-function isUserReportParticipant(report, login) {
-    return _.some(getParticipantLogins(report), participantLogin => participantLogin === login);
-}
+const rebuildOptions = () => {
+    const reportMapForLogins = {};
+    orderedReports = lodashOrderBy(reports, ['lastVisitedTimestamp'], ['desc']);
+    allReportOptions = _.map(orderedReports, (report) => {
+        const hasMultipleParticipants = reportHasMultipleParticipants(report);
+        const logins = getParticipantLogins(report);
+        const reportPersonalDetails = getPersonalDetailsForLogins(logins);
+        if (!hasMultipleParticipants) {
+            reportMapForLogins[logins[0]] = report;
+        }
+        return createOption(reportPersonalDetails, report);
+    });
+    allPersonalDetailsOptions = _.map(personalDetails, personalDetail => (
+        createOption([personalDetail], reportMapForLogins[personalDetail.login])
+    ));
+};
+
+let currentUserLogin;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: val => currentUserLogin = val && val.email,
+});
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    callback: (report) => {
+        const reportID = report.reportID;
+
+        if (!reportID) {
+            return;
+        }
+
+        const existingReport = reports[reportID];
+        if (!existingReport) {
+            reports[reportID] = report;
+        } else {
+            reports[report.reportID] = {...existingReport, ...report};
+        }
+        rebuildOptions();
+    },
+});
+
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS,
+    callback: (val) => {
+        personalDetails = val;
+        rebuildOptions();
+    },
+});
 
 /**
- * Check if the report has a draft comment
+ * Searches for a match when provided with a value
  *
- * @param {Object} comments
- * @param {Number} reportID
+ * @param {String} searchValue
+ * @param {String} searchText
  * @returns {Boolean}
  */
-function hasComment(comments, reportID) {
-    const allComments = lodashGet(comments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, '');
-    return allComments.length > 0;
-}
-
-/**
- * Creates a report list option
- *
- * @param {Array<Object>} personalDetailList
- * @param {Object} [report]
- * @param {Object} [comments]
- * @param {Number} [activeReportID]
- * @returns {Object}
- */
-function createOption(personalDetailList, report, comments, activeReportID) {
-    // There is only one participant so return the single participant view
-    const personalDetail = personalDetailList[0];
-    const isSingleUserDM = personalDetailList.length < 2;
-    return {
-        text: report ? report.reportName : personalDetail.displayName,
-        alternateText: (!report || isSingleUserDM) ? personalDetail.login : report.reportName,
-        icons: report ? report.icons : [personalDetail.avatarURL],
-        login: personalDetailList.length < 2 ? personalDetail.login : null,
-        reportID: report ? report.reportID : null,
-        isUnread: report ? report.unreadActionCount > 0 : null,
-        hasDraftComment: report && report.reportID !== activeReportID && hasComment(comments, report.reportID),
-        keyForList: report ? String(report.reportID) : personalDetail.login,
-    };
-}
-
 function isSearchStringMatch(searchValue, searchText) {
     const matchRegexes = [
         new RegExp(`^${Str.escapeForRegExp(searchValue)}$`, 'i'),
@@ -103,14 +199,12 @@ function isSearchStringMatch(searchValue, searchText) {
 /**
  * Build the options
  *
- * @param {Object} reports
- * @param {Object} personalDetails
  * @param {Object} reportActions
  * @param {Object} options
  * @returns {Object}
  * @private
  */
-function getOptions(reports, personalDetails = {}, reportActions = {}, {
+function getOptions({
     selectedOptions = [],
     maxRecentReportsToShow = 0,
     includeMultipleParticipantReports = false,
@@ -118,115 +212,75 @@ function getOptions(reports, personalDetails = {}, reportActions = {}, {
     includeRecentReports = false,
     prioritizePinnedReports = false,
     searchValue = '',
-    activeReportID = null,
 }) {
-    // Start by getting specified n most recent users that are not already selected
-    const orderedReports = lodashOrderBy(reports, ['lastVisitedTimestamp'], ['desc']);
     let recentReportOptions = [];
     const pinnedReportOptions = [];
     const personalDetailsOptions = [];
 
     // Always exclude already selected options and the currently logged in user
     const loginOptionsToExclude = [...selectedOptions, {login: currentUserLogin}];
-    const reportMapForLogins = {};
 
-    for (let i = 0; i < orderedReports.length; i++) {
-        const report = orderedReports[i];
-        const hasMultipleParticipants = reportHasMultipleParticipants(report);
-        const logins = getParticipantLogins(report);
-
-        // If we are including personalDetails but not reports then save the reportID so we can
-        // reference it later when building the personalDetails options.
-        if (!hasMultipleParticipants && includePersonalDetails && !includeRecentReports) {
-            reportMapForLogins[logins[0]] = report;
-        }
-
-        if (!includeRecentReports) {
-            continue;
-        }
-
-        // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
-        if (recentReportOptions.length > 0 && recentReportOptions.length === maxRecentReportsToShow) {
-            break;
-        }
-
-        // Skip if we aren't including multiple participant reports and this report has multiple participants
-        if (!includeMultipleParticipantReports && hasMultipleParticipants) {
-            continue;
-        }
-
-        // Check the report to see if it has a single user and that the user is already selected
-        if (!hasMultipleParticipants
-                && _.some(loginOptionsToExclude, option => isUserReportParticipant(report, option.login))
-        ) {
-            continue;
-        }
-
-        // Finally check to see if this options is a match for the provided search string if we have one
-        const searchText = report.participants < 10
-            ? `${report.reportName} ${report.participants.join(' ')}`
-            : report.reportName ?? '';
-
-        if (searchValue && !isSearchStringMatch(searchValue, searchText)) {
-            continue;
-        }
-
-        // Try to find the personal detail in the personalDetails map and in the event that it can't be found
-        // generate one on the fly for that login.
-        const reportPersonalDetails = _.map(logins, (login) => {
-            let personalDetail = personalDetails[login];
-
-            if (!personalDetail) {
-                personalDetail = {
-                    login,
-                    displayName: login,
-                    avatarURL: getDefaultAvatar(login),
-                };
+    if (includeRecentReports) {
+        for (let i = 0; i < allReportOptions.length; i++) {
+            // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
+            if (recentReportOptions.length > 0 && recentReportOptions.length === maxRecentReportsToShow) {
+                break;
             }
 
-            return personalDetail;
-        });
+            const reportOption = allReportOptions[i];
 
-        const option = createOption(reportPersonalDetails, report, reportActions, activeReportID);
+            // Skip if we aren't including multiple participant reports and this report has multiple participants
+            if (!includeMultipleParticipantReports && reportOption.hasMultipleParticipants) {
+                continue;
+            }
 
-        // If the report is pinned and we are using the option to display pinned reports on top then we need to
-        // collect the pinned reports so we can sort them alphabetically once they are collected
-        if (prioritizePinnedReports && report.isPinned) {
-            pinnedReportOptions.push(option);
-        } else {
-            recentReportOptions.push(option);
-        }
+            // Check the report to see if it has a single participant and if the participant is already selected
+            if (!reportOption.hasMultipleParticipants
+                    && _.some(loginOptionsToExclude, option => option.login === reportOption.login)
+            ) {
+                continue;
+            }
 
-        // If we are not including reports with multiple participants in our recent reports list
-        // then we will add this login to the exclude list so it won't appear
-        // when we process the personal details
-        if (logins.length === 1) {
-            loginOptionsToExclude.push({login: logins[0]});
+            // Finally check to see if this options is a match for the provided search string if we have one
+            if (searchValue && !isSearchStringMatch(searchValue, reportOption.searchText)) {
+                continue;
+            }
+
+            // If the report is pinned and we are using the option to display pinned reports on top then we need to
+            // collect the pinned reports so we can sort them alphabetically once they are collected
+            if (prioritizePinnedReports && reportOption.isPinned) {
+                pinnedReportOptions.push(reportOption);
+            } else {
+                recentReportOptions.push(reportOption);
+            }
+
+            // Add this login to the exclude list so it won't appear when we process the personal details
+            if (!reportOption.hasMultipleParticipants) {
+                loginOptionsToExclude.push({login: reportOption.login});
+            }
         }
     }
 
     // If we are prioritizing our pinned reports then shift them to the front and sort them by report name
     if (prioritizePinnedReports) {
-        const sortedPinnedReports = lodashOrderBy(pinnedReportOptions, ['reportName'], ['asc']);
+        const sortedPinnedReports = lodashOrderBy(pinnedReportOptions, ['text'], ['asc']);
         recentReportOptions = sortedPinnedReports.concat(recentReportOptions);
     }
 
     if (includePersonalDetails) {
         // Next loop over all personal details removing any that are selectedUsers or recentChats
-        _.each(personalDetails, (personalDetail, login) => {
-            if (_.some(loginOptionsToExclude, loginOptionToExclude => loginOptionToExclude.login === login)) {
+        _.each(allPersonalDetailsOptions, (personalDetailOption) => {
+            if (_.some(loginOptionsToExclude, loginOptionToExclude => (
+                loginOptionToExclude.login === personalDetailOption.login
+            ))) {
                 return;
             }
 
-            const searchText = personalDetail.displayName === personalDetail.login
-                ? personalDetail.login
-                : `${personalDetail.displayName} ${personalDetail.login}`;
-
-            if (searchValue && !isSearchStringMatch(searchValue, searchText)) {
+            if (searchValue && !isSearchStringMatch(searchValue, personalDetailOption.searchText)) {
                 return;
             }
 
-            personalDetailsOptions.push(createOption([personalDetail], reportMapForLogins[personalDetail.login]));
+            personalDetailsOptions.push(personalDetailOption);
         });
     }
 
@@ -239,13 +293,11 @@ function getOptions(reports, personalDetails = {}, reportActions = {}, {
 /**
  * Build the options for the Search view
  *
- * @param {Object} reports
- * @param {Object} reportActions
  * @param {String} searchValue
  * @returns {Object}
  */
-function getSearchOptions(reports, reportActions, searchValue = '') {
-    return getOptions(reports, {}, reportActions, {
+function getSearchOptions(searchValue = '') {
+    return getOptions({
         searchValue,
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
@@ -257,13 +309,11 @@ function getSearchOptions(reports, reportActions, searchValue = '') {
 /**
  * Build the options for the New Chat view
  *
- * @param {Object} reports
- * @param {Object} personalDetails
  * @param {String} searchValue
  * @returns {Object}
  */
-function getNewChatOptions(reports, personalDetails, searchValue = '') {
-    return getOptions(reports, personalDetails, {}, {
+function getNewChatOptions(searchValue = '') {
+    return getOptions({
         searchValue,
         includePersonalDetails: true,
     });
@@ -272,14 +322,12 @@ function getNewChatOptions(reports, personalDetails, searchValue = '') {
 /**
  * Build the options for the New Group view
  *
- * @param {Object} reports
- * @param {Object} personalDetails
  * @param {String} searchValue
  * @param {Array} selectedOptions
  * @returns {Object}
  */
-function getNewGroupOptions(reports, personalDetails, searchValue = '', selectedOptions = []) {
-    return getOptions(reports, personalDetails, {}, {
+function getNewGroupOptions(searchValue = '', selectedOptions = []) {
+    return getOptions({
         searchValue,
         selectedOptions,
         includeRecentReports: true,
@@ -292,12 +340,10 @@ function getNewGroupOptions(reports, personalDetails, searchValue = '', selected
 /**
  * Build the options for the Sidebar a.k.a. LHN
  *
- * @param {Object} reports
- * @param {Object} reportActions
  * @returns {Object}
  */
-function getSidebarOptions(reports, reportActions) {
-    return getOptions(reports, {}, reportActions, {
+function getSidebarOptions() {
+    return getOptions({
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
         maxRecentReportsToShow: 0, // Unlimited
