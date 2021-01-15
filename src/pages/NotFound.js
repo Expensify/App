@@ -30,7 +30,7 @@ const NotFound = () => (
 				</View>
 				<TouchableOpacity
 					onPress={() => {
-						console.log("--")
+						console.log("");
 						redirect(ROUTES.HOME)
 					}}
 				>
