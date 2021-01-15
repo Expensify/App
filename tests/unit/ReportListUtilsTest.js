@@ -206,6 +206,31 @@ describe('ReportListUtils', () => {
         expect(results.personalDetails.length).toBe(2);
         expect(results.personalDetails[0].text).toBe('Iron Man');
         expect(results.personalDetails[1].login).toBe('natasharomanoff@expensify.com');
+
+        // When we provide no selected options to getNewGroupOptions()
+        results = ReportListUtils.getNewGroupOptions(
+            REPORTS,
+            PERSONAL_DETAILS,
+            '',
+            [],
+        );
+
+        // Then one of our older report options (not in our five most recent) should appear in the personalDetails
+        // but not in recentReports
+        expect(_.every(results.recentReports, option => option.login !== 'peterparker@expensify.com')).toBe(true);
+        expect(_.every(results.personalDetails, option => option.login !== 'peterparker@expensify.com')).toBe(false);
+
+        // When we provide a "selected" option to getNewGroupOptions()
+        results = ReportListUtils.getNewGroupOptions(
+            REPORTS,
+            PERSONAL_DETAILS,
+            '',
+            [{login: 'peterparker@expensify.com'}],
+        );
+
+        // Then the option should not appear anywhere in either list
+        expect(_.every(results.recentReports, option => option.login !== 'peterparker@expensify.com')).toBe(true);
+        expect(_.every(results.personalDetails, option => option.login !== 'peterparker@expensify.com')).toBe(true);
     });
 
     it('getSidebarOptions()', () => {
