@@ -7,7 +7,6 @@ import lodashGet from 'lodash.get';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../../ONYXKEYS';
-import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import ChatSwitcherList from './ChatSwitcherList';
 import ChatSwitcherSearchForm from './ChatSwitcherSearchForm';
 import {fetchOrCreateChatReport} from '../../../libs/actions/Report';
@@ -59,14 +58,12 @@ const propTypes = {
     countryCodeByIP: PropTypes.number,
 
     isSidebarAnimating: PropTypes.bool,
-    isChatSwitcherActive: PropTypes.bool,
 };
 const defaultProps = {
     personalDetails: {},
     reports: {},
     session: null,
     isSidebarAnimating: false,
-    isChatSwitcherActive: false,
     countryCodeByIP: 1,
 };
 
@@ -91,39 +88,23 @@ class ChatSwitcherView extends React.Component {
             search: '',
             options: [],
             focusedIndex: 0,
-            isLogoVisible: true,
-            isClearButtonVisible: false,
             usersToStartGroupReportWith: [],
         };
     }
 
     componentDidMount() {
-        // Listen for the Command+K key being pressed so the focus can be given to the chat switcher
-        KeyboardShortcut.subscribe(
-            'K',
-            () => {
-                ChatSwitcher.show();
-                this.textInput.focus();
-            },
-            ['meta'],
-            true,
-        );
+        this.textInput.focus();
+        this.updateSearch(this.state.search);
     }
 
     componentDidUpdate(prevProps) {
         // Check if the sidebar was animating but is no longer animating and
         // if the chat switcher is active then focus the input
-        if (
-            prevProps.isSidebarAnimating
-            && !this.props.isSidebarAnimating
-            && this.props.isChatSwitcherActive
+        if (prevProps.isSidebarAnimating
+                && !this.props.isSidebarAnimating
         ) {
             this.textInput.focus();
         }
-    }
-
-    componentWillUnmount() {
-        KeyboardShortcut.unsubscribe('K');
     }
 
     /**
@@ -327,22 +308,17 @@ class ChatSwitcherView extends React.Component {
      * @param {Boolean} resetOptions
      */
     reset(blurAfterReset = true, resetOptions = false) {
-        this.setState(
-            {
-                search: '',
-                options: resetOptions ? this.getReportsOptions() : [],
-                focusedIndex: 0,
-                isLogoVisible: blurAfterReset,
-                isClearButtonVisible: !blurAfterReset,
-                usersToStartGroupReportWith: [],
-            },
-            () => {
-                if (blurAfterReset) {
-                    this.textInput.blur();
-                    ChatSwitcher.hide();
-                }
-            },
-        );
+        this.setState({
+            search: '',
+            options: resetOptions ? this.getReportsOptions() : [],
+            focusedIndex: 0,
+            usersToStartGroupReportWith: [],
+        }, () => {
+            if (blurAfterReset) {
+                this.textInput.blur();
+                ChatSwitcher.hide();
+            }
+        });
     }
 
     /**
@@ -350,7 +326,6 @@ class ChatSwitcherView extends React.Component {
      * and the logo is hidden
      */
     triggerOnFocusCallback() {
-        ChatSwitcher.show();
         this.updateSearch(this.state.search);
     }
 
@@ -545,9 +520,7 @@ class ChatSwitcherView extends React.Component {
         return (
             <>
                 <ChatSwitcherSearchForm
-                    ref={el => (this.textInput = el)}
-                    isClearButtonVisible={this.state.isClearButtonVisible}
-                    isLogoVisible={this.state.isLogoVisible}
+                    ref={el => this.textInput = el}
                     searchValue={this.state.search}
                     onChangeText={this.updateSearch}
                     onClearButtonClick={() => this.reset()}
