@@ -13,14 +13,17 @@ import ONYXKEYS from '../ONYXKEYS';
  * methods should be named for the views they build options for and then exported for use in a component.
  */
 
+// In order to build our options we need references to all reports,
+// personalDetails, draftComments, and the activeReportID.
 const reports = {};
 let personalDetails = {};
-const reportActions = {};
+const draftComments = {};
+let activeReportID;
+let currentUserLogin;
 
-let orderedReports;
+// Each time we re-calculate the possible options we will create arrays options for reports and personalDetails.
 let allReportOptions;
 let allPersonalDetailsOptions;
-let activeReportID;
 
 /**
  * Check if the report has a draft comment
@@ -29,7 +32,7 @@ let activeReportID;
  * @returns {Boolean}
  */
 function hasComment(reportID) {
-    const allComments = lodashGet(reportActions, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, '');
+    const allComments = lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, '');
     return allComments.length > 0;
 }
 
@@ -116,24 +119,15 @@ function createOption(personalDetailList, report) {
 }
 
 /**
- * Does the report have multiple participants?
- *
- * @param {Object} report
- * @returns {Boolean}
+ * Rebuild the options. We are throttling this so the options are only rebuilt at most
+ * once per second. It can be expensive to rebuild options so we slow this down a bit.
  */
-function reportHasMultipleParticipants(report) {
-    return getParticipantLogins(report).length > 1;
-}
-
-/**
- * Rebuild the options.
- */
-const rebuildOptions = () => {
+const rebuildOptions = _.throttle(() => {
     const reportMapForLogins = {};
-    orderedReports = lodashOrderBy(reports, ['lastVisitedTimestamp'], ['desc']);
+    const orderedReports = lodashOrderBy(reports, ['lastVisitedTimestamp'], ['desc']);
     allReportOptions = _.map(orderedReports, (report) => {
-        const hasMultipleParticipants = reportHasMultipleParticipants(report);
         const logins = getParticipantLogins(report);
+        const hasMultipleParticipants = logins.length > 1;
         const reportPersonalDetails = getPersonalDetailsForLogins(logins);
         if (!hasMultipleParticipants) {
             reportMapForLogins[logins[0]] = report;
@@ -143,9 +137,8 @@ const rebuildOptions = () => {
     allPersonalDetailsOptions = _.map(personalDetails, personalDetail => (
         createOption([personalDetail], reportMapForLogins[personalDetail.login])
     ));
-};
+}, 1000, {leading: false});
 
-let currentUserLogin;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: val => currentUserLogin = val && val.email,
@@ -176,6 +169,18 @@ Onyx.connect({
         personalDetails = val;
         rebuildOptions();
     },
+});
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
+    callback: (val, key) => {
+        draftComments[key] = val;
+    },
+});
+
+Onyx.connect({
+    key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
+    callback: val => activeReportID = val,
 });
 
 /**

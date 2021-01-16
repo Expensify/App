@@ -117,7 +117,11 @@ describe('ReportListUtils', () => {
         Promise.all(_.map(REPORTS, (report, reportID) => (
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report)
         )));
-        return waitForPromisesToResolve();
+        return waitForPromisesToResolve()
+
+            // We are advancing the fake timers so the throttled rebuildOptions()
+            // method will run in ReportListUtils callbacks.
+            .then(() => jest.advanceTimersByTime(2000));
     });
 
     it('getSearchOptions()', () => {
