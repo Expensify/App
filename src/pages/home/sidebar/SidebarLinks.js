@@ -1,5 +1,10 @@
 import React from 'react';
-import {View, ScrollView, TouchableOpacity} from 'react-native';
+import {
+    Animated,
+    View,
+    ScrollView,
+    TouchableOpacity,
+} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import lodashOrderby from 'lodash.orderby';
@@ -78,15 +83,25 @@ const defaultProps = {
 };
 
 
-const SidebarLinks = (props) => {
-    const reportIDInUrl = parseInt(props.match.params.reportID, 10);
-    const sortedReports = lodashOrderby(props.reports, [
-        'isPinned',
-        'reportName',
-    ], [
-        'desc',
-        'asc',
-    ]);
+class SidebarLinks extends React.Component {
+    constructor(props) {
+        super(props);
+        this.chatSwitcherAnimation = new Animated.Value(0);
+        this.sidebarAnimation = new Animated.Value(1);
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.isChatSwitcherActive !== this.props.isChatSwitcherActive) {
+            Animated.timing(this.chatSwitcherAnimation, {
+                toValue: this.props.isChatSwitcherActive ? 1 : 0,
+                duration: 250,
+            }).start();
+            Animated.timing(this.sidebarAnimation, {
+                toValue: this.props.isChatSwitcherActive ? 0 : 1,
+                duration: 250,
+            }).start();
+        }
+    }
 
     /**
      * Check if the report has a draft comment
@@ -94,96 +109,123 @@ const SidebarLinks = (props) => {
      * @param {Number} reportID
      * @returns {Boolean}
      */
-    function hasComment(reportID) {
-        const allComments = get(props.comments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, '');
+    hasComment(reportID) {
+        const allComments = get(this.props.comments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, '');
         return allComments.length > 0;
     }
 
-    // Filter the reports so that the only reports shown are pinned, unread, have draft
-    // comments (but are not the open one), and the one matching the URL
-    const reportsToDisplay = _.filter(sortedReports, report => (report.isPinned || (report.unreadActionCount > 0)
-            || report.reportID === reportIDInUrl
-            || (report.reportID !== reportIDInUrl && hasComment(report.reportID))));
+    render() {
+        const reportIDInUrl = parseInt(this.props.match.params.reportID, 10);
+        const sortedReports = lodashOrderby(this.props.reports, [
+            'isPinned',
+            'reportName',
+        ], [
+            'desc',
+            'asc',
+        ]);
 
-    // Update styles to hide the report links if they should not be visible
-    const sidebarLinksStyle = !props.isChatSwitcherActive
-        ? [styles.sidebarListContainer]
-        : [styles.sidebarListContainer, styles.dNone];
+        // Filter the reports so that the only reports shown are pinned, unread, have draft
+        // comments (but are not the open one), and the one matching the URL
+        const reportsToDisplay = _.filter(sortedReports, report => (report.isPinned || (report.unreadActionCount > 0)
+                || report.reportID === reportIDInUrl
+                || (report.reportID !== reportIDInUrl && this.hasComment(report.reportID))));
 
-    const chatSwitcherStyle = props.isChatSwitcherActive
-        ? [styles.sidebarHeader, styles.sidebarHeaderActive]
-        : [styles.sidebarHeader];
+        const chatSwitcherStyle = [
+            {opacity: this.chatSwitcherAnimation},
+            this.props.isChatSwitcherActive
+                ? styles.sidebarHeaderActive
+                : styles.sidebarHeader,
+        ];
 
-    return (
-        <View style={[styles.flex1, styles.h100, {marginTop: props.insets.top}]}>
-            <View style={[chatSwitcherStyle]}>
-                {props.isChatSwitcherActive && (
-                    <ChatSwitcherView
-                        onLinkClick={props.onLinkClick}
-                    />
-                )}
-            </View>
-            {!props.isChatSwitcherActive && (
-                <View style={[
-                    styles.flexRow,
-                    styles.sidebarHeaderTop,
-                    styles.justifyContentBetween,
-                    styles.alignItemsCenter,
-                ]}
+        const sidebarAnimation = [
+            {opacity: this.sidebarAnimation},
+            !this.props.isChatSwitcherActive
+                ? styles.sidebarHeaderActive
+                : styles.sidebarHeader,
+        ];
+
+        return (
+            <View style={[styles.flex1, styles.h100, {marginTop: this.props.insets.top}]}>
+                <Animated.View
+                    style={[chatSwitcherStyle]}
                 >
-                    <Header textSize="large" title="Chats" />
-                    <TouchableOpacity
-                        style={[styles.flexRow, styles.sidebarHeaderTop]}
-                        onPress={() => ChatSwitcher.show()}
-                    >
-                        <MagnifyingGlassIcon width={20} height={20} />
-                    </TouchableOpacity>
-                    <AvatarWithIndicator
-                        source={props.myPersonalDetails.avatarURL}
-                        isActive={props.network && !props.network.isOffline}
-                    />
-                </View>
-            )}
-            <ScrollView
-                keyboardShouldPersistTaps="always"
-                style={sidebarLinksStyle}
-                bounces={false}
-                indicatorStyle="white"
-            >
-                {/* A report will not have a report name if it hasn't been fetched from the server yet */}
-                {/* so nothing is rendered */}
-                {_.map(reportsToDisplay, (report) => {
-                    const participantDetails = get(report, 'participants.length', 0) === 1
-                        ? get(props.personalDetails, report.participants[0], '') : '';
-                    const login = participantDetails ? participantDetails.login : '';
-                    return report.reportName && (
-                        <ChatLinkRow
-                            key={report.reportID}
-                            option={{
-                                text: participantDetails ? participantDetails.displayName : report.reportName,
-                                alternateText: Str.removeSMSDomain(login),
-                                type: participantDetails ? 'user' : 'report',
-
-                                // The icon for the row is set when we fetch personal details via
-                                // PersonalDetails.getFromReportParticipants()
-                                icons: report.icons,
-                                login,
-                                reportID: report.reportID,
-                                isUnread: report.unreadActionCount > 0,
-                                hasDraftComment: report.reportID !== reportIDInUrl && hasComment(report.reportID),
-                            }}
-                            onSelectRow={() => {
-                                redirect(ROUTES.getReportRoute(report.reportID));
-                                props.onLinkClick();
-                            }}
-                            optionIsFocused={report.reportID === reportIDInUrl}
+                    {this.props.isChatSwitcherActive && (
+                        <ChatSwitcherView
+                            onLinkClick={this.props.onLinkClick}
                         />
-                    );
-                })}
-            </ScrollView>
-        </View>
-    );
-};
+                    )}
+                </Animated.View>
+                <Animated.View
+                    style={sidebarAnimation}
+                >
+                    {!this.props.isChatSwitcherActive && (
+                        <>
+                            <View style={[
+                                styles.flexRow,
+                                styles.sidebarHeaderTop,
+                                styles.justifyContentBetween,
+                                styles.alignItemsCenter,
+                            ]}
+                            >
+                                <Header textSize="large" title="Chats" />
+                                <TouchableOpacity
+                                    style={[styles.flexRow, styles.sidebarHeaderTop]}
+                                    onPress={() => ChatSwitcher.show()}
+                                >
+                                    <MagnifyingGlassIcon width={20} height={20} />
+                                </TouchableOpacity>
+                                <AvatarWithIndicator
+                                    source={this.props.myPersonalDetails.avatarURL}
+                                    isActive={this.props.network && !this.props.network.isOffline}
+                                />
+                            </View>
+                            <ScrollView
+                                keyboardShouldPersistTaps="always"
+                                style={styles.sidebarListContainer}
+                                bounces={false}
+                                indicatorStyle="white"
+                            >
+                                {/* A report will not have a report name if it hasn't been fetched from  */}
+                                {/* the server yet so nothing is rendered */}
+                                {_.map(reportsToDisplay, (report) => {
+                                    const participantDetails = get(report, 'participants.length', 0) === 1
+                                        ? get(this.props.personalDetails, report.participants[0], '') : '';
+                                    const login = participantDetails ? participantDetails.login : '';
+                                    return report.reportName && (
+                                        <ChatLinkRow
+                                            key={report.reportID}
+                                            option={{
+                                                text: participantDetails
+                                                    ? participantDetails.displayName
+                                                    : report.reportName,
+                                                alternateText: Str.removeSMSDomain(login),
+                                                type: participantDetails ? 'user' : 'report',
+
+                                                // The icon for the row is set when we fetch personal details via
+                                                // PersonalDetails.getFromReportParticipants()
+                                                icons: report.icons,
+                                                login,
+                                                reportID: report.reportID,
+                                                isUnread: report.unreadActionCount > 0,
+                                                hasDraftComment: report.reportID !== reportIDInUrl
+                                                    && this.hasComment(report.reportID),
+                                            }}
+                                            onSelectRow={() => {
+                                                redirect(ROUTES.getReportRoute(report.reportID));
+                                                this.props.onLinkClick();
+                                            }}
+                                            optionIsFocused={report.reportID === reportIDInUrl}
+                                        />
+                                    );
+                                })}
+                            </ScrollView>
+                        </>
+                    )}
+                </Animated.View>
+            </View>
+        );
+    }
+}
 
 SidebarLinks.propTypes = propTypes;
 SidebarLinks.defaultProps = defaultProps;
