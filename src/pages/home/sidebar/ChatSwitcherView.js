@@ -7,7 +7,6 @@ import lodashGet from 'lodash.get';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../../ONYXKEYS';
-import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import ChatSwitcherList from './ChatSwitcherList';
 import ChatSwitcherSearchForm from './ChatSwitcherSearchForm';
 import {fetchOrCreateChatReport} from '../../../libs/actions/Report';
@@ -59,16 +58,12 @@ const propTypes = {
     countryCodeByIP: PropTypes.number,
 
     isSidebarAnimating: PropTypes.bool,
-
-    // Current state of the chat switcher (active of inactive)
-    isChatSwitcherActive: PropTypes.bool,
 };
 const defaultProps = {
     personalDetails: {},
     reports: {},
     session: null,
     isSidebarAnimating: false,
-    isChatSwitcherActive: false,
     countryCodeByIP: 1,
 };
 
@@ -93,40 +88,23 @@ class ChatSwitcherView extends React.Component {
             search: '',
             options: [],
             focusedIndex: 0,
-            isLogoVisible: true,
-            isClearButtonVisible: false,
             usersToStartGroupReportWith: [],
         };
     }
 
     componentDidMount() {
-        // Listen for the Command+K key being pressed so the focus can be given to the chat switcher
-        KeyboardShortcut.subscribe('K', () => {
-            ChatSwitcher.show();
-            this.textInput.focus();
-        }, ['meta'], true);
+        this.textInput.focus();
+        this.updateSearch(this.state.search);
     }
 
     componentDidUpdate(prevProps) {
-        // Checks if the isChatSwitcherActive prop changed from false to true
-        // If the change happens, update the search value and focus on the input
-        if (!prevProps.isChatSwitcherActive && this.props.isChatSwitcherActive) {
-            this.updateSearch(this.state.search);
-            this.textInput.focus();
-        }
-
         // Check if the sidebar was animating but is no longer animating and
         // if the chat switcher is active then focus the input
         if (prevProps.isSidebarAnimating
                 && !this.props.isSidebarAnimating
-                && this.props.isChatSwitcherActive
         ) {
             this.textInput.focus();
         }
-    }
-
-    componentWillUnmount() {
-        KeyboardShortcut.unsubscribe('K');
     }
 
     /**
@@ -311,8 +289,6 @@ class ChatSwitcherView extends React.Component {
             search: '',
             options: resetOptions ? this.getReportsOptions() : [],
             focusedIndex: 0,
-            isLogoVisible: blurAfterReset,
-            isClearButtonVisible: !blurAfterReset,
             usersToStartGroupReportWith: [],
         }, () => {
             if (blurAfterReset) {
@@ -327,7 +303,7 @@ class ChatSwitcherView extends React.Component {
      * and the logo is hidden
      */
     triggerOnFocusCallback() {
-        ChatSwitcher.show();
+        this.updateSearch(this.state.search);
     }
 
     /**
@@ -509,8 +485,6 @@ class ChatSwitcherView extends React.Component {
             <>
                 <ChatSwitcherSearchForm
                     ref={el => this.textInput = el}
-                    isClearButtonVisible={this.state.isClearButtonVisible}
-                    isLogoVisible={this.state.isLogoVisible}
                     searchValue={this.state.search}
                     onChangeText={this.updateSearch}
                     onClearButtonClick={() => this.reset()}
@@ -565,9 +539,5 @@ export default withOnyx({
     },
     countryCodeByIP: {
         key: ONYXKEYS.COUNTRY_CODE,
-    },
-    isChatSwitcherActive: {
-        key: ONYXKEYS.IS_CHAT_SWITCHER_ACTIVE,
-        initWithStoredValues: false,
     },
 })(ChatSwitcherView);
