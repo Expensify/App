@@ -667,17 +667,6 @@ const styles = {
         width: 200,
     },
 
-    chatSwitcherInputClear: {
-        alignSelf: 'flex-end',
-        height: variables.componentSizeNormal,
-        justifyContent: 'center',
-    },
-
-    chatSwitcherInputClearIcon: {
-        height: 24,
-        width: 24,
-    },
-
     chatSwitcherGroupDMContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',

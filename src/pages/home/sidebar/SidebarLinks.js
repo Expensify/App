@@ -23,6 +23,7 @@ import ROUTES from '../../../ROUTES';
 import * as ChatSwitcher from '../../../libs/actions/ChatSwitcher';
 import {MagnifyingGlassIcon} from '../../../components/Expensicons';
 import Header from '../../../components/Header';
+import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
 
 const propTypes = {
@@ -82,7 +83,6 @@ const defaultProps = {
     network: null,
 };
 
-
 class SidebarLinks extends React.Component {
     constructor(props) {
         super(props);
@@ -94,11 +94,11 @@ class SidebarLinks extends React.Component {
         if (prevProps.isChatSwitcherActive !== this.props.isChatSwitcherActive) {
             Animated.timing(this.chatSwitcherAnimation, {
                 toValue: this.props.isChatSwitcherActive ? 1 : 0,
-                duration: 250,
+                duration: 300,
             }).start();
             Animated.timing(this.sidebarAnimation, {
                 toValue: this.props.isChatSwitcherActive ? 0 : 1,
-                duration: 250,
+                duration: 300,
             }).start();
         }
     }
@@ -150,9 +150,16 @@ class SidebarLinks extends React.Component {
                     style={[chatSwitcherStyle]}
                 >
                     {this.props.isChatSwitcherActive && (
-                        <ChatSwitcherView
-                            onLinkClick={this.props.onLinkClick}
-                        />
+                        <>
+                            <HeaderWithCloseButton
+                                textSize="large"
+                                title="Search"
+                                onCloseButtonPress={() => ChatSwitcher.hide()}
+                            />
+                            <ChatSwitcherView
+                                onLinkClick={this.props.onLinkClick}
+                            />
+                        </>
                     )}
                 </Animated.View>
                 <Animated.View

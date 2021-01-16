@@ -13,11 +13,15 @@ const propTypes = {
 
     /** Method to trigger when pressing close button of the header */
     onCloseButtonPress: PropTypes.func,
+
+    // Fontsize
+    textSize: PropTypes.oneOf(['default', 'large']),
 };
 
 const defaultProps = {
     title: '',
     onCloseButtonPress: () => {},
+    textSize: 'default',
 };
 
 const HeaderWithCloseButton = props => (
@@ -31,7 +35,7 @@ const HeaderWithCloseButton = props => (
             styles.overflowHidden,
         ]}
         >
-            <Header title={props.title} />
+            <Header title={props.title} textSize={props.textSize} />
             <View style={[styles.reportOptions, styles.flexRow]}>
                 <TouchableOpacity
                     onPress={props.onCloseButtonPress}
