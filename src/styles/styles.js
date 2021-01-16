@@ -414,7 +414,6 @@ const styles = {
 
     sidebarCreateMenuItem: {
         flexDirection: 'row',
-        cursor: 'pointer',
         borderRadius: 0,
         paddingHorizontal: 32,
         paddingVertical: 16,
