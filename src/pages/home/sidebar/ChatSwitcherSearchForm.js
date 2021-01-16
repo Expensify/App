@@ -9,7 +9,6 @@ import {
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
-import {ExpensifyCashLogoIcon} from '../../../components/Expensicons';
 import TextInputWithFocusStyles from '../../../components/TextInputWithFocusStyles';
 import iconX from '../../../../assets/images/icon-x.png';
 import {getDisplayName} from '../../../libs/actions/PersonalDetails';
@@ -19,12 +18,6 @@ import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
 const propTypes = {
     // A ref to forward to the text input
     forwardedRef: PropTypes.func.isRequired,
-
-    // Whether or not the clear button is visible
-    isClearButtonVisible: PropTypes.bool.isRequired,
-
-    // Whether or not the logo is visible
-    isLogoVisible: PropTypes.bool.isRequired,
 
     // The current value of the search input
     searchValue: PropTypes.string.isRequired,
@@ -57,12 +50,6 @@ const defaultProps = {
 
 const ChatSwitcherSearchForm = props => (
     <View style={[styles.flexRow, styles.sidebarHeaderTop]}>
-        {props.isLogoVisible && (
-            <View style={[styles.mr3]}>
-                <ExpensifyCashLogoIcon />
-            </View>
-        )}
-
         {props.usersToStartGroupReportWith.length > 0
             ? (
                 <View
@@ -143,19 +130,17 @@ const ChatSwitcherSearchForm = props => (
                 />
             )}
 
-        {props.isClearButtonVisible && (
-            <TouchableOpacity
-                style={[styles.chatSwitcherInputClear, styles.ml2]}
-                onPress={props.onClearButtonClick}
-                underlayColor={themeColors.componentBG}
-            >
-                <Image
-                    resizeMode="contain"
-                    style={[styles.chatSwitcherInputClearIcon]}
-                    source={iconX}
-                />
-            </TouchableOpacity>
-        )}
+        <TouchableOpacity
+            style={[styles.chatSwitcherInputClear, styles.ml2]}
+            onPress={props.onClearButtonClick}
+            underlayColor={themeColors.componentBG}
+        >
+            <Image
+                resizeMode="contain"
+                style={[styles.chatSwitcherInputClearIcon]}
+                source={iconX}
+            />
+        </TouchableOpacity>
     </View>
 );
 

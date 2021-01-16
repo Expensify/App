@@ -2,7 +2,7 @@ import React from 'react';
 import {View, Image, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import Text from '../../components/Text';
+import Header from '../../components/Header';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import {withRouter} from '../../libs/Router';
@@ -60,12 +60,7 @@ const HeaderView = props => (
                         styles.justifyContentBetween,
                     ]}
                 >
-                    <View style={[styles.flex1]}>
-                        <Text numberOfLines={2} style={[styles.navText]}>
-                            {props.report.reportName}
-                        </Text>
-                    </View>
-
+                    <Header title={props.report.reportName} />
                     <View style={[styles.reportOptions, styles.flexRow]}>
                         <TouchableOpacity
                             onPress={() => togglePinnedState(props.report)}
