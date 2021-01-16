@@ -35,6 +35,7 @@ test('Authenticate is called with saved credentials when a session expires', () 
         callback: val => session = val,
     });
 
+    // When we sign in with the test user
     return signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, 'Password1', TEST_INITIAL_AUTH_TOKEN)
         .then(() => {
             // Then our re-authentication credentials should be generated and our session data
