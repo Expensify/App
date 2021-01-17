@@ -32,7 +32,7 @@ const personalDetailsPropTypes = PropTypes.shape({
 });
 
 const propTypes = {
-    // Toggles the navigationMenu menu open and closed
+    // Toggles the hamburger menu open and closed
     onLinkClick: PropTypes.func.isRequired,
 
     /* Onyx Props */
