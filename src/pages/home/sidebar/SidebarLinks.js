@@ -74,7 +74,7 @@ const defaultProps = {
     comments: {},
     personalDetails: {},
     myPersonalDetails: {},
-    network: null,
+     network: null,
 };
 
 
