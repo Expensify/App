@@ -80,7 +80,7 @@ class App extends React.Component {
         );
 
         this.animationTranslateX = new Animated.Value(
-            !props.isSidebarShown ? Platform.isPad ? -300 : -this.state.windowWidth : 0,
+            !props.isSidebarShown ? (Platform.isPad ? -300 : -this.state.windowWidth ): 0
         );
     }
 
@@ -206,7 +206,7 @@ class App extends React.Component {
      * @param {Boolean} navigationMenuIsShown
      */
     animateNavigationMenu(navigationMenuIsShown) {
-        const animationFinalValue = navigationMenuIsShown ? Platform.isPad ? -300 : -this.state.windowWidth : 0;
+        const animationFinalValue = navigationMenuIsShown ? (Platform.isPad ? -300 : -this.state.windowWidth) : 0;
 
         setSideBarIsAnimating(true);
         Animated.timing(this.animationTranslateX, {
