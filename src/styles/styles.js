@@ -742,7 +742,6 @@ const styles = {
         },
         shadowOpacity: 0.15,
         shadowRadius: 20,
-        width: 100,
     },
 
     navigationMenuOpen: {

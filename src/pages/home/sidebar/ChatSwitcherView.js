@@ -134,14 +134,11 @@ class ChatSwitcherView extends React.Component {
                 }
 
                 // Remove any previously selected group user so that it doesn't show as a dupe
-                const isParticipantAlreadySelected = _.some(
-                    this.state.usersToStartGroupReportWith,
-                    ({login}) => {
-                        const participants = lodashGet(report, 'participants', []);
-                        const isSingleUserDM = participants.length === 1;
-                        return isSingleUserDM && login === participants[0];
-                    },
-                );
+                const isParticipantAlreadySelected = _.some(this.state.usersToStartGroupReportWith, ({login}) => {
+                    const participants = lodashGet(report, 'participants', []);
+                    const isSingleUserDM = participants.length === 1;
+                    return isSingleUserDM && login === participants[0];
+                });
                 if (isParticipantAlreadySelected) {
                     return false;
                 }
@@ -158,10 +155,9 @@ class ChatSwitcherView extends React.Component {
                 return {
                     text: report.reportName,
                     alternateText: isSingleUserDM ? login : report.reportName,
-                    searchText:
-                        participants.length < 10
-                            ? `${report.reportName} ${participants.join(' ')}`
-                            : report.reportName ?? '',
+                    searchText: participants.length < 10
+                        ? `${report.reportName} ${participants.join(' ')}`
+                        : report.reportName ?? '',
                     reportID: report.reportID,
                     participants,
                     icons: report.icons,
@@ -208,20 +204,14 @@ class ChatSwitcherView extends React.Component {
      * @param {Object} option
      */
     addUserToGroup(option) {
-        this.setState(
-            prevState => ({
-                usersToStartGroupReportWith: [
-                    ...prevState.usersToStartGroupReportWith,
-                    option,
-                ],
-                search: '',
-            }),
-            () => {
-                this.updateSearch('');
-                this.textInput.clear();
-                this.textInput.focus();
-            },
-        );
+        this.setState(prevState => ({
+            usersToStartGroupReportWith: [...prevState.usersToStartGroupReportWith, option],
+            search: '',
+        }), () => {
+            this.updateSearch('');
+            this.textInput.clear();
+            this.textInput.focus();
+        });
     }
 
     /**
@@ -235,28 +225,22 @@ class ChatSwitcherView extends React.Component {
             ? _.last(this.state.usersToStartGroupReportWith)
             : optionToRemove;
 
-        this.setState(
-            prevState => ({
-                usersToStartGroupReportWith: _.reduce(
-                    prevState.usersToStartGroupReportWith,
-                    (users, option) => (option.login === selectedOption.login ? users : [...users, option]),
-                    [],
-                ),
-            }),
-            () => {
-                this.textInput.focus();
-            },
-        );
+        this.setState(prevState => ({
+            usersToStartGroupReportWith: _.reduce(prevState.usersToStartGroupReportWith, (users, option) => (
+                option.login === selectedOption.login
+                    ? users
+                    : [...users, option]
+            ), []),
+        }), () => {
+            this.textInput.focus();
+        });
     }
 
     /**
      * Begins the group
      */
     startGroupChat() {
-        const userLogins = _.map(
-            this.state.usersToStartGroupReportWith,
-            option => option.login,
-        );
+        const userLogins = _.map(this.state.usersToStartGroupReportWith, option => option.login);
         fetchOrCreateChatReport([this.props.session.email, ...userLogins]);
         this.props.onLinkClick();
         this.reset();
@@ -272,15 +256,8 @@ class ChatSwitcherView extends React.Component {
         // If there are group users saved start a group chat between
         // the user that was just selected and everyone in the list
         if (this.state.usersToStartGroupReportWith.length > 0) {
-            const userLogins = _.map(
-                this.state.usersToStartGroupReportWith,
-                option => option.login,
-            );
-            fetchOrCreateChatReport([
-                this.props.session.email,
-                ...userLogins,
-                selectedOption.login,
-            ]);
+            const userLogins = _.map(this.state.usersToStartGroupReportWith, option => option.login);
+            fetchOrCreateChatReport([this.props.session.email, ...userLogins, selectedOption.login]);
         } else {
             fetchOrCreateChatReport([this.props.session.email, selectedOption.login]);
         }
@@ -346,10 +323,7 @@ class ChatSwitcherView extends React.Component {
                 e.preventDefault();
                 break;
             case 'Backspace':
-                if (
-                    this.state.usersToStartGroupReportWith.length > 0
-                    && this.state.search === ''
-                ) {
+                if (this.state.usersToStartGroupReportWith.length > 0 && this.state.search === '') {
                     // Remove the last user
                     this.removeUserFromGroup();
                 }
@@ -436,10 +410,8 @@ class ChatSwitcherView extends React.Component {
             .map(personalDetail => ({
                 text: personalDetail.displayName,
                 alternateText: personalDetail.login,
-                searchText:
-                    personalDetail.displayName === personalDetail.login
-                        ? personalDetail.login
-                        : `${personalDetail.displayName} ${personalDetail.login}`,
+                searchText: personalDetail.displayName === personalDetail.login ? personalDetail.login
+                    : `${personalDetail.displayName} ${personalDetail.login}`,
                 icons: [personalDetail.avatarURL],
                 login: personalDetail.login,
                 type: CONST.OPTION_TYPE.PERSONAL_DETAIL,
@@ -453,17 +425,15 @@ class ChatSwitcherView extends React.Component {
             if (matches.size < this.maxSearchResults) {
                 for (let j = 0; j < searchOptions.length; j++) {
                     const option = searchOptions[j];
-                    const valueToSearch = option.searchText
-                        && option.searchText.replace(new RegExp(/&nbsp;/g), '');
+                    const valueToSearch = option.searchText && option.searchText.replace(new RegExp(/&nbsp;/g), '');
                     const isMatch = matchRegexes[i].test(valueToSearch);
                     const isCurrentlyLoggedInUser = this.props.session.email === option.login;
 
                     // We must also filter out any users who are already in the Group DM list
                     // so they can't be selected more than once
-                    const isInGroupUsers = _.some(
-                        this.state.usersToStartGroupReportWith,
-                        groupOption => groupOption.login === option.login,
-                    );
+                    const isInGroupUsers = _.some(this.state.usersToStartGroupReportWith, groupOption => (
+                        groupOption.login === option.login
+                    ));
 
                     // Make sure we don't include the same option twice (automatically handled by using a `Set`)
                     // We must also ignore the option if it matches the currently logged in user.
@@ -481,18 +451,12 @@ class ChatSwitcherView extends React.Component {
         }
 
         const options = Array.from(matches);
-        if (
-            options.length === 0
-            && value
-            && (Str.isValidEmail(value) || Str.isValidPhone(value))
-        ) {
+        if (options.length === 0 && value && (Str.isValidEmail(value) || Str.isValidPhone(value))) {
             let login = value;
             if (Str.isValidPhone(value)) {
                 // If the phone number doesn't have an international code then let's prefix it with the
                 // current users international code based on their IP address.
-                login = value.includes('+')
-                    ? value
-                    : `+${this.props.countryCodeByIP}${value}`;
+                login = value.includes('+') ? value : `+${this.props.countryCodeByIP}${value}`;
             }
             options.push({
                 text: login,
@@ -512,9 +476,9 @@ class ChatSwitcherView extends React.Component {
         let feedbackMessage = '';
         if (this.state.usersToStartGroupReportWith.length === MAX_GROUP_DM_LENGTH) {
             feedbackHeader = 'Maximum participants reached';
-            feedbackMessage = "You've reached the maximum number of participants for a group chat.";
+            feedbackMessage = 'You\'ve reached the maximum number of participants for a group chat.';
         } else if (this.state.search && this.state.options.length === 0) {
-            feedbackMessage = "Don't see who you are looking for? Type their valid email/phone number to invite them.";
+            feedbackMessage = 'Don\'t see who you are looking for? Type their valid email/phone number to invite them.';
         }
 
         return (
@@ -534,18 +498,23 @@ class ChatSwitcherView extends React.Component {
                 {feedbackMessage ? (
                     <View style={[styles.p2]}>
                         {feedbackHeader.length > 0 && (
-                        <Text style={[styles.h4, styles.mb1]}>{feedbackHeader}</Text>
+                            <Text style={[styles.h4, styles.mb1]}>
+                                {feedbackHeader}
+                            </Text>
                         )}
-                        <Text style={[styles.textLabel]}>{feedbackMessage}</Text>
+                        <Text style={[styles.textLabel]}>
+                            {feedbackMessage}
+                        </Text>
                     </View>
-                ) : (
-                    <ChatSwitcherList
-                        focusedIndex={this.state.focusedIndex}
-                        options={this.state.options}
-                        onSelectRow={this.selectRow}
-                        onAddToGroup={this.addUserToGroup}
-                    />
-                )}
+                )
+                    : (
+                        <ChatSwitcherList
+                            focusedIndex={this.state.focusedIndex}
+                            options={this.state.options}
+                            onSelectRow={this.selectRow}
+                            onAddToGroup={this.addUserToGroup}
+                        />
+                    )}
             </>
         );
     }

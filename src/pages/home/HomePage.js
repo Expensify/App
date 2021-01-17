@@ -64,8 +64,10 @@ class App extends React.Component {
             windowWidth: windowSize.width,
             isNavigationMenuEnabled:
                 windowSize.width <= variables.mobileResponsiveWidthBreakpoint,
+            isFloatingActionButtonActive: false,
         };
 
+        this.toggleFab = this.toggleFab.bind(this);
         this.toggleNavigationMenu = this.toggleNavigationMenu.bind(this);
         this.dismissNavigationMenu = this.dismissNavigationMenu.bind(this);
         this.showNavigationMenu = this.showNavigationMenu.bind(this);
@@ -77,7 +79,7 @@ class App extends React.Component {
         );
 
         this.animationTranslateX = new Animated.Value(
-            !props.isSidebarShown ? -windowSize.width : 0,
+            !props.isSidebarShown ? -this.state.windowWidth : 0,
         );
     }
 
@@ -96,7 +98,7 @@ class App extends React.Component {
         fetchAllReports(true, false, true);
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
-        Dimensions.addEventListener('change', this.toggleHamburgerBasedOnDimensions);
+        Dimensions.addEventListener('change', this.toggleNavigationMenuBasedOnDimensions);
 
         // Set up the navigationMenu correctly once on init
         this.toggleNavigationMenuBasedOnDimensions({
@@ -124,7 +126,7 @@ class App extends React.Component {
     }
 
     componentWillUnmount() {
-        Dimensions.removeEventListener('change', this.toggleHamburgerBasedOnDimensions);
+        Dimensions.removeEventListener('change', this.toggleNavigationMenuBasedOnDimensions);
         KeyboardShortcut.unsubscribe('K');
     }
 
@@ -134,6 +136,16 @@ class App extends React.Component {
     recordTimerAndToggleNavigationMenu() {
         Timing.start(CONST.TIMING.SWITCH_REPORT);
         this.toggleNavigationMenu();
+    }
+
+    /**
+     * Method called when we click the floating action button
+     * will trigger the animation
+     */
+    toggleFab() {
+        this.setState(state => ({
+            isFloatingActionButtonActive: !state.isFloatingActionButtonActive,
+        }));
     }
 
     /**
@@ -152,14 +164,10 @@ class App extends React.Component {
                 changedWindow.width <= variables.mobileResponsiveWidthBreakpoint,
         });
 
-        if (
-            !this.props.isSidebarShown
-            && changedWindow.width > variables.mobileResponsiveWidthBreakpoint
+        if (!this.props.isSidebarShown && changedWindow.width > variables.mobileResponsiveWidthBreakpoint
         ) {
             showSidebar();
-        } else if (
-            this.props.isSidebarShown
-            && changedWindow.width < variables.mobileResponsiveWidthBreakpoint
+        } else if (this.props.isSidebarShown && changedWindow.width < variables.mobileResponsiveWidthBreakpoint
         ) {
             hideSidebar();
         }
@@ -197,7 +205,7 @@ class App extends React.Component {
      * @param {Boolean} navigationMenuIsShown
      */
     animateNavigationMenu(navigationMenuIsShown) {
-        const animationFinalValue = navigationMenuIsShown ? -windowSize.width : 0;
+        const animationFinalValue = navigationMenuIsShown ? -this.state.windowWidth : 0;
 
         setSideBarIsAnimating(true);
         Animated.timing(this.animationTranslateX, {
@@ -259,8 +267,7 @@ class App extends React.Component {
                 <SafeAreaInsetsContext.Consumer style={[styles.flex1]}>
                     {insets => (
                         <View
-                            style={[
-                                styles.appContentWrapper,
+                            style={[styles.appContentWrapper,
                                 appContentWrapperStyle,
                                 styles.flexRow,
                                 styles.flex1,
@@ -281,11 +288,12 @@ class App extends React.Component {
                                         insets={insets}
                                         onLinkClick={this.recordTimerAndToggleNavigationMenu}
                                         isChatSwitcherActive={this.props.isChatSwitcherActive}
+                                        isFloatingActionButtonActive={this.state.isFloatingActionButtonActive}
+                                        onFloatingActionButtonPress={this.toggleFab}
+
                                     />
                                 </Animated.View>
-                                {/* The following pressable allows us to click outside the LHN to close it,
-                                and should be enabled only if the LHN is open. Otherwise, it will capture
-                                some onPress events, causing scrolling issues. */}
+                                
                                 <View
                                     style={[styles.appContent, styles.flex1, styles.flexColumn]}
                                 >
