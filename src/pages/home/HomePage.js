@@ -79,8 +79,9 @@ class App extends React.Component {
             this,
         );
 
+        const windowBarSize = Platform.isPad ? -300 : -this.state.windowWidth;
         this.animationTranslateX = new Animated.Value(
-            !props.isSidebarShown ? Platform.isPad ? -300 : -this.state.windowWidth : 0
+            !props.isSidebarShown ? windowBarSize : 0,
         );
     }
 
