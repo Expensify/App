@@ -207,7 +207,7 @@ class App extends React.Component {
      */
     animateNavigationMenu(navigationMenuIsShown) {
         const windowSideBarSize = Platform.isPad ? -300 : -this.state.windowWidth;
-        const animationFinalValue = navigationMenuIsShown ? windowSideBarSize: 0;
+        const animationFinalValue = navigationMenuIsShown ? windowSideBarSize : 0;
 
         setSideBarIsAnimating(true);
         Animated.timing(this.animationTranslateX, {
