@@ -13,5 +13,5 @@ export default {
     fontSizeh1: 19,
     mobileResponsiveWidthBreakpoint: 1000,
     safeInsertPercentage: 0.7,
-    sideBarWidth: Platform.isPad ? 300 : Dimensions.get('window').width,
+    sideBarWidth: Platform.isPad ? 300 : Dimensions.get('window').width
 };
