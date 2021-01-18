@@ -529,6 +529,7 @@ function addAction(reportID, text, file) {
         [newSequenceNumber]: {
             actionName: 'ADDCOMMENT',
             actorEmail: currentUserEmail,
+            actorAccountID: currentUserAccountID,
             person: [
                 {
                     style: 'strong',
@@ -553,6 +554,7 @@ function addAction(reportID, text, file) {
             isFirstItem: false,
             isAttachment,
             loading: true,
+            shouldShow: true,
         },
     });
 
