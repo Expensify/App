@@ -203,14 +203,16 @@ function subscribe(
             channel = socket.subscribe(channelName);
             let isBound = false;
             channel.bind('pusher:subscription_succeeded', () => {
-                // check so that we do not bind another event with each reconnect attempt
+                // Check so that we do not bind another event with each reconnect attempt
                 if (!isBound) {
                     bindEventToChannel(channel, eventName, eventCallback, isChunked);
                     resolve();
                 }
                 isBound = true;
 
-                // we let this fire for the first time as well as user could wanted to fire something on success
+                // When subscribing for the first time we can register a success callback that can be
+                // called multiple times when the subscription succeeds again in the future
+                // e.g. as a result of Pusher disconnecting and reconnecting
                 successEventCallback();
             });
 
