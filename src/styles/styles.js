@@ -833,13 +833,16 @@ const styles = {
         flex: 1,
     },
 
+    borderBottom: {
+        borderBottomWidth: 1,
+        borderColor: themeColors.border,
+    },
+
     headerBar: {
         overflow: 'hidden',
         justifyContent: 'center',
         display: 'flex',
         paddingLeft: 20,
-        borderBottomWidth: 1,
-        borderColor: themeColors.border,
         height: variables.contentHeaderHeight,
         width: '100%',
     },
