@@ -33,23 +33,26 @@ const CreateMenu = props => (
         isVisible={props.isVisible}
         type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
     >
-        <View style={styles.sidebarCreateMenuContainer}>
-            {props.menuItemData.map(item => (
-                <Pressable
-                    key={item.text}
-                    onPress={item.onPress}
-                    style={({hovered}) => ([
-                        styles.sidebarCreateMenuItem,
-                        {backgroundColor: hovered ? themeColors.buttonDisabledBG : colors.transparent},
-                    ])}
-                >
-                    <item.icon />
+        {props.menuItemData.map(item => (
+            <Pressable
+                key={item.text}
+                onPress={item.onPress}
+                style={({hovered}) => ([
+                    styles.sidebarCreateMenuItem,
+                    {backgroundColor: hovered ? themeColors.buttonHoveredBG : colors.transparent},
+                ])}
+            >
+                <View style={styles.sidebarCreateMenuIcon}>
+                    <item.icon width={24} height={24} />
+                </View>
+                <View style={styles.justifyContentCenter}>
                     <Text style={[styles.sidebarCreateMenuText, styles.ml3]}>
                         {item.text}
                     </Text>
-                </Pressable>
-            ))}
-        </View>
+
+                </View>
+            </Pressable>
+        ))}
     </Modal>
 );
 

@@ -60,6 +60,9 @@ export default (type, windowDimensions) => {
                 width: isSmallScreen ? '100%' : variables.sideBarWidth,
                 borderTopLeftRadius: 16,
                 borderTopRightRadius: 16,
+                paddingTop: 12,
+                paddingBottom: 12,
+                justifyContent: 'center',
                 overflow: 'hidden',
             };
 
