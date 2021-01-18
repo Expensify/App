@@ -15,6 +15,7 @@ import styles, {getSafeAreaPadding} from '../../styles/styles';
 import variables from '../../styles/variables';
 import HeaderView from './HeaderView';
 import Sidebar from './sidebar/SidebarView';
+import SettingsPage from '../SettingsPage';
 import Main from './MainView';
 import {
     hide as hideSidebar,
@@ -39,16 +40,19 @@ import CONST from '../../CONST';
 import {fetchCountryCodeByRequestIP} from '../../libs/actions/GeoLocation';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import * as ChatSwitcher from '../../libs/actions/ChatSwitcher';
+import {redirect} from '../../libs/actions/App';
 
 const windowSize = Dimensions.get('window');
 
 const propTypes = {
     isSidebarShown: PropTypes.bool,
     isChatSwitcherActive: PropTypes.bool,
+    currentURL: PropTypes.string,
 };
 const defaultProps = {
     isSidebarShown: true,
     isChatSwitcherActive: false,
+    currentURL: '',
 };
 
 class App extends React.Component {
@@ -70,6 +74,7 @@ class App extends React.Component {
         this.showHamburger = this.showHamburger.bind(this);
         this.toggleHamburgerBasedOnDimensions = this.toggleHamburgerBasedOnDimensions.bind(this);
         this.recordTimerAndToggleHamburger = this.recordTimerAndToggleHamburger.bind(this);
+        this.navigateToSettings = this.navigateToSettings.bind(this);
 
         this.animationTranslateX = new Animated.Value(
             !props.isSidebarShown ? -300 : 0,
@@ -108,7 +113,6 @@ class App extends React.Component {
         if (!prevProps.isChatSwitcherActive && this.props.isChatSwitcherActive) {
             this.showHamburger();
         }
-
         if (this.props.isSidebarShown === prevProps.isSidebarShown) {
             // Nothing changed, don't trigger animation or re-render
             return;
@@ -127,6 +131,14 @@ class App extends React.Component {
     recordTimerAndToggleHamburger() {
         Timing.start(CONST.TIMING.SWITCH_REPORT);
         this.toggleHamburger();
+    }
+
+    /**
+     * Method called when avatar is clicked
+     */
+    navigateToSettings() {
+        redirect(ROUTES.SETTINGS);
+        hideSidebar();
     }
 
     /**
@@ -259,7 +271,7 @@ class App extends React.Component {
                                 getSafeAreaPadding(insets),
                             ]}
                         >
-                            <Route path={[ROUTES.REPORT, ROUTES.HOME]}>
+                            <Route path={[ROUTES.REPORT, ROUTES.HOME, ROUTES.SETTINGS]}>
                                 <Animated.View style={[
                                     hamburgerStyle,
                                     visibility,
@@ -270,6 +282,7 @@ class App extends React.Component {
                                     <Sidebar
                                         insets={insets}
                                         onLinkClick={this.recordTimerAndToggleHamburger}
+                                        onAvatarClick={this.navigateToSettings}
                                         isChatSwitcherActive={this.props.isChatSwitcherActive}
                                         isFloatingActionButtonActive={this.state.isFloatingAcionButtonActive}
                                         onFloatingActionButtonPress={this.toggleFab}
@@ -290,6 +303,7 @@ class App extends React.Component {
                                             shouldShowHamburgerButton={this.state.isHamburgerEnabled}
                                             onHamburgerButtonClicked={this.toggleHamburger}
                                         />
+                                        {this.props.currentURL === '/settings' && <SettingsPage />}
                                         <Main />
                                     </View>
                                 </Pressable>
@@ -313,6 +327,9 @@ export default withOnyx(
         isChatSwitcherActive: {
             key: ONYXKEYS.IS_CHAT_SWITCHER_ACTIVE,
             initWithStoredValues: false,
+        },
+        currentURL: {
+            key: ONYXKEYS.CURRENT_URL,
         },
     },
 )(App);
