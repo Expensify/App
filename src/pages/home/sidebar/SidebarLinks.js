@@ -155,6 +155,7 @@ class SidebarLinks extends React.Component {
                                 textSize="large"
                                 title="Search"
                                 onCloseButtonPress={() => ChatSwitcher.hide()}
+                                shouldShowBorderBottom={false}
                             />
                             <ChatSwitcherView
                                 onLinkClick={this.props.onLinkClick}

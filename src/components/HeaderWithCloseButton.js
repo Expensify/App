@@ -14,18 +14,22 @@ const propTypes = {
     /** Method to trigger when pressing close button of the header */
     onCloseButtonPress: PropTypes.func,
 
-    // Fontsize
+    /** Fontsize for the text in the Header */
     textSize: PropTypes.oneOf(['default', 'large']),
+
+    /** Whether we should show a border on the bottom of the Header */
+    shouldShowBorderBottom: PropTypes.bool,
 };
 
 const defaultProps = {
     title: '',
     onCloseButtonPress: () => {},
     textSize: 'default',
+    shouldShowBorderBottom: true,
 };
 
 const HeaderWithCloseButton = props => (
-    <View style={styles.headerBar}>
+    <View style={[styles.headerBar, props.shouldShowBorderBottom && styles.borderBottom]}>
         <View style={[
             styles.dFlex,
             styles.flexRow,
