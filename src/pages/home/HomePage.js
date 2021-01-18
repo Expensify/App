@@ -10,7 +10,7 @@ import {
 import {SafeAreaInsetsContext, SafeAreaProvider} from 'react-native-safe-area-context';
 import {withOnyx} from 'react-native-onyx';
 import {Route} from '../../libs/Router';
-import styles, {getSafeAreaPadding} from '../../styles/styles';
+import styles, {getSafeAreaPadding, getNavigationMenuStyle} from '../../styles/styles';
 import variables from '../../styles/variables';
 import HeaderView from './HeaderView';
 import Sidebar from './sidebar/SidebarView';
@@ -244,27 +244,6 @@ class App extends React.Component {
     }
 
     render() {
-        const sidebarWidth = this.state.isSmallScreenWidth ? this.state.windowWidth : variables.sideBarWidth;
-        const navigationMenuStyle = this.state.isSmallScreenWidth && this.props.isSidebarShown
-            ? {
-                ...styles.navigationMenuOpenAbsolute,
-                width: sidebarWidth,
-            }
-            : {
-                ...styles.navigationMenuOpen,
-                width: sidebarWidth,
-            };
-
-        // Note: The visibility state for the Animated.View below is set by modifying the width of the View.
-        // This is due to a known issue affecting Android where a TextInput's padding is not respected when a containing
-        // parent has the display: 'none' style. See: https://github.com/facebook/react-native/issues/16405
-        const visibility = !this.state.isSmallScreenWidth || this.props.isSidebarShown
-            ? {
-                ...styles.sidebarVisible,
-                width: sidebarWidth,
-            }
-            : styles.sidebarHidden;
-
         return (
             <SafeAreaProvider>
                 <CustomStatusBar />
@@ -279,8 +258,7 @@ class App extends React.Component {
                         >
                             <Route path={[ROUTES.REPORT, ROUTES.HOME]}>
                                 <Animated.View style={[
-                                    navigationMenuStyle,
-                                    visibility,
+                                    getNavigationMenuStyle(this.state.windowWidth, this.props.isSidebarShown),
                                     {
                                         transform: [{translateX: this.animationTranslateX}],
                                     }]}
