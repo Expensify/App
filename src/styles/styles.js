@@ -423,6 +423,7 @@ const styles = {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeLabel,
         fontWeight: fontWeightBold,
+        color: themeColors.heading,
         lineHeight: 20,
     },
 
