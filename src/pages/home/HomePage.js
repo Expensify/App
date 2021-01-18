@@ -291,10 +291,8 @@ class App extends React.Component {
                                         isChatSwitcherActive={this.props.isChatSwitcherActive}
                                         isFloatingActionButtonActive={this.state.isFloatingActionButtonActive}
                                         onFloatingActionButtonPress={this.toggleFab}
-
                                     />
                                 </Animated.View>
-
                                 <View
                                     style={[styles.appContent, styles.flex1, styles.flexColumn]}
                                 >
