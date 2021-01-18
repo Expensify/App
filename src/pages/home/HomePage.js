@@ -25,7 +25,7 @@ import {
     subscribeToReportCommentEvents,
     fetchAll as fetchAllReports,
 } from '../../libs/actions/Report';
-import {fetch as fetchPersonalDetails} from '../../libs/actions/PersonalDetails';
+import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import * as Pusher from '../../libs/Pusher/pusher';
 import PusherConnectionManager from '../../libs/PusherConnectionManager';
 import UnreadIndicatorUpdater from '../../libs/UnreadIndicatorUpdater';
@@ -37,6 +37,8 @@ import CONFIG from '../../CONFIG';
 import CustomStatusBar from '../../components/CustomStatusBar';
 import CONST from '../../CONST';
 import {fetchCountryCodeByRequestIP} from '../../libs/actions/GeoLocation';
+import KeyboardShortcut from '../../libs/KeyboardShortcut';
+import * as ChatSwitcher from '../../libs/actions/ChatSwitcher';
 
 const windowSize = Dimensions.get('window');
 
@@ -59,8 +61,10 @@ class App extends React.Component {
         this.state = {
             windowWidth: windowSize.width,
             isHamburgerEnabled: windowSize.width <= variables.mobileResponsiveWidthBreakpoint,
+            isFloatingAcionButtonActive: false,
         };
 
+        this.toggleFab = this.toggleFab.bind(this);
         this.toggleHamburger = this.toggleHamburger.bind(this);
         this.dismissHamburger = this.dismissHamburger.bind(this);
         this.showHamburger = this.showHamburger.bind(this);
@@ -81,21 +85,23 @@ class App extends React.Component {
             authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Push_Authenticate`,
         }).then(subscribeToReportCommentEvents);
 
-        // Fetch all the personal details
-        fetchPersonalDetails();
-
+        // Fetch some data we need on initialization
+        PersonalDetails.fetch();
+        PersonalDetails.fetchTimezone();
         fetchAllReports(true, false, true);
-
         fetchCountryCodeByRequestIP();
-
         UnreadIndicatorUpdater.listenForReportChanges();
-
         Dimensions.addEventListener('change', this.toggleHamburgerBasedOnDimensions);
 
         // Set up the hamburger correctly once on init
         this.toggleHamburgerBasedOnDimensions({window: Dimensions.get('window')});
 
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
+
+        // Listen for the Command+K key being pressed so the focus can be given to the chat switcher
+        KeyboardShortcut.subscribe('K', () => {
+            ChatSwitcher.show();
+        }, ['meta'], true);
     }
 
     componentDidUpdate(prevProps) {
@@ -112,6 +118,7 @@ class App extends React.Component {
 
     componentWillUnmount() {
         Dimensions.removeEventListener('change', this.toggleHamburgerBasedOnDimensions);
+        KeyboardShortcut.unsubscribe('K');
     }
 
     /**
@@ -120,6 +127,16 @@ class App extends React.Component {
     recordTimerAndToggleHamburger() {
         Timing.start(CONST.TIMING.SWITCH_REPORT);
         this.toggleHamburger();
+    }
+
+    /**
+     * Method called when we click the floating action button
+     * will trigger the animation
+     */
+    toggleFab() {
+        this.setState(state => ({
+            isFloatingAcionButtonActive: !state.isFloatingAcionButtonActive,
+        }));
     }
 
     /**
@@ -254,6 +271,8 @@ class App extends React.Component {
                                         insets={insets}
                                         onLinkClick={this.recordTimerAndToggleHamburger}
                                         isChatSwitcherActive={this.props.isChatSwitcherActive}
+                                        isFloatingActionButtonActive={this.state.isFloatingAcionButtonActive}
+                                        onFloatingActionButtonPress={this.toggleFab}
                                     />
                                 </Animated.View>
                                 {/* The following pressable allows us to click outside the LHN to close it,
