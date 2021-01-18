@@ -728,7 +728,7 @@ const styles = {
         marginBottom: 3,
     },
 
-    hamburgerOpenAbsolute: {
+    navigationMenuOpenAbsolute: {
         borderColor: themeColors.border,
         position: 'absolute',
         left: 0,
@@ -744,13 +744,11 @@ const styles = {
         shadowRadius: 20,
     },
 
-    hamburgerOpen: {
+    navigationMenuOpen: {
         borderColor: themeColors.border,
-        width: variables.sideBarWidth,
     },
 
     sidebarVisible: {
-        width: variables.sideBarWidth,
         borderRightWidth: 1,
     },
 
