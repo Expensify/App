@@ -22,6 +22,9 @@ const propTypes = {
 
     // Callback to fire on request to toggle the FAB
     onFloatingActionButtonPress: PropTypes.func.isRequired,
+
+    // Callback to fire on avatar click
+    onAvatarClick: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -32,6 +35,7 @@ const SidebarView = props => (
     <View style={[styles.flex1, styles.sidebar]}>
         <SidebarLinks
             onLinkClick={props.onLinkClick}
+            onAvatarClick={props.onAvatarClick}
             insets={props.insets}
             isChatSwitcherActive={props.isChatSwitcherActive}
         />
