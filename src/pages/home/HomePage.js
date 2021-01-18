@@ -6,7 +6,6 @@ import {
     Animated,
     Easing,
     Keyboard,
-    Platform,
 } from 'react-native';
 import {
     SafeAreaInsetsContext,
@@ -43,8 +42,6 @@ import {fetchCountryCodeByRequestIP} from '../../libs/actions/GeoLocation';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import * as ChatSwitcher from '../../libs/actions/ChatSwitcher';
 
-const windowSize = Dimensions.get('window');
-
 const propTypes = {
     isSidebarShown: PropTypes.bool,
     isChatSwitcherActive: PropTypes.bool,
@@ -61,10 +58,11 @@ class App extends React.Component {
 
         super(props);
 
+        const windowSize = Dimensions.get('window');
+
         this.state = {
             windowWidth: windowSize.width,
-            isNavigationMenuEnabled:
-                windowSize.width <= variables.mobileResponsiveWidthBreakpoint,
+            isSmallScreenWidth: windowSize.width <= variables.mobileResponsiveWidthBreakpoint,
             isFloatingActionButtonActive: false,
         };
 
@@ -79,7 +77,9 @@ class App extends React.Component {
             this,
         );
 
-        const windowBarSize = Platform.isPad ? -300 : -this.state.windowWidth;
+        const windowBarSize = this.state.windowWidth < variables.mobileResponsiveWidthBreakpoint
+            ? -variables.sideBarWidth
+            : -this.state.windowWidth;
         this.animationTranslateX = new Animated.Value(
             !props.isSidebarShown ? windowBarSize : 0,
         );
@@ -162,8 +162,7 @@ class App extends React.Component {
 
         this.setState({
             windowWidth: changedWindow.width,
-            isNavigationMenuEnabled:
-                changedWindow.width <= variables.mobileResponsiveWidthBreakpoint,
+            isSmallScreenWidth: changedWindow.width <= variables.mobileResponsiveWidthBreakpoint,
         });
 
         if (!this.props.isSidebarShown && changedWindow.width > variables.mobileResponsiveWidthBreakpoint
@@ -181,7 +180,7 @@ class App extends React.Component {
      * Only changes navigationMenu state on small screens (e.g. Mobile and mWeb)
      */
     dismissNavigationMenu() {
-        if (!this.state.isNavigationMenuEnabled || !this.props.isSidebarShown) {
+        if (!this.state.isSmallScreenWidth || !this.props.isSidebarShown) {
             return;
         }
 
@@ -207,7 +206,9 @@ class App extends React.Component {
      * @param {Boolean} navigationMenuIsShown
      */
     animateNavigationMenu(navigationMenuIsShown) {
-        const windowSideBarSize = Platform.isPad ? -300 : -this.state.windowWidth;
+        const windowSideBarSize = this.state.windowWidth < variables.mobileResponsiveWidthBreakpoint
+            ? -variables.sideBarWidth
+            : -this.state.windowWidth;
         const animationFinalValue = navigationMenuIsShown ? windowSideBarSize : 0;
 
         setSideBarIsAnimating(true);
@@ -232,7 +233,7 @@ class App extends React.Component {
      * Only changes navigationMenu state on small screens (e.g. Mobile and mWeb)
      */
     toggleNavigationMenu() {
-        if (!this.state.isNavigationMenuEnabled) {
+        if (!this.state.isSmallScreenWidth) {
             return;
         }
 
@@ -250,19 +251,26 @@ class App extends React.Component {
     }
 
     render() {
-        const navigationMenuStyle = this.state.isNavigationMenuEnabled && this.props.isSidebarShown
-            ? styles.navigationMenuOpenAbsolute
-            : styles.navigationMenuOpen;
+        const sidebarWidth = this.state.isSmallScreenWidth ? this.state.windowWidth : variables.sideBarWidth;
+        const navigationMenuStyle = this.state.isSmallScreenWidth && this.props.isSidebarShown
+            ? {
+                ...styles.navigationMenuOpenAbsolute,
+                width: sidebarWidth,
+            }
+            : {
+                ...styles.navigationMenuOpen,
+                width: sidebarWidth,
+            };
 
         // Note: The visibility state for the Animated.View below is set by modifying the width of the View.
         // This is due to a known issue affecting Android where a TextInput's padding is not respected when a containing
         // parent has the display: 'none' style. See: https://github.com/facebook/react-native/issues/16405
-        const visibility = !this.state.isNavigationMenuEnabled || this.props.isSidebarShown
-            ? styles.sidebarVisible
+        const visibility = !this.state.isSmallScreenWidth || this.props.isSidebarShown
+            ? {
+                ...styles.sidebarVisible,
+                width: sidebarWidth,
+            }
             : styles.sidebarHidden;
-        const appContentWrapperStyle = !this.state.isNavigationMenuEnabled
-            ? styles.appContentWrapperLarge
-            : null;
 
         return (
             <SafeAreaProvider>
@@ -271,7 +279,6 @@ class App extends React.Component {
                     {insets => (
                         <View
                             style={[styles.appContentWrapper,
-                                appContentWrapperStyle,
                                 styles.flexRow,
                                 styles.flex1,
                                 getSafeAreaPadding(insets),
@@ -302,7 +309,7 @@ class App extends React.Component {
                                 >
                                     <HeaderView
                                         shouldShowNavigationMenuButton={
-                                            this.state.isNavigationMenuEnabled
+                                            this.state.isSmallScreenWidth
                                         }
                                         onNavigationMenuButtonClicked={this.toggleNavigationMenu}
                                     />
@@ -320,12 +327,14 @@ class App extends React.Component {
 App.propTypes = propTypes;
 App.defaultProps = defaultProps;
 
-export default withOnyx({
-    isSidebarShown: {
-        key: ONYXKEYS.IS_SIDEBAR_SHOWN,
+export default withOnyx(
+    {
+        isSidebarShown: {
+            key: ONYXKEYS.IS_SIDEBAR_SHOWN,
+        },
+        isChatSwitcherActive: {
+            key: ONYXKEYS.IS_CHAT_SWITCHER_ACTIVE,
+            initWithStoredValues: false,
+        },
     },
-    isChatSwitcherActive: {
-        key: ONYXKEYS.IS_CHAT_SWITCHER_ACTIVE,
-        initWithStoredValues: false,
-    },
-})(App);
+)(App);

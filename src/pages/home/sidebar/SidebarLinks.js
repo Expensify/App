@@ -48,17 +48,15 @@ const propTypes = {
     isChatSwitcherActive: PropTypes.bool,
 
     // List of users' personal details
-    personalDetails: PropTypes.objectOf(
-        PropTypes.shape({
-            login: PropTypes.string.isRequired,
-            avatarURL: PropTypes.string.isRequired,
-            displayName: PropTypes.string.isRequired,
-        }),
-    ),
+    personalDetails: PropTypes.objectOf(PropTypes.shape({
+        login: PropTypes.string.isRequired,
+        avatarURL: PropTypes.string.isRequired,
+        displayName: PropTypes.string.isRequired,
+    })),
 
     // The personal details of the person who is logged in
     myPersonalDetails: PropTypes.shape({
-    // Display name of the current user from their personal details
+        // Display name of the current user from their personal details
         displayName: PropTypes.string,
 
         // Avatar URL of the current user from their personal details
@@ -67,7 +65,7 @@ const propTypes = {
 
     // Information about the network
     network: PropTypes.shape({
-    // Is the network currently offline or not
+        // Is the network currently offline or not
         isOffline: PropTypes.bool,
     }),
 };
@@ -83,36 +81,29 @@ const defaultProps = {
 
 const SidebarLinks = (props) => {
     const reportIDInUrl = parseInt(props.match.params.reportID, 10);
-    const sortedReports = lodashOrderby(
-        props.reports,
-        ['isPinned', 'reportName'],
-        ['desc', 'asc'],
-    );
+    const sortedReports = lodashOrderby(props.reports, [
+        'isPinned',
+        'reportName',
+    ], [
+        'desc',
+        'asc',
+    ]);
 
     /**
-   * Check if the report has a draft comment
-   *
-   * @param {Number} reportID
-   * @returns {Boolean}
-   */
+     * Check if the report has a draft comment
+     * @param {Number} reportID
+     * @returns {Boolean}
+     */
     function hasComment(reportID) {
-        const allComments = get(
-            props.comments,
-            `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
-            '',
-        );
+        const allComments = get(props.comments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, '');
         return allComments.length > 0;
     }
 
     // Filter the reports so that the only reports shown are pinned, unread, have draft
     // comments (but are not the open one), and the one matching the URL
-    const reportsToDisplay = _.filter(
-        sortedReports,
-        report => report.isPinned
-      || report.unreadActionCount > 0
-      || report.reportID === reportIDInUrl
-      || (report.reportID !== reportIDInUrl && hasComment(report.reportID)),
-    );
+    const reportsToDisplay = _.filter(sortedReports, report => (report.isPinned || (report.unreadActionCount > 0)
+        || report.reportID === reportIDInUrl
+        || (report.reportID !== reportIDInUrl && hasComment(report.reportID))));
 
     // Update styles to hide the report links if they should not be visible
     const sidebarLinksStyle = !props.isChatSwitcherActive
@@ -162,11 +153,9 @@ const SidebarLinks = (props) => {
                 {/* so nothing is rendered */}
                 {_.map(reportsToDisplay, (report) => {
                     const participantDetails = get(report, 'participants.length', 0) === 1
-                        ? get(props.personalDetails, report.participants[0], '')
-                        : '';
+                        ? get(props.personalDetails, report.participants[0], '') : '';
                     const login = participantDetails ? participantDetails.login : '';
-                    return (
-                        report.reportName && (
+                    return report.reportName && (
                         <ChatLinkRow
                             key={report.reportID}
                             option={{
@@ -182,9 +171,7 @@ const SidebarLinks = (props) => {
                                 login,
                                 reportID: report.reportID,
                                 isUnread: report.unreadActionCount > 0,
-                                hasDraftComment:
-                    report.reportID !== reportIDInUrl
-                    && hasComment(report.reportID),
+                                hasDraftComment: report.reportID !== reportIDInUrl && hasComment(report.reportID),
                             }}
                             onSelectRow={() => {
                                 redirect(ROUTES.getReportRoute(report.reportID));
@@ -192,7 +179,6 @@ const SidebarLinks = (props) => {
                             }}
                             optionIsFocused={report.reportID === reportIDInUrl}
                         />
-                        )
                     );
                 })}
             </ScrollView>

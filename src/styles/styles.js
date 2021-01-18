@@ -746,11 +746,9 @@ const styles = {
 
     navigationMenuOpen: {
         borderColor: themeColors.border,
-        width: variables.sideBarWidth,
     },
 
     sidebarVisible: {
-        width: variables.sideBarWidth,
         borderRightWidth: 1,
     },
 

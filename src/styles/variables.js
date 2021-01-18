@@ -1,5 +1,3 @@
-import {Dimensions, Platform} from 'react-native';
-
 export default {
     contentHeaderHeight: 65,
     componentSizeSmall: 28,
@@ -13,5 +11,5 @@ export default {
     fontSizeh1: 19,
     mobileResponsiveWidthBreakpoint: 1000,
     safeInsertPercentage: 0.7,
-    sideBarWidth: Platform.isPad ? 300 : Dimensions.get('window').width,
+    sideBarWidth: 300,
 };

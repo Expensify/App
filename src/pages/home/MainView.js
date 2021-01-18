@@ -51,8 +51,8 @@ class MainView extends Component {
 
         const reportsToDisplay = _.filter(this.props.reports, report => (
             report.isPinned
-            || report.unreadActionCount > 0
-            || report.reportID === reportIDInUrl
+                || report.unreadActionCount > 0
+                || report.reportID === reportIDInUrl
         ));
         return (
             <>
