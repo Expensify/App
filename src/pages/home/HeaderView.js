@@ -63,11 +63,7 @@ const HeaderView = props => (
                             onPress={() => togglePinnedState(props.report)}
                             style={[styles.touchableButtonImage, styles.mr0]}
                         >
-                            <PinIcon
-                                height={20}
-                                width={20}
-                                isEnabled={props.report.isPinned}
-                            />
+                            <PinIcon height={20} width={20} isEnabled={props.report.isPinned} />
                         </Pressable>
                     </View>
                 </View>

@@ -34,13 +34,11 @@ const propTypes = {
     /* Onyx Props */
 
     // List of reports
-    reports: PropTypes.objectOf(
-        PropTypes.shape({
-            reportID: PropTypes.number,
-            reportName: PropTypes.string,
-            unreadActionCount: PropTypes.number,
-        }),
-    ),
+    reports: PropTypes.objectOf(PropTypes.shape({
+        reportID: PropTypes.number,
+        reportName: PropTypes.string,
+        unreadActionCount: PropTypes.number,
+    })),
 
     // List of draft comments. We don't know the shape, since the keys include the report numbers
     comments: PropTypes.objectOf(PropTypes.string),
@@ -79,6 +77,7 @@ const defaultProps = {
     network: null,
 };
 
+
 const SidebarLinks = (props) => {
     const reportIDInUrl = parseInt(props.match.params.reportID, 10);
     const sortedReports = lodashOrderby(props.reports, [
@@ -91,6 +90,7 @@ const SidebarLinks = (props) => {
 
     /**
      * Check if the report has a draft comment
+     *
      * @param {Number} reportID
      * @returns {Boolean}
      */
@@ -102,8 +102,8 @@ const SidebarLinks = (props) => {
     // Filter the reports so that the only reports shown are pinned, unread, have draft
     // comments (but are not the open one), and the one matching the URL
     const reportsToDisplay = _.filter(sortedReports, report => (report.isPinned || (report.unreadActionCount > 0)
-        || report.reportID === reportIDInUrl
-        || (report.reportID !== reportIDInUrl && hasComment(report.reportID))));
+            || report.reportID === reportIDInUrl
+            || (report.reportID !== reportIDInUrl && hasComment(report.reportID))));
 
     // Update styles to hide the report links if they should not be visible
     const sidebarLinksStyle = !props.isChatSwitcherActive
@@ -118,30 +118,31 @@ const SidebarLinks = (props) => {
         <View style={[styles.flex1, styles.h100, {marginTop: props.insets.top}]}>
             <View style={[chatSwitcherStyle]}>
                 {props.isChatSwitcherActive && (
-                <ChatSwitcherView onLinkClick={props.onLinkClick} />
+                    <ChatSwitcherView
+                        onLinkClick={props.onLinkClick}
+                    />
                 )}
             </View>
             {!props.isChatSwitcherActive && (
-            <View
-                style={[
+                <View style={[
                     styles.flexRow,
                     styles.sidebarHeaderTop,
                     styles.justifyContentBetween,
                     styles.alignItemsCenter,
                 ]}
-            >
-                <Header textSize="large" title="Chats" />
-                <TouchableOpacity
-                    style={[styles.flexRow, styles.sidebarHeaderTop]}
-                    onPress={() => ChatSwitcher.show()}
                 >
-                    <MagnifyingGlassIcon width={20} height={20} />
-                </TouchableOpacity>
-                <AvatarWithIndicator
-                    source={props.myPersonalDetails.avatarURL}
-                    isActive={props.network && !props.network.isOffline}
-                />
-            </View>
+                    <Header textSize="large" title="Chats" />
+                    <TouchableOpacity
+                        style={[styles.flexRow, styles.sidebarHeaderTop]}
+                        onPress={() => ChatSwitcher.show()}
+                    >
+                        <MagnifyingGlassIcon width={20} height={20} />
+                    </TouchableOpacity>
+                    <AvatarWithIndicator
+                        source={props.myPersonalDetails.avatarURL}
+                        isActive={props.network && !props.network.isOffline}
+                    />
+                </View>
             )}
             <ScrollView
                 keyboardShouldPersistTaps="always"
@@ -159,9 +160,7 @@ const SidebarLinks = (props) => {
                         <ChatLinkRow
                             key={report.reportID}
                             option={{
-                                text: participantDetails
-                                    ? participantDetails.displayName
-                                    : report.reportName,
+                                text: participantDetails ? participantDetails.displayName : report.reportName,
                                 alternateText: Str.removeSMSDomain(login),
                                 type: participantDetails ? 'user' : 'report',
 

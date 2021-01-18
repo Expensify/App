@@ -7,10 +7,7 @@ import {
     Easing,
     Keyboard,
 } from 'react-native';
-import {
-    SafeAreaInsetsContext,
-    SafeAreaProvider,
-} from 'react-native-safe-area-context';
+import {SafeAreaInsetsContext, SafeAreaProvider} from 'react-native-safe-area-context';
 import {withOnyx} from 'react-native-onyx';
 import {Route} from '../../libs/Router';
 import styles, {getSafeAreaPadding} from '../../styles/styles';
@@ -59,10 +56,10 @@ class App extends React.Component {
         super(props);
 
         const windowSize = Dimensions.get('window');
-
+        const isSmallScreenWidth = windowSize.width <= variables.mobileResponsiveWidthBreakpoint;
         this.state = {
             windowWidth: windowSize.width,
-            isSmallScreenWidth: windowSize.width <= variables.mobileResponsiveWidthBreakpoint,
+            isSmallScreenWidth,
             isFloatingActionButtonActive: false,
         };
 
@@ -70,16 +67,12 @@ class App extends React.Component {
         this.toggleNavigationMenu = this.toggleNavigationMenu.bind(this);
         this.dismissNavigationMenu = this.dismissNavigationMenu.bind(this);
         this.showNavigationMenu = this.showNavigationMenu.bind(this);
-        this.toggleNavigationMenuBasedOnDimensions = this.toggleNavigationMenuBasedOnDimensions.bind(
-            this,
-        );
-        this.recordTimerAndToggleNavigationMenu = this.recordTimerAndToggleNavigationMenu.bind(
-            this,
-        );
+        this.toggleNavigationMenuBasedOnDimensions = this.toggleNavigationMenuBasedOnDimensions.bind(this);
+        this.recordTimerAndToggleNavigationMenu = this.recordTimerAndToggleNavigationMenu.bind(this);
 
-        const windowBarSize = this.state.windowWidth < variables.mobileResponsiveWidthBreakpoint
-            ? -variables.sideBarWidth
-            : -this.state.windowWidth;
+        const windowBarSize = isSmallScreenWidth
+            ? -this.state.windowWidth
+            : -variables.sideBarWidth;
         this.animationTranslateX = new Animated.Value(
             !props.isSidebarShown ? windowBarSize : 0,
         );
@@ -160,16 +153,16 @@ class App extends React.Component {
             return;
         }
 
+        const isSmallScreenWidth = changedWindow.width <= variables.mobileResponsiveWidthBreakpoint;
+
         this.setState({
             windowWidth: changedWindow.width,
-            isSmallScreenWidth: changedWindow.width <= variables.mobileResponsiveWidthBreakpoint,
+            isSmallScreenWidth,
         });
 
-        if (!this.props.isSidebarShown && changedWindow.width > variables.mobileResponsiveWidthBreakpoint
-        ) {
+        if (!this.props.isSidebarShown && !isSmallScreenWidth) {
             showSidebar();
-        } else if (this.props.isSidebarShown && changedWindow.width < variables.mobileResponsiveWidthBreakpoint
-        ) {
+        } else if (this.props.isSidebarShown && isSmallScreenWidth) {
             hideSidebar();
         }
     }
@@ -206,7 +199,7 @@ class App extends React.Component {
      * @param {Boolean} navigationMenuIsShown
      */
     animateNavigationMenu(navigationMenuIsShown) {
-        const windowSideBarSize = this.state.windowWidth < variables.mobileResponsiveWidthBreakpoint
+        const windowSideBarSize = this.state.isSmallScreenWidth
             ? -variables.sideBarWidth
             : -this.state.windowWidth;
         const animationFinalValue = navigationMenuIsShown ? windowSideBarSize : 0;
@@ -285,14 +278,12 @@ class App extends React.Component {
                             ]}
                         >
                             <Route path={[ROUTES.REPORT, ROUTES.HOME]}>
-                                <Animated.View
-                                    style={[
-                                        navigationMenuStyle,
-                                        visibility,
-                                        {
-                                            transform: [{translateX: this.animationTranslateX}],
-                                        },
-                                    ]}
+                                <Animated.View style={[
+                                    navigationMenuStyle,
+                                    visibility,
+                                    {
+                                        transform: [{translateX: this.animationTranslateX}],
+                                    }]}
                                 >
                                     <Sidebar
                                         insets={insets}
@@ -308,9 +299,7 @@ class App extends React.Component {
                                     style={[styles.appContent, styles.flex1, styles.flexColumn]}
                                 >
                                     <HeaderView
-                                        shouldShowNavigationMenuButton={
-                                            this.state.isSmallScreenWidth
-                                        }
+                                        shouldShowNavigationMenuButton={this.state.isSmallScreenWidth}
                                         onNavigationMenuButtonClicked={this.toggleNavigationMenu}
                                     />
                                     <Main />
