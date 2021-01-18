@@ -119,6 +119,7 @@ class App extends React.Component {
     componentWillUnmount() {
         Dimensions.removeEventListener('change', this.toggleHamburgerBasedOnDimensions);
         KeyboardShortcut.unsubscribe('K');
+        NetworkConnection.stopListeningForReconnect();
     }
 
     /**
