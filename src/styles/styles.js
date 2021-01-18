@@ -481,7 +481,6 @@ const styles = {
         height: variables.contentHeaderHeight,
         justifyContent: 'center',
         display: 'flex',
-        paddingLeft: 20,
         paddingRight: 20,
     },
 
@@ -492,10 +491,10 @@ const styles = {
 
     LHNToggle: {
         alignItems: 'center',
-        height: variables.componentSizeNormal,
+        height: variables.contentHeaderHeight,
         justifyContent: 'center',
-        marginRight: 8,
-        width: variables.componentSizeNormal,
+        paddingRight: 10,
+        paddingLeft: 20,
     },
 
     LHNToggleIcon: {
