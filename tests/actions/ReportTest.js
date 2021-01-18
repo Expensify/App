@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import * as Pusher from '../../src/libs/Pusher/pusher';
@@ -50,6 +51,8 @@ describe('actions/Report', () => {
             callback: val => reportActions = val,
         });
 
+        let clientID;
+
         // Set up Onyx with some test user data
         return signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
             .then(() => {
@@ -71,7 +74,11 @@ describe('actions/Report', () => {
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                const resultAction = reportActions[ACTION_ID];
+                const resultAction = _.first(_.values(reportActions));
+
+                // Store the generated clientID so that we can send it with our mock Pusher update
+                clientID = resultAction.sequenceNumber;
+
                 expect(resultAction.message).toEqual(REPORT_ACTION.message);
                 expect(resultAction.person).toEqual(REPORT_ACTION.person);
                 expect(resultAction.loading).toEqual(true);
@@ -82,7 +89,7 @@ describe('actions/Report', () => {
                 const channel = Pusher.getChannel('private-user-accountID-1');
                 channel.emit('reportComment', {
                     reportID: REPORT_ID,
-                    reportAction: REPORT_ACTION,
+                    reportAction: {...REPORT_ACTION, clientID},
                 });
 
                 // Once a reportComment event is emitted to the Pusher channel we should see the comment get processed
@@ -91,6 +98,9 @@ describe('actions/Report', () => {
                 return waitForPromisesToResolve();
             })
             .then(() => {
+                // Verify there is only one action and our optimistic comment has been removed
+                expect(_.size(reportActions)).toBe(1);
+
                 const resultAction = reportActions[ACTION_ID];
 
                 // Verify that our action is no longer in the loading state
