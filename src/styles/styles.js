@@ -729,7 +729,6 @@ const styles = {
     },
 
     navigationMenuOpenAbsolute: {
-        borderColor: themeColors.border,
         position: 'absolute',
         left: 0,
         top: 0,
@@ -742,10 +741,6 @@ const styles = {
         },
         shadowOpacity: 0.15,
         shadowRadius: 20,
-    },
-
-    navigationMenuOpen: {
-        borderColor: themeColors.border,
     },
 
     sidebarVisible: {
@@ -1040,7 +1035,28 @@ function getSafeAreaMargins(insets) {
     return {marginBottom: insets.bottom * variables.safeInsertPercentage};
 }
 
+/**
+ * Return navigation menu styles.
+ *
+ * @param {Number} windowWidth
+ * @param {Boolean} isSidebarShown
+ * @returns {Object}
+ */
+function getNavigationMenuStyle(windowWidth, isSidebarShown) {
+    const isSmallScreenWidth = windowWidth <= variables.mobileResponsiveWidthBreakpoint;
+    return isSmallScreenWidth
+        ? {
+            ...styles.navigationMenuOpenAbsolute,
+            width: isSidebarShown ? windowWidth : 0,
+        }
+        : {
+            borderColor: themeColors.border,
+            borderRightWidth: 1,
+            width: variables.sideBarWidth,
+        };
+}
+
 export default styles;
 export {
-    getSafeAreaPadding, getSafeAreaMargins, webViewStyles,
+    getSafeAreaPadding, getSafeAreaMargins, webViewStyles, getNavigationMenuStyle,
 };
