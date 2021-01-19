@@ -39,7 +39,7 @@ const defaultProps = {
 
 const HeaderView = props => (
     <View style={[styles.appContentHeader]}>
-        <View style={[styles.appContentHeaderTitle]}>
+        <View style={[styles.appContentHeaderTitle, !props.shouldShowNavigationMenuButton && styles.pl5]}>
             {props.shouldShowNavigationMenuButton && (
                 <Pressable
                     onPress={props.onNavigationMenuButtonClicked}
