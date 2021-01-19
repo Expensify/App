@@ -3,15 +3,20 @@
 # Used to precompile all Github Action node.js scripts using ncc.
 # This bundles them with their dependencies into a single executable node.js script.
 
-# Get a reference to the parent directory
-# In order for the script to be runnable from anywhere, don't use relative path like '../'
-declare -r PARENT_DIR=$(dirname "$(realpath "$0")")
+# In order for this script to be safely run from anywhere, we cannot use the raw relative path '../actions'
+declare -r ACTIONS_DIR="$(dirname "$(dirname "$(realpath "$0")")")/actions"
+
+# List of paths to all JS files that implement our GH Actions
+declare -r GITHUB_ACTIONS=(
+    "$ACTIONS_DIR/bumpVersion/bumpVersion.js"
+)
 
 # This will be inserted at the top of all compiled files as a warning to devs.
-NOTE_DONT_EDIT=$("$PARENT_DIR/generateWarningNote.sh")
+declare -r NOTE_DONT_EDIT='/**
+ * NOTE: This is a compiled file. DO NOT directly edit this file.
+ */
+'
 
-# Get the list of Github Actions using ./listActions.sh
-GITHUB_ACTIONS=( "$("$PARENT_DIR/listActions.sh")" )
 
 for ACTION in "${GITHUB_ACTIONS[@]}"; do
     # Build the action
