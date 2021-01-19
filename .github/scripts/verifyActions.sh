@@ -8,7 +8,7 @@ declare -r GREEN='\033[0;32m'
 declare -r RED='\033[0;31m'
 declare -r NC='\033[0m'
 
-if [[ $(git diff --exit-code) ]]; then
+if [[ $(git diff --exit-code) -eq 0 ]]; then
     echo -e "${GREEN}Github Actions are up to date!${NC}"
     exit 0
 else
