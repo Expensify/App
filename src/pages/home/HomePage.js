@@ -25,7 +25,7 @@ import {
     subscribeToReportCommentEvents,
     fetchAll as fetchAllReports,
 } from '../../libs/actions/Report';
-import {fetch as fetchPersonalDetails} from '../../libs/actions/PersonalDetails';
+import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import * as Pusher from '../../libs/Pusher/pusher';
 import PusherConnectionManager from '../../libs/PusherConnectionManager';
 import UnreadIndicatorUpdater from '../../libs/UnreadIndicatorUpdater';
@@ -37,6 +37,8 @@ import CONFIG from '../../CONFIG';
 import CustomStatusBar from '../../components/CustomStatusBar';
 import CONST from '../../CONST';
 import {fetchCountryCodeByRequestIP} from '../../libs/actions/GeoLocation';
+import KeyboardShortcut from '../../libs/KeyboardShortcut';
+import * as ChatSwitcher from '../../libs/actions/ChatSwitcher';
 
 const windowSize = Dimensions.get('window');
 
@@ -59,10 +61,11 @@ class App extends React.Component {
         this.state = {
             windowWidth: windowSize.width,
             isHamburgerEnabled: windowSize.width <= variables.mobileResponsiveWidthBreakpoint,
-            isFloatingAcionButtonActive: false,
+            isCreateMenuActive: false,
         };
 
-        this.toggleFab = this.toggleFab.bind(this);
+        this.onCreateMenuItemSelected = this.onCreateMenuItemSelected.bind(this);
+        this.toggleCreateMenu = this.toggleCreateMenu.bind(this);
         this.toggleHamburger = this.toggleHamburger.bind(this);
         this.dismissHamburger = this.dismissHamburger.bind(this);
         this.showHamburger = this.showHamburger.bind(this);
@@ -70,7 +73,7 @@ class App extends React.Component {
         this.recordTimerAndToggleHamburger = this.recordTimerAndToggleHamburger.bind(this);
 
         this.animationTranslateX = new Animated.Value(
-            !props.isSidebarShown ? -300 : 0,
+            !props.isSidebarShown ? -variables.sideBarWidth : 0,
         );
     }
 
@@ -83,21 +86,23 @@ class App extends React.Component {
             authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Push_Authenticate`,
         }).then(subscribeToReportCommentEvents);
 
-        // Fetch all the personal details
-        fetchPersonalDetails();
-
+        // Fetch some data we need on initialization
+        PersonalDetails.fetch();
+        PersonalDetails.fetchTimezone();
         fetchAllReports(true, false, true);
-
         fetchCountryCodeByRequestIP();
-
         UnreadIndicatorUpdater.listenForReportChanges();
-
         Dimensions.addEventListener('change', this.toggleHamburgerBasedOnDimensions);
 
         // Set up the hamburger correctly once on init
         this.toggleHamburgerBasedOnDimensions({window: Dimensions.get('window')});
 
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
+
+        // Listen for the Command+K key being pressed so the focus can be given to the chat switcher
+        KeyboardShortcut.subscribe('K', () => {
+            ChatSwitcher.show();
+        }, ['meta'], true);
     }
 
     componentDidUpdate(prevProps) {
@@ -114,6 +119,16 @@ class App extends React.Component {
 
     componentWillUnmount() {
         Dimensions.removeEventListener('change', this.toggleHamburgerBasedOnDimensions);
+        KeyboardShortcut.unsubscribe('K');
+        NetworkConnection.stopListeningForReconnect();
+    }
+
+    /**
+     * Method called when a Create Menu item is selected.
+     */
+    onCreateMenuItemSelected() {
+        this.toggleCreateMenu();
+        ChatSwitcher.show();
     }
 
     /**
@@ -125,12 +140,17 @@ class App extends React.Component {
     }
 
     /**
-     * Method called when we click the floating action button
-     * will trigger the animation
+     * Method called either when:
+     * Pressing the floating action button to open the CreateMenu modal
+     * Selecting an item on CreateMenu or closing it by clicking outside of the modal component
      */
-    toggleFab() {
+    toggleCreateMenu() {
+        // Prevent from possibly toggling the create menu with the sidebar hidden
+        if (!this.props.isSidebarShown) {
+            return;
+        }
         this.setState(state => ({
-            isFloatingAcionButtonActive: !state.isFloatingAcionButtonActive,
+            isCreateMenuActive: !state.isCreateMenuActive,
         }));
     }
 
@@ -266,8 +286,9 @@ class App extends React.Component {
                                         insets={insets}
                                         onLinkClick={this.recordTimerAndToggleHamburger}
                                         isChatSwitcherActive={this.props.isChatSwitcherActive}
-                                        isFloatingActionButtonActive={this.state.isFloatingAcionButtonActive}
-                                        onFloatingActionButtonPress={this.toggleFab}
+                                        isCreateMenuActive={this.state.isCreateMenuActive}
+                                        toggleCreateMenu={this.toggleCreateMenu}
+                                        onCreateMenuItemSelected={this.onCreateMenuItemSelected}
                                     />
                                 </Animated.View>
                                 {/* The following pressable allows us to click outside the LHN to close it,
