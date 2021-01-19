@@ -15,6 +15,9 @@ jobs:
 
             - run: npm install
 
+            # Verify that any Github Actions were recompiled if necessary
+            - run: npm run gh-actions-build && git diff --exit-code
+
             - run: npm run test
               env:
                   CI: true
