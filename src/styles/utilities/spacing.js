@@ -120,4 +120,8 @@ export default {
     pr2: {
         paddingRight: 8,
     },
+
+    pl5: {
+        paddingLeft: 20,
+    },
 };

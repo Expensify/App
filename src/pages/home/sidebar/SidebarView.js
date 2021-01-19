@@ -9,7 +9,7 @@ import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
 import FAB from '../../../components/FAB';
 
 const propTypes = {
-    // Toggles the hamburger menu open and closed
+    // Toggles the navigation menu open and closed
     onLinkClick: PropTypes.func.isRequired,
 
     // Safe area insets required for mobile devices margins
@@ -44,7 +44,7 @@ const SidebarView = props => (
                 onAvatarClick={props.onAvatarClick}
             />
             {!props.isChatSwitcherActive && (
-            <SidebarBottom insets={props.insets} />
+                <SidebarBottom insets={props.insets} />
             )}
             <FAB
                 isActive={props.isCreateMenuActive}
