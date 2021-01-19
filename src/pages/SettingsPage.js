@@ -20,7 +20,7 @@ const propTypes = {
     /* Onyx Props */
     // The personal details of the person who is logged in
     myPersonalDetails: PropTypes.shape({
-    // Display name of the current user from their personal details
+        // Display name of the current user from their personal details
         displayName: PropTypes.string,
 
         // Avatar URL of the current user from their personal details
@@ -29,15 +29,18 @@ const propTypes = {
 
     // Information about the network
     network: PropTypes.shape({
-    // Is the network currently offline or not
+        // Is the network currently offline or not
         isOffline: PropTypes.bool,
     }),
 
     // Currently viewed reportID
     currentlyViewedReportID: PropTypes.string,
 
-    // Information about the current session (authToken, accountID, email, loading, error)
-    session: PropTypes.shape,
+    // The session of the logged in person
+    session: PropTypes.shape({
+    // Email of the logged in person
+        email: PropTypes.string,
+    }),
 };
 
 const defaultProps = {
@@ -69,7 +72,9 @@ const SettingsPage = ({
                 ]}
             >
                 <HeaderWithCloseButton
-                    onCloseButtonPress={() => redirect(ROUTES.getReportRoute(currentlyViewedReportID))}
+                    onCloseButtonPress={() => redirect(currentlyViewedReportID !== ''
+                        ? ROUTES.getReportRoute(currentlyViewedReportID)
+                        : ROUTES.HOME)}
                     title="Settings"
                 />
                 <View style={styles.settingsWrapper}>
