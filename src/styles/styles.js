@@ -733,13 +733,6 @@ const styles = {
         top: 0,
         bottom: 0,
         zIndex: 2,
-        shadowColor: themeColors.shadow,
-        shadowOffset: {
-            width: 0,
-            height: 0,
-        },
-        shadowOpacity: 0.15,
-        shadowRadius: 20,
     },
 
     sidebarVisible: {
