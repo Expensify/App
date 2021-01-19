@@ -37,7 +37,6 @@ import CONFIG from '../../CONFIG';
 import CustomStatusBar from '../../components/CustomStatusBar';
 import CONST from '../../CONST';
 import {fetchCountryCodeByRequestIP} from '../../libs/actions/GeoLocation';
-import {ChatBubbleIcon, UsersIcon} from '../../components/Expensicons';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import * as ChatSwitcher from '../../libs/actions/ChatSwitcher';
 
@@ -65,6 +64,7 @@ class App extends React.Component {
             isCreateMenuActive: false,
         };
 
+        this.onCreateMenuItemSelected = this.onCreateMenuItemSelected.bind(this);
         this.toggleCreateMenu = this.toggleCreateMenu.bind(this);
         this.toggleHamburger = this.toggleHamburger.bind(this);
         this.dismissHamburger = this.dismissHamburger.bind(this);
@@ -75,20 +75,6 @@ class App extends React.Component {
         this.animationTranslateX = new Animated.Value(
             !props.isSidebarShown ? -variables.sideBarWidth : 0,
         );
-
-        // This format allows to set individual callbacks to each item
-        // while including mutual callbacks first
-        this.menuItemData = [
-            {icon: ChatBubbleIcon, text: 'New Chat', onPress: () => {}},
-            {icon: UsersIcon, text: 'New Group', onPress: () => {}},
-        ].map(item => ({
-            ...item,
-            onPress: () => {
-                this.toggleCreateMenu();
-                ChatSwitcher.show();
-                item.onPress();
-            },
-        }));
     }
 
     componentDidMount() {
@@ -134,6 +120,14 @@ class App extends React.Component {
     componentWillUnmount() {
         Dimensions.removeEventListener('change', this.toggleHamburgerBasedOnDimensions);
         KeyboardShortcut.unsubscribe('K');
+    }
+
+    /**
+     * Method called when a Create Menu item is selected.
+     */
+    onCreateMenuItemSelected() {
+        this.toggleCreateMenu();
+        ChatSwitcher.show();
     }
 
     /**
@@ -290,9 +284,10 @@ class App extends React.Component {
                                     <Sidebar
                                         insets={insets}
                                         onLinkClick={this.recordTimerAndToggleHamburger}
+                                        isChatSwitcherActive={this.props.isChatSwitcherActive}
                                         isCreateMenuActive={this.state.isCreateMenuActive}
                                         toggleCreateMenu={this.toggleCreateMenu}
-                                        menuItemData={this.menuItemData}
+                                        onCreateMenuItemSelected={this.onCreateMenuItemSelected}
                                     />
                                 </Animated.View>
                                 {/* The following pressable allows us to click outside the LHN to close it,

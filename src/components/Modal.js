@@ -53,8 +53,6 @@ const Modal = (props) => {
             style={modalStyle}
             animationIn={animationIn}
             animationOut={animationOut}
-            useNativeDriver
-            useNativeDriverForBackdrop
         >
             <CustomStatusBar />
             <SafeAreaInsetsContext.Consumer>
