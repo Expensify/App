@@ -12,6 +12,6 @@ if [[ $(git diff --exit-code) -eq 0 ]]; then
     echo -e "${GREEN}Github Actions are up to date!${NC}"
     exit 0
 else
-    echo -e "${RED}Error: Diff found when Github Actions were rebuilt. Did you forget to run ${NC}\`npm run gh-actions-build\`${RED}?${NC}"
+    echo -e "${RED}Error: Diff found when Github Actions were rebuilt. Did you forget to run \`npm run gh-actions-build\`?${NC}"
     exit 1
 fi
