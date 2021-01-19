@@ -406,21 +406,21 @@ const styles = {
         textDecorationLine: 'none',
     },
 
-    sidebarCreateMenuItem: {
+    createMenuItem: {
         flexDirection: 'row',
         borderRadius: 0,
         paddingHorizontal: 20,
         paddingVertical: 12,
     },
 
-    sidebarCreateMenuIcon: {
+    createMenuIcon: {
         width: 40,
         height: 40,
         justifyContent: 'center',
         alignItems: 'center',
     },
 
-    sidebarCreateMenuText: {
+    createMenuText: {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
