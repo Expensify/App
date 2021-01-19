@@ -26,6 +26,9 @@ const propTypes = {
 
     // Callback to fire when a CreateMenu item is selected
     onCreateMenuItemSelected: PropTypes.func.isRequired,
+
+    // Callback to fire on avatar click
+    onAvatarClick: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -38,6 +41,7 @@ const SidebarView = props => (
             <SidebarLinks
                 onLinkClick={props.onLinkClick}
                 insets={props.insets}
+                onAvatarClick={props.onAvatarClick}
             />
             {!props.isChatSwitcherActive && (
             <SidebarBottom insets={props.insets} />

@@ -15,6 +15,7 @@ import styles, {getSafeAreaPadding} from '../../styles/styles';
 import variables from '../../styles/variables';
 import HeaderView from './HeaderView';
 import Sidebar from './sidebar/SidebarView';
+import SettingsPage from '../SettingsPage';
 import Main from './MainView';
 import {
     hide as hideSidebar,
@@ -39,16 +40,19 @@ import CONST from '../../CONST';
 import {fetchCountryCodeByRequestIP} from '../../libs/actions/GeoLocation';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import * as ChatSwitcher from '../../libs/actions/ChatSwitcher';
+import {redirect} from '../../libs/actions/App';
 
 const windowSize = Dimensions.get('window');
 
 const propTypes = {
     isSidebarShown: PropTypes.bool,
     isChatSwitcherActive: PropTypes.bool,
+    currentURL: PropTypes.string,
 };
 const defaultProps = {
     isSidebarShown: true,
     isChatSwitcherActive: false,
+    currentURL: '',
 };
 
 class App extends React.Component {
@@ -71,6 +75,7 @@ class App extends React.Component {
         this.showHamburger = this.showHamburger.bind(this);
         this.toggleHamburgerBasedOnDimensions = this.toggleHamburgerBasedOnDimensions.bind(this);
         this.recordTimerAndToggleHamburger = this.recordTimerAndToggleHamburger.bind(this);
+        this.navigateToSettings = this.navigateToSettings.bind(this);
 
         this.animationTranslateX = new Animated.Value(
             !props.isSidebarShown ? -variables.sideBarWidth : 0,
@@ -109,7 +114,6 @@ class App extends React.Component {
         if (!prevProps.isChatSwitcherActive && this.props.isChatSwitcherActive) {
             this.showHamburger();
         }
-
         if (this.props.isSidebarShown === prevProps.isSidebarShown) {
             // Nothing changed, don't trigger animation or re-render
             return;
@@ -140,6 +144,16 @@ class App extends React.Component {
     }
 
     /**
+     * Method called when avatar is clicked
+     */
+    navigateToSettings() {
+        redirect(ROUTES.SETTINGS);
+        this.toggleHamburger();
+    }
+
+    /**
+     * Method called when we click the floating action button
+     * will trigger the animation
      * Method called either when:
      * Pressing the floating action button to open the CreateMenu modal
      * Selecting an item on CreateMenu or closing it by clicking outside of the modal component
@@ -274,7 +288,7 @@ class App extends React.Component {
                                 getSafeAreaPadding(insets),
                             ]}
                         >
-                            <Route path={[ROUTES.REPORT, ROUTES.HOME]}>
+                            <Route path={[ROUTES.REPORT, ROUTES.HOME, ROUTES.SETTINGS]}>
                                 <Animated.View style={[
                                     hamburgerStyle,
                                     visibility,
@@ -285,6 +299,7 @@ class App extends React.Component {
                                     <Sidebar
                                         insets={insets}
                                         onLinkClick={this.recordTimerAndToggleHamburger}
+                                        onAvatarClick={this.navigateToSettings}
                                         isChatSwitcherActive={this.props.isChatSwitcherActive}
                                         isCreateMenuActive={this.state.isCreateMenuActive}
                                         toggleCreateMenu={this.toggleCreateMenu}
@@ -306,6 +321,7 @@ class App extends React.Component {
                                             shouldShowHamburgerButton={this.state.isHamburgerEnabled}
                                             onHamburgerButtonClicked={this.toggleHamburger}
                                         />
+                                        {this.props.currentURL === '/settings' && <SettingsPage />}
                                         <Main />
                                     </View>
                                 </Pressable>
@@ -329,6 +345,9 @@ export default withOnyx(
         isChatSwitcherActive: {
             key: ONYXKEYS.IS_CHAT_SWITCHER_ACTIVE,
             initWithStoredValues: false,
+        },
+        currentURL: {
+            key: ONYXKEYS.CURRENT_URL,
         },
     },
 )(App);
