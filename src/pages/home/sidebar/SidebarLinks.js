@@ -28,6 +28,9 @@ const propTypes = {
     // Toggles the hamburger menu open and closed
     onLinkClick: PropTypes.func.isRequired,
 
+    // navigates to settings and hides sidebar
+    onAvatarClick: PropTypes.func.isRequired,
+
     // Safe area insets required for mobile devices margins
     insets: SafeAreaInsetPropTypes.isRequired,
 
@@ -139,10 +142,15 @@ const SidebarLinks = (props) => {
                     >
                         <MagnifyingGlassIcon width={20} height={20} />
                     </TouchableOpacity>
-                    <AvatarWithIndicator
-                        source={props.myPersonalDetails.avatarURL}
-                        isActive={props.network && !props.network.isOffline}
-                    />
+                    <TouchableOpacity
+                        onPress={props.onAvatarClick}
+                    >
+                        <AvatarWithIndicator
+                            source={props.myPersonalDetails.avatarURL}
+                            isActive={props.network && !props.network.isOffline}
+                        />
+                    </TouchableOpacity>
+
                 </View>
             )}
             <ScrollView
