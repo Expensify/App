@@ -406,6 +406,27 @@ const styles = {
         textDecorationLine: 'none',
     },
 
+    createMenuItem: {
+        flexDirection: 'row',
+        borderRadius: 0,
+        paddingHorizontal: 20,
+        paddingVertical: 12,
+    },
+
+    createMenuIcon: {
+        width: 40,
+        height: 40,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    createMenuText: {
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeNormal,
+        fontWeight: fontWeightBold,
+        color: themeColors.heading,
+    },
+
     chatLinkRowPressable: {
         minWidth: 0,
         textDecorationLine: 'none',

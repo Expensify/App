@@ -43,6 +43,7 @@ const propTypes = {
     // List of draft comments. We don't know the shape, since the keys include the report numbers
     comments: PropTypes.objectOf(PropTypes.string),
 
+    // Current state of the chat switcher (active of inactive)
     isChatSwitcherActive: PropTypes.bool,
 
     // List of users' personal details
@@ -206,6 +207,10 @@ export default compose(
         },
         network: {
             key: ONYXKEYS.NETWORK,
+        },
+        isChatSwitcherActive: {
+            key: ONYXKEYS.IS_CHAT_SWITCHER_ACTIVE,
+            initWithStoredValues: false,
         },
     }),
 )(SidebarLinks);
