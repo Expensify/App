@@ -23,4 +23,4 @@ jobs:
 
             # Check for a diff. Fail if there is one,
             # because that would be a sign that the PR author did not rebuild the Github Actions
-            - run: git diff --exit-code || echo 'Diff found when Github Actions were rebuilt. Did you forget to run `npm run gh-actions-build`?'
+            - run: ./.github/scripts/verifyActions.sh
