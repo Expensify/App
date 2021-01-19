@@ -1,10 +1,16 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, Image, TouchableOpacity} from 'react-native';
+import {
+    View,
+    Image,
+    TouchableOpacity,
+    Dimensions,
+} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/styles';
+import variables from '../../../styles/variables';
 import themeColors from '../../../styles/themes/default';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 import sendIcon from '../../../../assets/images/icon-send.png';
@@ -15,6 +21,8 @@ import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs
 import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
 
+const windowSize = Dimensions.get('window');
+
 const propTypes = {
     // A method to call when the form is submitted
     onSubmit: PropTypes.func.isRequired,
@@ -24,10 +32,13 @@ const propTypes = {
 
     // The ID of the report actions will be created for
     reportID: PropTypes.number.isRequired,
+
+    isSidebarShown: PropTypes.bool,
 };
 
 const defaultProps = {
     comment: '',
+    isSidebarShown: true,
 };
 
 class ReportActionCompose extends React.Component {
@@ -135,6 +146,9 @@ class ReportActionCompose extends React.Component {
     }
 
     render() {
+        const inputDisable = this.props.isSidebarShown
+            && windowSize.width <= variables.mobileResponsiveWidthBreakpoint;
+
         return (
             <View style={[styles.chatItemCompose]}>
                 <View style={[
@@ -205,6 +219,7 @@ class ReportActionCompose extends React.Component {
                                     onPasteFile={file => displayFileInModal({file})}
                                     shouldClear={this.state.textInputShouldClear}
                                     onClear={() => this.setTextInputShouldClear(false)}
+                                    isDisable={inputDisable}
                                 />
 
                             </>
@@ -237,5 +252,8 @@ ReportActionCompose.defaultProps = defaultProps;
 export default withOnyx({
     comment: {
         key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
+    },
+    isSidebarShown: {
+        key: ONYXKEYS.IS_SIDEBAR_SHOWN,
     },
 })(ReportActionCompose);

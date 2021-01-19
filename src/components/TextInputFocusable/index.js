@@ -35,6 +35,9 @@ const propTypes = {
 
     // Callback to fire when a file is dropped on the text input
     onDrop: PropTypes.func,
+
+    // If the chatswitcher is shown in iOS safari browser, the input should be disabled
+    isDisable: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -46,6 +49,7 @@ const defaultProps = {
     onDragEnter: () => {},
     onDragLeave: () => {},
     onDrop: () => {},
+    isDisable: false,
 };
 
 /**
@@ -186,6 +190,7 @@ class TextInputFocusable extends React.Component {
         const propStyles = StyleSheet.flatten(this.props.style);
         propStyles.outline = 'none';
         const propsWithoutStyles = _.omit(this.props, 'style');
+        const isDisable = this.props.isDisable;
         return (
             <TextInput
                 ref={el => this.textInput = el}
@@ -197,6 +202,7 @@ class TextInputFocusable extends React.Component {
                 style={propStyles}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...propsWithoutStyles}
+                disabled={isDisable}
             />
         );
     }
