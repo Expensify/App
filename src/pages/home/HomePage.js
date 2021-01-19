@@ -96,9 +96,9 @@ class App extends React.Component {
         Dimensions.addEventListener('change', this.toggleNavigationMenuBasedOnDimensions);
 
         // Set up the navigationMenu correctly once on init
-        this.toggleNavigationMenuBasedOnDimensions({
-            window: Dimensions.get('window'),
-        });
+        if (!this.state.isSmallScreenWidth) {
+            showSidebar();
+        }
 
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
@@ -155,16 +155,15 @@ class App extends React.Component {
 
         const isSmallScreenWidth = changedWindow.width <= variables.mobileResponsiveWidthBreakpoint;
 
+        // Always show the sidebar if we are moving from small to large screens
+        if (this.state.isSmallScreenWidth && !isSmallScreenWidth) {
+            showSidebar();
+        }
+
         this.setState({
             windowWidth: changedWindow.width,
             isSmallScreenWidth,
         });
-
-        if (!this.props.isSidebarShown && !isSmallScreenWidth) {
-            showSidebar();
-        } else if (this.props.isSidebarShown && isSmallScreenWidth) {
-            hideSidebar();
-        }
     }
 
     /**
