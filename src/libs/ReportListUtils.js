@@ -103,7 +103,7 @@ function createOption(personalDetailList, report) {
     const personalDetail = personalDetailList[0];
     return {
         text: report ? report.reportName : personalDetail.displayName,
-        alternateText: (!report || !hasMultipleParticipants) ? personalDetail.login : report.reportName,
+        alternateText: (report && hasMultipleParticipants) ? report.reportName : personalDetail.login,
         icons: report ? report.icons : [personalDetail.avatarURL],
 
         // It doesn't make sense to provide a login in the case of a report with multiple participants since
