@@ -148,7 +148,7 @@ class App extends React.Component {
      */
     navigateToSettings() {
         redirect(ROUTES.SETTINGS);
-        hideSidebar();
+        this.toggleHamburger();
     }
 
     /**
