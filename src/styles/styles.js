@@ -947,6 +947,73 @@ const styles = {
         backgroundColor: themeColors.componentBG,
         borderColor: colors.transparent,
     },
+
+    signOutButton: {
+        width: '95%',
+        alignSelf: 'center',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: themeColors.sidebarButtonBG,
+        borderRadius: variables.componentBorderRadius,
+        height: variables.componentSizeLarge,
+    },
+
+    settingsPageBackground: {
+        flexDirection: 'column',
+        width: '100%',
+        height: '100%',
+        position: 'absolute',
+        justifyContent: 'space-between',
+        backgroundColor: 'white',
+        alignItems: 'center',
+    },
+
+    settingsPageColumn: {
+        width: '100%',
+        alignItems: 'center',
+        justifyContent: 'space-around',
+    },
+
+    settingsPageContainer: {
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        width: '100%',
+    },
+
+    largeAvatar: {
+        width: 80,
+        height: 80,
+    },
+
+    largeStatusIndicator: {
+        borderColor: themeColors.componentBG,
+        borderRadius: 14,
+        borderWidth: 2,
+        position: 'absolute',
+        right: 8,
+        bottom: 4,
+        height: 14,
+        width: 14,
+        zIndex: 10,
+    },
+
+    settingsDisplayName: {
+        fontSize: 17,
+        fontFamily: fontFamily.GTA_BOLD,
+        color: themeColors.heading,
+    },
+
+
+    settingsLoginName: {
+        fontSize: 13,
+        fontFamily: fontFamily.GTA,
+        color: themeColors.textSupporting,
+    },
+
+    settingsWrapper: {
+        width: '100%',
+        alignItems: 'center',
+    },
 };
 
 const baseCodeTagStyles = {
