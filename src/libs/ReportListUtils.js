@@ -114,7 +114,7 @@ function createOption(personalDetailList, report) {
         hasDraftComment: report && report.reportID !== activeReportID && hasComment(report.reportID),
         keyForList: report ? String(report.reportID) : personalDetail.login,
         searchText: getSearchText(report, personalDetailList),
-        isPinned: report && report.isPinned,
+        isPinned: lodashGet(report, 'isPinned', false),
     };
 }
 
@@ -127,9 +127,11 @@ const rebuildOptions = _.throttle(() => {
     const orderedReports = lodashOrderBy(reports, ['lastVisitedTimestamp'], ['desc']);
     allReportOptions = _.map(orderedReports, (report) => {
         const logins = getParticipantLogins(report);
-        const hasMultipleParticipants = logins.length > 1;
         const reportPersonalDetails = getPersonalDetailsForLogins(logins);
-        if (!hasMultipleParticipants) {
+
+        // Save the report in the map if this is a single participant so we
+        // can associate the reportID with the personal detail option later.
+        if (logins.length <= 1) {
             reportMapForLogins[logins[0]] = report;
         }
         return createOption(reportPersonalDetails, report);
