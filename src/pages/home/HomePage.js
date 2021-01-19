@@ -60,10 +60,11 @@ class App extends React.Component {
         this.state = {
             windowWidth: windowSize.width,
             isSmallScreenWidth,
-            isFloatingActionButtonActive: false,
+            isCreateMenuActive: false,
         };
 
-        this.toggleFab = this.toggleFab.bind(this);
+        this.onCreateMenuItemSelected = this.onCreateMenuItemSelected.bind(this);
+        this.toggleCreateMenu = this.toggleCreateMenu.bind(this);
         this.toggleNavigationMenu = this.toggleNavigationMenu.bind(this);
         this.dismissNavigationMenu = this.dismissNavigationMenu.bind(this);
         this.showNavigationMenu = this.showNavigationMenu.bind(this);
@@ -123,6 +124,15 @@ class App extends React.Component {
     componentWillUnmount() {
         Dimensions.removeEventListener('change', this.toggleNavigationMenuBasedOnDimensions);
         KeyboardShortcut.unsubscribe('K');
+        NetworkConnection.stopListeningForReconnect();
+    }
+
+    /**
+     * Method called when a Create Menu item is selected.
+     */
+    onCreateMenuItemSelected() {
+        this.toggleCreateMenu();
+        ChatSwitcher.show();
     }
 
     /**
@@ -134,12 +144,17 @@ class App extends React.Component {
     }
 
     /**
-     * Method called when we click the floating action button
-     * will trigger the animation
+     * Method called either when:
+     * Pressing the floating action button to open the CreateMenu modal
+     * Selecting an item on CreateMenu or closing it by clicking outside of the modal component
      */
-    toggleFab() {
+    toggleCreateMenu() {
+        // Prevent from possibly toggling the create menu with the sidebar hidden
+        if (!this.props.isSidebarShown) {
+            return;
+        }
         this.setState(state => ({
-            isFloatingActionButtonActive: !state.isFloatingActionButtonActive,
+            isCreateMenuActive: !state.isCreateMenuActive,
         }));
     }
 
@@ -266,8 +281,9 @@ class App extends React.Component {
                                         insets={insets}
                                         onLinkClick={this.recordTimerAndToggleNavigationMenu}
                                         isChatSwitcherActive={this.props.isChatSwitcherActive}
-                                        isFloatingActionButtonActive={this.state.isFloatingActionButtonActive}
-                                        onFloatingActionButtonPress={this.toggleFab}
+                                        isCreateMenuActive={this.state.isCreateMenuActive}
+                                        toggleCreateMenu={this.toggleCreateMenu}
+                                        onCreateMenuItemSelected={this.onCreateMenuItemSelected}
                                     />
                                 </Animated.View>
                                 <View

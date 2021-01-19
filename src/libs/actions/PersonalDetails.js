@@ -114,7 +114,8 @@ function fetchTimezone() {
         .then((data) => {
             const timezone = lodashGet(data, 'nameValuePairs.timeZone.selected', 'America/Los_Angeles');
             Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {timezone});
-        });
+        })
+        .catch(error => console.debug('Error fetching user timezone', error));
 }
 
 /**
