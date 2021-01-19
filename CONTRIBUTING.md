@@ -56,5 +56,5 @@ Upon submission of a PR, please include a numbered list of explicit testing step
 - Patience is a virtue. Reviews can sometimes take place over the course of several days. If your PR has not been addressed after 3 days please leave a comment on the PR. If the PR goes without a response for another day please let us know via Slack.
 
 ### JavaScript Style
-- Read our official [JavaScript and React style guide](./STYLE.md). Please refer to our Style Guide before asking for a review.
+- Read our official [JavaScript and React style guide](STYLE.md). Please refer to our Style Guide before asking for a review.
 - We have nothing against Prettier or any other automatic style fixers, but we generally don't use them here at Expensify. Do not use Prettier. The style changes these tools enforce don't always align with the ones we recommend and require in our eslint configs and can result in uncessary changes for our reviewers. Ignoring this advice will ultimately make your changes take longer to review as we will ask you to undo any style changes that are not relating to the important changes you are making.
