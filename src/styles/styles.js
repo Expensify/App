@@ -60,6 +60,10 @@ const styles = {
         fontSize: variables.fontSizeSmall,
     },
 
+    textLarge: {
+        fontSize: variables.fontSizeLarge,
+    },
+
     textStrong: {
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
@@ -110,6 +114,11 @@ const styles = {
         borderWidth: 0,
     },
 
+    buttonDisable: {
+        backgroundColor: themeColors.buttonDisabledBG,
+        borderWidth: 0,
+    },
+
     buttonConfirm: {
         margin: 20,
     },
@@ -154,7 +163,12 @@ const styles = {
         whiteSpace: 'nowrap',
     },
 
-    navText: {
+    pillCancelIcon: {
+        width: 12,
+        height: 12,
+    },
+
+    headerText: {
         fontFamily: fontFamily.GTA,
         color: themeColors.heading,
         fontSize: variables.fontSizeNormal,
@@ -318,11 +332,10 @@ const styles = {
         width: '100%',
     },
 
-    sidebarFooterAvatar: {
+    sidebarAvatar: {
         backgroundColor: themeColors.text,
         borderRadius: 20,
         height: variables.componentSizeNormal,
-        marginRight: 12,
         width: variables.componentSizeNormal,
     },
 
@@ -332,18 +345,29 @@ const styles = {
         borderWidth: 2,
         position: 'absolute',
         right: -6,
-        top: 3,
+        bottom: 3,
         height: 14,
         width: 14,
         zIndex: 10,
     },
-
     statusIndicatorOnline: {
         backgroundColor: themeColors.online,
     },
 
     statusIndicatorOffline: {
         backgroundColor: themeColors.offline,
+    },
+
+    floatingActionButton: {
+        backgroundColor: themeColors.buttonSuccessBG,
+        position: 'absolute',
+        height: variables.componentSizeNormal,
+        width: variables.componentSizeNormal,
+        right: 20,
+        bottom: 24,
+        borderRadius: 999,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
 
     sidebarFooterUsername: {
@@ -375,6 +399,27 @@ const styles = {
     sidebarListItem: {
         justifyContent: 'center',
         textDecorationLine: 'none',
+    },
+
+    createMenuItem: {
+        flexDirection: 'row',
+        borderRadius: 0,
+        paddingHorizontal: 20,
+        paddingVertical: 12,
+    },
+
+    createMenuIcon: {
+        width: 40,
+        height: 40,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    createMenuText: {
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeNormal,
+        fontWeight: fontWeightBold,
+        color: themeColors.heading,
     },
 
     chatLinkRowPressable: {
@@ -452,7 +497,6 @@ const styles = {
         height: variables.contentHeaderHeight,
         justifyContent: 'center',
         display: 'flex',
-        paddingLeft: 20,
         paddingRight: 20,
     },
 
@@ -463,10 +507,10 @@ const styles = {
 
     LHNToggle: {
         alignItems: 'center',
-        height: variables.componentSizeNormal,
+        height: variables.contentHeaderHeight,
         justifyContent: 'center',
-        marginRight: 8,
-        width: variables.componentSizeNormal,
+        paddingRight: 10,
+        paddingLeft: 20,
     },
 
     LHNToggleIcon: {
@@ -678,29 +722,15 @@ const styles = {
         marginBottom: 3,
     },
 
-    hamburgerOpenAbsolute: {
-        borderColor: themeColors.border,
+    navigationMenuOpenAbsolute: {
         position: 'absolute',
         left: 0,
         top: 0,
         bottom: 0,
         zIndex: 2,
-        shadowColor: themeColors.shadow,
-        shadowOffset: {
-            width: 0,
-            height: 0,
-        },
-        shadowOpacity: 0.15,
-        shadowRadius: 20,
-    },
-
-    hamburgerOpen: {
-        borderColor: themeColors.border,
-        width: variables.sideBarWidth,
     },
 
     sidebarVisible: {
-        width: variables.sideBarWidth,
         borderRightWidth: 1,
     },
 
@@ -794,7 +824,7 @@ const styles = {
         flex: 1,
     },
 
-    modalHeaderBar: {
+    headerBar: {
         overflow: 'hidden',
         justifyContent: 'center',
         display: 'flex',
@@ -890,6 +920,73 @@ const styles = {
     defaultModalContainer: {
         backgroundColor: themeColors.componentBG,
         borderColor: colors.transparent,
+    },
+
+    signOutButton: {
+        width: '95%',
+        alignSelf: 'center',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: themeColors.sidebarButtonBG,
+        borderRadius: variables.componentBorderRadius,
+        height: variables.componentSizeLarge,
+    },
+
+    settingsPageBackground: {
+        flexDirection: 'column',
+        width: '100%',
+        height: '100%',
+        position: 'absolute',
+        justifyContent: 'space-between',
+        backgroundColor: 'white',
+        alignItems: 'center',
+    },
+
+    settingsPageColumn: {
+        width: '100%',
+        alignItems: 'center',
+        justifyContent: 'space-around',
+    },
+
+    settingsPageContainer: {
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        width: '100%',
+    },
+
+    largeAvatar: {
+        width: 80,
+        height: 80,
+    },
+
+    largeStatusIndicator: {
+        borderColor: themeColors.componentBG,
+        borderRadius: 14,
+        borderWidth: 2,
+        position: 'absolute',
+        right: 8,
+        bottom: 4,
+        height: 14,
+        width: 14,
+        zIndex: 10,
+    },
+
+    settingsDisplayName: {
+        fontSize: 17,
+        fontFamily: fontFamily.GTA_BOLD,
+        color: themeColors.heading,
+    },
+
+
+    settingsLoginName: {
+        fontSize: 13,
+        fontFamily: fontFamily.GTA,
+        color: themeColors.textSupporting,
+    },
+
+    settingsWrapper: {
+        width: '100%',
+        alignItems: 'center',
     },
 };
 
@@ -992,7 +1089,28 @@ function getSafeAreaMargins(insets) {
     return {marginBottom: insets.bottom * variables.safeInsertPercentage};
 }
 
+/**
+ * Return navigation menu styles.
+ *
+ * @param {Number} windowWidth
+ * @param {Boolean} isSidebarShown
+ * @returns {Object}
+ */
+function getNavigationMenuStyle(windowWidth, isSidebarShown) {
+    const isSmallScreenWidth = windowWidth <= variables.mobileResponsiveWidthBreakpoint;
+    return isSmallScreenWidth
+        ? {
+            ...styles.navigationMenuOpenAbsolute,
+            width: isSidebarShown ? windowWidth : 0,
+        }
+        : {
+            borderColor: themeColors.border,
+            borderRightWidth: 1,
+            width: variables.sideBarWidth,
+        };
+}
+
 export default styles;
 export {
-    getSafeAreaPadding, getSafeAreaMargins, webViewStyles,
+    getSafeAreaPadding, getSafeAreaMargins, webViewStyles, getNavigationMenuStyle,
 };

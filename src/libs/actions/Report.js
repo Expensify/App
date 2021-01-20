@@ -64,12 +64,7 @@ const lastReadSequenceNumbers = {};
  * @returns {Boolean}
  */
 function getUnreadActionCount(report) {
-    // @todo remove the first check as part of cleanup https://github.com/Expensify/Expensify/issues/145243
-    // since we migrating our data from lastReadActionID_ value to lastRead_ object.
     const lastReadSequenceNumber = lodashGet(report, [
-        'reportNameValuePairs',
-        `lastReadActionID_${currentUserAccountID}`,
-    ]) || lodashGet(report, [
         'reportNameValuePairs',
         `lastRead_${currentUserAccountID}`,
         'sequenceNumber',
@@ -293,6 +288,9 @@ function subscribeToReportCommentEvents() {
 
     Pusher.subscribe(pusherChannelName, 'reportComment', (pushJSON) => {
         updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
+    }, false,
+    () => {
+        NetworkConnection.triggerReconnectionCallbacks();
     });
 
     PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, reportAction}) => {
@@ -534,6 +532,7 @@ function addAction(reportID, text, file) {
         [newSequenceNumber]: {
             actionName: 'ADDCOMMENT',
             actorEmail: currentUserEmail,
+            actorAccountID: currentUserAccountID,
             person: [
                 {
                     style: 'strong',
@@ -558,6 +557,7 @@ function addAction(reportID, text, file) {
             isFirstItem: false,
             isAttachment,
             loading: true,
+            shouldShow: true,
         },
     });
 

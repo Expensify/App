@@ -1,23 +1,24 @@
 import React from 'react';
-import {View, Image, TouchableOpacity} from 'react-native';
+import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import Text from '../../components/Text';
+import Header from '../../components/Header';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import {withRouter} from '../../libs/Router';
-import LHNToggle from '../../../assets/images/icon-menu-toggle.png';
+import BackArrow from '../../../assets/images/back-left.svg';
+import themeColors from '../../styles/themes/default';
 import Icon from '../../components/Icon';
 import {Pin} from '../../components/Icon/Expensicons';
 import compose from '../../libs/compose';
 import {togglePinnedState} from '../../libs/actions/Report';
 
 const propTypes = {
-    // Toggles the hamburger menu open and closed
-    onHamburgerButtonClicked: PropTypes.func.isRequired,
+    // Toggles the navigationMenu open and closed
+    onNavigationMenuButtonClicked: PropTypes.func.isRequired,
 
-    // Decides whether we should show the hamburger menu button
-    shouldShowHamburgerButton: PropTypes.bool.isRequired,
+    // Decides whether we should show the navigationMenu button
+    shouldShowNavigationMenuButton: PropTypes.bool.isRequired,
 
     /* Onyx Props */
     // The report currently being looked at
@@ -39,40 +40,32 @@ const defaultProps = {
 
 const HeaderView = props => (
     <View style={[styles.appContentHeader]}>
-        <View style={[styles.appContentHeaderTitle]}>
-            {props.shouldShowHamburgerButton && (
-                <TouchableOpacity
-                    onPress={props.onHamburgerButtonClicked}
+        <View style={[styles.appContentHeaderTitle, !props.shouldShowNavigationMenuButton && styles.pl5]}>
+            {props.shouldShowNavigationMenuButton && (
+                <Pressable
+                    onPress={props.onNavigationMenuButtonClicked}
                     style={[styles.LHNToggle]}
                 >
-                    <Image
-                        resizeMode="contain"
-                        style={[styles.LHNToggleIcon]}
-                        source={LHNToggle}
-                    />
-                </TouchableOpacity>
+                    <BackArrow height={20} width={20} fill={themeColors.icon} />
+                </Pressable>
             )}
             {props.report && props.report.reportName ? (
-                <View style={[
-                    styles.flex1,
-                    styles.flexRow,
-                    styles.alignItemsCenter,
-                    styles.justifyContentBetween,
-                ]}
+                <View
+                    style={[
+                        styles.flex1,
+                        styles.flexRow,
+                        styles.alignItemsCenter,
+                        styles.justifyContentBetween,
+                    ]}
                 >
-                    <View style={[styles.flex1]}>
-                        <Text numberOfLines={1} style={[styles.navText]}>
-                            {props.report.reportName}
-                        </Text>
-                    </View>
-
+                    <Header title={props.report.reportName} />
                     <View style={[styles.reportOptions, styles.flexRow]}>
-                        <TouchableOpacity
+                        <Pressable
                             onPress={() => togglePinnedState(props.report)}
                             style={[styles.touchableButtonImage, styles.mr0]}
                         >
                             <Icon icon={Pin} isEnabled={props.report.isPinned} />
-                        </TouchableOpacity>
+                        </Pressable>
                     </View>
                 </View>
             ) : null}

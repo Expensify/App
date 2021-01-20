@@ -20,6 +20,12 @@ Onyx.connect({
     callback: val => personalDetails = val,
 });
 
+let isOffline;
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    callback: val => isOffline = val && val.isOffline,
+});
+
 /**
  * Helper method to return a default avatar
  *
@@ -108,10 +114,8 @@ function fetchTimezone() {
         .then((data) => {
             const timezone = lodashGet(data, 'nameValuePairs.timeZone.selected', 'America/Los_Angeles');
             Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {timezone});
-        });
-
-    // Refresh the timezone every 30 minutes
-    setTimeout(fetchTimezone, 1000 * 60 * 30);
+        })
+        .catch(error => console.debug('Error fetching user timezone', error));
 }
 
 /**
@@ -130,16 +134,8 @@ function fetch() {
 
             // Set my personal details so they can be easily accessed and subscribed to on their own key
             Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, myPersonalDetails);
-
-            // Get the timezone and put it in Onyx
-            fetchTimezone();
         })
         .catch(error => console.debug('Error fetching personal details', error));
-
-    // Refresh the personal details every 30 minutes because there is no
-    // pusher event that sends updated personal details data yet
-    // See https://github.com/Expensify/ReactNativeChat/issues/468
-    setTimeout(fetch, 1000 * 60 * 30);
 }
 
 /**
@@ -183,9 +179,21 @@ function getFromReportParticipants(reports) {
 // When the app reconnects from being offline, fetch all of the personal details
 NetworkConnection.onReconnect(fetch);
 
+// Refresh the personal details and timezone every 30 minutes because there is no
+// pusher event that sends updated personal details data yet
+// See https://github.com/Expensify/ReactNativeChat/issues/468
+setInterval(() => {
+    if (isOffline) {
+        return;
+    }
+    fetch();
+    fetchTimezone();
+}, 1000 * 60 * 30);
+
 export {
     fetch,
     fetchTimezone,
     getFromReportParticipants,
     getDisplayName,
+    getDefaultAvatar,
 };

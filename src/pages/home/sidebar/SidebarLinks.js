@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, ScrollView} from 'react-native';
+import {View, ScrollView, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import lodashOrderby from 'lodash.orderby';
@@ -15,14 +15,22 @@ import {withRouter} from '../../../libs/Router';
 import ChatLinkRow from './ChatLinkRow';
 import {redirect} from '../../../libs/actions/App';
 import ROUTES from '../../../ROUTES';
+import * as ChatSwitcher from '../../../libs/actions/ChatSwitcher';
+import Icon from '../../../components/Icon';
+import {MagnifyingGlass} from '../../../components/Icon/Expensicons';
+import Header from '../../../components/Header';
+import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
 
 const propTypes = {
     // These are from withRouter
     // eslint-disable-next-line react/forbid-prop-types
     match: PropTypes.object.isRequired,
 
-    // Toggles the hamburger menu open and closed
+    // Toggles the navigation menu open and closed
     onLinkClick: PropTypes.func.isRequired,
+
+    // navigates to settings and hides sidebar
+    onAvatarClick: PropTypes.func.isRequired,
 
     // Safe area insets required for mobile devices margins
     insets: SafeAreaInsetPropTypes.isRequired,
@@ -39,6 +47,7 @@ const propTypes = {
     // List of draft comments. We don't know the shape, since the keys include the report numbers
     comments: PropTypes.objectOf(PropTypes.string),
 
+    // Current state of the chat switcher (active of inactive)
     isChatSwitcherActive: PropTypes.bool,
 
     // List of users' personal details
@@ -47,6 +56,21 @@ const propTypes = {
         avatarURL: PropTypes.string.isRequired,
         displayName: PropTypes.string.isRequired,
     })),
+
+    // The personal details of the person who is logged in
+    myPersonalDetails: PropTypes.shape({
+        // Display name of the current user from their personal details
+        displayName: PropTypes.string,
+
+        // Avatar URL of the current user from their personal details
+        avatarURL: PropTypes.string,
+    }),
+
+    // Information about the network
+    network: PropTypes.shape({
+        // Is the network currently offline or not
+        isOffline: PropTypes.bool,
+    }),
 };
 
 const defaultProps = {
@@ -54,6 +78,8 @@ const defaultProps = {
     isChatSwitcherActive: false,
     comments: {},
     personalDetails: {},
+    myPersonalDetails: {},
+    network: null,
 };
 
 
@@ -96,11 +122,38 @@ const SidebarLinks = (props) => {
     return (
         <View style={[styles.flex1, styles.h100, {marginTop: props.insets.top}]}>
             <View style={[chatSwitcherStyle]}>
-                <ChatSwitcherView
-                    onLinkClick={props.onLinkClick}
-                    isChatSwitcherActive={props.isChatSwitcherActive}
-                />
+                {props.isChatSwitcherActive && (
+                    <ChatSwitcherView
+                        onLinkClick={props.onLinkClick}
+                    />
+                )}
             </View>
+            {!props.isChatSwitcherActive && (
+                <View style={[
+                    styles.flexRow,
+                    styles.sidebarHeaderTop,
+                    styles.justifyContentBetween,
+                    styles.alignItemsCenter,
+                ]}
+                >
+                    <Header textSize="large" title="Chats" />
+                    <TouchableOpacity
+                        style={[styles.flexRow, styles.sidebarHeaderTop]}
+                        onPress={() => ChatSwitcher.show()}
+                    >
+                        <Icon icon={MagnifyingGlass} />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={props.onAvatarClick}
+                    >
+                        <AvatarWithIndicator
+                            source={props.myPersonalDetails.avatarURL}
+                            isActive={props.network && !props.network.isOffline}
+                        />
+                    </TouchableOpacity>
+
+                </View>
+            )}
             <ScrollView
                 keyboardShouldPersistTaps="always"
                 style={sidebarLinksStyle}
@@ -157,6 +210,16 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        myPersonalDetails: {
+            key: ONYXKEYS.MY_PERSONAL_DETAILS,
+        },
+        network: {
+            key: ONYXKEYS.NETWORK,
+        },
+        isChatSwitcherActive: {
+            key: ONYXKEYS.IS_CHAT_SWITCHER_ACTIVE,
+            initWithStoredValues: false,
         },
     }),
 )(SidebarLinks);

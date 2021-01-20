@@ -20,17 +20,24 @@ const propTypes = {
 
     /* Whether or not the icon is enabled. */
     isEnabled: PropTypes.bool,
+
+    /* The fill color for the icon */
+    fill: PropTypes.string,
 };
 
 const defaultProps = {
     width: variables.iconSizeNormal,
     height: variables.iconSizeNormal,
     isEnabled: false,
+    fill: undefined,
 };
 
 const Icon = (props) => {
     const IconToRender = props.icon;
-    let fillColor = props.isEnabled ? themeColors.heading : themeColors.icon;
+    let fillColor = props.fill;
+    if (!props.fill) {
+        fillColor = props.isEnabled ? themeColors.heading : themeColors.icon;
+    }
 
     // Do not pass a fill color for brand assets
     if (_.contains(_.values(BrandAssets), props.icon)) {

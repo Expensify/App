@@ -49,6 +49,28 @@ export default (type, windowDimensions) => {
             animationOut = isSmallScreen ? 'slideOutRight' : 'fadeOut';
             needsSafeAreaPadding = true;
             break;
+        case CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED:
+            modalStyle = {
+                margin: 0,
+                alignItems: 'center',
+                justifyContent: 'flex-end',
+                marginRight: isSmallScreen ? 0 : windowDimensions.width - variables.sideBarWidth,
+            };
+            modalContainerStyle = {
+                width: isSmallScreen ? '100%' : variables.sideBarWidth,
+                borderTopLeftRadius: 16,
+                borderTopRightRadius: 16,
+                paddingTop: 12,
+                paddingBottom: 12,
+                justifyContent: 'center',
+                overflow: 'hidden',
+            };
+
+            swipeDirection = undefined;
+            animationIn = 'slideInUp';
+            animationOut = 'slideOutDown';
+            needsSafeAreaPadding = false;
+            break;
         default:
             modalStyle = {};
             modalContainerStyle = {};
