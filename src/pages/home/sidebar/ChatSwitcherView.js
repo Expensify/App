@@ -105,6 +105,7 @@ class ChatSwitcherView extends React.Component {
         ) {
             this.textInput.focus();
         }
+        this.textInput.setNativeProps({tabindex: '-1'});
     }
 
     /**

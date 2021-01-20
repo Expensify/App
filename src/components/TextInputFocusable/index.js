@@ -179,7 +179,7 @@ class TextInputFocusable extends React.Component {
     }
 
     focusInput() {
-        this.textInput.focus();
+        !this.props.noFocus && this.textInput.focus();
     }
 
     render() {

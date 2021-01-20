@@ -177,8 +177,12 @@ class ReportActionCompose extends React.Component {
                                     )}
                                 </AttachmentPicker>
                                 <TextInputFocusable
+                                    noFocus={this.props.isSidebarShown && this.props.isSmallDevice}
                                     multiline
-                                    ref={el => this.textInput = el}
+                                    ref={el => {
+                                        this.textInput = el;
+                                        this.textInput.setNativeProps({tabindex: '-1'});
+                                    }}
                                     textAlignVertical="top"
                                     placeholder="Write something..."
                                     placeholderTextColor={themeColors.textSupporting}
@@ -235,6 +239,12 @@ ReportActionCompose.propTypes = propTypes;
 ReportActionCompose.defaultProps = defaultProps;
 
 export default withOnyx({
+    isSidebarShown: {
+        key: ONYXKEYS.IS_SIDEBAR_SHOWN,
+    },
+    isSmallDevice: {
+        key: ONYXKEYS.IS_SMALL_DEVICE,
+    },
     comment: {
         key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
     },
