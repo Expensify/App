@@ -305,8 +305,8 @@ class App extends React.Component {
                                     style={[styles.appContent, styles.flex1, styles.flexColumn]}
                                 >
                                     <HeaderView
-                                        shouldShowHamburgerButton={this.state.isHamburgerEnabled}
-                                        onHamburgerButtonClicked={this.toggleHamburger}
+                                        shouldShowNavigationMenuButton={this.state.isSmallScreenWidth}
+                                        onNavigationMenuButtonClicked={this.toggleNavigationMenu}
                                     />
                                     {this.props.currentURL === '/settings' && <SettingsPage />}
                                     <Main />
