@@ -295,7 +295,6 @@ class App extends React.Component {
                                         insets={insets}
                                         onLinkClick={this.recordTimerAndToggleNavigationMenu}
                                         onAvatarClick={this.navigateToSettings}
-                                        isChatSwitcherActive={this.props.isChatSwitcherActive}
                                         isCreateMenuActive={this.state.isCreateMenuActive}
                                         toggleCreateMenu={this.toggleCreateMenu}
                                         onCreateMenuItemSelected={this.onCreateMenuItemSelected}
