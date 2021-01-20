@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {memo} from 'react';
+import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
 import themeColors from '../../styles/themes/default';
 import variables from '../../styles/variables';
@@ -32,28 +32,32 @@ const defaultProps = {
     fill: undefined,
 };
 
-const Icon = (props) => {
-    const IconToRender = props.icon;
-    let fillColor = props.fill;
-    if (!props.fill) {
-        fillColor = props.isEnabled ? themeColors.heading : themeColors.icon;
-    }
+// We must use a class component to create an animatable component with the Animated API
+// eslint-disable-next-line react/prefer-stateless-function
+class Icon extends PureComponent {
+    render() {
+        const IconToRender = this.props.icon;
+        let fillColor = this.props.fill;
+        if (!fillColor) {
+            fillColor = this.props.isEnabled ? themeColors.heading : themeColors.icon;
+        }
 
-    // Do not pass a fill color for brand assets
-    if (_.contains(_.values(BrandAssets), props.icon)) {
-        fillColor = undefined;
-    }
+        // Do not pass a fill color for brand assets
+        if (_.contains(_.keys(BrandAssets), this.props.icon)) {
+            fillColor = undefined;
+        }
 
-    return (
-        <IconToRender
-            width={props.width}
-            height={props.height}
-            fill={fillColor}
-        />
-    );
-};
+        return (
+            <IconToRender
+                width={this.props.width}
+                height={this.props.height}
+                fill={fillColor}
+            />
+        );
+    }
+}
 
 Icon.propTypes = propTypes;
 Icon.defaultProps = defaultProps;
 
-export default memo(Icon);
+export default Icon;
