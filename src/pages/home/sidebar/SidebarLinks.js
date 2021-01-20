@@ -25,7 +25,7 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     match: PropTypes.object.isRequired,
 
-    // Toggles the hamburger menu open and closed
+    // Toggles the navigation menu open and closed
     onLinkClick: PropTypes.func.isRequired,
 
     // navigates to settings and hides sidebar
