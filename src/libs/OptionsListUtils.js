@@ -8,7 +8,7 @@ import {getDefaultAvatar} from './actions/PersonalDetails';
 import ONYXKEYS from '../ONYXKEYS';
 
 /**
- * ReportListUtils is used to build a list options passed to the ReportList component. Several different UI views can
+ * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
  * be configured to display different results based on the options passed to the private getOptions() method. Public
  * methods should be named for the views they build options for and then exported for use in a component.
  */

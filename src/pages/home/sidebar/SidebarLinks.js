@@ -16,7 +16,7 @@ import {MagnifyingGlassIcon} from '../../../components/Expensicons';
 import Header from '../../../components/Header';
 import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
 import OptionsList from '../../../components/OptionsList';
-import {getSidebarOptions} from '../../../libs/ReportListUtils';
+import {getSidebarOptions} from '../../../libs/OptionsListUtils';
 
 const propTypes = {
     // These are from withRouter
