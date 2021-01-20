@@ -10,6 +10,7 @@ export default (type, windowDimensions) => {
     let swipeDirection;
     let animationIn;
     let animationOut;
+    let hideBackdrop = false;
     let needsSafeAreaPadding = false;
 
     switch (type) {
@@ -49,27 +50,33 @@ export default (type, windowDimensions) => {
             animationOut = isSmallScreen ? 'slideOutRight' : 'fadeOut';
             needsSafeAreaPadding = true;
             break;
-        case CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED:
+        case CONST.MODAL.MODAL_TYPE.CREATE_MENU:
             modalStyle = {
                 margin: 0,
                 alignItems: 'center',
                 justifyContent: 'flex-end',
                 marginRight: isSmallScreen ? 0 : windowDimensions.width - variables.sideBarWidth,
+                marginBottom: isSmallScreen ? 0 : 82,
             };
             modalContainerStyle = {
-                width: isSmallScreen ? '100%' : variables.sideBarWidth,
-                borderTopLeftRadius: 16,
-                borderTopRightRadius: 16,
+                width: isSmallScreen ? '100%' : variables.sideBarWidth - 40,
+                borderTopLeftRadius: isSmallScreen ? 20 : 12,
+                borderTopRightRadius: isSmallScreen ? 20 : 12,
+                borderBottomLeftRadius: isSmallScreen ? 0 : 12,
+                borderBottomRightRadius: isSmallScreen ? 0 : 12,
+                borderWidth: isSmallScreen ? 0 : 1,
+                borderColor: '#ECECEC',
                 paddingTop: 12,
                 paddingBottom: 12,
                 justifyContent: 'center',
                 overflow: 'hidden',
+                boxShadow: isSmallScreen ? 'none' : '0px 0px 10px 0px rgba(0, 0, 0, 0.025)',
             };
 
+            hideBackdrop = !isSmallScreen;
             swipeDirection = undefined;
-            animationIn = 'slideInUp';
-            animationOut = 'slideOutDown';
-            needsSafeAreaPadding = false;
+            animationIn = isSmallScreen ? 'slideInUp' : 'fadeInLeft';
+            animationOut = isSmallScreen ? 'slideOutDown' : 'fadeOutLeft';
             break;
         default:
             modalStyle = {};
@@ -86,5 +93,6 @@ export default (type, windowDimensions) => {
         animationIn,
         animationOut,
         needsSafeAreaPadding,
+        hideBackdrop,
     };
 };

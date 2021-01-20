@@ -37,7 +37,7 @@ const CreateMenu = (props) => {
         <Modal
             onClose={props.onClose}
             isVisible={props.isVisible}
-            type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
+            type={CONST.MODAL.MODAL_TYPE.CREATE_MENU}
         >
             {menuItemData.map(({IconComponent, text, onPress}) => (
                 <Pressable

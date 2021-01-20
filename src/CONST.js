@@ -12,7 +12,7 @@ const CONST = {
     MODAL: {
         MODAL_TYPE: {
             CENTERED: 'centered',
-            BOTTOM_DOCKED: 'bottom_docked',
+            CREATE_MENU: 'create_menu',
         },
     },
     TIMING: {
