@@ -31,6 +31,7 @@ const propTypes = {
         displayName: PropTypes.string.isRequired,
     })),
 
+    // Active report ID
     activeReportID: PropTypes.string,
 };
 
@@ -52,6 +53,9 @@ const defaultProps = {
 class ReportListUtilsProvider extends Component {
     constructor(props) {
         super(props);
+
+        this.allReportOptions = [];
+        this.allPersonalDetailsOptions = [];
         this.buildOptions();
     }
 
