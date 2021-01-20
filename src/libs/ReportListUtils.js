@@ -13,17 +13,23 @@ import ONYXKEYS from '../ONYXKEYS';
  * methods should be named for the views they build options for and then exported for use in a component.
  */
 
-// In order to build our options we need references to all reports,
-// personalDetails, draftComments, and the activeReportID.
-const reports = {};
+// In order to build our options we need references to all reports, personalDetails, draftComments, and the
+// activeReportID. These are internal variables and should be updated when filtering options.
+let reports = {};
 let personalDetails = {};
-const draftComments = {};
+let draftComments = {};
 let activeReportID;
+
+// The user login is not going to change so we can use Onyx to populate.
 let currentUserLogin;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: val => currentUserLogin = val && val.email,
+});
 
 // Each time we re-calculate the possible options we will create arrays options for reports and personalDetails.
-let allReportOptions;
-let allPersonalDetailsOptions;
+let allReportOptions = {};
+let allPersonalDetailsOptions = {};
 
 /**
  * Check if the report has a draft comment
@@ -140,50 +146,6 @@ const rebuildOptions = _.throttle(() => {
         createOption([personalDetail], reportMapForLogins[personalDetail.login])
     ));
 }, 1000, {leading: false});
-
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: val => currentUserLogin = val && val.email,
-});
-
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (report) => {
-        const reportID = report.reportID;
-
-        if (!reportID) {
-            return;
-        }
-
-        const existingReport = reports[reportID];
-        if (!existingReport) {
-            reports[reportID] = report;
-        } else {
-            reports[report.reportID] = {...existingReport, ...report};
-        }
-        rebuildOptions();
-    },
-});
-
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS,
-    callback: (val) => {
-        personalDetails = val;
-        rebuildOptions();
-    },
-});
-
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
-    callback: (val, key) => {
-        draftComments[key] = val;
-    },
-});
-
-Onyx.connect({
-    key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
-    callback: val => activeReportID = val,
-});
 
 /**
  * Searches for a match when provided with a value
@@ -346,10 +308,19 @@ function getNewGroupOptions(searchValue = '', selectedOptions = []) {
 
 /**
  * Build the options for the Sidebar a.k.a. LHN
- *
+ * @param {Object} newReports
+ * @param {Object} newPersonalDetails
+ * @param {Object} newDraftComments
+ * @param {Number} newActiveReportID
  * @returns {Object}
  */
-function getSidebarOptions() {
+function getSidebarOptions(newReports, newPersonalDetails, newDraftComments, newActiveReportID) {
+    reports = newReports;
+    personalDetails = newPersonalDetails;
+    draftComments = newDraftComments;
+    activeReportID = newActiveReportID;
+    rebuildOptions();
+
     return getOptions({
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
