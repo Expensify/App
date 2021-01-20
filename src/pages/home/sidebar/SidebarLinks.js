@@ -3,7 +3,7 @@ import {View, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import styles from '../../../styles/styles';
+import styles, {getSafeAreaMargins} from '../../../styles/styles';
 import ONYXKEYS from '../../../ONYXKEYS';
 import ChatSwitcherView from './ChatSwitcherView';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
@@ -127,10 +127,12 @@ const SidebarLinks = (props) => {
                                 isActive={props.network && !props.network.isOffline}
                             />
                         </TouchableOpacity>
-
                     </View>
                     <ReportList
-                        contentContainerStyles={[styles.sidebarListContainer]}
+                        contentContainerStyles={[
+                            styles.sidebarListContainer,
+                            {paddingBottom: getSafeAreaMargins(props.insets).marginBottom},
+                        ]}
                         sections={sections}
                         focusedIndex={_.findIndex(recentReports, (
                             option => option.reportID === reportIDInUrl

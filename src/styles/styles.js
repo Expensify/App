@@ -394,10 +394,7 @@ const styles = {
     },
 
     sidebarListContainer: {
-        flex: 1,
-        flexGrow: 100,
         scrollbarWidth: 'none',
-        overflow: 'scroll',
         paddingBottom: 4,
     },
 
