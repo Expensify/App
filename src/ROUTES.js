@@ -3,6 +3,7 @@
  */
 export default {
     HOME: '/home',
+    SETTINGS: '/settings',
     REPORT: '/r/:reportID',
     getReportRoute: reportID => `/r/${reportID}`,
     ROOT: '/',
