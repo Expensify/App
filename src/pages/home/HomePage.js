@@ -24,6 +24,7 @@ import {
 import {
     subscribeToReportCommentEvents,
     fetchAll as fetchAllReports,
+    fetchAllOptions,
 } from '../../libs/actions/Report';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import * as Pusher from '../../libs/Pusher/pusher';
@@ -55,7 +56,6 @@ const defaultProps = {
 class App extends React.Component {
     constructor(props) {
         Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
-        Timing.start(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
 
         super(props);
 
@@ -96,6 +96,9 @@ class App extends React.Component {
         // Fetch some data we need on initialization
         PersonalDetails.fetch();
         PersonalDetails.fetchTimezone();
+        Timing.start(CONST.TIMING.OPTIONS);
+        fetchAllOptions();
+        Timing.start(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
         fetchAllReports(true, false, true);
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();

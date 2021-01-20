@@ -21,6 +21,7 @@ const CONST = {
         SWITCH_REPORT: 'switch_report',
         HOT: 'hot',
         COLD: 'cold',
+        OPTIONS: 'options',
     },
 };
 

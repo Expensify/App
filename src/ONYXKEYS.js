@@ -43,6 +43,7 @@ export default {
     // Collection Keys
     COLLECTION: {
         REPORT: 'report_',
+        OPTION: 'option_',
         REPORT_ACTIONS: 'reportActions_',
         REPORT_DRAFT_COMMENT: 'reportDraftComment_',
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',

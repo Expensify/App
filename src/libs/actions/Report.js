@@ -384,8 +384,6 @@ function unsubscribeFromReportChannel(reportID) {
  * @returns {Promise} only used internally when fetchAll() is called
  */
 function fetchChatReports() {
-    API.GetOptions();
-
     return API.Get({
         returnValueList: 'chatList',
     })
@@ -442,6 +440,18 @@ function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false, sho
                 Timing.end(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
             }
         });
+}
+
+function fetchAllOptions() {
+    API.GetOptions().then((options) => {
+        _.each(options, (option) => {
+            const suffix = option.reportID || option.login;
+
+            // Merge the data into Onyx
+            Onyx.merge(`${ONYXKEYS.COLLECTION.OPTION}${suffix}`, option);
+        });
+        Timing.end(CONST.TIMING.OPTIONS);
+    });
 }
 
 /**
@@ -663,6 +673,7 @@ NetworkConnection.onReconnect(() => {
 
 export {
     fetchAll,
+    fetchAllOptions,
     fetchActions,
     fetchOrCreateChatReport,
     addAction,
