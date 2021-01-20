@@ -74,7 +74,7 @@ const defaultProps = {
     onSelectRow: () => {},
 };
 
-const ReportList = ({
+const OptionsList = ({
     contentContainerStyles,
     sections,
     focusedIndex,
@@ -121,7 +121,7 @@ const ReportList = ({
     </View>
 );
 
-ReportList.propTypes = propTypes;
-ReportList.displayName = 'ReportList';
-ReportList.defaultProps = defaultProps;
-export default ReportList;
+OptionsList.propTypes = propTypes;
+OptionsList.displayName = 'OptionsList';
+OptionsList.defaultProps = defaultProps;
+export default OptionsList;
