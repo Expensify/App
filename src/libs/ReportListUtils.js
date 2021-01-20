@@ -52,8 +52,27 @@ const defaultProps = {
 class ReportListUtilsProvider extends Component {
     constructor(props) {
         super(props);
-
         this.buildOptions();
+    }
+
+    shouldComponentUpdate(nextProps) {
+        if (this.props.activeReportID !== nextProps.activeReportID) {
+            return true;
+        }
+
+        if (!_.isEqual(this.props.reports, nextProps.reports)) {
+            return true;
+        }
+
+        if (!_.isEqual(this.props.personalDetails, nextProps.personalDetails)) {
+            return true;
+        }
+
+        if (!_.isEqual(this.props.draftComments, nextProps.draftComments)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
