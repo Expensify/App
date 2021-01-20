@@ -57,18 +57,22 @@ class ReportListUtilsProvider extends Component {
 
     shouldComponentUpdate(nextProps) {
         if (this.props.activeReportID !== nextProps.activeReportID) {
+            this.buildOptions();
             return true;
         }
 
         if (!_.isEqual(this.props.reports, nextProps.reports)) {
+            this.buildOptions();
             return true;
         }
 
         if (!_.isEqual(this.props.personalDetails, nextProps.personalDetails)) {
+            this.buildOptions();
             return true;
         }
 
         if (!_.isEqual(this.props.draftComments, nextProps.draftComments)) {
+            this.buildOptions();
             return true;
         }
 
@@ -376,7 +380,6 @@ class ReportListUtilsProvider extends Component {
     }
 
     render() {
-        this.buildOptions();
         return (
             <ReportListContext.Provider
                 value={{
