@@ -9,9 +9,11 @@ declare -r RED='\033[0;31m'
 declare -r NC='\033[0m'
 
 # Rebuild all the Github Actions
+printf '\nRebuilding GitHub Actions...\n'
 npm run gh-actions-build
 
 # Check for a diff
+printf '\nChecking for a diff...\n'
 if [[ $(git diff --exit-code) -eq 0 ]]; then
     echo -e "${GREEN}Github Actions are up to date!${NC}"
     exit 0
