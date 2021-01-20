@@ -502,7 +502,6 @@ const styles = {
         height: variables.contentHeaderHeight,
         justifyContent: 'center',
         display: 'flex',
-        paddingLeft: 20,
         paddingRight: 20,
     },
 
@@ -513,10 +512,10 @@ const styles = {
 
     LHNToggle: {
         alignItems: 'center',
-        height: variables.componentSizeNormal,
+        height: variables.contentHeaderHeight,
         justifyContent: 'center',
-        marginRight: 8,
-        width: variables.componentSizeNormal,
+        paddingRight: 10,
+        paddingLeft: 20,
     },
 
     LHNToggleIcon: {
@@ -749,29 +748,15 @@ const styles = {
         marginBottom: 3,
     },
 
-    hamburgerOpenAbsolute: {
-        borderColor: themeColors.border,
+    navigationMenuOpenAbsolute: {
         position: 'absolute',
         left: 0,
         top: 0,
         bottom: 0,
         zIndex: 2,
-        shadowColor: themeColors.shadow,
-        shadowOffset: {
-            width: 0,
-            height: 0,
-        },
-        shadowOpacity: 0.15,
-        shadowRadius: 20,
-    },
-
-    hamburgerOpen: {
-        borderColor: themeColors.border,
-        width: variables.sideBarWidth,
     },
 
     sidebarVisible: {
-        width: variables.sideBarWidth,
         borderRightWidth: 1,
     },
 
@@ -1130,7 +1115,28 @@ function getSafeAreaMargins(insets) {
     return {marginBottom: insets.bottom * variables.safeInsertPercentage};
 }
 
+/**
+ * Return navigation menu styles.
+ *
+ * @param {Number} windowWidth
+ * @param {Boolean} isSidebarShown
+ * @returns {Object}
+ */
+function getNavigationMenuStyle(windowWidth, isSidebarShown) {
+    const isSmallScreenWidth = windowWidth <= variables.mobileResponsiveWidthBreakpoint;
+    return isSmallScreenWidth
+        ? {
+            ...styles.navigationMenuOpenAbsolute,
+            width: isSidebarShown ? windowWidth : 0,
+        }
+        : {
+            borderColor: themeColors.border,
+            borderRightWidth: 1,
+            width: variables.sideBarWidth,
+        };
+}
+
 export default styles;
 export {
-    getSafeAreaPadding, getSafeAreaMargins, webViewStyles,
+    getSafeAreaPadding, getSafeAreaMargins, webViewStyles, getNavigationMenuStyle,
 };
