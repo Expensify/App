@@ -109,24 +109,16 @@ describe('ReportListUtils', () => {
             keys: ONYXKEYS,
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {email: 'tonystark@expensify.com'},
-                [ONYXKEYS.PERSONAL_DETAILS]: PERSONAL_DETAILS,
             },
             registerStorageEventListener: () => {},
         });
         Onyx.registerLogger(() => {});
-        Promise.all(_.map(REPORTS, (report, reportID) => (
-            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report)
-        )));
-        return waitForPromisesToResolve()
-
-            // We are advancing the fake timers so the throttled rebuildOptions()
-            // method will run in ReportListUtils callbacks.
-            .then(() => jest.advanceTimersByTime(2000));
+        return waitForPromisesToResolve();
     });
 
     it('getSearchOptions()', () => {
         // When we filter in the Search view without providing a searchValue
-        let results = ReportListUtils.getSearchOptions('');
+        let results = ReportListUtils.getSearchOptions(REPORTS, PERSONAL_DETAILS, {}, 0, '');
 
         // Then all options returned should be recentReports and none should be personalDetails
         expect(results.personalDetails.length).toBe(0);
@@ -138,14 +130,14 @@ describe('ReportListUtils', () => {
         expect(results.recentReports[0].login).toBe('reedrichards@expensify.com');
 
         // When we filter again but provide a searchValue
-        results = ReportListUtils.getSearchOptions('spider');
+        results = ReportListUtils.getSearchOptions(REPORTS, PERSONAL_DETAILS, {}, 0, 'spider');
 
         // Then only one option should be returned and it's the one matching the search value
         expect(results.recentReports.length).toBe(1);
         expect(results.recentReports[0].login).toBe('peterparker@expensify.com');
 
         // When we filter again but provide a searchValue that should match multiple times
-        results = ReportListUtils.getSearchOptions('fantastic');
+        results = ReportListUtils.getSearchOptions(REPORTS, PERSONAL_DETAILS, {}, 0, 'fantastic');
 
         // Then we get both values with the pinned value still on top
         expect(results.recentReports.length).toBe(2);
@@ -154,7 +146,7 @@ describe('ReportListUtils', () => {
 
     it('getNewChatOptions()', () => {
         // When we call getNewChatOptions() with no search value
-        let results = ReportListUtils.getNewChatOptions('');
+        let results = ReportListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, {}, 0, '');
 
         // Then no reports should be returned, only personalDetails and all the personalDetails should be returned
         // minus the currently logged in user
@@ -169,20 +161,20 @@ describe('ReportListUtils', () => {
         expect(personalDetailWithExistingReport.reportID).toBe(3);
 
         // When we provide a search value that does not match any personal details
-        results = ReportListUtils.getNewChatOptions('magneto');
+        results = ReportListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, {}, 0, 'magneto');
 
         // Then no options will be returned
         expect(results.personalDetails.length).toBe(0);
 
         // When we provide a search value that matches an email
-        results = ReportListUtils.getNewChatOptions('peterparker@expensify.com');
+        results = ReportListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, {}, 0, 'peterparker@expensify.com');
 
         // Then one option will be returned and it will be the correct option
         expect(results.personalDetails.length).toBe(1);
         expect(results.personalDetails[0].text).toBe('Spider-Man');
 
         // When we provide a search value that matches a partial display name or email
-        results = ReportListUtils.getNewChatOptions('man');
+        results = ReportListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, {}, 0, 'man');
 
         // Then several options will be returned and they will be each have the search string in their email or name
         // even though the currently logged in user matches they should not show.
@@ -194,7 +186,7 @@ describe('ReportListUtils', () => {
 
     it('getNewGroupOptions()', () => {
         // When we call getNewGroupOptions() with no search value
-        let results = ReportListUtils.getNewGroupOptions('');
+        let results = ReportListUtils.getNewGroupOptions(REPORTS, PERSONAL_DETAILS, {}, 0, '');
 
         // Then we should expect only a maxmimum of 5 recent reports to be returned
         expect(results.recentReports.length).toBe(5);
@@ -211,7 +203,7 @@ describe('ReportListUtils', () => {
         expect(personalDetailsOverlapWithReports).toBe(false);
 
         // When we search for an option that is only in a personalDetail with no existing report
-        results = ReportListUtils.getNewGroupOptions('hulk');
+        results = ReportListUtils.getNewGroupOptions(REPORTS, PERSONAL_DETAILS, {}, 0, 'hulk');
 
         // Then reports should return no results
         expect(results.recentReports.length).toBe(0);
@@ -221,7 +213,7 @@ describe('ReportListUtils', () => {
         expect(results.personalDetails[0].login).toBe('brucebanner@expensify.com');
 
         // When we search for an option that matches things in both personalDetails and reports
-        results = ReportListUtils.getNewGroupOptions('man');
+        results = ReportListUtils.getNewGroupOptions(REPORTS, PERSONAL_DETAILS, {}, 0, 'man');
 
         // Then all single participant reports that match will show up in the recentReports array
         expect(results.recentReports.length).toBe(2);
@@ -233,7 +225,7 @@ describe('ReportListUtils', () => {
         expect(results.personalDetails[0].login).toBe('natasharomanoff@expensify.com');
 
         // When we provide no selected options to getNewGroupOptions()
-        results = ReportListUtils.getNewGroupOptions('', []);
+        results = ReportListUtils.getNewGroupOptions(REPORTS, PERSONAL_DETAILS, {}, 0, '', []);
 
         // Then one of our older report options (not in our five most recent) should appear in the personalDetails
         // but not in recentReports
@@ -241,7 +233,14 @@ describe('ReportListUtils', () => {
         expect(_.every(results.personalDetails, option => option.login !== 'peterparker@expensify.com')).toBe(false);
 
         // When we provide a "selected" option to getNewGroupOptions()
-        results = ReportListUtils.getNewGroupOptions('', [{login: 'peterparker@expensify.com'}]);
+        results = ReportListUtils.getNewGroupOptions(
+            REPORTS,
+            PERSONAL_DETAILS,
+            {},
+            0,
+            '',
+            [{login: 'peterparker@expensify.com'}],
+        );
 
         // Then the option should not appear anywhere in either list
         expect(_.every(results.recentReports, option => option.login !== 'peterparker@expensify.com')).toBe(true);
@@ -250,7 +249,7 @@ describe('ReportListUtils', () => {
 
     it('getSidebarOptions()', () => {
         // When we call getSidebarOptions() with no search value
-        const results = ReportListUtils.getSidebarOptions('');
+        const results = ReportListUtils.getSidebarOptions(REPORTS, PERSONAL_DETAILS, {}, 0);
 
         // Then expect all of the reports to be shown both multiple and single participant
         expect(results.recentReports.length).toBe(_.size(REPORTS));
