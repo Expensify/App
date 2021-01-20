@@ -214,7 +214,7 @@ class ReportActionCompose extends React.Component {
                         underlayColor={themeColors.componentBG}
                         disabled={this.state.isCommentEmpty}
                     >
-                        <Icon icon={Send} />
+                        <Icon icon={Send} fill={themeColors.componentBG} />
                     </TouchableOpacity>
                 </View>
                 <ReportTypingIndicator reportID={this.props.reportID} />
