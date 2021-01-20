@@ -348,6 +348,14 @@ function Get(parameters) {
 }
 
 /**
+ * @returns {Promise}
+ */
+function GetOptions() {
+    const commandName = 'Cash_Get_Options';
+    return request(commandName, {});
+}
+
+/**
  * @param {Object} parameters
  * @param {String} parameters.email
  * @returns {Promise}
@@ -512,6 +520,7 @@ export {
     CreateLogin,
     DeleteLogin,
     Get,
+    GetOptions,
     GetAccountStatus,
     GetRequestCountryCode,
     Graphite_Timer,

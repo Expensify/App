@@ -384,6 +384,8 @@ function unsubscribeFromReportChannel(reportID) {
  * @returns {Promise} only used internally when fetchAll() is called
  */
 function fetchChatReports() {
+    API.GetOptions();
+
     return API.Get({
         returnValueList: 'chatList',
     })
