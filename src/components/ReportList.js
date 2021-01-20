@@ -64,6 +64,7 @@ const ReportList = ({
             showsVerticalScrollIndicator={false}
             sections={sections}
             keyExtractor={option => option.keyForList}
+            initialNumToRender={200}
             renderItem={({item, index, section}) => (
                 <ChatLinkRow
                     option={item}
@@ -87,8 +88,6 @@ const ReportList = ({
                 return <View style={styles.mt1} />;
             }}
             extraData={focusedIndex}
-            ListFooterComponent={View}
-            ListFooterComponentStyle={[styles.p1]}
         />
         <KeyboardSpacer />
     </View>

@@ -40,6 +40,7 @@ import {fetchCountryCodeByRequestIP} from '../../libs/actions/GeoLocation';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import * as ChatSwitcher from '../../libs/actions/ChatSwitcher';
 import {redirect} from '../../libs/actions/App';
+import ReportListUtilsProvider from '../../libs/ReportListUtils';
 
 const propTypes = {
     isSidebarShown: PropTypes.bool,
@@ -273,49 +274,51 @@ class App extends React.Component {
 
     render() {
         return (
-            <SafeAreaProvider>
-                <CustomStatusBar />
-                <SafeAreaInsetsContext.Consumer style={[styles.flex1]}>
-                    {insets => (
-                        <View
-                            style={[styles.appContentWrapper,
-                                styles.flexRow,
-                                styles.flex1,
-                                getSafeAreaPadding(insets),
-                            ]}
-                        >
-                            <Route path={[ROUTES.REPORT, ROUTES.HOME, ROUTES.SETTINGS]}>
-                                <Animated.View style={[
-                                    getNavigationMenuStyle(this.state.windowWidth, this.props.isSidebarShown),
-                                    {
-                                        transform: [{translateX: this.animationTranslateX}],
-                                    }]}
-                                >
-                                    <Sidebar
-                                        insets={insets}
-                                        onLinkClick={this.recordTimerAndToggleNavigationMenu}
-                                        onAvatarClick={this.navigateToSettings}
-                                        isChatSwitcherActive={this.props.isChatSwitcherActive}
-                                        isCreateMenuActive={this.state.isCreateMenuActive}
-                                        toggleCreateMenu={this.toggleCreateMenu}
-                                        onCreateMenuItemSelected={this.onCreateMenuItemSelected}
-                                    />
-                                </Animated.View>
-                                <View
-                                    style={[styles.appContent, styles.flex1, styles.flexColumn]}
-                                >
-                                    <HeaderView
-                                        shouldShowNavigationMenuButton={this.state.isSmallScreenWidth}
-                                        onNavigationMenuButtonClicked={this.toggleNavigationMenu}
-                                    />
-                                    {this.props.currentURL === '/settings' && <SettingsPage />}
-                                    <Main />
-                                </View>
-                            </Route>
-                        </View>
-                    )}
-                </SafeAreaInsetsContext.Consumer>
-            </SafeAreaProvider>
+            <ReportListUtilsProvider>
+                <SafeAreaProvider>
+                    <CustomStatusBar />
+                    <SafeAreaInsetsContext.Consumer style={[styles.flex1]}>
+                        {insets => (
+                            <View
+                                style={[styles.appContentWrapper,
+                                    styles.flexRow,
+                                    styles.flex1,
+                                    getSafeAreaPadding(insets),
+                                ]}
+                            >
+                                <Route path={[ROUTES.REPORT, ROUTES.HOME, ROUTES.SETTINGS]}>
+                                    <Animated.View style={[
+                                        getNavigationMenuStyle(this.state.windowWidth, this.props.isSidebarShown),
+                                        {
+                                            transform: [{translateX: this.animationTranslateX}],
+                                        }]}
+                                    >
+                                        <Sidebar
+                                            insets={insets}
+                                            onLinkClick={this.recordTimerAndToggleNavigationMenu}
+                                            onAvatarClick={this.navigateToSettings}
+                                            isChatSwitcherActive={this.props.isChatSwitcherActive}
+                                            isCreateMenuActive={this.state.isCreateMenuActive}
+                                            toggleCreateMenu={this.toggleCreateMenu}
+                                            onCreateMenuItemSelected={this.onCreateMenuItemSelected}
+                                        />
+                                    </Animated.View>
+                                    <View
+                                        style={[styles.appContent, styles.flex1, styles.flexColumn]}
+                                    >
+                                        <HeaderView
+                                            shouldShowNavigationMenuButton={this.state.isSmallScreenWidth}
+                                            onNavigationMenuButtonClicked={this.toggleNavigationMenu}
+                                        />
+                                        {this.props.currentURL === '/settings' && <SettingsPage />}
+                                        <Main />
+                                    </View>
+                                </Route>
+                            </View>
+                        )}
+                    </SafeAreaInsetsContext.Consumer>
+                </SafeAreaProvider>
+            </ReportListUtilsProvider>
         );
     }
 }

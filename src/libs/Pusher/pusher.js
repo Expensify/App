@@ -207,8 +207,9 @@ function subscribe(
                 if (!isBound) {
                     bindEventToChannel(channel, eventName, eventCallback, isChunked);
                     resolve();
+                    isBound = true;
+                    return;
                 }
-                isBound = true;
 
                 // When subscribing for the first time we can register a success callback that can be
                 // called multiple times when the subscription succeeds again in the future
