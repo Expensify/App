@@ -21,7 +21,7 @@ let draftComments = {};
 let activeReportID;
 let currentUserLogin;
 
-// Each time we re-calculate the possible options we will create arrays options for reports and personalDetails.
+// Each time we re-calculate the possible options we set them to this array
 let allReportOptions = [];
 let allPersonalDetailsOptions = [];
 
@@ -119,12 +119,12 @@ function createOption(personalDetailList, report) {
 }
 
 /**
- * Rebuild the options. We are throttling this so the options are only rebuilt at most
- * once per second. It can be expensive to rebuild options so we slow this down a bit.
+ * Rebuild the options
  */
-const rebuildOptions = _.throttle(() => {
+function rebuildOptions() {
     const reportMapForLogins = {};
     const orderedReports = lodashOrderBy(reports, ['lastVisitedTimestamp'], ['desc']);
+    allReportOptions = [];
     allReportOptions = _.map(orderedReports, (report) => {
         const logins = getParticipantLogins(report);
         const reportPersonalDetails = getPersonalDetailsForLogins(logins);
@@ -139,7 +139,7 @@ const rebuildOptions = _.throttle(() => {
     allPersonalDetailsOptions = _.map(personalDetails, personalDetail => (
         createOption([personalDetail], reportMapForLogins[personalDetail.login])
     ));
-}, 1000, {leading: false});
+}
 
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -259,10 +259,25 @@ function getOptions({
 /**
  * Build the options for the Search view
  *
+ * @param {Object} nextReports
+ * @param {Object} nextPersonalDetails
+ * @param {Obejct} nextDraftComments
+ * @param {Number} nextActiveReportID
  * @param {String} searchValue
  * @returns {Object}
  */
-function getSearchOptions(searchValue = '') {
+function getSearchOptions(
+    nextReports,
+    nextPersonalDetails,
+    nextDraftComments,
+    nextActiveReportID,
+    searchValue = '',
+) {
+    reports = nextReports;
+    personalDetails = nextPersonalDetails;
+    draftComments = nextDraftComments;
+    activeReportID = nextActiveReportID;
+    rebuildOptions();
     return getOptions({
         searchValue,
         includeRecentReports: true,
@@ -275,10 +290,25 @@ function getSearchOptions(searchValue = '') {
 /**
  * Build the options for the New Chat view
  *
+ * @param {Object} nextReports
+ * @param {Object} nextPersonalDetails
+ * @param {Obejct} nextDraftComments
+ * @param {Number} nextActiveReportID
  * @param {String} searchValue
  * @returns {Object}
  */
-function getNewChatOptions(searchValue = '') {
+function getNewChatOptions(
+    nextReports,
+    nextPersonalDetails,
+    nextDraftComments,
+    nextActiveReportID,
+    searchValue = '',
+) {
+    reports = nextReports;
+    personalDetails = nextPersonalDetails;
+    draftComments = nextDraftComments;
+    activeReportID = nextActiveReportID;
+    rebuildOptions();
     return getOptions({
         searchValue,
         includePersonalDetails: true,
@@ -288,11 +318,27 @@ function getNewChatOptions(searchValue = '') {
 /**
  * Build the options for the New Group view
  *
+ * @param {Object} nextReports
+ * @param {Object} nextPersonalDetails
+ * @param {Obejct} nextDraftComments
+ * @param {Number} nextActiveReportID
  * @param {String} searchValue
  * @param {Array} selectedOptions
  * @returns {Object}
  */
-function getNewGroupOptions(searchValue = '', selectedOptions = []) {
+function getNewGroupOptions(
+    nextReports,
+    nextPersonalDetails,
+    nextDraftComments,
+    nextActiveReportID,
+    searchValue = '',
+    selectedOptions = [],
+) {
+    reports = nextReports;
+    personalDetails = nextPersonalDetails;
+    draftComments = nextDraftComments;
+    activeReportID = nextActiveReportID;
+    rebuildOptions();
     return getOptions({
         searchValue,
         selectedOptions,
@@ -317,7 +363,6 @@ function getSidebarOptions(nextReports, nextPersonalDetails, nextDraftComments, 
     draftComments = nextDraftComments;
     activeReportID = nextActiveReportID;
     rebuildOptions();
-
     return getOptions({
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
