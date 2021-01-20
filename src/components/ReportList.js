@@ -60,7 +60,7 @@ const ReportList = ({
             bounces={false}
             indicatorStyle="white"
             keyboardShouldPersistTaps="always"
-            contentContainerStyle={[styles.flex1, ...contentContainerStyles]}
+            contentContainerStyle={[...contentContainerStyles]}
             showsVerticalScrollIndicator={false}
             sections={sections}
             keyExtractor={option => option.keyForList}
