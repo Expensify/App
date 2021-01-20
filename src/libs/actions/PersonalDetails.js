@@ -20,12 +20,6 @@ Onyx.connect({
     callback: val => personalDetails = val,
 });
 
-let isOffline;
-Onyx.connect({
-    key: ONYXKEYS.NETWORK,
-    callback: val => isOffline = val && val.isOffline,
-});
-
 /**
  * Helper method to return a default avatar
  *
@@ -178,17 +172,6 @@ function getFromReportParticipants(reports) {
 
 // When the app reconnects from being offline, fetch all of the personal details
 NetworkConnection.onReconnect(fetch);
-
-// Refresh the personal details and timezone every 30 minutes because there is no
-// pusher event that sends updated personal details data yet
-// See https://github.com/Expensify/ReactNativeChat/issues/468
-setInterval(() => {
-    if (isOffline) {
-        return;
-    }
-    fetch();
-    fetchTimezone();
-}, 1000 * 60 * 30);
 
 export {
     fetch,

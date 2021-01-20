@@ -45,11 +45,13 @@ const propTypes = {
     isSidebarShown: PropTypes.bool,
     isChatSwitcherActive: PropTypes.bool,
     currentURL: PropTypes.string,
+    network: PropTypes.shape({isOffline: PropTypes.bool}),
 };
 const defaultProps = {
     isSidebarShown: true,
     isChatSwitcherActive: false,
     currentURL: '',
+    network: {isOffline: true},
 };
 
 class App extends React.Component {
@@ -101,6 +103,17 @@ class App extends React.Component {
         UnreadIndicatorUpdater.listenForReportChanges();
         Dimensions.addEventListener('change', this.toggleNavigationMenuBasedOnDimensions);
 
+        // Refresh the personal details and timezone every 30 minutes because there is no
+        // pusher event that sends updated personal details data yet
+        // See https://github.com/Expensify/ReactNativeChat/issues/468
+        this.interval = setInterval(() => {
+            if (this.props.network.isOffline) {
+                return;
+            }
+            PersonalDetails.fetch();
+            PersonalDetails.fetchTimezone();
+        }, 1000 * 60 * 30);
+
         // Set up the navigationMenu correctly once on init
         if (!this.state.isSmallScreenWidth) {
             showSidebar();
@@ -129,6 +142,10 @@ class App extends React.Component {
         Dimensions.removeEventListener('change', this.toggleNavigationMenuBasedOnDimensions);
         KeyboardShortcut.unsubscribe('K');
         NetworkConnection.stopListeningForReconnect();
+        if (this.interval) {
+            clearInterval(this.interval);
+            this.interval = null;
+        }
     }
 
     /**
@@ -333,6 +350,9 @@ export default withOnyx(
         },
         currentURL: {
             key: ONYXKEYS.CURRENT_URL,
+        },
+        network: {
+            key: ONYXKEYS.NETWORK,
         },
     },
 )(App);
