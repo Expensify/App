@@ -176,7 +176,7 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}, isChun
  * @param {Boolean} [isChunked] This parameters tells us whether or not we expect the result to come in individual
  * pieces/chunks (because it exceeds
  *  the 10kB limit that pusher has).
- * @param {Function} [successEventCallback] Callback to be called when reconnection happen
+ * @param {Function} [onResubscribe] Callback to be called when reconnection happen
  *
  * @return {Promise}
  *
@@ -187,7 +187,7 @@ function subscribe(
     eventName,
     eventCallback = () => {},
     isChunked = false,
-    successEventCallback = () => {},
+    onResubscribe = () => {},
 ) {
     return new Promise((resolve, reject) => {
         // We cannot call subscribe() before init(). Prevent any attempt to do this on dev.
@@ -207,13 +207,15 @@ function subscribe(
                 if (!isBound) {
                     bindEventToChannel(channel, eventName, eventCallback, isChunked);
                     resolve();
+                    isBound = true;
+                    return;
                 }
-                isBound = true;
 
-                // When subscribing for the first time we can register a success callback that can be
+                // When subscribing for the first time we register a success callback that can be
                 // called multiple times when the subscription succeeds again in the future
-                // e.g. as a result of Pusher disconnecting and reconnecting
-                successEventCallback();
+                // e.g. as a result of Pusher disconnecting and reconnecting. This callback does
+                // not fire on the first subscription_succeeded event.
+                onResubscribe();
             });
 
             channel.bind('pusher:subscription_error', (status) => {
