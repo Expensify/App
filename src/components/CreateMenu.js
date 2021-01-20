@@ -1,12 +1,15 @@
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
-import {View, Text, Pressable} from 'react-native';
+import {
+    View, Text, Pressable, useWindowDimensions,
+} from 'react-native';
 import Modal from './Modal';
 import styles from '../styles/styles';
 import CONST from '../CONST';
 import themeColors from '../styles/themes/default';
 import colors from '../styles/colors';
 import {ChatBubbleIcon, UsersIcon} from './Expensicons';
+import variables from '../styles/variables';
 
 const propTypes = {
     // Callback to fire on request to modal close
@@ -20,6 +23,8 @@ const propTypes = {
 };
 
 const CreateMenu = (props) => {
+    const isSmallScreen = useWindowDimensions().width < variables.mobileResponsiveWidthBreakpoint;
+
     // This format allows to set individual callbacks to each item
     // while including mutual callbacks first
     const menuItemData = [
@@ -37,7 +42,11 @@ const CreateMenu = (props) => {
         <Modal
             onClose={props.onClose}
             isVisible={props.isVisible}
-            type={CONST.MODAL.MODAL_TYPE.CREATE_MENU}
+            type={
+                isSmallScreen
+                    ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED
+                    : CONST.MODAL.MODAL_TYPE.POPOVER
+            }
         >
             {menuItemData.map(({IconComponent, text, onPress}) => (
                 <Pressable
