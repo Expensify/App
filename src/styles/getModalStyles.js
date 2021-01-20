@@ -1,6 +1,7 @@
 import CONST from '../CONST';
 import colors from './colors';
 import variables from './variables';
+import themeColors from './themes/default';
 
 export default (type, windowDimensions) => {
     const isSmallScreen = windowDimensions.width < variables.mobileResponsiveWidthBreakpoint;
@@ -50,33 +51,50 @@ export default (type, windowDimensions) => {
             animationOut = isSmallScreen ? 'slideOutRight' : 'fadeOut';
             needsSafeAreaPadding = true;
             break;
-        case CONST.MODAL.MODAL_TYPE.CREATE_MENU:
+        case CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED:
             modalStyle = {
                 margin: 0,
                 alignItems: 'center',
                 justifyContent: 'flex-end',
-                marginRight: isSmallScreen ? 0 : windowDimensions.width - variables.sideBarWidth,
-                marginBottom: isSmallScreen ? 0 : 82,
             };
             modalContainerStyle = {
-                width: isSmallScreen ? '100%' : variables.sideBarWidth - 40,
-                borderTopLeftRadius: isSmallScreen ? 20 : 12,
-                borderTopRightRadius: isSmallScreen ? 20 : 12,
-                borderBottomLeftRadius: isSmallScreen ? 0 : 12,
-                borderBottomRightRadius: isSmallScreen ? 0 : 12,
-                borderWidth: isSmallScreen ? 0 : 1,
-                borderColor: '#ECECEC',
+                width: '100%',
+                borderTopLeftRadius: 20,
+                borderTopRightRadius: 20,
                 paddingTop: 12,
                 paddingBottom: 12,
                 justifyContent: 'center',
                 overflow: 'hidden',
-                boxShadow: isSmallScreen ? 'none' : '0px 0px 10px 0px rgba(0, 0, 0, 0.025)',
             };
 
-            hideBackdrop = !isSmallScreen;
             swipeDirection = undefined;
-            animationIn = isSmallScreen ? 'slideInUp' : 'fadeInLeft';
-            animationOut = isSmallScreen ? 'slideOutDown' : 'fadeOutLeft';
+            animationIn = 'slideInUp';
+            animationOut = 'slideOutDown';
+            break;
+        case CONST.MODAL.MODAL_TYPE.POPOVER:
+            modalStyle = {
+                margin: 0,
+                alignItems: 'center',
+                justifyContent: 'flex-end',
+                marginRight: windowDimensions.width - variables.sideBarWidth,
+                marginBottom: 82,
+            };
+            modalContainerStyle = {
+                width: variables.sideBarWidth - 40,
+                borderRadius: 12,
+                borderWidth: 1,
+                borderColor: themeColors.border,
+                paddingTop: 12,
+                paddingBottom: 12,
+                justifyContent: 'center',
+                overflow: 'hidden',
+                boxShadow: '0px 0px 10px 0px rgba(0, 0, 0, 0.025)',
+            };
+
+            hideBackdrop = true;
+            swipeDirection = undefined;
+            animationIn = 'fadeInLeft';
+            animationOut = 'fadeOutLeft';
             break;
         default:
             modalStyle = {};
