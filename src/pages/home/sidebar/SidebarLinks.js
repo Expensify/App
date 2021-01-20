@@ -25,8 +25,11 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     match: PropTypes.object.isRequired,
 
-    // Toggles the hamburger menu open and closed
+    // Toggles the navigation menu open and closed
     onLinkClick: PropTypes.func.isRequired,
+
+    // navigates to settings and hides sidebar
+    onAvatarClick: PropTypes.func.isRequired,
 
     // Safe area insets required for mobile devices margins
     insets: SafeAreaInsetPropTypes.isRequired,
@@ -43,6 +46,7 @@ const propTypes = {
     // List of draft comments. We don't know the shape, since the keys include the report numbers
     comments: PropTypes.objectOf(PropTypes.string),
 
+    // Current state of the chat switcher (active of inactive)
     isChatSwitcherActive: PropTypes.bool,
 
     // List of users' personal details
@@ -138,10 +142,15 @@ const SidebarLinks = (props) => {
                     >
                         <MagnifyingGlassIcon width={20} height={20} />
                     </TouchableOpacity>
-                    <AvatarWithIndicator
-                        source={props.myPersonalDetails.avatarURL}
-                        isActive={props.network && !props.network.isOffline}
-                    />
+                    <TouchableOpacity
+                        onPress={props.onAvatarClick}
+                    >
+                        <AvatarWithIndicator
+                            source={props.myPersonalDetails.avatarURL}
+                            isActive={props.network && !props.network.isOffline}
+                        />
+                    </TouchableOpacity>
+
                 </View>
             )}
             <ScrollView
@@ -206,6 +215,10 @@ export default compose(
         },
         network: {
             key: ONYXKEYS.NETWORK,
+        },
+        isChatSwitcherActive: {
+            key: ONYXKEYS.IS_CHAT_SWITCHER_ACTIVE,
+            initWithStoredValues: false,
         },
     }),
 )(SidebarLinks);
