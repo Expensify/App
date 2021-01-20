@@ -142,10 +142,8 @@ class App extends React.Component {
         Dimensions.removeEventListener('change', this.toggleNavigationMenuBasedOnDimensions);
         KeyboardShortcut.unsubscribe('K');
         NetworkConnection.stopListeningForReconnect();
-        if (this.interval) {
-            clearInterval(this.interval);
-            this.interval = null;
-        }
+        clearInterval(this.interval);
+        this.interval = null;
     }
 
     /**
