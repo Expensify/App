@@ -15,15 +15,15 @@ import ONYXKEYS from '../ONYXKEYS';
 
 // In order to build our options we need references to all reports,
 // personalDetails, draftComments, and the activeReportID.
-const reports = {};
+let reports = {};
 let personalDetails = {};
-const draftComments = {};
+let draftComments = {};
 let activeReportID;
 let currentUserLogin;
 
 // Each time we re-calculate the possible options we will create arrays options for reports and personalDetails.
-let allReportOptions;
-let allPersonalDetailsOptions;
+let allReportOptions = [];
+let allPersonalDetailsOptions = [];
 
 /**
  * Check if the report has a draft comment
@@ -146,45 +146,6 @@ Onyx.connect({
     callback: val => currentUserLogin = val && val.email,
 });
 
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (report) => {
-        const reportID = report.reportID;
-
-        if (!reportID) {
-            return;
-        }
-
-        const existingReport = reports[reportID];
-        if (!existingReport) {
-            reports[reportID] = report;
-        } else {
-            reports[report.reportID] = {...existingReport, ...report};
-        }
-        rebuildOptions();
-    },
-});
-
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS,
-    callback: (val) => {
-        personalDetails = val;
-        rebuildOptions();
-    },
-});
-
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
-    callback: (val, key) => {
-        draftComments[key] = val;
-    },
-});
-
-Onyx.connect({
-    key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
-    callback: val => activeReportID = val,
-});
-
 /**
  * Searches for a match when provided with a value
  *
@@ -208,7 +169,6 @@ function isSearchStringMatch(searchValue, searchText) {
 /**
  * Build the options
  *
- * @param {Object} reportActions
  * @param {Object} options
  * @returns {Object}
  * @private
@@ -228,7 +188,6 @@ function getOptions({
 
     // Always exclude already selected options and the currently logged in user
     const loginOptionsToExclude = [...selectedOptions, {login: currentUserLogin}];
-
     if (includeRecentReports) {
         for (let i = 0; i < allReportOptions.length; i++) {
             // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
@@ -346,10 +305,19 @@ function getNewGroupOptions(searchValue = '', selectedOptions = []) {
 
 /**
  * Build the options for the Sidebar a.k.a. LHN
- *
+ * @param {Object} nextReports
+ * @param {Object} nextPersonalDetails
+ * @param {Obejct} nextDraftComments
+ * @param {Number} nextActiveReportID
  * @returns {Object}
  */
-function getSidebarOptions() {
+function getSidebarOptions(nextReports, nextPersonalDetails, nextDraftComments, nextActiveReportID) {
+    reports = nextReports;
+    personalDetails = nextPersonalDetails;
+    draftComments = nextDraftComments;
+    activeReportID = nextActiveReportID;
+    rebuildOptions();
+
     return getOptions({
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
