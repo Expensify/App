@@ -17,7 +17,6 @@ declare -r NOTE_DONT_EDIT='/**
  */
 '
 
-
 for ACTION in "${GITHUB_ACTIONS[@]}"; do
     # Build the action
     ACTION_DIR=$(dirname "$ACTION")

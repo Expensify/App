@@ -18,9 +18,6 @@ jobs:
 
             - run: npm install
 
-            # Rebuild the actions on this branch
-            - run: npm run gh-actions-build
-
-            # Check for a diff. Fail if there is one,
+            # Rebuild all the actions on this branch and check for a diff. Fail if there is one,
             # because that would be a sign that the PR author did not rebuild the Github Actions
             - run: ./.github/scripts/verifyActions.sh
