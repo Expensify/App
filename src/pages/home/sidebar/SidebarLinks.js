@@ -15,7 +15,7 @@ import * as ChatSwitcher from '../../../libs/actions/ChatSwitcher';
 import {MagnifyingGlassIcon} from '../../../components/Expensicons';
 import Header from '../../../components/Header';
 import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
-import ReportList from '../../../components/ReportList';
+import OptionsList from '../../../components/OptionsList';
 import {getSidebarOptions} from '../../../libs/ReportListUtils';
 
 const propTypes = {
@@ -128,7 +128,7 @@ const SidebarLinks = (props) => {
                             />
                         </TouchableOpacity>
                     </View>
-                    <ReportList
+                    <OptionsList
                         contentContainerStyles={[
                             styles.sidebarListContainer,
                             {paddingBottom: getSafeAreaMargins(props.insets).marginBottom},
