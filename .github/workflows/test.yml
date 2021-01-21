@@ -1,40 +1,20 @@
-name: Automated Tests
+name: Jest Unit Tests
 
 on:
     pull_request:
         types: [opened, synchronize]
 
 jobs:
-    verify_github_actions:
+    test:
         runs-on: ubuntu-latest
         steps:
-            - name: Checkout Expensify.cash repo
-              uses: actions/checkout@v2
+            - uses: actions/checkout@v2
 
             - name: Use Node.js
               uses: actions/setup-node@v1
 
-            - name: Install dependencies
-              run: npm install
+            - run: npm install
 
-            # Rebuild all the actions on this branch and check for a diff. Fail if there is one,
-            # because that would be a sign that the PR author did not rebuild the Github Actions
-            - name: Verify Github Action Javascript Bundles
-              run: ./.github/scripts/verifyActions.sh
-
-    jest_unit_tests:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout Expensify.cash repo
-              uses: actions/checkout@v2
-
-            - name: Use Node.js
-              uses: actions/setup-node@v1
-
-            - name: Install dependencies
-              run: npm install
-
-            - name: Run Jest Unit Tests
-              run: npm run test
+            - run: npm run test
               env:
                   CI: true

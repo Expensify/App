@@ -1,0 +1,23 @@
+name: Verify Github Action Builds
+
+on:
+    pull_request:
+        types: [opened, synchronize]
+
+jobs:
+    verify:
+        runs-on: ubuntu-latest
+        steps:
+            # Checkout the PR branch's head
+            - uses: actions/checkout@v2
+              with:
+                  ref: ${{ github.head_ref }}
+
+            - name: Use Node.js
+              uses: actions/setup-node@v1
+
+            - run: npm install
+
+            # Rebuild all the actions on this branch and check for a diff. Fail if there is one,
+            # because that would be a sign that the PR author did not rebuild the Github Actions
+            - run: ./.github/scripts/verifyActions.sh
