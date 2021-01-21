@@ -350,6 +350,14 @@ function DeleteLogin(parameters) {
 function Get(parameters) {
     const commandName = 'Get';
     requireParameters(['returnValueList'], parameters, commandName);
+    if (parameters.returnValueList === 'chatList') {
+        parameters.log = true;
+        parameters.logCommand = 'fetchChatReports';
+    }
+    if (parameters.returnValueList === 'reportStuff') {
+        parameters.log = true;
+        parameters.logCommand = 'fetchChatReportsByIDs';
+    }
     return request(commandName, parameters);
 }
 
@@ -415,8 +423,9 @@ function Graphite_Timer(parameters) {
  */
 function PersonalDetails_GetForEmails(parameters) {
     const commandName = 'PersonalDetails_GetForEmails';
-    requireParameters(['emailList'],
-        parameters, commandName);
+    requireParameters(['emailList'], parameters, commandName);
+    parameters.log = true;
+    parameters.logCommand = 'getFromReportParticipants';
     return request(commandName, parameters);
 }
 
