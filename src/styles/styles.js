@@ -347,7 +347,7 @@ const styles = {
 
     statusIndicator: {
         borderColor: themeColors.sidebar,
-        borderRadius: 5,
+        borderRadius: 6,
         borderWidth: 2,
         position: 'absolute',
         right: -1,
