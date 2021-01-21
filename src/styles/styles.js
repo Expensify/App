@@ -224,7 +224,7 @@ const styles = {
         borderColor: themeColors.icon,
     },
 
-    textInputNoOutline: addOutlineWidth({}, 0),
+    noOutline: addOutlineWidth({}, 0),
 
     formLabel: {
         color: themeColors.text,
