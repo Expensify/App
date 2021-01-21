@@ -17,6 +17,7 @@ import Header from '../../../components/Header';
 import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
 import OptionsList from '../../../components/OptionsList';
 import {getSidebarOptions} from '../../../libs/OptionsListUtils';
+import {getDefaultAvatar} from '../../../libs/actions/PersonalDetails';
 
 const propTypes = {
     // These are from withRouter
@@ -75,7 +76,9 @@ const defaultProps = {
     isChatSwitcherActive: false,
     draftComments: {},
     personalDetails: {},
-    myPersonalDetails: {},
+    myPersonalDetails: {
+        avatarURL: getDefaultAvatar(),
+    },
     network: null,
 };
 
