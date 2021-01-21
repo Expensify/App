@@ -33,11 +33,11 @@ const defaultProps = {
 class Icon extends PureComponent {
     render() {
         const IconToRender = this.props.icon;
-        let fillColor = this.props.fill || themeColors.icon;
 
-        // Do not pass a default fill color for brand assets
-        if (!this.props.fill && _.contains(_.keys(BrandAssets), this.props.icon)) {
-            fillColor = undefined;
+        // Expensicons have a default fill color, but brand assets do not
+        let fillColor = this.props.fill;
+        if (!fillColor && _.contains(_.keys(Expensicons), this.props.icon)) {
+            fillColor = themeColors.icon;
         }
 
         return (
