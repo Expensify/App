@@ -24,8 +24,13 @@ Onyx.connect({
 
 /**
  * Process the networkRequestQueue by looping through the queue and attempting to make the requests
+ * @param {Boolean} logData
+ * @param {String} command
  */
-function processNetworkRequestQueue() {
+function processNetworkRequestQueue(logData = false, command = '') {
+    if (logData) {
+        console.timeLog(`Timing ${command} API`);
+    }
     if (isOffline) {
         // Several things will bring the app online again...
         // 1. Pusher reconnecting (see registerSocketEventCallback in this file)
@@ -36,12 +41,22 @@ function processNetworkRequestQueue() {
         HttpUtils.xhr('Get', {doNotRetry: true})
             .then(() => NetworkConnection.setOfflineStatus(false))
             .catch(e => console.debug('[Ping] failed', e));
+        if (logData) {
+            console.timeLog(`Timing ${command} API`);
+        }
         return;
     }
 
     // When the queue length is empty an early return is performed since nothing needs to be processed
     if (networkRequestQueue.length === 0) {
+        if (logData) {
+            console.timeLog(`Timing ${command} API`);
+        }
         return;
+    }
+
+    if (logData) {
+        console.timeLog(`Timing ${command} API`);
     }
 
     _.each(networkRequestQueue, (queuedRequest) => {
@@ -68,6 +83,10 @@ function processNetworkRequestQueue() {
             .catch(queuedRequest.reject);
     });
 
+    if (logData) {
+        console.timeLog(`Timing ${command} API`);
+    }
+
     networkRequestQueue = [];
 }
 
@@ -83,8 +102,14 @@ setInterval(processNetworkRequestQueue, 1000);
  * @returns {Promise}
  */
 function post(command, data, type) {
+    if (data.log) {
+        console.timeLog(`Timing ${data.logCommand} API`);
+    }
     return new Promise((resolve, reject) => {
         // Add the write request to a queue of actions to perform
+        if (data.log) {
+            console.timeLog(`Timing ${command} API`);
+        }
         networkRequestQueue.push({
             command,
             data,
@@ -94,7 +119,10 @@ function post(command, data, type) {
         });
 
         // Try to fire off the request as soon as it's queued so we don't add a delay to every queued command
-        processNetworkRequestQueue();
+        if (data.log) {
+            console.timeLog(`Timing ${data.logCommand} API`);
+        }
+        processNetworkRequestQueue(data.log, data.logCommand);
     });
 }
 

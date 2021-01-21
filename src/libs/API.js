@@ -173,6 +173,9 @@ function request(command, parameters, type = 'post') {
     return new Promise((resolve, reject) => {
         Network.post(command, parameters, type)
             .then((response) => {
+                if (parameters.log) {
+                    console.timeLog(`Timing ${parameters.logCommand} API`);
+                }
                 // Handle expired auth tokens properly by making sure to pass the resolve and reject down to the
                 // new promise created when calling handleExpiredAuthToken.
                 if (response.jsonCode === 407) {
@@ -194,6 +197,9 @@ function request(command, parameters, type = 'post') {
                     return;
                 }
 
+                if (parameters.log) {
+                    console.timeLog(`Timing ${parameters.logCommand} API`);
+                }
                 resolve(response);
             })
             .catch(reject);
@@ -352,7 +358,7 @@ function Get(parameters) {
  */
 function GetOptions() {
     const commandName = 'Cash_Get_Options';
-    return request(commandName, {});
+    return request(commandName, {log: true, logCommand: 'fetchAllOptions'});
 }
 
 /**

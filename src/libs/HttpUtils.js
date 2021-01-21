@@ -11,14 +11,24 @@ import NetworkConnection from './NetworkConnection';
  * @param {String} url
  * @param {String} method
  * @param {Object} body
+ * @param {Object} data
  * @returns {Promise}
  */
-function processHTTPRequest(url, method = 'get', body = null) {
+function processHTTPRequest(url, method = 'get', body = null, data) {
+    if (data.log) {
+        console.timeLog(`Timing ${data.logCommand} API`);
+    }
     return fetch(url, {
         method,
         body,
     })
-        .then(response => response.json())
+        .then((response) => {
+            if (data.log) {
+                console.timeLog(`Timing ${data.logCommand} API`);
+                debugger;
+            }
+            return response.json();
+        })
 
         // This will catch any HTTP network errors (like 404s and such), not to be confused with jsonCode which this
         // does NOT catch
@@ -42,9 +52,15 @@ function processHTTPRequest(url, method = 'get', body = null) {
  * @returns {Promise}
  */
 function xhr(command, data, type = 'post') {
+    if (data.log) {
+        console.timeLog(`Timing ${data.logCommand} API`);
+    }
     const formData = new FormData();
     _.each(data, (val, key) => formData.append(key, val));
-    return processHTTPRequest(`${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=${command}`, type, formData);
+    if (data.log) {
+        console.timeLog(`Timing ${data.logCommand} API`);
+    }
+    return processHTTPRequest(`${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=${command}`, type, formData, data);
 }
 
 /**

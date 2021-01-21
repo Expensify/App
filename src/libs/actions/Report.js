@@ -429,7 +429,6 @@ function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false, sho
     fetchChatReports()
         .then((reportIDs) => {
             console.time('Timing fetchAll processing');
-            console.log(shouldRecordHomePageTiming);
             if (shouldRedirectToReport && (currentURL === ROUTES.ROOT || currentURL === ROUTES.HOME)) {
                 // Redirect to either the last viewed report ID or the first report ID from our report collection
                 if (lastViewedReportID) {
@@ -446,9 +445,9 @@ function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false, sho
                 });
             }
 
-            // if (shouldRecordHomePageTiming) {
-            //     Timing.end(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
-            // }
+            if (shouldRecordHomePageTiming) {
+                Timing.end(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
+            }
             console.timeEnd('Timing fetchAll processing');
         });
 }
@@ -464,7 +463,7 @@ function fetchAllOptions() {
             // Merge the data into Onyx
             Onyx.merge(`${ONYXKEYS.COLLECTION.OPTION}${suffix}`, option);
         });
-        // Timing.end(CONST.TIMING.OPTIONS);
+        Timing.end(CONST.TIMING.OPTIONS);
         console.timeEnd('Timing fetchAllOptions processing');
     });
 }
