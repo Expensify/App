@@ -10,8 +10,18 @@ jobs:
     CLA:
         runs-on: ubuntu-latest
         steps:
+            - uses: actions-ecosystem/action-regex-match@9c35fe9ac1840239939c59e5db8839422eed8a73
+              id: sign
+              with:
+                text: ${{ github.event.comment.body }}
+                regex: '\s*I have read the CLA Document and I hereby sign the CLA\s*'
+            - uses: actions-ecosystem/action-regex-match@9c35fe9ac1840239939c59e5db8839422eed8a73
+              id: recheck
+              with:
+                text: ${{ github.event.comment.body }}
+                regex: '\s*recheckcla\s*'
             - name: CLA Assistant
-              if: (github.event.comment.body == 'recheck' || github.event.comment.body == 'I have read the CLA Document and I hereby sign the CLA') || github.event_name == 'pull_request_target'
+              if: ${{ steps.recheck.outputs.match != '' || steps.sign.outputs.match != '' }} || github.event_name == 'pull_request_target'
               # Version: 2.0.3-alpha
               uses: cla-assistant/github-action@c89158d361bea4a5a06ff7781b6c4e8aa49dbcc9
               env:
