@@ -23,6 +23,7 @@ const propTypes = {
     type: PropTypes.oneOf([
         CONST.MODAL.MODAL_TYPE.CENTERED,
         CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED,
+        CONST.MODAL.MODAL_TYPE.POPOVER,
     ]),
 };
 
@@ -38,6 +39,7 @@ const Modal = (props) => {
         animationIn,
         animationOut,
         needsSafeAreaPadding,
+        hideBackdrop,
     } = getModalStyles(props.type, useWindowDimensions());
 
     return (
@@ -48,7 +50,7 @@ const Modal = (props) => {
             swipeDirection={swipeDirection}
             isVisible={props.isVisible}
             backdropColor={themeColors.modalBackdrop}
-            backdropOpacity={0.5}
+            backdropOpacity={hideBackdrop ? 0 : 0.5}
             backdropTransitionOutTiming={0}
             style={modalStyle}
             animationIn={animationIn}
