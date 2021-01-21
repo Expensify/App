@@ -19,7 +19,7 @@ jobs:
               id: recheck
               with:
                 text: ${{ github.event.comment.body }}
-                regex: '\s*recheckcla\s*'
+                regex: '\s*recheck\s*'
             - name: CLA Assistant
               if: ${{ steps.recheck.outputs.match != '' || steps.sign.outputs.match != '' }} || github.event_name == 'pull_request_target'
               # Version: 2.0.3-alpha
