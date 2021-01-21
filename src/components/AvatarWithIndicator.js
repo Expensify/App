@@ -27,16 +27,16 @@ const AvatarWithIndicator = ({
     size,
 }) => {
     const indicatorStyles = [
-        size === 'large' ? styles.largeStatusIndicator : styles.statusIndicator,
+        size === 'large' ? styles.statusIndicatorLarge : styles.statusIndicator,
         isActive ? styles.statusIndicatorOnline : styles.statusIndicatorOffline,
     ];
 
     return (
         <View
-            style={[size === 'large' ? styles.largeAvatar : styles.sidebarAvatar]}
+            style={[size === 'large' ? styles.avatarLarge : styles.sidebarAvatar]}
         >
             <Avatar
-                style={[size === 'large' ? styles.largeAvatar : null]}
+                style={[size === 'large' ? styles.avatarLarge : null]}
                 source={source}
             />
             <View style={StyleSheet.flatten(indicatorStyles)} />

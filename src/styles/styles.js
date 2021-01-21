@@ -82,16 +82,17 @@ const styles = {
     },
 
     button: {
-        borderColor: themeColors.border,
+        backgroundColor: themeColors.buttonDefaultBG,
         borderRadius: variables.componentBorderRadius,
-        borderWidth: 1,
         height: variables.componentSizeNormal,
         justifyContent: 'center',
+        paddingHorizontal: 12,
     },
 
     buttonText: {
-        color: themeColors.text,
+        color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeLabel,
         fontWeight: fontWeightBold,
         textAlign: 'center',
     },
@@ -346,13 +347,13 @@ const styles = {
 
     statusIndicator: {
         borderColor: themeColors.sidebar,
-        borderRadius: 7,
+        borderRadius: 6,
         borderWidth: 2,
         position: 'absolute',
-        right: -6,
-        bottom: 3,
-        height: 14,
-        width: 14,
+        right: -1,
+        bottom: -1,
+        height: 12,
+        width: 12,
         zIndex: 10,
     },
     statusIndicatorOnline: {
@@ -948,16 +949,6 @@ const styles = {
         borderColor: colors.transparent,
     },
 
-    signOutButton: {
-        width: '95%',
-        alignSelf: 'center',
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: themeColors.sidebarButtonBG,
-        borderRadius: variables.componentBorderRadius,
-        height: variables.componentSizeLarge,
-    },
-
     settingsPageBackground: {
         flexDirection: 'column',
         width: '100%',
@@ -980,32 +971,32 @@ const styles = {
         width: '100%',
     },
 
-    largeAvatar: {
+    avatarLarge: {
         width: 80,
         height: 80,
     },
 
-    largeStatusIndicator: {
+    statusIndicatorLarge: {
         borderColor: themeColors.componentBG,
-        borderRadius: 14,
+        borderRadius: 8,
         borderWidth: 2,
         position: 'absolute',
-        right: 8,
+        right: 4,
         bottom: 4,
-        height: 14,
-        width: 14,
+        height: 16,
+        width: 16,
         zIndex: 10,
     },
 
     settingsDisplayName: {
-        fontSize: 17,
+        fontSize: variables.fontSizeLarge,
         fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
         color: themeColors.heading,
     },
 
-
     settingsLoginName: {
-        fontSize: 13,
+        fontSize: variables.fontSizeLabel,
         fontFamily: fontFamily.GTA,
         color: themeColors.textSupporting,
     },
@@ -1013,6 +1004,7 @@ const styles = {
     settingsWrapper: {
         width: '100%',
         alignItems: 'center',
+        padding: 20,
     },
 };
 
