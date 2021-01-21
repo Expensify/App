@@ -9,7 +9,7 @@ export default {
     fontSizeNormal: 15,
     fontSizeLarge: 17,
     fontSizeh1: 19,
-    mobileResponsiveWidthBreakpoint: 1000,
+    mobileResponsiveWidthBreakpoint: 800,
     safeInsertPercentage: 0.7,
     sideBarWidth: 300,
 };
