@@ -1,3 +1,4 @@
+import BackArrow from '../../../assets/images/back-left.svg';
 import ChatBubble from '../../../assets/images/chatbubble.svg';
 import Close from '../../../assets/images/close.svg';
 import MagnifyingGlass from '../../../assets/images/magnifyingglass.svg';
@@ -9,6 +10,7 @@ import Send from '../../../assets/images/send.svg';
 import Users from '../../../assets/images/users.svg';
 
 export {
+    BackArrow,
     ChatBubble,
     Close,
     MagnifyingGlass,

@@ -18,9 +18,6 @@ const propTypes = {
     /* The height of the icon. */
     height: PropTypes.number,
 
-    /* Whether or not the icon is enabled. */
-    isEnabled: PropTypes.bool,
-
     /* The fill color for the icon */
     fill: PropTypes.string,
 };
@@ -28,7 +25,6 @@ const propTypes = {
 const defaultProps = {
     width: variables.iconSizeNormal,
     height: variables.iconSizeNormal,
-    isEnabled: false,
     fill: undefined,
 };
 
@@ -37,13 +33,10 @@ const defaultProps = {
 class Icon extends PureComponent {
     render() {
         const IconToRender = this.props.icon;
-        let fillColor = this.props.fill;
-        if (!fillColor) {
-            fillColor = this.props.isEnabled ? themeColors.heading : themeColors.icon;
-        }
+        let fillColor = this.props.fill || themeColors.icon;
 
-        // Do not pass a fill color for brand assets
-        if (_.contains(_.keys(BrandAssets), this.props.icon)) {
+        // Do not pass a default fill color for brand assets
+        if (!this.props.fill && _.contains(_.keys(BrandAssets), this.props.icon)) {
             fillColor = undefined;
         }
 

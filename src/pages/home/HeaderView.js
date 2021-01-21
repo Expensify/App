@@ -6,10 +6,9 @@ import Header from '../../components/Header';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import {withRouter} from '../../libs/Router';
-import BackArrow from '../../../assets/images/back-left.svg';
 import themeColors from '../../styles/themes/default';
 import Icon from '../../components/Icon';
-import {Pin} from '../../components/Icon/Expensicons';
+import {BackArrow, Pin} from '../../components/Icon/Expensicons';
 import compose from '../../libs/compose';
 import {togglePinnedState} from '../../libs/actions/Report';
 
@@ -46,7 +45,7 @@ const HeaderView = props => (
                     onPress={props.onNavigationMenuButtonClicked}
                     style={[styles.LHNToggle]}
                 >
-                    <BackArrow height={20} width={20} fill={themeColors.icon} />
+                    <Icon icon={BackArrow} />
                 </Pressable>
             )}
             {props.report && props.report.reportName ? (
@@ -64,7 +63,7 @@ const HeaderView = props => (
                             onPress={() => togglePinnedState(props.report)}
                             style={[styles.touchableButtonImage, styles.mr0]}
                         >
-                            <Icon icon={Pin} isEnabled={props.report.isPinned} />
+                            <Icon icon={Pin} fill={props.report.isPinned ? themeColors.heading : themeColors.icon} />
                         </Pressable>
                     </View>
                 </View>
