@@ -93,13 +93,13 @@ class Modal extends Component {
                         return (
                             <View
                                 style={{
-                                    ...styles.defaultModalContainer,
-                                    paddingBottom,
-                                    ...modalContainerStyle,
-
                                     // This padding is based on the insets and could not neatly be
                                     // returned by getModalStyles to avoid passing this inline.
                                     paddingTop: needsSafeAreaPadding ? paddingTop : 20,
+
+                                    ...styles.defaultModalContainer,
+                                    paddingBottom,
+                                    ...modalContainerStyle,
                                 }}
                             >
                                 {this.props.children}
