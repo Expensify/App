@@ -79,7 +79,7 @@ const SettingsPage = ({
                 />
                 <View style={styles.settingsWrapper}>
                     <View
-                        style={[styles.largeAvatar, styles.mb3, styles.mt3]}
+                        style={[styles.largeAvatar, styles.mb3]}
                     >
                         <AvatarWithIndicator
                             size="large"
@@ -97,7 +97,7 @@ const SettingsPage = ({
                     )}
                     <TouchableOpacity
                         onPress={signOut}
-                        style={[styles.signOutButton, styles.mt5]}
+                        style={[styles.button, styles.w100, styles.mt5]}
                     >
                         <Text style={[styles.buttonText]}>
                             Sign Out
