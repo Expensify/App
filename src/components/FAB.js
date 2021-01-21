@@ -14,13 +14,6 @@ const propTypes = {
 
     // Current state (active or not active) of the component
     isActive: PropTypes.bool.isRequired,
-
-    // Temporary prop to be able to test the component before implementing it
-    isHidden: PropTypes.bool,
-};
-
-const defaultProps = {
-    isHidden: true,
 };
 
 class FAB extends React.Component {
@@ -66,10 +59,6 @@ class FAB extends React.Component {
             outputRange: [themeColors.componentBG, themeColors.icon],
         });
 
-        if (this.props.isHidden) {
-            return null;
-        }
-
         return (
             <AnimatedPressable
                 onPress={this.props.onPress}
@@ -84,6 +73,5 @@ class FAB extends React.Component {
     }
 }
 
-FAB.defaultProps = defaultProps;
 FAB.propTypes = propTypes;
 export default FAB;

@@ -8,10 +8,10 @@ import CONST from '../../CONST';
 import NetworkConnection from '../NetworkConnection';
 import * as API from '../API';
 
-let currentUserEmail;
+let currentUserEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: val => currentUserEmail = val ? val.email : null,
+    callback: val => currentUserEmail = val ? val.email : '',
 });
 
 let personalDetails;
@@ -108,10 +108,8 @@ function fetchTimezone() {
         .then((data) => {
             const timezone = lodashGet(data, 'nameValuePairs.timeZone.selected', 'America/Los_Angeles');
             Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {timezone});
-        });
-
-    // Refresh the timezone every 30 minutes
-    setTimeout(fetchTimezone, 1000 * 60 * 30);
+        })
+        .catch(error => console.debug('Error fetching user timezone', error));
 }
 
 /**
@@ -130,16 +128,8 @@ function fetch() {
 
             // Set my personal details so they can be easily accessed and subscribed to on their own key
             Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, myPersonalDetails);
-
-            // Get the timezone and put it in Onyx
-            fetchTimezone();
         })
         .catch(error => console.debug('Error fetching personal details', error));
-
-    // Refresh the personal details every 30 minutes because there is no
-    // pusher event that sends updated personal details data yet
-    // See https://github.com/Expensify/ReactNativeChat/issues/468
-    setTimeout(fetch, 1000 * 60 * 30);
 }
 
 /**
@@ -188,4 +178,5 @@ export {
     fetchTimezone,
     getFromReportParticipants,
     getDisplayName,
+    getDefaultAvatar,
 };

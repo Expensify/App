@@ -11,6 +11,8 @@ import flex from './utilities/flex';
 import display from './utilities/display';
 import overflow from './utilities/overflow';
 import positioning from './utilities/positioning';
+import whiteSpace from './utilities/whiteSpace';
+import wordBreak from './utilities/wordBreak';
 
 const styles = {
     // Add all of our utility and helper styles
@@ -19,6 +21,8 @@ const styles = {
     ...flex,
     ...display,
     ...overflow,
+    ...wordBreak,
+    ...whiteSpace,
 
     link: {
         color: themeColors.link,
@@ -83,16 +87,17 @@ const styles = {
     },
 
     button: {
-        borderColor: themeColors.border,
+        backgroundColor: themeColors.buttonDefaultBG,
         borderRadius: variables.componentBorderRadius,
-        borderWidth: 1,
         height: variables.componentSizeNormal,
         justifyContent: 'center',
+        paddingHorizontal: 12,
     },
 
     buttonText: {
-        color: themeColors.text,
+        color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeLabel,
         fontWeight: fontWeightBold,
         textAlign: 'center',
     },
@@ -171,7 +176,7 @@ const styles = {
         marginRight: 4,
         userSelect: 'none',
         maxWidth: 144,
-        whiteSpace: 'nowrap',
+        ...whiteSpace.noWrap,
     },
 
     pillCancelIcon: {
@@ -357,13 +362,13 @@ const styles = {
 
     statusIndicator: {
         borderColor: themeColors.sidebar,
-        borderRadius: 7,
+        borderRadius: 6,
         borderWidth: 2,
         position: 'absolute',
-        right: -6,
-        bottom: 3,
-        height: 14,
-        width: 14,
+        right: -1,
+        bottom: -1,
+        height: 12,
+        width: 12,
         zIndex: 10,
     },
     statusIndicatorOnline: {
@@ -393,7 +398,7 @@ const styles = {
         width: 200,
         textOverflow: 'ellipsis',
         overflow: 'hidden',
-        whiteSpace: 'nowrap',
+        ...whiteSpace.noWrap,
     },
 
     sidebarFooterLink: {
@@ -415,6 +420,27 @@ const styles = {
     sidebarListItem: {
         justifyContent: 'center',
         textDecorationLine: 'none',
+    },
+
+    createMenuItem: {
+        flexDirection: 'row',
+        borderRadius: 0,
+        paddingHorizontal: 20,
+        paddingVertical: 12,
+    },
+
+    createMenuIcon: {
+        width: 40,
+        height: 40,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    createMenuText: {
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeNormal,
+        fontWeight: fontWeightBold,
+        color: themeColors.heading,
     },
 
     chatLinkRowPressable: {
@@ -465,7 +491,7 @@ const styles = {
         fontFamily: fontFamily.GTA,
         height: 18,
         lineHeight: 18,
-        whiteSpace: 'nowrap',
+        ...whiteSpace.noWrap,
     },
 
     chatSwitcherLogin: {
@@ -492,7 +518,6 @@ const styles = {
         height: variables.contentHeaderHeight,
         justifyContent: 'center',
         display: 'flex',
-        paddingLeft: 20,
         paddingRight: 20,
     },
 
@@ -503,10 +528,10 @@ const styles = {
 
     LHNToggle: {
         alignItems: 'center',
-        height: variables.componentSizeNormal,
+        height: variables.contentHeaderHeight,
         justifyContent: 'center',
-        marginRight: 8,
-        width: variables.componentSizeNormal,
+        paddingRight: 10,
+        paddingLeft: 20,
     },
 
     LHNToggleIcon: {
@@ -583,7 +608,7 @@ const styles = {
         lineHeight: 20,
         paddingRight: 5,
         paddingBottom: 4,
-        wordBreak: 'break-word',
+        ...wordBreak.breakWord,
     },
 
     chatItemMessageHeaderTimestamp: {
@@ -600,8 +625,8 @@ const styles = {
         lineHeight: 20,
         marginTop: -2,
         marginBottom: -2,
-        whiteSpace: 'pre-wrap',
-        wordBreak: 'break-word',
+        ...whiteSpace.preWrap,
+        ...wordBreak.breakWord,
     },
 
     chatItemCompose: {
@@ -739,29 +764,15 @@ const styles = {
         marginBottom: 3,
     },
 
-    hamburgerOpenAbsolute: {
-        borderColor: themeColors.border,
+    navigationMenuOpenAbsolute: {
         position: 'absolute',
         left: 0,
         top: 0,
         bottom: 0,
         zIndex: 2,
-        shadowColor: themeColors.shadow,
-        shadowOffset: {
-            width: 0,
-            height: 0,
-        },
-        shadowOpacity: 0.15,
-        shadowRadius: 20,
-    },
-
-    hamburgerOpen: {
-        borderColor: themeColors.border,
-        width: variables.sideBarWidth,
     },
 
     sidebarVisible: {
-        width: variables.sideBarWidth,
         borderRightWidth: 1,
     },
 
@@ -957,6 +968,64 @@ const styles = {
         ...positioning.r4,
         position: 'absolute',
     },
+
+    settingsPageBackground: {
+        flexDirection: 'column',
+        width: '100%',
+        height: '100%',
+        position: 'absolute',
+        justifyContent: 'space-between',
+        backgroundColor: 'white',
+        alignItems: 'center',
+    },
+
+    settingsPageColumn: {
+        width: '100%',
+        alignItems: 'center',
+        justifyContent: 'space-around',
+    },
+
+    settingsPageContainer: {
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        width: '100%',
+    },
+
+    avatarLarge: {
+        width: 80,
+        height: 80,
+    },
+
+    statusIndicatorLarge: {
+        borderColor: themeColors.componentBG,
+        borderRadius: 8,
+        borderWidth: 2,
+        position: 'absolute',
+        right: 4,
+        bottom: 4,
+        height: 16,
+        width: 16,
+        zIndex: 10,
+    },
+
+    settingsDisplayName: {
+        fontSize: variables.fontSizeLarge,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        color: themeColors.heading,
+    },
+
+    settingsLoginName: {
+        fontSize: variables.fontSizeLabel,
+        fontFamily: fontFamily.GTA,
+        color: themeColors.textSupporting,
+    },
+
+    settingsWrapper: {
+        width: '100%',
+        alignItems: 'center',
+        padding: 20,
+    },
 };
 
 const baseCodeTagStyles = {
@@ -1058,7 +1127,28 @@ function getSafeAreaMargins(insets) {
     return {marginBottom: insets.bottom * variables.safeInsertPercentage};
 }
 
+/**
+ * Return navigation menu styles.
+ *
+ * @param {Number} windowWidth
+ * @param {Boolean} isSidebarShown
+ * @returns {Object}
+ */
+function getNavigationMenuStyle(windowWidth, isSidebarShown) {
+    const isSmallScreenWidth = windowWidth <= variables.mobileResponsiveWidthBreakpoint;
+    return isSmallScreenWidth
+        ? {
+            ...styles.navigationMenuOpenAbsolute,
+            width: isSidebarShown ? windowWidth : 0,
+        }
+        : {
+            borderColor: themeColors.border,
+            borderRightWidth: 1,
+            width: variables.sideBarWidth,
+        };
+}
+
 export default styles;
 export {
-    getSafeAreaPadding, getSafeAreaMargins, webViewStyles,
+    getSafeAreaPadding, getSafeAreaMargins, webViewStyles, getNavigationMenuStyle,
 };
