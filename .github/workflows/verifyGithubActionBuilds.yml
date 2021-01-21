@@ -8,10 +8,7 @@ jobs:
     verify:
         runs-on: ubuntu-latest
         steps:
-            # Checkout the PR branch's head
             - uses: actions/checkout@v2
-              with:
-                  ref: ${{ github.head_ref }}
 
             - name: Use Node.js
               uses: actions/setup-node@v1
