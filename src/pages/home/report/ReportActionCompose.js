@@ -21,8 +21,6 @@ import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs
 import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
 
-const windowSize = Dimensions.get('window');
-
 const propTypes = {
     // A method to call when the form is submitted
     onSubmit: PropTypes.func.isRequired,
@@ -52,12 +50,21 @@ class ReportActionCompose extends React.Component {
         this.triggerSubmitShortcut = this.triggerSubmitShortcut.bind(this);
         this.submitForm = this.submitForm.bind(this);
         this.setIsFocused = this.setIsFocused.bind(this);
+        this.disableInputBasedOnDimensions = this.disableInputBasedOnDimensions.bind(this);
         this.comment = props.comment;
+
+        const windowSize = Dimensions.get('window');
+        const isSmallScreenWidth = windowSize.width <= variables.mobileResponsiveWidthBreakpoint;
         this.state = {
             isFocused: false,
             textInputShouldClear: false,
             isCommentEmpty: props.comment.length === 0,
+            isSmallScreenWidth,
         };
+    }
+
+    componentDidMount() {
+        Dimensions.addEventListener('change', this.disableInputBasedOnDimensions);
     }
 
     componentDidUpdate(prevProps) {
@@ -66,6 +73,10 @@ class ReportActionCompose extends React.Component {
         if (this.props.comment && prevProps.comment === '' && prevProps.comment !== this.props.comment) {
             this.comment = this.props.comment;
         }
+    }
+
+    componentWillUnmount() {
+        Dimensions.removeEventListener('change', this.disableInputBasedOnDimensions);
     }
 
     /**
@@ -145,9 +156,20 @@ class ReportActionCompose extends React.Component {
         this.setTextInputShouldClear(true);
     }
 
+    /**
+     * Fired when the windows dimensions changes
+     * @param {Object} changedWindow
+     */
+    disableInputBasedOnDimensions({window: changedWindow}) {
+        const isSmallScreenWidth = changedWindow.width <= variables.mobileResponsiveWidthBreakpoint;
+        this.setState({
+            isSmallScreenWidth,
+        });
+    }
+
     render() {
         const inputDisable = this.props.isSidebarShown
-            && windowSize.width <= variables.mobileResponsiveWidthBreakpoint;
+            && this.state.isSmallScreenWidth;
 
         return (
             <View style={[styles.chatItemCompose]}>
