@@ -36,7 +36,7 @@ class Icon extends PureComponent {
 
         // Expensicons have a default fill color, but brand assets do not
         let fillColor = this.props.fill;
-        if (!fillColor && _.contains(_.keys(Expensicons), this.props.icon)) {
+        if (!fillColor && _.contains(_.values(Expensicons), this.props.icon)) {
             fillColor = themeColors.icon;
         }
 
