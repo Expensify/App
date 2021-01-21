@@ -6,6 +6,7 @@ import getReportActionContextMenuStyles from '../../../../styles/getReportAction
 import getButtonState from '../../../../libs/getButtonState';
 import ContextActions from './ContextActions';
 import variables from '../../../../styles/variables';
+import Tooltip from '../../../../components/Tooltip';
 
 const propTypes = {
     // eslint-disable-next-line react/no-unused-prop-types
@@ -29,18 +30,20 @@ const ReportActionContextMenu = (props) => {
             styles.flex1,
         ]}
         >
-            {ContextActions.map(((commentAction) => {
-                const Icon = commentAction.icon;
+            {ContextActions.map(((contextAction) => {
+                const Icon = contextAction.icon;
                 return (
-                    <Pressable style={({hovered, pressed}) => getButtonStyle(getButtonState(hovered, pressed))}>
-                        {({pressed}) => (
-                            <Icon
-                                width={variables.iconSizeNormal}
-                                height={variables.iconSizeNormal}
-                                isEnabled={pressed}
-                            />
-                        )}
-                    </Pressable>
+                    <Tooltip title={contextAction.text} aria-label={contextAction.text} placement="top" arrow>
+                        <Pressable style={({hovered, pressed}) => getButtonStyle(getButtonState(hovered, pressed))}>
+                            {({pressed}) => (
+                                <Icon
+                                    width={variables.iconSizeNormal}
+                                    height={variables.iconSizeNormal}
+                                    isEnabled={pressed}
+                                />
+                            )}
+                        </Pressable>
+                    </Tooltip>
                 );
             }))}
         </View>
