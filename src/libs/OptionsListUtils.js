@@ -125,16 +125,22 @@ function rebuildOptions() {
     const reportMapForLogins = {};
     const orderedReports = lodashOrderBy(reports, ['lastVisitedTimestamp'], ['desc']);
     allReportOptions = [];
-    allReportOptions = _.map(orderedReports, (report) => {
+    _.each(orderedReports, (report) => {
         const logins = getParticipantLogins(report);
+
+        // Report data can sometimes be incomplete. If we have no logins or reportID then we will skip this entry.
+        if (!report.reportID || _.isEmpty(logins)) {
+            return;
+        }
+
         const reportPersonalDetails = getPersonalDetailsForLogins(logins);
 
-        // Save the report in the map if this is a single participant so we
-        // can associate the reportID with the personal detail option later.
+        // Save the report in the map if this is a single participant so we can associate the reportID with the
+        // personal detail option later.
         if (logins.length <= 1) {
             reportMapForLogins[logins[0]] = report;
         }
-        return createOption(reportPersonalDetails, report);
+        allReportOptions.push(createOption(reportPersonalDetails, report));
     });
     allPersonalDetailsOptions = _.map(personalDetails, personalDetail => (
         createOption([personalDetail], reportMapForLogins[personalDetail.login])
