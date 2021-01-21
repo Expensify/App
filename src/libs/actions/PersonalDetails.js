@@ -144,6 +144,7 @@ function fetch() {
  * @param {Object} reports
  */
 function getFromReportParticipants(reports) {
+    console.time('Timing getFromReportParticipants API');
     const participantEmails = _.chain(reports)
         .pluck('participants')
         .flatten()
@@ -156,8 +157,12 @@ function getFromReportParticipants(reports) {
 
     API.PersonalDetails_GetForEmails({emailList: participantEmails.join(',')})
         .then((data) => {
+            console.timeEnd('Timing getFromReportParticipants API');
+            console.time('Timing getFromReportParticipants processing');
             const details = _.pick(data, participantEmails);
+            console.time('Timing getFromReportParticipants ONYX time1');
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, formatPersonalDetails(details));
+            console.timeEnd('Timing getFromReportParticipants ONYX time1');
 
             // The personalDetails of the participants contain their avatar images. Here we'll go over each
             // report and based on the participants we'll link up their avatars to report icons.
@@ -173,6 +178,7 @@ function getFromReportParticipants(reports) {
                     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {icons: avatars});
                 }
             });
+            console.timeEnd('Timing getFromReportParticipants processing');
         });
 }
 

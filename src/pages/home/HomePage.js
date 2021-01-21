@@ -96,9 +96,9 @@ class App extends React.Component {
         // Fetch some data we need on initialization
         PersonalDetails.fetch();
         PersonalDetails.fetchTimezone();
-        Timing.start(CONST.TIMING.OPTIONS);
+        // Timing.start(CONST.TIMING.OPTIONS);
         fetchAllOptions();
-        Timing.start(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
+        // Timing.start(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
         fetchAllReports(true, false, true);
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();

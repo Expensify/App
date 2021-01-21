@@ -145,6 +145,7 @@ function getChatReportName(sharedReportList) {
  * @return {Promise} only used internally when fetchAll() is called
  */
 function fetchChatReportsByIDs(chatList) {
+    console.time('Timing fetchChatReportsByIDs API');
     let fetchedReports;
     return API.Get({
         returnValueList: 'reportStuff',
@@ -153,6 +154,8 @@ function fetchChatReportsByIDs(chatList) {
         includePinnedReports: true,
     })
         .then(({reports}) => {
+            console.timeEnd('Timing fetchChatReportsByIDs API');
+            console.time('Timing fetchChatReportsByIDs processing');
             fetchedReports = reports;
 
             // Process the reports and store them in Onyx. At the same time we'll save the simplified reports in this
@@ -174,8 +177,9 @@ function fetchChatReportsByIDs(chatList) {
 
             // Fetch the personal details if there are any
             PersonalDetails.getFromReportParticipants(simplifiedReports);
-
-            return _.map(fetchedReports, report => report.reportID);
+            const test = _.map(fetchedReports, report => report.reportID);
+            console.timeEnd('Timing fetchChatReportsByIDs processing');
+            return test;
         });
 }
 
@@ -384,12 +388,16 @@ function unsubscribeFromReportChannel(reportID) {
  * @returns {Promise} only used internally when fetchAll() is called
  */
 function fetchChatReports() {
+    console.time('Timing fetchChatReports API');
     return API.Get({
         returnValueList: 'chatList',
     })
 
         // The string cast below is necessary as Get rvl='chatList' may return an int
-        .then(({chatList}) => fetchChatReportsByIDs(String(chatList).split(',')));
+        .then(({chatList}) => {
+            console.timeEnd('Timing fetchChatReports API');
+            return fetchChatReportsByIDs(String(chatList).split(','));
+        });
 }
 
 /**
@@ -420,6 +428,8 @@ function fetchActions(reportID) {
 function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false, shouldRecordHomePageTiming = false) {
     fetchChatReports()
         .then((reportIDs) => {
+            console.time('Timing fetchAll processing');
+            console.log(shouldRecordHomePageTiming);
             if (shouldRedirectToReport && (currentURL === ROUTES.ROOT || currentURL === ROUTES.HOME)) {
                 // Redirect to either the last viewed report ID or the first report ID from our report collection
                 if (lastViewedReportID) {
@@ -436,21 +446,26 @@ function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false, sho
                 });
             }
 
-            if (shouldRecordHomePageTiming) {
-                Timing.end(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
-            }
+            // if (shouldRecordHomePageTiming) {
+            //     Timing.end(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
+            // }
+            console.timeEnd('Timing fetchAll processing');
         });
 }
 
 function fetchAllOptions() {
+    console.time('Timing fetchAllOptions API');
     API.GetOptions().then((options) => {
+        console.timeEnd('Timing fetchAllOptions API');
+        console.time('Timing fetchAllOptions processing');
         _.each(options, (option) => {
             const suffix = option.reportID || option.login;
 
             // Merge the data into Onyx
             Onyx.merge(`${ONYXKEYS.COLLECTION.OPTION}${suffix}`, option);
         });
-        Timing.end(CONST.TIMING.OPTIONS);
+        // Timing.end(CONST.TIMING.OPTIONS);
+        console.timeEnd('Timing fetchAllOptions processing');
     });
 }
 
