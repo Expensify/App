@@ -219,6 +219,7 @@ function updateReportWithNewAction(reportID, reportAction) {
         reportID,
         unreadActionCount: newMaxSequenceNumber - (lastReadSequenceNumbers[reportID] || 0),
         maxSequenceNumber: reportAction.sequenceNumber,
+        lastMessageTimestamp: reportAction.timestamp,
     });
 
     // Add the action into Onyx
@@ -405,8 +406,14 @@ function fetchActions(reportID) {
                 .pluck('sequenceNumber')
                 .max()
                 .value();
+            const lastMessageTimestamp = Math.max(_.chain(data.history)
+                .reject(item => item.actionName === 'CREATED')
+                .pluck('timestamp')
+                .max()
+                .value(), 0);
+
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, indexedData);
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {maxSequenceNumber});
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {maxSequenceNumber, lastMessageTimestamp});
         });
 }
 
@@ -431,7 +438,7 @@ function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false, sho
 
             if (shouldFetchActions) {
                 _.each(reportIDs, (reportID) => {
-                    console.debug(`[RECONNECT] Fetching report actions for report ${reportID}`);
+                    console.debug(`Fetching report actions for report ${reportID}`);
                     fetchActions(reportID);
                 });
             }
@@ -525,6 +532,7 @@ function addAction(reportID, text, file) {
     // Update the report in Onyx to have the new sequence number
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         maxSequenceNumber: newSequenceNumber,
+        lastMessageTimestamp: moment().unix(),
     });
 
     // Optimistically add the new comment to the store before waiting to save it to the server

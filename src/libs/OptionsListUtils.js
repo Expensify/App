@@ -120,10 +120,16 @@ function createOption(personalDetailList, report) {
 
 /**
  * Rebuild the options
+ * @param {Boolean} sortByLastMessageTimestamp
  */
-function rebuildOptions() {
+function rebuildOptions(sortByLastMessageTimestamp = false) {
     const reportMapForLogins = {};
-    const orderedReports = lodashOrderBy(reports, ['lastVisitedTimestamp'], ['desc']);
+    const orderedReports = lodashOrderBy(reports, [
+        sortByLastMessageTimestamp
+            ? 'lastMessageTimestamp'
+            : 'lastVisitedTimestamp',
+    ], ['desc']);
+
     allReportOptions = [];
     _.each(orderedReports, (report) => {
         const logins = getParticipantLogins(report);
@@ -368,7 +374,7 @@ function getSidebarOptions(nextReports, nextPersonalDetails, nextDraftComments, 
     personalDetails = nextPersonalDetails;
     draftComments = nextDraftComments;
     activeReportID = nextActiveReportID;
-    rebuildOptions();
+    rebuildOptions(true);
     return getOptions({
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
