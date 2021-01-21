@@ -8,22 +8,16 @@ import CONST from '../../CONST';
 import NetworkConnection from '../NetworkConnection';
 import * as API from '../API';
 
-let currentUserEmail;
+let currentUserEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: val => currentUserEmail = val ? val.email : null,
+    callback: val => currentUserEmail = val ? val.email : '',
 });
 
 let personalDetails;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS,
     callback: val => personalDetails = val,
-});
-
-let isOffline;
-Onyx.connect({
-    key: ONYXKEYS.NETWORK,
-    callback: val => isOffline = val && val.isOffline,
 });
 
 /**
@@ -178,17 +172,6 @@ function getFromReportParticipants(reports) {
 
 // When the app reconnects from being offline, fetch all of the personal details
 NetworkConnection.onReconnect(fetch);
-
-// Refresh the personal details and timezone every 30 minutes because there is no
-// pusher event that sends updated personal details data yet
-// See https://github.com/Expensify/ReactNativeChat/issues/468
-setInterval(() => {
-    if (isOffline) {
-        return;
-    }
-    fetch();
-    fetchTimezone();
-}, 1000 * 60 * 30);
 
 export {
     fetch,
