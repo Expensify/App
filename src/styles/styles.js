@@ -10,6 +10,8 @@ import sizing from './utilities/sizing';
 import flex from './utilities/flex';
 import display from './utilities/display';
 import overflow from './utilities/overflow';
+import whiteSpace from './utilities/whiteSpace';
+import wordBreak from './utilities/wordBreak';
 
 const styles = {
     // Add all of our utility and helper styles
@@ -18,6 +20,8 @@ const styles = {
     ...flex,
     ...display,
     ...overflow,
+    ...wordBreak,
+    ...whiteSpace,
 
     link: {
         color: themeColors.link,
@@ -161,7 +165,7 @@ const styles = {
         marginRight: 4,
         userSelect: 'none',
         maxWidth: 144,
-        whiteSpace: 'nowrap',
+        ...whiteSpace.noWrap,
     },
 
     pillCancelIcon: {
@@ -383,7 +387,7 @@ const styles = {
         width: 200,
         textOverflow: 'ellipsis',
         overflow: 'hidden',
-        whiteSpace: 'nowrap',
+        ...whiteSpace.noWrap,
     },
 
     sidebarFooterLink: {
@@ -476,7 +480,7 @@ const styles = {
         fontFamily: fontFamily.GTA,
         height: 18,
         lineHeight: 18,
-        whiteSpace: 'nowrap',
+        ...whiteSpace.noWrap,
     },
 
     chatSwitcherLogin: {
@@ -593,7 +597,7 @@ const styles = {
         lineHeight: 20,
         paddingRight: 5,
         paddingBottom: 4,
-        wordBreak: 'break-word',
+        ...wordBreak.breakWord,
     },
 
     chatItemMessageHeaderTimestamp: {
@@ -610,8 +614,8 @@ const styles = {
         lineHeight: 20,
         marginTop: -2,
         marginBottom: -2,
-        whiteSpace: 'pre-wrap',
-        wordBreak: 'break-word',
+        ...whiteSpace.preWrap,
+        ...wordBreak.breakWord,
     },
 
     chatItemCompose: {
