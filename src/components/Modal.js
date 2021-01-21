@@ -24,6 +24,7 @@ const propTypes = {
     type: PropTypes.oneOf([
         CONST.MODAL.MODAL_TYPE.CENTERED,
         CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED,
+        CONST.MODAL.MODAL_TYPE.POPOVER,
     ]),
 };
 
@@ -69,6 +70,7 @@ class Modal extends Component {
             animationIn,
             animationOut,
             needsSafeAreaPadding,
+            hideBackdrop,
         } = getModalStyles(this.props.type, this.state.window);
         return (
             <ReactNativeModal
@@ -80,7 +82,7 @@ class Modal extends Component {
                 swipeDirection={swipeDirection}
                 isVisible={this.props.isVisible}
                 backdropColor={themeColors.modalBackdrop}
-                backdropOpacity={0.5}
+                backdropOpacity={hideBackdrop ? 0 : 0.5}
                 backdropTransitionOutTiming={0}
                 style={modalStyle}
                 animationIn={animationIn}
