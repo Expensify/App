@@ -29,10 +29,10 @@ Onyx.connect({
 /**
  * Helper method to return a default avatar
  *
- * @param {String} login
+ * @param {String} [login]
  * @returns {String}
  */
-function getDefaultAvatar(login) {
+function getDefaultAvatar(login = '') {
     // There are 8 possible default avatars, so we choose which one this user has based
     // on a simple hash of their login (which is converted from HEX to INT)
     const loginHashBucket = (parseInt(md5(login).substring(0, 4), 16) % 8) + 1;
