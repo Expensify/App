@@ -237,7 +237,12 @@ class ReportActionsView extends React.Component {
                                 />
                             </View>
                             <View style={styles.miniReportActionContextMenuWrapperStyle}>
-                                <ReportActionContextMenu reportID={0} reportActionID={0} isMini shouldShow={isHovered} />
+                                <ReportActionContextMenu
+                                    reportID={this.props.reportID}
+                                    reportActionID={item.action.sequenceNumber}
+                                    shouldShow={isHovered}
+                                    isMini
+                                />
                             </View>
                         </View>
                     )}
