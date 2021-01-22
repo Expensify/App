@@ -5,10 +5,10 @@ import ReportActionPropTypes from './ReportActionPropTypes';
 import ReportActionItemGrouped from './ReportActionItemGrouped';
 
 const propTypes = {
-    /* All the data of the action item */
+    // All the data of the action item
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
 
-    /* Should the comment have the appearance of being grouped with the previous comment? */
+    // Should the comment have the appearance of being grouped with the previous comment?
     displayAsGroup: PropTypes.bool.isRequired,
 };
 
