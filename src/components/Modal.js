@@ -38,7 +38,8 @@ const Modal = (props) => {
         swipeDirection,
         animationIn,
         animationOut,
-        needsSafeAreaPadding,
+        shouldSumTopSafeAreaPadding,
+        shouldSumBottomSafeAreaPadding,
         hideBackdrop,
     } = getModalStyles(props.type, useWindowDimensions());
 
@@ -60,16 +61,36 @@ const Modal = (props) => {
             <SafeAreaInsetsContext.Consumer>
                 {(insets) => {
                     const {paddingTop, paddingBottom} = getSafeAreaPadding(insets);
+
+                    /**
+                     * Calculates the real top and bottom padding of the container,
+                     * given the given padding, the plataform specific safe area padding,
+                     * and if it should sum both values or not
+                     *
+                     * @param {number} containerPadding
+                     * @param {number} safeAreaPadding
+                     * @param {boolean} shouldSumSafeAreaPadding
+                     * @returns {number}
+                     */
+                    const getRealVerticalPadding = (containerPadding, safeAreaPadding, shouldSumSafeAreaPadding) => {
+                        const givenContainerPadding = containerPadding || 0;
+                        if (shouldSumSafeAreaPadding) {
+                            return givenContainerPadding + safeAreaPadding;
+                        }
+                        return givenContainerPadding;
+                    };
+
                     return (
                         <View
                             style={{
-                                // This padding is based on the insets and could not neatly be
-                                // returned by getModalStyles to avoid passing this inline.
-                                paddingTop: needsSafeAreaPadding ? paddingTop : 20,
-
                                 ...styles.defaultModalContainer,
-                                paddingBottom,
                                 ...modalContainerStyle,
+                                paddingTop: getRealVerticalPadding(
+                                    modalContainerStyle.paddingTop, paddingTop, shouldSumTopSafeAreaPadding,
+                                ),
+                                paddingBottom: getRealVerticalPadding(
+                                    modalContainerStyle.paddingBottom, paddingBottom, shouldSumBottomSafeAreaPadding,
+                                ),
                             }}
                         >
                             {props.children}

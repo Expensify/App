@@ -2,7 +2,7 @@ export default {
     contentHeaderHeight: 65,
     componentSizeSmall: 28,
     componentSizeNormal: 40,
-    componentSizeLarge: 50,
+    componentSizeLarge: 52,
     componentBorderRadius: 8,
     fontSizeSmall: 11,
     fontSizeLabel: 13,
