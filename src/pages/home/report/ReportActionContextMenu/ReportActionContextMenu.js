@@ -10,9 +10,9 @@ import Tooltip from '../../../../components/Tooltip';
 
 const propTypes = {
     // eslint-disable-next-line react/no-unused-prop-types
-    reportID: PropTypes.string.isRequired,
+    reportID: PropTypes.number.isRequired,
     // eslint-disable-next-line react/no-unused-prop-types
-    reportActionID: PropTypes.string.isRequired,
+    reportActionID: PropTypes.number.isRequired,
     isMini: PropTypes.bool,
     shouldShow: PropTypes.bool,
 };
@@ -33,7 +33,13 @@ const ReportActionContextMenu = (props) => {
             {ContextActions.map(((contextAction) => {
                 const Icon = contextAction.icon;
                 return (
-                    <Tooltip title={contextAction.text} aria-label={contextAction.text} placement="top" arrow>
+                    <Tooltip
+                        title={contextAction.text}
+                        key={contextAction.text}
+                        aria-label={contextAction.text}
+                        placement="top"
+                        arrow
+                    >
                         <Pressable style={({hovered, pressed}) => getButtonStyle(getButtonState(hovered, pressed))}>
                             {({pressed}) => (
                                 <Icon

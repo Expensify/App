@@ -13,6 +13,9 @@ import ReportActionPropTypes from './ReportActionPropTypes';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import {lastItem} from '../../../libs/CollectionUtils';
 import Visibility from '../../../libs/Visibility';
+import Hoverable from '../../../components/Hoverable';
+import ReportActionContextMenu from './ReportActionContextMenu/ReportActionContextMenu';
+import getReportActionItemContainerStyles from '../../../styles/getReportActionItemContainerStyles';
 
 const propTypes = {
     // The ID of the report actions will be created for
@@ -221,12 +224,25 @@ class ReportActionsView extends React.Component {
         needsLayoutCalculation,
     }) {
         return (
-            <ReportActionItem
-                action={item.action}
-                displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
-                onLayout={onLayout}
-                needsLayoutCalculation={needsLayoutCalculation}
-            />
+            <>
+                <Hoverable>
+                    {isHovered => (
+                        <View>
+                            <View style={getReportActionItemContainerStyles(isHovered)}>
+                                <ReportActionItem
+                                    action={item.action}
+                                    displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
+                                    onLayout={onLayout}
+                                    needsLayoutCalculation={needsLayoutCalculation}
+                                />
+                            </View>
+                            <View style={styles.miniReportActionContextMenuWrapperStyle}>
+                                <ReportActionContextMenu reportID={0} reportActionID={0} isMini shouldShow={isHovered} />
+                            </View>
+                        </View>
+                    )}
+                </Hoverable>
+            </>
         );
     }
 
