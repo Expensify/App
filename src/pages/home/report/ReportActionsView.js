@@ -224,30 +224,28 @@ class ReportActionsView extends React.Component {
         needsLayoutCalculation,
     }) {
         return (
-            <>
-                <Hoverable>
-                    {isHovered => (
-                        <View>
-                            <View style={getReportActionItemContainerStyles(isHovered)}>
-                                <ReportActionItem
-                                    action={item.action}
-                                    displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
-                                    onLayout={onLayout}
-                                    needsLayoutCalculation={needsLayoutCalculation}
-                                />
-                            </View>
-                            <View style={styles.miniReportActionContextMenuWrapperStyle}>
-                                <ReportActionContextMenu
-                                    reportID={this.props.reportID}
-                                    reportActionID={item.action.sequenceNumber}
-                                    shouldShow={isHovered}
-                                    isMini
-                                />
-                            </View>
+            <Hoverable>
+                {isHovered => (
+                    <View>
+                        <View style={getReportActionItemContainerStyles(isHovered)}>
+                            <ReportActionItem
+                                action={item.action}
+                                displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
+                                onLayout={onLayout}
+                                needsLayoutCalculation={needsLayoutCalculation}
+                            />
                         </View>
-                    )}
-                </Hoverable>
-            </>
+                        <View style={styles.miniReportActionContextMenuWrapperStyle}>
+                            <ReportActionContextMenu
+                                reportID={this.props.reportID}
+                                reportActionID={item.action.sequenceNumber}
+                                shouldShow={isHovered}
+                                isMini
+                            />
+                        </View>
+                    </View>
+                )}
+            </Hoverable>
         );
     }
 
