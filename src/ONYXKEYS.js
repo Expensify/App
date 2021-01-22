@@ -38,7 +38,6 @@ export default {
     SESSION: 'session',
     IS_SIDEBAR_SHOWN: 'isSidebarShown',
     IS_CHAT_SWITCHER_ACTIVE: 'isChatSwitcherActive',
-    IS_SMALL_DEVICE: 'isSmallDevice',
     IS_SIDEBAR_ANIMATING: 'isSidebarAnimating',
 
     // Collection Keys

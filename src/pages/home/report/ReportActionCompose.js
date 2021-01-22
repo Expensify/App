@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, Image, TouchableOpacity} from 'react-native';
+import {View, Image, TouchableOpacity, Dimensions} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import {withOnyx} from 'react-native-onyx';
@@ -14,6 +14,7 @@ import AttachmentPicker from '../../../components/AttachmentPicker';
 import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs/actions/Report';
 import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
+import variables from '../../../styles/variables';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -30,7 +31,12 @@ const defaultProps = {
     comment: '',
 };
 
+
+
+
 class ReportActionCompose extends React.Component {
+
+
     constructor(props) {
         super(props);
 
@@ -135,6 +141,8 @@ class ReportActionCompose extends React.Component {
     }
 
     render() {
+        const {width} = Dimensions.get('window');
+        const isSmallScreenWidth = width <= variables.mobileResponsiveWidthBreakpoint;
         return (
             <View style={[styles.chatItemCompose]}>
                 <View style={[
@@ -177,7 +185,7 @@ class ReportActionCompose extends React.Component {
                                     )}
                                 </AttachmentPicker>
                                 <TextInputFocusable
-                                    noFocus={this.props.isSidebarShown && this.props.isSmallDevice}
+                                    isFocusable={!isSmallScreenWidth}
                                     multiline
                                     ref={el => {
                                         this.textInput = el;
@@ -241,9 +249,6 @@ ReportActionCompose.defaultProps = defaultProps;
 export default withOnyx({
     isSidebarShown: {
         key: ONYXKEYS.IS_SIDEBAR_SHOWN,
-    },
-    isSmallDevice: {
-        key: ONYXKEYS.IS_SMALL_DEVICE,
     },
     comment: {
         key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,

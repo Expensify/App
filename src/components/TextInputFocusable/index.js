@@ -35,6 +35,9 @@ const propTypes = {
 
     // Callback to fire when a file is dropped on the text input
     onDrop: PropTypes.func,
+
+    // If the input should be focusable
+    isFocusable: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -46,6 +49,7 @@ const defaultProps = {
     onDragEnter: () => {},
     onDragLeave: () => {},
     onDrop: () => {},
+    isFocusable: true,
 };
 
 /**
@@ -179,7 +183,11 @@ class TextInputFocusable extends React.Component {
     }
 
     focusInput() {
-        !this.props.noFocus && this.textInput.focus();
+        if (this.props.isFocusable) {
+            this.textInput.focus();
+        } else {
+            this.textInput.blur();
+        }
     }
 
     render() {

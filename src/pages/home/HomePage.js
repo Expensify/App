@@ -40,7 +40,6 @@ import {fetchCountryCodeByRequestIP} from '../../libs/actions/GeoLocation';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import * as ChatSwitcher from '../../libs/actions/ChatSwitcher';
 import {redirect} from '../../libs/actions/App';
-import { isSmallDevice } from '../../libs/actions/SmallDevice';
 
 const propTypes = {
     isSidebarShown: PropTypes.bool,
@@ -67,7 +66,6 @@ class App extends React.Component {
             isSmallScreenWidth,
             isCreateMenuActive: false,
         };
-        isSmallDevice(isSmallScreenWidth);
 
         this.onCreateMenuItemSelected = this.onCreateMenuItemSelected.bind(this);
         this.toggleCreateMenu = this.toggleCreateMenu.bind(this);
@@ -195,7 +193,6 @@ class App extends React.Component {
             windowWidth: changedWindow.width,
             isSmallScreenWidth,
         });
-        isSmallDevice(isSmallScreenWidth);
     }
 
     /**
