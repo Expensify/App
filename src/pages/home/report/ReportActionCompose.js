@@ -1,6 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, Image, TouchableOpacity, Dimensions} from 'react-native';
+import {
+    View, Image, TouchableOpacity, Dimensions,
+} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import {withOnyx} from 'react-native-onyx';
@@ -32,11 +34,7 @@ const defaultProps = {
 };
 
 
-
-
 class ReportActionCompose extends React.Component {
-
-
     constructor(props) {
         super(props);
 
@@ -187,7 +185,7 @@ class ReportActionCompose extends React.Component {
                                 <TextInputFocusable
                                     isFocusable={!isSmallScreenWidth}
                                     multiline
-                                    ref={el => {
+                                    ref={(el) => {
                                         this.textInput = el;
                                         this.textInput.setNativeProps({tabindex: '-1'});
                                     }}
