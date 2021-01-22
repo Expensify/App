@@ -11,7 +11,7 @@ function init() {
      * connecting until it succeeds. We're throttling this call so
      * that we retry as few times as possible.
      */
-    const reconnectToPusher = _.throttle(Pusher.reconnect, 1000);
+    const reconnectToPusher = _.throttle(Pusher.reconnect, 2000, {leading: false});
 
     /**
      * When authTokens expire they will automatically be refreshed.
@@ -30,14 +30,15 @@ function init() {
             })
                 .then((data) => {
                     if (data.jsonCode === 407) {
-                        throw new Error(data.title);
+                        callback(new Error('Pusher: Expensify session expired. Re-authenticating...'));
+
+                        // Attempt to refresh the authToken then reconnect to Pusher
+                        API.reauthenticate().then(() => reconnectToPusher());
+                        return;
                     }
+
+                    console.debug('[Pusher] Pusher authenticated successfully');
                     callback(null, data);
-                })
-                .catch((error) => {
-                    reconnectToPusher();
-                    console.debug('[Network] Failed to authorize Pusher');
-                    callback(new Error(`Error calling auth endpoint: ${error.message}`));
                 });
         },
     }));
