@@ -15,16 +15,15 @@ const propTypes = {
  * This is a special Pressable that calls onSecondaryInteraction when LongPressed, or right-clicked.
  */
 class PressableWithSecondaryInteraction extends Component {
-    constructor(props) {
-        super(props);
-        this.pressableRef = React.createRef();
-    }
-
     componentDidMount() {
-        this.pressableRef.current.addEventListener('contextmenu', (e) => {
+        this.pressableRef.addEventListener('contextmenu', (e) => {
             e.preventDefault();
             this.props.onSecondaryInteraction(e);
         });
+    }
+
+    componentWillUnmount() {
+        this.pressableRef.removeEventListener('contextmenu');
     }
 
     render() {
@@ -32,7 +31,7 @@ class PressableWithSecondaryInteraction extends Component {
         return (
             <Pressable
                 onLongPress={e => this.props.onSecondaryInteraction(e)}
-                ref={this.pressableRef}
+                ref={el => this.pressableRef = el}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...defaultPressableProps}
             >
