@@ -107,6 +107,10 @@ function getParticipantEmailsFromReport({sharedReportList}) {
  * @returns {Object}
  */
 function getSimplifiedReportObject(report) {
+    const lastReportAction = lodashGet(report, ['reportActionList'], []).pop();
+    const createTimestamp = lastReportAction ? lastReportAction['created'] : 0;
+    const lastMessageTimestamp = moment.utc(createTimestamp).unix();
+
     return {
         reportID: report.reportID,
         reportName: report.reportName,
@@ -119,6 +123,7 @@ function getSimplifiedReportObject(report) {
             `lastRead_${currentUserAccountID}`,
             'timestamp',
         ], 0),
+        lastMessageTimestamp,
     };
 }
 
@@ -406,14 +411,9 @@ function fetchActions(reportID) {
                 .pluck('sequenceNumber')
                 .max()
                 .value();
-            const lastMessageTimestamp = Math.max(_.chain(data.history)
-                .reject(item => item.actionName === 'CREATED')
-                .pluck('timestamp')
-                .max()
-                .value(), 0);
 
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, indexedData);
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {maxSequenceNumber, lastMessageTimestamp});
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {maxSequenceNumber});
         });
 }
 
