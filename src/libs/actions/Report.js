@@ -107,6 +107,9 @@ function getParticipantEmailsFromReport({sharedReportList}) {
  * @returns {Object}
  */
 function getSimplifiedReportObject(report) {
+    const lastReportAction = lodashGet(report, ['reportActionList'], []).pop();
+    const lastMessageTimestamp = lastReportAction ? moment(`${lastReportAction.created} UTC`).unix() : 0;
+
     return {
         reportID: report.reportID,
         reportName: report.reportName,
@@ -119,6 +122,7 @@ function getSimplifiedReportObject(report) {
             `lastRead_${currentUserAccountID}`,
             'timestamp',
         ], 0),
+        lastMessageTimestamp,
     };
 }
 
@@ -438,7 +442,7 @@ function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false, sho
 
             if (shouldFetchActions) {
                 _.each(reportIDs, (reportID) => {
-                    console.debug(`Fetching report actions for report ${reportID}`);
+                    console.debug(`[RECONNECT] Fetching report actions for report ${reportID}`);
                     fetchActions(reportID);
                 });
             }
