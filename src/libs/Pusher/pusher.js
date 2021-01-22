@@ -391,6 +391,7 @@ function disconnect() {
  * Disconnect and Re-Connect Pusher
  */
 function reconnect() {
+    console.debug('[Pusher] Pusher.reconnect() called');
     socket.disconnect();
     socket.connect();
 }

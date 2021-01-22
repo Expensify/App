@@ -11,7 +11,7 @@ function init() {
      * connecting until it succeeds. We're throttling this call so
      * that we retry as few times as possible.
      */
-    const reconnectToPusher = _.throttle(Pusher.reconnect, 1000);
+    const reconnectToPusher = _.throttle(Pusher.reconnect, 2000, {leading: false});
 
     /**
      * When authTokens expire they will automatically be refreshed.
@@ -32,11 +32,16 @@ function init() {
                     if (data.jsonCode === 407) {
                         throw new Error(data.title);
                     }
+
+                    if (data.jsonCode === 200) {
+                        console.debug('[Pusher] Successfully authenticated');
+                    }
+
                     callback(null, {auth: data.auth});
                 })
                 .catch((error) => {
                     reconnectToPusher();
-                    console.debug('[Network] Failed to authorize Pusher');
+                    console.debug('[Network] Failed to authorize Pusher. Reconnecting...');
                     callback(new Error(`Error calling auth endpoint: ${error.message}`));
                 });
         },
