@@ -9,6 +9,7 @@ describe('OptionsListUtils', () => {
     const REPORTS = {
         1: {
             lastVisitedTimestamp: 1610666739295,
+            lastMessageTimestamp: 0,
             isPinned: false,
             reportID: 1,
             participants: ['tonystark@expensify.com', 'reedrichards@expensify.com'],
@@ -16,6 +17,7 @@ describe('OptionsListUtils', () => {
         },
         2: {
             lastVisitedTimestamp: 1610666739296,
+            lastMessageTimestamp: 0,
             isPinned: false,
             reportID: 2,
             participants: ['peterparker@expensify.com'],
@@ -25,6 +27,7 @@ describe('OptionsListUtils', () => {
         // This is the only report we are pinning in this test
         3: {
             lastVisitedTimestamp: 1610666739297,
+            lastMessageTimestamp: 0,
             isPinned: true,
             reportID: 3,
             participants: ['reedrichards@expensify.com'],
@@ -32,6 +35,7 @@ describe('OptionsListUtils', () => {
         },
         4: {
             lastVisitedTimestamp: 1610666739298,
+            lastMessageTimestamp: 0,
             isPinned: false,
             reportID: 4,
             participants: ['tchalla@expensify.com'],
@@ -39,6 +43,7 @@ describe('OptionsListUtils', () => {
         },
         5: {
             lastVisitedTimestamp: 1610666739299,
+            lastMessageTimestamp: 0,
             isPinned: false,
             reportID: 5,
             participants: ['suestorm@expensify.com'],
@@ -46,13 +51,17 @@ describe('OptionsListUtils', () => {
         },
         6: {
             lastVisitedTimestamp: 1610666739300,
+            lastMessageTimestamp: 0,
             isPinned: false,
             reportID: 6,
             participants: ['thor@expensify.com'],
             reportName: 'Thor',
         },
+
+        // Note: This is the only report with a lastMessageTimestamp
         7: {
             lastVisitedTimestamp: 1610666739301,
+            lastMessageTimestamp: 1611282169,
             isPinned: false,
             reportID: 7,
             participants: ['steverogers@expensify.com'],
@@ -259,5 +268,8 @@ describe('OptionsListUtils', () => {
 
         // And the pinned report is first in the list of reports
         expect(results.recentReports[0].login).toBe('reedrichards@expensify.com');
+
+        // And the second report is the report with a lastMessageTimestamp
+        expect(results.recentReports[1].login).toBe('steverogers@expensify.com');
     });
 });
