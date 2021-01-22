@@ -253,6 +253,11 @@ function Authenticate(parameters) {
         });
 }
 
+/**
+ * Reauthenticate using the stored credentials and redirect to the sign in page if unable to do so.
+ *
+ * @returns {Promise}
+ */
 function reauthenticate() {
     return Authenticate({
         useExpensifyLogin: false,
