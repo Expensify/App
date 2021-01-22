@@ -96,7 +96,7 @@ class App extends React.Component {
         // Fetch some data we need on initialization
         PersonalDetails.fetch();
         PersonalDetails.fetchTimezone();
-        fetchAllReports(true, true, true);
+        fetchAllReports(true, false, true);
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
         Dimensions.addEventListener('change', this.toggleNavigationMenuBasedOnDimensions);
