@@ -11,7 +11,7 @@ function init() {
      * connecting until it succeeds. We're throttling this call so
      * that we retry as few times as possible.
      */
-    const reconnectToPusher = _.throttle(Pusher.reconnect, 2000, {leading: false});
+    const reconnectToPusher = _.throttle(Pusher.reconnect, 3000, {leading: false});
 
     /**
      * When authTokens expire they will automatically be refreshed.
