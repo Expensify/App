@@ -203,8 +203,11 @@ function subscribe(
             channel = socket.subscribe(channelName);
             let isBound = false;
             channel.bind('pusher:subscription_succeeded', () => {
+                console.debug('[Pusher] Subscription succeeded to: ', channelName);
+
                 // Check so that we do not bind another event with each reconnect attempt
                 if (!isBound) {
+                    console.debug('[Pusher] Binding event to channel: ', {channelName, eventName});
                     bindEventToChannel(channel, eventName, eventCallback, isChunked);
                     resolve();
                     isBound = true;
@@ -215,11 +218,12 @@ function subscribe(
                 // called multiple times when the subscription succeeds again in the future
                 // e.g. as a result of Pusher disconnecting and reconnecting. This callback does
                 // not fire on the first subscription_succeeded event.
+                console.debug('[Pusher] Calling onResubscribe(): ', {channelName, eventName});
                 onResubscribe();
             });
 
             channel.bind('pusher:subscription_error', (status) => {
-                if (status === 403) {
+                if (status === 403 || (status && status.type === 'AuthError')) {
                     console.debug('[Pusher] Issue authenticating with Pusher during subscribe attempt.', 0, {
                         channelName,
                         status,
