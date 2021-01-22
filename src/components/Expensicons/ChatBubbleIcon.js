@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import ChatBubbleSvg from '../../../assets/images/chatbubble.svg';
 import themeColors from '../../styles/themes/default';
+import variables from '../../styles/variables';
 
 const propTypes = {
     // Width of the icon
@@ -15,8 +16,8 @@ const propTypes = {
 };
 
 const defaultProps = {
-    width: 20,
-    height: 20,
+    width: variables.iconSizeNormal,
+    height: variables.iconSizeNormal,
     fill: themeColors.icon,
 };
 

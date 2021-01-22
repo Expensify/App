@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import PlusSvg from '../../../assets/images/plus.svg';
 import colors from '../../styles/colors';
+import variables from '../../styles/variables';
 
 const propTypes = {
     // Fill of the icon
@@ -15,8 +16,8 @@ const propTypes = {
 };
 
 const defaultProps = {
-    height: 20,
-    width: 20,
+    height: variables.iconSizeNormal,
+    width: variables.iconSizeNormal,
     fill: colors.black,
 };
 
