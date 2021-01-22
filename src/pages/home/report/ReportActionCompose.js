@@ -245,9 +245,6 @@ ReportActionCompose.propTypes = propTypes;
 ReportActionCompose.defaultProps = defaultProps;
 
 export default withOnyx({
-    isSidebarShown: {
-        key: ONYXKEYS.IS_SIDEBAR_SHOWN,
-    },
     comment: {
         key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
     },
