@@ -371,10 +371,10 @@ const styles = {
     floatingActionButton: {
         backgroundColor: themeColors.buttonSuccessBG,
         position: 'absolute',
-        height: variables.componentSizeNormal,
-        width: variables.componentSizeNormal,
+        height: variables.componentSizeLarge,
+        width: variables.componentSizeLarge,
         right: 20,
-        bottom: 24,
+        bottom: 34,
         borderRadius: 999,
         alignItems: 'center',
         justifyContent: 'center',
