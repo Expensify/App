@@ -193,7 +193,7 @@ class ReportActionCompose extends React.Component {
                                         displayFileInModal({file});
                                         this.setState({isDraggingOver: false});
                                     }}
-                                    style={[styles.textInput, styles.textInputCompose, styles.flex4]}
+                                    style={[styles.textInputCompose, styles.flex4]}
                                     defaultValue={this.props.comment}
                                     maxLines={16} // This is the same that slack has
                                     onFocus={() => this.setIsFocused(true)}
