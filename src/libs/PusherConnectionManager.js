@@ -32,7 +32,7 @@ function init() {
                     if (data.jsonCode === 407) {
                         throw new Error(data.title);
                     }
-                    callback(null, data);
+                    callback(null, {auth: data.auth});
                 })
                 .catch((error) => {
                     reconnectToPusher();
@@ -48,9 +48,10 @@ function init() {
      *
      * @params {string} eventName
      */
-    Pusher.registerSocketEventCallback((eventName) => {
+    Pusher.registerSocketEventCallback((eventName, data) => {
         switch (eventName) {
             case 'error':
+                console.debug('[Pusher] Handling error event. Reconnecting to Pusher...', {data});
                 reconnectToPusher();
                 break;
             default:

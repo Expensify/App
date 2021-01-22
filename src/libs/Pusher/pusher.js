@@ -201,16 +201,16 @@ function subscribe(
 
         if (!channel || !channel.subscribed) {
             channel = socket.subscribe(channelName);
-            let isBound = false;
+
+            console.debug('[Pusher] Binding event to channel: ', {channelName, eventName});
+            bindEventToChannel(channel, eventName, eventCallback, isChunked);
+
+            let subscriptionSucceeded = false;
             channel.bind('pusher:subscription_succeeded', () => {
                 console.debug('[Pusher] Subscription succeeded to: ', channelName);
-
-                // Check so that we do not bind another event with each reconnect attempt
-                if (!isBound) {
-                    console.debug('[Pusher] Binding event to channel: ', {channelName, eventName});
-                    bindEventToChannel(channel, eventName, eventCallback, isChunked);
+                if (!subscriptionSucceeded) {
                     resolve();
-                    isBound = true;
+                    subscriptionSucceeded = true;
                     return;
                 }
 
