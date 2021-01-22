@@ -189,7 +189,7 @@ function subscribe(
     isChunked = false,
     onResubscribe = () => {},
 ) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         // We cannot call subscribe() before init(). Prevent any attempt to do this on dev.
         if (!socket) {
             throw new Error(`[Pusher] instance not found. Pusher.subscribe()
@@ -201,16 +201,15 @@ function subscribe(
 
         if (!channel || !channel.subscribed) {
             channel = socket.subscribe(channelName);
-
-            console.debug('[Pusher] Binding event to channel: ', {channelName, eventName});
-            bindEventToChannel(channel, eventName, eventCallback, isChunked);
-
-            let subscriptionSucceeded = false;
+            let isBound = false;
             channel.bind('pusher:subscription_succeeded', () => {
                 console.debug('[Pusher] Subscription succeeded to: ', channelName);
-                if (!subscriptionSucceeded) {
+
+                if (!isBound) {
+                    console.debug('[Pusher] Binding event to channel: ', {channelName, eventName});
+                    bindEventToChannel(channel, eventName, eventCallback, isChunked);
+                    isBound = true;
                     resolve();
-                    subscriptionSucceeded = true;
                     return;
                 }
 
@@ -229,8 +228,6 @@ function subscribe(
                         status,
                     });
                 }
-
-                reject(status);
             });
         } else {
             bindEventToChannel(channel, eventName, eventCallback, isChunked);
