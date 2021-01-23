@@ -9,6 +9,7 @@ import styles, {getSafeAreaPadding} from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import getModalStyles from '../styles/getModalStyles';
 import CONST from '../CONST';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 
 const propTypes = {
     // Callback method fired when the user requests to close the modal
@@ -27,14 +28,7 @@ const propTypes = {
         CONST.MODAL.MODAL_TYPE.POPOVER,
     ]),
 
-    // via withWindowDimensions
-    windowDimensions: PropTypes.shape({
-        // Width of the window
-        width: PropTypes.number.isRequired,
-
-        // Height of the window
-        height: PropTypes.number.isRequired,
-    }).isRequired,
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -95,4 +89,4 @@ const Modal = (props) => {
 Modal.propTypes = propTypes;
 Modal.defaultProps = defaultProps;
 Modal.displayName = 'Modal';
-export default Modal;
+export default withWindowDimensions(Modal);
