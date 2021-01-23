@@ -15,15 +15,27 @@ const propTypes = {
  * This is a special Pressable that calls onSecondaryInteraction when LongPressed, or right-clicked.
  */
 class PressableWithSecondaryInteraction extends Component {
+    constructor(props) {
+        super(props);
+
+        this.executeSecondaryInteractionOnContextMenu = this.executeSecondaryInteractionOnContextMenu.bind(this);
+    }
+
     componentDidMount() {
-        this.pressableRef.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            this.props.onSecondaryInteraction(e);
-        });
+        this.pressableRef.addEventListener('contextmenu', this.executeSecondaryInteractionOnContextMenu);
     }
 
     componentWillUnmount() {
-        this.pressableRef.removeEventListener('contextmenu');
+        this.pressableRef.removeEventListener('contextmenu', this.executeSecondaryInteractionOnContextMenu);
+    }
+
+    /**
+     * @param {contextmenu} e - A contextmenu event.
+     * https://developer.mozilla.org/en-US/docs/Web/API/Element/contextmenu_event
+     */
+    executeSecondaryInteractionOnContextMenu(e) {
+        e.preventDefault();
+        this.props.onSecondaryInteraction(e);
     }
 
     render() {
