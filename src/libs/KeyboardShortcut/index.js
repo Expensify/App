@@ -72,6 +72,8 @@ const KeyboardShortcut = {
      * @returns {Number} The key's keyCode, i.e. 75 or 27
      */
     getKeyCode(key) {
+        // For keys that have longer names we must catch and return the correct key key.charCodeAt(0) would return the
+        // key code for 'E' not 'Escape'
         if (key === 'Escape') {
             return 27;
         }
