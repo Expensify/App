@@ -1,5 +1,17 @@
 import React, {Component} from 'react';
+import PropTypes from 'prop-types';
 import {Dimensions} from 'react-native';
+
+export const windowDimensionsPropTypes = {
+    // via withWindowDimensions
+    windowDimensions: PropTypes.shape({
+        // Width of the window
+        width: PropTypes.number.isRequired,
+
+        // Height of the window
+        height: PropTypes.number.isRequired,
+    }).isRequired,
+};
 
 const withWindowDimensions = WrappedComponent => (
     class WindowDimensions extends Component {
