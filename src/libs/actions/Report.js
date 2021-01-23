@@ -97,6 +97,21 @@ function getParticipantEmailsFromReport({sharedReportList}) {
 }
 
 /**
+ * Returns a generated report title based on the participants
+ *
+ * @param {Array} sharedReportList
+ * @return {String}
+ */
+function getChatReportName(sharedReportList) {
+    return _.chain(sharedReportList)
+        .map(participant => participant.email)
+        .filter(participant => participant !== currentUserEmail)
+        .map(participant => PersonalDetails.getDisplayName(participant))
+        .value()
+        .join(', ');
+}
+
+/**
  * Only store the minimal amount of data in Onyx that needs to be stored
  * because space is limited
  *
@@ -110,10 +125,13 @@ function getSimplifiedReportObject(report) {
     const lastReportAction = lodashGet(report, ['reportActionList'], []).pop();
     const createTimestamp = lastReportAction ? lastReportAction.created : 0;
     const lastMessageTimestamp = moment.utc(createTimestamp).unix();
+    const reportName = lodashGet(report, 'reportNameValuePairs.type') === 'chat'
+        ? getChatReportName(report.sharedReportList)
+        : report.reportName;
 
     return {
         reportID: report.reportID,
-        reportName: report.reportName,
+        reportName,
         unreadActionCount: getUnreadActionCount(report),
         maxSequenceNumber: report.reportActionList.length,
         participants: getParticipantEmailsFromReport(report),
@@ -125,21 +143,6 @@ function getSimplifiedReportObject(report) {
         ], 0),
         lastMessageTimestamp,
     };
-}
-
-/**
- * Returns a generated report title based on the participants
- *
- * @param {Array} sharedReportList
- * @return {String}
- */
-function getChatReportName(sharedReportList) {
-    return _.chain(sharedReportList)
-        .map(participant => participant.email)
-        .filter(participant => participant !== currentUserEmail)
-        .map(participant => PersonalDetails.getDisplayName(participant))
-        .value()
-        .join(', ');
 }
 
 /**
@@ -164,21 +167,15 @@ function fetchChatReportsByIDs(chatList) {
             // variable called simplifiedReports which hold the participants (minus the current user) for each report.
             // Using this simplifiedReport we can call PersonalDetails.getFromReportParticipants to get the
             // personal details of all the participants and even link up their avatars to report icons.
-            const simplifiedReports = [];
+            const simplifiedReports = {};
             _.each(fetchedReports, (report) => {
-                const newReport = getSimplifiedReportObject(report);
-                simplifiedReports.push(newReport);
-
-                if (lodashGet(report, 'reportNameValuePairs.type') === 'chat') {
-                    newReport.reportName = getChatReportName(report.sharedReportList);
-                }
-
-                // Merge the data into Onyx
-                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, newReport);
+                const key = `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`;
+                simplifiedReports[key] = getSimplifiedReportObject(report);
             });
+            Onyx.multiMerge(ONYXKEYS.COLLECTION.REPORT, simplifiedReports);
 
             // Fetch the personal details if there are any
-            PersonalDetails.getFromReportParticipants(simplifiedReports);
+            PersonalDetails.getFromReportParticipants(Object.values(simplifiedReports));
 
             return _.map(fetchedReports, report => report.reportID);
         });
