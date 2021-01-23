@@ -172,7 +172,7 @@ function fetchChatReportsByIDs(chatList) {
                 const key = `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`;
                 simplifiedReports[key] = getSimplifiedReportObject(report);
             });
-            Onyx.multiMerge(ONYXKEYS.COLLECTION.REPORT, simplifiedReports);
+            Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedReports);
 
             // Fetch the personal details if there are any
             PersonalDetails.getFromReportParticipants(Object.values(simplifiedReports));

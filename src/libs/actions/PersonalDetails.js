@@ -168,7 +168,7 @@ function getFromReportParticipants(reports) {
                     reportsToUpdate[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = {icons: avatars};
                 }
             });
-            Onyx.multiMerge(ONYXKEYS.COLLECTION.REPORT, reportsToUpdate);
+            Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportsToUpdate);
         });
 }
 
