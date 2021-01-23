@@ -1016,6 +1016,14 @@ const styles = {
         alignItems: 'center',
         padding: 20,
     },
+
+    subHeader: {
+        color: themeColors.text,
+        fontWeight: fontWeightBold,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: 12,
+        padding: 20,
+    },
 };
 
 const baseCodeTagStyles = {
