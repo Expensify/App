@@ -96,6 +96,23 @@ export default (type, windowDimensions) => {
             animationIn = 'fadeInLeft';
             animationOut = 'fadeOutLeft';
             break;
+        case CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED:
+            modalStyle = {
+                margin: 0,
+                flexDirection: 'row-reverse',
+                justifyContent: 'end',
+            };
+            modalContainerStyle = {
+                width: isSmallScreen ? '100%' : '40%',
+                height: '100%',
+                overflow: 'hidden',
+                marginRight: 0,
+            };
+
+            swipeDirection = 'right';
+            animationIn = 'slideInRight';
+            animationOut = 'slideOutLeft';
+            break;
         default:
             modalStyle = {};
             modalContainerStyle = {};

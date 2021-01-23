@@ -67,8 +67,6 @@ const SettingsPage = ({
         >
             <View
                 style={[
-                    styles.flexColumn,
-                    styles.settingsPageContainer,
                 ]}
             >
                 <HeaderWithCloseButton
