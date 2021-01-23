@@ -1030,6 +1030,9 @@ const styles = {
 
     // This weird nested style is intentional and necessary
     tooltip: {
+        arrow: {
+            color: themeColors.heading,
+        },
         tooltip: {
             backgroundColor: themeColors.heading,
             color: themeColors.textReversed,
