@@ -22,9 +22,9 @@ const propTypes = {
 
 const ReportActionItem = props => (
     <Hoverable>
-        {isHovered => (
+        {hovered => (
             <View>
-                <View style={getReportActionItemContainerStyles(isHovered)}>
+                <View style={getReportActionItemContainerStyles(hovered)}>
                     {!props.displayAsGroup
                         ? <ReportActionItemSingle action={props.action} />
                         : <ReportActionItemGrouped action={props.action} />}
@@ -33,7 +33,7 @@ const ReportActionItem = props => (
                     <ReportActionContextMenu
                         reportID={props.reportID}
                         reportActionID={props.action.sequenceNumber}
-                        shouldShow={isHovered}
+                        shouldShow={hovered}
                         isMini
                     />
                 </View>
