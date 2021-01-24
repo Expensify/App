@@ -118,7 +118,7 @@ const ChatLinkRow = ({
                     </TouchableOpacity>
                 </View>
             )}
-            {option.hasDraftComment && <Icon icon={Pencil} width={16} height={16} />}
+            {option.hasDraftComment && <Icon src={Pencil} width={16} height={16} />}
         </View>
     );
 };

@@ -135,7 +135,7 @@ const ChatSwitcherSearchForm = props => (
             onPress={props.onClearButtonClick}
             underlayColor={themeColors.componentBG}
         >
-            <Icon icon={Close} width={24} height={24} />
+            <Icon src={Close} width={24} height={24} />
         </TouchableOpacity>
     </View>
 );

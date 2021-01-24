@@ -38,7 +38,7 @@ const HeaderWithCloseButton = props => (
                     onPress={props.onCloseButtonPress}
                     style={[styles.touchableButtonImage]}
                 >
-                    <Icon icon={Close} />
+                    <Icon src={Close} />
                 </TouchableOpacity>
             </View>
         </View>

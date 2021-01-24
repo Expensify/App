@@ -50,7 +50,7 @@ const CreateMenu = (props) => {
                     ])}
                 >
                     <View style={styles.createMenuIcon}>
-                        <Icon icon={icon} width={24} height={24} />
+                        <Icon src={icon} width={24} height={24} />
                     </View>
                     <View style={styles.justifyContentCenter}>
                         <Text style={[styles.createMenuText, styles.ml3]}>

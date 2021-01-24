@@ -141,7 +141,7 @@ const SidebarLinks = (props) => {
                         style={[styles.flexRow, styles.sidebarHeaderTop]}
                         onPress={() => ChatSwitcher.show()}
                     >
-                        <Icon icon={MagnifyingGlass} />
+                        <Icon src={MagnifyingGlass} />
                     </TouchableOpacity>
                     <TouchableOpacity
                         onPress={props.onAvatarClick}
