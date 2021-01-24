@@ -14,6 +14,7 @@ import TextInputWithFocusStyles from '../../../components/TextInputWithFocusStyl
 import {getDisplayName} from '../../../libs/actions/PersonalDetails';
 import PillWithCancelButton from '../../../components/PillWithCancelButton';
 import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
+import variables from '../../../styles/variables';
 
 const propTypes = {
     // A ref to forward to the text input
@@ -135,7 +136,7 @@ const ChatSwitcherSearchForm = props => (
             onPress={props.onClearButtonClick}
             underlayColor={themeColors.componentBG}
         >
-            <Icon src={Close} width={24} height={24} />
+            <Icon src={Close} width={variables.iconSizeLarge} height={variables.iconSizeLarge} />
         </TouchableOpacity>
     </View>
 );
