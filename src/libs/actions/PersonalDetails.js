@@ -8,10 +8,10 @@ import CONST from '../../CONST';
 import NetworkConnection from '../NetworkConnection';
 import * as API from '../API';
 
-let currentUserEmail;
+let currentUserEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: val => currentUserEmail = val ? val.email : null,
+    callback: val => currentUserEmail = val ? val.email : '',
 });
 
 let personalDetails;
@@ -20,19 +20,13 @@ Onyx.connect({
     callback: val => personalDetails = val,
 });
 
-let isOffline;
-Onyx.connect({
-    key: ONYXKEYS.NETWORK,
-    callback: val => isOffline = val && val.isOffline,
-});
-
 /**
  * Helper method to return a default avatar
  *
- * @param {String} login
+ * @param {String} [login]
  * @returns {String}
  */
-function getDefaultAvatar(login) {
+function getDefaultAvatar(login = '') {
     // There are 8 possible default avatars, so we choose which one this user has based
     // on a simple hash of their login (which is converted from HEX to INT)
     const loginHashBucket = (parseInt(md5(login).substring(0, 4), 16) % 8) + 1;
@@ -178,17 +172,6 @@ function getFromReportParticipants(reports) {
 
 // When the app reconnects from being offline, fetch all of the personal details
 NetworkConnection.onReconnect(fetch);
-
-// Refresh the personal details and timezone every 30 minutes because there is no
-// pusher event that sends updated personal details data yet
-// See https://github.com/Expensify/ReactNativeChat/issues/468
-setInterval(() => {
-    if (isOffline) {
-        return;
-    }
-    fetch();
-    fetchTimezone();
-}, 1000 * 60 * 30);
 
 export {
     fetch,
