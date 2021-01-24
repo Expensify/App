@@ -168,7 +168,7 @@ class ReportActionCompose extends React.Component {
                                             style={[styles.chatItemAttachButton]}
                                             underlayColor={themeColors.componentBG}
                                         >
-                                            <Icon icon={Paperclip} />
+                                            <Icon src={Paperclip} />
                                         </TouchableOpacity>
                                     )}
                                 </AttachmentPicker>
@@ -214,7 +214,7 @@ class ReportActionCompose extends React.Component {
                         underlayColor={themeColors.componentBG}
                         disabled={this.state.isCommentEmpty}
                     >
-                        <Icon icon={Send} fill={themeColors.componentBG} />
+                        <Icon src={Send} fill={themeColors.componentBG} />
                     </TouchableOpacity>
                 </View>
                 <ReportTypingIndicator reportID={this.props.reportID} />

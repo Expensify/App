@@ -45,7 +45,7 @@ const HeaderView = props => (
                     onPress={props.onNavigationMenuButtonClicked}
                     style={[styles.LHNToggle]}
                 >
-                    <Icon icon={BackArrow} />
+                    <Icon src={BackArrow} />
                 </Pressable>
             )}
             {props.report && props.report.reportName ? (
@@ -63,7 +63,7 @@ const HeaderView = props => (
                             onPress={() => togglePinnedState(props.report)}
                             style={[styles.touchableButtonImage, styles.mr0]}
                         >
-                            <Icon icon={Pin} fill={props.report.isPinned ? themeColors.heading : themeColors.icon} />
+                            <Icon src={Pin} fill={props.report.isPinned ? themeColors.heading : themeColors.icon} />
                         </Pressable>
                     </View>
                 </View>

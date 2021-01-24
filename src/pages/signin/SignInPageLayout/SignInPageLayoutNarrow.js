@@ -19,7 +19,7 @@ const SignInPageLayoutNarrow = ({children}) => (
             <View style={[styles.signInPageInnerNative]}>
                 <View style={[styles.signInPageLogoNative]}>
                     <Icon
-                        icon={ExpensifyCashLogo}
+                        src={ExpensifyCashLogo}
                         width={variables.componentSizeLarge}
                         height={variables.componentSizeLarge}
                     />

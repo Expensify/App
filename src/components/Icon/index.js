@@ -10,7 +10,7 @@ const ICONS = _.extend(BrandAssets, Expensicons);
 
 const propTypes = {
     // The asset to render.
-    icon: PropTypes.oneOf(_.values(ICONS)).isRequired,
+    src: PropTypes.oneOf(_.values(ICONS)).isRequired,
 
     // The width of the icon.
     width: PropTypes.number,
@@ -33,11 +33,11 @@ const defaultProps = {
 // eslint-disable-next-line react/prefer-stateless-function
 class Icon extends PureComponent {
     render() {
-        const IconToRender = this.props.icon;
+        const IconToRender = this.props.src;
 
         // Expensicons have a default fill color, but brand assets do not
         let fillColor = this.props.fill;
-        if (!fillColor && _.contains(_.values(Expensicons), this.props.icon)) {
+        if (!fillColor && _.contains(_.values(Expensicons), this.props.src)) {
             fillColor = themeColors.icon;
         }
 
