@@ -117,4 +117,15 @@ export default {
             onClick,
         });
     },
+
+    /**
+     * Create a notification to indicate that an update is available.
+     */
+    pushUpdateAvailableNotification() {
+        push({
+            title: 'Update available',
+            body: 'A new version of Expensify.cash is available for download.',
+            delay: 0,
+        });
+    },
 };
