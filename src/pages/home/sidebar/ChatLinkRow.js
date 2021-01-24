@@ -12,6 +12,7 @@ import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
 import Icon from '../../../components/Icon';
 import {Pencil} from '../../../components/Icon/Expensicons';
 import MultipleAvatars from '../../../components/MultipleAvatars';
+import variables from '../../../styles/variables';
 
 const propTypes = {
     // Option to allow the user to choose from can be type 'report' or 'user'
@@ -118,7 +119,9 @@ const ChatLinkRow = ({
                     </TouchableOpacity>
                 </View>
             )}
-            {option.hasDraftComment && <Icon src={Pencil} width={16} height={16} />}
+            {option.hasDraftComment && (
+                <Icon src={Pencil} width={variables.fontSizeSmall} height={variables.iconSizeSmall} />
+            )}
         </View>
     );
 };

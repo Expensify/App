@@ -4,6 +4,7 @@ import {Text, TouchableOpacity} from 'react-native';
 import styles from '../styles/styles';
 import Icon from './Icon';
 import {Close} from './Icon/Expensicons';
+import variables from '../styles/variables';
 
 const propTypes = {
     text: PropTypes.string.isRequired,
@@ -21,7 +22,7 @@ const PillWithCancelButton = props => (
         >
             {props.text}
         </Text>
-        <Icon src={Close} width={12} height={12} />
+        <Icon src={Close} width={variables.iconSizeExtraSmall} height={variables.iconSizeExtraSmall} />
     </TouchableOpacity>
 );
 
