@@ -68,7 +68,7 @@ class FAB extends React.Component {
                     {transform: [{rotate}], backgroundColor},
                 ]}
             >
-                <AnimatedIcon icon={Plus} fill={fill} />
+                <AnimatedIcon src={Plus} fill={fill} />
             </AnimatedPressable>
         );
     }
