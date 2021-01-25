@@ -107,6 +107,7 @@ export default (type, windowDimensions) => {
                 height: '100%',
                 overflow: 'hidden',
                 marginRight: 0,
+                paddingTop: 0,
             };
 
             swipeDirection = 'right';
