@@ -12,5 +12,5 @@ export default {
     iconSizeNormal: 20,
     mobileResponsiveWidthBreakpoint: 800,
     safeInsertPercentage: 0.7,
-    sideBarWidth: 300,
+    sideBarWidth: 375,
 };

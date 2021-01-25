@@ -18,6 +18,7 @@ const CONST = {
         MODAL_TYPE: {
             CENTERED: 'centered',
             BOTTOM_DOCKED: 'bottom_docked',
+            POPOVER: 'popover',
         },
     },
     TIMING: {

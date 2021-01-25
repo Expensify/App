@@ -1,6 +1,6 @@
 {
   "name": "expensify.cash",
-  "version": "1.0.1-370",
+  "version": "1.0.1-377",
   "author": "Expensify, Inc.",
   "homepage": "https://expensify.cash",
   "description": "Expensify.cash is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -22,7 +22,8 @@
     "postversion": "react-native-version",
     "print-version": "echo $npm_package_version",
     "detox-build": "detox build --configuration ios.sim.debug",
-    "detox-test": "detox test --configuration ios.sim.debug"
+    "detox-test": "detox test --configuration ios.sim.debug",
+    "gh-actions-build": "./.github/scripts/buildActions.sh"
   },
   "dependencies": {
     "@babel/plugin-proposal-class-properties": "^7.12.1",
@@ -81,6 +82,8 @@
     "urbanairship-react-native": "^10.0.0"
   },
   "devDependencies": {
+    "@actions/core": "^1.2.6",
+    "@actions/github": "^4.0.0",
     "@babel/core": "^7.11.1",
     "@babel/preset-env": "^7.11.0",
     "@babel/preset-react": "^7.10.4",
@@ -89,6 +92,7 @@
     "@svgr/webpack": "^5.5.0",
     "@testing-library/jest-native": "^3.4.2",
     "@testing-library/react-native": "^7.0.2",
+    "@vercel/ncc": "^0.27.0",
     "babel-eslint": "^10.1.0",
     "babel-jest": "^26.2.2",
     "babel-loader": "^8.1.0",

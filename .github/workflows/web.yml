@@ -26,7 +26,7 @@ jobs:
             # Installs Cloudflare CLI, after installing/upgrading dependencies
             - name: Setup Cloudflare CLI
               run: |
-                   pip3 install --upgrade pip
+                   pip3 install --upgrade pip3
                    pip3 install wheel # need wheel before cloudflare, this is the only way to ensure order.
                    pip3 install cloudflare
 

@@ -400,10 +400,7 @@ const styles = {
     },
 
     sidebarListContainer: {
-        flex: 1,
-        flexGrow: 100,
         scrollbarWidth: 'none',
-        overflow: 'scroll',
         paddingBottom: 4,
     },
 
@@ -455,7 +452,7 @@ const styles = {
 
     sidebarLinkText: {
         color: themeColors.text,
-        fontSize: variables.fontSizeLabel,
+        fontSize: variables.fontSizeNormal,
         textDecorationLine: 'none',
         overflow: 'hidden',
     },
@@ -472,7 +469,7 @@ const styles = {
 
     sidebarLinkActiveText: {
         color: themeColors.text,
-        fontSize: variables.fontSizeLabel,
+        fontSize: variables.fontSizeNormal,
         textDecorationLine: 'none',
         overflow: 'hidden',
     },
@@ -487,6 +484,7 @@ const styles = {
     chatSwitcherLogin: {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeLabel,
         height: 16,
         lineHeight: 16,
     },
@@ -643,14 +641,23 @@ const styles = {
     },
 
     textInputCompose: addOutlineWidth({
+        backgroundColor: themeColors.componentBG,
+        borderColor: themeColors.border,
+        color: themeColors.text,
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeNormal,
         borderWidth: 0,
         borderRadius: 0,
         height: 'auto',
-        minHeight: 38,
-        paddingTop: 10,
-        paddingRight: 8,
-        paddingBottom: 10,
-        paddingLeft: 8,
+
+        // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
+        // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
+
+        paddingHorizontal: 8,
+        marginVertical: 5,
+        paddingVertical: 0,
+        alignSelf: 'center',
+        textAlignVertical: 'center',
     }, 0),
 
     chatItemSubmitButton: {
