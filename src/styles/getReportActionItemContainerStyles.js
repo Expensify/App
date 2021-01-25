@@ -12,7 +12,7 @@ export default function (isHovered = false) {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        backgroundColor: isHovered ? themeColors.activeComponentBG : themeColors.componentBG,
+        backgroundColor: isHovered ? themeColors.hoverComponentBG : themeColors.componentBG,
         cursor: 'default',
     };
 }

@@ -4,6 +4,7 @@ export default {
     shadow: colors.black,
     link: colors.blue,
     componentBG: colors.white,
+    hoverComponentBG: colors.gray1,
     activeComponentBG: colors.gray2,
     appBG: colors.white,
     heading: colors.charcoal,
