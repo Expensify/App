@@ -4,6 +4,7 @@ import {View} from 'react-native-web';
 import {withOnyx} from 'react-native-onyx';
 import SettingsPage from '../pages/SettingsPage';
 import CONST from '../CONST';
+import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import ONYXKEYS from '../ONYXKEYS';
 import ModalWithHeader from './ModalWithHeader';
@@ -40,19 +41,15 @@ class SettingsModal extends Component {
 
     render() {
         return (
-            <>
-                <ModalWithHeader
-                    type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
-                    onClose={this.onClose}
-                    isVisible={this.props.isVisible}
-                    title="Settings"
-                    backgroundColor={themeColors.componentBG}
-                >
-                    <View>
-                        <SettingsPage />
-                    </View>
-                </ModalWithHeader>
-            </>
+            <ModalWithHeader
+                type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
+                onClose={this.onClose}
+                isVisible={this.props.isVisible}
+                title="Settings"
+                backgroundColor={themeColors.componentBG}
+            >
+                <SettingsPage />
+            </ModalWithHeader>
         );
     }
 }
