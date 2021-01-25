@@ -69,12 +69,6 @@ const SettingsPage = ({
                 style={[
                 ]}
             >
-                <HeaderWithCloseButton
-                    onCloseButtonPress={() => redirect(currentlyViewedReportID !== ''
-                        ? ROUTES.getReportRoute(currentlyViewedReportID)
-                        : ROUTES.HOME)}
-                    title="Settings"
-                />
                 <View style={styles.settingsWrapper}>
                     <View
                         style={[styles.largeAvatar, styles.mb3]}
