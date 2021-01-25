@@ -107,6 +107,10 @@ function getParticipantEmailsFromReport({sharedReportList}) {
  * @returns {Object}
  */
 function getSimplifiedReportObject(report) {
+    const lastReportAction = lodashGet(report, ['reportActionList'], []).pop();
+    const createTimestamp = lastReportAction ? lastReportAction.created : 0;
+    const lastMessageTimestamp = moment.utc(createTimestamp).unix();
+
     return {
         reportID: report.reportID,
         reportName: report.reportName,
@@ -119,6 +123,7 @@ function getSimplifiedReportObject(report) {
             `lastRead_${currentUserAccountID}`,
             'timestamp',
         ], 0),
+        lastMessageTimestamp,
     };
 }
 
@@ -219,6 +224,7 @@ function updateReportWithNewAction(reportID, reportAction) {
         reportID,
         unreadActionCount: newMaxSequenceNumber - (lastReadSequenceNumbers[reportID] || 0),
         maxSequenceNumber: reportAction.sequenceNumber,
+        lastMessageTimestamp: reportAction.timestamp,
     });
 
     // Add the action into Onyx
@@ -405,6 +411,7 @@ function fetchActions(reportID) {
                 .pluck('sequenceNumber')
                 .max()
                 .value();
+
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, indexedData);
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {maxSequenceNumber});
         });
@@ -525,6 +532,7 @@ function addAction(reportID, text, file) {
     // Update the report in Onyx to have the new sequence number
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         maxSequenceNumber: newSequenceNumber,
+        lastMessageTimestamp: moment().unix(),
     });
 
     // Optimistically add the new comment to the store before waiting to save it to the server
