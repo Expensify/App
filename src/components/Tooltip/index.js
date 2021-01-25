@@ -29,9 +29,8 @@ class Tooltip extends Component {
 
         this.animation = new Animated.Value(0);
 
-        // The child component wrapped by this Tooltip.
-        // Since it's using Hoverable, there must be only one child of a Tooltip.
-        this.child = null;
+        // The wrapper view containing the wrapped content along with the Tooltip itself.
+        this.wrapperView = null;
 
         // The distance between the left side of the rendered view and the left side of the window
         this.xOffset = 0;
@@ -44,7 +43,7 @@ class Tooltip extends Component {
     }
 
     getPosition() {
-        this.child.measureInWindow((x, y) => {
+        this.wrapperView.measureInWindow((x, y) => {
             this.xOffset = x;
             this.yOffset = y;
         });
@@ -67,7 +66,7 @@ class Tooltip extends Component {
 
         return (
             <View
-                ref={el => this.child = el}
+                ref={el => this.wrapperView = el}
                 onLayout={el => this.getPosition(el)}
                 collapsable={false}
             >
