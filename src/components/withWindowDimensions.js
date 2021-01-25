@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {Dimensions} from 'react-native';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 
-export const windowDimensionsPropTypes = {
+const windowDimensionsPropTypes = {
     // via withWindowDimensions
     windowDimensions: PropTypes.shape({
         // Width of the window
@@ -59,3 +59,7 @@ export default function (WrappedComponent) {
     withWindowDimensions.displayName = `withWindowDimensions(${getComponentDisplayName(WrappedComponent)})`;
     return withWindowDimensions;
 }
+
+export {
+    windowDimensionsPropTypes,
+};
