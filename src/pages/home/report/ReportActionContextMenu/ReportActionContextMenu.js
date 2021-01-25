@@ -44,7 +44,6 @@ const ReportActionContextMenu = (props) => {
                     <Tooltip
                         title={contextAction.text}
                         key={contextAction.text}
-                        aria-label={contextAction.text}
                         placement="top"
                         arrow
                     >
