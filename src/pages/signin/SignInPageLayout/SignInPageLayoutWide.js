@@ -4,8 +4,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
-import Icon from '../../../components/Icon';
-import {ExpensifyCashLogo} from '../../../components/Icon/BrandAssets';
+import ExpensifyCashLogo from '../../../../assets/images/expensify-cash.svg';
 import welcomeScreenshot from '../../../../assets/images/welcome-screenshot-wide.png';
 import variables from '../../../styles/variables';
 
@@ -28,11 +27,7 @@ const SignInPageLayoutWide = ({children}) => (
             </View>
             <View style={[styles.flex1, styles.w50]}>
                 <View style={[styles.signInPageLogo, styles.mt6, styles.mb5]}>
-                    <Icon
-                        src={ExpensifyCashLogo}
-                        width={variables.componentSizeLarge}
-                        height={variables.componentSizeLarge}
-                    />
+                    <ExpensifyCashLogo width={variables.componentSizeLarge} height={variables.componentSizeLarge} />
                 </View>
 
                 <View style={[styles.mb5]}>
