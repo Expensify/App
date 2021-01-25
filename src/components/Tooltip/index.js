@@ -25,7 +25,6 @@ class Tooltip extends Component {
 
         this.state = {
             isVisible: false,
-            isAnimating: false,
         };
 
         this.animation = new Animated.Value(0);
@@ -73,10 +72,10 @@ class Tooltip extends Component {
                 collapsable={false}
             >
                 <Hoverable>
-                    {({hovered}) => {
+                    {(hovered) => {
                         // If the hover state is different from the current visibility,
                         // and we're not already animating, then toggle the tooltip visibility.
-                        if (this.state.isVisible !== hovered && !this.state.isAnimating) {
+                        if (this.state.isVisible !== hovered) {
                             this.toggleTooltip();
                         }
                         return this.props.children;
