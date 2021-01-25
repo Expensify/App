@@ -9,8 +9,6 @@ import themeColors from './themes/default';
 export default function (isHovered = false) {
     return {
         display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
         justifyContent: 'space-between',
         backgroundColor: isHovered ? themeColors.hoverComponentBG : themeColors.componentBG,
         cursor: 'default',
