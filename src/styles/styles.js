@@ -1017,6 +1017,19 @@ const styles = {
         alignItems: 'center',
         padding: 20,
     },
+
+    tooltipPointer: {
+        width: 0,
+        height: 0,
+        backgroundColor: 'transparent',
+        borderStyle: 'solid',
+        borderLeftWidth: 4,
+        borderRightWidth: 4,
+        borderTopWidth: 7,
+        borderLeftColor: 'transparent',
+        borderRightColor: 'transparent',
+        borderBottomColor: themeColors.heading,
+    },
 };
 
 const baseCodeTagStyles = {
