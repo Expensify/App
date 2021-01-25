@@ -9,6 +9,9 @@ const CONST = {
         REPORT: 'report',
         PERSONAL_DETAIL: 'personalDetail',
     },
+    REPORT: {
+        MAXIMUM_PARTICIPANTS: 8,
+    },
     MODAL: {
         MODAL_TYPE: {
             CENTERED: 'centered',

@@ -1024,6 +1024,14 @@ const styles = {
         fontSize: 12,
         padding: 20,
     },
+
+    selectCircle: {
+        width: 30,
+        height: 30,
+        borderColor: colors.charcoal,
+        borderWidth: 1,
+        borderRadius: 15,
+    },
 };
 
 const baseCodeTagStyles = {
