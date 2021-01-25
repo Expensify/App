@@ -451,7 +451,7 @@ const styles = {
 
     sidebarLinkText: {
         color: themeColors.text,
-        fontSize: variables.fontSizeLabel,
+        fontSize: variables.fontSizeNormal,
         textDecorationLine: 'none',
         overflow: 'hidden',
     },
@@ -468,7 +468,7 @@ const styles = {
 
     sidebarLinkActiveText: {
         color: themeColors.text,
-        fontSize: variables.fontSizeLabel,
+        fontSize: variables.fontSizeNormal,
         textDecorationLine: 'none',
         overflow: 'hidden',
     },
@@ -483,6 +483,7 @@ const styles = {
     chatSwitcherLogin: {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeLabel,
         height: 16,
         lineHeight: 16,
     },
