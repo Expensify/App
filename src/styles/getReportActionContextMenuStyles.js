@@ -39,7 +39,6 @@ function getMiniButtonStyle(buttonState = CONST.BUTTON_STATES.DEFAULT) {
 
 const miniWrapperStyle = [
     styles.flexRow,
-    styles.boxShadowDefault,
     {
         borderRadius: variables.componentBorderRadius,
         borderWidth: 1,
