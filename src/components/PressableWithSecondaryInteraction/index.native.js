@@ -29,5 +29,6 @@ const PressableWithSecondaryInteraction = ({onSecondaryInteraction, children, ..
 );
 
 PressableWithSecondaryInteraction.propTypes = propTypes;
+PressableWithSecondaryInteraction.displayName = 'PressableWithSecondaryInteraction';
 
 export default PressableWithSecondaryInteraction;
