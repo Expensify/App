@@ -14,14 +14,17 @@ import ROUTES from '../ROUTES';
  * TODO
  */
 const propTypes = {
-    // Title of the modal header
-    title: PropTypes.string,
-
+    // Is the Settings Modal visible or not?
     isVisible: PropTypes.bool,
+
+    /* Onyx Props */
+    // Currently viewed reportID
+    currentlyViewedReportID: PropTypes.string,
 };
 
 const defaultProps = {
     isVisible: false,
+    currentlyViewedReportID: '',
 };
 
 class SettingsModal extends Component {
@@ -32,7 +35,7 @@ class SettingsModal extends Component {
     }
 
     onClose() {
-        redirect(ROUTES.ROOT);
+        redirect(ROUTES.getReportRoute(this.props.currentlyViewedReportID));
     }
 
     render() {
@@ -59,5 +62,8 @@ SettingsModal.defaultProps = defaultProps;
 export default withOnyx({
     session: {
         key: ONYXKEYS.SESSION,
+    },
+    currentlyViewedReportID: {
+        key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
     },
 })(SettingsModal);

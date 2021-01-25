@@ -20,21 +20,30 @@ const propTypes = {
     reports: PropTypes.objectOf(PropTypes.shape({
         reportID: PropTypes.number,
     })),
+
+    currentlyViewedReportID: PropTypes.string,
+
+    currentURL: PropTypes.string,
 };
 
 const defaultProps = {
     reports: {},
+    currentlyViewedReportID: '',
+    currentURL: '',
 };
 
 class MainView extends Component {
     render() {
-        const reportIDInUrl = parseInt(this.props.match.params.reportID, 10);
+        let activeReportID = parseInt(this.props.match.params.reportID, 10);
+
+        if (this.props.currentURL === '/settings') {
+            activeReportID = parseInt(this.props.currentlyViewedReportID, 10);
+        }
 
         // The styles for each of our reports. Basically, they are all hidden except for the one matching the
         // reportID in the URL
-        let activeReportID;
         const reportStyles = _.reduce(this.props.reports, (memo, report) => {
-            const isActiveReport = reportIDInUrl === report.reportID;
+            const isActiveReport = activeReportID === report.reportID;
             const finalData = {...memo};
             let reportStyle;
 
@@ -52,7 +61,7 @@ class MainView extends Component {
         const reportsToDisplay = _.filter(this.props.reports, report => (
             report.isPinned
                 || report.unreadActionCount > 0
-                || report.reportID === reportIDInUrl
+                || report.reportID === activeReportID
         ));
         return (
             <>
@@ -80,6 +89,12 @@ export default compose(
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
+        },
+        currentURL: {
+            key: ONYXKEYS.CURRENT_URL,
+        },
+        currentlyViewedReportID: {
+            key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
         },
     }),
 )(MainView);
