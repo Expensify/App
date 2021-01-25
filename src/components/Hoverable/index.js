@@ -3,7 +3,8 @@ import {propTypes, defaultProps} from './HoverablePropTypes';
 
 /**
  * It is necessary to create a Hoverable component instead of relying solely on Pressable support for hover state,
- * because nesting Pressables causes issues. https://github.com/necolas/react-native-web/issues/1875
+ * because nesting Pressables causes issues where the hovered state of the child cannot be easily propagated to the
+ * parent. https://github.com/necolas/react-native-web/issues/1875
  */
 class Hoverable extends Component {
     constructor(props) {
