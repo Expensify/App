@@ -1018,6 +1018,10 @@ const styles = {
         padding: 20,
     },
 
+    tooltip: {
+        backgroundColor: themeColors.heading,
+    },
+
     tooltipPointer: {
         width: 0,
         height: 0,
