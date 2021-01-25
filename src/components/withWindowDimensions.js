@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {Dimensions} from 'react-native';
+import getComponentDisplayName from '../libs/getComponentDisplayName';
 
 export const windowDimensionsPropTypes = {
     // via withWindowDimensions
@@ -13,8 +14,8 @@ export const windowDimensionsPropTypes = {
     }).isRequired,
 };
 
-const withWindowDimensions = WrappedComponent => (
-    class WindowDimensions extends Component {
+export default function (WrappedComponent) {
+    class withWindowDimensions extends Component {
         constructor(props) {
             super(props);
 
@@ -54,7 +55,7 @@ const withWindowDimensions = WrappedComponent => (
             );
         }
     }
-);
 
-withWindowDimensions.displayName = 'withWindowDimensions';
-export default withWindowDimensions;
+    withWindowDimensions.displayName = `withWindowDimensions(${getComponentDisplayName(WrappedComponent)})`;
+    return withWindowDimensions;
+}

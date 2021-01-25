@@ -4,16 +4,7 @@
  */
 import React from 'react';
 import {Pressable} from 'react-native';
-
-/**
- * Returns the display name of a component
- *
- * @param {object} component
- * @returns {string}
- */
-function getDisplayName(component) {
-    return component.displayName || component.name || 'Component';
-}
+import getComponentDisplayName from '../../libs/getComponentDisplayName';
 
 export default function (onSecondaryInteraction) {
     return (WrappedComponent) => {
@@ -29,7 +20,7 @@ export default function (onSecondaryInteraction) {
         );
 
         withSecondaryInteractionHandler
-            .displayName = `withSecondaryInteractionHandler(${getDisplayName(WrappedComponent)})`;
+            .displayName = `withSecondaryInteractionHandler(${getComponentDisplayName(WrappedComponent)})`;
         return withSecondaryInteractionHandler;
     };
 }
