@@ -16,7 +16,7 @@ class Hoverable extends Component {
     }
 
     /**
-     * Sets the `hovered` state of this `Hoverable` to true.
+     * Sets the `hovered` state of this `Hoverable` to true and executes the `onHoverIn` callback.
      */
     handleMouseEnter() {
         if (!this.state.isHovered) {
@@ -26,7 +26,7 @@ class Hoverable extends Component {
     }
 
     /**
-     * Sets the `hovered` state of this `Hoverable` to false.
+     * Sets the `hovered` state of this `Hoverable` to false and executes the `onHoverOut` callback.
      */
     handleMouseLeave() {
         if (this.state.isHovered) {
