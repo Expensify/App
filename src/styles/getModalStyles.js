@@ -112,7 +112,7 @@ export default (type, windowDimensions) => {
 
             swipeDirection = 'right';
             animationIn = 'slideInRight';
-            animationOut = 'slideOutLeft';
+            animationOut = 'slideOutRight';
             break;
         default:
             modalStyle = {};

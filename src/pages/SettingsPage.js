@@ -33,9 +33,6 @@ const propTypes = {
         isOffline: PropTypes.bool,
     }),
 
-    // Currently viewed reportID
-    currentlyViewedReportID: PropTypes.string,
-
     // The session of the logged in person
     session: PropTypes.shape({
     // Email of the logged in person
@@ -46,11 +43,10 @@ const propTypes = {
 const defaultProps = {
     myPersonalDetails: {},
     network: null,
-    currentlyViewedReportID: '',
     session: {},
 };
 const SettingsPage = ({
-    myPersonalDetails, network, session, currentlyViewedReportID,
+    myPersonalDetails, network, session,
 }) => {
     // On the very first sign in or after clearing storage these
     // details will not be present on the first render so we'll just
@@ -65,10 +61,7 @@ const SettingsPage = ({
                 styles.settingsPageBackground,
             ]}
         >
-            <View
-                style={[
-                ]}
-            >
+            <View>
                 <View style={styles.settingsWrapper}>
                     <View
                         style={[styles.largeAvatar, styles.mb3]}
@@ -119,8 +112,5 @@ export default withOnyx({
     },
     session: {
         key: ONYXKEYS.SESSION,
-    },
-    currentlyViewedReportID: {
-        key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
     },
 })(SettingsPage);
