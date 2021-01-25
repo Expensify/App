@@ -1018,8 +1018,10 @@ const styles = {
         padding: 20,
     },
 
-    tooltip: {
-        backgroundColor: themeColors.heading,
+    tooltipText: {
+        color: themeColors.textReversed,
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeSmall,
     },
 
     tooltipPointer: {
@@ -1032,7 +1034,7 @@ const styles = {
         borderTopWidth: 7,
         borderLeftColor: 'transparent',
         borderRightColor: 'transparent',
-        borderBottomColor: themeColors.heading,
+        borderTopColor: themeColors.heading,
     },
 };
 
@@ -1156,7 +1158,17 @@ function getNavigationMenuStyle(windowWidth, isSidebarShown) {
         };
 }
 
+function getTooltipStyles(interpolatedSize) {
+    return {
+        position: 'absolute',
+        transform: [{
+            scale: interpolatedSize,
+        }],
+        backgroundColor: themeColors.heading,
+    };
+}
+
 export default styles;
 export {
-    getSafeAreaPadding, getSafeAreaMargins, webViewStyles, getNavigationMenuStyle,
+    getSafeAreaPadding, getSafeAreaMargins, webViewStyles, getNavigationMenuStyle, getTooltipStyles,
 };

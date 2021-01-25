@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import Hoverable from '../Hoverable';
 import TooltipPointer from './TooltipPointer';
-import styles from '../../styles/styles';
+import styles, {getTooltipStyles} from '../../styles/styles';
 
 const propTypes = {
     // The text to display in the tooltip.
@@ -80,12 +80,12 @@ class Tooltip extends Component {
                         return this.props.children;
                     }}
                 </Hoverable>
-                <Animated.View style={{transform: [{scale: interpolatedSize}]}}>
+                <Animated.View style={getTooltipStyles(interpolatedSize)}>
                     <View>
-                        <TooltipPointer />
+                        <Text style={styles.tooltipText}>{this.props.text}</Text>
                     </View>
                     <View>
-                        <Text style={styles.colorReversed}>{this.props.text}</Text>
+                        <TooltipPointer />
                     </View>
                 </Animated.View>
             </View>
