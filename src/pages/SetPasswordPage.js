@@ -13,8 +13,7 @@ import lodashHas from 'lodash.has';
 import compose from '../libs/compose';
 import {Redirect, withRouter} from '../libs/Router';
 import styles from '../styles/styles';
-import Icon from '../components/Icon';
-import {ExpensifyCashLogo} from '../components/Icon/BrandAssets';
+import ExpensifyCashLogo from '../../assets/images/expensify-cash.svg';
 import CustomStatusBar from '../components/CustomStatusBar';
 import {setPassword} from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
@@ -95,8 +94,7 @@ class SetPasswordPage extends Component {
                 <SafeAreaView style={[styles.signInPage]}>
                     <View style={[styles.signInPageInner]}>
                         <View style={[styles.signInPageLogo]}>
-                            <Icon
-                                src={ExpensifyCashLogo}
+                            <ExpensifyCashLogo
                                 width={variables.componentSizeLarge}
                                 height={variables.componentSizeLarge}
                             />

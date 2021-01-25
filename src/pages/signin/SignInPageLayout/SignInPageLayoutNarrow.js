@@ -5,8 +5,7 @@ import {
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import variables from '../../../styles/variables';
-import Icon from '../../../components/Icon';
-import {ExpensifyCashLogo} from '../../../components/Icon/BrandAssets';
+import ExpensifyCashLogo from '../../../../assets/images/expensify-cash.svg';
 
 const propTypes = {
     // The children to show inside the layout
@@ -18,11 +17,7 @@ const SignInPageLayoutNarrow = ({children}) => (
         <View>
             <View style={[styles.signInPageInnerNative]}>
                 <View style={[styles.signInPageLogoNative]}>
-                    <Icon
-                        src={ExpensifyCashLogo}
-                        width={variables.componentSizeLarge}
-                        height={variables.componentSizeLarge}
-                    />
+                    <ExpensifyCashLogo width={variables.componentSizeLarge} height={variables.componentSizeLarge} />
                 </View>
 
                 <View style={[styles.mb6, styles.alignItemsCenter]}>
