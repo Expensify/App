@@ -28,11 +28,19 @@ const propTypes = {
 
     // A flag to indicate whether this comes from the Chat Switcher so we can display the group button
     isChatSwitcher: PropTypes.bool,
+
+    // Whether we should show the selected state
+    showSelectedState: PropTypes.bool,
+
+    // Whether this item is selected
+    isSelected: PropTypes.bool,
 };
 
 const defaultProps = {
     onAddToGroup: () => {},
     isChatSwitcher: false,
+    showSelectedState: false,
+    isSelected: false,
 };
 
 const ChatLinkRow = ({
@@ -41,6 +49,8 @@ const ChatLinkRow = ({
     onSelectRow,
     onAddToGroup,
     isChatSwitcher,
+    showSelectedState,
+    isSelected,
 }) => {
     const textStyle = optionIsFocused
         ? styles.sidebarLinkActiveText
@@ -101,6 +111,15 @@ const ChatLinkRow = ({
                             </>
                         )}
                     </View>
+                    {showSelectedState && (
+                        <View
+                            style={[styles.selectCircle]}
+                        >
+                            {isSelected && (
+                                <Text>X</Text>
+                            )}
+                        </View>
+                    )}
                 </View>
             </TouchableOpacity>
             {option.singleUserDM && isChatSwitcher && (

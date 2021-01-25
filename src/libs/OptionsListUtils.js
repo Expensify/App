@@ -238,9 +238,21 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         });
     }
 
+    let userToInvite = null;
+    if (searchValue
+            && recentReportOptions.length === 0
+            && personalDetailsOptions.length === 0
+            && _.every(selectedOptions, option => option.login !== searchValue)
+            && (Str.isValidEmail(searchValue) || Str.isValidPhone(searchValue))
+    ) {
+        const userInvitePersonalDetails = getPersonalDetailsForLogins([searchValue], personalDetails);
+        userToInvite = createOption(userInvitePersonalDetails, null, draftComments, activeReportID);
+    }
+
     return {
         personalDetails: personalDetailsOptions,
         recentReports: recentReportOptions,
+        userToInvite,
     };
 }
 
