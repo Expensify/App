@@ -6,13 +6,10 @@ import {
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
-import {redirect} from '../libs/actions/App';
 import styles from '../styles/styles';
 import Text from '../components/Text';
 import {signOut} from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
-import ROUTES from '../ROUTES';
-import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import {version} from '../../package.json';
 import AvatarWithIndicator from '../components/AvatarWithIndicator';
 
@@ -61,36 +58,34 @@ const SettingsPage = ({
                 styles.settingsPageBackground,
             ]}
         >
-            <View>
-                <View style={styles.settingsWrapper}>
-                    <View
-                        style={[styles.largeAvatar, styles.mb3]}
-                    >
-                        <AvatarWithIndicator
-                            size="large"
-                            source={myPersonalDetails.avatarURL}
-                            isActive={network && !network.isOffline}
-                        />
-                    </View>
-                    <Text style={[styles.settingsDisplayName, styles.mt1]} numberOfLines={1}>
-                        {myPersonalDetails.displayName ? myPersonalDetails.displayName : session.email}
-                    </Text>
-                    {myPersonalDetails.displayName && (
-                    <Text style={[styles.settingsLoginName, styles.mt1]} numberOfLines={1}>
-                        {session.email}
-                    </Text>
-                    )}
-                    <TouchableOpacity
-                        onPress={signOut}
-                        style={[styles.button, styles.w100, styles.mt5]}
-                    >
-                        <Text style={[styles.buttonText]}>
-                            Sign Out
-                        </Text>
-                    </TouchableOpacity>
+            <View style={styles.settingsWrapper}>
+                <View
+                    style={[styles.largeAvatar, styles.mb3]}
+                >
+                    <AvatarWithIndicator
+                        size="large"
+                        source={myPersonalDetails.avatarURL}
+                        isActive={network && !network.isOffline}
+                    />
                 </View>
-
+                <Text style={[styles.settingsDisplayName, styles.mt1]} numberOfLines={1}>
+                    {myPersonalDetails.displayName ? myPersonalDetails.displayName : session.email}
+                </Text>
+                {myPersonalDetails.displayName && (
+                <Text style={[styles.settingsLoginName, styles.mt1]} numberOfLines={1}>
+                    {session.email}
+                </Text>
+                )}
+                <TouchableOpacity
+                    onPress={signOut}
+                    style={[styles.button, styles.w100, styles.mt5]}
+                >
+                    <Text style={[styles.buttonText]}>
+                        Sign Out
+                    </Text>
+                </TouchableOpacity>
             </View>
+
             <Text style={[styles.chatItemMessageHeaderTimestamp]} numberOfLines={1}>
                 v
                 {version}

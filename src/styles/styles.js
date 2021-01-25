@@ -957,9 +957,8 @@ const styles = {
         flexDirection: 'column',
         width: '100%',
         height: '100%',
-        position: 'absolute',
+        position: 'relative',
         justifyContent: 'space-between',
-        backgroundColor: 'white',
         alignItems: 'center',
     },
 
