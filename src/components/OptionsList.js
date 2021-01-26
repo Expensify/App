@@ -38,7 +38,7 @@ const propTypes = {
     // Whether to show headers above each section or not
     hideSectionHeaders: PropTypes.bool,
 
-    /** Callback to fire when a row is selected */
+    // Callback to fire when a row is selected
     onSelectRow: PropTypes.func,
 
     // Optional header title

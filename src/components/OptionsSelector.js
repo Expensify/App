@@ -94,11 +94,6 @@ class OptionsSelector extends Component {
                 break;
             }
 
-            case 'Backspace': {
-                // this.props.onBackspacePress();
-                break;
-            }
-
             case 'ArrowDown': {
                 this.setState((prevState) => {
                     let newFocusedIndex = prevState.focusedIndex + 1;
