@@ -780,12 +780,14 @@ const styles = {
     singleAvatar: {
         height: 24,
         width: 24,
+        backgroundColor: themeColors.icon,
         borderRadius: 24,
     },
 
     avatarNormal: {
         height: variables.componentSizeNormal,
         width: variables.componentSizeNormal,
+        backgroundColor: themeColors.icon,
         borderRadius: variables.componentSizeNormal,
     },
 
