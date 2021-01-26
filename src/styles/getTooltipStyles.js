@@ -36,8 +36,12 @@ export default function getTooltipStyles(
     tooltipWidth,
     tooltipHeight,
 ) {
+    // Determine if the tooltip should display below the wrapped component.
     const windowWidth = Dimensions.get('window').width;
     const shouldShowBelow = (yOffset - tooltipHeight) < GUTTER_WIDTH;
+
+    // Determine if we need to shift the tooltip horizontally to prevent it
+    // from displaying too near to the edge of the screen.
     let horizontalShift = 0;
     const tooltipLeftEdge = (xOffset + (width / 2)) - (tooltipWidth / 2);
     const tooltipRightEdge = (xOffset + (width / 2)) + (tooltipWidth / 2);
@@ -49,6 +53,7 @@ export default function getTooltipStyles(
         horizontalShift = (windowWidth - GUTTER_WIDTH) - tooltipRightEdge;
     }
     horizontalShift = roundToNearestMultipleOfFour(horizontalShift);
+
     return {
         animationStyle: {
             transform: [{
