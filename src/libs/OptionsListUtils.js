@@ -166,6 +166,13 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             return;
         }
 
+        // Skip this entry if it has no comments and is not the active report. We will only show reports from
+        // people we have sent or recieved at least one message with.
+        const hasNoComments = report.lastMessageTimestamp === 0;
+        if (hasNoComments && report.reportID !== activeReportID) {
+            return;
+        }
+
         const reportPersonalDetails = getPersonalDetailsForLogins(logins, personalDetails);
 
         // Save the report in the map if this is a single participant so we can associate the reportID with the
