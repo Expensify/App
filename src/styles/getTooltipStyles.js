@@ -63,7 +63,7 @@ export default function getTooltipStyles(
         tooltipWrapperStyle: {
             position: 'absolute',
             backgroundColor: themeColors.heading,
-            borderRadius: 4,
+            borderRadius: variables.componentBorderRadiusSmall,
             ...spacing.p1,
 
             // Shift the tooltip up by...
