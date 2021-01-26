@@ -1,10 +1,31 @@
+import {Dimensions} from 'react-native';
 import spacing from './utilities/spacing';
 import styles from './styles';
 import themeColors from './themes/default';
 import fontFamily from './fontFamily';
 import variables from './variables';
 
-const GUTTER_WIDTH = 8;
+const GUTTER_WIDTH = 16;
+
+/**
+ * The Expensify.cash repo is very consistent about doing spacing in multiples of 4.
+ * In an effort to maintain that consistency, we'll make sure that any distance we're shifting the tooltip
+ * is a multiple of 4.
+ *
+ * @param {Number} n
+ * @returns {Number}
+ */
+function roundToNearestMultipleOfFour(n) {
+    if (n > 0) {
+        return Math.ceil(n / 4.0) * 4;
+    }
+
+    if (n < 0) {
+        return Math.floor(n / 4.0) * 4;
+    }
+
+    return 0;
+}
 
 export default function getTooltipStyles(
     interpolatedSize,
@@ -15,7 +36,19 @@ export default function getTooltipStyles(
     tooltipWidth,
     tooltipHeight,
 ) {
+    const windowWidth = Dimensions.get('window').width;
     const shouldShowBelow = (yOffset - tooltipHeight) < GUTTER_WIDTH;
+    let horizontalShift = 0;
+    const tooltipLeftEdge = (xOffset + (width / 2)) - (tooltipWidth / 2);
+    const tooltipRightEdge = (xOffset + (width / 2)) + (tooltipWidth / 2);
+    if (tooltipLeftEdge < GUTTER_WIDTH) {
+        // Tooltip is in left gutter, shift right
+        horizontalShift = GUTTER_WIDTH - tooltipLeftEdge;
+    } else if (tooltipRightEdge > (windowWidth - GUTTER_WIDTH)) {
+        // Tooltip is in right gutter, shift left
+        horizontalShift = (windowWidth - GUTTER_WIDTH) - tooltipRightEdge;
+    }
+    horizontalShift = roundToNearestMultipleOfFour(horizontalShift);
     return {
         animationStyle: {
             transform: [{
@@ -40,8 +73,11 @@ export default function getTooltipStyles(
             // (component height) + (pointer height - 1)
             top: shouldShowBelow ? height + 3 : -26,
 
-            // Shift the tooltip to the left by half the component's width + half the tooltip's width
-            left: (tooltipWidth / -2) + (width / 2),
+            // Shift the tooltip to the left by...
+            //   half the component's width
+            // + half the tooltip's width
+            // + any horizontal shift
+            left: (tooltipWidth / -2) + (width / 2) + horizontalShift,
         },
         tooltipTextStyle: {
             color: themeColors.textReversed,
