@@ -113,6 +113,16 @@ export default {
         padding: 20,
     },
 
+    pv1: {
+        paddingTop: 4,
+        paddingBottom: 4,
+    },
+
+    ph2: {
+        paddingRight: 8,
+        paddingLeft: 8,
+    },
+
     pr1: {
         paddingRight: 4,
     },
