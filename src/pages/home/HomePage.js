@@ -47,6 +47,7 @@ const propTypes = {
     isChatSwitcherActive: PropTypes.bool,
     currentURL: PropTypes.string,
     network: PropTypes.shape({isOffline: PropTypes.bool}),
+    currentlyViewedReportID: PropTypes.string,
     ...windowDimensionsPropTypes,
 };
 const defaultProps = {
@@ -313,9 +314,10 @@ class HomePage extends React.Component {
                                     <HeaderView
                                         shouldShowNavigationMenuButton={isSmallScreenWidth}
                                         onNavigationMenuButtonClicked={this.toggleNavigationMenu}
+                                        reportID={this.props.currentlyViewedReportID}
                                     />
                                     <SettingsModal
-                                        isVisible={this.props.currentURL === '/settings'}
+                                        isVisible={this.props.currentURL === ROUTES.SETTINGS}
                                     />
                                     <Main />
                                 </View>
@@ -346,6 +348,9 @@ export default compose(
             },
             network: {
                 key: ONYXKEYS.NETWORK,
+            },
+            currentlyViewedReportID: {
+                key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
             },
         },
     ),

@@ -85,7 +85,6 @@ const SettingsPage = ({
                     </Text>
                 </TouchableOpacity>
             </View>
-
             <Text style={[styles.chatItemMessageHeaderTimestamp]} numberOfLines={1}>
                 v
                 {version}

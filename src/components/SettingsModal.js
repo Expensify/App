@@ -26,37 +26,21 @@ const defaultProps = {
     currentlyViewedReportID: '',
 };
 
-class SettingsModal extends Component {
-    constructor(props) {
-        super(props);
-
-        this.onClose = this.onClose.bind(this);
-    }
-
-    /**
-     * Return to the report that was being viewed upon close.
-     */
-    onClose() {
-        redirect(ROUTES.getReportRoute(this.props.currentlyViewedReportID));
-    }
-
-    render() {
-        return (
-            <ModalWithHeader
-                type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
-                onClose={this.onClose}
-                isVisible={this.props.isVisible}
-                title="Settings"
-                backgroundColor={themeColors.componentBG}
-            >
-                <SettingsPage />
-            </ModalWithHeader>
-        );
-    }
-}
+const SettingsModal = props => (
+    <ModalWithHeader
+        type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
+        onClose={() => redirect(ROUTES.getReportRoute(props.currentlyViewedReportID))}
+        isVisible={props.isVisible}
+        title="Settings"
+        backgroundColor={themeColors.componentBG}
+    >
+        <SettingsPage />
+    </ModalWithHeader>
+);
 
 SettingsModal.propTypes = propTypes;
 SettingsModal.defaultProps = defaultProps;
+
 export default withOnyx({
     session: {
         key: ONYXKEYS.SESSION,
