@@ -126,11 +126,6 @@ class OptionsSelector extends Component {
                 break;
             }
 
-            case 'Tab':
-            case 'Escape': {
-                break;
-            }
-
             default:
         }
     }
