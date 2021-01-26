@@ -9,7 +9,7 @@ describe('OptionsListUtils', () => {
     const REPORTS = {
         1: {
             lastVisitedTimestamp: 1610666739295,
-            lastMessageTimestamp: 0,
+            lastMessageTimestamp: 1,
             isPinned: false,
             reportID: 1,
             participants: ['tonystark@expensify.com', 'reedrichards@expensify.com'],
@@ -17,7 +17,7 @@ describe('OptionsListUtils', () => {
         },
         2: {
             lastVisitedTimestamp: 1610666739296,
-            lastMessageTimestamp: 0,
+            lastMessageTimestamp: 1,
             isPinned: false,
             reportID: 2,
             participants: ['peterparker@expensify.com'],
@@ -27,7 +27,7 @@ describe('OptionsListUtils', () => {
         // This is the only report we are pinning in this test
         3: {
             lastVisitedTimestamp: 1610666739297,
-            lastMessageTimestamp: 0,
+            lastMessageTimestamp: 1,
             isPinned: true,
             reportID: 3,
             participants: ['reedrichards@expensify.com'],
@@ -35,7 +35,7 @@ describe('OptionsListUtils', () => {
         },
         4: {
             lastVisitedTimestamp: 1610666739298,
-            lastMessageTimestamp: 0,
+            lastMessageTimestamp: 1,
             isPinned: false,
             reportID: 4,
             participants: ['tchalla@expensify.com'],
@@ -43,7 +43,7 @@ describe('OptionsListUtils', () => {
         },
         5: {
             lastVisitedTimestamp: 1610666739299,
-            lastMessageTimestamp: 0,
+            lastMessageTimestamp: 1,
             isPinned: false,
             reportID: 5,
             participants: ['suestorm@expensify.com'],
@@ -51,14 +51,14 @@ describe('OptionsListUtils', () => {
         },
         6: {
             lastVisitedTimestamp: 1610666739300,
-            lastMessageTimestamp: 0,
+            lastMessageTimestamp: 1,
             isPinned: false,
             reportID: 6,
             participants: ['thor@expensify.com'],
             reportName: 'Thor',
         },
 
-        // Note: This is the only report with a lastMessageTimestamp
+        // Note: This report has the largest lastMessageTimestamp
         7: {
             lastVisitedTimestamp: 1610666739301,
             lastMessageTimestamp: 1611282169,
@@ -66,6 +66,16 @@ describe('OptionsListUtils', () => {
             reportID: 7,
             participants: ['steverogers@expensify.com'],
             reportName: 'Captain America',
+        },
+
+        // Note: This report has no lastMessageTimestamp
+        8: {
+            lastVisitedTimestamp: 1610666739301,
+            lastMessageTimestamp: 0,
+            isPinned: false,
+            reportID: 8,
+            participants: ['galactus_herald@expensify.com'],
+            reportName: 'Silver Surfer',
         },
     };
 
@@ -132,8 +142,8 @@ describe('OptionsListUtils', () => {
         // Then all options returned should be recentReports and none should be personalDetails
         expect(results.personalDetails.length).toBe(0);
 
-        // Then all of the reports should be shown
-        expect(results.recentReports.length).toBe(_.size(REPORTS));
+        // Then all of the reports should be shown except the one that has no message on them.
+        expect(results.recentReports.length).toBe(_.size(REPORTS) - 1);
 
         // Then pinned report should be listed first even though it is the oldest
         expect(results.recentReports[0].login).toBe('reedrichards@expensify.com');
@@ -258,8 +268,9 @@ describe('OptionsListUtils', () => {
         // When we call getSidebarOptions() with no search value
         const results = OptionsListUtils.getSidebarOptions(REPORTS, PERSONAL_DETAILS, {}, 0);
 
-        // Then expect all of the reports to be shown both multiple and single participant
-        expect(results.recentReports.length).toBe(_.size(REPORTS));
+        // Then expect all of the reports to be shown both multiple and single participant except the
+        // report that has no lastMessageTimestamp
+        expect(results.recentReports.length).toBe(_.size(REPORTS) - 1);
 
         // That no personalDetails are shown
         expect(results.personalDetails.length).toBe(0);
