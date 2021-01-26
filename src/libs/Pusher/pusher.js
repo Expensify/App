@@ -387,6 +387,7 @@ function disconnect() {
  * Disconnect and Re-Connect Pusher
  */
 function reconnect() {
+    console.debug('[Pusher] Reconnecting to Pusher');
     socket.disconnect();
     socket.connect();
 }

@@ -1,15 +1,15 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, Image, TouchableOpacity} from 'react-native';
+import {View, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import TextInputFocusable from '../../../components/TextInputFocusable';
-import sendIcon from '../../../../assets/images/icon-send.png';
 import ONYXKEYS from '../../../ONYXKEYS';
-import paperClipIcon from '../../../../assets/images/icon-paper-clip.png';
+import Icon from '../../../components/Icon';
+import {Paperclip, Send} from '../../../components/Icon/Expensicons';
 import AttachmentPicker from '../../../components/AttachmentPicker';
 import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs/actions/Report';
 import ReportTypingIndicator from './ReportTypingIndicator';
@@ -168,11 +168,7 @@ class ReportActionCompose extends React.Component {
                                             style={[styles.chatItemAttachButton]}
                                             underlayColor={themeColors.componentBG}
                                         >
-                                            <Image
-                                                style={[styles.chatItemSubmitButtonIcon]}
-                                                resizeMode="contain"
-                                                source={paperClipIcon}
-                                            />
+                                            <Icon src={Paperclip} />
                                         </TouchableOpacity>
                                     )}
                                 </AttachmentPicker>
@@ -197,7 +193,7 @@ class ReportActionCompose extends React.Component {
                                         displayFileInModal({file});
                                         this.setState({isDraggingOver: false});
                                     }}
-                                    style={[styles.textInput, styles.textInputCompose, styles.flex4]}
+                                    style={[styles.textInputCompose, styles.flex4]}
                                     defaultValue={this.props.comment}
                                     maxLines={16} // This is the same that slack has
                                     onFocus={() => this.setIsFocused(true)}
@@ -218,11 +214,7 @@ class ReportActionCompose extends React.Component {
                         underlayColor={themeColors.componentBG}
                         disabled={this.state.isCommentEmpty}
                     >
-                        <Image
-                            resizeMode="contain"
-                            style={[styles.chatItemSubmitButtonIcon]}
-                            source={sendIcon}
-                        />
+                        <Icon src={Send} fill={themeColors.componentBG} />
                     </TouchableOpacity>
                 </View>
                 <ReportTypingIndicator reportID={this.props.reportID} />
