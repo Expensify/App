@@ -1,10 +1,8 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native-web';
 import {withOnyx} from 'react-native-onyx';
 import SettingsPage from '../pages/SettingsPage';
 import CONST from '../CONST';
-import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import ONYXKEYS from '../ONYXKEYS';
 import ModalWithHeader from './ModalWithHeader';
@@ -12,7 +10,7 @@ import {redirect} from '../libs/actions/App';
 import ROUTES from '../ROUTES';
 
 /**
- * TODO
+ * Right-docked modal view showing a user's settings.
  */
 const propTypes = {
     // Is the Settings Modal visible or not?
@@ -35,6 +33,9 @@ class SettingsModal extends Component {
         this.onClose = this.onClose.bind(this);
     }
 
+    /**
+     * Return to the report that was being viewed upon close.
+     */
     onClose() {
         redirect(ROUTES.getReportRoute(this.props.currentlyViewedReportID));
     }
