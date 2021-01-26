@@ -20,8 +20,8 @@ class Tooltip extends Component {
 
         // The wrapper view containing the wrapped content along with the Tooltip itself.
         this.wrapperView = null;
-        this.width = 0;
-        this.height = 0;
+        this.wrapperWidth = 0;
+        this.wrapperHeight = 0;
 
         // The tooltip (popover) itself.
         this.tooltip = null;
@@ -34,21 +34,28 @@ class Tooltip extends Component {
         // The distance between the top of the rendered view and the top of the window
         this.yOffset = 0;
 
-        this.getPosition = this.getPosition.bind(this);
+        this.measureWrapperAndGetPosition = this.measureWrapperAndGetPosition.bind(this);
+        this.measureTooltip = this.measureTooltip.bind(this);
         this.showTooltip = this.showTooltip.bind(this);
         this.hideTooltip = this.hideTooltip.bind(this);
     }
 
     /**
-     * Get the position and measure the size of the wrapper view and the tooltip itself.
+     * Measure the size and position of the wrapper view.
      */
-    getPosition() {
+    measureWrapperAndGetPosition() {
         this.wrapperView.measureInWindow((x, y, width, height) => {
             this.xOffset = x;
             this.yOffset = y;
-            this.width = width;
-            this.height = height;
+            this.wrapperWidth = width;
+            this.wrapperHeight = height;
         });
+    }
+
+    /**
+     * Measure the size of the tooltip itself.
+     */
+    measureTooltip() {
         this.tooltip.measureInWindow((x, y, width, height) => {
             this.tooltipWidth = width;
             this.tooltipHeight = height;
@@ -90,8 +97,8 @@ class Tooltip extends Component {
             interpolatedSize,
             this.xOffset,
             this.yOffset,
-            this.width,
-            this.height,
+            this.wrapperWidth,
+            this.wrapperHeight,
             this.tooltipWidth,
             this.tooltipHeight,
         );
@@ -103,13 +110,13 @@ class Tooltip extends Component {
             >
                 <View
                     ref={el => this.wrapperView = el}
-                    onLayout={this.getPosition}
+                    onLayout={this.measureWrapperAndGetPosition}
                     collapsable={false}
                 >
                     <Animated.View style={animationStyle}>
                         <View
                             ref={el => this.tooltip = el}
-                            onLayout={this.getPosition}
+                            onLayout={this.measureTooltip}
                             style={tooltipWrapperStyle}
                         >
                             <Text style={tooltipTextStyle} numberOfLines={1}>{this.props.text}</Text>
