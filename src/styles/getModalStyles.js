@@ -99,20 +99,19 @@ export default (type, windowDimensions) => {
         case CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED:
             modalStyle = {
                 margin: 0,
-                flexDirection: 'row-reverse',
-                justifyContent: 'end',
+                flexDirection: 'row',
+                justifyContent: 'flex-end',
             };
             modalContainerStyle = {
                 width: isSmallScreen ? '100%' : '40%',
                 height: '100%',
                 overflow: 'hidden',
-                marginRight: 0,
-                paddingTop: 0,
             };
 
             swipeDirection = 'right';
             animationIn = 'slideInRight';
             animationOut = 'slideOutRight';
+            needsSafeAreaPadding = true;
             break;
         default:
             modalStyle = {};
