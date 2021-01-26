@@ -13,27 +13,19 @@ class Hoverable extends Component {
         this.state = {
             isHovered: false,
         };
-        this.handleMouseEnter = this.handleMouseEnter.bind(this);
-        this.handleMouseLeave = this.handleMouseLeave.bind(this);
+        this.toggleHoverState = this.toggleHoverState.bind(this);
     }
 
     /**
-     * Sets the `hovered` state of this `Hoverable` to true and executes the `onHoverIn` callback.
+     * Toggles the hover state of this component and executes the callback provided in props for that state transition.
      */
-    handleMouseEnter() {
-        if (!this.state.isHovered) {
-            this.props.onHoverIn();
-            this.setState({isHovered: true});
-        }
-    }
-
-    /**
-     * Sets the `hovered` state of this `Hoverable` to false and executes the `onHoverOut` callback.
-     */
-    handleMouseLeave() {
+    toggleHoverState() {
         if (this.state.isHovered) {
             this.props.onHoverOut();
             this.setState({isHovered: false});
+        } else {
+            this.props.onHoverIn();
+            this.setState({isHovered: true});
         }
     }
 
@@ -46,8 +38,8 @@ class Hoverable extends Component {
         // Using `React.Children.only` enforces that this component has only one child,
         // which gives the `Hoverable` a more predictable UX.
         return React.cloneElement(React.Children.only(child), {
-            onMouseEnter: this.handleMouseEnter,
-            onMouseLeave: this.handleMouseLeave,
+            onMouseEnter: this.toggleHoverState,
+            onMouseLeave: this.toggleHoverState,
         });
     }
 }
