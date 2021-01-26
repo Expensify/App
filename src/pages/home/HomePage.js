@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {
     View,
-    Dimensions,
     Animated,
     Easing,
     Keyboard,
@@ -40,12 +39,15 @@ import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import * as ChatSwitcher from '../../libs/actions/ChatSwitcher';
 import {redirect} from '../../libs/actions/App';
 import SettingsModal from '../../components/SettingsModal';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
+import compose from '../../libs/compose';
 
 const propTypes = {
     isSidebarShown: PropTypes.bool,
     isChatSwitcherActive: PropTypes.bool,
     currentURL: PropTypes.string,
     network: PropTypes.shape({isOffline: PropTypes.bool}),
+    ...windowDimensionsPropTypes,
 };
 const defaultProps = {
     isSidebarShown: true,
@@ -54,18 +56,15 @@ const defaultProps = {
     network: {isOffline: true},
 };
 
-class App extends React.Component {
+class HomePage extends React.Component {
     constructor(props) {
         Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
         Timing.start(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
 
         super(props);
 
-        const windowSize = Dimensions.get('window');
-        const isSmallScreenWidth = windowSize.width <= variables.mobileResponsiveWidthBreakpoint;
+        const isSmallScreenWidth = props.windowDimensions.width <= variables.mobileResponsiveWidthBreakpoint;
         this.state = {
-            windowWidth: windowSize.width,
-            isSmallScreenWidth,
             isCreateMenuActive: false,
         };
 
@@ -74,12 +73,11 @@ class App extends React.Component {
         this.toggleNavigationMenu = this.toggleNavigationMenu.bind(this);
         this.dismissNavigationMenu = this.dismissNavigationMenu.bind(this);
         this.showNavigationMenu = this.showNavigationMenu.bind(this);
-        this.toggleNavigationMenuBasedOnDimensions = this.toggleNavigationMenuBasedOnDimensions.bind(this);
         this.recordTimerAndToggleNavigationMenu = this.recordTimerAndToggleNavigationMenu.bind(this);
         this.navigateToSettings = this.navigateToSettings.bind(this);
 
         const windowBarSize = isSmallScreenWidth
-            ? -this.state.windowWidth
+            ? -props.windowDimensions.width
             : -variables.sideBarWidth;
         this.animationTranslateX = new Animated.Value(
             !props.isSidebarShown ? windowBarSize : 0,
@@ -101,7 +99,6 @@ class App extends React.Component {
         fetchAllReports(true, false, true);
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
-        Dimensions.addEventListener('change', this.toggleNavigationMenuBasedOnDimensions);
 
         // Refresh the personal details and timezone every 30 minutes because there is no
         // pusher event that sends updated personal details data yet
@@ -115,7 +112,8 @@ class App extends React.Component {
         }, 1000 * 60 * 30);
 
         // Set up the navigationMenu correctly once on init
-        if (!this.state.isSmallScreenWidth) {
+        const isSmallScreenWidth = this.props.windowDimensions.width <= variables.mobileResponsiveWidthBreakpoint;
+        if (!isSmallScreenWidth) {
             showSidebar();
         }
 
@@ -128,6 +126,17 @@ class App extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        if (prevProps.windowDimensions.width !== this.props.windowDimensions.width) {
+            const wasPreviouslySmallScreenWidth = prevProps.windowDimensions.width
+                <= variables.mobileResponsiveWidthBreakpoint;
+            const isSmallScreenWidth = this.props.windowDimensions.width <= variables.mobileResponsiveWidthBreakpoint;
+
+            // Always show the sidebar if we are moving from small to large screens
+            if (wasPreviouslySmallScreenWidth && !isSmallScreenWidth) {
+                showSidebar();
+            }
+        }
+
         if (!prevProps.isChatSwitcherActive && this.props.isChatSwitcherActive) {
             this.showNavigationMenu();
         }
@@ -139,7 +148,6 @@ class App extends React.Component {
     }
 
     componentWillUnmount() {
-        Dimensions.removeEventListener('change', this.toggleNavigationMenuBasedOnDimensions);
         KeyboardShortcut.unsubscribe('K');
         NetworkConnection.stopListeningForReconnect();
         clearInterval(this.interval);
@@ -187,35 +195,13 @@ class App extends React.Component {
     }
 
     /**
-     * Fired when the windows dimensions changes
-     * @param {Object} changedWindow
-     */
-    toggleNavigationMenuBasedOnDimensions({window: changedWindow}) {
-        if (this.state.windowWidth === changedWindow.width) {
-            // Window width hasn't changed, don't toggle sidebar
-            return;
-        }
-
-        const isSmallScreenWidth = changedWindow.width <= variables.mobileResponsiveWidthBreakpoint;
-
-        // Always show the sidebar if we are moving from small to large screens
-        if (this.state.isSmallScreenWidth && !isSmallScreenWidth) {
-            showSidebar();
-        }
-
-        this.setState({
-            windowWidth: changedWindow.width,
-            isSmallScreenWidth,
-        });
-    }
-
-    /**
      * Method called when we want to dismiss the navigationMenu,
      * will not do anything if it already closed
      * Only changes navigationMenu state on small screens (e.g. Mobile and mWeb)
      */
     dismissNavigationMenu() {
-        if (!this.state.isSmallScreenWidth || !this.props.isSidebarShown) {
+        const isSmallScreenWidth = this.props.windowDimensions.width <= variables.mobileResponsiveWidthBreakpoint;
+        if (!isSmallScreenWidth || !this.props.isSidebarShown) {
             return;
         }
 
@@ -241,9 +227,10 @@ class App extends React.Component {
      * @param {Boolean} navigationMenuIsShown
      */
     animateNavigationMenu(navigationMenuIsShown) {
-        const windowSideBarSize = this.state.isSmallScreenWidth
+        const isSmallScreenWidth = this.props.windowDimensions.width <= variables.mobileResponsiveWidthBreakpoint;
+        const windowSideBarSize = isSmallScreenWidth
             ? -variables.sideBarWidth
-            : -this.state.windowWidth;
+            : -this.props.windowDimension.width;
         const animationFinalValue = navigationMenuIsShown ? windowSideBarSize : 0;
 
         setSideBarIsAnimating(true);
@@ -268,7 +255,9 @@ class App extends React.Component {
      * Only changes navigationMenu state on small screens (e.g. Mobile and mWeb)
      */
     toggleNavigationMenu() {
-        if (!this.state.isSmallScreenWidth) {
+        const isSmallScreenWidth = this.props.windowDimensions.width <= variables.mobileResponsiveWidthBreakpoint;
+
+        if (!isSmallScreenWidth) {
             return;
         }
 
@@ -286,6 +275,7 @@ class App extends React.Component {
     }
 
     render() {
+        const isSmallScreenWidth = this.props.windowDimensions.width <= variables.mobileResponsiveWidthBreakpoint;
         return (
             <SafeAreaProvider>
                 <CustomStatusBar />
@@ -300,7 +290,10 @@ class App extends React.Component {
                         >
                             <Route path={[ROUTES.REPORT, ROUTES.HOME, ROUTES.SETTINGS]}>
                                 <Animated.View style={[
-                                    getNavigationMenuStyle(this.state.windowWidth, this.props.isSidebarShown),
+                                    getNavigationMenuStyle(
+                                        this.props.windowDimensions.width,
+                                        this.props.isSidebarShown,
+                                    ),
                                     {
                                         transform: [{translateX: this.animationTranslateX}],
                                     }]}
@@ -318,7 +311,7 @@ class App extends React.Component {
                                     style={[styles.appContent, styles.flex1, styles.flexColumn]}
                                 >
                                     <HeaderView
-                                        shouldShowNavigationMenuButton={this.state.isSmallScreenWidth}
+                                        shouldShowNavigationMenuButton={isSmallScreenWidth}
                                         onNavigationMenuButtonClicked={this.toggleNavigationMenu}
                                     />
                                     <SettingsModal
@@ -335,23 +328,26 @@ class App extends React.Component {
     }
 }
 
-App.propTypes = propTypes;
-App.defaultProps = defaultProps;
+HomePage.propTypes = propTypes;
+HomePage.defaultProps = defaultProps;
 
-export default withOnyx(
-    {
-        isSidebarShown: {
-            key: ONYXKEYS.IS_SIDEBAR_SHOWN,
+export default compose(
+    withOnyx(
+        {
+            isSidebarShown: {
+                key: ONYXKEYS.IS_SIDEBAR_SHOWN,
+            },
+            isChatSwitcherActive: {
+                key: ONYXKEYS.IS_CHAT_SWITCHER_ACTIVE,
+                initWithStoredValues: false,
+            },
+            currentURL: {
+                key: ONYXKEYS.CURRENT_URL,
+            },
+            network: {
+                key: ONYXKEYS.NETWORK,
+            },
         },
-        isChatSwitcherActive: {
-            key: ONYXKEYS.IS_CHAT_SWITCHER_ACTIVE,
-            initWithStoredValues: false,
-        },
-        currentURL: {
-            key: ONYXKEYS.CURRENT_URL,
-        },
-        network: {
-            key: ONYXKEYS.NETWORK,
-        },
-    },
-)(App);
+    ),
+    withWindowDimensions,
+)(HomePage);

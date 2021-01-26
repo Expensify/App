@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import CONST from '../CONST';
 import colors from './colors';
 import variables from './variables';
@@ -6,7 +7,9 @@ import themeColors from './themes/default';
 export default (type, windowDimensions) => {
     const isSmallScreen = windowDimensions.width < variables.mobileResponsiveWidthBreakpoint;
 
-    let modalStyle;
+    let modalStyle = {
+        margin: 0,
+    };
     let modalContainerStyle;
     let swipeDirection;
     let animationIn;
@@ -20,10 +23,9 @@ export default (type, windowDimensions) => {
             // and can be dismissed by clicking outside of the modal.
             // This modal should take up the entire visible area when
             // viewed on a smaller device (e.g. mobile or mobile web).
-            modalStyle = {
-                margin: 0,
+            modalStyle = _.extend(modalStyle, {
                 alignItems: 'center',
-            };
+            });
             modalContainerStyle = {
                 // Shadow Styles
                 shadowColor: colors.black,
@@ -52,11 +54,10 @@ export default (type, windowDimensions) => {
             needsSafeAreaPadding = true;
             break;
         case CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED:
-            modalStyle = {
-                margin: 0,
+            modalStyle = _.extend(modalStyle, {
                 alignItems: 'center',
                 justifyContent: 'flex-end',
-            };
+            });
             modalContainerStyle = {
                 width: '100%',
                 borderTopLeftRadius: 20,
@@ -72,13 +73,12 @@ export default (type, windowDimensions) => {
             animationOut = 'slideOutDown';
             break;
         case CONST.MODAL.MODAL_TYPE.POPOVER:
-            modalStyle = {
-                margin: 0,
+            modalStyle = _.extend(modalStyle, {
                 alignItems: 'center',
                 justifyContent: 'flex-end',
                 marginRight: windowDimensions.width - variables.sideBarWidth,
                 marginBottom: 82,
-            };
+            });
             modalContainerStyle = {
                 width: variables.sideBarWidth - 40,
                 borderRadius: 12,
@@ -97,11 +97,10 @@ export default (type, windowDimensions) => {
             animationOut = 'fadeOutLeft';
             break;
         case CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED:
-            modalStyle = {
-                margin: 0,
+            modalStyle = _.extend(modalStyle, {
                 flexDirection: 'row',
                 justifyContent: 'flex-end',
-            };
+            });
             modalContainerStyle = {
                 width: isSmallScreen ? '100%' : '40%',
                 height: '100%',

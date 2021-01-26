@@ -36,11 +36,7 @@ const defaultProps = {
 
 class MainView extends Component {
     render() {
-        let activeReportID = parseInt(this.props.match.params.reportID, 10);
-
-        if (this.props.currentURL === '/settings') {
-            activeReportID = parseInt(this.props.currentlyViewedReportID, 10);
-        }
+        let activeReportID = parseInt(this.props.currentlyViewedReportID, 10);
 
         // The styles for each of our reports. Basically, they are all hidden except for the one matching the
         // reportID in the URL

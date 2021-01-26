@@ -1,11 +1,12 @@
 import React from 'react';
 import {Pressable, Animated, Easing} from 'react-native';
 import PropTypes from 'prop-types';
-import {PlusIcon} from './Expensicons';
+import Icon from './Icon';
+import {Plus} from './Icon/Expensicons';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 
-const AnimatedPlusIcon = Animated.createAnimatedComponent(PlusIcon);
+const AnimatedIcon = Animated.createAnimatedComponent(Icon);
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 const propTypes = {
@@ -67,7 +68,7 @@ class FAB extends React.Component {
                     {transform: [{rotate}], backgroundColor},
                 ]}
             >
-                <AnimatedPlusIcon fill={fill} />
+                <AnimatedIcon src={Plus} fill={fill} />
             </AnimatedPressable>
         );
     }
