@@ -3,8 +3,8 @@ import PropTypes from 'prop-types';
 import {
     Animated, Text, View,
 } from 'react-native';
-import Hoverable from '../Hoverable';
-import getTooltipStyles from '../../styles/getTooltipStyles';
+import Hoverable from './Hoverable';
+import getTooltipStyles from '../styles/getTooltipStyles';
 
 const propTypes = {
     // The text to display in the tooltip.
