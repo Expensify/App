@@ -6,14 +6,9 @@ import {withOnyx} from 'react-native-onyx';
 import ReportView from './report/ReportView';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
-import {withRouter} from '../../libs/Router';
 import compose from '../../libs/compose';
 
 const propTypes = {
-    // This comes from withRouter
-    // eslint-disable-next-line react/forbid-prop-types
-    match: PropTypes.object.isRequired,
-
     /* Onyx Props */
     // List of reports to display
     reports: PropTypes.objectOf(PropTypes.shape({
@@ -22,15 +17,11 @@ const propTypes = {
 
     // ID of Report being viewed
     currentlyViewedReportID: PropTypes.string,
-
-    // The Route to the current page we're viewing
-    currentURL: PropTypes.string,
 };
 
 const defaultProps = {
     reports: {},
     currentlyViewedReportID: '',
-    currentURL: '',
 };
 
 class MainView extends Component {
@@ -82,7 +73,6 @@ MainView.propTypes = propTypes;
 MainView.defaultProps = defaultProps;
 
 export default compose(
-    withRouter,
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,

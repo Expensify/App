@@ -5,7 +5,6 @@ import {withOnyx} from 'react-native-onyx';
 import Header from '../../components/Header';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
-import {withRouter} from '../../libs/Router';
 import themeColors from '../../styles/themes/default';
 import Icon from '../../components/Icon';
 import {BackArrow, Pin} from '../../components/Icon/Expensicons';
@@ -81,7 +80,6 @@ HeaderView.displayName = 'HeaderView';
 HeaderView.defaultProps = defaultProps;
 
 export default compose(
-    withRouter,
     withOnyx({
         report: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
