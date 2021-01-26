@@ -9,7 +9,7 @@ const propTypes = {
     // The text to display in the tooltip.
     text: PropTypes.string.isRequired,
 
-    // Child to wrap with Tooltip. Must be only child.
+    // Child to wrap with Tooltip. Should be only child, or the tooltip placement will be unpredictable.
     children: PropTypes.node.isRequired,
 
     // Props inherited from withWindowDimensions
