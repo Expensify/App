@@ -343,7 +343,7 @@ const styles = {
     },
 
     sidebarAvatar: {
-        backgroundColor: themeColors.text,
+        backgroundColor: themeColors.icon,
         borderRadius: 20,
         height: variables.componentSizeNormal,
         width: variables.componentSizeNormal,
