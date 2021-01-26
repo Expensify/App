@@ -6,13 +6,60 @@ import TextInputWithFocusStyles from './TextInputWithFocusStyles';
 import OptionsList from './OptionsList';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
+import optionPropTypes from './optionPropTypes';
 
 const propTypes = {
+    // Callback to fire when a row is tapped
     onSelectRow: PropTypes.func,
+
+    // Sections for the section list
+    sections: PropTypes.arrayOf(PropTypes.shape({
+        // Title of the section
+        title: PropTypes.string,
+
+        // The initial index of this section given the total number of options in each section's data array
+        indexOffset: PropTypes.number,
+
+        // Array of options
+        data: PropTypes.arrayOf(optionPropTypes),
+
+        // Whether this section should show or not
+        shouldShow: PropTypes.bool,
+    })).isRequired,
+
+    // Value in the search input field
+    searchValue: PropTypes.string.isRequired,
+
+    // Callback fired when text changes
+    onChangeText: PropTypes.func.isRequired,
+
+    // Optional placeholder text for the selector
+    placeholderText: PropTypes.string,
+
+    // Options that have already been selected
+    selectedOptions: PropTypes.arrayOf(optionPropTypes),
+
+    // Optional header title
+    headerTitle: PropTypes.string,
+
+    // Optional header message
+    headerMessage: PropTypes.string,
+
+    // Whether we can select multiple options
+    canSelectMultipleOptions: PropTypes.bool,
+
+    // Whether any section headers should be visible
+    hideSectionHeaders: PropTypes.bool,
 };
 
 const defaultProps = {
     onSelectRow: () => {},
+    placeholderText: 'Name, email, or phone number',
+    selectedOptions: [],
+    headerTitle: '',
+    headerMessage: '',
+    canSelectMultipleOptions: false,
+    hideSectionHeaders: false,
 };
 
 class OptionsSelector extends Component {
