@@ -2,7 +2,6 @@ import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {
-    Image,
     Text,
     TouchableOpacity,
     View,
@@ -10,8 +9,10 @@ import {
 } from 'react-native';
 import styles from '../../../styles/styles';
 import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
-import pencilIcon from '../../../../assets/images/icon-pencil.png';
+import Icon from '../../../components/Icon';
+import {Pencil} from '../../../components/Icon/Expensicons';
 import MultipleAvatars from '../../../components/MultipleAvatars';
+import variables from '../../../styles/variables';
 
 const propTypes = {
     // Option to allow the user to choose from can be type 'report' or 'user'
@@ -93,7 +94,7 @@ const ChatLinkRow = ({
                                     {option.text}
                                 </Text>
                                 <Text
-                                    style={[textStyle, styles.textMicro, styles.chatSwitcherLogin]}
+                                    style={[textStyle, styles.chatSwitcherLogin, styles.mt1]}
                                     numberOfLines={1}
                                 >
                                     {option.alternateText}
@@ -119,11 +120,7 @@ const ChatLinkRow = ({
                 </View>
             )}
             {option.hasDraftComment && (
-                <Image
-                    style={[styles.LHNPencilIcon]}
-                    resizeMode="contain"
-                    source={pencilIcon}
-                />
+                <Icon src={Pencil} width={variables.iconSizeNormal} height={variables.iconSizeNormal} />
             )}
         </View>
     );

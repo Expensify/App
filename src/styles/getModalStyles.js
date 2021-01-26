@@ -12,8 +12,8 @@ export default (type, windowDimensions) => {
     let animationIn;
     let animationOut;
     let hideBackdrop = false;
-    let shouldSumBottomSafeAreaPadding = false;
-    let shouldSumTopSafeAreaPadding = false;
+    let shouldAddBottomSafeAreaPadding = false;
+    let shouldAddTopSafeAreaPadding = false;
 
     switch (type) {
         case CONST.MODAL.MODAL_TYPE.CENTERED:
@@ -50,7 +50,7 @@ export default (type, windowDimensions) => {
             swipeDirection = undefined;
             animationIn = isSmallScreen ? 'slideInRight' : 'fadeIn';
             animationOut = isSmallScreen ? 'slideOutRight' : 'fadeOut';
-            shouldSumTopSafeAreaPadding = true;
+            shouldAddTopSafeAreaPadding = true;
             break;
         case CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED:
             modalStyle = {
@@ -68,7 +68,7 @@ export default (type, windowDimensions) => {
                 overflow: 'hidden',
             };
 
-            shouldSumBottomSafeAreaPadding = true;
+            shouldAddBottomSafeAreaPadding = true;
             swipeDirection = undefined;
             animationIn = 'slideInUp';
             animationOut = 'slideOutDown';
@@ -106,6 +106,15 @@ export default (type, windowDimensions) => {
             animationOut = 'slideOutDown';
     }
 
+    // The following declarations are meant only to facilitate the modal padding
+    // calculation in the modal file.
+    if (!modalContainerStyle.paddingTop) {
+        modalContainerStyle = {...modalContainerStyle, paddingTop: 0};
+    }
+    if (!modalContainerStyle.paddingBottom) {
+        modalContainerStyle = {...modalContainerStyle, paddingBottom: 0};
+    }
+
     return {
         modalStyle,
         modalContainerStyle,
@@ -113,7 +122,7 @@ export default (type, windowDimensions) => {
         animationIn,
         animationOut,
         hideBackdrop,
-        shouldSumBottomSafeAreaPadding,
-        shouldSumTopSafeAreaPadding,
+        shouldAddBottomSafeAreaPadding,
+        shouldAddTopSafeAreaPadding,
     };
 };
