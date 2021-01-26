@@ -64,7 +64,8 @@ export default function getTooltipStyles(
             position: 'absolute',
             backgroundColor: themeColors.heading,
             borderRadius: variables.componentBorderRadiusSmall,
-            ...spacing.p1,
+            ...spacing.pv1,
+            ...spacing.ph2,
 
             // Shift the tooltip up by...
             //   11 (font height)
