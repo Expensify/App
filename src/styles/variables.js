@@ -11,5 +11,5 @@ export default {
     fontSizeh1: 19,
     mobileResponsiveWidthBreakpoint: 800,
     safeInsertPercentage: 0.7,
-    sideBarWidth: 300,
+    sideBarWidth: 375,
 };

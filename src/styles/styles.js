@@ -229,7 +229,7 @@ const styles = {
         borderColor: themeColors.icon,
     },
 
-    textInputNoOutline: addOutlineWidth({}, 0),
+    noOutline: addOutlineWidth({}, 0),
 
     formLabel: {
         color: themeColors.text,
@@ -343,7 +343,7 @@ const styles = {
     },
 
     sidebarAvatar: {
-        backgroundColor: themeColors.text,
+        backgroundColor: themeColors.icon,
         borderRadius: 20,
         height: variables.componentSizeNormal,
         width: variables.componentSizeNormal,
@@ -451,7 +451,7 @@ const styles = {
 
     sidebarLinkText: {
         color: themeColors.text,
-        fontSize: variables.fontSizeLabel,
+        fontSize: variables.fontSizeNormal,
         textDecorationLine: 'none',
         overflow: 'hidden',
     },
@@ -468,7 +468,7 @@ const styles = {
 
     sidebarLinkActiveText: {
         color: themeColors.text,
-        fontSize: variables.fontSizeLabel,
+        fontSize: variables.fontSizeNormal,
         textDecorationLine: 'none',
         overflow: 'hidden',
     },
@@ -483,6 +483,7 @@ const styles = {
     chatSwitcherLogin: {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeLabel,
         height: 16,
         lineHeight: 16,
     },
@@ -779,12 +780,14 @@ const styles = {
     singleAvatar: {
         height: 24,
         width: 24,
+        backgroundColor: themeColors.icon,
         borderRadius: 24,
     },
 
     avatarNormal: {
         height: variables.componentSizeNormal,
         width: variables.componentSizeNormal,
+        backgroundColor: themeColors.icon,
         borderRadius: variables.componentSizeNormal,
     },
 
