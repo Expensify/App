@@ -1158,17 +1158,7 @@ function getNavigationMenuStyle(windowWidth, isSidebarShown) {
         };
 }
 
-function getTooltipStyles(interpolatedSize) {
-    return {
-        position: 'absolute',
-        transform: [{
-            scale: interpolatedSize,
-        }],
-        backgroundColor: themeColors.heading,
-    };
-}
-
 export default styles;
 export {
-    getSafeAreaPadding, getSafeAreaMargins, webViewStyles, getNavigationMenuStyle, getTooltipStyles,
+    getSafeAreaPadding, getSafeAreaMargins, webViewStyles, getNavigationMenuStyle,
 };
