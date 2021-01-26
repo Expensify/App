@@ -66,8 +66,7 @@ class NewGroupPage extends Component {
         };
     }
 
-    getHeaderTitleAndMessage() {
-        const maxParticipantsReached = this.state.selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
+    getHeaderTitleAndMessage(maxParticipantsReached) {
         if (maxParticipantsReached) {
             return {
                 headerTitle: 'Maximum participants reached',
@@ -90,7 +89,7 @@ class NewGroupPage extends Component {
         };
     }
 
-    getSections() {
+    getSections(maxParticipantsReached) {
         const sections = [];
         sections.push({
             title: undefined,
@@ -98,6 +97,11 @@ class NewGroupPage extends Component {
             shouldShow: true,
             indexOffset: 0,
         });
+
+        if (maxParticipantsReached) {
+            return sections;
+        }
+
         sections.push({
             title: 'RECENTS',
             data: this.state.recentReports,
@@ -168,8 +172,9 @@ class NewGroupPage extends Component {
     }
 
     render() {
-        const sections = this.getSections();
-        const {headerTitle, headerMessage} = this.getHeaderTitleAndMessage();
+        const maxParticipantsReached = this.state.selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
+        const sections = this.getSections(maxParticipantsReached);
+        const {headerTitle, headerMessage} = this.getHeaderTitleAndMessage(maxParticipantsReached);
         return (
             <View style={[styles.flex1, styles.p2]}>
                 <HeaderWithCloseButton
