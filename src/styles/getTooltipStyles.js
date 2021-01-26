@@ -1,5 +1,7 @@
 import spacing from './utilities/spacing';
 import themeColors from './themes/default';
+import fontFamily from './fontFamily';
+import variables from './variables';
 
 export default function getTooltipStyles(
     interpolatedSize,
@@ -36,6 +38,11 @@ export default function getTooltipStyles(
             // Shift the tooltip to the left by half the component's width + half the tooltip's width
             left: (tooltipWidth / -2) + (width / 2),
         },
+        tooltipTextStyle: {
+            color: themeColors.textReversed,
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeSmall,
+        },
         pointerWrapperStyle: {
             position: 'absolute',
 
@@ -44,6 +51,18 @@ export default function getTooltipStyles(
 
             // Shift the pointer to the right (to the middle of the wrapped element)
             left: (width / 2) - 4,
+        },
+        pointerStyle: {
+            width: 0,
+            height: 0,
+            backgroundColor: 'transparent',
+            borderStyle: 'solid',
+            borderLeftWidth: 4,
+            borderRightWidth: 4,
+            borderTopWidth: 7,
+            borderLeftColor: 'transparent',
+            borderRightColor: 'transparent',
+            borderTopColor: themeColors.heading,
         },
     };
 }

@@ -4,8 +4,6 @@ import {
     Animated, Text, View,
 } from 'react-native';
 import Hoverable from '../Hoverable';
-import TooltipPointer from './TooltipPointer';
-import styles from '../../styles/styles';
 import getTooltipStyles from '../../styles/getTooltipStyles';
 
 const propTypes = {
@@ -77,7 +75,13 @@ class Tooltip extends Component {
             inputRange: [0, 1],
             outputRange: [0, 1],
         });
-        const {animationStyle, tooltipWrapperStyle, pointerWrapperStyle} = getTooltipStyles(
+        const {
+            animationStyle,
+            tooltipWrapperStyle,
+            tooltipTextStyle,
+            pointerWrapperStyle,
+            pointerStyle,
+        } = getTooltipStyles(
             interpolatedSize,
             this.xOffset,
             this.yOffset,
@@ -99,10 +103,10 @@ class Tooltip extends Component {
                         onLayout={this.getPosition}
                         style={tooltipWrapperStyle}
                     >
-                        <Text style={styles.tooltipText} numberOfLines={1}>{this.props.text}</Text>
+                        <Text style={tooltipTextStyle} numberOfLines={1}>{this.props.text}</Text>
                     </View>
                     <View style={pointerWrapperStyle}>
-                        <TooltipPointer />
+                        <View style={pointerStyle} />
                     </View>
                 </Animated.View>
                 <Hoverable>
