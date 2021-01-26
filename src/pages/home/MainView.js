@@ -21,8 +21,10 @@ const propTypes = {
         reportID: PropTypes.number,
     })),
 
+    // ID of Report being viewed
     currentlyViewedReportID: PropTypes.string,
 
+    // The Route to the current page we're viewing
     currentURL: PropTypes.string,
 };
 
