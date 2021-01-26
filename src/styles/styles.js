@@ -1017,25 +1017,6 @@ const styles = {
         alignItems: 'center',
         padding: 20,
     },
-
-    tooltipText: {
-        color: themeColors.textReversed,
-        fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeSmall,
-    },
-
-    tooltipPointer: {
-        width: 0,
-        height: 0,
-        backgroundColor: 'transparent',
-        borderStyle: 'solid',
-        borderLeftWidth: 4,
-        borderRightWidth: 4,
-        borderTopWidth: 7,
-        borderLeftColor: 'transparent',
-        borderRightColor: 'transparent',
-        borderTopColor: themeColors.heading,
-    },
 };
 
 const baseCodeTagStyles = {
