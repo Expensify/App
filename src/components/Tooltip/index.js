@@ -45,6 +45,9 @@ class Tooltip extends Component {
         this.hideTooltip = this.hideTooltip.bind(this);
     }
 
+    /**
+     * Get the position and measure the size of the wrapper view and the tooltip itself.
+     */
     getPosition() {
         this.wrapperView.measureInWindow((x, y, width, height) => {
             this.xOffset = x;
@@ -58,6 +61,9 @@ class Tooltip extends Component {
         });
     }
 
+    /**
+     * Display the tooltip in an animation.
+     */
     showTooltip() {
         Animated.timing(this.animation, {
             toValue: 1,
@@ -65,6 +71,9 @@ class Tooltip extends Component {
         }).start();
     }
 
+    /**
+     * Hide the tooltip in an animation.
+     */
     hideTooltip() {
         Animated.timing(this.animation, {
             toValue: 0,
