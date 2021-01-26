@@ -30,7 +30,7 @@ class PressableWithSecondaryInteraction extends Component {
     }
 
     /**
-     * @param {contextmenu} e - A contextmenu event.
+     * @param {contextmenu} e - A right-click MouseEvent.
      * https://developer.mozilla.org/en-US/docs/Web/API/Element/contextmenu_event
      */
     executeSecondaryInteractionOnContextMenu(e) {
