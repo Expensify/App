@@ -12,7 +12,8 @@ import {withRouter} from '../../../libs/Router';
 import {redirect} from '../../../libs/actions/App';
 import ROUTES from '../../../ROUTES';
 import * as ChatSwitcher from '../../../libs/actions/ChatSwitcher';
-import {MagnifyingGlassIcon} from '../../../components/Expensicons';
+import Icon from '../../../components/Icon';
+import {MagnifyingGlass} from '../../../components/Icon/Expensicons';
 import Header from '../../../components/Header';
 import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
 import OptionsList from '../../../components/OptionsList';
@@ -120,7 +121,7 @@ const SidebarLinks = (props) => {
                             style={[styles.flexRow, styles.sidebarHeaderTop]}
                             onPress={() => ChatSwitcher.show()}
                         >
-                            <MagnifyingGlassIcon width={20} height={20} />
+                            <Icon src={MagnifyingGlass} />
                         </TouchableOpacity>
                         <TouchableOpacity
                             onPress={props.onAvatarClick}
