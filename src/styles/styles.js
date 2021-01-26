@@ -174,10 +174,10 @@ const styles = {
     },
 
     headerText: {
-        fontFamily: fontFamily.GTA,
         color: themeColors.heading,
+        fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeNormal,
-        fontWeight: '700',
+        fontWeight: fontWeightBold,
     },
 
     reportOptions: {
