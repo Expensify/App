@@ -77,11 +77,15 @@ class Tooltip extends Component {
             inputRange: [0, 1],
             outputRange: [0, 1],
         });
-        const {
-            animationStyle,
-            tooltipWrapperStyle,
-            pointerWrapperStyle,
-        } = getTooltipStyles(interpolatedSize, this.xOffset, this.yOffset, this.width, this.height, this.tooltipWidth, this.tooltipHeight);
+        const {animationStyle, tooltipWrapperStyle, pointerWrapperStyle} = getTooltipStyles(
+            interpolatedSize,
+            this.xOffset,
+            this.yOffset,
+            this.width,
+            this.height,
+            this.tooltipWidth,
+            this.tooltipHeight,
+        );
 
         return (
             <View
