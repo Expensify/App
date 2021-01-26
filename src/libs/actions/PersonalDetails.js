@@ -168,6 +168,10 @@ function getFromReportParticipants(reports) {
                     reportsToUpdate[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = {icons: avatars};
                 }
             });
+
+            // We use mergeCollection such that it updates ONYXKEYS.COLLECTION.REPORT in one go.
+            // Any withOnyx subscribers to this key will also receive the complete updated props just once
+            // than updating props for each report and re-rendering had merge been used.
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportsToUpdate);
         });
 }
