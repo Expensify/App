@@ -75,6 +75,12 @@ class NewGroupPage extends Component {
         };
     }
 
+    /**
+     * Helper method that returns the text to be used for the header's message and title (if any)
+     *
+     * @param {Boolean} maxParticipantsReached
+     * @return {String}
+     */
     getHeaderTitleAndMessage(maxParticipantsReached) {
         if (maxParticipantsReached) {
             return {
@@ -98,6 +104,12 @@ class NewGroupPage extends Component {
         };
     }
 
+    /**
+     * Returns the sections needed for the OptionsSelector
+     *
+     * @param {Boolean} maxParticipantsReached
+     * @returns {Array}
+     */
     getSections(maxParticipantsReached) {
         const sections = [];
         sections.push({
@@ -117,6 +129,7 @@ class NewGroupPage extends Component {
             shouldShow: this.state.recentReports.length > 0,
             indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
         });
+
         sections.push({
             title: 'CONTACTS',
             data: this.state.personalDetails,
@@ -132,9 +145,14 @@ class NewGroupPage extends Component {
                 indexOffset: 0,
             }));
         }
+
         return sections;
     }
 
+    /**
+     * Once all our options are selected this method will call the API and  create new chat between all selected users
+     * and the currently logged in user
+     */
     createGroup() {
         const userLogins = _.map(this.state.selectedOptions, option => option.login);
         fetchOrCreateChatReport([this.props.session.email, ...userLogins]);
