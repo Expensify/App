@@ -80,7 +80,7 @@ const ChatSwitcherSearchForm = props => (
                                 ]}
                             >
                                 <TextInputWithFocusStyles
-                                    styleFocusIn={[styles.textInputNoOutline]}
+                                    styleFocusIn={[styles.noOutline]}
                                     ref={props.forwardedRef}
                                     style={[styles.chatSwitcherGroupDMTextInput, styles.mb1]}
                                     value={props.searchValue}
