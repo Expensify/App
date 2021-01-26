@@ -5,7 +5,8 @@ import {
 } from 'react-native';
 import Hoverable from '../Hoverable';
 import TooltipPointer from './TooltipPointer';
-import styles, {getTooltipStyles} from '../../styles/styles';
+import styles from '../../styles/styles';
+import getTooltipStyles from '../../styles/getTooltipStyles';
 
 const propTypes = {
     // The text to display in the tooltip.
@@ -31,6 +32,8 @@ class Tooltip extends Component {
 
         // The wrapper view containing the wrapped content along with the Tooltip itself.
         this.wrapperView = null;
+        this.width = 0;
+        this.height = 0;
 
         // The distance between the left side of the rendered view and the left side of the window
         this.xOffset = 0;
@@ -43,16 +46,18 @@ class Tooltip extends Component {
     }
 
     getPosition() {
-        this.wrapperView.measureInWindow((x, y) => {
+        this.wrapperView.measureInWindow((x, y, width, height) => {
             this.xOffset = x;
             this.yOffset = y;
+            this.width = width;
+            this.height = height;
         });
     }
 
     toggleTooltip() {
         Animated.timing(this.animation, {
             toValue: this.state.isVisible ? 0 : 1,
-            duration: 200,
+            duration: 140,
         }).start(() => {
             this.setState(prevState => ({isVisible: !prevState.isVisible}));
         });
@@ -63,6 +68,11 @@ class Tooltip extends Component {
             inputRange: [0, 1],
             outputRange: [0, 1],
         });
+        const {
+            animationStyle,
+            tooltipWrapperStyle,
+            pointerWrapperStyle,
+        } = getTooltipStyles(interpolatedSize, this.xOffset, this.yOffset, this.width, this.height);
 
         return (
             <View
@@ -70,6 +80,14 @@ class Tooltip extends Component {
                 onLayout={el => this.getPosition(el)}
                 collapsable={false}
             >
+                <Animated.View style={animationStyle}>
+                    <View style={tooltipWrapperStyle}>
+                        <Text style={styles.tooltipText} numberOfLines={1}>{this.props.text}</Text>
+                    </View>
+                    <View style={pointerWrapperStyle}>
+                        <TooltipPointer />
+                    </View>
+                </Animated.View>
                 <Hoverable>
                     {(hovered) => {
                         // If the hover state is different from the current visibility,
@@ -80,14 +98,6 @@ class Tooltip extends Component {
                         return this.props.children;
                     }}
                 </Hoverable>
-                <Animated.View style={getTooltipStyles(interpolatedSize)}>
-                    <View>
-                        <Text style={styles.tooltipText}>{this.props.text}</Text>
-                    </View>
-                    <View>
-                        <TooltipPointer />
-                    </View>
-                </Animated.View>
             </View>
         );
     }
