@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
 import {
-    Image,
     TouchableOpacity,
     View,
     Text,
@@ -9,11 +8,13 @@ import {
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
+import Icon from '../../../components/Icon';
+import {Close} from '../../../components/Icon/Expensicons';
 import TextInputWithFocusStyles from '../../../components/TextInputWithFocusStyles';
-import iconX from '../../../../assets/images/icon-x.png';
 import {getDisplayName} from '../../../libs/actions/PersonalDetails';
 import PillWithCancelButton from '../../../components/PillWithCancelButton';
 import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
+import variables from '../../../styles/variables';
 
 const propTypes = {
     // A ref to forward to the text input
@@ -80,7 +81,7 @@ const ChatSwitcherSearchForm = props => (
                                 ]}
                             >
                                 <TextInputWithFocusStyles
-                                    styleFocusIn={[styles.textInputNoOutline]}
+                                    styleFocusIn={[styles.noOutline]}
                                     ref={props.forwardedRef}
                                     style={[styles.chatSwitcherGroupDMTextInput, styles.mb1]}
                                     value={props.searchValue}
@@ -135,11 +136,7 @@ const ChatSwitcherSearchForm = props => (
             onPress={props.onClearButtonClick}
             underlayColor={themeColors.componentBG}
         >
-            <Image
-                resizeMode="contain"
-                style={[styles.chatSwitcherInputClearIcon]}
-                source={iconX}
-            />
+            <Icon src={Close} width={variables.iconSizeLarge} height={variables.iconSizeLarge} />
         </TouchableOpacity>
     </View>
 );
