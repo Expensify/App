@@ -1,13 +1,15 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, useWindowDimensions} from 'react-native';
+import {View} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import CustomStatusBar from './CustomStatusBar';
+import KeyboardShortcut from '../libs/KeyboardShortcut';
 import styles, {getSafeAreaPadding} from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import getModalStyles from '../styles/getModalStyles';
 import CONST from '../CONST';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 
 const propTypes = {
     // Callback method fired when the user requests to close the modal
@@ -25,6 +27,8 @@ const propTypes = {
         CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED,
         CONST.MODAL.MODAL_TYPE.POPOVER,
     ]),
+
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -38,15 +42,16 @@ const Modal = (props) => {
         swipeDirection,
         animationIn,
         animationOut,
-        shouldSumTopSafeAreaPadding,
-        shouldSumBottomSafeAreaPadding,
+        shouldAddTopSafeAreaPadding,
+        shouldAddBottomSafeAreaPadding,
         hideBackdrop,
-    } = getModalStyles(props.type, useWindowDimensions());
-
+    } = getModalStyles(props.type, props.windowDimensions);
     return (
         <ReactNativeModal
             onBackdropPress={props.onClose}
             onBackButtonPress={props.onClose}
+            onModalShow={() => KeyboardShortcut.subscribe('Escape', props.onClose, [], true)}
+            onModalHide={() => KeyboardShortcut.unsubscribe('Escape')}
             onSwipeComplete={props.onClose}
             swipeDirection={swipeDirection}
             isVisible={props.isVisible}
@@ -60,37 +65,22 @@ const Modal = (props) => {
             <CustomStatusBar />
             <SafeAreaInsetsContext.Consumer>
                 {(insets) => {
-                    const {paddingTop, paddingBottom} = getSafeAreaPadding(insets);
-
-                    /**
-                     * Calculates the real top and bottom padding of the container,
-                     * given the given padding, the plataform specific safe area padding,
-                     * and if it should sum both values or not
-                     *
-                     * @param {number} containerPadding
-                     * @param {number} safeAreaPadding
-                     * @param {boolean} shouldSumSafeAreaPadding
-                     * @returns {number}
-                     */
-                    const getRealVerticalPadding = (containerPadding, safeAreaPadding, shouldSumSafeAreaPadding) => {
-                        const givenContainerPadding = containerPadding || 0;
-                        if (shouldSumSafeAreaPadding) {
-                            return givenContainerPadding + safeAreaPadding;
-                        }
-                        return givenContainerPadding;
-                    };
+                    const {
+                        paddingTop: safeAreaPaddingTop,
+                        paddingBottom: safeAreaPaddingBottom,
+                    } = getSafeAreaPadding(insets);
 
                     return (
                         <View
                             style={{
                                 ...styles.defaultModalContainer,
                                 ...modalContainerStyle,
-                                paddingTop: getRealVerticalPadding(
-                                    modalContainerStyle.paddingTop, paddingTop, shouldSumTopSafeAreaPadding,
-                                ),
-                                paddingBottom: getRealVerticalPadding(
-                                    modalContainerStyle.paddingBottom, paddingBottom, shouldSumBottomSafeAreaPadding,
-                                ),
+                                paddingTop: shouldAddTopSafeAreaPadding
+                                    ? modalContainerStyle.paddingTop + safeAreaPaddingTop
+                                    : modalContainerStyle.paddingTop,
+                                paddingBottom: shouldAddBottomSafeAreaPadding
+                                    ? modalContainerStyle.paddingBottom + safeAreaPaddingBottom
+                                    : modalContainerStyle.paddingBottom,
                             }}
                         >
                             {props.children}
@@ -105,4 +95,4 @@ const Modal = (props) => {
 Modal.propTypes = propTypes;
 Modal.defaultProps = defaultProps;
 Modal.displayName = 'Modal';
-export default Modal;
+export default withWindowDimensions(Modal);

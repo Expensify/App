@@ -1,8 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Text, Image, TouchableOpacity} from 'react-native';
+import {Text, TouchableOpacity} from 'react-native';
 import styles from '../styles/styles';
-import iconX from '../../assets/images/icon-x.png';
+import Icon from './Icon';
+import {Close} from './Icon/Expensicons';
+import variables from '../styles/variables';
 
 const propTypes = {
     text: PropTypes.string.isRequired,
@@ -20,11 +22,7 @@ const PillWithCancelButton = props => (
         >
             {props.text}
         </Text>
-        <Image
-            resizeMode="contain"
-            style={[styles.pillCancelIcon]}
-            source={iconX}
-        />
+        <Icon src={Close} width={variables.iconSizeSmall} height={variables.iconSizeSmall} />
     </TouchableOpacity>
 );
 

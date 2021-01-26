@@ -229,7 +229,7 @@ const styles = {
         borderColor: themeColors.icon,
     },
 
-    textInputNoOutline: addOutlineWidth({}, 0),
+    noOutline: addOutlineWidth({}, 0),
 
     formLabel: {
         color: themeColors.text,
@@ -270,11 +270,6 @@ const styles = {
         width: '100%',
         marginBottom: 20,
         marginTop: 20,
-    },
-
-    signinLogo: {
-        height: variables.componentSizeLarge,
-        width: variables.componentSizeLarge,
     },
 
     signinWelcomeScreenshot: {
@@ -343,7 +338,7 @@ const styles = {
     },
 
     sidebarAvatar: {
-        backgroundColor: themeColors.text,
+        backgroundColor: themeColors.icon,
         borderRadius: 20,
         height: variables.componentSizeNormal,
         width: variables.componentSizeNormal,
@@ -399,10 +394,7 @@ const styles = {
     },
 
     sidebarListContainer: {
-        flex: 1,
-        flexGrow: 100,
         scrollbarWidth: 'none',
-        overflow: 'scroll',
         paddingBottom: 4,
     },
 
@@ -454,7 +446,7 @@ const styles = {
 
     sidebarLinkText: {
         color: themeColors.text,
-        fontSize: variables.fontSizeLabel,
+        fontSize: variables.fontSizeNormal,
         textDecorationLine: 'none',
         overflow: 'hidden',
     },
@@ -471,7 +463,7 @@ const styles = {
 
     sidebarLinkActiveText: {
         color: themeColors.text,
-        fontSize: variables.fontSizeLabel,
+        fontSize: variables.fontSizeNormal,
         textDecorationLine: 'none',
         overflow: 'hidden',
     },
@@ -486,6 +478,7 @@ const styles = {
     chatSwitcherLogin: {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeLabel,
         height: 16,
         lineHeight: 16,
     },
@@ -526,17 +519,6 @@ const styles = {
     LHNToggleIcon: {
         height: 15,
         width: 18,
-    },
-
-    LHNPencilIcon: {
-        height: 16,
-        width: 16,
-    },
-
-    attachmentCloseIcon: {
-        height: 20,
-        width: 20,
-        padding: 0,
     },
 
     chatContent: {
@@ -642,31 +624,35 @@ const styles = {
     },
 
     textInputCompose: addOutlineWidth({
+        backgroundColor: themeColors.componentBG,
+        borderColor: themeColors.border,
+        color: themeColors.text,
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeNormal,
         borderWidth: 0,
         borderRadius: 0,
         height: 'auto',
-        minHeight: 38,
-        paddingTop: 10,
-        paddingRight: 8,
-        paddingBottom: 10,
-        paddingLeft: 8,
+
+        // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
+        // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
+
+        paddingHorizontal: 8,
+        marginVertical: 5,
+        paddingVertical: 0,
+        alignSelf: 'center',
+        textAlignVertical: 'center',
     }, 0),
 
     chatItemSubmitButton: {
         alignSelf: 'flex-end',
         borderRadius: 6,
         height: 32,
-        paddingTop: 8,
+        paddingTop: 6,
         paddingRight: 6,
-        paddingBottom: 8,
+        paddingBottom: 6,
         paddingLeft: 6,
         margin: 3,
         justifyContent: 'center',
-    },
-
-    chatItemSubmitButtonIcon: {
-        height: 20,
-        width: 20,
     },
 
     chatItemAttachButton: {
@@ -696,11 +682,6 @@ const styles = {
         alignSelf: 'flex-end',
         height: variables.componentSizeNormal,
         justifyContent: 'center',
-    },
-
-    chatSwitcherInputClearIcon: {
-        height: 24,
-        width: 24,
     },
 
     chatSwitcherGroupDMContainer: {
@@ -773,12 +754,14 @@ const styles = {
     singleAvatar: {
         height: 24,
         width: 24,
+        backgroundColor: themeColors.icon,
         borderRadius: 24,
     },
 
     avatarNormal: {
         height: variables.componentSizeNormal,
         width: variables.componentSizeNormal,
+        backgroundColor: themeColors.icon,
         borderRadius: variables.componentSizeNormal,
     },
 
