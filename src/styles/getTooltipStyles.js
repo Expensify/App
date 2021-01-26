@@ -27,6 +27,20 @@ function roundToNearestMultipleOfFour(n) {
     return 0;
 }
 
+/**
+ * Generate styles for the tooltip component.
+ *
+ * @param {Number} interpolatedSize - The current size of the tooltip used in the scaling animation.
+ * @param {Number} xOffset - The distance between the left edge of the window
+ *                           and the left edge of the wrapped component.
+ * @param {Number} yOffset - The distance between the top edge of the window
+ *                           and the top edge of the wrapped component.
+ * @param {Number} width - The width of the wrapped component.
+ * @param {Number} height - The height of the wrapped component.
+ * @param {Number} tooltipWidth - The width of the tooltip itself.
+ * @param {Number} tooltipHeight - The height of the tooltip itself.
+ * @returns {Object}
+ */
 export default function getTooltipStyles(
     interpolatedSize,
     xOffset,
