@@ -272,11 +272,6 @@ const styles = {
         marginTop: 20,
     },
 
-    signinLogo: {
-        height: variables.componentSizeLarge,
-        width: variables.componentSizeLarge,
-    },
-
     signinWelcomeScreenshot: {
         height: 354,
         width: 295,
@@ -526,17 +521,6 @@ const styles = {
         width: 18,
     },
 
-    LHNPencilIcon: {
-        height: 16,
-        width: 16,
-    },
-
-    attachmentCloseIcon: {
-        height: 20,
-        width: 20,
-        padding: 0,
-    },
-
     chatContent: {
         flex: 4,
         justifyContent: 'flex-end',
@@ -663,17 +647,12 @@ const styles = {
         alignSelf: 'flex-end',
         borderRadius: 6,
         height: 32,
-        paddingTop: 8,
+        paddingTop: 6,
         paddingRight: 6,
-        paddingBottom: 8,
+        paddingBottom: 6,
         paddingLeft: 6,
         margin: 3,
         justifyContent: 'center',
-    },
-
-    chatItemSubmitButtonIcon: {
-        height: 20,
-        width: 20,
     },
 
     chatItemAttachButton: {
@@ -703,11 +682,6 @@ const styles = {
         alignSelf: 'flex-end',
         height: variables.componentSizeNormal,
         justifyContent: 'center',
-    },
-
-    chatSwitcherInputClearIcon: {
-        height: 24,
-        width: 24,
     },
 
     chatSwitcherGroupDMContainer: {
