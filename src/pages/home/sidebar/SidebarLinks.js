@@ -21,10 +21,6 @@ import {getSidebarOptions} from '../../../libs/OptionsListUtils';
 import {getDefaultAvatar} from '../../../libs/actions/PersonalDetails';
 
 const propTypes = {
-    // These are from withRouter
-    // eslint-disable-next-line react/forbid-prop-types
-    match: PropTypes.object.isRequired,
-
     // Toggles the navigation menu open and closed
     onLinkClick: PropTypes.func.isRequired,
 
@@ -83,6 +79,7 @@ const defaultProps = {
         avatarURL: getDefaultAvatar(),
     },
     network: null,
+    currentlyViewedReportID: '',
 };
 
 const SidebarLinks = (props) => {

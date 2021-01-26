@@ -55,6 +55,7 @@ const defaultProps = {
     isChatSwitcherActive: false,
     currentURL: '',
     network: {isOffline: true},
+    currentlyViewedReportID: '',
 };
 
 class HomePage extends React.Component {
