@@ -15,7 +15,6 @@ const propTypes = {
     match: PropTypes.object.isRequired,
 
     /* Onyx Props */
-
     // List of reports to display
     reports: PropTypes.objectOf(PropTypes.shape({
         reportID: PropTypes.number,

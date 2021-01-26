@@ -35,7 +35,6 @@ const propTypes = {
     insets: SafeAreaInsetPropTypes.isRequired,
 
     /* Onyx Props */
-
     // List of reports
     reports: PropTypes.objectOf(PropTypes.shape({
         reportID: PropTypes.number,
@@ -70,6 +69,9 @@ const propTypes = {
         // Is the network currently offline or not
         isOffline: PropTypes.bool,
     }),
+
+    // Currently viewed reportID
+    currentlyViewedReportID: PropTypes.string,
 };
 
 const defaultProps = {
@@ -84,13 +86,13 @@ const defaultProps = {
 };
 
 const SidebarLinks = (props) => {
-    const reportIDInUrl = parseInt(props.match.params.reportID, 10);
+    const activeReportID = parseInt(props.currentlyViewedReportID, 10);
 
     const chatSwitcherStyle = props.isChatSwitcherActive
         ? [styles.sidebarHeader, styles.sidebarHeaderActive]
         : [styles.sidebarHeader];
 
-    const {recentReports} = getSidebarOptions(props.reports, props.personalDetails, props.draftComments, reportIDInUrl);
+    const {recentReports} = getSidebarOptions(props.reports, props.personalDetails, props.draftComments, activeReportID);
 
     const sections = [{
         title: '',
@@ -139,7 +141,7 @@ const SidebarLinks = (props) => {
                         ]}
                         sections={sections}
                         focusedIndex={_.findIndex(recentReports, (
-                            option => option.reportID === reportIDInUrl
+                            option => option.reportID === activeReportID
                         ))}
                         onSelectRow={(option) => {
                             redirect(ROUTES.getReportRoute(option.reportID));
@@ -178,6 +180,9 @@ export default compose(
         isChatSwitcherActive: {
             key: ONYXKEYS.IS_CHAT_SWITCHER_ACTIVE,
             initWithStoredValues: false,
+        },
+        currentlyViewedReportID: {
+            key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
         },
     }),
 )(SidebarLinks);

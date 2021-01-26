@@ -102,7 +102,7 @@ export default (type, windowDimensions) => {
                 justifyContent: 'flex-end',
             });
             modalContainerStyle = {
-                width: isSmallScreen ? '100%' : '40%',
+                width: isSmallScreen ? '100%' : variables.sideBarWidth,
                 height: '100%',
                 overflow: 'hidden',
             };
