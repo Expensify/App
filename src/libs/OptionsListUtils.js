@@ -14,6 +14,7 @@ import ONYXKEYS from '../ONYXKEYS';
  */
 
 let currentUserLogin;
+let countryCodeByIP;
 
 /**
  * Returns the personal details for an array of logins
@@ -97,6 +98,11 @@ function createOption(personalDetailList, report, draftComments, activeReportID)
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: val => currentUserLogin = val && val.email,
+});
+
+Onyx.connect({
+    key: ONYXKEYS.COUNTRY_CODE,
+    callback: val => countryCodeByIP = val || 1,
 });
 
 /**
@@ -245,7 +251,12 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             && _.every(selectedOptions, option => option.login !== searchValue)
             && (Str.isValidEmail(searchValue) || Str.isValidPhone(searchValue))
     ) {
-        const userInvitePersonalDetails = getPersonalDetailsForLogins([searchValue], personalDetails);
+        // If the phone number doesn't have an international code then let's prefix it with the
+        // current users international code based on their IP address.
+        const login = (Str.isValidPhone(searchValue) && !searchValue.includes('+'))
+            ? `+${countryCodeByIP}${searchValue}`
+            : searchValue;
+        const userInvitePersonalDetails = getPersonalDetailsForLogins([login], personalDetails);
         userToInvite = createOption(userInvitePersonalDetails, null, draftComments, activeReportID);
     }
 
