@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {Animated, Text, View} from 'react-native';
 import Hoverable from './Hoverable';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import getTooltipStyles from '../styles/getTooltipStyles';
 
 const propTypes = {
@@ -10,6 +11,9 @@ const propTypes = {
 
     // Child to wrap with Tooltip. Must be only child.
     children: PropTypes.node.isRequired,
+
+    // Props inherited from withWindowDimensions
+    ...windowDimensionsPropTypes,
 };
 
 class Tooltip extends Component {
@@ -95,6 +99,7 @@ class Tooltip extends Component {
             pointerStyle,
         } = getTooltipStyles(
             interpolatedSize,
+            this.props.windowDimensions.width,
             this.xOffset,
             this.yOffset,
             this.wrapperWidth,
@@ -133,4 +138,4 @@ class Tooltip extends Component {
 }
 
 Tooltip.propTypes = propTypes;
-export default Tooltip;
+export default withWindowDimensions(Tooltip);
