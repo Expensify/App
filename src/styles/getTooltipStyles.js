@@ -1,8 +1,17 @@
 import spacing from './utilities/spacing';
 import themeColors from './themes/default';
 
-// eslint-disable-next-line no-unused-vars
-export default function getTooltipStyles(interpolatedSize, xOffset, yOffset, width, height) {
+export default function getTooltipStyles(
+    interpolatedSize,
+    xOffset,
+    yOffset,
+    width,
+    // eslint-disable-next-line no-unused-vars
+    height,
+    tooltipWidth,
+    // eslint-disable-next-line no-unused-vars
+    tooltipHeight,
+) {
     return {
         animationStyle: {
             transform: [{
@@ -24,8 +33,8 @@ export default function getTooltipStyles(interpolatedSize, xOffset, yOffset, wid
             // = 26
             top: -26,
 
-            // Shift the tooltip to the left by...
-            left: (width / -2) - 4,
+            // Shift the tooltip to the left by half the component's width + half the tooltip's width
+            left: (tooltipWidth / -2) + (width / 2),
         },
         pointerWrapperStyle: {
             position: 'absolute',

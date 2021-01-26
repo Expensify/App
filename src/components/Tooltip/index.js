@@ -35,6 +35,11 @@ class Tooltip extends Component {
         this.width = 0;
         this.height = 0;
 
+        // The tooltip (popover) itself.
+        this.tooltip = null;
+        this.tooltipWidth = 0;
+        this.tooltipHeight = 0;
+
         // The distance between the left side of the rendered view and the left side of the window
         this.xOffset = 0;
 
@@ -51,6 +56,10 @@ class Tooltip extends Component {
             this.yOffset = y;
             this.width = width;
             this.height = height;
+        });
+        this.tooltip.measureInWindow((x, y, width, height) => {
+            this.tooltipWidth = width;
+            this.tooltipHeight = height;
         });
     }
 
@@ -72,16 +81,20 @@ class Tooltip extends Component {
             animationStyle,
             tooltipWrapperStyle,
             pointerWrapperStyle,
-        } = getTooltipStyles(interpolatedSize, this.xOffset, this.yOffset, this.width, this.height);
+        } = getTooltipStyles(interpolatedSize, this.xOffset, this.yOffset, this.width, this.height, this.tooltipWidth, this.tooltipHeight);
 
         return (
             <View
                 ref={el => this.wrapperView = el}
-                onLayout={el => this.getPosition(el)}
+                onLayout={this.getPosition}
                 collapsable={false}
             >
                 <Animated.View style={animationStyle}>
-                    <View style={tooltipWrapperStyle}>
+                    <View
+                        ref={el => this.tooltip = el}
+                        onLayout={this.getPosition}
+                        style={tooltipWrapperStyle}
+                    >
                         <Text style={styles.tooltipText} numberOfLines={1}>{this.props.text}</Text>
                     </View>
                     <View style={pointerWrapperStyle}>
