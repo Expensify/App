@@ -22,10 +22,6 @@ class Tooltip extends Component {
     constructor(props) {
         super(props);
 
-        this.state = {
-            isVisible: false,
-        };
-
         this.animation = new Animated.Value(0);
 
         // The wrapper view containing the wrapped content along with the Tooltip itself.
@@ -45,7 +41,8 @@ class Tooltip extends Component {
         this.yOffset = 0;
 
         this.getPosition = this.getPosition.bind(this);
-        this.toggleTooltip = this.toggleTooltip.bind(this);
+        this.showTooltip = this.showTooltip.bind(this);
+        this.hideTooltip = this.hideTooltip.bind(this);
     }
 
     getPosition() {
@@ -61,13 +58,18 @@ class Tooltip extends Component {
         });
     }
 
-    toggleTooltip() {
+    showTooltip() {
         Animated.timing(this.animation, {
-            toValue: this.state.isVisible ? 0 : 1,
+            toValue: 1,
             duration: 140,
-        }).start(() => {
-            this.setState(prevState => ({isVisible: !prevState.isVisible}));
-        });
+        }).start();
+    }
+
+    hideTooltip() {
+        Animated.timing(this.animation, {
+            toValue: 0,
+            duration: 140,
+        }).start();
     }
 
     render() {
@@ -92,34 +94,30 @@ class Tooltip extends Component {
         );
 
         return (
-            <View
-                ref={el => this.wrapperView = el}
-                onLayout={this.getPosition}
-                collapsable={false}
+            <Hoverable
+                onHoverIn={this.showTooltip}
+                onHoverOut={this.hideTooltip}
             >
-                <Animated.View style={animationStyle}>
-                    <View
-                        ref={el => this.tooltip = el}
-                        onLayout={this.getPosition}
-                        style={tooltipWrapperStyle}
-                    >
-                        <Text style={tooltipTextStyle} numberOfLines={1}>{this.props.text}</Text>
-                    </View>
-                    <View style={pointerWrapperStyle}>
-                        <View style={pointerStyle} />
-                    </View>
-                </Animated.View>
-                <Hoverable>
-                    {(hovered) => {
-                        // If the hover state is different from the current visibility,
-                        // and we're not already animating, then toggle the tooltip visibility.
-                        if (this.state.isVisible !== hovered) {
-                            this.toggleTooltip();
-                        }
-                        return this.props.children;
-                    }}
-                </Hoverable>
-            </View>
+                <View
+                    ref={el => this.wrapperView = el}
+                    onLayout={this.getPosition}
+                    collapsable={false}
+                >
+                    <Animated.View style={animationStyle}>
+                        <View
+                            ref={el => this.tooltip = el}
+                            onLayout={this.getPosition}
+                            style={tooltipWrapperStyle}
+                        >
+                            <Text style={tooltipTextStyle} numberOfLines={1}>{this.props.text}</Text>
+                        </View>
+                        <View style={pointerWrapperStyle}>
+                            <View style={pointerStyle} />
+                        </View>
+                    </Animated.View>
+                    {this.props.children}
+                </View>
+            </Hoverable>
         );
     }
 }
