@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import React, {Component} from 'react';
 import {propTypes, defaultProps} from './HoverablePropTypes';
 
@@ -30,17 +29,17 @@ class Hoverable extends Component {
     }
 
     render() {
-        const child = _.isFunction(this.props.children)
-            ? this.props.children(this.state.isHovered)
-            : this.props.children;
-
-        // Clone the child element, providing the callbacks to the react element to handle hover state changes.
-        // Using `React.Children.only` enforces that this component has only one child,
-        // which gives the `Hoverable` a more predictable UX.
-        return React.cloneElement(React.Children.only(child), {
-            onMouseEnter: this.toggleHoverState,
-            onMouseLeave: this.toggleHoverState,
+        // Clone the children, providing the callbacks to handle hover state changes.
+        const childrenWithHoverProps = React.Children.map(this.props.children, (child) => {
+            if (React.isValidElement(child)) {
+                return React.cloneElement(child, {
+                    onMouseEnter: this.toggleHoverState,
+                    onMouseLeave: this.toggleHoverState,
+                });
+            }
+            return child;
         });
+        return <>{childrenWithHoverProps}</>;
     }
 }
 
