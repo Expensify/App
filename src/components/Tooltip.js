@@ -1,8 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {
-    Animated, Text, View,
-} from 'react-native';
+import {Animated, Text, View} from 'react-native';
 import Hoverable from './Hoverable';
 import getTooltipStyles from '../styles/getTooltipStyles';
 
@@ -11,11 +9,7 @@ const propTypes = {
     text: PropTypes.string.isRequired,
 
     // Child to wrap with Tooltip. Must be only child.
-    children: PropTypes.oneOfType([
-        PropTypes.func,
-        PropTypes.element,
-        PropTypes.instanceOf(Component),
-    ]).isRequired,
+    children: PropTypes.node.isRequired,
 };
 
 class Tooltip extends Component {

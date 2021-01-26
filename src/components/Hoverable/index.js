@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React, {Component} from 'react';
 import {propTypes, defaultProps} from './HoverablePropTypes';
 
@@ -37,7 +38,7 @@ class Hoverable extends Component {
     }
 
     render() {
-        const child = typeof this.props.children === 'function'
+        const child = _.isFunction(this.props.children)
             ? this.props.children(this.state.isHovered)
             : this.props.children;
 
