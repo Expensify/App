@@ -10,6 +10,8 @@ import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import CONST from '../CONST';
+import {redirect} from '../libs/actions/App';
+import ROUTES from '../ROUTES';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -37,6 +39,13 @@ const propTypes = {
     session: PropTypes.shape({
         email: PropTypes.string.isRequired,
     }).isRequired,
+
+    // Report ID currently in view
+    currentlyViewedReportID: PropTypes.string,
+};
+
+const defaultProps = {
+    currentlyViewedReportID: '',
 };
 
 class NewGroupPage extends Component {
@@ -179,6 +188,11 @@ class NewGroupPage extends Component {
             <View style={[styles.flex1, styles.p2]}>
                 <HeaderWithCloseButton
                     title="New Group"
+                    onCloseButtonPress={() => {
+                        redirect(this.props.currentlyViewedReportID !== ''
+                            ? ROUTES.getReportRoute(this.props.currentlyViewedReportID)
+                            : ROUTES.HOME);
+                    }}
                 />
                 <OptionsSelector
                     canSelectMultipleOptions
@@ -221,6 +235,7 @@ class NewGroupPage extends Component {
 }
 
 NewGroupPage.propTypes = propTypes;
+NewGroupPage.defaultProps = defaultProps;
 
 export default withOnyx({
     reports: {
@@ -231,5 +246,8 @@ export default withOnyx({
     },
     session: {
         key: ONYXKEYS.SESSION,
+    },
+    currentlyViewedReportID: {
+        key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
     },
 })(NewGroupPage);
