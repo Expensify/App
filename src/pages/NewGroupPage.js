@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import {View, Text, TouchableOpacity} from 'react-native';
+import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import OptionsSelector from '../components/OptionsSelector';
@@ -10,11 +11,40 @@ import styles from '../styles/styles';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import CONST from '../CONST';
 
+const personalDetailsPropTypes = PropTypes.shape({
+    // The login of the person (either email or phone number)
+    login: PropTypes.string.isRequired,
+
+    // The URL of the person's avatar (there should already be a default avatarURL if
+    // the person doesn't have their own avatar uploaded yet)
+    avatarURL: PropTypes.string.isRequired,
+
+    // This is either the user's full name, or their login if full name is an empty string
+    displayName: PropTypes.string.isRequired,
+});
+
+const propTypes = {
+    // All of the personal details for everyone
+    personalDetails: PropTypes.objectOf(personalDetailsPropTypes).isRequired,
+
+    // All reports shared with the user
+    reports: PropTypes.shape({
+        reportID: PropTypes.number,
+        reportName: PropTypes.string,
+    }).isRequired,
+
+    // Session of currently logged in user
+    session: PropTypes.shape({
+        email: PropTypes.string.isRequired,
+    }).isRequired,
+};
+
 class NewGroupPage extends Component {
     constructor(props) {
         super(props);
 
         this.toggleOption = this.toggleOption.bind(this);
+        this.createGroup = this.createGroup.bind(this);
 
         const {
             recentReports,
@@ -33,6 +63,30 @@ class NewGroupPage extends Component {
             personalDetails,
             selectedOptions: [],
             userToInvite,
+        };
+    }
+
+    getHeaderTitleAndMessage() {
+        const maxParticipantsReached = this.state.selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
+        if (maxParticipantsReached) {
+            return {
+                headerTitle: 'Maximum participants reached',
+                headerMessage: 'You\'ve reached the maximum number of participants for a group chat.',
+            };
+        }
+
+        const hasSelectableOptions = this.state.personalDetails.length + this.state.recentReports.length !== 0;
+        if (!hasSelectableOptions && !this.state.userToInvite) {
+            return {
+                headerTitle: '',
+                // eslint-disable-next-line max-len
+                headerMessage: 'Don\'t see who you\'re looking for? Type their email or phone number to invite them to chat.',
+            };
+        }
+
+        return {
+            headerTitle: '',
+            headerMessage: '',
         };
     }
 
@@ -115,7 +169,7 @@ class NewGroupPage extends Component {
 
     render() {
         const sections = this.getSections();
-        const maxParticipantsReached = this.state.selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
+        const {headerTitle, headerMessage} = this.getHeaderTitleAndMessage();
         return (
             <View style={[styles.flex1, styles.p2]}>
                 <HeaderWithCloseButton
@@ -145,16 +199,8 @@ class NewGroupPage extends Component {
                             personalDetails,
                         });
                     }}
-                    headerTitle={
-                        maxParticipantsReached
-                            ? 'Maximum participants reached'
-                            : ''
-                    }
-                    headerMessage={
-                        maxParticipantsReached
-                            ? 'You\'ve reached the maximum number of participants for a group chat.'
-                            : ''
-                    }
+                    headerTitle={headerTitle}
+                    headerMessage={headerMessage}
                 />
                 <TouchableOpacity
                     onPress={this.createGroup}
@@ -168,6 +214,8 @@ class NewGroupPage extends Component {
         );
     }
 }
+
+NewGroupPage.propTypes = propTypes;
 
 export default withOnyx({
     reports: {
