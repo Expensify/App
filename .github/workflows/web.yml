@@ -26,7 +26,8 @@ jobs:
             # Installs Cloudflare CLI, after installing/upgrading dependencies
             - name: Setup Cloudflare CLI
               run: |
-                   pip3 install --upgrade pip
+                   # Pip 21 doesn't support python 3.5, so use the version before it
+                   sudo python3 -m pip install --upgrade pip==20.3.4
                    pip3 install wheel # need wheel before cloudflare, this is the only way to ensure order.
                    pip3 install cloudflare
 
