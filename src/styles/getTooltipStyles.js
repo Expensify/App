@@ -1,4 +1,3 @@
-import {Dimensions} from 'react-native';
 import spacing from './utilities/spacing';
 import styles from './styles';
 import themeColors from './themes/default';
@@ -63,6 +62,7 @@ function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWid
  * Generate styles for the tooltip component.
  *
  * @param {Number} interpolatedSize - The current size of the tooltip used in the scaling animation.
+ * @param {Number} windowWidth - The width of the window.
  * @param {Number} xOffset - The distance between the left edge of the window
  *                           and the left edge of the wrapped component.
  * @param {Number} yOffset - The distance between the top edge of the window
@@ -74,18 +74,18 @@ function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWid
  * @returns {Object}
  */
 export default function getTooltipStyles(
-    interpolatedSize: Number,
-    xOffset: Number,
-    yOffset: Number,
-    componentWidth: Number,
-    componentHeight: Number,
-    tooltipWidth: Number,
-    tooltipHeight: Number,
+    interpolatedSize,
+    windowWidth,
+    xOffset,
+    yOffset,
+    componentWidth,
+    componentHeight,
+    tooltipWidth,
+    tooltipHeight,
 ) {
     // Determine if the tooltip should display below the wrapped component.
     // If a tooltip will try to render within GUTTER_WIDTH logical pixels of the top of the screen,
     // we'll display it beneath its wrapped component rather than above it as usual.
-    const windowWidth = Dimensions.get('window').width;
     const shouldShowBelow = (yOffset - tooltipHeight) < GUTTER_WIDTH;
 
     // Determine if we need to shift the tooltip horizontally to prevent it
