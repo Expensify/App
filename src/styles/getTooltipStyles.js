@@ -1,19 +1,21 @@
 import spacing from './utilities/spacing';
+import styles from './styles';
 import themeColors from './themes/default';
 import fontFamily from './fontFamily';
 import variables from './variables';
+
+const GUTTER_WIDTH = 8;
 
 export default function getTooltipStyles(
     interpolatedSize,
     xOffset,
     yOffset,
     width,
-    // eslint-disable-next-line no-unused-vars
     height,
     tooltipWidth,
-    // eslint-disable-next-line no-unused-vars
     tooltipHeight,
 ) {
+    const shouldShowBelow = (yOffset - tooltipHeight) < GUTTER_WIDTH;
     return {
         animationStyle: {
             transform: [{
@@ -33,7 +35,10 @@ export default function getTooltipStyles(
             // + 4 (upward shift of the pointer)
             // + 3 (pointer height - 1)
             // = 26
-            top: -26,
+            // OR
+            // Shift the tooltip down by...
+            // (component height) + (pointer height - 1)
+            top: shouldShowBelow ? height + 3 : -26,
 
             // Shift the tooltip to the left by half the component's width + half the tooltip's width
             left: (tooltipWidth / -2) + (width / 2),
@@ -47,7 +52,9 @@ export default function getTooltipStyles(
             position: 'absolute',
 
             // Shift the pointer up by its height
-            top: -4,
+            // OR
+            // Down by the component's height - its height
+            top: shouldShowBelow ? height - 4 : -4,
 
             // Shift the pointer to the right (to the middle of the wrapped element)
             left: (width / 2) - 4,
@@ -63,6 +70,7 @@ export default function getTooltipStyles(
             borderLeftColor: 'transparent',
             borderRightColor: 'transparent',
             borderTopColor: themeColors.heading,
+            ...(shouldShowBelow ? styles.flipUpsideDown : {}),
         },
     };
 }

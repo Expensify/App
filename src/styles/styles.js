@@ -1017,6 +1017,10 @@ const styles = {
         alignItems: 'center',
         padding: 20,
     },
+
+    flipUpsideDown: {
+        transform: [{rotate: '180deg'}],
+    },
 };
 
 const baseCodeTagStyles = {
