@@ -172,6 +172,10 @@ function fetchChatReportsByIDs(chatList) {
                 const key = `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`;
                 simplifiedReports[key] = getSimplifiedReportObject(report);
             });
+
+            // We use mergeCollection such that it updates ONYXKEYS.COLLECTION.REPORT in one go.
+            // Any withOnyx subscribers to this key will also receive the complete updated props just once
+            // than updating props for each report and re-rendering had merge been used.
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedReports);
 
             // Fetch the personal details if there are any

@@ -89,9 +89,6 @@ const SidebarLinks = (props) => {
         ? [styles.sidebarHeader, styles.sidebarHeaderActive]
         : [styles.sidebarHeader];
 
-    if (_.isEmpty(props.reports) || _.isEmpty(props.personalDetails)) {
-        return null;
-    }
     const {recentReports} = getSidebarOptions(props.reports, props.personalDetails, props.draftComments, reportIDInUrl);
 
     const sections = [{
