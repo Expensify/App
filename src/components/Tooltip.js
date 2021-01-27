@@ -9,7 +9,7 @@ const propTypes = {
     // The text to display in the tooltip.
     text: PropTypes.string.isRequired,
 
-    // Child to wrap with Tooltip. Should be only child, or the tooltip placement will be unpredictable.
+    // Children to wrap with Tooltip.
     children: PropTypes.node.isRequired,
 
     // Props inherited from withWindowDimensions
@@ -120,7 +120,6 @@ class Tooltip extends Component {
                 <View
                     ref={el => this.wrapperView = el}
                     onLayout={this.measureWrapperAndGetPosition}
-                    collapsable={false}
                 >
                     <Animated.View style={animationStyle}>
                         <View
