@@ -13,7 +13,6 @@ import styles, {getSafeAreaPadding, getNavigationMenuStyle} from '../../styles/s
 import variables from '../../styles/variables';
 import HeaderView from './HeaderView';
 import Sidebar from './sidebar/SidebarView';
-import SettingsPage from '../SettingsPage';
 import Main from './MainView';
 import {
     hide as hideSidebar,
@@ -39,6 +38,7 @@ import {fetchCountryCodeByRequestIP} from '../../libs/actions/GeoLocation';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import * as ChatSwitcher from '../../libs/actions/ChatSwitcher';
 import {redirect} from '../../libs/actions/App';
+import SettingsModal from '../../components/SettingsModal';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import compose from '../../libs/compose';
 
@@ -47,6 +47,7 @@ const propTypes = {
     isChatSwitcherActive: PropTypes.bool,
     currentURL: PropTypes.string,
     network: PropTypes.shape({isOffline: PropTypes.bool}),
+    currentlyViewedReportID: PropTypes.string,
     ...windowDimensionsPropTypes,
 };
 const defaultProps = {
@@ -54,6 +55,7 @@ const defaultProps = {
     isChatSwitcherActive: false,
     currentURL: '',
     network: {isOffline: true},
+    currentlyViewedReportID: '',
 };
 
 class HomePage extends React.Component {
@@ -175,7 +177,6 @@ class HomePage extends React.Component {
      */
     navigateToSettings() {
         redirect(ROUTES.SETTINGS);
-        this.toggleNavigationMenu();
     }
 
     /**
@@ -314,8 +315,11 @@ class HomePage extends React.Component {
                                     <HeaderView
                                         shouldShowNavigationMenuButton={isSmallScreenWidth}
                                         onNavigationMenuButtonClicked={this.toggleNavigationMenu}
+                                        reportID={this.props.currentlyViewedReportID}
                                     />
-                                    {this.props.currentURL === '/settings' && <SettingsPage />}
+                                    <SettingsModal
+                                        isVisible={this.props.currentURL === ROUTES.SETTINGS}
+                                    />
                                     <Main />
                                 </View>
                             </Route>
@@ -345,6 +349,9 @@ export default compose(
             },
             network: {
                 key: ONYXKEYS.NETWORK,
+            },
+            currentlyViewedReportID: {
+                key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
             },
         },
     ),
