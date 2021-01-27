@@ -5,7 +5,6 @@ import styles from '../../../../styles/styles';
 import getReportActionContextMenuStyles from '../../../../styles/getReportActionContextMenuStyles';
 import getButtonState from '../../../../libs/getButtonState';
 import ContextActions from './ContextActions';
-import themeColors from '../../../../styles/themes/default';
 import Icon from '../../../../components/Icon';
 import Tooltip from '../../../../components/Tooltip';
 
@@ -32,7 +31,7 @@ const defaultProps = {
 };
 
 const ReportActionContextMenu = (props) => {
-    const {wrapperStyle, getButtonStyle} = getReportActionContextMenuStyles(props.isMini);
+    const {wrapperStyle, getButtonStyle, getIconFillColor} = getReportActionContextMenuStyles(props.isMini);
     return props.shouldShow && (
         <View style={[
             ...wrapperStyle,
@@ -47,10 +46,10 @@ const ReportActionContextMenu = (props) => {
                     arrow
                 >
                     <Pressable style={({hovered, pressed}) => getButtonStyle(getButtonState(hovered, pressed))}>
-                        {({pressed}) => (
+                        {({hovered, pressed}) => (
                             <Icon
                                 src={contextAction.icon}
-                                fill={pressed ? themeColors.heading : themeColors.icon}
+                                fill={getIconFillColor(getButtonState(hovered, pressed))}
                             />
                         )}
                     </Pressable>
