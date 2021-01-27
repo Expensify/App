@@ -91,10 +91,6 @@ class Tooltip extends Component {
     }
 
     render() {
-        const interpolatedSize = this.animation.interpolate({
-            inputRange: [0, 1],
-            outputRange: [0, 1],
-        });
         const {
             animationStyle,
             tooltipWrapperStyle,
@@ -102,7 +98,7 @@ class Tooltip extends Component {
             pointerWrapperStyle,
             pointerStyle,
         } = getTooltipStyles(
-            interpolatedSize,
+            this.animation,
             this.props.windowDimensions.width,
             this.xOffset,
             this.yOffset,
