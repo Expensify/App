@@ -175,10 +175,10 @@ const styles = {
     },
 
     headerText: {
-        fontFamily: fontFamily.GTA,
         color: themeColors.heading,
+        fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeNormal,
-        fontWeight: '700',
+        fontWeight: fontWeightBold,
     },
 
     reportOptions: {
@@ -230,7 +230,7 @@ const styles = {
         borderColor: themeColors.icon,
     },
 
-    textInputNoOutline: addOutlineWidth({}, 0),
+    noOutline: addOutlineWidth({}, 0),
 
     formLabel: {
         color: themeColors.text,
@@ -271,11 +271,6 @@ const styles = {
         width: '100%',
         marginBottom: 20,
         marginTop: 20,
-    },
-
-    signinLogo: {
-        height: variables.componentSizeLarge,
-        width: variables.componentSizeLarge,
     },
 
     signinWelcomeScreenshot: {
@@ -344,7 +339,7 @@ const styles = {
     },
 
     sidebarAvatar: {
-        backgroundColor: themeColors.text,
+        backgroundColor: themeColors.icon,
         borderRadius: 20,
         height: variables.componentSizeNormal,
         width: variables.componentSizeNormal,
@@ -527,17 +522,6 @@ const styles = {
         width: 18,
     },
 
-    LHNPencilIcon: {
-        height: 16,
-        width: 16,
-    },
-
-    attachmentCloseIcon: {
-        height: 20,
-        width: 20,
-        padding: 0,
-    },
-
     chatContent: {
         flex: 4,
         justifyContent: 'flex-end',
@@ -664,17 +648,12 @@ const styles = {
         alignSelf: 'flex-end',
         borderRadius: 6,
         height: 32,
-        paddingTop: 8,
+        paddingTop: 6,
         paddingRight: 6,
-        paddingBottom: 8,
+        paddingBottom: 6,
         paddingLeft: 6,
         margin: 3,
         justifyContent: 'center',
-    },
-
-    chatItemSubmitButtonIcon: {
-        height: 20,
-        width: 20,
     },
 
     chatItemAttachButton: {
@@ -704,11 +683,6 @@ const styles = {
         alignSelf: 'flex-end',
         height: variables.componentSizeNormal,
         justifyContent: 'center',
-    },
-
-    chatSwitcherInputClearIcon: {
-        height: 24,
-        width: 24,
     },
 
     chatSwitcherGroupDMContainer: {
@@ -781,12 +755,14 @@ const styles = {
     singleAvatar: {
         height: 24,
         width: 24,
+        backgroundColor: themeColors.icon,
         borderRadius: 24,
     },
 
     avatarNormal: {
         height: variables.componentSizeNormal,
         width: variables.componentSizeNormal,
+        backgroundColor: themeColors.icon,
         borderRadius: variables.componentSizeNormal,
     },
 
