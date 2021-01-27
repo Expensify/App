@@ -37,6 +37,24 @@ function getMiniButtonStyle(buttonState = CONST.BUTTON_STATES.DEFAULT) {
     }
 }
 
+/**
+ * Get the fill color for the icons in the menu depending on the state of the button they're in.
+ *
+ * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
+ * @returns {String}
+ */
+function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT) {
+    switch (buttonState) {
+        case CONST.BUTTON_STATES.HOVERED:
+            return themeColors.text;
+        case CONST.BUTTON_STATES.PRESSED:
+            return themeColors.heading;
+        case CONST.BUTTON_STATES.DEFAULT:
+        default:
+            return themeColors.icon;
+    }
+}
+
 const miniWrapperStyle = [
     styles.flexRow,
     {
@@ -55,6 +73,7 @@ const miniWrapperStyle = [
  */
 function getReportActionContextMenuStyles(isMini) {
     return {
+        getIconFillColor,
         getButtonStyle: isMini ? getMiniButtonStyle : () => {},
         wrapperStyle: isMini ? miniWrapperStyle : [],
     };
