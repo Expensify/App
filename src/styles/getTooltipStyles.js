@@ -1,5 +1,6 @@
 import spacing from './utilities/spacing';
 import styles from './styles';
+import colors from './colors';
 import themeColors from './themes/default';
 import fontFamily from './fontFamily';
 import variables from './variables';
@@ -162,13 +163,13 @@ export default function getTooltipStyles(
         pointerStyle: {
             width: 0,
             height: 0,
-            backgroundColor: 'transparent',
+            backgroundColor: colors.transparent,
             borderStyle: 'solid',
             borderLeftWidth: POINTER_HEIGHT,
             borderRightWidth: POINTER_HEIGHT,
             borderTopWidth: POINTER_WIDTH - 1,
-            borderLeftColor: 'transparent',
-            borderRightColor: 'transparent',
+            borderLeftColor: colors.transparent,
+            borderRightColor: colors.transparent,
             borderTopColor: themeColors.heading,
             ...(shouldShowBelow ? styles.flipUpsideDown : {}),
         },
