@@ -248,8 +248,8 @@ function updateReportWithNewAction(reportID, reportAction) {
 
     const reportActionsToMerge = {};
     if (reportAction.clientID) {
-        // Remove the optimistic action from the report since we are about to
-        // replace it with the real one (which has the true sequenceNumber)
+        // Remove the optimistic action from the report since we are about to replace it with the real one (which has
+        // the true sequenceNumber)
         reportActionsToMerge[reportAction.clientID] = null;
     }
 
@@ -429,9 +429,8 @@ function fetchChatReports() {
 function fetchActions(reportID) {
     API.Report_GetHistory({reportID})
         .then((data) => {
-            // We must remove all optimistic actions so there will not be any
-            // stuck comments. At this point, we should be caught up and no
-            // longer need any optimistic comments.
+            // We must remove all optimistic actions so there will not be any stuck comments. At this point, we should
+            // be caught up and no longer need any optimistic comments.
             removeOptimisticActions(reportID);
 
             const indexedData = _.indexBy(data.history, 'sequenceNumber');
@@ -588,8 +587,7 @@ function addAction(reportID, text, file) {
             ],
             automatic: false,
 
-            // Use the client generated ID as a optimistic action ID
-            // so we can remove it later
+            // Use the client generated ID as a optimistic action ID so we can remove it later
             sequenceNumber: optimisticReportActionID,
             avatar: myPersonalDetails.avatarURL,
             timestamp: moment().unix(),
