@@ -16,6 +16,10 @@ import ONYXKEYS from '../ONYXKEYS';
 let currentUserLogin;
 let countryCodeByIP;
 
+// We are initializing a default avatar here so that we use the same default color for each user we are inviting. This
+// will update when the OptionsListUtils re-loads. But will stay the same color for the life of the JS session.
+const defaultAvatarForUserToInvite = getDefaultAvatar();
+
 /**
  * Returns the personal details for an array of logins
  *
@@ -265,6 +269,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             : searchValue;
         const userInvitePersonalDetails = getPersonalDetailsForLogins([login], personalDetails);
         userToInvite = createOption(userInvitePersonalDetails, null, draftComments, activeReportID);
+        userToInvite.icons = [defaultAvatarForUserToInvite];
     }
 
     return {

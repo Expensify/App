@@ -64,6 +64,13 @@ const styles = {
         fontSize: variables.fontSizeSmall,
     },
 
+    textMicroBold: {
+        color: themeColors.text,
+        fontWeight: fontWeightBold,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeSmall,
+    },
+
     textLarge: {
         fontSize: variables.fontSizeLarge,
     },
@@ -1018,20 +1025,12 @@ const styles = {
         padding: 20,
     },
 
-    subHeader: {
-        color: themeColors.text,
-        fontWeight: fontWeightBold,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontSize: 12,
-        padding: 20,
-    },
-
     selectCircle: {
-        width: 30,
-        height: 30,
-        borderColor: colors.charcoal,
+        width: variables.componentSizeSmall,
+        height: variables.componentSizeSmall,
+        borderColor: themeColors.border,
         borderWidth: 1,
-        borderRadius: 15,
+        borderRadius: variables.componentSizeSmall / 2,
     },
 };
 

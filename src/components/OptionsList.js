@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React from 'react';
+import React, {forwardRef} from 'react';
 import {View, SectionList, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
@@ -46,6 +46,12 @@ const propTypes = {
 
     // Optional header message
     headerMessage: PropTypes.string,
+
+    // Passed via forwardRef so we can access the SectionList ref
+    innerRef: PropTypes.oneOfType([
+        PropTypes.func,
+        PropTypes.shape({current: PropTypes.instanceOf(SectionList)}),
+    ]),
 };
 
 const defaultProps = {
@@ -58,6 +64,7 @@ const defaultProps = {
     onSelectRow: () => {},
     headerMessage: '',
     headerTitle: '',
+    innerRef: null,
 };
 
 const OptionsList = ({
@@ -70,6 +77,7 @@ const OptionsList = ({
     onSelectRow,
     headerMessage,
     headerTitle,
+    innerRef,
 }) => (
     <View style={[styles.flex1]}>
         {headerMessage ? (
@@ -86,6 +94,7 @@ const OptionsList = ({
             </View>
         ) : null}
         <SectionList
+            ref={innerRef}
             bounces={false}
             indicatorStyle="white"
             keyboardShouldPersistTaps="always"
@@ -94,6 +103,7 @@ const OptionsList = ({
             sections={sections}
             keyExtractor={option => option.keyForList}
             initialNumToRender={200}
+            onScrollToIndexFailed={error => console.debug(error)}
             renderItem={({item, index, section}) => (
                 <ChatLinkRow
                     option={item}
@@ -107,7 +117,7 @@ const OptionsList = ({
                 if (title && shouldShow && !hideSectionHeaders) {
                     return (
                         <View>
-                            <Text style={styles.subHeader}>
+                            <Text style={[styles.p5, styles.textMicroBold]}>
                                 {title}
                             </Text>
                         </View>
@@ -125,4 +135,8 @@ const OptionsList = ({
 OptionsList.propTypes = propTypes;
 OptionsList.displayName = 'OptionsList';
 OptionsList.defaultProps = defaultProps;
-export default OptionsList;
+
+export default forwardRef((props, ref) => (
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <OptionsList {...props} innerRef={ref} />
+));
