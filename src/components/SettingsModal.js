@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import SettingsPage from '../pages/SettingsPage';
 import CONST from '../CONST';
 import themeColors from '../styles/themes/default';
@@ -29,7 +30,9 @@ const defaultProps = {
 const SettingsModal = props => (
     <ModalWithHeader
         type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
-        onClose={() => redirect(ROUTES.getReportRoute(props.currentlyViewedReportID))}
+        onClose={() => redirect(_.isEmpty(props.currentlyViewedReportID)
+            ? ROUTES.HOME
+            : ROUTES.getReportRoute(props.currentlyViewedReportID))}
         isVisible={props.isVisible}
         title="Settings"
         backgroundColor={themeColors.componentBG}
@@ -40,6 +43,7 @@ const SettingsModal = props => (
 
 SettingsModal.propTypes = propTypes;
 SettingsModal.defaultProps = defaultProps;
+SettingsModal.displayName = 'SettingsModal';
 
 export default withOnyx({
     session: {
