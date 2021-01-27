@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {Animated, Text, View} from 'react-native';
@@ -20,54 +21,93 @@ class Tooltip extends Component {
     constructor(props) {
         super(props);
 
-        this.animation = new Animated.Value(0);
+        this.state = {
+            // The distance between the left side of the wrapper view and the left side of the window
+            xOffset: 0,
+
+            // The distance between the top of the wrapper view and the top of the window
+            yOffset: 0,
+
+            // The width and height of the wrapper view
+            wrapperWidth: 0,
+            wrapperHeight: 0,
+
+            // The width and height of the tooltip itself
+            tooltipWidth: 0,
+            tooltipHeight: 0,
+        };
 
         // The wrapper view containing the wrapped content along with the Tooltip itself.
         this.wrapperView = null;
-        this.wrapperWidth = 0;
-        this.wrapperHeight = 0;
 
         // The tooltip (popover) itself.
         this.tooltip = null;
-        this.tooltipWidth = 0;
-        this.tooltipHeight = 0;
 
-        // The distance between the left side of the rendered view and the left side of the window
-        this.xOffset = 0;
+        this.animation = new Animated.Value(0);
 
-        // The distance between the top of the rendered view and the top of the window
-        this.yOffset = 0;
-
+        this.getWrapperPosition = this.getWrapperPosition.bind(this);
         this.measureWrapperAndGetPosition = this.measureWrapperAndGetPosition.bind(this);
         this.measureTooltip = this.measureTooltip.bind(this);
         this.showTooltip = this.showTooltip.bind(this);
         this.hideTooltip = this.hideTooltip.bind(this);
     }
 
+    componentDidUpdate(prevProps) {
+        if (!_.isMatch(this.props.windowDimensions, prevProps.windowDimensions)) {
+            this.getWrapperPosition()
+                .then(({x, y}) => {
+                    if (x !== this.state.xOffset || y !== this.state.yOffset) {
+                        this.setState({xOffset: x, yOffset: y});
+                    }
+                });
+        }
+    }
+
+    /**
+     * Measure the position of the wrapper view relative to the window.
+     *
+     * @returns {Promise}
+     */
+    getWrapperPosition() {
+        return new Promise((resolve => this.wrapperView.measureInWindow((x, y) => resolve({x, y}))));
+    }
+
     /**
      * Measure the size and position of the wrapper view.
      */
-    measureWrapperAndGetPosition() {
+    measureWrapperAndGetPosition({nativeEvent}) {
+        const {width, height} = nativeEvent.layout;
+
         // We need to use `measureInWindow` instead of the layout props provided by `onLayout`
         // because `measureInWindow` provides the x and y offset relative to the window, rather than the parent element.
-        this.wrapperView.measureInWindow((x, y, width, height) => {
-            this.xOffset = x;
-            this.yOffset = y;
-            this.wrapperWidth = width;
-            this.wrapperHeight = height;
-        });
+        this.getWrapperPosition()
+            .then(({x, y}) => {
+                // Re-render component only if values have changed
+                if (width !== this.state.wrapperWidth
+                    || height !== this.state.wrapperHeight
+                    || x !== this.state.xOffset
+                    || y !== this.state.yOffset) {
+                    this.setState({
+                        wrapperWidth: width,
+                        wrapperHeight: height,
+                        xOffset: x,
+                        yOffset: y,
+                    });
+                }
+            });
     }
 
     /**
      * Measure the size of the tooltip itself.
      */
-    measureTooltip() {
-        // We need to use `measureInWindow` instead of the layout props provided by `onLayout`
-        // because `measureInWindow` provides the x and y offset relative to the window, rather than the parent element.
-        this.tooltip.measureInWindow((x, y, width, height) => {
-            this.tooltipWidth = width;
-            this.tooltipHeight = height;
-        });
+    measureTooltip({nativeEvent}) {
+        const {width, height} = nativeEvent.layout;
+        if (width !== this.state.tooltipWidth || height !== this.state.tooltipHeight) {
+            this.setState({
+                tooltipWidth: width,
+                tooltipHeight: height,
+            });
+        }
     }
 
     /**
@@ -100,12 +140,12 @@ class Tooltip extends Component {
         } = getTooltipStyles(
             this.animation,
             this.props.windowDimensions.width,
-            this.xOffset,
-            this.yOffset,
-            this.wrapperWidth,
-            this.wrapperHeight,
-            this.tooltipWidth,
-            this.tooltipHeight,
+            this.state.xOffset,
+            this.state.yOffset,
+            this.state.wrapperWidth,
+            this.state.wrapperHeight,
+            this.state.tooltipWidth,
+            this.state.tooltipHeight,
         );
 
         return (
