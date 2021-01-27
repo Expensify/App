@@ -48,6 +48,8 @@ class Tooltip extends Component {
      * Measure the size and position of the wrapper view.
      */
     measureWrapperAndGetPosition() {
+        // We need to use `measureInWindow` instead of the layout props provided by `onLayout`
+        // because `measureInWindow` provides the x and y offset relative to the window, rather than the parent element.
         this.wrapperView.measureInWindow((x, y, width, height) => {
             this.xOffset = x;
             this.yOffset = y;
@@ -60,6 +62,8 @@ class Tooltip extends Component {
      * Measure the size of the tooltip itself.
      */
     measureTooltip() {
+        // We need to use `measureInWindow` instead of the layout props provided by `onLayout`
+        // because `measureInWindow` provides the x and y offset relative to the window, rather than the parent element.
         this.tooltip.measureInWindow((x, y, width, height) => {
             this.tooltipWidth = width;
             this.tooltipHeight = height;
