@@ -1,4 +1,6 @@
+import _ from 'underscore';
 import React, {Component} from 'react';
+import {View} from 'react-native';
 import {propTypes, defaultProps} from './HoverablePropTypes';
 
 /**
@@ -29,17 +31,18 @@ class Hoverable extends Component {
     }
 
     render() {
-        // Clone the children, providing the callbacks to handle hover state changes.
-        const childrenWithHoverProps = React.Children.map(this.props.children, (child) => {
-            if (React.isValidElement(child)) {
-                return React.cloneElement(child, {
-                    onMouseEnter: this.toggleHoverState,
-                    onMouseLeave: this.toggleHoverState,
-                });
-            }
-            return child;
-        });
-        return <>{childrenWithHoverProps}</>;
+        // If this.props.children is a function, call it to provide the hover state to the children.
+        const childrenWithHoverState = _.isFunction(this.props.children)
+            ? this.props.children(this.state.isHovered)
+            : this.props.children;
+        return (
+            <View
+                onMouseEnter={this.toggleHoverState}
+                onMouseLeave={this.toggleHoverState}
+            >
+                {childrenWithHoverState}
+            </View>
+        );
     }
 }
 
