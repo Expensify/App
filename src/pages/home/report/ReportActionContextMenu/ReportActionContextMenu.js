@@ -5,7 +5,8 @@ import styles from '../../../../styles/styles';
 import getReportActionContextMenuStyles from '../../../../styles/getReportActionContextMenuStyles';
 import getButtonState from '../../../../libs/getButtonState';
 import ContextActions from './ContextActions';
-import variables from '../../../../styles/variables';
+import themeColors from '../../../../styles/themes/default';
+import Icon from '../../../../components/Icon';
 import Tooltip from '../../../../components/Tooltip';
 
 const propTypes = {
@@ -38,27 +39,23 @@ const ReportActionContextMenu = (props) => {
             styles.flex1,
         ]}
         >
-            {ContextActions.map(((contextAction) => {
-                const Icon = contextAction.icon;
-                return (
-                    <Tooltip
-                        title={contextAction.text}
-                        key={contextAction.text}
-                        placement="top"
-                        arrow
-                    >
-                        <Pressable style={({hovered, pressed}) => getButtonStyle(getButtonState(hovered, pressed))}>
-                            {({pressed}) => (
-                                <Icon
-                                    width={variables.iconSizeNormal}
-                                    height={variables.iconSizeNormal}
-                                    isEnabled={pressed}
-                                />
-                            )}
-                        </Pressable>
-                    </Tooltip>
-                );
-            }))}
+            {ContextActions.map(contextAction => (
+                <Tooltip
+                    title={contextAction.text}
+                    key={contextAction.text}
+                    placement="top"
+                    arrow
+                >
+                    <Pressable style={({hovered, pressed}) => getButtonStyle(getButtonState(hovered, pressed))}>
+                        {({pressed}) => (
+                            <Icon
+                                src={contextAction.icon}
+                                fill={pressed ? themeColors.heading : themeColors.icon}
+                            />
+                        )}
+                    </Pressable>
+                </Tooltip>
+            ))}
         </View>
     );
 };
