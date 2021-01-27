@@ -939,10 +939,8 @@ const styles = {
     settingsPageBackground: {
         flexDirection: 'column',
         width: '100%',
-        height: '100%',
-        position: 'absolute',
+        flexGrow: 1,
         justifyContent: 'space-between',
-        backgroundColor: 'white',
         alignItems: 'center',
     },
 

@@ -5,7 +5,6 @@ import {withOnyx} from 'react-native-onyx';
 import Header from '../../components/Header';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
-import {withRouter} from '../../libs/Router';
 import themeColors from '../../styles/themes/default';
 import Icon from '../../components/Icon';
 import {BackArrow, Pin} from '../../components/Icon/Expensicons';
@@ -18,6 +17,10 @@ const propTypes = {
 
     // Decides whether we should show the navigationMenu button
     shouldShowNavigationMenuButton: PropTypes.bool.isRequired,
+
+    // Report ID currently being looked at, use to retrieve more information about the report.
+    // eslint-disable-next-line react/no-unused-prop-types
+    reportID: PropTypes.string.isRequired,
 
     /* Onyx Props */
     // The report currently being looked at
@@ -77,10 +80,9 @@ HeaderView.displayName = 'HeaderView';
 HeaderView.defaultProps = defaultProps;
 
 export default compose(
-    withRouter,
     withOnyx({
         report: {
-            key: ({match}) => `${ONYXKEYS.COLLECTION.REPORT}${match.params.reportID}`,
+            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         },
     }),
 )(HeaderView);
