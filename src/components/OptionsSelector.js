@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import lodashGet from 'lodash.get';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
@@ -28,7 +29,7 @@ const propTypes = {
     })).isRequired,
 
     // Value in the search input field
-    searchValue: PropTypes.string.isRequired,
+    value: PropTypes.string.isRequired,
 
     // Callback fired when text changes
     onChangeText: PropTypes.func.isRequired,
@@ -78,6 +79,26 @@ class OptionsSelector extends Component {
     }
 
     /**
+     * Scrolls to the focused index within the SectionList
+     *
+     * @param {Array} allOptions
+     * @param {Number} newFocusedIndex
+     */
+    scrollToFocusedIndex(allOptions, newFocusedIndex) {
+        const focusedOption = allOptions[newFocusedIndex];
+        const sectionIndex = _.findIndex(this.props.sections, section => (
+            _.find(section.data, option => option.login === focusedOption.login)
+        ));
+
+        const sectionData = lodashGet(this.props.sections, [sectionIndex, 'data'], []);
+        const itemIndex = _.findIndex(sectionData, option => (
+            option.login === focusedOption.login
+        ));
+
+        this.list.scrollToLocation({sectionIndex, itemIndex});
+    }
+
+    /**
      * Delegate key presses to specific callbacks
      *
      * @param {SyntheticEvent} e
@@ -103,6 +124,7 @@ class OptionsSelector extends Component {
                         newFocusedIndex = 0;
                     }
 
+                    this.scrollToFocusedIndex(allOptions, newFocusedIndex);
                     return {focusedIndex: newFocusedIndex};
                 });
 
@@ -120,6 +142,7 @@ class OptionsSelector extends Component {
                         newFocusedIndex = allOptions.length - 1;
                     }
 
+                    this.scrollToFocusedIndex(allOptions, newFocusedIndex);
                     return {focusedIndex: newFocusedIndex};
                 });
                 e.preventDefault();
@@ -137,13 +160,14 @@ class OptionsSelector extends Component {
                     styleFocusIn={[styles.textInputReversedFocus]}
                     ref={el => this.textInput = el}
                     style={[styles.textInput]}
-                    value={this.props.searchValue}
+                    value={this.props.value}
                     onChangeText={this.props.onChangeText}
                     onKeyPress={this.handleKeyPress}
                     placeholder={this.props.placeholderText}
                     placeholderTextColor={themeColors.textSupporting}
                 />
                 <OptionsList
+                    ref={el => this.list = el}
                     onSelectRow={this.props.onSelectRow}
                     sections={this.props.sections}
                     focusedIndex={this.state.focusedIndex}

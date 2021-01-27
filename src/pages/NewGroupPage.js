@@ -185,7 +185,7 @@ class NewGroupPage extends Component {
             } = getNewGroupOptions(
                 this.props.reports,
                 this.props.personalDetails,
-                this.state.searchValue,
+                isOptionInList ? prevState.searchValue : '',
                 newSelectedOptions,
             );
 
@@ -194,6 +194,7 @@ class NewGroupPage extends Component {
                 recentReports,
                 personalDetails,
                 userToInvite,
+                searchValue: isOptionInList ? prevState.searchValue : '',
             };
         });
     }
