@@ -8,6 +8,12 @@ import variables from './variables';
 // If a tooltip is too close to the edge of the screen, we'll shift it towards the center.
 const GUTTER_WIDTH = 16;
 
+// The height of a tooltip pointer
+const POINTER_HEIGHT = 4;
+
+// The width of a tooltip pointer
+const POINTER_WIDTH = 8;
+
 /**
  * The Expensify.cash repo is very consistent about doing spacing in multiples of 4.
  * In an effort to maintain that consistency, we'll make sure that any distance we're shifting the tooltip
@@ -92,6 +98,9 @@ export default function getTooltipStyles(
     // from displaying too near to the edge of the screen.
     const horizontalShift = computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWidth);
 
+    const tooltipVerticalPadding = spacing.pv1;
+    const tooltipFontSize = variables.fontSizeSmall;
+
     return {
         animationStyle: {
             transform: [{
@@ -102,20 +111,31 @@ export default function getTooltipStyles(
             position: 'absolute',
             backgroundColor: themeColors.heading,
             borderRadius: variables.componentBorderRadiusSmall,
-            ...spacing.pv1,
+            ...tooltipVerticalPadding,
             ...spacing.ph2,
 
-            // Shift the tooltip up by...
-            //   11 (font height)
-            // + 4 (top padding)
-            // + 4 (bottom padding)
-            // + 4 (upward shift of the pointer)
-            // + 3 (pointer height - 1)
-            // = 26
+            // Shift the tooltip down (+) by...
+            //
+            //   component height
+            // + (pointer height - 1)
+            //
             // OR
-            // Shift the tooltip down by...
-            // (component height) + (pointer height - 1)
-            top: shouldShowBelow ? componentHeight + 3 : -26,
+            //
+            // Shift the tooltip up (-) by...
+            //   font height
+            // + top padding
+            // + bottom padding
+            // + upward shift of the pointer (pointer height)
+            // + (pointer height - 1)
+            //
+            top: shouldShowBelow
+                ? componentHeight + (POINTER_HEIGHT - 1)
+                : -1 * (
+                    tooltipFontSize
+                    + tooltipVerticalPadding.paddingTop
+                    + tooltipVerticalPadding.paddingBottom
+                    + ((2 * POINTER_HEIGHT) - 1)
+                ),
 
             // Shift the tooltip to the left by...
             //   half the component's width
@@ -126,7 +146,7 @@ export default function getTooltipStyles(
         tooltipTextStyle: {
             color: themeColors.textReversed,
             fontFamily: fontFamily.GTA,
-            fontSize: variables.fontSizeSmall,
+            fontSize: tooltipFontSize,
         },
         pointerWrapperStyle: {
             position: 'absolute',
@@ -134,19 +154,19 @@ export default function getTooltipStyles(
             // Shift the pointer up by its height
             // OR
             // Down by the component's height - its height
-            top: shouldShowBelow ? componentHeight - 4 : -4,
+            top: shouldShowBelow ? (componentHeight - POINTER_HEIGHT) : (-1 * POINTER_HEIGHT),
 
             // Shift the pointer to the right (to the middle of the wrapped element)
-            left: (componentWidth / 2) - 4,
+            left: (componentWidth / 2) - (POINTER_WIDTH / 2),
         },
         pointerStyle: {
             width: 0,
             height: 0,
             backgroundColor: 'transparent',
             borderStyle: 'solid',
-            borderLeftWidth: 4,
-            borderRightWidth: 4,
-            borderTopWidth: 7,
+            borderLeftWidth: POINTER_HEIGHT,
+            borderRightWidth: POINTER_HEIGHT,
+            borderTopWidth: POINTER_WIDTH - 1,
             borderLeftColor: 'transparent',
             borderRightColor: 'transparent',
             borderTopColor: themeColors.heading,
