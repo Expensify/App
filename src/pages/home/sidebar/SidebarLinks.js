@@ -89,7 +89,12 @@ const SidebarLinks = (props) => {
         ? [styles.sidebarHeader, styles.sidebarHeaderActive]
         : [styles.sidebarHeader];
 
-    const {recentReports} = getSidebarOptions(props.reports, props.personalDetails, props.draftComments, activeReportID);
+    const {recentReports} = getSidebarOptions(
+        props.reports,
+        props.personalDetails,
+        props.draftComments,
+        activeReportID,
+    );
 
     const sections = [{
         title: '',
