@@ -1,35 +1,35 @@
 import {
-    ClipboardIcon, LinkCopyIcon, MailIcon, PencilIcon, TrashIcon,
-} from '../../../../components/Expensicons';
+    Clipboard, LinkCopy, Mail, Pencil, Trashcan,
+} from '../../../../components/Icon/Expensicons';
 
 export default [
     // Copy to clipboard
     {
         text: 'Copy to Clipboard',
-        icon: ClipboardIcon,
+        icon: Clipboard,
     },
 
     // Copy chat link
     {
         text: 'Copy Link',
-        icon: LinkCopyIcon,
+        icon: LinkCopy,
     },
 
     // Mark as Unread
     {
         text: 'Mark as Unread',
-        icon: MailIcon,
+        icon: Mail,
     },
 
     // Edit Comment
     {
         text: 'Edit Comment',
-        icon: PencilIcon,
+        icon: Pencil,
     },
 
     // Delete Comment
     {
         text: 'Delete Comment',
-        icon: TrashIcon,
+        icon: Trashcan,
     },
 ];
