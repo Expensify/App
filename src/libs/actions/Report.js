@@ -564,10 +564,9 @@ function addAction(reportID, text, file) {
     // sequenceNumber if it is created before this one.
     const optimisticReportActionID = Str.guid(`${Date.now()}_`);
 
-    // Store the optimistic action ID on the report the comment was added to.
-    // It will be removed later when refetching report actions in order to clear out any
-    // stuck actions (i.e. actions where the client never received a Pusher event, for
-    // whatever reason, from the server with the new action data
+    // Store the optimistic action ID on the report the comment was added to. It will be removed later when refetching
+    // report actions in order to clear out any stuck actions (i.e. actions where the client never received a Pusher
+    // event, for whatever reason, from the server with the new action data
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         optimisticReportActionIDs: [...(optimisticReportActionIDs[reportID] || []), optimisticReportActionID],
     });
