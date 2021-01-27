@@ -501,7 +501,6 @@ const styles = {
         justifyContent: 'center',
         display: 'flex',
         paddingRight: 20,
-        zIndex: 1,
     },
 
     appContentHeaderTitle: {
