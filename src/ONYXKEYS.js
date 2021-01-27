@@ -40,6 +40,9 @@ export default {
     IS_CHAT_SWITCHER_ACTIVE: 'isChatSwitcherActive',
     IS_SIDEBAR_ANIMATING: 'isSidebarAnimating',
 
+    // Data shared to the app from other apps
+    SHARED_ITEM: 'sharedItem',
+
     // Collection Keys
     COLLECTION: {
         REPORT: 'report_',
