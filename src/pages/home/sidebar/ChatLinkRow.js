@@ -120,17 +120,23 @@ const ChatLinkRow = ({
                     </TouchableOpacity>
                 </View>
             )}
-            {option.hasDraftComment && (
-                <Icon src={Pencil} width={variables.fontSizeSmall} height={variables.iconSizeSmall} />
-            )}
-            {option.isPinned && (
-                <Icon
-                    src={PinCircle}
-                    width={variables.iconSizeNormal}
-                    height={variables.iconSizeNormal}
-                    fill={themeColors.icon}
-                />
-            )}
+            <View style={styles.flexRow}>
+                {option.hasDraftComment && (
+                    <View style={styles.ml1}>
+                        <Icon src={Pencil} width={variables.iconSizeNormal} height={variables.iconSizeNormal} />
+                    </View>
+                )}
+                {option.isPinned && (
+                    <View style={styles.ml1}>
+                        <Icon
+                            src={PinCircle}
+                            width={variables.iconSizeNormal}
+                            height={variables.iconSizeNormal}
+                            fill={themeColors.icon}
+                        />
+                    </View>
+                )}
+            </View>
         </View>
     );
 };
