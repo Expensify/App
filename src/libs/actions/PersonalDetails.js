@@ -155,6 +155,7 @@ function getFromReportParticipants(reports) {
 
             // The personalDetails of the participants contain their avatar images. Here we'll go over each
             // report and based on the participants we'll link up their avatars to report icons.
+            const reportsToUpdate = {};
             _.each(reports, (report) => {
                 if (report.participants.length > 0) {
                     const avatars = _.map(report.participants, dmParticipant => ({
@@ -164,9 +165,14 @@ function getFromReportParticipants(reports) {
                         .sort((first, second) => first.firstName - second.firstName)
                         .map(item => item.avatar);
 
-                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {icons: avatars});
+                    reportsToUpdate[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = {icons: avatars};
                 }
             });
+
+            // We use mergeCollection such that it updates ONYXKEYS.COLLECTION.REPORT in one go.
+            // Any withOnyx subscribers to this key will also receive the complete updated props just once
+            // than updating props for each report and re-rendering had merge been used.
+            Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportsToUpdate);
         });
 }
 
