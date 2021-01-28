@@ -102,7 +102,7 @@ const OptionsList = ({
             showsVerticalScrollIndicator={false}
             sections={sections}
             keyExtractor={option => option.keyForList}
-            initialNumToRender={200}
+            initialNumToRender={500}
             onScrollToIndexFailed={error => console.debug(error)}
             renderItem={({item, index, section}) => (
                 <ChatLinkRow

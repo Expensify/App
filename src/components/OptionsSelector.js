@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import lodashGet from 'lodash.get';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
@@ -68,6 +67,7 @@ class OptionsSelector extends Component {
         super(props);
 
         this.handleKeyPress = this.handleKeyPress.bind(this);
+        this.viewableItems = [];
 
         this.state = {
             focusedIndex: 0,
@@ -81,20 +81,10 @@ class OptionsSelector extends Component {
     /**
      * Scrolls to the focused index within the SectionList
      *
-     * @param {Array} allOptions
-     * @param {Number} newFocusedIndex
+     * @param {Number} sectionIndex
+     * @param {Number} itemIndex
      */
-    scrollToFocusedIndex(allOptions, newFocusedIndex) {
-        const focusedOption = allOptions[newFocusedIndex];
-        const sectionIndex = _.findIndex(this.props.sections, section => (
-            _.find(section.data, option => option.login === focusedOption.login)
-        ));
-
-        const sectionData = lodashGet(this.props.sections, [sectionIndex, 'data'], []);
-        const itemIndex = _.findIndex(sectionData, option => (
-            option.login === focusedOption.login
-        ));
-
+    scrollToFocusedIndex(sectionIndex, itemIndex) {
         this.list.scrollToLocation({sectionIndex, itemIndex});
     }
 
@@ -104,8 +94,14 @@ class OptionsSelector extends Component {
      * @param {SyntheticEvent} e
      */
     handleKeyPress(e) {
-        const allOptions = _.reduce(this.props.sections, (prev, curr) => (
-            [...prev, ...(curr.data || [])]
+        // We are mapping over all the options to combine them into a single array and also saving the section index
+        // index within that section so we can navigate
+        const allOptions = _.reduce(this.props.sections, (options, section, sectionIndex) => (
+            [...options, ..._.map(section.data, (option, index) => ({
+                ...option,
+                index,
+                sectionIndex,
+            }))]
         ), []);
 
         switch (e.nativeEvent.key) {
@@ -124,7 +120,8 @@ class OptionsSelector extends Component {
                         newFocusedIndex = 0;
                     }
 
-                    this.scrollToFocusedIndex(allOptions, newFocusedIndex);
+                    const {index, sectionIndex} = allOptions[newFocusedIndex];
+                    this.scrollToFocusedIndex(sectionIndex, index);
                     return {focusedIndex: newFocusedIndex};
                 });
 
@@ -142,7 +139,8 @@ class OptionsSelector extends Component {
                         newFocusedIndex = allOptions.length - 1;
                     }
 
-                    this.scrollToFocusedIndex(allOptions, newFocusedIndex);
+                    const {index, sectionIndex} = allOptions[newFocusedIndex];
+                    this.scrollToFocusedIndex(sectionIndex, index);
                     return {focusedIndex: newFocusedIndex};
                 });
                 e.preventDefault();

@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React from 'react';
+import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import {
     Text,
@@ -149,4 +149,5 @@ ChatLinkRow.propTypes = propTypes;
 ChatLinkRow.defaultProps = defaultProps;
 ChatLinkRow.displayName = 'ChatLinkRow';
 
-export default ChatLinkRow;
+// It it very important to use React.memo here so SectionList items will not unnecessarily re-render
+export default memo(ChatLinkRow);
