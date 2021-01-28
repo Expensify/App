@@ -37,6 +37,7 @@ class SharePage extends React.Component {
         this.onLinkClick = this.onLinkClick.bind(this);
         this.onCreateMenuItemSelected = this.onCreateMenuItemSelected.bind(this);
         this.toggleCreateMenu = this.toggleCreateMenu.bind(this);
+        this.addSharedItemToReport = this.addSharedItemToReport.bind(this);
     }
 
     /**
@@ -62,6 +63,14 @@ class SharePage extends React.Component {
     onCreateMenuItemSelected() {
         this.toggleCreateMenu();
         ChatSwitcher.show();
+    }
+
+    /**
+     * Post shared item to selected report
+     * @param {Number} reportID report id
+     */
+    addSharedItemToReport(reportID) {
+        console.log(reportID);
     }
 
     /**
@@ -92,6 +101,7 @@ class SharePage extends React.Component {
                                     insets={insets}
                                     onCloseButtonClick={this.onCloseButtonClick}
                                     onLinkClick={this.onLinkClick}
+                                    onReportSelected={this.addSharedItemToReport}
                                 />
                                 <FAB
                                     isActive={this.state.isCreateMenuActive}

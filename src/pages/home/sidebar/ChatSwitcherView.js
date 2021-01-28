@@ -35,6 +35,9 @@ const propTypes = {
     // Toggles the navigation menu open and closed
     onLinkClick: PropTypes.func.isRequired,
 
+    // Called when report is selected
+    onReportSelected: PropTypes.func,
+
     /* Onyx Props */
 
     // All of the personal details for everyone
@@ -60,6 +63,7 @@ const propTypes = {
     isSidebarAnimating: PropTypes.bool,
 };
 const defaultProps = {
+    onReportSelected: () => {},
     personalDetails: {},
     reports: {},
     session: null,
@@ -241,7 +245,8 @@ class ChatSwitcherView extends React.Component {
      */
     startGroupChat() {
         const userLogins = _.map(this.state.usersToStartGroupReportWith, option => option.login);
-        fetchOrCreateChatReport([this.props.session.email, ...userLogins]);
+        fetchOrCreateChatReport([this.props.session.email, ...userLogins])
+            .then(this.props.onReportSelected);
         this.props.onLinkClick();
         this.reset();
     }
@@ -257,9 +262,11 @@ class ChatSwitcherView extends React.Component {
         // the user that was just selected and everyone in the list
         if (this.state.usersToStartGroupReportWith.length > 0) {
             const userLogins = _.map(this.state.usersToStartGroupReportWith, option => option.login);
-            fetchOrCreateChatReport([this.props.session.email, ...userLogins, selectedOption.login]);
+            fetchOrCreateChatReport([this.props.session.email, ...userLogins, selectedOption.login])
+                .then(this.props.onReportSelected);
         } else {
-            fetchOrCreateChatReport([this.props.session.email, selectedOption.login]);
+            fetchOrCreateChatReport([this.props.session.email, selectedOption.login])
+                .then(this.props.onReportSelected);
         }
 
         this.props.onLinkClick();
