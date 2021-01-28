@@ -12,7 +12,8 @@ import {withRouter} from '../../../libs/Router';
 import {redirect} from '../../../libs/actions/App';
 import ROUTES from '../../../ROUTES';
 import * as ChatSwitcher from '../../../libs/actions/ChatSwitcher';
-import {MagnifyingGlassIcon} from '../../../components/Expensicons';
+import Icon from '../../../components/Icon';
+import {MagnifyingGlass} from '../../../components/Icon/Expensicons';
 import Header from '../../../components/Header';
 import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
 import OptionsList from '../../../components/OptionsList';
@@ -20,10 +21,6 @@ import {getSidebarOptions} from '../../../libs/OptionsListUtils';
 import {getDefaultAvatar} from '../../../libs/actions/PersonalDetails';
 
 const propTypes = {
-    // These are from withRouter
-    // eslint-disable-next-line react/forbid-prop-types
-    match: PropTypes.object.isRequired,
-
     // Toggles the navigation menu open and closed
     onLinkClick: PropTypes.func.isRequired,
 
@@ -34,7 +31,6 @@ const propTypes = {
     insets: SafeAreaInsetPropTypes.isRequired,
 
     /* Onyx Props */
-
     // List of reports
     reports: PropTypes.objectOf(PropTypes.shape({
         reportID: PropTypes.number,
@@ -69,6 +65,9 @@ const propTypes = {
         // Is the network currently offline or not
         isOffline: PropTypes.bool,
     }),
+
+    // Currently viewed reportID
+    currentlyViewedReportID: PropTypes.string,
 };
 
 const defaultProps = {
@@ -80,16 +79,22 @@ const defaultProps = {
         avatarURL: getDefaultAvatar(),
     },
     network: null,
+    currentlyViewedReportID: '',
 };
 
 const SidebarLinks = (props) => {
-    const reportIDInUrl = parseInt(props.match.params.reportID, 10);
+    const activeReportID = parseInt(props.currentlyViewedReportID, 10);
 
     const chatSwitcherStyle = props.isChatSwitcherActive
         ? [styles.sidebarHeader, styles.sidebarHeaderActive]
         : [styles.sidebarHeader];
 
-    const {recentReports} = getSidebarOptions(props.reports, props.personalDetails, props.draftComments, reportIDInUrl);
+    const {recentReports} = getSidebarOptions(
+        props.reports,
+        props.personalDetails,
+        props.draftComments,
+        activeReportID,
+    );
 
     const sections = [{
         title: '',
@@ -120,7 +125,7 @@ const SidebarLinks = (props) => {
                             style={[styles.flexRow, styles.sidebarHeaderTop]}
                             onPress={() => ChatSwitcher.show()}
                         >
-                            <MagnifyingGlassIcon width={20} height={20} />
+                            <Icon src={MagnifyingGlass} />
                         </TouchableOpacity>
                         <TouchableOpacity
                             onPress={props.onAvatarClick}
@@ -138,7 +143,7 @@ const SidebarLinks = (props) => {
                         ]}
                         sections={sections}
                         focusedIndex={_.findIndex(recentReports, (
-                            option => option.reportID === reportIDInUrl
+                            option => option.reportID === activeReportID
                         ))}
                         onSelectRow={(option) => {
                             redirect(ROUTES.getReportRoute(option.reportID));
@@ -177,6 +182,9 @@ export default compose(
         isChatSwitcherActive: {
             key: ONYXKEYS.IS_CHAT_SWITCHER_ACTIVE,
             initWithStoredValues: false,
+        },
+        currentlyViewedReportID: {
+            key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
         },
     }),
 )(SidebarLinks);
