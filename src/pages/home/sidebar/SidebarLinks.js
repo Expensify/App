@@ -34,6 +34,9 @@ const propTypes = {
     // Safe area insets required for mobile devices margins
     insets: SafeAreaInsetPropTypes.isRequired,
 
+    // Title of the Header
+    title: PropTypes.string,
+
     /* Onyx Props */
 
     // List of reports
@@ -73,6 +76,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    title: 'Chats',
     reports: {},
     isChatSwitcherActive: false,
     draftComments: {},
@@ -116,7 +120,7 @@ const SidebarLinks = (props) => {
                         styles.alignItemsCenter,
                     ]}
                     >
-                        <Header textSize="large" title="Chats" />
+                        <Header textSize="large" title={props.title} />
                         <TouchableOpacity
                             style={[styles.flexRow, styles.sidebarHeaderTop]}
                             onPress={() => ChatSwitcher.show()}

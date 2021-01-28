@@ -47,6 +47,7 @@ class SharePage extends React.Component {
                         <>
                             <View style={[styles.flex1, styles.sidebar]}>
                                 <SidebarLinks
+                                    title="Send to..."
                                     onLinkClick={props.onLinkClick}
                                     insets={insets}
                                     onAvatarClick={props.onAvatarClick}
