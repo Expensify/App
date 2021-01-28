@@ -8,7 +8,7 @@ import {
     StyleSheet,
 } from 'react-native';
 import styles from '../../../styles/styles';
-import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
+import optionPropTypes from './optionPropTypes';
 import Icon from '../../../components/Icon';
 import {Pencil} from '../../../components/Icon/Expensicons';
 import MultipleAvatars from '../../../components/MultipleAvatars';
@@ -16,7 +16,7 @@ import variables from '../../../styles/variables';
 
 const propTypes = {
     // Option to allow the user to choose from can be type 'report' or 'user'
-    option: ChatSwitcherOptionPropTypes.isRequired,
+    option: optionPropTypes.isRequired,
 
     // Whether this option is currently in focus so we can modify its style
     optionIsFocused: PropTypes.bool.isRequired,
@@ -44,7 +44,7 @@ const defaultProps = {
     isSelected: false,
 };
 
-const ChatLinkRow = ({
+const OptionRow = ({
     option,
     optionIsFocused,
     onSelectRow,
@@ -145,9 +145,9 @@ const ChatLinkRow = ({
     );
 };
 
-ChatLinkRow.propTypes = propTypes;
-ChatLinkRow.defaultProps = defaultProps;
-ChatLinkRow.displayName = 'ChatLinkRow';
+OptionRow.propTypes = propTypes;
+OptionRow.defaultProps = defaultProps;
+OptionRow.displayName = 'OptionRow';
 
 // It it very important to use React.memo here so SectionList items will not unnecessarily re-render
-export default memo(ChatLinkRow);
+export default memo(OptionRow);

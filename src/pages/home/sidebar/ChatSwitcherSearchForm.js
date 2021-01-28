@@ -13,7 +13,7 @@ import {Close} from '../../../components/Icon/Expensicons';
 import TextInputWithFocusStyles from '../../../components/TextInputWithFocusStyles';
 import {getDisplayName} from '../../../libs/actions/PersonalDetails';
 import PillWithCancelButton from '../../../components/PillWithCancelButton';
-import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
+import optionPropTypes from './optionPropTypes';
 import variables from '../../../styles/variables';
 
 const propTypes = {
@@ -42,7 +42,7 @@ const propTypes = {
     onConfirmUsers: PropTypes.func.isRequired,
 
     // Users selected to begin a group report DM
-    usersToStartGroupReportWith: PropTypes.arrayOf(ChatSwitcherOptionPropTypes),
+    usersToStartGroupReportWith: PropTypes.arrayOf(optionPropTypes),
 };
 
 const defaultProps = {
