@@ -10,7 +10,7 @@ import themeColors from './themes/default';
  * @returns {Array}
  */
 function getMiniButtonStyle(buttonState = CONST.BUTTON_STATES.DEFAULT) {
-    const defaultStyles = [styles.p1, styles.mv1, styles.mh2, {borderRadius: variables.componentBorderRadius}];
+    const defaultStyles = [styles.p1, styles.mv1, styles.mh2, {borderRadius: variables.componentBorderRadiusSmall}];
     switch (buttonState) {
         case CONST.BUTTON_STATES.HOVERED:
             return [
@@ -24,7 +24,7 @@ function getMiniButtonStyle(buttonState = CONST.BUTTON_STATES.DEFAULT) {
                 styles.mv1,
                 styles.mh2,
                 {
-                    borderRadius: variables.componentBorderRadius,
+                    borderRadius: variables.componentBorderRadiusSmall,
                     backgroundColor: themeColors.componentBG,
                     borderWidth: 3,
                     borderColor: themeColors.border,
@@ -58,7 +58,7 @@ function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT) {
 const miniWrapperStyle = [
     styles.flexRow,
     {
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: variables.componentBorderRadiusNormal,
         borderWidth: 1,
         backgroundColor: themeColors.componentBG,
         borderColor: themeColors.border,

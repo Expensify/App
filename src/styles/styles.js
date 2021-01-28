@@ -88,7 +88,7 @@ const styles = {
 
     button: {
         backgroundColor: themeColors.buttonDefaultBG,
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: variables.componentBorderRadiusNormal,
         height: variables.componentSizeNormal,
         justifyContent: 'center',
         paddingHorizontal: 12,
@@ -206,7 +206,7 @@ const styles = {
 
     textInput: {
         backgroundColor: themeColors.componentBG,
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: variables.componentBorderRadiusNormal,
         height: variables.componentSizeNormal,
         borderColor: themeColors.border,
         borderWidth: 1,
@@ -620,7 +620,7 @@ const styles = {
     chatItemComposeBox: {
         backgroundColor: themeColors.componentBG,
         borderWidth: 1,
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: variables.componentBorderRadiusNormal,
         minHeight: variables.componentSizeNormal,
     },
 
@@ -672,7 +672,7 @@ const styles = {
         backgroundColor: themeColors.sidebar,
         borderColor: themeColors.border,
         borderWidth: 1,
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: variables.componentBorderRadiusNormal,
         height: 150,
         textAlign: 'center',
         verticalAlign: 'middle',
@@ -689,7 +689,7 @@ const styles = {
         flexDirection: 'row',
         flexWrap: 'wrap',
         backgroundColor: themeColors.appBG,
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: variables.componentBorderRadiusNormal,
         borderWidth: 1,
         borderColor: themeColors.border,
         paddingTop: 0,
@@ -821,7 +821,7 @@ const styles = {
         paddingRight: 8,
         paddingBottom: 6,
         paddingLeft: 8,
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: variables.componentBorderRadiusNormal,
         height: variables.componentSizeSmall,
         marginLeft: 4,
     },
@@ -872,7 +872,7 @@ const styles = {
 
     defaultAttachmentView: {
         backgroundColor: themeColors.sidebar,
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: variables.componentBorderRadiusNormal,
         borderWidth: 1,
         borderColor: themeColors.border,
         flexDirection: 'row',
@@ -1079,7 +1079,7 @@ const webViewStyles = {
 
         img: {
             borderColor: themeColors.border,
-            borderRadius: variables.componentBorderRadius,
+            borderRadius: variables.componentBorderRadiusNormal,
             borderWidth: 1,
         },
     },
