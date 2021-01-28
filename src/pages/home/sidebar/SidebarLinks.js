@@ -34,6 +34,9 @@ const propTypes = {
     // Navigates from page
     onCloseButtonClick: PropTypes.func,
 
+    // Called when report is selected
+    onReportSelected: PropTypes.func,
+
     // Safe area insets required for mobile devices margins
     insets: SafeAreaInsetPropTypes.isRequired,
 
@@ -90,6 +93,7 @@ const defaultProps = {
     showCloseButton: false,
     onAvatarClick: () => console.error('`onAvatarClick` is not defined'),
     onCloseButtonClick: () => console.error('`onCloseButtonClick` is not defined'),
+    onReportSelected: () => {},
     reports: {},
     isChatSwitcherActive: false,
     draftComments: {},
@@ -121,6 +125,7 @@ const SidebarLinks = (props) => {
                 {props.isChatSwitcherActive && (
                     <ChatSwitcherView
                         onLinkClick={props.onLinkClick}
+                        onReportSelected={props.onReportSelected}
                     />
                 )}
             </View>
@@ -169,6 +174,7 @@ const SidebarLinks = (props) => {
                             option => option.reportID === reportIDInUrl
                         ))}
                         onSelectRow={(option) => {
+                            props.onReportSelected(option.reportID);
                             redirect(ROUTES.getReportRoute(option.reportID));
                             props.onLinkClick();
                         }}
