@@ -14,6 +14,7 @@ import CustomStatusBar from '../components/CustomStatusBar';
 import SidebarLinks from './home/sidebar/SidebarLinks';
 import FAB from '../components/FAB';
 import CreateMenu from '../components/CreateMenu';
+import * as ChatSwitcher from '../libs/actions/ChatSwitcher';
 
 const propTypes = {
     // Currently viewed reportID
@@ -28,8 +29,14 @@ class SharePage extends React.Component {
     constructor(props) {
         super(props);
 
+        this.state = {
+            isCreateMenuActive: false,
+        };
+
         this.onCloseButtonClick = this.onCloseButtonClick.bind(this);
         this.onLinkClick = this.onLinkClick.bind(this);
+        this.onCreateMenuItemSelected = this.onCreateMenuItemSelected.bind(this);
+        this.toggleCreateMenu = this.toggleCreateMenu.bind(this);
     }
 
     /**
@@ -49,9 +56,28 @@ class SharePage extends React.Component {
         hideSidebar();
     }
 
-    render() {
-        const props = {};
+    /**
+     * Method called when a Create Menu item is selected.
+     */
+    onCreateMenuItemSelected() {
+        this.toggleCreateMenu();
+        ChatSwitcher.show();
+    }
 
+    /**
+     * Method called when we click the floating action button
+
+     * Method called either when:
+     * Pressing the floating action button to open the CreateMenu modal
+     * Selecting an item on CreateMenu or closing it by clicking outside of the modal component
+     */
+    toggleCreateMenu() {
+        this.setState(state => ({
+            isCreateMenuActive: !state.isCreateMenuActive,
+        }));
+    }
+
+    render() {
         return (
             <SafeAreaProvider>
                 <CustomStatusBar />
@@ -68,14 +94,14 @@ class SharePage extends React.Component {
                                     onLinkClick={this.onLinkClick}
                                 />
                                 <FAB
-                                    isActive={props.isCreateMenuActive}
-                                    onPress={props.toggleCreateMenu}
+                                    isActive={this.state.isCreateMenuActive}
+                                    onPress={this.toggleCreateMenu}
                                 />
                             </View>
                             <CreateMenu
-                                onClose={props.toggleCreateMenu}
-                                isVisible={props.isCreateMenuActive}
-                                onItemSelected={props.onCreateMenuItemSelected}
+                                onClose={this.toggleCreateMenu}
+                                isVisible={this.state.isCreateMenuActive}
+                                onItemSelected={this.onCreateMenuItemSelected}
                             />
                         </>
                     )}
