@@ -17,6 +17,7 @@ const CONST = {
             CENTERED: 'centered',
             BOTTOM_DOCKED: 'bottom_docked',
             POPOVER: 'popover',
+            RIGHT_DOCKED: 'right_docked',
         },
     },
     TIMING: {
