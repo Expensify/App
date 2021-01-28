@@ -14,6 +14,11 @@ import ONYXKEYS from '../ONYXKEYS';
  */
 
 let currentUserLogin;
+let countryCodeByIP;
+
+// We are initializing a default avatar here so that we use the same default color for each user we are inviting. This
+// will update when the OptionsListUtils re-loads. But will stay the same color for the life of the JS session.
+const defaultAvatarForUserToInvite = getDefaultAvatar();
 
 /**
  * Returns the personal details for an array of logins
@@ -97,6 +102,11 @@ function createOption(personalDetailList, report, draftComments, activeReportID)
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: val => currentUserLogin = val && val.email,
+});
+
+Onyx.connect({
+    key: ONYXKEYS.COUNTRY_CODE,
+    callback: val => countryCodeByIP = val || 1,
 });
 
 /**
@@ -245,9 +255,27 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         });
     }
 
+    let userToInvite = null;
+    if (searchValue
+            && recentReportOptions.length === 0
+            && personalDetailsOptions.length === 0
+            && _.every(selectedOptions, option => option.login !== searchValue)
+            && (Str.isValidEmail(searchValue) || Str.isValidPhone(searchValue))
+    ) {
+        // If the phone number doesn't have an international code then let's prefix it with the
+        // current users international code based on their IP address.
+        const login = (Str.isValidPhone(searchValue) && !searchValue.includes('+'))
+            ? `+${countryCodeByIP}${searchValue}`
+            : searchValue;
+        const userInvitePersonalDetails = getPersonalDetailsForLogins([login], personalDetails);
+        userToInvite = createOption(userInvitePersonalDetails, null, draftComments, activeReportID);
+        userToInvite.icons = [defaultAvatarForUserToInvite];
+    }
+
     return {
         personalDetails: personalDetailsOptions,
         recentReports: recentReportOptions,
+        userToInvite,
     };
 }
 
