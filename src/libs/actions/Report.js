@@ -64,12 +64,7 @@ const lastReadSequenceNumbers = {};
  * @returns {Boolean}
  */
 function getUnreadActionCount(report) {
-    // @todo remove the first check as part of cleanup https://github.com/Expensify/Expensify/issues/145243
-    // since we migrating our data from lastReadActionID_ value to lastRead_ object.
     const lastReadSequenceNumber = lodashGet(report, [
-        'reportNameValuePairs',
-        `lastReadActionID_${currentUserAccountID}`,
-    ]) || lodashGet(report, [
         'reportNameValuePairs',
         `lastRead_${currentUserAccountID}`,
         'sequenceNumber',
@@ -102,32 +97,6 @@ function getParticipantEmailsFromReport({sharedReportList}) {
 }
 
 /**
- * Only store the minimal amount of data in Onyx that needs to be stored
- * because space is limited
- *
- * @param {Object} report
- * @param {Number} report.reportID
- * @param {String} report.reportName
- * @param {Object} report.reportNameValuePairs
- * @returns {Object}
- */
-function getSimplifiedReportObject(report) {
-    return {
-        reportID: report.reportID,
-        reportName: report.reportName,
-        unreadActionCount: getUnreadActionCount(report),
-        maxSequenceNumber: report.reportActionList.length,
-        participants: getParticipantEmailsFromReport(report),
-        isPinned: report.isPinned,
-        lastVisitedTimestamp: lodashGet(report, [
-            'reportNameValuePairs',
-            `lastRead_${currentUserAccountID}`,
-            'timestamp',
-        ], 0),
-    };
-}
-
-/**
  * Returns a generated report title based on the participants
  *
  * @param {Array} sharedReportList
@@ -140,6 +109,40 @@ function getChatReportName(sharedReportList) {
         .map(participant => PersonalDetails.getDisplayName(participant))
         .value()
         .join(', ');
+}
+
+/**
+ * Only store the minimal amount of data in Onyx that needs to be stored
+ * because space is limited
+ *
+ * @param {Object} report
+ * @param {Number} report.reportID
+ * @param {String} report.reportName
+ * @param {Object} report.reportNameValuePairs
+ * @returns {Object}
+ */
+function getSimplifiedReportObject(report) {
+    const lastReportAction = lodashGet(report, ['reportActionList'], []).pop();
+    const createTimestamp = lastReportAction ? lastReportAction.created : 0;
+    const lastMessageTimestamp = moment.utc(createTimestamp).unix();
+    const reportName = lodashGet(report, 'reportNameValuePairs.type') === 'chat'
+        ? getChatReportName(report.sharedReportList)
+        : report.reportName;
+
+    return {
+        reportID: report.reportID,
+        reportName,
+        unreadActionCount: getUnreadActionCount(report),
+        maxSequenceNumber: report.reportActionList.length,
+        participants: getParticipantEmailsFromReport(report),
+        isPinned: report.isPinned,
+        lastVisitedTimestamp: lodashGet(report, [
+            'reportNameValuePairs',
+            `lastRead_${currentUserAccountID}`,
+            'timestamp',
+        ], 0),
+        lastMessageTimestamp,
+    };
 }
 
 /**
@@ -164,21 +167,19 @@ function fetchChatReportsByIDs(chatList) {
             // variable called simplifiedReports which hold the participants (minus the current user) for each report.
             // Using this simplifiedReport we can call PersonalDetails.getFromReportParticipants to get the
             // personal details of all the participants and even link up their avatars to report icons.
-            const simplifiedReports = [];
+            const simplifiedReports = {};
             _.each(fetchedReports, (report) => {
-                const newReport = getSimplifiedReportObject(report);
-                simplifiedReports.push(newReport);
-
-                if (lodashGet(report, 'reportNameValuePairs.type') === 'chat') {
-                    newReport.reportName = getChatReportName(report.sharedReportList);
-                }
-
-                // Merge the data into Onyx
-                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, newReport);
+                const key = `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`;
+                simplifiedReports[key] = getSimplifiedReportObject(report);
             });
 
+            // We use mergeCollection such that it updates ONYXKEYS.COLLECTION.REPORT in one go.
+            // Any withOnyx subscribers to this key will also receive the complete updated props just once
+            // than updating props for each report and re-rendering had merge been used.
+            Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedReports);
+
             // Fetch the personal details if there are any
-            PersonalDetails.getFromReportParticipants(simplifiedReports);
+            PersonalDetails.getFromReportParticipants(Object.values(simplifiedReports));
 
             return _.map(fetchedReports, report => report.reportID);
         });
@@ -224,6 +225,7 @@ function updateReportWithNewAction(reportID, reportAction) {
         reportID,
         unreadActionCount: newMaxSequenceNumber - (lastReadSequenceNumbers[reportID] || 0),
         maxSequenceNumber: reportAction.sequenceNumber,
+        lastMessageTimestamp: reportAction.timestamp,
     });
 
     // Add the action into Onyx
@@ -293,6 +295,9 @@ function subscribeToReportCommentEvents() {
 
     Pusher.subscribe(pusherChannelName, 'reportComment', (pushJSON) => {
         updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
+    }, false,
+    () => {
+        NetworkConnection.triggerReconnectionCallbacks();
     });
 
     PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, reportAction}) => {
@@ -304,6 +309,27 @@ function subscribeToReportCommentEvents() {
         redirect(ROUTES.getReportRoute(reportID));
         hideSidebar();
     });
+}
+
+/**
+ * There are 2 possibilities that we can receive via pusher for a user's typing status:
+ * 1. The "new" way from e.cash is passed as {[login]: Boolean} (e.g. {yuwen@expensify.com: true}), where the value
+ * is whether the user with that login is typing on the report or not.
+ * 2. The "old" way from e.com which is passed as {userLogin: login} (e.g. {userLogin: bstites@expensify.com})
+ *
+ * This method makes sure that no matter which we get, we return the "new" format
+ *
+ * @param {Object} typingStatus
+ * @returns {Object}
+ */
+function getNormalizedTypingStatus(typingStatus) {
+    let normalizedTypingStatus = typingStatus;
+
+    if (_.first(_.keys(typingStatus)) === 'userLogin') {
+        normalizedTypingStatus = {[typingStatus.userLogin]: true};
+    }
+
+    return normalizedTypingStatus;
 }
 
 /**
@@ -320,11 +346,10 @@ function subscribeToReportTypingEvents(reportID) {
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, {});
 
     const pusherChannelName = getReportChannelName(reportID);
-
-    // Typing status is an object with the shape {[login]: Boolean} (e.g. {yuwen@expensify.com: true}), where the value
-    // is whether the user with that login is typing on the report or not.
     Pusher.subscribe(pusherChannelName, 'client-userIsTyping', (typingStatus) => {
-        const login = _.first(_.keys(typingStatus));
+        const normalizedTypingStatus = getNormalizedTypingStatus(typingStatus);
+        const login = _.first(_.keys(normalizedTypingStatus));
+
         if (!login) {
             return;
         }
@@ -332,7 +357,7 @@ function subscribeToReportTypingEvents(reportID) {
         // Use a combo of the reportID and the login as a key for holding our timers.
         const reportUserIdentifier = `${reportID}-${login}`;
         clearTimeout(typingWatchTimers[reportUserIdentifier]);
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, typingStatus);
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, normalizedTypingStatus);
 
         // Wait for 1.5s of no additional typing events before setting the status back to false.
         typingWatchTimers[reportUserIdentifier] = setTimeout(() => {
@@ -387,6 +412,7 @@ function fetchActions(reportID) {
                 .pluck('sequenceNumber')
                 .max()
                 .value();
+
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, indexedData);
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {maxSequenceNumber});
         });
@@ -507,6 +533,7 @@ function addAction(reportID, text, file) {
     // Update the report in Onyx to have the new sequence number
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         maxSequenceNumber: newSequenceNumber,
+        lastMessageTimestamp: moment().unix(),
     });
 
     // Optimistically add the new comment to the store before waiting to save it to the server
@@ -514,6 +541,7 @@ function addAction(reportID, text, file) {
         [newSequenceNumber]: {
             actionName: 'ADDCOMMENT',
             actorEmail: currentUserEmail,
+            actorAccountID: currentUserAccountID,
             person: [
                 {
                     style: 'strong',
@@ -538,6 +566,7 @@ function addAction(reportID, text, file) {
             isFirstItem: false,
             isAttachment,
             loading: true,
+            shouldShow: true,
         },
     });
 

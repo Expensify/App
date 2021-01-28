@@ -9,6 +9,10 @@ export default {
         margin: 0,
     },
 
+    m2: {
+        margin: 8,
+    },
+
     mr0: {
         marginRight: 0,
     },
@@ -31,6 +35,10 @@ export default {
 
     ml2: {
         marginLeft: 8,
+    },
+
+    ml3: {
+        marginLeft: 12,
     },
 
     mt1: {
@@ -115,5 +123,9 @@ export default {
 
     pr2: {
         paddingRight: 8,
+    },
+
+    pl5: {
+        paddingLeft: 20,
     },
 };

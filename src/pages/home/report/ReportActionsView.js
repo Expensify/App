@@ -45,6 +45,7 @@ class ReportActionsView extends React.Component {
         this.renderItem = this.renderItem.bind(this);
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
         this.recordMaxAction = this.recordMaxAction.bind(this);
+        this.onVisibilityChange = this.onVisibilityChange.bind(this);
         this.sortedReportActions = this.updateSortedReportActions();
         this.timers = [];
 
@@ -54,11 +55,8 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidMount() {
-        this.visibilityChangeEvent = AppState.addEventListener('change', () => {
-            if (this.props.isActiveReport && Visibility.isVisible()) {
-                this.timers.push(setTimeout(this.recordMaxAction, 3000));
-            }
-        });
+        AppState.addEventListener('change', this.onVisibilityChange);
+
         if (this.props.isActiveReport) {
             this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
             this.recordMaxAction();
@@ -111,11 +109,18 @@ class ReportActionsView extends React.Component {
             this.keyboardEvent.remove();
         }
 
-        if (this.visibilityChangeEvent) {
-            this.visibilityChangeEvent.remove();
-        }
+        AppState.removeEventListener('change', this.onVisibilityChange);
 
         _.each(this.timers, timer => clearTimeout(timer));
+    }
+
+    /**
+     * Records the max action on app visibility change event.
+     */
+    onVisibilityChange() {
+        if (this.props.isActiveReport && Visibility.isVisible()) {
+            this.timers.push(setTimeout(this.recordMaxAction, 3000));
+        }
     }
 
     /**

@@ -249,23 +249,6 @@ When a new tag is pushed, it will trigger a deploy of all four clients:
 3. The **Android** app automatically deploys via a GitHub Action in `.github/workflows/android.yml`
 4. The **iOS** app automatically deploys via a GitHub Action in `.github/workflows/ios.yml`
 
-### Secrets
-The GitHub workflows require a large list of secrets to deploy, notify and test the code:
-1. `LARGE_SECRET_PASSPHRASE` - decrypts secrets stored in various encrypted files stored in GitHub repository:
-    1. `android/app/my-upload-key.keystore.gpg`
-    2. `android/app/android-fastlane-json-key.json.gpg`
-    3. `ios/chat_expensify_appstore.mobileprovision`
-    4. `ios/Certificates.p12.gpg`
-2. `SLACK_WEBHOOK` - Sends Slack notifications via Slack WebHook https://expensify.slack.com/services/B01AX48D7MM
-3. `OS_BOTIFY_TOKEN` - Personal access token for @OSBotify user in GitHub
-4. `CSC_LINK` - Required to be set for desktop code signing: https://www.electron.build/code-signing.html#travis-appveyor-and-other-ci-servers
-5. `CSC_KEY_PASSWORD` - Required to be set for desktop code signing: https://www.electron.build/code-signing.html#travis-appveyor-and-other-ci-servers
-6. `APPLE_ID` - Required for notarizing desktop code in `desktop/notarize.js`
-7. `APPLE_ID_PASSWORD` - Required for notarizing desktop code in `desktop/notarize.js`
-8. `AWS_ACCESS_KEY_ID` - Required for hosting website and desktop compiled code
-9. `AWS_SECRET_ACCESS_KEY` - Required for hosting website and desktop compiled code
-10. `CLOUDFLARE_TOKEN` - Required for hosting website
-
 ## Local production build
 Sometimes it might be beneficial to generate a local production version instead of testing on production. Follow the steps below for each client:
 

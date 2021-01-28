@@ -1,8 +1,7 @@
 import _ from 'underscore';
-import React from 'react';
+import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import {
-    Image,
     Text,
     TouchableOpacity,
     View,
@@ -10,8 +9,10 @@ import {
 } from 'react-native';
 import styles from '../../../styles/styles';
 import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
-import pencilIcon from '../../../../assets/images/icon-pencil.png';
-import MultiAvatar from '../../../components/MultiAvatar';
+import Icon from '../../../components/Icon';
+import {Pencil} from '../../../components/Icon/Expensicons';
+import MultipleAvatars from '../../../components/MultipleAvatars';
+import variables from '../../../styles/variables';
 
 const propTypes = {
     // Option to allow the user to choose from can be type 'report' or 'user'
@@ -28,11 +29,19 @@ const propTypes = {
 
     // A flag to indicate whether this comes from the Chat Switcher so we can display the group button
     isChatSwitcher: PropTypes.bool,
+
+    // Whether we should show the selected state
+    showSelectedState: PropTypes.bool,
+
+    // Whether this item is selected
+    isSelected: PropTypes.bool,
 };
 
 const defaultProps = {
     onAddToGroup: () => {},
     isChatSwitcher: false,
+    showSelectedState: false,
+    isSelected: false,
 };
 
 const ChatLinkRow = ({
@@ -41,6 +50,8 @@ const ChatLinkRow = ({
     onSelectRow,
     onAddToGroup,
     isChatSwitcher,
+    showSelectedState,
+    isSelected,
 }) => {
     const textStyle = optionIsFocused
         ? styles.sidebarLinkActiveText
@@ -74,10 +85,10 @@ const ChatLinkRow = ({
                     ]}
                 >
                     {
-                        !_.isEmpty(option.icon)
+                        !_.isEmpty(option.icons)
                         && (
-                            <MultiAvatar
-                                avatarImageURLs={option.icon}
+                            <MultipleAvatars
+                                avatarImageURLs={option.icons}
                                 optionIsFocused={optionIsFocused}
                             />
                         )
@@ -93,7 +104,7 @@ const ChatLinkRow = ({
                                     {option.text}
                                 </Text>
                                 <Text
-                                    style={[textStyle, styles.textMicro, styles.chatSwitcherLogin]}
+                                    style={[textStyle, styles.chatSwitcherLogin, styles.mt1]}
                                     numberOfLines={1}
                                 >
                                     {option.alternateText}
@@ -101,6 +112,15 @@ const ChatLinkRow = ({
                             </>
                         )}
                     </View>
+                    {showSelectedState && (
+                        <View
+                            style={[styles.selectCircle]}
+                        >
+                            {isSelected && (
+                                <Text>X</Text>
+                            )}
+                        </View>
+                    )}
                 </View>
             </TouchableOpacity>
             {option.singleUserDM && isChatSwitcher && (
@@ -119,11 +139,7 @@ const ChatLinkRow = ({
                 </View>
             )}
             {option.hasDraftComment && (
-                <Image
-                    style={[styles.LHNPencilIcon]}
-                    resizeMode="contain"
-                    source={pencilIcon}
-                />
+                <Icon src={Pencil} width={variables.fontSizeSmall} height={variables.iconSizeSmall} />
             )}
         </View>
     );
@@ -133,4 +149,5 @@ ChatLinkRow.propTypes = propTypes;
 ChatLinkRow.defaultProps = defaultProps;
 ChatLinkRow.displayName = 'ChatLinkRow';
 
-export default ChatLinkRow;
+// It it very important to use React.memo here so SectionList items will not unnecessarily re-render
+export default memo(ChatLinkRow);

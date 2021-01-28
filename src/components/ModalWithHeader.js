@@ -2,8 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import Modal from './Modal';
-import ModalHeader from './ModalHeader';
 import styles from '../styles/styles';
+import HeaderWithCloseButton from './HeaderWithCloseButton';
 
 const propTypes = {
     // Title for modal header
@@ -22,7 +22,7 @@ const ModalWithHeader = props => (
         {...props}
     >
         <View style={[styles.modalViewContainer]}>
-            <ModalHeader
+            <HeaderWithCloseButton
                 title={props.title}
                 onCloseButtonPress={props.onClose}
             />

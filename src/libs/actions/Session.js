@@ -42,7 +42,6 @@ function createAccount(login) {
 
     API.User_SignUp({
         email: login,
-        isViaExpensifyCash: true,
     }).then((response) => {
         if (response.jsonCode !== 200) {
             let errorMessage = response.message || `Unknown API Error: ${response.jsonCode}`;
@@ -82,7 +81,7 @@ function signOut() {
 function fetchAccountDetails(login) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', loading: true});
 
-    API.GetAccountStatus({email: login, isViaExpensifyCash: true})
+    API.GetAccountStatus({email: login})
         .then((response) => {
             if (response.jsonCode === 200) {
                 Onyx.merge(ONYXKEYS.CREDENTIALS, {login});

@@ -34,7 +34,8 @@ function processNetworkRequestQueue() {
 
         // Make a simple request every second to see if the API is online again
         HttpUtils.xhr('Get', {doNotRetry: true})
-            .then(() => NetworkConnection.setOfflineStatus(false));
+            .then(() => NetworkConnection.setOfflineStatus(false))
+            .catch(e => console.debug('[Ping] failed', e));
         return;
     }
 

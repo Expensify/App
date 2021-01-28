@@ -3,6 +3,8 @@
  */
 export default {
     HOME: '/home',
+    SETTINGS: '/settings',
+    NEW_GROUP: '/new/group',
     REPORT: '/r/:reportID',
     getReportRoute: reportID => `/r/${reportID}`,
     ROOT: '/',
