@@ -9,7 +9,7 @@ export default {
         margin: 0,
     },
 
-    mh2: {
+    mh1: {
         marginRight: 4,
         marginLeft: 4,
     },
