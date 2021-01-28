@@ -52,8 +52,18 @@ class Tooltip extends Component {
         this.hideTooltip = this.hideTooltip.bind(this);
     }
 
+    shouldComponentUpdate(nextProps, nextState) {
+        /*
+           We only want to re-render if props or state have changed.
+           This prevents an infinite rendering loop with the `onLayout` callback calling setState.
+           Also, we need to do a deep comparison of props using _.isEqual rather than relying on the shallow comparison
+           done by `PureComponent` because a shallow comparison would not catch changes in `props.windowDimensions`.
+         */
+        return !(_.isEqual(this.props, nextProps) && _.isEqual(this.state, nextState));
+    }
+
     componentDidUpdate(prevProps) {
-        if (!_.isMatch(this.props.windowDimensions, prevProps.windowDimensions)) {
+        if (!_.isEqual(this.props.windowDimensions, prevProps.windowDimensions)) {
             this.getWrapperPosition()
                 .then(({x, y}) => {
                     if (x !== this.state.xOffset || y !== this.state.yOffset) {
@@ -74,6 +84,8 @@ class Tooltip extends Component {
 
     /**
      * Measure the size and position of the wrapper view.
+     *
+     * @param {Object} nativeEvent
      */
     measureWrapperAndGetPosition({nativeEvent}) {
         const {width, height} = nativeEvent.layout;
@@ -81,33 +93,24 @@ class Tooltip extends Component {
         // We need to use `measureInWindow` instead of the layout props provided by `onLayout`
         // because `measureInWindow` provides the x and y offset relative to the window, rather than the parent element.
         this.getWrapperPosition()
-            .then(({x, y}) => {
-                // Re-render component only if values have changed
-                if (width !== this.state.wrapperWidth
-                    || height !== this.state.wrapperHeight
-                    || x !== this.state.xOffset
-                    || y !== this.state.yOffset) {
-                    this.setState({
-                        wrapperWidth: width,
-                        wrapperHeight: height,
-                        xOffset: x,
-                        yOffset: y,
-                    });
-                }
-            });
+            .then(({x, y}) => this.setState({
+                wrapperWidth: width,
+                wrapperHeight: height,
+                xOffset: x,
+                yOffset: y,
+            }));
     }
 
     /**
      * Measure the size of the tooltip itself.
+     *
+     * @param {Object} nativeEvent
      */
     measureTooltip({nativeEvent}) {
-        const {width, height} = nativeEvent.layout;
-        if (width !== this.state.tooltipWidth || height !== this.state.tooltipHeight) {
-            this.setState({
-                tooltipWidth: width,
-                tooltipHeight: height,
-            });
-        }
+        this.setState({
+            tooltipWidth: nativeEvent.layout.width,
+            tooltipHeight: nativeEvent.layout.height,
+        });
     }
 
     /**

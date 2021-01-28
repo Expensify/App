@@ -68,7 +68,7 @@ function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWid
 /**
  * Generate styles for the tooltip component.
  *
- * @param {Number} interpolatedSize - The current size of the tooltip used in the scaling animation.
+ * @param {Number} currentSize - The current size of the tooltip used in the scaling animation.
  * @param {Number} windowWidth - The width of the window.
  * @param {Number} xOffset - The distance between the left edge of the window
  *                           and the left edge of the wrapped component.
@@ -81,7 +81,7 @@ function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWid
  * @returns {Object}
  */
 export default function getTooltipStyles(
-    interpolatedSize,
+    currentSize,
     windowWidth,
     xOffset,
     yOffset,
@@ -105,7 +105,7 @@ export default function getTooltipStyles(
     return {
         animationStyle: {
             transform: [{
-                scale: interpolatedSize,
+                scale: currentSize,
             }],
         },
         tooltipWrapperStyle: {
