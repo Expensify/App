@@ -8,10 +8,10 @@ import CONST from '../../CONST';
 import NetworkConnection from '../NetworkConnection';
 import * as API from '../API';
 
-let currentUserEmail;
+let currentUserEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: val => currentUserEmail = val ? val.email : null,
+    callback: val => currentUserEmail = val ? val.email : '',
 });
 
 let personalDetails;
@@ -23,10 +23,10 @@ Onyx.connect({
 /**
  * Helper method to return a default avatar
  *
- * @param {String} login
+ * @param {String} [login]
  * @returns {String}
  */
-function getDefaultAvatar(login) {
+function getDefaultAvatar(login = '') {
     // There are 8 possible default avatars, so we choose which one this user has based
     // on a simple hash of their login (which is converted from HEX to INT)
     const loginHashBucket = (parseInt(md5(login).substring(0, 4), 16) % 8) + 1;
@@ -108,10 +108,8 @@ function fetchTimezone() {
         .then((data) => {
             const timezone = lodashGet(data, 'nameValuePairs.timeZone.selected', 'America/Los_Angeles');
             Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {timezone});
-        });
-
-    // Refresh the timezone every 30 minutes
-    setTimeout(fetchTimezone, 1000 * 60 * 30);
+        })
+        .catch(error => console.debug('Error fetching user timezone', error));
 }
 
 /**
@@ -130,16 +128,8 @@ function fetch() {
 
             // Set my personal details so they can be easily accessed and subscribed to on their own key
             Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, myPersonalDetails);
-
-            // Get the timezone and put it in Onyx
-            fetchTimezone();
         })
         .catch(error => console.debug('Error fetching personal details', error));
-
-    // Refresh the personal details every 30 minutes because there is no
-    // pusher event that sends updated personal details data yet
-    // See https://github.com/Expensify/ReactNativeChat/issues/468
-    setTimeout(fetch, 1000 * 60 * 30);
 }
 
 /**
@@ -165,19 +155,24 @@ function getFromReportParticipants(reports) {
 
             // The personalDetails of the participants contain their avatar images. Here we'll go over each
             // report and based on the participants we'll link up their avatars to report icons.
+            const reportsToUpdate = {};
             _.each(reports, (report) => {
                 if (report.participants.length > 0) {
-                    const avatars = report.participants
-                        .map(dmParticipant => ({
-                            firstName: lodashGet(details, [dmParticipant, 'firstName'], ''),
-                            avatar: lodashGet(details, [dmParticipant, 'avatar'], getDefaultAvatar(dmParticipant)),
-                        }))
+                    const avatars = _.map(report.participants, dmParticipant => ({
+                        firstName: lodashGet(details, [dmParticipant, 'firstName'], ''),
+                        avatar: lodashGet(details, [dmParticipant, 'avatar'], getDefaultAvatar(dmParticipant)),
+                    }))
                         .sort((first, second) => first.firstName - second.firstName)
                         .map(item => item.avatar);
 
-                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {icon: avatars});
+                    reportsToUpdate[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = {icons: avatars};
                 }
             });
+
+            // We use mergeCollection such that it updates ONYXKEYS.COLLECTION.REPORT in one go.
+            // Any withOnyx subscribers to this key will also receive the complete updated props just once
+            // than updating props for each report and re-rendering had merge been used.
+            Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportsToUpdate);
         });
 }
 
@@ -189,4 +184,5 @@ export {
     fetchTimezone,
     getFromReportParticipants,
     getDisplayName,
+    getDefaultAvatar,
 };

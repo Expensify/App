@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
 import {
-    Image,
     TouchableOpacity,
     View,
     Text,
@@ -9,22 +8,17 @@ import {
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
-import logoCircle from '../../../../assets/images/expensify-logo-round.png';
+import Icon from '../../../components/Icon';
+import {Close} from '../../../components/Icon/Expensicons';
 import TextInputWithFocusStyles from '../../../components/TextInputWithFocusStyles';
-import iconX from '../../../../assets/images/icon-x.png';
 import {getDisplayName} from '../../../libs/actions/PersonalDetails';
 import PillWithCancelButton from '../../../components/PillWithCancelButton';
 import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
+import variables from '../../../styles/variables';
 
 const propTypes = {
     // A ref to forward to the text input
     forwardedRef: PropTypes.func.isRequired,
-
-    // Whether or not the clear button is visible
-    isClearButtonVisible: PropTypes.bool.isRequired,
-
-    // Whether or not the logo is visible
-    isLogoVisible: PropTypes.bool.isRequired,
 
     // The current value of the search input
     searchValue: PropTypes.string.isRequired,
@@ -57,16 +51,6 @@ const defaultProps = {
 
 const ChatSwitcherSearchForm = props => (
     <View style={[styles.flexRow, styles.sidebarHeaderTop]}>
-        {props.isLogoVisible && (
-            <View style={[styles.mr3]}>
-                <Image
-                    resizeMode="contain"
-                    style={[styles.sidebarHeaderLogo]}
-                    source={logoCircle}
-                />
-            </View>
-        )}
-
         {props.usersToStartGroupReportWith.length > 0
             ? (
                 <View
@@ -97,7 +81,7 @@ const ChatSwitcherSearchForm = props => (
                                 ]}
                             >
                                 <TextInputWithFocusStyles
-                                    styleFocusIn={[styles.textInputNoOutline]}
+                                    styleFocusIn={[styles.noOutline]}
                                     ref={props.forwardedRef}
                                     style={[styles.chatSwitcherGroupDMTextInput, styles.mb1]}
                                     value={props.searchValue}
@@ -147,19 +131,13 @@ const ChatSwitcherSearchForm = props => (
                 />
             )}
 
-        {props.isClearButtonVisible && (
-            <TouchableOpacity
-                style={[styles.chatSwitcherInputClear, styles.ml2]}
-                onPress={props.onClearButtonClick}
-                underlayColor={themeColors.componentBG}
-            >
-                <Image
-                    resizeMode="contain"
-                    style={[styles.chatSwitcherInputClearIcon]}
-                    source={iconX}
-                />
-            </TouchableOpacity>
-        )}
+        <TouchableOpacity
+            style={[styles.chatSwitcherInputClear, styles.ml2]}
+            onPress={props.onClearButtonClick}
+            underlayColor={themeColors.componentBG}
+        >
+            <Icon src={Close} width={variables.iconSizeLarge} height={variables.iconSizeLarge} />
+        </TouchableOpacity>
     </View>
 );
 

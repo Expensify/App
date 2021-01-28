@@ -6,6 +6,9 @@ on:
         tags:
             - '*'
 
+env:
+  DEVELOPER_DIR: /Applications/Xcode_12.3.app/Contents/Developer
+
 jobs:
     build:
         runs-on: macos-latest
@@ -13,6 +16,8 @@ jobs:
             - uses: actions/checkout@v2
 
             - uses: actions/setup-ruby@v1
+              with:
+                  ruby-version: '2.7'
 
             - name: Install bundler
               run: gem install bundler
@@ -40,6 +45,10 @@ jobs:
               run: bundle exec fastlane ios beta
               env:
                   FASTLANE_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+                  APPLE_CONTACT_EMAIL: ${{ secrets.APPLE_CONTACT_EMAIL }}
+                  APPLE_CONTACT_PHONE: ${{ secrets.APPLE_CONTACT_PHONE }}
+                  APPLE_DEMO_EMAIL: ${{ secrets.APPLE_DEMO_EMAIL }}
+                  APPLE_DEMO_PASSWORD: ${{ secrets.APPLE_DEMO_PASSWORD }}
 
             # These Slack steps are duplicated in all workflows, if you make a change to this step, make sure to update all
             # the other workflows with the same changes
