@@ -10,25 +10,20 @@ import themeColors from './themes/default';
  * @returns {Array}
  */
 function getMiniButtonStyle(buttonState = CONST.BUTTON_STATES.DEFAULT) {
-    const defaultStyles = [styles.p1, styles.mv1, styles.mh2, {borderRadius: variables.componentBorderRadiusSmall}];
+    const defaultStyles = [styles.p1, styles.mv1, styles.mh1, {borderRadius: variables.componentBorderRadiusSmall}];
     switch (buttonState) {
         case CONST.BUTTON_STATES.HOVERED:
             return [
                 ...defaultStyles,
                 {
-                    backgroundColor: themeColors.activeComponentBG,
+                    backgroundColor: themeColors.hoverComponentBG,
                 },
             ];
         case CONST.BUTTON_STATES.PRESSED:
             return [
-                styles.mv1,
-                styles.mh2,
+                ...defaultStyles,
                 {
-                    borderRadius: variables.componentBorderRadiusSmall,
-                    backgroundColor: themeColors.componentBG,
-                    borderWidth: 3,
-                    borderColor: themeColors.border,
-                    padding: 1,
+                    backgroundColor: themeColors.activeComponentBG,
                 },
             ];
         case CONST.BUTTON_STATES.DEFAULT:
