@@ -7,6 +7,7 @@ import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import ONYXKEYS from '../ONYXKEYS';
 import {redirect} from '../libs/actions/App';
+import {clear as clearSharedItem} from '../libs/actions/SharedItem';
 import ROUTES from '../ROUTES';
 import CustomStatusBar from '../components/CustomStatusBar';
 import SidebarLinks from './home/sidebar/SidebarLinks';
@@ -30,7 +31,7 @@ class SharePage extends React.Component {
     }
 
     onCloseButtonPress() {
-        // TODO: clear onyx
+        clearSharedItem();
         redirect(this.props.currentlyViewedReportID !== ''
             ? ROUTES.getReportRoute(this.props.currentlyViewedReportID)
             : ROUTES.HOME);
