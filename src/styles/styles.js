@@ -344,6 +344,12 @@ const styles = {
         width: variables.componentSizeNormal,
     },
 
+    sidebarCloseButton: {
+        paddingLeft: 20,
+        paddingRight: 0,
+        paddingVertical: 12,
+    },
+
     statusIndicator: {
         borderColor: themeColors.sidebar,
         borderRadius: 6,

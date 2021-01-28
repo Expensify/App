@@ -13,7 +13,7 @@ import {redirect} from '../../../libs/actions/App';
 import ROUTES from '../../../ROUTES';
 import * as ChatSwitcher from '../../../libs/actions/ChatSwitcher';
 import Icon from '../../../components/Icon';
-import {MagnifyingGlass} from '../../../components/Icon/Expensicons';
+import {Close, MagnifyingGlass} from '../../../components/Icon/Expensicons';
 import Header from '../../../components/Header';
 import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
 import OptionsList from '../../../components/OptionsList';
@@ -29,13 +29,22 @@ const propTypes = {
     onLinkClick: PropTypes.func.isRequired,
 
     // navigates to settings and hides sidebar
-    onAvatarClick: PropTypes.func.isRequired,
+    onAvatarClick: PropTypes.func,
+
+    // Navigates from page
+    onCloseButtonClick: PropTypes.func,
 
     // Safe area insets required for mobile devices margins
     insets: SafeAreaInsetPropTypes.isRequired,
 
     // Title of the Header
     title: PropTypes.string,
+
+    // Should we show the avatar
+    showAvatar: PropTypes.bool,
+
+    // Should we show the close button
+    showCloseButton: PropTypes.bool,
 
     /* Onyx Props */
 
@@ -77,6 +86,10 @@ const propTypes = {
 
 const defaultProps = {
     title: 'Chats',
+    showAvatar: true,
+    showCloseButton: false,
+    onAvatarClick: () => console.error('`onAvatarClick` is not defined'),
+    onCloseButtonClick: () => console.error('`onCloseButtonClick` is not defined'),
     reports: {},
     isChatSwitcherActive: false,
     draftComments: {},
@@ -127,14 +140,24 @@ const SidebarLinks = (props) => {
                         >
                             <Icon src={MagnifyingGlass} />
                         </TouchableOpacity>
-                        <TouchableOpacity
-                            onPress={props.onAvatarClick}
-                        >
-                            <AvatarWithIndicator
-                                source={props.myPersonalDetails.avatarURL}
-                                isActive={props.network && !props.network.isOffline}
-                            />
-                        </TouchableOpacity>
+                        {props.showCloseButton && (
+                            <TouchableOpacity
+                                style={[styles.flexRow, styles.sidebarCloseButton]}
+                                onPress={props.onCloseButtonClick}
+                            >
+                                <Icon src={Close} />
+                            </TouchableOpacity>
+                        )}
+                        {props.showAvatar && (
+                            <TouchableOpacity
+                                onPress={props.onAvatarClick}
+                            >
+                                <AvatarWithIndicator
+                                    source={props.myPersonalDetails.avatarURL}
+                                    isActive={props.network && !props.network.isOffline}
+                                />
+                            </TouchableOpacity>
+                        )}
                     </View>
                     <OptionsList
                         contentContainerStyles={[

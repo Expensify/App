@@ -8,6 +8,7 @@ import styles from '../styles/styles';
 import ONYXKEYS from '../ONYXKEYS';
 import {redirect} from '../libs/actions/App';
 import {clear as clearSharedItem} from '../libs/actions/SharedItem';
+import {hide as hideSidebar} from '../libs/actions/Sidebar';
 import ROUTES from '../ROUTES';
 import CustomStatusBar from '../components/CustomStatusBar';
 import SidebarLinks from './home/sidebar/SidebarLinks';
@@ -27,14 +28,25 @@ class SharePage extends React.Component {
     constructor(props) {
         super(props);
 
-        this.onCloseButtonPress = this.onCloseButtonPress.bind(this);
+        this.onCloseButtonClick = this.onCloseButtonClick.bind(this);
+        this.onLinkClick = this.onLinkClick.bind(this);
     }
 
-    onCloseButtonPress() {
+    /**
+     * Clears the shared item and closes Share Page.
+     */
+    onCloseButtonClick() {
         clearSharedItem();
         redirect(this.props.currentlyViewedReportID !== ''
             ? ROUTES.getReportRoute(this.props.currentlyViewedReportID)
             : ROUTES.HOME);
+    }
+
+    /**
+     * Hides navigation menu on redirect to report page.
+     */
+    onLinkClick() {
+        hideSidebar();
     }
 
     render() {
@@ -49,9 +61,11 @@ class SharePage extends React.Component {
                             <View style={[styles.flex1, styles.sidebar]}>
                                 <SidebarLinks
                                     title="Send to..."
-                                    onLinkClick={props.onLinkClick}
+                                    showAvatar={false}
+                                    showCloseButton
                                     insets={insets}
-                                    onAvatarClick={props.onAvatarClick}
+                                    onCloseButtonClick={this.onCloseButtonClick}
+                                    onLinkClick={this.onLinkClick}
                                 />
                                 <FAB
                                     isActive={props.isCreateMenuActive}
