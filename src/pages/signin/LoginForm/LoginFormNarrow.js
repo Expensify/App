@@ -118,7 +118,7 @@ class LoginFormNarrow extends React.Component {
                         Attention Open Source Developers:
                     </Text>
                     <Text style={[styles.textLabel]}>
-                        Enter your Github handle on the next page to skip the wait and join our dev-only beta;
+                        Enter your GitHub handle on the next page to skip the wait and join our dev-only beta;
                         {' '}
                         help build tomorrow and
                         {' '}
