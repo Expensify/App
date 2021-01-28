@@ -1,25 +1,35 @@
 import ShareMenu from 'react-native-share-menu';
-import Onyx from 'react-native-onyx';
 import {redirect} from '../actions/App';
+import {set as setSharedItem} from '../actions/SharedItem';
 import ROUTES from '../../ROUTES';
-import ONYXKEYS from '../../ONYXKEYS';
 import ShareType from './ShareType';
 
 // Share event listener
 let listener;
 
+/**
+ * Prepares shared item and redirect to Share Page.
+ *
+ * @param {Object} sharedItem
+ */
 function handleShare(sharedItem) {
     if (sharedItem) {
-        Onyx.set(ONYXKEYS.SHARED_ITEM, sharedItem);
+        setSharedItem(sharedItem);
         redirect(ROUTES.SHARE);
     }
 }
 
+/**
+ * Subscribes to share events.
+ */
 function register() {
     ShareMenu.getInitialShare(handleShare);
     listener = ShareMenu.addNewShareListener(handleShare);
 }
 
+/**
+ * Removes share events listener.
+ */
 function deregister() {
     listener.remove();
 }
