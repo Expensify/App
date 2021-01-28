@@ -125,6 +125,10 @@ function getSimplifiedReportObject(report) {
     const lastReportAction = lodashGet(report, ['reportActionList'], []).pop();
     const createTimestamp = lastReportAction ? lastReportAction.created : 0;
     const lastMessageTimestamp = moment.utc(createTimestamp).unix();
+
+    // We are removing any html tags from the message html since we cannot access the text version of any comments as
+    // the report only has the raw reportActionList and not the processed version returned by Report_GetHistory
+    const lastMessageText = lodashGet(lastReportAction, ['message', 'html'], '').replace(/(<([^>]+)>)/gi, '');
     const reportName = lodashGet(report, 'reportNameValuePairs.type') === 'chat'
         ? getChatReportName(report.sharedReportList)
         : report.reportName;
@@ -142,6 +146,7 @@ function getSimplifiedReportObject(report) {
             'timestamp',
         ], 0),
         lastMessageTimestamp,
+        lastMessageText,
     };
 }
 
@@ -218,6 +223,8 @@ function updateReportWithNewAction(reportID, reportAction) {
         setLocalLastRead(reportID, newMaxSequenceNumber);
     }
 
+    const messageText = lodashGet(reportAction, ['message', 0, 'text'], '');
+
     // Always merge the reportID into Onyx
     // If the report doesn't exist in Onyx yet, then all the rest of the data will be filled out
     // by handleReportChanged
@@ -226,10 +233,10 @@ function updateReportWithNewAction(reportID, reportAction) {
         unreadActionCount: newMaxSequenceNumber - (lastReadSequenceNumbers[reportID] || 0),
         maxSequenceNumber: reportAction.sequenceNumber,
         lastMessageTimestamp: reportAction.timestamp,
+        lastMessageText: messageText,
     });
 
     // Add the action into Onyx
-    const messageText = lodashGet(reportAction, ['message', 0, 'text'], '');
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         [reportAction.sequenceNumber]: {
             ...reportAction,
