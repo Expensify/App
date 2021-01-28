@@ -21,7 +21,6 @@ const styles = {
     ...flex,
     ...display,
     ...overflow,
-    ...positioning,
     ...wordBreak,
     ...whiteSpace,
 
@@ -936,6 +935,12 @@ const styles = {
     defaultModalContainer: {
         backgroundColor: themeColors.componentBG,
         borderColor: colors.transparent,
+    },
+
+    miniReportActionContextMenuWrapperStyle: {
+        ...positioning.r4,
+        ...spacing.mt2,
+        position: 'absolute',
     },
 
     settingsPageBackground: {
