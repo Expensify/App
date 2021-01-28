@@ -1,5 +1,3 @@
-import _ from 'underscore';
-import contextActions from '../pages/home/report/ReportActionContextMenu/ContextActions';
 import CONST from '../CONST';
 import styles from './styles';
 import variables from './variables';
@@ -32,30 +30,6 @@ function getMiniButtonStyle(buttonState = CONST.BUTTON_STATES.DEFAULT) {
         default:
             return defaultStyles;
     }
-}
-
-/**
- * Use the styles of the buttons and the number of context actions to compute the dimensions
- * of the mini context actions menu.
- * @returns {{width: Number, height: Number}}
- */
-function computeMiniReportActionContextMenuDimensions() {
-    // Get the styles from the function that generates them, and merge the array of objects into a single object.
-    const defaultButtonStyle = _.reduce(getMiniButtonStyle(), ((memo, style) => ({...memo, ...style})));
-
-    // Compute the button width and height manually
-    const buttonWidth = variables.iconSizeNormal
-                        + (2 * defaultButtonStyle.padding)
-                        + defaultButtonStyle.marginLeft
-                        + defaultButtonStyle.marginRight;
-    const buttonHeight = variables.iconSizeNormal
-                        + (2 * defaultButtonStyle.padding)
-                        + defaultButtonStyle.marginTop
-                        + defaultButtonStyle.marginBottom;
-    return {
-        width: contextActions.length * buttonWidth,
-        height: buttonHeight,
-    };
 }
 
 /**
@@ -101,4 +75,3 @@ function getReportActionContextMenuStyles(isMini) {
 }
 
 export default getReportActionContextMenuStyles;
-export {computeMiniReportActionContextMenuDimensions};
