@@ -42,6 +42,7 @@ import {redirect} from '../../libs/actions/App';
 import SettingsModal from '../../components/SettingsModal';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import compose from '../../libs/compose';
+import getBetas from '../../libs/actions/User';
 
 const propTypes = {
     isSidebarShown: PropTypes.bool,
@@ -99,12 +100,13 @@ class HomePage extends React.Component {
         // Fetch some data we need on initialization
         PersonalDetails.fetch();
         PersonalDetails.fetchTimezone();
+        getBetas();
         fetchAllReports(true, false, true);
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
 
-        // Refresh the personal details and timezone every 30 minutes because there is no
-        // pusher event that sends updated personal details data yet
+        // Refresh the personal details, timezone and betas every 30 minutes
+        // There is no pusher event that sends updated personal details data yet
         // See https://github.com/Expensify/ReactNativeChat/issues/468
         this.interval = setInterval(() => {
             if (this.props.network.isOffline) {
@@ -112,6 +114,7 @@ class HomePage extends React.Component {
             }
             PersonalDetails.fetch();
             PersonalDetails.fetchTimezone();
+            getBetas();
         }, 1000 * 60 * 30);
 
         // Set up the navigationMenu correctly once on init

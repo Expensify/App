@@ -524,6 +524,13 @@ function SetPassword(parameters) {
     return request(commandName, parameters);
 }
 
+/**
+ * @returns {Promise}
+ */
+function User_GetBetas() {
+    return request('User_GetBetas', {});
+}
+
 export {
     getAuthToken,
     Authenticate,
@@ -545,5 +552,6 @@ export {
     SetGithubUsername,
     SetPassword,
     User_SignUp,
+    User_GetBetas,
     reauthenticate,
 };
