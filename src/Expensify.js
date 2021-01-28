@@ -7,6 +7,7 @@ import HomePage from './pages/home/HomePage';
 import NotFoundPage from './pages/NotFound';
 import SetPasswordPage from './pages/SetPasswordPage';
 import SignInPage from './pages/signin/SignInPage';
+import SharePage from './pages/SharePage';
 import listenToStorageEvents from './libs/listenToStorageEvents';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import ShareManager from './libs/ShareManager';
@@ -138,6 +139,7 @@ class Expensify extends Component {
                     <Route path={[ROUTES.SET_PASSWORD]} component={SetPasswordPage} />
                     <Route path={[ROUTES.NOT_FOUND]} component={NotFoundPage} />
                     <Route path={[ROUTES.SIGNIN_WITH_EXITTO, ROUTES.SIGNIN]} component={SignInPage} />
+                    <Route path={[ROUTES.SHARE]} component={SharePage} />
                     <Route
                         path={[ROUTES.HOME, ROUTES.ROOT]}
                         render={match => (
