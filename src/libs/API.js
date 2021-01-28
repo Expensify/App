@@ -122,19 +122,11 @@ function handleExpiredAuthToken(originalCommand, originalParameters, originalTyp
     isAuthenticating = true;
 
     // eslint-disable-next-line no-use-before-define
-    return reauthenticate()
+    return reauthenticate(originalCommand)
         .then(() => {
             // Now that the API is authenticated, make the original request again with the new authToken
             const params = addDefaultValuesToParameters(originalCommand, originalParameters);
             return Network.post(originalCommand, params, originalType);
-        })
-
-        .catch((error) => {
-            // If authentication fails, then the network can be unpaused and app is redirected
-            // so the sign on screen.
-            Network.unpauseRequestQueue();
-            isAuthenticating = false;
-            redirectToSignIn(error.message);
         });
 }
 
@@ -256,9 +248,10 @@ function Authenticate(parameters) {
 /**
  * Reauthenticate using the stored credentials and redirect to the sign in page if unable to do so.
  *
+ * @param {String} [command] command name for loggin purposes
  * @returns {Promise}
  */
-function reauthenticate() {
+function reauthenticate(command = '') {
     return Authenticate({
         useExpensifyLogin: false,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
@@ -290,6 +283,11 @@ function reauthenticate() {
             Network.unpauseRequestQueue();
             isAuthenticating = false;
             redirectToSignIn(error.message);
+
+            console.debug('Redirecting to Sign In because we failed to reauthenticate', {
+                command,
+                error: error.message,
+            });
         });
 }
 
