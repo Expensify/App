@@ -9,8 +9,9 @@ import {
 } from 'react-native';
 import styles from '../../../styles/styles';
 import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
+import themeColors from '../../../styles/themes/default';
 import Icon from '../../../components/Icon';
-import {Pencil} from '../../../components/Icon/Expensicons';
+import {Pencil, PinCircle} from '../../../components/Icon/Expensicons';
 import MultipleAvatars from '../../../components/MultipleAvatars';
 import variables from '../../../styles/variables';
 
@@ -121,6 +122,14 @@ const ChatLinkRow = ({
             )}
             {option.hasDraftComment && (
                 <Icon src={Pencil} width={variables.fontSizeSmall} height={variables.iconSizeSmall} />
+            )}
+            {option.isPinned && (
+                <Icon
+                    src={PinCircle}
+                    width={variables.iconSizeNormal}
+                    height={variables.iconSizeNormal}
+                    fill={themeColors.icon}
+                />
             )}
         </View>
     );
