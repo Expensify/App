@@ -204,7 +204,15 @@ class NewGroupPage extends Component {
         const sections = this.getSections(maxParticipantsReached);
         const {headerTitle, headerMessage} = this.getHeaderTitleAndMessage(maxParticipantsReached);
         return (
-            <View style={[styles.flex1, styles.p2]}>
+            <View
+                style={[
+                    // Note: These are temporary styles and should be removed
+                    styles.flex1,
+                    styles.h100,
+                    styles.w100,
+                    {position: 'absolute', zIndex: 2, backgroundColor: 'white'},
+                ]}
+            >
                 <HeaderWithCloseButton
                     title="New Group"
                     onCloseButtonPress={() => {
@@ -213,41 +221,43 @@ class NewGroupPage extends Component {
                             : ROUTES.HOME);
                     }}
                 />
-                <OptionsSelector
-                    canSelectMultipleOptions
-                    sections={sections}
-                    selectedOptions={this.state.selectedOptions}
-                    value={this.state.searchValue}
-                    onSelectRow={this.toggleOption}
-                    onChangeText={(searchValue = '') => {
-                        const {
-                            recentReports,
-                            personalDetails,
-                            userToInvite,
-                        } = getNewGroupOptions(
-                            this.props.reports,
-                            this.props.personalDetails,
-                            searchValue,
-                            [],
-                        );
-                        this.setState({
-                            searchValue,
-                            userToInvite,
-                            recentReports,
-                            personalDetails,
-                        });
-                    }}
-                    headerTitle={headerTitle}
-                    headerMessage={headerMessage}
-                />
-                <TouchableOpacity
-                    onPress={this.createGroup}
-                    style={[styles.button, styles.buttonSuccess, styles.w100, styles.mt5]}
-                >
-                    <Text style={[styles.buttonText, styles.buttonSuccessText]}>
-                        Create Group
-                    </Text>
-                </TouchableOpacity>
+                <View style={[styles.p2, styles.flex1]}>
+                    <OptionsSelector
+                        canSelectMultipleOptions
+                        sections={sections}
+                        selectedOptions={this.state.selectedOptions}
+                        value={this.state.searchValue}
+                        onSelectRow={this.toggleOption}
+                        onChangeText={(searchValue = '') => {
+                            const {
+                                recentReports,
+                                personalDetails,
+                                userToInvite,
+                            } = getNewGroupOptions(
+                                this.props.reports,
+                                this.props.personalDetails,
+                                searchValue,
+                                [],
+                            );
+                            this.setState({
+                                searchValue,
+                                userToInvite,
+                                recentReports,
+                                personalDetails,
+                            });
+                        }}
+                        headerTitle={headerTitle}
+                        headerMessage={headerMessage}
+                    />
+                    <TouchableOpacity
+                        onPress={this.createGroup}
+                        style={[styles.button, styles.buttonSuccess, styles.w100, styles.mt5]}
+                    >
+                        <Text style={[styles.buttonText, styles.buttonSuccessText]}>
+                            Create Group
+                        </Text>
+                    </TouchableOpacity>
+                </View>
             </View>
         );
     }
