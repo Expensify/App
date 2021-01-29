@@ -11,7 +11,7 @@ import themeColors from '../../../styles/themes/default';
 import TextInputWithFocusStyles from '../../../components/TextInputWithFocusStyles';
 import {getDisplayName} from '../../../libs/actions/PersonalDetails';
 import PillWithCancelButton from '../../../components/PillWithCancelButton';
-import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
+import optionPropTypes from './optionPropTypes';
 
 const propTypes = {
     // A ref to forward to the text input
@@ -36,7 +36,7 @@ const propTypes = {
     onConfirmUsers: PropTypes.func.isRequired,
 
     // Users selected to begin a group report DM
-    usersToStartGroupReportWith: PropTypes.arrayOf(ChatSwitcherOptionPropTypes),
+    usersToStartGroupReportWith: PropTypes.arrayOf(optionPropTypes),
 };
 
 const defaultProps = {
@@ -75,7 +75,7 @@ const ChatSwitcherSearchForm = props => (
                                 ]}
                             >
                                 <TextInputWithFocusStyles
-                                    styleFocusIn={[styles.textInputNoOutline]}
+                                    styleFocusIn={[styles.noOutline]}
                                     ref={props.forwardedRef}
                                     style={[styles.chatSwitcherGroupDMTextInput, styles.mb1]}
                                     value={props.searchValue}

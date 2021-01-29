@@ -17,6 +17,7 @@ export default {
     textBackground: colors.gray1,
     textReversed: colors.white,
     textMutedReversed: colors.gray3,
+    buttonDefaultBG: colors.gray2,
     buttonSuccessBG: colors.green,
     online: colors.green,
     offline: colors.gray3,
@@ -24,4 +25,5 @@ export default {
     modalBackdrop: colors.gray3,
     pillBG: colors.gray2,
     buttonDisabledBG: colors.gray2,
+    buttonHoveredBG: colors.gray1,
 };

@@ -1,13 +1,15 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, useWindowDimensions} from 'react-native';
+import {View} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import CustomStatusBar from './CustomStatusBar';
+import KeyboardShortcut from '../libs/KeyboardShortcut';
 import styles, {getSafeAreaPadding} from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import getModalStyles from '../styles/getModalStyles';
 import CONST from '../CONST';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 
 const propTypes = {
     // Callback method fired when the user requests to close the modal
@@ -19,17 +21,34 @@ const propTypes = {
     // Modal contents
     children: PropTypes.node.isRequired,
 
+    // Callback method fired when the user requests to submit the modal content.
+    onSubmit: PropTypes.func,
+
     // Style of modal to display
     type: PropTypes.oneOf([
         CONST.MODAL.MODAL_TYPE.CENTERED,
+        CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED,
+        CONST.MODAL.MODAL_TYPE.POPOVER,
+        CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
     ]),
+
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
+    onSubmit: null,
     type: '',
 };
 
 const Modal = (props) => {
+    const subscribeToKeyEvents = () => {
+        KeyboardShortcut.subscribe('Escape', props.onClose, [], true);
+        KeyboardShortcut.subscribe('Enter', props.onSubmit, [], true);
+    };
+    const unsubscribeFromKeyEvents = () => {
+        KeyboardShortcut.unsubscribe('Escape');
+        KeyboardShortcut.unsubscribe('Enter');
+    };
     const {
         modalStyle,
         modalContainerStyle,
@@ -37,17 +56,19 @@ const Modal = (props) => {
         animationIn,
         animationOut,
         needsSafeAreaPadding,
-    } = getModalStyles(props.type, useWindowDimensions());
-
+        hideBackdrop,
+    } = getModalStyles(props.type, props.windowDimensions);
     return (
         <ReactNativeModal
             onBackdropPress={props.onClose}
             onBackButtonPress={props.onClose}
+            onModalShow={subscribeToKeyEvents}
+            onModalHide={unsubscribeFromKeyEvents}
             onSwipeComplete={props.onClose}
             swipeDirection={swipeDirection}
             isVisible={props.isVisible}
             backdropColor={themeColors.modalBackdrop}
-            backdropOpacity={0.5}
+            backdropOpacity={hideBackdrop ? 0 : 0.5}
             backdropTransitionOutTiming={0}
             style={modalStyle}
             animationIn={animationIn}
@@ -60,13 +81,13 @@ const Modal = (props) => {
                     return (
                         <View
                             style={{
-                                ...styles.defaultModalContainer,
-                                paddingBottom,
-                                ...modalContainerStyle,
-
                                 // This padding is based on the insets and could not neatly be
                                 // returned by getModalStyles to avoid passing this inline.
                                 paddingTop: needsSafeAreaPadding ? paddingTop : 20,
+
+                                ...styles.defaultModalContainer,
+                                paddingBottom,
+                                ...modalContainerStyle,
                             }}
                         >
                             {props.children}
@@ -81,4 +102,4 @@ const Modal = (props) => {
 Modal.propTypes = propTypes;
 Modal.defaultProps = defaultProps;
 Modal.displayName = 'Modal';
-export default Modal;
+export default withWindowDimensions(Modal);

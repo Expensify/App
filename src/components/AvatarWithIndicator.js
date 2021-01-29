@@ -10,24 +10,33 @@ const propTypes = {
 
     // url for the avatar
     source: PropTypes.string.isRequired,
+
+    // avatar size
+    size: PropTypes.string,
+
 };
 
 const defaultProps = {
     isActive: false,
+    size: 'default',
 };
 
 const AvatarWithIndicator = ({
     isActive,
     source,
+    size,
 }) => {
     const indicatorStyles = [
-        styles.statusIndicator,
+        size === 'large' ? styles.statusIndicatorLarge : styles.statusIndicator,
         isActive ? styles.statusIndicatorOnline : styles.statusIndicatorOffline,
     ];
 
     return (
-        <View style={[styles.sidebarAvatar]}>
+        <View
+            style={[size === 'large' ? styles.avatarLarge : styles.sidebarAvatar]}
+        >
             <Avatar
+                style={[size === 'large' ? styles.avatarLarge : null]}
                 source={source}
             />
             <View style={StyleSheet.flatten(indicatorStyles)} />
