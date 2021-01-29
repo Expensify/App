@@ -122,12 +122,12 @@ const ChatLinkRow = ({
             )}
             <View style={styles.flexRow}>
                 {option.hasDraftComment && (
-                    <View style={styles.ml1}>
+                    <View style={styles.ml2}>
                         <Icon src={Pencil} width={variables.iconSizeNormal} height={variables.iconSizeNormal} />
                     </View>
                 )}
                 {option.isPinned && (
-                    <View style={styles.ml1}>
+                    <View style={styles.ml2}>
                         <Icon
                             src={PinCircle}
                             width={variables.iconSizeNormal}
