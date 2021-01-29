@@ -153,6 +153,12 @@ PODS:
   - OpenSSL-Universal (1.0.2.20):
     - OpenSSL-Universal/Static (= 1.0.2.20)
   - OpenSSL-Universal/Static (1.0.2.20)
+  - Permission-MediaLibrary (3.0.0):
+    - RNPermissions
+  - Permission-PhotoLibrary (3.0.0):
+    - RNPermissions
+  - Permission-PhotoLibraryAddOnly (3.0.0):
+    - RNPermissions
   - PromisesObjC (1.2.11)
   - RCTRequired (0.63.3)
   - RCTTypeSafety (0.63.3):
@@ -415,6 +421,8 @@ PODS:
     - Firebase/Crashlytics (~> 6.34.0)
     - React-Core
     - RNFBApp
+  - RNPermissions (3.0.0):
+    - React-Core
   - RNSVG (12.1.0):
     - React
   - urbanairship-react-native (10.0.0):
@@ -449,6 +457,9 @@ DEPENDENCIES:
   - FlipperKit/SKIOSNetworkPlugin (~> 0.54.0)
   - Folly (from `../node_modules/react-native/third-party-podspecs/Folly.podspec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
+  - Permission-MediaLibrary (from `../node_modules/react-native-permissions/ios/MediaLibrary`)
+  - Permission-PhotoLibrary (from `../node_modules/react-native-permissions/ios/PhotoLibrary`)
+  - Permission-PhotoLibraryAddOnly (from `../node_modules/react-native-permissions/ios/PhotoLibraryAddOnly`)
   - RCTRequired (from `../node_modules/react-native/Libraries/RCTRequired`)
   - RCTTypeSafety (from `../node_modules/react-native/Libraries/TypeSafety`)
   - React (from `../node_modules/react-native/`)
@@ -485,6 +496,7 @@ DEPENDENCIES:
   - "RNFBAnalytics (from `../node_modules/@react-native-firebase/analytics`)"
   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
   - "RNFBCrashlytics (from `../node_modules/@react-native-firebase/crashlytics`)"
+  - RNPermissions (from `../node_modules/react-native-permissions`)
   - RNSVG (from `../node_modules/react-native-svg`)
   - urbanairship-react-native (from `../node_modules/urbanairship-react-native`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
@@ -527,6 +539,12 @@ EXTERNAL SOURCES:
     :podspec: "../node_modules/react-native/third-party-podspecs/Folly.podspec"
   glog:
     :podspec: "../node_modules/react-native/third-party-podspecs/glog.podspec"
+  Permission-MediaLibrary:
+    :path: "../node_modules/react-native-permissions/ios/MediaLibrary"
+  Permission-PhotoLibrary:
+    :path: "../node_modules/react-native-permissions/ios/PhotoLibrary"
+  Permission-PhotoLibraryAddOnly:
+    :path: "../node_modules/react-native-permissions/ios/PhotoLibraryAddOnly"
   RCTRequired:
     :path: "../node_modules/react-native/Libraries/RCTRequired"
   RCTTypeSafety:
@@ -595,6 +613,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-firebase/app"
   RNFBCrashlytics:
     :path: "../node_modules/@react-native-firebase/crashlytics"
+  RNPermissions:
+    :path: "../node_modules/react-native-permissions"
   RNSVG:
     :path: "../node_modules/react-native-svg"
   urbanairship-react-native:
@@ -630,6 +650,9 @@ SPEC CHECKSUMS:
   GoogleUtilities: 7f2f5a07f888cdb145101d6042bc4422f57e70b3
   nanopb: 59317e09cf1f1a0af72f12af412d54edf52603fc
   OpenSSL-Universal: ff34003318d5e1163e9529b08470708e389ffcdd
+  Permission-MediaLibrary: 8187d4e44ea517860f1b12aac792ed45a031eeb2
+  Permission-PhotoLibrary: 79f74cef889ed76e1712fee9fe9a187e9a15dec1
+  Permission-PhotoLibraryAddOnly: b79f52e932b0714ff6b0774282dfa6ce0b7cfd8d
   PromisesObjC: 8c196f5a328c2cba3e74624585467a557dcb482f
   RCTRequired: 48884c74035a0b5b76dbb7a998bd93bcfc5f2047
   RCTTypeSafety: edf4b618033c2f1c5b7bc3d90d8e085ed95ba2ab
@@ -665,11 +688,12 @@ SPEC CHECKSUMS:
   RNFBAnalytics: 2dc4dd9e2445faffca041b10447a23a71dcdabf8
   RNFBApp: 7eacc7da7ab19f96c05e434017d44a9f09410da8
   RNFBCrashlytics: 4870c14cf8833053b6b5648911abefe1923854d2
+  RNPermissions: 350964d19150b183796a88180fb7ec62a1e41422
   RNSVG: ce9d996113475209013317e48b05c21ee988d42e
   urbanairship-react-native: dfb6dc22b2f41ccaadd636b73d51b448cd1b2bbc
   Yoga: 7d13633d129fd179e01b8953d38d47be90db185a
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 41b806c7f131f87b716be1f1f9377532d6c9e43a
+PODFILE CHECKSUM: eb7f0d8e4fcd84ad2c8194e6cf1af36c44b0e5f8
 
 COCOAPODS: 1.8.4
