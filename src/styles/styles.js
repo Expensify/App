@@ -10,6 +10,8 @@ import sizing from './utilities/sizing';
 import flex from './utilities/flex';
 import display from './utilities/display';
 import overflow from './utilities/overflow';
+import whiteSpace from './utilities/whiteSpace';
+import wordBreak from './utilities/wordBreak';
 
 const styles = {
     // Add all of our utility and helper styles
@@ -18,6 +20,8 @@ const styles = {
     ...flex,
     ...display,
     ...overflow,
+    ...wordBreak,
+    ...whiteSpace,
 
     link: {
         color: themeColors.link,
@@ -60,6 +64,13 @@ const styles = {
         fontSize: variables.fontSizeSmall,
     },
 
+    textMicroBold: {
+        color: themeColors.text,
+        fontWeight: fontWeightBold,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeSmall,
+    },
+
     textLarge: {
         fontSize: variables.fontSizeLarge,
     },
@@ -82,16 +93,17 @@ const styles = {
     },
 
     button: {
-        borderColor: themeColors.border,
+        backgroundColor: themeColors.buttonDefaultBG,
         borderRadius: variables.componentBorderRadius,
-        borderWidth: 1,
         height: variables.componentSizeNormal,
         justifyContent: 'center',
+        paddingHorizontal: 12,
     },
 
     buttonText: {
-        color: themeColors.text,
+        color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeLabel,
         fontWeight: fontWeightBold,
         textAlign: 'center',
     },
@@ -160,7 +172,7 @@ const styles = {
         marginRight: 4,
         userSelect: 'none',
         maxWidth: 144,
-        whiteSpace: 'nowrap',
+        ...whiteSpace.noWrap,
     },
 
     pillCancelIcon: {
@@ -169,10 +181,10 @@ const styles = {
     },
 
     headerText: {
-        fontFamily: fontFamily.GTA,
         color: themeColors.heading,
+        fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeNormal,
-        fontWeight: '700',
+        fontWeight: fontWeightBold,
     },
 
     reportOptions: {
@@ -224,7 +236,7 @@ const styles = {
         borderColor: themeColors.icon,
     },
 
-    textInputNoOutline: addOutlineWidth({}, 0),
+    noOutline: addOutlineWidth({}, 0),
 
     formLabel: {
         color: themeColors.text,
@@ -265,11 +277,6 @@ const styles = {
         width: '100%',
         marginBottom: 20,
         marginTop: 20,
-    },
-
-    signinLogo: {
-        height: variables.componentSizeLarge,
-        width: variables.componentSizeLarge,
     },
 
     signinWelcomeScreenshot: {
@@ -338,7 +345,7 @@ const styles = {
     },
 
     sidebarAvatar: {
-        backgroundColor: themeColors.text,
+        backgroundColor: themeColors.icon,
         borderRadius: 20,
         height: variables.componentSizeNormal,
         width: variables.componentSizeNormal,
@@ -346,13 +353,13 @@ const styles = {
 
     statusIndicator: {
         borderColor: themeColors.sidebar,
-        borderRadius: 7,
+        borderRadius: 6,
         borderWidth: 2,
         position: 'absolute',
-        right: -6,
-        bottom: 3,
-        height: 14,
-        width: 14,
+        right: -1,
+        bottom: -1,
+        height: 12,
+        width: 12,
         zIndex: 10,
     },
     statusIndicatorOnline: {
@@ -382,7 +389,7 @@ const styles = {
         width: 200,
         textOverflow: 'ellipsis',
         overflow: 'hidden',
-        whiteSpace: 'nowrap',
+        ...whiteSpace.noWrap,
     },
 
     sidebarFooterLink: {
@@ -394,10 +401,7 @@ const styles = {
     },
 
     sidebarListContainer: {
-        flex: 1,
-        flexGrow: 100,
         scrollbarWidth: 'none',
-        overflow: 'scroll',
         paddingBottom: 4,
     },
 
@@ -449,7 +453,7 @@ const styles = {
 
     sidebarLinkText: {
         color: themeColors.text,
-        fontSize: variables.fontSizeLabel,
+        fontSize: variables.fontSizeNormal,
         textDecorationLine: 'none',
         overflow: 'hidden',
     },
@@ -466,7 +470,7 @@ const styles = {
 
     sidebarLinkActiveText: {
         color: themeColors.text,
-        fontSize: variables.fontSizeLabel,
+        fontSize: variables.fontSizeNormal,
         textDecorationLine: 'none',
         overflow: 'hidden',
     },
@@ -475,12 +479,13 @@ const styles = {
         fontFamily: fontFamily.GTA,
         height: 18,
         lineHeight: 18,
-        whiteSpace: 'nowrap',
+        ...whiteSpace.noWrap,
     },
 
     chatSwitcherLogin: {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeLabel,
         height: 16,
         lineHeight: 16,
     },
@@ -521,17 +526,6 @@ const styles = {
     LHNToggleIcon: {
         height: 15,
         width: 18,
-    },
-
-    LHNPencilIcon: {
-        height: 16,
-        width: 16,
-    },
-
-    attachmentCloseIcon: {
-        height: 20,
-        width: 20,
-        padding: 0,
     },
 
     chatContent: {
@@ -592,7 +586,7 @@ const styles = {
         lineHeight: 20,
         paddingRight: 5,
         paddingBottom: 4,
-        wordBreak: 'break-word',
+        ...wordBreak.breakWord,
     },
 
     chatItemMessageHeaderTimestamp: {
@@ -609,8 +603,8 @@ const styles = {
         lineHeight: 20,
         marginTop: -2,
         marginBottom: -2,
-        whiteSpace: 'pre-wrap',
-        wordBreak: 'break-word',
+        ...whiteSpace.preWrap,
+        ...wordBreak.breakWord,
     },
 
     chatItemCompose: {
@@ -637,31 +631,35 @@ const styles = {
     },
 
     textInputCompose: addOutlineWidth({
+        backgroundColor: themeColors.componentBG,
+        borderColor: themeColors.border,
+        color: themeColors.text,
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeNormal,
         borderWidth: 0,
         borderRadius: 0,
         height: 'auto',
-        minHeight: 38,
-        paddingTop: 10,
-        paddingRight: 8,
-        paddingBottom: 10,
-        paddingLeft: 8,
+
+        // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
+        // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
+
+        paddingHorizontal: 8,
+        marginVertical: 5,
+        paddingVertical: 0,
+        alignSelf: 'center',
+        textAlignVertical: 'center',
     }, 0),
 
     chatItemSubmitButton: {
         alignSelf: 'flex-end',
         borderRadius: 6,
         height: 32,
-        paddingTop: 8,
+        paddingTop: 6,
         paddingRight: 6,
-        paddingBottom: 8,
+        paddingBottom: 6,
         paddingLeft: 6,
         margin: 3,
         justifyContent: 'center',
-    },
-
-    chatItemSubmitButtonIcon: {
-        height: 20,
-        width: 20,
     },
 
     chatItemAttachButton: {
@@ -691,11 +689,6 @@ const styles = {
         alignSelf: 'flex-end',
         height: variables.componentSizeNormal,
         justifyContent: 'center',
-    },
-
-    chatSwitcherInputClearIcon: {
-        height: 24,
-        width: 24,
     },
 
     chatSwitcherGroupDMContainer: {
@@ -768,12 +761,14 @@ const styles = {
     singleAvatar: {
         height: 24,
         width: 24,
+        backgroundColor: themeColors.icon,
         borderRadius: 24,
     },
 
     avatarNormal: {
         height: variables.componentSizeNormal,
         width: variables.componentSizeNormal,
+        backgroundColor: themeColors.icon,
         borderRadius: variables.componentSizeNormal,
     },
 
@@ -948,23 +943,11 @@ const styles = {
         borderColor: colors.transparent,
     },
 
-    signOutButton: {
-        width: '95%',
-        alignSelf: 'center',
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: themeColors.sidebarButtonBG,
-        borderRadius: variables.componentBorderRadius,
-        height: variables.componentSizeLarge,
-    },
-
     settingsPageBackground: {
         flexDirection: 'column',
         width: '100%',
-        height: '100%',
-        position: 'absolute',
+        flexGrow: 1,
         justifyContent: 'space-between',
-        backgroundColor: 'white',
         alignItems: 'center',
     },
 
@@ -980,32 +963,32 @@ const styles = {
         width: '100%',
     },
 
-    largeAvatar: {
+    avatarLarge: {
         width: 80,
         height: 80,
     },
 
-    largeStatusIndicator: {
+    statusIndicatorLarge: {
         borderColor: themeColors.componentBG,
-        borderRadius: 14,
+        borderRadius: 8,
         borderWidth: 2,
         position: 'absolute',
-        right: 8,
+        right: 4,
         bottom: 4,
-        height: 14,
-        width: 14,
+        height: 16,
+        width: 16,
         zIndex: 10,
     },
 
     settingsDisplayName: {
-        fontSize: 17,
+        fontSize: variables.fontSizeLarge,
         fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
         color: themeColors.heading,
     },
 
-
     settingsLoginName: {
-        fontSize: 13,
+        fontSize: variables.fontSizeLabel,
         fontFamily: fontFamily.GTA,
         color: themeColors.textSupporting,
     },
@@ -1013,6 +996,15 @@ const styles = {
     settingsWrapper: {
         width: '100%',
         alignItems: 'center',
+        padding: 20,
+    },
+
+    selectCircle: {
+        width: variables.componentSizeSmall,
+        height: variables.componentSizeSmall,
+        borderColor: themeColors.border,
+        borderWidth: 1,
+        borderRadius: variables.componentSizeSmall / 2,
     },
 };
 

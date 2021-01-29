@@ -8,51 +8,26 @@ import {getDefaultAvatar} from './actions/PersonalDetails';
 import ONYXKEYS from '../ONYXKEYS';
 
 /**
- * ReportListUtils is used to build a list options passed to the ReportList component. Several different UI views can
+ * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
  * be configured to display different results based on the options passed to the private getOptions() method. Public
  * methods should be named for the views they build options for and then exported for use in a component.
  */
 
-// In order to build our options we need references to all reports,
-// personalDetails, draftComments, and the activeReportID.
-const reports = {};
-let personalDetails = {};
-const draftComments = {};
-let activeReportID;
 let currentUserLogin;
+let countryCodeByIP;
 
-// Each time we re-calculate the possible options we will create arrays options for reports and personalDetails.
-let allReportOptions;
-let allPersonalDetailsOptions;
-
-/**
- * Check if the report has a draft comment
- *
- * @param {Number} reportID
- * @returns {Boolean}
- */
-function hasComment(reportID) {
-    const allComments = lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, '');
-    return allComments.length > 0;
-}
-
-/**
- * Get participants for the report. Returns array of logins.
- *
- * @param {Object} report
- * @returns {Array}
- */
-function getParticipantLogins(report) {
-    return lodashGet(report, ['participants'], []);
-}
+// We are initializing a default avatar here so that we use the same default color for each user we are inviting. This
+// will update when the OptionsListUtils re-loads. But will stay the same color for the life of the JS session.
+const defaultAvatarForUserToInvite = getDefaultAvatar();
 
 /**
  * Returns the personal details for an array of logins
  *
  * @param {Array} logins
+ * @param {Object} personalDetails
  * @returns {Array}
  */
-function getPersonalDetailsForLogins(logins) {
+function getPersonalDetailsForLogins(logins, personalDetails) {
     return _.map(logins, (login) => {
         let personalDetail = personalDetails[login];
 
@@ -96,11 +71,17 @@ function getSearchText(report, personalDetailList) {
  *
  * @param {Array<Object>} personalDetailList
  * @param {Object} [report]
+ * @param {Object} draftComments
+ * @param {Number} activeReportID
  * @returns {Object}
  */
-function createOption(personalDetailList, report) {
+function createOption(personalDetailList, report, draftComments, activeReportID) {
     const hasMultipleParticipants = personalDetailList.length > 1;
     const personalDetail = personalDetailList[0];
+    const hasDraftComment = report
+        && (report.reportID !== activeReportID)
+        && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '').length > 0;
+
     return {
         text: report ? report.reportName : personalDetail.displayName,
         alternateText: (report && hasMultipleParticipants) ? report.reportName : personalDetail.login,
@@ -111,35 +92,12 @@ function createOption(personalDetailList, report) {
         login: !hasMultipleParticipants ? personalDetail.login : null,
         reportID: report ? report.reportID : null,
         isUnread: report ? report.unreadActionCount > 0 : null,
-        hasDraftComment: report && report.reportID !== activeReportID && hasComment(report.reportID),
+        hasDraftComment,
         keyForList: report ? String(report.reportID) : personalDetail.login,
         searchText: getSearchText(report, personalDetailList),
         isPinned: lodashGet(report, 'isPinned', false),
     };
 }
-
-/**
- * Rebuild the options. We are throttling this so the options are only rebuilt at most
- * once per second. It can be expensive to rebuild options so we slow this down a bit.
- */
-const rebuildOptions = _.throttle(() => {
-    const reportMapForLogins = {};
-    const orderedReports = lodashOrderBy(reports, ['lastVisitedTimestamp'], ['desc']);
-    allReportOptions = _.map(orderedReports, (report) => {
-        const logins = getParticipantLogins(report);
-        const reportPersonalDetails = getPersonalDetailsForLogins(logins);
-
-        // Save the report in the map if this is a single participant so we
-        // can associate the reportID with the personal detail option later.
-        if (logins.length <= 1) {
-            reportMapForLogins[logins[0]] = report;
-        }
-        return createOption(reportPersonalDetails, report);
-    });
-    allPersonalDetailsOptions = _.map(personalDetails, personalDetail => (
-        createOption([personalDetail], reportMapForLogins[personalDetail.login])
-    ));
-}, 1000, {leading: false});
 
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -147,42 +105,8 @@ Onyx.connect({
 });
 
 Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (report) => {
-        const reportID = report.reportID;
-
-        if (!reportID) {
-            return;
-        }
-
-        const existingReport = reports[reportID];
-        if (!existingReport) {
-            reports[reportID] = report;
-        } else {
-            reports[report.reportID] = {...existingReport, ...report};
-        }
-        rebuildOptions();
-    },
-});
-
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS,
-    callback: (val) => {
-        personalDetails = val;
-        rebuildOptions();
-    },
-});
-
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
-    callback: (val, key) => {
-        draftComments[key] = val;
-    },
-});
-
-Onyx.connect({
-    key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
-    callback: val => activeReportID = val,
+    key: ONYXKEYS.COUNTRY_CODE,
+    callback: val => countryCodeByIP = val || 1,
 });
 
 /**
@@ -208,27 +132,67 @@ function isSearchStringMatch(searchValue, searchText) {
 /**
  * Build the options
  *
- * @param {Object} reportActions
+ * @param {Object} reports
+ * @param {Object} personalDetails
+ * @param {Obejct} draftComments
+ * @param {Number} activeReportID
  * @param {Object} options
  * @returns {Object}
  * @private
  */
-function getOptions({
+function getOptions(reports, personalDetails, draftComments, activeReportID, {
     selectedOptions = [],
     maxRecentReportsToShow = 0,
     includeMultipleParticipantReports = false,
     includePersonalDetails = false,
     includeRecentReports = false,
     prioritizePinnedReports = false,
+    sortByLastMessageTimestamp = false,
     searchValue = '',
 }) {
     let recentReportOptions = [];
     const pinnedReportOptions = [];
     const personalDetailsOptions = [];
 
+    const reportMapForLogins = {};
+    const orderedReports = lodashOrderBy(reports, [
+        sortByLastMessageTimestamp
+            ? 'lastMessageTimestamp'
+            : 'lastVisitedTimestamp',
+    ], ['desc']);
+
+    const allReportOptions = [];
+    _.each(orderedReports, (report) => {
+        const logins = lodashGet(report, ['participants'], []);
+
+        // Report data can sometimes be incomplete. If we have no logins or reportID then we will skip this entry.
+        if (!report.reportID || _.isEmpty(logins)) {
+            return;
+        }
+
+        // Skip this entry if it has no comments and is not the active report. We will only show reports from
+        // people we have sent or recieved at least one message with.
+        const hasNoComments = report.lastMessageTimestamp === 0;
+        if (hasNoComments && report.reportID !== activeReportID) {
+            return;
+        }
+
+        const reportPersonalDetails = getPersonalDetailsForLogins(logins, personalDetails);
+
+        // Save the report in the map if this is a single participant so we can associate the reportID with the
+        // personal detail option later.
+        if (logins.length <= 1) {
+            reportMapForLogins[logins[0]] = report;
+        }
+        allReportOptions.push(createOption(reportPersonalDetails, report, draftComments, activeReportID));
+    });
+
+    const allPersonalDetailsOptions = _.map(personalDetails, personalDetail => (
+        createOption([personalDetail], reportMapForLogins[personalDetail.login], draftComments, activeReportID)
+    ));
+
     // Always exclude already selected options and the currently logged in user
     const loginOptionsToExclude = [...selectedOptions, {login: currentUserLogin}];
-
     if (includeRecentReports) {
         for (let i = 0; i < allReportOptions.length; i++) {
             // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
@@ -291,20 +255,44 @@ function getOptions({
         });
     }
 
+    let userToInvite = null;
+    if (searchValue
+            && recentReportOptions.length === 0
+            && personalDetailsOptions.length === 0
+            && _.every(selectedOptions, option => option.login !== searchValue)
+            && (Str.isValidEmail(searchValue) || Str.isValidPhone(searchValue))
+    ) {
+        // If the phone number doesn't have an international code then let's prefix it with the
+        // current users international code based on their IP address.
+        const login = (Str.isValidPhone(searchValue) && !searchValue.includes('+'))
+            ? `+${countryCodeByIP}${searchValue}`
+            : searchValue;
+        const userInvitePersonalDetails = getPersonalDetailsForLogins([login], personalDetails);
+        userToInvite = createOption(userInvitePersonalDetails, null, draftComments, activeReportID);
+        userToInvite.icons = [defaultAvatarForUserToInvite];
+    }
+
     return {
         personalDetails: personalDetailsOptions,
         recentReports: recentReportOptions,
+        userToInvite,
     };
 }
 
 /**
  * Build the options for the Search view
  *
+ * @param {Object} reports
+ * @param {Object} personalDetails
  * @param {String} searchValue
  * @returns {Object}
  */
-function getSearchOptions(searchValue = '') {
-    return getOptions({
+function getSearchOptions(
+    reports,
+    personalDetails,
+    searchValue = '',
+) {
+    return getOptions(reports, personalDetails, {}, 0, {
         searchValue,
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
@@ -316,11 +304,17 @@ function getSearchOptions(searchValue = '') {
 /**
  * Build the options for the New Chat view
  *
+ * @param {Object} reports
+ * @param {Object} personalDetails
  * @param {String} searchValue
  * @returns {Object}
  */
-function getNewChatOptions(searchValue = '') {
-    return getOptions({
+function getNewChatOptions(
+    reports,
+    personalDetails,
+    searchValue = '',
+) {
+    return getOptions(reports, personalDetails, {}, 0, {
         searchValue,
         includePersonalDetails: true,
     });
@@ -329,12 +323,19 @@ function getNewChatOptions(searchValue = '') {
 /**
  * Build the options for the New Group view
  *
+ * @param {Object} reports
+ * @param {Object} personalDetails
  * @param {String} searchValue
  * @param {Array} selectedOptions
  * @returns {Object}
  */
-function getNewGroupOptions(searchValue = '', selectedOptions = []) {
-    return getOptions({
+function getNewGroupOptions(
+    reports,
+    personalDetails,
+    searchValue = '',
+    selectedOptions = [],
+) {
+    return getOptions(reports, personalDetails, {}, 0, {
         searchValue,
         selectedOptions,
         includeRecentReports: true,
@@ -346,15 +347,19 @@ function getNewGroupOptions(searchValue = '', selectedOptions = []) {
 
 /**
  * Build the options for the Sidebar a.k.a. LHN
- *
+ * @param {Object} reports
+ * @param {Object} personalDetails
+ * @param {Obejct} draftComments
+ * @param {Number} activeReportID
  * @returns {Object}
  */
-function getSidebarOptions() {
-    return getOptions({
+function getSidebarOptions(reports, personalDetails, draftComments, activeReportID) {
+    return getOptions(reports, personalDetails, draftComments, activeReportID, {
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
         maxRecentReportsToShow: 0, // Unlimited
         prioritizePinnedReports: true,
+        sortByLastMessageTimestamp: true,
     });
 }
 
