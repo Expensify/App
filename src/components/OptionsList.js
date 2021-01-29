@@ -4,7 +4,7 @@ import {View, SectionList, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import KeyboardSpacer from './KeyboardSpacer';
-import ChatLinkRow from '../pages/home/sidebar/ChatLinkRow';
+import OptionRow from '../pages/home/sidebar/OptionRow';
 import optionPropTypes from './optionPropTypes';
 
 const propTypes = {
@@ -105,7 +105,7 @@ const OptionsList = ({
             initialNumToRender={500}
             onScrollToIndexFailed={error => console.debug(error)}
             renderItem={({item, index, section}) => (
-                <ChatLinkRow
+                <OptionRow
                     option={item}
                     optionIsFocused={focusedIndex === (index + section.indexOffset)}
                     onSelectRow={onSelectRow}
