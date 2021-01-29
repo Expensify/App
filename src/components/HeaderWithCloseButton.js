@@ -1,11 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {
-    View, Image, TouchableOpacity,
+    View, TouchableOpacity,
 } from 'react-native';
 import styles from '../styles/styles';
-import exitIcon from '../../assets/images/icon-x--20x20.png';
 import Header from './Header';
+import Icon from './Icon';
+import {Close} from './Icon/Expensicons';
 
 const propTypes = {
     /** Title of the Header */
@@ -45,11 +46,7 @@ const HeaderWithCloseButton = props => (
                     onPress={props.onCloseButtonPress}
                     style={[styles.touchableButtonImage]}
                 >
-                    <Image
-                        resizeMode="contain"
-                        style={[styles.attachmentCloseIcon]}
-                        source={exitIcon}
-                    />
+                    <Icon src={Close} />
                 </TouchableOpacity>
             </View>
         </View>

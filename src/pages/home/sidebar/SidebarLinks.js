@@ -1,44 +1,37 @@
 import React from 'react';
-import {
-    Animated,
-    View,
-    ScrollView,
-    TouchableOpacity,
-} from 'react-native';
+import {Animated, View, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
-import lodashOrderby from 'lodash.orderby';
-import get from 'lodash.get';
 import {withOnyx} from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
-import styles from '../../../styles/styles';
+import styles, {getSafeAreaMargins} from '../../../styles/styles';
 import ONYXKEYS from '../../../ONYXKEYS';
 import ChatSwitcherView from './ChatSwitcherView';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
 import compose from '../../../libs/compose';
 import {withRouter} from '../../../libs/Router';
-import ChatLinkRow from './ChatLinkRow';
 import {redirect} from '../../../libs/actions/App';
 import ROUTES from '../../../ROUTES';
 import * as ChatSwitcher from '../../../libs/actions/ChatSwitcher';
-import {MagnifyingGlassIcon} from '../../../components/Expensicons';
+import Icon from '../../../components/Icon';
+import {MagnifyingGlass} from '../../../components/Icon/Expensicons';
 import Header from '../../../components/Header';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
+import OptionsList from '../../../components/OptionsList';
+import {getSidebarOptions} from '../../../libs/OptionsListUtils';
+import {getDefaultAvatar} from '../../../libs/actions/PersonalDetails';
 
 const propTypes = {
-    // These are from withRouter
-    // eslint-disable-next-line react/forbid-prop-types
-    match: PropTypes.object.isRequired,
-
-    // Toggles the hamburger menu open and closed
+    // Toggles the navigation menu open and closed
     onLinkClick: PropTypes.func.isRequired,
+
+    // navigates to settings and hides sidebar
+    onAvatarClick: PropTypes.func.isRequired,
 
     // Safe area insets required for mobile devices margins
     insets: SafeAreaInsetPropTypes.isRequired,
 
     /* Onyx Props */
-
     // List of reports
     reports: PropTypes.objectOf(PropTypes.shape({
         reportID: PropTypes.number,
@@ -47,8 +40,9 @@ const propTypes = {
     })),
 
     // List of draft comments. We don't know the shape, since the keys include the report numbers
-    comments: PropTypes.objectOf(PropTypes.string),
+    draftComments: PropTypes.objectOf(PropTypes.string),
 
+    // Current state of the chat switcher (active of inactive)
     isChatSwitcherActive: PropTypes.bool,
 
     // List of users' personal details
@@ -72,15 +66,21 @@ const propTypes = {
         // Is the network currently offline or not
         isOffline: PropTypes.bool,
     }),
+
+    // Currently viewed reportID
+    currentlyViewedReportID: PropTypes.string,
 };
 
 const defaultProps = {
     reports: {},
     isChatSwitcherActive: false,
-    comments: {},
+    draftComments: {},
     personalDetails: {},
-    myPersonalDetails: {},
+    myPersonalDetails: {
+        avatarURL: getDefaultAvatar(),
+    },
     network: null,
+    currentlyViewedReportID: '',
 };
 
 class SidebarLinks extends React.Component {
@@ -103,32 +103,8 @@ class SidebarLinks extends React.Component {
         }
     }
 
-    /**
-     * Check if the report has a draft comment
-     *
-     * @param {Number} reportID
-     * @returns {Boolean}
-     */
-    hasComment(reportID) {
-        const allComments = get(this.props.comments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, '');
-        return allComments.length > 0;
-    }
-
     render() {
-        const reportIDInUrl = parseInt(this.props.match.params.reportID, 10);
-        const sortedReports = lodashOrderby(this.props.reports, [
-            'isPinned',
-            'reportName',
-        ], [
-            'desc',
-            'asc',
-        ]);
-
-        // Filter the reports so that the only reports shown are pinned, unread, have draft
-        // comments (but are not the open one), and the one matching the URL
-        const reportsToDisplay = _.filter(sortedReports, report => (report.isPinned || (report.unreadActionCount > 0)
-                || report.reportID === reportIDInUrl
-                || (report.reportID !== reportIDInUrl && this.hasComment(report.reportID))));
+        const activeReportID = parseInt(this.props.currentlyViewedReportID, 10);
 
         const chatSwitcherStyle = [
             {opacity: this.chatSwitcherAnimation},
@@ -136,6 +112,20 @@ class SidebarLinks extends React.Component {
                 ? styles.sidebarHeaderActive
                 : styles.sidebarHeader,
         ];
+
+        const {recentReports} = getSidebarOptions(
+            this.props.reports,
+            this.props.personalDetails,
+            this.props.draftComments,
+            activeReportID,
+        );
+
+        const sections = [{
+            title: '',
+            indexOffset: 0,
+            data: recentReports,
+            shouldShow: true,
+        }];
 
         const sidebarAnimation = [
             {opacity: this.sidebarAnimation},
@@ -180,53 +170,32 @@ class SidebarLinks extends React.Component {
                                     style={[styles.flexRow, styles.sidebarHeaderTop]}
                                     onPress={() => ChatSwitcher.show()}
                                 >
-                                    <MagnifyingGlassIcon width={20} height={20} />
+                                    <Icon src={MagnifyingGlass} />
                                 </TouchableOpacity>
-                                <AvatarWithIndicator
-                                    source={this.props.myPersonalDetails.avatarURL}
-                                    isActive={this.props.network && !this.props.network.isOffline}
-                                />
+                                <TouchableOpacity
+                                    onPress={this.props.onAvatarClick}
+                                >
+                                    <AvatarWithIndicator
+                                        source={this.props.myPersonalDetails.avatarURL}
+                                        isActive={this.props.network && !this.props.network.isOffline}
+                                    />
+                                </TouchableOpacity>
                             </View>
-                            <ScrollView
-                                keyboardShouldPersistTaps="always"
-                                style={styles.sidebarListContainer}
-                                bounces={false}
-                                indicatorStyle="white"
-                            >
-                                {/* A report will not have a report name if it hasn't been fetched from  */}
-                                {/* the server yet so nothing is rendered */}
-                                {_.map(reportsToDisplay, (report) => {
-                                    const participantDetails = get(report, 'participants.length', 0) === 1
-                                        ? get(this.props.personalDetails, report.participants[0], '') : '';
-                                    const login = participantDetails ? participantDetails.login : '';
-                                    return report.reportName && (
-                                        <ChatLinkRow
-                                            key={report.reportID}
-                                            option={{
-                                                text: participantDetails
-                                                    ? participantDetails.displayName
-                                                    : report.reportName,
-                                                alternateText: Str.removeSMSDomain(login),
-                                                type: participantDetails ? 'user' : 'report',
-
-                                                // The icon for the row is set when we fetch personal details via
-                                                // PersonalDetails.getFromReportParticipants()
-                                                icons: report.icons,
-                                                login,
-                                                reportID: report.reportID,
-                                                isUnread: report.unreadActionCount > 0,
-                                                hasDraftComment: report.reportID !== reportIDInUrl
-                                                    && this.hasComment(report.reportID),
-                                            }}
-                                            onSelectRow={() => {
-                                                redirect(ROUTES.getReportRoute(report.reportID));
-                                                this.props.onLinkClick();
-                                            }}
-                                            optionIsFocused={report.reportID === reportIDInUrl}
-                                        />
-                                    );
-                                })}
-                            </ScrollView>
+                            <OptionsList
+                                contentContainerStyles={[
+                                    styles.sidebarListContainer,
+                                    {paddingBottom: getSafeAreaMargins(this.props.insets).marginBottom},
+                                ]}
+                                sections={sections}
+                                focusedIndex={_.findIndex(recentReports, (
+                                    option => option.reportID === activeReportID
+                                ))}
+                                onSelectRow={(option) => {
+                                    redirect(ROUTES.getReportRoute(option.reportID));
+                                    this.props.onLinkClick();
+                                }}
+                                hideSectionHeaders
+                            />
                         </>
                     )}
                 </Animated.View>
@@ -237,7 +206,6 @@ class SidebarLinks extends React.Component {
 
 SidebarLinks.propTypes = propTypes;
 SidebarLinks.defaultProps = defaultProps;
-SidebarLinks.displayName = 'SidebarLinks';
 
 export default compose(
     withRouter,
@@ -245,7 +213,7 @@ export default compose(
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
         },
-        comments: {
+        draftComments: {
             key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
         },
         personalDetails: {
@@ -256,6 +224,13 @@ export default compose(
         },
         network: {
             key: ONYXKEYS.NETWORK,
+        },
+        isChatSwitcherActive: {
+            key: ONYXKEYS.IS_CHAT_SWITCHER_ACTIVE,
+            initWithStoredValues: false,
+        },
+        currentlyViewedReportID: {
+            key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
         },
     }),
 )(SidebarLinks);
