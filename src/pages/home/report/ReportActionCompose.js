@@ -159,11 +159,15 @@ class ReportActionCompose extends React.Component {
                                         <TouchableOpacity
                                             onPress={(e) => {
                                                 e.preventDefault();
-                                                openPicker({
-                                                    onPicked: (file) => {
-                                                        displayFileInModal({file});
-                                                    },
-                                                });
+
+                                                // Do not open attachment picker from keypress event
+                                                if (!e.key) {
+                                                    openPicker({
+                                                        onPicked: (file) => {
+                                                            displayFileInModal({file});
+                                                        },
+                                                    });
+                                                }
                                             }}
                                             style={[styles.chatItemAttachButton]}
                                             underlayColor={themeColors.componentBG}

@@ -30,6 +30,7 @@ module.exports = {
             patterns: [
                 {from: 'web/favicon.png'},
                 {from: 'web/favicon-unread.png'},
+                {from: 'web/og-preview-image.png'},
                 {from: 'assets/css', to: 'css'},
 
                 // These files are copied over as per instructions here

@@ -13,6 +13,7 @@ import styles, {getSafeAreaPadding, getNavigationMenuStyle} from '../../styles/s
 import variables from '../../styles/variables';
 import HeaderView from './HeaderView';
 import Sidebar from './sidebar/SidebarView';
+import NewGroupPage from '../NewGroupPage';
 import Main from './MainView';
 import {
     hide as hideSidebar,
@@ -290,7 +291,7 @@ class HomePage extends React.Component {
                                 getSafeAreaPadding(insets),
                             ]}
                         >
-                            <Route path={[ROUTES.REPORT, ROUTES.HOME, ROUTES.SETTINGS]}>
+                            <Route path={[ROUTES.REPORT, ROUTES.HOME, ROUTES.SETTINGS, ROUTES.NEW_GROUP]}>
                                 <Animated.View style={[
                                     getNavigationMenuStyle(
                                         this.props.windowDimensions.width,
@@ -320,6 +321,7 @@ class HomePage extends React.Component {
                                     <SettingsModal
                                         isVisible={this.props.currentURL === ROUTES.SETTINGS}
                                     />
+                                    {this.props.currentURL === ROUTES.NEW_GROUP && <NewGroupPage />}
                                     <Main />
                                 </View>
                             </Route>
