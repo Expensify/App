@@ -24,9 +24,9 @@
 		8821A238A081483FA947BC4E /* GTAmericaExp-RgIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 918D7FEFF96242E6B5F5E14D /* GTAmericaExp-RgIt.otf */; };
 		8C86654500DCC843A74147B5 /* libPods-ExpensifyCash-ExpensifyCashTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ED2AB27DDDFCCE3CD100EA0C /* libPods-ExpensifyCash-ExpensifyCashTests.a */; };
 		9842B1200DD5443D16989CD2 /* libPods-ShareExtension.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 981BE962FCA2842553D2AA78 /* libPods-ShareExtension.a */; };
-		B239411125C20494001B5A3A /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B239411025C20494001B5A3A /* ShareViewController.swift */; };
 		B23ED19125C1A46900CA34C5 /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B23ED18F25C1A46900CA34C5 /* MainInterface.storyboard */; };
 		B23ED19525C1A46900CA34C5 /* ShareExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = B23ED18B25C1A46900CA34C5 /* ShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		B2E844AF25C3A34300909139 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2E844AE25C3A34300909139 /* ShareViewController.swift */; };
 		BB6CECBDA023256B6B955321 /* libPods-ExpensifyCash.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6F2C8BDCC1FF0B64AE2DFC9B /* libPods-ExpensifyCash.a */; };
 		E9DF872D2525201700607FDC /* AirshipConfig.plist in Resources */ = {isa = PBXBuildFile; fileRef = E9DF872C2525201700607FDC /* AirshipConfig.plist */; };
 /* End PBXBuildFile section */
@@ -88,11 +88,11 @@
 		A8D6F2F722FD4E66A38EBBB6 /* GTAmericaExp-BdIt.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-BdIt.otf"; path = "../assets/fonts/GTAmericaExp-BdIt.otf"; sourceTree = "<group>"; };
 		AE65058949E14DA5A2D5435D /* GTAmericaExp-Medium.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-Medium.otf"; path = "../assets/fonts/GTAmericaExp-Medium.otf"; sourceTree = "<group>"; };
 		AF728B3FCBC8C2731C4DA7B4 /* Pods-ExpensifyCash-ExpensifyCashTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ExpensifyCash-ExpensifyCashTests.debug.xcconfig"; path = "Target Support Files/Pods-ExpensifyCash-ExpensifyCashTests/Pods-ExpensifyCash-ExpensifyCashTests.debug.xcconfig"; sourceTree = "<group>"; };
-		B239411025C20494001B5A3A /* ShareViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ShareViewController.swift; path = "../../node_modules/react-native-share-menu/ios/ShareViewController.swift"; sourceTree = "<group>"; };
 		B23ED18B25C1A46900CA34C5 /* ShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		B23ED19025C1A46900CA34C5 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/MainInterface.storyboard; sourceTree = "<group>"; };
 		B23ED19225C1A46900CA34C5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		B23ED1A925C1A57800CA34C5 /* ShareExtension-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ShareExtension-Bridging-Header.h"; sourceTree = "<group>"; };
+		B2E844AE25C3A34300909139 /* ShareViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ShareViewController.swift; path = "../../node_modules/react-native-share-menu/ios/ShareViewController.swift"; sourceTree = "<group>"; };
+		B2E844B325C3A5D200909139 /* ShareExtension-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ShareExtension-Bridging-Header.h"; sourceTree = "<group>"; };
 		B2E9EC3725C1E5CD00BD6AE5 /* ShareExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ShareExtension.entitlements; sourceTree = "<group>"; };
 		DB5A1365442D4419AF6F08E5 /* GTAmericaExp-MdIt.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-MdIt.otf"; path = "../assets/fonts/GTAmericaExp-MdIt.otf"; sourceTree = "<group>"; };
 		E7967C67752432EA2031954F /* Pods-ExpensifyCash-ExpensifyCashTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ExpensifyCash-ExpensifyCashTests.release.xcconfig"; path = "Target Support Files/Pods-ExpensifyCash-ExpensifyCashTests/Pods-ExpensifyCash-ExpensifyCashTests.release.xcconfig"; sourceTree = "<group>"; };
@@ -230,11 +230,11 @@
 		B23ED18C25C1A46900CA34C5 /* ShareExtension */ = {
 			isa = PBXGroup;
 			children = (
-				B239411025C20494001B5A3A /* ShareViewController.swift */,
+				B2E844AE25C3A34300909139 /* ShareViewController.swift */,
 				B2E9EC3725C1E5CD00BD6AE5 /* ShareExtension.entitlements */,
 				B23ED18F25C1A46900CA34C5 /* MainInterface.storyboard */,
 				B23ED19225C1A46900CA34C5 /* Info.plist */,
-				B23ED1A925C1A57800CA34C5 /* ShareExtension-Bridging-Header.h */,
+				B2E844B325C3A5D200909139 /* ShareExtension-Bridging-Header.h */,
 			);
 			path = ShareExtension;
 			sourceTree = "<group>";
@@ -342,7 +342,7 @@
 						CreatedOnToolsVersion = 12.3;
 						DevelopmentTeam = 368M544MTT;
 						LastSwiftMigration = 1230;
-						ProvisioningStyle = Automatic;
+						ProvisioningStyle = Manual;
 					};
 				};
 			};
@@ -822,7 +822,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B239411125C20494001B5A3A /* ShareViewController.swift in Sources */,
+				B2E844AF25C3A34300909139 /* ShareViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1090,10 +1090,11 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_ENTITLEMENTS = ShareExtension/ShareExtension.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 386;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 368M544MTT;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = arm64;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = ShareExtension/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
@@ -1103,6 +1104,7 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.chat.expensify.chat.ShareExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = chat_expensify_appstore;
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OBJC_BRIDGING_HEADER = "ShareExtension/ShareExtension-Bridging-Header.h";
@@ -1126,11 +1128,12 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_ENTITLEMENTS = ShareExtension/ShareExtension.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 386;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 368M544MTT;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = arm64;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = ShareExtension/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
@@ -1139,6 +1142,7 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.chat.expensify.chat.ShareExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = chat_expensify_appstore;
 				SKIP_INSTALL = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "ShareExtension/ShareExtension-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
