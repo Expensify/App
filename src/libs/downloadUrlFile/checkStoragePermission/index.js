@@ -11,7 +11,6 @@ const checkStoragePermission = () => check(PERMISSIONS.ANDROID.WRITE_EXTERNAL_ST
     .then((result) => {
         switch (result) {
             case RESULTS.UNAVAILABLE:
-                // console.log('This feature is not available (on this device / in this context)');
                 break;
             case RESULTS.DENIED:
                 return request(PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE).then((pResult) => {

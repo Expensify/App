@@ -36,11 +36,7 @@ const downloadUrlFile = async (sourceURL) => {
             },
 
             path: `${dirs.DocumentDir}/download.${fileExtension}`,
-        }).fetch('GET', sourceURL, {}).then(() => {
-            // console.log('File saved to ', response.path());
-        }).catch(() => {
-            // console.log('File Download error', error);
-        });
+        }).fetch('GET', sourceURL, {});
     } else {
         alert('The permission is denied to save attachment. Kindly grant permssion from settings.');
     }
