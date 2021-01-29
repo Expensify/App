@@ -57,6 +57,16 @@ class AttachmentModal extends Component {
             file: null,
             sourceURL: props.sourceURL,
         };
+
+        this.submitAndClose = this.submitAndClose.bind(this);
+    }
+
+    /**
+     * Execute the onConfirm callback and close the modal.
+     */
+    submitAndClose() {
+        this.props.onConfirm(this.state.file);
+        this.setState({isModalOpen: false});
     }
 
     render() {
@@ -74,6 +84,7 @@ class AttachmentModal extends Component {
             <>
                 <ModalWithHeader
                     type={CONST.MODAL.MODAL_TYPE.CENTERED}
+                    onSubmit={this.submitAndClose}
                     onClose={() => this.setState({isModalOpen: false})}
                     isVisible={this.state.isModalOpen}
                     title={this.props.title}
@@ -90,10 +101,7 @@ class AttachmentModal extends Component {
                         <TouchableOpacity
                             style={[styles.button, styles.buttonSuccess, styles.buttonConfirm]}
                             underlayColor={themeColors.componentBG}
-                            onPress={() => {
-                                this.props.onConfirm(this.state.file);
-                                this.setState({isModalOpen: false});
-                            }}
+                            onPress={this.submitAndClose}
                         >
                             <Text
                                 style={[

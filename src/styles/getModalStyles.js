@@ -1,15 +1,19 @@
 import CONST from '../CONST';
 import colors from './colors';
 import variables from './variables';
+import themeColors from './themes/default';
 
 export default (type, windowDimensions) => {
     const isSmallScreen = windowDimensions.width < variables.mobileResponsiveWidthBreakpoint;
 
-    let modalStyle;
+    let modalStyle = {
+        margin: 0,
+    };
     let modalContainerStyle;
     let swipeDirection;
     let animationIn;
     let animationOut;
+    let hideBackdrop = false;
     let needsSafeAreaPadding = false;
 
     switch (type) {
@@ -19,8 +23,10 @@ export default (type, windowDimensions) => {
             // This modal should take up the entire visible area when
             // viewed on a smaller device (e.g. mobile or mobile web).
             modalStyle = {
-                margin: 0,
-                alignItems: 'center',
+                ...modalStyle,
+                ...{
+                    alignItems: 'center',
+                },
             };
             modalContainerStyle = {
                 // Shadow Styles
@@ -51,15 +57,16 @@ export default (type, windowDimensions) => {
             break;
         case CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED:
             modalStyle = {
-                margin: 0,
-                alignItems: 'center',
-                justifyContent: 'flex-end',
-                marginRight: isSmallScreen ? 0 : windowDimensions.width - variables.sideBarWidth,
+                ...modalStyle,
+                ...{
+                    alignItems: 'center',
+                    justifyContent: 'flex-end',
+                },
             };
             modalContainerStyle = {
-                width: isSmallScreen ? '100%' : variables.sideBarWidth,
-                borderTopLeftRadius: 16,
-                borderTopRightRadius: 16,
+                width: '100%',
+                borderTopLeftRadius: 20,
+                borderTopRightRadius: 20,
                 paddingTop: 12,
                 paddingBottom: 12,
                 justifyContent: 'center',
@@ -69,7 +76,52 @@ export default (type, windowDimensions) => {
             swipeDirection = undefined;
             animationIn = 'slideInUp';
             animationOut = 'slideOutDown';
-            needsSafeAreaPadding = false;
+            break;
+        case CONST.MODAL.MODAL_TYPE.POPOVER:
+            modalStyle = {
+                ...modalStyle,
+                ...{
+                    alignItems: 'center',
+                    justifyContent: 'flex-end',
+                    marginRight: windowDimensions.width - variables.sideBarWidth,
+                    marginBottom: 82,
+                },
+            };
+            modalContainerStyle = {
+                width: variables.sideBarWidth - 40,
+                borderRadius: 12,
+                borderWidth: 1,
+                borderColor: themeColors.border,
+                paddingTop: 12,
+                paddingBottom: 12,
+                justifyContent: 'center',
+                overflow: 'hidden',
+                boxShadow: '0px 0px 10px 0px rgba(0, 0, 0, 0.025)',
+            };
+
+            hideBackdrop = true;
+            swipeDirection = undefined;
+            animationIn = 'fadeInLeft';
+            animationOut = 'fadeOutLeft';
+            break;
+        case CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED:
+            modalStyle = {
+                ...modalStyle,
+                ...{
+                    flexDirection: 'row',
+                    justifyContent: 'flex-end',
+                },
+            };
+            modalContainerStyle = {
+                width: isSmallScreen ? '100%' : variables.sideBarWidth,
+                height: '100%',
+                overflow: 'hidden',
+            };
+
+            swipeDirection = 'right';
+            animationIn = 'slideInRight';
+            animationOut = 'slideOutRight';
+            needsSafeAreaPadding = true;
             break;
         default:
             modalStyle = {};
@@ -86,5 +138,6 @@ export default (type, windowDimensions) => {
         animationIn,
         animationOut,
         needsSafeAreaPadding,
+        hideBackdrop,
     };
 };

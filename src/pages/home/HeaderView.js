@@ -5,10 +5,9 @@ import {withOnyx} from 'react-native-onyx';
 import Header from '../../components/Header';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
-import {withRouter} from '../../libs/Router';
-import BackArrow from '../../../assets/images/back-left.svg';
 import themeColors from '../../styles/themes/default';
-import {PinIcon} from '../../components/Expensicons';
+import Icon from '../../components/Icon';
+import {BackArrow, Pin} from '../../components/Icon/Expensicons';
 import compose from '../../libs/compose';
 import {togglePinnedState} from '../../libs/actions/Report';
 
@@ -18,6 +17,10 @@ const propTypes = {
 
     // Decides whether we should show the navigationMenu button
     shouldShowNavigationMenuButton: PropTypes.bool.isRequired,
+
+    // Report ID currently being looked at, use to retrieve more information about the report.
+    // eslint-disable-next-line react/no-unused-prop-types
+    reportID: PropTypes.string.isRequired,
 
     /* Onyx Props */
     // The report currently being looked at
@@ -45,7 +48,7 @@ const HeaderView = props => (
                     onPress={props.onNavigationMenuButtonClicked}
                     style={[styles.LHNToggle]}
                 >
-                    <BackArrow height={20} width={20} fill={themeColors.icon} />
+                    <Icon src={BackArrow} />
                 </Pressable>
             )}
             {props.report && props.report.reportName ? (
@@ -63,7 +66,7 @@ const HeaderView = props => (
                             onPress={() => togglePinnedState(props.report)}
                             style={[styles.touchableButtonImage, styles.mr0]}
                         >
-                            <PinIcon height={20} width={20} isEnabled={props.report.isPinned} />
+                            <Icon src={Pin} fill={props.report.isPinned ? themeColors.heading : themeColors.icon} />
                         </Pressable>
                     </View>
                 </View>
@@ -77,10 +80,9 @@ HeaderView.displayName = 'HeaderView';
 HeaderView.defaultProps = defaultProps;
 
 export default compose(
-    withRouter,
     withOnyx({
         report: {
-            key: ({match}) => `${ONYXKEYS.COLLECTION.REPORT}${match.params.reportID}`,
+            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         },
     }),
 )(HeaderView);

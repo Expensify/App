@@ -1,18 +1,7 @@
-import _ from 'underscore';
 import * as Pusher from './Pusher/pusher';
 import * as API from './API';
 
 function init() {
-    /**
-     * Pusher.reconnect() calls disconnect and connect on the
-     * Pusher socket. In some cases, the authorizer might fail
-     * or an error will be returned due to an out of date authToken.
-     * Reconnect will preserve our existing subscriptions and retry
-     * connecting until it succeeds. We're throttling this call so
-     * that we retry as few times as possible.
-     */
-    const reconnectToPusher = _.throttle(Pusher.reconnect, 1000);
-
     /**
      * When authTokens expire they will automatically be refreshed.
      * The authorizer helps make sure that we are always passing the
@@ -30,14 +19,15 @@ function init() {
             })
                 .then((data) => {
                     if (data.jsonCode === 407) {
-                        throw new Error(data.title);
+                        callback(new Error('Pusher: Expensify session expired. Re-authenticating...'));
+
+                        // Attempt to refresh the authToken then reconnect to Pusher
+                        API.reauthenticate('Push_Authenticate').then(() => Pusher.reconnect());
+                        return;
                     }
+
+                    console.debug('[Pusher] Pusher authenticated successfully');
                     callback(null, data);
-                })
-                .catch((error) => {
-                    reconnectToPusher();
-                    console.debug('[Network] Failed to authorize Pusher');
-                    callback(new Error(`Error calling auth endpoint: ${error.message}`));
                 });
         },
     }));
@@ -51,7 +41,7 @@ function init() {
     Pusher.registerSocketEventCallback((eventName) => {
         switch (eventName) {
             case 'error':
-                reconnectToPusher();
+                Pusher.reconnect();
                 break;
             default:
                 break;
