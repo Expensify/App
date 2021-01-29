@@ -128,7 +128,7 @@ function getChatReportName(sharedReportList) {
  */
 function getSimplifiedReportObject(report) {
     const reportActionList = lodashGet(report, ['reportActionList'], []);
-    const lastReportAction = !_.isEmpty(reportActionList) ? reportActionList.slice(-1)[0] : null;
+    const lastReportAction = !_.isEmpty(reportActionList) ? _.last(reportActionList) : null;
     const createTimestamp = lastReportAction ? lastReportAction.created : 0;
     const lastMessageTimestamp = moment.utc(createTimestamp).unix();
     const reportName = lodashGet(report, 'reportNameValuePairs.type') === 'chat'
