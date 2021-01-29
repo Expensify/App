@@ -6,9 +6,11 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import ONYXKEYS from '../ONYXKEYS';
+import ShareManager from '../libs/ShareManager';
 import {redirect} from '../libs/actions/App';
 import {clear as clearSharedItem} from '../libs/actions/SharedItem';
 import {hide as hideSidebar} from '../libs/actions/Sidebar';
+import {addAction} from '../libs/actions/Report';
 import ROUTES from '../ROUTES';
 import CustomStatusBar from '../components/CustomStatusBar';
 import SidebarLinks from './home/sidebar/SidebarLinks';
@@ -19,10 +21,17 @@ import * as ChatSwitcher from '../libs/actions/ChatSwitcher';
 const propTypes = {
     // Currently viewed reportID
     currentlyViewedReportID: PropTypes.string,
+
+    // Shared item object
+    sharedItem: PropTypes.shape({
+        type: PropTypes.string.isRequired,
+        data: PropTypes.string.isRequired,
+    }),
 };
 
 const defaultProps = {
     currentlyViewedReportID: '',
+    sharedItem: null,
 };
 
 class SharePage extends React.Component {
@@ -66,16 +75,32 @@ class SharePage extends React.Component {
     }
 
     /**
-     * Post shared item to selected report
+     * Posts shared item to selected report
+     *
      * @param {Number} reportID report id
      */
     addSharedItemToReport(reportID) {
-        console.log(reportID);
+        if (!this.props.sharedItem) {
+            return;
+        }
+
+        switch (this.props.sharedItem.type) {
+            case ShareManager.TYPE.TEXT:
+                addAction(reportID, this.props.sharedItem.data);
+                break;
+            case ShareManager.TYPE.FILE:
+                addAction(reportID, '', this.props.sharedItem.data);
+                break;
+            default:
+                break;
+        }
+
+        clearSharedItem();
     }
 
     /**
      * Method called when we click the floating action button
-
+     *
      * Method called either when:
      * Pressing the floating action button to open the CreateMenu modal
      * Selecting an item on CreateMenu or closing it by clicking outside of the modal component
@@ -127,5 +152,8 @@ SharePage.defaultProps = defaultProps;
 export default withOnyx({
     currentlyViewedReportID: {
         key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
+    },
+    sharedItem: {
+        key: ONYXKEYS.SHARED_ITEM,
     },
 })(SharePage);
