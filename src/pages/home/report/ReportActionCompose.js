@@ -15,6 +15,7 @@ import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs
 import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import compose from '../../../libs/compose';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -242,11 +243,14 @@ class ReportActionCompose extends React.Component {
 ReportActionCompose.propTypes = propTypes;
 ReportActionCompose.defaultProps = defaultProps;
 
-export default withOnyx({
-    comment: {
-        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
-    },
-    isSidebarShown: {
-        key: ONYXKEYS.IS_SIDEBAR_SHOWN,
-    },
-})(withWindowDimensions(ReportActionCompose));
+export default compose(
+    withOnyx({
+        comment: {
+            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
+        },
+        isSidebarShown: {
+            key: ONYXKEYS.IS_SIDEBAR_SHOWN,
+        },
+    }),
+    withWindowDimensions,
+)(ReportActionCompose);
