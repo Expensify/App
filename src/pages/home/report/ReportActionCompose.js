@@ -14,7 +14,7 @@ import AttachmentPicker from '../../../components/AttachmentPicker';
 import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs/actions/Report';
 import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
-import withWindowDimensions from '../../../components/withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -26,15 +26,13 @@ const propTypes = {
     // The ID of the report actions will be created for
     reportID: PropTypes.number.isRequired,
 
-    isSidebarShown: PropTypes.bool,
+    isSidebarShown: PropTypes.bool.isRequired,
 
-    isSmallScreenWidth: PropTypes.bool,
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     comment: '',
-    isSidebarShown: true,
-    isSmallScreenWidth: false,
 };
 
 class ReportActionCompose extends React.Component {
@@ -144,7 +142,8 @@ class ReportActionCompose extends React.Component {
 
     render() {
         // We want to make sure to disable on small screens because in iOS safari the keyboard up/down buttons will
-        // focus this from the chat switcher. #1228
+        // focus this from the chat switcher.
+        // https://github.com/Expensify/Expensify.cash/issues/1228
         const inputDisable = this.props.isSidebarShown && this.props.isSmallScreenWidth;
 
         return (

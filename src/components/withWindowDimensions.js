@@ -12,9 +12,10 @@ const windowDimensionsPropTypes = {
 
         // Height of the window
         height: PropTypes.number.isRequired,
-
-        isSmallScreenWidth: PropTypes.bool,
     }).isRequired,
+
+    // Is the window width narrow, like on a mobile device?
+    isSmallScreenWidth: PropTypes.bool.isRequired,
 };
 
 export default function (WrappedComponent) {
