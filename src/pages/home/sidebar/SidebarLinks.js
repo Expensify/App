@@ -86,19 +86,21 @@ const defaultProps = {
 class SidebarLinks extends React.Component {
     constructor(props) {
         super(props);
-        this.chatSwitcherAnimation = new Animated.Value(0);
-        this.sidebarAnimation = new Animated.Value(1);
+        this.chatSwitcherAnimation = new Animated.Value(props.isChatSwitcherActive ? 1 : 0);
+        this.sidebarAnimation = new Animated.Value(props.isChatSwitcherActive ? 0 : 1);
     }
 
     componentDidUpdate(prevProps) {
         if (prevProps.isChatSwitcherActive !== this.props.isChatSwitcherActive) {
             Animated.timing(this.chatSwitcherAnimation, {
                 toValue: this.props.isChatSwitcherActive ? 1 : 0,
-                duration: 300,
+                duration: 240,
+                useNativeDriver: false,
             }).start();
             Animated.timing(this.sidebarAnimation, {
                 toValue: this.props.isChatSwitcherActive ? 0 : 1,
-                duration: 300,
+                duration: 240,
+                useNativeDriver: false,
             }).start();
         }
     }
@@ -136,69 +138,66 @@ class SidebarLinks extends React.Component {
 
         return (
             <View style={[styles.flex1, styles.h100, {marginTop: this.props.insets.top}]}>
-                <Animated.View
-                    style={[chatSwitcherStyle]}
-                >
-                    {this.props.isChatSwitcherActive && (
-                        <>
-                            <HeaderWithCloseButton
-                                textSize="large"
-                                title="Search"
-                                onCloseButtonPress={() => ChatSwitcher.hide()}
-                                shouldShowBorderBottom={false}
-                            />
-                            <ChatSwitcherView
-                                onLinkClick={this.props.onLinkClick}
-                            />
-                        </>
-                    )}
-                </Animated.View>
-                <Animated.View
-                    style={sidebarAnimation}
-                >
-                    {!this.props.isChatSwitcherActive && (
-                        <>
-                            <View style={[
-                                styles.flexRow,
-                                styles.sidebarHeaderTop,
-                                styles.justifyContentBetween,
-                                styles.alignItemsCenter,
-                            ]}
+                {this.props.isChatSwitcherActive && (
+                    <Animated.View
+                        style={[chatSwitcherStyle]}
+                    >
+                        <HeaderWithCloseButton
+                            textSize="large"
+                            title="Search"
+                            onCloseButtonPress={() => ChatSwitcher.hide()}
+                            shouldShowBorderBottom={false}
+                        />
+                        <ChatSwitcherView
+                            onLinkClick={this.props.onLinkClick}
+                        />
+                    </Animated.View>
+                )}
+
+                {!this.props.isChatSwitcherActive && (
+                    <Animated.View
+                        style={sidebarAnimation}
+                    >
+                        <View style={[
+                            styles.flexRow,
+                            styles.sidebarHeaderTop,
+                            styles.justifyContentBetween,
+                            styles.alignItemsCenter,
+                        ]}
+                        >
+                            <Header textSize="large" title="Chats" />
+                            <TouchableOpacity
+                                style={[styles.flexRow, styles.sidebarHeaderTop]}
+                                onPress={() => ChatSwitcher.show()}
                             >
-                                <Header textSize="large" title="Chats" />
-                                <TouchableOpacity
-                                    style={[styles.flexRow, styles.sidebarHeaderTop]}
-                                    onPress={() => ChatSwitcher.show()}
-                                >
-                                    <Icon src={MagnifyingGlass} />
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                    onPress={this.props.onAvatarClick}
-                                >
-                                    <AvatarWithIndicator
-                                        source={this.props.myPersonalDetails.avatarURL}
-                                        isActive={this.props.network && !this.props.network.isOffline}
-                                    />
-                                </TouchableOpacity>
-                            </View>
-                            <OptionsList
-                                contentContainerStyles={[
-                                    styles.sidebarListContainer,
-                                    {paddingBottom: getSafeAreaMargins(this.props.insets).marginBottom},
-                                ]}
-                                sections={sections}
-                                focusedIndex={_.findIndex(recentReports, (
-                                    option => option.reportID === activeReportID
-                                ))}
-                                onSelectRow={(option) => {
-                                    redirect(ROUTES.getReportRoute(option.reportID));
-                                    this.props.onLinkClick();
-                                }}
-                                hideSectionHeaders
-                            />
-                        </>
-                    )}
-                </Animated.View>
+                                <Icon src={MagnifyingGlass} />
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                onPress={this.props.onAvatarClick}
+                            >
+                                <AvatarWithIndicator
+                                    source={this.props.myPersonalDetails.avatarURL}
+                                    isActive={this.props.network && !this.props.network.isOffline}
+                                />
+                            </TouchableOpacity>
+                        </View>
+                        <OptionsList
+                            contentContainerStyles={[
+                                styles.sidebarListContainer,
+                                {paddingBottom: getSafeAreaMargins(this.props.insets).marginBottom},
+                            ]}
+                            sections={sections}
+                            focusedIndex={_.findIndex(recentReports, (
+                                option => option.reportID === activeReportID
+                            ))}
+                            onSelectRow={(option) => {
+                                redirect(ROUTES.getReportRoute(option.reportID));
+                                this.props.onLinkClick();
+                            }}
+                            hideSectionHeaders
+                        />
+                    </Animated.View>
+                )}
             </View>
         );
     }
