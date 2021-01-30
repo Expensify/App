@@ -108,6 +108,8 @@ export default (type, windowDimensions) => {
             modalStyle = {
                 ...modalStyle,
                 ...{
+                    marginLeft: isSmallScreen ? 0 : windowDimensions.width - variables.sideBarWidth,
+                    width: isSmallScreen ? '100%' : variables.sideBarWidth,
                     flexDirection: 'row',
                     justifyContent: 'flex-end',
                 },
@@ -119,8 +121,23 @@ export default (type, windowDimensions) => {
             };
 
             swipeDirection = 'right';
-            animationIn = 'slideInRight';
-            animationOut = 'slideOutRight';
+            animationIn = {
+                from: {
+                    translateX: isSmallScreen ? windowDimensions.width : variables.sideBarWidth,
+                },
+                to: {
+                    translateX: 0,
+                },
+            };
+            animationOut = {
+                from: {
+                    translateX: 0,
+                },
+                to: {
+                    translateX: isSmallScreen ? windowDimensions.width : variables.sideBarWidth,
+                },
+            };
+
             needsSafeAreaPadding = true;
             break;
         default:

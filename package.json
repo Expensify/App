@@ -49,7 +49,6 @@
     "lodash.orderby": "^4.6.0",
     "metro-config": "^0.64.0",
     "mime-types": "^2.1.28",
-    "modal-enhanced-react-native-web": "^0.2.0",
     "moment": "^2.27.0",
     "moment-timezone": "^0.5.31",
     "prop-types": "^15.7.2",
