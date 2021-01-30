@@ -322,6 +322,7 @@ const styles = {
 
     sidebarHeader: {
         flexGrow: 0,
+        height: 0,
     },
 
     sidebarHeaderActive: {
