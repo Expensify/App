@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {Dimensions} from 'react-native';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
+import variables from '../styles/variables';
 
 const windowDimensionsPropTypes = {
     // via withWindowDimensions
@@ -12,6 +13,9 @@ const windowDimensionsPropTypes = {
         // Height of the window
         height: PropTypes.number.isRequired,
     }).isRequired,
+
+    // Is the window width narrow, like on a mobile device?
+    isSmallScreenWidth: PropTypes.bool.isRequired,
 };
 
 export default function (WrappedComponent) {
@@ -51,6 +55,7 @@ export default function (WrappedComponent) {
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...this.props}
                     windowDimensions={this.state.windowDimensions}
+                    isSmallScreenWidth={this.state.windowDimensions.width <= variables.mobileResponsiveWidthBreakpoint}
                 />
             );
         }
