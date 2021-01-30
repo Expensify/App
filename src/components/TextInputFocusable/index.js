@@ -36,7 +36,7 @@ const propTypes = {
     // Callback to fire when a file is dropped on the text input
     onDrop: PropTypes.func,
 
-    // If the chatswitcher is shown in iOS safari browser, the input should be disabled
+    // Whether or not this TextInput is disabled.
     isDisabled: PropTypes.bool,
 };
 
