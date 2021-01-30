@@ -14,6 +14,7 @@ import AttachmentPicker from '../../../components/AttachmentPicker';
 import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs/actions/Report';
 import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -24,6 +25,10 @@ const propTypes = {
 
     // The ID of the report actions will be created for
     reportID: PropTypes.number.isRequired,
+
+    isSidebarShown: PropTypes.bool.isRequired,
+
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -42,6 +47,7 @@ class ReportActionCompose extends React.Component {
         this.submitForm = this.submitForm.bind(this);
         this.setIsFocused = this.setIsFocused.bind(this);
         this.comment = props.comment;
+
         this.state = {
             isFocused: false,
             textInputShouldClear: false,
@@ -135,6 +141,11 @@ class ReportActionCompose extends React.Component {
     }
 
     render() {
+        // We want to make sure to disable on small screens because in iOS safari the keyboard up/down buttons will
+        // focus this from the chat switcher.
+        // https://github.com/Expensify/Expensify.cash/issues/1228
+        const inputDisable = this.props.isSidebarShown && this.props.isSmallScreenWidth;
+
         return (
             <View style={[styles.chatItemCompose]}>
                 <View style={[
@@ -205,6 +216,7 @@ class ReportActionCompose extends React.Component {
                                     onPasteFile={file => displayFileInModal({file})}
                                     shouldClear={this.state.textInputShouldClear}
                                     onClear={() => this.setTextInputShouldClear(false)}
+                                    isDisabled={inputDisable}
                                 />
 
                             </>
@@ -234,4 +246,7 @@ export default withOnyx({
     comment: {
         key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
     },
-})(ReportActionCompose);
+    isSidebarShown: {
+        key: ONYXKEYS.IS_SIDEBAR_SHOWN,
+    },
+})(withWindowDimensions(ReportActionCompose));
