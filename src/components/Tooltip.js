@@ -66,9 +66,7 @@ class Tooltip extends Component {
         if (!_.isEqual(this.props.windowDimensions, prevProps.windowDimensions)) {
             this.getWrapperPosition()
                 .then(({x, y}) => {
-                    if (x !== this.state.xOffset || y !== this.state.yOffset) {
-                        this.setState({xOffset: x, yOffset: y});
-                    }
+                    this.setState({xOffset: x, yOffset: y});
                 });
         }
     }
