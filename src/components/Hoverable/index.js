@@ -31,16 +31,16 @@ class Hoverable extends Component {
     }
 
     render() {
-        // If this.props.children is a function, call it to provide the hover state to the children.
-        const childrenWithHoverState = _.isFunction(this.props.children)
-            ? this.props.children(this.state.isHovered)
-            : this.props.children;
         return (
             <View
                 onMouseEnter={this.toggleHoverState}
                 onMouseLeave={this.toggleHoverState}
             >
-                {childrenWithHoverState}
+                { // If this.props.children is a function, call it to provide the hover state to the children.
+                    _.isFunction(this.props.children)
+                        ? this.props.children(this.state.isHovered)
+                        : this.props.children
+                }
             </View>
         );
     }
