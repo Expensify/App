@@ -16,13 +16,22 @@ let listener;
  * @returns {Object} Prepared shared item structure
  */
 function prepareSharedItem(sharedItem) {
-    const type = (sharedItem.mimeType.match(TEXT_MIME_TYPE))
-        ? ShareType.TEXT
-        : ShareType.FILE;
+    if (sharedItem.mimeType.match(TEXT_MIME_TYPE)) {
+        // Shared item is text or HTML
+        return {
+            type: ShareType.TEXT,
+            data: sharedItem.data,
+        };
+    }
 
+    // Shared item is file attachment
     return {
-        type,
-        data: sharedItem.data,
+        type: ShareType.FILE,
+        data: {
+            name: 'chat_attachment',
+            type: sharedItem.mimeType,
+            uri: sharedItem.data,
+        },
     };
 }
 
