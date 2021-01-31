@@ -78,6 +78,11 @@ function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWid
  * @param {Number} componentHeight - The height of the wrapped component.
  * @param {Number} tooltipWidth - The width of the tooltip itself.
  * @param {Number} tooltipHeight - The height of the tooltip itself.
+ * @param {Number} manualShiftHorizontal - Any additional amount to manually shift the tooltip to the left or right.
+ *                                         A positive value shifts it to the right,
+ *                                         and a negative value shifts it to the left.
+ * @param {Number} manualShiftVertical - Any additional amount to manually shift the tooltip up or down.
+ *                                       A positive value shifts it down, and a negative value shifts it up.
  * @returns {Object}
  */
 export default function getTooltipStyles(
@@ -89,6 +94,8 @@ export default function getTooltipStyles(
     componentHeight,
     tooltipWidth,
     tooltipHeight,
+    manualShiftHorizontal,
+    manualShiftVertical,
 ) {
     // Determine if the tooltip should display below the wrapped component.
     // If a tooltip will try to render within GUTTER_WIDTH logical pixels of the top of the screen,
@@ -125,10 +132,10 @@ export default function getTooltipStyles(
             top: shouldShowBelow
 
                 // We need to shift the tooltip down below the component. So shift the tooltip down (+) by...
-                ? componentHeight + POINTER_HEIGHT
+                ? componentHeight + POINTER_HEIGHT + manualShiftVertical
 
                 // We need to shift the tooltip up above the component. So shift the tooltip up (-) by...
-                : -(tooltipHeight + POINTER_HEIGHT),
+                : -(tooltipHeight + POINTER_HEIGHT) + manualShiftVertical,
 
             // Next, we'll position it horizontally.
             // To shift the tooltip right, we'll give `left` a positive value.
@@ -139,8 +146,9 @@ export default function getTooltipStyles(
             //      so the left edge lines up with the component center.
             //   2) Shift it left (-) to by half the tooltip's width,
             //      so the tooltip's center lines up with the center of the wrapped component.
-            //   3) Lastly, we'll add the horizontal shift (left or right) computed above to keep it out of the gutters.
-            left: ((componentWidth / 2) - (tooltipWidth / 2)) + horizontalShift,
+            //   3) Add the horizontal shift (left or right) computed above to keep it out of the gutters.
+            //   4) Lastly, add the manual horizontal shift passed in as a parameter.
+            left: ((componentWidth / 2) - (tooltipWidth / 2)) + horizontalShift + manualShiftHorizontal,
         },
         tooltipTextStyle: {
             color: themeColors.textReversed,
@@ -154,11 +162,17 @@ export default function getTooltipStyles(
             // By default, the pointer's top-left will align with the top-left of the wrapped component.
             //
             // To align it vertically, we'll:
-            //   1) Shift the pointer up (-) by its height, so that the bottom of the pointer lines up
-            //      with the top of the wrapped component.
-            //   2) OR if it should show below, shift the pointer down (+) by the component's height,
+            //
+            //   Shift the pointer up (-) by its height, so that the bottom of the pointer lines up
+            //   with the top of the wrapped component.
+            //
+            //   OR if it should show below:
+            //
+            //   Shift the pointer down (+) by the component's height,
             //      so that the top of the pointer aligns with the bottom of the component.
-            top: shouldShowBelow ? componentHeight : -POINTER_HEIGHT,
+            //
+            // Always add the manual vertical shift passed in as a parameter.
+            top: shouldShowBelow ? componentHeight + manualShiftVertical : manualShiftVertical - POINTER_HEIGHT,
 
             // To align it horizontally, we'll:
             //   1) Shift the pointer to the right (+) by the half the component's width,
