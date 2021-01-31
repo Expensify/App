@@ -133,8 +133,7 @@ export default function getTooltipStyles(
                 ? componentHeight + (POINTER_HEIGHT - 1)
                 : -1 * (
                     tooltipFontSize
-                    + tooltipVerticalPadding.paddingTop
-                    + tooltipVerticalPadding.paddingBottom
+                    + (2 * tooltipVerticalPadding.paddingVertical)
                     + ((2 * POINTER_HEIGHT) - 1)
                 ),
 
