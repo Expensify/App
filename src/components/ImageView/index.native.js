@@ -1,10 +1,11 @@
-import React from 'react';
+import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import {View, Dimensions} from 'react-native';
+import {View} from 'react-native';
 import ImageZoom from 'react-native-image-pan-zoom';
 import ImageWithSizeCalculation from '../ImageWithSizeCalculation';
 import styles from '../../styles/styles';
 import variables from '../../styles/variables';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 
 /**
  * On the native layer, we use a image library to handle zoom functionality
@@ -12,9 +13,11 @@ import variables from '../../styles/variables';
 const propTypes = {
     // URL to full-sized image
     url: PropTypes.string.isRequired,
+
+    ...windowDimensionsPropTypes,
 };
 
-class ImageView extends React.Component {
+class ImageView extends PureComponent {
     constructor(props) {
         super(props);
 
@@ -26,9 +29,7 @@ class ImageView extends React.Component {
 
     render() {
         // Default windowHeight accounts for the modal header height
-        const windowHeight = Dimensions.get('window').height - variables.contentHeaderHeight;
-        const windowWidth = Dimensions.get('window').width;
-
+        const windowHeight = this.props.windowHeight - variables.contentHeaderHeight;
         return (
             <View
                 style={[
@@ -40,7 +41,7 @@ class ImageView extends React.Component {
                 ]}
             >
                 <ImageZoom
-                    cropWidth={windowWidth}
+                    cropWidth={this.props.windowWidth}
                     cropHeight={windowHeight}
                     imageWidth={this.state.imageWidth}
                     imageHeight={this.state.imageHeight}
@@ -55,8 +56,8 @@ class ImageView extends React.Component {
                             let imageWidth = width;
                             let imageHeight = height;
 
-                            if (width > windowWidth || height > windowHeight) {
-                                const scaleFactor = Math.max(width / windowWidth, height / windowHeight);
+                            if (width > this.props.windowWidth || height > windowHeight) {
+                                const scaleFactor = Math.max(width / this.props.windowWidth, height / windowHeight);
                                 imageHeight = height / scaleFactor;
                                 imageWidth = width / scaleFactor;
                             }
@@ -73,4 +74,4 @@ class ImageView extends React.Component {
 ImageView.propTypes = propTypes;
 ImageView.displayName = 'ImageView';
 
-export default ImageView;
+export default withWindowDimensions(ImageView);
