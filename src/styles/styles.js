@@ -880,17 +880,8 @@ const styles = {
         borderWidth: 1,
         borderColor: themeColors.border,
         flexDirection: 'row',
-        paddingTop: 10,
-        paddingBottom: 10,
-        paddingRight: 20,
-        paddingLeft: 20,
+        padding: 20,
         alignItems: 'center',
-    },
-
-    defaultAttachmentViewIcon: {
-        width: 47,
-        height: 60,
-        marginRight: 20,
     },
 
     notFoundSafeArea: {
