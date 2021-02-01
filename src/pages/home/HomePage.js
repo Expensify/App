@@ -42,7 +42,7 @@ import {redirect} from '../../libs/actions/App';
 import SettingsModal from '../../components/SettingsModal';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import compose from '../../libs/compose';
-import getBetas from '../../libs/actions/User';
+import {getBetas} from '../../libs/actions/User';
 
 const propTypes = {
     isSidebarShown: PropTypes.bool,

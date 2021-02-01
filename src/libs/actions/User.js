@@ -1,12 +1,19 @@
+/* eslint-disable  import/prefer-default-export  */
+
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 
 function getBetas() {
-    Onyx.merge(ONYXKEYS.BETAS, []);
     API.User_GetBetas().then((response) => {
-        Onyx.set(ONYXKEYS.BETAS, response.betas);
+        if (response.jsonCode === 200) {
+            Onyx.set(ONYXKEYS.BETAS, response.betas);
+        } else {
+            console.error('Could not get betas', response);
+        }
     });
 }
 
-export default getBetas;
+export {
+    getBetas,
+};
