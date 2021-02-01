@@ -394,6 +394,11 @@ function subscribeToReportTypingEvents(reportID) {
             return;
         }
 
+        // Don't show the typing indicator if a user is typing on another platform
+        if (login === currentUserEmail) {
+            return;
+        }
+
         // Use a combo of the reportID and the login as a key for holding our timers.
         const reportUserIdentifier = `${reportID}-${login}`;
         clearTimeout(typingWatchTimers[reportUserIdentifier]);
