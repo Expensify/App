@@ -10,9 +10,8 @@ import {
 import styles from '../../../styles/styles';
 import optionPropTypes from './optionPropTypes';
 import Icon from '../../../components/Icon';
-import {Pencil} from '../../../components/Icon/Expensicons';
+import {Pencil, PinCircle} from '../../../components/Icon/Expensicons';
 import MultipleAvatars from '../../../components/MultipleAvatars';
-import variables from '../../../styles/variables';
 
 const propTypes = {
     // Option to allow the user to choose from can be type 'report' or 'user'
@@ -138,9 +137,18 @@ const OptionRow = ({
                     </TouchableOpacity>
                 </View>
             )}
-            {option.hasDraftComment && (
-                <Icon src={Pencil} width={variables.fontSizeSmall} height={variables.iconSizeSmall} />
-            )}
+            <View style={styles.flexRow}>
+                {option.hasDraftComment && (
+                    <View style={styles.ml2}>
+                        <Icon src={Pencil} />
+                    </View>
+                )}
+                {option.isPinned && (
+                    <View style={styles.ml2}>
+                        <Icon src={PinCircle} />
+                    </View>
+                )}
+            </View>
         </View>
     );
 };
