@@ -21,21 +21,34 @@ const propTypes = {
     // Modal contents
     children: PropTypes.node.isRequired,
 
+    // Callback method fired when the user requests to submit the modal content.
+    onSubmit: PropTypes.func,
+
     // Style of modal to display
     type: PropTypes.oneOf([
         CONST.MODAL.MODAL_TYPE.CENTERED,
         CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED,
         CONST.MODAL.MODAL_TYPE.POPOVER,
+        CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
     ]),
 
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
+    onSubmit: null,
     type: '',
 };
 
 const Modal = (props) => {
+    const subscribeToKeyEvents = () => {
+        KeyboardShortcut.subscribe('Escape', props.onClose, [], true);
+        KeyboardShortcut.subscribe('Enter', props.onSubmit, [], true);
+    };
+    const unsubscribeFromKeyEvents = () => {
+        KeyboardShortcut.unsubscribe('Escape');
+        KeyboardShortcut.unsubscribe('Enter');
+    };
     const {
         modalStyle,
         modalContainerStyle,
@@ -49,8 +62,8 @@ const Modal = (props) => {
         <ReactNativeModal
             onBackdropPress={props.onClose}
             onBackButtonPress={props.onClose}
-            onModalShow={() => KeyboardShortcut.subscribe('Escape', props.onClose, [], true)}
-            onModalHide={() => KeyboardShortcut.unsubscribe('Escape')}
+            onModalShow={subscribeToKeyEvents}
+            onModalHide={unsubscribeFromKeyEvents}
             onSwipeComplete={props.onClose}
             swipeDirection={swipeDirection}
             isVisible={props.isVisible}

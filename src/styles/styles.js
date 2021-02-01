@@ -64,6 +64,13 @@ const styles = {
         fontSize: variables.fontSizeSmall,
     },
 
+    textMicroBold: {
+        color: themeColors.text,
+        fontWeight: fontWeightBold,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeSmall,
+    },
+
     textLarge: {
         fontSize: variables.fontSizeLarge,
     },
@@ -939,10 +946,8 @@ const styles = {
     settingsPageBackground: {
         flexDirection: 'column',
         width: '100%',
-        height: '100%',
-        position: 'absolute',
+        flexGrow: 1,
         justifyContent: 'space-between',
-        backgroundColor: 'white',
         alignItems: 'center',
     },
 
@@ -992,6 +997,14 @@ const styles = {
         width: '100%',
         alignItems: 'center',
         padding: 20,
+    },
+
+    selectCircle: {
+        width: variables.componentSizeSmall,
+        height: variables.componentSizeSmall,
+        borderColor: themeColors.border,
+        borderWidth: 1,
+        borderRadius: variables.componentSizeSmall / 2,
     },
 };
 
