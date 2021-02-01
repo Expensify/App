@@ -128,4 +128,12 @@ export default {
     pl5: {
         paddingLeft: 20,
     },
+
+    ph5: {
+        paddingHorizontal: 20,
+    },
+
+    pv3: {
+        paddingVertical: 12,
+    },
 };

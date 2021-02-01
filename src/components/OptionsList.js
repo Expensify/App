@@ -124,7 +124,7 @@ const OptionsList = ({
                     );
                 }
 
-                return <View style={styles.mt1} />;
+                return <View />;
             }}
             extraData={focusedIndex}
         />

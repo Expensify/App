@@ -160,14 +160,15 @@ class SidebarLinks extends React.Component {
                     >
                         <View style={[
                             styles.flexRow,
-                            styles.sidebarHeaderTop,
+                            styles.ph5,
+                            styles.pv3,
                             styles.justifyContentBetween,
                             styles.alignItemsCenter,
                         ]}
                         >
                             <Header textSize="large" title="Chats" />
                             <TouchableOpacity
-                                style={[styles.flexRow, styles.sidebarHeaderTop]}
+                                style={[styles.flexRow, styles.ph5]}
                                 onPress={() => ChatSwitcher.show()}
                             >
                                 <Icon src={MagnifyingGlass} />
