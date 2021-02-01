@@ -262,6 +262,46 @@ describe('OptionsListUtils', () => {
         // Then the option should not appear anywhere in either list
         expect(_.every(results.recentReports, option => option.login !== 'peterparker@expensify.com')).toBe(true);
         expect(_.every(results.personalDetails, option => option.login !== 'peterparker@expensify.com')).toBe(true);
+
+        // When we add a search term for which no options exist and the searchValue itself
+        // is not a potential email or phone
+        results = OptionsListUtils.getNewGroupOptions(REPORTS, PERSONAL_DETAILS, 'marc@expensify');
+
+        // Then we should have no options or personal details at all and also that there is no userToInvite
+        expect(results.recentReports.length).toBe(0);
+        expect(results.personalDetails.length).toBe(0);
+        expect(results.userToInvite).toBe(null);
+
+        // When we add a search term for which no options exist and the searchValue itself
+        // is a potential email
+        results = OptionsListUtils.getNewGroupOptions(REPORTS, PERSONAL_DETAILS, 'marc@expensify.com');
+
+        // Then we should have no options or personal details at all but there should be a userToInvite
+        expect(results.recentReports.length).toBe(0);
+        expect(results.personalDetails.length).toBe(0);
+        expect(results.userToInvite).not.toBe(null);
+
+        // When we add a search term for which no options exist and the searchValue itself
+        // is a potential phone number without country code added
+        results = OptionsListUtils.getNewGroupOptions(REPORTS, PERSONAL_DETAILS, '5005550006');
+
+        // Then we should have no options or personal details at all but there should be a userToInvite and the login
+        // should have the country code included
+        expect(results.recentReports.length).toBe(0);
+        expect(results.personalDetails.length).toBe(0);
+        expect(results.userToInvite).not.toBe(null);
+        expect(results.userToInvite.login).toBe('+15005550006');
+
+        // When we add a search term for which no options exist and the searchValue itself
+        // is a potential phone number with country code added
+        results = OptionsListUtils.getNewGroupOptions(REPORTS, PERSONAL_DETAILS, '+15005550006');
+
+        // Then we should have no options or personal details at all but there should be a userToInvite and the login
+        // should have the country code included
+        expect(results.recentReports.length).toBe(0);
+        expect(results.personalDetails.length).toBe(0);
+        expect(results.userToInvite).not.toBe(null);
+        expect(results.userToInvite.login).toBe('+15005550006');
     });
 
     it('getSidebarOptions()', () => {

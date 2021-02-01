@@ -22,7 +22,7 @@ function init() {
                         callback(new Error('Pusher: Expensify session expired. Re-authenticating...'));
 
                         // Attempt to refresh the authToken then reconnect to Pusher
-                        API.reauthenticate().then(() => Pusher.reconnect());
+                        API.reauthenticate('Push_Authenticate').then(() => Pusher.reconnect());
                         return;
                     }
 
