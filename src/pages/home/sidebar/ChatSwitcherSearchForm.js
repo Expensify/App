@@ -13,8 +13,7 @@ import {Close} from '../../../components/Icon/Expensicons';
 import TextInputWithFocusStyles from '../../../components/TextInputWithFocusStyles';
 import {getDisplayName} from '../../../libs/actions/PersonalDetails';
 import PillWithCancelButton from '../../../components/PillWithCancelButton';
-import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
-import variables from '../../../styles/variables';
+import optionPropTypes from './optionPropTypes';
 
 const propTypes = {
     // A ref to forward to the text input
@@ -42,7 +41,7 @@ const propTypes = {
     onConfirmUsers: PropTypes.func.isRequired,
 
     // Users selected to begin a group report DM
-    usersToStartGroupReportWith: PropTypes.arrayOf(ChatSwitcherOptionPropTypes),
+    usersToStartGroupReportWith: PropTypes.arrayOf(optionPropTypes),
 };
 
 const defaultProps = {
@@ -136,7 +135,7 @@ const ChatSwitcherSearchForm = props => (
             onPress={props.onClearButtonClick}
             underlayColor={themeColors.componentBG}
         >
-            <Icon src={Close} width={variables.iconSizeNormal} height={variables.iconSizeNormal} />
+            <Icon src={Close} />
         </TouchableOpacity>
     </View>
 );
