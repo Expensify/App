@@ -322,6 +322,7 @@ const styles = {
 
     sidebarHeader: {
         flexGrow: 0,
+        height: 0,
     },
 
     sidebarHeaderActive: {
@@ -685,12 +686,6 @@ const styles = {
         width: 200,
     },
 
-    chatSwitcherInputClear: {
-        alignSelf: 'flex-end',
-        height: variables.componentSizeNormal,
-        justifyContent: 'center',
-    },
-
     chatSwitcherGroupDMContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
@@ -845,13 +840,16 @@ const styles = {
         flex: 1,
     },
 
+    borderBottom: {
+        borderBottomWidth: 1,
+        borderColor: themeColors.border,
+    },
+
     headerBar: {
         overflow: 'hidden',
         justifyContent: 'center',
         display: 'flex',
         paddingLeft: 20,
-        borderBottomWidth: 1,
-        borderColor: themeColors.border,
         height: variables.contentHeaderHeight,
         width: '100%',
     },
