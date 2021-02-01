@@ -55,7 +55,8 @@ const Modal = (props) => {
         swipeDirection,
         animationIn,
         animationOut,
-        needsSafeAreaPadding,
+        shouldAddTopSafeAreaPadding,
+        shouldAddBottomSafeAreaPadding,
         hideBackdrop,
     } = getModalStyles(props.type, props.windowDimensions);
     return (
@@ -77,17 +78,22 @@ const Modal = (props) => {
             <CustomStatusBar />
             <SafeAreaInsetsContext.Consumer>
                 {(insets) => {
-                    const {paddingTop, paddingBottom} = getSafeAreaPadding(insets);
+                    const {
+                        paddingTop: safeAreaPaddingTop,
+                        paddingBottom: safeAreaPaddingBottom,
+                    } = getSafeAreaPadding(insets);
+
                     return (
                         <View
                             style={{
-                                // This padding is based on the insets and could not neatly be
-                                // returned by getModalStyles to avoid passing this inline.
-                                paddingTop: needsSafeAreaPadding ? paddingTop : 20,
-
                                 ...styles.defaultModalContainer,
-                                paddingBottom,
                                 ...modalContainerStyle,
+                                paddingTop: shouldAddTopSafeAreaPadding
+                                    ? (modalContainerStyle.paddingTop || 0) + safeAreaPaddingTop
+                                    : modalContainerStyle.paddingTop || 0,
+                                paddingBottom: shouldAddBottomSafeAreaPadding
+                                    ? (modalContainerStyle.paddingBottom || 0) + safeAreaPaddingBottom
+                                    : modalContainerStyle.paddingBottom || 0,
                             }}
                         >
                             {props.children}
