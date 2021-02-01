@@ -9,11 +9,9 @@ import {
 } from 'react-native';
 import styles from '../../../styles/styles';
 import optionPropTypes from './optionPropTypes';
-import themeColors from '../../../styles/themes/default';
 import Icon from '../../../components/Icon';
 import {Pencil, PinCircle} from '../../../components/Icon/Expensicons';
 import MultipleAvatars from '../../../components/MultipleAvatars';
-import variables from '../../../styles/variables';
 
 const propTypes = {
     // Option to allow the user to choose from can be type 'report' or 'user'
@@ -142,17 +140,12 @@ const OptionRow = ({
             <View style={styles.flexRow}>
                 {option.hasDraftComment && (
                     <View style={styles.ml2}>
-                        <Icon src={Pencil} width={variables.iconSizeNormal} height={variables.iconSizeNormal} />
+                        <Icon src={Pencil} />
                     </View>
                 )}
                 {option.isPinned && (
                     <View style={styles.ml2}>
-                        <Icon
-                            src={PinCircle}
-                            width={variables.iconSizeNormal}
-                            height={variables.iconSizeNormal}
-                            fill={themeColors.icon}
-                        />
+                        <Icon src={PinCircle} />
                     </View>
                 )}
             </View>
