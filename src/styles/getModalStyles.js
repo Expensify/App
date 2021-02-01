@@ -14,7 +14,8 @@ export default (type, windowDimensions) => {
     let animationIn;
     let animationOut;
     let hideBackdrop = false;
-    let needsSafeAreaPadding = false;
+    let shouldAddBottomSafeAreaPadding = false;
+    let shouldAddTopSafeAreaPadding = false;
 
     switch (type) {
         case CONST.MODAL.MODAL_TYPE.CENTERED:
@@ -53,7 +54,7 @@ export default (type, windowDimensions) => {
             swipeDirection = undefined;
             animationIn = isSmallScreen ? 'slideInRight' : 'fadeIn';
             animationOut = isSmallScreen ? 'slideOutRight' : 'fadeOut';
-            needsSafeAreaPadding = true;
+            shouldAddTopSafeAreaPadding = true;
             break;
         case CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED:
             modalStyle = {
@@ -73,6 +74,7 @@ export default (type, windowDimensions) => {
                 overflow: 'hidden',
             };
 
+            shouldAddBottomSafeAreaPadding = true;
             swipeDirection = undefined;
             animationIn = 'slideInUp';
             animationOut = 'slideOutDown';
@@ -84,7 +86,7 @@ export default (type, windowDimensions) => {
                     alignItems: 'center',
                     justifyContent: 'flex-end',
                     marginRight: windowDimensions.width - variables.sideBarWidth,
-                    marginBottom: 82,
+                    marginBottom: 100,
                 },
             };
             modalContainerStyle = {
@@ -121,7 +123,8 @@ export default (type, windowDimensions) => {
             swipeDirection = 'right';
             animationIn = 'slideInRight';
             animationOut = 'slideOutRight';
-            needsSafeAreaPadding = true;
+            shouldAddBottomSafeAreaPadding = true;
+            shouldAddTopSafeAreaPadding = true;
             break;
         default:
             modalStyle = {};
@@ -137,7 +140,8 @@ export default (type, windowDimensions) => {
         swipeDirection,
         animationIn,
         animationOut,
-        needsSafeAreaPadding,
         hideBackdrop,
+        shouldAddBottomSafeAreaPadding,
+        shouldAddTopSafeAreaPadding,
     };
 };
