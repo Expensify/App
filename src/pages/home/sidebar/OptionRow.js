@@ -10,8 +10,9 @@ import {
 import styles from '../../../styles/styles';
 import optionPropTypes from './optionPropTypes';
 import Icon from '../../../components/Icon';
-import {Pencil, PinCircle} from '../../../components/Icon/Expensicons';
+import {Pencil, PinCircle, Checkmark} from '../../../components/Icon/Expensicons';
 import MultipleAvatars from '../../../components/MultipleAvatars';
+import themeColors from '../../../styles/themes/default';
 
 const propTypes = {
     // Option to allow the user to choose from can be type 'report' or 'user'
@@ -116,7 +117,7 @@ const OptionRow = ({
                             style={[styles.selectCircle]}
                         >
                             {isSelected && (
-                                <Text>X</Text>
+                                <Icon src={Checkmark} fill={themeColors.iconSuccessFill} />
                             )}
                         </View>
                     )}

@@ -129,6 +129,18 @@ export default {
         paddingLeft: 20,
     },
 
+    pt2: {
+        paddingTop: 8,
+    },
+
+    pt3: {
+        paddingTop: 12,
+    },
+
+    pb2: {
+        paddingBottom: 8,
+    },
+
     ph5: {
         paddingHorizontal: 20,
     },
