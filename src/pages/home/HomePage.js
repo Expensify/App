@@ -14,6 +14,7 @@ import variables from '../../styles/variables';
 import HeaderView from './HeaderView';
 import Sidebar from './sidebar/SidebarView';
 import NewGroupPage from '../NewGroupPage';
+import SettingsPage from '../SettingsPage';
 import Main from './MainView';
 import {
     hide as hideSidebar,
@@ -39,7 +40,7 @@ import {fetchCountryCodeByRequestIP} from '../../libs/actions/GeoLocation';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import * as ChatSwitcher from '../../libs/actions/ChatSwitcher';
 import {redirect} from '../../libs/actions/App';
-import SettingsModal from '../../components/SettingsModal';
+import RightDockedModal from '../../components/RightDockedModal';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import compose from '../../libs/compose';
 import {getBetas} from '../../libs/actions/User';
@@ -321,10 +322,18 @@ class HomePage extends React.Component {
                                         onNavigationMenuButtonClicked={this.toggleNavigationMenu}
                                         reportID={this.props.currentlyViewedReportID}
                                     />
-                                    <SettingsModal
+                                    <RightDockedModal
+                                        title="Settings"
+                                        Page={SettingsPage}
                                         isVisible={this.props.currentURL === ROUTES.SETTINGS}
                                     />
-                                    {this.props.currentURL === ROUTES.NEW_GROUP && <NewGroupPage />}
+                                    {this.props.currentURL === ROUTES.NEW_GROUP && (
+                                        <RightDockedModal
+                                            title="New Group"
+                                            Page={NewGroupPage}
+                                            isVisible={this.props.currentURL === ROUTES.NEW_GROUP}
+                                        />
+                                    )}
                                     <Main />
                                 </View>
                             </Route>

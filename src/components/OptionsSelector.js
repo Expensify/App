@@ -153,17 +153,19 @@ class OptionsSelector extends Component {
 
     render() {
         return (
-            <View style={[styles.flex1, styles.mt2]}>
-                <TextInputWithFocusStyles
-                    styleFocusIn={[styles.textInputReversedFocus]}
-                    ref={el => this.textInput = el}
-                    style={[styles.textInput]}
-                    value={this.props.value}
-                    onChangeText={this.props.onChangeText}
-                    onKeyPress={this.handleKeyPress}
-                    placeholder={this.props.placeholderText}
-                    placeholderTextColor={themeColors.textSupporting}
-                />
+            <View style={[styles.flex1]}>
+                <View style={[styles.ph5, styles.pt3, styles.pb2]}>
+                    <TextInputWithFocusStyles
+                        styleFocusIn={[styles.textInputReversedFocus]}
+                        ref={el => this.textInput = el}
+                        style={[styles.textInput]}
+                        value={this.props.value}
+                        onChangeText={this.props.onChangeText}
+                        onKeyPress={this.handleKeyPress}
+                        placeholder={this.props.placeholderText}
+                        placeholderTextColor={themeColors.textSupporting}
+                    />
+                </View>
                 <OptionsList
                     ref={el => this.list = el}
                     onSelectRow={this.props.onSelectRow}

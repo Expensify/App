@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
-import {View, Text, TouchableOpacity} from 'react-native';
+import {View, Text, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
@@ -12,6 +12,7 @@ import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import CONST from '../CONST';
 import {redirect} from '../libs/actions/App';
 import ROUTES from '../ROUTES';
+import themeColors from '../styles/themes/default';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -221,7 +222,7 @@ class NewGroupPage extends Component {
                             : ROUTES.HOME);
                     }}
                 />
-                <View style={[styles.p2, styles.flex1]}>
+                <View style={[styles.flex1]}>
                     <OptionsSelector
                         canSelectMultipleOptions
                         sections={sections}
@@ -249,14 +250,21 @@ class NewGroupPage extends Component {
                         headerTitle={headerTitle}
                         headerMessage={headerMessage}
                     />
-                    <TouchableOpacity
-                        onPress={this.createGroup}
-                        style={[styles.button, styles.buttonSuccess, styles.w100, styles.mt5]}
-                    >
-                        <Text style={[styles.buttonText, styles.buttonSuccessText]}>
-                            Create Group
-                        </Text>
-                    </TouchableOpacity>
+                    <View style={[styles.p5, styles.pt2]}>
+                        <Pressable
+                            onPress={this.createGroup}
+                            style={({hovered}) => [
+                                styles.button,
+                                styles.buttonSuccess,
+                                styles.w100,
+                                hovered && {backgroundColor: themeColors.buttonSuccessHoveredBG},
+                            ]}
+                        >
+                            <Text style={[styles.buttonText, styles.buttonSuccessText]}>
+                                Create Group
+                            </Text>
+                        </Pressable>
+                    </View>
                 </View>
             </View>
         );

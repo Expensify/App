@@ -991,9 +991,11 @@ const styles = {
     selectCircle: {
         width: variables.componentSizeSmall,
         height: variables.componentSizeSmall,
-        borderColor: themeColors.border,
+        borderColor: themeColors.icon,
         borderWidth: 1,
         borderRadius: variables.componentSizeSmall / 2,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
 };
 
