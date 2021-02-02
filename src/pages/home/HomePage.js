@@ -6,10 +6,11 @@ import {
     Easing,
     Keyboard,
 } from 'react-native';
+import DrawerLayout from 'react-native-gesture-handler/DrawerLayout';
 import {SafeAreaInsetsContext, SafeAreaProvider} from 'react-native-safe-area-context';
 import {withOnyx} from 'react-native-onyx';
 import {Route} from '../../libs/Router';
-import styles, {getSafeAreaPadding, getNavigationMenuStyle} from '../../styles/styles';
+import styles, {getSafeAreaPadding} from '../../styles/styles';
 import variables from '../../styles/variables';
 import HeaderView from './HeaderView';
 import Sidebar from './sidebar/SidebarView';
@@ -172,8 +173,8 @@ class HomePage extends React.Component {
      * Method called when a pinned chat is selected.
      */
     recordTimerAndToggleNavigationMenu() {
-        Timing.start(CONST.TIMING.SWITCH_REPORT);
-        this.toggleNavigationMenu();
+        // Timing.start(CONST.TIMING.SWITCH_REPORT);
+        // this.toggleNavigationMenu();
     }
 
     /**
@@ -277,6 +278,10 @@ class HomePage extends React.Component {
         }
 
         // Otherwise, we want to hide it after the animation
+        if (!this.drawer) {
+            return;
+        }
+
         this.animateNavigationMenu(true);
     }
 
@@ -295,7 +300,7 @@ class HomePage extends React.Component {
                             ]}
                         >
                             <Route path={[ROUTES.REPORT, ROUTES.HOME, ROUTES.SETTINGS, ROUTES.NEW_GROUP]}>
-                                <Animated.View style={[
+                                {/* <Animated.View style={[
                                     getNavigationMenuStyle(
                                         this.props.windowDimensions.width,
                                         this.props.isSidebarShown,
@@ -312,21 +317,40 @@ class HomePage extends React.Component {
                                         toggleCreateMenu={this.toggleCreateMenu}
                                         onCreateMenuItemSelected={this.onCreateMenuItemSelected}
                                     />
-                                </Animated.View>
-                                <View
-                                    style={[styles.appContent, styles.flex1, styles.flexColumn]}
+                                </Animated.View> */}
+                                <DrawerLayout
+                                    ref={el => this.drawer = el}
+                                    drawerWidth={this.props.windowDimensions.width}
+                                    drawerPosition={DrawerLayout.positions.Left}
+                                    drawerType="front"
+                                    renderNavigationView={() => (
+                                        <Sidebar
+                                            insets={insets}
+                                            onLinkClick={() => {
+                                                this.drawer.closeDrawer();
+                                            }}
+                                            onAvatarClick={this.navigateToSettings}
+                                            isCreateMenuActive={this.state.isCreateMenuActive}
+                                            toggleCreateMenu={this.toggleCreateMenu}
+                                            onCreateMenuItemSelected={this.onCreateMenuItemSelected}
+                                        />
+                                    )}
                                 >
-                                    <HeaderView
-                                        shouldShowNavigationMenuButton={isSmallScreenWidth}
-                                        onNavigationMenuButtonClicked={this.toggleNavigationMenu}
-                                        reportID={this.props.currentlyViewedReportID}
-                                    />
-                                    <SettingsModal
-                                        isVisible={this.props.currentURL === ROUTES.SETTINGS}
-                                    />
-                                    {this.props.currentURL === ROUTES.NEW_GROUP && <NewGroupPage />}
-                                    <Main />
-                                </View>
+                                    <View
+                                        style={[styles.appContent, styles.flex1, styles.flexColumn]}
+                                    >
+                                        <HeaderView
+                                            shouldShowNavigationMenuButton={isSmallScreenWidth}
+                                            onNavigationMenuButtonClicked={this.toggleNavigationMenu}
+                                            reportID={this.props.currentlyViewedReportID}
+                                        />
+                                        <SettingsModal
+                                            isVisible={this.props.currentURL === ROUTES.SETTINGS}
+                                        />
+                                        {this.props.currentURL === ROUTES.NEW_GROUP && <NewGroupPage />}
+                                        <Main />
+                                    </View>
+                                </DrawerLayout>
                             </Route>
                         </View>
                     )}
