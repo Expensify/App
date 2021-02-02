@@ -168,7 +168,7 @@ const RenderHTML = ({html, debug = false}) => {
                 width: MAX_IMG_DIMENSIONS,
                 height: MAX_IMG_DIMENSIONS,
             }}
-            html={html}
+            source={{html}}
             debug={debug}
         />
     );
