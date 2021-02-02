@@ -138,6 +138,7 @@ function getSimplifiedReportObject(report) {
     const reportName = lodashGet(report, 'reportNameValuePairs.type') === 'chat'
         ? getChatReportName(report.sharedReportList)
         : report.reportName;
+    const lastActorEmail = lodashGet(lastReportAction, 'accountEmail', '');
 
     return {
         reportID: report.reportID,
@@ -153,6 +154,7 @@ function getSimplifiedReportObject(report) {
         ], 0),
         lastMessageTimestamp,
         lastMessageText,
+        lastActorEmail,
     };
 }
 
@@ -260,6 +262,7 @@ function updateReportWithNewAction(reportID, reportAction) {
         maxSequenceNumber: reportAction.sequenceNumber,
         lastMessageTimestamp: reportAction.timestamp,
         lastMessageText: messageText,
+        lastActorEmail: reportAction.actorEmail,
     });
 
     const reportActionsToMerge = {};
