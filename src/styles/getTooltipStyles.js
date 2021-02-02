@@ -78,10 +78,10 @@ function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWid
  * @param {Number} componentHeight - The height of the wrapped component.
  * @param {Number} tooltipWidth - The width of the tooltip itself.
  * @param {Number} tooltipHeight - The height of the tooltip itself.
- * @param {Number} manualShiftHorizontal - Any additional amount to manually shift the tooltip to the left or right.
+ * @param {Number} [manualShiftHorizontal] - Any additional amount to manually shift the tooltip to the left or right.
  *                                         A positive value shifts it to the right,
  *                                         and a negative value shifts it to the left.
- * @param {Number} manualShiftVertical - Any additional amount to manually shift the tooltip up or down.
+ * @param {Number} [manualShiftVertical] - Any additional amount to manually shift the tooltip up or down.
  *                                       A positive value shifts it down, and a negative value shifts it up.
  * @returns {Object}
  */
@@ -94,8 +94,8 @@ export default function getTooltipStyles(
     componentHeight,
     tooltipWidth,
     tooltipHeight,
-    manualShiftHorizontal,
-    manualShiftVertical,
+    manualShiftHorizontal = 0,
+    manualShiftVertical = 0,
 ) {
     // Determine if the tooltip should display below the wrapped component.
     // If a tooltip will try to render within GUTTER_WIDTH logical pixels of the top of the screen,
