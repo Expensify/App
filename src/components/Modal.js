@@ -21,36 +21,50 @@ const propTypes = {
     // Modal contents
     children: PropTypes.node.isRequired,
 
+    // Callback method fired when the user requests to submit the modal content.
+    onSubmit: PropTypes.func,
+
     // Style of modal to display
     type: PropTypes.oneOf([
         CONST.MODAL.MODAL_TYPE.CENTERED,
         CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED,
         CONST.MODAL.MODAL_TYPE.POPOVER,
+        CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
     ]),
 
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
+    onSubmit: null,
     type: '',
 };
 
 const Modal = (props) => {
+    const subscribeToKeyEvents = () => {
+        KeyboardShortcut.subscribe('Escape', props.onClose, [], true);
+        KeyboardShortcut.subscribe('Enter', props.onSubmit, [], true);
+    };
+    const unsubscribeFromKeyEvents = () => {
+        KeyboardShortcut.unsubscribe('Escape');
+        KeyboardShortcut.unsubscribe('Enter');
+    };
     const {
         modalStyle,
         modalContainerStyle,
         swipeDirection,
         animationIn,
         animationOut,
-        needsSafeAreaPadding,
+        shouldAddTopSafeAreaPadding,
+        shouldAddBottomSafeAreaPadding,
         hideBackdrop,
     } = getModalStyles(props.type, props.windowDimensions);
     return (
         <ReactNativeModal
             onBackdropPress={props.onClose}
             onBackButtonPress={props.onClose}
-            onModalShow={() => KeyboardShortcut.subscribe('Escape', props.onClose, [], true)}
-            onModalHide={() => KeyboardShortcut.unsubscribe('Escape')}
+            onModalShow={subscribeToKeyEvents}
+            onModalHide={unsubscribeFromKeyEvents}
             onSwipeComplete={props.onClose}
             swipeDirection={swipeDirection}
             isVisible={props.isVisible}
@@ -64,17 +78,22 @@ const Modal = (props) => {
             <CustomStatusBar />
             <SafeAreaInsetsContext.Consumer>
                 {(insets) => {
-                    const {paddingTop, paddingBottom} = getSafeAreaPadding(insets);
+                    const {
+                        paddingTop: safeAreaPaddingTop,
+                        paddingBottom: safeAreaPaddingBottom,
+                    } = getSafeAreaPadding(insets);
+
                     return (
                         <View
                             style={{
-                                // This padding is based on the insets and could not neatly be
-                                // returned by getModalStyles to avoid passing this inline.
-                                paddingTop: needsSafeAreaPadding ? paddingTop : 20,
-
                                 ...styles.defaultModalContainer,
-                                paddingBottom,
                                 ...modalContainerStyle,
+                                paddingTop: shouldAddTopSafeAreaPadding
+                                    ? (modalContainerStyle.paddingTop || 0) + safeAreaPaddingTop
+                                    : modalContainerStyle.paddingTop || 0,
+                                paddingBottom: shouldAddBottomSafeAreaPadding
+                                    ? (modalContainerStyle.paddingBottom || 0) + safeAreaPaddingBottom
+                                    : modalContainerStyle.paddingBottom || 0,
                             }}
                         >
                             {props.children}

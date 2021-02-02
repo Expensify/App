@@ -2,8 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {View, FlatList} from 'react-native';
 import styles from '../../../styles/styles';
-import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
-import ChatLinkRow from './ChatLinkRow';
+import optionPropTypes from './optionPropTypes';
+import OptionRow from './OptionRow';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
 
 const propTypes = {
@@ -11,7 +11,7 @@ const propTypes = {
     focusedIndex: PropTypes.number.isRequired,
 
     // An array of options to allow the user to choose from
-    options: PropTypes.arrayOf(ChatSwitcherOptionPropTypes),
+    options: PropTypes.arrayOf(optionPropTypes),
 
     // A function that is called when an option is selected. Selected option is passed as a param
     onSelectRow: PropTypes.func.isRequired,
@@ -37,7 +37,7 @@ const ChatSwitcherList = ({
                 data={options}
                 keyExtractor={option => option.keyForList}
                 renderItem={({item, index}) => (
-                    <ChatLinkRow
+                    <OptionRow
                         option={item}
                         optionIsFocused={index === focusedIndex}
                         onSelectRow={onSelectRow}

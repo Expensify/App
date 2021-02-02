@@ -39,6 +39,7 @@ export default {
     IS_SIDEBAR_SHOWN: 'isSidebarShown',
     IS_CHAT_SWITCHER_ACTIVE: 'isChatSwitcherActive',
     IS_SIDEBAR_ANIMATING: 'isSidebarAnimating',
+    BETAS: 'betas',
 
     // Data shared to the app from other apps
     SHARED_ITEM: 'sharedItem',

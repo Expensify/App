@@ -494,7 +494,6 @@ class ChatSwitcherView extends React.Component {
                     ref={el => this.textInput = el}
                     searchValue={this.state.search}
                     onChangeText={this.updateSearch}
-                    onClearButtonClick={() => this.reset()}
                     onFocus={this.triggerOnFocusCallback}
                     onKeyPress={this.handleKeyPress}
                     usersToStartGroupReportWith={this.state.usersToStartGroupReportWith}
