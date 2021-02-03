@@ -1,7 +1,7 @@
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import {
-    View, Text, Pressable, useWindowDimensions,
+    View, Text, Pressable,
 } from 'react-native';
 import Modal from './Modal';
 import styles from '../styles/styles';
@@ -10,7 +10,7 @@ import themeColors from '../styles/themes/default';
 import colors from '../styles/colors';
 import Icon from './Icon';
 import {ChatBubble, Users} from './Icon/Expensicons';
-import variables from '../styles/variables';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 
 const propTypes = {
     // Callback to fire on request to modal close
@@ -21,11 +21,11 @@ const propTypes = {
 
     // Callback to fire when a CreateMenu item is selected
     onItemSelected: PropTypes.func.isRequired,
+
+    ...windowDimensionsPropTypes,
 };
 
 const CreateMenu = (props) => {
-    const isSmallScreen = useWindowDimensions().width < variables.mobileResponsiveWidthBreakpoint;
-
     // This format allows to set individual callbacks to each item
     // while including mutual callbacks first
     const menuItemData = [
@@ -44,7 +44,7 @@ const CreateMenu = (props) => {
             onClose={props.onClose}
             isVisible={props.isVisible}
             type={
-                isSmallScreen
+                props.isSmallScreenWidth
                     ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED
                     : CONST.MODAL.MODAL_TYPE.POPOVER
             }
@@ -74,4 +74,4 @@ const CreateMenu = (props) => {
 
 CreateMenu.propTypes = propTypes;
 CreateMenu.displayName = 'CreateMenu';
-export default memo(CreateMenu);
+export default withWindowDimensions(memo(CreateMenu));
