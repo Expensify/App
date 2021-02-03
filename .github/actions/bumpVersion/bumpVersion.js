@@ -1,6 +1,6 @@
 import {exec} from 'child_process';
-import core from '@actions/core';
-import github from '@actions/github';
+import * as core from '@actions/core';
+import * as github from '@actions/github';
 
 // Use Github Actions' default environment variables to get repo information
 // https://docs.github.com/en/free-pro-team@latest/actions/reference/environment-variables#default-environment-variables
