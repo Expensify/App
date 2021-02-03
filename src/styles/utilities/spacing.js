@@ -141,6 +141,10 @@ export default {
         paddingBottom: 8,
     },
 
+    pb5: {
+        paddingBottom: 20,
+    },
+
     ph5: {
         paddingHorizontal: 20,
     },

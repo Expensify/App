@@ -8,8 +8,8 @@ export default {
     charcoal: '#37444C',
     black: '#000000',
     blue: '#2EAAE2',
-    green1: '#2ECB70',
-    green2: '#26AA5E',
+    green: '#2ECB70',
+    greenHover: '#26AA5E',
     red: '#E84A3B',
     transparent: 'transparent',
 };

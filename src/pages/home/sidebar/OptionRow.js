@@ -30,6 +30,9 @@ const propTypes = {
     // A flag to indicate whether this comes from the Chat Switcher so we can display the group button
     isChatSwitcher: PropTypes.bool,
 
+    // A flag to indicate wheter the option is on the RightDockedModal or not
+    isOnRightDockedModal: PropTypes.bool,
+
     // Whether we should show the selected state
     showSelectedState: PropTypes.bool,
 
@@ -40,6 +43,7 @@ const propTypes = {
 const defaultProps = {
     onAddToGroup: () => {},
     isChatSwitcher: false,
+    isOnRightDockedModal: false,
     showSelectedState: false,
     isSelected: false,
 };
@@ -50,13 +54,14 @@ const OptionRow = ({
     onSelectRow,
     onAddToGroup,
     isChatSwitcher,
+    isOnRightDockedModal,
     showSelectedState,
     isSelected,
 }) => {
     const textStyle = optionIsFocused
         ? styles.sidebarLinkActiveText
         : styles.sidebarLinkText;
-    const textUnreadStyle = option.isUnread
+    const textUnreadStyle = (option.isUnread || isOnRightDockedModal)
         ? [textStyle, styles.sidebarLinkTextUnread] : [textStyle];
     return (
         <View
@@ -103,19 +108,14 @@ const OptionRow = ({
                                 <Text style={[styles.chatSwitcherDisplayName, textUnreadStyle]} numberOfLines={1}>
                                     {option.text}
                                 </Text>
-                                <Text
-                                    style={[textStyle, styles.chatSwitcherLogin, styles.mt1]}
-                                    numberOfLines={1}
-                                >
+                                <Text style={[textStyle, styles.chatSwitcherLogin, styles.mt1]} numberOfLines={1}>
                                     {option.alternateText}
                                 </Text>
                             </>
                         )}
                     </View>
                     {showSelectedState && (
-                        <View
-                            style={[styles.selectCircle]}
-                        >
+                        <View style={[styles.selectCircle]}>
                             {isSelected && (
                                 <Icon src={Checkmark} fill={themeColors.iconSuccessFill} />
                             )}
@@ -138,18 +138,20 @@ const OptionRow = ({
                     </TouchableOpacity>
                 </View>
             )}
-            <View style={styles.flexRow}>
-                {option.hasDraftComment && (
-                    <View style={styles.ml2}>
-                        <Icon src={Pencil} />
-                    </View>
-                )}
-                {option.isPinned && (
-                    <View style={styles.ml2}>
-                        <Icon src={PinCircle} />
-                    </View>
-                )}
-            </View>
+            {!isOnRightDockedModal && (
+                <View style={styles.flexRow}>
+                    {option.hasDraftComment && (
+                        <View style={styles.ml2}>
+                            <Icon src={Pencil} />
+                        </View>
+                    )}
+                    {option.isPinned && (
+                        <View style={styles.ml2}>
+                            <Icon src={PinCircle} />
+                        </View>
+                    )}
+                </View>
+            )}
         </View>
     );
 };
