@@ -4,7 +4,6 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import {withRouter} from '../../libs/Router';
 import styles from '../../styles/styles';
 import ButtonWithLoader from '../../components/ButtonWithLoader';
 import themeColors from '../../styles/themes/default';
@@ -122,7 +121,6 @@ PasswordForm.propTypes = propTypes;
 PasswordForm.defaultProps = defaultProps;
 
 export default compose(
-    withRouter,
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
     }),

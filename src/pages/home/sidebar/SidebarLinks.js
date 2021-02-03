@@ -2,13 +2,11 @@ import React from 'react';
 import {Animated, View, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import styles, {getSafeAreaMargins} from '../../../styles/styles';
 import ONYXKEYS from '../../../ONYXKEYS';
 import ChatSwitcherView from './ChatSwitcherView';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
-import compose from '../../../libs/compose';
-import {withRouter} from '../../../libs/Router';
 import {redirect} from '../../../libs/actions/App';
 import ROUTES from '../../../ROUTES';
 import * as ChatSwitcher from '../../../libs/actions/ChatSwitcher';
@@ -137,7 +135,7 @@ class SidebarLinks extends React.Component {
         ];
 
         return (
-            <View style={[styles.flex1, styles.h100, {marginTop: this.props.insets.top}]}>
+            <View style={[styles.flex1, styles.h100]}>
                 {this.props.isChatSwitcherActive && (
                     <Animated.View
                         style={[chatSwitcherStyle]}
@@ -192,8 +190,9 @@ class SidebarLinks extends React.Component {
                                 option => option.reportID === activeReportID
                             ))}
                             onSelectRow={(option) => {
-                                redirect(ROUTES.getReportRoute(option.reportID));
-                                this.props.onLinkClick();
+                                // redirect(ROUTES.getReportRoute(option.reportID));
+                                Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, String(option.reportID));
+                                this.props.onLinkClick(option.reportID);
                             }}
                             hideSectionHeaders
                         />
@@ -207,30 +206,27 @@ class SidebarLinks extends React.Component {
 SidebarLinks.propTypes = propTypes;
 SidebarLinks.defaultProps = defaultProps;
 
-export default compose(
-    withRouter,
-    withOnyx({
-        reports: {
-            key: ONYXKEYS.COLLECTION.REPORT,
-        },
-        draftComments: {
-            key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        myPersonalDetails: {
-            key: ONYXKEYS.MY_PERSONAL_DETAILS,
-        },
-        network: {
-            key: ONYXKEYS.NETWORK,
-        },
-        isChatSwitcherActive: {
-            key: ONYXKEYS.IS_CHAT_SWITCHER_ACTIVE,
-            initWithStoredValues: false,
-        },
-        currentlyViewedReportID: {
-            key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
-        },
-    }),
-)(SidebarLinks);
+export default withOnyx({
+    reports: {
+        key: ONYXKEYS.COLLECTION.REPORT,
+    },
+    draftComments: {
+        key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
+    },
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS,
+    },
+    myPersonalDetails: {
+        key: ONYXKEYS.MY_PERSONAL_DETAILS,
+    },
+    network: {
+        key: ONYXKEYS.NETWORK,
+    },
+    isChatSwitcherActive: {
+        key: ONYXKEYS.IS_CHAT_SWITCHER_ACTIVE,
+        initWithStoredValues: false,
+    },
+    currentlyViewedReportID: {
+        key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
+    },
+})(SidebarLinks);

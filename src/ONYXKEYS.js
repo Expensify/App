@@ -9,6 +9,9 @@ export default {
     // which tab is the leader, and which ones are the followers
     ACTIVE_CLIENTS: 'activeClients2',
 
+    // What the active route is for our navigator
+    CURRENT_ROUTE: 'currentRoute',
+
     // When this key is changed, the active page changes (see Expensify.js and `redirect` in actions/App.js)
     APP_REDIRECT_TO: 'appRedirectTo',
 

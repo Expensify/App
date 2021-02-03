@@ -2,14 +2,19 @@ import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Onyx, {withOnyx} from 'react-native-onyx';
+import {createStackNavigator} from '@react-navigation/stack';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
+
 import {recordCurrentlyViewedReportID, recordCurrentRoute} from './libs/actions/App';
 import HomePage from './pages/home/HomePage';
 import NotFoundPage from './pages/NotFound';
 import SetPasswordPage from './pages/SetPasswordPage';
+import SettingsPage from './pages/SettingsPage';
 import SignInPage from './pages/signin/SignInPage';
 import listenToStorageEvents from './libs/listenToStorageEvents';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import ONYXKEYS from './ONYXKEYS';
+import RootNavigator from './Navigator/RootNavigator';
 
 import styles from './styles/styles';
 import Log from './libs/Log';
@@ -22,6 +27,9 @@ import {
 } from './libs/Router';
 import ROUTES from './ROUTES';
 import PushNotification from './libs/Notification/PushNotification';
+
+import MainView from './pages/home/MainView';
+import SettingsModal from './components/SettingsModal';
 
 // Initialize the store when the app loads for the first time
 Onyx.init({
@@ -44,6 +52,8 @@ Onyx.registerLogger(({level, message}) => {
         Log.client(message);
     }
 });
+
+const Stack = createStackNavigator();
 
 const propTypes = {
     /* Onyx Props */
@@ -105,43 +115,105 @@ class Expensify extends Component {
                 <View style={styles.genericView} />
             );
         }
+
         return (
-            <Router>
-                {/* If there is ever a property for redirecting, we do the redirect here */}
-                {/* Leave this as a ternary or else iOS throws an error about text not being wrapped in <Text> */}
-                {this.props.redirectTo ? <Redirect push to={this.props.redirectTo} /> : null}
-                <Route path="*" render={recordCurrentRoute} />
+            <SafeAreaProvider>
+                <RootNavigator
+                    routes={[
+                        {
+                            path: '/',
+                            Component: HomePage,
+                            isRootView: true,
+                        },
+                        {
+                            path: '/r',
+                            Component: MainView,
+                            additionalPaths: '/',
+                        },
+                        {
+                            path: '/settings',
+                            Component: SettingsPage,
+                            ModalComponent: SettingsModal,
+                            isModal: true,
+                        },
+                    ]}
+                />
+            </SafeAreaProvider>
+        );
+        return (
+            <Stack.Navigator>
+                {this.state.authToken
+                    ? (
+                        <>
+                            <Stack.Screen
+                                name="home"
+                                component={HomePage}
+                                options={{
+                                    headerShown: false,
+                                }}
+                            />
+                            <Stack.Screen
+                                name="r"
+                                component={MainView}
+                                options={{
+                                    headerShown: false,
+                                }}
+                            />
+                            <Stack.Screen
+                                name="settings"
+                                component={SettingsPage}
+                                options={{
+                                    headerShown: false,
+                                }}
+                            />
+                        </>
+                    )
+                    : (
+                        <Stack.Screen
+                            name="SignIn"
+                            component={SignInPage}
+                            options={{
+                                headerShown: false,
+                            }}
+                        />
+                    )}
+            </Stack.Navigator>
+            // <Router>
+            //     {/* If there is ever a property for redirecting, we do the redirect here */}
+            //     {/* Leave this as a ternary or else iOS throws an error about text not being wrapped in <Text> */}
+            //     {this.props.redirectTo ? <Redirect push to={this.props.redirectTo} /> : null}
+            //     <Route path="*" render={recordCurrentRoute} />
 
-                {/* We must record the currentlyViewedReportID when hitting the 404 page so */}
-                {/* that we do not try to redirect back to that report again */}
-                <Route path={[ROUTES.REPORT, ROUTES.NOT_FOUND]} exact render={recordCurrentlyViewedReportID} />
+            //     {/* We must record the currentlyViewedReportID when hitting the 404 page so */}
+            //     {/* that we do not try to redirect back to that report again */}
+            //     <Route path={[ROUTES.REPORT, ROUTES.NOT_FOUND]} exact render={recordCurrentlyViewedReportID} />
 
-                <Switch>
-                    <Route
-                        exact
-                        path={ROUTES.ROOT}
-                        render={() => (
-                            this.state.authToken
-                                ? <Redirect to={ROUTES.HOME} />
-                                : <Redirect to={ROUTES.SIGNIN} />
-                        )}
-                    />
+            //     <Switch>
+            //         <Route
+            //             exact
+            //             path={ROUTES.ROOT}
+            //             render={() => (
+            //                 this.state.authToken
+            //                     ? <Redirect to={ROUTES.HOME} />
+            //                     : <Redirect to={ROUTES.SIGNIN} />
+            //             )}
+            //         />
 
-                    <Route path={[ROUTES.SET_PASSWORD]} component={SetPasswordPage} />
-                    <Route path={[ROUTES.NOT_FOUND]} component={NotFoundPage} />
-                    <Route path={[ROUTES.SIGNIN_WITH_EXITTO, ROUTES.SIGNIN]} component={SignInPage} />
-                    <Route
-                        path={[ROUTES.HOME, ROUTES.ROOT]}
-                        render={match => (
+            //         <Route path={[ROUTES.SET_PASSWORD]} component={SetPasswordPage} />
+            //         <Route path={[ROUTES.NOT_FOUND]} component={NotFoundPage} />
+            //         <Route path={[ROUTES.SIGNIN_WITH_EXITTO, ROUTES.SIGNIN]} component={SignInPage} />
+            //         <Route
+            //             path={[ROUTES.HOME, ROUTES.ROOT]}
+            //             render={match => (
 
-                            // Need to do this for every page that the user needs to be logged in to access
-                            this.state.authToken
-                                ? <HomePage match={match} />
-                                : <Redirect to={ROUTES.SIGNIN} />
-                        )}
-                    />
-                </Switch>
-            </Router>
+            //                 // Need to do this for every page that the user needs to be logged in to access
+            //                 this.state.authToken
+            //                     ? <HomePage match={match} />
+            //                     : <Redirect to={ROUTES.SIGNIN} />
+            //             )}
+            //         />
+            //     </Switch>
+            // </Router>
         );
     }
 }

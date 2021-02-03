@@ -7,8 +7,8 @@ import CONST from '../CONST';
 import themeColors from '../styles/themes/default';
 import ONYXKEYS from '../ONYXKEYS';
 import ModalWithHeader from './ModalWithHeader';
-import {redirect} from '../libs/actions/App';
 import ROUTES from '../ROUTES';
+import Navigator from './../Navigator';
 
 /**
  * Right-docked modal view showing a user's settings.
@@ -30,12 +30,16 @@ const defaultProps = {
 const SettingsModal = props => (
     <ModalWithHeader
         type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
-        onClose={() => redirect(_.isEmpty(props.currentlyViewedReportID)
-            ? ROUTES.HOME
-            : ROUTES.getReportRoute(props.currentlyViewedReportID))}
         isVisible={props.isVisible}
         title="Settings"
         backgroundColor={themeColors.componentBG}
+        onClose={() => {
+            if (_.isEmpty(props.currentlyViewedReportID)) {
+                Navigator.navigate('/');
+            } else {
+                Navigator.navigate(ROUTES.getReportRoute(props.currentlyViewedReportID));
+            }
+        }}
     >
         <SettingsPage />
     </ModalWithHeader>

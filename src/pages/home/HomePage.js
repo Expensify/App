@@ -6,7 +6,7 @@ import {
     Easing,
     Keyboard,
 } from 'react-native';
-import {SafeAreaInsetsContext, SafeAreaProvider} from 'react-native-safe-area-context';
+import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import {withOnyx} from 'react-native-onyx';
 import {Route} from '../../libs/Router';
 import styles, {getSafeAreaPadding, getNavigationMenuStyle} from '../../styles/styles';
@@ -43,6 +43,7 @@ import SettingsModal from '../../components/SettingsModal';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import compose from '../../libs/compose';
 import {getBetas} from '../../libs/actions/User';
+import Navigator from '../../Navigator';
 
 const propTypes = {
     isSidebarShown: PropTypes.bool,
@@ -171,9 +172,11 @@ class HomePage extends React.Component {
     /**
      * Method called when a pinned chat is selected.
      */
-    recordTimerAndToggleNavigationMenu() {
-        Timing.start(CONST.TIMING.SWITCH_REPORT);
-        this.toggleNavigationMenu();
+    recordTimerAndToggleNavigationMenu(reportID) {
+        Navigator.navigate('/r', {reportID: String(reportID)});
+
+        // Timing.start(CONST.TIMING.SWITCH_REPORT);
+        // this.toggleNavigationMenu();
     }
 
     /**
@@ -181,6 +184,7 @@ class HomePage extends React.Component {
      */
     navigateToSettings() {
         redirect(ROUTES.SETTINGS);
+        Navigator.navigate('/settings');
     }
 
     /**
@@ -283,7 +287,7 @@ class HomePage extends React.Component {
     render() {
         const isSmallScreenWidth = this.props.windowDimensions.width <= variables.mobileResponsiveWidthBreakpoint;
         return (
-            <SafeAreaProvider>
+            <>
                 <CustomStatusBar />
                 <SafeAreaInsetsContext.Consumer style={[styles.flex1]}>
                     {insets => (
@@ -294,8 +298,8 @@ class HomePage extends React.Component {
                                 getSafeAreaPadding(insets),
                             ]}
                         >
-                            <Route path={[ROUTES.REPORT, ROUTES.HOME, ROUTES.SETTINGS, ROUTES.NEW_GROUP]}>
-                                <Animated.View style={[
+                            {/* <Route path={[ROUTES.REPORT, ROUTES.HOME, ROUTES.SETTINGS, ROUTES.NEW_GROUP]}> */}
+                                {/* <Animated.View style={[
                                     getNavigationMenuStyle(
                                         this.props.windowDimensions.width,
                                         this.props.isSidebarShown,
@@ -303,7 +307,7 @@ class HomePage extends React.Component {
                                     {
                                         transform: [{translateX: this.animationTranslateX}],
                                     }]}
-                                >
+                                > */}
                                     <Sidebar
                                         insets={insets}
                                         onLinkClick={this.recordTimerAndToggleNavigationMenu}
@@ -312,8 +316,8 @@ class HomePage extends React.Component {
                                         toggleCreateMenu={this.toggleCreateMenu}
                                         onCreateMenuItemSelected={this.onCreateMenuItemSelected}
                                     />
-                                </Animated.View>
-                                <View
+                                {/* </Animated.View> */}
+                                {/* <View
                                     style={[styles.appContent, styles.flex1, styles.flexColumn]}
                                 >
                                     <HeaderView
@@ -326,12 +330,12 @@ class HomePage extends React.Component {
                                     />
                                     {this.props.currentURL === ROUTES.NEW_GROUP && <NewGroupPage />}
                                     <Main />
-                                </View>
-                            </Route>
+                                </View> */}
+                            {/* </Route> */}
                         </View>
                     )}
                 </SafeAreaInsetsContext.Consumer>
-            </SafeAreaProvider>
+            </>
         );
     }
 }

@@ -11,7 +11,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import lodashHas from 'lodash.has';
 import compose from '../libs/compose';
-import {Redirect, withRouter} from '../libs/Router';
+import {Redirect} from '../libs/Router';
 import styles from '../styles/styles';
 import ExpensifyCashLogo from '../../assets/images/expensify-cash.svg';
 import CustomStatusBar from '../components/CustomStatusBar';
@@ -137,7 +137,6 @@ SetPasswordPage.propTypes = propTypes;
 SetPasswordPage.defaultProps = defaultProps;
 
 export default compose(
-    withRouter,
     withOnyx({
         credentials: {key: ONYXKEYS.CREDENTIALS},
         account: {key: ONYXKEYS.ACCOUNT},

@@ -59,7 +59,7 @@ module.exports = {
                  */
                 exclude: [
                     // eslint-disable-next-line max-len
-                    /node_modules\/(?!(react-native-webview|react-native-onyx)\/).*|\.native\.js$/,
+                    /node_modules\/(?!(react-native-webview|react-native-onyx|react-native-gesture-handler)\/).*|\.native\.js$/,
                     platformExclude,
                 ],
             },
