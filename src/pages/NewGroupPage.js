@@ -85,7 +85,7 @@ class NewGroupPage extends Component {
     getHeaderTitleAndMessage(maxParticipantsReached) {
         if (maxParticipantsReached) {
             return {
-                headerTitle: 'Maximum participants reached',
+                headerTitle: '',
                 headerMessage: 'You\'ve reached the maximum number of participants for a group chat.',
             };
         }
@@ -249,8 +249,9 @@ class NewGroupPage extends Component {
                         }}
                         headerTitle={headerTitle}
                         headerMessage={headerMessage}
+                        isOnRightDockedModal
                     />
-                    <View style={[styles.p5, styles.pt2]}>
+                    <View style={[styles.ph5, styles.pb5]}>
                         <Pressable
                             onPress={this.createGroup}
                             style={({hovered}) => [

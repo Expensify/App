@@ -50,6 +50,9 @@ const propTypes = {
 
     // Whether any section headers should be visible
     hideSectionHeaders: PropTypes.bool,
+
+    // A flag to indicate wheter the option is on the RightDockedModal or not
+    isOnRightDockedModal: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -60,6 +63,7 @@ const defaultProps = {
     headerMessage: '',
     canSelectMultipleOptions: false,
     hideSectionHeaders: false,
+    isOnRightDockedModal: false,
 };
 
 class OptionsSelector extends Component {
@@ -94,6 +98,10 @@ class OptionsSelector extends Component {
      * @param {SyntheticEvent} e
      */
     handleKeyPress(e) {
+        if (this.props.isOnRightDockedModal) {
+            return;
+        }
+
         // We are mapping over all the options to combine them into a single array and also saving the section index
         // index within that section so we can navigate
         const allOptions = _.reduce(this.props.sections, (options, section, sectionIndex) => (
@@ -154,7 +162,7 @@ class OptionsSelector extends Component {
     render() {
         return (
             <View style={[styles.flex1]}>
-                <View style={[styles.ph5, styles.pt3, styles.pb2]}>
+                <View style={[styles.ph5, styles.pv3]}>
                     <TextInputWithFocusStyles
                         styleFocusIn={[styles.textInputReversedFocus]}
                         ref={el => this.textInput = el}
@@ -176,6 +184,7 @@ class OptionsSelector extends Component {
                     canSelectMultipleOptions={this.props.canSelectMultipleOptions}
                     hideSectionHeaders={this.props.hideSectionHeaders}
                     headerMessage={this.props.headerMessage}
+                    isOnRightDockedModal={this.props.isOnRightDockedModal}
                 />
             </View>
         );

@@ -92,6 +92,10 @@ const styles = {
         color: themeColors.textMutedReversed,
     },
 
+    colorMuted: {
+        color: themeColors.textSupporting,
+    },
+
     button: {
         backgroundColor: themeColors.buttonDefaultBG,
         borderRadius: variables.componentBorderRadius,
@@ -991,11 +995,13 @@ const styles = {
     selectCircle: {
         width: variables.componentSizeSmall,
         height: variables.componentSizeSmall,
-        borderColor: themeColors.icon,
+        borderColor: themeColors.border,
         borderWidth: 1,
         borderRadius: variables.componentSizeSmall / 2,
         justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor: themeColors.componentBG,
+        marginLeft: 8,
     },
 };
 

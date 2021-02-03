@@ -38,6 +38,9 @@ const propTypes = {
     // Whether to show headers above each section or not
     hideSectionHeaders: PropTypes.bool,
 
+    // A flag to indicate wheter the option is on the RightDockedModal or not
+    isOnRightDockedModal: PropTypes.bool,
+
     // Callback to fire when a row is selected
     onSelectRow: PropTypes.func,
 
@@ -61,6 +64,7 @@ const defaultProps = {
     selectedOptions: [],
     canSelectMultipleOptions: false,
     hideSectionHeaders: false,
+    isOnRightDockedModal: false,
     onSelectRow: () => {},
     headerMessage: '',
     headerTitle: '',
@@ -74,6 +78,7 @@ const OptionsList = ({
     selectedOptions,
     canSelectMultipleOptions,
     hideSectionHeaders,
+    isOnRightDockedModal,
     onSelectRow,
     headerMessage,
     headerTitle,
@@ -81,14 +86,14 @@ const OptionsList = ({
 }) => (
     <View style={[styles.flex1]}>
         {headerMessage ? (
-            <View style={[styles.p3]}>
+            <View style={[styles.ph5, styles.pb5]}>
                 {headerTitle ? (
                     <Text style={[styles.h4, styles.mb1]}>
                         {headerTitle}
                     </Text>
                 ) : null}
 
-                <Text style={[styles.textLabel]}>
+                <Text style={[styles.textLabel, styles.colorMuted]}>
                     {headerMessage}
                 </Text>
             </View>
@@ -107,10 +112,11 @@ const OptionsList = ({
             renderItem={({item, index, section}) => (
                 <OptionRow
                     option={item}
-                    optionIsFocused={focusedIndex === (index + section.indexOffset)}
+                    optionIsFocused={!isOnRightDockedModal && focusedIndex === (index + section.indexOffset)}
                     onSelectRow={onSelectRow}
                     isSelected={Boolean(_.find(selectedOptions, option => option.login === item.login))}
                     showSelectedState={canSelectMultipleOptions}
+                    isOnRightDockedModal={isOnRightDockedModal}
                 />
             )}
             renderSectionHeader={({section: {title, shouldShow}}) => {
