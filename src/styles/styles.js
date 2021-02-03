@@ -995,6 +995,10 @@ const styles = {
         borderWidth: 1,
         borderRadius: variables.componentSizeSmall / 2,
     },
+
+    flipUpsideDown: {
+        transform: [{rotate: '180deg'}],
+    },
 };
 
 const baseCodeTagStyles = {
