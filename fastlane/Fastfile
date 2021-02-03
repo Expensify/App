@@ -88,6 +88,7 @@ platform :ios do
     )
 
     upload_to_testflight(
+        api_key_path: "./ios/ios-fastlane-json-key.json"
         distribute_external: true,
         reject_build_waiting_for_review: true,
         changelog: "Thank you for beta testing Expensify.cash, this version includes bug fixes and improvements.",
