@@ -49,7 +49,6 @@ jobs:
             - name: Run Fastlane
               run: bundle exec fastlane ios beta
               env:
-                  FASTLANE_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
                   APPLE_CONTACT_EMAIL: ${{ secrets.APPLE_CONTACT_EMAIL }}
                   APPLE_CONTACT_PHONE: ${{ secrets.APPLE_CONTACT_PHONE }}
                   APPLE_DEMO_EMAIL: ${{ secrets.APPLE_DEMO_EMAIL }}
