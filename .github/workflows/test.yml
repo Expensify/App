@@ -16,7 +16,7 @@ jobs:
             - run: npm install
 
             - name: Generate version
-              uses: Expensify/Expensify.cash/.github/actions/bumpVersion@4f086804f613ab6ef578b25b37a8ad6f175fa30e
+              uses: Expensify/Expensify.cash/.github/actions/bumpVersion@77f88b4a059392a972d6a7156f54909eca4d2f60
               with:
                   GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
