@@ -589,7 +589,8 @@ function addAction(reportID, text, file) {
     // sequenceNumber if it is created before this one. We use a combination of current epoch timestamp and a random
     // number so that the probability of someone else having the same optimisticReportActionID is extremely low even
     // if they left the comment at the same moment as another user or the same report. The random number is 3 digits
-    // because if we go any higher JS will convert them to 0's in optimisticReportActionID.
+    // because if we go any higher JS will convert the digits after the 16th position to 0's in
+    // optimisticReportActionID.
     const randomNumber = Math.floor((Math.random() * (999 - 100)) + 100);
     const optimisticReportActionID = parseInt(`${Date.now()}${randomNumber}`, 10);
 
