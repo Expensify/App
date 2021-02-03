@@ -5,76 +5,98 @@ module.exports =
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 2407:
-/***/ ((__unused_webpack_module, __unused_webpack_exports, __nccwpck_require__) => {
+/***/ 674:
+/***/ ((__unused_webpack_module, __webpack_exports__, __nccwpck_require__) => {
 
-const {exec} = __nccwpck_require__(3129);
-const fs = __nccwpck_require__(5747);
-const core = __nccwpck_require__(2186);
-const github = __nccwpck_require__(5438);
+"use strict";
+// ESM COMPAT FLAG
+__nccwpck_require__.r(__webpack_exports__);
+
+// CONCATENATED MODULE: external "child_process"
+const external_child_process_namespaceObject = require("child_process");;
+// EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
+var core = __nccwpck_require__(2186);
+var core_default = /*#__PURE__*/__nccwpck_require__.n(core);
+
+// EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
+var github = __nccwpck_require__(5438);
+var github_default = /*#__PURE__*/__nccwpck_require__.n(github);
+
+// CONCATENATED MODULE: ./.github/actions/bumpVersion/bumpVersion.js
+
+
+
 
 // Use Github Actions' default environment variables to get repo information
 // https://docs.github.com/en/free-pro-team@latest/actions/reference/environment-variables#default-environment-variables
 const [repoOwner, repoName] = process.env.GITHUB_REPOSITORY.split('/');
+console.log(repoOwner, repoName);
+(0,external_child_process_namespaceObject.exec)('echo "Hello world!"');
 
-const MAX_RETRIES = 10;
-let errCount = 0;
-let shouldRetry;
+const octokit = github_default().getOctokit(core_default().getInput('GITHUB_TOKEN', {required: true}));
+const tags = octokit.repos.listTags({
+    owner: repoOwner,
+    repo: repoName,
+}).then((result) => console.log('Tags:', result));
 
-do {
-    shouldRetry = false;
-    exec('npm version prerelease -m "Update version to %s"', (err, stdout, stderr) => {
-        console.log(stdout);
-        if (err) {
-            console.log(stderr);
-
-            // It's possible that two PRs were merged in rapid succession.
-            // In this case, both PRs will attempt to update to the same npm version.
-            // This will cause the deploy to fail with an exit code 128, saying the git tag for that version already exists.
-            if (errCount < MAX_RETRIES) {
-                console.log(
-                    'Err: npm version conflict, attempting to automatically resolve',
-                    `retryCount: ${++errCount}`,
-                );
-                shouldRetry = true;
-                const {version} = JSON.parse(fs.readFileSync('./package.json'));
-                const currentPatchVersion = `v${version.slice(0, -4)}`
-                console.log('Current patch version:', currentPatchVersion);
-
-                // Get the highest build version git tag from the repo
-                console.log('Fetching tags from github...');
-                const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
-                octokit.repos.listTags({
-                    owner: repoOwner,
-                    repo: repoName,
-                })
-                    .then(response => {
-                        const tags = response.data.map(tag => tag.name);
-                        console.log('Tags: ', tags);
-                        const highestBuildNumber = Math.max(
-                            ...(tags
-                                .filter(tag => tag.startsWith(currentPatchVersion))
-                                .map(tag => tag.split('-')[1])
-                            )
-                        );
-                        console.log('Highest build number from current patch version:', highestBuildNumber);
-
-                        const newBuildNumber = `${currentPatchVersion}-${highestBuildNumber + 1}`;
-                        console.log(`Setting npm version for this PR to ${newBuildNumber}`);
-                        exec(`npm version ${newBuildNumber} -m "Update version to ${newBuildNumber}"`, (err, stdout, stderr) => {
-                            console.log(stdout);
-                            if (err) {
-                                console.log(stderr);
-                            }
-                        });
-                    })
-                    .catch(exception => core.setFailed(exception))
-            } else {
-                core.setFailed(err);
-            }
-        }
-    });
-} while (shouldRetry);
+// const MAX_RETRIES = 10;
+// let errCount = 0;
+// let shouldRetry;
+//
+// do {
+//     shouldRetry = false;
+//     exec('npm version prerelease -m "Update version to %s"', (err, stdout, stderr) => {
+//         console.log(stdout);
+//         if (err) {
+//             console.log(stderr);
+//
+//             // It's possible that two PRs were merged in rapid succession.
+//             // In this case, both PRs will attempt to update to the same npm version.
+//             // This will cause the deploy to fail with an exit code 128, saying the git tag for that version already exists.
+//             if (errCount < MAX_RETRIES) {
+//                 console.log(
+//                     'Err: npm version conflict, attempting to automatically resolve',
+//                     `retryCount: ${++errCount}`,
+//                 );
+//                 shouldRetry = true;
+//                 const {version} = JSON.parse(fs.readFileSync('./package.json'));
+//                 const currentPatchVersion = `v${version.slice(0, -4)}`
+//                 console.log('Current patch version:', currentPatchVersion);
+//
+//                 // Get the highest build version git tag from the repo
+//                 console.log('Fetching tags from github...');
+//                 const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
+//                 octokit.repos.listTags({
+//                     owner: repoOwner,
+//                     repo: repoName,
+//                 })
+//                     .then(response => {
+//                         const tags = response.data.map(tag => tag.name);
+//                         console.log('Tags: ', tags);
+//                         const highestBuildNumber = Math.max(
+//                             ...(tags
+//                                 .filter(tag => tag.startsWith(currentPatchVersion))
+//                                 .map(tag => tag.split('-')[1])
+//                             )
+//                         );
+//                         console.log('Highest build number from current patch version:', highestBuildNumber);
+//
+//                         const newBuildNumber = `${currentPatchVersion}-${highestBuildNumber + 1}`;
+//                         console.log(`Setting npm version for this PR to ${newBuildNumber}`);
+//                         exec(`npm version ${newBuildNumber} -m "Update version to ${newBuildNumber}"`, (err, stdout, stderr) => {
+//                             console.log(stdout);
+//                             if (err) {
+//                                 console.log(stderr);
+//                             }
+//                         });
+//                     })
+//                     .catch(exception => core.setFailed(exception))
+//             } else {
+//                 core.setFailed(err);
+//             }
+//         }
+//     });
+// } while (shouldRetry);
 
 
 /***/ }),
@@ -9124,14 +9146,6 @@ module.exports = require("buffer");;
 
 /***/ }),
 
-/***/ 3129:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("child_process");;
-
-/***/ }),
-
 /***/ 8614:
 /***/ ((module) => {
 
@@ -9268,12 +9282,52 @@ module.exports = require("zlib");;
 /******/ 	}
 /******/ 	
 /************************************************************************/
+/******/ 	/* webpack/runtime/compat get default export */
+/******/ 	(() => {
+/******/ 		// getDefaultExport function for compatibility with non-harmony modules
+/******/ 		__nccwpck_require__.n = (module) => {
+/******/ 			var getter = module && module.__esModule ?
+/******/ 				() => module['default'] :
+/******/ 				() => module;
+/******/ 			__nccwpck_require__.d(getter, { a: getter });
+/******/ 			return getter;
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__nccwpck_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__nccwpck_require__.o = (obj, prop) => Object.prototype.hasOwnProperty.call(obj, prop)
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__nccwpck_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	__nccwpck_require__.ab = __dirname + "/";/************************************************************************/
 /******/ 	// module exports must be returned from runtime so entry inlining is disabled
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	return __nccwpck_require__(2407);
+/******/ 	return __nccwpck_require__(674);
 /******/ })()
 ;
