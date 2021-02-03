@@ -1101,10 +1101,10 @@ function getSafeAreaMargins(insets) {
  *
  * @param {Number} windowWidth
  * @param {Boolean} isSidebarShown
+ * @param {Boolean} isSmallScreenWidth
  * @returns {Object}
  */
-function getNavigationMenuStyle(windowWidth, isSidebarShown) {
-    const isSmallScreenWidth = windowWidth <= variables.mobileResponsiveWidthBreakpoint;
+function getNavigationMenuStyle(windowWidth, isSidebarShown, isSmallScreenWidth) {
     return isSmallScreenWidth
         ? {
             ...styles.navigationMenuOpenAbsolute,

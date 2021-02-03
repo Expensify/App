@@ -1,5 +1,4 @@
 import React from 'react';
-import variables from '../../../styles/variables';
 import LoginFormNarrow from './LoginFormNarrow';
 import LoginFormWide from './LoginFormWide';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
@@ -8,8 +7,8 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-const LoginForm = ({windowDimensions}) => (
-    windowDimensions.width > variables.mobileResponsiveWidthBreakpoint
+const LoginForm = ({isSmallScreenWidth}) => (
+    !isSmallScreenWidth
         ? <LoginFormWide />
         : <LoginFormNarrow />
 );
