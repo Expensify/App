@@ -23,13 +23,14 @@ const propTypes = {
     onBlur: PropTypes.func,
 
     // A function to call when the input has gotten focus
-    onFocus: PropTypes.func.isRequired,
+    onFocus: PropTypes.func,
 };
 const defaultProps = {
     styleFocusIn: null,
     styleFocusOut: null,
     style: null,
     onBlur: () => {},
+    onFocus: () => {},
 };
 
 class TextInputWithFocusStyles extends React.Component {

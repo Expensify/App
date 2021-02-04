@@ -8,6 +8,7 @@ import Mail from '../../../assets/images/mail.svg';
 import Paperclip from '../../../assets/images/paperclip.svg';
 import Pencil from '../../../assets/images/pencil.svg';
 import Pin from '../../../assets/images/pin.svg';
+import PinCircle from '../../../assets/images/pin-circle.svg';
 import Plus from '../../../assets/images/plus.svg';
 import Send from '../../../assets/images/send.svg';
 import Trashcan from '../../../assets/images/trashcan.svg';
@@ -24,6 +25,7 @@ export {
     Paperclip,
     Pencil,
     Pin,
+    PinCircle,
     Plus,
     Send,
     Trashcan,

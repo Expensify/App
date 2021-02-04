@@ -9,6 +9,10 @@ export default {
         margin: 0,
     },
 
+    m2: {
+        margin: 8,
+    },
+
     mh1: {
         marginRight: 4,
         marginLeft: 4,
@@ -125,6 +129,22 @@ export default {
 
     p5: {
         padding: 20,
+    },
+
+    pv1: {
+        paddingVertical: 4,
+    },
+
+    pv3: {
+        paddingVertical: 12,
+    },
+
+    ph2: {
+        paddingHorizontal: 8,
+    },
+
+    ph5: {
+        paddingHorizontal: 20,
     },
 
     pr1: {
