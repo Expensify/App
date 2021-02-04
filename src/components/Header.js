@@ -10,7 +10,6 @@ const propTypes = {
 
     // Fontsize
     textSize: PropTypes.oneOf(['default', 'large']),
-
 };
 
 const defaultProps = {

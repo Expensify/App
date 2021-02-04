@@ -13,7 +13,7 @@ import styles, {getSafeAreaPadding, getNavigationMenuStyle} from '../../styles/s
 import variables from '../../styles/variables';
 import HeaderView from './HeaderView';
 import Sidebar from './sidebar/SidebarView';
-import SettingsPage from '../SettingsPage';
+import NewGroupPage from '../NewGroupPage';
 import Main from './MainView';
 import {
     hide as hideSidebar,
@@ -39,14 +39,17 @@ import {fetchCountryCodeByRequestIP} from '../../libs/actions/GeoLocation';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import * as ChatSwitcher from '../../libs/actions/ChatSwitcher';
 import {redirect} from '../../libs/actions/App';
+import SettingsModal from '../../components/SettingsModal';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import compose from '../../libs/compose';
+import {getBetas} from '../../libs/actions/User';
 
 const propTypes = {
     isSidebarShown: PropTypes.bool,
     isChatSwitcherActive: PropTypes.bool,
     currentURL: PropTypes.string,
     network: PropTypes.shape({isOffline: PropTypes.bool}),
+    currentlyViewedReportID: PropTypes.string,
     ...windowDimensionsPropTypes,
 };
 const defaultProps = {
@@ -54,6 +57,7 @@ const defaultProps = {
     isChatSwitcherActive: false,
     currentURL: '',
     network: {isOffline: true},
+    currentlyViewedReportID: '',
 };
 
 class HomePage extends React.Component {
@@ -63,7 +67,6 @@ class HomePage extends React.Component {
 
         super(props);
 
-        const isSmallScreenWidth = props.windowDimensions.width <= variables.mobileResponsiveWidthBreakpoint;
         this.state = {
             isCreateMenuActive: false,
         };
@@ -76,8 +79,8 @@ class HomePage extends React.Component {
         this.recordTimerAndToggleNavigationMenu = this.recordTimerAndToggleNavigationMenu.bind(this);
         this.navigateToSettings = this.navigateToSettings.bind(this);
 
-        const windowBarSize = isSmallScreenWidth
-            ? -props.windowDimensions.width
+        const windowBarSize = props.isSmallScreenWidth
+            ? -props.windowWidth
             : -variables.sideBarWidth;
         this.animationTranslateX = new Animated.Value(
             !props.isSidebarShown ? windowBarSize : 0,
@@ -96,12 +99,13 @@ class HomePage extends React.Component {
         // Fetch some data we need on initialization
         PersonalDetails.fetch();
         PersonalDetails.fetchTimezone();
+        getBetas();
         fetchAllReports(true, false, true);
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
 
-        // Refresh the personal details and timezone every 30 minutes because there is no
-        // pusher event that sends updated personal details data yet
+        // Refresh the personal details, timezone and betas every 30 minutes
+        // There is no pusher event that sends updated personal details data yet
         // See https://github.com/Expensify/ReactNativeChat/issues/468
         this.interval = setInterval(() => {
             if (this.props.network.isOffline) {
@@ -109,11 +113,11 @@ class HomePage extends React.Component {
             }
             PersonalDetails.fetch();
             PersonalDetails.fetchTimezone();
+            getBetas();
         }, 1000 * 60 * 30);
 
         // Set up the navigationMenu correctly once on init
-        const isSmallScreenWidth = this.props.windowDimensions.width <= variables.mobileResponsiveWidthBreakpoint;
-        if (!isSmallScreenWidth) {
+        if (!this.props.isSmallScreenWidth) {
             showSidebar();
         }
 
@@ -126,15 +130,9 @@ class HomePage extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.windowDimensions.width !== this.props.windowDimensions.width) {
-            const wasPreviouslySmallScreenWidth = prevProps.windowDimensions.width
-                <= variables.mobileResponsiveWidthBreakpoint;
-            const isSmallScreenWidth = this.props.windowDimensions.width <= variables.mobileResponsiveWidthBreakpoint;
-
-            // Always show the sidebar if we are moving from small to large screens
-            if (wasPreviouslySmallScreenWidth && !isSmallScreenWidth) {
-                showSidebar();
-            }
+        // Always show the sidebar if we are moving from small to large screens
+        if (prevProps.isSmallScreenWidth && !this.props.isSmallScreenWidth) {
+            showSidebar();
         }
 
         if (!prevProps.isChatSwitcherActive && this.props.isChatSwitcherActive) {
@@ -175,7 +173,6 @@ class HomePage extends React.Component {
      */
     navigateToSettings() {
         redirect(ROUTES.SETTINGS);
-        this.toggleNavigationMenu();
     }
 
     /**
@@ -201,8 +198,7 @@ class HomePage extends React.Component {
      * Only changes navigationMenu state on small screens (e.g. Mobile and mWeb)
      */
     dismissNavigationMenu() {
-        const isSmallScreenWidth = this.props.windowDimensions.width <= variables.mobileResponsiveWidthBreakpoint;
-        if (!isSmallScreenWidth || !this.props.isSidebarShown) {
+        if (!this.props.isSmallScreenWidth || !this.props.isSidebarShown) {
             return;
         }
 
@@ -228,10 +224,9 @@ class HomePage extends React.Component {
      * @param {Boolean} navigationMenuIsShown
      */
     animateNavigationMenu(navigationMenuIsShown) {
-        const isSmallScreenWidth = this.props.windowDimensions.width <= variables.mobileResponsiveWidthBreakpoint;
-        const windowSideBarSize = isSmallScreenWidth
+        const windowSideBarSize = this.props.isSmallScreenWidth
             ? -variables.sideBarWidth
-            : -this.props.windowDimension.width;
+            : -this.props.windowWidth;
         const animationFinalValue = navigationMenuIsShown ? windowSideBarSize : 0;
 
         setSideBarIsAnimating(true);
@@ -256,9 +251,7 @@ class HomePage extends React.Component {
      * Only changes navigationMenu state on small screens (e.g. Mobile and mWeb)
      */
     toggleNavigationMenu() {
-        const isSmallScreenWidth = this.props.windowDimensions.width <= variables.mobileResponsiveWidthBreakpoint;
-
-        if (!isSmallScreenWidth) {
+        if (!this.props.isSmallScreenWidth) {
             return;
         }
 
@@ -276,7 +269,6 @@ class HomePage extends React.Component {
     }
 
     render() {
-        const isSmallScreenWidth = this.props.windowDimensions.width <= variables.mobileResponsiveWidthBreakpoint;
         return (
             <SafeAreaProvider>
                 <CustomStatusBar />
@@ -289,11 +281,12 @@ class HomePage extends React.Component {
                                 getSafeAreaPadding(insets),
                             ]}
                         >
-                            <Route path={[ROUTES.REPORT, ROUTES.HOME, ROUTES.SETTINGS]}>
+                            <Route path={[ROUTES.REPORT, ROUTES.HOME, ROUTES.SETTINGS, ROUTES.NEW_GROUP]}>
                                 <Animated.View style={[
                                     getNavigationMenuStyle(
-                                        this.props.windowDimensions.width,
+                                        this.props.windowWidth,
                                         this.props.isSidebarShown,
+                                        this.props.isSmallScreenWidth,
                                     ),
                                     {
                                         transform: [{translateX: this.animationTranslateX}],
@@ -312,10 +305,14 @@ class HomePage extends React.Component {
                                     style={[styles.appContent, styles.flex1, styles.flexColumn]}
                                 >
                                     <HeaderView
-                                        shouldShowNavigationMenuButton={isSmallScreenWidth}
+                                        shouldShowNavigationMenuButton={this.props.isSmallScreenWidth}
                                         onNavigationMenuButtonClicked={this.toggleNavigationMenu}
+                                        reportID={this.props.currentlyViewedReportID}
                                     />
-                                    {this.props.currentURL === '/settings' && <SettingsPage />}
+                                    <SettingsModal
+                                        isVisible={this.props.currentURL === ROUTES.SETTINGS}
+                                    />
+                                    {this.props.currentURL === ROUTES.NEW_GROUP && <NewGroupPage />}
                                     <Main />
                                 </View>
                             </Route>
@@ -345,6 +342,9 @@ export default compose(
             },
             network: {
                 key: ONYXKEYS.NETWORK,
+            },
+            currentlyViewedReportID: {
+                key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
             },
         },
     ),

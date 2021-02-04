@@ -8,13 +8,10 @@ import {
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
-import Icon from '../../../components/Icon';
-import {Close} from '../../../components/Icon/Expensicons';
 import TextInputWithFocusStyles from '../../../components/TextInputWithFocusStyles';
 import {getDisplayName} from '../../../libs/actions/PersonalDetails';
 import PillWithCancelButton from '../../../components/PillWithCancelButton';
-import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
-import variables from '../../../styles/variables';
+import optionPropTypes from './optionPropTypes';
 
 const propTypes = {
     // A ref to forward to the text input
@@ -25,9 +22,6 @@ const propTypes = {
 
     // A function to call when the text has changed in the input
     onChangeText: PropTypes.func.isRequired,
-
-    // A function to call when the clear button is clicked
-    onClearButtonClick: PropTypes.func.isRequired,
 
     // A function to call when the input has gotten focus
     onFocus: PropTypes.func.isRequired,
@@ -42,7 +36,7 @@ const propTypes = {
     onConfirmUsers: PropTypes.func.isRequired,
 
     // Users selected to begin a group report DM
-    usersToStartGroupReportWith: PropTypes.arrayOf(ChatSwitcherOptionPropTypes),
+    usersToStartGroupReportWith: PropTypes.arrayOf(optionPropTypes),
 };
 
 const defaultProps = {
@@ -130,14 +124,6 @@ const ChatSwitcherSearchForm = props => (
                     placeholderTextColor={themeColors.textSupporting}
                 />
             )}
-
-        <TouchableOpacity
-            style={[styles.chatSwitcherInputClear, styles.ml2]}
-            onPress={props.onClearButtonClick}
-            underlayColor={themeColors.componentBG}
-        >
-            <Icon src={Close} width={variables.iconSizeLarge} height={variables.iconSizeLarge} />
-        </TouchableOpacity>
     </View>
 );
 

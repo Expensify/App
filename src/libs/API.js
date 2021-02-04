@@ -122,19 +122,11 @@ function handleExpiredAuthToken(originalCommand, originalParameters, originalTyp
     isAuthenticating = true;
 
     // eslint-disable-next-line no-use-before-define
-    return reauthenticate()
+    return reauthenticate(originalCommand)
         .then(() => {
             // Now that the API is authenticated, make the original request again with the new authToken
             const params = addDefaultValuesToParameters(originalCommand, originalParameters);
             return Network.post(originalCommand, params, originalType);
-        })
-
-        .catch((error) => {
-            // If authentication fails, then the network can be unpaused and app is redirected
-            // so the sign on screen.
-            Network.unpauseRequestQueue();
-            isAuthenticating = false;
-            redirectToSignIn(error.message);
         });
 }
 
@@ -147,7 +139,7 @@ function handleExpiredAuthToken(originalCommand, originalParameters, originalTyp
  *
  * @returns {Promise}
  */
-function request(command, parameters, type = 'post') {
+function request(command, parameters = {}, type = 'post') {
     return new Promise((resolve, reject) => {
         Network.post(command, parameters, type)
             .then((response) => {
@@ -256,9 +248,10 @@ function Authenticate(parameters) {
 /**
  * Reauthenticate using the stored credentials and redirect to the sign in page if unable to do so.
  *
+ * @param {String} [command] command name for loggin purposes
  * @returns {Promise}
  */
-function reauthenticate() {
+function reauthenticate(command = '') {
     return Authenticate({
         useExpensifyLogin: false,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
@@ -290,6 +283,11 @@ function reauthenticate() {
             Network.unpauseRequestQueue();
             isAuthenticating = false;
             redirectToSignIn(error.message);
+
+            console.debug('Redirecting to Sign In because we failed to reauthenticate', {
+                command,
+                error: error.message,
+            });
         });
 }
 
@@ -381,7 +379,7 @@ function GetAccountStatus(parameters) {
  */
 function GetRequestCountryCode() {
     const commandName = 'GetRequestCountryCode';
-    return request(commandName, {});
+    return request(commandName);
 }
 
 /**
@@ -441,12 +439,13 @@ function Push_Authenticate(parameters) {
  * @param {Object} parameters
  * @param {String} parameters.reportComment
  * @param {Number} parameters.reportID
+ * @param {String} parameters.clientID
  * @param {Object} [parameters.file]
  * @returns {Promise}
  */
 function Report_AddComment(parameters) {
     const commandName = 'Report_AddComment';
-    requireParameters(['reportComment', 'reportID'],
+    requireParameters(['reportComment', 'reportID', 'clientID'],
         parameters, commandName);
     return request(commandName, parameters);
 }
@@ -523,6 +522,13 @@ function SetPassword(parameters) {
     return request(commandName, parameters);
 }
 
+/**
+ * @returns {Promise}
+ */
+function User_GetBetas() {
+    return request('User_GetBetas');
+}
+
 export {
     getAuthToken,
     Authenticate,
@@ -544,5 +550,6 @@ export {
     SetGithubUsername,
     SetPassword,
     User_SignUp,
+    User_GetBetas,
     reauthenticate,
 };
