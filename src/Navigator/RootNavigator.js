@@ -222,6 +222,7 @@ class RootNavigator extends Component {
                                                         }
                                                         : {
                                                             width: variables.sideBarWidth,
+                                                            height: '100%',
                                                         },
                                                 ]}
                                             >
