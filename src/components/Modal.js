@@ -58,7 +58,11 @@ const Modal = (props) => {
         shouldAddTopSafeAreaPadding,
         shouldAddBottomSafeAreaPadding,
         hideBackdrop,
-    } = getModalStyles(props.type, props.windowDimensions);
+    } = getModalStyles(props.type, {
+        windowWidth: props.windowWidth,
+        windowHeight: props.windowHeight,
+        isSmallScreenWidth: props.isSmallScreenWidth,
+    });
     return (
         <ReactNativeModal
             onBackdropPress={props.onClose}
