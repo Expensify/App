@@ -117,6 +117,14 @@ export default {
         padding: 20,
     },
 
+    pv1: {
+        paddingVertical: 4,
+    },
+
+    ph2: {
+        paddingHorizontal: 8,
+    },
+
     pr1: {
         paddingRight: 4,
     },
