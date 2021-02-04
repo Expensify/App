@@ -96,6 +96,10 @@ const styles = {
         color: themeColors.textSupporting,
     },
 
+    colorHeading: {
+        color: themeColors.heading,
+    },
+
     button: {
         backgroundColor: themeColors.buttonDefaultBG,
         borderRadius: variables.componentBorderRadius,

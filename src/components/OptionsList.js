@@ -123,7 +123,7 @@ const OptionsList = ({
                 if (title && shouldShow && !hideSectionHeaders) {
                     return (
                         <View>
-                            <Text style={[styles.p5, styles.textMicroBold]}>
+                            <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
                                 {title}
                             </Text>
                         </View>
