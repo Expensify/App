@@ -4,9 +4,5 @@
 <dict>
 	<key>aps-environment</key>
 	<string>development</string>
-	<key>com.apple.security.application-groups</key>
-	<array>
-	    <string>group.com.chat.expensify.chat</string>
-	</array>
 </dict>
 </plist>
