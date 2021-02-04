@@ -120,7 +120,7 @@ export default (type, windowDimensions) => {
                 overflow: 'hidden',
             };
 
-            swipeDirection = 'right';
+            swipeDirection = undefined;
             animationIn = 'slideInRight';
             animationOut = 'slideOutRight';
             shouldAddBottomSafeAreaPadding = true;

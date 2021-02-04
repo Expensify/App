@@ -108,6 +108,7 @@ const OptionsList = ({
             keyExtractor={option => option.keyForList}
             initialNumToRender={500}
             onScrollToIndexFailed={error => console.debug(error)}
+            stickySectionHeadersEnabled={false}
             renderItem={({item, index, section}) => (
                 <OptionRow
                     option={item}
