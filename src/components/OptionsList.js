@@ -3,7 +3,6 @@ import React, {forwardRef} from 'react';
 import {View, SectionList, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
-import KeyboardSpacer from './KeyboardSpacer';
 import OptionRow from '../pages/home/sidebar/OptionRow';
 import optionPropTypes from './optionPropTypes';
 
@@ -134,7 +133,6 @@ const OptionsList = ({
             }}
             extraData={focusedIndex}
         />
-        <KeyboardSpacer />
     </View>
 );
 
