@@ -76,8 +76,8 @@ const Modal = (props) => {
             backdropOpacity={hideBackdrop ? 0 : 0.5}
             backdropTransitionOutTiming={0}
             style={modalStyle}
-            deviceHeight={props.windowDimensions.height}
-            deviceWidth={props.windowDimensions.width}
+            deviceHeight={props.windowHeight}
+            deviceWidth={props.windowWidth}
             animationIn={animationIn}
             animationOut={animationOut}
         >
