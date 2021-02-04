@@ -166,7 +166,6 @@ class HomePage extends React.Component {
      */
     onCreateMenuItemSelected() {
         this.toggleCreateMenu();
-        ChatSwitcher.show();
     }
 
     /**
