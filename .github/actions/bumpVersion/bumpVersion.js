@@ -33,7 +33,7 @@ do {
 
                 // Get the highest build version git tag from the repo
                 console.log('Fetching tags from github...');
-                const octokit = github.getOctokit(core.getInput('githubToken'));
+                const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
                 octokit.repos.listTags({
                     owner: repoOwner,
                     repo: repoName,

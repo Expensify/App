@@ -139,7 +139,7 @@ function handleExpiredAuthToken(originalCommand, originalParameters, originalTyp
  *
  * @returns {Promise}
  */
-function request(command, parameters, type = 'post') {
+function request(command, parameters = {}, type = 'post') {
     return new Promise((resolve, reject) => {
         Network.post(command, parameters, type)
             .then((response) => {
@@ -379,7 +379,7 @@ function GetAccountStatus(parameters) {
  */
 function GetRequestCountryCode() {
     const commandName = 'GetRequestCountryCode';
-    return request(commandName, {});
+    return request(commandName);
 }
 
 /**
@@ -522,6 +522,13 @@ function SetPassword(parameters) {
     return request(commandName, parameters);
 }
 
+/**
+ * @returns {Promise}
+ */
+function User_GetBetas() {
+    return request('User_GetBetas');
+}
+
 export {
     getAuthToken,
     Authenticate,
@@ -543,5 +550,6 @@ export {
     SetGithubUsername,
     SetPassword,
     User_SignUp,
+    User_GetBetas,
     reauthenticate,
 };

@@ -1,5 +1,4 @@
 import React from 'react';
-import variables from '../../../styles/variables';
 import SignInPageLayoutNarrow from './SignInPageLayoutNarrow';
 import SignInPageLayoutWide from './SignInPageLayoutWide';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
@@ -9,7 +8,7 @@ const propTypes = {
 };
 
 const SignInPageLayout = props => (
-    props.windowDimensions.width > variables.mobileResponsiveWidthBreakpoint
+    !props.isSmallScreenWidth
         // eslint-disable-next-line react/jsx-props-no-spreading
         ? <SignInPageLayoutWide {...props} />
         // eslint-disable-next-line react/jsx-props-no-spreading

@@ -41,10 +41,14 @@ jobs:
               env:
                   LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
+            - name: Decrypt App Store Connect API key
+              run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output ios-fastlane-json-key.json ios-fastlane-json-key.json.gpg
+              env:
+                LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+
             - name: Run Fastlane
               run: bundle exec fastlane ios beta
               env:
-                  FASTLANE_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
                   APPLE_CONTACT_EMAIL: ${{ secrets.APPLE_CONTACT_EMAIL }}
                   APPLE_CONTACT_PHONE: ${{ secrets.APPLE_CONTACT_PHONE }}
                   APPLE_DEMO_EMAIL: ${{ secrets.APPLE_DEMO_EMAIL }}
