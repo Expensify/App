@@ -131,6 +131,7 @@ function getSimplifiedReportObject(report) {
     const lastReportAction = !_.isEmpty(reportActionList) ? _.last(reportActionList) : null;
     const createTimestamp = lastReportAction ? lastReportAction.created : 0;
     const lastMessageTimestamp = moment.utc(createTimestamp).unix();
+    const isLastMessageAttachment = /<img([^>]+)\/>/gi.test(lodashGet(lastReportAction, ['message', 'html'], ''));
 
     // We are removing any html tags from the message html since we cannot access the text version of any comments as
     // the report only has the raw reportActionList and not the processed version returned by Report_GetHistory
@@ -153,7 +154,7 @@ function getSimplifiedReportObject(report) {
             'timestamp',
         ], 0),
         lastMessageTimestamp,
-        lastMessageText,
+        lastMessageText: isLastMessageAttachment ? '[Attachment]' : lastMessageText,
         lastActorEmail,
     };
 }
