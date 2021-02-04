@@ -33,7 +33,6 @@ const SidebarView = props => (
             <SidebarLinks
                 onLinkClick={props.onLinkClick}
                 insets={props.insets}
-                showAvatar
                 onAvatarClick={props.onAvatarClick}
             />
             <FAB
