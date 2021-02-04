@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import {SafeAreaProvider} from 'react-native-safe-area-context/src/SafeAreaContext';
-import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
+import {SafeAreaInsetsContext, SafeAreaProvider} from 'react-native-safe-area-context';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
