@@ -24,6 +24,9 @@ const propTypes = {
     // Callback method fired when the user requests to submit the modal content.
     onSubmit: PropTypes.func,
 
+    // Callback method fired when the modal is hidden
+    onModalHide: PropTypes.func,
+
     // Style of modal to display
     type: PropTypes.oneOf([
         CONST.MODAL.MODAL_TYPE.CENTERED,
@@ -38,6 +41,7 @@ const propTypes = {
 const defaultProps = {
     onSubmit: null,
     type: '',
+    onModalHide: () => {},
 };
 
 const Modal = (props) => {
@@ -64,7 +68,10 @@ const Modal = (props) => {
             onBackdropPress={props.onClose}
             onBackButtonPress={props.onClose}
             onModalShow={subscribeToKeyEvents}
-            onModalHide={unsubscribeFromKeyEvents}
+            onModalHide={() => {
+                unsubscribeFromKeyEvents();
+                props.onModalHide();
+            }}
             onSwipeComplete={props.onClose}
             swipeDirection={swipeDirection}
             isVisible={props.isVisible}
