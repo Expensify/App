@@ -47,10 +47,10 @@ class RootNavigator extends Component {
 
         this.state = {
             sidebarAnimation: new Animated.Value(
-                isCurrentRouteRoot ? 0 : -props.windowDimensions.width,
+                isCurrentRouteRoot ? 0 : 1,
             ),
             mainAnimation: new Animated.Value(
-                isCurrentRouteRoot ? props.windowDimensions.width : 0,
+                isCurrentRouteRoot ? 1 : 0,
             ),
         };
 
@@ -80,13 +80,13 @@ class RootNavigator extends Component {
     animateSidebar(didNavigateToRoot) {
         Animated.parallel([
             Animated.timing(this.state.sidebarAnimation, {
-                toValue: didNavigateToRoot ? 0 : -this.props.windowDimensions.width,
-                duration: 200,
+                toValue: didNavigateToRoot ? 0 : 1,
+                duration: 400,
                 useNativeDriver: false,
             }),
             Animated.timing(this.state.mainAnimation, {
-                toValue: didNavigateToRoot ? this.props.windowDimensions.width : 0,
-                duration: 200,
+                toValue: didNavigateToRoot ? 1 : 0,
+                duration: 400,
                 useNativeDriver: false,
             }),
         ]).start();
@@ -218,7 +218,29 @@ class RootNavigator extends Component {
                                                             position: 'absolute',
                                                             height: '100%',
                                                             width: this.props.windowDimensions.width,
-                                                            transform: [{translateX: this.state.sidebarAnimation}],
+                                                            transform: [
+                                                                {
+                                                                    translateX: this.state.sidebarAnimation.interpolate({
+                                                                        inputRange: [0, 1],
+                                                                        outputRange: [
+                                                                            0,
+                                                                            -this.props.windowDimensions.width,
+                                                                        ],
+                                                                    }),
+                                                                },
+                                                                {
+                                                                    scale: this.state.sidebarAnimation.interpolate({
+                                                                        inputRange: [0, 1],
+                                                                        outputRange: [
+                                                                            1, 0.9,
+                                                                        ],
+                                                                    }),
+                                                                },
+                                                            ],
+                                                            opacity: this.state.sidebarAnimation.interpolate({
+                                                                inputRange: [0, 1],
+                                                                outputRange: [1, 0],
+                                                            }),
                                                         }
                                                         : {
                                                             width: variables.sideBarWidth,
@@ -245,7 +267,24 @@ class RootNavigator extends Component {
                                                                 position: 'absolute',
                                                                 height: '100%',
                                                                 width: this.props.windowDimensions.width,
-                                                                transform: [{translateX: this.state.mainAnimation}],
+                                                                transform: [
+                                                                    {
+                                                                        translateX: this.state.mainAnimation.interpolate({
+                                                                            inputRange: [0, 1],
+                                                                            outputRange: [
+                                                                                0,
+                                                                                this.props.windowDimensions.width,
+                                                                            ],
+                                                                        }),
+                                                                    },
+                                                                    {
+                                                                        scale: this.state.sidebarAnimation.interpolate({
+                                                                            inputRange: [0, 1],
+                                                                            outputRange: [0.9, 1],
+                                                                        }),
+                                                                    },
+                                                                ],
+                                                                opacity: this.state.sidebarAnimation,
                                                             }
                                                             : {
                                                                 flex: 1,
