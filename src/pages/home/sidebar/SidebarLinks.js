@@ -88,7 +88,7 @@ const propTypes = {
 
 const defaultProps = {
     title: 'Chats',
-    showAvatar: true,
+    showAvatar: false,
     showCloseButton: false,
     onAvatarClick: () => console.error('`onAvatarClick` is not defined'),
     onCloseButtonClick: () => console.error('`onCloseButtonClick` is not defined'),
