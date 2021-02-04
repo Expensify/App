@@ -1000,19 +1000,6 @@ const styles = {
         alignItems: 'center',
         padding: 20,
     },
-
-    // This weird nested style is intentional and necessary
-    tooltip: {
-        arrow: {
-            color: themeColors.heading,
-        },
-        tooltip: {
-            backgroundColor: themeColors.heading,
-            color: themeColors.textReversed,
-            fontFamily: fontFamily.GTA,
-            fontSize: variables.fontSizeSmall,
-        },
-    },
 };
 
 const baseCodeTagStyles = {
