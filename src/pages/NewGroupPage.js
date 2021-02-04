@@ -13,6 +13,7 @@ import CONST from '../CONST';
 import {redirect} from '../libs/actions/App';
 import ROUTES from '../ROUTES';
 import themeColors from '../styles/themes/default';
+import KeyboardSpacer from '../components/KeyboardSpacer';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -267,6 +268,7 @@ class NewGroupPage extends Component {
                         </Pressable>
                     </View>
                 </View>
+                <KeyboardSpacer />
             </View>
         );
     }
