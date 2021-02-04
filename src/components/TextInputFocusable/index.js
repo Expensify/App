@@ -35,6 +35,9 @@ const propTypes = {
 
     // Callback to fire when a file is dropped on the text input
     onDrop: PropTypes.func,
+
+    // Whether or not this TextInput is disabled.
+    isDisabled: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -46,6 +49,7 @@ const defaultProps = {
     onDragEnter: () => {},
     onDragLeave: () => {},
     onDrop: () => {},
+    isDisabled: false,
 };
 
 /**
@@ -197,6 +201,7 @@ class TextInputFocusable extends React.Component {
                 style={propStyles}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...propsWithoutStyles}
+                disabled={this.props.isDisabled}
             />
         );
     }

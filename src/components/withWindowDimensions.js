@@ -2,16 +2,17 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {Dimensions} from 'react-native';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
+import variables from '../styles/variables';
 
 const windowDimensionsPropTypes = {
-    // via withWindowDimensions
-    windowDimensions: PropTypes.shape({
-        // Width of the window
-        width: PropTypes.number.isRequired,
+    // Width of the window
+    windowWidth: PropTypes.number.isRequired,
 
-        // Height of the window
-        height: PropTypes.number.isRequired,
-    }).isRequired,
+    // Height of the window
+    windowHeight: PropTypes.number.isRequired,
+
+    // Is the window width narrow, like on a mobile device?
+    isSmallScreenWidth: PropTypes.bool.isRequired,
 };
 
 export default function (WrappedComponent) {
@@ -21,8 +22,12 @@ export default function (WrappedComponent) {
 
             this.onDimensionChange = this.onDimensionChange.bind(this);
 
+            const initialDimensions = Dimensions.get('window');
+            const isSmallScreenWidth = initialDimensions.width <= variables.mobileResponsiveWidthBreakpoint;
             this.state = {
-                windowDimensions: Dimensions.get('window'),
+                windowHeight: initialDimensions.height,
+                windowWidth: initialDimensions.width,
+                isSmallScreenWidth,
             };
         }
 
@@ -42,7 +47,12 @@ export default function (WrappedComponent) {
          */
         onDimensionChange(newDimensions) {
             const {window} = newDimensions;
-            this.setState({windowDimensions: window});
+            const isSmallScreenWidth = window.width <= variables.mobileResponsiveWidthBreakpoint;
+            this.setState({
+                windowHeight: window.height,
+                windowWidth: window.width,
+                isSmallScreenWidth,
+            });
         }
 
         render() {
@@ -50,7 +60,9 @@ export default function (WrappedComponent) {
                 <WrappedComponent
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...this.props}
-                    windowDimensions={this.state.windowDimensions}
+                    windowHeight={this.state.windowHeight}
+                    windowWidth={this.state.windowWidth}
+                    isSmallScreenWidth={this.state.isSmallScreenWidth}
                 />
             );
         }

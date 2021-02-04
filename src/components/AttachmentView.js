@@ -1,11 +1,12 @@
 import React, {memo} from 'react';
-import {View, Image, Text} from 'react-native';
+import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import styles from '../styles/styles';
 import PDFView from './PDFView';
 import ImageView from './ImageView';
-import iconFile from '../../assets/images/icon-file.png';
+import Icon from './Icon';
+import {Paperclip} from './Icon/Expensicons';
 
 const propTypes = {
     // URL to full-sized attachment
@@ -46,11 +47,10 @@ const AttachmentView = (props) => {
         <View
             style={styles.defaultAttachmentView}
         >
-            <Image
-                source={iconFile}
-                style={styles.defaultAttachmentViewIcon}
-            />
-            <Text style={styles.textStrong}>{props.file && props.file.name}</Text>
+            <View style={styles.mr2}>
+                <Icon src={Paperclip} />
+            </View>
+            <Text style={[styles.textP, styles.textStrong]}>{props.file && props.file.name}</Text>
         </View>
     );
 };
