@@ -8,6 +8,7 @@ import CONFIG from '../../CONFIG';
 import PushNotification from '../Notification/PushNotification';
 import ROUTES from '../../ROUTES';
 import Timing from './Timing';
+import {normalizeLogin} from './User';
 
 let credentials = {};
 Onyx.connect({
@@ -120,7 +121,7 @@ function signIn(password, exitTo, twoFactorAuthCode) {
         useExpensifyLogin: true,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-        partnerUserID: credentials.login,
+        partnerUserID: normalizeLogin(credentials.login),
         partnerUserSecret: password,
         twoFactorAuthCode,
     })
