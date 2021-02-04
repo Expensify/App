@@ -26,8 +26,8 @@ class ReportView extends React.PureComponent {
         Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD);
     }
 
-    componentDidUpdate(props) {
-        if (!props.isActiveReport) {
+    componentDidUpdate(prevProps) {
+        if (!prevProps.isActiveReport) {
             Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.HOT);
         }
     }

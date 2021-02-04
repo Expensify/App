@@ -9,15 +9,14 @@ import * as Pusher from '../Pusher/pusher';
 import LocalNotification from '../Notification/LocalNotification';
 import PushNotification from '../Notification/PushNotification';
 import * as PersonalDetails from './PersonalDetails';
-import {redirect} from './App';
 import * as ActiveClientManager from '../ActiveClientManager';
 import Visibility from '../Visibility';
 import ROUTES from '../../ROUTES';
 import NetworkConnection from '../NetworkConnection';
-import {hide as hideSidebar} from './Sidebar';
 import Timing from './Timing';
 import * as API from '../API';
 import CONST from '../../CONST';
+import Navigator from '../../Navigator';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -32,10 +31,10 @@ Onyx.connect({
     },
 });
 
-let currentURL;
+let currentRoute;
 Onyx.connect({
-    key: ONYXKEYS.CURRENT_URL,
-    callback: val => currentURL = val,
+    key: ONYXKEYS.CURRENT_ROUTE,
+    callback: val => currentRoute = val,
 });
 
 let lastViewedReportID;
@@ -304,7 +303,7 @@ function updateReportWithNewAction(reportID, reportAction) {
         reportAction,
         onClick: () => {
             // Navigate to this report onClick
-            redirect(ROUTES.getReportRoute(reportID));
+            Navigator.navigate(ROUTES.REPORT, {reportID});
         },
     });
 }
@@ -346,8 +345,7 @@ function subscribeToReportCommentEvents() {
 
     // Open correct report when push notification is clicked
     PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, ({reportID}) => {
-        redirect(ROUTES.getReportRoute(reportID));
-        hideSidebar();
+        Navigator.navigate(ROUTES.REPORT, {reportID});
     });
 }
 
@@ -472,12 +470,12 @@ function fetchActions(reportID) {
 function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false, shouldRecordHomePageTiming = false) {
     fetchChatReports()
         .then((reportIDs) => {
-            if (shouldRedirectToReport && (currentURL === ROUTES.ROOT || currentURL === ROUTES.HOME)) {
+            if (shouldRedirectToReport && (currentRoute === ROUTES.ROOT || currentRoute === ROUTES.HOME)) {
                 // Redirect to either the last viewed report ID or the first report ID from our report collection
                 if (lastViewedReportID) {
-                    redirect(ROUTES.getReportRoute(lastViewedReportID));
+                    Navigator.navigate(ROUTES.REPORT, {reportID: lastViewedReportID});
                 } else {
-                    redirect(ROUTES.getReportRoute(_.first(reportIDs)));
+                    Navigator.navigate(ROUTES.REPORT, {reportID: _.first(reportIDs)});
                 }
             }
 
@@ -551,7 +549,7 @@ function fetchOrCreateChatReport(participants) {
             PersonalDetails.getFromReportParticipants([newReport]);
 
             // Redirect the logged in person to the new report
-            redirect(ROUTES.getReportRoute(reportID));
+            Navigator.navigate(ROUTES.REPORT, {reportID});
         });
 }
 

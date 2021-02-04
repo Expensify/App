@@ -11,7 +11,6 @@ import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import lodashHas from 'lodash.has';
 import compose from '../libs/compose';
-import {Redirect} from '../libs/Router';
 import styles from '../styles/styles';
 import ExpensifyCashLogo from '../../assets/images/expensify-cash.svg';
 import CustomStatusBar from '../components/CustomStatusBar';
@@ -85,7 +84,7 @@ class SetPasswordPage extends Component {
         // If someone manually navigates to this page, and there is already a password set in the credentials
         // then they can't set a new password and should be taken to the root of the application
         if (lodashHas(this.props.credentials, 'password')) {
-            return <Redirect to={ROUTES.ROOT} />;
+            return null;
         }
 
         return (

@@ -166,7 +166,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         const logins = lodashGet(report, ['participants'], []);
 
         // Report data can sometimes be incomplete. If we have no logins or reportID then we will skip this entry.
-        if (!report.reportID || _.isEmpty(logins)) {
+        if (!report || !report.reportID || _.isEmpty(logins)) {
             return;
         }
 

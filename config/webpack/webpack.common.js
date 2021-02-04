@@ -37,6 +37,7 @@ module.exports = {
                 // https://github.com/mozilla/pdf.js/wiki/Setup-pdf.js-in-a-website#examples
                 {from: 'src/vendor/pdf-js/web', to: 'pdf/web'},
                 {from: 'src/vendor/pdf-js/js', to: 'pdf/build'},
+                {from: 'apple-app-site-association.json'},
             ],
         }),
 

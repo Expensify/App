@@ -2,12 +2,11 @@ import React from 'react';
 import {Animated, View, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import styles, {getSafeAreaMargins} from '../../../styles/styles';
 import ONYXKEYS from '../../../ONYXKEYS';
 import ChatSwitcherView from './ChatSwitcherView';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
-import {redirect} from '../../../libs/actions/App';
 import ROUTES from '../../../ROUTES';
 import * as ChatSwitcher from '../../../libs/actions/ChatSwitcher';
 import Icon from '../../../components/Icon';
@@ -18,6 +17,7 @@ import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
 import OptionsList from '../../../components/OptionsList';
 import {getSidebarOptions} from '../../../libs/OptionsListUtils';
 import {getDefaultAvatar} from '../../../libs/actions/PersonalDetails';
+import Navigator from '../../../Navigator';
 
 const propTypes = {
     // Toggles the navigation menu open and closed
@@ -190,8 +190,7 @@ class SidebarLinks extends React.Component {
                                 option => option.reportID === activeReportID
                             ))}
                             onSelectRow={(option) => {
-                                // redirect(ROUTES.getReportRoute(option.reportID));
-                                Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, String(option.reportID));
+                                Navigator.navigate(ROUTES.REPORT, {reportID: option.reportID});
                                 this.props.onLinkClick(option.reportID);
                             }}
                             hideSectionHeaders

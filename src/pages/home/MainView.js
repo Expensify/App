@@ -12,6 +12,7 @@ import withWindowDimensions from '../../components/withWindowDimensions';
 import HeaderView from './HeaderView';
 import CustomStatusBar from '../../components/CustomStatusBar';
 import Navigator from '../../Navigator';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /* Onyx Props */
@@ -36,6 +37,10 @@ class MainView extends Component {
         // The styles for each of our reports. Basically, they are all hidden except for the one matching the
         // reportID in the URL
         const reportStyles = _.reduce(this.props.reports, (memo, report) => {
+            if (!report) {
+                return memo;
+            }
+
             const isActiveReport = activeReportID === report.reportID;
             const finalData = {...memo};
             let reportStyle;
@@ -52,9 +57,9 @@ class MainView extends Component {
         }, {});
 
         const reportsToDisplay = _.filter(this.props.reports, report => (
-            report.isPinned
+            report && (report.isPinned
                 || report.unreadActionCount > 0
-                || report.reportID === activeReportID
+                || report.reportID === activeReportID)
         ));
         return (
             <>
@@ -71,7 +76,7 @@ class MainView extends Component {
                             <HeaderView
                                 shouldShowNavigationMenuButton={this.props.isSmallScreenWidth}
                                 onNavigationMenuButtonClicked={() => {
-                                    Navigator.navigate('/');
+                                    Navigator.navigate(ROUTES.ROOT);
                                 }}
                                 reportID={this.props.currentlyViewedReportID}
                             />
@@ -102,9 +107,6 @@ export default compose(
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
-        },
-        currentURL: {
-            key: ONYXKEYS.CURRENT_URL,
         },
         currentlyViewedReportID: {
             key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,

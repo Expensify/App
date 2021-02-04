@@ -10,7 +10,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import ChatSwitcherList from './ChatSwitcherList';
 import ChatSwitcherSearchForm from './ChatSwitcherSearchForm';
 import {fetchOrCreateChatReport} from '../../../libs/actions/Report';
-import {redirect} from '../../../libs/actions/App';
+import Navigator from '../../../Navigator';
 import ROUTES from '../../../ROUTES';
 import styles from '../../../styles/styles';
 import * as ChatSwitcher from '../../../libs/actions/ChatSwitcher';
@@ -273,7 +273,7 @@ class ChatSwitcherView extends React.Component {
      * @param {String} option.reportID
      */
     selectReport(option) {
-        redirect(ROUTES.getReportRoute(option.reportID));
+        Navigator.navigate(ROUTES.REPORT, {reportID: option.reportID});
         this.props.onLinkClick();
         this.reset();
     }

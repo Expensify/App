@@ -8,6 +8,7 @@ import CONFIG from '../../CONFIG';
 import PushNotification from '../Notification/PushNotification';
 import ROUTES from '../../ROUTES';
 import Timing from './Timing';
+import Navigator from '../../Navigator';
 
 let credentials = {};
 Onyx.connect({
@@ -19,15 +20,12 @@ Onyx.connect({
  * Sets API data in the store when we make a successful "Authenticate"/"CreateLogin" request
  *
  * @param {Object} data
- * @param {String} exitTo
  */
-function setSuccessfulSignInData(data, exitTo) {
+function setSuccessfulSignInData(data) {
     PushNotification.register(data.accountID);
-
-    const redirectURL = exitTo ? Str.normalizeUrl(exitTo) : ROUTES.ROOT;
+    Navigator.navigate(ROUTES.ROOT);
     Onyx.multiSet({
         [ONYXKEYS.SESSION]: _.pick(data, 'authToken', 'accountID', 'email'),
-        [ONYXKEYS.APP_REDIRECT_TO]: redirectURL,
     });
 }
 
@@ -110,10 +108,9 @@ function fetchAccountDetails(login) {
  * after an authToken expires.
  *
  * @param {String} password
- * @param {String} exitTo
  * @param {String} [twoFactorAuthCode]
  */
-function signIn(password, exitTo, twoFactorAuthCode) {
+function signIn(password, twoFactorAuthCode) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', loading: true});
 
     API.Authenticate({
@@ -141,7 +138,7 @@ function signIn(password, exitTo, twoFactorAuthCode) {
                         throw new Error(createLoginResponse.message);
                     }
 
-                    setSuccessfulSignInData(createLoginResponse, exitTo);
+                    setSuccessfulSignInData(createLoginResponse);
 
                     // If we have an old generated login for some reason
                     // we should delete it before storing the new details

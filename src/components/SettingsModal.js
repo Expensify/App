@@ -8,7 +8,7 @@ import themeColors from '../styles/themes/default';
 import ONYXKEYS from '../ONYXKEYS';
 import ModalWithHeader from './ModalWithHeader';
 import ROUTES from '../ROUTES';
-import Navigator from './../Navigator';
+import Navigator from '../Navigator';
 
 /**
  * Right-docked modal view showing a user's settings.
@@ -35,9 +35,9 @@ const SettingsModal = props => (
         backgroundColor={themeColors.componentBG}
         onClose={() => {
             if (_.isEmpty(props.currentlyViewedReportID)) {
-                Navigator.navigate('/');
+                Navigator.navigate(ROUTES.ROOT);
             } else {
-                Navigator.navigate(ROUTES.getReportRoute(props.currentlyViewedReportID));
+                Navigator.navigate(ROUTES.REPORT, {reportID: props.currentlyViewedReportID});
             }
         }}
     >

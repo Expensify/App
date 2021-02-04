@@ -6,7 +6,6 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import compose from '../../libs/compose';
-import {Redirect} from '../../libs/Router';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
@@ -17,6 +16,7 @@ import LoginForm from './LoginForm';
 import GithubUsernameForm from './GithubUsernameForm';
 import PasswordForm from './PasswordForm';
 import ResendValidationForm from './ResendValidationForm';
+import Navigator from '../../Navigator';
 
 const propTypes = {
     /* Onyx Props */
@@ -61,10 +61,11 @@ class SignInPage extends Component {
     }
 
     render() {
+        console.log('rendering sign in page');
         // If we end up on the sign in page and have an authToken then
         // we are signed in and should be brought back to the site root
         if (this.props.session.authToken) {
-            return <Redirect to={ROUTES.ROOT} />;
+            return null;
         }
 
         // Show the login form if

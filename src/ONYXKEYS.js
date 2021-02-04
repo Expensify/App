@@ -12,12 +12,6 @@ export default {
     // What the active route is for our navigator
     CURRENT_ROUTE: 'currentRoute',
 
-    // When this key is changed, the active page changes (see Expensify.js and `redirect` in actions/App.js)
-    APP_REDIRECT_TO: 'appRedirectTo',
-
-    // The current URL, you should not change this directly (use `redirect` in App.js)
-    CURRENT_URL: 'currentURL',
-
     // Currently viewed reportID
     CURRENTLY_VIEWED_REPORTID: 'currentlyViewedReportID',
 
@@ -39,7 +33,6 @@ export default {
 
     // Information about the current session (authToken, accountID, email, loading, error)
     SESSION: 'session',
-    IS_SIDEBAR_SHOWN: 'isSidebarShown',
     IS_CHAT_SWITCHER_ACTIVE: 'isChatSwitcherActive',
     IS_SIDEBAR_ANIMATING: 'isSidebarAnimating',
     BETAS: 'betas',

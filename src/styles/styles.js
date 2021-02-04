@@ -1096,28 +1096,7 @@ function getSafeAreaMargins(insets) {
     return {marginBottom: insets.bottom * variables.safeInsertPercentage};
 }
 
-/**
- * Return navigation menu styles.
- *
- * @param {Number} windowWidth
- * @param {Boolean} isSidebarShown
- * @returns {Object}
- */
-function getNavigationMenuStyle(windowWidth, isSidebarShown) {
-    const isSmallScreenWidth = windowWidth <= variables.mobileResponsiveWidthBreakpoint;
-    return isSmallScreenWidth
-        ? {
-            ...styles.navigationMenuOpenAbsolute,
-            width: isSidebarShown ? windowWidth : 0,
-        }
-        : {
-            borderColor: themeColors.border,
-            borderRightWidth: 1,
-            width: variables.sideBarWidth,
-        };
-}
-
 export default styles;
 export {
-    getSafeAreaPadding, getSafeAreaMargins, webViewStyles, getNavigationMenuStyle,
+    getSafeAreaPadding, getSafeAreaMargins, webViewStyles,
 };

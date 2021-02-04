@@ -1,16 +1,16 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
-import {redirect} from './App';
+import Navigator from '../../Navigator';
 import * as Pusher from '../Pusher/pusher';
 import NetworkConnection from '../NetworkConnection';
 import UnreadIndicatorUpdater from '../UnreadIndicatorUpdater';
 import PushNotification from '../Notification/PushNotification';
 
-let currentURL;
+let currentRoute;
 Onyx.connect({
-    key: ONYXKEYS.CURRENT_URL,
-    callback: val => currentURL = val,
+    key: ONYXKEYS.CURRENT_ROUTE,
+    callback: val => currentRoute = val,
 });
 let currentlyViewedReportID;
 Onyx.connect({
@@ -30,12 +30,7 @@ function redirectToSignIn(errorMessage) {
     PushNotification.deregister();
     Pusher.disconnect();
 
-    if (!currentURL) {
-        return;
-    }
-
-    // If there is already an exitTo, or has the URL of signin, don't redirect
-    if (currentURL.indexOf('exitTo') !== -1 || currentURL.indexOf('signin') !== -1) {
+    if (!currentRoute) {
         return;
     }
 
@@ -44,10 +39,7 @@ function redirectToSignIn(errorMessage) {
     const reportID = currentlyViewedReportID;
 
     // When the URL is at the root of the site, go to sign-in, otherwise add the exitTo
-    const urlWithExitTo = currentURL === ROUTES.ROOT
-        ? ROUTES.SIGNIN
-        : ROUTES.getSigninWithExitToRoute(currentURL);
-    redirect(urlWithExitTo);
+    Navigator.navigate(ROUTES.ROOT);
     Onyx.clear().then(() => {
         if (errorMessage) {
             Onyx.set(ONYXKEYS.SESSION, {error: errorMessage});

@@ -10,7 +10,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import CONST from '../CONST';
-import {redirect} from '../libs/actions/App';
+import Navigator from '../Navigator';
 import ROUTES from '../ROUTES';
 
 const personalDetailsPropTypes = PropTypes.shape({
@@ -216,9 +216,12 @@ class NewGroupPage extends Component {
                 <HeaderWithCloseButton
                     title="New Group"
                     onCloseButtonPress={() => {
-                        redirect(this.props.currentlyViewedReportID !== ''
-                            ? ROUTES.getReportRoute(this.props.currentlyViewedReportID)
-                            : ROUTES.HOME);
+                        if (this.props.currentlyViewedReportID !== '') {
+                            Navigator.navigate(ROUTES.REPORT, {reportID: this.props.currentlyViewedReportID});
+                            return;
+                        }
+
+                        Navigator.navigate(ROUTES.ROOT);
                     }}
                 />
                 <View style={[styles.p2, styles.flex1]}>
