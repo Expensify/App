@@ -1,5 +1,4 @@
-import _ from 'underscore';
-import React, {Component} from 'react';
+import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
 import {Animated, Text, View} from 'react-native';
 import Hoverable from './Hoverable';
@@ -30,7 +29,7 @@ const defaultProps = {
     shiftVertical: 0,
 };
 
-class Tooltip extends Component {
+class Tooltip extends PureComponent {
     constructor(props) {
         super(props);
 
@@ -65,18 +64,8 @@ class Tooltip extends Component {
         this.hideTooltip = this.hideTooltip.bind(this);
     }
 
-    shouldComponentUpdate(nextProps, nextState) {
-        /*
-           We only want to re-render if props or state have changed.
-           This prevents an infinite rendering loop with the `onLayout` callback calling setState.
-           Also, we need to do a deep comparison of props using _.isEqual rather than relying on the shallow comparison
-           done by `PureComponent` because a shallow comparison would not catch changes in `props.windowDimensions`.
-         */
-        return !(_.isEqual(this.props, nextProps) && _.isEqual(this.state, nextState));
-    }
-
     componentDidUpdate(prevProps) {
-        if (!_.isEqual(this.props.windowDimensions, prevProps.windowDimensions)) {
+        if (this.props.windowWidth !== prevProps.windowWidth || this.props.windowHeight !== prevProps.windowHeight) {
             this.getWrapperPosition()
                 .then(({x, y}) => {
                     this.setState({xOffset: x, yOffset: y});
@@ -153,7 +142,7 @@ class Tooltip extends Component {
             pointerStyle,
         } = getTooltipStyles(
             this.animation,
-            this.props.windowDimensions.width,
+            this.props.windowWidth,
             this.state.xOffset,
             this.state.yOffset,
             this.state.wrapperWidth,
