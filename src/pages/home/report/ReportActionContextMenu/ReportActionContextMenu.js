@@ -40,10 +40,8 @@ const ReportActionContextMenu = (props) => {
         >
             {ContextActions.map(contextAction => (
                 <Tooltip
-                    title={contextAction.text}
+                    text={contextAction.text}
                     key={contextAction.text}
-                    placement="top"
-                    arrow
                 >
                     <Pressable style={({hovered, pressed}) => getButtonStyle(getButtonState(hovered, pressed))}>
                         {({hovered, pressed}) => (
