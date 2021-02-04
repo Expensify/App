@@ -171,22 +171,22 @@ class RootNavigator extends Component {
             <Router
                 ref={routerRef}
             >
+                <Route
+                    path="*"
+                    render={({match}) => {
+                        if (match.url === this.props.currentRoute) {
+                            return;
+                        }
+
+                        Onyx.merge(ONYXKEYS.CURRENT_ROUTE, match.url);
+                    }}
+                />
                 {!this.props.authenticated
                     ? (
                         <SignInPage />
                     )
                     : (
                         <>
-                            <Route
-                                path="*"
-                                render={({match}) => {
-                                    if (match.url === this.props.currentRoute) {
-                                        return;
-                                    }
-
-                                    Onyx.merge(ONYXKEYS.CURRENT_ROUTE, match.url);
-                                }}
-                            />
                             <Route
                                 path="/r/:reportID"
                                 render={({match}) => {
