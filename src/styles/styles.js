@@ -1003,6 +1003,10 @@ const styles = {
         backgroundColor: themeColors.componentBG,
         marginLeft: 8,
     },
+
+    flipUpsideDown: {
+        transform: [{rotate: '180deg'}],
+    },
 };
 
 const baseCodeTagStyles = {
@@ -1109,10 +1113,10 @@ function getSafeAreaMargins(insets) {
  *
  * @param {Number} windowWidth
  * @param {Boolean} isSidebarShown
+ * @param {Boolean} isSmallScreenWidth
  * @returns {Object}
  */
-function getNavigationMenuStyle(windowWidth, isSidebarShown) {
-    const isSmallScreenWidth = windowWidth <= variables.mobileResponsiveWidthBreakpoint;
+function getNavigationMenuStyle(windowWidth, isSidebarShown, isSmallScreenWidth) {
     return isSmallScreenWidth
         ? {
             ...styles.navigationMenuOpenAbsolute,
