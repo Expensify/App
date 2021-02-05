@@ -122,7 +122,6 @@ export default (type, windowDimensions) => {
                 overflow: 'hidden',
             };
 
-            swipeDirection = 'right';
             animationIn = {
                 from: {
                     translateX: isSmallScreenWidth ? windowWidth : variables.sideBarWidth,
@@ -139,7 +138,7 @@ export default (type, windowDimensions) => {
                     translateX: isSmallScreenWidth ? windowWidth : variables.sideBarWidth,
                 },
             };
-
+            swipeDirection = undefined;
             shouldAddBottomSafeAreaPadding = true;
             shouldAddTopSafeAreaPadding = true;
             break;

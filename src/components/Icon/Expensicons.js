@@ -9,6 +9,7 @@ import PinCircle from '../../../assets/images/pin-circle.svg';
 import Plus from '../../../assets/images/plus.svg';
 import Send from '../../../assets/images/send.svg';
 import Users from '../../../assets/images/users.svg';
+import Checkmark from '../../../assets/images/checkmark.svg';
 
 export {
     BackArrow,
@@ -22,4 +23,5 @@ export {
     Plus,
     Send,
     Users,
+    Checkmark,
 };
