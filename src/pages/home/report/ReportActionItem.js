@@ -14,7 +14,7 @@ const propTypes = {
     // Should the comment have the appearance of being grouped with the previous comment?
     displayAsGroup: PropTypes.bool.isRequired,
 
-    // This this action as the active reportAction for the report.
+    // Set this action as the active reportAction for the report.
     setIsActive: PropTypes.func.isRequired,
 };
 
