@@ -37,8 +37,11 @@ const propTypes = {
     // Whether to show headers above each section or not
     hideSectionHeaders: PropTypes.bool,
 
-    // A flag to indicate wheter the option is on the RightDockedModal or not
-    isOnRightDockedModal: PropTypes.bool,
+    // Whether to allow option focus or not
+    disableFocusOptions: PropTypes.bool,
+
+    // A flag to indicate wheter to show additional optional states, such as pin icon or different read/unread styles
+    hideAdditionalOptionStates: PropTypes.bool,
 
     // Callback to fire when a row is selected
     onSelectRow: PropTypes.func,
@@ -63,7 +66,8 @@ const defaultProps = {
     selectedOptions: [],
     canSelectMultipleOptions: false,
     hideSectionHeaders: false,
-    isOnRightDockedModal: false,
+    disableFocusOptions: false,
+    hideAdditionalOptionStates: false,
     onSelectRow: () => {},
     headerMessage: '',
     headerTitle: '',
@@ -77,7 +81,8 @@ const OptionsList = ({
     selectedOptions,
     canSelectMultipleOptions,
     hideSectionHeaders,
-    isOnRightDockedModal,
+    disableFocusOptions,
+    hideAdditionalOptionStates,
     onSelectRow,
     headerMessage,
     headerTitle,
@@ -112,11 +117,11 @@ const OptionsList = ({
             renderItem={({item, index, section}) => (
                 <OptionRow
                     option={item}
-                    optionIsFocused={!isOnRightDockedModal && focusedIndex === (index + section.indexOffset)}
+                    optionIsFocused={!disableFocusOptions && focusedIndex === (index + section.indexOffset)}
                     onSelectRow={onSelectRow}
                     isSelected={Boolean(_.find(selectedOptions, option => option.login === item.login))}
                     showSelectedState={canSelectMultipleOptions}
-                    isOnRightDockedModal={isOnRightDockedModal}
+                    hideAdditionalOptionStates={hideAdditionalOptionStates}
                 />
             )}
             renderSectionHeader={({section: {title, shouldShow}}) => {

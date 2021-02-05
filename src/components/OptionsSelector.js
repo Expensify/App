@@ -51,8 +51,11 @@ const propTypes = {
     // Whether any section headers should be visible
     hideSectionHeaders: PropTypes.bool,
 
-    // A flag to indicate wheter the option is on the RightDockedModal or not
-    isOnRightDockedModal: PropTypes.bool,
+    // Whether to allow arrow key actions on the list
+    disableArrowKeysActions: PropTypes.bool,
+
+    // A flag to indicate wheter to show additional optional states, such as pin icon or different read/unread styles
+    hideAdditionalOptionStates: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -63,7 +66,8 @@ const defaultProps = {
     headerMessage: '',
     canSelectMultipleOptions: false,
     hideSectionHeaders: false,
-    isOnRightDockedModal: false,
+    disableArrowKeysActions: false,
+    hideAdditionalOptionStates: false,
 };
 
 class OptionsSelector extends Component {
@@ -98,7 +102,7 @@ class OptionsSelector extends Component {
      * @param {SyntheticEvent} e
      */
     handleKeyPress(e) {
-        if (this.props.isOnRightDockedModal) {
+        if (this.props.disableArrowKeysActions) {
             return;
         }
 
@@ -184,7 +188,8 @@ class OptionsSelector extends Component {
                     canSelectMultipleOptions={this.props.canSelectMultipleOptions}
                     hideSectionHeaders={this.props.hideSectionHeaders}
                     headerMessage={this.props.headerMessage}
-                    isOnRightDockedModal={this.props.isOnRightDockedModal}
+                    disableFocusOptions={this.props.disableArrowKeysActions}
+                    hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
                 />
             </View>
         );

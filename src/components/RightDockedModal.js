@@ -16,8 +16,8 @@ const propTypes = {
     // Title of the Modal
     title: PropTypes.string.isRequired,
 
-    // Page to be shown on the Modal
-    Page: PropTypes.func.isRequired,
+    // Any children to display
+    children: PropTypes.node.isRequired,
 
     // Is the Modal visible or not?
     isVisible: PropTypes.bool,
@@ -33,7 +33,7 @@ const defaultProps = {
 };
 
 const RightDockedModal = ({
-    currentlyViewedReportID, isVisible, title, Page,
+    currentlyViewedReportID, isVisible, title, children,
 }) => (
     <ModalWithHeader
         type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
@@ -44,7 +44,7 @@ const RightDockedModal = ({
         title={title}
         backgroundColor={themeColors.componentBG}
     >
-        <Page />
+        {children}
     </ModalWithHeader>
 );
 

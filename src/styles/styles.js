@@ -134,6 +134,11 @@ const styles = {
         borderWidth: 0,
     },
 
+    buttonSuccessHovered: {
+        backgroundColor: themeColors.buttonSuccessHoveredBG,
+        borderWidth: 0,
+    },
+
     buttonDisable: {
         backgroundColor: themeColors.buttonDisabledBG,
         borderWidth: 0,
