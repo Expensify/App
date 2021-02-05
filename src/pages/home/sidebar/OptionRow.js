@@ -187,5 +187,9 @@ export default memo(OptionRow, (prevProps, nextProps) => {
         return false;
     }
 
+    if (!_.isEqual(prevProps.option.icons, nextProps.option.icons)) {
+        return false;
+    }
+
     return true;
 });
