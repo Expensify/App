@@ -8,6 +8,7 @@ on:
 
 jobs:
     build:
+        if: github.user == 'botify'
         runs-on: macos-latest
         steps:
             - uses: actions/checkout@v2
