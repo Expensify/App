@@ -1,5 +1,7 @@
 import React from 'react';
-import {View, Keyboard, AppState} from 'react-native';
+import {
+    AppState, findNodeHandle, Keyboard, View,
+} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
@@ -13,6 +15,7 @@ import ReportActionPropTypes from './ReportActionPropTypes';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import {lastItem} from '../../../libs/CollectionUtils';
 import Visibility from '../../../libs/Visibility';
+import ReportActionContextMenu from './ReportActionContextMenu/ReportActionContextMenu';
 
 const propTypes = {
     // The ID of the report actions will be created for
@@ -20,9 +23,6 @@ const propTypes = {
 
     // Is this report currently in view?
     isActiveReport: PropTypes.bool.isRequired,
-
-    // A function to set the active ReportActionItem for this report
-    setActiveReportActionItem: PropTypes.bool.isRequired,
 
     /* Onyx Props */
 
@@ -48,6 +48,7 @@ class ReportActionsView extends React.Component {
         this.renderItem = this.renderItem.bind(this);
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
         this.recordMaxAction = this.recordMaxAction.bind(this);
+        this.updateReportActionContextMenuPosition = this.updateReportActionContextMenuPosition.bind(this);
         this.onVisibilityChange = this.onVisibilityChange.bind(this);
         this.sortedReportActions = this.updateSortedReportActions();
         this.timers = [];
@@ -55,6 +56,8 @@ class ReportActionsView extends React.Component {
 
         this.state = {
             refetchNeeded: true,
+            activeReportActionID: null,
+            reportActionContextMenuVerticalPosition: null,
         };
     }
 
@@ -199,6 +202,19 @@ class ReportActionsView extends React.Component {
     }
 
     /**
+     * Update the absolute positioning of the ReportActionContextMenu.
+     */
+    updateReportActionContextMenuPosition() {
+        const activeReportActionItemRef = this.reportActionItemRefs[this.state.activeReportActionID];
+        if (activeReportActionItemRef) {
+            activeReportActionItemRef.measureLayout(
+                findNodeHandle(this.actionListElement),
+                (x, y) => this.setState({reportActionContextMenuVerticalPosition: y}),
+            );
+        }
+    }
+
+    /**
      * This function is triggered from the ref callback for the scrollview. That way it can be scrolled once all the
      * items have been rendered. If the number of actions has changed since it was last rendered, then
      * scroll the list to the end.
@@ -235,9 +251,15 @@ class ReportActionsView extends React.Component {
             <ReportActionItem
                 action={item.action}
                 displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
-                setIsActive={isActive => this.props.setActiveReportActionItem(
-                    isActive ? this.reportActionItemRefs[reportActionID] : null,
-                )}
+                setIsActive={(isActive) => {
+                    if (isActive) {
+                        this.setState({
+                            activeReportActionID: reportActionID,
+                        }, this.updateReportActionContextMenuPosition);
+                    } else {
+                        this.setState({activeReportActionID: null});
+                    }
+                }}
                 ref={el => this.reportActionItemRefs[reportActionID] = el}
                 onLayout={onLayout}
                 needsLayoutCalculation={needsLayoutCalculation}
@@ -262,14 +284,33 @@ class ReportActionsView extends React.Component {
 
         this.updateSortedReportActions();
         return (
-            <InvertedFlatList
-                ref={el => this.actionListElement = el}
-                data={this.sortedReportActions}
-                renderItem={this.renderItem}
-                contentContainerStyle={[styles.chatContentScrollView]}
-                keyExtractor={item => `${item.action.sequenceNumber}`}
-                initialRowHeight={32}
-            />
+            <>
+                <InvertedFlatList
+                    ref={el => this.actionListElement = el}
+                    data={this.sortedReportActions}
+                    renderItem={this.renderItem}
+                    onScroll={this.updateReportActionContextMenuPosition}
+                    contentContainerStyle={[styles.chatContentScrollView]}
+                    keyExtractor={item => `${item.action.sequenceNumber}`}
+                    initialRowHeight={32}
+                />
+                <View style={{
+                    position: 'absolute',
+                    top: this.state.reportActionContextMenuVerticalPosition - 16,
+                    right: 16,
+                }}
+                >
+                    <ReportActionContextMenu
+                        reportID={0}
+                        reportActionID={0}
+                        shouldShow={
+                            !_.isNull(this.state.activeReportActionID)
+                            && !_.isNull(this.state.reportActionContextMenuVerticalPosition)
+                        }
+                        isMini
+                    />
+                </View>
+            </>
         );
     }
 }
