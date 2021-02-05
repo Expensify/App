@@ -8,7 +8,6 @@ import CONFIG from '../../CONFIG';
 import PushNotification from '../Notification/PushNotification';
 import ROUTES from '../../ROUTES';
 import Timing from './Timing';
-import {normalizeLogin} from './User';
 
 let credentials = {};
 Onyx.connect({
@@ -87,7 +86,9 @@ function fetchAccountDetails(login) {
     API.GetAccountStatus({email: login})
         .then((response) => {
             if (response.jsonCode === 200) {
-                Onyx.merge(ONYXKEYS.CREDENTIALS, {login});
+                Onyx.merge(ONYXKEYS.CREDENTIALS, {
+                    login: response.normalizedLogin
+                });
                 Onyx.merge(ONYXKEYS.ACCOUNT, {
                     accountExists: response.accountExists,
                     canAccessExpensifyCash: response.canAccessExpensifyCash,
@@ -121,7 +122,7 @@ function signIn(password, exitTo, twoFactorAuthCode) {
         useExpensifyLogin: true,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
-        partnerUserID: normalizeLogin(credentials.login),
+        partnerUserID: credentials.login,
         partnerUserSecret: password,
         twoFactorAuthCode,
     })
