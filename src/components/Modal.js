@@ -54,6 +54,7 @@ const Modal = (props) => {
         KeyboardShortcut.unsubscribe('Enter');
     };
     const {
+        useNativeDriver,
         modalStyle,
         modalContainerStyle,
         swipeDirection,
@@ -87,6 +88,7 @@ const Modal = (props) => {
             deviceWidth={props.windowWidth}
             animationIn={animationIn}
             animationOut={animationOut}
+            useNativeDriver={useNativeDriver}
         >
             <CustomStatusBar />
             <SafeAreaInsetsContext.Consumer>

@@ -1,7 +1,7 @@
-import CONST from '../CONST';
-import colors from './colors';
-import variables from './variables';
-import themeColors from './themes/default';
+import CONST from '../../CONST';
+import colors from '../colors';
+import variables from '../variables';
+import themeColors from '../themes/default';
 
 export default (type, windowDimensions) => {
     const {isSmallScreenWidth, windowWidth} = windowDimensions;
@@ -9,6 +9,10 @@ export default (type, windowDimensions) => {
     let modalStyle = {
         margin: 0,
     };
+
+    // Only want to use useNativeDriver on Android. It has strange flashes issue
+    // https://github.com/react-native-modal/react-native-modal#the-modal-flashes-in-a-weird-way-when-animating
+    let useNativeDriver = false;
     let modalContainerStyle;
     let swipeDirection;
     let animationIn;
@@ -138,6 +142,7 @@ export default (type, windowDimensions) => {
                     translateX: isSmallScreenWidth ? windowWidth : variables.sideBarWidth,
                 },
             };
+            useNativeDriver = true;
             swipeDirection = undefined;
             shouldAddBottomSafeAreaPadding = true;
             shouldAddTopSafeAreaPadding = true;
@@ -151,6 +156,7 @@ export default (type, windowDimensions) => {
     }
 
     return {
+        useNativeDriver,
         modalStyle,
         modalContainerStyle,
         swipeDirection,
