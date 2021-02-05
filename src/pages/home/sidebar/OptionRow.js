@@ -99,20 +99,18 @@ const OptionRow = ({
                         )
                     }
                     <View style={[styles.flex1]}>
-                        {(option.text === option.alternateText || option.alternateText.length === 0) ? (
-                            <Text style={[styles.chatSwitcherDisplayName, textUnreadStyle]} numberOfLines={1}>
-                                {option.text}
+                        <Text style={[styles.chatSwitcherDisplayName, textUnreadStyle]} numberOfLines={1}>
+                            {option.text}
+                        </Text>
+                        {option.alternateText ? (
+                            <Text
+                                style={[textStyle, styles.chatSwitcherLogin, styles.mt1]}
+                                numberOfLines={1}
+                            >
+                                {option.alternateText}
                             </Text>
-                        ) : (
-                            <>
-                                <Text style={[styles.chatSwitcherDisplayName, textUnreadStyle]} numberOfLines={1}>
-                                    {option.text}
-                                </Text>
-                                <Text style={[textStyle, styles.chatSwitcherLogin, styles.mt1]} numberOfLines={1}>
-                                    {option.alternateText}
-                                </Text>
-                            </>
-                        )}
+                        ) : null}
+
                     </View>
                     {showSelectedState && (
                         <View style={[styles.selectCircle]}>
