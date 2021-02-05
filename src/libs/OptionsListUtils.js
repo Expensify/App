@@ -82,9 +82,16 @@ function createOption(personalDetailList, report, draftComments, activeReportID)
         && (report.reportID !== activeReportID)
         && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '').length > 0;
 
+    const lastActorDetails = report ? _.find(personalDetailList, {login: report.lastActorEmail}) : null;
+
     return {
         text: report ? report.reportName : personalDetail.displayName,
-        alternateText: (report && hasMultipleParticipants) ? report.reportName : personalDetail.login,
+        alternateText: report
+            ? (hasMultipleParticipants && lastActorDetails
+                ? `${lastActorDetails.displayName}: `
+                : '')
+              + report.lastMessageText
+            : '',
         icons: report ? report.icons : [personalDetail.avatarURL],
 
         // It doesn't make sense to provide a login in the case of a report with multiple participants since
