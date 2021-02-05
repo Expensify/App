@@ -44,6 +44,7 @@ import RightDockedModal from '../../components/RightDockedModal';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import compose from '../../libs/compose';
 import {getBetas} from '../../libs/actions/User';
+import NewChatPage from '../NewChatPage';
 
 const propTypes = {
     isSidebarShown: PropTypes.bool,
@@ -281,7 +282,14 @@ class HomePage extends React.Component {
                                 getSafeAreaPadding(insets),
                             ]}
                         >
-                            <Route path={[ROUTES.REPORT, ROUTES.HOME, ROUTES.SETTINGS, ROUTES.NEW_GROUP]}>
+                            <Route path={[
+                                ROUTES.REPORT,
+                                ROUTES.HOME,
+                                ROUTES.SETTINGS,
+                                ROUTES.NEW_GROUP,
+                                ROUTES.NEW_CHAT,
+                            ]}
+                            >
                                 <Animated.View style={[
                                     getNavigationMenuStyle(
                                         this.props.windowWidth,
@@ -321,6 +329,14 @@ class HomePage extends React.Component {
                                             isVisible={this.props.currentURL === ROUTES.NEW_GROUP}
                                         >
                                             <NewGroupPage />
+                                        </RightDockedModal>
+                                    )}
+                                    {this.props.currentURL === ROUTES.NEW_CHAT && (
+                                        <RightDockedModal
+                                            title="New Chat"
+                                            isVisible={this.props.currentURL === ROUTES.NEW_CHAT}
+                                        >
+                                            <NewChatPage />
                                         </RightDockedModal>
                                     )}
                                     <Main />
