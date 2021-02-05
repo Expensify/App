@@ -60,7 +60,11 @@ class ReportActionsView extends React.Component {
 
         this.state = {
             refetchNeeded: true,
+
+            // The ID of the currently active (hovered) ReportAction
             activeReportActionID: null,
+
+            // The vertical offset of the ReportActionContextMenu (relative to the InvertedFlatList of ReportActions)
             reportActionContextMenuVerticalPosition: null,
         };
     }
@@ -206,7 +210,7 @@ class ReportActionsView extends React.Component {
     }
 
     /**
-     * Update the absolute positioning of the ReportActionContextMenu.
+     * Update the vertical position of the ReportActionContextMenu relative to the InvertedFlatList component.
      */
     updateReportActionContextMenuPosition() {
         const activeReportActionItemRef = this.reportActionItemRefs[this.state.activeReportActionID];
@@ -254,13 +258,27 @@ class ReportActionsView extends React.Component {
         return (
             <Hoverable
                 onHoverIn={() => {
+                    // Make this item the active ReportAction and update the position of the ReportActionContextMenu.
                     this.setState(
                         {activeReportActionID: reportActionID},
                         this.updateReportActionContextMenuPosition,
                     );
                 }}
                 onHoverOut={() => {
+                    // Unset this item as the active ReportAction.
+                    // However, if we're hovering out of this item and onto the context menu,
+                    // then we want this item to remain active.
+                    // To catch that case, we'll check if the ReportActionContextMenu is hovered.
+                    // However, when you move your mouse from this item to the ReportActionContextMenu,
+                    // the `onHoverOut` of this hoverable is executed before the `onHoverIn` of the other one.
+                    // So if you try to check the hover state of the ReportActionContextMenu in this `onHoverOut`,
+                    // it won't show that it's hovered yet. To fix that, we use a quick timeout so that the hover state
+                    // of the ReportActionContextMenu is updated before we decide whether or not to unset this as
+                    // the active ReportAction.
                     setTimeout(() => {
+                        // It's also possible that by the end of the timeout you're hovering over another ReportAction.
+                        // So we only want to unset the active activeReportActionID if there's not another
+                        // ReportAction that's now the active one.
                         if (reportActionID === this.state.activeReportActionID
                             && !this.isReportActionContextMenuHovered) {
                             this.setState({activeReportActionID: null});
