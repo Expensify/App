@@ -3,16 +3,12 @@ import React, {Component} from 'react';
 import {View, Text, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import OptionsSelector from '../components/OptionsSelector';
 import {getNewGroupOptions} from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import CONST from '../CONST';
-import {redirect} from '../libs/actions/App';
-import ROUTES from '../ROUTES';
-import themeColors from '../styles/themes/default';
 import KeyboardSpacer from '../components/KeyboardSpacer';
 
 const personalDetailsPropTypes = PropTypes.shape({
@@ -41,13 +37,6 @@ const propTypes = {
     session: PropTypes.shape({
         email: PropTypes.string.isRequired,
     }).isRequired,
-
-    // Report ID currently in view
-    currentlyViewedReportID: PropTypes.string,
-};
-
-const defaultProps = {
-    currentlyViewedReportID: '',
 };
 
 class NewGroupPage extends Component {
@@ -206,24 +195,8 @@ class NewGroupPage extends Component {
         const sections = this.getSections(maxParticipantsReached);
         const {headerTitle, headerMessage} = this.getHeaderTitleAndMessage(maxParticipantsReached);
         return (
-            <View
-                style={[
-                    // Note: These are temporary styles and should be removed
-                    styles.flex1,
-                    styles.h100,
-                    styles.w100,
-                    {position: 'absolute', zIndex: 2, backgroundColor: 'white'},
-                ]}
-            >
-                <HeaderWithCloseButton
-                    title="New Group"
-                    onCloseButtonPress={() => {
-                        redirect(this.props.currentlyViewedReportID !== ''
-                            ? ROUTES.getReportRoute(this.props.currentlyViewedReportID)
-                            : ROUTES.HOME);
-                    }}
-                />
-                <View style={[styles.flex1]}>
+            <>
+                <View style={[styles.flex1, styles.w100]}>
                     <OptionsSelector
                         canSelectMultipleOptions
                         sections={sections}
@@ -250,7 +223,8 @@ class NewGroupPage extends Component {
                         }}
                         headerTitle={headerTitle}
                         headerMessage={headerMessage}
-                        isOnRightDockedModal
+                        disableArrowKeysActions
+                        hideAdditionalOptionStates
                     />
                     <View style={[styles.ph5, styles.pb5]}>
                         <Pressable
@@ -259,7 +233,7 @@ class NewGroupPage extends Component {
                                 styles.button,
                                 styles.buttonSuccess,
                                 styles.w100,
-                                hovered && {backgroundColor: themeColors.buttonSuccessHoveredBG},
+                                hovered && styles.buttonSuccessHovered,
                             ]}
                         >
                             <Text style={[styles.buttonText, styles.buttonSuccessText]}>
@@ -269,13 +243,12 @@ class NewGroupPage extends Component {
                     </View>
                 </View>
                 <KeyboardSpacer />
-            </View>
+            </>
         );
     }
 }
 
 NewGroupPage.propTypes = propTypes;
-NewGroupPage.defaultProps = defaultProps;
 
 export default withOnyx({
     reports: {
@@ -286,8 +259,5 @@ export default withOnyx({
     },
     session: {
         key: ONYXKEYS.SESSION,
-    },
-    currentlyViewedReportID: {
-        key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
     },
 })(NewGroupPage);

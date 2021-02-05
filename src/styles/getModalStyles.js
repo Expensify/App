@@ -120,6 +120,9 @@ export default (type, windowDimensions) => {
                 overflow: 'hidden',
             };
 
+            // Having a swipeDirection in a modal that contain a  scrollable list
+            // can lead to issues with the scroll
+            // Should not be changed if any modal using this type has a scrollable list
             swipeDirection = undefined;
             animationIn = 'slideInRight';
             animationOut = 'slideOutRight';

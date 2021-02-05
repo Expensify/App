@@ -30,8 +30,8 @@ const propTypes = {
     // A flag to indicate whether this comes from the Chat Switcher so we can display the group button
     isChatSwitcher: PropTypes.bool,
 
-    // A flag to indicate wheter the option is on the RightDockedModal or not
-    isOnRightDockedModal: PropTypes.bool,
+    // A flag to indicate wheter to show additional optional states, such as pin icon or different read/unread styles
+    hideAdditionalOptionStates: PropTypes.bool,
 
     // Whether we should show the selected state
     showSelectedState: PropTypes.bool,
@@ -43,7 +43,7 @@ const propTypes = {
 const defaultProps = {
     onAddToGroup: () => {},
     isChatSwitcher: false,
-    isOnRightDockedModal: false,
+    hideAdditionalOptionStates: false,
     showSelectedState: false,
     isSelected: false,
 };
@@ -54,14 +54,14 @@ const OptionRow = ({
     onSelectRow,
     onAddToGroup,
     isChatSwitcher,
-    isOnRightDockedModal,
+    hideAdditionalOptionStates,
     showSelectedState,
     isSelected,
 }) => {
     const textStyle = optionIsFocused
         ? styles.sidebarLinkActiveText
         : styles.sidebarLinkText;
-    const textUnreadStyle = (option.isUnread || isOnRightDockedModal)
+    const textUnreadStyle = (option.isUnread || hideAdditionalOptionStates)
         ? [textStyle, styles.sidebarLinkTextUnread] : [textStyle];
     return (
         <View
@@ -138,7 +138,7 @@ const OptionRow = ({
                     </TouchableOpacity>
                 </View>
             )}
-            {!isOnRightDockedModal && (
+            {!hideAdditionalOptionStates && (
                 <View style={styles.flexRow}>
                     {option.hasDraftComment && (
                         <View style={styles.ml2}>

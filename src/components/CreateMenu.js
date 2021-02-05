@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
 import {
     View, Text, Pressable,
@@ -26,27 +26,27 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-class CreateMenu extends React.Component {
+class CreateMenu extends PureComponent {
     constructor(props) {
         super(props);
 
-        this.state = {
-            onModalHide: () => {},
-        };
+        this.setOnModalHide = this.setOnModalHide.bind(this);
+        this.resetOnModalHide = this.resetOnModalHide.bind(this);
+        this.onModalHide = () => {};
     }
 
     /**
      * Sets a new function to execute when the modal hides
      */
     setOnModalHide() {
-        this.setState({onModalHide: () => redirect(ROUTES.NEW_GROUP)});
+        this.onModalHide = () => redirect(ROUTES.NEW_GROUP);
     }
 
     /**
      * After the modal hides, reset the onModalHide to an empty function
      */
     resetOnModalHide() {
-        this.setState({onModalHide: () => {}});
+        this.onModalHide = () => {};
     }
 
     render() {
@@ -72,7 +72,7 @@ class CreateMenu extends React.Component {
                 onClose={this.props.onClose}
                 isVisible={this.props.isVisible}
                 onModalHide={() => {
-                    this.state.onModalHide();
+                    this.onModalHide();
                     this.resetOnModalHide();
                 }}
                 type={
