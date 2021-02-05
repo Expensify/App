@@ -5,6 +5,7 @@ export default {
     HOME: '/home',
     SETTINGS: '/settings',
     NEW_GROUP: '/new/group',
+    NEW_CHAT: '/new/chat',
     REPORT: '/r/:reportID',
     getReportRoute: reportID => `/r/${reportID}`,
     ROOT: '/',
