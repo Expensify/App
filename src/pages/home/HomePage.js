@@ -69,6 +69,7 @@ class HomePage extends React.Component {
 
         this.state = {
             isCreateMenuActive: false,
+            showSettings: false,
         };
 
         this.onCreateMenuItemSelected = this.onCreateMenuItemSelected.bind(this);
@@ -85,6 +86,10 @@ class HomePage extends React.Component {
         this.animationTranslateX = new Animated.Value(
             !props.isSidebarShown ? windowBarSize : 0,
         );
+
+        window.toggleSettings = () => {
+            this.setState({showSettings: !this.state.showSettings});
+        };
     }
 
     componentDidMount() {
@@ -310,7 +315,7 @@ class HomePage extends React.Component {
                                         reportID={this.props.currentlyViewedReportID}
                                     />
                                     <SettingsModal
-                                        isVisible={this.props.currentURL === ROUTES.SETTINGS}
+                                        isVisible={this.state.showSettings || this.props.currentURL === ROUTES.SETTINGS}
                                     />
                                     {this.props.currentURL === ROUTES.NEW_GROUP && <NewGroupPage />}
                                     <Main />
