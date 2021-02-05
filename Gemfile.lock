@@ -255,9 +255,9 @@ PLATFORMS
   x86_64-darwin-19
 
 DEPENDENCIES
-  cocoapods
-  fastlane
-  xcpretty
+  cocoapods (~> 1)
+  fastlane (~> 2)
+  xcpretty (~> 0)
 
 BUNDLED WITH
    2.2.5
