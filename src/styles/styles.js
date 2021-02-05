@@ -92,6 +92,14 @@ const styles = {
         color: themeColors.textMutedReversed,
     },
 
+    colorMuted: {
+        color: themeColors.textSupporting,
+    },
+
+    colorHeading: {
+        color: themeColors.heading,
+    },
+
     button: {
         backgroundColor: themeColors.buttonDefaultBG,
         borderRadius: variables.componentBorderRadius,
@@ -123,6 +131,11 @@ const styles = {
 
     buttonSuccess: {
         backgroundColor: themeColors.buttonSuccessBG,
+        borderWidth: 0,
+    },
+
+    buttonSuccessHovered: {
+        backgroundColor: themeColors.buttonSuccessHoveredBG,
         borderWidth: 0,
     },
 
@@ -994,6 +1007,10 @@ const styles = {
         borderColor: themeColors.border,
         borderWidth: 1,
         borderRadius: variables.componentSizeSmall / 2,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: themeColors.componentBG,
+        marginLeft: 8,
     },
 
     flipUpsideDown: {
