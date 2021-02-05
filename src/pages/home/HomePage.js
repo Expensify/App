@@ -315,14 +315,12 @@ class HomePage extends React.Component {
                                     >
                                         <SettingsPage />
                                     </RightDockedModal>
-                                    {this.props.currentURL === ROUTES.NEW_GROUP && (
-                                        <RightDockedModal
-                                            title="New Group"
-                                            isVisible={this.props.currentURL === ROUTES.NEW_GROUP}
-                                        >
-                                            <NewGroupPage />
-                                        </RightDockedModal>
-                                    )}
+                                    <RightDockedModal
+                                        title="New Group"
+                                        isVisible={this.props.currentURL === ROUTES.NEW_GROUP}
+                                    >
+                                        <NewGroupPage />
+                                    </RightDockedModal>
                                     <Main />
                                 </View>
                             </Route>
