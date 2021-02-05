@@ -21,6 +21,9 @@ const propTypes = {
     // Is this report currently in view?
     isActiveReport: PropTypes.bool.isRequired,
 
+    // A function to set the active ReportActionItem for this report
+    setActiveReportActionItem: PropTypes.bool.isRequired,
+
     /* Onyx Props */
 
     // Array of report actions for this report
@@ -48,6 +51,7 @@ class ReportActionsView extends React.Component {
         this.onVisibilityChange = this.onVisibilityChange.bind(this);
         this.sortedReportActions = this.updateSortedReportActions();
         this.timers = [];
+        this.reportActionItemRefs = {};
 
         this.state = {
             refetchNeeded: true,
@@ -226,11 +230,15 @@ class ReportActionsView extends React.Component {
         onLayout,
         needsLayoutCalculation,
     }) {
+        const reportActionID = item.action.sequenceNumber;
         return (
             <ReportActionItem
-                reportID={this.props.reportID}
                 action={item.action}
                 displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
+                setIsActive={isActive => this.props.setActiveReportActionItem(
+                    isActive ? this.reportActionItemRefs[reportActionID] : null,
+                )}
+                ref={el => this.reportActionItemRefs[reportActionID] = el}
                 onLayout={onLayout}
                 needsLayoutCalculation={needsLayoutCalculation}
             />
