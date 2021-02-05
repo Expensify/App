@@ -15,7 +15,7 @@ import ReportActionPropTypes from './ReportActionPropTypes';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import {lastItem} from '../../../libs/CollectionUtils';
 import Visibility from '../../../libs/Visibility';
-import ReportActionContextMenu from './ReportActionContextMenu/ReportActionContextMenu';
+import ReportActionContextMenu from './ReportActionContextMenu';
 import Hoverable from '../../../components/Hoverable';
 import getFloatingReportActionContextMenuWrapperStyles
     from '../../../styles/getFloatingReportActionContextMenuWrapperStyles';
