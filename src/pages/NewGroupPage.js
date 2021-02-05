@@ -10,6 +10,8 @@ import styles from '../styles/styles';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import CONST from '../CONST';
 import KeyboardSpacer from '../components/KeyboardSpacer';
+import {hide as hideSidebar} from '../libs/actions/Sidebar';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -37,6 +39,8 @@ const propTypes = {
     session: PropTypes.shape({
         email: PropTypes.string.isRequired,
     }).isRequired,
+
+    ...windowDimensionsPropTypes,
 };
 
 class NewGroupPage extends Component {
@@ -146,6 +150,12 @@ class NewGroupPage extends Component {
      */
     createGroup() {
         const userLogins = _.map(this.state.selectedOptions, option => option.login);
+        if (userLogins.length < 1) {
+            return;
+        }
+        if (this.props.isSmallScreenWidth) {
+            hideSidebar();
+        }
         fetchOrCreateChatReport([this.props.session.email, ...userLogins]);
     }
 
@@ -250,7 +260,7 @@ class NewGroupPage extends Component {
 
 NewGroupPage.propTypes = propTypes;
 
-export default withOnyx({
+export default withWindowDimensions(withOnyx({
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,
     },
@@ -260,4 +270,4 @@ export default withOnyx({
     session: {
         key: ONYXKEYS.SESSION,
     },
-})(NewGroupPage);
+})(NewGroupPage));

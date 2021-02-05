@@ -110,7 +110,6 @@ const OptionRow = ({
                                 {option.alternateText}
                             </Text>
                         ) : null}
-
                     </View>
                     {showSelectedState && (
                         <View style={[styles.selectCircle]}>
