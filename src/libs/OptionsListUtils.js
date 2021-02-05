@@ -75,7 +75,7 @@ function getSearchText(report, personalDetailList) {
  * @param {Number} activeReportID
  * @returns {Object}
  */
-function createOption(personalDetailList, report, draftComments, activeReportID) {
+function createOption(personalDetailList, report, draftComments, activeReportID, {showChatPreviewLine = false}) {
     const hasMultipleParticipants = personalDetailList.length > 1;
     const personalDetail = personalDetailList[0];
     const hasDraftComment = report
@@ -83,15 +83,16 @@ function createOption(personalDetailList, report, draftComments, activeReportID)
         && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '').length > 0;
 
     const lastActorDetails = report ? _.find(personalDetailList, {login: report.lastActorEmail}) : null;
+    const lastMessageText = report
+        ? (hasMultipleParticipants && lastActorDetails
+            ? `${lastActorDetails.displayName}: `
+            : '')
+        + report.lastMessageText
+        : '';
 
     return {
         text: report ? report.reportName : personalDetail.displayName,
-        alternateText: report
-            ? (hasMultipleParticipants && lastActorDetails
-                ? `${lastActorDetails.displayName}: `
-                : '')
-              + report.lastMessageText
-            : '',
+        alternateText: showChatPreviewLine ? lastMessageText : personalDetail.login,
         icons: report ? report.icons : [personalDetail.avatarURL],
 
         // It doesn't make sense to provide a login in the case of a report with multiple participants since
@@ -156,6 +157,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
     prioritizePinnedReports = false,
     sortByLastMessageTimestamp = false,
     searchValue = '',
+    showChatPreviewLine = false,
 }) {
     let recentReportOptions = [];
     const pinnedReportOptions = [];
@@ -191,11 +193,15 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         if (logins.length <= 1) {
             reportMapForLogins[logins[0]] = report;
         }
-        allReportOptions.push(createOption(reportPersonalDetails, report, draftComments, activeReportID));
+        allReportOptions.push(createOption(reportPersonalDetails, report, draftComments, activeReportID, {
+            showChatPreviewLine,
+        }));
     });
 
     const allPersonalDetailsOptions = _.map(personalDetails, personalDetail => (
-        createOption([personalDetail], reportMapForLogins[personalDetail.login], draftComments, activeReportID)
+        createOption([personalDetail], reportMapForLogins[personalDetail.login], draftComments, activeReportID, {
+            showChatPreviewLine,
+        })
     ));
 
     // Always exclude already selected options and the currently logged in user
@@ -275,7 +281,9 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             ? `+${countryCodeByIP}${searchValue}`
             : searchValue;
         const userInvitePersonalDetails = getPersonalDetailsForLogins([login], personalDetails);
-        userToInvite = createOption(userInvitePersonalDetails, null, draftComments, activeReportID);
+        userToInvite = createOption(userInvitePersonalDetails, null, draftComments, activeReportID, {
+            showChatPreviewLine,
+        });
         userToInvite.icons = [defaultAvatarForUserToInvite];
     }
 
@@ -367,6 +375,7 @@ function getSidebarOptions(reports, personalDetails, draftComments, activeReport
         maxRecentReportsToShow: 0, // Unlimited
         prioritizePinnedReports: true,
         sortByLastMessageTimestamp: true,
+        showChatPreviewLine: true,
     });
 }
 

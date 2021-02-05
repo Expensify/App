@@ -20,6 +20,7 @@ import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
 import OptionsList from '../../../components/OptionsList';
 import {getSidebarOptions} from '../../../libs/OptionsListUtils';
 import {getDefaultAvatar} from '../../../libs/actions/PersonalDetails';
+import KeyboardSpacer from '../../../components/KeyboardSpacer';
 
 const propTypes = {
     // Toggles the navigation menu open and closed
@@ -197,6 +198,7 @@ class SidebarLinks extends React.Component {
                             }}
                             hideSectionHeaders
                         />
+                        <KeyboardSpacer />
                     </Animated.View>
                 )}
             </View>

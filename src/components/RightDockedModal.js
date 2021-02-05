@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import SettingsPage from '../pages/SettingsPage';
 import CONST from '../CONST';
 import themeColors from '../styles/themes/default';
 import ONYXKEYS from '../ONYXKEYS';
@@ -14,7 +13,13 @@ import ROUTES from '../ROUTES';
  * Right-docked modal view showing a user's settings.
  */
 const propTypes = {
-    // Is the Settings Modal visible or not?
+    // Title of the Modal
+    title: PropTypes.string.isRequired,
+
+    // Any children to display
+    children: PropTypes.node.isRequired,
+
+    // Is the Modal visible or not?
     isVisible: PropTypes.bool,
 
     /* Onyx Props */
@@ -27,23 +32,25 @@ const defaultProps = {
     currentlyViewedReportID: '',
 };
 
-const SettingsModal = props => (
+const RightDockedModal = ({
+    currentlyViewedReportID, isVisible, title, children,
+}) => (
     <ModalWithHeader
         type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
-        onClose={() => redirect(_.isEmpty(props.currentlyViewedReportID)
+        onClose={() => redirect(_.isEmpty(currentlyViewedReportID)
             ? ROUTES.HOME
-            : ROUTES.getReportRoute(props.currentlyViewedReportID))}
-        isVisible={props.isVisible}
-        title="Settings"
+            : ROUTES.getReportRoute(currentlyViewedReportID))}
+        isVisible={isVisible}
+        title={title}
         backgroundColor={themeColors.componentBG}
     >
-        <SettingsPage />
+        {children}
     </ModalWithHeader>
 );
 
-SettingsModal.propTypes = propTypes;
-SettingsModal.defaultProps = defaultProps;
-SettingsModal.displayName = 'SettingsModal';
+RightDockedModal.propTypes = propTypes;
+RightDockedModal.defaultProps = defaultProps;
+RightDockedModal.displayName = 'RightDockedModal';
 
 export default withOnyx({
     session: {
@@ -52,4 +59,4 @@ export default withOnyx({
     currentlyViewedReportID: {
         key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
     },
-})(SettingsModal);
+})(RightDockedModal);
