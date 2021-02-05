@@ -67,6 +67,7 @@
     "react-native-pdf": "^6.2.2",
     "react-native-render-html": "^6.0.0-alpha.10",
     "react-native-safe-area-context": "^3.1.4",
+    "react-native-share-menu": "^5.0.3",
     "react-native-svg": "^12.1.0",
     "react-native-web": "^0.14.1",
     "react-native-web-webview": "^1.0.2",

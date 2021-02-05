@@ -7,6 +7,7 @@ export default {
     NEW_GROUP: '/new/group',
     REPORT: '/r/:reportID',
     getReportRoute: reportID => `/r/${reportID}`,
+    SHARE: '/share',
     ROOT: '/',
     SET_PASSWORD: '/setpassword/:validateCode',
     SIGNIN: '/signin',

@@ -13,7 +13,7 @@ import {redirect} from '../../../libs/actions/App';
 import ROUTES from '../../../ROUTES';
 import * as ChatSwitcher from '../../../libs/actions/ChatSwitcher';
 import Icon from '../../../components/Icon';
-import {MagnifyingGlass} from '../../../components/Icon/Expensicons';
+import {Close, MagnifyingGlass} from '../../../components/Icon/Expensicons';
 import Header from '../../../components/Header';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
@@ -26,10 +26,25 @@ const propTypes = {
     onLinkClick: PropTypes.func.isRequired,
 
     // navigates to settings and hides sidebar
-    onAvatarClick: PropTypes.func.isRequired,
+    onAvatarClick: PropTypes.func,
+
+    // Navigates from page
+    onCloseButtonClick: PropTypes.func,
+
+    // Called when report is selected
+    onReportSelected: PropTypes.func,
 
     // Safe area insets required for mobile devices margins
     insets: SafeAreaInsetPropTypes.isRequired,
+
+    // Title of the Header
+    title: PropTypes.string,
+
+    // Should we show the avatar
+    showAvatar: PropTypes.bool,
+
+    // Should we show the close button
+    showCloseButton: PropTypes.bool,
 
     /* Onyx Props */
     // List of reports
@@ -72,6 +87,12 @@ const propTypes = {
 };
 
 const defaultProps = {
+    title: 'Chats',
+    showAvatar: false,
+    showCloseButton: false,
+    onAvatarClick: () => console.error('`onAvatarClick` is not defined'),
+    onCloseButtonClick: () => console.error('`onCloseButtonClick` is not defined'),
+    onReportSelected: () => {},
     reports: {},
     isChatSwitcherActive: false,
     draftComments: {},
@@ -150,6 +171,7 @@ class SidebarLinks extends React.Component {
                         />
                         <ChatSwitcherView
                             onLinkClick={this.props.onLinkClick}
+                            onReportSelected={this.props.onReportSelected}
                         />
                     </Animated.View>
                 )}
@@ -166,21 +188,31 @@ class SidebarLinks extends React.Component {
                             styles.alignItemsCenter,
                         ]}
                         >
-                            <Header textSize="large" title="Chats" />
+                            <Header textSize="large" title={this.props.title} />
                             <TouchableOpacity
                                 style={[styles.flexRow, styles.ph5]}
                                 onPress={() => ChatSwitcher.show()}
                             >
                                 <Icon src={MagnifyingGlass} />
                             </TouchableOpacity>
-                            <TouchableOpacity
-                                onPress={this.props.onAvatarClick}
-                            >
-                                <AvatarWithIndicator
-                                    source={this.props.myPersonalDetails.avatarURL}
-                                    isActive={this.props.network && !this.props.network.isOffline}
-                                />
-                            </TouchableOpacity>
+                            {this.props.showCloseButton && (
+                                <TouchableOpacity
+                                    style={[styles.flexRow, styles.sidebarCloseButton]}
+                                    onPress={this.props.onCloseButtonClick}
+                                >
+                                    <Icon src={Close} />
+                                </TouchableOpacity>
+                            )}
+                            {this.props.showAvatar && (
+                                <TouchableOpacity
+                                    onPress={this.props.onAvatarClick}
+                                >
+                                    <AvatarWithIndicator
+                                        source={this.props.myPersonalDetails.avatarURL}
+                                        isActive={this.props.network && !this.props.network.isOffline}
+                                    />
+                                </TouchableOpacity>
+                            )}
                         </View>
                         <OptionsList
                             contentContainerStyles={[
@@ -192,6 +224,7 @@ class SidebarLinks extends React.Component {
                                 option => option.reportID === activeReportID
                             ))}
                             onSelectRow={(option) => {
+                                this.props.onReportSelected(option.reportID);
                                 redirect(ROUTES.getReportRoute(option.reportID));
                                 this.props.onLinkClick();
                             }}
