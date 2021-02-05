@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import ReportActionView from './ReportActionsView';
+import ReportActionsView from './ReportActionsView';
 import ReportActionCompose from './ReportActionCompose';
 import {addAction, subscribeToReportTypingEvents, unsubscribeFromReportChannel} from '../../../libs/actions/Report';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
@@ -20,6 +20,11 @@ const propTypes = {
 // This is a PureComponent so that it only re-renders when the reportID changes or when the report changes from
 // active to inactive (or vice versa). This should greatly reduce how often comments are re-rendered.
 class ReportView extends React.PureComponent {
+    constructor(props) {
+        super(props);
+        this.setActiveReportActionItem = this.setActiveReportActionItem.bind(this);
+    }
+
     componentDidMount() {
         subscribeToReportTypingEvents(this.props.reportID);
 
@@ -36,15 +41,28 @@ class ReportView extends React.PureComponent {
         unsubscribeFromReportChannel(this.props.reportID);
     }
 
+    /**
+     * Set the currently active report action ID.
+     *
+     * @param {React.Component} reportActionItem - A ref to a ReportActionItem functional component
+     */
+    setActiveReportActionItem(reportActionItem) {
+        reportActionItem.measureInWindow((x, y, width, height) => {
+            // eslint-disable-next-line no-console
+            console.log('RORY_DEBUG', x, y, width, height);
+        });
+    }
+
     render() {
         // Only display the compose form for the active report because the form needs to get focus and
         // calling focus() on 42 different forms doesn't work
         const shouldShowComposeForm = this.props.isActiveReport;
         return (
             <View style={[styles.chatContent]}>
-                <ReportActionView
+                <ReportActionsView
                     reportID={this.props.reportID}
                     isActiveReport={this.props.isActiveReport}
+                    setActiveReportActionItem={this.setActiveReportActionItem}
                 />
 
                 {shouldShowComposeForm && (
