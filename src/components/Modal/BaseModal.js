@@ -6,12 +6,14 @@ import CustomStatusBar from '../CustomStatusBar';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import styles, {getSafeAreaPadding} from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
-import {baseModalPropTypes} from './ModalPropTypes';
+import modalPropTypes from './ModalPropTypes';
+import getModalStyles from '../../styles/getModalStyles';
 
 
 const defaultProps = {
     onSubmit: null,
-    onModalHide: () => {},
+    type: '',
+    onModalHide: () => { },
 };
 
 const BaseModal = (props) => {
@@ -24,7 +26,6 @@ const BaseModal = (props) => {
         KeyboardShortcut.unsubscribe('Enter');
     };
     const {
-        useNativeDriver,
         modalStyle,
         modalContainerStyle,
         swipeDirection,
@@ -33,7 +34,11 @@ const BaseModal = (props) => {
         shouldAddTopSafeAreaPadding,
         shouldAddBottomSafeAreaPadding,
         hideBackdrop,
-    } = props;
+    } = getModalStyles(props.type, {
+        windowWidth: props.windowWidth,
+        windowHeight: props.windowHeight,
+        isSmallScreenWidth: props.isSmallScreenWidth,
+    });
     return (
         <ReactNativeModal
             onBackdropPress={props.onClose}
@@ -54,7 +59,7 @@ const BaseModal = (props) => {
             deviceWidth={props.windowWidth}
             animationIn={animationIn}
             animationOut={animationOut}
-            useNativeDriver={useNativeDriver}
+            useNativeDriver={props.useNativeDriver}
         >
             <CustomStatusBar />
             <SafeAreaInsetsContext.Consumer>
@@ -86,7 +91,7 @@ const BaseModal = (props) => {
     );
 };
 
-BaseModal.propTypes = baseModalPropTypes;
+BaseModal.propTypes = modalPropTypes;
 BaseModal.defaultProps = defaultProps;
 BaseModal.displayName = 'BaseModal';
 export default BaseModal;
