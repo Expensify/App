@@ -37,9 +37,10 @@ class CreateMenu extends PureComponent {
 
     /**
      * Sets a new function to execute when the modal hides
+     * @param {Function} callback The function to be called on modal hide
      */
-    setOnModalHide() {
-        this.onModalHide = () => redirect(ROUTES.NEW_GROUP);
+    setOnModalHide(callback) {
+        this.onModalHide = callback;
     }
 
     /**
@@ -53,11 +54,15 @@ class CreateMenu extends PureComponent {
         // This format allows to set individual callbacks to each item
         // while including mutual callbacks first
         const menuItemData = [
-            {icon: ChatBubble, text: 'New Chat', onPress: () => {}},
+            {
+                icon: ChatBubble,
+                text: 'New Chat',
+                onPress: () => this.setOnModalHide(() => redirect(ROUTES.NEW_CHAT)),
+            },
             {
                 icon: Users,
                 text: 'New Group',
-                onPress: () => this.setOnModalHide(),
+                onPress: () => this.setOnModalHide(() => redirect(ROUTES.NEW_GROUP)),
             },
         ].map(item => ({
             ...item,
