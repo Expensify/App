@@ -1,6 +1,5 @@
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
-import {Image} from 'react-native';
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
