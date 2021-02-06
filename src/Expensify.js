@@ -132,11 +132,11 @@ class Expensify extends PureComponent {
                     <Route path={[ROUTES.SIGNIN_WITH_EXITTO, ROUTES.SIGNIN]} component={SignInPage} />
                     <Route
                         path={[ROUTES.HOME, ROUTES.ROOT]}
-                        render={match => (
+                        render={() => (
 
                             // Need to do this for every page that the user needs to be logged in to access
                             this.state.authToken
-                                ? <HomePage match={match} />
+                                ? <HomePage />
                                 : <Redirect to={ROUTES.SIGNIN} />
                         )}
                     />
