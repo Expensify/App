@@ -24,5 +24,5 @@ const ReportActionItem = props => (
 ReportActionItem.propTypes = propTypes;
 
 export default memo(ReportActionItem, (prevProps, nextProps) => (
-    _.isEqual(prevProps.action, nextProps.action)
+    prevProps.displayAsGroup === nextProps.displayAsGroup && _.isEqual(prevProps.action, nextProps.action)
 ));
