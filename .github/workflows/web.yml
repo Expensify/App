@@ -8,7 +8,7 @@ on:
 
 jobs:
     build:
-        if: github.actor == 'botify'
+        if: github.actor == 'OSBotify'
         runs-on: ubuntu-16.04
 
         steps:
