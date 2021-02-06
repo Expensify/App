@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
@@ -119,4 +119,4 @@ const Modal = (props) => {
 Modal.propTypes = propTypes;
 Modal.defaultProps = defaultProps;
 Modal.displayName = 'Modal';
-export default withWindowDimensions(Modal);
+export default memo(withWindowDimensions(Modal));

@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {forwardRef} from 'react';
+import React, {forwardRef, memo} from 'react';
 import {View, SectionList, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
@@ -74,7 +74,7 @@ const defaultProps = {
     innerRef: null,
 };
 
-const OptionsList = ({
+const OptionsList = memo(({
     contentContainerStyles,
     sections,
     focusedIndex,
@@ -140,10 +140,32 @@ const OptionsList = ({
             extraData={focusedIndex}
         />
     </View>
-);
+), (prevProps, nextProps) => {
+    if (prevProps.focusedIndex !== nextProps.focusedIndex) {
+        return false;
+    }
 
-OptionsList.propTypes = propTypes;
+    if (prevProps.selectedOptions.length !== nextProps.selectedOptions.length) {
+        return false;
+    }
+
+    if (prevProps.headerTitle !== nextProps.headerTitle) {
+        return false;
+    }
+
+    if (prevProps.headerMessage !== nextProps.headerMessage) {
+        return false;
+    }
+
+    if (!_.isEqual(prevProps.sections, nextProps.sections)) {
+        return false;
+    }
+
+    return true;
+});
+
 OptionsList.displayName = 'OptionsList';
+OptionsList.propTypes = propTypes;
 OptionsList.defaultProps = defaultProps;
 
 export default forwardRef((props, ref) => (

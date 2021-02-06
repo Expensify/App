@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
 import {
     View,
@@ -62,7 +62,7 @@ const defaultProps = {
     currentlyViewedReportID: '',
 };
 
-class HomePage extends React.Component {
+class HomePage extends PureComponent {
     constructor(props) {
         Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
         Timing.start(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
