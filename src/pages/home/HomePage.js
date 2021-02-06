@@ -1,4 +1,5 @@
-import React, {PureComponent} from 'react';
+import _ from 'underscore';
+import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {
     View,
@@ -49,20 +50,16 @@ import NewChatPage from '../NewChatPage';
 const propTypes = {
     isSidebarShown: PropTypes.bool,
     isChatSwitcherActive: PropTypes.bool,
-    currentURL: PropTypes.string,
     network: PropTypes.shape({isOffline: PropTypes.bool}),
-    currentlyViewedReportID: PropTypes.string,
     ...windowDimensionsPropTypes,
 };
 const defaultProps = {
     isSidebarShown: true,
     isChatSwitcherActive: false,
-    currentURL: '',
     network: {isOffline: true},
-    currentlyViewedReportID: '',
 };
 
-class HomePage extends PureComponent {
+class HomePage extends Component {
     constructor(props) {
         Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
         Timing.start(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
@@ -129,6 +126,14 @@ class HomePage extends PureComponent {
         KeyboardShortcut.subscribe('K', () => {
             ChatSwitcher.show();
         }, ['meta'], true);
+    }
+
+    shouldComponentUpdate(nextProps, nextState) {
+        if (_.isEqual(nextProps, this.props) && _.isEqual(nextState, this.state)) {
+            return false;
+        }
+
+        return true;
     }
 
     componentDidUpdate(prevProps) {
@@ -315,30 +320,25 @@ class HomePage extends PureComponent {
                                     <HeaderView
                                         shouldShowNavigationMenuButton={this.props.isSmallScreenWidth}
                                         onNavigationMenuButtonClicked={this.toggleNavigationMenu}
-                                        reportID={this.props.currentlyViewedReportID}
                                     />
                                     <RightDockedModal
                                         title="Settings"
-                                        isVisible={this.props.currentURL === ROUTES.SETTINGS}
+                                        route={ROUTES.SETTINGS}
                                     >
                                         <SettingsPage />
                                     </RightDockedModal>
-                                    {this.props.currentURL === ROUTES.NEW_GROUP && (
-                                        <RightDockedModal
-                                            title="New Group"
-                                            isVisible={this.props.currentURL === ROUTES.NEW_GROUP}
-                                        >
-                                            <NewGroupPage />
-                                        </RightDockedModal>
-                                    )}
-                                    {this.props.currentURL === ROUTES.NEW_CHAT && (
-                                        <RightDockedModal
-                                            title="New Chat"
-                                            isVisible={this.props.currentURL === ROUTES.NEW_CHAT}
-                                        >
-                                            <NewChatPage />
-                                        </RightDockedModal>
-                                    )}
+                                    <RightDockedModal
+                                        title="New Group"
+                                        route={ROUTES.NEW_GROUP}
+                                    >
+                                        <NewGroupPage />
+                                    </RightDockedModal>
+                                    <RightDockedModal
+                                        title="New Chat"
+                                        route={ROUTES.NEW_CHAT}
+                                    >
+                                        <NewChatPage />
+                                    </RightDockedModal>
                                     <Main />
                                 </View>
                             </Route>
@@ -363,14 +363,8 @@ export default compose(
                 key: ONYXKEYS.IS_CHAT_SWITCHER_ACTIVE,
                 initWithStoredValues: false,
             },
-            currentURL: {
-                key: ONYXKEYS.CURRENT_URL,
-            },
             network: {
                 key: ONYXKEYS.NETWORK,
-            },
-            currentlyViewedReportID: {
-                key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
             },
         },
     ),
