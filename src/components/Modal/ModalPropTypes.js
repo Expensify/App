@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import CONST from '../../CONST';
 import {windowDimensionsPropTypes} from '../withWindowDimensions';
 
-const baseModalPropTypes = {
+const modalPropTypes = {
     // Callback method fired when the user requests to close the modal
     onClose: PropTypes.func.isRequired,
 
@@ -18,10 +18,6 @@ const baseModalPropTypes = {
     // Callback method fired when the modal is hidden
     onModalHide: PropTypes.func,
 
-    ...windowDimensionsPropTypes,
-};
-
-const modalPropTypes = {
     // Style of modal to display
     type: PropTypes.oneOf([
         CONST.MODAL.MODAL_TYPE.CENTERED,
@@ -29,10 +25,7 @@ const modalPropTypes = {
         CONST.MODAL.MODAL_TYPE.POPOVER,
         CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
     ]),
-    ...baseModalPropTypes,
+    ...windowDimensionsPropTypes,
 };
 
-export {
-    baseModalPropTypes,
-    modalPropTypes,
-};
+export default modalPropTypes;
