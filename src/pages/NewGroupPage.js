@@ -236,21 +236,23 @@ class NewGroupPage extends Component {
                         disableArrowKeysActions
                         hideAdditionalOptionStates
                     />
-                    <View style={[styles.ph5, styles.pb5]}>
-                        <Pressable
-                            onPress={this.createGroup}
-                            style={({hovered}) => [
-                                styles.button,
-                                styles.buttonSuccess,
-                                styles.w100,
-                                hovered && styles.buttonSuccessHovered,
-                            ]}
-                        >
-                            <Text style={[styles.buttonText, styles.buttonSuccessText]}>
-                                Create Group
-                            </Text>
-                        </Pressable>
-                    </View>
+                    {this.state.selectedOptions?.length > 0 && (
+                        <View style={[styles.ph5, styles.pb5]}>
+                            <Pressable
+                                onPress={this.createGroup}
+                                style={({hovered}) => [
+                                    styles.button,
+                                    styles.buttonSuccess,
+                                    styles.w100,
+                                    hovered && styles.buttonSuccessHovered,
+                                ]}
+                            >
+                                <Text style={[styles.buttonText, styles.buttonSuccessText]}>
+                                    Create Group
+                                </Text>
+                            </Pressable>
+                        </View>
+                    )}
                 </View>
                 <KeyboardSpacer />
             </>
