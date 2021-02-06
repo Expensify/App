@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -32,7 +32,7 @@ const defaultProps = {
     currentlyViewedReportID: '',
 };
 
-const RightDockedModal = ({
+const RightDockedModal = memo(({
     currentlyViewedReportID, isVisible, title, children,
 }) => (
     <ModalWithHeader
@@ -46,7 +46,7 @@ const RightDockedModal = ({
     >
         {children}
     </ModalWithHeader>
-);
+));
 
 RightDockedModal.propTypes = propTypes;
 RightDockedModal.defaultProps = defaultProps;

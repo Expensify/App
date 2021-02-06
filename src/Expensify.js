@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {PureComponent} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Onyx, {withOnyx} from 'react-native-onyx';
@@ -56,7 +56,7 @@ const defaultProps = {
     redirectTo: '',
 };
 
-class Expensify extends Component {
+class Expensify extends PureComponent {
     constructor(props) {
         super(props);
 
