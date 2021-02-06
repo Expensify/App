@@ -25,6 +25,30 @@ const defaultProps = {
 };
 
 class MainView extends Component {
+    shouldComponentUpdate(nextProps) {
+        if (nextProps.currentlyViewedReportID !== this.props.currentlyViewedReportID) {
+            return true;
+        }
+
+        const nextPropsReports = _.mapObject(nextProps.reports, (val) => {
+            const reportObject = {...val};
+            delete reportObject.lastVisitedTimestamp;
+            return reportObject;
+        });
+
+        const currentPropsReports = _.mapObject(this.props.reports, (val) => {
+            const reportObject = {...val};
+            delete reportObject.lastVisitedTimestamp;
+            return reportObject;
+        });
+
+        if (!_.isEqual(nextPropsReports, currentPropsReports)) {
+            return true;
+        }
+
+        return false;
+    }
+
     render() {
         let activeReportID = parseInt(this.props.currentlyViewedReportID, 10);
 
@@ -76,9 +100,6 @@ export default compose(
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
-        },
-        currentURL: {
-            key: ONYXKEYS.CURRENT_URL,
         },
         currentlyViewedReportID: {
             key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
