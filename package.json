@@ -47,6 +47,7 @@
     "lodash.get": "^4.4.2",
     "lodash.has": "^4.5.2",
     "lodash.orderby": "^4.6.0",
+    "lodash.transform": "^4.6.0",
     "metro-config": "^0.64.0",
     "mime-types": "^2.1.28",
     "modal-enhanced-react-native-web": "^0.2.0",

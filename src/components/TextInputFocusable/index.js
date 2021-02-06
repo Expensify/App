@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {PureComponent} from 'react';
 import {TextInput, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -55,7 +55,7 @@ const defaultProps = {
 /**
  * On web we like to have the Text Input field always focused so the user can easily type a new chat
  */
-class TextInputFocusable extends React.Component {
+class TextInputFocusable extends PureComponent {
     constructor(props) {
         super(props);
 
