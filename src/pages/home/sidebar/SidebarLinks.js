@@ -8,16 +8,15 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import ChatSwitcherView from './ChatSwitcherView';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
 import compose from '../../../libs/compose';
-import {withRouter} from '../../../libs/Router';
 import {redirect} from '../../../libs/actions/App';
 import ROUTES from '../../../ROUTES';
 import * as ChatSwitcher from '../../../libs/actions/ChatSwitcher';
 import Icon from '../../../components/Icon';
-import {MagnifyingGlass} from '../../../components/Icon/Expensicons';
 import Header from '../../../components/Header';
+import OptionsList from '../../../components/OptionsList';
+import {MagnifyingGlass} from '../../../components/Icon/Expensicons';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
-import OptionsList from '../../../components/OptionsList';
 import {getSidebarOptions} from '../../../libs/OptionsListUtils';
 import {getDefaultAvatar} from '../../../libs/actions/PersonalDetails';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
@@ -210,7 +209,6 @@ SidebarLinks.propTypes = propTypes;
 SidebarLinks.defaultProps = defaultProps;
 
 export default compose(
-    withRouter,
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,

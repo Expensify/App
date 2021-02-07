@@ -3,10 +3,10 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
-import ReportView from './report/ReportView';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import compose from '../../libs/compose';
+import ReportView from './report/ReportView';
 
 const propTypes = {
     /* Onyx Props */
