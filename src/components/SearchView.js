@@ -2,15 +2,14 @@ import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import OptionsSelector from '../components/OptionsSelector';
-import {getNewChatOptions} from '../libs/OptionsListUtils';
+import OptionsSelector from './OptionsSelector';
+import {getSearchOptions} from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
-import {fetchOrCreateChatReport} from '../libs/actions/Report';
-import KeyboardSpacer from '../components/KeyboardSpacer';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
-import {hide as hideSidebar} from '../libs/actions/Sidebar';
-import CONST from '../CONST';
+import KeyboardSpacer from './KeyboardSpacer';
+import {redirect} from '../libs/actions/App';
+import ROUTES from '../ROUTES';
+import {hide as hideChatSwitcher} from '../libs/actions/ChatSwitcher';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -25,6 +24,11 @@ const personalDetailsPropTypes = PropTypes.shape({
 });
 
 const propTypes = {
+    // Toggles the navigation menu open and closed
+    onLinkClick: PropTypes.func.isRequired,
+
+    /* Onyx Props */
+
     // All of the personal details for everyone
     personalDetails: PropTypes.objectOf(personalDetailsPropTypes).isRequired,
 
@@ -38,20 +42,17 @@ const propTypes = {
     session: PropTypes.shape({
         email: PropTypes.string.isRequired,
     }).isRequired,
-
-    ...windowDimensionsPropTypes,
 };
 
-class NewChatPage extends Component {
+class SearchView extends Component {
     constructor(props) {
         super(props);
 
-        this.createNewChat = this.createNewChat.bind(this);
+        this.selectReport = this.selectReport.bind(this);
 
         const {
-            personalDetails,
-            userToInvite,
-        } = getNewChatOptions(
+            recentReports,
+        } = getSearchOptions(
             props.reports,
             props.personalDetails,
             '',
@@ -59,28 +60,7 @@ class NewChatPage extends Component {
 
         this.state = {
             searchValue: '',
-            personalDetails,
-            userToInvite,
-        };
-    }
-
-    /**
-     * Helper method that returns the text to be used for the header's message and title (if any)
-     *
-     * @return {String}
-     */
-    getHeaderTitleAndMessage() {
-        const hasSelectableOptions = this.state.personalDetails.length !== 0;
-        if (!hasSelectableOptions && !this.state.userToInvite) {
-            return {
-                headerTitle: '',
-                headerMessage: CONST.MESSAGES.NO_CONTACTS_FOUND,
-            };
-        }
-
-        return {
-            headerTitle: '',
-            headerMessage: '',
+            recentReports,
         };
     }
 
@@ -93,42 +73,39 @@ class NewChatPage extends Component {
         const sections = [];
 
         sections.push({
-            title: 'CONTACTS',
-            data: this.state.personalDetails,
-            shouldShow: this.state.personalDetails.length > 0,
+            title: 'RECENT',
+            data: this.state.recentReports,
+            shouldShow: this.state.recentReports.length > 0,
             indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
         });
-
-        if (this.state.userToInvite) {
-            sections.push(({
-                undefined,
-                data: [this.state.userToInvite],
-                shouldShow: true,
-                indexOffset: 0,
-            }));
-        }
 
         return sections;
     }
 
     /**
-     * Creates a new chat with the option
+     * Redirect to the selected report
+     *
      * @param {Object} option
      */
-    createNewChat(option) {
-        if (this.props.isSmallScreenWidth) {
-            hideSidebar();
-        }
+    selectReport(option) {
+        redirect(ROUTES.getReportRoute(option.reportID));
+        this.reset();
+    }
 
-        fetchOrCreateChatReport([
-            this.props.session.email,
-            option.login,
-        ]);
+    /**
+     * Reset the component to it's default state and redirects the user to the chat
+     */
+    reset() {
+        this.setState({
+            searchValue: '',
+        }, () => {
+            hideChatSwitcher();
+            this.props.onLinkClick();
+        });
     }
 
     render() {
         const sections = this.getSections();
-        const {headerTitle, headerMessage} = this.getHeaderTitleAndMessage();
 
         return (
             <>
@@ -136,28 +113,22 @@ class NewChatPage extends Component {
                     <OptionsSelector
                         sections={sections}
                         value={this.state.searchValue}
-                        onSelectRow={this.createNewChat}
+                        onSelectRow={this.selectReport}
                         onChangeText={(searchValue = '') => {
                             const {
-                                personalDetails,
-                                userToInvite,
-                            } = getNewChatOptions(
+                                recentReports,
+                            } = getSearchOptions(
                                 this.props.reports,
                                 this.props.personalDetails,
                                 searchValue,
                             );
                             this.setState({
                                 searchValue,
-                                userToInvite,
-                                personalDetails,
+                                recentReports,
                             });
                         }}
-                        headerTitle={headerTitle}
-                        headerMessage={headerMessage}
                         hideSectionHeaders
-                        disableArrowKeysActions
                         hideAdditionalOptionStates
-                        forceTextUnreadStyle
                     />
                 </View>
                 <KeyboardSpacer />
@@ -166,9 +137,9 @@ class NewChatPage extends Component {
     }
 }
 
-NewChatPage.propTypes = propTypes;
+SearchView.propTypes = propTypes;
 
-export default withWindowDimensions(withOnyx({
+export default withOnyx({
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,
     },
@@ -178,4 +149,4 @@ export default withWindowDimensions(withOnyx({
     session: {
         key: ONYXKEYS.SESSION,
     },
-})(NewChatPage));
+})(SearchView);
