@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {forwardRef, memo} from 'react';
+import React, {forwardRef, Component} from 'react';
 import {View, SectionList, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
@@ -74,95 +74,114 @@ const defaultProps = {
     innerRef: null,
 };
 
-const OptionsList = memo(({
-    contentContainerStyles,
-    sections,
-    focusedIndex,
-    selectedOptions,
-    canSelectMultipleOptions,
-    hideSectionHeaders,
-    disableFocusOptions,
-    hideAdditionalOptionStates,
-    onSelectRow,
-    headerMessage,
-    headerTitle,
-    innerRef,
-}) => (
-    <View style={[styles.flex1]}>
-        {headerMessage ? (
-            <View style={[styles.ph5, styles.pb5]}>
-                {headerTitle ? (
-                    <Text style={[styles.h4, styles.mb1]}>
-                        {headerTitle}
+class OptionsList extends Component {
+    constructor(props) {
+        super(props);
+
+        this.renderSectionHeader = this.renderSectionHeader.bind(this);
+        this.renderItem = this.renderItem.bind(this);
+        this.extractKey = this.extractKey.bind(this);
+        this.onScrollToIndexFailed = this.onScrollToIndexFailed.bind(this);
+    }
+
+    shouldComponentUpdate(nextProps) {
+        if (nextProps.focusedIndex !== this.props.focusedIndex) {
+            return true;
+        }
+
+        if (nextProps.selectedOptions.length !== this.props.selectedOptions.length) {
+            return true;
+        }
+
+        if (nextProps.headerTitle !== this.props.headerTitle) {
+            return true;
+        }
+
+        if (nextProps.headerMessage !== this.props.headerMessage) {
+            return true;
+        }
+
+        if (!_.isEqual(nextProps.sections, this.props.sections)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    onScrollToIndexFailed(error) {
+        console.debug(error);
+    }
+
+    extractKey(option) {
+        return option.keyForList;
+    }
+
+    renderSectionHeader({section: {title, shouldShow}}) {
+        if (title && shouldShow && !this.props.hideSectionHeaders) {
+            return (
+                <View>
+                    <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
+                        {title}
                     </Text>
-                ) : null}
+                </View>
+            );
+        }
 
-                <Text style={[styles.textLabel, styles.colorMuted]}>
-                    {headerMessage}
-                </Text>
-            </View>
-        ) : null}
-        <SectionList
-            ref={innerRef}
-            bounces={false}
-            indicatorStyle="white"
-            keyboardShouldPersistTaps="always"
-            contentContainerStyle={[...contentContainerStyles]}
-            showsVerticalScrollIndicator={false}
-            sections={sections}
-            keyExtractor={option => option.keyForList}
-            initialNumToRender={500}
-            onScrollToIndexFailed={error => console.debug(error)}
-            stickySectionHeadersEnabled={false}
-            renderItem={({item, index, section}) => (
-                <OptionRow
-                    option={item}
-                    optionIsFocused={!disableFocusOptions && focusedIndex === (index + section.indexOffset)}
-                    onSelectRow={onSelectRow}
-                    isSelected={Boolean(_.find(selectedOptions, option => option.login === item.login))}
-                    showSelectedState={canSelectMultipleOptions}
-                    hideAdditionalOptionStates={hideAdditionalOptionStates}
-                />
-            )}
-            renderSectionHeader={({section: {title, shouldShow}}) => {
-                if (title && shouldShow && !hideSectionHeaders) {
-                    return (
-                        <View>
-                            <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
-                                {title}
-                            </Text>
-                        </View>
-                    );
+        return <View />;
+    }
+
+    renderItem({item, index, section}) {
+        return (
+            <OptionRow
+                option={item}
+                optionIsFocused={
+                    !this.props.disableFocusOptions
+                        && this.props.focusedIndex === (index + section.indexOffset)
                 }
-
-                return <View />;
-            }}
-            extraData={focusedIndex}
-        />
-    </View>
-), (prevProps, nextProps) => {
-    if (prevProps.focusedIndex !== nextProps.focusedIndex) {
-        return false;
+                onSelectRow={this.props.onSelectRow}
+                isSelected={Boolean(_.find(this.props.selectedOptions, option => option.login === item.login))}
+                showSelectedState={this.props.canSelectMultipleOptions}
+                hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
+            />
+        );
     }
 
-    if (prevProps.selectedOptions.length !== nextProps.selectedOptions.length) {
-        return false;
-    }
+    render() {
+        return (
+            <View style={[styles.flex1]}>
+                {this.props.headerMessage ? (
+                    <View style={[styles.ph5, styles.pb5]}>
+                        {this.props.headerTitle ? (
+                            <Text style={[styles.h4, styles.mb1]}>
+                                {this.props.headerTitle}
+                            </Text>
+                        ) : null}
 
-    if (prevProps.headerTitle !== nextProps.headerTitle) {
-        return false;
+                        <Text style={[styles.textLabel, styles.colorMuted]}>
+                            {this.props.headerMessage}
+                        </Text>
+                    </View>
+                ) : null}
+                <SectionList
+                    ref={this.props.innerRef}
+                    bounces={false}
+                    indicatorStyle="white"
+                    keyboardShouldPersistTaps="always"
+                    contentContainerStyle={[...this.props.contentContainerStyles]}
+                    showsVerticalScrollIndicator={false}
+                    sections={this.props.sections}
+                    keyExtractor={this.extractKey}
+                    initialNumToRender={500}
+                    onScrollToIndexFailed={this.onScrollToIndexFailed}
+                    stickySectionHeadersEnabled={false}
+                    renderItem={this.renderItem}
+                    renderSectionHeader={this.renderSectionHeader}
+                    extraData={this.props.focusedIndex}
+                />
+            </View>
+        );
     }
-
-    if (prevProps.headerMessage !== nextProps.headerMessage) {
-        return false;
-    }
-
-    if (!_.isEqual(prevProps.sections, nextProps.sections)) {
-        return false;
-    }
-
-    return true;
-});
+}
 
 OptionsList.displayName = 'OptionsList';
 OptionsList.propTypes = propTypes;
