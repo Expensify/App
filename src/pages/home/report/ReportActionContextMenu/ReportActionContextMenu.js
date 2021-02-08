@@ -1,46 +1,12 @@
 import React from 'react';
 import {Pressable, View} from 'react-native';
 import PropTypes from 'prop-types';
-import styles from '../../../styles/styles';
-import getReportActionContextMenuStyles from '../../../styles/getReportActionContextMenuStyles';
-import getButtonState from '../../../libs/getButtonState';
-import Icon from '../../../components/Icon';
-import {
-    Clipboard, LinkCopy, Mail, Pencil, Trashcan,
-} from '../../../components/Icon/Expensicons';
-import Tooltip from '../../../components/Tooltip';
-
-const contextActions = [
-    // Copy to clipboard
-    {
-        text: 'Copy to Clipboard',
-        icon: Clipboard,
-    },
-
-    // Copy chat link
-    {
-        text: 'Copy Link',
-        icon: LinkCopy,
-    },
-
-    // Mark as Unread
-    {
-        text: 'Mark as Unread',
-        icon: Mail,
-    },
-
-    // Edit Comment
-    {
-        text: 'Edit Comment',
-        icon: Pencil,
-    },
-
-    // Delete Comment
-    {
-        text: 'Delete Comment',
-        icon: Trashcan,
-    },
-];
+import styles from '../../../../styles/styles';
+import getReportActionContextMenuStyles from '../../../../styles/getReportActionContextMenuStyles';
+import getButtonState from '../../../../libs/getButtonState';
+import ContextActions from './ContextActions';
+import Icon from '../../../../components/Icon';
+import Tooltip from '../../../../components/Tooltip';
 
 const propTypes = {
     // The ID of the report this report action is attached to.
@@ -72,7 +38,7 @@ const ReportActionContextMenu = (props) => {
             styles.flex1,
         ]}
         >
-            {contextActions.map(contextAction => (
+            {ContextActions.map(contextAction => (
                 <Tooltip
                     text={contextAction.text}
                     key={contextAction.text}
