@@ -1,6 +1,8 @@
 const path = require('path');
 const webpack = require('webpack');
 const {merge} = require('webpack-merge');
+// eslint-disable-next-line no-unused-vars
+const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
 const dotenv = require('dotenv');
 const common = require('./webpack.common.js');
 
@@ -10,6 +12,8 @@ module.exports = merge(common, {
     mode: 'production',
     devtool: 'source-map',
     plugins: [
+        // Uncomment this and run `npm run build` to interactively inspect JS bundle contents
+        // new BundleAnalyzerPlugin(),
         new webpack.DefinePlugin({
             __REACT_WEB_CONFIG__: JSON.stringify(env),
 
