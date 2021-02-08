@@ -23,7 +23,7 @@ jobs:
             - name: CLA Assistant
               if: ${{ steps.recheck.outputs.match != '' || steps.sign.outputs.match != '' }} || github.event_name == 'pull_request_target'
               # Version: 2.0.3-alpha
-              uses: cla-assistant/github-action@c89158d361bea4a5a06ff7781b6c4e8aa49dbcc9
+              uses: cla-assistant/github-action@50267bf6156835b55d5f7b74d0da0cf0bf26cfe5
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   PERSONAL_ACCESS_TOKEN : ${{ secrets.CLA_BOTIFY_TOKEN }}
