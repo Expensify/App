@@ -1,6 +1,6 @@
 {
   "name": "expensify.cash",
-  "version": "1.0.1-422",
+  "version": "1.0.1-425",
   "author": "Expensify, Inc.",
   "homepage": "https://expensify.cash",
   "description": "Expensify.cash is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -49,7 +49,6 @@
     "lodash.orderby": "^4.6.0",
     "metro-config": "^0.64.0",
     "mime-types": "^2.1.28",
-    "modal-enhanced-react-native-web": "^0.2.0",
     "moment": "^2.27.0",
     "moment-timezone": "^0.5.31",
     "prop-types": "^15.7.2",
