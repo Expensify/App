@@ -934,8 +934,8 @@ const styles = {
     },
 
     miniReportActionContextMenuWrapperStyle: {
+        ...positioning.tn4,
         ...positioning.r4,
-        ...spacing.mt2,
         position: 'absolute',
     },
 
