@@ -6,7 +6,7 @@ import ReportActionPropTypes from './ReportActionPropTypes';
 import ReportActionItemGrouped from './ReportActionItemGrouped';
 import getReportActionItemContainerStyles from '../../../styles/getReportActionItemContainerStyles';
 import styles from '../../../styles/styles';
-import ReportActionContextMenu from './ReportActionContextMenu/ReportActionContextMenu';
+import ReportActionContextMenu from './ReportActionContextMenu';
 import Hoverable from '../../../components/Hoverable';
 
 const propTypes = {
