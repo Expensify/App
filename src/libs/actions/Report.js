@@ -433,82 +433,6 @@ function unsubscribeFromReportChannel(reportID) {
 }
 
 /**
- * Get all chat reports and provide the proper report name
- * by fetching sharedReportList and personalDetails
- *
- * @returns {Promise} only used internally when fetchAll() is called
- */
-function fetchChatReports() {
-    return API.Get({
-        returnValueList: 'chatList',
-    })
-
-        // The string cast below is necessary as Get rvl='chatList' may return an int
-        .then(({chatList}) => {
-            // If they don't have any chats, create one with Concierge
-            if (!chatList.length) {
-                fetchOrCreateChatReport([currentUserEmail, 'concierge@expensify.com']);
-            }
-            fetchChatReportsByIDs(String(chatList).split(','));
-        });
-}
-
-/**
- * Get the actions of a report
- *
- * @param {Number} reportID
- */
-function fetchActions(reportID) {
-    API.Report_GetHistory({reportID})
-        .then((data) => {
-            // We must remove all optimistic actions so there will not be any stuck comments. At this point, we should
-            // be caught up and no longer need any optimistic comments.
-            removeOptimisticActions(reportID);
-
-            const indexedData = _.indexBy(data.history, 'sequenceNumber');
-            const maxSequenceNumber = _.chain(data.history)
-                .pluck('sequenceNumber')
-                .max()
-                .value();
-
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, indexedData);
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {maxSequenceNumber});
-        });
-}
-
-/**
- * Get all of our reports
- *
- * @param {Boolean} shouldRedirectToReport this is set to false when the network reconnect code runs
- * @param {Boolean} shouldFetchActions whether or not the actions of the reports should also be fetched
- * @param {Boolean} shouldRecordHomePageTiming whether or not performance timing should be measured
- */
-function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false, shouldRecordHomePageTiming = false) {
-    fetchChatReports()
-        .then((reportIDs) => {
-            if (shouldRedirectToReport && (currentURL === ROUTES.ROOT || currentURL === ROUTES.HOME)) {
-                // Redirect to either the last viewed report ID or the first report ID from our report collection
-                if (lastViewedReportID) {
-                    redirect(ROUTES.getReportRoute(lastViewedReportID));
-                } else {
-                    redirect(ROUTES.getReportRoute(_.first(reportIDs)));
-                }
-            }
-
-            if (shouldFetchActions) {
-                _.each(reportIDs, (reportID) => {
-                    console.debug(`[RECONNECT] Fetching report actions for report ${reportID}`);
-                    fetchActions(reportID);
-                });
-            }
-
-            if (shouldRecordHomePageTiming) {
-                Timing.end(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
-            }
-        });
-}
-
-/**
  * Get the report ID, and then the actions, for a chat report for a specific
  * set of participants
  *
@@ -566,6 +490,83 @@ function fetchOrCreateChatReport(participants) {
 
             // Redirect the logged in person to the new report
             redirect(ROUTES.getReportRoute(reportID));
+        });
+}
+
+/**
+ * Get all chat reports and provide the proper report name
+ * by fetching sharedReportList and personalDetails
+ *
+ * @returns {Promise} only used internally when fetchAll() is called
+ */
+function fetchChatReports() {
+    return API.Get({
+        returnValueList: 'chatList',
+    })
+
+        // The string cast below is necessary as Get rvl='chatList' may return an int
+        .then(({chatList}) => {
+            // Get all the chat reports if they have any, otherwise create one with concierge
+            if (chatList.length) {
+                fetchChatReportsByIDs(String(chatList).split(','));
+            } else {
+                fetchOrCreateChatReport([currentUserEmail, 'concierge@expensify.com']);
+            }
+        });
+}
+
+/**
+ * Get the actions of a report
+ *
+ * @param {Number} reportID
+ */
+function fetchActions(reportID) {
+    API.Report_GetHistory({reportID})
+        .then((data) => {
+            // We must remove all optimistic actions so there will not be any stuck comments. At this point, we should
+            // be caught up and no longer need any optimistic comments.
+            removeOptimisticActions(reportID);
+
+            const indexedData = _.indexBy(data.history, 'sequenceNumber');
+            const maxSequenceNumber = _.chain(data.history)
+                .pluck('sequenceNumber')
+                .max()
+                .value();
+
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, indexedData);
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {maxSequenceNumber});
+        });
+}
+
+/**
+ * Get all of our reports
+ *
+ * @param {Boolean} shouldRedirectToReport this is set to false when the network reconnect code runs
+ * @param {Boolean} shouldFetchActions whether or not the actions of the reports should also be fetched
+ * @param {Boolean} shouldRecordHomePageTiming whether or not performance timing should be measured
+ */
+function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false, shouldRecordHomePageTiming = false) {
+    fetchChatReports()
+        .then((reportIDs) => {
+            if (shouldRedirectToReport && (currentURL === ROUTES.ROOT || currentURL === ROUTES.HOME)) {
+                // Redirect to either the last viewed report ID or the first report ID from our report collection
+                if (lastViewedReportID) {
+                    redirect(ROUTES.getReportRoute(lastViewedReportID));
+                } else {
+                    redirect(ROUTES.getReportRoute(_.first(reportIDs)));
+                }
+            }
+
+            if (shouldFetchActions) {
+                _.each(reportIDs, (reportID) => {
+                    console.debug(`[RECONNECT] Fetching report actions for report ${reportID}`);
+                    fetchActions(reportID);
+                });
+            }
+
+            if (shouldRecordHomePageTiming) {
+                Timing.end(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
+            }
         });
 }
 
