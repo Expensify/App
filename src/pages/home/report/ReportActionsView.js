@@ -306,7 +306,6 @@ class ReportActionsView extends React.Component {
                     data={this.sortedReportActions}
                     renderItem={this.renderItem}
                     onScroll={this.updateReportActionContextMenuPosition}
-                    scrollEventThrottle={32}
                     contentContainerStyle={[styles.chatContentScrollView]}
                     keyExtractor={item => `${item.action.sequenceNumber}`}
                     initialRowHeight={32}
