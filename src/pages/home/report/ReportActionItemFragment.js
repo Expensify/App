@@ -1,12 +1,13 @@
-import React from 'react';
+import React, {Suspense, lazy} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import ReportActionFragmentPropTypes from './ReportActionFragmentPropTypes';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
-import RenderHTML from '../../../components/RenderHTML';
 import Text from '../../../components/Text';
+
+const RenderHTML = lazy(() => import('../../../components/RenderHTML'));
 
 const propTypes = {
     // The message fragment needing to be displayed
@@ -44,7 +45,9 @@ class ReportActionItemFragment extends React.PureComponent {
 
                 // Only render HTML if we have html in the fragment
                 return fragment.html !== fragment.text ? (
-                    <RenderHTML html={fragment.html} debug={false} />
+                    <Suspense fallback={<View />}>
+                        <RenderHTML html={fragment.html} debug={false} />
+                    </Suspense>
                 ) : (
                     <Text selectable>{Str.htmlDecode(fragment.text)}</Text>
                 );
