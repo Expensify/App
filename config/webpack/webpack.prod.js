@@ -1,7 +1,6 @@
 const path = require('path');
 const webpack = require('webpack');
 const {merge} = require('webpack-merge');
-// eslint-disable-next-line no-unused-vars
 const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
 const dotenv = require('dotenv');
 const common = require('./webpack.common.js');
