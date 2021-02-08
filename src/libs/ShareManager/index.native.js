@@ -62,7 +62,12 @@ function register() {
  * Removes share events listener.
  */
 function deregister() {
+    if (!listener) {
+        return;
+    }
+
     listener.remove();
+    listener = undefined;
 }
 
 export default {
