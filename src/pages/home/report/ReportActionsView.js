@@ -16,7 +16,6 @@ import InvertedFlatList from '../../../components/InvertedFlatList';
 import {lastItem} from '../../../libs/CollectionUtils';
 import Visibility from '../../../libs/Visibility';
 import ReportActionContextMenu from './ReportActionContextMenu/ReportActionContextMenu';
-import Hoverable from '../../../components/Hoverable';
 
 const propTypes = {
     // The ID of the report actions will be created for
@@ -54,7 +53,6 @@ class ReportActionsView extends React.Component {
         this.sortedReportActions = this.updateSortedReportActions();
         this.timers = [];
         this.reportActionItemRefs = {};
-        this.isReportActionContextMenuHovered = false;
 
         this.state = {
             refetchNeeded: true,
@@ -250,36 +248,22 @@ class ReportActionsView extends React.Component {
     }) {
         const reportActionID = item.action.sequenceNumber;
         return (
-            <Hoverable
-                onHoverIn={() => {
-                    this.setState(
-                        {activeReportActionID: reportActionID},
-                        this.updateReportActionContextMenuPosition,
-                    );
+            <ReportActionItem
+                action={item.action}
+                displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
+                setIsActive={(isActive) => {
+                    if (isActive) {
+                        this.setState({
+                            activeReportActionID: reportActionID,
+                        }, this.updateReportActionContextMenuPosition);
+                    } else {
+                        this.setState({activeReportActionID: null});
+                    }
                 }}
-                onHoverOut={() => {
-                    setTimeout(() => {
-                        if (reportActionID === this.state.activeReportActionID
-                            && !this.isReportActionContextMenuHovered) {
-                            this.setState({activeReportActionID: null});
-                        }
-                    }, 100);
-                }}
-            >
-                {hovered => (
-                    <ReportActionItem
-                        action={item.action}
-                        displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
-                        isHovered={hovered || (
-                            reportActionID === this.state.activeReportActionID
-                            && this.isReportActionContextMenuHovered
-                        )}
-                        ref={el => this.reportActionItemRefs[reportActionID] = el}
-                        onLayout={onLayout}
-                        needsLayoutCalculation={needsLayoutCalculation}
-                    />
-                )}
-            </Hoverable>
+                ref={el => this.reportActionItemRefs[reportActionID] = el}
+                onLayout={onLayout}
+                needsLayoutCalculation={needsLayoutCalculation}
+            />
         );
     }
 
@@ -316,21 +300,15 @@ class ReportActionsView extends React.Component {
                     right: 16,
                 }}
                 >
-                    <Hoverable
-                        onHoverIn={() => this.isReportActionContextMenuHovered = true}
-                        onHoverOut={() => this.isReportActionContextMenuHovered = false}
-                    >
-                        <ReportActionContextMenu
-                            reportID={0}
-                            reportActionID={0}
-                            shouldShow={
-                                !_.isNull(this.state.activeReportActionID)
-                                && !_.isNull(this.state.reportActionContextMenuVerticalPosition)
-                                && this.state.reportActionContextMenuVerticalPosition > 16
-                            }
-                            isMini
-                        />
-                    </Hoverable>
+                    <ReportActionContextMenu
+                        reportID={0}
+                        reportActionID={0}
+                        shouldShow={
+                            !_.isNull(this.state.activeReportActionID)
+                            && !_.isNull(this.state.reportActionContextMenuVerticalPosition)
+                        }
+                        isMini
+                    />
                 </View>
             </>
         );
