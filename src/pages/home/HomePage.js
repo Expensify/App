@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {Component, Suspense, lazy} from 'react';
+import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {
     View,
@@ -15,6 +15,8 @@ import variables from '../../styles/variables';
 import HeaderView from './HeaderView';
 import Sidebar from './sidebar/SidebarView';
 import MainView from './MainView';
+import NewGroupPage from '../NewGroupPage';
+import NewChatPage from '../NewChatPage';
 import SettingsPage from '../SettingsPage';
 import {
     hide as hideSidebar,
@@ -44,10 +46,6 @@ import RightDockedModal from '../../components/RightDockedModal';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import compose from '../../libs/compose';
 import {getBetas} from '../../libs/actions/User';
-import FullScreenActivityIndicator from '../../components/FullScreenActivityIndicator';
-
-const NewGroupPage = lazy(() => import('../NewGroupPage'));
-const NewChatPage = lazy(() => import('../NewChatPage'));
 
 const propTypes = {
     isSidebarShown: PropTypes.bool,
@@ -327,17 +325,13 @@ class HomePage extends Component {
                                         title="New Group"
                                         route={ROUTES.NEW_GROUP}
                                     >
-                                        <Suspense fallback={<FullScreenActivityIndicator />}>
-                                            <NewGroupPage />
-                                        </Suspense>
+                                        <NewGroupPage />
                                     </RightDockedModal>
                                     <RightDockedModal
                                         title="New Chat"
                                         route={ROUTES.NEW_CHAT}
                                     >
-                                        <Suspense fallback={<FullScreenActivityIndicator />}>
-                                            <NewChatPage />
-                                        </Suspense>
+                                        <NewChatPage />
                                     </RightDockedModal>
                                     <MainView />
                                 </View>
