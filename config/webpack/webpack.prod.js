@@ -12,8 +12,8 @@ module.exports = merge(common, {
     mode: 'production',
     devtool: 'source-map',
     plugins: [
-        // Uncomment this and run `npm run build` to interactively inspect JS bundle contents
-        // new BundleAnalyzerPlugin(),
+        // This allows us to interactively inspect JS bundle contents
+        ...(process.env.ANALYZE_BUNDLE === 'true' ? [new BundleAnalyzerPlugin()] : []),
         new webpack.DefinePlugin({
             __REACT_WEB_CONFIG__: JSON.stringify(env),
 
