@@ -40,8 +40,11 @@ const propTypes = {
     // Whether to allow option focus or not
     disableFocusOptions: PropTypes.bool,
 
-    // A flag to indicate wheter to show additional optional states, such as pin icon or different read/unread styles
+    // A flag to indicate wheter to show additional optional states, such as pin and draft icons
     hideAdditionalOptionStates: PropTypes.bool,
+
+    // Force the text style to be the unread style on all rows
+    forceTextUnreadStyle: PropTypes.bool,
 
     // Callback to fire when a row is selected
     onSelectRow: PropTypes.func,
@@ -68,6 +71,7 @@ const defaultProps = {
     hideSectionHeaders: false,
     disableFocusOptions: false,
     hideAdditionalOptionStates: false,
+    forceTextUnreadStyle: false,
     onSelectRow: () => {},
     headerMessage: '',
     headerTitle: '',
@@ -83,6 +87,7 @@ const OptionsList = ({
     hideSectionHeaders,
     disableFocusOptions,
     hideAdditionalOptionStates,
+    forceTextUnreadStyle,
     onSelectRow,
     headerMessage,
     headerTitle,
@@ -122,6 +127,7 @@ const OptionsList = ({
                     isSelected={Boolean(_.find(selectedOptions, option => option.login === item.login))}
                     showSelectedState={canSelectMultipleOptions}
                     hideAdditionalOptionStates={hideAdditionalOptionStates}
+                    forceTextUnreadStyle={forceTextUnreadStyle}
                 />
             )}
             renderSectionHeader={({section: {title, shouldShow}}) => {
