@@ -41,11 +41,13 @@ function prepareSharedItem(sharedItem) {
  * @param {Object} sharedItem
  */
 function handleShare(sharedItem) {
-    if (sharedItem) {
-        const preparedSharedItem = prepareSharedItem(sharedItem);
-        setSharedItem(preparedSharedItem);
-        redirect(ROUTES.SHARE);
+    if (!sharedItem) {
+        return;
     }
+
+    const preparedSharedItem = prepareSharedItem(sharedItem);
+    setSharedItem(preparedSharedItem);
+    redirect(ROUTES.SHARE);
 }
 
 /**
