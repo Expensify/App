@@ -323,22 +323,18 @@ class HomePage extends React.Component {
                                     >
                                         <SettingsPage />
                                     </RightDockedModal>
-                                    {this.props.currentURL === ROUTES.NEW_GROUP && (
-                                        <RightDockedModal
-                                            title="New Group"
-                                            isVisible={this.props.currentURL === ROUTES.NEW_GROUP}
-                                        >
-                                            <NewGroupPage />
-                                        </RightDockedModal>
-                                    )}
-                                    {this.props.currentURL === ROUTES.NEW_CHAT && (
-                                        <RightDockedModal
-                                            title="New Chat"
-                                            isVisible={this.props.currentURL === ROUTES.NEW_CHAT}
-                                        >
-                                            <NewChatPage />
-                                        </RightDockedModal>
-                                    )}
+                                    <RightDockedModal
+                                        title="New Group"
+                                        isVisible={this.props.currentURL === ROUTES.NEW_GROUP}
+                                    >
+                                        <NewGroupPage />
+                                    </RightDockedModal>
+                                    <RightDockedModal
+                                        title="New Chat"
+                                        isVisible={this.props.currentURL === ROUTES.NEW_CHAT}
+                                    >
+                                        <NewChatPage />
+                                    </RightDockedModal>
                                     <Main />
                                 </View>
                             </Route>
