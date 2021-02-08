@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {Suspense, lazy} from 'react';
 import PropTypes from 'prop-types';
 import {
     View,
@@ -13,7 +13,6 @@ import styles, {getSafeAreaPadding, getNavigationMenuStyle} from '../../styles/s
 import variables from '../../styles/variables';
 import HeaderView from './HeaderView';
 import Sidebar from './sidebar/SidebarView';
-import NewGroupPage from '../NewGroupPage';
 import SettingsPage from '../SettingsPage';
 import Main from './MainView';
 import {
@@ -44,7 +43,10 @@ import RightDockedModal from '../../components/RightDockedModal';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import compose from '../../libs/compose';
 import {getBetas} from '../../libs/actions/User';
-import NewChatPage from '../NewChatPage';
+import FullScreenActivityIndicator from '../../components/FullScreenActivityIndicator';
+
+const NewGroupPage = lazy(() => import('../NewGroupPage'));
+const NewChatPage = lazy(() => import('../NewChatPage'));
 
 const propTypes = {
     isSidebarShown: PropTypes.bool,
@@ -323,22 +325,22 @@ class HomePage extends React.Component {
                                     >
                                         <SettingsPage />
                                     </RightDockedModal>
-                                    {this.props.currentURL === ROUTES.NEW_GROUP && (
-                                        <RightDockedModal
-                                            title="New Group"
-                                            isVisible={this.props.currentURL === ROUTES.NEW_GROUP}
-                                        >
+                                    <RightDockedModal
+                                        title="New Group"
+                                        isVisible={this.props.currentURL === ROUTES.NEW_GROUP}
+                                    >
+                                        <Suspense fallback={<FullScreenActivityIndicator />}>
                                             <NewGroupPage />
-                                        </RightDockedModal>
-                                    )}
-                                    {this.props.currentURL === ROUTES.NEW_CHAT && (
-                                        <RightDockedModal
-                                            title="New Chat"
-                                            isVisible={this.props.currentURL === ROUTES.NEW_CHAT}
-                                        >
+                                        </Suspense>
+                                    </RightDockedModal>
+                                    <RightDockedModal
+                                        title="New Chat"
+                                        isVisible={this.props.currentURL === ROUTES.NEW_CHAT}
+                                    >
+                                        <Suspense fallback={<FullScreenActivityIndicator />}>
                                             <NewChatPage />
-                                        </RightDockedModal>
-                                    )}
+                                        </Suspense>
+                                    </RightDockedModal>
                                     <Main />
                                 </View>
                             </Route>
