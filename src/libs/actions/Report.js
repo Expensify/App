@@ -444,7 +444,13 @@ function fetchChatReports() {
     })
 
         // The string cast below is necessary as Get rvl='chatList' may return an int
-        .then(({chatList}) => fetchChatReportsByIDs(String(chatList).split(',')));
+        .then(({chatList}) => {
+            // If they don't have any chats, create one with Concierge
+            if (!chatList.length) {
+                fetchOrCreateChatReport([currentUserEmail, 'concierge@expensify.com']);
+            }
+            fetchChatReportsByIDs(String(chatList).split(','));
+        });
 }
 
 /**
