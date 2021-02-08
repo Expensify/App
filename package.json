@@ -23,7 +23,8 @@
     "print-version": "echo $npm_package_version",
     "detox-build": "detox build --configuration ios.sim.debug",
     "detox-test": "detox test --configuration ios.sim.debug",
-    "gh-actions-build": "./.github/scripts/buildActions.sh"
+    "gh-actions-build": "./.github/scripts/buildActions.sh",
+    "analyze-packages": "ANALYZE_BUNDLE=true webpack --config config/webpack/webpack.prod.js"
   },
   "dependencies": {
     "@babel/plugin-proposal-class-properties": "^7.12.1",
