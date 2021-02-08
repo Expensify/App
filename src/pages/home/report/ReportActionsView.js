@@ -17,8 +17,6 @@ import {lastItem} from '../../../libs/CollectionUtils';
 import Visibility from '../../../libs/Visibility';
 import ReportActionContextMenu from './ReportActionContextMenu/ReportActionContextMenu';
 import Hoverable from '../../../components/Hoverable';
-import getFloatingReportActionContextMenuWrapperStyles
-    from '../../../styles/getFloatingReportActionContextMenuWrapperStyles';
 
 const propTypes = {
     // The ID of the report actions will be created for
@@ -301,9 +299,6 @@ class ReportActionsView extends React.Component {
         }
 
         this.updateSortedReportActions();
-        const floatingReportActionContextMenuWrapperStyle = getFloatingReportActionContextMenuWrapperStyles(
-            this.state.reportActionContextMenuVerticalPosition,
-        );
         return (
             <>
                 <InvertedFlatList
@@ -316,7 +311,12 @@ class ReportActionsView extends React.Component {
                     keyExtractor={item => `${item.action.sequenceNumber}`}
                     initialRowHeight={32}
                 />
-                <View style={floatingReportActionContextMenuWrapperStyle}>
+                <View style={{
+                    position: 'absolute',
+                    top: this.state.reportActionContextMenuVerticalPosition - 16,
+                    right: 16,
+                }}
+                >
                     <Hoverable
                         onHoverIn={() => this.isReportActionContextMenuHovered = true}
                         onHoverOut={() => this.isReportActionContextMenuHovered = false}
