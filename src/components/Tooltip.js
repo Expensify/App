@@ -79,13 +79,7 @@ class Tooltip extends PureComponent {
      * @returns {Promise}
      */
     getWrapperPosition() {
-        return new Promise(((resolve, reject) => {
-            if (this.wrapperView) {
-                this.wrapperView.measureInWindow((x, y) => resolve({x, y}));
-            } else {
-                reject();
-            }
-        }));
+        return new Promise((resolve => this.wrapperView.measureInWindow((x, y) => resolve({x, y}))));
     }
 
     /**
