@@ -13,7 +13,7 @@ module.exports = merge(common, {
     devtool: 'source-map',
     plugins: [
         // Uncomment this and run `npm run build` to interactively inspect JS bundle contents
-        new BundleAnalyzerPlugin(),
+        // new BundleAnalyzerPlugin(),
         new webpack.DefinePlugin({
             __REACT_WEB_CONFIG__: JSON.stringify(env),
 
