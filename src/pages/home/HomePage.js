@@ -7,7 +7,7 @@ import {
     Easing,
     Keyboard,
 } from 'react-native';
-import {SafeAreaInsetsContext, SafeAreaProvider} from 'react-native-safe-area-context';
+import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import {withOnyx} from 'react-native-onyx';
 import {Route} from '../../libs/Router';
 import styles, {getSafeAreaPadding, getNavigationMenuStyle} from '../../styles/styles';
@@ -51,13 +51,11 @@ const NewChatPage = lazy(() => import('../NewChatPage'));
 
 const propTypes = {
     isSidebarShown: PropTypes.bool,
-    isChatSwitcherActive: PropTypes.bool,
     network: PropTypes.shape({isOffline: PropTypes.bool}),
     ...windowDimensionsPropTypes,
 };
 const defaultProps = {
     isSidebarShown: true,
-    isChatSwitcherActive: false,
     network: {isOffline: true},
 };
 
@@ -142,10 +140,6 @@ class HomePage extends Component {
         // Always show the sidebar if we are moving from small to large screens
         if (prevProps.isSmallScreenWidth && !this.props.isSmallScreenWidth) {
             showSidebar();
-        }
-
-        if (!prevProps.isChatSwitcherActive && this.props.isChatSwitcherActive) {
-            this.showNavigationMenu();
         }
         if (this.props.isSidebarShown === prevProps.isSidebarShown) {
             // Nothing changed, don't trigger animation or re-render
@@ -278,7 +272,7 @@ class HomePage extends Component {
 
     render() {
         return (
-            <SafeAreaProvider>
+            <>
                 <CustomStatusBar />
                 <SafeAreaInsetsContext.Consumer style={[styles.flex1]}>
                     {insets => (
@@ -351,7 +345,7 @@ class HomePage extends Component {
                         </View>
                     )}
                 </SafeAreaInsetsContext.Consumer>
-            </SafeAreaProvider>
+            </>
         );
     }
 }
@@ -364,10 +358,6 @@ export default compose(
         {
             isSidebarShown: {
                 key: ONYXKEYS.IS_SIDEBAR_SHOWN,
-            },
-            isChatSwitcherActive: {
-                key: ONYXKEYS.IS_CHAT_SWITCHER_ACTIVE,
-                initWithStoredValues: false,
             },
             network: {
                 key: ONYXKEYS.NETWORK,
