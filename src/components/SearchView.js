@@ -70,35 +70,24 @@ class SearchView extends Component {
      * @returns {Array}
      */
     getSections() {
-        const sections = [];
-
-        sections.push({
+        return [{
             title: 'RECENT',
             data: this.state.recentReports,
-            shouldShow: this.state.recentReports.length > 0,
-            indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
-        });
-
-        return sections;
+            shouldShow: true,
+            indexOffset: 0,
+        }];
     }
 
     /**
-     * Redirect to the selected report
+     * Reset the search value and redirect to the selected report
      *
      * @param {Object} option
      */
     selectReport(option) {
-        redirect(ROUTES.getReportRoute(option.reportID));
-        this.reset();
-    }
-
-    /**
-     * Reset the component to it's default state and redirects the user to the chat
-     */
-    reset() {
         this.setState({
             searchValue: '',
         }, () => {
+            redirect(ROUTES.getReportRoute(option.reportID));
             hideChatSwitcher();
             this.props.onLinkClick();
         });
@@ -138,6 +127,7 @@ class SearchView extends Component {
 }
 
 SearchView.propTypes = propTypes;
+SearchView.displayName = 'SearchView';
 
 export default withOnyx({
     reports: {

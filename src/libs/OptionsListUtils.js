@@ -158,7 +158,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
     sortByLastMessageTimestamp = false,
     searchValue = '',
     showChatPreviewLine = false,
-    showEmptyRecentReports = false,
+    showReportsWithNoComments = false,
 }) {
     let recentReportOptions = [];
     const pinnedReportOptions = [];
@@ -183,7 +183,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         // Skip this entry if it has no comments and is not the active report. We will only show reports from
         // people we have sent or recieved at least one message with.
         const hasNoComments = report.lastMessageTimestamp === 0;
-        if (!showEmptyRecentReports && hasNoComments && report.reportID !== activeReportID) {
+        if (!showReportsWithNoComments && hasNoComments && report.reportID !== activeReportID) {
             return;
         }
 
@@ -315,7 +315,7 @@ function getSearchOptions(
         maxRecentReportsToShow: 0, // Unlimited
         prioritizePinnedReports: true,
         showChatPreviewLine: true,
-        showEmptyRecentReports: true,
+        showReportsWithNoComments: true,
     });
 }
 
