@@ -158,4 +158,20 @@ export default {
     pl5: {
         paddingLeft: 20,
     },
+
+    pt2: {
+        paddingTop: 8,
+    },
+
+    pt3: {
+        paddingTop: 12,
+    },
+
+    pb2: {
+        paddingBottom: 8,
+    },
+
+    pb5: {
+        paddingBottom: 20,
+    },
 };

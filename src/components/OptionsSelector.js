@@ -50,6 +50,15 @@ const propTypes = {
 
     // Whether any section headers should be visible
     hideSectionHeaders: PropTypes.bool,
+
+    // Whether to allow arrow key actions on the list
+    disableArrowKeysActions: PropTypes.bool,
+
+    // A flag to indicate wheter to show additional optional states, such as pin and draft icons
+    hideAdditionalOptionStates: PropTypes.bool,
+
+    // Force the text style to be the unread style on all rows
+    forceTextUnreadStyle: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -60,6 +69,9 @@ const defaultProps = {
     headerMessage: '',
     canSelectMultipleOptions: false,
     hideSectionHeaders: false,
+    disableArrowKeysActions: false,
+    hideAdditionalOptionStates: false,
+    forceTextUnreadStyle: false,
 };
 
 class OptionsSelector extends Component {
@@ -94,6 +106,10 @@ class OptionsSelector extends Component {
      * @param {SyntheticEvent} e
      */
     handleKeyPress(e) {
+        if (this.props.disableArrowKeysActions) {
+            return;
+        }
+
         // We are mapping over all the options to combine them into a single array and also saving the section index
         // index within that section so we can navigate
         const allOptions = _.reduce(this.props.sections, (options, section, sectionIndex) => (
@@ -153,17 +169,19 @@ class OptionsSelector extends Component {
 
     render() {
         return (
-            <View style={[styles.flex1, styles.mt2]}>
-                <TextInputWithFocusStyles
-                    styleFocusIn={[styles.textInputReversedFocus]}
-                    ref={el => this.textInput = el}
-                    style={[styles.textInput]}
-                    value={this.props.value}
-                    onChangeText={this.props.onChangeText}
-                    onKeyPress={this.handleKeyPress}
-                    placeholder={this.props.placeholderText}
-                    placeholderTextColor={themeColors.textSupporting}
-                />
+            <View style={[styles.flex1]}>
+                <View style={[styles.ph5, styles.pv3]}>
+                    <TextInputWithFocusStyles
+                        styleFocusIn={[styles.textInputReversedFocus]}
+                        ref={el => this.textInput = el}
+                        style={[styles.textInput]}
+                        value={this.props.value}
+                        onChangeText={this.props.onChangeText}
+                        onKeyPress={this.handleKeyPress}
+                        placeholder={this.props.placeholderText}
+                        placeholderTextColor={themeColors.textSupporting}
+                    />
+                </View>
                 <OptionsList
                     ref={el => this.list = el}
                     onSelectRow={this.props.onSelectRow}
@@ -174,6 +192,9 @@ class OptionsSelector extends Component {
                     canSelectMultipleOptions={this.props.canSelectMultipleOptions}
                     hideSectionHeaders={this.props.hideSectionHeaders}
                     headerMessage={this.props.headerMessage}
+                    disableFocusOptions={this.props.disableArrowKeysActions}
+                    hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
+                    forceTextUnreadStyle={this.props.forceTextUnreadStyle}
                 />
             </View>
         );
