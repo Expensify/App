@@ -1,17 +1,8 @@
-import React, {PureComponent} from 'react';
+import React from 'react';
 import {TextInput, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-
-const IMAGE_EXTENSIONS = {
-    'image/bmp': 'bmp',
-    'image/gif': 'gif',
-    'image/jpeg': 'jpg',
-    'image/png': 'png',
-    'image/svg+xml': 'svg',
-    'image/tiff': 'tiff',
-    'image/webp': 'webp',
-};
+import mime from 'mime-types';
 
 const propTypes = {
     // Maximum number of lines in the text input
@@ -64,7 +55,7 @@ const defaultProps = {
 /**
  * On web we like to have the Text Input field always focused so the user can easily type a new chat
  */
-class TextInputFocusable extends PureComponent {
+class TextInputFocusable extends React.Component {
     constructor(props) {
         super(props);
 
@@ -162,14 +153,7 @@ class TextInputFocusable extends PureComponent {
                         if (!response.ok) { throw Error(response.statusText); }
                         return response.blob();
                     })
-                    .then((x) => {
-                        const extension = IMAGE_EXTENSIONS[x.type];
-                        if (!extension) {
-                            throw new Error('No extension found for mime type');
-                        }
-
-                        return new File([x], `pasted_image.${extension}`, {});
-                    })
+                    .then(x => new File([x], `pasted_image.${mime.extension(x.type)}`, {}))
                     .then(this.props.onPasteFile)
                     .catch((error) => {
                         console.debug(error);
