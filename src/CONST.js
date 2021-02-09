@@ -9,11 +9,15 @@ const CONST = {
         REPORT: 'report',
         PERSONAL_DETAIL: 'personalDetail',
     },
+    REPORT: {
+        MAXIMUM_PARTICIPANTS: 8,
+    },
     MODAL: {
         MODAL_TYPE: {
             CENTERED: 'centered',
             BOTTOM_DOCKED: 'bottom_docked',
             POPOVER: 'popover',
+            RIGHT_DOCKED: 'right_docked',
         },
     },
     TIMING: {
@@ -22,6 +26,11 @@ const CONST = {
         SWITCH_REPORT: 'switch_report',
         HOT: 'hot',
         COLD: 'cold',
+    },
+    MESSAGES: {
+        // eslint-disable-next-line max-len
+        NO_CONTACTS_FOUND: 'Don\'t see who you\'re looking for? Type their email or phone number to invite them to chat.',
+        MAXIMUM_PARTICIPANTS_REACHED: 'You\'ve reached the maximum number of participants for a group chat.',
     },
 };
 

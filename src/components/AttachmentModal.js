@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {
-    View, TouchableOpacity, Text, Dimensions,
+    View, TouchableOpacity, Text,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '../CONST';
@@ -9,9 +9,10 @@ import ModalWithHeader from './ModalWithHeader';
 import AttachmentView from './AttachmentView';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
-import variables from '../styles/variables';
 import ONYXKEYS from '../ONYXKEYS';
 import addAuthTokenToURL from '../libs/addAuthTokenToURL';
+import compose from '../libs/compose';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -39,6 +40,8 @@ const propTypes = {
     session: PropTypes.shape({
         authToken: PropTypes.string.isRequired,
     }).isRequired,
+
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -57,6 +60,16 @@ class AttachmentModal extends Component {
             file: null,
             sourceURL: props.sourceURL,
         };
+
+        this.submitAndClose = this.submitAndClose.bind(this);
+    }
+
+    /**
+     * Execute the onConfirm callback and close the modal.
+     */
+    submitAndClose() {
+        this.props.onConfirm(this.state.file);
+        this.setState({isModalOpen: false});
     }
 
     render() {
@@ -66,14 +79,14 @@ class AttachmentModal extends Component {
             required: this.props.isAuthTokenRequired,
         });
 
-        const isSmallScreen = Dimensions.get('window').width < variables.mobileResponsiveWidthBreakpoint;
-        const attachmentViewStyles = isSmallScreen
+        const attachmentViewStyles = this.props.isSmallScreenWidth
             ? [styles.imageModalImageCenterContainer]
             : [styles.imageModalImageCenterContainer, styles.p5];
         return (
             <>
                 <ModalWithHeader
                     type={CONST.MODAL.MODAL_TYPE.CENTERED}
+                    onSubmit={this.submitAndClose}
                     onClose={() => this.setState({isModalOpen: false})}
                     isVisible={this.state.isModalOpen}
                     title={this.props.title}
@@ -90,10 +103,7 @@ class AttachmentModal extends Component {
                         <TouchableOpacity
                             style={[styles.button, styles.buttonSuccess, styles.buttonConfirm]}
                             underlayColor={themeColors.componentBG}
-                            onPress={() => {
-                                this.props.onConfirm(this.state.file);
-                                this.setState({isModalOpen: false});
-                            }}
+                            onPress={this.submitAndClose}
                         >
                             <Text
                                 style={[
@@ -127,8 +137,11 @@ class AttachmentModal extends Component {
 
 AttachmentModal.propTypes = propTypes;
 AttachmentModal.defaultProps = defaultProps;
-export default withOnyx({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(AttachmentModal);
+export default compose(
+    withWindowDimensions,
+    withOnyx({
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+    }),
+)(AttachmentModal);

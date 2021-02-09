@@ -14,6 +14,11 @@ import ONYXKEYS from '../ONYXKEYS';
  */
 
 let currentUserLogin;
+let countryCodeByIP;
+
+// We are initializing a default avatar here so that we use the same default color for each user we are inviting. This
+// will update when the OptionsListUtils re-loads. But will stay the same color for the life of the JS session.
+const defaultAvatarForUserToInvite = getDefaultAvatar();
 
 /**
  * Returns the personal details for an array of logins
@@ -70,16 +75,24 @@ function getSearchText(report, personalDetailList) {
  * @param {Number} activeReportID
  * @returns {Object}
  */
-function createOption(personalDetailList, report, draftComments, activeReportID) {
+function createOption(personalDetailList, report, draftComments, activeReportID, {showChatPreviewLine = false}) {
     const hasMultipleParticipants = personalDetailList.length > 1;
     const personalDetail = personalDetailList[0];
     const hasDraftComment = report
         && (report.reportID !== activeReportID)
         && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '').length > 0;
 
+    const lastActorDetails = report ? _.find(personalDetailList, {login: report.lastActorEmail}) : null;
+    const lastMessageText = report
+        ? (hasMultipleParticipants && lastActorDetails
+            ? `${lastActorDetails.displayName}: `
+            : '')
+        + report.lastMessageText
+        : '';
+
     return {
         text: report ? report.reportName : personalDetail.displayName,
-        alternateText: (report && hasMultipleParticipants) ? report.reportName : personalDetail.login,
+        alternateText: (showChatPreviewLine && lastMessageText) ? lastMessageText : personalDetail.login,
         icons: report ? report.icons : [personalDetail.avatarURL],
 
         // It doesn't make sense to provide a login in the case of a report with multiple participants since
@@ -97,6 +110,11 @@ function createOption(personalDetailList, report, draftComments, activeReportID)
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: val => currentUserLogin = val && val.email,
+});
+
+Onyx.connect({
+    key: ONYXKEYS.COUNTRY_CODE,
+    callback: val => countryCodeByIP = val || 1,
 });
 
 /**
@@ -139,6 +157,8 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
     prioritizePinnedReports = false,
     sortByLastMessageTimestamp = false,
     searchValue = '',
+    showChatPreviewLine = false,
+    showReportsWithNoComments = false,
 }) {
     let recentReportOptions = [];
     const pinnedReportOptions = [];
@@ -163,7 +183,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         // Skip this entry if it has no comments and is not the active report. We will only show reports from
         // people we have sent or recieved at least one message with.
         const hasNoComments = report.lastMessageTimestamp === 0;
-        if (hasNoComments && report.reportID !== activeReportID) {
+        if (!showReportsWithNoComments && hasNoComments && report.reportID !== activeReportID) {
             return;
         }
 
@@ -174,11 +194,15 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         if (logins.length <= 1) {
             reportMapForLogins[logins[0]] = report;
         }
-        allReportOptions.push(createOption(reportPersonalDetails, report, draftComments, activeReportID));
+        allReportOptions.push(createOption(reportPersonalDetails, report, draftComments, activeReportID, {
+            showChatPreviewLine,
+        }));
     });
 
     const allPersonalDetailsOptions = _.map(personalDetails, personalDetail => (
-        createOption([personalDetail], reportMapForLogins[personalDetail.login], draftComments, activeReportID)
+        createOption([personalDetail], reportMapForLogins[personalDetail.login], draftComments, activeReportID, {
+            showChatPreviewLine,
+        })
     ));
 
     // Always exclude already selected options and the currently logged in user
@@ -245,9 +269,29 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         });
     }
 
+    let userToInvite = null;
+    if (searchValue
+            && recentReportOptions.length === 0
+            && personalDetailsOptions.length === 0
+            && _.every(selectedOptions, option => option.login !== searchValue)
+            && (Str.isValidEmail(searchValue) || Str.isValidPhone(searchValue))
+    ) {
+        // If the phone number doesn't have an international code then let's prefix it with the
+        // current users international code based on their IP address.
+        const login = (Str.isValidPhone(searchValue) && !searchValue.includes('+'))
+            ? `+${countryCodeByIP}${searchValue}`
+            : searchValue;
+        const userInvitePersonalDetails = getPersonalDetailsForLogins([login], personalDetails);
+        userToInvite = createOption(userInvitePersonalDetails, null, draftComments, activeReportID, {
+            showChatPreviewLine,
+        });
+        userToInvite.icons = [defaultAvatarForUserToInvite];
+    }
+
     return {
         personalDetails: personalDetailsOptions,
         recentReports: recentReportOptions,
+        userToInvite,
     };
 }
 
@@ -270,6 +314,8 @@ function getSearchOptions(
         includeMultipleParticipantReports: true,
         maxRecentReportsToShow: 0, // Unlimited
         prioritizePinnedReports: true,
+        showChatPreviewLine: true,
+        showReportsWithNoComments: true,
     });
 }
 
@@ -332,6 +378,7 @@ function getSidebarOptions(reports, personalDetails, draftComments, activeReport
         maxRecentReportsToShow: 0, // Unlimited
         prioritizePinnedReports: true,
         sortByLastMessageTimestamp: true,
+        showChatPreviewLine: true,
     });
 }
 

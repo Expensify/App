@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React from 'react';
+import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import {
     Text,
@@ -8,15 +8,15 @@ import {
     StyleSheet,
 } from 'react-native';
 import styles from '../../../styles/styles';
-import ChatSwitcherOptionPropTypes from './ChatSwitcherOptionPropTypes';
+import optionPropTypes from './optionPropTypes';
 import Icon from '../../../components/Icon';
-import {Pencil} from '../../../components/Icon/Expensicons';
+import {Pencil, PinCircle, Checkmark} from '../../../components/Icon/Expensicons';
 import MultipleAvatars from '../../../components/MultipleAvatars';
-import variables from '../../../styles/variables';
+import themeColors from '../../../styles/themes/default';
 
 const propTypes = {
     // Option to allow the user to choose from can be type 'report' or 'user'
-    option: ChatSwitcherOptionPropTypes.isRequired,
+    option: optionPropTypes.isRequired,
 
     // Whether this option is currently in focus so we can modify its style
     optionIsFocused: PropTypes.bool.isRequired,
@@ -29,24 +29,44 @@ const propTypes = {
 
     // A flag to indicate whether this comes from the Chat Switcher so we can display the group button
     isChatSwitcher: PropTypes.bool,
+
+    // A flag to indicate wheter to show additional optional states, such as pin and draft icons
+    hideAdditionalOptionStates: PropTypes.bool,
+
+    // Whether we should show the selected state
+    showSelectedState: PropTypes.bool,
+
+    // Whether this item is selected
+    isSelected: PropTypes.bool,
+
+    // Force the text style to be the unread style
+    forceTextUnreadStyle: PropTypes.bool,
 };
 
 const defaultProps = {
     onAddToGroup: () => {},
     isChatSwitcher: false,
+    hideAdditionalOptionStates: false,
+    showSelectedState: false,
+    isSelected: false,
+    forceTextUnreadStyle: false,
 };
 
-const ChatLinkRow = ({
+const OptionRow = ({
     option,
     optionIsFocused,
     onSelectRow,
     onAddToGroup,
     isChatSwitcher,
+    hideAdditionalOptionStates,
+    showSelectedState,
+    isSelected,
+    forceTextUnreadStyle,
 }) => {
     const textStyle = optionIsFocused
         ? styles.sidebarLinkActiveText
         : styles.sidebarLinkText;
-    const textUnreadStyle = option.isUnread
+    const textUnreadStyle = (option.isUnread || forceTextUnreadStyle)
         ? [textStyle, styles.sidebarLinkTextUnread] : [textStyle];
     return (
         <View
@@ -84,24 +104,25 @@ const ChatLinkRow = ({
                         )
                     }
                     <View style={[styles.flex1]}>
-                        {(option.text === option.alternateText || option.alternateText.length === 0) ? (
-                            <Text style={[styles.chatSwitcherDisplayName, textUnreadStyle]} numberOfLines={1}>
-                                {option.text}
+                        <Text style={[styles.chatSwitcherDisplayName, textUnreadStyle]} numberOfLines={1}>
+                            {option.text}
+                        </Text>
+                        {option.alternateText ? (
+                            <Text
+                                style={[textStyle, styles.chatSwitcherLogin, styles.mt1]}
+                                numberOfLines={1}
+                            >
+                                {option.alternateText}
                             </Text>
-                        ) : (
-                            <>
-                                <Text style={[styles.chatSwitcherDisplayName, textUnreadStyle]} numberOfLines={1}>
-                                    {option.text}
-                                </Text>
-                                <Text
-                                    style={[textStyle, styles.chatSwitcherLogin, styles.mt1]}
-                                    numberOfLines={1}
-                                >
-                                    {option.alternateText}
-                                </Text>
-                            </>
-                        )}
+                        ) : null}
                     </View>
+                    {showSelectedState && (
+                        <View style={[styles.selectCircle]}>
+                            {isSelected && (
+                                <Icon src={Checkmark} fill={themeColors.iconSuccessFill} />
+                            )}
+                        </View>
+                    )}
                 </View>
             </TouchableOpacity>
             {option.singleUserDM && isChatSwitcher && (
@@ -119,15 +140,27 @@ const ChatLinkRow = ({
                     </TouchableOpacity>
                 </View>
             )}
-            {option.hasDraftComment && (
-                <Icon src={Pencil} width={variables.fontSizeSmall} height={variables.iconSizeSmall} />
+            {!hideAdditionalOptionStates && (
+                <View style={styles.flexRow}>
+                    {option.hasDraftComment && (
+                        <View style={styles.ml2}>
+                            <Icon src={Pencil} />
+                        </View>
+                    )}
+                    {option.isPinned && (
+                        <View style={styles.ml2}>
+                            <Icon src={PinCircle} />
+                        </View>
+                    )}
+                </View>
             )}
         </View>
     );
 };
 
-ChatLinkRow.propTypes = propTypes;
-ChatLinkRow.defaultProps = defaultProps;
-ChatLinkRow.displayName = 'ChatLinkRow';
+OptionRow.propTypes = propTypes;
+OptionRow.defaultProps = defaultProps;
+OptionRow.displayName = 'OptionRow';
 
-export default ChatLinkRow;
+// It it very important to use React.memo here so SectionList items will not unnecessarily re-render
+export default memo(OptionRow);

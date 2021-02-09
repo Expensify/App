@@ -64,6 +64,13 @@ const styles = {
         fontSize: variables.fontSizeSmall,
     },
 
+    textMicroBold: {
+        color: themeColors.text,
+        fontWeight: fontWeightBold,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeSmall,
+    },
+
     textLarge: {
         fontSize: variables.fontSizeLarge,
     },
@@ -83,6 +90,14 @@ const styles = {
 
     colorMutedReversed: {
         color: themeColors.textMutedReversed,
+    },
+
+    colorMuted: {
+        color: themeColors.textSupporting,
+    },
+
+    colorHeading: {
+        color: themeColors.heading,
     },
 
     button: {
@@ -116,6 +131,11 @@ const styles = {
 
     buttonSuccess: {
         backgroundColor: themeColors.buttonSuccessBG,
+        borderWidth: 0,
+    },
+
+    buttonSuccessHovered: {
+        backgroundColor: themeColors.buttonSuccessHoveredBG,
         borderWidth: 0,
     },
 
@@ -315,6 +335,7 @@ const styles = {
 
     sidebarHeader: {
         flexGrow: 0,
+        height: 0,
     },
 
     sidebarHeaderActive: {
@@ -366,10 +387,10 @@ const styles = {
     floatingActionButton: {
         backgroundColor: themeColors.buttonSuccessBG,
         position: 'absolute',
-        height: variables.componentSizeNormal,
-        width: variables.componentSizeNormal,
+        height: variables.componentSizeLarge,
+        width: variables.componentSizeLarge,
         right: 20,
-        bottom: 24,
+        bottom: 34,
         borderRadius: 999,
         alignItems: 'center',
         justifyContent: 'center',
@@ -678,12 +699,6 @@ const styles = {
         width: 200,
     },
 
-    chatSwitcherInputClear: {
-        alignSelf: 'flex-end',
-        height: variables.componentSizeNormal,
-        justifyContent: 'center',
-    },
-
     chatSwitcherGroupDMContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
@@ -838,13 +853,16 @@ const styles = {
         flex: 1,
     },
 
+    borderBottom: {
+        borderBottomWidth: 1,
+        borderColor: themeColors.border,
+    },
+
     headerBar: {
         overflow: 'hidden',
         justifyContent: 'center',
         display: 'flex',
         paddingLeft: 20,
-        borderBottomWidth: 1,
-        borderColor: themeColors.border,
         height: variables.contentHeaderHeight,
         width: '100%',
     },
@@ -875,17 +893,8 @@ const styles = {
         borderWidth: 1,
         borderColor: themeColors.border,
         flexDirection: 'row',
-        paddingTop: 10,
-        paddingBottom: 10,
-        paddingRight: 20,
-        paddingLeft: 20,
+        padding: 20,
         alignItems: 'center',
-    },
-
-    defaultAttachmentViewIcon: {
-        width: 47,
-        height: 60,
-        marginRight: 20,
     },
 
     notFoundSafeArea: {
@@ -939,10 +948,8 @@ const styles = {
     settingsPageBackground: {
         flexDirection: 'column',
         width: '100%',
-        height: '100%',
-        position: 'absolute',
+        flexGrow: 1,
         justifyContent: 'space-between',
-        backgroundColor: 'white',
         alignItems: 'center',
     },
 
@@ -992,6 +999,22 @@ const styles = {
         width: '100%',
         alignItems: 'center',
         padding: 20,
+    },
+
+    selectCircle: {
+        width: variables.componentSizeSmall,
+        height: variables.componentSizeSmall,
+        borderColor: themeColors.border,
+        borderWidth: 1,
+        borderRadius: variables.componentSizeSmall / 2,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: themeColors.componentBG,
+        marginLeft: 8,
+    },
+
+    flipUpsideDown: {
+        transform: [{rotate: '180deg'}],
     },
 };
 
@@ -1099,10 +1122,10 @@ function getSafeAreaMargins(insets) {
  *
  * @param {Number} windowWidth
  * @param {Boolean} isSidebarShown
+ * @param {Boolean} isSmallScreenWidth
  * @returns {Object}
  */
-function getNavigationMenuStyle(windowWidth, isSidebarShown) {
-    const isSmallScreenWidth = windowWidth <= variables.mobileResponsiveWidthBreakpoint;
+function getNavigationMenuStyle(windowWidth, isSidebarShown, isSmallScreenWidth) {
     return isSmallScreenWidth
         ? {
             ...styles.navigationMenuOpenAbsolute,
