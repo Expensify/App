@@ -13,6 +13,7 @@ import Icon from '../../../components/Icon';
 import {Pencil, PinCircle, Checkmark} from '../../../components/Icon/Expensicons';
 import MultipleAvatars from '../../../components/MultipleAvatars';
 import themeColors from '../../../styles/themes/default';
+import Hoverable from '../../../components/Hoverable';
 
 const propTypes = {
     // Option to allow the user to choose from can be type 'report' or 'user'
@@ -69,92 +70,98 @@ const OptionRow = ({
     const textUnreadStyle = (option.isUnread || forceTextUnreadStyle)
         ? [textStyle, styles.sidebarLinkTextUnread] : [textStyle];
     return (
-        <View
-            style={[
-                styles.flexRow,
-                styles.alignItemsCenter,
-                styles.justifyContentBetween,
-                styles.sidebarLink,
-                styles.sidebarLinkInner,
-                optionIsFocused ? styles.sidebarLinkActive : null,
-            ]}
-        >
-            <TouchableOpacity
-                onPress={() => onSelectRow(option)}
-                activeOpacity={0.8}
-                style={StyleSheet.flatten([
-                    styles.chatLinkRowPressable,
-                    styles.flexGrow1,
-                    styles.chatSwitcherItemAvatarNameWrapper,
-                ])}
-            >
+        <Hoverable>
+            {hovered => (
                 <View
                     style={[
                         styles.flexRow,
                         styles.alignItemsCenter,
+                        styles.justifyContentBetween,
+                        styles.sidebarLink,
+                        styles.sidebarLinkInner,
+                        optionIsFocused ? styles.sidebarLinkActive : null,
+                        hovered && !optionIsFocused ? styles.sidebarLinkHover : null,
                     ]}
                 >
-                    {
-                        !_.isEmpty(option.icons)
-                        && (
-                            <MultipleAvatars
-                                avatarImageURLs={option.icons}
-                                optionIsFocused={optionIsFocused}
-                            />
-                        )
-                    }
-                    <View style={[styles.flex1]}>
-                        <Text style={[styles.chatSwitcherDisplayName, textUnreadStyle]} numberOfLines={1}>
-                            {option.text}
-                        </Text>
-                        {option.alternateText ? (
-                            <Text
-                                style={[textStyle, styles.chatSwitcherLogin, styles.mt1]}
-                                numberOfLines={1}
+                    <TouchableOpacity
+                        onPress={() => onSelectRow(option)}
+                        activeOpacity={0.8}
+                        style={StyleSheet.flatten([
+                            styles.chatLinkRowPressable,
+                            styles.flexGrow1,
+                            styles.chatSwitcherItemAvatarNameWrapper,
+                        ])}
+                    >
+                        <View
+                            style={[
+                                styles.flexRow,
+                                styles.alignItemsCenter,
+                            ]}
+                        >
+                            {
+                                !_.isEmpty(option.icons)
+                                && (
+                                    <MultipleAvatars
+                                        avatarImageURLs={option.icons}
+                                        optionIsFocused={optionIsFocused}
+                                    />
+                                )
+                            }
+                            <View style={[styles.flex1]}>
+                                <Text style={[styles.chatSwitcherDisplayName, textUnreadStyle]} numberOfLines={1}>
+                                    {option.text}
+                                </Text>
+                                {option.alternateText ? (
+                                    <Text
+                                        style={[textStyle, styles.chatSwitcherLogin, styles.mt1]}
+                                        numberOfLines={1}
+                                    >
+                                        {option.alternateText}
+                                    </Text>
+                                ) : null}
+                            </View>
+                            {showSelectedState && (
+                                <View style={[styles.selectCircle]}>
+                                    {isSelected && (
+                                        <Icon src={Checkmark} fill={themeColors.iconSuccessFill} />
+                                    )}
+                                </View>
+                            )}
+                        </View>
+                    </TouchableOpacity>
+                    {option.singleUserDM && isChatSwitcher && (
+                        <View>
+                            <TouchableOpacity
+                                style={[styles.chatSwitcherItemButton]}
+                                onPress={() => onAddToGroup(option)}
                             >
-                                {option.alternateText}
-                            </Text>
-                        ) : null}
-                    </View>
-                    {showSelectedState && (
-                        <View style={[styles.selectCircle]}>
-                            {isSelected && (
-                                <Icon src={Checkmark} fill={themeColors.iconSuccessFill} />
+                                <Text
+                                    style={[styles.chatSwitcherItemButtonText]}
+                                    numberOfLines={1}
+                                >
+                                    Add
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
+                    {!hideAdditionalOptionStates && (
+                        <View style={styles.flexRow}>
+                            {option.hasDraftComment && (
+                                <View style={styles.ml2}>
+                                    <Icon src={Pencil} />
+                                </View>
+                            )}
+                            {option.isPinned && (
+                                <View style={styles.ml2}>
+                                    <Icon src={PinCircle} />
+                                </View>
                             )}
                         </View>
                     )}
                 </View>
-            </TouchableOpacity>
-            {option.singleUserDM && isChatSwitcher && (
-                <View>
-                    <TouchableOpacity
-                        style={[styles.chatSwitcherItemButton]}
-                        onPress={() => onAddToGroup(option)}
-                    >
-                        <Text
-                            style={[styles.chatSwitcherItemButtonText]}
-                            numberOfLines={1}
-                        >
-                            Add
-                        </Text>
-                    </TouchableOpacity>
-                </View>
             )}
-            {!hideAdditionalOptionStates && (
-                <View style={styles.flexRow}>
-                    {option.hasDraftComment && (
-                        <View style={styles.ml2}>
-                            <Icon src={Pencil} />
-                        </View>
-                    )}
-                    {option.isPinned && (
-                        <View style={styles.ml2}>
-                            <Icon src={PinCircle} />
-                        </View>
-                    )}
-                </View>
-            )}
-        </View>
+        </Hoverable>
+
     );
 };
 

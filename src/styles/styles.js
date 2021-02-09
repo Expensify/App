@@ -471,7 +471,9 @@ const styles = {
         textDecorationLine: 'none',
         overflow: 'hidden',
     },
-
+    sidebarLinkHover: {
+        backgroundColor: themeColors.componentBG,
+    },
     sidebarLinkActive: {
         backgroundColor: themeColors.border,
         textDecorationLine: 'none',
