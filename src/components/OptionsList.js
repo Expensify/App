@@ -3,7 +3,6 @@ import React, {forwardRef} from 'react';
 import {View, SectionList, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
-import KeyboardSpacer from './KeyboardSpacer';
 import OptionRow from '../pages/home/sidebar/OptionRow';
 import optionPropTypes from './optionPropTypes';
 
@@ -38,6 +37,15 @@ const propTypes = {
     // Whether to show headers above each section or not
     hideSectionHeaders: PropTypes.bool,
 
+    // Whether to allow option focus or not
+    disableFocusOptions: PropTypes.bool,
+
+    // A flag to indicate wheter to show additional optional states, such as pin and draft icons
+    hideAdditionalOptionStates: PropTypes.bool,
+
+    // Force the text style to be the unread style on all rows
+    forceTextUnreadStyle: PropTypes.bool,
+
     // Callback to fire when a row is selected
     onSelectRow: PropTypes.func,
 
@@ -61,6 +69,9 @@ const defaultProps = {
     selectedOptions: [],
     canSelectMultipleOptions: false,
     hideSectionHeaders: false,
+    disableFocusOptions: false,
+    hideAdditionalOptionStates: false,
+    forceTextUnreadStyle: false,
     onSelectRow: () => {},
     headerMessage: '',
     headerTitle: '',
@@ -74,6 +85,9 @@ const OptionsList = ({
     selectedOptions,
     canSelectMultipleOptions,
     hideSectionHeaders,
+    disableFocusOptions,
+    hideAdditionalOptionStates,
+    forceTextUnreadStyle,
     onSelectRow,
     headerMessage,
     headerTitle,
@@ -81,14 +95,14 @@ const OptionsList = ({
 }) => (
     <View style={[styles.flex1]}>
         {headerMessage ? (
-            <View style={[styles.p3]}>
+            <View style={[styles.ph5, styles.pb5]}>
                 {headerTitle ? (
                     <Text style={[styles.h4, styles.mb1]}>
                         {headerTitle}
                     </Text>
                 ) : null}
 
-                <Text style={[styles.textLabel]}>
+                <Text style={[styles.textLabel, styles.colorMuted]}>
                     {headerMessage}
                 </Text>
             </View>
@@ -104,20 +118,23 @@ const OptionsList = ({
             keyExtractor={option => option.keyForList}
             initialNumToRender={500}
             onScrollToIndexFailed={error => console.debug(error)}
+            stickySectionHeadersEnabled={false}
             renderItem={({item, index, section}) => (
                 <OptionRow
                     option={item}
-                    optionIsFocused={focusedIndex === (index + section.indexOffset)}
+                    optionIsFocused={!disableFocusOptions && focusedIndex === (index + section.indexOffset)}
                     onSelectRow={onSelectRow}
                     isSelected={Boolean(_.find(selectedOptions, option => option.login === item.login))}
                     showSelectedState={canSelectMultipleOptions}
+                    hideAdditionalOptionStates={hideAdditionalOptionStates}
+                    forceTextUnreadStyle={forceTextUnreadStyle}
                 />
             )}
             renderSectionHeader={({section: {title, shouldShow}}) => {
                 if (title && shouldShow && !hideSectionHeaders) {
                     return (
                         <View>
-                            <Text style={[styles.p5, styles.textMicroBold]}>
+                            <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
                                 {title}
                             </Text>
                         </View>
@@ -128,7 +145,6 @@ const OptionsList = ({
             }}
             extraData={focusedIndex}
         />
-        <KeyboardSpacer />
     </View>
 );
 

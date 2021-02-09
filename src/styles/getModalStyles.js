@@ -9,6 +9,7 @@ export default (type, windowDimensions) => {
     let modalStyle = {
         margin: 0,
     };
+
     let modalContainerStyle;
     let swipeDirection;
     let animationIn;
@@ -110,6 +111,8 @@ export default (type, windowDimensions) => {
             modalStyle = {
                 ...modalStyle,
                 ...{
+                    marginLeft: isSmallScreenWidth ? 0 : windowWidth - variables.sideBarWidth,
+                    width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
                     flexDirection: 'row',
                     justifyContent: 'flex-end',
                 },
@@ -120,9 +123,23 @@ export default (type, windowDimensions) => {
                 overflow: 'hidden',
             };
 
-            swipeDirection = 'right';
-            animationIn = 'slideInRight';
-            animationOut = 'slideOutRight';
+            animationIn = {
+                from: {
+                    translateX: isSmallScreenWidth ? windowWidth : variables.sideBarWidth,
+                },
+                to: {
+                    translateX: 0,
+                },
+            };
+            animationOut = {
+                from: {
+                    translateX: 0,
+                },
+                to: {
+                    translateX: isSmallScreenWidth ? windowWidth : variables.sideBarWidth,
+                },
+            };
+            swipeDirection = undefined;
             shouldAddBottomSafeAreaPadding = true;
             shouldAddTopSafeAreaPadding = true;
             break;

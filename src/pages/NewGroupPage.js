@@ -1,17 +1,17 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
-import {View, Text, TouchableOpacity} from 'react-native';
+import {View, Text, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import OptionsSelector from '../components/OptionsSelector';
 import {getNewGroupOptions} from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import CONST from '../CONST';
-import {redirect} from '../libs/actions/App';
-import ROUTES from '../ROUTES';
+import KeyboardSpacer from '../components/KeyboardSpacer';
+import {hide as hideSidebar} from '../libs/actions/Sidebar';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -40,12 +40,7 @@ const propTypes = {
         email: PropTypes.string.isRequired,
     }).isRequired,
 
-    // Report ID currently in view
-    currentlyViewedReportID: PropTypes.string,
-};
-
-const defaultProps = {
-    currentlyViewedReportID: '',
+    ...windowDimensionsPropTypes,
 };
 
 class NewGroupPage extends Component {
@@ -84,8 +79,8 @@ class NewGroupPage extends Component {
     getHeaderTitleAndMessage(maxParticipantsReached) {
         if (maxParticipantsReached) {
             return {
-                headerTitle: 'Maximum participants reached',
-                headerMessage: 'You\'ve reached the maximum number of participants for a group chat.',
+                headerTitle: '',
+                headerMessage: CONST.MESSAGES.MAXIMUM_PARTICIPANTS_REACHED,
             };
         }
 
@@ -93,8 +88,7 @@ class NewGroupPage extends Component {
         if (!hasSelectableOptions && !this.state.userToInvite) {
             return {
                 headerTitle: '',
-                // eslint-disable-next-line max-len
-                headerMessage: 'Don\'t see who you\'re looking for? Type their email or phone number to invite them to chat.',
+                headerMessage: CONST.MESSAGES.NO_CONTACTS_FOUND,
             };
         }
 
@@ -155,6 +149,12 @@ class NewGroupPage extends Component {
      */
     createGroup() {
         const userLogins = _.map(this.state.selectedOptions, option => option.login);
+        if (userLogins.length < 1) {
+            return;
+        }
+        if (this.props.isSmallScreenWidth) {
+            hideSidebar();
+        }
         fetchOrCreateChatReport([this.props.session.email, ...userLogins]);
     }
 
@@ -204,24 +204,8 @@ class NewGroupPage extends Component {
         const sections = this.getSections(maxParticipantsReached);
         const {headerTitle, headerMessage} = this.getHeaderTitleAndMessage(maxParticipantsReached);
         return (
-            <View
-                style={[
-                    // Note: These are temporary styles and should be removed
-                    styles.flex1,
-                    styles.h100,
-                    styles.w100,
-                    {position: 'absolute', zIndex: 2, backgroundColor: 'white'},
-                ]}
-            >
-                <HeaderWithCloseButton
-                    title="New Group"
-                    onCloseButtonPress={() => {
-                        redirect(this.props.currentlyViewedReportID !== ''
-                            ? ROUTES.getReportRoute(this.props.currentlyViewedReportID)
-                            : ROUTES.HOME);
-                    }}
-                />
-                <View style={[styles.p2, styles.flex1]}>
+            <>
+                <View style={[styles.flex1, styles.w100]}>
                     <OptionsSelector
                         canSelectMultipleOptions
                         sections={sections}
@@ -248,25 +232,37 @@ class NewGroupPage extends Component {
                         }}
                         headerTitle={headerTitle}
                         headerMessage={headerMessage}
+                        disableArrowKeysActions
+                        hideAdditionalOptionStates
+                        forceTextUnreadStyle
                     />
-                    <TouchableOpacity
-                        onPress={this.createGroup}
-                        style={[styles.button, styles.buttonSuccess, styles.w100, styles.mt5]}
-                    >
-                        <Text style={[styles.buttonText, styles.buttonSuccessText]}>
-                            Create Group
-                        </Text>
-                    </TouchableOpacity>
+                    {this.state.selectedOptions?.length > 0 && (
+                        <View style={[styles.ph5, styles.pb5]}>
+                            <Pressable
+                                onPress={this.createGroup}
+                                style={({hovered}) => [
+                                    styles.button,
+                                    styles.buttonSuccess,
+                                    styles.w100,
+                                    hovered && styles.buttonSuccessHovered,
+                                ]}
+                            >
+                                <Text style={[styles.buttonText, styles.buttonSuccessText]}>
+                                    Create Group
+                                </Text>
+                            </Pressable>
+                        </View>
+                    )}
                 </View>
-            </View>
+                <KeyboardSpacer />
+            </>
         );
     }
 }
 
 NewGroupPage.propTypes = propTypes;
-NewGroupPage.defaultProps = defaultProps;
 
-export default withOnyx({
+export default withWindowDimensions(withOnyx({
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,
     },
@@ -276,7 +272,4 @@ export default withOnyx({
     session: {
         key: ONYXKEYS.SESSION,
     },
-    currentlyViewedReportID: {
-        key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
-    },
-})(NewGroupPage);
+})(NewGroupPage));

@@ -10,8 +10,9 @@ import {
 import styles from '../../../styles/styles';
 import optionPropTypes from './optionPropTypes';
 import Icon from '../../../components/Icon';
-import {Pencil, PinCircle} from '../../../components/Icon/Expensicons';
+import {Pencil, PinCircle, Checkmark} from '../../../components/Icon/Expensicons';
 import MultipleAvatars from '../../../components/MultipleAvatars';
+import themeColors from '../../../styles/themes/default';
 
 const propTypes = {
     // Option to allow the user to choose from can be type 'report' or 'user'
@@ -29,18 +30,26 @@ const propTypes = {
     // A flag to indicate whether this comes from the Chat Switcher so we can display the group button
     isChatSwitcher: PropTypes.bool,
 
+    // A flag to indicate wheter to show additional optional states, such as pin and draft icons
+    hideAdditionalOptionStates: PropTypes.bool,
+
     // Whether we should show the selected state
     showSelectedState: PropTypes.bool,
 
     // Whether this item is selected
     isSelected: PropTypes.bool,
+
+    // Force the text style to be the unread style
+    forceTextUnreadStyle: PropTypes.bool,
 };
 
 const defaultProps = {
     onAddToGroup: () => {},
     isChatSwitcher: false,
+    hideAdditionalOptionStates: false,
     showSelectedState: false,
     isSelected: false,
+    forceTextUnreadStyle: false,
 };
 
 const OptionRow = ({
@@ -49,13 +58,15 @@ const OptionRow = ({
     onSelectRow,
     onAddToGroup,
     isChatSwitcher,
+    hideAdditionalOptionStates,
     showSelectedState,
     isSelected,
+    forceTextUnreadStyle,
 }) => {
     const textStyle = optionIsFocused
         ? styles.sidebarLinkActiveText
         : styles.sidebarLinkText;
-    const textUnreadStyle = option.isUnread
+    const textUnreadStyle = (option.isUnread || forceTextUnreadStyle)
         ? [textStyle, styles.sidebarLinkTextUnread] : [textStyle];
     return (
         <View
@@ -93,30 +104,22 @@ const OptionRow = ({
                         )
                     }
                     <View style={[styles.flex1]}>
-                        {(option.text === option.alternateText || option.alternateText.length === 0) ? (
-                            <Text style={[styles.chatSwitcherDisplayName, textUnreadStyle]} numberOfLines={1}>
-                                {option.text}
+                        <Text style={[styles.chatSwitcherDisplayName, textUnreadStyle]} numberOfLines={1}>
+                            {option.text}
+                        </Text>
+                        {option.alternateText ? (
+                            <Text
+                                style={[textStyle, styles.chatSwitcherLogin, styles.mt1]}
+                                numberOfLines={1}
+                            >
+                                {option.alternateText}
                             </Text>
-                        ) : (
-                            <>
-                                <Text style={[styles.chatSwitcherDisplayName, textUnreadStyle]} numberOfLines={1}>
-                                    {option.text}
-                                </Text>
-                                <Text
-                                    style={[textStyle, styles.chatSwitcherLogin, styles.mt1]}
-                                    numberOfLines={1}
-                                >
-                                    {option.alternateText}
-                                </Text>
-                            </>
-                        )}
+                        ) : null}
                     </View>
                     {showSelectedState && (
-                        <View
-                            style={[styles.selectCircle]}
-                        >
+                        <View style={[styles.selectCircle]}>
                             {isSelected && (
-                                <Text>X</Text>
+                                <Icon src={Checkmark} fill={themeColors.iconSuccessFill} />
                             )}
                         </View>
                     )}
@@ -137,18 +140,20 @@ const OptionRow = ({
                     </TouchableOpacity>
                 </View>
             )}
-            <View style={styles.flexRow}>
-                {option.hasDraftComment && (
-                    <View style={styles.ml2}>
-                        <Icon src={Pencil} />
-                    </View>
-                )}
-                {option.isPinned && (
-                    <View style={styles.ml2}>
-                        <Icon src={PinCircle} />
-                    </View>
-                )}
-            </View>
+            {!hideAdditionalOptionStates && (
+                <View style={styles.flexRow}>
+                    {option.hasDraftComment && (
+                        <View style={styles.ml2}>
+                            <Icon src={Pencil} />
+                        </View>
+                    )}
+                    {option.isPinned && (
+                        <View style={styles.ml2}>
+                            <Icon src={PinCircle} />
+                        </View>
+                    )}
+                </View>
+            )}
         </View>
     );
 };

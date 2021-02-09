@@ -142,8 +142,8 @@ describe('OptionsListUtils', () => {
         // Then all options returned should be recentReports and none should be personalDetails
         expect(results.personalDetails.length).toBe(0);
 
-        // Then all of the reports should be shown except the one that has no message on them.
-        expect(results.recentReports.length).toBe(_.size(REPORTS) - 1);
+        // Then all of the reports should be shown, including the one that has no message on them.
+        expect(results.recentReports.length).toBe(_.size(REPORTS));
 
         // Then pinned report should be listed first even though it is the oldest
         expect(results.recentReports[0].login).toBe('reedrichards@expensify.com');
