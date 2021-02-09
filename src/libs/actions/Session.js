@@ -89,7 +89,6 @@ function fetchAccountDetails(login) {
                 Onyx.merge(ONYXKEYS.CREDENTIALS, {login});
                 Onyx.merge(ONYXKEYS.ACCOUNT, {
                     accountExists: response.accountExists,
-                    canAccessExpensifyCash: response.canAccessExpensifyCash,
                     requiresTwoFactorAuth: response.requiresTwoFactorAuth,
                 });
 
@@ -171,30 +170,6 @@ function signIn(password, exitTo, twoFactorAuthCode) {
 }
 
 /**
- * Puts the github username into Onyx so that it can be used when creating accounts or logins
- *
- * @param {String} username
- */
-function setGitHubUsername(username) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', loading: true});
-
-    API.SetGithubUsername({email: credentials.login, githubUsername: username})
-        .then((response) => {
-            if (response.jsonCode === 200) {
-                Onyx.merge(ONYXKEYS.CREDENTIALS, {githubUsername: username});
-                Onyx.merge(ONYXKEYS.ACCOUNT, {canAccessExpensifyCash: true});
-                return;
-            }
-
-            // This request can fail if an invalid GitHub username was entered
-            Onyx.merge(ONYXKEYS.ACCOUNT, {error: 'Please enter a valid GitHub username'});
-        })
-        .finally(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
-        });
-}
-
-/**
  * Resend the validation link to the user that is validating their account
  * this happens in the createAccount() flow
  */
@@ -244,7 +219,6 @@ function setPassword(password, validateCode) {
 
 export {
     fetchAccountDetails,
-    setGitHubUsername,
     setPassword,
     signIn,
     signOut,

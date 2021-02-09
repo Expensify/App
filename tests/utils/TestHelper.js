@@ -18,7 +18,6 @@ function signInWithTestUser(accountID, login, password = 'Password1', authToken 
     HttpUtils.xhr.mockImplementation(() => Promise.resolve({
         jsonCode: 200,
         accountExists: true,
-        canAccessExpensifyCash: true,
         requiresTwoFactorAuth: false,
     }));
 
