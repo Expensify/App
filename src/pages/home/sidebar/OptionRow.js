@@ -171,10 +171,6 @@ export default memo(OptionRow, (prevProps, nextProps) => {
         return false;
     }
 
-    if (prevProps.option.isUnread !== nextProps.option.isUnread) {
-        return false;
-    }
-
     if (prevProps.option.alternateText !== nextProps.option.alternateText) {
         return false;
     }
