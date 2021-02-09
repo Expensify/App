@@ -2,7 +2,6 @@ const path = require('path');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
-const {IgnorePlugin} = require('webpack');
 const CustomVersionFilePlugin = require('./CustomVersionFilePlugin');
 
 // Check for a --platform command line argument (default to 'web')
@@ -41,7 +40,6 @@ module.exports = {
             ],
         }),
 
-        new IgnorePlugin(/^\.\/locale$/, /moment$/),
         new CustomVersionFilePlugin(),
     ],
     module: {
