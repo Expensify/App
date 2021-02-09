@@ -6,6 +6,7 @@
 - Watch out for [very large lists](https://reactnative.dev/docs/optimizing-flatlist-configuration) and things like `Image` components re-fetching images on render when a remote uri did not change.
 - Avoid the temptation to over-optimize. There is added cost in both code complexity and performance when adding checks like `shouldComponentUpdate()`. Be selective about when you use this and make sure there is a measureable difference before proposing the change. As a very general rule it should be measurably faster to run logic to avoid the re-render (e.g. do a deep comparison) than it would be to let React take care of it without any extra intervention from us.
 - Use caution when adding subscriptions that might re-render very large trees of components e.g. subscribing to state that changes often (current report, current route, etc) in the app root.
+- Avoid using arrow function callbacks in components that are expensive to re-render. React will re-render this component since each time the parent renders it creates a new instance of that function. **Alternative:** Bind the method in the constructor instead.
 
 ## Tools
 
