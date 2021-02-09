@@ -22,9 +22,9 @@ class Hoverable extends Component {
      */
     toggleHoverState() {
         if (this.state.isHovered) {
-            this.setState({isHovered: false}, this.props.onHoverOut());
+            this.setState({isHovered: false}, this.props.onHoverOut);
         } else {
-            this.setState({isHovered: true}, this.props.onHoverIn());
+            this.setState({isHovered: true}, this.props.onHoverIn);
         }
     }
 
