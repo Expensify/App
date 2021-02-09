@@ -28,7 +28,7 @@
 
 React is pretty smart and in many cases is able to tell if something needs to update. The process by which React goes about updating the "tree" or view heirarchy is called reconciliation. If React thinks something needs to update it will render it again. React also assumes that if a parent component rendered then it's child should also re-render.
 
-Re-rendering can be expensive at times and when dealing with nested props or state React may render when it doesn't need to which can be wasteful. A good example of this is a component that is being passed an object as a prop. Let's say the component only requires one or two properties from that object in order to build it's view, but doesn't care about some others. React will still re-render that component even if nothing it cares about has changed. Most of the time this is fine since reconciliation is pretty fast. But if the thing re-rendering is a massive list or an image with an inline source.
+Re-rendering can be expensive at times and when dealing with nested props or state React may render when it doesn't need to which can be wasteful. A good example of this is a component that is being passed an object as a prop. Let's say the component only requires one or two properties from that object in order to build it's view, but doesn't care about some others. React will still re-render that component even if nothing it cares about has changed. Most of the time this is fine since reconciliation is pretty fast. But we might run into performance issues when re-rendering massive lists.
 
 In this example, the most preferable solution would be to **only pass the properties that the object needs to know about** to the component in the first place.
 
