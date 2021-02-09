@@ -30,7 +30,7 @@ const propTypes = {
     // A flag to indicate whether this comes from the Chat Switcher so we can display the group button
     isChatSwitcher: PropTypes.bool,
 
-    // A flag to indicate wheter to show additional optional states, such as pin icon or different read/unread styles
+    // A flag to indicate wheter to show additional optional states, such as pin and draft icons
     hideAdditionalOptionStates: PropTypes.bool,
 
     // Whether we should show the selected state
@@ -38,6 +38,9 @@ const propTypes = {
 
     // Whether this item is selected
     isSelected: PropTypes.bool,
+
+    // Force the text style to be the unread style
+    forceTextUnreadStyle: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -46,6 +49,7 @@ const defaultProps = {
     hideAdditionalOptionStates: false,
     showSelectedState: false,
     isSelected: false,
+    forceTextUnreadStyle: false,
 };
 
 const OptionRow = ({
@@ -57,11 +61,12 @@ const OptionRow = ({
     hideAdditionalOptionStates,
     showSelectedState,
     isSelected,
+    forceTextUnreadStyle,
 }) => {
     const textStyle = optionIsFocused
         ? styles.sidebarLinkActiveText
         : styles.sidebarLinkText;
-    const textUnreadStyle = (option.isUnread || hideAdditionalOptionStates)
+    const textUnreadStyle = (option.isUnread || forceTextUnreadStyle)
         ? [textStyle, styles.sidebarLinkTextUnread] : [textStyle];
     return (
         <View

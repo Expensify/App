@@ -40,8 +40,11 @@ const propTypes = {
     // Whether to allow option focus or not
     disableFocusOptions: PropTypes.bool,
 
-    // A flag to indicate wheter to show additional optional states, such as pin icon or different read/unread styles
+    // A flag to indicate wheter to show additional optional states, such as pin and draft icons
     hideAdditionalOptionStates: PropTypes.bool,
+
+    // Force the text style to be the unread style on all rows
+    forceTextUnreadStyle: PropTypes.bool,
 
     // Callback to fire when a row is selected
     onSelectRow: PropTypes.func,
@@ -68,6 +71,7 @@ const defaultProps = {
     hideSectionHeaders: false,
     disableFocusOptions: false,
     hideAdditionalOptionStates: false,
+    forceTextUnreadStyle: false,
     onSelectRow: () => {},
     headerMessage: '',
     headerTitle: '',
@@ -78,8 +82,8 @@ class OptionsList extends Component {
     constructor(props) {
         super(props);
 
-        this.renderSectionHeader = this.renderSectionHeader.bind(this);
         this.renderItem = this.renderItem.bind(this);
+        this.renderSectionHeader = this.renderSectionHeader.bind(this);
         this.extractKey = this.extractKey.bind(this);
         this.onScrollToIndexFailed = this.onScrollToIndexFailed.bind(this);
     }
@@ -108,14 +112,60 @@ class OptionsList extends Component {
         return false;
     }
 
-    onScrollToIndexFailed(error) {
-        console.debug(error);
+    /**
+     * We must implement this method in order to use the ref.scrollToLocation() method.
+     * See: https://reactnative.dev/docs/sectionlist#scrolltolocation
+     *
+     * @param {Object} info
+     */
+    onScrollToIndexFailed(info) {
+        console.debug(info);
     }
 
+    /**
+     * Returns the key used by the list
+     * @param {Object} option
+     * @return {String}
+     */
     extractKey(option) {
         return option.keyForList;
     }
 
+    /**
+     * Function which renders a row in the list
+     *
+     * @param {Object} params
+     * @param {Object} params.item
+     * @param {Number} params.index
+     * @param {Object} params.section
+     *
+     * @return {Component}
+     */
+    renderItem({item, index, section}) {
+        return (
+            <OptionRow
+                option={item}
+                optionIsFocused={!this.props.disableFocusOptions
+                        && this.props.focusedIndex === (index + section.indexOffset)}
+                onSelectRow={this.props.onSelectRow}
+                isSelected={Boolean(_.find(this.props.selectedOptions, option => option.login === item.login))}
+                showSelectedState={this.props.canSelectMultipleOptions}
+                hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
+                forceTextUnreadStyle={this.props.forceTextUnreadStyle}
+            />
+        );
+    }
+
+    /**
+     * Function which renders a section header component
+     *
+     * @param {Object} params
+     * @param {Object} params.section
+     * @param {String} params.section.title
+     * @param {Booolean} params.section.shouldShow
+     *
+     * @return {Component}
+     */
     renderSectionHeader({section: {title, shouldShow}}) {
         if (title && shouldShow && !this.props.hideSectionHeaders) {
             return (
@@ -128,22 +178,6 @@ class OptionsList extends Component {
         }
 
         return <View />;
-    }
-
-    renderItem({item, index, section}) {
-        return (
-            <OptionRow
-                option={item}
-                optionIsFocused={
-                    !this.props.disableFocusOptions
-                        && this.props.focusedIndex === (index + section.indexOffset)
-                }
-                onSelectRow={this.props.onSelectRow}
-                isSelected={Boolean(_.find(this.props.selectedOptions, option => option.login === item.login))}
-                showSelectedState={this.props.canSelectMultipleOptions}
-                hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
-            />
-        );
     }
 
     render() {
@@ -183,7 +217,6 @@ class OptionsList extends Component {
     }
 }
 
-OptionsList.displayName = 'OptionsList';
 OptionsList.propTypes = propTypes;
 OptionsList.defaultProps = defaultProps;
 

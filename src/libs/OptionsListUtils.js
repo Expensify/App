@@ -92,7 +92,7 @@ function createOption(personalDetailList, report, draftComments, activeReportID,
 
     return {
         text: report ? report.reportName : personalDetail.displayName,
-        alternateText: showChatPreviewLine ? lastMessageText : personalDetail.login,
+        alternateText: (showChatPreviewLine && lastMessageText) ? lastMessageText : personalDetail.login,
         icons: report ? report.icons : [personalDetail.avatarURL],
 
         // It doesn't make sense to provide a login in the case of a report with multiple participants since
@@ -158,6 +158,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
     sortByLastMessageTimestamp = false,
     searchValue = '',
     showChatPreviewLine = false,
+    showReportsWithNoComments = false,
 }) {
     let recentReportOptions = [];
     const pinnedReportOptions = [];
@@ -182,7 +183,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         // Skip this entry if it has no comments and is not the active report. We will only show reports from
         // people we have sent or recieved at least one message with.
         const hasNoComments = report.lastMessageTimestamp === 0;
-        if (hasNoComments && report.reportID !== activeReportID) {
+        if (!showReportsWithNoComments && hasNoComments && report.reportID !== activeReportID) {
             return;
         }
 
@@ -313,6 +314,8 @@ function getSearchOptions(
         includeMultipleParticipantReports: true,
         maxRecentReportsToShow: 0, // Unlimited
         prioritizePinnedReports: true,
+        showChatPreviewLine: true,
+        showReportsWithNoComments: true,
     });
 }
 
