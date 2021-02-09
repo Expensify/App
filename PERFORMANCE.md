@@ -36,4 +36,6 @@ Another option would be to use `shouldComponentUpdate` or `React.memo()` to add 
 
 React might still take some time to re-render a component when it's parent component renders. If it takes a long time to re-render the child even though we have no props changing then we can use `PureComponent` or `React.memo()` (without a callback) which will "shallow compare" the `props` to see if a component should re-render.
 
+If you aren't sure what exactly is changing about some deeply nested object prop you can use `Performance.diffObject()` method in `componentDidUpdate()` which should show you exactly what is changing from one update to the next.
+
 **Suggested:** [React Docs - Reconciliation](https://reactjs.org/docs/reconciliation.html)
