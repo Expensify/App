@@ -87,7 +87,7 @@ function fetchAccountDetails(login) {
         .then((response) => {
             if (response.jsonCode === 200) {
                 Onyx.merge(ONYXKEYS.CREDENTIALS, {
-                    login: response.normalizedLogin ?? login,
+                    login: response.normalizedLogin,
                 });
                 Onyx.merge(ONYXKEYS.ACCOUNT, {
                     accountExists: response.accountExists,
