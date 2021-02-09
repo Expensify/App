@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import Pusher from './library';
+import PusherAppState from './PusherAppState';
 
 let socket;
 const socketEventCallbacks = [];
@@ -80,6 +81,25 @@ function init(args, params) {
         socket.connection.bind('state_change', (states) => {
             console.debug('[Pusher] state changed', states);
             callSocketEventCallbacks('state_change', states);
+        });
+
+        // Pusher does not guarantee that a connection will be maintained while the app is in the background. For this
+        // reason when moving to background or returning we will try to connect and disconnect the Pusher instance.
+        // This will also indirectly fire the reconnection callbacks on mobile. This will noop on web since a Pusher
+        // connection can be held more reliably when an app is "in the background" (minimized or hidden somehow).
+        PusherAppState.addEventListener((state) => {
+            if (!socket) {
+                return;
+            }
+
+            if (state === 'active') {
+                socket.connect();
+                return;
+            }
+
+            if (state === 'background') {
+                socket.disconnect();
+            }
         });
     });
 }
