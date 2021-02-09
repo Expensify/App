@@ -10,6 +10,7 @@ import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import KeyboardSpacer from '../components/KeyboardSpacer';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import {hide as hideSidebar} from '../libs/actions/Sidebar';
+import CONST from '../CONST';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -73,8 +74,7 @@ class NewChatPage extends Component {
         if (!hasSelectableOptions && !this.state.userToInvite) {
             return {
                 headerTitle: '',
-                // eslint-disable-next-line max-len
-                headerMessage: 'Don\'t see who you\'re looking for? Type their email or phone number to invite them to chat.',
+                headerMessage: CONST.MESSAGES.NO_CONTACTS_FOUND,
             };
         }
 
@@ -157,6 +157,7 @@ class NewChatPage extends Component {
                         hideSectionHeaders
                         disableArrowKeysActions
                         hideAdditionalOptionStates
+                        forceTextUnreadStyle
                     />
                 </View>
                 <KeyboardSpacer />
