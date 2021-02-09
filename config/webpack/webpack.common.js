@@ -1,4 +1,5 @@
 const path = require('path');
+const {IgnorePlugin} = require('webpack');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
@@ -39,7 +40,7 @@ module.exports = {
                 {from: 'src/vendor/pdf-js/js', to: 'pdf/build'},
             ],
         }),
-
+        new IgnorePlugin(/^\.\/locale$/, /moment$/),
         new CustomVersionFilePlugin(),
     ],
     module: {
