@@ -157,11 +157,11 @@ class SidebarLinks extends React.Component {
                         onCloseButtonPress={this.hideChatSwitcher}
                         shouldShowBorderBottom={false}
                     />
-                    <SearchView onLinkClick={this.props.onLinkClick} />
+                    {this.props.isChatSwitcherActive
+                        ? <SearchView onLinkClick={this.props.onLinkClick} />
+                        : null}
                 </Animated.View>
-                <Animated.View
-                    style={[sidebarStyle]}
-                >
+                <Animated.View style={[sidebarStyle]}>
                     <View style={[
                         !this.props.isChatSwitcherActive ? styles.dFlex : styles.dNone,
                         styles.flexRow,
