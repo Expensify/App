@@ -39,7 +39,7 @@ const ReportActionItem = props => (
                     <ReportActionContextMenu
                         reportID={props.reportID}
                         reportActionID={props.action.sequenceNumber}
-                        shouldShow={hovered}
+                        isVisible={hovered}
                         isMini
                     />
                 </View>

@@ -56,17 +56,17 @@ const propTypes = {
     isMini: PropTypes.bool,
 
     // Controls the visibility of this component.
-    shouldShow: PropTypes.bool,
+    isVisible: PropTypes.bool,
 };
 
 const defaultProps = {
     isMini: false,
-    shouldShow: false,
+    isVisible: false,
 };
 
 const ReportActionContextMenu = (props) => {
     const {wrapperStyle, getButtonStyle, getIconFillColor} = getReportActionContextMenuStyles(props.isMini);
-    return props.shouldShow && (
+    return props.isVisible && (
         <View style={[
             ...wrapperStyle,
             styles.flex1,
