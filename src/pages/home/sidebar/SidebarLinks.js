@@ -5,7 +5,6 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import styles, {getSafeAreaMargins} from '../../../styles/styles';
 import ONYXKEYS from '../../../ONYXKEYS';
-import ChatSwitcherView from './ChatSwitcherView';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
 import compose from '../../../libs/compose';
 import {redirect} from '../../../libs/actions/App';
@@ -20,6 +19,7 @@ import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
 import {getSidebarOptions} from '../../../libs/OptionsListUtils';
 import {getDefaultAvatar} from '../../../libs/actions/PersonalDetails';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
+import SearchView from '../../../components/SearchView';
 
 const propTypes = {
     // Toggles the navigation menu open and closed
@@ -157,9 +157,7 @@ class SidebarLinks extends React.Component {
                         onCloseButtonPress={this.hideChatSwitcher}
                         shouldShowBorderBottom={false}
                     />
-                    <ChatSwitcherView
-                        onLinkClick={this.props.onLinkClick}
-                    />
+                    <SearchView onLinkClick={this.props.onLinkClick} />
                 </Animated.View>
                 <Animated.View
                     style={[sidebarStyle]}

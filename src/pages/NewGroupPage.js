@@ -80,7 +80,7 @@ class NewGroupPage extends Component {
         if (maxParticipantsReached) {
             return {
                 headerTitle: '',
-                headerMessage: 'You\'ve reached the maximum number of participants for a group chat.',
+                headerMessage: CONST.MESSAGES.MAXIMUM_PARTICIPANTS_REACHED,
             };
         }
 
@@ -88,8 +88,7 @@ class NewGroupPage extends Component {
         if (!hasSelectableOptions && !this.state.userToInvite) {
             return {
                 headerTitle: '',
-                // eslint-disable-next-line max-len
-                headerMessage: 'Don\'t see who you\'re looking for? Type their email or phone number to invite them to chat.',
+                headerMessage: CONST.MESSAGES.NO_CONTACTS_FOUND,
             };
         }
 
@@ -235,22 +234,25 @@ class NewGroupPage extends Component {
                         headerMessage={headerMessage}
                         disableArrowKeysActions
                         hideAdditionalOptionStates
+                        forceTextUnreadStyle
                     />
-                    <View style={[styles.ph5, styles.pb5]}>
-                        <Pressable
-                            onPress={this.createGroup}
-                            style={({hovered}) => [
-                                styles.button,
-                                styles.buttonSuccess,
-                                styles.w100,
-                                hovered && styles.buttonSuccessHovered,
-                            ]}
-                        >
-                            <Text style={[styles.buttonText, styles.buttonSuccessText]}>
-                                Create Group
-                            </Text>
-                        </Pressable>
-                    </View>
+                    {this.state.selectedOptions?.length > 0 && (
+                        <View style={[styles.ph5, styles.pb5]}>
+                            <Pressable
+                                onPress={this.createGroup}
+                                style={({hovered}) => [
+                                    styles.button,
+                                    styles.buttonSuccess,
+                                    styles.w100,
+                                    hovered && styles.buttonSuccessHovered,
+                                ]}
+                            >
+                                <Text style={[styles.buttonText, styles.buttonSuccessText]}>
+                                    Create Group
+                                </Text>
+                            </Pressable>
+                        </View>
+                    )}
                 </View>
                 <KeyboardSpacer />
             </>

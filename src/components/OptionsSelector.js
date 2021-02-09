@@ -54,8 +54,11 @@ const propTypes = {
     // Whether to allow arrow key actions on the list
     disableArrowKeysActions: PropTypes.bool,
 
-    // A flag to indicate wheter to show additional optional states, such as pin icon or different read/unread styles
+    // A flag to indicate wheter to show additional optional states, such as pin and draft icons
     hideAdditionalOptionStates: PropTypes.bool,
+
+    // Force the text style to be the unread style on all rows
+    forceTextUnreadStyle: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -68,6 +71,7 @@ const defaultProps = {
     hideSectionHeaders: false,
     disableArrowKeysActions: false,
     hideAdditionalOptionStates: false,
+    forceTextUnreadStyle: false,
 };
 
 class OptionsSelector extends Component {
@@ -190,6 +194,7 @@ class OptionsSelector extends Component {
                     headerMessage={this.props.headerMessage}
                     disableFocusOptions={this.props.disableArrowKeysActions}
                     hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
+                    forceTextUnreadStyle={this.props.forceTextUnreadStyle}
                 />
             </View>
         );
