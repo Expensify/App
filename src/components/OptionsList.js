@@ -1,67 +1,65 @@
 import _ from 'underscore';
-import React from 'react';
-import {View, SectionList} from 'react-native';
+import React, {forwardRef} from 'react';
+import {View, SectionList, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
-import KeyboardSpacer from './KeyboardSpacer';
-import ChatLinkRow from '../pages/home/sidebar/ChatLinkRow';
+import OptionRow from '../pages/home/sidebar/OptionRow';
+import optionPropTypes from './optionPropTypes';
 
 const propTypes = {
-    /** Extra styles for the section list container */
+    // Extra styles for the section list container
     contentContainerStyles: PropTypes.arrayOf(PropTypes.object),
 
-    /** Sections for the section list */
+    // Sections for the section list
     sections: PropTypes.arrayOf(PropTypes.shape({
+        // Title of the section
         title: PropTypes.string,
+
+        // The initial index of this section given the total number of options in each section's data array
         indexOffset: PropTypes.number,
-        data: PropTypes.arrayOf(PropTypes.shape({})),
+
+        // Array of options
+        data: PropTypes.arrayOf(optionPropTypes),
+
+        // Whether this section should show or not
         shouldShow: PropTypes.bool,
     })),
 
-    /** Index for option to focus on */
+    // Index for option to focus on
     focusedIndex: PropTypes.number,
 
-    /** Array of already selected options */
-    selectedOptions: PropTypes.arrayOf(PropTypes.shape({
-        /** Text to display */
-        text: PropTypes.string,
+    // Array of already selected options
+    selectedOptions: PropTypes.arrayOf(optionPropTypes),
 
-        /** Alternate text to display */
-        alternateText: PropTypes.string,
-
-        /** Array of icon urls */
-        icons: PropTypes.arrayOf(PropTypes.string),
-
-        /** Login (only present when there is a single participant) */
-        login: PropTypes.string,
-
-        /** reportID (only present when there is a matching report) */
-        reportID: PropTypes.number,
-
-        /** Whether the report has read or not */
-        isUnread: PropTypes.bool,
-
-        /** Whether the report has a draft comment or not */
-        hasDraftComment: PropTypes.bool,
-
-        /** Key used internally by React */
-        keyForList: PropTypes.string,
-
-        /** Search text we use to filter options */
-        searchText: PropTypes.string,
-
-        /** Whether the report is pinned or not */
-        isPinned: PropTypes.bool,
-    })),
-
-    /** Whether we can select multiple options or not */
+    // Whether we can select multiple options or not
     canSelectMultipleOptions: PropTypes.bool,
 
-    /** Whether to show headers above each section or not */
+    // Whether to show headers above each section or not
     hideSectionHeaders: PropTypes.bool,
 
-    /** Callback to fire when a row is selected */
+    // Whether to allow option focus or not
+    disableFocusOptions: PropTypes.bool,
+
+    // A flag to indicate wheter to show additional optional states, such as pin and draft icons
+    hideAdditionalOptionStates: PropTypes.bool,
+
+    // Force the text style to be the unread style on all rows
+    forceTextUnreadStyle: PropTypes.bool,
+
+    // Callback to fire when a row is selected
     onSelectRow: PropTypes.func,
+
+    // Optional header title
+    headerTitle: PropTypes.string,
+
+    // Optional header message
+    headerMessage: PropTypes.string,
+
+    // Passed via forwardRef so we can access the SectionList ref
+    innerRef: PropTypes.oneOfType([
+        PropTypes.func,
+        PropTypes.shape({current: PropTypes.instanceOf(SectionList)}),
+    ]),
 };
 
 const defaultProps = {
@@ -71,7 +69,13 @@ const defaultProps = {
     selectedOptions: [],
     canSelectMultipleOptions: false,
     hideSectionHeaders: false,
+    disableFocusOptions: false,
+    hideAdditionalOptionStates: false,
+    forceTextUnreadStyle: false,
     onSelectRow: () => {},
+    headerMessage: '',
+    headerTitle: '',
+    innerRef: null,
 };
 
 const OptionsList = ({
@@ -81,10 +85,30 @@ const OptionsList = ({
     selectedOptions,
     canSelectMultipleOptions,
     hideSectionHeaders,
+    disableFocusOptions,
+    hideAdditionalOptionStates,
+    forceTextUnreadStyle,
     onSelectRow,
+    headerMessage,
+    headerTitle,
+    innerRef,
 }) => (
     <View style={[styles.flex1]}>
+        {headerMessage ? (
+            <View style={[styles.ph5, styles.pb5]}>
+                {headerTitle ? (
+                    <Text style={[styles.h4, styles.mb1]}>
+                        {headerTitle}
+                    </Text>
+                ) : null}
+
+                <Text style={[styles.textLabel, styles.colorMuted]}>
+                    {headerMessage}
+                </Text>
+            </View>
+        ) : null}
         <SectionList
+            ref={innerRef}
             bounces={false}
             indicatorStyle="white"
             keyboardShouldPersistTaps="always"
@@ -92,36 +116,43 @@ const OptionsList = ({
             showsVerticalScrollIndicator={false}
             sections={sections}
             keyExtractor={option => option.keyForList}
-            initialNumToRender={200}
+            initialNumToRender={500}
+            onScrollToIndexFailed={error => console.debug(error)}
+            stickySectionHeadersEnabled={false}
             renderItem={({item, index, section}) => (
-                <ChatLinkRow
+                <OptionRow
                     option={item}
-                    optionIsFocused={focusedIndex === (index + section.indexOffset)}
+                    optionIsFocused={!disableFocusOptions && focusedIndex === (index + section.indexOffset)}
                     onSelectRow={onSelectRow}
-                    isSelected={_.find(selectedOptions, option => option.login === item.login)}
+                    isSelected={Boolean(_.find(selectedOptions, option => option.login === item.login))}
                     showSelectedState={canSelectMultipleOptions}
+                    hideAdditionalOptionStates={hideAdditionalOptionStates}
+                    forceTextUnreadStyle={forceTextUnreadStyle}
                 />
             )}
             renderSectionHeader={({section: {title, shouldShow}}) => {
                 if (title && shouldShow && !hideSectionHeaders) {
                     return (
                         <View>
-                            <Text style={styles.subHeader}>
+                            <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
                                 {title}
                             </Text>
                         </View>
                     );
                 }
 
-                return <View style={styles.mt1} />;
+                return <View />;
             }}
             extraData={focusedIndex}
         />
-        <KeyboardSpacer />
     </View>
 );
 
 OptionsList.propTypes = propTypes;
 OptionsList.displayName = 'OptionsList';
 OptionsList.defaultProps = defaultProps;
-export default OptionsList;
+
+export default forwardRef((props, ref) => (
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <OptionsList {...props} innerRef={ref} />
+));

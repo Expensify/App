@@ -22,7 +22,7 @@ const PillWithCancelButton = props => (
         >
             {props.text}
         </Text>
-        <Icon src={Close} width={variables.iconSizeExtraSmall} height={variables.iconSizeExtraSmall} />
+        <Icon src={Close} width={variables.iconSizeSmall} height={variables.iconSizeSmall} />
     </TouchableOpacity>
 );
 
