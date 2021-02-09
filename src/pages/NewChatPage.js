@@ -31,7 +31,7 @@ const propTypes = {
     reports: PropTypes.shape({
         reportID: PropTypes.number,
         reportName: PropTypes.string,
-    }),
+    }).isRequired,
 
     // Session of currently logged in user
     session: PropTypes.shape({
@@ -39,10 +39,6 @@ const propTypes = {
     }).isRequired,
 
     ...windowDimensionsPropTypes,
-};
-
-const defaultProps = {
-    reports: {},
 };
 
 class NewChatPage extends Component {
@@ -170,7 +166,6 @@ class NewChatPage extends Component {
 }
 
 NewChatPage.propTypes = propTypes;
-NewChatPage.defaultProps = defaultProps;
 
 export default withWindowDimensions(withOnyx({
     reports: {

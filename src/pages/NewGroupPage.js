@@ -33,7 +33,7 @@ const propTypes = {
     reports: PropTypes.shape({
         reportID: PropTypes.number,
         reportName: PropTypes.string,
-    }),
+    }).isRequired,
 
     // Session of currently logged in user
     session: PropTypes.shape({
@@ -41,10 +41,6 @@ const propTypes = {
     }).isRequired,
 
     ...windowDimensionsPropTypes,
-};
-
-const defaultProps = {
-    reports: {},
 };
 
 class NewGroupPage extends Component {
@@ -263,7 +259,6 @@ class NewGroupPage extends Component {
 }
 
 NewGroupPage.propTypes = propTypes;
-NewGroupPage.defaultProps = defaultProps;
 
 export default withWindowDimensions(withOnyx({
     reports: {

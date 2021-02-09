@@ -2,8 +2,6 @@ const path = require('path');
 const webpack = require('webpack');
 const {merge} = require('webpack-merge');
 const dotenv = require('dotenv');
-
-// eslint-disable-next-line no-unused-vars
 const common = require('./webpack.common.js');
 
 const env = dotenv.config({path: path.resolve(__dirname, '../../.env.production')}).parsed;
