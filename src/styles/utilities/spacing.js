@@ -13,6 +13,16 @@ export default {
         margin: 8,
     },
 
+    mh1: {
+        marginRight: 4,
+        marginLeft: 4,
+    },
+
+    mv1: {
+        marginTop: 4,
+        marginBottom: 4,
+    },
+
     mr0: {
         marginRight: 0,
     },
@@ -27,6 +37,10 @@ export default {
 
     mr3: {
         marginRight: 12,
+    },
+
+    mr4: {
+        marginRight: 16,
     },
 
     ml1: {
@@ -121,8 +135,16 @@ export default {
         paddingVertical: 4,
     },
 
+    pv3: {
+        paddingVertical: 12,
+    },
+
     ph2: {
         paddingHorizontal: 8,
+    },
+
+    ph5: {
+        paddingHorizontal: 20,
     },
 
     pr1: {
@@ -151,13 +173,5 @@ export default {
 
     pb5: {
         paddingBottom: 20,
-    },
-
-    ph5: {
-        paddingHorizontal: 20,
-    },
-
-    pv3: {
-        paddingVertical: 12,
     },
 };
