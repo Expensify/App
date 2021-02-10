@@ -333,21 +333,6 @@ const styles = {
         height: '100%',
     },
 
-    sidebarHeader: {
-        flexGrow: 0,
-        height: 0,
-    },
-
-    sidebarHeaderActive: {
-        flexGrow: 1,
-        height: '100%',
-    },
-
-    sidebarHeaderTop: {
-        paddingHorizontal: 20,
-        paddingVertical: 12,
-    },
-
     sidebarFooter: {
         alignItems: 'center',
         display: 'flex',
