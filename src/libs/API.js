@@ -529,6 +529,18 @@ function User_GetBetas() {
     return request('User_GetBetas');
 }
 
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.name
+ * @param {String} parameters.value
+ * @returns {Promise}
+ */
+function SetNameValuePair(parameters) {
+    const commandName = 'SetNameValuePair';
+    requireParameters(['name', 'value'], parameters, commandName);
+    return request(commandName, parameters);
+}
+
 export {
     getAuthToken,
     Authenticate,
@@ -548,6 +560,7 @@ export {
     Report_UpdateLastRead,
     ResendValidateCode,
     SetGithubUsername,
+    SetNameValuePair,
     SetPassword,
     User_SignUp,
     User_GetBetas,
