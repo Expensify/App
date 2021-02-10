@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import {Text} from 'react-native';
 import DateUtils from '../../../libs/DateUtils';
@@ -18,4 +18,4 @@ const ReportActionItemDate = props => (
 ReportActionItemDate.propTypes = propTypes;
 ReportActionItemDate.displayName = 'ReportActionItemDate';
 
-export default ReportActionItemDate;
+export default memo(ReportActionItemDate);

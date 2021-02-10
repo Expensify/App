@@ -1,4 +1,5 @@
-import React from 'react';
+import _ from 'underscore';
+import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {
     View,
@@ -6,16 +7,17 @@ import {
     Easing,
     Keyboard,
 } from 'react-native';
-import {SafeAreaInsetsContext, SafeAreaProvider} from 'react-native-safe-area-context';
+import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import {withOnyx} from 'react-native-onyx';
 import {Route} from '../../libs/Router';
 import styles, {getSafeAreaPadding, getNavigationMenuStyle} from '../../styles/styles';
 import variables from '../../styles/variables';
 import HeaderView from './HeaderView';
 import Sidebar from './sidebar/SidebarView';
+import MainView from './MainView';
 import NewGroupPage from '../NewGroupPage';
+import NewChatPage from '../NewChatPage';
 import SettingsPage from '../SettingsPage';
-import Main from './MainView';
 import {
     hide as hideSidebar,
     show as showSidebar,
@@ -44,25 +46,18 @@ import RightDockedModal from '../../components/RightDockedModal';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import compose from '../../libs/compose';
 import {getBetas} from '../../libs/actions/User';
-import NewChatPage from '../NewChatPage';
 
 const propTypes = {
     isSidebarShown: PropTypes.bool,
-    isChatSwitcherActive: PropTypes.bool,
-    currentURL: PropTypes.string,
     network: PropTypes.shape({isOffline: PropTypes.bool}),
-    currentlyViewedReportID: PropTypes.string,
     ...windowDimensionsPropTypes,
 };
 const defaultProps = {
     isSidebarShown: true,
-    isChatSwitcherActive: false,
-    currentURL: '',
     network: {isOffline: true},
-    currentlyViewedReportID: '',
 };
 
-class HomePage extends React.Component {
+class HomePage extends Component {
     constructor(props) {
         Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
         Timing.start(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
@@ -131,14 +126,18 @@ class HomePage extends React.Component {
         }, ['meta'], true);
     }
 
+    shouldComponentUpdate(nextProps, nextState) {
+        if (_.isEqual(nextProps, this.props) && _.isEqual(nextState, this.state)) {
+            return false;
+        }
+
+        return true;
+    }
+
     componentDidUpdate(prevProps) {
         // Always show the sidebar if we are moving from small to large screens
         if (prevProps.isSmallScreenWidth && !this.props.isSmallScreenWidth) {
             showSidebar();
-        }
-
-        if (!prevProps.isChatSwitcherActive && this.props.isChatSwitcherActive) {
-            this.showNavigationMenu();
         }
         if (this.props.isSidebarShown === prevProps.isSidebarShown) {
             // Nothing changed, don't trigger animation or re-render
@@ -271,7 +270,7 @@ class HomePage extends React.Component {
 
     render() {
         return (
-            <SafeAreaProvider>
+            <>
                 <CustomStatusBar />
                 <SafeAreaInsetsContext.Consumer style={[styles.flex1]}>
                     {insets => (
@@ -315,33 +314,32 @@ class HomePage extends React.Component {
                                     <HeaderView
                                         shouldShowNavigationMenuButton={this.props.isSmallScreenWidth}
                                         onNavigationMenuButtonClicked={this.toggleNavigationMenu}
-                                        reportID={this.props.currentlyViewedReportID}
                                     />
                                     <RightDockedModal
                                         title="Settings"
-                                        isVisible={this.props.currentURL === ROUTES.SETTINGS}
+                                        route={ROUTES.SETTINGS}
                                     >
                                         <SettingsPage />
                                     </RightDockedModal>
                                     <RightDockedModal
                                         title="New Group"
-                                        isVisible={this.props.currentURL === ROUTES.NEW_GROUP}
+                                        route={ROUTES.NEW_GROUP}
                                     >
                                         <NewGroupPage />
                                     </RightDockedModal>
                                     <RightDockedModal
                                         title="New Chat"
-                                        isVisible={this.props.currentURL === ROUTES.NEW_CHAT}
+                                        route={ROUTES.NEW_CHAT}
                                     >
                                         <NewChatPage />
                                     </RightDockedModal>
-                                    <Main />
+                                    <MainView />
                                 </View>
                             </Route>
                         </View>
                     )}
                 </SafeAreaInsetsContext.Consumer>
-            </SafeAreaProvider>
+            </>
         );
     }
 }
@@ -355,18 +353,8 @@ export default compose(
             isSidebarShown: {
                 key: ONYXKEYS.IS_SIDEBAR_SHOWN,
             },
-            isChatSwitcherActive: {
-                key: ONYXKEYS.IS_CHAT_SWITCHER_ACTIVE,
-                initWithStoredValues: false,
-            },
-            currentURL: {
-                key: ONYXKEYS.CURRENT_URL,
-            },
             network: {
                 key: ONYXKEYS.NETWORK,
-            },
-            currentlyViewedReportID: {
-                key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
             },
         },
     ),
