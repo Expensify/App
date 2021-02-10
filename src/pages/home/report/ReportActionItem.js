@@ -8,7 +8,6 @@ import getReportActionItemContainerStyles from '../../../styles/getReportActionI
 import styles from '../../../styles/styles';
 import ReportActionContextMenu from './ReportActionContextMenu';
 import Hoverable from '../../../components/Hoverable';
-import {setActiveReportActionID} from '../../../libs/actions/Report';
 
 const propTypes = {
     // The ID of the report this action is on.
@@ -22,10 +21,7 @@ const propTypes = {
 };
 
 const ReportActionItem = props => (
-    <Hoverable
-        onHoverIn={() => setActiveReportActionID(props.action.sequenceNumber)}
-        onHoverOut={() => setActiveReportActionID(null)}
-    >
+    <Hoverable>
         {hovered => (
             <View>
                 <View style={getReportActionItemContainerStyles(hovered)}>
