@@ -151,8 +151,7 @@ do {
                                 // NPM version successfully updated, update native versions - don't retry.
                                 postVersionUpdateNative(stdout);
                                 shouldRetry = false;
-                            }
-                            if (err) {
+                            } else {
                                 // Log errors and retry
                                 console.log(stdout);
                                 console.error(stderr);
