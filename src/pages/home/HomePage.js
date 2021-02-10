@@ -18,6 +18,7 @@ import MainView from './MainView';
 import NewGroupPage from '../NewGroupPage';
 import NewChatPage from '../NewChatPage';
 import SettingsPage from '../SettingsPage';
+import SearchPage from '../SearchPage';
 import {
     hide as hideSidebar,
     show as showSidebar,
@@ -40,7 +41,6 @@ import CustomStatusBar from '../../components/CustomStatusBar';
 import CONST from '../../CONST';
 import {fetchCountryCodeByRequestIP} from '../../libs/actions/GeoLocation';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
-import * as ChatSwitcher from '../../libs/actions/ChatSwitcher';
 import {redirect} from '../../libs/actions/App';
 import RightDockedModal from '../../components/RightDockedModal';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
@@ -122,7 +122,7 @@ class HomePage extends Component {
 
         // Listen for the Command+K key being pressed so the focus can be given to the chat switcher
         KeyboardShortcut.subscribe('K', () => {
-            ChatSwitcher.show();
+            redirect(ROUTES.SEARCH);
         }, ['meta'], true);
     }
 
@@ -287,6 +287,7 @@ class HomePage extends Component {
                                 ROUTES.SETTINGS,
                                 ROUTES.NEW_GROUP,
                                 ROUTES.NEW_CHAT,
+                                ROUTES.SEARCH,
                             ]}
                             >
                                 <Animated.View style={[
@@ -332,6 +333,12 @@ class HomePage extends Component {
                                         route={ROUTES.NEW_CHAT}
                                     >
                                         <NewChatPage />
+                                    </RightDockedModal>
+                                    <RightDockedModal
+                                        title="Search"
+                                        route={ROUTES.SEARCH}
+                                    >
+                                        <SearchPage />
                                     </RightDockedModal>
                                     <MainView />
                                 </View>
