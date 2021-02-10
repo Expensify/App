@@ -46,6 +46,7 @@ import RightDockedModal from '../../components/RightDockedModal';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import compose from '../../libs/compose';
 import {getBetas} from '../../libs/actions/User';
+import Account from '../../libs/actions/Account';
 
 const propTypes = {
     isSidebarShown: PropTypes.bool,
@@ -94,6 +95,7 @@ class HomePage extends Component {
         }).then(subscribeToReportCommentEvents);
 
         // Fetch some data we need on initialization
+        Account.fetchPriorityMode();
         PersonalDetails.fetch();
         PersonalDetails.fetchTimezone();
         getBetas();
