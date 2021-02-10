@@ -3,20 +3,20 @@ import {View} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 
+import SignInPage from './pages/signin/SignInPage';
 import SidebarPage from './pages/home/SidebarPage';
 import SettingsPage from './pages/SettingsPage';
 import listenToStorageEvents from './libs/listenToStorageEvents';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import ONYXKEYS from './ONYXKEYS';
 import RootNavigator from './Navigator/RootNavigator';
-
+import CONST from './CONST';
 import styles from './styles/styles';
 import Log from './libs/Log';
 
 import PushNotification from './libs/Notification/PushNotification';
 
 import MainView from './pages/home/MainView';
-import SettingsModal from './components/SettingsModal';
 
 // Initialize the store when the app loads for the first time
 Onyx.init({
@@ -98,22 +98,30 @@ class Expensify extends Component {
             <SafeAreaProvider>
                 <RootNavigator
                     authenticated={this.state.authToken}
-                    routes={[
-                        {
-                            path: '/',
-                            Component: SidebarPage,
-                            position: 'sidebar',
+                    publicRoute={{
+                        Component: SignInPage,
+                        path: '/signin',
+                        options: {
+                            headerShown: false,
+                            animationTypeForReplace: 'pop',
                         },
+                    }}
+                    sidebarRoute={{
+                        path: '/',
+                        Component: SidebarPage,
+                    }}
+                    modalRoutes={[
+                        {
+                            path: '/settings',
+                            Component: SettingsPage,
+                            modalType: CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
+                        },
+                    ]}
+                    mainRoutes={[
                         {
                             path: '/r',
                             Component: MainView,
                             additionalPaths: '/',
-                        },
-                        {
-                            path: '/settings',
-                            Component: SettingsPage,
-                            ModalComponent: SettingsModal,
-                            isModal: true,
                         },
                     ]}
                 />

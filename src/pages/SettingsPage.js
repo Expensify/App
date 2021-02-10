@@ -12,6 +12,10 @@ import {signOut} from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
 import {version} from '../../package.json';
 import AvatarWithIndicator from '../components/AvatarWithIndicator';
+import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
+import ROUTES from '../ROUTES';
+import Navigator from '../Navigator';
+import SafeAreaViewWrapper from '../components/SafeAreaViewWrapper';
 
 const propTypes = {
     /* Onyx Props */
@@ -43,7 +47,10 @@ const defaultProps = {
     session: {},
 };
 const SettingsPage = ({
-    myPersonalDetails, network, session,
+    myPersonalDetails,
+    network,
+    session,
+    currentlyViewedReportID,
 }) => {
     // On the very first sign in or after clearing storage these
     // details will not be present on the first render so we'll just
@@ -52,44 +59,60 @@ const SettingsPage = ({
         return null;
     }
     return (
-        <View
-            pointerEvents="box-none"
-            style={[
-                styles.settingsPageBackground,
-            ]}
-        >
-            <View style={styles.settingsWrapper}>
-                <View
-                    style={[styles.largeAvatar, styles.mb3]}
-                >
-                    <AvatarWithIndicator
-                        size="large"
-                        source={myPersonalDetails.avatarURL}
-                        isActive={network && !network.isOffline}
+        <SafeAreaViewWrapper>
+            {() => (
+                <>
+                    <HeaderWithCloseButton
+                        title="Settings"
+                        onCloseButtonPress={() => {
+                            if (_.isEmpty(currentlyViewedReportID)) {
+                                Navigator.navigate(ROUTES.ROOT);
+                            } else {
+                                Navigator.navigate(ROUTES.REPORT, {reportID: currentlyViewedReportID});
+                            }
+                        }}
                     />
-                </View>
-                <Text style={[styles.settingsDisplayName, styles.mt1]} numberOfLines={1}>
-                    {myPersonalDetails.displayName ? myPersonalDetails.displayName : session.email}
-                </Text>
-                {myPersonalDetails.displayName && (
-                <Text style={[styles.settingsLoginName, styles.mt1]} numberOfLines={1}>
-                    {session.email}
-                </Text>
-                )}
-                <TouchableOpacity
-                    onPress={signOut}
-                    style={[styles.button, styles.w100, styles.mt5]}
-                >
-                    <Text style={[styles.buttonText]}>
-                        Sign Out
-                    </Text>
-                </TouchableOpacity>
-            </View>
-            <Text style={[styles.chatItemMessageHeaderTimestamp]} numberOfLines={1}>
-                v
-                {version}
-            </Text>
-        </View>
+                    <View
+                        pointerEvents="box-none"
+                        style={[
+                            styles.settingsPageBackground,
+                        ]}
+                    >
+                        <View style={styles.settingsWrapper}>
+                            <View
+                                style={[styles.largeAvatar, styles.mb3]}
+                            >
+                                <AvatarWithIndicator
+                                    size="large"
+                                    source={myPersonalDetails.avatarURL}
+                                    isActive={network && !network.isOffline}
+                                />
+                            </View>
+                            <Text style={[styles.settingsDisplayName, styles.mt1]} numberOfLines={1}>
+                                {myPersonalDetails.displayName ? myPersonalDetails.displayName : session.email}
+                            </Text>
+                            {myPersonalDetails.displayName && (
+                            <Text style={[styles.settingsLoginName, styles.mt1]} numberOfLines={1}>
+                                {session.email}
+                            </Text>
+                            )}
+                            <TouchableOpacity
+                                onPress={signOut}
+                                style={[styles.button, styles.w100, styles.mt5]}
+                            >
+                                <Text style={[styles.buttonText]}>
+                                    Sign Out
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                        <Text style={[styles.chatItemMessageHeaderTimestamp]} numberOfLines={1}>
+                            v
+                            {version}
+                        </Text>
+                    </View>
+                </>
+            )}
+        </SafeAreaViewWrapper>
     );
 };
 

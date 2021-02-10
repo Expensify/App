@@ -1,11 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {
-    View,
-} from 'react-native';
-import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import {withOnyx} from 'react-native-onyx';
-import styles, {getSafeAreaPadding} from '../../styles/styles';
 import Sidebar from './sidebar/SidebarView';
 import {
     subscribeToReportCommentEvents,
@@ -20,7 +15,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import Timing from '../../libs/actions/Timing';
 import NetworkConnection from '../../libs/NetworkConnection';
 import CONFIG from '../../CONFIG';
-import CustomStatusBar from '../../components/CustomStatusBar';
 import CONST from '../../CONST';
 import {fetchCountryCodeByRequestIP} from '../../libs/actions/GeoLocation';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
@@ -29,6 +23,8 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/
 import compose from '../../libs/compose';
 import {getBetas} from '../../libs/actions/User';
 import Navigator from '../../Navigator';
+import SafeAreaViewWrapper from '../../components/SafeAreaViewWrapper';
+import styles from '../../styles/styles';
 
 const propTypes = {
     network: PropTypes.shape({isOffline: PropTypes.bool}),
@@ -137,29 +133,18 @@ class SidebarPage extends React.Component {
 
     render() {
         return (
-            <>
-                <CustomStatusBar />
-                <SafeAreaInsetsContext.Consumer style={[styles.flex1]}>
-                    {insets => (
-                        <View
-                            style={[styles.appContentWrapper,
-                                styles.flexRow,
-                                styles.flex1,
-                                getSafeAreaPadding(insets),
-                            ]}
-                        >
-                            <Sidebar
-                                insets={insets}
-                                onLinkClick={this.timeNavigation}
-                                onAvatarClick={this.navigateToSettings}
-                                isCreateMenuActive={this.state.isCreateMenuActive}
-                                toggleCreateMenu={this.toggleCreateMenu}
-                                onCreateMenuItemSelected={this.onCreateMenuItemSelected}
-                            />
-                        </View>
-                    )}
-                </SafeAreaInsetsContext.Consumer>
-            </>
+            <SafeAreaViewWrapper style={[styles.flexRow]}>
+                {insets => (
+                    <Sidebar
+                        insets={insets}
+                        onLinkClick={this.timeNavigation}
+                        onAvatarClick={this.navigateToSettings}
+                        isCreateMenuActive={this.state.isCreateMenuActive}
+                        toggleCreateMenu={this.toggleCreateMenu}
+                        onCreateMenuItemSelected={this.onCreateMenuItemSelected}
+                    />
+                )}
+            </SafeAreaViewWrapper>
         );
     }
 }
