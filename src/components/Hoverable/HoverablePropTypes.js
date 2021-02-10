@@ -2,7 +2,10 @@ import PropTypes from 'prop-types';
 
 const propTypes = {
     // Children to wrap with Hoverable.
-    children: PropTypes.node.isRequired,
+    children: PropTypes.oneOfType([
+        PropTypes.node.isRequired,
+        PropTypes.func.isRequired,
+    ]).isRequired,
 
     // Function that executes when the mouse moves over the children.
     onHoverIn: PropTypes.func,
