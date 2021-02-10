@@ -8,6 +8,7 @@ import getReportActionItemContainerStyles from '../../../styles/getReportActionI
 import styles from '../../../styles/styles';
 import ReportActionContextMenu from './ReportActionContextMenu';
 import Hoverable from '../../../components/Hoverable';
+import {setActiveReportActionID} from '../../../libs/actions/Report';
 
 const propTypes = {
     // The ID of the report this action is on.
@@ -18,15 +19,12 @@ const propTypes = {
 
     // Should the comment have the appearance of being grouped with the previous comment?
     displayAsGroup: PropTypes.bool.isRequired,
-
-    // Sets this ReportAction as the active (hovered) action on the report.
-    setIsActive: PropTypes.func.isRequired,
 };
 
 const ReportActionItem = props => (
     <Hoverable
-        onHoverIn={() => props.setIsActive(true)}
-        onHoverOut={() => props.setIsActive(false)}
+        onHoverIn={() => setActiveReportActionID(props.action.sequenceNumber)}
+        onHoverOut={() => setActiveReportActionID(null)}
     >
         {hovered => (
             <View>

@@ -7,6 +7,7 @@ import {withOnyx} from 'react-native-onyx';
 import Text from '../../../components/Text';
 import {fetchActions, updateLastReadActionID} from '../../../libs/actions/Report';
 import ONYXKEYS from '../../../ONYXKEYS';
+import ReportActionCell from './ReportActionCell';
 import ReportActionItem from './ReportActionItem';
 import styles from '../../../styles/styles';
 import ReportActionPropTypes from './ReportActionPropTypes';
@@ -52,7 +53,6 @@ class ReportActionsView extends React.Component {
 
         this.state = {
             refetchNeeded: true,
-            activeReportActionID: null,
         };
     }
 
@@ -219,12 +219,15 @@ class ReportActionsView extends React.Component {
      * @returns {React.Component}
      */
     renderCell({item, style, ...props}) {
-        const cellStyle = [
-            style,
-            {zIndex: item.action.sequenceNumber === this.state.activeReportActionID ? 1 : 0},
-        ];
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        return <View style={cellStyle} {...props} />;
+        return (
+            <ReportActionCell
+                reportID={this.props.reportID}
+                reportActionID={item.action.sequenceNumber}
+                style={style}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+            />
+        );
     }
 
     /**
@@ -252,9 +255,6 @@ class ReportActionsView extends React.Component {
                 reportID={this.props.reportID}
                 action={item.action}
                 displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
-                setIsActive={isActive => this.setState({
-                    activeReportActionID: isActive ? item.action.sequenceNumber : null,
-                })}
                 onLayout={onLayout}
                 needsLayoutCalculation={needsLayoutCalculation}
             />

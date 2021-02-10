@@ -48,4 +48,6 @@ export default {
         REPORT_DRAFT_COMMENT: 'reportDraftComment_',
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
     },
+
+    ACTIVE_REPORT_ACTION_ID: 'activeReportActionID',
 };
