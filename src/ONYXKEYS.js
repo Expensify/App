@@ -30,6 +30,9 @@ export default {
     // Contains all the personalDetails the user has access to
     PERSONAL_DETAILS: 'personalDetails',
 
+    // Contains the user preference for the LHN priority mode
+    PRIORITY_MODE: 'priorityMode',
+
     // Saves the current country code which is displayed when the user types a phone number without
     // an international code
     COUNTRY_CODE: 'countryCode',
