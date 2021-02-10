@@ -7,7 +7,7 @@ module.exports = {
     afterSign: 'desktop/notarize.js',
     mac: {
         category: 'public.app-category.finance',
-        icon: './android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png',
+        icon: './desktop/icon.png',
         hardenedRuntime: true,
         entitlements: 'desktop/entitlements.mac.plist',
         entitlementsInherit: 'desktop/entitlements.mac.plist',
