@@ -6,10 +6,32 @@ import {
 } from '../../../components/Icon/Expensicons';
 import styles from '../../../styles/styles';
 import getReportActionContextMenuStyles from '../../../styles/getReportActionContextMenuStyles';
-import getButtonState from '../../../libs/getButtonState';
 import Icon from '../../../components/Icon';
 import Tooltip from '../../../components/Tooltip';
+import CONST from '../../../CONST';
 
+/**
+ * Get the string representation of a button's state.
+ *
+ * @param {Boolean} [isHovered]
+ * @param {Boolean} [isPressed]
+ * @returns {String}
+ */
+function getButtonState(isHovered = false, isPressed = false) {
+    if (isPressed) {
+        return CONST.BUTTON_STATES.PRESSED;
+    }
+
+    if (isHovered) {
+        return CONST.BUTTON_STATES.HOVERED;
+    }
+
+    return CONST.BUTTON_STATES.DEFAULT;
+}
+
+/**
+ * A list of all the context actions in this menu.
+ */
 const CONTEXT_ACTIONS = [
     // Copy to clipboard
     {
