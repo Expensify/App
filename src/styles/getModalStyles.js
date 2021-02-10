@@ -4,17 +4,19 @@ import variables from './variables';
 import themeColors from './themes/default';
 
 export default (type, windowDimensions) => {
-    const isSmallScreen = windowDimensions.width < variables.mobileResponsiveWidthBreakpoint;
+    const {isSmallScreenWidth, windowWidth} = windowDimensions;
 
     let modalStyle = {
         margin: 0,
     };
+
     let modalContainerStyle;
     let swipeDirection;
     let animationIn;
     let animationOut;
     let hideBackdrop = false;
-    let needsSafeAreaPadding = false;
+    let shouldAddBottomSafeAreaPadding = false;
+    let shouldAddTopSafeAreaPadding = false;
 
     switch (type) {
         case CONST.MODAL.MODAL_TYPE.CENTERED:
@@ -39,21 +41,21 @@ export default (type, windowDimensions) => {
                 shadowRadius: 5,
 
                 flex: 1,
-                marginTop: isSmallScreen ? 0 : 20,
-                marginBottom: isSmallScreen ? 0 : 20,
-                borderRadius: isSmallScreen ? 0 : 12,
-                borderWidth: isSmallScreen ? 1 : 0,
+                marginTop: isSmallScreenWidth ? 0 : 20,
+                marginBottom: isSmallScreenWidth ? 0 : 20,
+                borderRadius: isSmallScreenWidth ? 0 : 12,
+                borderWidth: isSmallScreenWidth ? 1 : 0,
                 overflow: 'hidden',
-                width: isSmallScreen ? '100%' : windowDimensions.width - 40,
+                width: isSmallScreenWidth ? '100%' : windowWidth - 40,
             };
 
             // The default swipe direction is swipeDown and by
             // setting this to undefined we effectively disable the
             // ability to swipe our modal
             swipeDirection = undefined;
-            animationIn = isSmallScreen ? 'slideInRight' : 'fadeIn';
-            animationOut = isSmallScreen ? 'slideOutRight' : 'fadeOut';
-            needsSafeAreaPadding = true;
+            animationIn = isSmallScreenWidth ? 'slideInRight' : 'fadeIn';
+            animationOut = isSmallScreenWidth ? 'slideOutRight' : 'fadeOut';
+            shouldAddTopSafeAreaPadding = true;
             break;
         case CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED:
             modalStyle = {
@@ -73,6 +75,7 @@ export default (type, windowDimensions) => {
                 overflow: 'hidden',
             };
 
+            shouldAddBottomSafeAreaPadding = true;
             swipeDirection = undefined;
             animationIn = 'slideInUp';
             animationOut = 'slideOutDown';
@@ -83,8 +86,8 @@ export default (type, windowDimensions) => {
                 ...{
                     alignItems: 'center',
                     justifyContent: 'flex-end',
-                    marginRight: windowDimensions.width - variables.sideBarWidth,
-                    marginBottom: 82,
+                    marginRight: windowWidth - variables.sideBarWidth,
+                    marginBottom: 100,
                 },
             };
             modalContainerStyle = {
@@ -108,20 +111,37 @@ export default (type, windowDimensions) => {
             modalStyle = {
                 ...modalStyle,
                 ...{
+                    marginLeft: isSmallScreenWidth ? 0 : windowWidth - variables.sideBarWidth,
+                    width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
                     flexDirection: 'row',
                     justifyContent: 'flex-end',
                 },
             };
             modalContainerStyle = {
-                width: isSmallScreen ? '100%' : variables.sideBarWidth,
+                width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
                 height: '100%',
                 overflow: 'hidden',
             };
 
-            swipeDirection = 'right';
-            animationIn = 'slideInRight';
-            animationOut = 'slideOutRight';
-            needsSafeAreaPadding = true;
+            animationIn = {
+                from: {
+                    translateX: isSmallScreenWidth ? windowWidth : variables.sideBarWidth,
+                },
+                to: {
+                    translateX: 0,
+                },
+            };
+            animationOut = {
+                from: {
+                    translateX: 0,
+                },
+                to: {
+                    translateX: isSmallScreenWidth ? windowWidth : variables.sideBarWidth,
+                },
+            };
+            swipeDirection = undefined;
+            shouldAddBottomSafeAreaPadding = true;
+            shouldAddTopSafeAreaPadding = true;
             break;
         default:
             modalStyle = {};
@@ -137,7 +157,8 @@ export default (type, windowDimensions) => {
         swipeDirection,
         animationIn,
         animationOut,
-        needsSafeAreaPadding,
         hideBackdrop,
+        shouldAddBottomSafeAreaPadding,
+        shouldAddTopSafeAreaPadding,
     };
 };

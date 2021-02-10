@@ -6,6 +6,7 @@ import {
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
 import styles from '../styles/styles';
 import Text from '../components/Text';
 import {signOut} from '../libs/actions/Session';
@@ -69,11 +70,11 @@ const SettingsPage = ({
                     />
                 </View>
                 <Text style={[styles.settingsDisplayName, styles.mt1]} numberOfLines={1}>
-                    {myPersonalDetails.displayName ? myPersonalDetails.displayName : session.email}
+                    {myPersonalDetails.displayName ? myPersonalDetails.displayName : Str.removeSMSDomain(session.email)}
                 </Text>
                 {myPersonalDetails.displayName && (
                 <Text style={[styles.settingsLoginName, styles.mt1]} numberOfLines={1}>
-                    {session.email}
+                    {Str.removeSMSDomain(session.email)}
                 </Text>
                 )}
                 <TouchableOpacity

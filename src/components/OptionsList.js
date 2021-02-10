@@ -1,9 +1,8 @@
 import _ from 'underscore';
-import React, {forwardRef} from 'react';
+import React, {forwardRef, Component} from 'react';
 import {View, SectionList, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
-import KeyboardSpacer from './KeyboardSpacer';
 import OptionRow from '../pages/home/sidebar/OptionRow';
 import optionPropTypes from './optionPropTypes';
 
@@ -38,6 +37,15 @@ const propTypes = {
     // Whether to show headers above each section or not
     hideSectionHeaders: PropTypes.bool,
 
+    // Whether to allow option focus or not
+    disableFocusOptions: PropTypes.bool,
+
+    // A flag to indicate wheter to show additional optional states, such as pin and draft icons
+    hideAdditionalOptionStates: PropTypes.bool,
+
+    // Force the text style to be the unread style on all rows
+    forceTextUnreadStyle: PropTypes.bool,
+
     // Callback to fire when a row is selected
     onSelectRow: PropTypes.func,
 
@@ -61,79 +69,155 @@ const defaultProps = {
     selectedOptions: [],
     canSelectMultipleOptions: false,
     hideSectionHeaders: false,
+    disableFocusOptions: false,
+    hideAdditionalOptionStates: false,
+    forceTextUnreadStyle: false,
     onSelectRow: () => {},
     headerMessage: '',
     headerTitle: '',
     innerRef: null,
 };
 
-const OptionsList = ({
-    contentContainerStyles,
-    sections,
-    focusedIndex,
-    selectedOptions,
-    canSelectMultipleOptions,
-    hideSectionHeaders,
-    onSelectRow,
-    headerMessage,
-    headerTitle,
-    innerRef,
-}) => (
-    <View style={[styles.flex1]}>
-        {headerMessage ? (
-            <View style={[styles.p3]}>
-                {headerTitle ? (
-                    <Text style={[styles.h4, styles.mb1]}>
-                        {headerTitle}
+class OptionsList extends Component {
+    constructor(props) {
+        super(props);
+
+        this.renderItem = this.renderItem.bind(this);
+        this.renderSectionHeader = this.renderSectionHeader.bind(this);
+        this.extractKey = this.extractKey.bind(this);
+        this.onScrollToIndexFailed = this.onScrollToIndexFailed.bind(this);
+    }
+
+    shouldComponentUpdate(nextProps) {
+        if (nextProps.focusedIndex !== this.props.focusedIndex) {
+            return true;
+        }
+
+        if (nextProps.selectedOptions.length !== this.props.selectedOptions.length) {
+            return true;
+        }
+
+        if (nextProps.headerTitle !== this.props.headerTitle) {
+            return true;
+        }
+
+        if (nextProps.headerMessage !== this.props.headerMessage) {
+            return true;
+        }
+
+        if (!_.isEqual(nextProps.sections, this.props.sections)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * We must implement this method in order to use the ref.scrollToLocation() method.
+     * See: https://reactnative.dev/docs/sectionlist#scrolltolocation
+     *
+     * @param {Object} info
+     */
+    onScrollToIndexFailed(info) {
+        console.debug(info);
+    }
+
+    /**
+     * Returns the key used by the list
+     * @param {Object} option
+     * @return {String}
+     */
+    extractKey(option) {
+        return option.keyForList;
+    }
+
+    /**
+     * Function which renders a row in the list
+     *
+     * @param {Object} params
+     * @param {Object} params.item
+     * @param {Number} params.index
+     * @param {Object} params.section
+     *
+     * @return {Component}
+     */
+    renderItem({item, index, section}) {
+        return (
+            <OptionRow
+                option={item}
+                optionIsFocused={!this.props.disableFocusOptions
+                        && this.props.focusedIndex === (index + section.indexOffset)}
+                onSelectRow={this.props.onSelectRow}
+                isSelected={Boolean(_.find(this.props.selectedOptions, option => option.login === item.login))}
+                showSelectedState={this.props.canSelectMultipleOptions}
+                hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
+                forceTextUnreadStyle={this.props.forceTextUnreadStyle}
+            />
+        );
+    }
+
+    /**
+     * Function which renders a section header component
+     *
+     * @param {Object} params
+     * @param {Object} params.section
+     * @param {String} params.section.title
+     * @param {Booolean} params.section.shouldShow
+     *
+     * @return {Component}
+     */
+    renderSectionHeader({section: {title, shouldShow}}) {
+        if (title && shouldShow && !this.props.hideSectionHeaders) {
+            return (
+                <View>
+                    <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
+                        {title}
                     </Text>
-                ) : null}
+                </View>
+            );
+        }
 
-                <Text style={[styles.textLabel]}>
-                    {headerMessage}
-                </Text>
-            </View>
-        ) : null}
-        <SectionList
-            ref={innerRef}
-            bounces={false}
-            indicatorStyle="white"
-            keyboardShouldPersistTaps="always"
-            contentContainerStyle={[...contentContainerStyles]}
-            showsVerticalScrollIndicator={false}
-            sections={sections}
-            keyExtractor={option => option.keyForList}
-            initialNumToRender={500}
-            onScrollToIndexFailed={error => console.debug(error)}
-            renderItem={({item, index, section}) => (
-                <OptionRow
-                    option={item}
-                    optionIsFocused={focusedIndex === (index + section.indexOffset)}
-                    onSelectRow={onSelectRow}
-                    isSelected={Boolean(_.find(selectedOptions, option => option.login === item.login))}
-                    showSelectedState={canSelectMultipleOptions}
-                />
-            )}
-            renderSectionHeader={({section: {title, shouldShow}}) => {
-                if (title && shouldShow && !hideSectionHeaders) {
-                    return (
-                        <View>
-                            <Text style={[styles.p5, styles.textMicroBold]}>
-                                {title}
+        return <View />;
+    }
+
+    render() {
+        return (
+            <View style={[styles.flex1]}>
+                {this.props.headerMessage ? (
+                    <View style={[styles.ph5, styles.pb5]}>
+                        {this.props.headerTitle ? (
+                            <Text style={[styles.h4, styles.mb1]}>
+                                {this.props.headerTitle}
                             </Text>
-                        </View>
-                    );
-                }
+                        ) : null}
 
-                return <View style={styles.mt1} />;
-            }}
-            extraData={focusedIndex}
-        />
-        <KeyboardSpacer />
-    </View>
-);
+                        <Text style={[styles.textLabel, styles.colorMuted]}>
+                            {this.props.headerMessage}
+                        </Text>
+                    </View>
+                ) : null}
+                <SectionList
+                    ref={this.props.innerRef}
+                    bounces={false}
+                    indicatorStyle="white"
+                    keyboardShouldPersistTaps="always"
+                    contentContainerStyle={[...this.props.contentContainerStyles]}
+                    showsVerticalScrollIndicator={false}
+                    sections={this.props.sections}
+                    keyExtractor={this.extractKey}
+                    initialNumToRender={500}
+                    onScrollToIndexFailed={this.onScrollToIndexFailed}
+                    stickySectionHeadersEnabled={false}
+                    renderItem={this.renderItem}
+                    renderSectionHeader={this.renderSectionHeader}
+                    extraData={this.props.focusedIndex}
+                />
+            </View>
+        );
+    }
+}
 
 OptionsList.propTypes = propTypes;
-OptionsList.displayName = 'OptionsList';
 OptionsList.defaultProps = defaultProps;
 
 export default forwardRef((props, ref) => (

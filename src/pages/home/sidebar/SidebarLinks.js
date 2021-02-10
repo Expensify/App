@@ -1,24 +1,25 @@
 import React from 'react';
-import {View, TouchableOpacity} from 'react-native';
+import {Animated, View, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import styles, {getSafeAreaMargins} from '../../../styles/styles';
 import ONYXKEYS from '../../../ONYXKEYS';
-import ChatSwitcherView from './ChatSwitcherView';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
 import compose from '../../../libs/compose';
-import {withRouter} from '../../../libs/Router';
 import {redirect} from '../../../libs/actions/App';
 import ROUTES from '../../../ROUTES';
 import * as ChatSwitcher from '../../../libs/actions/ChatSwitcher';
 import Icon from '../../../components/Icon';
-import {MagnifyingGlass} from '../../../components/Icon/Expensicons';
 import Header from '../../../components/Header';
-import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
 import OptionsList from '../../../components/OptionsList';
+import {MagnifyingGlass} from '../../../components/Icon/Expensicons';
+import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
+import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
 import {getSidebarOptions} from '../../../libs/OptionsListUtils';
 import {getDefaultAvatar} from '../../../libs/actions/PersonalDetails';
+import KeyboardSpacer from '../../../components/KeyboardSpacer';
+import SearchView from '../../../components/SearchView';
 
 const propTypes = {
     // Toggles the navigation menu open and closed
@@ -82,64 +83,114 @@ const defaultProps = {
     currentlyViewedReportID: '',
 };
 
-const SidebarLinks = (props) => {
-    const activeReportID = parseInt(props.currentlyViewedReportID, 10);
+class SidebarLinks extends React.Component {
+    constructor(props) {
+        super(props);
+        this.chatSwitcherAnimation = new Animated.Value(props.isChatSwitcherActive ? 1 : 0);
+        this.sidebarAnimation = new Animated.Value(props.isChatSwitcherActive ? 0 : 1);
+        this.hideChatSwitcher = this.hideChatSwitcher.bind(this);
+        this.showChatSwitcher = this.showChatSwitcher.bind(this);
+    }
 
-    const chatSwitcherStyle = props.isChatSwitcherActive
-        ? [styles.sidebarHeader, styles.sidebarHeaderActive]
-        : [styles.sidebarHeader];
+    componentDidUpdate(prevProps) {
+        if (prevProps.isChatSwitcherActive !== this.props.isChatSwitcherActive) {
+            Animated.timing(this.chatSwitcherAnimation, {
+                toValue: this.props.isChatSwitcherActive ? 1 : 0,
+                duration: 240,
+                useNativeDriver: false,
+            }).start();
+            Animated.timing(this.sidebarAnimation, {
+                toValue: this.props.isChatSwitcherActive ? 0 : 1,
+                duration: 240,
+                useNativeDriver: false,
+            }).start();
+        }
+    }
 
-    const {recentReports} = getSidebarOptions(
-        props.reports,
-        props.personalDetails,
-        props.draftComments,
-        activeReportID,
-    );
+    hideChatSwitcher() {
+        ChatSwitcher.hide();
+    }
 
-    const sections = [{
-        title: '',
-        indexOffset: 0,
-        data: recentReports,
-        shouldShow: true,
-    }];
-    return (
-        <View style={[styles.flex1, styles.h100, {marginTop: props.insets.top}]}>
-            <View style={[chatSwitcherStyle]}>
-                {props.isChatSwitcherActive && (
-                    <ChatSwitcherView
-                        onLinkClick={props.onLinkClick}
+    showChatSwitcher() {
+        ChatSwitcher.show();
+    }
+
+    render() {
+        const activeReportID = parseInt(this.props.currentlyViewedReportID, 10);
+
+        const chatSwitcherStyle = [
+            {opacity: this.chatSwitcherAnimation},
+            this.props.isChatSwitcherActive
+                ? styles.sidebarHeaderActive
+                : styles.sidebarHeader,
+        ];
+
+        const {recentReports} = getSidebarOptions(
+            this.props.reports,
+            this.props.personalDetails,
+            this.props.draftComments,
+            activeReportID,
+        );
+
+        const sections = [{
+            title: '',
+            indexOffset: 0,
+            data: recentReports,
+            shouldShow: true,
+        }];
+
+        const sidebarStyle = [
+            {opacity: this.sidebarAnimation},
+            !this.props.isChatSwitcherActive
+                ? styles.sidebarHeaderActive
+                : styles.sidebarHeader,
+        ];
+
+        return (
+            <View style={[styles.flex1, styles.h100, {marginTop: this.props.insets.top}]}>
+                <Animated.View
+                    style={[chatSwitcherStyle]}
+                >
+                    <HeaderWithCloseButton
+                        textSize="large"
+                        title="Search"
+                        onCloseButtonPress={this.hideChatSwitcher}
+                        shouldShowBorderBottom={false}
                     />
-                )}
-            </View>
-            {!props.isChatSwitcherActive && (
-                <>
+                    {this.props.isChatSwitcherActive
+                        ? <SearchView onLinkClick={this.props.onLinkClick} />
+                        : null}
+                </Animated.View>
+                <Animated.View style={[sidebarStyle]}>
                     <View style={[
+                        !this.props.isChatSwitcherActive ? styles.dFlex : styles.dNone,
                         styles.flexRow,
-                        styles.sidebarHeaderTop,
+                        styles.ph5,
+                        styles.pv3,
                         styles.justifyContentBetween,
                         styles.alignItemsCenter,
                     ]}
                     >
                         <Header textSize="large" title="Chats" />
                         <TouchableOpacity
-                            style={[styles.flexRow, styles.sidebarHeaderTop]}
-                            onPress={() => ChatSwitcher.show()}
+                            style={[styles.flexRow, styles.ph5]}
+                            onPress={this.showChatSwitcher}
                         >
                             <Icon src={MagnifyingGlass} />
                         </TouchableOpacity>
                         <TouchableOpacity
-                            onPress={props.onAvatarClick}
+                            onPress={this.props.onAvatarClick}
                         >
                             <AvatarWithIndicator
-                                source={props.myPersonalDetails.avatarURL}
-                                isActive={props.network && !props.network.isOffline}
+                                source={this.props.myPersonalDetails.avatarURL}
+                                isActive={this.props.network && !this.props.network.isOffline}
                             />
                         </TouchableOpacity>
                     </View>
                     <OptionsList
                         contentContainerStyles={[
                             styles.sidebarListContainer,
-                            {paddingBottom: getSafeAreaMargins(props.insets).marginBottom},
+                            {paddingBottom: getSafeAreaMargins(this.props.insets).marginBottom},
                         ]}
                         sections={sections}
                         focusedIndex={_.findIndex(recentReports, (
@@ -147,22 +198,21 @@ const SidebarLinks = (props) => {
                         ))}
                         onSelectRow={(option) => {
                             redirect(ROUTES.getReportRoute(option.reportID));
-                            props.onLinkClick();
+                            this.props.onLinkClick();
                         }}
                         hideSectionHeaders
                     />
-                </>
-            )}
-        </View>
-    );
-};
+                    <KeyboardSpacer />
+                </Animated.View>
+            </View>
+        );
+    }
+}
 
 SidebarLinks.propTypes = propTypes;
 SidebarLinks.defaultProps = defaultProps;
-SidebarLinks.displayName = 'SidebarLinks';
 
 export default compose(
-    withRouter,
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
