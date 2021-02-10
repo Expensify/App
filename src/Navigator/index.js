@@ -19,6 +19,12 @@ function navigate(name, params) {
     routerRef.current?.history.push(route);
 }
 
+function goBack() {
+    navigationRef.current?.goBack();
+    routerRef.current?.history.goBack();
+}
+
 export default {
     navigate,
+    goBack,
 };

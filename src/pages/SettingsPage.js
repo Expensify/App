@@ -13,7 +13,6 @@ import ONYXKEYS from '../ONYXKEYS';
 import {version} from '../../package.json';
 import AvatarWithIndicator from '../components/AvatarWithIndicator';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
-import ROUTES from '../ROUTES';
 import Navigator from '../Navigator';
 import SafeAreaViewWrapper from '../components/SafeAreaViewWrapper';
 
@@ -50,7 +49,6 @@ const SettingsPage = ({
     myPersonalDetails,
     network,
     session,
-    currentlyViewedReportID,
 }) => {
     // On the very first sign in or after clearing storage these
     // details will not be present on the first render so we'll just
@@ -65,11 +63,7 @@ const SettingsPage = ({
                     <HeaderWithCloseButton
                         title="Settings"
                         onCloseButtonPress={() => {
-                            if (_.isEmpty(currentlyViewedReportID)) {
-                                Navigator.navigate(ROUTES.ROOT);
-                            } else {
-                                Navigator.navigate(ROUTES.REPORT, {reportID: currentlyViewedReportID});
-                            }
+                            Navigator.goBack();
                         }}
                     />
                     <View

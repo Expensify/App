@@ -150,46 +150,49 @@ class RouterContainer extends Component {
                                     />
                                 </Animated.View>
                                 {/* These views are all non modal views */}
-                                {_.map(this.props.mainRoutes, route => (
-                                    <Route
-                                        path={[route.path, ...(route.additionalPaths || [])]}
-                                        key={route.path}
-                                        render={() => (
-                                            <Animated.View
-                                                key={route.path}
-                                                style={this.props.isSmallScreenWidth
-                                                    ? {
-                                                        position: 'absolute',
-                                                        height: '100%',
-                                                        width: this.props.windowDimensions.width,
-                                                        transform: [
-                                                            {
-                                                                translateX: this.state.mainAnimation.interpolate({
-                                                                    inputRange: [0, 1],
-                                                                    outputRange: [
-                                                                        0,
-                                                                        this.props.windowDimensions.width,
-                                                                    ],
-                                                                }),
-                                                            },
-                                                            {
-                                                                scale: this.state.sidebarAnimation.interpolate({
-                                                                    inputRange: [0, 1],
-                                                                    outputRange: [0.9, 1],
-                                                                }),
-                                                            },
-                                                        ],
-                                                        opacity: this.state.sidebarAnimation,
-                                                    }
-                                                    : {
-                                                        flex: 1,
-                                                    }}
-                                            >
-                                                <route.Component />
-                                            </Animated.View>
-                                        )}
-                                    />
-                                ))}
+                                {_.map(this.props.mainRoutes, (route) => {
+                                    const RouteComponent = route.Component;
+                                    return (
+                                        <Route
+                                            path={[route.path, ...(route.additionalPaths || [])]}
+                                            key={route.path}
+                                            render={() => (
+                                                <Animated.View
+                                                    key={route.path}
+                                                    style={this.props.isSmallScreenWidth
+                                                        ? {
+                                                            position: 'absolute',
+                                                            height: '100%',
+                                                            width: this.props.windowDimensions.width,
+                                                            transform: [
+                                                                {
+                                                                    translateX: this.state.mainAnimation.interpolate({
+                                                                        inputRange: [0, 1],
+                                                                        outputRange: [
+                                                                            0,
+                                                                            this.props.windowDimensions.width,
+                                                                        ],
+                                                                    }),
+                                                                },
+                                                                {
+                                                                    scale: this.state.sidebarAnimation.interpolate({
+                                                                        inputRange: [0, 1],
+                                                                        outputRange: [0.9, 1],
+                                                                    }),
+                                                                },
+                                                            ],
+                                                            opacity: this.state.sidebarAnimation,
+                                                        }
+                                                        : {
+                                                            flex: 1,
+                                                        }}
+                                                >
+                                                    <RouteComponent />
+                                                </Animated.View>
+                                            )}
+                                        />
+                                    );
+                                })}
 
                                 {/* These are all modal views. Probably this would get refactored to say what kind of
                                 modal we want this to be and other settings externally. For now, we are just passing
@@ -202,10 +205,11 @@ class RouterContainer extends Component {
                                             isVisible={this.props.currentRoute === modalRoute.path}
                                             backgroundColor={themeColors.componentBG}
                                             type={modalRoute.modalType}
+                                            onClose={modalRoute.onRequestClose}
                                         >
                                             <ModalContent />
                                         </Modal>
-                                    )
+                                    );
                                 })}
                             </View>
                         </>

@@ -13,6 +13,7 @@ import RootNavigator from './Navigator/RootNavigator';
 import CONST from './CONST';
 import styles from './styles/styles';
 import Log from './libs/Log';
+import Navigator from './Navigator';
 
 import PushNotification from './libs/Notification/PushNotification';
 
@@ -115,6 +116,9 @@ class Expensify extends Component {
                             path: '/settings',
                             Component: SettingsPage,
                             modalType: CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
+                            onRequestClose: () => {
+                                Navigator.goBack();
+                            },
                         },
                     ]}
                     mainRoutes={[

@@ -3,16 +3,15 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
-import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import ReportView from './report/ReportView';
 import ONYXKEYS from '../../ONYXKEYS';
-import styles, {getSafeAreaPadding} from '../../styles/styles';
+import styles from '../../styles/styles';
 import compose from '../../libs/compose';
 import withWindowDimensions from '../../components/withWindowDimensions';
 import HeaderView from './HeaderView';
-import CustomStatusBar from '../../components/CustomStatusBar';
 import Navigator from '../../Navigator';
 import ROUTES from '../../ROUTES';
+import SafeAreaViewWrapper from '../../components/SafeAreaViewWrapper';
 
 const propTypes = {
     /* Onyx Props */
@@ -62,39 +61,30 @@ class MainView extends Component {
                 || report.reportID === activeReportID)
         ));
         return (
-            <>
-                <CustomStatusBar />
-                <SafeAreaInsetsContext.Consumer style={[styles.flex1]}>
-                    {insets => (
-                        <View
-                            style={[styles.appContentWrapper,
-                                styles.flexColumn,
-                                styles.flex1,
-                                getSafeAreaPadding(insets),
-                            ]}
-                        >
-                            <HeaderView
-                                shouldShowNavigationMenuButton={this.props.isSmallScreenWidth}
-                                onNavigationMenuButtonClicked={() => {
-                                    Navigator.navigate(ROUTES.ROOT);
-                                }}
-                                reportID={this.props.currentlyViewedReportID}
-                            />
-                            {_.map(reportsToDisplay, report => (
-                                <View
-                                    key={report.reportID}
-                                    style={reportStyles[report.reportID]}
-                                >
-                                    <ReportView
-                                        reportID={report.reportID}
-                                        isActiveReport={report.reportID === activeReportID}
-                                    />
-                                </View>
-                            ))}
-                        </View>
-                    )}
-                </SafeAreaInsetsContext.Consumer>
-            </>
+            <SafeAreaViewWrapper style={[styles.flexColumn]}>
+                {() => (
+                    <>
+                        <HeaderView
+                            shouldShowNavigationMenuButton={this.props.isSmallScreenWidth}
+                            onNavigationMenuButtonClicked={() => {
+                                Navigator.navigate(ROUTES.ROOT);
+                            }}
+                            reportID={this.props.currentlyViewedReportID}
+                        />
+                        {_.map(reportsToDisplay, report => (
+                            <View
+                                key={report.reportID}
+                                style={reportStyles[report.reportID]}
+                            >
+                                <ReportView
+                                    reportID={report.reportID}
+                                    isActiveReport={report.reportID === activeReportID}
+                                />
+                            </View>
+                        ))}
+                    </>
+                )}
+            </SafeAreaViewWrapper>
         );
     }
 }
