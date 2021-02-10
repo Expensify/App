@@ -163,4 +163,34 @@ OptionRow.defaultProps = defaultProps;
 OptionRow.displayName = 'OptionRow';
 
 // It it very important to use React.memo here so SectionList items will not unnecessarily re-render
-export default memo(OptionRow);
+export default memo(OptionRow, (prevProps, nextProps) => {
+    if (prevProps.optionIsFocused !== nextProps.optionIsFocused) {
+        return false;
+    }
+
+    if (prevProps.isSelected !== nextProps.isSelected) {
+        return false;
+    }
+
+    if (prevProps.option.isUnread !== nextProps.option.isUnread) {
+        return false;
+    }
+
+    if (prevProps.option.alternateText !== nextProps.option.alternateText) {
+        return false;
+    }
+
+    if (prevProps.option.hasDraftComment !== nextProps.option.hasDraftComment) {
+        return false;
+    }
+
+    if (prevProps.option.isPinned !== nextProps.option.isPinned) {
+        return false;
+    }
+
+    if (!_.isEqual(prevProps.option.icons, nextProps.option.icons)) {
+        return false;
+    }
+
+    return true;
+});
