@@ -4,7 +4,7 @@ import Onyx from 'react-native-onyx';
 import {Animated, Keyboard, View} from 'react-native';
 import {Route, Router} from '../../libs/Router';
 import ONYXKEYS from '../../ONYXKEYS';
-import {routerRef} from '../index';
+import Navigator, {routerRef} from '../index';
 import themeColors from '../../styles/themes/default';
 import variables from '../../styles/variables';
 import withWindowDimensions from '../../components/withWindowDimensions';
@@ -76,7 +76,7 @@ class RouterContainer extends Component {
                             return;
                         }
 
-                        Onyx.merge(ONYXKEYS.CURRENT_ROUTE, match.url);
+                        Navigator.updateRoute(match.url);
                     }}
                 />
                 {!this.props.authenticated
@@ -199,15 +199,24 @@ class RouterContainer extends Component {
                                 two different versions one which is screen only and one which is Modal wrapped in
                                 a screen */}
                                 {_.map(this.props.modalRoutes, (modalRoute) => {
-                                    const ModalContent = modalRoute.Component;
+                                    const subRoute = _.find(
+                                        modalRoute.subRoutes,
+                                        ({path}) => path === this.props.currentRoute,
+                                    );
+
+                                    if (!subRoute) {
+                                        return;
+                                    }
+
+                                    const SubRouteComponent = subRoute.Component;
                                     return (
                                         <Modal
-                                            isVisible={this.props.currentRoute === modalRoute.path}
+                                            isVisible={this.props.currentRoute.includes(modalRoute.path)}
                                             backgroundColor={themeColors.componentBG}
                                             type={modalRoute.modalType}
-                                            onClose={modalRoute.onRequestClose}
+                                            onClose={() => Navigator.dismissModal()}
                                         >
-                                            <ModalContent />
+                                            <SubRouteComponent />
                                         </Modal>
                                     );
                                 })}

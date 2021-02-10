@@ -160,9 +160,6 @@ class Expensify extends Component {
                         {
                             path: '/settings',
                             modalType: CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
-                            onRequestClose: () => {
-                                Navigator.goBack();
-                            },
                             subRoutes: [
                                 {
                                     path: '/settings',
