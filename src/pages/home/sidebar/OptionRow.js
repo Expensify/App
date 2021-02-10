@@ -12,7 +12,7 @@ import optionPropTypes from './optionPropTypes';
 import Icon from '../../../components/Icon';
 import {Pencil, PinCircle, Checkmark} from '../../../components/Icon/Expensicons';
 import MultipleAvatars from '../../../components/MultipleAvatars';
-import themeColors from '../../../styles/themes/default';
+import themeColors from '../../../styles/themes/darkmode';
 
 const propTypes = {
     // Option to allow the user to choose from can be type 'report' or 'user'

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import CONST from '../CONST';
-import themeColors from '../styles/themes/default';
+import themeColors from '../styles/themes/darkmode';
 import ONYXKEYS from '../ONYXKEYS';
 import ModalWithHeader from './ModalWithHeader';
 import {redirect} from '../libs/actions/App';

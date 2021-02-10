@@ -5,7 +5,7 @@ import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import CustomStatusBar from '../CustomStatusBar';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import styles, {getSafeAreaPadding} from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
+import themeColors from '../../styles/themes/darkmode';
 import modalPropTypes from './ModalPropTypes';
 import getModalStyles from '../../styles/getModalStyles';
 

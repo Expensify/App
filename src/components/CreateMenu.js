@@ -6,7 +6,7 @@ import {
 import Modal from './Modal';
 import styles from '../styles/styles';
 import CONST from '../CONST';
-import themeColors from '../styles/themes/default';
+import themeColors from '../styles/themes/darkmode';
 import Icon from './Icon';
 import {ChatBubble, Users} from './Icon/Expensicons';
 import {redirect} from '../libs/actions/App';

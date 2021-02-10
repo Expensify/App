@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import ReportActionFragmentPropTypes from './ReportActionFragmentPropTypes';
 import styles from '../../../styles/styles';
-import themeColors from '../../../styles/themes/default';
+import themeColors from '../../../styles/themes/darkmode';
 import RenderHTML from '../../../components/RenderHTML';
 import Text from '../../../components/Text';
 

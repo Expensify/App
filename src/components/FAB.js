@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import Icon from './Icon';
 import {Plus} from './Icon/Expensicons';
 import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
+import themeColors from '../styles/themes/darkmode';
 
 const AnimatedIcon = Animated.createAnimatedComponent(Icon);
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -57,7 +57,7 @@ class FAB extends React.Component {
 
         const fill = this.animatedValue.interpolate({
             inputRange: [0, 1],
-            outputRange: [themeColors.componentBG, themeColors.icon],
+            outputRange: [themeColors.buttonSuccessText, themeColors.icon],
         });
 
         return (

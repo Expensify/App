@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import themeColors from '../../styles/themes/default';
+import themeColors from '../../styles/themes/darkmode';
 import variables from '../../styles/variables';
 import * as Expensicons from './Expensicons';
 

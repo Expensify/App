@@ -1,7 +1,7 @@
 import CONST from '../CONST';
 import colors from './colors';
 import variables from './variables';
-import themeColors from './themes/default';
+import themeColors from './themes/darkmode';
 
 export default (type, windowDimensions) => {
     const {isSmallScreenWidth, windowWidth} = windowDimensions;

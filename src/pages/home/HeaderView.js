@@ -5,7 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import Header from '../../components/Header';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
-import themeColors from '../../styles/themes/default';
+import themeColors from '../../styles/themes/darkmode';
 import Icon from '../../components/Icon';
 import {BackArrow, Pin} from '../../components/Icon/Expensicons';
 import compose from '../../libs/compose';

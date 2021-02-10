@@ -1,7 +1,7 @@
 import spacing from './utilities/spacing';
 import styles from './styles';
 import colors from './colors';
-import themeColors from './themes/default';
+import themeColors from './themes/darkmode';
 import fontFamily from './fontFamily';
 import variables from './variables';
 

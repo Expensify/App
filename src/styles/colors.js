@@ -12,4 +12,6 @@ export default {
     greenHover: '#26AA5E',
     red: '#E84A3B',
     transparent: 'transparent',
+    darkmodeDark: '#2A353B',
+    darkmodeDarkest: '#262F35',
 };

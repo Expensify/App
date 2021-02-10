@@ -5,7 +5,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/styles';
-import themeColors from '../../../styles/themes/default';
+import themeColors from '../../../styles/themes/darkmode';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Icon from '../../../components/Icon';
@@ -231,7 +231,7 @@ class ReportActionCompose extends React.Component {
                         underlayColor={themeColors.componentBG}
                         disabled={this.state.isCommentEmpty}
                     >
-                        <Icon src={Send} fill={themeColors.componentBG} />
+                        <Icon src={Send} fill={this.state.isCommentEmpty ? themeColors.componentBG : themeColors.buttonSuccessText} />
                     </TouchableOpacity>
                 </View>
                 <ReportTypingIndicator reportID={this.props.reportID} />
