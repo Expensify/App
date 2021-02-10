@@ -98,6 +98,14 @@ const SettingsPage = ({
                                     Sign Out
                                 </Text>
                             </TouchableOpacity>
+                            <TouchableOpacity
+                                onPress={() => Navigator.navigate('/settings/test')}
+                                style={[styles.button, styles.w100, styles.mt5]}
+                            >
+                                <Text style={[styles.buttonText]}>
+                                    Go To Test
+                                </Text>
+                            </TouchableOpacity>
                         </View>
                         <Text style={[styles.chatItemMessageHeaderTimestamp]} numberOfLines={1}>
                             v

@@ -9,6 +9,7 @@ import ROUTES from '../../ROUTES';
 
 const MainStack = createStackNavigator();
 const RootStack = createStackNavigator();
+
 const linkingConfig = {
     prefixes: ['expensifycash://', 'https://expensify.cash/#'],
     config: {
@@ -29,6 +30,8 @@ class ReactNavigationContainer extends Component {
 
         return (
             <NavigationContainer
+                initialState={this.props.initialState}
+                onStateChange={this.props.onStateChange}
                 ref={navigationRef}
                 linking={linkingConfig}
             >
@@ -67,16 +70,32 @@ class ReactNavigationContainer extends Component {
                                         </MainStack.Navigator>
                                     )}
                                 </RootStack.Screen>
-                                {_.map(this.props.modalRoutes, route => (
-                                    <RootStack.Screen
-                                        name={route.path}
-                                        component={route.Component}
-                                        key={route.path}
-                                        options={{
-                                            headerShown: false,
-                                        }}
-                                    />
-                                ))}
+                                {_.map(this.props.modalRoutes, route => {
+                                    const ModalStack = createStackNavigator();
+                                    return (
+                                        <RootStack.Screen
+                                            key={route.path}
+                                            name={route.path}
+                                            options={{
+                                                headerShown: false,
+                                            }}
+                                        >
+                                            {() => (
+                                                <ModalStack.Navigator>
+                                                    {_.map(route.subRoutes, subRoute => (
+                                                        <ModalStack.Screen
+                                                            name={subRoute.path}
+                                                            component={subRoute.Component}
+                                                            options={{
+                                                                // headerShown: false,
+                                                            }}
+                                                        />
+                                                    ))}
+                                                </ModalStack.Navigator>
+                                            )}
+                                        </RootStack.Screen>
+                                    );
+                                })}
                             </>
                         )
                         : (

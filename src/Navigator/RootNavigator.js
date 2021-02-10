@@ -15,8 +15,18 @@ import ONYXKEYS from '../ONYXKEYS';
 import NavigationContainer from './NavigationContainer';
 
 const RootNavigator = props => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <NavigationContainer {...props} />
+    <NavigationContainer
+
+        // This can be used by react-navigation to initialize the state. It's not a plain route but a bit more
+        // complex and possibly not very useful.
+        // eslint-disable-next-line react/jsx-props-no-multi-spaces
+        initialState={null}
+        onStateChange={(state) => {
+            console.debug(state);
+        }}
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+    />
 );
 
 export default compose(

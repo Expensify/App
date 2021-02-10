@@ -1,5 +1,6 @@
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import {StackActions} from '@react-navigation/native';
 import ONYXKEYS from '../ONYXKEYS';
 import ROUTES from '../ROUTES';
 
@@ -24,7 +25,15 @@ function goBack() {
     routerRef.current?.history.goBack();
 }
 
+function dismissModal() {
+    if (navigationRef.current) {
+        navigationRef.current.dispatch(StackActions.popToTop());
+        navigationRef.current.goBack();
+    }
+}
+
 export default {
     navigate,
     goBack,
+    dismissModal,
 };

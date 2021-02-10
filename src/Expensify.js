@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {View} from 'react-native';
+import {View, TouchableOpacity, Text} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 
@@ -44,6 +44,51 @@ Onyx.registerLogger(({level, message}) => {
 const defaultProps = {
     redirectTo: '',
 };
+
+const Test = (props) => (
+    <View>
+        <TouchableOpacity
+            onPress={() => {
+                Navigator.dismissModal();
+            }}
+        >
+            <Text>Go to root</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+            onPress={() => {
+                Navigator.goBack();
+            }}
+        >
+            <Text>Go back</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+            onPress={() => {
+                Navigator.navigate('/settings/test2');
+            }}
+        >
+            <Text>Go test 2</Text>
+        </TouchableOpacity>
+    </View>
+);
+
+const TestTwo = (props) => (
+    <View>
+        <TouchableOpacity
+            onPress={() => {
+                Navigator.dismissModal();
+            }}
+        >
+            <Text>Go to root</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+            onPress={() => {
+                Navigator.goBack();
+            }}
+        >
+            <Text>Go back one</Text>
+        </TouchableOpacity>
+    </View>
+);
 
 class Expensify extends Component {
     constructor(props) {
@@ -114,11 +159,24 @@ class Expensify extends Component {
                     modalRoutes={[
                         {
                             path: '/settings',
-                            Component: SettingsPage,
                             modalType: CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
                             onRequestClose: () => {
                                 Navigator.goBack();
                             },
+                            subRoutes: [
+                                {
+                                    path: '/settings',
+                                    Component: SettingsPage,
+                                },
+                                {
+                                    path: '/settings/test',
+                                    Component: Test,
+                                },
+                                {
+                                    path: '/settings/test2',
+                                    Component: TestTwo,
+                                },
+                            ],
                         },
                     ]}
                     mainRoutes={[
