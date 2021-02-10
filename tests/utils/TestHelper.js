@@ -20,6 +20,7 @@ function signInWithTestUser(accountID, login, password = 'Password1', authToken 
         accountExists: true,
         canAccessExpensifyCash: true,
         requiresTwoFactorAuth: false,
+        normalizedLogin: login,
     }));
 
     // Simulate user entering their login and populating the credentials.login
