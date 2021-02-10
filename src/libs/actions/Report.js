@@ -710,17 +710,6 @@ function broadcastUserIsTyping(reportID) {
 }
 
 /**
- * Set the active ReportActionID.
- *
- * @param {Number} reportActionID
- */
-function setActiveReportActionID(reportActionID) {
-    // eslint-disable-next-line no-console
-    console.log('RORY_DEBUG: Setting activeReportActionID', reportActionID);
-    Onyx.set(ONYXKEYS.ACTIVE_REPORT_ACTION_ID, reportActionID);
-}
-
-/**
  * When a report changes in Onyx, this fetches the report from the API if the report doesn't have a name
  * and it keeps track of the max sequence number on the report actions.
  *
@@ -766,5 +755,4 @@ export {
     saveReportComment,
     broadcastUserIsTyping,
     togglePinnedState,
-    setActiveReportActionID,
 };

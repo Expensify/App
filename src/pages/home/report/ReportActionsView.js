@@ -7,7 +7,6 @@ import {withOnyx} from 'react-native-onyx';
 import Text from '../../../components/Text';
 import {fetchActions, updateLastReadActionID} from '../../../libs/actions/Report';
 import ONYXKEYS from '../../../ONYXKEYS';
-import ReportActionCell from './ReportActionCell';
 import ReportActionItem from './ReportActionItem';
 import styles from '../../../styles/styles';
 import ReportActionPropTypes from './ReportActionPropTypes';
@@ -209,9 +208,9 @@ class ReportActionsView extends React.Component {
     }
 
     /**
-     * This function overrides the CellRendererComponent (defaults to a plain View), so that the active ReportActionItem
-     * can be given a higher z-index than the others. This prevents issues where content overlapping between rows
-     * is hidden beneath other rows.
+     * This function overrides the CellRendererComponent (defaults to a plain View), giving each ReportActionItem a
+     *  higher z-index than the one below it. This prevents issues where the ReportActionContextMenu overlapping between
+     *  rows is hidden beneath other rows.
      *
      * @param {Object} index - The ReportAction item in the FlatList.
      * @param {Object|Array} style – The default styles of the CellRendererComponent provided by the CellRenderer.
@@ -219,15 +218,12 @@ class ReportActionsView extends React.Component {
      * @returns {React.Component}
      */
     renderCell({item, style, ...props}) {
-        return (
-            <ReportActionCell
-                reportID={this.props.reportID}
-                reportActionID={item.action.sequenceNumber}
-                style={style}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
-            />
-        );
+        const cellStyle = [
+            style,
+            {zIndex: item.action.sequenceNumber},
+        ];
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        return <View style={cellStyle} {...props} />;
     }
 
     /**
