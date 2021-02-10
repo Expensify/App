@@ -9,6 +9,7 @@ export default {
     black: '#000000',
     blue: '#2EAAE2',
     green: '#2ECB70',
+    greenHover: '#26AA5E',
     red: '#E84A3B',
     transparent: 'transparent',
 };
