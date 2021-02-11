@@ -1,10 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {Pressable, Text} from 'react-native';
-import Tooltip from '../../../components/Tooltip';
-import Icon from '../../../components/Icon';
-import getReportActionContextMenuItemStyles from '../../../styles/getReportActionContextMenuItemStyles';
-import CONST from '../../../CONST';
+import Tooltip from '../../../../components/Tooltip';
+import Icon from '../../../../components/Icon';
+import getReportActionContextMenuItemStyles from '../../../../styles/getReportActionContextMenuItemStyles';
+import CONST from '../../../../CONST';
 
 /**
  * Get the string representation of a button's state.

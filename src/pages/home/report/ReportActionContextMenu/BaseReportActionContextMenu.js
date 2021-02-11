@@ -1,10 +1,10 @@
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
+import {propTypes, defaultProps} from './ReportActionContextMenuPropTypes';
 import {
     Clipboard, LinkCopy, Mail, Pencil, Trashcan,
-} from '../../../components/Icon/Expensicons';
-import getReportActionContextMenuStyles from '../../../styles/getReportActionContextMenuStyles';
+} from '../../../../components/Icon/Expensicons';
+import getReportActionContextMenuStyles from '../../../../styles/getReportActionContextMenuStyles';
 import ReportActionContextMenuItem from './ReportActionContextMenuItem';
 
 /**
@@ -42,29 +42,7 @@ const CONTEXT_ACTIONS = [
     },
 ];
 
-const propTypes = {
-    // The ID of the report this report action is attached to.
-    // eslint-disable-next-line react/no-unused-prop-types
-    reportID: PropTypes.number.isRequired,
-
-    // The ID of the report action this context menu is attached to.
-    // eslint-disable-next-line react/no-unused-prop-types
-    reportActionID: PropTypes.number.isRequired,
-
-    // If true, this component will be a small, row-oriented menu that displays icons but not text.
-    // If false, this component will be a larger, column-oriented menu that displays icons alongside text in each row.
-    isMini: PropTypes.bool,
-
-    // Controls the visibility of this component.
-    isVisible: PropTypes.bool,
-};
-
-const defaultProps = {
-    isMini: false,
-    isVisible: false,
-};
-
-const ReportActionContextMenu = (props) => {
+const BaseReportActionContextMenu = (props) => {
     const wrapperStyle = getReportActionContextMenuStyles(props.isMini);
     return props.isVisible && (
         <View style={wrapperStyle}>
@@ -80,7 +58,8 @@ const ReportActionContextMenu = (props) => {
     );
 };
 
-ReportActionContextMenu.propTypes = propTypes;
-ReportActionContextMenu.defaultProps = defaultProps;
+BaseReportActionContextMenu.propTypes = propTypes;
+BaseReportActionContextMenu.defaultProps = defaultProps;
+BaseReportActionContextMenu.displayName = 'BaseReportActionContextMenu';
 
-export default ReportActionContextMenu;
+export default BaseReportActionContextMenu;
