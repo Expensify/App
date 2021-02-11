@@ -333,21 +333,6 @@ const styles = {
         height: '100%',
     },
 
-    sidebarHeader: {
-        flexGrow: 0,
-        height: 0,
-    },
-
-    sidebarHeaderActive: {
-        flexGrow: 1,
-        height: '100%',
-    },
-
-    sidebarHeaderTop: {
-        paddingHorizontal: 20,
-        paddingVertical: 12,
-    },
-
     sidebarFooter: {
         alignItems: 'center',
         display: 'flex',
@@ -489,14 +474,19 @@ const styles = {
         overflow: 'hidden',
     },
 
-    chatSwitcherDisplayName: {
+    optionItemAvatarNameWrapper: {
+        minWidth: 0,
+        flex: 1,
+    },
+
+    optionDisplayName: {
         fontFamily: fontFamily.GTA,
         height: 18,
         lineHeight: 18,
         ...whiteSpace.noWrap,
     },
 
-    chatSwitcherLogin: {
+    optionAlternateText: {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeLabel,
@@ -699,54 +689,9 @@ const styles = {
         width: 200,
     },
 
-    chatSwitcherGroupDMContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        backgroundColor: themeColors.appBG,
-        borderRadius: variables.componentBorderRadius,
-        borderWidth: 1,
-        borderColor: themeColors.border,
-        paddingTop: 0,
-        paddingRight: 3,
-        paddingBottom: 0,
-        paddingLeft: 5,
-    },
-
-    chatSwitcherPillsInput: {
-        alignItems: 'flex-start',
-        alignSelf: 'flex-start',
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        maxWidth: 177,
-        overflow: 'hidden',
-    },
-
-    chatSwitcherInputGroup: {
-        minWidth: 1,
-    },
-
-    chatSwitcherGroupDMTextInput: {
-        backgroundColor: themeColors.componentBG,
-        color: themeColors.text,
-        fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeNormal,
-        flexGrow: 1,
-        height: variables.componentSizeSmall,
-        width: '100%',
-        marginTop: 5,
-        marginBottom: 5,
-        padding: 0,
-    },
-
     chatSwticherPillWrapper: {
         marginTop: 5,
         marginRight: 4,
-    },
-
-    chatSwitcherGo: {
-        borderRadius: 6,
-        height: 32,
-        marginBottom: 3,
     },
 
     navigationMenuOpenAbsolute: {
@@ -822,30 +767,6 @@ const styles = {
 
     emptyAvatar: {
         marginRight: variables.componentSizeNormal - 24,
-    },
-
-    chatSwitcherItemAvatarNameWrapper: {
-        minWidth: 0,
-        flex: 1,
-    },
-
-    chatSwitcherItemButton: {
-        backgroundColor: themeColors.sidebarButtonBG,
-        paddingTop: 6,
-        paddingRight: 8,
-        paddingBottom: 6,
-        paddingLeft: 8,
-        borderRadius: variables.componentBorderRadius,
-        height: variables.componentSizeSmall,
-        marginLeft: 4,
-    },
-
-    chatSwitcherItemButtonText: {
-        color: themeColors.heading,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.fontSizeSmall,
-        lineHeight: 16,
-        fontWeight: fontWeightBold,
     },
 
     modalViewContainer: {

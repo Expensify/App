@@ -24,12 +24,6 @@ const propTypes = {
     // A function that is called when an option is selected. Selected option is passed as a param
     onSelectRow: PropTypes.func.isRequired,
 
-    // Callback that adds a user to the pending list of Group DM users
-    onAddToGroup: PropTypes.func,
-
-    // A flag to indicate whether this comes from the Chat Switcher so we can display the group button
-    isChatSwitcher: PropTypes.bool,
-
     // A flag to indicate wheter to show additional optional states, such as pin and draft icons
     hideAdditionalOptionStates: PropTypes.bool,
 
@@ -44,8 +38,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    onAddToGroup: () => {},
-    isChatSwitcher: false,
     hideAdditionalOptionStates: false,
     showSelectedState: false,
     isSelected: false,
@@ -56,8 +48,6 @@ const OptionRow = ({
     option,
     optionIsFocused,
     onSelectRow,
-    onAddToGroup,
-    isChatSwitcher,
     hideAdditionalOptionStates,
     showSelectedState,
     isSelected,
@@ -85,7 +75,7 @@ const OptionRow = ({
                 style={StyleSheet.flatten([
                     styles.chatLinkRowPressable,
                     styles.flexGrow1,
-                    styles.chatSwitcherItemAvatarNameWrapper,
+                    styles.optionItemAvatarNameWrapper,
                 ])}
             >
                 <View
@@ -104,12 +94,12 @@ const OptionRow = ({
                         )
                     }
                     <View style={[styles.flex1]}>
-                        <Text style={[styles.chatSwitcherDisplayName, textUnreadStyle]} numberOfLines={1}>
+                        <Text style={[styles.optionDisplayName, textUnreadStyle]} numberOfLines={1}>
                             {option.text}
                         </Text>
                         {option.alternateText ? (
                             <Text
-                                style={[textStyle, styles.chatSwitcherLogin, styles.mt1]}
+                                style={[textStyle, styles.optionAlternateText, styles.mt1]}
                                 numberOfLines={1}
                             >
                                 {option.alternateText}
@@ -125,21 +115,6 @@ const OptionRow = ({
                     )}
                 </View>
             </TouchableOpacity>
-            {option.singleUserDM && isChatSwitcher && (
-                <View>
-                    <TouchableOpacity
-                        style={[styles.chatSwitcherItemButton]}
-                        onPress={() => onAddToGroup(option)}
-                    >
-                        <Text
-                            style={[styles.chatSwitcherItemButtonText]}
-                            numberOfLines={1}
-                        >
-                            Add
-                        </Text>
-                    </TouchableOpacity>
-                </View>
-            )}
             {!hideAdditionalOptionStates && (
                 <View style={styles.flexRow}>
                     {option.hasDraftComment && (
