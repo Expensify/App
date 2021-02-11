@@ -35,7 +35,6 @@ const ReportActionItem = props => (
                         reportID={props.reportID}
                         reportActionID={props.action.sequenceNumber}
                         isVisible={hovered}
-                        isMini
                     />
                 </View>
             </View>

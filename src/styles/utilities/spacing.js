@@ -14,13 +14,15 @@ export default {
     },
 
     mh1: {
-        marginRight: 4,
-        marginLeft: 4,
+        marginHorizontal: 4,
+    },
+
+    mh3: {
+        marginHorizontal: 12,
     },
 
     mv1: {
-        marginTop: 4,
-        marginBottom: 4,
+        marginVertical: 4,
     },
 
     mr0: {
@@ -53,6 +55,10 @@ export default {
 
     ml3: {
         marginLeft: 12,
+    },
+
+    ml4: {
+        marginLeft: 16,
     },
 
     mt1: {
