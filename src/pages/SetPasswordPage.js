@@ -16,15 +16,10 @@ import ExpensifyCashLogo from '../../assets/images/expensify-cash.svg';
 import CustomStatusBar from '../components/CustomStatusBar';
 import {setPassword} from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
-import ROUTES from '../ROUTES';
 import variables from '../styles/variables';
 import ButtonWithLoader from '../components/ButtonWithLoader';
 
 const propTypes = {
-    // These are from withRouter
-    // eslint-disable-next-line react/forbid-prop-types
-    match: PropTypes.object.isRequired,
-
     /* Onyx Props */
 
     // The details about the account that the user is signing in with
