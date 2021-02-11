@@ -66,6 +66,18 @@ class ReportActionsView extends React.Component {
         fetchActions(this.props.reportID);
     }
 
+    shouldComponentUpdate(nextProps) {
+        if (nextProps.isActiveReport !== this.props.isActiveReport) {
+            return true;
+        }
+
+        if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
+            return true;
+        }
+
+        return false;
+    }
+
     componentDidUpdate(prevProps) {
         // If we previously had a value for reportActions but no longer have one
         // this can only mean that the reportActions have been deleted. So we must
