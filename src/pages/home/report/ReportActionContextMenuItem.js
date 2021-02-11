@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import {Pressable, Text} from 'react-native';
 import Tooltip from '../../../components/Tooltip';
@@ -76,4 +76,4 @@ ReportActionContextMenuItem.propTypes = propTypes;
 ReportActionContextMenuItem.defaultProps = defaultProps;
 ReportActionContextMenuItem.displayName = 'ReportActionContextMenuItem';
 
-export default ReportActionContextMenuItem;
+export default memo(ReportActionContextMenuItem);
