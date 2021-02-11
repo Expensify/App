@@ -11,7 +11,6 @@ env:
 
 jobs:
     build:
-        if: github.user == 'OSBotify'
         runs-on: macos-latest
         steps:
             - uses: actions/checkout@v2
