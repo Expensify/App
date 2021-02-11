@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
 import {View, Animated, Keyboard} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import {createNavigatorFactory, useNavigationBuilder} from '@react-navigation/core';
 import {StackRouter} from '@react-navigation/routers';
 import withWindowDimensions from '../../components/withWindowDimensions';
@@ -9,12 +10,14 @@ import ROUTES from '../../ROUTES';
 import variables from '../../styles/variables';
 import Modal from '../../components/Modal';
 import themeColors from '../../styles/themes/default';
+import ONYXKEYS from '../../ONYXKEYS';
+import Navigator from '../index';
 
 class WideScreenView extends React.Component {
     constructor(props) {
         super(props);
 
-        const isCurrentRouteRoot = this.props.currentRoute === ROUTES.ROOT;
+        const isCurrentRouteRoot = this.props.currentRoute === ROUTES.HOME;
         this.state = {
             sidebarAnimation: new Animated.Value(
                 isCurrentRouteRoot ? 0 : 1,
@@ -30,23 +33,27 @@ class WideScreenView extends React.Component {
             return;
         }
 
-        if (prevProps.currentRoute === ROUTES.ROOT && this.props.currentRoute !== ROUTES.ROOT) {
+        if (prevProps.currentRoute === ROUTES.HOME && this.props.currentRoute !== ROUTES.HOME) {
             this.animateSidebar(false);
         }
 
-        if (prevProps.currentRoute !== ROUTES.ROOT && this.props.currentRoute === ROUTES.ROOT) {
+        if (prevProps.currentRoute !== ROUTES.HOME && this.props.currentRoute === ROUTES.HOME) {
             Keyboard.dismiss();
             this.animateSidebar(true);
         }
     }
 
     getMainRoute() {
-        const currentKey = _.first(_.keys(this.props.descriptors));
-        const currentDescriptor = _.first(_.values(this.props.descriptors));
-
-        console.log(currentRoute);
-
-        return currentRoute;
+        // Removing the root route since we never render it
+        const currentDescriptors = _.reject(this.props.descriptors, (value, key) => (
+            key.includes(ROUTES.HOME)
+        ));
+        const currentDescriptor = _.first(_.values(currentDescriptors));
+        return currentDescriptor || {
+            render() {
+                return <View />;
+            },
+        };
     }
 
     /**
@@ -58,12 +65,12 @@ class WideScreenView extends React.Component {
         Animated.parallel([
             Animated.timing(this.state.sidebarAnimation, {
                 toValue: didNavigateToRoot ? 0 : 1,
-                duration: 400,
+                duration: 250,
                 useNativeDriver: false,
             }),
             Animated.timing(this.state.mainAnimation, {
                 toValue: didNavigateToRoot ? 1 : 0,
-                duration: 400,
+                duration: 250,
                 useNativeDriver: false,
             }),
         ]).start();
@@ -80,45 +87,47 @@ class WideScreenView extends React.Component {
                 }}
             >
                 {/* This is the sidebar view */}
-                <Animated.View
-                    style={[
-                        this.props.isSmallScreenWidth
-                            ? {
-                                position: 'absolute',
-                                height: '100%',
-                                width: this.props.windowDimensions.width,
-                                transform: [
-                                    {
-                                        translateX: this.state.sidebarAnimation.interpolate({
-                                            inputRange: [0, 1],
-                                            outputRange: [
-                                                0,
-                                                -this.props.windowDimensions.width,
-                                            ],
-                                        }),
-                                    },
-                                    {
-                                        scale: this.state.sidebarAnimation.interpolate({
-                                            inputRange: [0, 1],
-                                            outputRange: [
-                                                1, 0.9,
-                                            ],
-                                        }),
-                                    },
-                                ],
-                                opacity: this.state.sidebarAnimation.interpolate({
-                                    inputRange: [0, 1],
-                                    outputRange: [1, 0],
-                                }),
-                            }
-                            : {
-                                width: variables.sideBarWidth,
-                                height: '100%',
-                            },
-                    ]}
-                >
-                    <SidebarPage />
-                </Animated.View>
+                {this.props.authenticated && (
+                    <Animated.View
+                        style={[
+                            this.props.isSmallScreenWidth
+                                ? {
+                                    position: 'absolute',
+                                    height: '100%',
+                                    width: this.props.windowDimensions.width,
+                                    transform: [
+                                        {
+                                            translateX: this.state.sidebarAnimation.interpolate({
+                                                inputRange: [0, 1],
+                                                outputRange: [
+                                                    0,
+                                                    -this.props.windowDimensions.width,
+                                                ],
+                                            }),
+                                        },
+                                        {
+                                            scale: this.state.sidebarAnimation.interpolate({
+                                                inputRange: [0, 1],
+                                                outputRange: [
+                                                    1, 0.9,
+                                                ],
+                                            }),
+                                        },
+                                    ],
+                                    opacity: this.state.sidebarAnimation.interpolate({
+                                        inputRange: [0, 1],
+                                        outputRange: [1, 0],
+                                    }),
+                                }
+                                : {
+                                    width: variables.sideBarWidth,
+                                    height: '100%',
+                                },
+                        ]}
+                    >
+                        <SidebarPage />
+                    </Animated.View>
+                )}
 
                 {/* This is the main view */}
                 <Animated.View
@@ -170,7 +179,8 @@ class WideScreenView extends React.Component {
                     const SubRouteComponent = subRoute.Component;
                     return (
                         <Modal
-                            isVisible={this.props.currentRoute.includes(modalRoute.path)}
+                            key={modalRoute.path}
+                            isVisible={this.props.currentRoute === subRoute.path}
                             backgroundColor={themeColors.componentBG}
                             type={modalRoute.modalType}
                             onClose={() => Navigator.dismissModal()}
@@ -184,7 +194,13 @@ class WideScreenView extends React.Component {
     }
 }
 
-function WideScreenNavigator({initialRouteName, children, ...rest}) {
+function WideScreenNavigator({
+    modalRoutes,
+    authenticated,
+    initialRouteName,
+    children,
+    ...rest
+}) {
     const {state, navigation, descriptors} = useNavigationBuilder(StackRouter, {
         initialRouteName,
         children,
@@ -195,10 +211,18 @@ function WideScreenNavigator({initialRouteName, children, ...rest}) {
             state={state}
             navigation={navigation}
             descriptors={descriptors}
+            modalRoutes={modalRoutes}
+            authenticated={authenticated}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         />
     );
 }
 
-export default createNavigatorFactory(withWindowDimensions(WideScreenNavigator));
+export default createNavigatorFactory(
+    withOnyx({
+        currentRoute: {
+            key: ONYXKEYS.CURRENT_ROUTE,
+        },
+    })(withWindowDimensions(WideScreenNavigator)),
+);

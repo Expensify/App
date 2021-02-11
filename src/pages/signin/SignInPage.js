@@ -59,12 +59,6 @@ class SignInPage extends Component {
     }
 
     render() {
-        // If we end up on the sign in page and have an authToken then
-        // we are signed in and should be brought back to the site root
-        if (this.props.session.authToken) {
-            return null;
-        }
-
         // Show the login form if
         // - A login has not been entered yet
         const showLoginForm = !this.props.credentials.login;

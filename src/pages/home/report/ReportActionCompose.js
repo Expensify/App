@@ -144,7 +144,7 @@ class ReportActionCompose extends React.Component {
         // We want to make sure to disable on small screens because in iOS safari the keyboard up/down buttons will
         // focus this from the chat switcher.
         // https://github.com/Expensify/Expensify.cash/issues/1228
-        const inputDisable = this.props.currentRoute === ROUTES.ROOT && this.props.isSmallScreenWidth;
+        const inputDisable = this.props.currentRoute === ROUTES.HOME && this.props.isSmallScreenWidth;
 
         return (
             <View style={[styles.chatItemCompose]}>

@@ -14,7 +14,7 @@ import CONST from './CONST';
 import styles from './styles/styles';
 import Log from './libs/Log';
 import Navigator from './Navigator';
-
+import ROUTES from './ROUTES';
 import PushNotification from './libs/Notification/PushNotification';
 
 import MainView from './pages/home/MainView';
@@ -146,7 +146,7 @@ class Expensify extends Component {
                     authenticated={this.state.authToken}
                     publicRoute={{
                         Component: SignInPage,
-                        path: '/signin',
+                        path: ROUTES.SIGN_IN,
                         options: {
                             headerShown: false,
                             animationTypeForReplace: 'pop',
@@ -158,7 +158,7 @@ class Expensify extends Component {
                     }}
                     modalRoutes={[
                         {
-                            path: '/settings',
+                            path: '/modal-settings',
                             modalType: CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
                             subRoutes: [
                                 {

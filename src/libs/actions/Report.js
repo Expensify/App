@@ -470,7 +470,7 @@ function fetchActions(reportID) {
 function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false, shouldRecordHomePageTiming = false) {
     fetchChatReports()
         .then((reportIDs) => {
-            if (shouldRedirectToReport && (currentRoute === ROUTES.ROOT || currentRoute === ROUTES.HOME)) {
+            if (shouldRedirectToReport && (currentRoute === ROUTES.HOME)) {
                 // Redirect to either the last viewed report ID or the first report ID from our report collection
                 if (lastViewedReportID) {
                     Navigator.navigate(ROUTES.getReportRoute(lastViewedReportID));

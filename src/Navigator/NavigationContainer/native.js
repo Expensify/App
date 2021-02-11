@@ -20,35 +20,70 @@ class ReactNavigationContainer extends Component {
         // if (!this.props.isSmallScreenWidth) {
         return (
             <NavigationContainer
-                initialState={getStateFromPath(this.props.initialRoute, linkingConfig.config)}
+                initialState={
+                    this.props.initialRoute
+                        ? getStateFromPath(this.props.initialRoute, linkingConfig.config)
+                        : null
+                }
                 onStateChange={(state) => {
                     this.props.onStateChange(state);
                 }}
                 ref={navigationRef}
                 linking={linkingConfig}
             >
-                {/* The sidebar is essentialy built into this navigator so we don't provide it here */}
-                <WideScreen.Navigator>
-                    <WideScreen.Screen
-                        name={ROUTES.ROOT}
-                        component={View}
-                        options={{
-                            headerShown: false,
-                        }}
-                        initialParams={{
-                            isRoot: true,
-                        }}
-                    />
-                    {_.map(this.props.mainRoutes, route => (
-                        <WideScreen.Screen
-                            name={route.path}
-                            component={route.Component}
-                            key={route.path}
-                            options={{
-                                headerShown: false,
-                            }}
-                        />
-                    ))}
+                <WideScreen.Navigator
+                    modalRoutes={this.props.modalRoutes}
+                    authenticated={this.props.authenticated}
+                >
+                    {this.props.authenticated
+                        ? (
+                            <>
+                                {/* The sidebar is essentialy built into this navigator, but we must provide a route
+                                herewith an empty view so we can navigate correctly */}
+                                <WideScreen.Screen
+                                    name={ROUTES.HOME}
+                                    component={View}
+                                    options={{
+                                        headerShown: false,
+                                    }}
+                                />
+
+                                {/* Main routes */}
+                                {_.map(this.props.mainRoutes, route => (
+                                    <WideScreen.Screen
+                                        name={route.path}
+                                        component={route.Component}
+                                        key={route.path}
+                                        options={{
+                                            headerShown: false,
+                                        }}
+                                    />
+                                ))}
+
+                                {/* All modal subroutes need to be added here, however they are not ever rendered
+                                directly by react-navigation and instead are intercepted by the custom navigator */}
+                                {_.flatten(_.map(this.props.modalRoutes, (routeConfig) => {
+                                    const subRoutes = routeConfig.subRoutes;
+                                    return _.map((subRoutes), subRoute => (
+                                        <WideScreen.Screen
+                                            name={subRoute.path}
+                                            component={View}
+                                            key={subRoute.path}
+                                            options={{
+                                                headerShown: false,
+                                            }}
+                                        />
+                                    ));
+                                }))}
+                            </>
+                        )
+                        : (
+                            <WideScreen.Screen
+                                name={this.props.publicRoute.path}
+                                options={this.props.publicRoute.options}
+                                component={this.props.publicRoute.Component}
+                            />
+                        )}
                 </WideScreen.Navigator>
             </NavigationContainer>
         );

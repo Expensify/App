@@ -221,7 +221,7 @@ class NewGroupPage extends Component {
                             return;
                         }
 
-                        Navigator.navigate(ROUTES.ROOT);
+                        Navigator.navigate(ROUTES.HOME);
                     }}
                 />
                 <View style={[styles.p2, styles.flex1]}>

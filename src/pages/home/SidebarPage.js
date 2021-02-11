@@ -84,7 +84,7 @@ class SidebarPage extends React.Component {
 
         // Listen for the Command+K key being pressed so the focus can be given to the chat switcher
         KeyboardShortcut.subscribe('K', () => {
-            Navigator.navigate(ROUTES.ROOT);
+            Navigator.navigate(ROUTES.HOME);
             ChatSwitcher.show();
         }, ['meta'], true);
     }

@@ -39,7 +39,7 @@ function redirectToSignIn(errorMessage) {
     const reportID = currentlyViewedReportID;
 
     // When the URL is at the root of the site, go to sign-in, otherwise add the exitTo
-    Navigator.navigate(ROUTES.ROOT);
+    Navigator.navigate(ROUTES.HOME);
     Onyx.clear().then(() => {
         if (errorMessage) {
             Onyx.set(ONYXKEYS.SESSION, {error: errorMessage});
