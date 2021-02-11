@@ -11,9 +11,11 @@ env:
 
 jobs:
     build:
-        if: github.user == 'OSBotify'
         runs-on: macos-latest
         steps:
+            - name: Echo actor
+              run: echo ${{ github.actor }}
+
             - uses: actions/checkout@v2
 
             - name: Setup Node
