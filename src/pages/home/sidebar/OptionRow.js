@@ -13,8 +13,12 @@ import Icon from '../../../components/Icon';
 import {Pencil, PinCircle, Checkmark} from '../../../components/Icon/Expensicons';
 import MultipleAvatars from '../../../components/MultipleAvatars';
 import themeColors from '../../../styles/themes/default';
+import Hoverable from '../../../components/Hoverable';
 
 const propTypes = {
+    // Style for hovered state
+    hoverStyle: PropTypes.arrayOf(PropTypes.object),
+
     // Option to allow the user to choose from can be type 'report' or 'user'
     option: optionPropTypes.isRequired,
 
@@ -38,6 +42,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    hoverStyle: [],
     hideAdditionalOptionStates: false,
     showSelectedState: false,
     isSelected: false,
@@ -45,6 +50,7 @@ const defaultProps = {
 };
 
 const OptionRow = ({
+    hoverStyle,
     option,
     optionIsFocused,
     onSelectRow,
@@ -58,33 +64,37 @@ const OptionRow = ({
         : styles.sidebarLinkText;
     const textUnreadStyle = (option.isUnread || forceTextUnreadStyle)
         ? [textStyle, styles.sidebarLinkTextUnread] : [textStyle];
+    const hoveredStyle = hoverStyle ? [styles.sidebarLinkHover, ...hoverStyle] : [styles.sidebarLinkHover];
     return (
-        <View
-            style={[
-                styles.flexRow,
-                styles.alignItemsCenter,
-                styles.justifyContentBetween,
-                styles.sidebarLink,
-                styles.sidebarLinkInner,
-                optionIsFocused ? styles.sidebarLinkActive : null,
-            ]}
-        >
-            <TouchableOpacity
-                onPress={() => onSelectRow(option)}
-                activeOpacity={0.8}
-                style={StyleSheet.flatten([
-                    styles.chatLinkRowPressable,
-                    styles.flexGrow1,
-                    styles.optionItemAvatarNameWrapper,
-                ])}
-            >
+        <Hoverable>
+            {hovered => (
                 <View
                     style={[
                         styles.flexRow,
                         styles.alignItemsCenter,
+                        styles.justifyContentBetween,
+                        styles.sidebarLink,
+                        styles.sidebarLinkInner,
+                        optionIsFocused ? styles.sidebarLinkActive : null,
+                        hovered && !optionIsFocused ? hoveredStyle : null,
                     ]}
                 >
-                    {
+                    <TouchableOpacity
+                        onPress={() => onSelectRow(option)}
+                        activeOpacity={0.8}
+                        style={StyleSheet.flatten([
+                            styles.chatLinkRowPressable,
+                            styles.flexGrow1,
+                            styles.optionItemAvatarNameWrapper,
+                        ])}
+                    >
+                        <View
+                            style={[
+                                styles.flexRow,
+                                styles.alignItemsCenter,
+                            ]}
+                        >
+                            {
                         !_.isEmpty(option.icons)
                         && (
                             <MultipleAvatars
@@ -93,43 +103,45 @@ const OptionRow = ({
                             />
                         )
                     }
-                    <View style={[styles.flex1]}>
-                        <Text style={[styles.optionDisplayName, textUnreadStyle]} numberOfLines={1}>
-                            {option.text}
-                        </Text>
-                        {option.alternateText ? (
-                            <Text
-                                style={[textStyle, styles.optionAlternateText, styles.mt1]}
-                                numberOfLines={1}
-                            >
-                                {option.alternateText}
-                            </Text>
-                        ) : null}
-                    </View>
-                    {showSelectedState && (
-                        <View style={[styles.selectCircle]}>
-                            {isSelected && (
-                                <Icon src={Checkmark} fill={themeColors.iconSuccessFill} />
+                            <View style={[styles.flex1]}>
+                                <Text style={[styles.optionDisplayName, textUnreadStyle]} numberOfLines={1}>
+                                    {option.text}
+                                </Text>
+                                {option.alternateText ? (
+                                    <Text
+                                        style={[textStyle, styles.optionAlternateText, styles.mt1]}
+                                        numberOfLines={1}
+                                    >
+                                        {option.alternateText}
+                                    </Text>
+                                ) : null}
+                            </View>
+                            {showSelectedState && (
+                                <View style={[styles.selectCircle]}>
+                                    {isSelected && (
+                                    <Icon src={Checkmark} fill={themeColors.iconSuccessFill} />
+                                    )}
+                                </View>
+                            )}
+                        </View>
+                    </TouchableOpacity>
+                    {!hideAdditionalOptionStates && (
+                        <View style={styles.flexRow}>
+                            {option.hasDraftComment && (
+                            <View style={styles.ml2}>
+                                <Icon src={Pencil} />
+                            </View>
+                            )}
+                            {option.isPinned && (
+                            <View style={styles.ml2}>
+                                <Icon src={PinCircle} />
+                            </View>
                             )}
                         </View>
                     )}
                 </View>
-            </TouchableOpacity>
-            {!hideAdditionalOptionStates && (
-                <View style={styles.flexRow}>
-                    {option.hasDraftComment && (
-                        <View style={styles.ml2}>
-                            <Icon src={Pencil} />
-                        </View>
-                    )}
-                    {option.isPinned && (
-                        <View style={styles.ml2}>
-                            <Icon src={PinCircle} />
-                        </View>
-                    )}
-                </View>
             )}
-        </View>
+        </Hoverable>
     );
 };
 

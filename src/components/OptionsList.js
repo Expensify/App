@@ -7,6 +7,9 @@ import OptionRow from '../pages/home/sidebar/OptionRow';
 import optionPropTypes from './optionPropTypes';
 
 const propTypes = {
+    // Style for hovered state
+    optionHoveredStyle: PropTypes.arrayOf(PropTypes.object),
+
     // Extra styles for the section list container
     contentContainerStyles: PropTypes.arrayOf(PropTypes.object),
 
@@ -63,6 +66,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    optionHoveredStyle: [],
     contentContainerStyles: [],
     sections: [],
     focusedIndex: 0,
@@ -145,6 +149,7 @@ class OptionsList extends Component {
         return (
             <OptionRow
                 option={item}
+                hoverStyle={this.props.optionHoveredStyle}
                 optionIsFocused={!this.props.disableFocusOptions
                         && this.props.focusedIndex === (index + section.indexOffset)}
                 onSelectRow={this.props.onSelectRow}
