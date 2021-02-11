@@ -1,32 +1,11 @@
 import React from 'react';
-import {Pressable, Text, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {
     Clipboard, LinkCopy, Mail, Pencil, Trashcan,
 } from '../../../components/Icon/Expensicons';
 import getReportActionContextMenuStyles from '../../../styles/getReportActionContextMenuStyles';
-import Icon from '../../../components/Icon';
-import Tooltip from '../../../components/Tooltip';
-import CONST from '../../../CONST';
-
-/**
- * Get the string representation of a button's state.
- *
- * @param {Boolean} [isHovered]
- * @param {Boolean} [isPressed]
- * @returns {String}
- */
-function getButtonState(isHovered = false, isPressed = false) {
-    if (isPressed) {
-        return CONST.BUTTON_STATES.PRESSED;
-    }
-
-    if (isHovered) {
-        return CONST.BUTTON_STATES.HOVERED;
-    }
-
-    return CONST.BUTTON_STATES.DEFAULT;
-}
+import ReportActionContextMenuItem from './ReportActionContextMenuItem';
 
 /**
  * A list of all the context actions in this menu.
@@ -86,48 +65,19 @@ const defaultProps = {
 };
 
 const ReportActionContextMenu = (props) => {
-    const {
-        wrapperStyle,
-        getButtonStyle,
-        getIconFillColor,
-        getTextStyle,
-    } = getReportActionContextMenuStyles(props.isMini);
-    return props.isMini
-        ? props.isVisible && (
-            <View style={wrapperStyle}>
-                {CONTEXT_ACTIONS.map(contextAction => (
-                    <Tooltip
-                        text={contextAction.text}
-                        key={contextAction.text}
-                    >
-                        <Pressable style={({hovered, pressed}) => getButtonStyle(getButtonState(hovered, pressed))}>
-                            {({hovered, pressed}) => (
-                                <Icon
-                                    src={contextAction.icon}
-                                    fill={getIconFillColor(getButtonState(hovered, pressed))}
-                                />
-                            )}
-                        </Pressable>
-                    </Tooltip>
-                ))}
-            </View>
-        ) : props.isVisible && (
-            <View style={wrapperStyle}>
-                {CONTEXT_ACTIONS.map(contextAction => (
-                    <Pressable style={({hovered, pressed}) => getButtonStyle(getButtonState(hovered, pressed))}>
-                        {({hovered, pressed}) => (
-                            <>
-                                <Icon
-                                    src={contextAction.icon}
-                                    fill={getIconFillColor(getButtonState(hovered, pressed))}
-                                />
-                                <Text style={getTextStyle(getButtonState(hovered, pressed))}>{contextAction.text}</Text>
-                            </>
-                        )}
-                    </Pressable>
-                ))}
-            </View>
-        );
+    const wrapperStyle = getReportActionContextMenuStyles(props.isMini);
+    return props.isVisible && (
+        <View style={wrapperStyle}>
+            {CONTEXT_ACTIONS.map(contextAction => (
+                <ReportActionContextMenuItem
+                    icon={contextAction.icon}
+                    text={contextAction.text}
+                    isMini={props.isMini}
+                    key={contextAction.text}
+                />
+            ))}
+        </View>
+    );
 };
 
 ReportActionContextMenu.propTypes = propTypes;
