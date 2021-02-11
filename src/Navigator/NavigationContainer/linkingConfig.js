@@ -1,15 +1,11 @@
 export default {
-    prefixes: ['expensifycash://', 'https://expensify.cash/'],
+    prefixes: ['expensifycash://', 'https://expensify.cash/', 'http://localhost:8080/'],
     config: {
         screens: {
-            Home: {
-                path: '',
-                initialRouteName: 'Sidebar',
-                screens: {
-                    Sidebar: '',
-                    Report: 'r/:reportID',
-                },
-            },
+            Sidebar: '',
+
+            // Report route
+            Report: 'r/:reportID',
 
             // Public Routes
             SignIn: 'signin',
@@ -18,7 +14,6 @@ export default {
             Settings: {
                 path: 'settings',
                 initialRouteName: 'Root',
-                exact: true,
                 screens: {
                     Root: {
                         path: '',
