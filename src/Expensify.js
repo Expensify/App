@@ -146,31 +146,35 @@ class Expensify extends Component {
                     authenticated={this.state.authToken}
                     publicRoute={{
                         Component: SignInPage,
-                        path: ROUTES.SIGN_IN,
+                        path: 'SignIn',
                         options: {
                             headerShown: false,
                             animationTypeForReplace: 'pop',
                         },
                     }}
                     sidebarRoute={{
-                        path: '/',
+                        path: 'Home',
                         Component: SidebarPage,
                     }}
                     modalRoutes={[
                         {
-                            path: '/modal-settings',
+                            path: 'Settings',
+                            title: 'Settings',
                             modalType: CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
                             subRoutes: [
                                 {
-                                    path: '/settings',
+                                    path: 'Root',
+                                    title: 'Settings',
                                     Component: SettingsPage,
                                 },
                                 {
-                                    path: '/settings/test',
+                                    path: 'Test',
+                                    title: 'Settings | Test',
                                     Component: Test,
                                 },
                                 {
-                                    path: '/settings/test2',
+                                    path: 'Test2',
+                                    title: 'Settings | Test 2',
                                     Component: TestTwo,
                                 },
                             ],
@@ -178,7 +182,7 @@ class Expensify extends Component {
                     ]}
                     mainRoutes={[
                         {
-                            path: '/r',
+                            path: 'Report',
                             Component: MainView,
                             additionalPaths: '',
                         },

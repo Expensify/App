@@ -7,11 +7,11 @@ import {navigationRef} from '../index';
 import withWindowDimensions from '../../components/withWindowDimensions';
 import createWideScreenNavigator from './WideScreenNavigator';
 import linkingConfig from './linkingConfig';
-import ROUTES from '../../ROUTES';
 
 const MainStack = createStackNavigator();
 const RootStack = createStackNavigator();
 const WideScreen = createWideScreenNavigator();
+const ModalStack = createStackNavigator();
 
 class ReactNavigationContainer extends Component {
     render() {
@@ -20,11 +20,14 @@ class ReactNavigationContainer extends Component {
         // if (!this.props.isSmallScreenWidth) {
         return (
             <NavigationContainer
-                initialState={
-                    this.props.initialRoute
-                        ? getStateFromPath(this.props.initialRoute, linkingConfig.config)
-                        : null
-                }
+
+                // Leaving this commented out for now as going back is sketchy / not working super great on web
+                // and setting an initialState can get us trapped.
+                // initialState={
+                //     this.props.initialRoute
+                //         ? getStateFromPath(this.props.initialRoute, linkingConfig.config)
+                //         : null
+                // }
                 onStateChange={(state) => {
                     this.props.onStateChange(state);
                 }}
@@ -33,7 +36,9 @@ class ReactNavigationContainer extends Component {
             >
                 <WideScreen.Navigator
                     modalRoutes={this.props.modalRoutes}
+                    mainRoutes={this.props.mainRoutes}
                     authenticated={this.props.authenticated}
+                    mode="modal"
                 >
                     {this.props.authenticated
                         ? (
@@ -41,10 +46,11 @@ class ReactNavigationContainer extends Component {
                                 {/* The sidebar is essentialy built into this navigator, but we must provide a route
                                 herewith an empty view so we can navigate correctly */}
                                 <WideScreen.Screen
-                                    name={ROUTES.HOME}
+                                    name={this.props.sidebarRoute.path}
                                     component={View}
                                     options={{
                                         headerShown: false,
+                                        title: 'Expensify.cash',
                                     }}
                                 />
 
@@ -56,25 +62,39 @@ class ReactNavigationContainer extends Component {
                                         key={route.path}
                                         options={{
                                             headerShown: false,
+                                            title: route.title || 'Expensify.cash',
                                         }}
                                     />
                                 ))}
 
                                 {/* All modal subroutes need to be added here, however they are not ever rendered
                                 directly by react-navigation and instead are intercepted by the custom navigator */}
-                                {_.flatten(_.map(this.props.modalRoutes, (routeConfig) => {
-                                    const subRoutes = routeConfig.subRoutes;
-                                    return _.map((subRoutes), subRoute => (
-                                        <WideScreen.Screen
-                                            name={subRoute.path}
-                                            component={View}
-                                            key={subRoute.path}
-                                            options={{
-                                                headerShown: false,
-                                            }}
-                                        />
-                                    ));
-                                }))}
+                                {_.map(this.props.modalRoutes, route => (
+                                    <WideScreen.Screen
+                                        key={route.path}
+                                        name={route.path}
+                                        options={{
+                                            headerShown: false,
+                                            title: route.title || 'Expensify.cash',
+                                        }}
+                                    >
+                                        {() => (
+                                            <ModalStack.Navigator>
+                                                {_.map(route.subRoutes, subRoute => (
+                                                    <ModalStack.Screen
+                                                        key={subRoute.path}
+                                                        name={subRoute.path}
+                                                        component={subRoute.Component}
+                                                        options={{
+                                                            headerShown: false,
+                                                            title: route.title || 'Expensify.cash',
+                                                        }}
+                                                    />
+                                                ))}
+                                            </ModalStack.Navigator>
+                                        )}
+                                    </WideScreen.Screen>
+                                ))}
                             </>
                         )
                         : (

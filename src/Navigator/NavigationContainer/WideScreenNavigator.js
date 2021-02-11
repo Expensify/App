@@ -43,12 +43,8 @@ class WideScreenView extends React.Component {
         }
     }
 
-    getMainRoute() {
-        // Removing the root route since we never render it
-        const currentDescriptors = _.reject(this.props.descriptors, (value, key) => (
-            key.includes(ROUTES.HOME)
-        ));
-        const currentDescriptor = _.first(_.values(currentDescriptors));
+    getDescriptorForRoute(path) {
+        const currentDescriptor = _.find(this.props.descriptors, (value, key) => key.includes(path));
         return currentDescriptor || {
             render() {
                 return <View />;
@@ -77,7 +73,6 @@ class WideScreenView extends React.Component {
     }
 
     render() {
-        const mainRoute = this.getMainRoute();
         return (
             <View
                 style={{
@@ -159,36 +154,28 @@ class WideScreenView extends React.Component {
                             flex: 1,
                         }}
                 >
-                    {mainRoute.render()}
+                    {_.map(this.props.mainRoutes, mainRoute => (
+                        <React.Fragment key={mainRoute.path}>
+                            {this.getDescriptorForRoute(mainRoute.path).render()}
+                        </React.Fragment>
+                    ))}
                 </Animated.View>
 
                 {/* These are all modal views. Probably this would get refactored to say what kind of
                 modal we want this to be and other settings externally. For now, we are just passing
                 two different versions one which is screen only and one which is Modal wrapped in
                 a screen */}
-                {_.map(this.props.modalRoutes || [], (modalRoute) => {
-                    const subRoute = _.find(
-                        modalRoute.subRoutes,
-                        ({path}) => path === this.props.currentRoute,
-                    );
-
-                    if (!subRoute) {
-                        return;
-                    }
-
-                    const SubRouteComponent = subRoute.Component;
-                    return (
-                        <Modal
-                            key={modalRoute.path}
-                            isVisible={this.props.currentRoute === subRoute.path}
-                            backgroundColor={themeColors.componentBG}
-                            type={modalRoute.modalType}
-                            onClose={() => Navigator.dismissModal()}
-                        >
-                            <SubRouteComponent />
-                        </Modal>
-                    );
-                })}
+                {_.map(this.props.modalRoutes || [], modalRouteConfig => (
+                    <Modal
+                        key={modalRouteConfig.path}
+                        isVisible={this.props.currentRoute.includes(`/${modalRouteConfig.path.toLowerCase()}`)}
+                        backgroundColor={themeColors.componentBG}
+                        type={modalRouteConfig.modalType}
+                        onClose={() => Navigator.dismissModal()}
+                    >
+                        {this.getDescriptorForRoute(modalRouteConfig.path).render()}
+                    </Modal>
+                ))}
             </View>
         );
     }
@@ -196,6 +183,7 @@ class WideScreenView extends React.Component {
 
 function WideScreenNavigator({
     modalRoutes,
+    mainRoutes,
     authenticated,
     initialRouteName,
     children,
@@ -212,6 +200,7 @@ function WideScreenNavigator({
             navigation={navigation}
             descriptors={descriptors}
             modalRoutes={modalRoutes}
+            mainRoutes={mainRoutes}
             authenticated={authenticated}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
