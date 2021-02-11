@@ -27,7 +27,7 @@ jobs:
               run: |
                 git fetch
                 git checkout master
-                git config user.name botify
+                git config user.name OSBotify
 
             - name: Checkout new branch
               run: git checkout -b version-bump-${{ github.sha }}
