@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
+import PropTypes from 'prop-types';
 import {View, Animated, Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import {createNavigatorFactory, useNavigationBuilder} from '@react-navigation/core';
@@ -11,6 +12,15 @@ import Modal from '../../components/Modal';
 import themeColors from '../../styles/themes/default';
 import ONYXKEYS from '../../ONYXKEYS';
 import Navigator from '../index';
+import compose from '../../libs/compose';
+
+const propTypes = {
+    currentMainRoute: PropTypes.string,
+};
+
+const defaultProps = {
+    currentMainRoute: ROUTES.REPORT,
+};
 
 class WideScreenView extends React.Component {
     constructor(props) {
@@ -186,7 +196,8 @@ class WideScreenView extends React.Component {
                         {_.map(this.props.modalRoutes || [], modalRouteConfig => (
                             <Modal
                                 key={modalRouteConfig.name}
-                                isVisible={this.props.currentRoute && this.props.currentRoute.includes(modalRouteConfig.path)}
+                                isVisible={this.props.currentRoute
+                                    && this.props.currentRoute.includes(modalRouteConfig.path)}
                                 backgroundColor={themeColors.componentBG}
                                 type={modalRouteConfig.modalType}
                                 onClose={() => Navigator.dismissModal()}
@@ -204,7 +215,22 @@ class WideScreenView extends React.Component {
     }
 }
 
-function WideScreenNavigator({
+const WideScreenViewWithHOCs = compose(
+    withWindowDimensions,
+    withOnyx({
+        currentRoute: {
+            key: ONYXKEYS.CURRENT_ROUTE,
+        },
+        currentMainRoute: {
+            key: ONYXKEYS.CURRENT_MAIN_ROUTE,
+        },
+    }),
+)(WideScreenView);
+
+WideScreenViewWithHOCs.defaultProps = defaultProps;
+WideScreenViewWithHOCs.propTypes = propTypes;
+
+const WideScreenNavigator = ({
     modalRoutes,
     mainRoutes,
     sidebarRoute,
@@ -212,14 +238,14 @@ function WideScreenNavigator({
     initialRouteName,
     children,
     ...rest
-}) {
+}) => {
     const {state, navigation, descriptors} = useNavigationBuilder(StackRouter, {
         initialRouteName,
         children,
     });
 
     return (
-        <WideScreenView
+        <WideScreenViewWithHOCs
             state={state}
             navigation={navigation}
             descriptors={descriptors}
@@ -231,15 +257,6 @@ function WideScreenNavigator({
             {...rest}
         />
     );
-}
+};
 
-export default createNavigatorFactory(
-    withOnyx({
-        currentRoute: {
-            key: ONYXKEYS.CURRENT_ROUTE,
-        },
-        currentMainRoute: {
-            key: ONYXKEYS.CURRENT_MAIN_ROUTE,
-        },
-    })(withWindowDimensions(WideScreenNavigator)),
-);
+export default createNavigatorFactory(WideScreenNavigator);
