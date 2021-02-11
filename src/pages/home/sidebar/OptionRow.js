@@ -75,7 +75,7 @@ const OptionRow = ({
                 style={StyleSheet.flatten([
                     styles.chatLinkRowPressable,
                     styles.flexGrow1,
-                    styles.chatSwitcherItemAvatarNameWrapper,
+                    styles.optionItemAvatarNameWrapper,
                 ])}
             >
                 <View
@@ -94,12 +94,12 @@ const OptionRow = ({
                         )
                     }
                     <View style={[styles.flex1]}>
-                        <Text style={[styles.chatSwitcherDisplayName, textUnreadStyle]} numberOfLines={1}>
+                        <Text style={[styles.optionDisplayName, textUnreadStyle]} numberOfLines={1}>
                             {option.text}
                         </Text>
                         {option.alternateText ? (
                             <Text
-                                style={[textStyle, styles.chatSwitcherLogin, styles.mt1]}
+                                style={[textStyle, styles.optionAlternateText, styles.mt1]}
                                 numberOfLines={1}
                             >
                                 {option.alternateText}
