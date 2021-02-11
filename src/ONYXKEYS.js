@@ -30,6 +30,9 @@ export default {
     // Contains all the personalDetails the user has access to
     PERSONAL_DETAILS: 'personalDetails',
 
+    // Contains the user preference for the LHN priority mode
+    PRIORITY_MODE: 'priorityMode',
+
     // Saves the current country code which is displayed when the user types a phone number without
     // an international code
     COUNTRY_CODE: 'countryCode',
@@ -37,7 +40,6 @@ export default {
     // Information about the current session (authToken, accountID, email, loading, error)
     SESSION: 'session',
     IS_SIDEBAR_SHOWN: 'isSidebarShown',
-    IS_CHAT_SWITCHER_ACTIVE: 'isChatSwitcherActive',
     IS_SIDEBAR_ANIMATING: 'isSidebarAnimating',
     BETAS: 'betas',
 

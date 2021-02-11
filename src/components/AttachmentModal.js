@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
 import {
     View, TouchableOpacity, Text,
@@ -51,7 +51,7 @@ const defaultProps = {
     isAuthTokenRequired: false,
 };
 
-class AttachmentModal extends Component {
+class AttachmentModal extends PureComponent {
     constructor(props) {
         super(props);
 

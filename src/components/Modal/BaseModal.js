@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {memo} from 'react';
 import {View} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
@@ -60,6 +60,7 @@ const BaseModal = (props) => {
             animationIn={animationIn}
             animationOut={animationOut}
             useNativeDriver={props.useNativeDriver}
+            statusBarTranslucent
         >
             <CustomStatusBar />
             <SafeAreaInsetsContext.Consumer>
@@ -94,4 +95,4 @@ const BaseModal = (props) => {
 BaseModal.propTypes = modalPropTypes;
 BaseModal.defaultProps = defaultProps;
 BaseModal.displayName = 'BaseModal';
-export default BaseModal;
+export default memo(BaseModal);
