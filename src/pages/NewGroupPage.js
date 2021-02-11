@@ -217,7 +217,7 @@ class NewGroupPage extends Component {
                     title="New Group"
                     onCloseButtonPress={() => {
                         if (this.props.currentlyViewedReportID !== '') {
-                            Navigator.navigate(ROUTES.REPORT, {reportID: this.props.currentlyViewedReportID});
+                            Navigator.navigate(ROUTES.getReportRoute(this.props.currentlyViewedReportID));
                             return;
                         }
 

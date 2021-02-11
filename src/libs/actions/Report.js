@@ -303,7 +303,7 @@ function updateReportWithNewAction(reportID, reportAction) {
         reportAction,
         onClick: () => {
             // Navigate to this report onClick
-            Navigator.navigate(ROUTES.REPORT, {reportID});
+            Navigator.navigate(ROUTES.getReportRoute(reportID));
         },
     });
 }
@@ -345,7 +345,7 @@ function subscribeToReportCommentEvents() {
 
     // Open correct report when push notification is clicked
     PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, ({reportID}) => {
-        Navigator.navigate(ROUTES.REPORT, {reportID});
+        Navigator.navigate(ROUTES.getReportRoute(reportID));
     });
 }
 
@@ -473,9 +473,9 @@ function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false, sho
             if (shouldRedirectToReport && (currentRoute === ROUTES.ROOT || currentRoute === ROUTES.HOME)) {
                 // Redirect to either the last viewed report ID or the first report ID from our report collection
                 if (lastViewedReportID) {
-                    Navigator.navigate(ROUTES.REPORT, {reportID: lastViewedReportID});
+                    Navigator.navigate(ROUTES.getReportRoute(lastViewedReportID));
                 } else {
-                    Navigator.navigate(ROUTES.REPORT, {reportID: _.first(reportIDs)});
+                    Navigator.navigate(ROUTES.getReportRoute(_.first(reportIDs)));
                 }
             }
 
@@ -549,7 +549,7 @@ function fetchOrCreateChatReport(participants) {
             PersonalDetails.getFromReportParticipants([newReport]);
 
             // Redirect the logged in person to the new report
-            Navigator.navigate(ROUTES.REPORT, {reportID});
+            Navigator.navigate(ROUTES.getReportRoute(reportID));
         });
 }
 

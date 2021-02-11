@@ -1,9 +1,8 @@
 import _ from 'underscore';
 import React from 'react';
-import Onyx from 'react-native-onyx';
-import {StackActions} from '@react-navigation/native';
-import ONYXKEYS from '../ONYXKEYS';
+import {StackActions, getStateFromPath, getActionFromState} from '@react-navigation/native';
 import ROUTES from '../ROUTES';
+import linkingConfig from './NavigationContainer/linkingConfig';
 
 export const navigationRef = React.createRef();
 export const routerRef = React.createRef();
@@ -11,22 +10,19 @@ export const modalRef = React.createRef();
 
 const history = [];
 
-function updateRoute(route) {
-    history.unshift(route);
-    Onyx.merge(ONYXKEYS.CURRENT_ROUTE, route);
-}
+function navigate(route) {
+    console.debug('Navigating to route: ', route);
 
-function navigate(name, params) {
-    let route = name;
+    const state = getStateFromPath(route, linkingConfig.config);
+    const action = getActionFromState(state, linkingConfig.config);
 
-    if (name === ROUTES.REPORT && params.reportID) {
-        route = ROUTES.getReportRoute(params.reportID);
-        Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, String(params.reportID));
+    navigationRef.current?.dispatch(action);
+
+    if (route === ROUTES.ROOT) {
+        window.history.pushState({}, 'Expensify.cash', '/');
+    } else {
+        window.history.pushState({}, 'Expensify.cash', route);
     }
-
-    updateRoute(route);
-    navigationRef.current?.navigate(name, params);
-    routerRef.current?.history.push(route);
 }
 
 function goBack() {
@@ -78,5 +74,4 @@ export default {
     navigate,
     goBack,
     dismissModal,
-    updateRoute,
 };

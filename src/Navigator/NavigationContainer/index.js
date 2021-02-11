@@ -1,3 +1,3 @@
-import RouterContainer from './RouterContainer';
+import RouterContainer from './native';
 
 export default RouterContainer;

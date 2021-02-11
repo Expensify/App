@@ -190,7 +190,7 @@ class SidebarLinks extends React.Component {
                                 option => option.reportID === activeReportID
                             ))}
                             onSelectRow={(option) => {
-                                Navigator.navigate(ROUTES.REPORT, {reportID: option.reportID});
+                                Navigator.navigate(ROUTES.getReportRoute(option.reportID));
                                 this.props.onLinkClick(option.reportID);
                             }}
                             hideSectionHeaders

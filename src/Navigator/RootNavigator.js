@@ -8,11 +8,15 @@
 
 // Mobile web could maybe use react-navigation... so we can still base this on Dimensions
 
+import _ from 'underscore';
 import React from 'react';
-import {withOnyx} from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
+import {getPathFromState} from '@react-navigation/native';
 import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
 import NavigationContainer from './NavigationContainer';
+import ROUTES from '../ROUTES';
+import linkingConfig from './NavigationContainer/linkingConfig';
 
 const RootNavigator = props => (
     <NavigationContainer
@@ -20,9 +24,15 @@ const RootNavigator = props => (
         // This can be used by react-navigation to initialize the state. It's not a plain route but a bit more
         // complex and possibly not very useful.
         // eslint-disable-next-line react/jsx-props-no-multi-spaces
-        initialState={null}
+        initialRoute={props.currentRoute}
         onStateChange={(state) => {
-            console.debug(state);
+            const path = getPathFromState(state, linkingConfig.config);
+            if (path.includes(ROUTES.REPORT)) {
+                const reportID = _.last(path.slice(1).split('/'));
+                Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, reportID);
+            }
+
+            Onyx.merge(ONYXKEYS.CURRENT_ROUTE, path);
         }}
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}

@@ -180,7 +180,7 @@ class Expensify extends Component {
                         {
                             path: '/r',
                             Component: MainView,
-                            additionalPaths: '/',
+                            additionalPaths: '',
                         },
                     ]}
                 />

@@ -273,7 +273,7 @@ class ChatSwitcherView extends React.Component {
      * @param {String} option.reportID
      */
     selectReport(option) {
-        Navigator.navigate(ROUTES.REPORT, {reportID: option.reportID});
+        Navigator.navigate(ROUTES.getReportRoute(option.reportID));
         this.props.onLinkClick();
         this.reset();
     }
