@@ -457,6 +457,10 @@ const styles = {
         overflow: 'hidden',
     },
 
+    sidebarLinkHover: {
+        backgroundColor: themeColors.sidebarHover,
+    },
+
     sidebarLinkActive: {
         backgroundColor: themeColors.border,
         textDecorationLine: 'none',
@@ -772,6 +776,10 @@ const styles = {
     modalViewContainer: {
         alignItems: 'center',
         flex: 1,
+    },
+
+    modalLinkHover: {
+        backgroundColor: themeColors.componentBGHover,
     },
 
     borderBottom: {

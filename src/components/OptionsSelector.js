@@ -184,6 +184,7 @@ class OptionsSelector extends Component {
                 </View>
                 <OptionsList
                     ref={el => this.list = el}
+                    optionHoveredStyle={[styles.modalLinkHover]}
                     onSelectRow={this.props.onSelectRow}
                     sections={this.props.sections}
                     focusedIndex={this.state.focusedIndex}
