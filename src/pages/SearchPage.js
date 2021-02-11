@@ -85,6 +85,9 @@ class SearchPage extends Component {
      * @param {Object} option
      */
     selectReport(option) {
+        if (!option) {
+            return;
+        }
         this.setState({
             searchValue: '',
         }, () => {
