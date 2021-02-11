@@ -58,7 +58,12 @@ const ReportActionContextMenuItem = (props) => {
                                 src={props.icon}
                                 fill={getIconFillColor(getButtonState(hovered, pressed))}
                             />
-                            <Text style={getTextStyle(getButtonState(hovered, pressed))}>{props.text}</Text>
+                            <Text
+                                style={getTextStyle(getButtonState(hovered, pressed))}
+                                selectable={false}
+                            >
+                                {props.text}
+                            </Text>
                         </>
                     )}
                 </Pressable>
