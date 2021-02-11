@@ -64,7 +64,7 @@ class SidebarPage extends React.Component {
         PersonalDetails.fetch();
         PersonalDetails.fetchTimezone();
         getBetas();
-        fetchAllReports(true, false, true);
+        fetchAllReports(false, true);
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
 

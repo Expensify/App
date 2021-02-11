@@ -28,9 +28,13 @@ function goBack() {
     navigationRef.current?.goBack();
 }
 
+// This needs to be improved...
 function dismissModal() {
+    // This should take us to the first view of the modal's stack navigator
+    navigationRef.current?.dispatch(StackActions.popToTop());
+
+    // From there we can try to go back or navigate back to the root
     if (navigationRef.current?.canGoBack()) {
-        navigationRef.current?.dispatch(StackActions.popToTop());
         navigationRef.current?.goBack();
     } else {
         navigate(ROUTES.HOME);

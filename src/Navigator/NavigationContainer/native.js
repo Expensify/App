@@ -1,6 +1,5 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
-import {View} from 'react-native';
 import {createStackNavigator} from '@react-navigation/stack';
 import {NavigationContainer, getStateFromPath} from '@react-navigation/native';
 import {navigationRef} from '../index';
@@ -20,14 +19,11 @@ class ReactNavigationContainer extends Component {
         // if (!this.props.isSmallScreenWidth) {
         return (
             <NavigationContainer
-
-                // Leaving this commented out for now as going back is sketchy / not working super great on web
-                // and setting an initialState can get us trapped.
-                // initialState={
-                //     this.props.initialRoute
-                //         ? getStateFromPath(this.props.initialRoute, linkingConfig.config)
-                //         : null
-                // }
+                initialState={
+                    this.props.initialRoute
+                        ? getStateFromPath(this.props.initialRoute, linkingConfig.config)
+                        : null
+                }
                 onStateChange={(state) => {
                     this.props.onStateChange(state);
                 }}
@@ -43,11 +39,9 @@ class ReactNavigationContainer extends Component {
                     {this.props.authenticated
                         ? (
                             <>
-                                {/* The sidebar is essentialy built into this navigator, but we must provide a route
-                                herewith an empty view so we can navigate correctly */}
                                 <WideScreen.Screen
                                     name={this.props.sidebarRoute.path}
-                                    component={View}
+                                    component={this.props.sidebarRoute.Component}
                                     options={{
                                         headerShown: false,
                                         title: 'Expensify.cash',
