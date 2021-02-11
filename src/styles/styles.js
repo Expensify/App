@@ -804,6 +804,7 @@ const styles = {
         color: themeColors.textReversed,
         fontSize: variables.fontSizeSmall,
         lineHeight: 24,
+        margin: -3,
         textAlign: 'center',
     },
 
