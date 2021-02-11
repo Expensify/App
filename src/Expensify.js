@@ -14,7 +14,6 @@ import CONST from './CONST';
 import styles from './styles/styles';
 import Log from './libs/Log';
 import Navigator from './Navigator';
-import ROUTES from './ROUTES';
 import PushNotification from './libs/Notification/PushNotification';
 
 import MainView from './pages/home/MainView';

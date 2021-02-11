@@ -463,12 +463,20 @@ function fetchActions(reportID) {
 /**
  * Get all of our reports
  *
+ * @param {Boolean} shouldSetActiveReportID this is set to false when the network reconnect code runs
  * @param {Boolean} shouldFetchActions whether or not the actions of the reports should also be fetched
  * @param {Boolean} shouldRecordHomePageTiming whether or not performance timing should be measured
  */
-function fetchAll(shouldFetchActions = false, shouldRecordHomePageTiming = false) {
+function fetchAll(shouldSetActiveReportID = true, shouldFetchActions = false, shouldRecordHomePageTiming = false) {
     fetchChatReports()
         .then((reportIDs) => {
+            if (shouldSetActiveReportID && !currentRoute.includes(ROUTES.REPORT)) {
+                // Set the active report to the first report ID from our report collection if there is no last viewed
+                if (!lastViewedReportID) {
+                    Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, _.first(reportIDs));
+                }
+            }
+
             if (shouldFetchActions) {
                 _.each(reportIDs, (reportID) => {
                     console.debug(`[RECONNECT] Fetching report actions for report ${reportID}`);
@@ -715,7 +723,7 @@ Onyx.connect({
 
 // When the app reconnects from being offline, fetch all of the reports and their actions
 NetworkConnection.onReconnect(() => {
-    fetchAll(true);
+    fetchAll(false, true);
 });
 
 export {

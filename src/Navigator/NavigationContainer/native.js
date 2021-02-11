@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
+import {Linking, Platform} from 'react-native';
 import {createStackNavigator} from '@react-navigation/stack';
 import {NavigationContainer, getStateFromPath} from '@react-navigation/native';
 import {navigationRef} from '../index';
@@ -13,14 +14,36 @@ const WideScreen = createWideScreenNavigator();
 const ModalStack = createStackNavigator();
 
 class ReactNavigationContainer extends Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            loading: true,
+            initialUrl: '',
+        };
+    }
+
+    componentDidMount() {
+        Linking.getInitialURL()
+            .then((initialUrl) => {
+                this.setState({initialUrl, loading: false});
+            });
+    }
+
     render() {
+        if (this.state.loading) {
+            return null;
+        }
+
         // If we are on a native device, but past the responsive breakpoint then fallback to React Router to provide the
         // best possible UX for that screen width.
         // if (!this.props.isSmallScreenWidth) {
         return (
             <NavigationContainer
                 initialState={
-                    this.props.initialRoute
+
+                    // When we are on web or coming from a deep link we will not restore the state
+                    (Platform.OS !== 'web' && !this.state.initialUrl && this.props.initialRoute)
                         ? getStateFromPath(this.props.initialRoute, linkingConfig.config)
                         : null
                 }
