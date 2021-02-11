@@ -12,6 +12,8 @@ declare -r NC='\033[0m'
 printf '\nRebuilding GitHub Actions...\n'
 npm run gh-actions-build
 
+cat .github/actions/bumpVersion/index.js
+
 # Check for a diff
 printf '\nChecking for a diff...\n'
 if [[ $(git diff --color-words --exit-code) -eq 0 ]]; then
