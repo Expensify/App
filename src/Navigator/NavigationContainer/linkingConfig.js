@@ -2,8 +2,19 @@ export default {
     prefixes: ['expensifycash://', 'https://expensify.cash/'],
     config: {
         screens: {
-            Home: '',
+            Home: {
+                path: '',
+                initialRouteName: 'Sidebar',
+                screens: {
+                    Sidebar: '',
+                    Report: 'r/:reportID',
+                },
+            },
+
+            // Public Routes
             SignIn: 'signin',
+
+            // Modal Screens
             Settings: {
                 path: 'settings',
                 initialRouteName: 'Root',
@@ -20,7 +31,6 @@ export default {
                     },
                 },
             },
-            Report: 'r/:reportID',
         },
     },
 };

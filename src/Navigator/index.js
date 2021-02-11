@@ -21,7 +21,7 @@ function navigate(route) {
 function goBack() {
     if (!navigationRef.current?.canGoBack()) {
         console.debug('Unable to go back');
-        navigate(ROUTES.HOME);
+        navigationRef.current?.navigate('Home');
         return;
     }
 
@@ -34,11 +34,7 @@ function dismissModal() {
     navigationRef.current?.dispatch(StackActions.popToTop());
 
     // From there we can try to go back or navigate back to the root
-    if (navigationRef.current?.canGoBack()) {
-        navigationRef.current?.goBack();
-    } else {
-        navigate(ROUTES.HOME);
-    }
+    goBack();
 }
 
 window._navigate = navigate;

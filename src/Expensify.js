@@ -46,7 +46,7 @@ const defaultProps = {
 };
 
 const Test = (props) => (
-    <View>
+    <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
         <TouchableOpacity
             onPress={() => {
                 Navigator.dismissModal();
@@ -72,7 +72,7 @@ const Test = (props) => (
 );
 
 const TestTwo = (props) => (
-    <View>
+    <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
         <TouchableOpacity
             onPress={() => {
                 Navigator.dismissModal();
@@ -154,7 +154,7 @@ class Expensify extends Component {
                         },
                     }}
                     sidebarRoute={{
-                        name: 'Home',
+                        name: 'Sidebar',
                         Component: SidebarPage,
                     }}
                     modalRoutes={[
