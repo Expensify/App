@@ -30,6 +30,9 @@ const RootNavigator = props => (
             if (path.includes(ROUTES.REPORT)) {
                 const reportID = _.last(path.slice(1).split('/'));
                 Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, reportID);
+
+                // The report route is the only "main" route we have at the moment.
+                Onyx.merge(ONYXKEYS.CURRENT_MAIN_ROUTE, path);
             }
 
             Onyx.merge(ONYXKEYS.CURRENT_ROUTE, path);

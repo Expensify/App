@@ -5,7 +5,6 @@ import {withOnyx} from 'react-native-onyx';
 import {createNavigatorFactory, useNavigationBuilder} from '@react-navigation/core';
 import {StackRouter} from '@react-navigation/routers';
 import withWindowDimensions from '../../components/withWindowDimensions';
-import SidebarPage from '../../pages/home/SidebarPage';
 import ROUTES from '../../ROUTES';
 import variables from '../../styles/variables';
 import Modal from '../../components/Modal';
@@ -43,13 +42,31 @@ class WideScreenView extends React.Component {
         }
     }
 
-    getDescriptorForRoute(path) {
-        const currentDescriptor = _.find(this.props.descriptors, (value, key) => key.includes(path));
+    getDescriptorByName(name) {
+        const currentDescriptor = _.find(this.props.descriptors, (value, key) => key.includes(name));
         return currentDescriptor || {
             render() {
                 return <View />;
             },
         };
+    }
+
+    getTopViewDescriptor() {
+        const currentDescriptor = _.first(_.values(this.props.descriptors));
+        return currentDescriptor;
+    }
+
+    getMainRoute() {
+        const routeToRender = _.find(this.props.mainRoutes, mainRouteConfig => (
+            this.props.currentMainRoute && this.props.currentMainRoute.includes(mainRouteConfig.path)
+        ));
+
+        if (!routeToRender) {
+            return <View />;
+        }
+
+        const MainComponent = routeToRender.Component;
+        return <MainComponent />;
     }
 
     /**
@@ -73,109 +90,115 @@ class WideScreenView extends React.Component {
     }
 
     render() {
+        const SidebarComponent = this.props.sidebarRoute.Component;
         return (
             <View
                 style={{
                     height: '100%',
                     width: this.props.windowDimensions.width,
-                    flexDirection: 'row',
+                    flexDirection: this.props.authenticated ? 'row' : 'column',
                 }}
             >
-                {/* This is the sidebar view */}
                 {this.props.authenticated && (
-                    <Animated.View
-                        style={[
-                            this.props.isSmallScreenWidth
+                    <>
+                        {/* This is the sidebar view */}
+                        <Animated.View
+                            style={[
+                                this.props.isSmallScreenWidth
+                                    ? {
+                                        position: 'absolute',
+                                        height: '100%',
+                                        width: this.props.windowDimensions.width,
+                                        transform: [
+                                            {
+                                                translateX: this.state.sidebarAnimation.interpolate({
+                                                    inputRange: [0, 1],
+                                                    outputRange: [
+                                                        0,
+                                                        -this.props.windowDimensions.width,
+                                                    ],
+                                                }),
+                                            },
+                                            {
+                                                scale: this.state.sidebarAnimation.interpolate({
+                                                    inputRange: [0, 1],
+                                                    outputRange: [
+                                                        1, 0.9,
+                                                    ],
+                                                }),
+                                            },
+                                        ],
+                                        opacity: this.state.sidebarAnimation.interpolate({
+                                            inputRange: [0, 1],
+                                            outputRange: [1, 0],
+                                        }),
+                                    }
+                                    : {
+                                        width: variables.sideBarWidth,
+                                        height: '100%',
+                                    },
+                            ]}
+                        >
+                            {/* We are not using a descriptor here or for the main route since it would only show
+                            when we navigate to the site root and we want it to persist at all times. */}
+                            <SidebarComponent />
+                        </Animated.View>
+
+                        {/* This is the main view. A main view must always be shown so similar to the Sidebar we do not
+                         use the descriptors to render these on wider screens. Instead we'll look at the
+                         currentMainRoute key. */}
+                        <Animated.View
+                            style={this.props.isSmallScreenWidth
                                 ? {
                                     position: 'absolute',
                                     height: '100%',
                                     width: this.props.windowDimensions.width,
                                     transform: [
                                         {
-                                            translateX: this.state.sidebarAnimation.interpolate({
+                                            translateX: this.state.mainAnimation.interpolate({
                                                 inputRange: [0, 1],
                                                 outputRange: [
                                                     0,
-                                                    -this.props.windowDimensions.width,
+                                                    this.props.windowDimensions.width,
                                                 ],
                                             }),
                                         },
                                         {
                                             scale: this.state.sidebarAnimation.interpolate({
                                                 inputRange: [0, 1],
-                                                outputRange: [
-                                                    1, 0.9,
-                                                ],
+                                                outputRange: [0.9, 1],
                                             }),
                                         },
                                     ],
-                                    opacity: this.state.sidebarAnimation.interpolate({
-                                        inputRange: [0, 1],
-                                        outputRange: [1, 0],
-                                    }),
+                                    opacity: this.state.sidebarAnimation,
                                 }
                                 : {
-                                    width: variables.sideBarWidth,
-                                    height: '100%',
-                                },
-                        ]}
-                    >
-                        <SidebarPage />
-                    </Animated.View>
+                                    flex: 1,
+                                }}
+                        >
+                            {this.getMainRoute()}
+                        </Animated.View>
+
+                        {/* These are all modal views. Probably this would get refactored to say what kind of
+                        modal we want this to be and other settings externally. For now, we are just passing
+                        two different versions one which is screen only and one which is Modal wrapped in
+                        a screen */}
+                        {_.map(this.props.modalRoutes || [], modalRouteConfig => (
+                            <Modal
+                                key={modalRouteConfig.name}
+                                isVisible={this.props.currentRoute && this.props.currentRoute.includes(modalRouteConfig.path)}
+                                backgroundColor={themeColors.componentBG}
+                                type={modalRouteConfig.modalType}
+                                onClose={() => Navigator.dismissModal()}
+                            >
+                                {this.getDescriptorByName(modalRouteConfig.name).render()}
+                            </Modal>
+                        ))}
+                    </>
                 )}
 
-                {/* This is the main view */}
-                <Animated.View
-                    style={this.props.isSmallScreenWidth
-                        ? {
-                            position: 'absolute',
-                            height: '100%',
-                            width: this.props.windowDimensions.width,
-                            transform: [
-                                {
-                                    translateX: this.state.mainAnimation.interpolate({
-                                        inputRange: [0, 1],
-                                        outputRange: [
-                                            0,
-                                            this.props.windowDimensions.width,
-                                        ],
-                                    }),
-                                },
-                                {
-                                    scale: this.state.sidebarAnimation.interpolate({
-                                        inputRange: [0, 1],
-                                        outputRange: [0.9, 1],
-                                    }),
-                                },
-                            ],
-                            opacity: this.state.sidebarAnimation,
-                        }
-                        : {
-                            flex: 1,
-                        }}
-                >
-                    {_.map(this.props.mainRoutes, mainRoute => (
-                        <React.Fragment key={mainRoute.path}>
-                            {this.getDescriptorForRoute(mainRoute.path).render()}
-                        </React.Fragment>
-                    ))}
-                </Animated.View>
-
-                {/* These are all modal views. Probably this would get refactored to say what kind of
-                modal we want this to be and other settings externally. For now, we are just passing
-                two different versions one which is screen only and one which is Modal wrapped in
-                a screen */}
-                {_.map(this.props.modalRoutes || [], modalRouteConfig => (
-                    <Modal
-                        key={modalRouteConfig.path}
-                        isVisible={this.props.currentRoute.includes(`/${modalRouteConfig.path.toLowerCase()}`)}
-                        backgroundColor={themeColors.componentBG}
-                        type={modalRouteConfig.modalType}
-                        onClose={() => Navigator.dismissModal()}
-                    >
-                        {this.getDescriptorForRoute(modalRouteConfig.path).render()}
-                    </Modal>
-                ))}
+                {/* If we are not authenticated just render the main public route */}
+                {!this.props.authenticated && this.getTopViewDescriptor().render()}
             </View>
         );
     }
@@ -184,6 +207,7 @@ class WideScreenView extends React.Component {
 function WideScreenNavigator({
     modalRoutes,
     mainRoutes,
+    sidebarRoute,
     authenticated,
     initialRouteName,
     children,
@@ -201,6 +225,7 @@ function WideScreenNavigator({
             descriptors={descriptors}
             modalRoutes={modalRoutes}
             mainRoutes={mainRoutes}
+            sidebarRoute={sidebarRoute}
             authenticated={authenticated}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
@@ -212,6 +237,9 @@ export default createNavigatorFactory(
     withOnyx({
         currentRoute: {
             key: ONYXKEYS.CURRENT_ROUTE,
+        },
+        currentMainRoute: {
+            key: ONYXKEYS.CURRENT_MAIN_ROUTE,
         },
     })(withWindowDimensions(WideScreenNavigator)),
 );

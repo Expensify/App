@@ -56,6 +56,7 @@ class ReactNavigationContainer extends Component {
                 <WideScreen.Navigator
                     modalRoutes={this.props.modalRoutes}
                     mainRoutes={this.props.mainRoutes}
+                    sidebarRoute={this.props.sidebarRoute}
                     authenticated={this.props.authenticated}
                     mode="modal"
                 >
@@ -63,7 +64,7 @@ class ReactNavigationContainer extends Component {
                         ? (
                             <>
                                 <WideScreen.Screen
-                                    name={this.props.sidebarRoute.path}
+                                    name={this.props.sidebarRoute.name}
                                     component={this.props.sidebarRoute.Component}
                                     options={{
                                         headerShown: false,
@@ -74,9 +75,9 @@ class ReactNavigationContainer extends Component {
                                 {/* Main routes */}
                                 {_.map(this.props.mainRoutes, route => (
                                     <WideScreen.Screen
-                                        name={route.path}
+                                        name={route.name}
                                         component={route.Component}
-                                        key={route.path}
+                                        key={route.name}
                                         options={{
                                             headerShown: false,
                                             title: route.title || 'Expensify.cash',
@@ -88,8 +89,8 @@ class ReactNavigationContainer extends Component {
                                 directly by react-navigation and instead are intercepted by the custom navigator */}
                                 {_.map(this.props.modalRoutes, route => (
                                     <WideScreen.Screen
-                                        key={route.path}
-                                        name={route.path}
+                                        key={route.name}
+                                        name={route.name}
                                         options={{
                                             headerShown: false,
                                             title: route.title || 'Expensify.cash',
@@ -99,8 +100,8 @@ class ReactNavigationContainer extends Component {
                                             <ModalStack.Navigator>
                                                 {_.map(route.subRoutes, subRoute => (
                                                     <ModalStack.Screen
-                                                        key={subRoute.path}
-                                                        name={subRoute.path}
+                                                        key={subRoute.name}
+                                                        name={subRoute.name}
                                                         component={subRoute.Component}
                                                         options={{
                                                             headerShown: false,
@@ -116,7 +117,7 @@ class ReactNavigationContainer extends Component {
                         )
                         : (
                             <WideScreen.Screen
-                                name={this.props.publicRoute.path}
+                                name={this.props.publicRoute.name}
                                 options={this.props.publicRoute.options}
                                 component={this.props.publicRoute.Component}
                             />
@@ -148,18 +149,18 @@ class ReactNavigationContainer extends Component {
                                     {() => (
                                         <MainStack.Navigator>
                                             <MainStack.Screen
-                                                name={this.props.sidebarRoute.path}
+                                                name={this.props.sidebarRoute.name}
                                                 component={this.props.sidebarRoute.Component}
-                                                key={this.props.sidebarRoute.path}
+                                                key={this.props.sidebarRoute.name}
                                                 options={{
                                                     headerShown: false,
                                                 }}
                                             />
                                             {_.map(this.props.mainRoutes, route => (
                                                 <MainStack.Screen
-                                                    name={route.path}
+                                                    name={route.name}
                                                     component={route.Component}
-                                                    key={route.path}
+                                                    key={route.name}
                                                     options={{
                                                         headerShown: false,
                                                     }}
@@ -172,8 +173,8 @@ class ReactNavigationContainer extends Component {
                                     const ModalStack = createStackNavigator();
                                     return (
                                         <RootStack.Screen
-                                            key={route.path}
-                                            name={route.path}
+                                            key={route.name}
+                                            name={route.name}
                                             options={{
                                                 headerShown: false,
                                             }}
@@ -182,7 +183,7 @@ class ReactNavigationContainer extends Component {
                                                 <ModalStack.Navigator>
                                                     {_.map(route.subRoutes, subRoute => (
                                                         <ModalStack.Screen
-                                                            name={subRoute.path}
+                                                            name={subRoute.name}
                                                             component={subRoute.Component}
                                                             options={{
                                                                 // headerShown: false,
@@ -200,7 +201,7 @@ class ReactNavigationContainer extends Component {
 
                             // This is the public route a.k.a. what user's without an authToken will see.
                             <RootStack.Screen
-                                name={this.props.publicRoute.path}
+                                name={this.props.publicRoute.name}
                                 options={this.props.publicRoute.options}
                                 component={this.props.publicRoute.Component}
                             />

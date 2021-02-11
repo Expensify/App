@@ -9,8 +9,12 @@ export default {
     // which tab is the leader, and which ones are the followers
     ACTIVE_CLIENTS: 'activeClients2',
 
-    // What the active route is for our navigator
+    // What the active route is for our navigator. Global route that determines what views to display.
     CURRENT_ROUTE: 'currentRoute',
+
+    // Records what the active main route is. This is used to maintain the main view context in wide screen views
+    // while navigating to modals or back to the root.
+    CURRENT_MAIN_ROUTE: 'currentMainRoute',
 
     // Currently viewed reportID
     CURRENTLY_VIEWED_REPORTID: 'currentlyViewedReportID',

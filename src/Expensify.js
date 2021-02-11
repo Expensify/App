@@ -15,8 +15,8 @@ import styles from './styles/styles';
 import Log from './libs/Log';
 import Navigator from './Navigator';
 import PushNotification from './libs/Notification/PushNotification';
-
 import MainView from './pages/home/MainView';
+import ROUTES from './ROUTES';
 
 // Initialize the store when the app loads for the first time
 Onyx.init({
@@ -27,6 +27,7 @@ Onyx.init({
         // Clear any loading and error messages so they do not appear on app startup
         [ONYXKEYS.SESSION]: {loading: false},
         [ONYXKEYS.ACCOUNT]: {loading: false, error: ''},
+        [ONYXKEYS.CURRENT_MAIN_ROUTE]: ROUTES.REPORT,
     },
     registerStorageEventListener: (onStorageEvent) => {
         listenToStorageEvents(onStorageEvent);
@@ -145,34 +146,36 @@ class Expensify extends Component {
                     authenticated={this.state.authToken}
                     publicRoute={{
                         Component: SignInPage,
-                        path: 'SignIn',
+                        name: 'SignIn',
+                        path: '/signin',
                         options: {
                             headerShown: false,
                             animationTypeForReplace: 'pop',
                         },
                     }}
                     sidebarRoute={{
-                        path: 'Home',
+                        name: 'Home',
                         Component: SidebarPage,
                     }}
                     modalRoutes={[
                         {
-                            path: 'Settings',
+                            name: 'Settings',
                             title: 'Settings',
+                            path: '/settings',
                             modalType: CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
                             subRoutes: [
                                 {
-                                    path: 'Root',
+                                    name: 'Root',
                                     title: 'Settings',
                                     Component: SettingsPage,
                                 },
                                 {
-                                    path: 'Test',
+                                    name: 'Test',
                                     title: 'Settings | Test',
                                     Component: Test,
                                 },
                                 {
-                                    path: 'Test2',
+                                    name: 'Test2',
                                     title: 'Settings | Test 2',
                                     Component: TestTwo,
                                 },
@@ -181,9 +184,9 @@ class Expensify extends Component {
                     ]}
                     mainRoutes={[
                         {
-                            path: 'Report',
+                            name: 'Report',
                             Component: MainView,
-                            additionalPaths: '',
+                            path: '/r',
                         },
                     ]}
                 />
