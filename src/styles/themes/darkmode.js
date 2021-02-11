@@ -18,7 +18,7 @@ export default {
     textBackground: colors.gray4,
     textReversed: colors.charcoal,
     textMutedReversed: colors.gray3,
-    buttonDefaultBG: colors.gray4,
+    buttonDefaultBG: colors.charcoal,
     buttonSuccessBG: colors.green,
     buttonSuccessText: colors.white,
     buttonSuccessHoveredBG: colors.greenHover,
