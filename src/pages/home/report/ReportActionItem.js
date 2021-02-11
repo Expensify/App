@@ -1,4 +1,5 @@
-import React from 'react';
+import _ from 'underscore';
+import React, {memo} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ReportActionItemSingle from './ReportActionItemSingle';
@@ -44,4 +45,4 @@ const ReportActionItem = props => (
 
 ReportActionItem.propTypes = propTypes;
 
-export default ReportActionItem;
+export default memo(ReportActionItem, ((prevProps, nextProps) => _.isEqual(prevProps, nextProps)));
