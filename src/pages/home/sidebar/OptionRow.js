@@ -95,14 +95,14 @@ const OptionRow = ({
                             ]}
                         >
                             {
-                        !_.isEmpty(option.icons)
-                        && (
-                            <MultipleAvatars
-                                avatarImageURLs={option.icons}
-                                optionIsFocused={optionIsFocused}
-                            />
-                        )
-                    }
+                                !_.isEmpty(option.icons)
+                                && (
+                                    <MultipleAvatars
+                                        avatarImageURLs={option.icons}
+                                        optionIsFocused={optionIsFocused}
+                                    />
+                                )
+                            }
                             <View style={[styles.flex1]}>
                                 <Text style={[styles.optionDisplayName, textUnreadStyle]} numberOfLines={1}>
                                     {option.text}
@@ -119,7 +119,7 @@ const OptionRow = ({
                             {showSelectedState && (
                                 <View style={[styles.selectCircle]}>
                                     {isSelected && (
-                                    <Icon src={Checkmark} fill={themeColors.iconSuccessFill} />
+                                        <Icon src={Checkmark} fill={themeColors.iconSuccessFill} />
                                     )}
                                 </View>
                             )}
@@ -128,14 +128,14 @@ const OptionRow = ({
                     {!hideAdditionalOptionStates && (
                         <View style={styles.flexRow}>
                             {option.hasDraftComment && (
-                            <View style={styles.ml2}>
-                                <Icon src={Pencil} />
-                            </View>
+                                <View style={styles.ml2}>
+                                    <Icon src={Pencil} />
+                                </View>
                             )}
                             {option.isPinned && (
-                            <View style={styles.ml2}>
-                                <Icon src={PinCircle} />
-                            </View>
+                                <View style={styles.ml2}>
+                                    <Icon src={PinCircle} />
+                                </View>
                             )}
                         </View>
                     )}
