@@ -26,6 +26,7 @@ const modalPropTypes = {
         CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
     ]),
 
+    // Styles to override the internal appearance / default styles of the modal on a case-by-case basis.
     styleOverride: PropTypes.shape({
         // eslint-disable-next-line react/forbid-prop-types
         modalStyle: PropTypes.object,
