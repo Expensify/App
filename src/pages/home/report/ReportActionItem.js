@@ -64,8 +64,8 @@ class ReportActionItem extends Component {
      * @param {Object} nativeEvent
      */
     capturePressLocation(nativeEvent) {
-        this.popoverAnchorX = nativeEvent.screenX;
-        this.popoverAnchorY = nativeEvent.screenY;
+        this.popoverAnchorX = nativeEvent.pageX;
+        this.popoverAnchorY = nativeEvent.pageY;
     }
 
     /**

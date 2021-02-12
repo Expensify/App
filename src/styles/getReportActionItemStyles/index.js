@@ -10,28 +10,24 @@ import getContainerStyle from './getContainerStyle';
  * https://github.com/oblador/react-native-animatable
  *
  * @param {Number} popoverWidth
- * @param {Number} popoverHeight
  * @returns {Object}
  */
-function generateAnimationBounceInUpRight(popoverWidth, popoverHeight) {
+function generateAnimationBounceInUpRight(popoverWidth) {
     // By default, the animated component we display would be centered on the anchor points provided.
     // We need to shift the animation by 1/2 the popover's width and 1/2 the popover's height.
     // So we calculate those values here, and use them in the display/hide animations.
     const xOffset = Math.floor(popoverWidth / 2);
-    const yOffset = -Math.floor(popoverHeight / 2);
 
     return {
         0: {
             opacity: 0,
             scale: 0.3,
             translateX: 0,
-            translateY: 0,
         },
         0.01: {
             opacity: 0,
             scale: 0.3,
             translateX: xOffset,
-            translateY: yOffset,
         },
         0.2: {
             scale: 1.1,
@@ -50,7 +46,6 @@ function generateAnimationBounceInUpRight(popoverWidth, popoverHeight) {
             opacity: 1,
             scale: 1,
             translateX: xOffset,
-            translateY: yOffset,
         },
     };
 }
