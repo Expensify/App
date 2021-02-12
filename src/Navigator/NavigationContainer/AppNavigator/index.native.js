@@ -1,15 +1,14 @@
 import React from 'react';
-import ResponsiveNavigator from './ResponsiveNavigator';
-import SmallScreenNavigator from './SmallScreenNavigator';
+import AppNavigator from './AppNavigator';
 
 const Navigator = (props) => {
     if (props.isSmallScreenWidth) {
         // eslint-disable-next-line react/jsx-props-no-spreading
-        return <SmallScreenNavigator {...props} />;
+        return <AppNavigator {...props} />;
     }
 
     // eslint-disable-next-line react/jsx-props-no-spreading
-    return <ResponsiveNavigator {...props} />;
+    return <AppNavigator {...props} responsive />;
 };
 
 export default Navigator;

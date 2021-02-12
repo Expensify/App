@@ -3,7 +3,7 @@ import {Linking, Platform} from 'react-native';
 import {NavigationContainer, getStateFromPath} from '@react-navigation/native';
 import {navigationRef} from '../index';
 import withWindowDimensions from '../../components/withWindowDimensions';
-import linkingConfig from './linkingConfig';
+import linkingConfig from '../linkingConfig';
 import AppNavigator from './AppNavigator';
 
 class ReactNavigationContainer extends Component {

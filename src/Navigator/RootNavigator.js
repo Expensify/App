@@ -16,7 +16,7 @@ import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
 import NavigationContainer from './NavigationContainer';
 import ROUTES from '../ROUTES';
-import linkingConfig from './NavigationContainer/linkingConfig';
+import linkingConfig from './linkingConfig';
 
 const RootNavigator = props => (
     <NavigationContainer

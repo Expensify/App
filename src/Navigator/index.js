@@ -1,6 +1,6 @@
 import React from 'react';
 import {StackActions, getStateFromPath, getActionFromState} from '@react-navigation/native';
-import linkingConfig from './NavigationContainer/linkingConfig';
+import linkingConfig from './linkingConfig';
 
 export const navigationRef = React.createRef();
 export const routerRef = React.createRef();

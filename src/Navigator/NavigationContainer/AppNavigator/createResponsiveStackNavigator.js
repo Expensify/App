@@ -61,11 +61,6 @@ class ResponsiveView extends React.Component {
         };
     }
 
-    getTopViewDescriptor() {
-        const currentDescriptor = _.first(_.values(this.props.descriptors));
-        return currentDescriptor;
-    }
-
     getMainRoute() {
         const routeToRender = _.find(this.props.mainRoutes, mainRouteConfig => (
             this.props.currentMainRoute && this.props.currentMainRoute.includes(mainRouteConfig.path)
@@ -77,6 +72,32 @@ class ResponsiveView extends React.Component {
 
         const MainComponent = routeToRender.Component;
         return <MainComponent />;
+    }
+
+    getMainView() {
+        const reportRoute = _.find(this.props.mainRoutes, route => route.name === 'Report');
+        const ComponentToRender = reportRoute.Component;
+        return {
+            render() {
+                return <ComponentToRender />;
+            },
+        };
+    }
+
+    getCurrentViewDescriptor() {
+        const currentRoute = this.props.state.routes[this.props.state.index];
+        const currentRouteKey = currentRoute.key;
+        const currentDescriptor = this.props.descriptors[currentRouteKey];
+        return currentDescriptor;
+    }
+
+    getSidebarView() {
+        const ComponentToRender = this.props.sidebarRoute.Component;
+        return {
+            render() {
+                return <ComponentToRender />;
+            },
+        };
     }
 
     /**
@@ -100,7 +121,6 @@ class ResponsiveView extends React.Component {
     }
 
     render() {
-        const SidebarComponent = this.props.sidebarRoute.Component;
         return (
             <View
                 style={{
@@ -109,6 +129,11 @@ class ResponsiveView extends React.Component {
                     flexDirection: this.props.authenticated ? 'row' : 'column',
                 }}
             >
+                {/* The only way this custom navigator works is if we render the current view 100% of the time */}
+                <View style={{display: 'none'}}>
+                    {this.getCurrentViewDescriptor().render()}
+                </View>
+
                 {this.props.authenticated && (
                     <>
                         {/* This is the sidebar view */}
@@ -151,7 +176,7 @@ class ResponsiveView extends React.Component {
                         >
                             {/* We are not using a descriptor here or for the main route since it would only show
                             when we navigate to the site root and we want it to persist at all times. */}
-                            <SidebarComponent />
+                            {this.getSidebarView().render()}
                         </Animated.View>
 
                         {/* This is the main view. A main view must always be shown so similar to the Sidebar we do not
@@ -186,7 +211,7 @@ class ResponsiveView extends React.Component {
                                     flex: 1,
                                 }}
                         >
-                            {this.getMainRoute()}
+                            {this.getMainView().render()}
                         </Animated.View>
 
                         {/* These are all modal views. Probably this would get refactored to say what kind of
@@ -209,7 +234,7 @@ class ResponsiveView extends React.Component {
                 )}
 
                 {/* If we are not authenticated just render the main public route */}
-                {!this.props.authenticated && this.getTopViewDescriptor().render()}
+                {!this.props.authenticated && this.getCurrentViewDescriptor().render()}
             </View>
         );
     }
