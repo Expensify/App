@@ -51,6 +51,12 @@ function getBigButtonStyle(buttonState = CONST.BUTTON_STATES.DEFAULT) {
         styles.flexRow,
         styles.alignItemsCenter,
         styles.p3,
+        {
+            // Note: We give each item a static width and height so that we can calculate the dimensions of the
+            // ReportActionContextMenu popover and use those dimensions in its display animation.
+            width: variables.reportActionContextMenuItemWidth,
+            height: variables.reportActionContextMenuItemHeight,
+        },
     ];
 }
 

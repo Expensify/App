@@ -1,46 +1,9 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import {
-    Clipboard, LinkCopy, Mail, Pencil, Trashcan,
-} from '../../../components/Icon/Expensicons';
-import getReportActionContextMenuStyles from '../../../styles/getReportActionContextMenuStyles';
+import CONTEXT_ACTIONS from './CONTEXT_ACTIONS';
+import getReportActionContextMenuStyles from '../../../../styles/getReportActionContextMenuStyles';
 import ReportActionContextMenuItem from './ReportActionContextMenuItem';
-
-/**
- * A list of all the context actions in this menu.
- */
-const CONTEXT_ACTIONS = [
-    // Copy to clipboard
-    {
-        text: 'Copy to Clipboard',
-        icon: Clipboard,
-    },
-
-    // Copy chat link
-    {
-        text: 'Copy Link',
-        icon: LinkCopy,
-    },
-
-    // Mark as Unread
-    {
-        text: 'Mark as Unread',
-        icon: Mail,
-    },
-
-    // Edit Comment
-    {
-        text: 'Edit Comment',
-        icon: Pencil,
-    },
-
-    // Delete Comment
-    {
-        text: 'Delete Comment',
-        icon: Trashcan,
-    },
-];
 
 const propTypes = {
     // The ID of the report this report action is attached to.
