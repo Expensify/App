@@ -17,7 +17,8 @@ import Hoverable from '../../../components/Hoverable';
 
 const propTypes = {
     // Style for hovered state
-    hoverStyle: PropTypes.arrayOf(PropTypes.object),
+    // eslint-disable-next-line react/forbid-prop-types
+    hoverStyle: PropTypes.object,
 
     // Option to allow the user to choose from can be type 'report' or 'user'
     option: optionPropTypes.isRequired,
@@ -42,7 +43,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    hoverStyle: [],
+    hoverStyle: styles.sidebarLinkHover,
     hideAdditionalOptionStates: false,
     showSelectedState: false,
     isSelected: false,
@@ -64,7 +65,6 @@ const OptionRow = ({
         : styles.sidebarLinkText;
     const textUnreadStyle = (option.isUnread || forceTextUnreadStyle)
         ? [textStyle, styles.sidebarLinkTextUnread] : [textStyle];
-    const hoveredStyle = hoverStyle ? [styles.sidebarLinkHover, ...hoverStyle] : [styles.sidebarLinkHover];
     return (
         <Hoverable>
             {hovered => (
@@ -76,7 +76,7 @@ const OptionRow = ({
                         styles.sidebarLink,
                         styles.sidebarLinkInner,
                         optionIsFocused ? styles.sidebarLinkActive : null,
-                        hovered && !optionIsFocused ? hoveredStyle : null,
+                        hovered && !optionIsFocused ? hoverStyle : null,
                     ]}
                 >
                     <TouchableOpacity

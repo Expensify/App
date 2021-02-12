@@ -8,7 +8,8 @@ import optionPropTypes from './optionPropTypes';
 
 const propTypes = {
     // Style for hovered state
-    optionHoveredStyle: PropTypes.arrayOf(PropTypes.object),
+    // eslint-disable-next-line react/forbid-prop-types
+    optionHoveredStyle: PropTypes.object,
 
     // Extra styles for the section list container
     contentContainerStyles: PropTypes.arrayOf(PropTypes.object),
@@ -66,7 +67,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    optionHoveredStyle: [],
+    optionHoveredStyle: undefined,
     contentContainerStyles: [],
     sections: [],
     focusedIndex: 0,
