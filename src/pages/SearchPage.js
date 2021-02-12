@@ -11,6 +11,7 @@ import {redirect} from '../libs/actions/App';
 import ROUTES from '../ROUTES';
 import {hide as hideSidebar} from '../libs/actions/Sidebar';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
+import {fetchOrCreateChatReport} from '../libs/actions/Report';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -90,14 +91,21 @@ class SearchPage extends Component {
         if (!option) {
             return;
         }
-        this.setState({
-            searchValue: '',
-        }, () => {
-            if (this.props.isSmallScreenWidth) {
-                hideSidebar();
-            }
-            redirect(ROUTES.getReportRoute(option.reportID));
-        });
+        if (option.reportID) {
+            this.setState({
+                searchValue: '',
+            }, () => {
+                if (this.props.isSmallScreenWidth) {
+                    hideSidebar();
+                }
+                redirect(ROUTES.getReportRoute(option.reportID));
+            });
+        } else {
+            fetchOrCreateChatReport([
+                this.props.session.email,
+                option.login,
+            ]);
+        }
     }
 
     render() {
