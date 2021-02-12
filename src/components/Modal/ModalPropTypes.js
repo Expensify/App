@@ -25,6 +25,27 @@ const modalPropTypes = {
         CONST.MODAL.MODAL_TYPE.POPOVER,
         CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
     ]),
+
+    styleOverride: PropTypes.shape({
+        // eslint-disable-next-line react/forbid-prop-types
+        modalStyle: PropTypes.object,
+        // eslint-disable-next-line react/forbid-prop-types
+        modalContainerStyle: PropTypes.object,
+        swipeDirection: PropTypes.string,
+        animationIn: PropTypes.oneOfType([
+            PropTypes.string,
+            PropTypes.object,
+        ]),
+        animationOut: PropTypes.oneOfType([
+            PropTypes.string,
+            PropTypes.object,
+        ]),
+        hideBackdrop: PropTypes.bool,
+        shouldAddBottomSafeAreaPadding: PropTypes.bool,
+        shouldAddTopSafeAreaPadding: PropTypes.bool,
+        hideBackground: PropTypes.bool,
+    }),
+
     ...windowDimensionsPropTypes,
 };
 

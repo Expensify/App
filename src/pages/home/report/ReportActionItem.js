@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import ReportActionItemGrouped from './ReportActionItemGrouped';
-import getReportActionItemContainerStyles from '../../../styles/getReportActionItemContainerStyles';
+import getReportActionItemStyles from '../../../styles/getReportActionItemStyles';
 import styles from '../../../styles/styles';
 import ReportActionContextMenu from './ReportActionContextMenu';
 import Hoverable from '../../../components/Hoverable';
@@ -36,6 +36,10 @@ class ReportActionItem extends Component {
             isModalVisible: false,
         };
 
+        // The X and Y position (relative to the page) where the popover will display.
+        this.popoverAnchorX = null;
+        this.popoverAnchorY = null;
+
         this.showModal = this.showModal.bind(this);
         this.hideModal = this.hideModal.bind(this);
     }
@@ -47,14 +51,25 @@ class ReportActionItem extends Component {
     }
 
     /**
+     * Save the location of a native press event.
+     *
+     * @param {Object} nativeEvent
+     */
+    capturePressLocation(nativeEvent) {
+        this.popoverAnchorX = nativeEvent.screenX;
+        this.popoverAnchorY = nativeEvent.screenY;
+    }
+
+    /**
      * Show the ReportActionContextMenu modal popover.
      *
      * @param {Object} [event] - A press event.
      */
     showModal(event) {
+        const nativeEvent = event.nativeEvent || {};
+        this.capturePressLocation(nativeEvent);
         if (!this.props.isSmallScreenWidth) {
             // On large screens, only display the ReportActionContextMenu on RightClick, not LongPress.
-            const nativeEvent = event.nativeEvent || {};
             if (isRightClick(nativeEvent)) {
                 this.setState({isModalVisible: true});
             }
@@ -71,12 +86,13 @@ class ReportActionItem extends Component {
     }
 
     render() {
+        const {getContainerStyle, getModalStyleOverride} = getReportActionItemStyles();
         return (
             <PressableWithSecondaryInteraction onSecondaryInteraction={this.showModal}>
                 <Hoverable>
                     {hovered => (
                         <View>
-                            <View style={getReportActionItemContainerStyles(hovered)}>
+                            <View style={getContainerStyle(hovered)}>
                                 {!this.props.displayAsGroup
                                     ? <ReportActionItemSingle action={this.props.action} />
                                     : <ReportActionItemGrouped action={this.props.action} />}
@@ -93,6 +109,12 @@ class ReportActionItem extends Component {
                                 type={CONST.MODAL.MODAL_TYPE.POPOVER}
                                 isVisible={this.state.isModalVisible}
                                 onClose={this.hideModal}
+                                styleOverride={getModalStyleOverride(
+                                    this.props.windowWidth,
+                                    this.props.windowHeight,
+                                    this.popoverAnchorX,
+                                    this.popoverAnchorY,
+                                )}
                             >
                                 <ReportActionContextMenu
                                     reportID={this.props.reportID}
