@@ -25,6 +25,9 @@ const propTypes = {
     // Should the comment have the appearance of being grouped with the previous comment?
     displayAsGroup: PropTypes.bool.isRequired,
 
+    // Function to scroll the ReportActionsView to this item
+    scrollToThis: PropTypes.func.isRequired,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -73,6 +76,13 @@ class ReportActionItem extends Component {
     showModal(event) {
         const nativeEvent = event.nativeEvent || {};
         this.capturePressLocation(nativeEvent);
+
+        // If the popover will display off-screen, scroll the ReportActionsView FlatList down to this item first.
+        if (this.popoverAnchorY - this.popoverHeight < 0) {
+            this.popoverAnchorY += (this.popoverHeight + 20);
+            this.props.scrollToThis(this.popoverHeight + 20);
+        }
+
         if (!this.props.isSmallScreenWidth) {
             // On large screens, only display the ReportActionContextMenu on RightClick, not LongPress.
             if (isRightClick(nativeEvent)) {
