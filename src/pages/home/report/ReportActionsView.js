@@ -229,11 +229,7 @@ class ReportActionsView extends React.Component {
      * @param {Object} props – All the other Props provided to the CellRendererComponent by default.
      * @returns {React.Component}
      */
-    renderCell({
-        item,
-        style,
-        ...props
-    }) {
+    renderCell({item, style, ...props}) {
         const cellStyle = [
             style,
             {zIndex: item.action.sequenceNumber},
