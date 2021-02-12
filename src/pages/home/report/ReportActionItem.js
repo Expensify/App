@@ -35,33 +35,44 @@ class ReportActionItem extends Component {
         this.state = {
             isModalVisible: false,
         };
+
+        this.showModal = this.showModal.bind(this);
+        this.hideModal = this.hideModal.bind(this);
     }
 
-    shouldComponentUpdate(nextProps) {
+    shouldComponentUpdate(nextProps, nextState) {
         // Use underscore's isEqual to do a deep comparison of props.
         // We can't use PureComponent because its shallow comparison wouldn't detect changes in the `action` prop.
-        return !_.isEqual(this.props, nextProps);
+        return !_.isEqual(this.props, nextProps) || !_.isEqual(this.state, nextState);
     }
 
     /**
-     * Toggles the visibility of the modal popover ReportActionContextMenu.
+     * Show the ReportActionContextMenu modal popover.
      *
-     * @param {Object} [nativeEvent] - A native press event.
+     * @param {Object} [event] - A press event.
      */
-    toggleModal(nativeEvent = {}) {
-        if (!_.isEmpty(nativeEvent) && !this.props.isSmallScreenWidth) {
+    showModal(event) {
+        if (!this.props.isSmallScreenWidth) {
             // On large screens, only display the ReportActionContextMenu on RightClick, not LongPress.
+            const nativeEvent = event.nativeEvent || {};
             if (isRightClick(nativeEvent)) {
-                this.setState(prevState => ({isModalVisible: !prevState.isModalVisible}));
+                this.setState({isModalVisible: true});
             }
         } else {
-            this.setState(prevState => ({isModalVisible: !prevState.isModalVisible}));
+            this.setState({isModalVisible: true});
         }
+    }
+
+    /**
+     * Hide the ReportActionContextMenu modal popover.
+     */
+    hideModal() {
+        this.setState({isModalVisible: false});
     }
 
     render() {
         return (
-            <PressableWithSecondaryInteraction onSecondaryInteraction={e => this.toggleModal(e.nativeEvent)}>
+            <PressableWithSecondaryInteraction onSecondaryInteraction={this.showModal}>
                 <Hoverable>
                     {hovered => (
                         <View>
@@ -81,7 +92,7 @@ class ReportActionItem extends Component {
                             <Modal
                                 type={CONST.MODAL.MODAL_TYPE.POPOVER}
                                 isVisible={this.state.isModalVisible}
-                                onClose={this.toggleModal}
+                                onClose={this.hideModal}
                             >
                                 <ReportActionContextMenu
                                     reportID={this.props.reportID}
