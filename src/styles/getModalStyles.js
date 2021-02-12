@@ -86,8 +86,6 @@ export default (type, windowDimensions) => {
                 ...{
                     alignItems: 'center',
                     justifyContent: 'flex-end',
-                    marginRight: windowWidth - variables.sideBarWidth,
-                    marginBottom: 100,
                 },
             };
             modalContainerStyle = {
@@ -102,7 +100,7 @@ export default (type, windowDimensions) => {
                 boxShadow: '0px 0px 10px 0px rgba(0, 0, 0, 0.025)',
             };
 
-            hideBackdrop = true;
+            hideBackdrop = false;
             swipeDirection = undefined;
             animationIn = 'fadeInLeft';
             animationOut = 'fadeOutLeft';

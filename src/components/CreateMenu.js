@@ -12,6 +12,7 @@ import {ChatBubble, Users} from './Icon/Expensicons';
 import {redirect} from '../libs/actions/App';
 import ROUTES from '../ROUTES';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import variables from '../styles/variables';
 
 const propTypes = {
     // Callback to fire on request to modal close
@@ -85,6 +86,12 @@ class CreateMenu extends PureComponent {
                         ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED
                         : CONST.MODAL.MODAL_TYPE.POPOVER
                 }
+                styleOverride={{
+                    modalStyle: {
+                        marginRight: this.props.windowWidth - variables.sideBarWidth,
+                        marginBottom: 100,
+                    },
+                }}
             >
                 {menuItemData.map(({icon, text, onPress}) => (
                     <Pressable

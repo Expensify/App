@@ -2,6 +2,7 @@ import React, {memo} from 'react';
 import {View} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
+import lodashMerge from 'lodash.merge';
 import CustomStatusBar from '../CustomStatusBar';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import styles, {getSafeAreaPadding} from '../../styles/styles';
@@ -14,6 +15,7 @@ const defaultProps = {
     onSubmit: null,
     type: '',
     onModalHide: () => { },
+    styleOverride: {},
 };
 
 const BaseModal = (props) => {
@@ -25,20 +27,26 @@ const BaseModal = (props) => {
         KeyboardShortcut.unsubscribe('Escape');
         KeyboardShortcut.unsubscribe('Enter');
     };
+
+    let modalStyles = getModalStyles(props.type, {
+        windowWidth: props.windowWidth,
+        windowHeight: props.windowHeight,
+        isSmallScreenWidth: props.isSmallScreenWidth,
+    });
+    modalStyles = lodashMerge(modalStyles, props.styleOverride);
     const {
         modalStyle,
         modalContainerStyle,
         swipeDirection,
         animationIn,
         animationOut,
+        animationInTiming,
+        animationOutTiming,
         shouldAddTopSafeAreaPadding,
         shouldAddBottomSafeAreaPadding,
         hideBackdrop,
-    } = getModalStyles(props.type, {
-        windowWidth: props.windowWidth,
-        windowHeight: props.windowHeight,
-        isSmallScreenWidth: props.isSmallScreenWidth,
-    });
+    } = modalStyles;
+
     return (
         <ReactNativeModal
             onBackdropPress={props.onClose}
@@ -58,6 +66,8 @@ const BaseModal = (props) => {
             deviceHeight={props.windowHeight}
             deviceWidth={props.windowWidth}
             animationIn={animationIn}
+            animationInTiming={animationInTiming}
+            animationOutTiming={animationOutTiming}
             animationOut={animationOut}
             useNativeDriver={props.useNativeDriver}
             statusBarTranslucent

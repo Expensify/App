@@ -1,4 +1,4 @@
-import themeColors from './themes/default';
+import themeColors from '../themes/default';
 
 /**
  * Generate the styles for the ReportActionItem wrapper view.
@@ -6,7 +6,7 @@ import themeColors from './themes/default';
  * @param {Boolean} [isHovered]
  * @returns {Object}
  */
-export default function (isHovered = false) {
+export default function getContainerStyle(isHovered = false) {
     return {
         display: 'flex',
         justifyContent: 'space-between',
