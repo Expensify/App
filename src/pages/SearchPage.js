@@ -91,6 +91,7 @@ class SearchPage extends Component {
         if (!option) {
             return;
         }
+
         if (option.reportID) {
             this.setState({
                 searchValue: '',
@@ -101,6 +102,10 @@ class SearchPage extends Component {
                 redirect(ROUTES.getReportRoute(option.reportID));
             });
         } else {
+            if (this.props.isSmallScreenWidth) {
+                hideSidebar();
+            }
+
             fetchOrCreateChatReport([
                 this.props.session.email,
                 option.login,
