@@ -7,7 +7,7 @@ import ReportActionPropTypes from './ReportActionPropTypes';
 import ReportActionItemGrouped from './ReportActionItemGrouped';
 import getReportActionItemStyles from '../../../styles/getReportActionItemStyles';
 import styles from '../../../styles/styles';
-import ReportActionContextMenu from './ReportActionContextMenu/ReportActionContextMenu';
+import ReportActionContextMenu from './ReportActionContextMenu';
 import Hoverable from '../../../components/Hoverable';
 import Modal from '../../../components/Modal';
 import CONST from '../../../CONST';
@@ -40,8 +40,13 @@ class ReportActionItem extends Component {
         this.popoverAnchorX = null;
         this.popoverAnchorY = null;
 
+        // The width and height of the ReportActionContextMenu popover.
+        this.popoverWidth = null;
+        this.popoverHeight = null;
+
         this.showModal = this.showModal.bind(this);
         this.hideModal = this.hideModal.bind(this);
+        this.measurePopover = this.measurePopover.bind(this);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -85,6 +90,16 @@ class ReportActionItem extends Component {
         this.setState({isModalVisible: false});
     }
 
+    /**
+     * Measure the size of the ReportActionContextMenu popover.
+     *
+     * @param {Object} nativeEvent
+     */
+    measurePopover({nativeEvent}) {
+        this.popoverWidth = nativeEvent.layout.width;
+        this.popoverHeight = nativeEvent.layout.height;
+    }
+
     render() {
         const {getContainerStyle, getModalStyleOverride} = getReportActionItemStyles();
         return (
@@ -114,16 +129,29 @@ class ReportActionItem extends Component {
                                     this.props.windowHeight,
                                     this.popoverAnchorX,
                                     this.popoverAnchorY,
+                                    this.popoverWidth,
+                                    this.popoverHeight,
                                 )}
                             >
-                                <View>
-                                    <ReportActionContextMenu
-                                        reportID={this.props.reportID}
-                                        reportActionID={this.props.action.sequenceNumber}
-                                        isVisible={this.state.isModalVisible}
-                                    />
-                                </View>
+                                <ReportActionContextMenu
+                                    reportID={this.props.reportID}
+                                    reportActionID={this.props.action.sequenceNumber}
+                                    isVisible={this.state.isModalVisible}
+                                />
                             </Modal>
+                            {/*
+                                HACK ALERT: This is an invisible view used to measure the size of the
+                                ReportActionContextMenu popover before it ever needs to be displayed.
+                                We do this because we need to know its dimensions in order to correctly
+                                animate the popover, but we can't measure its dimensions without first animating it.
+                            */}
+                            <View style={{position: 'absolute', opacity: 0}} onLayout={this.measurePopover}>
+                                <ReportActionContextMenu
+                                    reportID={this.props.reportID}
+                                    reportActionID={this.props.action.sequenceNumber}
+                                    isVisible
+                                />
+                            </View>
                         </View>
                     )}
                 </Hoverable>
