@@ -157,6 +157,10 @@ const styles = {
         color: themeColors.textReversed,
     },
 
+    hoveredComponentBG: {
+        backgroundColor: themeColors.componentBGHover,
+    },
+
     touchableButtonImage: {
         alignItems: 'center',
         height: variables.componentSizeNormal,
@@ -776,10 +780,6 @@ const styles = {
     modalViewContainer: {
         alignItems: 'center',
         flex: 1,
-    },
-
-    modalLinkHover: {
-        backgroundColor: themeColors.componentBGHover,
     },
 
     borderBottom: {
