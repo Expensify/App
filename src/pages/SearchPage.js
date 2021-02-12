@@ -53,6 +53,7 @@ class SearchPage extends Component {
 
         const {
             recentReports,
+            personalDetails,
         } = getSearchOptions(
             props.reports,
             props.personalDetails,
@@ -62,6 +63,7 @@ class SearchPage extends Component {
         this.state = {
             searchValue: '',
             recentReports,
+            personalDetails,
         };
     }
 
@@ -73,7 +75,7 @@ class SearchPage extends Component {
     getSections() {
         return [{
             title: 'RECENT',
-            data: this.state.recentReports,
+            data: this.state.recentReports.concat(this.state.personalDetails),
             shouldShow: true,
             indexOffset: 0,
         }];
@@ -111,6 +113,7 @@ class SearchPage extends Component {
                         onChangeText={(searchValue = '') => {
                             const {
                                 recentReports,
+                                personalDetails,
                             } = getSearchOptions(
                                 this.props.reports,
                                 this.props.personalDetails,
@@ -119,6 +122,7 @@ class SearchPage extends Component {
                             this.setState({
                                 searchValue,
                                 recentReports,
+                                personalDetails,
                             });
                         }}
                         hideSectionHeaders
