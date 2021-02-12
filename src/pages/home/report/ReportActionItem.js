@@ -7,7 +7,7 @@ import ReportActionPropTypes from './ReportActionPropTypes';
 import ReportActionItemGrouped from './ReportActionItemGrouped';
 import getReportActionItemStyles from '../../../styles/getReportActionItemStyles';
 import styles from '../../../styles/styles';
-import ReportActionContextMenu from './ReportActionContextMenu';
+import ReportActionContextMenu from './ReportActionContextMenu/ReportActionContextMenu';
 import Hoverable from '../../../components/Hoverable';
 import Modal from '../../../components/Modal';
 import CONST from '../../../CONST';
@@ -36,7 +36,7 @@ class ReportActionItem extends Component {
             isModalVisible: false,
         };
 
-        // The X and Y position (relative to the page) where the popover will display.
+        // The X and Y position (relative to the screen) where the popover will display.
         this.popoverAnchorX = null;
         this.popoverAnchorY = null;
 
@@ -116,11 +116,13 @@ class ReportActionItem extends Component {
                                     this.popoverAnchorY,
                                 )}
                             >
-                                <ReportActionContextMenu
-                                    reportID={this.props.reportID}
-                                    reportActionID={this.props.action.sequenceNumber}
-                                    isVisible={this.state.isModalVisible}
-                                />
+                                <View>
+                                    <ReportActionContextMenu
+                                        reportID={this.props.reportID}
+                                        reportActionID={this.props.action.sequenceNumber}
+                                        isVisible={this.state.isModalVisible}
+                                    />
+                                </View>
                             </Modal>
                         </View>
                     )}

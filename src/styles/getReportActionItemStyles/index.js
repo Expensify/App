@@ -1,11 +1,24 @@
 import getContainerStyle from './getContainerStyle';
+import variables from '../variables';
+import CONTEXT_ACTIONS from '../../pages/home/report/ReportActionContextMenu/CONTEXT_ACTIONS';
+
+// By default, the animated component we display would be centered on the anchor points provided.
+// We need to shift the animation by 1/2 the popover's width and half the popover's height.
+// So we calculate those static values here, and use them in the display/hide animations.
+const CONTEXT_MENU_POPOVER_WIDTH = variables.reportActionContextMenuItemWidth;
+const CONTEXT_MENU_POPOVER_HEIGHT = CONTEXT_ACTIONS.length * variables.reportActionContextMenuItemHeight;
+const translateX = CONTEXT_MENU_POPOVER_WIDTH / 2;
+const translateY = -(CONTEXT_MENU_POPOVER_HEIGHT / 2);
 
 /**
  * This custom animation is an alteration of a standard "bounce" effect, except it's off-centered up and to the right.
  * The result is that the popover appears to grow along a diagonal from bottom-left to top-right,
  * ...with a fun bounce effect :)
+ *
+ * Note: react-native-modal uses react-native-animatable for its animations.
+ * So this object represents a custom animation definition for react-native-animatable.
+ * https://github.com/oblador/react-native-animatable
  */
-// eslint-disable-next-line no-unused-vars
 const CUSTOM_ANIMATION_BOUNCE_IN_UP_RIGHT = {
     0: {
         opacity: 0,
@@ -16,8 +29,8 @@ const CUSTOM_ANIMATION_BOUNCE_IN_UP_RIGHT = {
     0.01: {
         opacity: 0,
         scale: 0.3,
-        translateX: 150,
-        translateY: -250,
+        translateX,
+        translateY,
     },
     0.2: {
         scale: 1.1,
@@ -35,8 +48,8 @@ const CUSTOM_ANIMATION_BOUNCE_IN_UP_RIGHT = {
     1: {
         opacity: 1,
         scale: 1,
-        translateX: 150,
-        translateY: -250,
+        translateX,
+        translateY,
     },
 };
 
@@ -44,21 +57,20 @@ const CUSTOM_ANIMATION_BOUNCE_IN_UP_RIGHT = {
  * This custom animation is an alteration of a standard "zoom" effect, except it's off-centered down and to the left.
  * The result is that the popover appears to shrink along a diagonal from top-right to bottom-left.
  */
-// eslint-disable-next-line no-unused-vars
 const CUSTOM_ANIMATION_ZOOM_OUT_DOWN_LEFT = {
     0: {
         opacity: 1,
         scale: 1,
-        translateX: 150,
-        translateY: -250,
+        translateX,
+        translateY,
     },
     0.5: {
         opacity: 1,
         scale: 0.3,
     },
     0.99: {
-        translateX: 150,
-        translateY: -250,
+        translateX,
+        translateY,
     },
     1: {
         opacity: 0,
@@ -77,12 +89,17 @@ const CUSTOM_ANIMATION_ZOOM_OUT_DOWN_LEFT = {
  * @param {Number} anchorY
  * @returns {Object}
  */
-function getModalStyleOverride(windowWidth, windowHeight, anchorX, anchorY) {
+function getModalStyleOverride(
+    windowWidth,
+    windowHeight,
+    anchorX,
+    anchorY,
+) {
     return {
-        animationIn: 'zoomIn',
+        animationIn: CUSTOM_ANIMATION_BOUNCE_IN_UP_RIGHT,
+        animationOut: CUSTOM_ANIMATION_ZOOM_OUT_DOWN_LEFT,
         animationInTiming: 800,
         animationOutTiming: 400,
-        animationOut: 'zoomOut',
         modalStyle: {
             left: anchorX - (windowWidth / 2),
             marginBottom: windowHeight - anchorY,
