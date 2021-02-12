@@ -18,10 +18,6 @@ const propTypes = {
     // Decides whether we should show the navigationMenu button
     shouldShowNavigationMenuButton: PropTypes.bool.isRequired,
 
-    // Report ID currently being looked at, use to retrieve more information about the report.
-    // eslint-disable-next-line react/no-unused-prop-types
-    reportID: PropTypes.string.isRequired,
-
     /* Onyx Props */
     // The report currently being looked at
     report: PropTypes.shape({
@@ -81,8 +77,13 @@ HeaderView.defaultProps = defaultProps;
 
 export default compose(
     withOnyx({
+        currentlyViewedReportID: {
+            key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
+        },
+    }),
+    withOnyx({
         report: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            key: ({currentlyViewedReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${currentlyViewedReportID}`,
         },
     }),
 )(HeaderView);

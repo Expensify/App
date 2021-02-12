@@ -2,14 +2,15 @@ import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import OptionsSelector from './OptionsSelector';
+import OptionsSelector from '../components/OptionsSelector';
 import {getSearchOptions} from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
-import KeyboardSpacer from './KeyboardSpacer';
+import KeyboardSpacer from '../components/KeyboardSpacer';
 import {redirect} from '../libs/actions/App';
 import ROUTES from '../ROUTES';
-import {hide as hideChatSwitcher} from '../libs/actions/ChatSwitcher';
+import {hide as hideSidebar} from '../libs/actions/Sidebar';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -24,9 +25,6 @@ const personalDetailsPropTypes = PropTypes.shape({
 });
 
 const propTypes = {
-    // Toggles the navigation menu open and closed
-    onLinkClick: PropTypes.func.isRequired,
-
     /* Onyx Props */
 
     // All of the personal details for everyone
@@ -42,9 +40,12 @@ const propTypes = {
     session: PropTypes.shape({
         email: PropTypes.string.isRequired,
     }).isRequired,
+
+    /* Window Dimensions Props */
+    ...windowDimensionsPropTypes,
 };
 
-class SearchView extends Component {
+class SearchPage extends Component {
     constructor(props) {
         super(props);
 
@@ -87,9 +88,10 @@ class SearchView extends Component {
         this.setState({
             searchValue: '',
         }, () => {
+            if (this.props.isSmallScreenWidth) {
+                hideSidebar();
+            }
             redirect(ROUTES.getReportRoute(option.reportID));
-            hideChatSwitcher();
-            this.props.onLinkClick();
         });
     }
 
@@ -126,10 +128,10 @@ class SearchView extends Component {
     }
 }
 
-SearchView.propTypes = propTypes;
-SearchView.displayName = 'SearchView';
+SearchPage.propTypes = propTypes;
+SearchPage.displayName = 'SearchPage';
 
-export default withOnyx({
+export default withWindowDimensions(withOnyx({
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,
     },
@@ -139,4 +141,4 @@ export default withOnyx({
     session: {
         key: ONYXKEYS.SESSION,
     },
-})(SearchView);
+})(SearchPage));
