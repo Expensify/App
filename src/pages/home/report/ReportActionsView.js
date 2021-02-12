@@ -229,7 +229,11 @@ class ReportActionsView extends React.Component {
      * @param {Object} props – All the other Props provided to the CellRendererComponent by default.
      * @returns {React.Component}
      */
-    renderCell({item, style, ...props}) {
+    renderCell({
+        item,
+        style,
+        ...props
+    }) {
         const cellStyle = [
             style,
             {zIndex: item.action.sequenceNumber},
@@ -263,6 +267,7 @@ class ReportActionsView extends React.Component {
                 reportID={this.props.reportID}
                 action={item.action}
                 displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
+                scrollToThis={viewOffset => this.actionListElement.scrollToIndex({index, viewOffset})}
                 onLayout={onLayout}
                 needsLayoutCalculation={needsLayoutCalculation}
             />
