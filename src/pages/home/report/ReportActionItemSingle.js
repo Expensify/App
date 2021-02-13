@@ -1,4 +1,4 @@
-import React, {lazy, Suspense} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -8,8 +8,7 @@ import ReportActionItemFragment from './ReportActionItemFragment';
 import styles from '../../../styles/styles';
 import CONST from '../../../CONST';
 import Avatar from '../../../components/Avatar';
-
-const ReportActionItemDate = lazy(() => import('./ReportActionItemDate'));
+import ReportActionItemDate from './ReportActionItemDate';
 
 const propTypes = {
     // All the data of the action
@@ -36,9 +35,7 @@ const ReportActionItemSingle = ({action}) => {
                             isLoading={action.loading}
                         />
                     ))}
-                    <Suspense fallback={<View />}>
-                        <ReportActionItemDate timestamp={action.timestamp} />
-                    </Suspense>
+                    <ReportActionItemDate timestamp={action.timestamp} />
                 </View>
                 <ReportActionItemMessage action={action} />
             </View>
