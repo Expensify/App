@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {PureComponent} from 'react';
 import {Pressable, Animated, Easing} from 'react-native';
 import PropTypes from 'prop-types';
 import Icon from './Icon';
@@ -7,7 +7,10 @@ import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 
 const AnimatedIcon = Animated.createAnimatedComponent(Icon);
+AnimatedIcon.displayName = 'AnimatedIcon';
+
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+AnimatedPressable.displayName = 'AnimatedPressable';
 
 const propTypes = {
     // Callback to fire on request to toggle the FAB
@@ -17,7 +20,7 @@ const propTypes = {
     isActive: PropTypes.bool.isRequired,
 };
 
-class FAB extends React.Component {
+class FAB extends PureComponent {
     constructor(props) {
         super(props);
         this.animatedValue = new Animated.Value(0);

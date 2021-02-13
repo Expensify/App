@@ -149,8 +149,11 @@ class BaseInvertedFlatList extends Component {
                 // eslint-disable-next-line react/jsx-props-no-multi-spaces
                 getItemLayout={this.props.shouldMeasureItems ? this.getItemLayout : undefined}
                 bounces={false}
-                maxToRenderPerBatch={15}
-                updateCellsBatchingPeriod={40}
+
+                // We keep this property very low so that chat switching remains fast
+                // eslint-disable-next-line react/jsx-props-no-multi-spaces
+                maxToRenderPerBatch={1}
+                windowSize={15}
 
                 // Setting removeClippedSubviews will break text selection on Android
                 // eslint-disable-next-line react/jsx-props-no-multi-spaces
