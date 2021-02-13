@@ -1,4 +1,5 @@
-import React from 'react';
+import _ from 'underscore';
+import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionPropTypes from './ReportActionPropTypes';
@@ -22,4 +23,6 @@ const ReportActionItem = props => (
 
 ReportActionItem.propTypes = propTypes;
 
-export default ReportActionItem;
+export default memo(ReportActionItem, (prevProps, nextProps) => (
+    prevProps.displayAsGroup === nextProps.displayAsGroup && _.isEqual(prevProps.action, nextProps.action)
+));

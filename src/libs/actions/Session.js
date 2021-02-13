@@ -86,7 +86,9 @@ function fetchAccountDetails(login) {
     API.GetAccountStatus({email: login})
         .then((response) => {
             if (response.jsonCode === 200) {
-                Onyx.merge(ONYXKEYS.CREDENTIALS, {login});
+                Onyx.merge(ONYXKEYS.CREDENTIALS, {
+                    login: response.normalizedLogin,
+                });
                 Onyx.merge(ONYXKEYS.ACCOUNT, {
                     accountExists: response.accountExists,
                     canAccessExpensifyCash: response.canAccessExpensifyCash,
