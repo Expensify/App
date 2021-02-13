@@ -7,8 +7,8 @@ import ReportActionItemMessage from './ReportActionItemMessage';
 import ReportActionItemFragment from './ReportActionItemFragment';
 import styles from '../../../styles/styles';
 import CONST from '../../../CONST';
-import Avatar from '../../../components/Avatar';
 import ReportActionItemDate from './ReportActionItemDate';
+import Avatar from '../../../components/Avatar';
 
 const propTypes = {
     // All the data of the action

@@ -5,9 +5,8 @@ import Str from 'expensify-common/lib/str';
 import ReportActionFragmentPropTypes from './ReportActionFragmentPropTypes';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
-import Text from '../../../components/Text';
 import RenderHTML from '../../../components/RenderHTML';
-
+import Text from '../../../components/Text';
 
 const propTypes = {
     // The message fragment needing to be displayed
