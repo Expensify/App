@@ -17,11 +17,15 @@ const propTypes = {
 
     // Does this fragment belong to a reportAction that has not yet loaded?
     loading: PropTypes.bool,
+
+    // Metatags
+    metatags: PropTypes.objectOf(PropTypes.string),
 };
 
 const defaultProps = {
     isAttachment: false,
     loading: false,
+    metatags: [],
 };
 
 class ReportActionItemFragment extends React.PureComponent {
@@ -38,6 +42,19 @@ class ReportActionItemFragment extends React.PureComponent {
                                 color={themeColors.textSupporting}
                                 style={[styles.flex1]}
                             />
+                        </View>
+                    );
+                }
+
+                if (Object.keys(this.props.metatags).length > 0) {
+                    const icon = '';
+                    const img = this.props.metatags['twitter:image'] ? `<img src=${this.props.metatags['twitter:image']}>` : '';
+                    const title = this.props.metatags['twitter:title'] ? `<a><strong>${this.props.metatags['twitter:title']}</strong></a><br>` : '';
+                    const linkPreviewHTML = `<blockquote> ${icon} ${title} ${this.props.metatags.description} <br> ${img} </blockquote>`;
+                    return (
+                        <View>
+                            <RenderHTML html={fragment.html} debug />
+                            <RenderHTML html={linkPreviewHTML} debug />
                         </View>
                     );
                 }
