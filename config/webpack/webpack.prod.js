@@ -1,6 +1,7 @@
 const path = require('path');
 const webpack = require('webpack');
 const {merge} = require('webpack-merge');
+const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
 const dotenv = require('dotenv');
 const common = require('./webpack.common.js');
 
@@ -10,6 +11,8 @@ module.exports = merge(common, {
     mode: 'production',
     devtool: 'source-map',
     plugins: [
+        // This allows us to interactively inspect JS bundle contents
+        ...(process.env.ANALYZE_BUNDLE === 'true' ? [new BundleAnalyzerPlugin()] : []),
         new webpack.DefinePlugin({
             __REACT_WEB_CONFIG__: JSON.stringify(env),
 

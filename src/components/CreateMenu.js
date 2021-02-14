@@ -1,4 +1,4 @@
-import React, {memo} from 'react';
+import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
 import {
     View, Text, Pressable,
@@ -7,9 +7,10 @@ import Modal from './Modal';
 import styles from '../styles/styles';
 import CONST from '../CONST';
 import themeColors from '../styles/themes/default';
-import colors from '../styles/colors';
 import Icon from './Icon';
 import {ChatBubble, Users} from './Icon/Expensicons';
+import {redirect} from '../libs/actions/App';
+import ROUTES from '../ROUTES';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 
 const propTypes = {
@@ -25,53 +26,90 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-const CreateMenu = (props) => {
-    // This format allows to set individual callbacks to each item
-    // while including mutual callbacks first
-    const menuItemData = [
-        {icon: ChatBubble, text: 'New Chat', onPress: () => {}},
-        {icon: Users, text: 'New Group', onPress: () => {}},
-    ].map(item => ({
-        ...item,
-        onPress: () => {
-            props.onItemSelected();
-            item.onPress();
-        },
-    }));
+class CreateMenu extends PureComponent {
+    constructor(props) {
+        super(props);
 
-    return (
-        <Modal
-            onClose={props.onClose}
-            isVisible={props.isVisible}
-            type={
-                props.isSmallScreenWidth
-                    ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED
-                    : CONST.MODAL.MODAL_TYPE.POPOVER
-            }
-        >
-            {menuItemData.map(({icon, text, onPress}) => (
-                <Pressable
-                    key={text}
-                    onPress={onPress}
-                    style={({hovered}) => ([
-                        styles.createMenuItem,
-                        {backgroundColor: hovered ? themeColors.buttonHoveredBG : colors.transparent},
-                    ])}
-                >
-                    <View style={styles.createMenuIcon}>
-                        <Icon src={icon} />
-                    </View>
-                    <View style={styles.justifyContentCenter}>
-                        <Text style={[styles.createMenuText, styles.ml3]}>
-                            {text}
-                        </Text>
-                    </View>
-                </Pressable>
-            ))}
-        </Modal>
-    );
-};
+        this.setOnModalHide = this.setOnModalHide.bind(this);
+        this.resetOnModalHide = this.resetOnModalHide.bind(this);
+        this.onModalHide = () => {};
+    }
+
+    /**
+     * Sets a new function to execute when the modal hides
+     * @param {Function} callback The function to be called on modal hide
+     */
+    setOnModalHide(callback) {
+        this.onModalHide = callback;
+    }
+
+    /**
+     * After the modal hides, reset the onModalHide to an empty function
+     */
+    resetOnModalHide() {
+        this.onModalHide = () => {};
+    }
+
+    render() {
+        // This format allows to set individual callbacks to each item
+        // while including mutual callbacks first
+        const menuItemData = [
+            {
+                icon: ChatBubble,
+                text: 'New Chat',
+                onPress: () => this.setOnModalHide(() => redirect(ROUTES.NEW_CHAT)),
+            },
+            {
+                icon: Users,
+                text: 'New Group',
+                onPress: () => this.setOnModalHide(() => redirect(ROUTES.NEW_GROUP)),
+            },
+        ].map(item => ({
+            ...item,
+            onPress: () => {
+                this.props.onItemSelected();
+                item.onPress();
+            },
+        }));
+
+        return (
+            <Modal
+                onClose={this.props.onClose}
+                isVisible={this.props.isVisible}
+                onModalHide={() => {
+                    this.onModalHide();
+                    this.resetOnModalHide();
+                }}
+                type={
+                    this.props.isSmallScreenWidth
+                        ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED
+                        : CONST.MODAL.MODAL_TYPE.POPOVER
+                }
+            >
+                {menuItemData.map(({icon, text, onPress}) => (
+                    <Pressable
+                        key={text}
+                        onPress={onPress}
+                        style={({hovered}) => ([
+                            styles.createMenuItem,
+                            hovered && {backgroundColor: themeColors.buttonHoveredBG},
+                        ])}
+                    >
+                        <View style={styles.createMenuIcon}>
+                            <Icon src={icon} />
+                        </View>
+                        <View style={styles.justifyContentCenter}>
+                            <Text style={[styles.createMenuText, styles.ml3]}>
+                                {text}
+                            </Text>
+                        </View>
+                    </Pressable>
+                ))}
+            </Modal>
+        );
+    }
+}
 
 CreateMenu.propTypes = propTypes;
 CreateMenu.displayName = 'CreateMenu';
-export default withWindowDimensions(memo(CreateMenu));
+export default withWindowDimensions(CreateMenu);

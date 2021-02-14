@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {PureComponent} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Onyx, {withOnyx} from 'react-native-onyx';
@@ -58,7 +58,7 @@ const defaultProps = {
     redirectTo: '',
 };
 
-class Expensify extends Component {
+class Expensify extends PureComponent {
     constructor(props) {
         super(props);
 
@@ -142,11 +142,11 @@ class Expensify extends Component {
                     <Route path={[ROUTES.SHARE]} component={SharePage} />
                     <Route
                         path={[ROUTES.HOME, ROUTES.ROOT]}
-                        render={match => (
+                        render={() => (
 
                             // Need to do this for every page that the user needs to be logged in to access
                             this.state.authToken
-                                ? <HomePage match={match} />
+                                ? <HomePage />
                                 : <Redirect to={ROUTES.SIGNIN} />
                         )}
                     />
