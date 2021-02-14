@@ -507,7 +507,6 @@ function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false, sho
  * set of participants
  *
  * @param {String[]} participants
- * @returns {Promise} reportID
  */
 function fetchOrCreateChatReport(participants) {
     let reportID;
@@ -516,7 +515,7 @@ function fetchOrCreateChatReport(participants) {
         throw new Error('fetchOrCreateChatReport() must have at least two participants');
     }
 
-    return API.CreateChatReport({
+    API.CreateChatReport({
         emailList: participants.join(','),
     })
 
@@ -561,8 +560,6 @@ function fetchOrCreateChatReport(participants) {
 
             // Redirect the logged in person to the new report
             redirect(ROUTES.getReportRoute(reportID));
-
-            return reportID;
         });
 }
 
