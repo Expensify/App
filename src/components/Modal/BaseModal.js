@@ -60,6 +60,7 @@ const BaseModal = (props) => {
             animationIn={animationIn}
             animationOut={animationOut}
             useNativeDriver={props.useNativeDriver}
+            statusBarTranslucent
         >
             <CustomStatusBar />
             <SafeAreaInsetsContext.Consumer>
