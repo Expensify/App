@@ -16,7 +16,6 @@ import Log from './libs/Log';
 import Navigator from './Navigator';
 import PushNotification from './libs/Notification/PushNotification';
 import MainView from './pages/home/MainView';
-import ROUTES from './ROUTES';
 
 // Initialize the store when the app loads for the first time
 Onyx.init({
