@@ -4,8 +4,9 @@ export default {
         screens: {
             Home: {
                 path: '',
+                initialRouteName: 'Loading',
                 screens: {
-                    Sidebar: '',
+                    Loading: '',
 
                     // Report route
                     Report: 'r/:reportID',

@@ -64,7 +64,7 @@ class MainView extends Component {
                         <HeaderView
                             shouldShowNavigationMenuButton={this.props.isSmallScreenWidth}
                             onNavigationMenuButtonClicked={() => {
-                                Navigator.navigate(ROUTES.HOME);
+                                Navigator.openDrawer();
                             }}
                             reportID={String(activeReportID)}
                         />

@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
+import {View} from 'react-native';
 import {createStackNavigator} from '@react-navigation/stack';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
@@ -32,6 +33,7 @@ const ResponsiveNavigator = (props) => {
                             {() => (
                                 <>
                                     <Drawer.Navigator
+                                        openByDefault
                                         drawerType={!props.isSmallScreenWidth ? 'permanent' : 'slide'}
                                         drawerStyle={!props.isSmallScreenWidth ? {height: '100%'} : {width: '100%', height: '100%'}}
                                         drawerContent={(drawerProps) => {
@@ -42,6 +44,10 @@ const ResponsiveNavigator = (props) => {
                                             );
                                         }}
                                     >
+                                        <Drawer.Screen
+                                            name="Loading"
+                                            component={View}
+                                        />
                                         {_.map(props.mainRoutes, route => (
                                             <Drawer.Screen
                                                 name={route.name}

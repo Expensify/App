@@ -1,5 +1,5 @@
 import React from 'react';
-import {StackActions} from '@react-navigation/native';
+import {StackActions, DrawerActions} from '@react-navigation/native';
 import linkTo from './linkTo';
 
 export const navigationRef = React.createRef();
@@ -33,8 +33,13 @@ function dismissModal() {
     goBack();
 }
 
+function openDrawer() {
+    navigationRef.current?.dispatch(DrawerActions.openDrawer());
+}
+
 export default {
     navigate,
     goBack,
     dismissModal,
+    openDrawer,
 };

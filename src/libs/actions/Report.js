@@ -473,7 +473,9 @@ function fetchAll(shouldSetActiveReportID = true, shouldFetchActions = false, sh
             if (shouldSetActiveReportID && !currentRoute.includes(ROUTES.REPORT)) {
                 // Set the active report to the first report ID from our report collection if there is no last viewed
                 if (!lastViewedReportID) {
-                    Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, String(_.first(reportIDs)));
+                    Navigator.navigate(ROUTES.getReportRoute(_.first(reportIDs)));
+                } else {
+                    Navigator.navigate(ROUTES.getReportRoute(lastViewedReportID));
                 }
             }
 

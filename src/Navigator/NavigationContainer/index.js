@@ -22,14 +22,12 @@ class ReactNavigationContainer extends Component {
     getInitialState(initialUrl) {
         if (initialUrl) {
             const cleanUrl = initialUrl.replace('http://localhost:8080', '');
-            console.log({cleanUrl});
             if (cleanUrl.includes(ROUTES.REPORT)) {
                 const reportID = _.last(cleanUrl.slice(1).split('/'));
                 Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, reportID);
             }
 
             Onyx.merge(ONYXKEYS.CURRENT_ROUTE, cleanUrl);
-
             return getStateFromPath(cleanUrl, linkingConfig.config);
         }
 
@@ -45,7 +43,6 @@ class ReactNavigationContainer extends Component {
         Linking.getInitialURL()
             .then((initialUrl) => {
                 this.initialState = this.getInitialState(initialUrl);
-                console.log(this.initialState);
                 this.setState({loading: false});
             });
     }
