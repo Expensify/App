@@ -27,7 +27,6 @@ Onyx.init({
         // Clear any loading and error messages so they do not appear on app startup
         [ONYXKEYS.SESSION]: {loading: false},
         [ONYXKEYS.ACCOUNT]: {loading: false, error: ''},
-        [ONYXKEYS.CURRENT_MAIN_ROUTE]: ROUTES.REPORT,
     },
     registerStorageEventListener: (onStorageEvent) => {
         listenToStorageEvents(onStorageEvent);
@@ -151,6 +150,7 @@ class Expensify extends Component {
                         options: {
                             headerShown: false,
                             animationTypeForReplace: 'pop',
+                            title: 'Sign In',
                         },
                     }}
                     sidebarRoute={{
@@ -166,18 +166,24 @@ class Expensify extends Component {
                             subRoutes: [
                                 {
                                     name: 'Root',
-                                    title: 'Settings',
                                     Component: SettingsPage,
+                                    options: {
+                                        title: 'Settings',
+                                    },
                                 },
                                 {
                                     name: 'Test',
-                                    title: 'Settings | Test',
                                     Component: Test,
+                                    options: {
+                                        title: 'Settings | Test',
+                                    },
                                 },
                                 {
                                     name: 'Test2',
-                                    title: 'Settings | Test 2',
                                     Component: TestTwo,
+                                    options: {
+                                        title: 'Settings | Test 2',
+                                    },
                                 },
                             ],
                         },

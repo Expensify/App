@@ -61,19 +61,6 @@ class ResponsiveView extends React.Component {
         };
     }
 
-    getMainRoute() {
-        const routeToRender = _.find(this.props.mainRoutes, mainRouteConfig => (
-            this.props.currentMainRoute && this.props.currentMainRoute.includes(mainRouteConfig.path)
-        ));
-
-        if (!routeToRender) {
-            return <View />;
-        }
-
-        const MainComponent = routeToRender.Component;
-        return <MainComponent />;
-    }
-
     getMainView() {
         const reportRoute = _.find(this.props.mainRoutes, route => route.name === 'Report');
         const ComponentToRender = reportRoute.Component;
@@ -154,19 +141,7 @@ class ResponsiveView extends React.Component {
                                                     ],
                                                 }),
                                             },
-                                            {
-                                                scale: this.state.sidebarAnimation.interpolate({
-                                                    inputRange: [0, 1],
-                                                    outputRange: [
-                                                        1, 0.9,
-                                                    ],
-                                                }),
-                                            },
                                         ],
-                                        opacity: this.state.sidebarAnimation.interpolate({
-                                            inputRange: [0, 1],
-                                            outputRange: [1, 0],
-                                        }),
                                     }
                                     : {
                                         width: variables.sideBarWidth,
@@ -198,14 +173,7 @@ class ResponsiveView extends React.Component {
                                                 ],
                                             }),
                                         },
-                                        {
-                                            scale: this.state.sidebarAnimation.interpolate({
-                                                inputRange: [0, 1],
-                                                outputRange: [0.9, 1],
-                                            }),
-                                        },
                                     ],
-                                    opacity: this.state.sidebarAnimation,
                                 }
                                 : {
                                     flex: 1,
@@ -245,9 +213,6 @@ const ResponsiveViewWithHOCs = compose(
     withOnyx({
         currentRoute: {
             key: ONYXKEYS.CURRENT_ROUTE,
-        },
-        currentMainRoute: {
-            key: ONYXKEYS.CURRENT_MAIN_ROUTE,
         },
     }),
 )(ResponsiveView);

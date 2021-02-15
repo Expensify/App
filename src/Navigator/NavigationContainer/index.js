@@ -1,10 +1,12 @@
 import React, {Component} from 'react';
-import {Linking, Platform} from 'react-native';
+import {Linking} from 'react-native';
+import Onyx from 'react-native-onyx';
 import {NavigationContainer, getStateFromPath} from '@react-navigation/native';
 import {navigationRef} from '../index';
 import withWindowDimensions from '../../components/withWindowDimensions';
 import linkingConfig from '../linkingConfig';
 import AppNavigator from './AppNavigator';
+import ONYXKEYS from '../../ONYXKEYS';
 
 class ReactNavigationContainer extends Component {
     constructor(props) {
@@ -12,14 +14,31 @@ class ReactNavigationContainer extends Component {
 
         this.state = {
             loading: true,
-            initialUrl: '',
         };
+    }
+
+    getInitialState(initialUrl) {
+        // if (initialUrl) {
+        //     const cleanUrl = initialUrl.replace('http://localhost:8080', '');
+        //     Onyx.merge(ONYXKEYS.CURRENT_ROUTE, cleanUrl);
+
+        //     return getStateFromPath(cleanUrl, linkingConfig.config);
+        // }
+
+        // This would return the user to the last thing they were doing... disabled for now...
+        // if (this.props.initialRoute) {
+        //     return getStateFromPath(this.props.initialRoute, linkingConfig.config);
+        // }
+
+        return undefined;
     }
 
     componentDidMount() {
         Linking.getInitialURL()
             .then((initialUrl) => {
-                this.setState({initialUrl, loading: false});
+                this.initialState = this.getInitialState(initialUrl);
+                console.log('@marcaaron: ', this.initialState);
+                this.setState({loading: false});
             });
     }
 
@@ -31,21 +50,19 @@ class ReactNavigationContainer extends Component {
         // If we are on web, desktop, or a widescreen width we will use our custom navigator to create the wider layout
         return (
             <NavigationContainer
-                initialState={
-
-                    // When we are on web or coming from a deep link we will not restore the state
-                    (Platform.OS !== 'web' && !this.state.initialUrl && this.props.initialRoute)
-                        ? getStateFromPath(this.props.initialRoute, linkingConfig.config)
-                        : null
-                }
+                initialState={this.initialState}
                 onStateChange={(state) => {
                     this.props.onStateChange(state);
                 }}
                 ref={navigationRef}
                 linking={linkingConfig}
+                documentTitle={{
+                    formatter: (options, route) => `Expensify.cash | ${options?.title ?? route?.name}`,
+                }}
             >
                 <AppNavigator
-                    isSmallScreenWidth={this.props.isSmallScreenWidth}
+                    // isSmallScreenWidth={this.props.isSmallScreenWidth}
+                    isSmallScreenWidth={false}
                     modalRoutes={this.props.modalRoutes}
                     mainRoutes={this.props.mainRoutes}
                     sidebarRoute={this.props.sidebarRoute}
@@ -57,4 +74,5 @@ class ReactNavigationContainer extends Component {
     }
 }
 
-export default withWindowDimensions(ReactNavigationContainer);
+// export default withWindowDimensions(ReactNavigationContainer);
+export default ReactNavigationContainer;

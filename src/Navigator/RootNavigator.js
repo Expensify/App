@@ -16,13 +16,11 @@ const RootNavigator = props => (
         // eslint-disable-next-line react/jsx-props-no-multi-spaces
         initialRoute={props.currentRoute}
         onStateChange={(state) => {
+            console.log('@marcaaron state changed');
             const path = getPathFromState(state, linkingConfig.config);
             if (path.includes(ROUTES.REPORT)) {
                 const reportID = _.last(path.slice(1).split('/'));
                 Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, reportID);
-
-                // The report route is the only "main" route we have at the moment.
-                Onyx.merge(ONYXKEYS.CURRENT_MAIN_ROUTE, path);
             }
 
             Onyx.merge(ONYXKEYS.CURRENT_ROUTE, path);
