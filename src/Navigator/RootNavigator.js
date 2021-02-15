@@ -16,7 +16,7 @@ const RootNavigator = props => (
         // eslint-disable-next-line react/jsx-props-no-multi-spaces
         initialRoute={props.currentRoute}
         onStateChange={(state) => {
-            console.log('@marcaaron state changed');
+            console.debug('state changed:', state);
             const path = getPathFromState(state, linkingConfig.config);
             if (path.includes(ROUTES.REPORT)) {
                 const reportID = _.last(path.slice(1).split('/'));
@@ -34,9 +34,6 @@ export default compose(
     withOnyx({
         currentRoute: {
             key: ONYXKEYS.CURRENT_ROUTE,
-        },
-        currentlyViewedReportID: {
-            key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
         },
     }),
 )(RootNavigator);

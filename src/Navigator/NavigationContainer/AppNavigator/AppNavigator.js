@@ -1,20 +1,20 @@
 import _ from 'underscore';
 import React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
-import createResponsiveStackNavigator from './createResponsiveStackNavigator';
+import {createDrawerNavigator} from '@react-navigation/drawer';
+import createCustomModalStackNavigator from './createCustomModalStackNavigator';
 
-const ResponsiveStack = createResponsiveStackNavigator();
 const RootStack = createStackNavigator();
-const MainStack = createStackNavigator();
+const Drawer = createDrawerNavigator();
 
 const ResponsiveNavigator = (props) => {
-    const AppNavigator = props.responsive ? ResponsiveStack : RootStack;
+    const AppNavigator = RootStack;
     return (
         <AppNavigator.Navigator
-            modalRoutes={props.modalRoutes}
-            mainRoutes={props.mainRoutes}
-            sidebarRoute={props.sidebarRoute}
-            authenticated={props.authenticated}
+            screenOptions={{
+                cardStyle: {height: '100%', backgroundColor: 'transparent'},
+                cardOverlayEnabled: true,
+            }}
             mode="modal"
         >
             {props.authenticated
@@ -30,39 +30,57 @@ const ResponsiveNavigator = (props) => {
                             }}
                         >
                             {() => (
-                                <MainStack.Navigator>
-                                    <MainStack.Screen
-                                        name={props.sidebarRoute.name}
-                                        component={props.sidebarRoute.Component}
-                                        options={{
-                                            headerShown: false,
+                                <>
+                                    <Drawer.Navigator
+                                        drawerType={!props.isSmallScreenWidth ? 'permanent' : 'slide'}
+                                        drawerStyle={!props.isSmallScreenWidth ? {height: '100%'} : {width: '100%', height: '100%'}}
+                                        drawerContent={(drawerProps) => {
+                                            const SidebarComponent = props.sidebarRoute.Component;
+                                            return (
+                                                // eslint-disable-next-line react/jsx-props-no-spreading
+                                                <SidebarComponent {...drawerProps} />
+                                            );
                                         }}
-                                    />
-                                    {_.map(props.mainRoutes, route => (
-                                        <MainStack.Screen
-                                            name={route.name}
-                                            component={route.Component}
-                                            key={route.name}
-                                            options={{
-                                                headerShown: false,
-                                            }}
-                                        />
-                                    ))}
-                                </MainStack.Navigator>
+                                    >
+                                        {_.map(props.mainRoutes, route => (
+                                            <Drawer.Screen
+                                                name={route.name}
+                                                component={route.Component}
+                                                key={route.name}
+                                                options={{
+                                                    headerShown: false,
+                                                }}
+                                            />
+                                        ))}
+                                    </Drawer.Navigator>
+                                </>
                             )}
                         </AppNavigator.Screen>
                         {_.map(props.modalRoutes, (route) => {
-                            const ModalStack = createStackNavigator();
+                            const ModalStack = props.responsive ? createCustomModalStackNavigator() : createStackNavigator();
                             return (
                                 <AppNavigator.Screen
                                     key={route.name}
                                     name={route.name}
                                     options={{
                                         headerShown: false,
+                                        cardStyle: {
+                                            position: 'absolute',
+                                            top: 0,
+                                            right: 0,
+                                            width: !props.isSmallScreenWidth ? 375 : '100%',
+                                            backgroundColor: 'transparent',
+                                            height: '100%',
+                                        },
                                     }}
                                 >
                                     {() => (
-                                        <ModalStack.Navigator>
+                                        <ModalStack.Navigator
+                                            modalRoutes={props.modalRoutes}
+                                            mainRoutes={props.mainRoutes}
+                                            sidebarRoute={props.sidebarRoute}
+                                            authenticated={props.authenticated}
+                                        >
                                             {_.map(route.subRoutes, subRoute => (
                                                 <ModalStack.Screen
                                                     key={subRoute.name}
@@ -91,6 +109,6 @@ const ResponsiveNavigator = (props) => {
                 )}
         </AppNavigator.Navigator>
     );
-}
+};
 
 export default ResponsiveNavigator;

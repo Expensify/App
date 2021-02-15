@@ -1,6 +1,6 @@
 import React from 'react';
-import {StackActions, getStateFromPath, getActionFromState} from '@react-navigation/native';
-import linkingConfig from './linkingConfig';
+import {StackActions} from '@react-navigation/native';
+import linkTo from './linkTo';
 
 export const navigationRef = React.createRef();
 export const routerRef = React.createRef();
@@ -11,9 +11,7 @@ function navigate(route) {
         return;
     }
 
-    const state = getStateFromPath(route, linkingConfig.config);
-    const action = getActionFromState(state, linkingConfig.config);
-    navigationRef.current?.dispatch(action);
+    linkTo(navigationRef.current, route);
 }
 
 function goBack() {

@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React, {Component} from 'react';
 import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
@@ -7,6 +8,7 @@ import withWindowDimensions from '../../components/withWindowDimensions';
 import linkingConfig from '../linkingConfig';
 import AppNavigator from './AppNavigator';
 import ONYXKEYS from '../../ONYXKEYS';
+import ROUTES from '../../ROUTES';
 
 class ReactNavigationContainer extends Component {
     constructor(props) {
@@ -18,12 +20,18 @@ class ReactNavigationContainer extends Component {
     }
 
     getInitialState(initialUrl) {
-        // if (initialUrl) {
-        //     const cleanUrl = initialUrl.replace('http://localhost:8080', '');
-        //     Onyx.merge(ONYXKEYS.CURRENT_ROUTE, cleanUrl);
+        if (initialUrl) {
+            const cleanUrl = initialUrl.replace('http://localhost:8080', '');
+            console.log({cleanUrl});
+            if (cleanUrl.includes(ROUTES.REPORT)) {
+                const reportID = _.last(cleanUrl.slice(1).split('/'));
+                Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, reportID);
+            }
 
-        //     return getStateFromPath(cleanUrl, linkingConfig.config);
-        // }
+            Onyx.merge(ONYXKEYS.CURRENT_ROUTE, cleanUrl);
+
+            return getStateFromPath(cleanUrl, linkingConfig.config);
+        }
 
         // This would return the user to the last thing they were doing... disabled for now...
         // if (this.props.initialRoute) {
@@ -37,7 +45,7 @@ class ReactNavigationContainer extends Component {
         Linking.getInitialURL()
             .then((initialUrl) => {
                 this.initialState = this.getInitialState(initialUrl);
-                console.log('@marcaaron: ', this.initialState);
+                console.log(this.initialState);
                 this.setState({loading: false});
             });
     }
@@ -61,8 +69,7 @@ class ReactNavigationContainer extends Component {
                 }}
             >
                 <AppNavigator
-                    // isSmallScreenWidth={this.props.isSmallScreenWidth}
-                    isSmallScreenWidth={false}
+                    isSmallScreenWidth={this.props.isSmallScreenWidth}
                     modalRoutes={this.props.modalRoutes}
                     mainRoutes={this.props.mainRoutes}
                     sidebarRoute={this.props.sidebarRoute}
@@ -74,5 +81,4 @@ class ReactNavigationContainer extends Component {
     }
 }
 
-// export default withWindowDimensions(ReactNavigationContainer);
-export default ReactNavigationContainer;
+export default withWindowDimensions(ReactNavigationContainer);

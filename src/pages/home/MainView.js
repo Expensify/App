@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import lodashGet from 'lodash.get';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -19,19 +20,15 @@ const propTypes = {
     reports: PropTypes.objectOf(PropTypes.shape({
         reportID: PropTypes.number,
     })),
-
-    // ID of Report being viewed
-    currentlyViewedReportID: PropTypes.string,
 };
 
 const defaultProps = {
     reports: {},
-    currentlyViewedReportID: '',
 };
 
 class MainView extends Component {
     render() {
-        let activeReportID = parseInt(this.props.currentlyViewedReportID, 10);
+        let activeReportID = parseInt(lodashGet(this.props, 'route.params.reportID', 0), 10);
 
         // The styles for each of our reports. Basically, they are all hidden except for the one matching the
         // reportID in the URL
@@ -69,7 +66,7 @@ class MainView extends Component {
                             onNavigationMenuButtonClicked={() => {
                                 Navigator.navigate(ROUTES.HOME);
                             }}
-                            reportID={this.props.currentlyViewedReportID}
+                            reportID={String(activeReportID)}
                         />
                         {_.map(reportsToDisplay, report => (
                             <View
@@ -97,9 +94,6 @@ export default compose(
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
-        },
-        currentlyViewedReportID: {
-            key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
         },
     }),
 )(MainView);
