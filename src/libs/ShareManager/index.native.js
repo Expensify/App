@@ -3,6 +3,7 @@ import {redirect} from '../actions/App';
 import {set as setSharedItem} from '../actions/SharedItem';
 import ROUTES from '../../ROUTES';
 import ShareType from './ShareType';
+import sharedItemPropTypes from './PropTypes';
 
 const TEXT_MIME_TYPE = /^text\//i;
 
@@ -69,6 +70,10 @@ function deregister() {
     listener.remove();
     listener = undefined;
 }
+
+export {
+    sharedItemPropTypes,
+};
 
 export default {
     register,
