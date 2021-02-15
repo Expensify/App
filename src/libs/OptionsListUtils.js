@@ -382,9 +382,29 @@ function getSidebarOptions(reports, personalDetails, draftComments, activeReport
     });
 }
 
+/**
+ * Build the options for the Share Page
+ *
+ * @param {Object} reports
+ * @param {Object} personalDetails
+ * @param {Number} activeReportID
+ * @returns {Object}
+ */
+function getShareOptions(reports, personalDetails, activeReportID) {
+    return getOptions(reports, personalDetails, {}, activeReportID, {
+        includeRecentReports: true,
+        includeMultipleParticipantReports: true,
+        maxRecentReportsToShow: 0, // Unlimited
+        prioritizePinnedReports: true,
+        sortByLastMessageTimestamp: true,
+        showChatPreviewLine: true,
+    });
+}
+
 export {
     getSearchOptions,
     getNewChatOptions,
     getNewGroupOptions,
     getSidebarOptions,
+    getShareOptions,
 };
