@@ -17,6 +17,7 @@ import {hide as hideSidebar} from './Sidebar';
 import Timing from './Timing';
 import * as API from '../API';
 import CONST from '../../CONST';
+import Log from '../Log';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -174,6 +175,7 @@ function fetchChatReportsByIDs(chatList) {
         includePinnedReports: true,
     })
         .then(({reports}) => {
+            Log.info('[Report] successfully fetched report data', true);
             fetchedReports = reports;
 
             // Process the reports and store them in Onyx. At the same time we'll save the simplified reports in this
@@ -493,8 +495,8 @@ function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false, sho
             }
 
             if (shouldFetchActions) {
+                Log.info('[Report] Fetching report actions for reports', true, {reportIDs});
                 _.each(reportIDs, (reportID) => {
-                    console.debug(`[RECONNECT] Fetching report actions for report ${reportID}`);
                     fetchActions(reportID);
                 });
             }

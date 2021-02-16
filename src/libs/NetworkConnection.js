@@ -52,6 +52,8 @@ function logAppStateChange(state) {
  * `disconnected` event which takes about 10-15 seconds to emit.
  */
 function listenForReconnect() {
+    logInfo('[NetworkConnection] listenForReconnect called', true);
+
     if (!listeningForAppStateChanges) {
         AppState.addEventListener('change', logAppStateChange);
         listeningForAppStateChanges = true;
@@ -66,12 +68,13 @@ function listenForReconnect() {
 
     // When a device is put to sleep, NetInfo is not always able to detect
     // when connectivity has been lost. As a failsafe we will capture the time
-    // every two seconds and if the last time recorded is greater than 2 seconds
+    // every two seconds and if the last time recorded is greater than 4 seconds
     // we know that the computer has been asleep.
     lastTime = (new Date()).getTime();
     sleepTimer = setInterval(() => {
         const currentTime = (new Date()).getTime();
-        if (currentTime > (lastTime + 20000)) {
+        const isSkewed = currentTime > (lastTime + 4000);
+        if (isSkewed) {
             triggerReconnectionCallbacks('sleep timer clock skewed');
         }
         lastTime = currentTime;
