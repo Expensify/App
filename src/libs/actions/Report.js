@@ -433,14 +433,12 @@ function unsubscribeFromReportChannel(reportID) {
 }
 
 /**
- * Get the report ID, and then the actions, for a chat report for a specific
- * set of participants
+ * Get the report ID for a chat report for a specific
+ * set of participants and redirect to it.
  *
  * @param {String[]} participants
  */
 function fetchOrCreateChatReport(participants) {
-    let reportID;
-
     if (participants.length < 2) {
         throw new Error('fetchOrCreateChatReport() must have at least two participants');
     }
@@ -455,7 +453,7 @@ function fetchOrCreateChatReport(participants) {
             }
 
             // Merge report into Onyx
-            reportID = data.reportID;
+            const reportID = data.reportID;
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID});
 
             // Redirect the logged in person to the new report
