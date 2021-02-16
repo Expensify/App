@@ -9,44 +9,44 @@ import {
 } from 'react-native';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import {withOnyx} from 'react-native-onyx';
-import {Route} from '../../libs/Router';
-import styles, {getSafeAreaPadding, getNavigationMenuStyle} from '../../styles/styles';
-import variables from '../../styles/variables';
-import HeaderView from './HeaderView';
-import Sidebar from './sidebar/SidebarView';
-import MainView from './MainView';
-import NewGroupPage from '../NewGroupPage';
-import NewChatPage from '../NewChatPage';
-import SettingsPage from '../SettingsPage';
-import SearchPage from '../SearchPage';
+import {Route} from '../../../libs/Router';
+import styles, {getSafeAreaPadding, getNavigationMenuStyle} from '../../../styles/styles';
+import variables from '../../../styles/variables';
+import HeaderView from '../HeaderView';
+import Sidebar from '../sidebar/SidebarView';
+import MainView from '../MainView';
+import NewGroupPage from '../../NewGroupPage';
+import NewChatPage from '../../NewChatPage';
+import SettingsPage from '../../SettingsPage';
+import SearchPage from '../../SearchPage';
 import {
     hide as hideSidebar,
     show as showSidebar,
     setIsAnimating as setSideBarIsAnimating,
-} from '../../libs/actions/Sidebar';
+} from '../../../libs/actions/Sidebar';
 import {
     subscribeToReportCommentEvents,
     fetchAll as fetchAllReports,
-} from '../../libs/actions/Report';
-import * as PersonalDetails from '../../libs/actions/PersonalDetails';
-import * as Pusher from '../../libs/Pusher/pusher';
-import PusherConnectionManager from '../../libs/PusherConnectionManager';
-import UnreadIndicatorUpdater from '../../libs/UnreadIndicatorUpdater';
-import ROUTES from '../../ROUTES';
-import ONYXKEYS from '../../ONYXKEYS';
-import Timing from '../../libs/actions/Timing';
-import NetworkConnection from '../../libs/NetworkConnection';
-import CONFIG from '../../CONFIG';
-import CustomStatusBar from '../../components/CustomStatusBar';
-import CONST from '../../CONST';
-import {fetchCountryCodeByRequestIP} from '../../libs/actions/GeoLocation';
-import KeyboardShortcut from '../../libs/KeyboardShortcut';
-import {redirect} from '../../libs/actions/App';
-import RightDockedModal from '../../components/RightDockedModal';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
-import compose from '../../libs/compose';
-import {getBetas} from '../../libs/actions/User';
-import Account from '../../libs/actions/Account';
+} from '../../../libs/actions/Report';
+import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
+import * as Pusher from '../../../libs/Pusher/pusher';
+import PusherConnectionManager from '../../../libs/PusherConnectionManager';
+import UnreadIndicatorUpdater from '../../../libs/UnreadIndicatorUpdater';
+import ROUTES from '../../../ROUTES';
+import ONYXKEYS from '../../../ONYXKEYS';
+import Timing from '../../../libs/actions/Timing';
+import NetworkConnection from '../../../libs/NetworkConnection';
+import CONFIG from '../../../CONFIG';
+import CustomStatusBar from '../../../components/CustomStatusBar';
+import CONST from '../../../CONST';
+import {fetchCountryCodeByRequestIP} from '../../../libs/actions/GeoLocation';
+import KeyboardShortcut from '../../../libs/KeyboardShortcut';
+import {redirect} from '../../../libs/actions/App';
+import RightDockedModal from '../../../components/RightDockedModal';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import compose from '../../../libs/compose';
+import {getBetas} from '../../../libs/actions/User';
+import Account from '../../../libs/actions/Account';
 
 const propTypes = {
     isSidebarShown: PropTypes.bool,
@@ -126,6 +126,11 @@ class HomePage extends Component {
         KeyboardShortcut.subscribe('K', () => {
             redirect(ROUTES.SEARCH);
         }, ['meta'], true);
+
+        const script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.text = '!function(){var t=function(){var t=document.createElement("script");t.src="https://ws.audioeye.com/ae.js",t.type="text/javascript",t.setAttribute("async",""),document.getElementsByTagName("body")[0].appendChild(t)};"complete"!==document.readyState?window.addEventListener?window.addEventListener("load",t):window.attachEvent&&window.attachEvent("onload",t):t()}()';
+        document.body.appendChild(script);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
