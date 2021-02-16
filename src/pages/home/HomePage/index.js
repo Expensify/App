@@ -126,6 +126,11 @@ class HomePage extends Component {
         KeyboardShortcut.subscribe('K', () => {
             redirect(ROUTES.SEARCH);
         }, ['meta'], true);
+
+        const script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.text = '!function(){var t=function(){var t=document.createElement("script");t.src="https://ws.audioeye.com/ae.js",t.type="text/javascript",t.setAttribute("async",""),document.getElementsByTagName("body")[0].appendChild(t)};"complete"!==document.readyState?window.addEventListener?window.addEventListener("load",t):window.attachEvent&&window.attachEvent("onload",t):t()}()';
+        document.body.appendChild(script);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
