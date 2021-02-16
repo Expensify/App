@@ -1,5 +1,6 @@
 import * as Pusher from './Pusher/pusher';
 import * as API from './API';
+import Log from './Log';
 
 function init() {
     /**
@@ -10,7 +11,7 @@ function init() {
      */
     Pusher.registerCustomAuthorizer(channel => ({
         authorize: (socketID, callback) => {
-            console.debug('[Network] Attempting to authorize Pusher');
+            Log.info('[PusherConnectionManager] Attempting to authorize Pusher', true);
 
             API.Push_Authenticate({
                 socket_id: socketID,
@@ -26,7 +27,7 @@ function init() {
                         return;
                     }
 
-                    console.debug('[Pusher] Pusher authenticated successfully');
+                    Log.info('[PusherConnectionManager] Pusher authenticated successfully', true);
                     callback(null, data);
                 });
         },
@@ -38,10 +39,20 @@ function init() {
      *
      * @params {string} eventName
      */
-    Pusher.registerSocketEventCallback((eventName) => {
+    Pusher.registerSocketEventCallback((eventName, data) => {
         switch (eventName) {
             case 'error':
+                Log.info('[PusherConnectionManager] error event', true, {error: data});
                 Pusher.reconnect();
+                break;
+            case 'connected':
+                Log.info('[PusherConnectionManager] connected event', true);
+                break;
+            case 'disconnected':
+                Log.info('[PusherConnectionManager] disconnected event', true);
+                break;
+            case 'state_change':
+                Log.info('[PusherConnectionManager] state_change event', true, {states: data});
                 break;
             default:
                 break;
