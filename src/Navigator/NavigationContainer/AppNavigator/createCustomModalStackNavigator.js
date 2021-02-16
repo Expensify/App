@@ -1,6 +1,5 @@
 import _ from 'underscore';
 import React from 'react';
-import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import {createNavigatorFactory, useNavigationBuilder} from '@react-navigation/core';
 import {StackRouter} from '@react-navigation/routers';
@@ -12,15 +11,6 @@ import Navigator from '../../index';
 import compose from '../../../libs/compose';
 
 class ResponsiveView extends React.Component {
-    getDescriptorByName(name) {
-        const currentDescriptor = _.find(this.props.descriptors, (value, key) => key.includes(name));
-        return currentDescriptor || {
-            render() {
-                return <View />;
-            },
-        };
-    }
-
     getCurrentViewDescriptor() {
         const currentRoute = this.props.state.routes[this.props.state.index];
         const currentRouteKey = currentRoute.key;
