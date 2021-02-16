@@ -17,8 +17,6 @@ class Hoverable extends Component {
 
         this.wrapperView = null;
 
-        this.setIsHovered = this.setIsHovered.bind(this);
-        this.setIsNotHovered = this.setIsNotHovered.bind(this);
         this.handleOutsideClick = this.handleOutsideClick.bind(this);
     }
 
@@ -32,19 +30,12 @@ class Hoverable extends Component {
 
     /**
      * Sets the hover state of this component to true and execute the onHoverIn callback.
+     *
+     * @param {Boolean} isHovered - Whether or not this component is hovered.
      */
-    setIsHovered() {
-        if (!this.state.isHovered) {
-            this.setState({isHovered: true}, this.props.onHoverIn);
-        }
-    }
-
-    /**
-     * Sets the hover state of this component to false and executes the onHoverOut callback.
-     */
-    setIsNotHovered() {
-        if (this.state.isHovered) {
-            this.setState({isHovered: false}, this.props.onHoverOut);
+    setIsHovered(isHovered) {
+        if (isHovered !== this.state.isHovered) {
+            this.setState({isHovered}, isHovered ? this.props.onHoverIn : this.props.onHoverOut);
         }
     }
 
@@ -67,8 +58,8 @@ class Hoverable extends Component {
         return (
             <View
                 ref={el => this.wrapperView = el}
-                onMouseEnter={this.setIsHovered}
-                onMouseLeave={this.setIsNotHovered}
+                onMouseEnter={() => this.setIsHovered(true)}
+                onMouseLeave={() => this.setIsHovered(false)}
             >
                 { // If this.props.children is a function, call it to provide the hover state to the children.
                     _.isFunction(this.props.children)
