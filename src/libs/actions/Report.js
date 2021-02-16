@@ -437,6 +437,35 @@ function unsubscribeFromReportChannel(reportID) {
 }
 
 /**
+ * Get the report ID for a chat report for a specific
+ * set of participants and redirect to it.
+ *
+ * @param {String[]} participants
+ */
+function fetchOrCreateChatReport(participants) {
+    if (participants.length < 2) {
+        throw new Error('fetchOrCreateChatReport() must have at least two participants');
+    }
+
+    API.CreateChatReport({
+        emailList: participants.join(','),
+    })
+
+        .then((data) => {
+            if (data.jsonCode !== 200) {
+                throw new Error(data.message);
+            }
+
+            // Merge report into Onyx
+            const reportID = data.reportID;
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID});
+
+            // Redirect the logged in person to the new report
+            redirect(ROUTES.getReportRoute(reportID));
+        });
+}
+
+/**
  * Get all chat reports and provide the proper report name
  * by fetching sharedReportList and personalDetails
  *
@@ -448,7 +477,14 @@ function fetchChatReports() {
     })
 
         // The string cast below is necessary as Get rvl='chatList' may return an int
-        .then(({chatList}) => fetchChatReportsByIDs(String(chatList).split(',')));
+        .then(({chatList}) => {
+            // Get all the chat reports if they have any, otherwise create one with concierge
+            if (chatList.length) {
+                fetchChatReportsByIDs(String(chatList).split(','));
+            } else {
+                fetchOrCreateChatReport([currentUserEmail, 'concierge@expensify.com']);
+            }
+        });
 }
 
 /**
@@ -503,67 +539,6 @@ function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false, sho
             if (shouldRecordHomePageTiming) {
                 Timing.end(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
             }
-        });
-}
-
-/**
- * Get the report ID, and then the actions, for a chat report for a specific
- * set of participants
- *
- * @param {String[]} participants
- */
-function fetchOrCreateChatReport(participants) {
-    let reportID;
-
-    if (participants.length < 2) {
-        throw new Error('fetchOrCreateChatReport() must have at least two participants');
-    }
-
-    API.CreateChatReport({
-        emailList: participants.join(','),
-    })
-
-        .then((data) => {
-            if (data.jsonCode !== 200) {
-                alert(data.message);
-                return;
-            }
-
-            // Set aside the reportID in a local variable so it can be accessed in the rest of the chain
-            reportID = data.reportID;
-
-            // Make a request to get all the information about the report
-            return API.Get({
-                returnValueList: 'reportStuff',
-                reportIDList: reportID,
-                shouldLoadOptionalKeys: true,
-            });
-        })
-
-        // Put the report object into Onyx
-        .then((data) => {
-            if (data.reports.length === 0) {
-                return;
-            }
-            const report = data.reports[reportID];
-
-            // Store only the absolute bare minimum of data in Onyx because space is limited
-            const newReport = getSimplifiedReportObject(report);
-            newReport.reportName = getChatReportName(report.sharedReportList);
-
-            // Optimistically update the last visited timestamp such that if the user immediately switches to another
-            // report the last visited order is still maintained.
-            newReport.lastVisitedTimestamp = Date.now();
-
-            // Merge the data into Onyx. Don't use set() here or multiSet() because then that would
-            // overwrite any existing data (like if they have unread messages)
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, newReport);
-
-            // Updates the personal details since its possible that a new participant was provided
-            PersonalDetails.getFromReportParticipants([newReport]);
-
-            // Redirect the logged in person to the new report
-            redirect(ROUTES.getReportRoute(reportID));
         });
 }
 
