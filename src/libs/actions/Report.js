@@ -441,7 +441,7 @@ function unsubscribeFromReportChannel(reportID) {
  * set of participants and redirect to it.
  *
  * @param {String[]} participants
- * @returns {Promise<Number>} report id 
+ * @returns {Promise<Number>} report id
  */
 function fetchOrCreateChatReport(participants) {
     if (participants.length < 2) {
