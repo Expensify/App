@@ -9,7 +9,7 @@ import ShareManager, {sharedItemPropTypes} from '../libs/ShareManager';
 import {redirect} from '../libs/actions/App';
 import {clear as clearSharedItem} from '../libs/actions/SharedItem';
 import {hide as hideSidebar} from '../libs/actions/Sidebar';
-import {addAction, saveReportComment} from '../libs/actions/Report';
+import {addAction, fetchOrCreateChatReport, saveReportComment} from '../libs/actions/Report';
 import ROUTES from '../ROUTES';
 import CustomStatusBar from '../components/CustomStatusBar';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
@@ -27,6 +27,11 @@ const propTypes = {
         avatarURL: PropTypes.string.isRequired,
         displayName: PropTypes.string.isRequired,
     })),
+
+    // Session of currently logged in user
+    session: PropTypes.shape({
+        email: PropTypes.string.isRequired,
+    }).isRequired,
 
     // Shared item object
     ...sharedItemPropTypes,
@@ -51,7 +56,7 @@ class SharePage extends React.Component {
         );
 
         this.state = {
-            selectedReportId: '',
+            selectedOption: null,
             searchValue: '',
             recentReports,
             personalDetails,
@@ -85,6 +90,37 @@ class SharePage extends React.Component {
         });
 
         return sections;
+    }
+
+    /**
+     * Redirects to existing report or creates a new one and redirects.
+     * Returns the id of report.
+     *
+     * @param {Number} reportID
+     * @param {String} login
+     * @returns {Promise<Number>} reportId
+     */
+    getOrCreateChatReport(reportID, login) {
+        return new Promise(((resolve, reject) => {
+            if (reportID) {
+                // This is existing report.
+                // Redirect and return the id
+                redirect(ROUTES.getReportRoute(reportID));
+
+                resolve(reportID);
+            } else if (login) {
+                // Create a new report for given participant.
+                // Redirect and return the id
+                fetchOrCreateChatReport([
+                    this.props.session.email,
+                    login,
+                ]).then((newReportId) => {
+                    resolve(newReportId);
+                }).catch(reject);
+            } else {
+                reject();
+            }
+        }));
     }
 
     /**
@@ -123,29 +159,32 @@ class SharePage extends React.Component {
      * Posts shared item to the selected report
      */
     addSharedItemToReport() {
-        if (!this.props.sharedItem || !this.state.selectedReportId) {
+        if (!this.props.sharedItem || !this.state.selectedOption) {
             return;
         }
 
-        switch (this.props.sharedItem.type) {
-            case ShareManager.TYPE.TEXT:
-                // Shared item is a text.
-                // Save it as draft comment, so user would be able to preview before posting.
-                saveReportComment(this.state.selectedReportId, this.props.sharedItem.data || '');
-                break;
-            case ShareManager.TYPE.FILE:
-                // Shared item is a file.
-                // Post it right away, because user already previewed it in modal.
-                addAction(this.state.selectedReportId, '', this.props.sharedItem.data);
-                break;
-            default:
-                break;
-        }
+        const {reportID, login} = this.state.selectedOption;
 
-        clearSharedItem();
-        hideSidebar();
+        this.getOrCreateChatReport(reportID, login)
+            .then((selectedReportID) => {
+                switch (this.props.sharedItem.type) {
+                    case ShareManager.TYPE.TEXT:
+                        // Shared item is a text.
+                        // Save it as draft comment, so user would be able to preview before posting.
+                        saveReportComment(selectedReportID, this.props.sharedItem.data || '');
+                        break;
+                    case ShareManager.TYPE.FILE:
+                        // Shared item is a file.
+                        // Post it right away, because user already previewed it in modal.
+                        addAction(selectedReportID, '', this.props.sharedItem.data);
+                        break;
+                    default:
+                        break;
+                }
 
-        redirect(ROUTES.getReportRoute(this.state.selectedReportId));
+                clearSharedItem();
+                hideSidebar();
+            });
     }
 
     render() {
@@ -183,7 +222,7 @@ class SharePage extends React.Component {
                                         onChangeText={this.performSearch}
                                         onSelectRow={(option) => {
                                             this.setState({
-                                                selectedReportId: option.reportID,
+                                                selectedOption: option,
                                             }, () => {
                                                 if (this.props.sharedItem.type === ShareManager.TYPE.TEXT) {
                                                     // Shared item is text. Post it to the report.
@@ -217,6 +256,9 @@ export default withOnyx({
     },
     currentlyViewedReportID: {
         key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
+    },
+    session: {
+        key: ONYXKEYS.SESSION,
     },
     sharedItem: {
         key: ONYXKEYS.SHARED_ITEM,
