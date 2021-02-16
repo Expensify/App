@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import {AppState} from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
@@ -9,6 +10,8 @@ let unsubscribeFromNetInfo;
 let sleepTimer;
 let lastTime;
 let isOffline = false;
+let listeningForAppStateChanges = false;
+let logInfo = () => {};
 
 // Holds all of the callbacks that need to be triggered when the network reconnects
 const reconnectionCallbacks = [];
@@ -16,8 +19,8 @@ const reconnectionCallbacks = [];
 /**
  * Loop over all reconnection callbacks and fire each one
  */
-const triggerReconnectionCallbacks = _.throttle(() => {
-    console.debug('[Reconnection]: Firing reconnection callbacks');
+const triggerReconnectionCallbacks = _.throttle((reason) => {
+    logInfo(`[NetworkConnection] Firing reconnection callbacks because ${reason}`, true);
     _.each(reconnectionCallbacks, callback => callback());
 }, 5000, {trailing: false});
 
@@ -33,10 +36,14 @@ function setOfflineStatus(isCurrentlyOffline) {
     // When reconnecting, ie, going from offline to online, all the reconnection callbacks
     // are triggered (this is usually Actions that need to re-download data from the server)
     if (isOffline && !isCurrentlyOffline) {
-        triggerReconnectionCallbacks();
+        triggerReconnectionCallbacks('offline status changed');
     }
 
     isOffline = isCurrentlyOffline;
+}
+
+function logAppStateChange(state) {
+    logInfo('[NetworkConnection] AppState change event', true, {state});
 }
 
 /**
@@ -45,22 +52,27 @@ function setOfflineStatus(isCurrentlyOffline) {
  * `disconnected` event which takes about 10-15 seconds to emit.
  */
 function listenForReconnect() {
+    if (!listeningForAppStateChanges) {
+        AppState.addEventListener('change', logAppStateChange);
+        listeningForAppStateChanges = true;
+    }
+
     // Subscribe to the state change event via NetInfo so we can update
     // whether a user has internet connectivity or not.
     unsubscribeFromNetInfo = NetInfo.addEventListener((state) => {
-        console.debug('[NetInfo] isConnected:', state && state.isConnected);
+        logInfo(`[NetworkConnection] NetInfo isConnected: ${state && state.isConnected}`);
         setOfflineStatus(!state.isConnected);
     });
 
     // When a device is put to sleep, NetInfo is not always able to detect
     // when connectivity has been lost. As a failsafe we will capture the time
-    // every two seconds and if the last time recorded is greater than 20 seconds
+    // every two seconds and if the last time recorded is greater than 2 seconds
     // we know that the computer has been asleep.
     lastTime = (new Date()).getTime();
     sleepTimer = setInterval(() => {
         const currentTime = (new Date()).getTime();
         if (currentTime > (lastTime + 20000)) {
-            triggerReconnectionCallbacks();
+            triggerReconnectionCallbacks('sleep timer clock skewed');
         }
         lastTime = currentTime;
     }, 2000);
@@ -70,10 +82,15 @@ function listenForReconnect() {
  * Tear down the event listeners when we are finished with them.
  */
 function stopListeningForReconnect() {
+    logInfo('[NetworkConnection] stopListeningForReconnect called', true);
     clearInterval(sleepTimer);
     if (unsubscribeFromNetInfo) {
         unsubscribeFromNetInfo();
         unsubscribeFromNetInfo = undefined;
+    }
+    if (listeningForAppStateChanges) {
+        AppState.removeEventListener('change', logAppStateChange);
+        listeningForAppStateChanges = false;
     }
 }
 
@@ -86,10 +103,18 @@ function onReconnect(callback) {
     reconnectionCallbacks.push(callback);
 }
 
+/**
+ * @param {Function} callback
+ */
+function registerLogInfoCallback(callback) {
+    logInfo = callback;
+}
+
 export default {
     setOfflineStatus,
     listenForReconnect,
     stopListeningForReconnect,
     onReconnect,
     triggerReconnectionCallbacks,
+    registerLogInfoCallback,
 };
