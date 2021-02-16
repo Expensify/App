@@ -14,7 +14,7 @@ import ROUTES from '../ROUTES';
 import CustomStatusBar from '../components/CustomStatusBar';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import AttachmentModal from '../components/AttachmentModal';
-import OptionsList from '../components/OptionsList';
+import OptionsSelector from '../components/OptionsSelector';
 import {getShareOptions} from '../libs/OptionsListUtils';
 
 const propTypes = {
@@ -41,12 +41,72 @@ class SharePage extends React.Component {
     constructor(props) {
         super(props);
 
+        const {
+            recentReports,
+            personalDetails,
+        } = getShareOptions(
+            props.reports,
+            props.personalDetails,
+            '',
+        );
+
         this.state = {
             selectedReportId: '',
+            searchValue: '',
+            recentReports,
+            personalDetails,
         };
 
+        this.performSearch = this.performSearch.bind(this);
         this.cancelShare = this.cancelShare.bind(this);
         this.addSharedItemToReport = this.addSharedItemToReport.bind(this);
+    }
+
+    /**
+     * Returns the sections needed for the OptionsSelector
+     *
+     * @returns {Array}
+     */
+    getSections() {
+        const sections = [];
+
+        sections.push({
+            title: 'RECENTS',
+            data: this.state.recentReports,
+            shouldShow: this.state.recentReports.length > 0,
+            indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
+        });
+
+        sections.push({
+            title: 'CONTACTS',
+            data: this.state.personalDetails,
+            shouldShow: this.state.personalDetails.length > 0,
+            indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
+        });
+
+        return sections;
+    }
+
+    /**
+     * Performs the search and updates the state with results
+     *
+     * @param {String} searchValue
+     */
+    performSearch(searchValue = '') {
+        const {
+            recentReports,
+            personalDetails,
+        } = getShareOptions(
+            this.props.reports,
+            this.props.personalDetails,
+            searchValue,
+        );
+
+        this.setState({
+            searchValue,
+            recentReports,
+            personalDetails,
+        });
     }
 
     /**
@@ -89,21 +149,6 @@ class SharePage extends React.Component {
     }
 
     render() {
-        const activeReportID = parseInt(this.props.currentlyViewedReportID, 10);
-
-        const {recentReports} = getShareOptions(
-            this.props.reports,
-            this.props.personalDetails,
-            activeReportID,
-        );
-
-        const sections = [{
-            title: '',
-            indexOffset: 0,
-            data: recentReports,
-            shouldShow: true,
-        }];
-
         return (
             <>
                 <CustomStatusBar />
@@ -128,12 +173,14 @@ class SharePage extends React.Component {
                                 }}
                             >
                                 {({displayFileInModal}) => (
-                                    <OptionsList
+                                    <OptionsSelector
                                         contentContainerStyles={[
                                             styles.sidebarListContainer,
                                             {paddingBottom: getSafeAreaMargins(insets).marginBottom},
                                         ]}
-                                        sections={sections}
+                                        sections={this.getSections()}
+                                        value={this.state.searchValue}
+                                        onChangeText={this.performSearch}
                                         onSelectRow={(option) => {
                                             this.setState({
                                                 selectedReportId: option.reportID,
@@ -147,7 +194,6 @@ class SharePage extends React.Component {
                                                 }
                                             });
                                         }}
-                                        hideSectionHeaders
                                     />
                                 )}
                             </AttachmentModal>

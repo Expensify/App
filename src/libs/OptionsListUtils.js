@@ -387,16 +387,16 @@ function getSidebarOptions(reports, personalDetails, draftComments, activeReport
  *
  * @param {Object} reports
  * @param {Object} personalDetails
- * @param {Number} activeReportID
+ * @param {String} searchValue
  * @returns {Object}
  */
-function getShareOptions(reports, personalDetails, activeReportID) {
-    return getOptions(reports, personalDetails, {}, activeReportID, {
+function getShareOptions(reports, personalDetails, searchValue) {
+    return getOptions(reports, personalDetails, {}, 0, {
+        searchValue,
         includeRecentReports: true,
-        includeMultipleParticipantReports: true,
-        maxRecentReportsToShow: 0, // Unlimited
-        prioritizePinnedReports: true,
-        sortByLastMessageTimestamp: true,
+        includePersonalDetails: true,
+        includeMultipleParticipantReports: false,
+        maxRecentReportsToShow: 5,
         showChatPreviewLine: true,
     });
 }
