@@ -17,6 +17,7 @@ import {hide as hideSidebar} from './Sidebar';
 import Timing from './Timing';
 import * as API from '../API';
 import CONST from '../../CONST';
+import Log from '../Log';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -174,6 +175,7 @@ function fetchChatReportsByIDs(chatList) {
         includePinnedReports: true,
     })
         .then(({reports}) => {
+            Log.info('[Report] successfully fetched report data', true);
             fetchedReports = reports;
 
             // Process the reports and store them in Onyx. At the same time we'll save the simplified reports in this
@@ -337,13 +339,15 @@ function subscribeToReportCommentEvents() {
     }
 
     Pusher.subscribe(pusherChannelName, 'reportComment', (pushJSON) => {
+        Log.info('[Report] Handled event sent by Pusher', true, {reportID: pushJSON.reportID});
         updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
     }, false,
     () => {
-        NetworkConnection.triggerReconnectionCallbacks();
+        NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
     });
 
     PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, reportAction}) => {
+        Log.info('[Report] Handled event sent by Airship', true, {reportID});
         updateReportWithNewAction(reportID, reportAction);
     });
 
@@ -490,8 +494,8 @@ function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false, sho
             }
 
             if (shouldFetchActions) {
+                Log.info('[Report] Fetching report actions for reports', true, {reportIDs});
                 _.each(reportIDs, (reportID) => {
-                    console.debug(`[RECONNECT] Fetching report actions for report ${reportID}`);
                     fetchActions(reportID);
                 });
             }
