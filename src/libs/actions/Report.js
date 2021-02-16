@@ -450,7 +450,6 @@ function fetchOrCreateChatReport(participants) {
     API.CreateChatReport({
         emailList: participants.join(','),
     })
-
         .then((data) => {
             if (data.jsonCode !== 200) {
                 throw new Error(data.message);
