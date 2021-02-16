@@ -339,7 +339,7 @@ function subscribeToReportCommentEvents() {
     }
 
     Pusher.subscribe(pusherChannelName, 'reportComment', (pushJSON) => {
-        console.debug('Handling event sent by Pusher', {reportID: pushJSON.reportID});
+        Log.info('[Report] Handled event sent by Pusher', true, {reportID: pushJSON.reportID});
         updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
     }, false,
     () => {
@@ -347,13 +347,12 @@ function subscribeToReportCommentEvents() {
     });
 
     PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, reportAction}) => {
-        console.debug('Handling event sent by Airship', {reportID});
+        Log.info('[Report] Handled event sent by Airship', true, {reportID});
         updateReportWithNewAction(reportID, reportAction);
     });
 
     // Open correct report when push notification is clicked
     PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, ({reportID}) => {
-        console.debug('Interacted with Airship notification', {reportID});
         redirect(ROUTES.getReportRoute(reportID));
         hideSidebar();
     });
