@@ -17,15 +17,15 @@ class Hoverable extends Component {
 
         this.wrapperView = null;
 
-        this.handleOutsideClick = this.handleOutsideClick.bind(this);
+        this.resetHoverStateOnOutsideClick = this.resetHoverStateOnOutsideClick.bind(this);
     }
 
     componentDidMount() {
-        document.addEventListener('mousedown', this.handleOutsideClick);
+        document.addEventListener('mousedown', this.resetHoverStateOnOutsideClick);
     }
 
     componentWillUnmount() {
-        document.removeEventListener('mousedown', this.handleOutsideClick);
+        document.removeEventListener('mousedown', this.resetHoverStateOnOutsideClick);
     }
 
     /**
@@ -48,7 +48,7 @@ class Hoverable extends Component {
      *
      * @param {Object} event - A click event
      */
-    handleOutsideClick(event) {
+    resetHoverStateOnOutsideClick(event) {
         if (this.wrapperView && !this.wrapperView.contains(event.target)) {
             this.setState({isHovered: false});
         }
