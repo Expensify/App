@@ -1,376 +1,108 @@
-import _ from 'underscore';
 import React, {Component} from 'react';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import {
-    View,
-    Animated,
-    Easing,
-    Keyboard,
-} from 'react-native';
-import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
+import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
-import {Route} from '../../../libs/Router';
-import styles, {getSafeAreaPadding, getNavigationMenuStyle} from '../../../styles/styles';
-import variables from '../../../styles/variables';
-import HeaderView from '../HeaderView';
-import Sidebar from '../sidebar/SidebarView';
-import MainView from '../MainView';
-import NewGroupPage from '../../NewGroupPage';
-import NewChatPage from '../../NewChatPage';
-import SettingsPage from '../../SettingsPage';
-import SearchPage from '../../SearchPage';
-import {
-    hide as hideSidebar,
-    show as showSidebar,
-    setIsAnimating as setSideBarIsAnimating,
-} from '../../../libs/actions/Sidebar';
-import {
-    subscribeToReportCommentEvents,
-    fetchAll as fetchAllReports,
-} from '../../../libs/actions/Report';
-import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
-import * as Pusher from '../../../libs/Pusher/pusher';
-import PusherConnectionManager from '../../../libs/PusherConnectionManager';
-import UnreadIndicatorUpdater from '../../../libs/UnreadIndicatorUpdater';
-import ROUTES from '../../../ROUTES';
-import ONYXKEYS from '../../../ONYXKEYS';
-import Timing from '../../../libs/actions/Timing';
-import NetworkConnection from '../../../libs/NetworkConnection';
-import CONFIG from '../../../CONFIG';
-import CustomStatusBar from '../../../components/CustomStatusBar';
-import CONST from '../../../CONST';
-import {fetchCountryCodeByRequestIP} from '../../../libs/actions/GeoLocation';
-import KeyboardShortcut from '../../../libs/KeyboardShortcut';
-import {redirect} from '../../../libs/actions/App';
-import RightDockedModal from '../../../components/RightDockedModal';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import compose from '../../../libs/compose';
-import {getBetas} from '../../../libs/actions/User';
-import Account from '../../../libs/actions/Account';
+import ONYXKEYS from '../../ONYXKEYS';
+import styles from '../../styles/styles';
+import compose from '../../libs/compose';
+import ReportView from './report/ReportView';
 
 const propTypes = {
-    isSidebarShown: PropTypes.bool,
-    network: PropTypes.shape({isOffline: PropTypes.bool}),
-    ...windowDimensionsPropTypes,
+    /* Onyx Props */
+    // List of reports to display
+    reports: PropTypes.objectOf(PropTypes.shape({
+        reportID: PropTypes.number,
+    })),
+
+    // ID of Report being viewed
+    currentlyViewedReportID: PropTypes.string,
 };
+
 const defaultProps = {
-    isSidebarShown: true,
-    network: {isOffline: true},
+    reports: {},
+    currentlyViewedReportID: '',
 };
 
-class HomePage extends Component {
-    constructor(props) {
-        Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
-        Timing.start(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
-
-        super(props);
-
-        this.state = {
-            isCreateMenuActive: false,
-        };
-
-        this.onCreateMenuItemSelected = this.onCreateMenuItemSelected.bind(this);
-        this.toggleCreateMenu = this.toggleCreateMenu.bind(this);
-        this.toggleNavigationMenu = this.toggleNavigationMenu.bind(this);
-        this.dismissNavigationMenu = this.dismissNavigationMenu.bind(this);
-        this.showNavigationMenu = this.showNavigationMenu.bind(this);
-        this.recordTimerAndToggleNavigationMenu = this.recordTimerAndToggleNavigationMenu.bind(this);
-        this.navigateToSettings = this.navigateToSettings.bind(this);
-
-        const windowBarSize = props.isSmallScreenWidth
-            ? -props.windowWidth
-            : -variables.sideBarWidth;
-        this.animationTranslateX = new Animated.Value(
-            !props.isSidebarShown ? windowBarSize : 0,
-        );
-    }
-
-    componentDidMount() {
-        NetworkConnection.listenForReconnect();
-        PusherConnectionManager.init();
-        Pusher.init({
-            appKey: CONFIG.PUSHER.APP_KEY,
-            cluster: CONFIG.PUSHER.CLUSTER,
-            authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Push_Authenticate`,
-        }).then(subscribeToReportCommentEvents);
-
-        // Fetch some data we need on initialization
-        Account.fetchPriorityMode();
-        PersonalDetails.fetch();
-        PersonalDetails.fetchTimezone();
-        getBetas();
-        fetchAllReports(true, false, true);
-        fetchCountryCodeByRequestIP();
-        UnreadIndicatorUpdater.listenForReportChanges();
-
-        // Refresh the personal details, timezone and betas every 30 minutes
-        // There is no pusher event that sends updated personal details data yet
-        // See https://github.com/Expensify/ReactNativeChat/issues/468
-        this.interval = setInterval(() => {
-            if (this.props.network.isOffline) {
-                return;
-            }
-            PersonalDetails.fetch();
-            PersonalDetails.fetchTimezone();
-            getBetas();
-        }, 1000 * 60 * 30);
-
-        // Set up the navigationMenu correctly once on init
-        if (!this.props.isSmallScreenWidth) {
-            showSidebar();
+class MainView extends Component {
+    shouldComponentUpdate(nextProps) {
+        if (nextProps.currentlyViewedReportID !== this.props.currentlyViewedReportID) {
+            return true;
         }
 
-        Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
-
-        // Listen for the Command+K key being pressed so the focus can be given to the chat switcher
-        KeyboardShortcut.subscribe('K', () => {
-            redirect(ROUTES.SEARCH);
-        }, ['meta'], true);
-
-        const script = document.createElement('script');
-        script.type = 'text/javascript';
-        script.text = '!function(){var t=function(){var t=document.createElement("script");t.src="https://ws.audioeye.com/ae.js",t.type="text/javascript",t.setAttribute("async",""),document.getElementsByTagName("body")[0].appendChild(t)};"complete"!==document.readyState?window.addEventListener?window.addEventListener("load",t):window.attachEvent&&window.attachEvent("onload",t):t()}()';
-        document.body.appendChild(script);
-    }
-
-    shouldComponentUpdate(nextProps, nextState) {
-        if (_.isEqual(nextProps, this.props) && _.isEqual(nextState, this.state)) {
-            return false;
-        }
-
-        return true;
-    }
-
-    componentDidUpdate(prevProps) {
-        // Always show the sidebar if we are moving from small to large screens
-        if (prevProps.isSmallScreenWidth && !this.props.isSmallScreenWidth) {
-            showSidebar();
-        }
-        if (this.props.isSidebarShown === prevProps.isSidebarShown) {
-            // Nothing changed, don't trigger animation or re-render
-            return;
-        }
-        this.animateNavigationMenu(prevProps.isSidebarShown);
-    }
-
-    componentWillUnmount() {
-        KeyboardShortcut.unsubscribe('K');
-        NetworkConnection.stopListeningForReconnect();
-        clearInterval(this.interval);
-        this.interval = null;
-    }
-
-    /**
-     * Method called when a Create Menu item is selected.
-     */
-    onCreateMenuItemSelected() {
-        this.toggleCreateMenu();
-    }
-
-    /**
-     * Method called when a pinned chat is selected.
-     */
-    recordTimerAndToggleNavigationMenu() {
-        Timing.start(CONST.TIMING.SWITCH_REPORT);
-        this.toggleNavigationMenu();
-    }
-
-    /**
-     * Method called when avatar is clicked
-     */
-    navigateToSettings() {
-        redirect(ROUTES.SETTINGS);
-    }
-
-    /**
-     * Method called when we click the floating action button
-     * will trigger the animation
-     * Method called either when:
-     * Pressing the floating action button to open the CreateMenu modal
-     * Selecting an item on CreateMenu or closing it by clicking outside of the modal component
-     */
-    toggleCreateMenu() {
-        // Prevent from possibly toggling the create menu with the sidebar hidden
-        if (!this.props.isSidebarShown) {
-            return;
-        }
-        this.setState(state => ({
-            isCreateMenuActive: !state.isCreateMenuActive,
-        }));
-    }
-
-    /**
-     * Method called when we want to dismiss the navigationMenu,
-     * will not do anything if it already closed
-     * Only changes navigationMenu state on small screens (e.g. Mobile and mWeb)
-     */
-    dismissNavigationMenu() {
-        if (!this.props.isSmallScreenWidth || !this.props.isSidebarShown) {
-            return;
-        }
-
-        this.animateNavigationMenu(true);
-    }
-
-    /**
-     * Method called when we want to show the navigationMenu,
-     * will not do anything if it already open
-     * Only changes navigationMenu state on smaller screens (e.g. Mobile and mWeb)
-     */
-    showNavigationMenu() {
-        if (this.props.isSidebarShown) {
-            return;
-        }
-
-        this.toggleNavigationMenu();
-    }
-
-    /**
-     * Animates the navigationMenu in and out.
-     *
-     * @param {Boolean} navigationMenuIsShown
-     */
-    animateNavigationMenu(navigationMenuIsShown) {
-        const windowSideBarSize = this.props.isSmallScreenWidth
-            ? -variables.sideBarWidth
-            : -this.props.windowWidth;
-        const animationFinalValue = navigationMenuIsShown ? windowSideBarSize : 0;
-
-        setSideBarIsAnimating(true);
-        Animated.timing(this.animationTranslateX, {
-            toValue: animationFinalValue,
-            duration: 200,
-            easing: Easing.ease,
-            useNativeDriver: false,
-        }).start(({finished}) => {
-            if (finished && navigationMenuIsShown) {
-                hideSidebar();
-            }
-
-            if (finished) {
-                setSideBarIsAnimating(false);
-            }
+        const nextPropsReports = _.mapObject(nextProps.reports, (val) => {
+            const reportObject = {...val};
+            delete reportObject.lastVisitedTimestamp;
+            return reportObject;
         });
-    }
 
-    /**
-     * Method called when we want to toggle the navigationMenu opened and closed
-     * Only changes navigationMenu state on small screens (e.g. Mobile and mWeb)
-     */
-    toggleNavigationMenu() {
-        if (!this.props.isSmallScreenWidth) {
-            return;
+        const currentPropsReports = _.mapObject(this.props.reports, (val) => {
+            const reportObject = {...val};
+            delete reportObject.lastVisitedTimestamp;
+            return reportObject;
+        });
+
+        if (!_.isEqual(nextPropsReports, currentPropsReports)) {
+            return true;
         }
 
-        // Dismiss keyboard before toggling sidebar
-        Keyboard.dismiss();
-
-        // If the navigationMenu currently is not shown, we want to make it visible before the animation
-        if (!this.props.isSidebarShown) {
-            showSidebar();
-            return;
-        }
-
-        // Otherwise, we want to hide it after the animation
-        this.animateNavigationMenu(true);
+        return false;
     }
 
     render() {
+        let activeReportID = parseInt(this.props.currentlyViewedReportID, 10);
+
+        // The styles for each of our reports. Basically, they are all hidden except for the one matching the
+        // reportID in the URL
+        const reportStyles = _.reduce(this.props.reports, (memo, report) => {
+            const isActiveReport = activeReportID === report.reportID;
+            const finalData = {...memo};
+            let reportStyle;
+
+            if (isActiveReport) {
+                activeReportID = report.reportID;
+                reportStyle = [styles.dFlex, styles.flex1];
+            } else {
+                reportStyle = [styles.dNone];
+            }
+
+            finalData[report.reportID] = [reportStyle];
+            return finalData;
+        }, {});
+
+        const reportsToDisplay = _.filter(this.props.reports, report => (
+            report.isPinned
+            || report.unreadActionCount > 0
+            || report.reportID === activeReportID
+        ));
         return (
             <>
-                <CustomStatusBar />
-                <SafeAreaInsetsContext.Consumer style={[styles.flex1]}>
-                    {insets => (
-                        <View
-                            style={[styles.appContentWrapper,
-                                styles.flexRow,
-                                styles.flex1,
-                                getSafeAreaPadding(insets),
-                            ]}
-                        >
-                            <Route path={[
-                                ROUTES.REPORT,
-                                ROUTES.HOME,
-                                ROUTES.SETTINGS,
-                                ROUTES.NEW_GROUP,
-                                ROUTES.NEW_CHAT,
-                                ROUTES.SEARCH,
-                            ]}
-                            >
-                                <Animated.View style={[
-                                    getNavigationMenuStyle(
-                                        this.props.windowWidth,
-                                        this.props.isSidebarShown,
-                                        this.props.isSmallScreenWidth,
-                                    ),
-                                    {
-                                        transform: [{translateX: this.animationTranslateX}],
-                                    }]}
-                                >
-                                    <Sidebar
-                                        insets={insets}
-                                        onLinkClick={this.recordTimerAndToggleNavigationMenu}
-                                        onAvatarClick={this.navigateToSettings}
-                                        isCreateMenuActive={this.state.isCreateMenuActive}
-                                        toggleCreateMenu={this.toggleCreateMenu}
-                                        onCreateMenuItemSelected={this.onCreateMenuItemSelected}
-                                    />
-                                </Animated.View>
-                                <View
-                                    style={[styles.appContent, styles.flex1, styles.flexColumn]}
-                                >
-                                    <HeaderView
-                                        shouldShowNavigationMenuButton={this.props.isSmallScreenWidth}
-                                        onNavigationMenuButtonClicked={this.toggleNavigationMenu}
-                                    />
-                                    <RightDockedModal
-                                        title="Settings"
-                                        route={ROUTES.SETTINGS}
-                                    >
-                                        <SettingsPage />
-                                    </RightDockedModal>
-                                    <RightDockedModal
-                                        title="New Group"
-                                        route={ROUTES.NEW_GROUP}
-                                    >
-                                        <NewGroupPage />
-                                    </RightDockedModal>
-                                    <RightDockedModal
-                                        title="New Chat"
-                                        route={ROUTES.NEW_CHAT}
-                                    >
-                                        <NewChatPage />
-                                    </RightDockedModal>
-                                    <RightDockedModal
-                                        title="Search"
-                                        route={ROUTES.SEARCH}
-                                    >
-                                        <SearchPage />
-                                    </RightDockedModal>
-                                    <MainView />
-                                </View>
-                            </Route>
-                        </View>
-                    )}
-                </SafeAreaInsetsContext.Consumer>
+                {_.map(reportsToDisplay, report => (
+                    <View
+                        key={report.reportID}
+                        style={reportStyles[report.reportID]}
+                    >
+                        <ReportView
+                            reportID={report.reportID}
+                            isActiveReport={report.reportID === activeReportID}
+                        />
+                    </View>
+                ))}
             </>
         );
     }
 }
 
-HomePage.propTypes = propTypes;
-HomePage.defaultProps = defaultProps;
+MainView.propTypes = propTypes;
+MainView.defaultProps = defaultProps;
 
 export default compose(
-    withOnyx(
-        {
-            isSidebarShown: {
-                key: ONYXKEYS.IS_SIDEBAR_SHOWN,
-            },
-            network: {
-                key: ONYXKEYS.NETWORK,
-            },
+    withOnyx({
+        reports: {
+            key: ONYXKEYS.COLLECTION.REPORT,
         },
-    ),
-    withWindowDimensions,
-)(HomePage);
+        currentlyViewedReportID: {
+            key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
+        },
+    }),
+)(MainView);
