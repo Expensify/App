@@ -19,7 +19,7 @@ Onyx.connect({
 });
 
 /**
- * Clears the Onyx store, redirects to the sign in page and handles adding any exitTo params to the URL.
+ * Clears the Onyx store and redirects to the sign in page.
  * Normally this method would live in Session.js, but that would cause a circular dependency with Network.js.
  *
  * @param {String} [errorMessage] error message to be displayed on the sign in page
@@ -34,20 +34,15 @@ function redirectToSignIn(errorMessage) {
         return;
     }
 
-    // If there is already an exitTo, or has the URL of signin, don't redirect
-    if (currentURL.indexOf('exitTo') !== -1 || currentURL.indexOf('signin') !== -1) {
+    // If we are already on the signin page, don't redirect
+    if (currentURL.indexOf('signin') !== -1) {
         return;
     }
 
     // Save the reportID before calling redirect or otherwise when clear
     // is finished the value saved here will already be null
     const reportID = currentlyViewedReportID;
-
-    // When the URL is at the root of the site, go to sign-in, otherwise add the exitTo
-    const urlWithExitTo = currentURL === ROUTES.ROOT
-        ? ROUTES.SIGNIN
-        : ROUTES.getSigninWithExitToRoute(currentURL);
-    redirect(urlWithExitTo);
+    redirect(ROUTES.SIGNIN);
     Onyx.clear().then(() => {
         if (errorMessage) {
             Onyx.set(ONYXKEYS.SESSION, {error: errorMessage});
