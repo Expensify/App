@@ -13,7 +13,6 @@ import Modal from '../../../components/Modal';
 import CONST from '../../../CONST';
 import PressableWithSecondaryInteraction from '../../../components/PressableWithSecondaryInteraction';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import {isRightClick} from '../../../libs/PressEvents';
 
 const propTypes = {
     // The ID of the report this action is on.
@@ -79,18 +78,11 @@ class ReportActionItem extends Component {
 
         // If the popover will display off-screen, scroll the ReportActionsView FlatList down to this item first.
         if (this.popoverAnchorY - this.popoverHeight < 0) {
-            this.popoverAnchorY += (this.popoverHeight + 20);
-            this.props.scrollToThis(this.popoverHeight + 20);
+            this.popoverAnchorY += (this.popoverHeight - this.popoverAnchorY) + 20;
+            this.props.scrollToThis((this.popoverAnchorY - this.popoverHeight) + 20);
         }
 
-        if (!this.props.isSmallScreenWidth) {
-            // On large screens, only display the ReportActionContextMenu on RightClick, not LongPress.
-            if (isRightClick(nativeEvent)) {
-                this.setState({isModalVisible: true});
-            }
-        } else {
-            this.setState({isModalVisible: true});
-        }
+        this.setState({isModalVisible: true});
     }
 
     /**
