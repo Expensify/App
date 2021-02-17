@@ -139,8 +139,8 @@ describe('OptionsListUtils', () => {
         // When we filter in the Search view without providing a searchValue
         let results = OptionsListUtils.getSearchOptions(REPORTS, PERSONAL_DETAILS, '');
 
-        // Then all recentReports and personalDetails should be returned
-        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS));
+        // Then the 2 personalDetails that don't have reports should be returned
+        expect(results.personalDetails.length).toBe(2);
 
         // Then all of the reports should be shown, including the one that has no message on them.
         expect(results.recentReports.length).toBe(_.size(REPORTS));
