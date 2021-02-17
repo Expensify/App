@@ -3,6 +3,9 @@ import * as Pusher from './Pusher/pusher';
 import * as API from './API';
 import Log from './Log';
 
+// It's necessary to throttle requests to reauthenticate since calling this multiple times will cause Pusher to
+// reconnect each time when we only need to reconnect once. This way, if an authToken is expired and we try to
+// subscribe to a bunch of channels at once we will only reauthenticate and force reconnect Pusher once.
 const reauthenticate = _.throttle(() => {
     Log.info('[Pusher] Re-authenticating and then reconnecting', true);
     API.reauthenticate('Push_Authenticate').then(() => Pusher.reconnect());
@@ -26,7 +29,7 @@ function init() {
             })
                 .then((data) => {
                     if (data.jsonCode === 407) {
-                        callback(true, 'Pusher: Expensify session expired');
+                        callback(new Error('Expensify session expired'), {auth: ''});
 
                         // Attempt to refresh the authToken then reconnect to Pusher
                         reauthenticate();
@@ -35,6 +38,10 @@ function init() {
 
                     Log.info('[PusherConnectionManager] Pusher authenticated successfully', true);
                     callback(null, data);
+                })
+                .catch((error) => {
+                    Log.info('[PusherConnectionManager] Unhandled error: ', error);
+                    callback(error, {auth: ''});
                 });
         },
     }));
@@ -49,6 +56,7 @@ function init() {
         switch (eventName) {
             case 'error':
                 Log.info('[PusherConnectionManager] error event', true, {error: data});
+                reauthenticate();
                 break;
             case 'connected':
                 Log.info('[PusherConnectionManager] connected event', true);
