@@ -243,10 +243,6 @@ function removeOptimisticActions(reportID) {
  * @param {Object} reportAction
  */
 function updateReportWithNewAction(reportID, reportAction) {
-    if (!reportAction) {
-        return;
-    }
-
     const newMaxSequenceNumber = reportAction.sequenceNumber;
     const isFromCurrentUser = reportAction.actorAccountID === currentUserAccountID;
 
