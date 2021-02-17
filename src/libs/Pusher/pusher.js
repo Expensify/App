@@ -62,23 +62,19 @@ function init(args, params) {
 
         // Listen for connection errors and log them
         socket.connection.bind('error', (error) => {
-            console.debug('[Pusher] error', error);
             callSocketEventCallbacks('error', error);
         });
 
         socket.connection.bind('connected', () => {
-            console.debug('[Pusher] connected');
             callSocketEventCallbacks('connected');
             resolve();
         });
 
         socket.connection.bind('disconnected', () => {
-            console.debug('[Pusher] disconnected');
             callSocketEventCallbacks('disconnected');
         });
 
         socket.connection.bind('state_change', (states) => {
-            console.debug('[Pusher] state changed', states);
             callSocketEventCallbacks('state_change', states);
         });
     });
