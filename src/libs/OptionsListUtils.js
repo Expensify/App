@@ -316,6 +316,7 @@ function getSearchOptions(
         prioritizePinnedReports: true,
         showChatPreviewLine: true,
         showReportsWithNoComments: true,
+        includePersonalDetails: true,
     });
 }
 
