@@ -4,6 +4,7 @@ import CONFIG from '../CONFIG';
 import ONYXKEYS from '../ONYXKEYS';
 import redirectToSignIn from './actions/SignInRedirect';
 import * as Network from './Network';
+import Log from './Log';
 
 let isAuthenticating;
 let credentials;
@@ -288,10 +289,8 @@ function reauthenticate(command = '') {
             isAuthenticating = false;
             redirectToSignIn(error.message);
 
-            console.debug('Redirecting to Sign In because we failed to reauthenticate', {
-                command,
-                error: error.message,
-            });
+            Log.info(`Redirecting to Sign In because we failed to reauthenticate. 
+                Command: ${command} Error: ${error.message}`);
         });
 }
 
