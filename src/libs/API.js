@@ -400,6 +400,8 @@ function Log(parameters) {
     const commandName = 'Log';
     requireParameters(['message', 'parameters', 'expensifyCashAppVersion'],
         parameters, commandName);
+
+    // Note: We are forcing Log to run since it requires no authToken and should never be queued unless we are offline.
     return request(commandName, {...parameters, forceNetworkRequest: true});
 }
 
