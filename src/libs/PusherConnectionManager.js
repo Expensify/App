@@ -1,6 +1,12 @@
+import _ from 'underscore';
 import * as Pusher from './Pusher/pusher';
 import * as API from './API';
 import Log from './Log';
+
+const reauthenticate = _.throttle(() => {
+    Log.info('[Pusher] Re-authenticating and then reconnecting', true);
+    API.reauthenticate('Push_Authenticate').then(() => Pusher.reconnect());
+}, 5000, {trailing: false});
 
 function init() {
     /**
@@ -20,10 +26,10 @@ function init() {
             })
                 .then((data) => {
                     if (data.jsonCode === 407) {
-                        callback(new Error('Pusher: Expensify session expired. Re-authenticating...'));
+                        callback(true, 'Pusher: Expensify session expired');
 
                         // Attempt to refresh the authToken then reconnect to Pusher
-                        API.reauthenticate('Push_Authenticate').then(() => Pusher.reconnect());
+                        reauthenticate();
                         return;
                     }
 
@@ -43,16 +49,12 @@ function init() {
         switch (eventName) {
             case 'error':
                 Log.info('[PusherConnectionManager] error event', true, {error: data});
-                Pusher.reconnect();
                 break;
             case 'connected':
                 Log.info('[PusherConnectionManager] connected event', true);
                 break;
             case 'disconnected':
                 Log.info('[PusherConnectionManager] disconnected event', true);
-                break;
-            case 'state_change':
-                Log.info('[PusherConnectionManager] state_change event', true, {states: data});
                 break;
             default:
                 break;

@@ -400,7 +400,7 @@ function Log(parameters) {
     const commandName = 'Log';
     requireParameters(['message', 'parameters', 'expensifyCashAppVersion'],
         parameters, commandName);
-    return request(commandName, parameters);
+    return request(commandName, {...parameters, forceNetworkRequest: true});
 }
 
 /**

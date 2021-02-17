@@ -243,6 +243,10 @@ function removeOptimisticActions(reportID) {
  * @param {Object} reportAction
  */
 function updateReportWithNewAction(reportID, reportAction) {
+    if (!reportAction) {
+        return;
+    }
+
     const newMaxSequenceNumber = reportAction.sequenceNumber;
     const isFromCurrentUser = reportAction.actorAccountID === currentUserAccountID;
 
@@ -344,7 +348,10 @@ function subscribeToReportCommentEvents() {
     }, false,
     () => {
         NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
-    });
+    })
+        .catch((error) => {
+            Log.info('[Report] Failed to initially subscribe to Pusher channel', true, {error, pusherChannelName});
+        });
 
     PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, reportAction}) => {
         Log.info('[Report] Handled event sent by Airship', true, {reportID});
@@ -418,7 +425,10 @@ function subscribeToReportTypingEvents(reportID) {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, typingStoppedStatus);
             delete typingWatchTimers[reportUserIdentifier];
         }, 1500);
-    });
+    })
+        .catch((error) => {
+            Log.info('[Report] Failed to initially subscribe to Pusher channel', true, {error, pusherChannelName});
+        });
 }
 
 /**
@@ -476,10 +486,14 @@ function fetchChatReports() {
     })
 
         // The string cast below is necessary as Get rvl='chatList' may return an int
-        .then(({chatList}) => {
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                return;
+            }
+
             // Get all the chat reports if they have any, otherwise create one with concierge
-            if (chatList.length) {
-                fetchChatReportsByIDs(String(chatList).split(','));
+            if (lodashGet(response, 'response.chatList.length')) {
+                fetchChatReportsByIDs(String(response.chatList).split(','));
             } else {
                 fetchOrCreateChatReport([currentUserEmail, 'concierge@expensify.com']);
             }
