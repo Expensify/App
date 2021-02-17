@@ -22,6 +22,13 @@ Onyx.connect({
     callback: val => isOffline = val && val.isOffline,
 });
 
+// Subscribe to the user's session so we can include their email in every request and include it in the server logs
+let email;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: val => email = val ? val.email : null,
+});
+
 /**
  * Process the networkRequestQueue by looping through the queue and attempting to make the requests
  */
@@ -32,8 +39,15 @@ function processNetworkRequestQueue() {
         // 2. Getting a 200 response back from the API (happens right below)
         // 3. NetInfo triggering an event that the network is back online
 
+        const data = {
+            doNotRetry: true,
+        };
+        if (email) {
+            data.email = email;
+        }
+
         // Make a simple request every second to see if the API is online again
-        HttpUtils.xhr('Get', {doNotRetry: true})
+        HttpUtils.xhr('Get', data)
             .then(() => NetworkConnection.setOfflineStatus(false))
             .catch(e => console.debug('[Ping] failed', e));
         return;
@@ -53,9 +67,14 @@ function processNetworkRequestQueue() {
             return;
         }
 
+        const requestData = queuedRequest.data;
+        if (email) {
+            requestData.email = email;
+        }
+
         const finalParameters = _.isFunction(enhanceParameters)
-            ? enhanceParameters(queuedRequest.command, queuedRequest.data)
-            : queuedRequest.data;
+            ? enhanceParameters(queuedRequest.command, requestData)
+            : requestData;
 
         // Check to see if the queue has paused again. It's possible that a call to enhanceParameters()
         // has paused the queue and if this is the case we must return.
