@@ -11,6 +11,7 @@ import {redirect} from '../libs/actions/App';
 import ROUTES from '../ROUTES';
 import {hide as hideSidebar} from '../libs/actions/Sidebar';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
+import {fetchOrCreateChatReport} from '../libs/actions/Report';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -53,6 +54,7 @@ class SearchPage extends Component {
 
         const {
             recentReports,
+            personalDetails,
         } = getSearchOptions(
             props.reports,
             props.personalDetails,
@@ -62,6 +64,7 @@ class SearchPage extends Component {
         this.state = {
             searchValue: '',
             recentReports,
+            personalDetails,
         };
     }
 
@@ -73,7 +76,7 @@ class SearchPage extends Component {
     getSections() {
         return [{
             title: 'RECENT',
-            data: this.state.recentReports,
+            data: this.state.recentReports.concat(this.state.personalDetails),
             shouldShow: true,
             indexOffset: 0,
         }];
@@ -85,14 +88,29 @@ class SearchPage extends Component {
      * @param {Object} option
      */
     selectReport(option) {
-        this.setState({
-            searchValue: '',
-        }, () => {
+        if (!option) {
+            return;
+        }
+
+        if (option.reportID) {
+            this.setState({
+                searchValue: '',
+            }, () => {
+                if (this.props.isSmallScreenWidth) {
+                    hideSidebar();
+                }
+                redirect(ROUTES.getReportRoute(option.reportID));
+            });
+        } else {
             if (this.props.isSmallScreenWidth) {
                 hideSidebar();
             }
-            redirect(ROUTES.getReportRoute(option.reportID));
-        });
+
+            fetchOrCreateChatReport([
+                this.props.session.email,
+                option.login,
+            ]);
+        }
     }
 
     render() {
@@ -108,6 +126,7 @@ class SearchPage extends Component {
                         onChangeText={(searchValue = '') => {
                             const {
                                 recentReports,
+                                personalDetails,
                             } = getSearchOptions(
                                 this.props.reports,
                                 this.props.personalDetails,
@@ -116,6 +135,7 @@ class SearchPage extends Component {
                             this.setState({
                                 searchValue,
                                 recentReports,
+                                personalDetails,
                             });
                         }}
                         hideSectionHeaders

@@ -187,6 +187,7 @@ function getAuthToken() {
  * @param {String} parameters.partnerUserID
  * @param {String} parameters.partnerUserSecret
  * @param {String} [parameters.twoFactorAuthCode]
+ * @param {String} [parameters.email]
  * @returns {Promise}
  */
 function Authenticate(parameters) {
@@ -214,6 +215,9 @@ function Authenticate(parameters) {
 
         // Force this request to be made because the network queue is paused when re-authentication is happening
         forceNetworkRequest: true,
+
+        // Add email param so the first Authenticate request is logged on the server w/ this email
+        email: parameters.email,
     })
         .then((response) => {
             // If we didn't get a 200 response from Authenticate we either failed to Authenticate with
@@ -323,6 +327,8 @@ function User_SignUp(parameters) {
  * @param {String} parameters.partnerPassword
  * @param {String} parameters.partnerUserID
  * @param {String} parameters.partnerUserSecret
+ * @param {Boolean} [parameters.doNotRetry]
+ * @param {String} [parameters.email]
  * @returns {Promise}
  */
 function CreateLogin(parameters) {

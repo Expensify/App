@@ -99,7 +99,7 @@ class SidebarLinks extends React.Component {
         }];
 
         return (
-            <View style={[styles.flex1, styles.h100, {marginTop: this.props.insets.top}]}>
+            <View style={[styles.flex1, styles.h100]}>
                 <View style={[
                     styles.flexRow,
                     styles.ph5,
