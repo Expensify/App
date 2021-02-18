@@ -7,7 +7,7 @@ import {withOnyx} from 'react-native-onyx';
 import Text from '../../../components/Text';
 import {fetchActions, updateLastReadActionID} from '../../../libs/actions/Report';
 import ONYXKEYS from '../../../ONYXKEYS';
-import ReportActionItem from './ReportActionItem';
+import ReportActionItemRow from './ReportActionItemRow';
 import styles from '../../../styles/styles';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import InvertedFlatList from '../../../components/InvertedFlatList';
@@ -259,7 +259,7 @@ class ReportActionsView extends React.Component {
         needsLayoutCalculation,
     }) {
         return (
-            <ReportActionItem
+            <ReportActionItemRow
                 reportID={this.props.reportID}
                 action={item.action}
                 displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
