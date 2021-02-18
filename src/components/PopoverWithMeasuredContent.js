@@ -19,8 +19,8 @@ const propTypes = {
 
     // Where the popover should be positioned relative to the anchor points.
     anchorOrigin: PropTypes.shape({
-        horizontal: PropTypes.oneOf(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL),
-        vertical: PropTypes.oneOf(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL),
+        horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
+        vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
 
     // Optionally pass in a function with content to measure.
