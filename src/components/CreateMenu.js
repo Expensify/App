@@ -12,7 +12,6 @@ import {ChatBubble, Users} from './Icon/Expensicons';
 import {redirect} from '../libs/actions/App';
 import ROUTES from '../ROUTES';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
-import variables from '../styles/variables';
 
 const propTypes = {
     // Callback to fire on request to modal close
@@ -86,38 +85,29 @@ class CreateMenu extends PureComponent {
                         ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED
                         : CONST.MODAL.MODAL_TYPE.POPOVER
                 }
-                styleOverride={{
-                    modalStyle: {
-                        marginRight: this.props.windowWidth - variables.sideBarWidth,
-                        marginBottom: 100,
-                    },
-                    modalContainerStyle: {
-                        width: variables.sideBarWidth - 40,
-                        paddingTop: 12,
-                        paddingBottom: 12,
-                        boxShadow: '0px 0px 10px 0px rgba(0, 0, 0, 0.025)',
-                    },
-                }}
+                anchorPosition={styles.createMenuPosition}
             >
-                {menuItemData.map(({icon, text, onPress}) => (
-                    <Pressable
-                        key={text}
-                        onPress={onPress}
-                        style={({hovered}) => ([
-                            styles.createMenuItem,
-                            hovered && {backgroundColor: themeColors.buttonHoveredBG},
-                        ])}
-                    >
-                        <View style={styles.createMenuIcon}>
-                            <Icon src={icon} />
-                        </View>
-                        <View style={styles.justifyContentCenter}>
-                            <Text style={[styles.createMenuText, styles.ml3]}>
-                                {text}
-                            </Text>
-                        </View>
-                    </Pressable>
-                ))}
+                <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
+                    {menuItemData.map(({icon, text, onPress}) => (
+                        <Pressable
+                            key={text}
+                            onPress={onPress}
+                            style={({hovered}) => ([
+                                styles.createMenuItem,
+                                hovered && {backgroundColor: themeColors.buttonHoveredBG},
+                            ])}
+                        >
+                            <View style={styles.createMenuIcon}>
+                                <Icon src={icon} />
+                            </View>
+                            <View style={styles.justifyContentCenter}>
+                                <Text style={[styles.createMenuText, styles.ml3]}>
+                                    {text}
+                                </Text>
+                            </View>
+                        </Pressable>
+                    ))}
+                </View>
             </Modal>
         );
     }

@@ -24,6 +24,16 @@ const CONST = {
             POPOVER: 'popover',
             RIGHT_DOCKED: 'right_docked',
         },
+        ANCHOR_ORIGIN_VERTICAL: {
+            TOP: 'top',
+            CENTER: 'center',
+            BOTTOM: 'bottom',
+        },
+        ANCHOR_ORIGIN_HORIZONTAL: {
+            LEFT: 'left',
+            CENTER: 'center',
+            RIGHT: 'right',
+        },
     },
     TIMING: {
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',

@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import CONST from '../../CONST';
 import {windowDimensionsPropTypes} from '../withWindowDimensions';
 
-const modalPropTypes = {
+const propTypes = {
     // Callback method fired when the user requests to close the modal
     onClose: PropTypes.func.isRequired,
 
@@ -24,30 +24,31 @@ const modalPropTypes = {
         CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED,
         CONST.MODAL.MODAL_TYPE.POPOVER,
         CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
+    ]).isRequired,
+
+    // A react-native-animatable animation definition for the modal display animation.
+    animationIn: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.object,
     ]),
 
-    // Styles to override the internal appearance / default styles of the modal on a case-by-case basis.
-    styleOverride: PropTypes.shape({
-        // eslint-disable-next-line react/forbid-prop-types
-        modalStyle: PropTypes.object,
-        // eslint-disable-next-line react/forbid-prop-types
-        modalContainerStyle: PropTypes.object,
-        swipeDirection: PropTypes.string,
-        animationIn: PropTypes.oneOfType([
-            PropTypes.string,
-            PropTypes.object,
-        ]),
-        animationOut: PropTypes.oneOfType([
-            PropTypes.string,
-            PropTypes.object,
-        ]),
-        hideBackdrop: PropTypes.bool,
-        shouldAddBottomSafeAreaPadding: PropTypes.bool,
-        shouldAddTopSafeAreaPadding: PropTypes.bool,
-        hideBackground: PropTypes.bool,
+    // The anchor position of a popover modal. Has no effect on other modal types.
+    anchorPosition: PropTypes.shape({
+        top: PropTypes.number,
+        right: PropTypes.number,
+        bottom: PropTypes.number,
+        left: PropTypes.number,
     }),
 
     ...windowDimensionsPropTypes,
 };
 
-export default modalPropTypes;
+const defaultProps = {
+    onSubmit: null,
+    type: '',
+    onModalHide: () => { },
+    animationIn: null,
+    anchorPosition: null,
+};
+
+export {propTypes, defaultProps};
