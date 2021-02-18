@@ -131,8 +131,10 @@ function handleExpiredAuthToken(originalCommand, originalParameters, originalTyp
         })
         .catch(() => (
 
-            // If the request did not succeed and we were not logged out requeue the original request
-            Network.post(originalCommand, originalParameters, originalType)
+            // If the request did not succeed and we were not logged out requeue the original request. We are using
+            // request() here so that it we can reauthenticate again when it fails
+            // eslint-disable-next-line no-use-before-define
+            request(originalCommand, originalParameters, originalType)
         ));
 }
 
@@ -288,6 +290,10 @@ function reauthenticate(command = '') {
         })
 
         .catch((error) => {
+            // If authentication fails, then the network can be unpaused
+            Network.unpauseRequestQueue();
+            isAuthenticating = false;
+
             // When a fetch() fails and the "API is offline" error is thrown we won't log the user out. Most likely they
             // have a spotty connection and will need to try to reauthenticate when they come back online. We will
             // re-throw this error so it can be handled by callers of reauthenticate().
@@ -295,10 +301,7 @@ function reauthenticate(command = '') {
                 throw error;
             }
 
-            // If authentication fails, then the network can be unpaused and app is redirected
-            // so the sign on screen.
-            Network.unpauseRequestQueue();
-            isAuthenticating = false;
+            // If we experience something other than a network error then redirect the user to sign in
             redirectToSignIn(error.message);
 
             console.debug('Redirecting to Sign In because we failed to reauthenticate', {
