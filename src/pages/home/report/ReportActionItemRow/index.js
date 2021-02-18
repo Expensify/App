@@ -3,18 +3,12 @@ import React, {Component} from 'react';
 import {View} from 'react-native';
 import propTypes from './ReportActionItemRowPropTypes';
 import styles from '../../../../styles/styles';
-import CONST from '../../../../CONST';
 import Hoverable from '../../../../components/Hoverable';
 import PressableWithSecondaryInteraction from '../../../../components/PressableWithSecondaryInteraction';
 import PopoverWithMeasuredContent from '../../../../components/PopoverWithMeasuredContent';
 import ReportActionItem from '../ReportActionItem';
 import ReportActionContextMenu from '../ReportActionContextMenu';
 import getReportActionItemStyles from '../../../../styles/getReportActionItemStyles';
-
-const POPOVER_ANCHOR_ORIGIN = {
-    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-};
 
 class ReportActionItemRow extends Component {
     constructor(props) {
@@ -94,7 +88,6 @@ class ReportActionItemRow extends Component {
                                 isVisible={this.state.isModalVisible}
                                 onClose={this.hideModal}
                                 popoverPosition={this.popoverAnchorPosition}
-                                anchorOrigin={POPOVER_ANCHOR_ORIGIN}
                                 animationIn="bounceIn"
                                 measureContent={() => (
                                     <ReportActionContextMenu
