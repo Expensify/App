@@ -2,7 +2,6 @@ import React, {memo} from 'react';
 import {View} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
-import CustomStatusBar from '../CustomStatusBar';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import styles, {getSafeAreaPadding} from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
@@ -62,7 +61,6 @@ const BaseModal = (props) => {
             useNativeDriver={props.useNativeDriver}
             statusBarTranslucent
         >
-            <CustomStatusBar />
             <SafeAreaInsetsContext.Consumer>
                 {(insets) => {
                     const {
