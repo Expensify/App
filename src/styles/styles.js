@@ -159,7 +159,7 @@ const styles = {
     },
 
     hoveredComponentBG: {
-        backgroundColor: themeColors.componentBGHover,
+        backgroundColor: themeColors.hoverComponentBG,
     },
 
     touchableButtonImage: {
