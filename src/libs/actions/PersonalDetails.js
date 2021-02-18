@@ -167,7 +167,11 @@ function getFromReportParticipants(reports) {
                         .map(item => item.avatar);
                     const reportName = _.chain(report.participants)
                         .filter(participant => participant !== currentUserEmail)
-                        .map(participant => lodashGet(formattedPersonalDetails, [participant, 'displayName'], participant))
+                        .map(participant => lodashGet(
+                            formattedPersonalDetails,
+                            [participant, 'displayName'],
+                            participant,
+                        ))
                         .value()
                         .join(', ');
 
