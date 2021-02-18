@@ -32,10 +32,8 @@ export default {
     APP_NAME: 'ExpensifyCash',
     AUTH_TOKEN_EXPIRATION_TIME: 1000 * 60 * 90,
     EXPENSIFY: {
-        URL_EXPENSIFY_COM: expensifyComWithProxy,
-
-        // This will be exactly what is set for EXPENSIFY_URL_COM whether the proxy is enabled or not.
-        URL_EXPENSIFY_COM_NO_PROXY: expensifyURL,
+        // Note: This will be EXACTLY what is set for EXPENSIFY_URL_COM whether the proxy is enabled or not.
+        URL_EXPENSIFY_COM: expensifyURL,
         URL_EXPENSIFY_CASH: expensifyCashURL,
         URL_API_ROOT: expensifyURLRoot,
         PARTNER_NAME: lodashGet(Config, 'EXPENSIFY_PARTNER_NAME', 'chat-expensify-com'),
