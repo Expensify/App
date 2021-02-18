@@ -263,7 +263,6 @@ class ReportActionsView extends React.Component {
                 reportID={this.props.reportID}
                 action={item.action}
                 displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
-                scrollToThis={viewOffset => this.actionListElement.scrollToIndex({index, viewOffset})}
                 onLayout={onLayout}
                 needsLayoutCalculation={needsLayoutCalculation}
             />

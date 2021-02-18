@@ -24,8 +24,6 @@ const BaseModal = (props) => {
         swipeDirection,
         animationIn,
         animationOut,
-        animationInTiming,
-        animationOutTiming,
         shouldAddTopSafeAreaPadding,
         shouldAddBottomSafeAreaPadding,
         hideBackdrop,
@@ -58,9 +56,7 @@ const BaseModal = (props) => {
             deviceHeight={props.windowHeight}
             deviceWidth={props.windowWidth}
             animationIn={props.animationIn || animationIn}
-            animationOut={props.animationOut || animationOut}
-            animationInTiming={props.animationInTiming || animationInTiming}
-            animationOutTiming={props.animationOutTiming || animationOutTiming}
+            animationOut={animationOut}
             useNativeDriver={props.useNativeDriver}
             statusBarTranslucent
         >

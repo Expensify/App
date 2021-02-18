@@ -6,7 +6,7 @@ import themeColors from './themes/default';
  * @param {Boolean} [isHovered]
  * @returns {Object}
  */
-export default function getReportActionItemStyles(isHovered = false) {
+export default function (isHovered = false) {
     return {
         display: 'flex',
         justifyContent: 'space-between',
