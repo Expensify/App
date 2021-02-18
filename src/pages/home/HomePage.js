@@ -7,14 +7,12 @@ import {
     Easing,
     Keyboard,
 } from 'react-native';
-import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import {withOnyx} from 'react-native-onyx';
 import {Route} from '../../libs/Router';
-import styles, {getSafeAreaPadding, getNavigationMenuStyle} from '../../styles/styles';
+import styles, {getNavigationMenuStyle} from '../../styles/styles';
 import variables from '../../styles/variables';
-import HeaderView from './HeaderView';
-import Sidebar from './sidebar/SidebarView';
-import MainView from './MainView';
+import SidebarScreen from './sidebar/SidebarScreen';
+import ReportScreen from './ReportScreen';
 import NewGroupPage from '../NewGroupPage';
 import NewChatPage from '../NewChatPage';
 import SettingsPage from '../SettingsPage';
@@ -37,7 +35,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import Timing from '../../libs/actions/Timing';
 import NetworkConnection from '../../libs/NetworkConnection';
 import CONFIG from '../../CONFIG';
-import CustomStatusBar from '../../components/CustomStatusBar';
 import CONST from '../../CONST';
 import {fetchCountryCodeByRequestIP} from '../../libs/actions/GeoLocation';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
@@ -272,79 +269,57 @@ class HomePage extends Component {
 
     render() {
         return (
-            <>
-                <CustomStatusBar />
-                <SafeAreaInsetsContext.Consumer style={[styles.flex1]}>
-                    {insets => (
-                        <View
-                            style={[styles.appContentWrapper,
-                                styles.flexRow,
-                                styles.flex1,
-                                getSafeAreaPadding(insets),
-                            ]}
-                        >
-                            <Route path={[
-                                ROUTES.REPORT,
-                                ROUTES.HOME,
-                                ROUTES.SETTINGS,
-                                ROUTES.NEW_GROUP,
-                                ROUTES.NEW_CHAT,
-                                ROUTES.SEARCH,
-                            ]}
-                            >
-                                <Animated.View style={[
-                                    getNavigationMenuStyle(
-                                        this.props.windowWidth,
-                                        this.props.isSidebarShown,
-                                        this.props.isSmallScreenWidth,
-                                    ),
-                                    {
-                                        transform: [{translateX: this.animationTranslateX}],
-                                    }]}
-                                >
-                                    <Sidebar
-                                        insets={insets}
-                                        onLinkClick={this.recordTimerAndToggleNavigationMenu}
-                                        onAvatarClick={this.navigateToSettings}
-                                        isCreateMenuActive={this.state.isCreateMenuActive}
-                                        toggleCreateMenu={this.toggleCreateMenu}
-                                        onCreateMenuItemSelected={this.onCreateMenuItemSelected}
-                                    />
-                                </Animated.View>
-                                <View
-                                    style={[styles.appContent, styles.flex1, styles.flexColumn]}
-                                >
-                                    <HeaderView
-                                        shouldShowNavigationMenuButton={this.props.isSmallScreenWidth}
-                                        onNavigationMenuButtonClicked={this.toggleNavigationMenu}
-                                    />
-                                    <RightDockedModal
-                                        route={ROUTES.SETTINGS}
-                                    >
-                                        <SettingsPage />
-                                    </RightDockedModal>
-                                    <RightDockedModal
-                                        route={ROUTES.NEW_GROUP}
-                                    >
-                                        <NewGroupPage />
-                                    </RightDockedModal>
-                                    <RightDockedModal
-                                        route={ROUTES.NEW_CHAT}
-                                    >
-                                        <NewChatPage />
-                                    </RightDockedModal>
-                                    <RightDockedModal
-                                        route={ROUTES.SEARCH}
-                                    >
-                                        <SearchPage />
-                                    </RightDockedModal>
-                                    <MainView />
-                                </View>
-                            </Route>
-                        </View>
-                    )}
-                </SafeAreaInsetsContext.Consumer>
-            </>
+            <View style={[styles.flexRow, styles.h100, styles.appContentWrapper]}>
+                <Route path={[
+                    ROUTES.REPORT,
+                    ROUTES.HOME,
+                    ROUTES.SETTINGS,
+                    ROUTES.NEW_GROUP,
+                    ROUTES.NEW_CHAT,
+                    ROUTES.SEARCH,
+                ]}
+                >
+                    {/* Sidebar Screen */}
+                    <Animated.View style={[
+                        getNavigationMenuStyle(
+                            this.props.windowWidth,
+                            this.props.isSidebarShown,
+                            this.props.isSmallScreenWidth,
+                        ),
+                        {
+                            transform: [{translateX: this.animationTranslateX}],
+                        }]}
+                    >
+                        <SidebarScreen
+                            onLinkClick={this.recordTimerAndToggleNavigationMenu}
+                            onAvatarClick={this.navigateToSettings}
+                            isCreateMenuActive={this.state.isCreateMenuActive}
+                            toggleCreateMenu={this.toggleCreateMenu}
+                            onCreateMenuItemSelected={this.onCreateMenuItemSelected}
+                        />
+                    </Animated.View>
+
+                    {/* Report Screen */}
+                    <ReportScreen
+                        isSmallScreenWidth={this.props.isSmallScreenWidth}
+                        toggleNavigationMenu={this.toggleNavigationMenu}
+                    />
+
+                    {/* Modal Screens */}
+                    <RightDockedModal route={ROUTES.SETTINGS}>
+                        <SettingsPage />
+                    </RightDockedModal>
+                    <RightDockedModal route={ROUTES.NEW_GROUP}>
+                        <NewGroupPage />
+                    </RightDockedModal>
+                    <RightDockedModal route={ROUTES.NEW_CHAT}>
+                        <NewChatPage />
+                    </RightDockedModal>
+                    <RightDockedModal route={ROUTES.SEARCH}>
+                        <SearchPage />
+                    </RightDockedModal>
+                </Route>
+            </View>
         );
     }
 }

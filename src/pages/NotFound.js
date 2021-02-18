@@ -10,11 +10,9 @@ import styles from '../styles/styles';
 import logo from '../../assets/images/expensify-logo_reversed.png';
 import {redirect} from '../libs/actions/App';
 import ROUTES from '../ROUTES';
-import CustomStatusBar from '../components/CustomStatusBar';
 
 const NotFound = () => (
     <>
-        <CustomStatusBar />
         <SafeAreaView
             style={styles.notFoundSafeArea}
         >
