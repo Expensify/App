@@ -8,7 +8,7 @@ import PressableWithSecondaryInteraction from '../../../../components/PressableW
 import PopoverWithMeasuredContent from '../../../../components/PopoverWithMeasuredContent';
 import ReportActionItem from '../ReportActionItem';
 import ReportActionContextMenu from '../ReportActionContextMenu';
-import getReportActionItemStyles from '../../../../styles/getReportActionItemStyles';
+import getReportActionItemStyles from '../../../../styles/getReportActionItemRowStyles';
 
 class ReportActionItemRow extends Component {
     constructor(props) {
