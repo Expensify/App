@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
+import CONST from '../CONST';
 import CONFIG from '../CONFIG';
 import ONYXKEYS from '../ONYXKEYS';
 import redirectToSignIn from './actions/SignInRedirect';
@@ -127,7 +128,12 @@ function handleExpiredAuthToken(originalCommand, originalParameters, originalTyp
             // Now that the API is authenticated, make the original request again with the new authToken
             const params = addDefaultValuesToParameters(originalCommand, originalParameters);
             return Network.post(originalCommand, params, originalType);
-        });
+        })
+        .catch(() => (
+
+            // If the request did not succeed and we were not logged out requeue the original request
+            Network.post(originalCommand, originalParameters, originalType)
+        ));
 }
 
 /**
@@ -282,6 +288,13 @@ function reauthenticate(command = '') {
         })
 
         .catch((error) => {
+            // When a fetch() fails and the "API is offline" error is thrown we won't log the user out. Most likely they
+            // have a spotty connection and will need to try to reauthenticate when they come back online. We will
+            // re-throw this error so it can be handled by callers of reauthenticate().
+            if (error.message === CONST.ERROR.API_OFFLINE) {
+                throw error;
+            }
+
             // If authentication fails, then the network can be unpaused and app is redirected
             // so the sign on screen.
             Network.unpauseRequestQueue();

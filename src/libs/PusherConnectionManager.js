@@ -8,7 +8,14 @@ import Log from './Log';
 // subscribe to a bunch of channels at once we will only reauthenticate and force reconnect Pusher once.
 const reauthenticate = _.throttle(() => {
     Log.info('[Pusher] Re-authenticating and then reconnecting', true);
-    API.reauthenticate('Push_Authenticate').then(() => Pusher.reconnect());
+    API.reauthenticate('Push_Authenticate')
+        .then(() => Pusher.reconnect())
+        .catch(() => {
+            console.debug(
+                '[PusherConnectionManager]',
+                'Unable to re-authenticate Pusher because we are offline.',
+            );
+        });
 }, 5000, {trailing: false});
 
 function init() {
