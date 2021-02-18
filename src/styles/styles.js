@@ -158,6 +158,10 @@ const styles = {
         color: themeColors.textReversed,
     },
 
+    hoveredComponentBG: {
+        backgroundColor: themeColors.componentBGHover,
+    },
+
     touchableButtonImage: {
         alignItems: 'center',
         height: variables.componentSizeNormal,
@@ -470,6 +474,10 @@ const styles = {
         overflow: 'hidden',
     },
 
+    sidebarLinkHover: {
+        backgroundColor: themeColors.sidebarHover,
+    },
+
     sidebarLinkActive: {
         backgroundColor: themeColors.border,
         textDecorationLine: 'none',
@@ -762,6 +770,7 @@ const styles = {
         color: themeColors.textReversed,
         fontSize: variables.fontSizeSmall,
         lineHeight: 24,
+        marginLeft: -3,
         textAlign: 'center',
     },
 
