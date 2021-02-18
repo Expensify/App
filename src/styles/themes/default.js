@@ -6,7 +6,6 @@ export default {
     componentBG: colors.white,
     hoverComponentBG: colors.gray1,
     activeComponentBG: colors.gray2,
-    componentBGHover: colors.gray1,
     appBG: colors.white,
     heading: colors.charcoal,
     sidebar: colors.gray1,
