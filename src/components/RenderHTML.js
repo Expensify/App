@@ -104,11 +104,11 @@ function ImgRenderer({tnode}) {
 
     // Update the image URL so the images can be accessed depending on the config environment
     previewSource = previewSource.replace(
-        Config.EXPENSIFY.URL_EXPENSIFY_COM,
+        Config.EXPENSIFY.URL_EXPENSIFY_COM_NO_PROXY,
         Config.EXPENSIFY.URL_API_ROOT,
     );
     source = source.replace(
-        Config.EXPENSIFY.URL_EXPENSIFY_COM,
+        Config.EXPENSIFY.URL_EXPENSIFY_COM_NO_PROXY,
         Config.EXPENSIFY.URL_API_ROOT,
     );
 
