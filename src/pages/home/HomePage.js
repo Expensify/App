@@ -319,25 +319,21 @@ class HomePage extends Component {
                                         onNavigationMenuButtonClicked={this.toggleNavigationMenu}
                                     />
                                     <RightDockedModal
-                                        title="Settings"
                                         route={ROUTES.SETTINGS}
                                     >
                                         <SettingsPage />
                                     </RightDockedModal>
                                     <RightDockedModal
-                                        title="New Group"
                                         route={ROUTES.NEW_GROUP}
                                     >
                                         <NewGroupPage />
                                     </RightDockedModal>
                                     <RightDockedModal
-                                        title="New Chat"
                                         route={ROUTES.NEW_CHAT}
                                     >
                                         <NewChatPage />
                                     </RightDockedModal>
                                     <RightDockedModal
-                                        title="Search"
                                         route={ROUTES.SEARCH}
                                     >
                                         <SearchPage />
