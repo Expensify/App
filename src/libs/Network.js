@@ -130,11 +130,9 @@ function processNetworkRequestQueue() {
             : requestData;
 
         // Check to see if the queue has paused again. It's possible that a call to enhanceParameters()
-        // has paused the queue and if this is the case we must return.
+        // has paused the queue and if this is the case we must return. We don't retry these requests
+        // since if a request is made without an authToken we sign out the user.
         if (!shouldMakeRequest(queuedRequest)) {
-            if (shouldRetryRequest(queuedRequest)) {
-                retryableRequests.push(queuedRequest);
-            }
             return;
         }
 

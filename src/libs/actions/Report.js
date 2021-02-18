@@ -488,7 +488,7 @@ function fetchChatReports() {
             }
 
             // Get all the chat reports if they have any, otherwise create one with concierge
-            if (lodashGet(response, 'response.chatList.length')) {
+            if (lodashGet(response, 'chatList.length')) {
                 fetchChatReportsByIDs(String(response.chatList).split(','));
             } else {
                 fetchOrCreateChatReport([currentUserEmail, 'concierge@expensify.com']);
