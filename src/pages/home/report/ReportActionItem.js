@@ -9,10 +9,15 @@ import getReportActionItemStyles from '../../../styles/getReportActionItemStyles
 import styles from '../../../styles/styles';
 import ReportActionContextMenu from './ReportActionContextMenu';
 import Hoverable from '../../../components/Hoverable';
-import Modal from '../../../components/Modal';
 import CONST from '../../../CONST';
 import PressableWithSecondaryInteraction from '../../../components/PressableWithSecondaryInteraction';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import PopoverWithMeasuredContent from '../../../components/PopoverWithMeasuredContent';
+
+const POPOVER_ANCHOR_ORIGIN = {
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+};
 
 const propTypes = {
     // The ID of the report this action is on.
@@ -23,9 +28,6 @@ const propTypes = {
 
     // Should the comment have the appearance of being grouped with the previous comment?
     displayAsGroup: PropTypes.bool.isRequired,
-
-    // Function to scroll the ReportActionsView to this item
-    scrollToThis: PropTypes.func.isRequired,
 
     ...windowDimensionsPropTypes,
 };
@@ -38,17 +40,14 @@ class ReportActionItem extends Component {
             isModalVisible: false,
         };
 
-        // The X and Y position (relative to the screen) where the popover will display.
-        this.popoverAnchorX = null;
-        this.popoverAnchorY = null;
-
-        // The width and height of the ReportActionContextMenu popover.
-        this.popoverWidth = null;
-        this.popoverHeight = null;
+        // The horizontal and vertical position (relative to the screen) where the popover will display.
+        this.popoverAnchorPosition = {
+            horizontal: 0,
+            vertical: 0,
+        };
 
         this.showModal = this.showModal.bind(this);
         this.hideModal = this.hideModal.bind(this);
-        this.measurePopover = this.measurePopover.bind(this);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -63,8 +62,10 @@ class ReportActionItem extends Component {
      * @param {Object} nativeEvent
      */
     capturePressLocation(nativeEvent) {
-        this.popoverAnchorX = nativeEvent.pageX;
-        this.popoverAnchorY = nativeEvent.pageY;
+        this.popoverAnchorPosition = {
+            horizontal: nativeEvent.pageX,
+            vertical: nativeEvent.pageY,
+        };
     }
 
     /**
@@ -75,13 +76,6 @@ class ReportActionItem extends Component {
     showModal(event) {
         const nativeEvent = event.nativeEvent || {};
         this.capturePressLocation(nativeEvent);
-
-        // If the popover will display off-screen, scroll the ReportActionsView FlatList down to this item first.
-        if (this.popoverAnchorY - this.popoverHeight < 0) {
-            this.popoverAnchorY += (this.popoverHeight - this.popoverAnchorY) + 20;
-            this.props.scrollToThis((this.popoverAnchorY - this.popoverHeight) + 20);
-        }
-
         this.setState({isModalVisible: true});
     }
 
@@ -92,24 +86,13 @@ class ReportActionItem extends Component {
         this.setState({isModalVisible: false});
     }
 
-    /**
-     * Measure the size of the ReportActionContextMenu popover.
-     *
-     * @param {Object} nativeEvent
-     */
-    measurePopover({nativeEvent}) {
-        this.popoverWidth = nativeEvent.layout.width;
-        this.popoverHeight = nativeEvent.layout.height;
-    }
-
     render() {
-        const {getContainerStyle, getModalStyleOverride} = getReportActionItemStyles();
         return (
             <PressableWithSecondaryInteraction onSecondaryInteraction={this.showModal}>
                 <Hoverable>
                     {hovered => (
                         <View>
-                            <View style={getContainerStyle(hovered)}>
+                            <View style={getReportActionItemStyles(hovered)}>
                                 {!this.props.displayAsGroup
                                     ? <ReportActionItemSingle action={this.props.action} />
                                     : <ReportActionItemGrouped action={this.props.action} />}
@@ -122,38 +105,26 @@ class ReportActionItem extends Component {
                                     isMini
                                 />
                             </View>
-                            <Modal
-                                type={CONST.MODAL.MODAL_TYPE.POPOVER}
+                            <PopoverWithMeasuredContent
                                 isVisible={this.state.isModalVisible}
                                 onClose={this.hideModal}
-                                styleOverride={getModalStyleOverride(
-                                    this.props.windowWidth,
-                                    this.props.windowHeight,
-                                    this.popoverAnchorX,
-                                    this.popoverAnchorY,
-                                    this.popoverWidth,
-                                    this.popoverHeight,
+                                popoverPosition={this.popoverAnchorPosition}
+                                anchorOrigin={POPOVER_ANCHOR_ORIGIN}
+                                animationIn="bounceIn"
+                                measureContent={() => (
+                                    <ReportActionContextMenu
+                                        isVisible
+                                        reportID={-1}
+                                        reportActionID={-1}
+                                    />
                                 )}
                             >
                                 <ReportActionContextMenu
-                                    reportID={this.props.reportID}
-                                    reportActionID={this.props.action.sequenceNumber}
                                     isVisible={this.state.isModalVisible}
-                                />
-                            </Modal>
-                            {/*
-                                HACK ALERT: This is an invisible view used to measure the size of the
-                                ReportActionContextMenu popover before it ever needs to be displayed.
-                                We do this because we need to know its dimensions in order to correctly
-                                animate the popover, but we can't measure its dimensions without first animating it.
-                            */}
-                            <View style={{position: 'absolute', opacity: 0}} onLayout={this.measurePopover}>
-                                <ReportActionContextMenu
                                     reportID={this.props.reportID}
                                     reportActionID={this.props.action.sequenceNumber}
-                                    isVisible
                                 />
-                            </View>
+                            </PopoverWithMeasuredContent>
                         </View>
                     )}
                 </Hoverable>

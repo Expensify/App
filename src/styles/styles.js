@@ -410,6 +410,18 @@ const styles = {
         textDecorationLine: 'none',
     },
 
+    createMenuPosition: {
+        left: 18,
+        bottom: 100,
+    },
+
+    createMenuContainer: {
+        width: variables.sideBarWidth - 40,
+        paddingTop: 12,
+        paddingBottom: 12,
+        boxShadow: '0px 0px 10px 0px rgba(0, 0, 0, 0.025)',
+    },
+
     createMenuItem: {
         flexDirection: 'row',
         borderRadius: 0,
