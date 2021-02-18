@@ -15,7 +15,7 @@ class ReportActionItemRow extends Component {
         super(props);
 
         this.state = {
-            isModalVisible: false,
+            isPopoverVisible: false,
         };
 
         // The horizontal and vertical position (relative to the screen) where the popover will display.
@@ -24,8 +24,8 @@ class ReportActionItemRow extends Component {
             vertical: 0,
         };
 
-        this.showModal = this.showModal.bind(this);
-        this.hideModal = this.hideModal.bind(this);
+        this.showPopover = this.showPopover.bind(this);
+        this.hidePopover = this.hidePopover.bind(this);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -51,22 +51,22 @@ class ReportActionItemRow extends Component {
      *
      * @param {Object} [event] - A press event.
      */
-    showModal(event) {
+    showPopover(event) {
         const nativeEvent = event.nativeEvent || {};
         this.capturePressLocation(nativeEvent);
-        this.setState({isModalVisible: true});
+        this.setState({isPopoverVisible: true});
     }
 
     /**
      * Hide the ReportActionContextMenu modal popover.
      */
-    hideModal() {
-        this.setState({isModalVisible: false});
+    hidePopover() {
+        this.setState({isPopoverVisible: false});
     }
 
     render() {
         return (
-            <PressableWithSecondaryInteraction onSecondaryInteraction={this.showModal}>
+            <PressableWithSecondaryInteraction onSecondaryInteraction={this.showPopover}>
                 <Hoverable>
                     {hovered => (
                         <View>
@@ -80,13 +80,13 @@ class ReportActionItemRow extends Component {
                                 <ReportActionContextMenu
                                     reportID={this.props.reportID}
                                     reportActionID={this.props.action.sequenceNumber}
-                                    isVisible={hovered && !this.state.isModalVisible}
+                                    isVisible={hovered && !this.state.isPopoverVisible}
                                     isMini
                                 />
                             </View>
                             <PopoverWithMeasuredContent
-                                isVisible={this.state.isModalVisible}
-                                onClose={this.hideModal}
+                                isVisible={this.state.isPopoverVisible}
+                                onClose={this.hidePopover}
                                 popoverPosition={this.popoverAnchorPosition}
                                 animationIn="bounceIn"
                                 measureContent={() => (
@@ -98,7 +98,7 @@ class ReportActionItemRow extends Component {
                                 )}
                             >
                                 <ReportActionContextMenu
-                                    isVisible={this.state.isModalVisible}
+                                    isVisible={this.state.isPopoverVisible}
                                     reportID={this.props.reportID}
                                     reportActionID={this.props.action.sequenceNumber}
                                 />
