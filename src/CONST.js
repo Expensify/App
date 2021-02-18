@@ -32,6 +32,9 @@ const CONST = {
         NO_CONTACTS_FOUND: 'Don\'t see who you\'re looking for? Type their email or phone number to invite them to chat.',
         MAXIMUM_PARTICIPANTS_REACHED: 'You\'ve reached the maximum number of participants for a group chat.',
     },
+    ERROR: {
+        API_OFFLINE: 'API is offline',
+    },
     PRIORITY_MODE: {
         GSD: 'gsd',
         DEFAULT: 'default',

@@ -20,10 +20,17 @@ function init() {
             })
                 .then((data) => {
                     if (data.jsonCode === 407) {
-                        callback(new Error('Pusher: Expensify session expired. Re-authenticating...'));
+                        callback(new Error('Pusher: Expensify session expired. Re-authenticating...'), {auth: ''});
 
                         // Attempt to refresh the authToken then reconnect to Pusher
-                        API.reauthenticate('Push_Authenticate').then(() => Pusher.reconnect());
+                        API.reauthenticate('Push_Authenticate')
+                            .then(() => Pusher.reconnect())
+                            .catch(() => {
+                                console.debug(
+                                    '[PusherConnectionManager]',
+                                    'Unable to re-authenticate Pusher because we are offline.',
+                                );
+                            });
                         return;
                     }
 
