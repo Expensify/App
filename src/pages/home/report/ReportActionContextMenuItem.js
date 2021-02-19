@@ -5,6 +5,7 @@ import Tooltip from '../../../components/Tooltip';
 import Icon from '../../../components/Icon';
 import getReportActionContextMenuItemStyles from '../../../styles/getReportActionContextMenuItemStyles';
 import CONST from '../../../CONST';
+import styles from '../../../styles/styles';
 
 /**
  * Get the string representation of a button's state.
@@ -36,7 +37,7 @@ const defaultProps = {
 };
 
 const ReportActionContextMenuItem = (props) => {
-    const {getButtonStyle, getIconFillColor, getTextStyle} = getReportActionContextMenuItemStyles(props.isMini);
+    const {getButtonStyle, getIconFillColor} = getReportActionContextMenuItemStyles(props.isMini);
     return (
         props.isMini
             ? (
@@ -59,7 +60,7 @@ const ReportActionContextMenuItem = (props) => {
                                 fill={getIconFillColor(getButtonState(hovered, pressed))}
                             />
                             <Text
-                                style={getTextStyle(getButtonState(hovered, pressed))}
+                                style={styles.reportActionContextMenuText}
                                 selectable={false}
                             >
                                 {props.text}
