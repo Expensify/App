@@ -40,7 +40,6 @@ export default {
     // Information about the current session (authToken, accountID, email, loading, error)
     SESSION: 'session',
     IS_SIDEBAR_SHOWN: 'isSidebarShown',
-    IS_SIDEBAR_ANIMATING: 'isSidebarAnimating',
     BETAS: 'betas',
 
     // Collection Keys
