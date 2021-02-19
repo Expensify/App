@@ -10,7 +10,7 @@ import styles from '../styles/styles';
 
 const propTypes = {
     // All modal props except type, popoverAnchorPosition, and the windowDimensions prop types
-    ...(_.omit(modalPropTypes, ['type', 'anchorPosition', ...(_.keys(windowDimensionsPropTypes))])),
+    ...(_.omit(modalPropTypes, ['type', 'popoverAnchorPosition', ...(_.keys(windowDimensionsPropTypes))])),
 
     // The horizontal and vertical anchors points for the popover
     popoverPosition: PropTypes.shape({
@@ -31,7 +31,7 @@ const propTypes = {
 
 const defaultProps = {
     // Default modal props
-    ...(_.omit(defaultModalProps, ['type', 'anchorPosition'])),
+    ...(_.omit(defaultModalProps, ['type', 'popoverAnchorPosition'])),
 
     // Default positioning of the popover
     anchorOrigin: {
@@ -59,15 +59,6 @@ class PopoverWithMeasuredContent extends Component {
 
     shouldComponentUpdate(nextProps, nextState) {
         return !_.isEqual(this.props, nextProps) || !_.isEqual(this.state, nextState);
-    }
-
-    componentDidUpdate(prevProps) {
-        if (this.state.isContentMeasured
-            && (this.props.measureContent !== prevProps.measureContent
-                || !_.isEqual(this.props.children, prevProps.children))) {
-            // eslint-disable-next-line react/no-did-update-set-state
-            this.setState({isContentMeasured: false});
-        }
     }
 
     /**

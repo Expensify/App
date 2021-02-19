@@ -48,7 +48,7 @@ const defaultProps = {
     type: '',
     onModalHide: () => { },
     animationIn: null,
-    anchorPosition: null,
+    popoverAnchorPosition: null,
 };
 
 export {propTypes, defaultProps};
