@@ -6,6 +6,7 @@ import Modal from './Modal';
 import {propTypes as modalPropTypes, defaultProps as defaultModalProps} from './Modal/ModalPropTypes';
 import {windowDimensionsPropTypes} from './withWindowDimensions';
 import CONST from '../CONST';
+import styles from '../styles/styles';
 
 const propTypes = {
     // All modal props except type, anchorPosition, and the windowDimensions prop types
@@ -46,10 +47,25 @@ class PopoverWithMeasuredContent extends Component {
     constructor(props) {
         super(props);
 
+        this.state = {
+            isContentMeasured: false,
+        };
+
         this.popoverWidth = 0;
         this.popoverHeight = 0;
 
         this.measurePopover = this.measurePopover.bind(this);
+    }
+
+    shouldComponentUpdate(nextProps, nextState) {
+        return !_.isEqual(this.props, nextProps) || !_.isEqual(this.state, nextState);
+    }
+
+    componentDidUpdate(prevProps) {
+        if (this.props.measureContent !== prevProps.measureContent && this.state.isContentMeasured) {
+            // eslint-disable-next-line react/no-did-update-set-state
+            this.setState({isContentMeasured: false});
+        }
     }
 
     /**
@@ -60,6 +76,7 @@ class PopoverWithMeasuredContent extends Component {
     measurePopover({nativeEvent}) {
         this.popoverWidth = nativeEvent.layout.width;
         this.popoverHeight = nativeEvent.layout.height;
+        this.setState({isContentMeasured: true});
     }
 
     /**
@@ -105,9 +122,8 @@ class PopoverWithMeasuredContent extends Component {
     }
 
     render() {
-        const contentToMeasure = this.props.measureContent || (() => this.props.children);
-        return (
-            <>
+        return this.state.isContentMeasured
+            ? (
                 <Modal
                     type={CONST.MODAL.MODAL_TYPE.POPOVER}
                     isVisible={this.props.isVisible}
@@ -118,17 +134,18 @@ class PopoverWithMeasuredContent extends Component {
                 >
                     {this.props.children}
                 </Modal>
-                {/*
-                This is an invisible view used to measure the size of the
-                ReportActionContextMenu popover before it ever needs to be displayed.
-                We do this because we need to know its dimensions in order to correctly
-                animate the popover, but we can't measure its dimensions without first animating it.
-                */}
-                <View style={{position: 'absolute', opacity: 0}} onLayout={this.measurePopover}>
-                    {contentToMeasure()}
+            ) : (
+
+                /*
+                    This is an invisible view used to measure the size of the popover,
+                    before it ever needs to be displayed.
+                    We do this because we need to know its dimensions in order to correctly animate the popover,
+                    but we can't measure its dimensions without first animating it.
+                */
+                <View style={styles.invisible} onLayout={this.measurePopover}>
+                    {(this.props.measureContent || (() => this.props.children))()}
                 </View>
-            </>
-        );
+            );
     }
 }
 
