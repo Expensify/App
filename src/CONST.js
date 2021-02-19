@@ -36,6 +36,9 @@ const CONST = {
         GSD: 'gsd',
         DEFAULT: 'default',
     },
+    ERROR: {
+        API_OFFLINE: 'API is offline',
+    },
 };
 
 export default CONST;
