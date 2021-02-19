@@ -13,7 +13,6 @@ export default {
     iconSizeSmall: 12,
     iconSizeNormal: 20,
     mobileResponsiveWidthBreakpoint: 800,
-    desktopResponsiveWidthBreakpoint: 1000,
     safeInsertPercentage: 0.7,
     sideBarWidth: 375,
     pdfPageWidth: 992,

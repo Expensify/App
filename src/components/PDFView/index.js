@@ -22,12 +22,6 @@ const defaultProps = {
     style: {},
 };
 
-/**
- * On web, we use this pointed to a pdf renderer
- *
- * @class PDFView
- * @extends {PureComponent}
- */
 class PDFView extends PureComponent {
     constructor(props) {
         super(props);
