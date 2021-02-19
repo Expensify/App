@@ -107,7 +107,7 @@ class PopoverWithMeasuredContent extends Component {
     render() {
         const contentToMeasure = this.props.measureContent || (() => this.props.children);
         return (
-            <View>
+            <>
                 <Modal
                     type={CONST.MODAL.MODAL_TYPE.POPOVER}
                     isVisible={this.props.isVisible}
@@ -127,7 +127,7 @@ class PopoverWithMeasuredContent extends Component {
                 <View style={{position: 'absolute', opacity: 0}} onLayout={this.measurePopover}>
                     {contentToMeasure()}
                 </View>
-            </View>
+            </>
         );
     }
 }
