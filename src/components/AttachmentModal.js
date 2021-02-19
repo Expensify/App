@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '../CONST';
-import ModalWithHeader from './ModalWithHeader';
+import Modal from './Modal';
 import AttachmentView from './AttachmentView';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
@@ -13,6 +13,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import addAuthTokenToURL from '../libs/addAuthTokenToURL';
 import compose from '../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import HeaderWithCloseButton from './HeaderWithCloseButton';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -84,14 +85,17 @@ class AttachmentModal extends PureComponent {
             : [styles.imageModalImageCenterContainer, styles.p5];
         return (
             <>
-                <ModalWithHeader
+                <Modal
                     type={CONST.MODAL.MODAL_TYPE.CENTERED}
                     onSubmit={this.submitAndClose}
                     onClose={() => this.setState({isModalOpen: false})}
                     isVisible={this.state.isModalOpen}
-                    title={this.props.title}
                     backgroundColor={themeColors.componentBG}
                 >
+                    <HeaderWithCloseButton
+                        title={this.props.title}
+                        onCloseButtonPress={() => this.setState({isModalOpen: false})}
+                    />
                     <View style={attachmentViewStyles}>
                         {this.state.sourceURL && (
                             <AttachmentView sourceURL={sourceURL} file={this.state.file} />
@@ -116,7 +120,7 @@ class AttachmentModal extends PureComponent {
                             </Text>
                         </TouchableOpacity>
                     )}
-                </ModalWithHeader>
+                </Modal>
                 {this.props.children({
                     displayFileInModal: ({file}) => {
                         if (file instanceof File) {
