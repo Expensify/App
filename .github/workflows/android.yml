@@ -8,7 +8,7 @@ on:
 
 jobs:
     echoActor:
-        runs-on: macos-latest
+        runs-on: ubuntu-latest
         steps:
             -   name: Echo actor
                 run: echo ${{ github.actor }}
