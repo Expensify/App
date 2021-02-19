@@ -385,6 +385,7 @@ function disconnect() {
 function reconnect() {
     if (!socket) {
         console.debug('[Pusher] Unable to reconnect since Pusher instance does not yet exist.');
+        return;
     }
 
     console.debug('[Pusher] Reconnecting to Pusher');
