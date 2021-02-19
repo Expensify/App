@@ -62,7 +62,9 @@ class PopoverWithMeasuredContent extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (this.props.measureContent !== prevProps.measureContent && this.state.isContentMeasured) {
+        if (this.state.isContentMeasured
+            && (this.props.measureContent !== prevProps.measureContent
+                || !_.isEqual(this.props.children, prevProps.children))) {
             // eslint-disable-next-line react/no-did-update-set-state
             this.setState({isContentMeasured: false});
         }
