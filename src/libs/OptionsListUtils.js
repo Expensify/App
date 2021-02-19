@@ -83,13 +83,12 @@ function createOption(personalDetailList, report, draftComments, activeReportID,
         && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '').length > 0;
 
     const lastActorDetails = report ? _.find(personalDetailList, {login: report.lastActorEmail}) : null;
-    let lastMessageText = report
+    const lastMessageText = report
         ? (hasMultipleParticipants && lastActorDetails
             ? `${lastActorDetails.displayName}: `
             : '')
-        + report.lastMessageText
+        + _.unescape(report.lastMessageText)
         : '';
-    lastMessageText = _.unescape(lastMessageText);
 
     return {
         text: report ? report.reportName : personalDetail.displayName,
