@@ -375,7 +375,7 @@ function registerCustomAuthorizer(authorizer) {
  */
 function disconnect() {
     if (!socket) {
-        console.debug('[Pusher] Attempting to disconnect from Pusher before initialisation has occured, ignoring.');
+        console.debug('[Pusher] Attempting to disconnect from Pusher before initialisation has occurred, ignoring.');
         return;
     }
 
