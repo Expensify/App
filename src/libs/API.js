@@ -131,8 +131,9 @@ function handleExpiredAuthToken(originalCommand, originalParameters, originalTyp
         })
         .catch(() => (
 
-            // If the request did not succeed and we were not logged out requeue the original request. We are using
-            // request() here so that it we can reauthenticate again when it fails
+            // If the request did not succeed because of a networking issue or the server did not respond requeue the
+            // original request. We are using request() here so that it we can reauthenticate again if another
+            // request() has not refreshed the authToken. Network.post() does not trigger handleExpiredAuthToken.
             // eslint-disable-next-line no-use-before-define
             request(originalCommand, originalParameters, originalType)
         ));
@@ -417,7 +418,7 @@ function Log(parameters) {
     requireParameters(['message', 'parameters', 'expensifyCashAppVersion'],
         parameters, commandName);
 
-    // Note: We are forcing Log to run since it requires no authToken and should never be queued unless we are offline.
+    // Note: We are forcing Log to run since it requires no authToken and should only be queued when we are offline.
     return request(commandName, {...parameters, forceNetworkRequest: true});
 }
 

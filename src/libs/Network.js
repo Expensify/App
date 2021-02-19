@@ -38,21 +38,20 @@ Onyx.connect({
  * @param {Boolean} request.data.forceNetworkRequest
  * @return {Boolean}
  */
-function shouldMakeRequest(request) {
+function canMakeRequest(request) {
     // These requests are always made even when the queue is paused
     if (request.data.forceNetworkRequest === true) {
         return true;
     }
 
-    if (isQueuePaused) {
-        return false;
-    }
-
-    return true;
+    // If the queue is paused we will not make the request right now
+    return !isQueuePaused;
 }
 
 /**
- * Checks to see if a request should be retried when the queue is "paused".
+ * Checks to see if a request should be retried when the queue is "paused" and logs the command name + returnValueList
+ * to give us some limited debugging info. We don't want to log the entire request since this could lead to
+ * unintentional sharing of sensitive information.
  *
  * @param {Object} request
  * @param {String} request.command
@@ -61,7 +60,7 @@ function shouldMakeRequest(request) {
  * @param {String} [request.data.returnValueList]
  * @return {Boolean}
  */
-function shouldRetryRequest(request) {
+function canRetryRequest(request) {
     const doNotRetry = lodashGet(request, 'data.doNotRetry', false);
     const logParams = {command: request.command, doNotRetry, isQueuePaused};
     const returnValueList = lodashGet(request, 'data.returnValueList');
@@ -71,11 +70,11 @@ function shouldRetryRequest(request) {
 
     if (doNotRetry) {
         console.debug('Skipping request that should not be re-tried: ', logParams);
-        return false;
+    } else {
+        console.debug('Skipping request and re-queueing: ', logParams);
     }
 
-    console.debug('Skipping request and re-queueing: ', logParams);
-    return true;
+    return !doNotRetry;
 }
 
 /**
@@ -107,15 +106,18 @@ function processNetworkRequestQueue() {
         return;
     }
 
-    // If a request can't run because the queue is paused then it should end up here so it can be retried.
-    const retryableRequests = [];
+    // Some requests should be retried and will end up here if the following conditions are met:
+    // - the queue is paused
+    // - the request does not have forceNetworkRequest === true
+    // - the request does not have doNotRetry === true
+    const requestsToProcessOnNextRun = [];
 
     _.each(networkRequestQueue, (queuedRequest) => {
         // Some requests must be allowed to run even when the queue is paused e.g. an authentication request
         // that pauses the network queue while authentication happens, then unpauses it when it's done.
-        if (!shouldMakeRequest(queuedRequest)) {
-            if (shouldRetryRequest(queuedRequest)) {
-                retryableRequests.push(queuedRequest);
+        if (!canMakeRequest(queuedRequest)) {
+            if (canRetryRequest(queuedRequest)) {
+                requestsToProcessOnNextRun.push(queuedRequest);
             }
             return;
         }
@@ -132,7 +134,7 @@ function processNetworkRequestQueue() {
         // Check to see if the queue has paused again. It's possible that a call to enhanceParameters()
         // has paused the queue and if this is the case we must return. We don't retry these requests
         // since if a request is made without an authToken we sign out the user.
-        if (!shouldMakeRequest(queuedRequest)) {
+        if (!canMakeRequest(queuedRequest)) {
             return;
         }
 
@@ -143,7 +145,7 @@ function processNetworkRequestQueue() {
 
     // We clear the request queue at the end by setting the queue to retryableRequests which will either have some
     // requests we want to retry or an empty array
-    networkRequestQueue = retryableRequests;
+    networkRequestQueue = requestsToProcessOnNextRun;
 }
 
 // Process our write queue very often
