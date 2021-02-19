@@ -10,13 +10,11 @@ import Icon from '../../components/Icon';
 import {BackArrow, Pin} from '../../components/Icon/Expensicons';
 import compose from '../../libs/compose';
 import {togglePinnedState} from '../../libs/actions/Report';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 
 const propTypes = {
     // Toggles the navigationMenu open and closed
     onNavigationMenuButtonClicked: PropTypes.func.isRequired,
-
-    // Decides whether we should show the navigationMenu button
-    shouldShowNavigationMenuButton: PropTypes.bool.isRequired,
 
     /* Onyx Props */
     // The report currently being looked at
@@ -30,6 +28,8 @@ const propTypes = {
         // Value indicating if the report is pinned or not
         isPinned: PropTypes.bool,
     }),
+
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -38,8 +38,8 @@ const defaultProps = {
 
 const HeaderView = props => (
     <View style={[styles.appContentHeader]}>
-        <View style={[styles.appContentHeaderTitle, !props.shouldShowNavigationMenuButton && styles.pl5]}>
-            {props.shouldShowNavigationMenuButton && (
+        <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
+            {props.isSmallScreenWidth && (
                 <Pressable
                     onPress={props.onNavigationMenuButtonClicked}
                     style={[styles.LHNToggle]}
@@ -76,6 +76,7 @@ HeaderView.displayName = 'HeaderView';
 HeaderView.defaultProps = defaultProps;
 
 export default compose(
+    withWindowDimensions,
     withOnyx({
         currentlyViewedReportID: {
             key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,

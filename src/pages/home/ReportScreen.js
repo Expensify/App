@@ -19,12 +19,6 @@ const propTypes = {
 
     // ID of Report being viewed
     currentlyViewedReportID: PropTypes.string,
-
-    // Whether we have a small screen width
-    isSmallScreenWidth: PropTypes.bool.isRequired,
-
-    // Callback function to toggle the sidebar
-    toggleNavigationMenu: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -34,10 +28,6 @@ const defaultProps = {
 
 class ReportScreen extends Component {
     shouldComponentUpdate(nextProps) {
-        if (nextProps.isSmallScreenWidth !== this.props.isSmallScreenWidth) {
-            return true;
-        }
-
         if (nextProps.currentlyViewedReportID !== this.props.currentlyViewedReportID) {
             return true;
         }
@@ -98,8 +88,9 @@ class ReportScreen extends Component {
                 {() => (
                     <>
                         <HeaderView
-                            shouldShowNavigationMenuButton={this.props.isSmallScreenWidth}
-                            onNavigationMenuButtonClicked={this.props.toggleNavigationMenu}
+                            onNavigationMenuButtonClicked={() => {
+                                // Redirect to "Sidebar screen"
+                            }}
                         />
                         {_.map(reportsToDisplay, report => (
                             <View
