@@ -71,6 +71,7 @@ function listenForReconnect() {
     // every two seconds and if the last time recorded is greater than 4 seconds
     // we know that the computer has been asleep.
     lastTime = (new Date()).getTime();
+    clearInterval(sleepTimer);
     sleepTimer = setInterval(() => {
         const currentTime = (new Date()).getTime();
         const isSkewed = currentTime > (lastTime + 4000);
@@ -87,6 +88,7 @@ function listenForReconnect() {
 function stopListeningForReconnect() {
     logInfo('[NetworkConnection] stopListeningForReconnect called', true);
     clearInterval(sleepTimer);
+    sleepTimer = null;
     if (unsubscribeFromNetInfo) {
         unsubscribeFromNetInfo();
         unsubscribeFromNetInfo = undefined;
