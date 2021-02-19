@@ -306,28 +306,16 @@ class HomePage extends Component {
                     />
 
                     {/* Modal Screens */}
-                    <RightDockedModal
-                        title="Settings"
-                        route={ROUTES.SETTINGS}
-                    >
+                    <RightDockedModal route={ROUTES.SETTINGS}>
                         <SettingsPage />
                     </RightDockedModal>
-                    <RightDockedModal
-                        title="New Group"
-                        route={ROUTES.NEW_GROUP}
-                    >
+                    <RightDockedModal route={ROUTES.NEW_GROUP}>
                         <NewGroupPage />
                     </RightDockedModal>
-                    <RightDockedModal
-                        title="New Chat"
-                        route={ROUTES.NEW_CHAT}
-                    >
+                    <RightDockedModal route={ROUTES.NEW_CHAT}>
                         <NewChatPage />
                     </RightDockedModal>
-                    <RightDockedModal
-                        title="Search"
-                        route={ROUTES.SEARCH}
-                    >
+                    <RightDockedModal route={ROUTES.SEARCH}>
                         <SearchPage />
                     </RightDockedModal>
                 </Route>
