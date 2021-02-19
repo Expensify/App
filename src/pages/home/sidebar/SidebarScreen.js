@@ -1,9 +1,5 @@
-import React, {PureComponent} from 'react';
-import {
-    View,
-    Easing,
-    Animated,
-} from 'react-native';
+import React, {Component} from 'react';
+import {View, Animated} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import styles, {getNavigationMenuStyle} from '../../../styles/styles';
 import SidebarLinks from './SidebarLinks';
@@ -28,7 +24,7 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-class SidebarScreen extends PureComponent {
+class SidebarScreen extends Component {
     constructor(props) {
         super(props);
 
@@ -42,11 +38,8 @@ class SidebarScreen extends PureComponent {
             isCreateMenuActive: false,
         };
 
-        const windowBarSize = props.isSmallScreenWidth
-            ? -props.windowWidth
-            : -variables.sideBarWidth;
-        this.animationTranslateX = new Animated.Value(
-            !props.isSidebarShown ? windowBarSize : 0,
+        this.animation = new Animated.Value(
+            props.isSidebarShown ? 1 : 0,
         );
     }
 
@@ -119,16 +112,10 @@ class SidebarScreen extends PureComponent {
      * @param {Boolean} navigationMenuIsShown
      */
     animateNavigationMenu(navigationMenuIsShown) {
-        const windowSideBarSize = this.props.isSmallScreenWidth
-            ? -variables.sideBarWidth
-            : -this.props.windowWidth;
-        const animationFinalValue = navigationMenuIsShown ? windowSideBarSize : 0;
-
-        Animated.timing(this.animationTranslateX, {
-            toValue: animationFinalValue,
-            duration: 200,
-            easing: Easing.ease,
-            useNativeDriver: false,
+        Animated.timing(this.animation, {
+            toValue: navigationMenuIsShown ? 0 : 1,
+            duration: 300,
+            useNativeDriver: true,
         }).start();
     }
 
@@ -146,15 +133,23 @@ class SidebarScreen extends PureComponent {
     }
 
     render() {
+        const sidebarWidth = this.props.isSmallScreenWidth
+            ? this.props.windowWidth
+            : variables.sideBarWidth;
+        const translateXValue = this.animation.interpolate({
+            inputRange: [0, 1],
+            outputRange: [-sidebarWidth, 0],
+        });
         return (
             <Animated.View style={[
                 getNavigationMenuStyle(
                     this.props.windowWidth,
-                    this.props.isSidebarShown,
                     this.props.isSmallScreenWidth,
                 ),
                 {
-                    transform: [{translateX: this.animationTranslateX}],
+                    transform: [
+                        {translateX: translateXValue},
+                    ],
                 }]}
             >
                 <ScreenWrapper
