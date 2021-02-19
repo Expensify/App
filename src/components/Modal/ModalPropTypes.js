@@ -33,7 +33,7 @@ const propTypes = {
     ]),
 
     // The anchor position of a popover modal. Has no effect on other modal types.
-    anchorPosition: PropTypes.shape({
+    popoverAnchorPosition: PropTypes.shape({
         top: PropTypes.number,
         right: PropTypes.number,
         bottom: PropTypes.number,

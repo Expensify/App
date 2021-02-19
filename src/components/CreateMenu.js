@@ -85,7 +85,7 @@ class CreateMenu extends PureComponent {
                         ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED
                         : CONST.MODAL.MODAL_TYPE.POPOVER
                 }
-                anchorPosition={styles.createMenuPosition}
+                popoverAnchorPosition={styles.createMenuPosition}
             >
                 <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
                     {menuItemData.map(({icon, text, onPress}) => (
