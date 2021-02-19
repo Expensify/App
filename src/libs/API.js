@@ -296,6 +296,18 @@ function reauthenticate(command = '') {
 }
 
 /**
+ * @param {Object} parameters
+ * @param {String} parameters.oldPassword
+ * @param {String} parameters.password
+ * @returns {Promise}
+ */
+function ChangePassword(parameters) {
+    const commandName = 'User_UploadAvatar';
+    requireParameters(['oldPassword', 'password'], parameters, commandName);
+    return request(commandName, parameters);
+}
+
+/**
  * @param {object} parameters
  * @param {string} parameters.emailList
  * @returns {Promise}
@@ -430,6 +442,18 @@ function PersonalDetails_GetForEmails(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {Object} parameters.details
+ * @returns {Promise}
+ */
+function PersonalDetails_Update(parameters) {
+    const commandName = 'PersonalDetails_Update';
+    requireParameters(['details'],
+        parameters, commandName);
+    return request(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
  * @param {String} parameters.socket_id
  * @param {String} parameters.channel_name
  * @returns {Promise}
@@ -529,10 +553,44 @@ function SetPassword(parameters) {
 }
 
 /**
+ * @param {Object} parameters
+ * @param {String} parameters.subscribed
+ * @returns {Promise}
+ */
+function UpdateAccount(parameters) {
+    const commandName = 'UpdateAccount';
+    requireParameters(['subscribed'], parameters, commandName);
+    return request(commandName, parameters);
+}
+
+/**
  * @returns {Promise}
  */
 function User_GetBetas() {
     return request('User_GetBetas');
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.login
+ * @param {String} parameters.password
+ * @returns {Promise}
+ */
+function User_SecondaryLogin_Send(parameters) {
+    const commandName = 'User_SecondaryLogin_Send';
+    requireParameters(['login', 'password'], parameters, commandName);
+    return request(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.base64image
+ * @returns {Promise}
+ */
+function User_UploadAvatar(parameters) {
+    const commandName = 'User_UploadAvatar';
+    requireParameters(['base64image'], parameters, commandName);
+    return request(commandName, parameters);
 }
 
 /**
@@ -550,6 +608,7 @@ function SetNameValuePair(parameters) {
 export {
     getAuthToken,
     Authenticate,
+    ChangePassword,
     CreateChatReport,
     CreateLogin,
     DeleteLogin,
@@ -559,6 +618,7 @@ export {
     Graphite_Timer,
     Log,
     PersonalDetails_GetForEmails,
+    PersonalDetails_Update,
     Push_Authenticate,
     Report_AddComment,
     Report_GetHistory,
@@ -568,7 +628,10 @@ export {
     SetGithubUsername,
     SetNameValuePair,
     SetPassword,
+    UpdateAccount,
     User_SignUp,
     User_GetBetas,
+    User_SecondaryLogin_Send,
+    User_UploadAvatar,
     reauthenticate,
 };

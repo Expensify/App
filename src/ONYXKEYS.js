@@ -37,6 +37,9 @@ export default {
     // an international code
     COUNTRY_CODE: 'countryCode',
 
+    // Contains all the users settings for the Settings page and sub pages
+    USER: 'user',
+
     // Information about the current session (authToken, accountID, email, loading, error)
     SESSION: 'session',
     IS_SIDEBAR_SHOWN: 'isSidebarShown',
@@ -49,5 +52,6 @@ export default {
         REPORT_ACTIONS: 'reportActions_',
         REPORT_DRAFT_COMMENT: 'reportDraftComment_',
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
+        NVP: 'nvp_',
     },
 };
