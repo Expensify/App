@@ -799,7 +799,17 @@ const styles = {
 
     imageModalPDF: {
         flex: 1,
-        backgroundColor: themeColors.componentBG,
+        backgroundColor: themeColors.modalBackground,
+    },
+    PDFView: {
+        flex: 1,
+        backgroundColor: themeColors.modalBackground,
+        width: '100%',
+        height: '100%',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        overflow: 'hidden',
+        overflowY: 'auto',
     },
 
     modalCenterContentContainer: {
