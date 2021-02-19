@@ -1,10 +1,9 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
-import {View} from 'react-native';
+import {Pressable, View} from 'react-native';
 import propTypes from './ReportActionItemRowPropTypes';
 import styles from '../../../../styles/styles';
 import Hoverable from '../../../../components/Hoverable';
-import PressableWithSecondaryInteraction from '../../../../components/PressableWithSecondaryInteraction';
 import PopoverWithMeasuredContent from '../../../../components/PopoverWithMeasuredContent';
 import ReportActionItem from '../ReportActionItem';
 import ReportActionContextMenu from '../ReportActionContextMenu';
@@ -53,8 +52,12 @@ class ReportActionItemRow extends Component {
      */
     showPopover(event) {
         const nativeEvent = event.nativeEvent || {};
-        this.capturePressLocation(nativeEvent);
-        this.setState({isPopoverVisible: true});
+
+        // Only show the popover onLongPress if the longPress is a touch and not a mouse click
+        if (nativeEvent.type !== 'mousedown') {
+            this.capturePressLocation(nativeEvent);
+            this.setState({isPopoverVisible: true});
+        }
     }
 
     /**
@@ -66,7 +69,7 @@ class ReportActionItemRow extends Component {
 
     render() {
         return (
-            <PressableWithSecondaryInteraction onSecondaryInteraction={this.showPopover}>
+            <Pressable onLongPress={this.showPopover}>
                 <Hoverable>
                     {hovered => (
                         <View>
@@ -106,7 +109,7 @@ class ReportActionItemRow extends Component {
                         </View>
                     )}
                 </Hoverable>
-            </PressableWithSecondaryInteraction>
+            </Pressable>
         );
     }
 }
