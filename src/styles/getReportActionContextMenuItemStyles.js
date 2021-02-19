@@ -72,21 +72,42 @@ function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT) {
     }
 }
 
+const DEFAULT_TEXT_STYLE = [
+    {
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeNormal,
+        textAlign: 'center',
+    },
+    styles.mh3,
+];
+
 /**
- * Get the style of the text in the ReportActionContextMenu, depending on the state of the button it's it.
+ * Get the style of the text in the mini ReportActionContextMenu, depending on the state of the button it's in.
  *
  * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
  * @returns {Array}
  */
-function getTextStyle(buttonState = CONST.BUTTON_STATES.DEFAULT) {
+function getMiniTextStyle(buttonState = CONST.BUTTON_STATES.DEFAULT) {
     return [
+        ...DEFAULT_TEXT_STYLE,
         {
             color: getIconFillColor(buttonState),
-            fontFamily: fontFamily.GTA_BOLD,
-            fontSize: variables.fontSizeNormal,
-            textAlign: 'center',
         },
-        styles.mh3,
+    ];
+}
+
+/**
+ * Get the style of the text in the mini ReportActionContextMenu, depending on the state of the button it's in.
+ *
+ * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
+ * @returns {Array}
+ */
+function getBigTextStyle(buttonState = CONST.BUTTON_STATES.DEFAULT) {
+    return [
+        ...DEFAULT_TEXT_STYLE,
+        {
+            color: buttonState === CONST.BUTTON_STATES.PRESSED ? getIconFillColor(buttonState) : themeColors.text,
+        },
     ];
 }
 
@@ -100,7 +121,7 @@ function getReportActionContextMenuItemStyles(isMini) {
     return {
         getButtonStyle: isMini ? getMiniButtonStyle : getBigButtonStyle,
         getIconFillColor,
-        getTextStyle,
+        getTextStyle: isMini ? getMiniTextStyle : getBigTextStyle,
     };
 }
 
