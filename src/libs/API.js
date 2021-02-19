@@ -133,7 +133,7 @@ function handleExpiredAuthToken(originalCommand, originalParameters, originalTyp
 
             // If the request did not succeed because of a networking issue or the server did not respond requeue the
             // original request. We are using request() here so that it we can reauthenticate again if another
-            // request() has not refreshed the authToken. Network.post() does not trigger handleExpiredAuthToken.
+            // request() has not refreshed the authToken. Network.post() does not trigger handleExpiredAuthToken().
             // eslint-disable-next-line no-use-before-define
             request(originalCommand, originalParameters, originalType)
         ));
