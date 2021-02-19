@@ -24,6 +24,6 @@ const ReportActionItem = props => (
 ReportActionItem.propTypes = propTypes;
 ReportActionItem.displayName = 'ReportActionItem';
 
-// Must use custom isEqual callback, because the shallow comparison done by React.memo
-// would not detect changes in props.action.
-export default memo(ReportActionItem, (((prevProps, nextProps) => _.isEqual(prevProps, nextProps))));
+export default memo(ReportActionItem, (prevProps, nextProps) => (
+    prevProps.displayAsGroup === nextProps.displayAsGroup && _.isEqual(prevProps.action, nextProps.action)
+));
