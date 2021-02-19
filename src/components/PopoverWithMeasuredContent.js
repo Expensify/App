@@ -9,7 +9,7 @@ import CONST from '../CONST';
 import styles from '../styles/styles';
 
 const propTypes = {
-    // All modal props except type, anchorPosition, and the windowDimensions prop types
+    // All modal props except type, popoverAnchorPosition, and the windowDimensions prop types
     ...(_.omit(modalPropTypes, ['type', 'anchorPosition', ...(_.keys(windowDimensionsPropTypes))])),
 
     // The horizontal and vertical anchors points for the popover
@@ -130,7 +130,7 @@ class PopoverWithMeasuredContent extends Component {
                     type={CONST.MODAL.MODAL_TYPE.POPOVER}
                     isVisible={this.props.isVisible}
                     onClose={this.props.onClose}
-                    anchorPosition={this.calculateAdjustedPopoverPosition()}
+                    popoverAnchorPosition={this.calculateAdjustedPopoverPosition()}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...this.props}
                 >
