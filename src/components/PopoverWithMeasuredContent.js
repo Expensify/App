@@ -53,7 +53,7 @@ class PopoverWithMeasuredContent extends Component {
     }
 
     /**
-     * Measure the size of the ReportActionContextMenu popover.
+     * Measure the size of the popover's content.
      *
      * @param {Object} nativeEvent
      */
