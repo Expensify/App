@@ -10,6 +10,12 @@ env:
   DEVELOPER_DIR: /Applications/Xcode_12.3.app/Contents/Developer
 
 jobs:
+    echoActor:
+        runs-on: macos-latest
+        steps:
+            - name: Echo actor
+              run: echo ${{ github.actor }}
+
     build:
         if: github.actor == 'OSBotify'
         runs-on: macos-latest
