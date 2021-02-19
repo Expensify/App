@@ -7,20 +7,11 @@ on:
             - '*'
 
 jobs:
-    echoActor:
-        runs-on: ubuntu-16.04
-        steps:
-            -   name: Echo actor
-                run: echo ${{ github.actor }}
-
     build:
         if: github.actor == 'OSBotify'
         runs-on: ubuntu-16.04
 
         steps:
-            - name: Echo actor
-              run: echo ${{ github.actor }}
-
             - uses: actions/checkout@v2
 
             # Installs node
