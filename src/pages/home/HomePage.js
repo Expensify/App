@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -40,7 +40,7 @@ const defaultProps = {
     network: {isOffline: true},
 };
 
-class HomePage extends Component {
+class HomePage extends PureComponent {
     constructor(props) {
         super(props);
 
@@ -84,10 +84,6 @@ class HomePage extends Component {
         KeyboardShortcut.subscribe('K', () => {
             redirect(ROUTES.SEARCH);
         }, ['meta'], true);
-    }
-
-    shouldComponentUpdate(nextProps) {
-        return nextProps.network.isOffline !== this.props.network.isOffline;
     }
 
     componentWillUnmount() {
