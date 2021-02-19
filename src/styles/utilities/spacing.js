@@ -17,10 +17,6 @@ export default {
         marginHorizontal: 4,
     },
 
-    mh3: {
-        marginHorizontal: 12,
-    },
-
     mv1: {
         marginVertical: 4,
     },

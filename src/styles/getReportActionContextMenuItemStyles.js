@@ -2,7 +2,6 @@ import CONST from '../CONST';
 import themeColors from './themes/default';
 import styles from './styles';
 import variables from './variables';
-import fontFamily from './fontFamily';
 
 /**
  * Generate a style for the background color of the button, based on its current state.
@@ -50,7 +49,7 @@ function getBigButtonStyle(buttonState = CONST.BUTTON_STATES.DEFAULT) {
         styles.flex1,
         styles.flexRow,
         styles.alignItemsCenter,
-        styles.p3,
+        styles.p4,
     ];
 }
 
@@ -72,45 +71,6 @@ function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT) {
     }
 }
 
-const DEFAULT_TEXT_STYLE = [
-    {
-        fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.fontSizeNormal,
-        textAlign: 'center',
-    },
-    styles.mh3,
-];
-
-/**
- * Get the style of the text in the mini ReportActionContextMenu, depending on the state of the button it's in.
- *
- * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
- * @returns {Array}
- */
-function getMiniTextStyle(buttonState = CONST.BUTTON_STATES.DEFAULT) {
-    return [
-        ...DEFAULT_TEXT_STYLE,
-        {
-            color: getIconFillColor(buttonState),
-        },
-    ];
-}
-
-/**
- * Get the style of the text in the mini ReportActionContextMenu, depending on the state of the button it's in.
- *
- * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
- * @returns {Array}
- */
-function getBigTextStyle(buttonState = CONST.BUTTON_STATES.DEFAULT) {
-    return [
-        ...DEFAULT_TEXT_STYLE,
-        {
-            color: buttonState === CONST.BUTTON_STATES.PRESSED ? getIconFillColor(buttonState) : themeColors.text,
-        },
-    ];
-}
-
 /**
  * Generate dynamic styles for the ReportActionContextMenuItem component.
  *
@@ -121,7 +81,6 @@ function getReportActionContextMenuItemStyles(isMini) {
     return {
         getButtonStyle: isMini ? getMiniButtonStyle : getBigButtonStyle,
         getIconFillColor,
-        getTextStyle: isMini ? getMiniTextStyle : getBigTextStyle,
     };
 }
 
