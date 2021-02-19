@@ -965,6 +965,11 @@ const styles = {
     flipUpsideDown: {
         transform: [{rotate: '180deg'}],
     },
+
+    invisible: {
+        position: 'absolute',
+        opacity: 0,
+    },
 };
 
 const baseCodeTagStyles = {
