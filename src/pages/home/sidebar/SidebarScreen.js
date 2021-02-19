@@ -2,7 +2,6 @@ import React, {PureComponent} from 'react';
 import {
     View,
     Easing,
-    Keyboard,
     Animated,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -35,10 +34,8 @@ class SidebarScreen extends PureComponent {
 
         this.onCreateMenuItemSelected = this.onCreateMenuItemSelected.bind(this);
         this.toggleCreateMenu = this.toggleCreateMenu.bind(this);
-        this.toggleNavigationMenu = this.toggleNavigationMenu.bind(this);
-        this.dismissNavigationMenu = this.dismissNavigationMenu.bind(this);
         this.showNavigationMenu = this.showNavigationMenu.bind(this);
-        this.recordTimerAndToggleNavigationMenu = this.recordTimerAndToggleNavigationMenu.bind(this);
+        this.recordTimerAndHideSidebar = this.recordTimerAndHideSidebar.bind(this);
         this.navigateToSettings = this.navigateToSettings.bind(this);
 
         this.state = {
@@ -104,19 +101,6 @@ class SidebarScreen extends PureComponent {
     }
 
     /**
-     * Method called when we want to dismiss the navigationMenu,
-     * will not do anything if it already closed
-     * Only changes navigationMenu state on small screens (e.g. Mobile and mWeb)
-     */
-    dismissNavigationMenu() {
-        if (!this.props.isSmallScreenWidth || !this.props.isSidebarShown) {
-            return;
-        }
-
-        this.animateNavigationMenu(true);
-    }
-
-    /**
      * Method called when we want to show the navigationMenu,
      * will not do anything if it already open
      * Only changes navigationMenu state on smaller screens (e.g. Mobile and mWeb)
@@ -126,7 +110,7 @@ class SidebarScreen extends PureComponent {
             return;
         }
 
-        this.toggleNavigationMenu();
+        showSidebar();
     }
 
     /**
@@ -145,41 +129,20 @@ class SidebarScreen extends PureComponent {
             duration: 200,
             easing: Easing.ease,
             useNativeDriver: false,
-        }).start(({finished}) => {
-            if (finished && navigationMenuIsShown) {
-                hideSidebar();
-            }
-        });
-    }
-
-    /**
-     * Method called when we want to toggle the navigationMenu opened and closed
-     * Only changes navigationMenu state on small screens (e.g. Mobile and mWeb)
-     */
-    toggleNavigationMenu() {
-        if (!this.props.isSmallScreenWidth) {
-            return;
-        }
-
-        // Dismiss keyboard before toggling sidebar
-        Keyboard.dismiss();
-
-        // If the navigationMenu currently is not shown, we want to make it visible before the animation
-        if (!this.props.isSidebarShown) {
-            showSidebar();
-            return;
-        }
-
-        // Otherwise, we want to hide it after the animation
-        this.animateNavigationMenu(true);
+        }).start();
     }
 
     /**
      * Method called when a pinned chat is selected.
      */
-    recordTimerAndToggleNavigationMenu() {
+    recordTimerAndHideSidebar() {
         Timing.start(CONST.TIMING.SWITCH_REPORT);
-        this.toggleNavigationMenu();
+
+        if (!this.props.isSmallScreenWidth) {
+            return;
+        }
+
+        hideSidebar();
     }
 
     render() {
@@ -201,7 +164,7 @@ class SidebarScreen extends PureComponent {
                         <>
                             <View style={[styles.flex1, styles.sidebar]}>
                                 <SidebarLinks
-                                    onLinkClick={this.recordTimerAndToggleNavigationMenu}
+                                    onLinkClick={this.recordTimerAndHideSidebar}
                                     insets={insets}
                                     onAvatarClick={this.navigateToSettings}
                                 />

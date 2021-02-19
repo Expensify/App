@@ -9,6 +9,7 @@ import compose from '../../libs/compose';
 import ReportView from './report/ReportView';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
+import {show as showSidebar} from '../../libs/actions/Sidebar';
 
 const propTypes = {
     /* Onyx Props */
@@ -87,11 +88,7 @@ class ReportScreen extends Component {
             >
                 {() => (
                     <>
-                        <HeaderView
-                            onNavigationMenuButtonClicked={() => {
-                                // Redirect to "Sidebar screen"
-                            }}
-                        />
+                        <HeaderView onNavigationMenuButtonClicked={showSidebar} />
                         {_.map(reportsToDisplay, report => (
                             <View
                                 key={report.reportID}
