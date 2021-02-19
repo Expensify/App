@@ -33,7 +33,7 @@ const BaseModal = (props) => {
             windowHeight: props.windowHeight,
             isSmallScreenWidth: props.isSmallScreenWidth,
         },
-        props.anchorPosition,
+        props.popoverAnchorPosition,
     );
 
     return (
