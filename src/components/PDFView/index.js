@@ -1,4 +1,4 @@
-import React, {memo, PureComponent} from 'react';
+import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {Document, Page} from 'react-pdf/dist/esm/entry.webpack';
@@ -75,4 +75,4 @@ PDFView.propTypes = propTypes;
 PDFView.defaultProps = defaultProps;
 PDFView.displayName = 'PDFView';
 
-export default withWindowDimensions(memo(PDFView));
+export default withWindowDimensions(PDFView);
