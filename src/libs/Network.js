@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import lodashGet from 'lodash.get';
 import Onyx from 'react-native-onyx';
 import HttpUtils from './HttpUtils';
 import NetworkConnection from './NetworkConnection';
@@ -22,6 +23,61 @@ Onyx.connect({
     callback: val => isOffline = val && val.isOffline,
 });
 
+// Subscribe to the user's session so we can include their email in every request and include it in the server logs
+let email;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: val => email = val ? val.email : null,
+});
+
+/**
+ * Checks to see if a request should be made.
+ *
+ * @param {Object} request
+ * @param {Object} request.data
+ * @param {Boolean} request.data.forceNetworkRequest
+ * @return {Boolean}
+ */
+function shouldMakeRequest(request) {
+    // These requests are always made even when the queue is paused
+    if (request.data.forceNetworkRequest === true) {
+        return true;
+    }
+
+    if (isQueuePaused) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * Checks to see if a request should be retried when the queue is "paused".
+ *
+ * @param {Object} request
+ * @param {String} request.command
+ * @param {Object} request.data
+ * @param {Boolean} request.data.doNotRetry
+ * @param {String} [request.data.returnValueList]
+ * @return {Boolean}
+ */
+function shouldRetryRequest(request) {
+    const doNotRetry = lodashGet(request, 'data.doNotRetry', false);
+    const logParams = {command: request.command, doNotRetry, isQueuePaused};
+    const returnValueList = lodashGet(request, 'data.returnValueList');
+    if (returnValueList) {
+        logParams.returnValueList = returnValueList;
+    }
+
+    if (doNotRetry) {
+        console.debug('Skipping request that should not be re-tried: ', logParams);
+        return false;
+    }
+
+    console.debug('Skipping request and re-queueing: ', logParams);
+    return true;
+}
+
 /**
  * Process the networkRequestQueue by looping through the queue and attempting to make the requests
  */
@@ -32,8 +88,15 @@ function processNetworkRequestQueue() {
         // 2. Getting a 200 response back from the API (happens right below)
         // 3. NetInfo triggering an event that the network is back online
 
+        const data = {
+            doNotRetry: true,
+        };
+        if (email) {
+            data.email = email;
+        }
+
         // Make a simple request every second to see if the API is online again
-        HttpUtils.xhr('Get', {doNotRetry: true})
+        HttpUtils.xhr('Get', data)
             .then(() => NetworkConnection.setOfflineStatus(false))
             .catch(e => console.debug('[Ping] failed', e));
         return;
@@ -44,22 +107,32 @@ function processNetworkRequestQueue() {
         return;
     }
 
+    // If a request can't run because the queue is paused then it should end up here so it can be retried.
+    const retryableRequests = [];
+
     _.each(networkRequestQueue, (queuedRequest) => {
         // Some requests must be allowed to run even when the queue is paused e.g. an authentication request
         // that pauses the network queue while authentication happens, then unpauses it when it's done.
-        const shouldSkipRequest = isQueuePaused && queuedRequest.data.forceNetworkRequest !== true;
-
-        if (shouldSkipRequest) {
+        if (!shouldMakeRequest(queuedRequest)) {
+            if (shouldRetryRequest(queuedRequest)) {
+                retryableRequests.push(queuedRequest);
+            }
             return;
         }
 
+        const requestData = queuedRequest.data;
+        if (email) {
+            requestData.email = email;
+        }
+
         const finalParameters = _.isFunction(enhanceParameters)
-            ? enhanceParameters(queuedRequest.command, queuedRequest.data)
-            : queuedRequest.data;
+            ? enhanceParameters(queuedRequest.command, requestData)
+            : requestData;
 
         // Check to see if the queue has paused again. It's possible that a call to enhanceParameters()
-        // has paused the queue and if this is the case we must return.
-        if (shouldSkipRequest) {
+        // has paused the queue and if this is the case we must return. We don't retry these requests
+        // since if a request is made without an authToken we sign out the user.
+        if (!shouldMakeRequest(queuedRequest)) {
             return;
         }
 
@@ -68,7 +141,9 @@ function processNetworkRequestQueue() {
             .catch(queuedRequest.reject);
     });
 
-    networkRequestQueue = [];
+    // We clear the request queue at the end by setting the queue to retryableRequests which will either have some
+    // requests we want to retry or an empty array
+    networkRequestQueue = retryableRequests;
 }
 
 // Process our write queue very often

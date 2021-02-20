@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
+import CONST from '../CONST';
 import CONFIG from '../CONFIG';
 import ONYXKEYS from '../ONYXKEYS';
 import redirectToSignIn from './actions/SignInRedirect';
@@ -127,7 +128,14 @@ function handleExpiredAuthToken(originalCommand, originalParameters, originalTyp
             // Now that the API is authenticated, make the original request again with the new authToken
             const params = addDefaultValuesToParameters(originalCommand, originalParameters);
             return Network.post(originalCommand, params, originalType);
-        });
+        })
+        .catch(() => (
+
+            // If the request did not succeed and we were not logged out requeue the original request. We are using
+            // request() here so that it we can reauthenticate again when it fails
+            // eslint-disable-next-line no-use-before-define
+            request(originalCommand, originalParameters, originalType)
+        ));
 }
 
 /**
@@ -187,6 +195,7 @@ function getAuthToken() {
  * @param {String} parameters.partnerUserID
  * @param {String} parameters.partnerUserSecret
  * @param {String} [parameters.twoFactorAuthCode]
+ * @param {String} [parameters.email]
  * @returns {Promise}
  */
 function Authenticate(parameters) {
@@ -214,6 +223,9 @@ function Authenticate(parameters) {
 
         // Force this request to be made because the network queue is paused when re-authentication is happening
         forceNetworkRequest: true,
+
+        // Add email param so the first Authenticate request is logged on the server w/ this email
+        email: parameters.email,
     })
         .then((response) => {
             // If we didn't get a 200 response from Authenticate we either failed to Authenticate with
@@ -278,10 +290,18 @@ function reauthenticate(command = '') {
         })
 
         .catch((error) => {
-            // If authentication fails, then the network can be unpaused and app is redirected
-            // so the sign on screen.
+            // If authentication fails, then the network can be unpaused
             Network.unpauseRequestQueue();
             isAuthenticating = false;
+
+            // When a fetch() fails and the "API is offline" error is thrown we won't log the user out. Most likely they
+            // have a spotty connection and will need to try to reauthenticate when they come back online. We will
+            // re-throw this error so it can be handled by callers of reauthenticate().
+            if (error.message === CONST.ERROR.API_OFFLINE) {
+                throw error;
+            }
+
+            // If we experience something other than a network error then redirect the user to sign in
             redirectToSignIn(error.message);
 
             console.debug('Redirecting to Sign In because we failed to reauthenticate', {
@@ -323,6 +343,8 @@ function User_SignUp(parameters) {
  * @param {String} parameters.partnerPassword
  * @param {String} parameters.partnerUserID
  * @param {String} parameters.partnerUserSecret
+ * @param {Boolean} [parameters.doNotRetry]
+ * @param {String} [parameters.email]
  * @returns {Promise}
  */
 function CreateLogin(parameters) {
@@ -394,7 +416,9 @@ function Log(parameters) {
     const commandName = 'Log';
     requireParameters(['message', 'parameters', 'expensifyCashAppVersion'],
         parameters, commandName);
-    return request(commandName, parameters);
+
+    // Note: We are forcing Log to run since it requires no authToken and should never be queued unless we are offline.
+    return request(commandName, {...parameters, forceNetworkRequest: true});
 }
 
 /**
