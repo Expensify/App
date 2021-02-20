@@ -2,6 +2,7 @@ import React from 'react';
 import {
     View,
     TouchableOpacity,
+    Picker,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -35,7 +36,7 @@ const propTypes = {
 
     // The session of the logged in person
     session: PropTypes.shape({
-    // Email of the logged in person
+        // Email of the logged in person
         email: PropTypes.string,
     }),
 };
@@ -46,7 +47,9 @@ const defaultProps = {
     session: {},
 };
 const SettingsPage = ({
-    myPersonalDetails, network, session,
+    myPersonalDetails,
+    network,
+    session,
 }) => {
     // On the very first sign in or after clearing storage these
     // details will not be present on the first render so we'll just
@@ -68,7 +71,7 @@ const SettingsPage = ({
             >
                 <View style={styles.settingsWrapper}>
                     <View
-                        style={[styles.largeAvatar, styles.mb3]}
+                        style={[styles.mb3]}
                     >
                         <AvatarWithIndicator
                             size="large"
@@ -82,9 +85,9 @@ const SettingsPage = ({
                             : Str.removeSMSDomain(session.email)}
                     </Text>
                     {myPersonalDetails.displayName && (
-                    <Text style={[styles.settingsLoginName, styles.mt1]} numberOfLines={1}>
-                        {Str.removeSMSDomain(session.email)}
-                    </Text>
+                        <Text style={[styles.settingsLoginName, styles.mt1]} numberOfLines={1}>
+                            {Str.removeSMSDomain(session.email)}
+                        </Text>
                     )}
                     <TouchableOpacity
                         onPress={signOut}
@@ -94,6 +97,21 @@ const SettingsPage = ({
                             Sign Out
                         </Text>
                     </TouchableOpacity>
+                    <View style={[styles.settingsPageBody, styles.mt6]}>
+                        <Text style={[styles.settingsPageHeading, styles.mt2, styles.mb4]} numberOfLines={1}>
+                            Chats
+                        </Text>
+                        <Text style={[styles.textP]}>
+                            How should we display chats on your home screen?
+                        </Text>
+                        <Picker style={[styles.picker, styles.w100, styles.mt2, styles.mb2]}>
+                            <Picker.Item label="Most Recent" value="default" />
+                            <Picker.Item label="GSD" value="gsd" />
+                        </Picker>
+                        <Text style={[styles.textP, styles.colorMuted]}>
+                            This will display all chats by default, sorted by most recent, with pinned items at the top
+                        </Text>
+                    </View>
                 </View>
                 <Text style={[styles.chatItemMessageHeaderTimestamp]} numberOfLines={1}>
                     v

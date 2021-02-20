@@ -169,6 +169,14 @@ const styles = {
         width: variables.componentSizeNormal,
     },
 
+    picker: {
+        borderRadius: variables.componentBorderRadius,
+        borderColor: themeColors.border,
+        height: variables.componentSizeNormal,
+        justifyContent: 'center',
+        paddingHorizontal: 12,
+    },
+
     pill: {
         borderRadius: 14,
         backgroundColor: themeColors.pillBG,
@@ -883,6 +891,12 @@ const styles = {
         alignItems: 'center',
     },
 
+    settingsPageBody: {
+        width: '100%',
+        alignItems: 'left',
+        justifyContent: 'space-around',
+    },
+
     settingsPageColumn: {
         width: '100%',
         alignItems: 'center',
@@ -923,6 +937,13 @@ const styles = {
         fontSize: variables.fontSizeLabel,
         fontFamily: fontFamily.GTA,
         color: themeColors.textSupporting,
+    },
+
+    settingsPageHeading: {
+        fontSize: variables.fontSizeLarge,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        color: themeColors.heading,
     },
 
     settingsWrapper: {
