@@ -129,7 +129,7 @@ class Expensify extends PureComponent {
 
                     <Route path={[ROUTES.SET_PASSWORD]} component={SetPasswordPage} />
                     <Route path={[ROUTES.NOT_FOUND]} component={NotFoundPage} />
-                    <Route path={[ROUTES.SIGNIN_WITH_EXITTO, ROUTES.SIGNIN]} component={SignInPage} />
+                    <Route path={[ROUTES.SIGNIN]} component={SignInPage} />
                     <Route
                         path={[ROUTES.HOME, ROUTES.ROOT]}
                         render={() => (
