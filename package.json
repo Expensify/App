@@ -36,6 +36,7 @@
     "@react-native-firebase/analytics": "^7.6.7",
     "@react-native-firebase/app": "^8.4.5",
     "@react-native-firebase/crashlytics": "^8.4.9",
+    "@react-native-picker/picker": "^1.9.11",
     "babel-plugin-transform-remove-console": "^6.9.4",
     "dotenv": "^8.2.0",
     "electron-context-menu": "^2.3.0",
