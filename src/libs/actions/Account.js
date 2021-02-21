@@ -27,7 +27,7 @@ function fetchPriorityMode() {
         });
 }
 
-export default {
+export {
     updatePriorityMode,
     fetchPriorityMode,
 };
