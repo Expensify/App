@@ -7,7 +7,6 @@ const {
     shell,
     ipcMain,
 } = require('electron');
-const isDev = require('electron-is-dev');
 const serve = require('electron-serve');
 const contextMenu = require('electron-context-menu');
 const {autoUpdater} = require('electron-updater');
