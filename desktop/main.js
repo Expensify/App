@@ -65,7 +65,7 @@ const mainWindow = (() => {
                 webPreferences: {
                     nodeIntegration: true,
                 },
-                titleBarStyle: 'hidden'
+                titleBarStyle: 'hidden',
             });
 
             // List the Expensify Chat instance under the Window menu, even when it's hidden
