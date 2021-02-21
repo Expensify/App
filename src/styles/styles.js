@@ -893,7 +893,6 @@ const styles = {
 
     settingsPageBody: {
         width: '100%',
-        alignItems: 'left',
         justifyContent: 'space-around',
     },
 
