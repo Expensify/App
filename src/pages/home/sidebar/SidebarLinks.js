@@ -63,6 +63,9 @@ const propTypes = {
 
     // Currently viewed reportID
     currentlyViewedReportID: PropTypes.string,
+
+    // The chat priority mode
+    priorityMode: PropTypes.string,
 };
 
 const defaultProps = {
@@ -74,6 +77,7 @@ const defaultProps = {
     },
     network: null,
     currentlyViewedReportID: '',
+    priorityMode: 'default',
 };
 
 class SidebarLinks extends React.Component {
@@ -89,6 +93,7 @@ class SidebarLinks extends React.Component {
             this.props.personalDetails,
             this.props.draftComments,
             activeReportID,
+            this.props.priorityMode,
         );
 
         const sections = [{
@@ -167,6 +172,9 @@ export default compose(
         },
         currentlyViewedReportID: {
             key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
+        },
+        priorityMode: {
+            key: ONYXKEYS.PRIORITY_MODE,
         },
     }),
 )(SidebarLinks);

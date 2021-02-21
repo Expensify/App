@@ -73,6 +73,7 @@ function getSearchText(report, personalDetailList) {
  * @param {Object} [report]
  * @param {Object} draftComments
  * @param {Number} activeReportID
+ * @param {Boolean} showChatPreviewLine
  * @returns {Object}
  */
 function createOption(personalDetailList, report, draftComments, activeReportID, {showChatPreviewLine = false}) {
@@ -142,7 +143,7 @@ function isSearchStringMatch(searchValue, searchText) {
  *
  * @param {Object} reports
  * @param {Object} personalDetails
- * @param {Obejct} draftComments
+ * @param {Object} draftComments
  * @param {Number} activeReportID
  * @param {Object} options
  * @returns {Object}
@@ -159,17 +160,22 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
     searchValue = '',
     showChatPreviewLine = false,
     showReportsWithNoComments = false,
+    hideReadReports = false,
+    sortByAlphaAsc = false,
 }) {
     let recentReportOptions = [];
     const pinnedReportOptions = [];
     const personalDetailsOptions = [];
 
     const reportMapForLogins = {};
-    const orderedReports = lodashOrderBy(reports, [
+    let orderedReports = lodashOrderBy(reports, [
         sortByLastMessageTimestamp
             ? 'lastMessageTimestamp'
             : 'lastVisitedTimestamp',
     ], ['desc']);
+    if (sortByAlphaAsc) {
+        orderedReports = lodashOrderBy(reports, ['reportName'], ['asc']);
+    }
 
     const allReportOptions = [];
     _.each(orderedReports, (report) => {
@@ -186,7 +192,9 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         if (!showReportsWithNoComments && hasNoComments && report.reportID !== activeReportID) {
             return;
         }
-
+        if (hideReadReports && report.unreadActionCount === 0) {
+            return;
+        }
         const reportPersonalDetails = getPersonalDetailsForLogins(logins, personalDetails);
 
         // Save the report in the map if this is a single participant so we can associate the reportID with the
@@ -368,18 +376,37 @@ function getNewGroupOptions(
  * Build the options for the Sidebar a.k.a. LHN
  * @param {Object} reports
  * @param {Object} personalDetails
- * @param {Obejct} draftComments
+ * @param {Object} draftComments
  * @param {Number} activeReportID
+ * @param {String} priorityMode
  * @returns {Object}
  */
-function getSidebarOptions(reports, personalDetails, draftComments, activeReportID) {
+function getSidebarOptions(reports, personalDetails, draftComments, activeReportID, priorityMode) {
+    let sideBarOptions = {
+        prioritizePinnedReports: true,
+        hideReadReports: false,
+        sortByAlphaAsc: false,
+    };
+    switch (priorityMode) {
+        case 'default':
+            break;
+        case 'gsd':
+            sideBarOptions = {
+                prioritizePinnedReports: false,
+                hideReadReports: true,
+                sortByAlphaAsc: true,
+            };
+            break;
+        default:
+            break;
+    }
     return getOptions(reports, personalDetails, draftComments, activeReportID, {
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
         maxRecentReportsToShow: 0, // Unlimited
-        prioritizePinnedReports: true,
         sortByLastMessageTimestamp: true,
         showChatPreviewLine: true,
+        ...sideBarOptions,
     });
 }
 

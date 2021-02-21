@@ -1,8 +1,8 @@
 import React from 'react';
 import {
-    View,
-    TouchableOpacity,
     Picker,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -16,6 +16,7 @@ import {version} from '../../package.json';
 import AvatarWithIndicator from '../components/AvatarWithIndicator';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import {redirectToLastReport} from '../libs/actions/App';
+import {updatePriorityMode} from '../libs/actions/Account';
 
 const propTypes = {
     /* Onyx Props */
@@ -39,17 +40,37 @@ const propTypes = {
         // Email of the logged in person
         email: PropTypes.string,
     }),
+
+    // The chat priority mode
+    priorityMode: PropTypes.string,
 };
 
 const defaultProps = {
     myPersonalDetails: {},
     network: null,
     session: {},
+    priorityMode: 'default',
 };
+
+
+const priorityModes = {
+    default: {
+        key: 'default',
+        label: 'Most Recent',
+        description: 'This will display all chats by default, sorted by most recent, with pinned items at the top',
+    },
+    gsd: {
+        key: 'gsd',
+        label: 'GSD',
+        description: 'This will only display unread and pinned chats, all sorted alphabetically. Get Shit Done.',
+    },
+};
+
 const SettingsPage = ({
     myPersonalDetails,
     network,
     session,
+    priorityMode,
 }) => {
     // On the very first sign in or after clearing storage these
     // details will not be present on the first render so we'll just
@@ -104,12 +125,16 @@ const SettingsPage = ({
                         <Text style={[styles.textP]}>
                             How should we display chats on your home screen?
                         </Text>
-                        <Picker style={[styles.picker, styles.w100, styles.mt2, styles.mb2]}>
-                            <Picker.Item label="Most Recent" value="default" />
-                            <Picker.Item label="GSD" value="gsd" />
+                        <Picker
+                            style={[styles.picker, styles.w100, styles.mt2, styles.mb2]}
+                            selectedValue={priorityMode}
+                            onValueChange={mode => updatePriorityMode(mode)}
+                        >
+                            {Object.values(priorityModes)
+                                .map(({key, label}) => <Picker.Item label={label} value={key} key={key} />)}
                         </Picker>
                         <Text style={[styles.textP, styles.colorMuted]}>
-                            This will display all chats by default, sorted by most recent, with pinned items at the top
+                            {priorityModes[priorityMode].description}
                         </Text>
                     </View>
                 </View>
@@ -135,5 +160,8 @@ export default withOnyx({
     },
     session: {
         key: ONYXKEYS.SESSION,
+    },
+    priorityMode: {
+        key: ONYXKEYS.PRIORITY_MODE,
     },
 })(SettingsPage);
