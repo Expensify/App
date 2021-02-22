@@ -9,6 +9,7 @@ import compose from '../../libs/compose';
 import ReportView from './report/ReportView';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
+import HeaderGap from '../../components/HeaderGap';
 
 const propTypes = {
     /* Onyx Props */
@@ -97,6 +98,7 @@ class ReportScreen extends Component {
             >
                 {() => (
                     <>
+                        <HeaderGap />
                         <HeaderView
                             shouldShowNavigationMenuButton={this.props.isSmallScreenWidth}
                             onNavigationMenuButtonClicked={this.props.toggleNavigationMenu}
