@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import CONST from '../../CONST';
 import {windowDimensionsPropTypes} from '../withWindowDimensions';
 
-const modalPropTypes = {
+const propTypes = {
     // Callback method fired when the user requests to close the modal
     onClose: PropTypes.func.isRequired,
 
@@ -28,4 +28,10 @@ const modalPropTypes = {
     ...windowDimensionsPropTypes,
 };
 
-export default modalPropTypes;
+const defaultProps = {
+    onSubmit: null,
+    type: '',
+    onModalHide: () => {},
+};
+
+export {propTypes, defaultProps};
