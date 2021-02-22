@@ -100,13 +100,15 @@ class SidebarLinks extends React.Component {
 
         return (
             <View style={[styles.flex1, styles.h100]}>
-                <View style={[
-                    styles.flexRow,
-                    styles.ph5,
-                    styles.pv3,
-                    styles.justifyContentBetween,
-                    styles.alignItemsCenter,
-                ]}
+                <View
+                    style={[
+                        styles.flexRow,
+                        styles.ph5,
+                        styles.pv3,
+                        styles.justifyContentBetween,
+                        styles.alignItemsCenter,
+                    ]}
+                    nativeID="drag-area"
                 >
                     <Header textSize="large" title="Chats" />
                     <TouchableOpacity
