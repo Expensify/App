@@ -16,7 +16,7 @@ npm run gh-actions-build
 
 # Check for a diff
 printf '\nChecking for a diff...\n'
-if [[ $(git diff --exit-code | eval "$diff_highlight") -eq 0 ]]; then
+if [[ $(git diff --exit-code | perl "$diff_highlight") -eq 0 ]]; then
     echo -e "${GREEN}Github Actions are up to date!${NC}"
     exit 0
 else
