@@ -34,6 +34,7 @@ function isAuthTokenRequired(command) {
         'SetGithubUsername',
         'SetPassword',
         'User_SignUp',
+        'ResendValidateCode',
     ], command);
 }
 
@@ -364,7 +365,7 @@ function CreateLogin(parameters) {
  * @param {String} parameters.partnerUserID
  * @param {String} parameters.partnerName
  * @param {String} parameters.partnerPassword
- * @param {String} parameters.doNotRetry
+ * @param {Boolean} parameters.doNotRetry
  * @returns {Promise}
  */
 function DeleteLogin(parameters) {
