@@ -13,6 +13,7 @@ import {hide as hideSidebar} from '../libs/actions/Sidebar';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
+import HeaderGap from '../components/HeaderGap';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -119,6 +120,7 @@ class SearchPage extends Component {
 
         return (
             <>
+                <HeaderGap />
                 <HeaderWithCloseButton
                     title="Search"
                     onCloseButtonPress={redirectToLastReport}
