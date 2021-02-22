@@ -572,13 +572,13 @@ function User_GetBetas() {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.login
+ * @param {String} parameters.email
  * @param {String} parameters.password
  * @returns {Promise}
  */
 function User_SecondaryLogin_Send(parameters) {
     const commandName = 'User_SecondaryLogin_Send';
-    requireParameters(['login', 'password'], parameters, commandName);
+    requireParameters(['email','password'], parameters, commandName);
     return request(commandName, parameters);
 }
 

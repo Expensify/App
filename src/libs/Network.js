@@ -68,7 +68,8 @@ function processNetworkRequestQueue() {
         }
 
         const requestData = queuedRequest.data;
-        if (email) {
+        const requestEmail = requestData.email ?? '';
+        if (email && _.isEmpty(requestEmail)) {
             requestData.email = email;
         }
 
