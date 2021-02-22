@@ -55,7 +55,7 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>expensify</string>
+				<string>expensify-cash</string>
 			</array>
 		</dict>
 	</array>

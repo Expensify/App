@@ -35,7 +35,7 @@
 	<key>HostAppBundleIdentifier</key>
 	<string>com.chat.expensify.chat</string>
 	<key>HostAppURLScheme</key>
-	<string>expensify://</string>
+	<string>expensify-cash://</string>
 	<key>NSExtension</key>
 	<dict>
 		<key>NSExtensionAttributes</key>
