@@ -80,11 +80,7 @@ class CreateMenu extends PureComponent {
                     this.onModalHide();
                     this.resetOnModalHide();
                 }}
-                type={
-                    this.props.isSmallScreenWidth
-                        ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED
-                        : CONST.MODAL.MODAL_TYPE.POPOVER
-                }
+                type={CONST.MODAL.MODAL_TYPE.POPOVER}
                 popoverAnchorPosition={styles.createMenuPosition}
             >
                 {menuItemData.map(({icon, text, onPress}) => (
