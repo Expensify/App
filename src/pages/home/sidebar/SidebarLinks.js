@@ -17,6 +17,7 @@ import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
 import {getSidebarOptions} from '../../../libs/OptionsListUtils';
 import {getDefaultAvatar} from '../../../libs/actions/PersonalDetails';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
+import HeaderGap from '../../../components/HeaderGap';
 
 const propTypes = {
     // Toggles the navigation menu open and closed
@@ -100,6 +101,7 @@ class SidebarLinks extends React.Component {
 
         return (
             <View style={[styles.flex1, styles.h100]}>
+                <HeaderGap />
                 <View
                     style={[
                         styles.flexRow,
