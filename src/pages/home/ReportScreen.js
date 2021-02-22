@@ -7,6 +7,9 @@ import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import compose from '../../libs/compose';
 import ReportView from './report/ReportView';
+import ScreenWrapper from '../../components/ScreenWrapper';
+import HeaderView from './HeaderView';
+import HeaderGap from '../../components/HeaderGap';
 
 const propTypes = {
     /* Onyx Props */
@@ -17,6 +20,12 @@ const propTypes = {
 
     // ID of Report being viewed
     currentlyViewedReportID: PropTypes.string,
+
+    // Whether we have a small screen width
+    isSmallScreenWidth: PropTypes.bool.isRequired,
+
+    // Callback function to toggle the sidebar
+    toggleNavigationMenu: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -24,8 +33,12 @@ const defaultProps = {
     currentlyViewedReportID: '',
 };
 
-class MainView extends Component {
+class ReportScreen extends Component {
     shouldComponentUpdate(nextProps) {
+        if (nextProps.isSmallScreenWidth !== this.props.isSmallScreenWidth) {
+            return true;
+        }
+
         if (nextProps.currentlyViewedReportID !== this.props.currentlyViewedReportID) {
             return true;
         }
@@ -76,25 +89,40 @@ class MainView extends Component {
                 || report.reportID === activeReportID
         ));
         return (
-            <>
-                {_.map(reportsToDisplay, report => (
-                    <View
-                        key={report.reportID}
-                        style={reportStyles[report.reportID]}
-                    >
-                        <ReportView
-                            reportID={report.reportID}
-                            isActiveReport={report.reportID === activeReportID}
+            <ScreenWrapper
+                style={[
+                    styles.appContent,
+                    styles.flex1,
+                    styles.flexColumn,
+                ]}
+            >
+                {() => (
+                    <>
+                        <HeaderGap />
+                        <HeaderView
+                            shouldShowNavigationMenuButton={this.props.isSmallScreenWidth}
+                            onNavigationMenuButtonClicked={this.props.toggleNavigationMenu}
                         />
-                    </View>
-                ))}
-            </>
+                        {_.map(reportsToDisplay, report => (
+                            <View
+                                key={report.reportID}
+                                style={reportStyles[report.reportID]}
+                            >
+                                <ReportView
+                                    reportID={report.reportID}
+                                    isActiveReport={report.reportID === activeReportID}
+                                />
+                            </View>
+                        ))}
+                    </>
+                )}
+            </ScreenWrapper>
         );
     }
 }
 
-MainView.propTypes = propTypes;
-MainView.defaultProps = defaultProps;
+ReportScreen.propTypes = propTypes;
+ReportScreen.defaultProps = defaultProps;
 
 export default compose(
     withOnyx({
@@ -105,4 +133,4 @@ export default compose(
             key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
         },
     }),
-)(MainView);
+)(ReportScreen);

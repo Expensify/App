@@ -87,7 +87,7 @@ function createOption(personalDetailList, report, draftComments, activeReportID,
         ? (hasMultipleParticipants && lastActorDetails
             ? `${lastActorDetails.displayName}: `
             : '')
-        + report.lastMessageText
+        + _.unescape(report.lastMessageText)
         : '';
 
     return {
@@ -125,15 +125,11 @@ Onyx.connect({
  * @returns {Boolean}
  */
 function isSearchStringMatch(searchValue, searchText) {
-    const matchRegexes = [
-        new RegExp(`^${Str.escapeForRegExp(searchValue)}$`, 'i'),
-        new RegExp(`^${Str.escapeForRegExp(searchValue)}`, 'i'),
-        new RegExp(Str.escapeForRegExp(searchValue), 'i'),
-    ];
-
-    return _.some(matchRegexes, (regex) => {
+    const searchWords = searchValue.split(' ');
+    return _.every(searchWords, (word) => {
+        const matchRegex = new RegExp(Str.escapeForRegExp(word), 'i');
         const valueToSearch = searchText && searchText.replace(new RegExp(/&nbsp;/g), '');
-        return regex.test(valueToSearch);
+        return matchRegex.test(valueToSearch);
     });
 }
 
@@ -316,6 +312,8 @@ function getSearchOptions(
         prioritizePinnedReports: true,
         showChatPreviewLine: true,
         showReportsWithNoComments: true,
+        includePersonalDetails: true,
+        sortByLastMessageTimestamp: true,
     });
 }
 

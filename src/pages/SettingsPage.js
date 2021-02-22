@@ -13,6 +13,9 @@ import {signOut} from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
 import {version} from '../../package.json';
 import AvatarWithIndicator from '../components/AvatarWithIndicator';
+import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
+import {redirectToLastReport} from '../libs/actions/App';
+import HeaderGap from '../components/HeaderGap';
 
 const propTypes = {
     /* Onyx Props */
@@ -53,44 +56,53 @@ const SettingsPage = ({
         return null;
     }
     return (
-        <View
-            pointerEvents="box-none"
-            style={[
-                styles.settingsPageBackground,
-            ]}
-        >
-            <View style={styles.settingsWrapper}>
-                <View
-                    style={[styles.largeAvatar, styles.mb3]}
-                >
-                    <AvatarWithIndicator
-                        size="large"
-                        source={myPersonalDetails.avatarURL}
-                        isActive={network && !network.isOffline}
-                    />
-                </View>
-                <Text style={[styles.settingsDisplayName, styles.mt1]} numberOfLines={1}>
-                    {myPersonalDetails.displayName ? myPersonalDetails.displayName : Str.removeSMSDomain(session.email)}
-                </Text>
-                {myPersonalDetails.displayName && (
-                <Text style={[styles.settingsLoginName, styles.mt1]} numberOfLines={1}>
-                    {Str.removeSMSDomain(session.email)}
-                </Text>
-                )}
-                <TouchableOpacity
-                    onPress={signOut}
-                    style={[styles.button, styles.w100, styles.mt5]}
-                >
-                    <Text style={[styles.buttonText]}>
-                        Sign Out
+        <>
+            <HeaderGap />
+            <HeaderWithCloseButton
+                title="Settings"
+                onCloseButtonPress={redirectToLastReport}
+            />
+            <View
+                pointerEvents="box-none"
+                style={[
+                    styles.settingsPageBackground,
+                ]}
+            >
+                <View style={styles.settingsWrapper}>
+                    <View
+                        style={[styles.largeAvatar, styles.mb3]}
+                    >
+                        <AvatarWithIndicator
+                            size="large"
+                            source={myPersonalDetails.avatarURL}
+                            isActive={network && !network.isOffline}
+                        />
+                    </View>
+                    <Text style={[styles.settingsDisplayName, styles.mt1]} numberOfLines={1}>
+                        {myPersonalDetails.displayName
+                            ? myPersonalDetails.displayName
+                            : Str.removeSMSDomain(session.email)}
                     </Text>
-                </TouchableOpacity>
+                    {myPersonalDetails.displayName && (
+                    <Text style={[styles.settingsLoginName, styles.mt1]} numberOfLines={1}>
+                        {Str.removeSMSDomain(session.email)}
+                    </Text>
+                    )}
+                    <TouchableOpacity
+                        onPress={signOut}
+                        style={[styles.button, styles.w100, styles.mt5]}
+                    >
+                        <Text style={[styles.buttonText]}>
+                            Sign Out
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+                <Text style={[styles.chatItemMessageHeaderTimestamp]} numberOfLines={1}>
+                    v
+                    {version}
+                </Text>
             </View>
-            <Text style={[styles.chatItemMessageHeaderTimestamp]} numberOfLines={1}>
-                v
-                {version}
-            </Text>
-        </View>
+        </>
     );
 };
 
