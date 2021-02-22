@@ -87,7 +87,7 @@ function createOption(personalDetailList, report, draftComments, activeReportID,
         ? (hasMultipleParticipants && lastActorDetails
             ? `${lastActorDetails.displayName}: `
             : '')
-        + report.lastMessageText
+        + _.unescape(report.lastMessageText)
         : '';
 
     return {
