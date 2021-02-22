@@ -92,7 +92,10 @@ function setExpensifyNewsStatus(subscribed) {
  * @param {String} password
  */
 function setSecondaryLogin(login, password) {
-    API.User_SecondaryLogin_Send({login, password}).then((response) => {
+    API.User_SecondaryLogin_Send({
+        email: login,
+        password,
+    }).then((response) => {
         if (response.jsonCode === 200) {
             const loginList = _.where(response.loginList, {partnerName: 'expensify.com'});
             Onyx.merge(ONYXKEYS.USER, {loginList});
