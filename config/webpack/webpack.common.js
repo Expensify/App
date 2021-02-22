@@ -1,4 +1,5 @@
 const path = require('path');
+const {IgnorePlugin} = require('webpack');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
@@ -39,7 +40,7 @@ module.exports = {
                 {from: 'src/vendor/pdf-js/js', to: 'pdf/build'},
             ],
         }),
-
+        new IgnorePlugin(/^\.\/locale$/, /moment$/),
         new CustomVersionFilePlugin(),
     ],
     module: {
@@ -121,6 +122,6 @@ module.exports = {
         // without this, web will try to use native implementations and break in not very obvious ways.
         // This is also why we have to use .website.js for our own web-specific files...
         // Because desktop also relies on "web-specific" module implementations
-        extensions: ['.web.js', '.js', '.jsx', (platform === 'web') ? '.website.js' : '.desktop.js'],
+        extensions: ['.web.js', (platform === 'web') ? '.website.js' : '.desktop.js', '.js', '.jsx'],
     },
 };

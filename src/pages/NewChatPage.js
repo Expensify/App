@@ -11,6 +11,9 @@ import KeyboardSpacer from '../components/KeyboardSpacer';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import {hide as hideSidebar} from '../libs/actions/Sidebar';
 import CONST from '../CONST';
+import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
+import {redirectToLastReport} from '../libs/actions/App';
+import HeaderGap from '../components/HeaderGap';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -132,6 +135,11 @@ class NewChatPage extends Component {
 
         return (
             <>
+                <HeaderGap />
+                <HeaderWithCloseButton
+                    title="New Chat"
+                    onCloseButtonPress={redirectToLastReport}
+                />
                 <View style={[styles.flex1, styles.w100]}>
                     <OptionsSelector
                         sections={sections}

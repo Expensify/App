@@ -2,14 +2,18 @@ import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import OptionsSelector from './OptionsSelector';
+import OptionsSelector from '../components/OptionsSelector';
 import {getSearchOptions} from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
-import KeyboardSpacer from './KeyboardSpacer';
-import {redirect} from '../libs/actions/App';
+import KeyboardSpacer from '../components/KeyboardSpacer';
+import {redirect, redirectToLastReport} from '../libs/actions/App';
 import ROUTES from '../ROUTES';
-import {hide as hideChatSwitcher} from '../libs/actions/ChatSwitcher';
+import {hide as hideSidebar} from '../libs/actions/Sidebar';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
+import {fetchOrCreateChatReport} from '../libs/actions/Report';
+import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
+import HeaderGap from '../components/HeaderGap';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -24,9 +28,6 @@ const personalDetailsPropTypes = PropTypes.shape({
 });
 
 const propTypes = {
-    // Toggles the navigation menu open and closed
-    onLinkClick: PropTypes.func.isRequired,
-
     /* Onyx Props */
 
     // All of the personal details for everyone
@@ -42,9 +43,12 @@ const propTypes = {
     session: PropTypes.shape({
         email: PropTypes.string.isRequired,
     }).isRequired,
+
+    /* Window Dimensions Props */
+    ...windowDimensionsPropTypes,
 };
 
-class SearchView extends Component {
+class SearchPage extends Component {
     constructor(props) {
         super(props);
 
@@ -52,6 +56,7 @@ class SearchView extends Component {
 
         const {
             recentReports,
+            personalDetails,
         } = getSearchOptions(
             props.reports,
             props.personalDetails,
@@ -61,6 +66,7 @@ class SearchView extends Component {
         this.state = {
             searchValue: '',
             recentReports,
+            personalDetails,
         };
     }
 
@@ -72,7 +78,7 @@ class SearchView extends Component {
     getSections() {
         return [{
             title: 'RECENT',
-            data: this.state.recentReports,
+            data: this.state.recentReports.concat(this.state.personalDetails),
             shouldShow: true,
             indexOffset: 0,
         }];
@@ -84,13 +90,29 @@ class SearchView extends Component {
      * @param {Object} option
      */
     selectReport(option) {
-        this.setState({
-            searchValue: '',
-        }, () => {
-            redirect(ROUTES.getReportRoute(option.reportID));
-            hideChatSwitcher();
-            this.props.onLinkClick();
-        });
+        if (!option) {
+            return;
+        }
+
+        if (option.reportID) {
+            this.setState({
+                searchValue: '',
+            }, () => {
+                if (this.props.isSmallScreenWidth) {
+                    hideSidebar();
+                }
+                redirect(ROUTES.getReportRoute(option.reportID));
+            });
+        } else {
+            if (this.props.isSmallScreenWidth) {
+                hideSidebar();
+            }
+
+            fetchOrCreateChatReport([
+                this.props.session.email,
+                option.login,
+            ]);
+        }
     }
 
     render() {
@@ -98,6 +120,11 @@ class SearchView extends Component {
 
         return (
             <>
+                <HeaderGap />
+                <HeaderWithCloseButton
+                    title="Search"
+                    onCloseButtonPress={redirectToLastReport}
+                />
                 <View style={[styles.flex1, styles.w100]}>
                     <OptionsSelector
                         sections={sections}
@@ -106,6 +133,7 @@ class SearchView extends Component {
                         onChangeText={(searchValue = '') => {
                             const {
                                 recentReports,
+                                personalDetails,
                             } = getSearchOptions(
                                 this.props.reports,
                                 this.props.personalDetails,
@@ -114,6 +142,7 @@ class SearchView extends Component {
                             this.setState({
                                 searchValue,
                                 recentReports,
+                                personalDetails,
                             });
                         }}
                         hideSectionHeaders
@@ -126,10 +155,10 @@ class SearchView extends Component {
     }
 }
 
-SearchView.propTypes = propTypes;
-SearchView.displayName = 'SearchView';
+SearchPage.propTypes = propTypes;
+SearchPage.displayName = 'SearchPage';
 
-export default withOnyx({
+export default withWindowDimensions(withOnyx({
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,
     },
@@ -139,4 +168,4 @@ export default withOnyx({
     session: {
         key: ONYXKEYS.SESSION,
     },
-})(SearchView);
+})(SearchPage));
