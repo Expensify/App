@@ -85,6 +85,7 @@ class CreateMenu extends PureComponent {
                         ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED
                         : CONST.MODAL.MODAL_TYPE.POPOVER
                 }
+                popoverAnchorPosition={styles.createMenuPosition}
             >
                 {menuItemData.map(({icon, text, onPress}) => (
                     <Pressable

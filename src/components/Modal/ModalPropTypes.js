@@ -25,6 +25,15 @@ const propTypes = {
         CONST.MODAL.MODAL_TYPE.POPOVER,
         CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
     ]),
+
+    // The anchor position of a popover modal. Has no effect on other modal types.
+    popoverAnchorPosition: PropTypes.shape({
+        top: PropTypes.number,
+        right: PropTypes.number,
+        bottom: PropTypes.number,
+        left: PropTypes.number,
+    }),
+
     ...windowDimensionsPropTypes,
 };
 
@@ -32,6 +41,7 @@ const defaultProps = {
     onSubmit: null,
     type: '',
     onModalHide: () => {},
+    popoverAnchorPosition: null,
 };
 
 export {propTypes, defaultProps};
