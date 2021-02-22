@@ -33,6 +33,7 @@ function isAuthTokenRequired(command) {
         'SetGithubUsername',
         'SetPassword',
         'User_SignUp',
+        'ResendValidateCode',
     ], command);
 }
 
