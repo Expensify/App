@@ -3,7 +3,7 @@ import colors from './colors';
 import variables from './variables';
 import themeColors from './themes/default';
 
-export default (type, windowDimensions) => {
+export default (type, windowDimensions, popoverAnchorPosition = {}) => {
     const {isSmallScreenWidth, windowWidth} = windowDimensions;
 
     let modalStyle = {
@@ -83,11 +83,11 @@ export default (type, windowDimensions) => {
         case CONST.MODAL.MODAL_TYPE.POPOVER:
             modalStyle = {
                 ...modalStyle,
+                ...popoverAnchorPosition,
                 ...{
+                    position: 'absolute',
                     alignItems: 'center',
                     justifyContent: 'flex-end',
-                    marginRight: windowWidth - variables.sideBarWidth,
-                    marginBottom: 100,
                 },
             };
             modalContainerStyle = {

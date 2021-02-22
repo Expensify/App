@@ -8,7 +8,7 @@ import {propTypes, defaultProps} from './ModalPropTypes';
 const Modal = props => (
     <BaseModal
         useNativeDriver
-               // eslint-disable-next-line react/jsx-props-no-spreading
+        // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
     >
         {props.children}
