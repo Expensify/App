@@ -19,3 +19,12 @@
 .react-pdf__Page__annotations {
     height: 0;
 }
+.react-pdf__Page__textContent{
+    opacity: 0.2;
+}
+.react-pdf__Page__textContent ::selection{
+    background: rgba(0, 0, 255, 1);
+}
+.react-pdf__Page__textContent span{
+    color: transparent;
+}
