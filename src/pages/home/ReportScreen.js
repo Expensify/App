@@ -10,6 +10,7 @@ import ReportView from './report/ReportView';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
 import {show as showSidebar} from '../../libs/actions/Sidebar';
+import HeaderGap from '../../components/HeaderGap';
 
 const propTypes = {
     /* Onyx Props */
@@ -88,6 +89,7 @@ class ReportScreen extends Component {
             >
                 {() => (
                     <>
+                        <HeaderGap />
                         <HeaderView onNavigationMenuButtonClicked={showSidebar} />
                         {_.map(reportsToDisplay, report => (
                             <View

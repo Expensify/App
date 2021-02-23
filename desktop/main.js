@@ -13,6 +13,9 @@ const log = require('electron-log');
 const ELECTRON_EVENTS = require('./ELECTRON_EVENTS');
 const checkForUpdates = require('../src/libs/checkForUpdates');
 
+const isDev = process.env.NODE_ENV === 'development';
+const port = process.env.PORT || 8080;
+
 /**
  * Electron main process that handles wrapping the web application.
  *
@@ -36,8 +39,22 @@ autoUpdater.logger.transports.file.level = 'info';
 // See https://www.npmjs.com/package/electron-log
 Object.assign(console, log.functions);
 
+// setup Hot reload
+if (isDev) {
+    try {
+        require('electron-reloader')(module, {
+            watchRenderer: false,
+            ignore: [/^(desktop)/],
+        });
+        // eslint-disable-next-line no-empty
+    } catch {}
+}
+
+
 const mainWindow = (() => {
-    const loadURL = serve({directory: `${__dirname}/../dist`});
+    const loadURL = isDev
+        ? win => win.loadURL(`http://localhost:${port}`)
+        : serve({directory: `${__dirname}/../dist`});
 
     return app.whenReady()
         .then(() => {
@@ -48,6 +65,7 @@ const mainWindow = (() => {
                 webPreferences: {
                     nodeIntegration: true,
                 },
+                titleBarStyle: 'hidden',
             });
 
             // List the Expensify Chat instance under the Window menu, even when it's hidden
