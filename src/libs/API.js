@@ -442,18 +442,6 @@ function PersonalDetails_GetForEmails(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {Object} parameters.details
- * @returns {Promise}
- */
-function PersonalDetails_Update(parameters) {
-    const commandName = 'PersonalDetails_Update';
-    requireParameters(['details'],
-        parameters, commandName);
-    return request(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.socket_id
  * @param {String} parameters.channel_name
  * @returns {Promise}
@@ -578,18 +566,7 @@ function User_GetBetas() {
  */
 function User_SecondaryLogin_Send(parameters) {
     const commandName = 'User_SecondaryLogin_Send';
-    requireParameters(['email','password'], parameters, commandName);
-    return request(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.base64image
- * @returns {Promise}
- */
-function User_UploadAvatar(parameters) {
-    const commandName = 'User_UploadAvatar';
-    requireParameters(['base64image'], parameters, commandName);
+    requireParameters(['email', 'password'], parameters, commandName);
     return request(commandName, parameters);
 }
 
@@ -618,7 +595,6 @@ export {
     Graphite_Timer,
     Log,
     PersonalDetails_GetForEmails,
-    PersonalDetails_Update,
     Push_Authenticate,
     Report_AddComment,
     Report_GetHistory,
@@ -632,6 +608,5 @@ export {
     User_SignUp,
     User_GetBetas,
     User_SecondaryLogin_Send,
-    User_UploadAvatar,
     reauthenticate,
 };
