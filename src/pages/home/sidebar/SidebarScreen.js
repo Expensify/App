@@ -3,9 +3,10 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import SidebarLinks from './SidebarLinks';
-import CreateMenu from '../../../components/CreateMenu';
+import CreateMenu, {MENU_ITEM_KEYS} from '../../../components/CreateMenu';
 import FAB from '../../../components/FAB';
 import ScreenWrapper from '../../../components/ScreenWrapper';
+
 
 const propTypes = {
     // Toggles the navigation menu open and closed
@@ -45,6 +46,12 @@ const SidebarScreen = props => (
                     onClose={props.toggleCreateMenu}
                     isVisible={props.isCreateMenuActive}
                     onItemSelected={props.onCreateMenuItemSelected}
+                    menuOptions={[
+                        MENU_ITEM_KEYS.NewChat,
+                        MENU_ITEM_KEYS.RequestMoney,
+                        MENU_ITEM_KEYS.NewGroup,
+                        MENU_ITEM_KEYS.SplitBill,
+                    ]}
                 />
             </>
         )}

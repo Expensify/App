@@ -109,6 +109,7 @@ class ReportScreen extends Component {
                                 <ReportView
                                     reportID={report.reportID}
                                     isActiveReport={report.reportID === activeReportID}
+                                    hasMultipleParticipants={report.participants.length > 1}
                                 />
                             </View>
                         ))}
