@@ -1,9 +1,9 @@
 import React from 'react';
 import {
-    Picker,
     TouchableOpacity,
     View,
 } from 'react-native';
+import RNPickerSelect from 'react-native-picker-select';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -125,14 +125,14 @@ const SettingsPage = ({
                         <Text style={[styles.textP]}>
                             How should we display chats on your home screen?
                         </Text>
-                        <Picker
+                        <RNPickerSelect
+                            onValueChange={updatePriorityMode}
                             style={[styles.picker, styles.w100, styles.mt2, styles.mb2]}
-                            selectedValue={priorityMode}
-                            onValueChange={mode => updatePriorityMode(mode)}
-                        >
-                            {Object.values(priorityModes)
-                                .map(({key, label}) => <Picker.Item label={label} value={key} key={key} />)}
-                        </Picker>
+                            items={[
+                                {label: 'Most Recent', value: 'default'},
+                                {label: 'GSD', value: 'gsd'},
+                            ]}
+                        />
                         <Text style={[styles.textP, styles.colorMuted]}>
                             {priorityModes[priorityMode].description}
                         </Text>
