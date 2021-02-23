@@ -2,6 +2,7 @@ import React from 'react';
 import {
     TouchableOpacity,
     View,
+    StyleSheet,
 } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import PropTypes from 'prop-types';
@@ -66,6 +67,29 @@ const priorityModes = {
     },
 };
 
+const pickerSelectStyles = StyleSheet.create({
+    inputIOS: {
+        fontSize: 16,
+        paddingVertical: 12,
+        paddingHorizontal: 10,
+        borderWidth: 1,
+        borderColor: 'gray',
+        borderRadius: 4,
+        color: 'black',
+        paddingRight: 30,
+    },
+    inputAndroid: {
+        fontSize: 16,
+        paddingHorizontal: 10,
+        paddingVertical: 8,
+        borderWidth: 0.5,
+        borderColor: 'purple',
+        borderRadius: 8,
+        color: 'black',
+        paddingRight: 30,
+    },
+});
+
 const SettingsPage = ({
     myPersonalDetails,
     network,
@@ -127,11 +151,22 @@ const SettingsPage = ({
                         </Text>
                         <RNPickerSelect
                             onValueChange={updatePriorityMode}
-                            style={[styles.picker, styles.w100, styles.mt2, styles.mb2]}
                             items={[
                                 {label: 'Most Recent', value: 'default'},
                                 {label: 'GSD', value: 'gsd'},
                             ]}
+                            style={{
+                                // eslint-disable-next-line no-undef
+                                ...pickerSelectStyles,
+                                iconContainer: {
+                                    top: 10,
+                                    right: 12,
+                                },
+                            }}
+                            useNativeAndroidPickerStyle={false}
+                            placeholder={{}}
+
+                            // style={[styles.picker, styles.w100, styles.mt2, styles.mb2]}
                         />
                         <Text style={[styles.textP, styles.colorMuted]}>
                             {priorityModes[priorityMode].description}
