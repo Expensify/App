@@ -69,6 +69,8 @@ function processNetworkRequestQueue() {
 
         const requestData = queuedRequest.data;
         const requestEmail = requestData.email ?? '';
+
+        // If we haven't passed an email in the request data, set it to the current user's email
         if (email && _.isEmpty(requestEmail)) {
             requestData.email = email;
         }

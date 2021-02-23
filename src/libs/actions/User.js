@@ -48,7 +48,7 @@ function fetch() {
 
             // Update the nvp_payPalMeAddress NVP
             const payPalMeAddress = lodashGet(response, `nameValuePairs.${payPalNVP}`, '');
-            Onyx.merge(ONYXKEYS.NVP_PAYPALMEADDRESS, payPalMeAddress);
+            Onyx.merge(ONYXKEYS.NVP_PAYPAL_ME_ADDRESS, payPalMeAddress);
         });
 }
 
