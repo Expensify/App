@@ -413,6 +413,11 @@ const styles = {
         textDecorationLine: 'none',
     },
 
+    createMenuPosition: {
+        left: 18,
+        bottom: 100,
+    },
+
     createMenuItem: {
         flexDirection: 'row',
         borderRadius: 0,
