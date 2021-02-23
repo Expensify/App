@@ -42,7 +42,6 @@ function redirectToSignIn(errorMessage) {
     // Save the reportID before calling redirect or otherwise when clear
     // is finished the value saved here will already be null
     const reportID = currentlyViewedReportID;
-    redirect(ROUTES.SIGNIN);
     Onyx.clear().then(() => {
         if (errorMessage) {
             Onyx.set(ONYXKEYS.SESSION, {error: errorMessage});
@@ -50,6 +49,7 @@ function redirectToSignIn(errorMessage) {
         if (reportID) {
             Onyx.set(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, reportID);
         }
+        redirect(ROUTES.SIGNIN);
     });
 }
 

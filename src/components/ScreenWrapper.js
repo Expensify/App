@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import styles, {getSafeAreaPadding} from '../styles/styles';
+import HeaderGap from './HeaderGap';
 
 const propTypes = {
     // Array of additional styles to add
@@ -45,6 +46,7 @@ const ScreenWrapper = props => (
                         paddingStyle,
                     ]}
                 >
+                    <HeaderGap />
                     {props.children(insets)}
                 </View>
             );

@@ -1,15 +1,6 @@
-import React, {PureComponent} from 'react';
+import {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import {Route} from '../../libs/Router';
-import styles from '../../styles/styles';
-import SidebarScreen from './sidebar/SidebarScreen';
-import ReportScreen from './ReportScreen';
-import NewGroupPage from '../NewGroupPage';
-import NewChatPage from '../NewChatPage';
-import SettingsPage from '../SettingsPage';
-import SearchPage from '../SearchPage';
 
 import {
     subscribeToReportCommentEvents,
@@ -28,7 +19,6 @@ import CONST from '../../CONST';
 import {fetchCountryCodeByRequestIP} from '../../libs/actions/GeoLocation';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import {redirect} from '../../libs/actions/App';
-import RightDockedModal from '../../components/RightDockedModal';
 import {getBetas} from '../../libs/actions/User';
 import Account from '../../libs/actions/Account';
 
@@ -40,7 +30,7 @@ const defaultProps = {
     network: {isOffline: true},
 };
 
-class HomePage extends PureComponent {
+class AppWrapper extends PureComponent {
     constructor(props) {
         super(props);
 
@@ -94,47 +84,16 @@ class HomePage extends PureComponent {
     }
 
     render() {
-        return (
-            <View style={[styles.flexRow, styles.h100, styles.appContentWrapper]}>
-                <Route path={[
-                    ROUTES.REPORT,
-                    ROUTES.HOME,
-                    ROUTES.SETTINGS,
-                    ROUTES.NEW_GROUP,
-                    ROUTES.NEW_CHAT,
-                    ROUTES.SEARCH,
-                ]}
-                >
-                    {/* Sidebar Screen */}
-                    <SidebarScreen />
-
-                    {/* Report Screen */}
-                    <ReportScreen />
-
-                    {/* Modal Screens */}
-                    <RightDockedModal route={ROUTES.SETTINGS}>
-                        <SettingsPage />
-                    </RightDockedModal>
-                    <RightDockedModal route={ROUTES.NEW_GROUP}>
-                        <NewGroupPage />
-                    </RightDockedModal>
-                    <RightDockedModal route={ROUTES.NEW_CHAT}>
-                        <NewChatPage />
-                    </RightDockedModal>
-                    <RightDockedModal route={ROUTES.SEARCH}>
-                        <SearchPage />
-                    </RightDockedModal>
-                </Route>
-            </View>
-        );
+        // eslint-disable-next-line react/prop-types
+        return this.props.children;
     }
 }
 
-HomePage.propTypes = propTypes;
-HomePage.defaultProps = defaultProps;
+AppWrapper.propTypes = propTypes;
+AppWrapper.defaultProps = defaultProps;
 
 export default withOnyx({
     network: {
         key: ONYXKEYS.NETWORK,
     },
-})(HomePage);
+})(AppWrapper);

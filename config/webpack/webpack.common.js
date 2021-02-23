@@ -11,6 +11,14 @@ const platformIndex = process.argv.findIndex(arg => arg === '--platform');
 const platform = (platformIndex > 0) ? process.argv[platformIndex + 1] : 'web';
 const platformExclude = platform === 'web' ? new RegExp(/\.desktop\.js$/) : new RegExp(/\.website\.js$/);
 
+const includeModules = [
+    'react-native-animatable',
+    'react-native-modal',
+    'react-native-webview',
+    'react-native-onyx',
+    'react-native-gesture-handler',
+].join('|');
+
 module.exports = {
     entry: {
         app: './index.js',
@@ -18,6 +26,7 @@ module.exports = {
     output: {
         filename: '[name]-[hash].bundle.js',
         path: path.resolve(__dirname, '../../dist'),
+        publicPath: '/',
     },
     plugins: [
         new CleanWebpackPlugin(),
@@ -51,7 +60,7 @@ module.exports = {
                 loader: 'babel-loader',
 
                 /**
-                 * Exclude node_modules except two packages we need to convert for rendering HTML because they import
+                 * Exclude node_modules except any packages we need to convert for rendering HTML because they import
                  * "react-native" internally and use JSX which we need to convert to JS for the browser.
                  *
                  * You'll need to add anything in here that needs the alias for "react-native" -> "react-native-web"
@@ -59,8 +68,7 @@ module.exports = {
                  * use JSX/JS that needs to be transformed by babel.
                  */
                 exclude: [
-                    // eslint-disable-next-line max-len
-                    /node_modules\/(?!(react-native-animatable|react-native-modal|react-native-webview|react-native-onyx)\/).*|\.native\.js$/,
+                    new RegExp(`node_modules/(?!(${includeModules})/).*|.native.js$`),
                     platformExclude,
                 ],
             },

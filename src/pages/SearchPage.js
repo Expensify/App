@@ -7,13 +7,13 @@ import {getSearchOptions} from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import KeyboardSpacer from '../components/KeyboardSpacer';
-import {redirect, redirectToLastReport} from '../libs/actions/App';
+import {redirect} from '../libs/actions/App';
 import ROUTES from '../ROUTES';
-import {hide as hideSidebar} from '../libs/actions/Sidebar';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
-import HeaderGap from '../components/HeaderGap';
+import ScreenWrapper from '../components/ScreenWrapper';
+import Navigation from '../libs/Navigation/Navigation';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -98,16 +98,9 @@ class SearchPage extends Component {
             this.setState({
                 searchValue: '',
             }, () => {
-                if (this.props.isSmallScreenWidth) {
-                    hideSidebar();
-                }
                 redirect(ROUTES.getReportRoute(option.reportID));
             });
         } else {
-            if (this.props.isSmallScreenWidth) {
-                hideSidebar();
-            }
-
             fetchOrCreateChatReport([
                 this.props.session.email,
                 option.login,
@@ -119,38 +112,41 @@ class SearchPage extends Component {
         const sections = this.getSections();
 
         return (
-            <>
-                <HeaderGap />
-                <HeaderWithCloseButton
-                    title="Search"
-                    onCloseButtonPress={redirectToLastReport}
-                />
-                <View style={[styles.flex1, styles.w100]}>
-                    <OptionsSelector
-                        sections={sections}
-                        value={this.state.searchValue}
-                        onSelectRow={this.selectReport}
-                        onChangeText={(searchValue = '') => {
-                            const {
-                                recentReports,
-                                personalDetails,
-                            } = getSearchOptions(
-                                this.props.reports,
-                                this.props.personalDetails,
-                                searchValue,
-                            );
-                            this.setState({
-                                searchValue,
-                                recentReports,
-                                personalDetails,
-                            });
-                        }}
-                        hideSectionHeaders
-                        hideAdditionalOptionStates
-                    />
-                </View>
-                <KeyboardSpacer />
-            </>
+            <ScreenWrapper>
+                {() => (
+                    <>
+                        <HeaderWithCloseButton
+                            title="Search"
+                            onCloseButtonPress={() => Navigation.dismissModal()}
+                        />
+                        <View style={[styles.flex1, styles.w100]}>
+                            <OptionsSelector
+                                sections={sections}
+                                value={this.state.searchValue}
+                                onSelectRow={this.selectReport}
+                                onChangeText={(searchValue = '') => {
+                                    const {
+                                        recentReports,
+                                        personalDetails,
+                                    } = getSearchOptions(
+                                        this.props.reports,
+                                        this.props.personalDetails,
+                                        searchValue,
+                                    );
+                                    this.setState({
+                                        searchValue,
+                                        recentReports,
+                                        personalDetails,
+                                    });
+                                }}
+                                hideSectionHeaders
+                                hideAdditionalOptionStates
+                            />
+                        </View>
+                        <KeyboardSpacer />
+                    </>
+                )}
+            </ScreenWrapper>
         );
     }
 }

@@ -64,7 +64,6 @@ const BaseModal = (props) => {
                         paddingTop: safeAreaPaddingTop,
                         paddingBottom: safeAreaPaddingBottom,
                     } = getSafeAreaPadding(insets);
-
                     return (
                         <View
                             style={{
