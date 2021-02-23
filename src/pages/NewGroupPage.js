@@ -10,11 +10,10 @@ import styles from '../styles/styles';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import CONST from '../CONST';
 import KeyboardSpacer from '../components/KeyboardSpacer';
-import {hide as hideSidebar} from '../libs/actions/Sidebar';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
-import {redirectToLastReport} from '../libs/actions/App';
-import HeaderGap from '../components/HeaderGap';
+import ScreenWrapper from '../components/ScreenWrapper';
+import Navigation from '../libs/Navigation/Navigation';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -155,9 +154,6 @@ class NewGroupPage extends Component {
         if (userLogins.length < 1) {
             return;
         }
-        if (this.props.isSmallScreenWidth) {
-            hideSidebar();
-        }
         fetchOrCreateChatReport([this.props.session.email, ...userLogins]);
     }
 
@@ -207,63 +203,66 @@ class NewGroupPage extends Component {
         const sections = this.getSections(maxParticipantsReached);
         const {headerTitle, headerMessage} = this.getHeaderTitleAndMessage(maxParticipantsReached);
         return (
-            <>
-                <HeaderGap />
-                <HeaderWithCloseButton
-                    title="New Group"
-                    onCloseButtonPress={redirectToLastReport}
-                />
-                <View style={[styles.flex1, styles.w100]}>
-                    <OptionsSelector
-                        canSelectMultipleOptions
-                        sections={sections}
-                        selectedOptions={this.state.selectedOptions}
-                        value={this.state.searchValue}
-                        onSelectRow={this.toggleOption}
-                        onChangeText={(searchValue = '') => {
-                            const {
-                                recentReports,
-                                personalDetails,
-                                userToInvite,
-                            } = getNewGroupOptions(
-                                this.props.reports,
-                                this.props.personalDetails,
-                                searchValue,
-                                [],
-                            );
-                            this.setState({
-                                searchValue,
-                                userToInvite,
-                                recentReports,
-                                personalDetails,
-                            });
-                        }}
-                        headerTitle={headerTitle}
-                        headerMessage={headerMessage}
-                        disableArrowKeysActions
-                        hideAdditionalOptionStates
-                        forceTextUnreadStyle
-                    />
-                    {this.state.selectedOptions?.length > 0 && (
-                        <View style={[styles.ph5, styles.pb5]}>
-                            <Pressable
-                                onPress={this.createGroup}
-                                style={({hovered}) => [
-                                    styles.button,
-                                    styles.buttonSuccess,
-                                    styles.w100,
-                                    hovered && styles.buttonSuccessHovered,
-                                ]}
-                            >
-                                <Text style={[styles.buttonText, styles.buttonSuccessText]}>
-                                    Create Group
-                                </Text>
-                            </Pressable>
+            <ScreenWrapper>
+                {() => (
+                    <>
+                        <HeaderWithCloseButton
+                            title="New Group"
+                            onCloseButtonPress={() => Navigation.dismissModal()}
+                        />
+                        <View style={[styles.flex1, styles.w100]}>
+                            <OptionsSelector
+                                canSelectMultipleOptions
+                                sections={sections}
+                                selectedOptions={this.state.selectedOptions}
+                                value={this.state.searchValue}
+                                onSelectRow={this.toggleOption}
+                                onChangeText={(searchValue = '') => {
+                                    const {
+                                        recentReports,
+                                        personalDetails,
+                                        userToInvite,
+                                    } = getNewGroupOptions(
+                                        this.props.reports,
+                                        this.props.personalDetails,
+                                        searchValue,
+                                        [],
+                                    );
+                                    this.setState({
+                                        searchValue,
+                                        userToInvite,
+                                        recentReports,
+                                        personalDetails,
+                                    });
+                                }}
+                                headerTitle={headerTitle}
+                                headerMessage={headerMessage}
+                                disableArrowKeysActions
+                                hideAdditionalOptionStates
+                                forceTextUnreadStyle
+                            />
+                            {this.state.selectedOptions?.length > 0 && (
+                                <View style={[styles.ph5, styles.pb5]}>
+                                    <Pressable
+                                        onPress={this.createGroup}
+                                        style={({hovered}) => [
+                                            styles.button,
+                                            styles.buttonSuccess,
+                                            styles.w100,
+                                            hovered && styles.buttonSuccessHovered,
+                                        ]}
+                                    >
+                                        <Text style={[styles.buttonText, styles.buttonSuccessText]}>
+                                            Create Group
+                                        </Text>
+                                    </Pressable>
+                                </View>
+                            )}
                         </View>
-                    )}
-                </View>
-                <KeyboardSpacer />
-            </>
+                        <KeyboardSpacer />
+                    </>
+                )}
+            </ScreenWrapper>
         );
     }
 }

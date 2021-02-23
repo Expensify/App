@@ -9,10 +9,7 @@ export default {
     // which tab is the leader, and which ones are the followers
     ACTIVE_CLIENTS: 'activeClients2',
 
-    // When this key is changed, the active page changes (see Expensify.js and `redirect` in actions/App.js)
-    APP_REDIRECT_TO: 'appRedirectTo',
-
-    // The current URL, you should not change this directly (use `redirect` in App.js)
+    // What the active route is for our navigator. Global route that determines what views to display.
     CURRENT_URL: 'currentURL',
 
     // Currently viewed reportID
@@ -42,7 +39,6 @@ export default {
 
     // Information about the current session (authToken, accountID, email, loading, error)
     SESSION: 'session',
-    IS_SIDEBAR_SHOWN: 'isSidebarShown',
     BETAS: 'betas',
 
     // NVP keys

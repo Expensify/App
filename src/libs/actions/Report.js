@@ -1,4 +1,5 @@
 import moment from 'moment';
+import {Dimensions} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
@@ -13,11 +14,11 @@ import * as ActiveClientManager from '../ActiveClientManager';
 import Visibility from '../Visibility';
 import ROUTES from '../../ROUTES';
 import NetworkConnection from '../NetworkConnection';
-import {hide as hideSidebar} from './Sidebar';
 import Timing from './Timing';
 import * as API from '../API';
 import CONST from '../../CONST';
 import Log from '../Log';
+import variables from '../../styles/variables';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -357,7 +358,6 @@ function subscribeToReportCommentEvents() {
     // Open correct report when push notification is clicked
     PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, ({reportID}) => {
         redirect(ROUTES.getReportRoute(reportID));
-        hideSidebar();
     });
 }
 
@@ -493,6 +493,8 @@ function fetchChatReports() {
             } else {
                 fetchOrCreateChatReport([currentUserEmail, 'concierge@expensify.com']);
             }
+
+            return response.chatList;
         });
 }
 
@@ -529,12 +531,16 @@ function fetchActions(reportID) {
 function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false, shouldRecordHomePageTiming = false) {
     fetchChatReports()
         .then((reportIDs) => {
-            if (shouldRedirectToReport && (currentURL === ROUTES.ROOT || currentURL === ROUTES.HOME)) {
+            const isSmallScreenWidth = Dimensions.get('window').width < variables.mobileResponsiveWidthBreakpoint;
+            if (shouldRedirectToReport && !currentURL.includes(ROUTES.REPORT) && !isSmallScreenWidth) {
                 // Redirect to either the last viewed report ID or the first report ID from our report collection
                 if (lastViewedReportID) {
                     redirect(ROUTES.getReportRoute(lastViewedReportID));
                 } else {
-                    redirect(ROUTES.getReportRoute(_.first(reportIDs)));
+                    const firstReportID = _.first(reportIDs);
+                    if (firstReportID) {
+                        redirect(ROUTES.getReportRoute(firstReportID));
+                    }
                 }
             }
 
