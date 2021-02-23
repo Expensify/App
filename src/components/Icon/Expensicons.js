@@ -10,6 +10,8 @@ import Plus from '../../../assets/images/plus.svg';
 import Send from '../../../assets/images/send.svg';
 import Users from '../../../assets/images/users.svg';
 import Checkmark from '../../../assets/images/checkmark.svg';
+import Receipt from '../../../assets/images/receipt.svg';
+import MoneyCircle from '../../../assets/images/money-circle.svg';
 
 export {
     BackArrow,
@@ -24,4 +26,6 @@ export {
     Send,
     Users,
     Checkmark,
+    Receipt,
+    MoneyCircle,
 };

@@ -16,6 +16,7 @@ import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import compose from '../../../libs/compose';
+import CreateMenu, {MENU_ITEM_KEYS} from '../../../components/CreateMenu';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -29,6 +30,9 @@ const propTypes = {
 
     isSidebarShown: PropTypes.bool.isRequired,
 
+    // Whether or not this report has more than one participant
+    hasMultipleParticipants: PropTypes.bool.isRequired,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -39,7 +43,6 @@ const defaultProps = {
 class ReportActionCompose extends React.Component {
     constructor(props) {
         super(props);
-
         this.updateComment = this.updateComment.bind(this);
         this.debouncedSaveReportComment = _.debounce(this.debouncedSaveReportComment.bind(this), 1000, false);
         this.debouncedBroadcastUserIsTyping = _.debounce(() => broadcastUserIsTyping(props.reportID), 100, true);
@@ -53,6 +56,7 @@ class ReportActionCompose extends React.Component {
             isFocused: false,
             textInputShouldClear: false,
             isCommentEmpty: props.comment.length === 0,
+            isMenuVisible: false,
         };
     }
 
@@ -80,6 +84,15 @@ class ReportActionCompose extends React.Component {
      */
     setTextInputShouldClear(shouldClear) {
         this.setState({textInputShouldClear: shouldClear});
+    }
+
+    /**
+     * Updates the visiblity state of the menu
+     *
+     * @param {Boolean} isMenuVisible
+     */
+    setMenuVisibility(isMenuVisible) {
+        this.setState({isMenuVisible});
     }
 
     /**
@@ -168,24 +181,35 @@ class ReportActionCompose extends React.Component {
                             <>
                                 <AttachmentPicker>
                                     {({openPicker}) => (
-                                        <TouchableOpacity
-                                            onPress={(e) => {
-                                                e.preventDefault();
-
-                                                // Do not open attachment picker from keypress event
-                                                if (!e.key) {
-                                                    openPicker({
-                                                        onPicked: (file) => {
-                                                            displayFileInModal({file});
-                                                        },
-                                                    });
-                                                }
-                                            }}
-                                            style={[styles.chatItemAttachButton]}
-                                            underlayColor={themeColors.componentBG}
-                                        >
-                                            <Icon src={Paperclip} />
-                                        </TouchableOpacity>
+                                        <>
+                                            <TouchableOpacity
+                                                onPress={(e) => {
+                                                    e.preventDefault();
+                                                    this.setMenuVisibility(true);
+                                                }}
+                                                style={styles.chatItemAttachButton}
+                                                underlayColor={themeColors.componentBG}
+                                            >
+                                                <Icon src={Paperclip} />
+                                            </TouchableOpacity>
+                                            <CreateMenu
+                                                isVisible={this.state.isMenuVisible}
+                                                onClose={() => this.setMenuVisibility(false)}
+                                                onAttachmentPickerSelected={() => {
+                                                    setTimeout(() => {
+                                                        openPicker({
+                                                            onPicked: (file) => {
+                                                                displayFileInModal({file});
+                                                            },
+                                                        });
+                                                    }, 100);
+                                                }}
+                                                onItemSelected={() => this.setMenuVisibility(false)}
+                                                menuOptions={this.props.hasMultipleParticipants
+                                                    ? [MENU_ITEM_KEYS.SplitBill, MENU_ITEM_KEYS.AttachmentPicker]
+                                                    : [MENU_ITEM_KEYS.RequestMoney, MENU_ITEM_KEYS.AttachmentPicker]}
+                                            />
+                                        </>
                                     )}
                                 </AttachmentPicker>
                                 <TextInputFocusable

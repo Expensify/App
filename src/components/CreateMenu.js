@@ -8,10 +8,20 @@ import styles from '../styles/styles';
 import CONST from '../CONST';
 import themeColors from '../styles/themes/default';
 import Icon from './Icon';
-import {ChatBubble, Users} from './Icon/Expensicons';
+import {
+    ChatBubble, Users, Receipt, MoneyCircle, Paperclip,
+} from './Icon/Expensicons';
 import {redirect} from '../libs/actions/App';
 import ROUTES from '../ROUTES';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+
+export const MENU_ITEM_KEYS = {
+    NewChat: 'NewChat',
+    NewGroup: 'NewGroup',
+    RequestMoney: 'RequestMoney',
+    SplitBill: 'SplitBill',
+    AttachmentPicker: 'AttachmentPicker',
+};
 
 const propTypes = {
     // Callback to fire on request to modal close
@@ -23,7 +33,19 @@ const propTypes = {
     // Callback to fire when a CreateMenu item is selected
     onItemSelected: PropTypes.func.isRequired,
 
+    // Menu items to be rendered on the list
+    menuOptions: PropTypes.arrayOf(
+        PropTypes.oneOf(Object.keys(MENU_ITEM_KEYS)),
+    ).isRequired,
+
+    // Callback to fire when a AttachmentPicker item is selected
+    onAttachmentPickerSelected: PropTypes.func,
+
     ...windowDimensionsPropTypes,
+};
+
+const defaultProps = {
+    onAttachmentPickerSelected: () => {},
 };
 
 class CreateMenu extends PureComponent {
@@ -33,6 +55,42 @@ class CreateMenu extends PureComponent {
         this.setOnModalHide = this.setOnModalHide.bind(this);
         this.resetOnModalHide = this.resetOnModalHide.bind(this);
         this.onModalHide = () => {};
+
+        const MENU_ITEMS = {
+            [MENU_ITEM_KEYS.NewChat]: {
+                icon: ChatBubble,
+                text: 'New Chat',
+                onSelected: () => redirect(ROUTES.NEW_CHAT),
+            },
+            [MENU_ITEM_KEYS.NewGroup]: {
+                icon: Users,
+                text: 'New Group',
+                onSelected: () => redirect(ROUTES.NEW_GROUP),
+            },
+            [MENU_ITEM_KEYS.RequestMoney]: {
+                icon: MoneyCircle,
+                text: 'Request Money',
+                onSelected: () => redirect(ROUTES.NEW_CHAT),
+            },
+            [MENU_ITEM_KEYS.SplitBill]: {
+                icon: Receipt,
+                text: 'Split Bill',
+                onSelected: () => redirect(ROUTES.NEW_CHAT),
+            },
+            [MENU_ITEM_KEYS.AttachmentPicker]: {
+                icon: Paperclip,
+                text: 'Add Attachment',
+                onSelected: () => this.props.onAttachmentPickerSelected(),
+            },
+        };
+
+        this.menuItemData = props.menuOptions.map(key => ({
+            ...MENU_ITEMS[key],
+            onPress: () => {
+                props.onItemSelected();
+                this.setOnModalHide(() => MENU_ITEMS[key].onSelected());
+            },
+        }));
     }
 
     /**
@@ -51,27 +109,6 @@ class CreateMenu extends PureComponent {
     }
 
     render() {
-        // This format allows to set individual callbacks to each item
-        // while including mutual callbacks first
-        const menuItemData = [
-            {
-                icon: ChatBubble,
-                text: 'New Chat',
-                onPress: () => this.setOnModalHide(() => redirect(ROUTES.NEW_CHAT)),
-            },
-            {
-                icon: Users,
-                text: 'New Group',
-                onPress: () => this.setOnModalHide(() => redirect(ROUTES.NEW_GROUP)),
-            },
-        ].map(item => ({
-            ...item,
-            onPress: () => {
-                this.props.onItemSelected();
-                item.onPress();
-            },
-        }));
-
         return (
             <Modal
                 onClose={this.props.onClose}
@@ -86,7 +123,7 @@ class CreateMenu extends PureComponent {
                         : CONST.MODAL.MODAL_TYPE.POPOVER
                 }
             >
-                {menuItemData.map(({icon, text, onPress}) => (
+                {this.menuItemData.map(({icon, text, onPress}) => (
                     <Pressable
                         key={text}
                         onPress={onPress}
@@ -111,5 +148,6 @@ class CreateMenu extends PureComponent {
 }
 
 CreateMenu.propTypes = propTypes;
+CreateMenu.defaultProps = defaultProps;
 CreateMenu.displayName = 'CreateMenu';
 export default withWindowDimensions(CreateMenu);

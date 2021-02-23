@@ -15,6 +15,9 @@ const propTypes = {
 
     // Whether or not this report is the one that is currently being viewed
     isActiveReport: PropTypes.bool.isRequired,
+
+    // Whether or not this report has more than one participant
+    hasMultipleParticipants: PropTypes.bool.isRequired,
 };
 
 // This is a PureComponent so that it only re-renders when the reportID changes or when the report changes from
@@ -51,6 +54,7 @@ class ReportView extends React.PureComponent {
                     <ReportActionCompose
                         onSubmit={text => addAction(this.props.reportID, text)}
                         reportID={this.props.reportID}
+                        hasMultipleParticipants={this.props.hasMultipleParticipants}
                     />
                 )}
 
