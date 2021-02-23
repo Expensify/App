@@ -302,7 +302,7 @@ function reauthenticate(command = '') {
  * @returns {Promise}
  */
 function ChangePassword(parameters) {
-    const commandName = 'User_UploadAvatar';
+    const commandName = 'ChangePassword';
     requireParameters(['oldPassword', 'password'], parameters, commandName);
     return request(commandName, parameters);
 }
