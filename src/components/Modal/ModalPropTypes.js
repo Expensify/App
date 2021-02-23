@@ -41,7 +41,7 @@ const defaultProps = {
     onSubmit: null,
     type: '',
     onModalHide: () => {},
-    popoverAnchorPosition: null,
+    popoverAnchorPosition: {},
 };
 
 export {propTypes, defaultProps};
