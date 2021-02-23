@@ -1051,15 +1051,14 @@ function getSafeAreaMargins(insets) {
  * Return navigation menu styles.
  *
  * @param {Number} windowWidth
- * @param {Boolean} isSidebarShown
  * @param {Boolean} isSmallScreenWidth
  * @returns {Object}
  */
-function getNavigationMenuStyle(windowWidth, isSidebarShown, isSmallScreenWidth) {
+function getNavigationMenuStyle(windowWidth, isSmallScreenWidth) {
     return isSmallScreenWidth
         ? {
             ...styles.navigationMenuOpenAbsolute,
-            width: isSidebarShown ? windowWidth : 0,
+            width: windowWidth,
         }
         : {
             borderColor: themeColors.border,
