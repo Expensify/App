@@ -18,12 +18,7 @@ export default (type, windowDimensions, popoverAnchorPosition = {}) => {
     let shouldAddBottomSafeAreaPadding = false;
     let shouldAddTopSafeAreaPadding = false;
 
-    // On smaller screen widths, the Popover modal becomes a BottomDocked modal
-    const screenWidthAdjustedType = windowDimensions.isSmallScreenWidth && type === CONST.MODAL.MODAL_TYPE.POPOVER
-        ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED
-        : type;
-
-    switch (screenWidthAdjustedType) {
+    switch (type) {
         case CONST.MODAL.MODAL_TYPE.CENTERED:
             // A centered modal is one that has a visible backdrop
             // and can be dismissed by clicking outside of the modal.
