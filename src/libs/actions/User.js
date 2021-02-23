@@ -16,11 +16,9 @@ import {signIn} from './Session';
  */
 function changePassword(oldPassword, password, twoFactorAuthCode) {
     API.ChangePassword({oldPassword, password}).then((response) => {
-        // If we've successfully authenticated the user, ensure sign them in so they don't get booted out
+        // If we've successfully authenticated the user, ensure we sign them in so they don't get booted out
         if (response.jsonCode === 200) {
             signIn(password, twoFactorAuthCode);
-        } else {
-            console.error('Could not change password', response);
         }
     });
 }
@@ -29,8 +27,6 @@ function getBetas() {
     API.User_GetBetas().then((response) => {
         if (response.jsonCode === 200) {
             Onyx.set(ONYXKEYS.BETAS, response.betas);
-        } else {
-            console.error('Could not get betas', response);
         }
     });
 }
@@ -52,9 +48,8 @@ function fetch() {
 
             // Update the nvp_payPalMeAddress NVP
             const payPalMeAddress = lodashGet(response, `nameValuePairs.${payPalNVP}`, '');
-            Onyx.merge(`${ONYXKEYS.COLLECTION.NVP}payPalMeAddress`, payPalMeAddress);
-        })
-        .catch(error => console.debug('Error fetching user settings', error));
+            Onyx.merge(ONYXKEYS.NVP_PAYPALMEADDRESS, payPalMeAddress);
+        });
 }
 
 /**
@@ -63,11 +58,7 @@ function fetch() {
  * @param {String} email
  */
 function resendValidateCode(email) {
-    API.ResendValidateCode({email}).then((response) => {
-        if (response.jsonCode !== 200) {
-            console.error('Could not resend validate code', response);
-        }
-    });
+    API.ResendValidateCode({email});
 }
 
 /**
@@ -79,8 +70,6 @@ function setExpensifyNewsStatus(subscribed) {
     API.UpdateAccount({subscribed}).then((response) => {
         if (response.jsonCode === 200) {
             Onyx.merge(ONYXKEYS.USER, {expensifyNewsStatus: subscribed});
-        } else {
-            console.error('Could not set Expensify news subscription status', response);
         }
     });
 }
@@ -99,8 +88,6 @@ function setSecondaryLogin(login, password) {
         if (response.jsonCode === 200) {
             const loginList = _.where(response.loginList, {partnerName: 'expensify.com'});
             Onyx.merge(ONYXKEYS.USER, {loginList});
-        } else {
-            console.error('Could not set secondary login', response);
         }
     });
 }

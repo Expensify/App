@@ -46,12 +46,14 @@ export default {
     IS_SIDEBAR_ANIMATING: 'isSidebarAnimating',
     BETAS: 'betas',
 
+    // NVP keys
+    NVP_PAYPALMEADDRESS: 'nvp_paypalMeAddress',
+
     // Collection Keys
     COLLECTION: {
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
         REPORT_DRAFT_COMMENT: 'reportDraftComment_',
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
-        NVP: 'nvp_',
     },
 };
