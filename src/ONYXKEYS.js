@@ -47,7 +47,7 @@ export default {
     BETAS: 'betas',
 
     // NVP keys
-    NVP_PAYPALMEADDRESS: 'nvp_paypalMeAddress',
+    NVP_PAYPAL_ME_ADDRESS: 'nvp_paypalMeAddress',
 
     // Collection Keys
     COLLECTION: {
