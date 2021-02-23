@@ -10,13 +10,16 @@ declare -r NC='\033[0m'
 declare diff_highlight
 diff_highlight=$(dpkg -L git | grep diff-highlight/diff-highlight)
 
+git config --global --add core.pager="$diff_highlight"
+git config --global --add color.ui="always"
+
 # Rebuild all the Github Actions
 printf '\nRebuilding GitHub Actions...\n'
 npm run gh-actions-build
 
 # Check for a diff
 printf '\nChecking for a diff...\n'
-if [[ $(git -c core.pager="$diff_highlight" color.ui=always diff --exit-code) -eq 0 ]]; then
+if [[ $(git --exit-code) -eq 0 ]]; then
     echo -e "${GREEN}Github Actions are up to date!${NC}"
     exit 0
 else
