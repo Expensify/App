@@ -1,3 +1,4 @@
+import {Keyboard} from 'react-native';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 
@@ -5,6 +6,7 @@ import ONYXKEYS from '../../ONYXKEYS';
  * Hide the sidebar, if it is shown.
  */
 function hide() {
+    Keyboard.dismiss();
     Onyx.set(ONYXKEYS.IS_SIDEBAR_SHOWN, false);
 }
 
@@ -12,20 +14,11 @@ function hide() {
  * Show the sidebar, if it is hidden.
  */
 function show() {
+    Keyboard.dismiss();
     Onyx.set(ONYXKEYS.IS_SIDEBAR_SHOWN, true);
-}
-
-/**
- * Tracks the animating state of the Sidebar.
- *
- * @param {Boolean} isAnimating
- */
-function setIsAnimating(isAnimating) {
-    Onyx.set(ONYXKEYS.IS_SIDEBAR_ANIMATING, isAnimating);
 }
 
 export {
     hide,
     show,
-    setIsAnimating,
 };

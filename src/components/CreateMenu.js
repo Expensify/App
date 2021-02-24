@@ -3,9 +3,8 @@ import PropTypes from 'prop-types';
 import {
     View, Text, Pressable,
 } from 'react-native';
-import Modal from './Modal';
+import Popover from './Popover';
 import styles from '../styles/styles';
-import CONST from '../CONST';
 import themeColors from '../styles/themes/default';
 import Icon from './Icon';
 import {
@@ -103,18 +102,14 @@ class CreateMenu extends PureComponent {
 
     render() {
         return (
-            <Modal
+            <Popover
                 onClose={this.props.onClose}
                 isVisible={this.props.isVisible}
                 onModalHide={() => {
                     this.onModalHide();
                     this.resetOnModalHide();
                 }}
-                type={
-                    this.props.isSmallScreenWidth
-                        ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED
-                        : CONST.MODAL.MODAL_TYPE.POPOVER
-                }
+                anchorPosition={styles.createMenuPosition}
             >
                 {this.menuItemData.map(({icon, text, onPress}) => (
                     <Pressable
@@ -135,7 +130,7 @@ class CreateMenu extends PureComponent {
                         </View>
                     </Pressable>
                 ))}
-            </Modal>
+            </Popover>
         );
     }
 }

@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import CONST from '../../CONST';
 import {windowDimensionsPropTypes} from '../withWindowDimensions';
 
-const modalPropTypes = {
+const propTypes = {
     // Callback method fired when the user requests to close the modal
     onClose: PropTypes.func.isRequired,
 
@@ -25,7 +25,23 @@ const modalPropTypes = {
         CONST.MODAL.MODAL_TYPE.POPOVER,
         CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
     ]),
+
+    // The anchor position of a popover modal. Has no effect on other modal types.
+    popoverAnchorPosition: PropTypes.shape({
+        top: PropTypes.number,
+        right: PropTypes.number,
+        bottom: PropTypes.number,
+        left: PropTypes.number,
+    }),
+
     ...windowDimensionsPropTypes,
 };
 
-export default modalPropTypes;
+const defaultProps = {
+    onSubmit: null,
+    type: '',
+    onModalHide: () => {},
+    popoverAnchorPosition: {},
+};
+
+export {propTypes, defaultProps};

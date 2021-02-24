@@ -151,7 +151,8 @@ function getFromReportParticipants(reports) {
     API.PersonalDetails_GetForEmails({emailList: participantEmails.join(',')})
         .then((data) => {
             const details = _.pick(data, participantEmails);
-            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, formatPersonalDetails(details));
+            const formattedPersonalDetails = formatPersonalDetails(details);
+            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, formattedPersonalDetails);
 
             // The personalDetails of the participants contain their avatar images. Here we'll go over each
             // report and based on the participants we'll link up their avatars to report icons.
@@ -160,12 +161,21 @@ function getFromReportParticipants(reports) {
                 if (report.participants.length > 0) {
                     const avatars = _.map(report.participants, dmParticipant => ({
                         firstName: lodashGet(details, [dmParticipant, 'firstName'], ''),
-                        avatar: lodashGet(details, [dmParticipant, 'avatar'], getDefaultAvatar(dmParticipant)),
+                        avatar: lodashGet(details, [dmParticipant, 'avatar'], '') || getDefaultAvatar(dmParticipant),
                     }))
                         .sort((first, second) => first.firstName - second.firstName)
                         .map(item => item.avatar);
+                    const reportName = _.chain(report.participants)
+                        .filter(participant => participant !== currentUserEmail)
+                        .map(participant => lodashGet(
+                            formattedPersonalDetails,
+                            [participant, 'displayName'],
+                            participant,
+                        ))
+                        .value()
+                        .join(', ');
 
-                    reportsToUpdate[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = {icons: avatars};
+                    reportsToUpdate[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = {icons: avatars, reportName};
                 }
             });
 
