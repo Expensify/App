@@ -13,6 +13,7 @@ import {
 import {redirect} from '../libs/actions/App';
 import ROUTES from '../ROUTES';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import CONST from '../CONST';
 
 
 const propTypes = {
