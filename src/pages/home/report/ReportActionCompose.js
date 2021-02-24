@@ -193,27 +193,29 @@ class ReportActionCompose extends React.Component {
                                             >
                                                 <Icon src={Paperclip} />
                                             </TouchableOpacity>
-                                            <CreateMenu
-                                                isVisible={this.state.isMenuVisible}
-                                                onClose={() => this.setMenuVisibility(false)}
-                                                onAttachmentPickerSelected={() => {
-                                                    setTimeout(() => {
-                                                        openPicker({
-                                                            onPicked: (file) => {
-                                                                displayFileInModal({file});
-                                                            },
-                                                        });
-                                                    }, 100);
-                                                }}
-                                                onItemSelected={() => this.setMenuVisibility(false)}
-                                                menuOptions={this.props.hasMultipleParticipants
-                                                    ? [
-                                                        CONST.MENU_ITEM_KEYS.SPLIT_BILL,
-                                                        CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]
-                                                    : [
-                                                        CONST.MENU_ITEM_KEYS.REQUEST_MONEY,
-                                                        CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]}
-                                            />
+                                            {this.state.isMenuVisible ? (
+                                                <CreateMenu
+                                                    isVisible={this.state.isMenuVisible}
+                                                    onClose={() => this.setMenuVisibility(false)}
+                                                    onAttachmentPickerSelected={() => {
+                                                        setTimeout(() => {
+                                                            openPicker({
+                                                                onPicked: (file) => {
+                                                                    displayFileInModal({file});
+                                                                },
+                                                            });
+                                                        }, 100);
+                                                    }}
+                                                    onItemSelected={() => this.setMenuVisibility(false)}
+                                                    menuOptions={this.props.hasMultipleParticipants
+                                                        ? [
+                                                            CONST.MENU_ITEM_KEYS.SPLIT_BILL,
+                                                            CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]
+                                                        : [
+                                                            CONST.MENU_ITEM_KEYS.REQUEST_MONEY,
+                                                            CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]}
+                                                />
+                                            ) : null}
                                         </>
                                     )}
                                 </AttachmentPicker>
