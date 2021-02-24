@@ -2,18 +2,20 @@ import _ from 'underscore';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
-import Modal from './Modal';
-import {propTypes as modalPropTypes, defaultProps as defaultModalProps} from './Modal/ModalPropTypes';
+import Popover from './Popover';
+import {propTypes as popoverPropTypes, defaultProps as defaultPopoverProps} from './Popover/PopoverPropTypes';
 import {windowDimensionsPropTypes} from './withWindowDimensions';
 import CONST from '../CONST';
 import styles from '../styles/styles';
 
 const propTypes = {
-    // All modal props except type, popoverAnchorPosition, and the windowDimensions prop types
-    ...(_.omit(modalPropTypes, ['type', 'popoverAnchorPosition', ...(_.keys(windowDimensionsPropTypes))])),
+    // All popover props except:
+    // 1) anchorPosition (which is overridden for this component)
+    // 2) windowDimensionsPropTypes, which is unneeded.
+    ...(_.omit(popoverPropTypes, ['anchorPosition', ...(_.keys(windowDimensionsPropTypes))])),
 
     // The horizontal and vertical anchors points for the popover
-    popoverPosition: PropTypes.shape({
+    anchorPosition: PropTypes.shape({
         horizontal: PropTypes.number.isRequired,
         vertical: PropTypes.number.isRequired,
     }).isRequired,
@@ -24,14 +26,13 @@ const propTypes = {
         vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
 
-    // Optionally pass in a function with content to measure.
-    // Will use this.props.children by default, but if children are not displayed, then the measurement will not work.
+    // Optionally pass in a function with content to measure. This component will use this.props.children by default,
+    // but in the case the children are not displayed, the measurement will not work.
     measureContent: PropTypes.func,
 };
 
 const defaultProps = {
-    // Default modal props
-    ...(_.omit(defaultModalProps, ['type', 'popoverAnchorPosition'])),
+    ...defaultPopoverProps,
 
     // Default positioning of the popover
     anchorOrigin: {
@@ -77,35 +78,35 @@ class PopoverWithMeasuredContent extends Component {
      *
      * @returns {Object}
      */
-    calculateAdjustedPopoverPosition() {
+    calculateAdjustedAnchorPosition() {
         let horizontalConstraint;
         switch (this.props.anchorOrigin.horizontal) {
             case CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT:
-                horizontalConstraint = {left: this.props.popoverPosition.horizontal - this.popoverWidth};
+                horizontalConstraint = {left: this.props.anchorPosition.horizontal - this.popoverWidth};
                 break;
             case CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER:
                 horizontalConstraint = {
-                    left: Math.floor(this.props.popoverPosition.horizontal - (this.popoverWidth / 2)),
+                    left: Math.floor(this.props.anchorPosition.horizontal - (this.popoverWidth / 2)),
                 };
                 break;
             case CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT:
             default:
-                horizontalConstraint = {left: this.props.popoverPosition.horizontal};
+                horizontalConstraint = {left: this.props.anchorPosition.horizontal};
         }
 
         let verticalConstraint;
         switch (this.props.anchorOrigin.vertical) {
             case CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM:
-                verticalConstraint = {top: this.props.popoverPosition.vertical - this.popoverHeight};
+                verticalConstraint = {top: this.props.anchorPosition.vertical - this.popoverHeight};
                 break;
             case CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.CENTER:
                 verticalConstraint = {
-                    top: Math.floor(this.props.popoverPosition.vertical - (this.popoverHeight / 2)),
+                    top: Math.floor(this.props.anchorPosition.vertical - (this.popoverHeight / 2)),
                 };
                 break;
             case CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP:
             default:
-                verticalConstraint = {top: this.props.popoverPosition.vertical};
+                verticalConstraint = {top: this.props.anchorPosition.vertical};
         }
 
         return {
@@ -117,16 +118,13 @@ class PopoverWithMeasuredContent extends Component {
     render() {
         return this.state.isContentMeasured
             ? (
-                <Modal
-                    type={CONST.MODAL.MODAL_TYPE.POPOVER}
-                    isVisible={this.props.isVisible}
-                    onClose={this.props.onClose}
-                    popoverAnchorPosition={this.calculateAdjustedPopoverPosition()}
+                <Popover
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...this.props}
+                    anchorPosition={this.calculateAdjustedAnchorPosition()}
                 >
                     {this.props.children}
-                </Modal>
+                </Popover>
             ) : (
 
                 /*

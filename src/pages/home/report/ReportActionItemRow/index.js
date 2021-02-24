@@ -53,11 +53,14 @@ class ReportActionItemRow extends Component {
     showPopover(event) {
         const nativeEvent = event.nativeEvent || {};
 
-        // Only show the popover onLongPress if the longPress is a touch and not a mouse click
-        if (nativeEvent.type !== 'mousedown') {
-            this.capturePressLocation(nativeEvent);
-            this.setState({isPopoverVisible: true});
-        }
+        this.capturePressLocation(nativeEvent);
+        this.setState({isPopoverVisible: true});
+
+        // // Only show the popover onLongPress if the longPress is a touch and not a mouse click
+        // if (nativeEvent.type !== 'mousedown') {
+        //     this.capturePressLocation(nativeEvent);
+        //     this.setState({isPopoverVisible: true});
+        // }
     }
 
     /**
@@ -90,7 +93,7 @@ class ReportActionItemRow extends Component {
                             <PopoverWithMeasuredContent
                                 isVisible={this.state.isPopoverVisible}
                                 onClose={this.hidePopover}
-                                popoverPosition={this.popoverAnchorPosition}
+                                anchorPosition={this.popoverAnchorPosition}
                                 animationIn="bounceIn"
                                 measureContent={() => (
                                     <ReportActionContextMenu
