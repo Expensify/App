@@ -6,7 +6,7 @@ import {Linking} from 'react-native';
  * @param {String} urlScheme
  * @returns {Promise}
  */
-export default async function isAppInstalled(urlScheme) {
+export default function isAppInstalled(urlScheme) {
     return new Promise((resolve, reject) => {
         Linking.canOpenURL(`${urlScheme}://`)
             .then((isInstalled) => {
