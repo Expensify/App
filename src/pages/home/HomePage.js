@@ -14,6 +14,7 @@ import variables from '../../styles/variables';
 import SidebarScreen from './sidebar/SidebarScreen';
 import ReportScreen from './ReportScreen';
 import NewGroupPage from '../NewGroupPage';
+import {ChatBubble} from '../../components/Icon/Expensicons';
 import NewChatPage from '../NewChatPage';
 import SettingsPage from '../SettingsPage';
 import SearchPage from '../SearchPage';
@@ -40,6 +41,7 @@ import {fetchCountryCodeByRequestIP} from '../../libs/actions/GeoLocation';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import {redirect} from '../../libs/actions/App';
 import RightDockedModal from '../../components/RightDockedModal';
+import IOUModal from '../iou/IOUModal';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import compose from '../../libs/compose';
 import {getBetas} from '../../libs/actions/User';
@@ -275,8 +277,8 @@ class HomePage extends Component {
                     ROUTES.HOME,
                     ROUTES.SETTINGS,
                     ROUTES.NEW_GROUP,
-                    ROUTES.NEW_CHAT,
-                    ROUTES.SEARCH,
+                    ROUTES.IOU_REQUEST_MONEY,
+                    ROUTES.IOU_GROUP_SPLIT,
                 ]}
                 >
                     {/* Sidebar Screen */}
@@ -318,6 +320,12 @@ class HomePage extends Component {
                     <RightDockedModal route={ROUTES.SEARCH}>
                         <SearchPage />
                     </RightDockedModal>
+                    <IOUModal route={ROUTES.IOU_REQUEST_MONEY}>
+                        <ChatBubble />
+                    </IOUModal>
+                    <IOUModal route={ROUTES.IOU_GROUP_SPLIT}>
+                        <ChatBubble />
+                    </IOUModal>
                 </Route>
             </View>
         );
