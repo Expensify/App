@@ -87,5 +87,9 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false />
+  <key>LSApplicationQueriesSchemes</key>
+  <array>
+      <string>venmo</string>
+  </array>
 </dict>
 </plist>
