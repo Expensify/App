@@ -4,7 +4,8 @@ import {
     TouchableOpacity, Text,
 } from 'react-native';
 import CONST from '../../CONST';
-import ModalWithHeader from '../ModalWithHeader';
+import HeaderWithCloseButton from '../HeaderWithCloseButton';
+import Modal from '../Modal';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 
@@ -49,14 +50,17 @@ class BaseUpdateAppModal extends PureComponent {
     render() {
         return (
             <>
-                <ModalWithHeader
+                <Modal
                     type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
                     onSubmit={this.submitAndClose}
                     onClose={() => this.setState({isModalOpen: false})}
                     isVisible={this.state.isModalOpen}
-                    title="Update App"
                     backgroundColor={themeColors.componentBG}
                 >
+                    <HeaderWithCloseButton
+                        title="Update App"
+                        onCloseButtonPress={() => this.setState({isModalOpen: false})}
+                    />
                     <Text style={[styles.textLabel, styles.p4]}>
                         A new version of Expensify.cash is available.
                         Update now or restart the app at a later time to download the latest changes.
@@ -79,7 +83,7 @@ class BaseUpdateAppModal extends PureComponent {
                             </Text>
                         </TouchableOpacity>
                     )}
-                </ModalWithHeader>
+                </Modal>
             </>
         );
     }

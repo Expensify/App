@@ -3,7 +3,6 @@ const {
     BrowserWindow,
     Menu,
     MenuItem,
-    dialog,
     shell,
     ipcMain,
 } = require('electron');
@@ -69,13 +68,13 @@ for (let i = 0; i < process.argv.length; i++) {
 // happens correctly.
 let hasUpdate = false;
 
-const quitAndInstallWithUpdate = version => {
+const quitAndInstallWithUpdate = (version) => {
     app.relaunch({
         args: [`${EXPECTED_UPDATE_VERSION_FLAG}=${version}`],
     });
     hasUpdate = true;
     autoUpdater.quitAndInstall();
-}
+};
 
 const electronUpdater = browserWindow => ({
     init: () => {
@@ -87,7 +86,7 @@ const electronUpdater = browserWindow => ({
             }
         });
 
-        ipcMain.on('start-update', quitAndInstallWithUpdate)
+        ipcMain.on('start-update', quitAndInstallWithUpdate);
         autoUpdater.checkForUpdates();
     },
     update: () => {
@@ -218,9 +217,9 @@ const mainWindow = (() => {
         })
 
         // Start checking for JS updates
-        .then(browserWindow => {
+        .then((browserWindow) => {
             if (!isDev) {
-                checkForUpdates(electronUpdater(browserWindow))
+                checkForUpdates(electronUpdater(browserWindow));
             }
         });
 });
