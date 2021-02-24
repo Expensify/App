@@ -15,6 +15,7 @@ import {version} from '../../package.json';
 import AvatarWithIndicator from '../components/AvatarWithIndicator';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import {redirectToLastReport} from '../libs/actions/App';
+import HeaderGap from '../components/HeaderGap';
 
 const propTypes = {
     /* Onyx Props */
@@ -56,6 +57,7 @@ const SettingsPage = ({
     }
     return (
         <>
+            <HeaderGap />
             <HeaderWithCloseButton
                 title="Settings"
                 onCloseButtonPress={redirectToLastReport}
