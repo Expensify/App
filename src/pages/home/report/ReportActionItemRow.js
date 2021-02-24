@@ -1,13 +1,25 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import {Pressable, View} from 'react-native';
-import propTypes from './ReportActionItemRowPropTypes';
-import styles from '../../../../styles/styles';
-import Hoverable from '../../../../components/Hoverable';
-import PopoverWithMeasuredContent from '../../../../components/PopoverWithMeasuredContent';
-import ReportActionItem from '../ReportActionItem';
-import ReportActionContextMenu from '../ReportActionContextMenu';
-import getReportActionItemStyles from '../../../../styles/getReportActionItemRowStyles';
+import PropTypes from 'prop-types';
+import ReportActionPropTypes from './ReportActionPropTypes';
+import styles from '../../../styles/styles';
+import getReportActionItemRowStyles from '../../../styles/getReportActionItemRowStyles';
+import Hoverable from '../../../components/Hoverable';
+import PopoverWithMeasuredContent from '../../../components/PopoverWithMeasuredContent';
+import ReportActionItem from './ReportActionItem';
+import ReportActionContextMenu from './ReportActionContextMenu';
+
+const propTypes = {
+    // The ID of the report this action is on.
+    reportID: PropTypes.number.isRequired,
+
+    // All the data of the action item
+    action: PropTypes.shape(ReportActionPropTypes).isRequired,
+
+    // Should the comment have the appearance of being grouped with the previous comment?
+    displayAsGroup: PropTypes.bool.isRequired,
+};
 
 class ReportActionItemRow extends Component {
     constructor(props) {
@@ -76,7 +88,7 @@ class ReportActionItemRow extends Component {
                 <Hoverable>
                     {hovered => (
                         <View>
-                            <View style={getReportActionItemStyles(hovered)}>
+                            <View style={getReportActionItemRowStyles(hovered)}>
                                 <ReportActionItem
                                     action={this.props.action}
                                     displayAsGroup={this.props.displayAsGroup}
