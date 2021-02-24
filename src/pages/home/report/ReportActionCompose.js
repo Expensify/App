@@ -16,7 +16,8 @@ import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import compose from '../../../libs/compose';
-import CreateMenu, {MENU_ITEM_KEYS} from '../../../components/CreateMenu';
+import CreateMenu from '../../../components/CreateMenu';
+import CONST from '../../../CONST';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -206,8 +207,12 @@ class ReportActionCompose extends React.Component {
                                                 }}
                                                 onItemSelected={() => this.setMenuVisibility(false)}
                                                 menuOptions={this.props.hasMultipleParticipants
-                                                    ? [MENU_ITEM_KEYS.SplitBill, MENU_ITEM_KEYS.AttachmentPicker]
-                                                    : [MENU_ITEM_KEYS.RequestMoney, MENU_ITEM_KEYS.AttachmentPicker]}
+                                                    ? [
+                                                        CONST.MENU_ITEM_KEYS.SPLIT_BILL,
+                                                        CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]
+                                                    : [
+                                                        CONST.MENU_ITEM_KEYS.REQUEST_MONEY,
+                                                        CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]}
                                             />
                                         </>
                                     )}

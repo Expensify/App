@@ -3,9 +3,10 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import SidebarLinks from './SidebarLinks';
-import CreateMenu, {MENU_ITEM_KEYS} from '../../../components/CreateMenu';
+import CreateMenu from '../../../components/CreateMenu';
 import FAB from '../../../components/FAB';
 import ScreenWrapper from '../../../components/ScreenWrapper';
+import CONST from '../../../CONST';
 
 
 const propTypes = {
@@ -47,10 +48,10 @@ const SidebarScreen = props => (
                     isVisible={props.isCreateMenuActive}
                     onItemSelected={props.onCreateMenuItemSelected}
                     menuOptions={[
-                        MENU_ITEM_KEYS.NewChat,
-                        MENU_ITEM_KEYS.RequestMoney,
-                        MENU_ITEM_KEYS.NewGroup,
-                        MENU_ITEM_KEYS.SplitBill,
+                        CONST.MENU_ITEM_KEYS.NEW_CHAT,
+                        CONST.MENU_ITEM_KEYS.REQUEST_MONEY,
+                        CONST.MENU_ITEM_KEYS.NEW_GROUP,
+                        CONST.MENU_ITEM_KEYS.SPLIT_BILL,
                     ]}
                 />
             </>
