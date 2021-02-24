@@ -2,7 +2,6 @@ import React from 'react';
 import {
     TouchableOpacity,
     View,
-    StyleSheet,
 } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import PropTypes from 'prop-types';
@@ -18,6 +17,8 @@ import AvatarWithIndicator from '../components/AvatarWithIndicator';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import {redirectToLastReport} from '../libs/actions/App';
 import {updatePriorityMode} from '../libs/actions/Account';
+import Icon from '../components/Icon';
+import {DownArrow} from '../components/Icon/Expensicons';
 
 const propTypes = {
     /* Onyx Props */
@@ -56,39 +57,16 @@ const defaultProps = {
 
 const priorityModes = {
     default: {
-        key: 'default',
+        value: 'default',
         label: 'Most Recent',
         description: 'This will display all chats by default, sorted by most recent, with pinned items at the top',
     },
     gsd: {
-        key: 'gsd',
+        value: 'gsd',
         label: 'GSD',
         description: 'This will only display unread and pinned chats, all sorted alphabetically. Get Shit Done.',
     },
 };
-
-const pickerSelectStyles = StyleSheet.create({
-    inputIOS: {
-        fontSize: 16,
-        paddingVertical: 12,
-        paddingHorizontal: 10,
-        borderWidth: 1,
-        borderColor: 'gray',
-        borderRadius: 4,
-        color: 'black',
-        paddingRight: 30,
-    },
-    inputAndroid: {
-        fontSize: 16,
-        paddingHorizontal: 10,
-        paddingVertical: 8,
-        borderWidth: 0.5,
-        borderColor: 'purple',
-        borderRadius: 8,
-        color: 'black',
-        paddingRight: 30,
-    },
-});
 
 const SettingsPage = ({
     myPersonalDetails,
@@ -149,27 +127,20 @@ const SettingsPage = ({
                         <Text style={[styles.textP]}>
                             How should we display chats on your home screen?
                         </Text>
-                        <RNPickerSelect
-                            onValueChange={updatePriorityMode}
-                            items={[
-                                {label: 'Most Recent', value: 'default'},
-                                {label: 'GSD', value: 'gsd'},
-                            ]}
-                            style={{
-                                // eslint-disable-next-line no-undef
-                                ...pickerSelectStyles,
-                                iconContainer: {
-                                    top: 10,
-                                    right: 12,
-                                },
-                            }}
-                            useNativeAndroidPickerStyle={false}
-                            placeholder={{}}
-
-                            // style={[styles.picker, styles.w100, styles.mt2, styles.mb2]}
-                        />
+                        <View style={[styles.mt2, styles.mb2]}>
+                            <RNPickerSelect
+                                onValueChange={updatePriorityMode}
+                                items={Object.values(priorityModes)}
+                                style={{
+                                    ...styles.picker,
+                                }}
+                                useNativeAndroidPickerStyle={false}
+                                placeholder={{}}
+                                Icon={() => <Icon src={DownArrow} />}
+                            />
+                        </View>
                         <Text style={[styles.textP, styles.colorMuted]}>
-                            {priorityModes[priorityMode].description}
+                            {priorityModes[priorityMode]?.description }
                         </Text>
                     </View>
                 </View>

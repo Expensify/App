@@ -170,11 +170,40 @@ const styles = {
     },
 
     picker: {
-        borderRadius: variables.componentBorderRadius,
-        borderColor: themeColors.border,
-        height: variables.componentSizeNormal,
-        justifyContent: 'center',
-        paddingHorizontal: 12,
+        inputIOS: {
+            fontSize: variables.fontSizeNormal,
+            paddingVertical: 12,
+            paddingHorizontal: 10,
+            borderRadius: variables.componentBorderRadius,
+            borderColor: themeColors.border,
+            color: 'black',
+            paddingRight: 30,
+        },
+        inputWeb: {
+            fontSize: variables.fontSizeNormal,
+            paddingVertical: 12,
+            paddingHorizontal: 10,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadius,
+            borderColor: themeColors.border,
+            color: 'black',
+            paddingRight: 30,
+            appearance: 'none',
+        },
+        inputAndroid: {
+            fontSize: variables.fontSizeNormal,
+            paddingHorizontal: 10,
+            paddingVertical: 8,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadius,
+            borderColor: themeColors.border,
+            color: 'black',
+            paddingRight: 30,
+        },
+        iconContainer: {
+            top: 12,
+            right: 12,
+        },
     },
 
     pill: {
