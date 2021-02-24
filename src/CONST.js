@@ -39,6 +39,13 @@ const CONST = {
     ERROR: {
         API_OFFLINE: 'API is offline',
     },
+    MENU_ITEM_KEYS: {
+        NEW_CHAT: 'NewChat',
+        NEW_GROUP: 'NewGroup',
+        REQUEST_MONEY: 'RequestMoney',
+        SPLIT_BILL: 'SplitBill',
+        ATTACHMENT_PICKER: 'AttachmentPicker',
+    },
 };
 
 export default CONST;

@@ -15,13 +15,6 @@ import {redirect} from '../libs/actions/App';
 import ROUTES from '../ROUTES';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 
-export const MENU_ITEM_KEYS = {
-    NewChat: 'NewChat',
-    NewGroup: 'NewGroup',
-    RequestMoney: 'RequestMoney',
-    SplitBill: 'SplitBill',
-    AttachmentPicker: 'AttachmentPicker',
-};
 
 const propTypes = {
     // Callback to fire on request to modal close
@@ -35,7 +28,7 @@ const propTypes = {
 
     // Menu items to be rendered on the list
     menuOptions: PropTypes.arrayOf(
-        PropTypes.oneOf(Object.keys(MENU_ITEM_KEYS)),
+        PropTypes.oneOf(Object.values(CONST.MENU_ITEM_KEYS)),
     ).isRequired,
 
     // Callback to fire when a AttachmentPicker item is selected
@@ -57,27 +50,27 @@ class CreateMenu extends PureComponent {
         this.onModalHide = () => {};
 
         const MENU_ITEMS = {
-            [MENU_ITEM_KEYS.NewChat]: {
+            [CONST.MENU_ITEM_KEYS.NEW_CHAT]: {
                 icon: ChatBubble,
                 text: 'New Chat',
                 onSelected: () => redirect(ROUTES.NEW_CHAT),
             },
-            [MENU_ITEM_KEYS.NewGroup]: {
+            [CONST.MENU_ITEM_KEYS.NEW_GROUP]: {
                 icon: Users,
                 text: 'New Group',
                 onSelected: () => redirect(ROUTES.NEW_GROUP),
             },
-            [MENU_ITEM_KEYS.RequestMoney]: {
+            [CONST.MENU_ITEM_KEYS.REQUEST_MONEY]: {
                 icon: MoneyCircle,
                 text: 'Request Money',
                 onSelected: () => redirect(ROUTES.NEW_CHAT),
             },
-            [MENU_ITEM_KEYS.SplitBill]: {
+            [CONST.MENU_ITEM_KEYS.SPLIT_BILL]: {
                 icon: Receipt,
                 text: 'Split Bill',
                 onSelected: () => redirect(ROUTES.NEW_CHAT),
             },
-            [MENU_ITEM_KEYS.AttachmentPicker]: {
+            [CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]: {
                 icon: Paperclip,
                 text: 'Add Attachment',
                 onSelected: () => this.props.onAttachmentPickerSelected(),
