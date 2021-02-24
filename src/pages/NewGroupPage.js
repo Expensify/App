@@ -12,6 +12,9 @@ import CONST from '../CONST';
 import KeyboardSpacer from '../components/KeyboardSpacer';
 import {hide as hideSidebar} from '../libs/actions/Sidebar';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
+import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
+import {redirectToLastReport} from '../libs/actions/App';
+import HeaderGap from '../components/HeaderGap';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -205,6 +208,11 @@ class NewGroupPage extends Component {
         const {headerTitle, headerMessage} = this.getHeaderTitleAndMessage(maxParticipantsReached);
         return (
             <>
+                <HeaderGap />
+                <HeaderWithCloseButton
+                    title="New Group"
+                    onCloseButtonPress={redirectToLastReport}
+                />
                 <View style={[styles.flex1, styles.w100]}>
                     <OptionsSelector
                         canSelectMultipleOptions

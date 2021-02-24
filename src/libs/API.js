@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
+import CONST from '../CONST';
 import CONFIG from '../CONFIG';
 import ONYXKEYS from '../ONYXKEYS';
 import redirectToSignIn from './actions/SignInRedirect';
@@ -33,6 +34,7 @@ function isAuthTokenRequired(command) {
         'SetGithubUsername',
         'SetPassword',
         'User_SignUp',
+        'ResendValidateCode',
     ], command);
 }
 
@@ -127,7 +129,14 @@ function handleExpiredAuthToken(originalCommand, originalParameters, originalTyp
             // Now that the API is authenticated, make the original request again with the new authToken
             const params = addDefaultValuesToParameters(originalCommand, originalParameters);
             return Network.post(originalCommand, params, originalType);
-        });
+        })
+        .catch(() => (
+
+            // If the request did not succeed and we were not logged out requeue the original request. We are using
+            // request() here so that it we can reauthenticate again when it fails
+            // eslint-disable-next-line no-use-before-define
+            request(originalCommand, originalParameters, originalType)
+        ));
 }
 
 /**
@@ -282,10 +291,18 @@ function reauthenticate(command = '') {
         })
 
         .catch((error) => {
-            // If authentication fails, then the network can be unpaused and app is redirected
-            // so the sign on screen.
+            // If authentication fails, then the network can be unpaused
             Network.unpauseRequestQueue();
             isAuthenticating = false;
+
+            // When a fetch() fails and the "API is offline" error is thrown we won't log the user out. Most likely they
+            // have a spotty connection and will need to try to reauthenticate when they come back online. We will
+            // re-throw this error so it can be handled by callers of reauthenticate().
+            if (error.message === CONST.ERROR.API_OFFLINE) {
+                throw error;
+            }
+
+            // If we experience something other than a network error then redirect the user to sign in
             redirectToSignIn(error.message);
 
             console.debug('Redirecting to Sign In because we failed to reauthenticate', {
@@ -293,6 +310,18 @@ function reauthenticate(command = '') {
                 error: error.message,
             });
         });
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.oldPassword
+ * @param {String} parameters.password
+ * @returns {Promise}
+ */
+function ChangePassword(parameters) {
+    const commandName = 'ChangePassword';
+    requireParameters(['oldPassword', 'password'], parameters, commandName);
+    return request(commandName, parameters);
 }
 
 /**
@@ -348,7 +377,7 @@ function CreateLogin(parameters) {
  * @param {String} parameters.partnerUserID
  * @param {String} parameters.partnerName
  * @param {String} parameters.partnerPassword
- * @param {String} parameters.doNotRetry
+ * @param {Boolean} parameters.doNotRetry
  * @returns {Promise}
  */
 function DeleteLogin(parameters) {
@@ -400,7 +429,9 @@ function Log(parameters) {
     const commandName = 'Log';
     requireParameters(['message', 'parameters', 'expensifyCashAppVersion'],
         parameters, commandName);
-    return request(commandName, parameters);
+
+    // Note: We are forcing Log to run since it requires no authToken and should never be queued unless we are offline.
+    return request(commandName, {...parameters, forceNetworkRequest: true});
 }
 
 /**
@@ -529,10 +560,33 @@ function SetPassword(parameters) {
 }
 
 /**
+ * @param {Object} parameters
+ * @param {String} parameters.subscribed
+ * @returns {Promise}
+ */
+function UpdateAccount(parameters) {
+    const commandName = 'UpdateAccount';
+    requireParameters(['subscribed'], parameters, commandName);
+    return request(commandName, parameters);
+}
+
+/**
  * @returns {Promise}
  */
 function User_GetBetas() {
     return request('User_GetBetas');
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.email
+ * @param {String} parameters.password
+ * @returns {Promise}
+ */
+function User_SecondaryLogin_Send(parameters) {
+    const commandName = 'User_SecondaryLogin_Send';
+    requireParameters(['email', 'password'], parameters, commandName);
+    return request(commandName, parameters);
 }
 
 /**
@@ -550,6 +604,7 @@ function SetNameValuePair(parameters) {
 export {
     getAuthToken,
     Authenticate,
+    ChangePassword,
     CreateChatReport,
     CreateLogin,
     DeleteLogin,
@@ -568,7 +623,9 @@ export {
     SetGithubUsername,
     SetNameValuePair,
     SetPassword,
+    UpdateAccount,
     User_SignUp,
     User_GetBetas,
+    User_SecondaryLogin_Send,
     reauthenticate,
 };

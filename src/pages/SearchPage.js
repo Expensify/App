@@ -7,11 +7,13 @@ import {getSearchOptions} from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import KeyboardSpacer from '../components/KeyboardSpacer';
-import {redirect} from '../libs/actions/App';
+import {redirect, redirectToLastReport} from '../libs/actions/App';
 import ROUTES from '../ROUTES';
 import {hide as hideSidebar} from '../libs/actions/Sidebar';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
+import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
+import HeaderGap from '../components/HeaderGap';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -118,6 +120,11 @@ class SearchPage extends Component {
 
         return (
             <>
+                <HeaderGap />
+                <HeaderWithCloseButton
+                    title="Search"
+                    onCloseButtonPress={redirectToLastReport}
+                />
                 <View style={[styles.flex1, styles.w100]}>
                     <OptionsSelector
                         sections={sections}

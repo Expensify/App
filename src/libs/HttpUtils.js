@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
+import CONST from '../CONST';
 import CONFIG from '../CONFIG';
 import ONYXKEYS from '../ONYXKEYS';
 import NetworkConnection from './NetworkConnection';
@@ -22,7 +23,9 @@ function processHTTPRequest(url, method = 'get', body = null) {
 
         // This will catch any HTTP network errors (like 404s and such), not to be confused with jsonCode which this
         // does NOT catch
-        .catch(() => {
+        .catch((error) => {
+            console.debug('[HttpUtils] Handled error when calling fetch()', error);
+
             NetworkConnection.setOfflineStatus(true);
 
             // Set an error state and signify we are done loading
@@ -30,7 +33,7 @@ function processHTTPRequest(url, method = 'get', body = null) {
 
             // Throw a new error to prevent any other `then()` in the promise chain from being triggered (until another
             // catch() happens
-            throw new Error('API is offline');
+            throw new Error(CONST.ERROR.API_OFFLINE);
         });
 }
 

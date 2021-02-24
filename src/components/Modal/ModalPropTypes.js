@@ -24,7 +24,7 @@ const propTypes = {
         CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED,
         CONST.MODAL.MODAL_TYPE.POPOVER,
         CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
-    ]).isRequired,
+    ]),
 
     // A react-native-animatable animation definition for the modal display animation.
     animationIn: PropTypes.oneOfType([
@@ -46,9 +46,9 @@ const propTypes = {
 const defaultProps = {
     onSubmit: null,
     type: '',
-    onModalHide: () => { },
+    onModalHide: () => {},
     animationIn: null,
-    popoverAnchorPosition: null,
+    popoverAnchorPosition: {},
 };
 
 export {propTypes, defaultProps};
