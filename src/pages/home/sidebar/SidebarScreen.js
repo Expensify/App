@@ -168,17 +168,19 @@ class SidebarScreen extends Component {
                                     onPress={this.toggleCreateMenu}
                                 />
                             </View>
-                            <CreateMenu
-                                onClose={this.toggleCreateMenu}
-                                isVisible={this.state.isCreateMenuActive}
-                                onItemSelected={this.onCreateMenuItemSelected}
-                                menuOptions={[
-                                    CONST.MENU_ITEM_KEYS.NEW_CHAT,
-                                    CONST.MENU_ITEM_KEYS.REQUEST_MONEY,
-                                    CONST.MENU_ITEM_KEYS.NEW_GROUP,
-                                    CONST.MENU_ITEM_KEYS.SPLIT_BILL,
-                                ]}
-                            />
+                            {this.state.isCreateMenuActive ? (
+                                <CreateMenu
+                                    onClose={this.toggleCreateMenu}
+                                    isVisible={this.state.isCreateMenuActive}
+                                    onItemSelected={this.onCreateMenuItemSelected}
+                                    menuOptions={[
+                                        CONST.MENU_ITEM_KEYS.NEW_CHAT,
+                                        CONST.MENU_ITEM_KEYS.REQUEST_MONEY,
+                                        CONST.MENU_ITEM_KEYS.NEW_GROUP,
+                                        CONST.MENU_ITEM_KEYS.SPLIT_BILL,
+                                    ]}
+                                />
+                            ) : null}
                         </>
                     )}
                 </ScreenWrapper>
