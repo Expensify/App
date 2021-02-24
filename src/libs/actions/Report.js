@@ -500,9 +500,11 @@ function fetchChatReports() {
  * Get the actions of a report
  *
  * @param {Number} reportID
+ * @param {Number} offset
  */
-function fetchActions(reportID) {
-    API.Report_GetHistory({reportID})
+function fetchActions(reportID, offset) {
+    const reportActionsOffset = offset || Math.max(reportMaxSequenceNumbers[reportID] - CONST.REPORT.REPORT_ACTIONS_LIMIT, 0);
+    API.Report_GetHistory({reportID, reportActionsOffset})
         .then((data) => {
             // We must remove all optimistic actions so there will not be any stuck comments. At this point, we should
             // be caught up and no longer need any optimistic comments.
@@ -714,7 +716,7 @@ function handleReportChanged(report) {
         fetchChatReportsByIDs([report.reportID]);
     }
 
-    // Store the max sequence number for each report
+    // Store the max/min sequence number for each report
     reportMaxSequenceNumbers[report.reportID] = report.maxSequenceNumber;
 
     // Store optimistic actions IDs for each report
