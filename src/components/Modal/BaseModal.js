@@ -2,19 +2,11 @@ import React, {memo} from 'react';
 import {View} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
-import CustomStatusBar from '../CustomStatusBar';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import styles, {getSafeAreaPadding} from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
-import modalPropTypes from './ModalPropTypes';
+import {propTypes, defaultProps} from './ModalPropTypes';
 import getModalStyles from '../../styles/getModalStyles';
-
-
-const defaultProps = {
-    onSubmit: null,
-    type: '',
-    onModalHide: () => { },
-};
 
 const BaseModal = (props) => {
     const subscribeToKeyEvents = () => {
@@ -34,11 +26,15 @@ const BaseModal = (props) => {
         shouldAddTopSafeAreaPadding,
         shouldAddBottomSafeAreaPadding,
         hideBackdrop,
-    } = getModalStyles(props.type, {
-        windowWidth: props.windowWidth,
-        windowHeight: props.windowHeight,
-        isSmallScreenWidth: props.isSmallScreenWidth,
-    });
+    } = getModalStyles(
+        props.type,
+        {
+            windowWidth: props.windowWidth,
+            windowHeight: props.windowHeight,
+            isSmallScreenWidth: props.isSmallScreenWidth,
+        },
+        props.popoverAnchorPosition,
+    );
     return (
         <ReactNativeModal
             onBackdropPress={props.onClose}
@@ -62,7 +58,6 @@ const BaseModal = (props) => {
             useNativeDriver={props.useNativeDriver}
             statusBarTranslucent
         >
-            <CustomStatusBar />
             <SafeAreaInsetsContext.Consumer>
                 {(insets) => {
                     const {
@@ -92,7 +87,7 @@ const BaseModal = (props) => {
     );
 };
 
-BaseModal.propTypes = modalPropTypes;
+BaseModal.propTypes = propTypes;
 BaseModal.defaultProps = defaultProps;
 BaseModal.displayName = 'BaseModal';
 export default memo(BaseModal);
