@@ -4,7 +4,6 @@ module.exports = {
     extraMetadata: {
         main: './desktop/main.js',
     },
-    afterSign: 'desktop/notarize.js',
     mac: {
         category: 'public.app-category.finance',
         icon: './desktop/icon.png',

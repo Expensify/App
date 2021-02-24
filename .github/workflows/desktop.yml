@@ -8,11 +8,9 @@ on:
 
 jobs:
     build:
+        if: github.actor == 'OSBotify'
         runs-on: macos-latest
         steps:
-            - name: Echo actor
-              run: echo ${{ github.actor }}
-
             - uses: actions/checkout@v2
 
             - name: Setup Node
@@ -29,7 +27,7 @@ jobs:
                   DEVELOPER_ID_SECRET_PASSPHRASE: ${{ secrets.DEVELOPER_ID_SECRET_PASSPHRASE }}
 
             - name: Build desktop app
-              run: npm run desktop-build
+              run: npm run desktop-build -- --publish always -c.afterSign=desktop/notarize.js
               env:
                   CSC_LINK: ${{ secrets.CSC_LINK }}
                   CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}

@@ -37,11 +37,16 @@ export default {
     // an international code
     COUNTRY_CODE: 'countryCode',
 
+    // Contains all the users settings for the Settings page and sub pages
+    USER: 'user',
+
     // Information about the current session (authToken, accountID, email, loading, error)
     SESSION: 'session',
     IS_SIDEBAR_SHOWN: 'isSidebarShown',
-    IS_SIDEBAR_ANIMATING: 'isSidebarAnimating',
     BETAS: 'betas',
+
+    // NVP keys
+    NVP_PAYPAL_ME_ADDRESS: 'nvp_paypalMeAddress',
 
     // Collection Keys
     COLLECTION: {
