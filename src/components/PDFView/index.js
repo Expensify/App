@@ -29,16 +29,25 @@ class PDFView extends PureComponent {
             numPages: null,
         };
         this.onDocumentLoadSuccess = this.onDocumentLoadSuccess.bind(this);
-        console.debug(props);
     }
 
-    onDocumentLoadSuccess = ({numPages}) => {
+    /**
+     * Callback to be called to set the number of pages on PDF
+     *
+     * @param {*} {numPages} No of pages in the rendered PDF
+     * @memberof PDFView
+     */
+    onDocumentLoadSuccess({numPages}) {
         this.setState({numPages});
     }
 
     render() {
         const {isSmallScreenWidth, windowWidth} = this.props;
-        const pageWidth = isSmallScreenWidth ? windowWidth - 30 : variables.pdfPageWidth;
+        const pdfContainerWidth = windowWidth - 100;
+        const pageWidthOnLargeScreen = (pdfContainerWidth <= variables.pdfPageMaxWidth)
+            ? pdfContainerWidth : variables.pdfPageMaxWidth;
+        const pageWidth = isSmallScreenWidth ? windowWidth - 30 : pageWidthOnLargeScreen;
+
         return (
             <View
                 style={[styles.PDFView, this.props.style]}
