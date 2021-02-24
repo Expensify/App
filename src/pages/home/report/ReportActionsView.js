@@ -13,6 +13,7 @@ import ReportActionPropTypes from './ReportActionPropTypes';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import {lastItem} from '../../../libs/CollectionUtils';
 import Visibility from '../../../libs/Visibility';
+import CONST from '../../../CONST';
 
 const propTypes = {
     // The ID of the report actions will be created for
@@ -46,6 +47,7 @@ class ReportActionsView extends React.Component {
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
         this.recordMaxAction = this.recordMaxAction.bind(this);
         this.onVisibilityChange = this.onVisibilityChange.bind(this);
+        this.onEndReached = this.onEndReached.bind(this);
         this.sortedReportActions = this.updateSortedReportActions();
         this.timers = [];
 
@@ -133,6 +135,18 @@ class ReportActionsView extends React.Component {
         if (this.props.isActiveReport && Visibility.isVisible()) {
             this.timers.push(setTimeout(this.recordMaxAction, 3000));
         }
+    }
+
+    /**
+     * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
+     * displaying.
+     */
+    onEndReached() {
+        const minSequenceNumber = _.chain(this.props.reportActions)
+            .pluck('sequenceNumber')
+            .min()
+            .value();
+        fetchActions(this.props.reportID, Math.max(minSequenceNumber - CONST.REPORT.REPORT_ACTIONS_LIMIT, 0));
     }
 
     /**
@@ -272,6 +286,8 @@ class ReportActionsView extends React.Component {
                 contentContainerStyle={[styles.chatContentScrollView]}
                 keyExtractor={item => `${item.action.sequenceNumber}`}
                 initialRowHeight={32}
+                onEndReached={this.onEndReached}
+                onEndReachedThreshold={0.5}
             />
         );
     }

@@ -496,7 +496,7 @@ function Report_GetHistory(parameters) {
     const commandName = 'Report_GetHistory';
     requireParameters(['reportID'],
         parameters, commandName);
-    return request(commandName, parameters);
+    return request(commandName, {...parameters, reportActionsLimit: CONST.REPORT.REPORT_ACTIONS_LIMIT});
 }
 
 /**
