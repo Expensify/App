@@ -14,6 +14,7 @@ const Modal = props => (
         {props.children}
     </BaseModal>
 );
+
 Modal.propTypes = propTypes;
 Modal.defaultProps = defaultProps;
 Modal.displayName = 'Modal';

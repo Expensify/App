@@ -9,6 +9,8 @@ import compose from '../../libs/compose';
 import ReportView from './report/ReportView';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
+import {show as showSidebar} from '../../libs/actions/Sidebar';
+import HeaderGap from '../../components/HeaderGap';
 
 const propTypes = {
     /* Onyx Props */
@@ -19,12 +21,6 @@ const propTypes = {
 
     // ID of Report being viewed
     currentlyViewedReportID: PropTypes.string,
-
-    // Whether we have a small screen width
-    isSmallScreenWidth: PropTypes.bool.isRequired,
-
-    // Callback function to toggle the sidebar
-    toggleNavigationMenu: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -34,10 +30,6 @@ const defaultProps = {
 
 class ReportScreen extends Component {
     shouldComponentUpdate(nextProps) {
-        if (nextProps.isSmallScreenWidth !== this.props.isSmallScreenWidth) {
-            return true;
-        }
-
         if (nextProps.currentlyViewedReportID !== this.props.currentlyViewedReportID) {
             return true;
         }
@@ -97,10 +89,8 @@ class ReportScreen extends Component {
             >
                 {() => (
                     <>
-                        <HeaderView
-                            shouldShowNavigationMenuButton={this.props.isSmallScreenWidth}
-                            onNavigationMenuButtonClicked={this.props.toggleNavigationMenu}
-                        />
+                        <HeaderGap />
+                        <HeaderView onNavigationMenuButtonClicked={showSidebar} />
                         {_.map(reportsToDisplay, report => (
                             <View
                                 key={report.reportID}
