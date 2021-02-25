@@ -13,6 +13,7 @@ import overflow from './utilities/overflow';
 import positioning from './utilities/positioning';
 import whiteSpace from './utilities/whiteSpace';
 import wordBreak from './utilities/wordBreak';
+import textInputAlignSelf from './utilities/textInputAlignSelf';
 
 const styles = {
     // Add all of our utility and helper styles
@@ -671,7 +672,7 @@ const styles = {
         paddingHorizontal: 8,
         marginVertical: 5,
         paddingVertical: 0,
-        alignSelf: 'center',
+        ...textInputAlignSelf.center,
         textAlignVertical: 'center',
     }, 0),
 
@@ -812,7 +813,17 @@ const styles = {
 
     imageModalPDF: {
         flex: 1,
-        backgroundColor: themeColors.componentBG,
+        backgroundColor: themeColors.modalBackground,
+    },
+    PDFView: {
+        flex: 1,
+        backgroundColor: themeColors.modalBackground,
+        width: '100%',
+        height: '100%',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        overflow: 'hidden',
+        overflowY: 'auto',
     },
 
     modalCenterContentContainer: {
