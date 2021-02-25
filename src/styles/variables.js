@@ -17,4 +17,5 @@ export default {
     mobileResponsiveWidthBreakpoint: 800,
     safeInsertPercentage: 0.7,
     sideBarWidth: 375,
+    pdfPageMaxWidth: 992,
 };
