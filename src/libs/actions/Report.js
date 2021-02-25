@@ -503,7 +503,7 @@ function fetchChatReports() {
  * @param {Number} offset
  */
 function fetchActions(reportID, offset) {
-    const reportActionsOffset = offset || Math.max(reportMaxSequenceNumbers[reportID] - CONST.REPORT.REPORT_ACTIONS_LIMIT, 0);
+    const reportActionsOffset = _.isNumber(offset) ? offset : Math.max(reportMaxSequenceNumbers[reportID] - CONST.REPORT.REPORT_ACTIONS_LIMIT, 0);
     API.Report_GetHistory({reportID, reportActionsOffset})
         .then((data) => {
             // We must remove all optimistic actions so there will not be any stuck comments. At this point, we should
