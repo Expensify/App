@@ -139,7 +139,7 @@ function isSearchStringMatch(searchValue, searchText) {
  *
  * @param {Object} reports
  * @param {Object} personalDetails
- * @param {Obejct} draftComments
+ * @param {Object} draftComments
  * @param {Number} activeReportID
  * @param {Object} options
  * @returns {Object}
@@ -178,7 +178,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         }
 
         // Skip this entry if it has no comments and is not the active report. We will only show reports from
-        // people we have sent or recieved at least one message with.
+        // people we have sent or received at least one message with.
         const hasNoComments = report.lastMessageTimestamp === 0;
         if (!showReportsWithNoComments && hasNoComments && report.reportID !== activeReportID) {
             return;
@@ -366,7 +366,7 @@ function getNewGroupOptions(
  * Build the options for the Sidebar a.k.a. LHN
  * @param {Object} reports
  * @param {Object} personalDetails
- * @param {Obejct} draftComments
+ * @param {Object} draftComments
  * @param {Number} activeReportID
  * @returns {Object}
  */
