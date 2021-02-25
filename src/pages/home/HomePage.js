@@ -320,12 +320,8 @@ class HomePage extends Component {
                     <RightDockedModal route={ROUTES.SEARCH}>
                         <SearchPage />
                     </RightDockedModal>
-                    <IOUModal route={ROUTES.IOU_REQUEST_MONEY}>
-                        <ChatBubble />
-                    </IOUModal>
-                    <IOUModal route={ROUTES.IOU_GROUP_SPLIT}>
-                        <ChatBubble />
-                    </IOUModal>
+                    <IOUModal route={ROUTES.IOU_REQUEST_MONEY} />
+                    <IOUModal route={ROUTES.IOU_GROUP_SPLIT} />
                 </Route>
             </View>
         );
