@@ -1,13 +1,14 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import Text from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '../../CONST';
 import themeColors from '../../styles/themes/default';
 import ONYXKEYS from '../../ONYXKEYS';
 import Modal from '../../components/Modal';
 import {redirectToLastReport} from '../../libs/actions/App';
-import Avatar from '../../components/Avatar';
+import IOUAmountPage from './steps/IOUAmountPage';
+import IOUParticipantsPage from './steps/IOUParticipantsPage';
+import IOUConfirmPage from './steps/IOUConfirmPage';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -24,7 +25,7 @@ const propTypes = {
 const StepType = {
     IOUAmount: 'IOUAmount',
     IOUParticipants: 'IOUParticipants',
-    IOUCOnfirm: 'IOUCOnfirm',
+    IOUConfirm: 'IOUConfirm',
 };
 
 const defaultProps = {
@@ -37,7 +38,7 @@ class IOUModal extends Component {
         super(props);
 
         this.state = {
-            step: StepType.IOUAmount,
+            step: StepType.IOUConfirm,
         };
     }
 
@@ -49,16 +50,9 @@ class IOUModal extends Component {
                 isVisible={this.props.currentURL === this.props.route}
                 backgroundColor={themeColors.componentBG}
             >
-                {
-                    this.state.step === StepType.IOUAmount ? <Avatar source={'https://http.cat/101'} /> : null
-                }
-                {
-                    this.state.step === StepType.IOUParticipants ? <Avatar source={'https://http.cat/102'} /> : null
-                }
-                {
-                    this.state.step === StepType.IOUCOnfirm ? <Avatar source={'https://http.cat/103'} /> : null
-                }
-
+                {this.state.step === StepType.IOUAmount && <IOUAmountPage />}
+                {this.state.step === StepType.IOUParticipants && <IOUParticipantsPage />}
+                {this.state.step === StepType.IOUConfirm && <IOUConfirmPage />}
             </Modal>
         );
     }
