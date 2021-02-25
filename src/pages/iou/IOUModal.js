@@ -9,6 +9,8 @@ import {redirectToLastReport} from '../../libs/actions/App';
 import IOUAmountPage from './steps/IOUAmountPage';
 import IOUParticipantsPage from './steps/IOUParticipantsPage';
 import IOUConfirmPage from './steps/IOUConfirmPage';
+import HeaderGap from '../../components/HeaderGap';
+import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -40,6 +42,27 @@ class IOUModal extends Component {
         this.state = {
             step: StepType.IOUConfirm,
         };
+
+        this.getTitleForStep = this.getTitleForStep;
+    }
+
+    /**
+     * Returns the title for the currently selected page
+     *
+     * @return {String}
+     */
+    getTitleForStep() {
+        console.debug('StepType', this.state.step);
+        switch (this.state.step) {
+            case StepType.IOUAmount: 
+                return 'Amount'
+            case StepType.IOUParticipants: 
+                return 'Participants'
+            case StepType.IOUConfirm: 
+                return 'Confirm'
+            default:
+                return ''
+        }
     }
 
     render() {
@@ -50,6 +73,11 @@ class IOUModal extends Component {
                 isVisible={this.props.currentURL === this.props.route}
                 backgroundColor={themeColors.componentBG}
             >
+                <HeaderGap />
+                <HeaderWithCloseButton
+                    title={this.getTitleForStep()}
+                    onCloseButtonPress={redirectToLastReport}
+                />
                 {this.state.step === StepType.IOUAmount && <IOUAmountPage />}
                 {this.state.step === StepType.IOUParticipants && <IOUParticipantsPage />}
                 {this.state.step === StepType.IOUConfirm && <IOUConfirmPage />}
