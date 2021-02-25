@@ -1,3 +1,5 @@
 export default {
-    alignSelf: 'center',
+    center: {
+        alignSelf: 'center',
+    },
 };

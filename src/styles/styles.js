@@ -664,7 +664,7 @@ const styles = {
         paddingHorizontal: 8,
         marginVertical: 5,
         paddingVertical: 0,
-        ...textInputAlignSelf,
+        ...textInputAlignSelf.center,
         textAlignVertical: 'center',
     }, 0),
 
