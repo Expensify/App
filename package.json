@@ -155,6 +155,9 @@
     },
     "timers": "fake",
     "testEnvironment": "jsdom",
+    "setupFiles": [
+      "<rootDir>/jest/setup.js"
+    ],
     "setupFilesAfterEnv": [
       "@testing-library/jest-native/extend-expect"
     ]
