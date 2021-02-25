@@ -49,10 +49,6 @@ class ResponsiveView extends React.Component {
     render() {
         return (
             <>
-                {/* These are all modal views. Probably this would get refactored to say what kind of
-                modal we want this to be and other settings externally. For now, we are just passing
-                two different versions one which is screen only and one which is Modal wrapped in
-                a screen */}
                 {_.map(this.props.modalRoutes || [], modalRouteConfig => (
                     <Modal
                         key={modalRouteConfig.name}
