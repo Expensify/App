@@ -42,11 +42,12 @@ module.exports = {
                 {from: 'web/favicon-unread.png'},
                 {from: 'web/og-preview-image.png'},
                 {from: 'assets/css', to: 'css'},
+                {from: 'node_modules/react-pdf/dist/esm/Page/AnnotationLayer.css', to: 'css/AnnotationLayer.css'},
+                {from: 'assets/images/shadow.png', to: 'images/shadow.png'},
 
                 // These files are copied over as per instructions here
-                // https://github.com/mozilla/pdf.js/wiki/Setup-pdf.js-in-a-website#examples
-                {from: 'src/vendor/pdf-js/web', to: 'pdf/web'},
-                {from: 'src/vendor/pdf-js/js', to: 'pdf/build'},
+                // https://github.com/wojtekmaj/react-pdf#copying-cmaps
+                {from: 'node_modules/pdfjs-dist/cmaps/', to: 'cmaps/'},
             ],
         }),
         new IgnorePlugin(/^\.\/locale$/, /moment$/),
@@ -123,7 +124,6 @@ module.exports = {
         alias: {
             'react-native-config': 'react-web-config',
             'react-native$': 'react-native-web',
-            'react-native-webview': 'react-native-web-webview',
         },
 
         // React Native libraries may have web-specific module implementations that appear with the extension `.web.js`
