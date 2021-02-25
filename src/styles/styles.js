@@ -12,6 +12,7 @@ import display from './utilities/display';
 import overflow from './utilities/overflow';
 import whiteSpace from './utilities/whiteSpace';
 import wordBreak from './utilities/wordBreak';
+import textInputAlignSelf from './utilities/textInputAlignSelf';
 
 const styles = {
     // Add all of our utility and helper styles
@@ -663,7 +664,7 @@ const styles = {
         paddingHorizontal: 8,
         marginVertical: 5,
         paddingVertical: 0,
-        alignSelf: 'center',
+        ...textInputAlignSelf.center,
         textAlignVertical: 'center',
     }, 0),
 
