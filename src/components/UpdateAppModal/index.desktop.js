@@ -3,13 +3,13 @@ import {ipcRenderer} from 'electron';
 import BaseUpdateAppModal from './BaseUpdateAppModal';
 
 const UpdateAppModal = (props) => {
-    const onConfirm = () => {
-        if (props.onConfirm) {
-            props.onConfirm();
+    const onSubmit = () => {
+        if (props.onSubmit) {
+            props.onSubmit();
         }
         ipcRenderer.sendSync('start-update', props.version);
     };
-    return <BaseUpdateAppModal onConfirm={onConfirm} />;
+    return <BaseUpdateAppModal onSubmit={onSubmit} />;
 };
 UpdateAppModal.propTypes = BaseUpdateAppModal.propTypes;
 UpdateAppModal.displayName = 'UpdateAppModal';

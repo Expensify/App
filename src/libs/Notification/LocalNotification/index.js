@@ -4,8 +4,8 @@ function showCommentNotification({reportAction, onClick}) {
     BrowserNotifications.pushReportCommentNotification({reportAction, onClick});
 }
 
-function showUpdateAvailableNotification() {
-    BrowserNotifications.pushUpdateAvailableNotification();
+function showUpdateAvailableNotification({version}) {
+    BrowserNotifications.pushUpdateAvailableNotification({version});
 }
 
 export default {

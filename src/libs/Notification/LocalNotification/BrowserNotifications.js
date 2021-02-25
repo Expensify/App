@@ -1,7 +1,9 @@
 // Web and desktop implementation only. Do not import for direct use. Use LocalNotification.
 import Str from 'expensify-common/lib/str';
+import Onyx from 'react-native-onyx';
 import focusApp from './focusApp';
 import EXPENSIFY_ICON_URL from '../../../../assets/images/expensify-logo-round.png';
+import ONYXKEYS from '../../../ONYXKEYS';
 
 const DEFAULT_DELAY = 4000;
 
@@ -120,12 +122,18 @@ export default {
 
     /**
      * Create a notification to indicate that an update is available.
+     *
+     * @param {Object} params
+     * @param {String} params.version
      */
-    pushUpdateAvailableNotification() {
+    pushUpdateAvailableNotification({version}) {
         push({
             title: 'Update available',
-            body: 'A new version of Expensify.cash is available for download.',
+            body: 'A new version of Expensify.cash is available!',
             delay: 0,
+            onClick: () => {
+                Onyx.merge(ONYXKEYS.UPDATE_VERSION, version);
+            },
         });
     },
 };
