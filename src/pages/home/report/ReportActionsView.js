@@ -1,5 +1,10 @@
 import React from 'react';
-import {View, Keyboard, AppState} from 'react-native';
+import {
+    View,
+    Keyboard,
+    AppState,
+    ActivityIndicator,
+} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
@@ -53,6 +58,7 @@ class ReportActionsView extends React.Component {
 
         this.state = {
             refetchNeeded: true,
+            isLoadingMoreChats: false,
         };
     }
 
@@ -146,7 +152,14 @@ class ReportActionsView extends React.Component {
             .pluck('sequenceNumber')
             .min()
             .value();
-        fetchActions(this.props.reportID, Math.max(minSequenceNumber - CONST.REPORT.REPORT_ACTIONS_LIMIT, 0));
+
+        if (minSequenceNumber === 0) {
+            return;
+        }
+
+        this.setState({isLoadingMoreChats: true});
+        fetchActions(this.props.reportID, Math.max(minSequenceNumber - CONST.REPORT.REPORT_ACTIONS_LIMIT, 0))
+            .done(() => this.setState({isLoadingMoreChats: false}));
     }
 
     /**
@@ -288,6 +301,9 @@ class ReportActionsView extends React.Component {
                 initialRowHeight={32}
                 onEndReached={this.onEndReached}
                 onEndReachedThreshold={0.5}
+                ListFooterComponent={this.state.isLoadingMoreChats
+                    ? <ActivityIndicator size="small" color="#999999" />
+                    : null}
             />
         );
     }
