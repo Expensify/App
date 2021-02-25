@@ -9,7 +9,7 @@ class IOUParticipantsPage extends Component {
     }
 
     render() {
-        return <Avatar source='https://http.cat/102' />;
+        return <Avatar source="https://http.cat/102" />;
     }
 }
 

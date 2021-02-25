@@ -9,7 +9,7 @@ class IOUConfirmPage extends Component {
     }
 
     render() {
-        return <Avatar source='https://http.cat/103' />;
+        return <Avatar source="https://http.cat/103" />;
     }
 }
 

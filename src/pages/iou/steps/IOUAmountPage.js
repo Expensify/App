@@ -9,7 +9,7 @@ class IOUAmountPage extends Component {
     }
 
     render() {
-        return <Avatar source='https://http.cat/101' />;
+        return <Avatar source="https://http.cat/101" />;
     }
 }
 
