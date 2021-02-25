@@ -78,8 +78,6 @@
     "react-native-web": "^0.14.1",
     "react-native-web-webview": "^1.0.2",
     "react-native-webview": "^11.0.2",
-    "react-router-dom": "^5.2.0",
-    "react-router-native": "^5.2.0",
     "react-web-config": "^1.0.0",
     "rn-fetch-blob": "^0.12.0",
     "save": "^2.4.0",
