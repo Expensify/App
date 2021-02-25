@@ -44,7 +44,7 @@ const propTypes = {
     // Whether to allow option focus or not
     disableFocusOptions: PropTypes.bool,
 
-    // A flag to indicate wheter to show additional optional states, such as pin and draft icons
+    // A flag to indicate whether to show additional optional states, such as pin and draft icons
     hideAdditionalOptionStates: PropTypes.bool,
 
     // Force the text style to be the unread style on all rows
@@ -168,7 +168,7 @@ class OptionsList extends Component {
      * @param {Object} params
      * @param {Object} params.section
      * @param {String} params.section.title
-     * @param {Booolean} params.section.shouldShow
+     * @param {Boolean} params.section.shouldShow
      *
      * @return {Component}
      */
