@@ -1,10 +1,13 @@
 import React from 'react';
-import {View, Keyboard, AppState} from 'react-native';
+import {
+    Animated, View, Keyboard, AppState, Easing,
+} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import {withOnyx} from 'react-native-onyx';
 import Text from '../../../components/Text';
+import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
 import {fetchActions, updateLastReadActionID} from '../../../libs/actions/Report';
 import ONYXKEYS from '../../../ONYXKEYS';
 import ReportActionItem from './ReportActionItem';
@@ -23,6 +26,11 @@ const propTypes = {
 
     /* Onyx Props */
 
+    // List of reports to display
+    reports: PropTypes.objectOf(PropTypes.shape({
+        reportID: PropTypes.number,
+    })),
+
     // Array of report actions for this report
     reportActions: PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
 
@@ -34,6 +42,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    reports: {},
     reportActions: {},
     session: {},
 };
@@ -46,8 +55,15 @@ class ReportActionsView extends React.Component {
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
         this.recordMaxAction = this.recordMaxAction.bind(this);
         this.onVisibilityChange = this.onVisibilityChange.bind(this);
-        this.sortedReportActions = this.updateSortedReportActions();
+        this.setUpUnreadActionIndicator = this.setUpUnreadActionIndicator.bind(this);
+        this.updateSortedReportActions = this.updateSortedReportActions.bind(this);
+
+        this.sortedReportActions = [];
         this.timers = [];
+        this.unreadActionCount = 0;
+        this.shouldShowNewActionIndicator = true;
+        this.unreadIndicatorOpacity = new Animated.Value(1);
+        this.unreadIndicatorTimer = null;
 
         this.state = {
             refetchNeeded: true,
@@ -121,6 +137,7 @@ class ReportActionsView extends React.Component {
             this.keyboardEvent.remove();
         }
 
+        clearTimeout(this.unreadIndicatorTimer);
         AppState.removeEventListener('change', this.onVisibilityChange);
 
         _.each(this.timers, timer => clearTimeout(timer));
@@ -143,6 +160,35 @@ class ReportActionsView extends React.Component {
      */
     setRefetchNeeded(refetchNeeded) {
         this.setState({refetchNeeded});
+    }
+
+    /**
+     * Checks if the unreadActionIndicator should be shown.
+     * If it does, starts a timeout for the fading out animation and creates
+     * a flag to not show it again if the report is still open
+     */
+    setUpUnreadActionIndicator() {
+        if (!this.props.isActiveReport || !this.shouldShowNewActionIndicator) {
+            return;
+        }
+
+        this.unreadActionCount = _.find(this.props.reports, report => (
+            report.reportID === this.props.reportID
+        )).unreadActionCount;
+
+        if (this.unreadActionCount > 0) {
+            this.unreadIndicatorOpacity = new Animated.Value(1);
+            this.unreadIndicatorTimer = setTimeout(() => {
+                Animated.timing(this.unreadIndicatorOpacity, {
+                    toValue: 0,
+                    duration: 500,
+                    easing: Easing.ease,
+                    useNativeDriver: false,
+                }).start();
+            }, 3000);
+        }
+
+        this.shouldShowNewActionIndicator = false;
     }
 
     /**
@@ -239,12 +285,17 @@ class ReportActionsView extends React.Component {
         needsLayoutCalculation,
     }) {
         return (
-            <ReportActionItem
-                action={item.action}
-                displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
-                onLayout={onLayout}
-                needsLayoutCalculation={needsLayoutCalculation}
-            />
+            <View>
+                {this.unreadActionCount > 0 && index === this.unreadActionCount - 1 && (
+                    <UnreadActionIndicator animatedOpacity={this.unreadIndicatorOpacity} />
+                )}
+                <ReportActionItem
+                    action={item.action}
+                    displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
+                    onLayout={onLayout}
+                    needsLayoutCalculation={needsLayoutCalculation}
+                />
+            </View>
         );
     }
 
@@ -263,6 +314,7 @@ class ReportActionsView extends React.Component {
             );
         }
 
+        this.setUpUnreadActionIndicator();
         this.updateSortedReportActions();
         return (
             <InvertedFlatList
@@ -281,6 +333,9 @@ ReportActionsView.propTypes = propTypes;
 ReportActionsView.defaultProps = defaultProps;
 
 export default withOnyx({
+    reports: {
+        key: ONYXKEYS.COLLECTION.REPORT,
+    },
     reportActions: {
         key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
         canEvict: props => !props.isActiveReport,
