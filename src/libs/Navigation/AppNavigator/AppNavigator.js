@@ -129,15 +129,21 @@ const AppNavigator = (props) => {
                             const ModalStack = props.responsive
                                 ? createCustomModalStackNavigator()
                                 : createStackNavigator();
+
+                            const screenOptions = {
+                                headerShown: false,
+                                cardStyle: getNavigationModalCardStyle(props.isSmallScreenWidth),
+                            };
+
+                            if (props.isSmallScreenWidth) {
+                                screenOptions.cardStyleInterpolator = CardStyleInterpolators.forHorizontalIOS;
+                            }
+
                             return (
                                 <RootNavigator.Screen
                                     key={route.name}
                                     name={route.name}
-                                    options={{
-                                        headerShown: false,
-                                        cardStyle: getNavigationModalCardStyle(props.isSmallScreenWidth),
-                                        cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
-                                    }}
+                                    options={screenOptions}
                                 >
                                     {() => (
                                         <ModalStack.Navigator
