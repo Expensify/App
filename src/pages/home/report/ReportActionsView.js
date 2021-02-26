@@ -58,7 +58,6 @@ class ReportActionsView extends React.Component {
 
         this.state = {
             refetchNeeded: true,
-            isLoadingMoreChats: false,
         };
     }
 
@@ -73,12 +72,16 @@ class ReportActionsView extends React.Component {
         fetchActions(this.props.reportID);
     }
 
-    shouldComponentUpdate(nextProps) {
+    shouldComponentUpdate(nextProps, nextState) {
         if (nextProps.isActiveReport !== this.props.isActiveReport) {
             return true;
         }
 
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
+            return true;
+        }
+
+        if (nextState.isLoadingMoreChats !== this.state.isLoadingMoreChats) {
             return true;
         }
 
@@ -159,7 +162,7 @@ class ReportActionsView extends React.Component {
 
         this.setState({isLoadingMoreChats: true});
         fetchActions(this.props.reportID, Math.max(minSequenceNumber - CONST.REPORT.REPORT_ACTIONS_LIMIT, 0))
-            .done(() => this.setState({isLoadingMoreChats: false}));
+            .then(() => this.setState({isLoadingMoreChats: false}));
     }
 
     /**
@@ -300,7 +303,7 @@ class ReportActionsView extends React.Component {
                 keyExtractor={item => `${item.action.sequenceNumber}`}
                 initialRowHeight={32}
                 onEndReached={this.onEndReached}
-                onEndReachedThreshold={0.5}
+                onEndReachedThreshold={0.75}
                 ListFooterComponent={this.state.isLoadingMoreChats
                     ? <ActivityIndicator size="small" color="#999999" />
                     : null}
