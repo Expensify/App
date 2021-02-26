@@ -35,7 +35,7 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
             personalDetail = {
                 login,
                 displayName: login,
-                avatarURL: getDefaultAvatar(login),
+                avatar: getDefaultAvatar(login),
             };
         }
 
@@ -93,7 +93,7 @@ function createOption(personalDetailList, report, draftComments, activeReportID,
     return {
         text: report ? report.reportName : personalDetail.displayName,
         alternateText: (showChatPreviewLine && lastMessageText) ? lastMessageText : personalDetail.login,
-        icons: report ? report.icons : [personalDetail.avatarURL],
+        icons: report ? report.icons : [personalDetail.avatar],
 
         // It doesn't make sense to provide a login in the case of a report with multiple participants since
         // there isn't any one single login to refer to for a report.

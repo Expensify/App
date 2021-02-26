@@ -7,7 +7,7 @@ import ONYXKEYS from '../ONYXKEYS';
 let timezone;
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
-    callback: val => timezone = val ? val.timezone : 'America/Los_Angeles',
+    callback: val => timezone = val ? val.timezone.selected : 'America/Los_Angeles',
 });
 
 /**

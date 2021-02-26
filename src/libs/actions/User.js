@@ -1,5 +1,3 @@
-/* eslint-disable  import/prefer-default-export  */
-
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import Onyx from 'react-native-onyx';
