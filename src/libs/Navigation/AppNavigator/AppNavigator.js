@@ -94,9 +94,10 @@ const AppNavigator = (props) => {
                                                 headerShown: false,
                                             }}
                                         >
-                                            {() => (
-                                                <View />
-                                            )}
+                                            {() => {
+                                                const ReportScreen = props.mainRoutes[0].Component;
+                                                return <ReportScreen />;
+                                            }}
                                         </Drawer.Screen>
                                         {_.map(props.mainRoutes, route => (
                                             <Drawer.Screen

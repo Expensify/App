@@ -78,13 +78,8 @@ HeaderView.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withOnyx({
-        currentlyViewedReportID: {
-            key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
-        },
-    }),
-    withOnyx({
         report: {
-            key: ({currentlyViewedReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${currentlyViewedReportID}`,
+            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         },
     }),
 )(HeaderView);

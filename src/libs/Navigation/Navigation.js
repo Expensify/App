@@ -37,7 +37,6 @@ function navigate(route) {
     }
 
     if (route === ROUTES.HOME) {
-        // Don't navigate and just open the drawer
         openDrawer();
         return;
     }
