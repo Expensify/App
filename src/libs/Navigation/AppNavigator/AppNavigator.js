@@ -133,6 +133,7 @@ const AppNavigator = (props) => {
                             const screenOptions = {
                                 headerShown: false,
                                 cardStyle: getNavigationModalCardStyle(props.isSmallScreenWidth),
+                                gestureDirection: 'horizontal',
                             };
 
                             if (props.isSmallScreenWidth) {
