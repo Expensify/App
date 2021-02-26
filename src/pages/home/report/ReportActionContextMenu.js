@@ -1,11 +1,11 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import getReportActionContextMenuStyles from '../../../styles/getReportActionContextMenuStyles';
-import ReportActionContextMenuItem from './ReportActionContextMenuItem';
 import {
     Clipboard, LinkCopy, Mail, Pencil, Trashcan,
 } from '../../../components/Icon/Expensicons';
+import getReportActionContextMenuStyles from '../../../styles/getReportActionContextMenuStyles';
+import ReportActionContextMenuItem from './ReportActionContextMenuItem';
 
 /**
  * A list of all the context actions in this menu.
