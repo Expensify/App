@@ -1,6 +1,5 @@
 import _ from 'underscore';
 import React from 'react';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {createStackNavigator} from '@react-navigation/stack';
 import {createDrawerNavigator} from '@react-navigation/drawer';
