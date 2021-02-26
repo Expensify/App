@@ -16,7 +16,6 @@ import ReportActionPropTypes from './ReportActionPropTypes';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import {lastItem} from '../../../libs/CollectionUtils';
 import Visibility from '../../../libs/Visibility';
-import compose from '../../../libs/compose';
 
 const propTypes = {
     // The ID of the report actions will be created for
@@ -75,12 +74,6 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidMount() {
-        console.log('mounted', this.props.reportID);
-
-        if (this.props.isActiveReport) {
-            console.log('isActive', this.props.reportID, 'didMount', this.props.report);
-        }
-
         AppState.addEventListener('change', this.onVisibilityChange);
 
         if (this.props.isActiveReport) {
@@ -104,10 +97,6 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (this.props.isActiveReport) {
-            console.log('isActive', this.props.reportID, 'didUpdate', this.props.report);
-        }
-
         // If we previously had a value for reportActions but no longer have one
         // this can only mean that the reportActions have been deleted. So we must
         // refetch these actions the next time we switch to this chat.
@@ -147,8 +136,6 @@ class ReportActionsView extends React.Component {
     }
 
     componentWillUnmount() {
-        console.log('unmounted', this.props.reportID);
-
         if (this.keyboardEvent) {
             this.keyboardEvent.remove();
         }
@@ -346,22 +333,15 @@ class ReportActionsView extends React.Component {
 ReportActionsView.propTypes = propTypes;
 ReportActionsView.defaultProps = defaultProps;
 
-export default compose(
-    withOnyx({
-        currentlyViewedReportID: {
-            key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
-        },
-    }),
-    withOnyx({
-        report: {
-            key: ({currentlyViewedReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${currentlyViewedReportID}`,
-        },
-        reportActions: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            canEvict: props => !props.isActiveReport,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    }),
-)(ReportActionsView);
+export default withOnyx({
+    report: {
+        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+    },
+    reportActions: {
+        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        canEvict: props => !props.isActiveReport,
+    },
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+})(ReportActionsView);
