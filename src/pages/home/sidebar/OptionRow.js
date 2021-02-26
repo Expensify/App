@@ -29,7 +29,7 @@ const propTypes = {
     // A function that is called when an option is selected. Selected option is passed as a param
     onSelectRow: PropTypes.func.isRequired,
 
-    // A flag to indicate wheter to show additional optional states, such as pin and draft icons
+    // A flag to indicate whether to show additional optional states, such as pin and draft icons
     hideAdditionalOptionStates: PropTypes.bool,
 
     // Whether we should show the selected state
