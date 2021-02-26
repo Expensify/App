@@ -18,6 +18,12 @@ module.exports = () => {
             },
         };
 
+    // Check if the ngrok URL for the web application was been provided,
+    // and if so, host the webpack dev server there.
+    const ngrokSettings = env.USE_NGROK_CASH === 'true' && env.NGROK_URL_CASH
+        ? {public: env.NGROK_URL_CASH}
+        : {};
+
     return merge(common, {
         mode: 'development',
         devtool: 'inline-source-map',
@@ -25,6 +31,7 @@ module.exports = () => {
             contentBase: path.join(__dirname, '../dist'),
             hot: true,
             ...proxySettings,
+            ...ngrokSettings,
         },
         plugins: [
             new webpack.DefinePlugin({

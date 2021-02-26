@@ -18,14 +18,14 @@ function wrapWithBackslash(url) {
 // Set default values to contributor friendly values to make development work out of the box without an .env file
 const expensifyCashURL = wrapWithBackslash(lodashGet(Config, 'EXPENSIFY_URL_CASH', 'https://expensify.cash/'));
 const expensifyURL = wrapWithBackslash(lodashGet(Config, 'EXPENSIFY_URL_COM', 'https://www.expensify.com/'));
-const ngrokURL = wrapWithBackslash(lodashGet(Config, 'NGROK_URL', ''));
-const useNgrok = lodashGet(Config, 'USE_NGROK', 'false') === 'true';
+const ngrokURL = wrapWithBackslash(lodashGet(Config, 'NGROK_URL_COM', ''));
+const useNgrok = lodashGet(Config, 'USE_NGROK_COM', 'false') === 'true';
 const useWebProxy = lodashGet(Config, 'USE_WEB_PROXY', 'true') === 'true';
 const expensifyComWithProxy = getPlatform() === 'web' && useWebProxy ? '/' : expensifyURL;
 
 // Ngrok helps us avoid many of our cross-domain issues with connecting to our API
 // and is required for viewing images on mobile and for developing on android
-// To enable, set the USE_NGROK value to true in .env and update the NGROK_URL
+// To enable, set the USE_NGROK_COM value to true in .env and update the NGROK_URL_COM
 const expensifyURLRoot = useNgrok && ngrokURL ? ngrokURL : expensifyComWithProxy;
 
 export default {
