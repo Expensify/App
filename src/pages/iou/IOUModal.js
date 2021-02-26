@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '../../CONST';
@@ -10,7 +11,10 @@ import IOUAmountPage from './steps/IOUAmountPage';
 import IOUParticipantsPage from './steps/IOUParticipantsPage';
 import IOUConfirmPage from './steps/IOUConfirmPage';
 import HeaderGap from '../../components/HeaderGap';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import Header from '../../components/Header';
+import styles from '../../styles/styles';
+import Icon from '../../components/Icon';
+import {Close} from '../../components/Icon/Expensicons';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -40,7 +44,7 @@ class IOUModal extends Component {
         super(props);
 
         this.state = {
-            step: StepType.IOUConfirm,
+            step: StepType.IOUAmount,
         };
 
         this.getTitleForStep = this.getTitleForStep;
@@ -73,11 +77,27 @@ class IOUModal extends Component {
                 isVisible={this.props.currentURL === this.props.route}
                 backgroundColor={themeColors.componentBG}
             >
-                <HeaderGap />
-                <HeaderWithCloseButton
-                    title={this.getTitleForStep()}
-                    onCloseButtonPress={redirectToLastReport}
-                />
+                <View style={[styles.headerBar, true && styles.borderBottom]}>
+                    <View style={[
+                        styles.dFlex,
+                        styles.flexRow,
+                        styles.alignItemsCenter,
+                        styles.flexGrow1,
+                        styles.justifyContentBetween,
+                        styles.overflowHidden,
+                    ]}
+                    >
+                        <Header title={this.getTitleForStep()} />
+                        <View style={[styles.reportOptions, styles.flexRow]}>
+                        <TouchableOpacity
+                            onPress={redirectToLastReport}
+                            style={[styles.touchableButtonImage]}
+                        >
+                            <Icon src={Close} />
+                        </TouchableOpacity>
+                    </View>
+                    </View>
+                </View>
                 {this.state.step === StepType.IOUAmount && <IOUAmountPage />}
                 {this.state.step === StepType.IOUParticipants && <IOUParticipantsPage />}
                 {this.state.step === StepType.IOUConfirm && <IOUConfirmPage />}
