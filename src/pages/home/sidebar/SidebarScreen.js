@@ -77,6 +77,7 @@ class SidebarScreen extends Component {
                                 onLinkClick={this.startTimer}
                                 insets={insets}
                                 onAvatarClick={this.navigateToSettings}
+                                isSmallScreenWidth={this.props.isSmallScreenWidth}
                             />
                             <FAB
                                 isActive={this.state.isCreateMenuActive}

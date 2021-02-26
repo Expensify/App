@@ -63,6 +63,9 @@ const propTypes = {
 
     // Currently viewed reportID
     currentlyViewedReportID: PropTypes.string,
+
+    // Whether we are viewing below the responsive breakpoint
+    isSmallScreenWidth: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
@@ -140,6 +143,7 @@ class SidebarLinks extends React.Component {
                         this.props.onLinkClick();
                     }}
                     hideSectionHeaders
+                    disableFocusOptions={this.props.isSmallScreenWidth}
                 />
                 <KeyboardSpacer />
             </View>
