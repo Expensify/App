@@ -84,7 +84,7 @@ function getDisplayName(login, personalDetail) {
 function formatPersonalDetails(personalDetailsList) {
     return _.reduce(personalDetailsList, (finalObject, personalDetailsResponse, login) => {
         // Form the details into something that has all the data in an easy to use format.
-        const avatarURL = getAvatar(personalDetailsResponse, login);
+        const avatarURL = personalDetailsResponse.avatarThumbnail;
         const displayName = getDisplayName(login, personalDetailsResponse);
         return {
             ...finalObject,
@@ -122,9 +122,7 @@ function fetch() {
         .then((data) => {
             const allPersonalDetails = formatPersonalDetails(data.personalDetailsList);
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, allPersonalDetails);
-
-            const myPersonalDetails = allPersonalDetails[currentUserEmail]
-                || {avatarURL: getAvatar(undefined, currentUserEmail)};
+            const myPersonalDetails = allPersonalDetails[currentUserEmail];
 
             // Set my personal details so they can be easily accessed and subscribed to on their own key
             Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, myPersonalDetails);
@@ -161,7 +159,7 @@ function getFromReportParticipants(reports) {
                 if (report.participants.length > 0) {
                     const avatars = _.map(report.participants, dmParticipant => ({
                         firstName: lodashGet(details, [dmParticipant, 'firstName'], ''),
-                        avatar: lodashGet(details, [dmParticipant, 'avatar'], '') || getDefaultAvatar(dmParticipant),
+                        avatar: lodashGet(details, [dmParticipant, 'avatarThumbnail'], ''),
                     }))
                         .sort((first, second) => first.firstName - second.firstName)
                         .map(item => item.avatar);
