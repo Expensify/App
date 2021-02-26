@@ -26,6 +26,10 @@ const port = process.env.PORT || 8080;
 // the electron app from making any API requests.
 app.commandLine.appendSwitch('disable-web-security');
 
+// This is necessary for NetInfo to work correctly as it does not handle the NetworkInformation API events correctly
+// See: https://github.com/electron/electron/issues/22597
+app.commandLine.appendSwitch('enable-network-information-downlink-max');
+
 // Initialize the right click menu
 // See https://github.com/sindresorhus/electron-context-menu
 contextMenu();
