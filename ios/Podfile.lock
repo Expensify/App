@@ -320,6 +320,8 @@ PODS:
     - React-cxxreact (= 0.63.3)
     - React-jsi (= 0.63.3)
   - React-jsinspector (0.63.3)
+  - react-native-cameraroll (4.0.2):
+    - React-Core
   - react-native-config (1.4.1):
     - react-native-config/App (= 1.4.1)
   - react-native-config/App (1.4.1):
@@ -337,8 +339,6 @@ PODS:
   - react-native-progress-view (1.2.3):
     - React
   - react-native-safe-area-context (3.1.8):
-    - React-Core
-  - react-native-webview (11.0.2):
     - React-Core
   - React-RCTActionSheet (0.63.3):
     - React-Core/RCTActionSheetHeaders (= 0.63.3)
@@ -461,6 +461,7 @@ DEPENDENCIES:
   - React-jsi (from `../node_modules/react-native/ReactCommon/jsi`)
   - React-jsiexecutor (from `../node_modules/react-native/ReactCommon/jsiexecutor`)
   - React-jsinspector (from `../node_modules/react-native/ReactCommon/jsinspector`)
+  - "react-native-cameraroll (from `../node_modules/@react-native-community/cameraroll`)"
   - react-native-config (from `../node_modules/react-native-config`)
   - react-native-document-picker (from `../node_modules/react-native-document-picker`)
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
@@ -469,7 +470,6 @@ DEPENDENCIES:
   - "react-native-progress-bar-android (from `../node_modules/@react-native-community/progress-bar-android`)"
   - "react-native-progress-view (from `../node_modules/@react-native-community/progress-view`)"
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
-  - react-native-webview (from `../node_modules/react-native-webview`)
   - React-RCTActionSheet (from `../node_modules/react-native/Libraries/ActionSheetIOS`)
   - React-RCTAnimation (from `../node_modules/react-native/Libraries/NativeAnimation`)
   - React-RCTBlob (from `../node_modules/react-native/Libraries/Blob`)
@@ -547,6 +547,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/jsiexecutor"
   React-jsinspector:
     :path: "../node_modules/react-native/ReactCommon/jsinspector"
+  react-native-cameraroll:
+    :path: "../node_modules/@react-native-community/cameraroll"
   react-native-config:
     :path: "../node_modules/react-native-config"
   react-native-document-picker:
@@ -563,8 +565,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-community/progress-view"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
-  react-native-webview:
-    :path: "../node_modules/react-native-webview"
   React-RCTActionSheet:
     :path: "../node_modules/react-native/Libraries/ActionSheetIOS"
   React-RCTAnimation:
@@ -641,6 +641,7 @@ SPEC CHECKSUMS:
   React-jsi: df07aa95b39c5be3e41199921509bfa929ed2b9d
   React-jsiexecutor: b56c03e61c0dd5f5801255f2160a815f4a53d451
   React-jsinspector: 8e68ffbfe23880d3ee9bafa8be2777f60b25cbe2
+  react-native-cameraroll: 717193a0427fd0db78d3f10385a008fcc102213c
   react-native-config: d8b45133fd13d4f23bd2064b72f6e2c08b2763ed
   react-native-document-picker: b3e78a8f7fef98b5cb069f20fc35797d55e68e28
   react-native-image-picker: 32d1ad2c0024ca36161ae0d5c2117e2d6c441f11
@@ -649,7 +650,6 @@ SPEC CHECKSUMS:
   react-native-progress-bar-android: ce95a69f11ac580799021633071368d08aaf9ad8
   react-native-progress-view: 5816e8a6be812c2b122c6225a2a3db82d9008640
   react-native-safe-area-context: 01158a92c300895d79dee447e980672dc3fb85a6
-  react-native-webview: b2542d6fd424bcc3e3b2ec5f854f0abb4ec86c87
   React-RCTActionSheet: 53ea72699698b0b47a6421cb1c8b4ab215a774aa
   React-RCTAnimation: 1befece0b5183c22ae01b966f5583f42e69a83c2
   React-RCTBlob: 0b284339cbe4b15705a05e2313a51c6d8b51fa40
