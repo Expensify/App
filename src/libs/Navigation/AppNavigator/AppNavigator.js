@@ -137,7 +137,7 @@ const AppNavigator = (props) => {
                             };
 
                             if (props.isSmallScreenWidth) {
-                                screenOptions.cardStyleInterpolator = CardStyleInterpolators.forHorizontalIOS;
+                                screenOptions.cardStyleInterpolator = CardStyleInterpolators.forScaleFromCenterAndroid;
                             }
 
                             return (
