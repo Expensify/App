@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
-import {createStackNavigator} from '@react-navigation/stack';
+import {createStackNavigator, CardStyleInterpolators} from '@react-navigation/stack';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
 import AppWrapper from '../../../pages/home/AppWrapper';
@@ -136,6 +136,7 @@ const AppNavigator = (props) => {
                                     options={{
                                         headerShown: false,
                                         cardStyle: getNavigationModalCardStyle(props.isSmallScreenWidth),
+                                        cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
                                     }}
                                 >
                                     {() => (
