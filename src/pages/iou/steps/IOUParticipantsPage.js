@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import {TouchableOpacity} from 'react-native';
 import Avatar from '../../../components/Avatar';
 
 class IOUParticipantsPage extends Component {
@@ -9,7 +10,11 @@ class IOUParticipantsPage extends Component {
     }
 
     render() {
-        return <Avatar source="https://http.cat/102" />;
+        return <TouchableOpacity
+                    onPress={() => this.props.onStepComplete()}
+                >
+                    <Avatar source="https://http.cat/102" />
+                </TouchableOpacity>
     }
 }
 

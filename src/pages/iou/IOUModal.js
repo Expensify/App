@@ -10,11 +10,10 @@ import {redirectToLastReport} from '../../libs/actions/App';
 import IOUAmountPage from './steps/IOUAmountPage';
 import IOUParticipantsPage from './steps/IOUParticipantsPage';
 import IOUConfirmPage from './steps/IOUConfirmPage';
-import HeaderGap from '../../components/HeaderGap';
 import Header from '../../components/Header';
 import styles from '../../styles/styles';
 import Icon from '../../components/Icon';
-import {Close} from '../../components/Icon/Expensicons';
+import {Close, BackArrow} from '../../components/Icon/Expensicons';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -45,9 +44,12 @@ class IOUModal extends Component {
 
         this.state = {
             step: StepType.IOUAmount,
+            currentStepIndex: 0,
         };
 
         this.getTitleForStep = this.getTitleForStep;
+        this.navigateToPreviousStep = this.navigateToPreviousStep;
+        this.navigateToNextStep = this.navigateToNextStep;
     }
 
     /**
@@ -56,17 +58,25 @@ class IOUModal extends Component {
      * @return {String}
      */
     getTitleForStep() {
-        console.debug('StepType', this.state.step);
-        switch (this.state.step) {
-            case StepType.IOUAmount: 
+        // todo: switch back to StepType
+        switch (this.state.currentStepIndex) {
+            case 0: 
                 return 'Amount'
-            case StepType.IOUParticipants: 
+            case 1: 
                 return 'Participants'
-            case StepType.IOUConfirm: 
+            case 2: 
                 return 'Confirm'
             default:
                 return ''
         }
+    }
+
+    navigateToPreviousStep() {
+        this.setState({currentStepIndex: this.state.currentStepIndex-1});
+    }
+
+    navigateToNextStep() {
+        this.setState({currentStepIndex: this.state.currentStepIndex+1});
     }
 
     render() {
@@ -87,6 +97,14 @@ class IOUModal extends Component {
                         styles.overflowHidden,
                     ]}
                     >
+                        {this.state.currentStepIndex > 0 &&
+                            <TouchableOpacity
+                                onPress={() => this.navigateToPreviousStep()}
+                                style={[styles.touchableButtonImage]}
+                            >
+                                <Icon src={BackArrow} />
+                            </TouchableOpacity>
+                        }
                         <Header title={this.getTitleForStep()} />
                         <View style={[styles.reportOptions, styles.flexRow]}>
                         <TouchableOpacity
@@ -98,9 +116,18 @@ class IOUModal extends Component {
                     </View>
                     </View>
                 </View>
-                {this.state.step === StepType.IOUAmount && <IOUAmountPage />}
-                {this.state.step === StepType.IOUParticipants && <IOUParticipantsPage />}
-                {this.state.step === StepType.IOUConfirm && <IOUConfirmPage />}
+                {this.state.currentStepIndex === 0 && 
+                    <IOUAmountPage
+                        onStepComplete={() => this.navigateToNextStep()}
+                    />}
+                {this.state.currentStepIndex === 1 && 
+                    <IOUParticipantsPage
+                        onStepComplete={() => this.navigateToNextStep()}
+                    />}
+                {this.state.currentStepIndex === 2 && 
+                    <IOUConfirmPage
+                        onStepComplete={() => redirectToLastReport()}
+                    />}
             </Modal>
         );
     }
