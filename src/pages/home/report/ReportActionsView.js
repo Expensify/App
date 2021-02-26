@@ -52,7 +52,7 @@ class ReportActionsView extends React.Component {
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
         this.recordMaxAction = this.recordMaxAction.bind(this);
         this.onVisibilityChange = this.onVisibilityChange.bind(this);
-        this.onEndReached = this.onEndReached.bind(this);
+        this.loadMoreChats = this.loadMoreChats.bind(this);
         this.sortedReportActions = this.updateSortedReportActions();
         this.timers = [];
 
@@ -147,10 +147,20 @@ class ReportActionsView extends React.Component {
     }
 
     /**
+     * When setting to true we will refetch the reportActions
+     * the next time this report is switched to.
+     *
+     * @param {Boolean} refetchNeeded
+     */
+    setRefetchNeeded(refetchNeeded) {
+        this.setState({refetchNeeded});
+    }
+
+    /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
      * displaying.
      */
-    onEndReached() {
+    loadMoreChats() {
         const minSequenceNumber = _.chain(this.props.reportActions)
             .pluck('sequenceNumber')
             .min()
@@ -163,16 +173,6 @@ class ReportActionsView extends React.Component {
         this.setState({isLoadingMoreChats: true});
         fetchActions(this.props.reportID, Math.max(minSequenceNumber - CONST.REPORT.REPORT_ACTIONS_LIMIT, 0))
             .then(() => this.setState({isLoadingMoreChats: false}));
-    }
-
-    /**
-     * When setting to true we will refetch the reportActions
-     * the next time this report is switched to.
-     *
-     * @param {Boolean} refetchNeeded
-     */
-    setRefetchNeeded(refetchNeeded) {
-        this.setState({refetchNeeded});
     }
 
     /**
@@ -302,7 +302,7 @@ class ReportActionsView extends React.Component {
                 contentContainerStyle={[styles.chatContentScrollView]}
                 keyExtractor={item => `${item.action.sequenceNumber}`}
                 initialRowHeight={32}
-                onEndReached={this.onEndReached}
+                onEndReached={this.loadMoreChats}
                 onEndReachedThreshold={0.75}
                 ListFooterComponent={this.state.isLoadingMoreChats
                     ? <ActivityIndicator size="small" color="#999999" />
