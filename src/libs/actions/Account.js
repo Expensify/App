@@ -2,6 +2,7 @@ import lodashGet from 'lodash.get';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
+import NameValuePair from './NameValuePair';
 
 /**
  * Update the account priority mode.
@@ -9,8 +10,7 @@ import * as API from '../API';
  * @param {String} mode
  */
 function updatePriorityMode(mode) {
-    API.SetNameValuePair({name: 'priorityMode', value: mode});
-    Onyx.set(ONYXKEYS.PRIORITY_MODE, mode);
+    NameValuePair.set('priorityMode', mode, ONYXKEYS.PRIORITY_MODE);
 }
 
 /**

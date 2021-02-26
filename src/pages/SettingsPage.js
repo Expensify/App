@@ -25,7 +25,7 @@ const propTypes = {
         displayName: PropTypes.string,
 
         // Avatar URL of the current user from their personal details
-        avatarURL: PropTypes.string,
+        avatar: PropTypes.string,
     }),
 
     // Information about the network
@@ -74,7 +74,7 @@ const SettingsPage = ({
                     >
                         <AvatarWithIndicator
                             size="large"
-                            source={myPersonalDetails.avatarURL}
+                            source={myPersonalDetails.avatar}
                             isActive={network && !network.isOffline}
                         />
                     </View>
