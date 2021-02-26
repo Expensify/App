@@ -6,11 +6,14 @@ import {
 import styles from '../styles/styles';
 import Header from './Header';
 import Icon from './Icon';
-import {Close} from './Icon/Expensicons';
+import {Close, Download} from './Icon/Expensicons';
 
 const propTypes = {
     /** Title of the Header */
     title: PropTypes.string,
+
+    /** Method to trigger when pressing download button of the header */
+    onDownloadButtonPress: PropTypes.func,
 
     /** Method to trigger when pressing close button of the header */
     onCloseButtonPress: PropTypes.func,
@@ -24,6 +27,7 @@ const propTypes = {
 
 const defaultProps = {
     title: '',
+    onDownloadButtonPress: () => {},
     onCloseButtonPress: () => {},
     textSize: 'default',
     shouldShowBorderBottom: true,
@@ -42,6 +46,13 @@ const HeaderWithCloseButton = props => (
         >
             <Header title={props.title} textSize={props.textSize} />
             <View style={[styles.reportOptions, styles.flexRow]}>
+                <TouchableOpacity
+                    onPress={props.onDownloadButtonPress}
+                    style={[styles.touchableButtonImage]}
+                >
+                    <Icon src={Download} />
+                </TouchableOpacity>
+
                 <TouchableOpacity
                     onPress={props.onCloseButtonPress}
                     style={[styles.touchableButtonImage]}

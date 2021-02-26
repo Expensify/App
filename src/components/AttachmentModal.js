@@ -94,6 +94,7 @@ class AttachmentModal extends PureComponent {
                 >
                     <HeaderWithCloseButton
                         title={this.props.title}
+                        onDownloadButtonPress={() => null}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
                     />
                     <View style={attachmentViewStyles}>
