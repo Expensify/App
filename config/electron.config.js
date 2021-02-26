@@ -19,7 +19,7 @@ module.exports = {
     },
     publish: [{
         provider: 's3',
-        bucket: 'chat-test-expensify-com',
+        bucket: process.env.SHOULD_DEPLOY_PRODUCTION ? 'chat-test-expensify-com' : 'staging-expensify-cash',
         channel: 'latest',
     }],
     files: [
