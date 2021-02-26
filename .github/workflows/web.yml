@@ -57,7 +57,7 @@ jobs:
               env:
                 CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
 
-            - name: Purge Cloudflare cache
+            - name: Purge staging Cloudflare cache
               run: /home/runner/.local/bin/cli4 --delete hosts=["staging.expensify.cash"] /zones/:357b42c0989e3bed82f6d6400e8b9d66/purge_cache
               env:
                 CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
