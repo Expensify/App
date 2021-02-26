@@ -53,8 +53,8 @@ class NavigationRoot extends Component {
                 let initialState = getStateFromPath(path, linkingConfig.config);
                 Onyx.set(ONYXKEYS.CURRENT_URL, path);
 
-                // If we are landing on something other than the report screen then we MUST set the initial route
-                // to the currently viewed report
+                // If we are landing on something other than the report screen or site root then we MUST set the
+                // initial route to the currently viewed report so there some history to navigate back from
                 if (path !== ROUTES.HOME && !path.includes(ROUTES.REPORT)) {
                     const homeRoute = {
                         name: 'Home',

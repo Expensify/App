@@ -535,11 +535,11 @@ function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false, sho
             if (shouldRedirectToReport && !currentURL.includes(ROUTES.REPORT) && !isSmallScreenWidth) {
                 // Redirect to either the last viewed report ID or the first report ID from our report collection
                 if (lastViewedReportID) {
-                    redirect(ROUTES.getReportRoute(lastViewedReportID));
+                    Onyx.set(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, String(lastViewedReportID));
                 } else {
                     const firstReportID = _.first(reportIDs);
                     if (firstReportID) {
-                        redirect(ROUTES.getReportRoute(firstReportID));
+                        Onyx.set(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, String(firstReportID));
                     }
                 }
             }

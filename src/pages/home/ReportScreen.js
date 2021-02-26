@@ -1,15 +1,26 @@
 import React from 'react';
+import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
-import lodashGet from 'lodash.get';
 import styles from '../../styles/styles';
 import ReportView from './report/ReportView';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
+import ONYXKEYS from '../../ONYXKEYS';
+
+const propTypes = {
+    // id of the most recently viewed report
+    currentlyViewedReportID: PropTypes.string,
+};
+
+const defaultProps = {
+    currentlyViewedReportID: null,
+};
 
 const ReportScreen = (props) => {
-    const activeReportID = lodashGet(props, ['route', 'params', 'reportID'], 0);
+    const activeReportID = parseInt(props.currentlyViewedReportID || 0, 10);
     if (!activeReportID) {
         return null;
     }
@@ -25,6 +36,7 @@ const ReportScreen = (props) => {
             {() => (
                 <>
                     <HeaderView
+                        reportID={activeReportID}
                         onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
                     />
                     <View
@@ -32,7 +44,7 @@ const ReportScreen = (props) => {
                         style={[styles.dFlex, styles.flex1]}
                     >
                         <ReportView
-                            reportID={parseInt(activeReportID, 10)}
+                            reportID={activeReportID}
                             isActiveReport
                         />
                     </View>
@@ -43,4 +55,10 @@ const ReportScreen = (props) => {
 };
 
 ReportScreen.displayName = 'ReportScreen';
-export default ReportScreen;
+ReportScreen.propTypes = propTypes;
+ReportScreen.defaultProps = defaultProps;
+export default withOnyx({
+    currentlyViewedReportID: {
+        key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
+    },
+})(ReportScreen);
