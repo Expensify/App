@@ -100,8 +100,6 @@ function formatPersonalDetails(personalDetailsList) {
                 login,
                 avatar,
                 displayName,
-                firstName: personalDetailsResponse.firstName ?? '',
-                lastName: personalDetailsResponse.lastName ?? '',
                 pronouns: personalDetailsResponse.pronouns ?? '',
             },
         };
