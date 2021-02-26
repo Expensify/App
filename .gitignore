@@ -68,3 +68,4 @@ fastlane/screenshots
 
 # Local DEV config
 /.env
+/config/ngrok.yml

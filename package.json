@@ -25,7 +25,7 @@
     "detox-test": "detox test --configuration ios.sim.debug",
     "gh-actions-build": "./.github/scripts/buildActions.sh",
     "analyze-packages": "ANALYZE_BUNDLE=true webpack --config config/webpack/webpack.prod.js",
-    "ngrok": "./scripts/ngrokCash.sh"
+    "ngrok": "ngrok start -config ./config/ngrok.yml api web"
   },
   "dependencies": {
     "@babel/plugin-proposal-class-properties": "^7.12.1",

@@ -1,0 +1,17 @@
+# To find your authtoken run `cat ~/.ngrok2/ngrok.yml | grep authtoken`
+authtoken: $REPLACE
+tunnels:
+    web:
+        # If you are an external contributor, just remove the hostname line
+        hostname: expensify-cash-$REPLACE_YOUR_NAME.ngrok.io
+        addr: localhost:8080
+        proto: http
+        host_header: rewrite
+    # If you are an external contributor, remove the "api" tunnel from here and the "ngrok" script in package.json
+    api:
+        hostname: expensify-$REPLACE_YOUR_NAME.ngrok.io
+        addr: www.expensify.com.dev:443
+        proto: http
+        host_header: rewrite
+
+
