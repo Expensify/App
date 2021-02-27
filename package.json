@@ -67,6 +67,7 @@
     "react-native-render-html": "^6.0.0-alpha.10",
     "react-native-safe-area-context": "^3.1.4",
     "react-native-svg": "^12.1.0",
+    "react-native-version": "^4.0.0",
     "react-native-web": "^0.14.1",
     "react-pdf": "^5.2.0",
     "react-router-dom": "^5.2.0",
