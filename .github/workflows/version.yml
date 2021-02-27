@@ -6,7 +6,7 @@ on:
 
 jobs:
     version:
-        runs-on: ubuntu-16.04
+        runs-on: macos-latest
 
         steps:
             # Version: 2.3.4
@@ -22,9 +22,6 @@ jobs:
 
             - name: Install dependenices
               run: npm ci
-
-            - name: Install global dependencies
-              run: npm install -g react-native-version
 
             - name: Set up git
               run: |
