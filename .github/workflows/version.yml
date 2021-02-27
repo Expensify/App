@@ -6,7 +6,7 @@ on:
 
 jobs:
     version:
-        runs-on: macos-latest
+        runs-on: ubuntu-16.04
 
         steps:
             # Version: 2.3.4
@@ -23,7 +23,7 @@ jobs:
             - name: Install dependenices
               run: npm ci
 
-            - name: Set up git
+            - name: Set ugit p git
               run: |
                 git fetch
                 git checkout master
