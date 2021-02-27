@@ -68,6 +68,8 @@ function updateNativeVersion(platform, versionCode) {
         core.setFailed();
     }
 
+    // Note: We're using `exec` instead of the `react-native-version` javascript sdk to avoid a known issue
+    // with `ncc` and `process.cwd` https://github.com/vercel/webpack-asset-relocator-loader/issues/112
     exec(`react-native-version --amend --target ${platform} --set-build ${versionCode}`)
         .then(() => {
             console.log(`Successfully updated ${platform} to ${versionCode}`);
