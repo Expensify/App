@@ -16,7 +16,7 @@ import {version} from '../../package.json';
 import AvatarWithIndicator from '../components/AvatarWithIndicator';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import {redirectToLastReport} from '../libs/actions/App';
-import {updatePriorityMode} from '../libs/actions/Account';
+import Account from '../libs/actions/Account';
 import Icon from '../components/Icon';
 import {DownArrow} from '../components/Icon/Expensicons';
 
@@ -129,18 +129,16 @@ const SettingsPage = ({
                         </Text>
                         <View style={[styles.mt2, styles.mb2]}>
                             <RNPickerSelect
-                                onValueChange={updatePriorityMode}
+                                onValueChange={Account.updatePriorityMode}
                                 items={Object.values(priorityModes)}
-                                style={{
-                                    ...styles.picker,
-                                }}
+                                style={styles.picker}
                                 useNativeAndroidPickerStyle={false}
                                 placeholder={{}}
                                 Icon={() => <Icon src={DownArrow} />}
                             />
                         </View>
                         <Text style={[styles.textP, styles.colorMuted]}>
-                            {priorityModes[priorityMode]?.description }
+                            {priorityModes[priorityMode].description }
                         </Text>
                     </View>
                 </View>

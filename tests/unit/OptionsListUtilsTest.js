@@ -3,6 +3,7 @@ import Onyx from 'react-native-onyx';
 import * as OptionsListUtils from '../../src/libs/OptionsListUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
+import CONST from '../../src/CONST';
 
 describe('OptionsListUtils', () => {
     // Given a set of reports with both single participants and multiple participants some pinned and some not
@@ -314,7 +315,7 @@ describe('OptionsListUtils', () => {
 
     it('getSidebarOptions() with default priority mode', () => {
         // When we call getSidebarOptions() with no search value
-        const results = OptionsListUtils.getSidebarOptions(REPORTS, PERSONAL_DETAILS, {}, 0, 'default');
+        const results = OptionsListUtils.getSidebarOptions(REPORTS, PERSONAL_DETAILS, {}, 0, CONST.PRIORITY_MODE.DEFAULT);
 
         // Then expect all of the reports to be shown both multiple and single participant except the
         // report that has no lastMessageTimestamp
@@ -332,7 +333,7 @@ describe('OptionsListUtils', () => {
 
     it('getSidebarOptions() with GSD priority mode', () => {
         // When we call getSidebarOptions() with no search value
-        const results = OptionsListUtils.getSidebarOptions(REPORTS, PERSONAL_DETAILS, {}, 0, 'gsd');
+        const results = OptionsListUtils.getSidebarOptions(REPORTS, PERSONAL_DETAILS, {}, 0, CONST.PRIORITY_MODE.GSD);
 
         // Then expect all of the reports to be shown both multiple and single participant except the
         // report that has no lastMessageTimestamp and the chat with Thor who's message is read
@@ -343,7 +344,7 @@ describe('OptionsListUtils', () => {
 
         // And Mister Fantastic is alphabetically the fourth report and has an unread message
         // despite being pinned
-        expect(results.recentReports[4].login).not.toBe('reedrichards@expensify.com');
+        expect(results.recentReports[4].login).toBe('reedrichards@expensify.com');
 
         // And Black Panther is alphabetically the first report and has an unread message
         expect(results.recentReports[0].login).toBe('tchalla@expensify.com');

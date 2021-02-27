@@ -17,6 +17,7 @@ import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
 import {getSidebarOptions} from '../../../libs/OptionsListUtils';
 import {getDefaultAvatar} from '../../../libs/actions/PersonalDetails';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
+import CONST from '../../../CONST';
 
 const propTypes = {
     // Toggles the navigation menu open and closed
@@ -77,7 +78,7 @@ const defaultProps = {
     },
     network: null,
     currentlyViewedReportID: '',
-    priorityMode: 'default',
+    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
 };
 
 class SidebarLinks extends React.Component {
