@@ -1,7 +1,7 @@
 import {Alert, Linking, PermissionsAndroid} from 'react-native';
 import RNFetchBlob from 'rn-fetch-blob';
-import moment from 'moment';
 import getPlatform from '../getPlatform';
+import getAttachmentName from './getAttachmentName';
 
 /**
  * Android permission check to store images
@@ -31,6 +31,7 @@ function hasAndroidPermission() {
     });
 }
 
+
 /**
  * Re useable alert function
  * @param {Object} content
@@ -42,15 +43,6 @@ function showAlert(content) {
         content.options || [],
         {cancelable: false},
     );
-}
-
-/**
- * Generating a random file name with timestamp and file extention
- * @param {String} url
- * @returns {String}
- */
-function getAttachmentName(url) {
-    return `${moment().format('DDMMYYYYHHmmss')}.${url.split(/[#?]/)[0].split('.').pop().trim()}`;
 }
 
 
