@@ -19,6 +19,7 @@ import {redirectToLastReport} from '../libs/actions/App';
 import Account from '../libs/actions/Account';
 import Icon from '../components/Icon';
 import {DownArrow} from '../components/Icon/Expensicons';
+import CONST from '../CONST';
 
 const propTypes = {
     /* Onyx Props */
@@ -51,18 +52,18 @@ const defaultProps = {
     myPersonalDetails: {},
     network: null,
     session: {},
-    priorityMode: 'default',
+    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
 };
 
 
 const priorityModes = {
     default: {
-        value: 'default',
+        value: CONST.PRIORITY_MODE.DEFAULT,
         label: 'Most Recent',
         description: 'This will display all chats by default, sorted by most recent, with pinned items at the top',
     },
     gsd: {
-        value: 'gsd',
+        value: CONST.PRIORITY_MODE.GSD,
         label: 'GSD',
         description: 'This will only display unread and pinned chats, all sorted alphabetically. Get Shit Done.',
     },
@@ -108,9 +109,9 @@ const SettingsPage = ({
                             : Str.removeSMSDomain(session.email)}
                     </Text>
                     {myPersonalDetails.displayName && (
-                        <Text style={[styles.settingsLoginName, styles.mt1]} numberOfLines={1}>
-                            {Str.removeSMSDomain(session.email)}
-                        </Text>
+                    <Text style={[styles.settingsLoginName, styles.mt1]} numberOfLines={1}>
+                        {Str.removeSMSDomain(session.email)}
+                    </Text>
                     )}
                     <View style={[styles.settingsPageBody, styles.mt4]}>
                         <Text style={[styles.textLabel, styles.textStrong, styles.mt2, styles.mb2]} numberOfLines={1}>
