@@ -46,12 +46,16 @@ const HeaderWithCloseButton = props => (
         >
             <Header title={props.title} textSize={props.textSize} />
             <View style={[styles.reportOptions, styles.flexRow]}>
-                <TouchableOpacity
-                    onPress={props.onDownloadButtonPress}
-                    style={[styles.touchableButtonImage]}
-                >
-                    <Icon src={Download} />
-                </TouchableOpacity>
+                {
+                    props.title === 'Attachment' && (
+                        <TouchableOpacity
+                            onPress={props.onDownloadButtonPress}
+                            style={[styles.touchableButtonImage]}
+                        >
+                            <Icon src={Download} />
+                        </TouchableOpacity>
+                    )
+                }
 
                 <TouchableOpacity
                     onPress={props.onCloseButtonPress}
