@@ -9,6 +9,7 @@ env:
 
 jobs:
     test:
+        if: git diff --exit-code ./* ./.* src/**/* config/**/* assets/**/* tests/**/*
         runs-on: macos-10.15
         steps:
             - uses: actions/checkout@v2
