@@ -26,7 +26,10 @@ function hasAndroidPermission() {
             PermissionsAndroid.requestMultiple([
                 readPermission,
                 writePermission,
-            ]).then(status => resolve(status === 'granted'));
+            ]).then((status) => {
+                resolve(status['android.permission.READ_EXTERNAL_STORAGE'] === 'granted'
+                    && status['android.permission.WRITE_EXTERNAL_STORAGE'] === 'granted');
+            });
         }).catch(error => reject(error));
     });
 }
