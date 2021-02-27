@@ -9,7 +9,7 @@ env:
 
 jobs:
     test:
-        if: git diff --exit-code ./* ./.* src/**/* config/**/* assets/**/* tests/**/*
+        if: git diff --exit-code ./* ./.* src/**/* config/**/* assets/**/* tests/e2e/* tests/utils/*
         runs-on: macos-10.15
         steps:
             - uses: actions/checkout@v2
