@@ -66,6 +66,7 @@ function updateNativeVersion(platform, versionCode) {
     if (platform !== 'android' && platform !== 'ios') {
         console.error('Invalid native platform specified!', platform);
         core.setFailed();
+        return;
     }
 
     // Note: We're using `exec` instead of the `react-native-version` javascript sdk to avoid a known issue
