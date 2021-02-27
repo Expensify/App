@@ -171,33 +171,37 @@ const styles = {
 
     picker: {
         inputIOS: {
+            fontFamily: fontFamily.GTA,
             fontSize: variables.fontSizeNormal,
             paddingVertical: 12,
             paddingHorizontal: 10,
             borderRadius: variables.componentBorderRadius,
+            borderWidth: 1,
             borderColor: themeColors.border,
-            color: 'black',
+            color: themeColors.text,
             paddingRight: 30,
         },
         inputWeb: {
+            fontFamily: fontFamily.GTA,
             fontSize: variables.fontSizeNormal,
             paddingVertical: 12,
             paddingHorizontal: 10,
             borderWidth: 1,
             borderRadius: variables.componentBorderRadius,
             borderColor: themeColors.border,
-            color: 'black',
+            color: themeColors.text,
             paddingRight: 30,
             appearance: 'none',
         },
         inputAndroid: {
+            fontFamily: fontFamily.GTA,
             fontSize: variables.fontSizeNormal,
             paddingHorizontal: 10,
             paddingVertical: 8,
             borderWidth: 1,
             borderRadius: variables.componentBorderRadius,
             borderColor: themeColors.border,
-            color: 'black',
+            color: themeColors.text,
             paddingRight: 30,
         },
         iconContainer: {
@@ -965,13 +969,6 @@ const styles = {
         fontSize: variables.fontSizeLabel,
         fontFamily: fontFamily.GTA,
         color: themeColors.textSupporting,
-    },
-
-    settingsPageHeading: {
-        fontSize: variables.fontSizeLarge,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: fontWeightBold,
-        color: themeColors.heading,
     },
 
     settingsWrapper: {

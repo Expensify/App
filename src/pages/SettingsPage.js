@@ -112,20 +112,9 @@ const SettingsPage = ({
                             {Str.removeSMSDomain(session.email)}
                         </Text>
                     )}
-                    <TouchableOpacity
-                        onPress={signOut}
-                        style={[styles.button, styles.w100, styles.mt5]}
-                    >
-                        <Text style={[styles.buttonText]}>
-                            Sign Out
-                        </Text>
-                    </TouchableOpacity>
-                    <View style={[styles.settingsPageBody, styles.mt6]}>
-                        <Text style={[styles.settingsPageHeading, styles.mt2, styles.mb4]} numberOfLines={1}>
-                            Chats
-                        </Text>
-                        <Text style={[styles.textP]}>
-                            How should we display chats on your home screen?
+                    <View style={[styles.settingsPageBody, styles.mt4]}>
+                        <Text style={[styles.textLabel, styles.textStrong, styles.mt2, styles.mb2]} numberOfLines={1}>
+                            Priority Mode
                         </Text>
                         <View style={[styles.mt2, styles.mb2]}>
                             <RNPickerSelect
@@ -134,13 +123,22 @@ const SettingsPage = ({
                                 style={styles.picker}
                                 useNativeAndroidPickerStyle={false}
                                 placeholder={{}}
+                                value={priorityMode}
                                 Icon={() => <Icon src={DownArrow} />}
                             />
                         </View>
-                        <Text style={[styles.textP, styles.colorMuted]}>
-                            {priorityModes[priorityMode].description }
+                        <Text style={[styles.textLabel, styles.colorMuted]}>
+                            {priorityModes[priorityMode].description}
                         </Text>
                     </View>
+                    <TouchableOpacity
+                        onPress={signOut}
+                        style={[styles.button, styles.w100, styles.mt5]}
+                    >
+                        <Text style={[styles.buttonText]}>
+                            Sign Out
+                        </Text>
+                    </TouchableOpacity>
                 </View>
                 <Text style={[styles.chatItemMessageHeaderTimestamp]} numberOfLines={1}>
                     v
