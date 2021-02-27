@@ -17,10 +17,6 @@ const PLIST_PATH_TEST = './ios/ExpensifyCashTests/Info.plist';
 // Promisified version of fs.readFile
 const readFileAsync = promisify(fs.readFile);
 
-// Use Github Actions' default environment variables to get repo information
-// https://docs.github.com/en/free-pro-team@latest/actions/reference/environment-variables#default-environment-variables
-const [repoOwner, repoName] = process.env.GITHUB_REPOSITORY.split('/');
-
 /**
  * Pad a number to be three digits (with leading zeros if necessary).
  *
@@ -109,6 +105,10 @@ function postVersionUpdateNative(newVersion) {
     // Update iOS
     updateiOSVersion(cleanNewVersion);
 }
+
+// Use Github Actions' default environment variables to get repo information
+// https://docs.github.com/en/free-pro-team@latest/actions/reference/environment-variables#default-environment-variables
+const [repoOwner, repoName] = process.env.GITHUB_REPOSITORY.split('/');
 
 const MAX_RETRIES = 10;
 let errCount = 0;
