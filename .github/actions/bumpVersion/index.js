@@ -63,8 +63,8 @@ function generateAndroidVersionCode(npmVersion) {
  * @param {String} versionCode – The version code to update the native platform.
  */
 function updateNativeVersion(platform, versionCode) {
-    if (platform !== 'android' || platform !== 'ios') {
-        console.error('Invalid native platform specified!');
+    if (platform !== 'android' && platform !== 'ios') {
+        console.error('Invalid native platform specified!', platform);
         core.setFailed();
     }
 
