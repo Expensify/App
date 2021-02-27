@@ -1,3 +1,4 @@
-jest.mock('rn-fetch-blob', () => ({
-    DocumentDir: () => {},
-}));
+export default {
+    DocumentDir: jest.fn(),
+    ImageCache: jest.fn(),
+};
