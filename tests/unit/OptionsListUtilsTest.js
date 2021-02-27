@@ -80,7 +80,7 @@ describe('OptionsListUtils', () => {
 
         // Note: This report has no lastMessageTimestamp but is also pinned
         9: {
-            lastVisitedTimestamp: 1610666739302,
+            lastVisitedTimestamp: 1610666739300,
             lastMessageTimestamp: 0,
             isPinned: true,
             reportID: 9,
@@ -328,10 +328,10 @@ describe('OptionsListUtils', () => {
         // That no personalDetails are shown
         expect(results.personalDetails.length).toBe(0);
 
-        // And the pinned report is first in the list of reports
-        expect(results.recentReports[0].login).toBe('reedrichards@expensify.com');
+        // And the most recent pinned report is first in the list of reports
+        expect(results.recentReports[0].login).toBe('captain_britain@expensify.com');
 
-        // And the second report is the report with a lastMessageTimestamp
-        expect(results.recentReports[1].login).toBe('steverogers@expensify.com');
+        // And the third report is the report with a lastMessageTimestamp
+        expect(results.recentReports[2].login).toBe('steverogers@expensify.com');
     });
 });
