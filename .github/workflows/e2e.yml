@@ -8,8 +8,18 @@ env:
     DEVELOPER_DIR: /Applications/Xcode_12.3.app/Contents/Developer
 
 jobs:
+    check_diff:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v2
+            - name: Set up git
+              run: |
+                git fetch
+                git checkout ${{ github.head_ref }}
+            - name: Check diff
+              run: git diff --exit-code ./* ./.* src/**/* config/**/* assets/**/* tests/e2e/* tests/utils/*
     test:
-        if: git diff --exit-code ./* ./.* src/**/* config/**/* assets/**/* tests/e2e/* tests/utils/*
+        needs: check_diff
         runs-on: macos-10.15
         steps:
             - uses: actions/checkout@v2
