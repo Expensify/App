@@ -69,7 +69,7 @@ function generateAndroidVersionCode(npmVersion) {
  *
  * @param {String} filepath
  * @param {RegExp} findPattern
- * @param {RegExp} replacePattern
+ * @param {String} replacePattern
  * @returns {Promise}
  */
 function replaceInFile(filepath, findPattern, replacePattern) {
@@ -91,8 +91,8 @@ function replaceInFile(filepath, findPattern, replacePattern) {
 function updateAndroidVersion(versionName, versionCode) {
     console.log('Updating android:', `versionName: ${versionName}`, `versionCode: ${versionCode}`);
     return Promise.all([
-        replaceInFile(BUILD_GRADLE_PATH, /versionName ([0-9.-]*)/, new RegExp(`versionName ${versionName}`)),
-        replaceInFile(BUILD_GRADLE_PATH, /versionCode ([0-9]*)/, new RegExp(`versionCode ${versionCode}`)),
+        replaceInFile(BUILD_GRADLE_PATH, /versionName ([0-9.-]*)/, `versionName ${versionName}`),
+        replaceInFile(BUILD_GRADLE_PATH, /versionCode ([0-9]*)/, `versionCode ${versionCode}`),
     ])
         .then(() => {
             console.log('Successfully updated Android!');
