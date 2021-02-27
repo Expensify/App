@@ -77,6 +77,16 @@ describe('OptionsListUtils', () => {
             participants: ['galactus_herald@expensify.com'],
             reportName: 'Silver Surfer',
         },
+
+        // Note: This report has no lastMessageTimestamp but is also pinned
+        9: {
+            lastVisitedTimestamp: 1610666739302,
+            lastMessageTimestamp: 0,
+            isPinned: true,
+            reportID: 9,
+            participants: ['captain_britain@expensify.com'],
+            reportName: 'Captain Britain',
+        },
     };
 
     // And a set of personalDetails some with existing reports and some without
@@ -309,8 +319,11 @@ describe('OptionsListUtils', () => {
         const results = OptionsListUtils.getSidebarOptions(REPORTS, PERSONAL_DETAILS, {}, 0);
 
         // Then expect all of the reports to be shown both multiple and single participant except the
-        // report that has no lastMessageTimestamp
+        // unpinned report that has no lastMessageTimestamp
         expect(results.recentReports.length).toBe(_.size(REPORTS) - 1);
+
+        const numberOfPinnedReports = results.recentReports.filter(report => report.isPinned).length;
+        expect(numberOfPinnedReports).toBe(2);
 
         // That no personalDetails are shown
         expect(results.personalDetails.length).toBe(0);
