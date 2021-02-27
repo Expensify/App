@@ -17,7 +17,7 @@ jobs:
                 git fetch
                 git checkout ${{ github.head_ref }}
             - name: Check diff
-              run: if [[ git diff $(find . -regextype posix-extended -regex "\.\/(src|ios|assets|(tests\/(e2e|utils))|__mocks__|\.env.*|[^\/]*.js(on)?)") ]]; then echo "diff found"; else echo "no diff"; fi;
+              run: if [[ git diff --exit-code $(find . -regextype posix-extended -regex "\.\/(src|ios|assets|(tests\/(e2e|utils))|__mocks__|\.env.*|[^\/]*.js(on)?)") ]]; then echo "diff found"; else echo "no diff"; fi;
     test:
         needs: check_diff
         runs-on: macos-10.15
