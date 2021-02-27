@@ -17,7 +17,9 @@ jobs:
                 git fetch
                 git checkout ${{ github.head_ref }}
             - name: Check diff
-              run: git diff --exit-code ./* ./.* src/**/* config/**/* assets/**/* tests/e2e/* tests/utils/*
+              run: |
+                cd Expensify/Expensify.cash
+                git diff --exit-code ./* ./.* src/**/* config/**/* assets/**/* tests/e2e/* tests/utils/*
     test:
         needs: check_diff
         runs-on: macos-10.15
