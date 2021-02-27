@@ -3,7 +3,7 @@ const defaultPlugins = [
     // Adding the commonjs: true option to react-native-web plugin can cause styling conflicts
     ['react-native-web'],
 
-    '@babel/plugin-transform-runtime',
+    '@babel/transform-runtime',
     '@babel/plugin-proposal-class-properties',
 
     // We use `transform-class-properties` for transforming ReactNative libraries and do not use it for our own

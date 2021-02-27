@@ -43,7 +43,7 @@ import RightDockedModal from '../../components/RightDockedModal';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import compose from '../../libs/compose';
 import {getBetas} from '../../libs/actions/User';
-import * as Account from '../../libs/actions/Account';
+import Account from '../../libs/actions/Account';
 
 const propTypes = {
     isSidebarShown: PropTypes.bool,

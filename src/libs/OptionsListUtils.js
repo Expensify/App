@@ -6,6 +6,7 @@ import lodashOrderBy from 'lodash.orderby';
 import Str from 'expensify-common/lib/str';
 import {getDefaultAvatar} from './actions/PersonalDetails';
 import ONYXKEYS from '../ONYXKEYS';
+import CONST from '../CONST';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -168,14 +169,12 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
     const personalDetailsOptions = [];
 
     const reportMapForLogins = {};
-    let orderedReports = lodashOrderBy(reports, [
-        sortByLastMessageTimestamp
-            ? 'lastMessageTimestamp'
-            : 'lastVisitedTimestamp',
-    ], ['desc']);
-    if (sortByAlphaAsc) {
-        orderedReports = lodashOrderBy(reports, ['reportName'], ['asc']);
-    }
+    let iteratees = sortByLastMessageTimestamp
+        ? ['lastMessageTimestamp']
+        : ['lastVisitedTimestamp'];
+    if (sortByAlphaAsc) { iteratees = ['reportName']; }
+    const sortDirection = [sortByAlphaAsc ? 'asc' : 'desc'];
+    const orderedReports = lodashOrderBy(reports, iteratees, sortDirection);
 
     const allReportOptions = [];
     _.each(orderedReports, (report) => {
@@ -387,19 +386,14 @@ function getSidebarOptions(reports, personalDetails, draftComments, activeReport
         hideReadReports: false,
         sortByAlphaAsc: false,
     };
-    switch (priorityMode) {
-        case 'default':
-            break;
-        case 'gsd':
-            sideBarOptions = {
-                prioritizePinnedReports: false,
-                hideReadReports: true,
-                sortByAlphaAsc: true,
-            };
-            break;
-        default:
-            break;
+    if (priorityMode === CONST.PRIORITY_MODE.GSD) {
+        sideBarOptions = {
+            prioritizePinnedReports: false,
+            hideReadReports: true,
+            sortByAlphaAsc: true,
+        };
     }
+
     return getOptions(reports, personalDetails, draftComments, activeReportID, {
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
