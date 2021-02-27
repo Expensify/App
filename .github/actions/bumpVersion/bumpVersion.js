@@ -1,4 +1,5 @@
-const {exec} = require('child_process');
+const util = require('util');
+const exec = util.promisify(require('child_process').exec);
 const fs = require('fs');
 const core = require('@actions/core');
 const github = require('@actions/github');
@@ -84,7 +85,7 @@ function postVersionUpdateNative(newVersion) {
     // The native version needs to be different on Android v.s. iOS
     const androidVersionCode = generateAndroidVersionCode(cleanNewVersion);
     console.log('Updating android:', `buildCode: ${androidVersionCode}`, `buildName: ${cleanNewVersion}`);
-    updateNativeVersion('android', generateAndroidVersionCode(cleanNewVersion));
+    updateNativeVersion('android', androidVersionCode);
     console.log(`Updating ios to ${cleanNewVersion}`);
     updateNativeVersion('ios', cleanNewVersion);
 }
@@ -95,14 +96,14 @@ let shouldRetry;
 
 do {
     shouldRetry = false;
-    // eslint-disable-next-line no-loop-func
-    exec('npm version prerelease -m "Update version to %s"', (err, stdout, stderr) => {
-        if (!err) {
-            // npm version updated, now update native version to keep in sync and prepare to deploy.
+    exec('npm version prerelease -m "Update version to %s"')
+        .then(({stdout}) => {
             postVersionUpdateNative(stdout);
-        } else {
-            console.log(stdout);
-            console.error(stderr);
+        })
+        // eslint-disable-next-line no-loop-func
+        .catch((err) => {
+            console.log(err.stdout);
+            console.log(err.stderr);
 
             // It's possible that two PRs were merged in rapid succession.
             // In this case, both PRs will attempt to update to the same npm version.
@@ -118,45 +119,46 @@ do {
                 const currentPatchVersion = `v${version.slice(0, -4)}`;
                 console.log('Current patch version:', currentPatchVersion);
 
-                // Get the highest build version git tag from the repo
+                // Fetch tags
                 console.log('Fetching tags from github...');
                 const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
-                octokit.repos.listTags({
+                return octokit.repos.listTags({
                     owner: repoOwner,
                     repo: repoName,
                 })
-                    .then((response) => {
-                        const tags = response.data.map(tag => tag.name);
-                        console.log('Tags: ', tags);
-                        const highestBuildNumber = Math.max(
-                            ...(tags
-                                .filter(tag => tag.startsWith(currentPatchVersion))
-                                .map(tag => tag.split('-')[1])
-                            ),
-                        );
-                        console.log('Highest build number from current patch version:', highestBuildNumber);
-
-                        const newBuildNumber = `${currentPatchVersion}-${highestBuildNumber + 1}`;
-                        console.log(`Setting npm version for this PR to ${newBuildNumber}`);
-
-                        exec(`npm version ${newBuildNumber} -m "Update version to ${newBuildNumber}"`,
-                            // eslint-disable-next-line no-shadow
-                            (err, stdout, stderr) => {
-                                if (!err) {
-                                    // NPM version successfully updated, update native versions - don't retry.
-                                    postVersionUpdateNative(stdout);
-                                    shouldRetry = false;
-                                } else {
-                                    // Log errors and retry
-                                    console.log(stdout);
-                                    console.error(stderr);
-                                }
-                            });
-                    })
-                    .catch(exception => core.setFailed(exception));
-            } else {
-                core.setFailed(err);
+                    .then(githubResponse => ({currentPatchVersion, githubResponse}))
+                    .catch(githubError => core.setFailed(githubError));
             }
-        }
-    });
+
+            // Maximum retries reached, fail this action.
+            core.setFailed(err);
+        })
+        .then(({currentPatchVersion, githubResponse}) => {
+            // Find the highest build version git tag
+            const tags = githubResponse.data.map(tag => tag.name);
+            console.log('Tags: ', tags);
+            const highestBuildNumber = Math.max(
+                ...(tags
+                    .filter(tag => tag.startsWith(currentPatchVersion))
+                    .map(tag => tag.split('-')[1])
+                ),
+            );
+            console.log('Highest build number from current patch version:', highestBuildNumber);
+
+            // Bump the build number again
+            const newBuildNumber = `${currentPatchVersion}-${highestBuildNumber + 1}`;
+            console.log(`Setting npm version for this PR to ${newBuildNumber}`);
+            return exec(`npm version ${newBuildNumber} -m "Update version to ${newBuildNumber}"`);
+        })
+        // eslint-disable-next-line no-loop-func
+        .then(({stdout}) => {
+            // NPM version successfully updated, update native versions - don't retry.
+            postVersionUpdateNative(stdout);
+            shouldRetry = false;
+        })
+        .catch(({stdout, stderr}) => {
+            // Log errors and retry
+            console.log(stdout);
+            console.error(stderr);
+        });
 } while (shouldRetry);
