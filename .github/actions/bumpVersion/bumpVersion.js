@@ -76,10 +76,11 @@ function updateAndroidVersion(versionName, versionCode) {
  * @param {String} version
  */
 function updateiOSVersion(version) {
-    console.log(`Updating iOS: ${version}`);
+    const shortVersion = version.slice(0, -4);
+    console.log('Updating iOS', `CFBundleShortVersionString: ${shortVersion}`, `CFBundleVersion: ${version}`);
     Promise.all([
-        exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${version}" ${PLIST_PATH}`),
-        exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${version}" ${PLIST_PATH_TEST}`),
+        exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH}`),
+        exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH_TEST}`),
         exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${version}" ${PLIST_PATH}`),
         exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${version}" ${PLIST_PATH_TEST}`),
     ])
