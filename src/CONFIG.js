@@ -3,6 +3,8 @@ import {Platform} from 'react-native';
 import Config from 'react-native-config';
 import getPlatform from './libs/getPlatform/index';
 
+// Hello from src
+
 /**
  * Let's make everyone's life just a bit easier by adding / to the end of any config URL's if it's not already present
  * @param {String} url
