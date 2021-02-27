@@ -8,7 +8,6 @@ const getMajorVersion = require('semver/functions/major');
 const getMinorVersion = require('semver/functions/minor');
 const getPatchVersion = require('semver/functions/patch');
 const getBuildVersion = require('semver/functions/prerelease');
-const {version: reactNativeVersion} = require('react-native-version');
 
 // Use Github Actions' default environment variables to get repo information
 // https://docs.github.com/en/free-pro-team@latest/actions/reference/environment-variables#default-environment-variables
@@ -59,16 +58,12 @@ function updateNativeVersion(platform, versionCode) {
         core.setFailed();
     }
 
-    reactNativeVersion({
-        target: platform,
-        setBuild: versionCode,
-        amend: true,
-    })
+    exec(`react-native-version --amend --target ${platform} --set-build ${versionCode}`)
         .then(() => {
-            console.log(`Successfully updated ${platform} version to ${versionCode}`);
+            console.log(`Successfully updated ${platform} to ${versionCode}`);
         })
         .catch((err) => {
-            console.log('Error updating native version:', `platform: ${platform}`, `versionCode: ${versionCode}`, err);
+            console.error('Error updating native version:', `platform: ${platform}`, `versionCode: ${versionCode}`);
             core.setFailed(err);
         });
 }
