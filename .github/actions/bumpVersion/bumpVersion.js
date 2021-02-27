@@ -76,7 +76,7 @@ function updateAndroidVersion(versionName, versionCode) {
  * @param {String} version
  */
 function updateiOSVersion(version) {
-    const shortVersion = version.slice(0, -4);
+    const shortVersion = version.split('-')[0];
     console.log('Updating iOS', `CFBundleShortVersionString: ${shortVersion}`, `CFBundleVersion: ${version}`);
     Promise.all([
         exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH}`),
@@ -136,7 +136,7 @@ do {
                 );
                 shouldRetry = true;
                 const {version} = JSON.parse(fs.readFileSync('./package.json'));
-                const currentPatchVersion = `v${version.slice(0, -4)}`;
+                const currentPatchVersion = `v${version.split('-')[0]}`;
                 console.log('Current patch version:', currentPatchVersion);
 
                 // Fetch tags
