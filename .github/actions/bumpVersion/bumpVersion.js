@@ -1,5 +1,5 @@
-const util = require('util');
-const exec = util.promisify(require('child_process').exec);
+const {promisify} = require('util');
+const exec = promisify(require('child_process').exec);
 const fs = require('fs');
 const core = require('@actions/core');
 const github = require('@actions/github');
@@ -8,6 +8,14 @@ const getMajorVersion = require('semver/functions/major');
 const getMinorVersion = require('semver/functions/minor');
 const getPatchVersion = require('semver/functions/patch');
 const getBuildVersion = require('semver/functions/prerelease');
+
+// Filepath constants
+const BUILD_GRADLE_PATH = './android/app/build.gradle';
+const PLIST_PATH = './ios/ExpensifyCash/Info.plist';
+const PLIST_PATH_TEST = './ios/ExpensifyCashTests/Info.plist';
+
+// Promisified version of fs.readFile
+const readFileAsync = promisify(fs.readFile);
 
 // Use Github Actions' default environment variables to get repo information
 // https://docs.github.com/en/free-pro-team@latest/actions/reference/environment-variables#default-environment-variables
@@ -47,26 +55,62 @@ function generateAndroidVersionCode(npmVersion) {
 }
 
 /**
- * Use the react-native-version package to update the version of a native platform.
+ * Find and replace regex in file.
  *
- * @param {String} platform – "ios" or "android"
- * @param {String} versionCode – The version code to update the native platform.
+ * @param {String} filepath
+ * @param {RegExp} findPattern
+ * @param {RegExp} replacePattern
+ * @returns {Promise}
  */
-function updateNativeVersion(platform, versionCode) {
-    if (platform !== 'android' && platform !== 'ios') {
-        console.error('Invalid native platform specified!', platform);
-        core.setFailed();
-        return;
-    }
+function replaceInFile(filepath, findPattern, replacePattern) {
+    return readFileAsync(filepath, {encoding: 'utf-8'})
+        .then(fileContents => fileContents.replace(findPattern, replacePattern))
+        .catch((err) => {
+            console.log(`Failed parsing file ${filepath}`);
+            core.setFailed(err);
+        });
+}
 
-    // Note: We're using `exec` instead of the `react-native-version` javascript sdk to avoid a known issue
-    // with `ncc` and `process.cwd` https://github.com/vercel/webpack-asset-relocator-loader/issues/112
-    exec(`react-native-version --amend --target ${platform} --set-build ${versionCode}`)
+/**
+ * Update the Android app version.
+ *
+ * @param {String} versionName
+ * @param {String} versionCode
+ * @returns {Promise}
+ */
+function updateAndroidVersion(versionName, versionCode) {
+    console.log('Updating android:', `versionName: ${versionName}`, `versionCode: ${versionCode}`);
+    return Promise.all([
+        replaceInFile(BUILD_GRADLE_PATH, /versionName ([0-9.-]*)/, new RegExp(`versionName ${versionName}`)),
+        replaceInFile(BUILD_GRADLE_PATH, /versionCode ([0-9]*)/, new RegExp(`versionCode ${versionCode}`)),
+    ])
         .then(() => {
-            console.log(`Successfully updated ${platform} to ${versionCode}`);
+            console.log('Successfully updated Android!');
         })
         .catch((err) => {
-            console.error('Error updating native version:', `platform: ${platform}`, `versionCode: ${versionCode}`);
+            console.error('Error updating Android');
+            core.setFailed(err);
+        });
+}
+
+/**
+ * Update the iOS app version.
+ *
+ * @param {String} version
+ */
+function updateiOSVersion(version) {
+    console.log(`Updating iOS: ${version}`);
+    Promise.all([
+        exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${version}" ${PLIST_PATH}`),
+        exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${version}" ${PLIST_PATH_TEST}`),
+        exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${version}" ${PLIST_PATH}`),
+        exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${version}" ${PLIST_PATH_TEST}`),
+    ])
+        .then(() => {
+            console.log('Successfully updated iOS!');
+        })
+        .catch((err) => {
+            console.error('Error updating iOS');
             core.setFailed(err);
         });
 }
@@ -80,12 +124,12 @@ function postVersionUpdateNative(newVersion) {
     const cleanNewVersion = semverClean(newVersion);
     console.log(`Updated npm version to ${cleanNewVersion}! Updating native versions...`);
 
-    // The native version needs to be different on Android v.s. iOS
+    // Update Android
     const androidVersionCode = generateAndroidVersionCode(cleanNewVersion);
-    console.log('Updating android:', `buildCode: ${androidVersionCode}`, `buildName: ${cleanNewVersion}`);
-    updateNativeVersion('android', androidVersionCode);
-    console.log(`Updating ios to ${cleanNewVersion}`);
-    updateNativeVersion('ios', cleanNewVersion);
+    updateAndroidVersion(cleanNewVersion, androidVersionCode);
+
+    // Update iOS
+    updateiOSVersion(cleanNewVersion);
 }
 
 const MAX_RETRIES = 10;
