@@ -23,7 +23,7 @@ jobs:
             - name: Install dependenices
               run: npm ci
 
-            - name: Set ugit p git
+            - name: Set up git
               run: |
                 git fetch
                 git checkout master
