@@ -9,7 +9,7 @@ import themeColors from '../../../styles/themes/default';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Icon from '../../../components/Icon';
-import {Paperclip, Send} from '../../../components/Icon/Expensicons';
+import {Plus, Send} from '../../../components/Icon/Expensicons';
 import AttachmentPicker from '../../../components/AttachmentPicker';
 import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs/actions/Report';
 import ReportTypingIndicator from './ReportTypingIndicator';
@@ -191,7 +191,7 @@ class ReportActionCompose extends React.Component {
                                                 style={styles.chatItemAttachButton}
                                                 underlayColor={themeColors.componentBG}
                                             >
-                                                <Icon src={Paperclip} />
+                                                <Icon src={Plus} />
                                             </TouchableOpacity>
                                             <CreateMenu
                                                 isVisible={this.state.isMenuVisible}
