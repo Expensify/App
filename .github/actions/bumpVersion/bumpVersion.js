@@ -55,41 +55,18 @@ function generateAndroidVersionCode(npmVersion) {
 }
 
 /**
- * Find and replace regex in file.
- *
- * @param {String} filepath
- * @param {RegExp} findPattern
- * @param {String} replacePattern
- * @returns {Promise}
- */
-function replaceInFile(filepath, findPattern, replacePattern) {
-    return readFileAsync(filepath, {encoding: 'utf-8'})
-        .then(fileContents => fileContents.replace(findPattern, replacePattern))
-        .catch((err) => {
-            console.log(`Failed parsing file ${filepath}`);
-            core.setFailed(err);
-        });
-}
-
-/**
  * Update the Android app version.
  *
  * @param {String} versionName
  * @param {String} versionCode
- * @returns {Promise}
  */
 function updateAndroidVersion(versionName, versionCode) {
     console.log('Updating android:', `versionName: ${versionName}`, `versionCode: ${versionCode}`);
-    return Promise.all([
-        replaceInFile(BUILD_GRADLE_PATH, /versionName ([0-9.-]*)/, `versionName ${versionName}`),
-        replaceInFile(BUILD_GRADLE_PATH, /versionCode ([0-9]*)/, `versionCode ${versionCode}`),
-    ])
-        .then(() => {
-            console.log('Successfully updated Android!');
-        })
-        .catch((err) => {
-            console.error('Error updating Android');
-            core.setFailed(err);
+    readFileAsync(BUILD_GRADLE_PATH, {encoding: 'utf8'})
+        .then((content) => {
+            let updatedContent = content.replace(/versionName "([0-9.-]*)"/, `versionName "${versionName}"`);
+            updatedContent = updatedContent.replace(/versionCode ([0-9]*)/, `versionCode ${versionCode}`);
+            fs.writeFile(BUILD_GRADLE_PATH, updatedContent, () => {});
         });
 }
 
