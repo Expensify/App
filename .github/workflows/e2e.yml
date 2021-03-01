@@ -16,6 +16,8 @@ jobs:
               run: |
                   git fetch
                   git checkout
+            - name: Echo anything?
+              run: echo "Hello world"
             - name: Check diff
               run: echo $(git diff $(find -E . -regex "\.\/(src|ios|assets|(tests\/(e2e|utils))|__mocks__|\.env.*|[^\/]*.js(on)?)"))
     test:
