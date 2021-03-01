@@ -24,7 +24,7 @@ const propTypes = {
 
     /* Onyx Props */
     // Url currently in view
-    currentURL: PropTypes.string,  
+    currentURL: PropTypes.string,
 };
 
 const StepType = {
@@ -44,13 +44,12 @@ class IOUModal extends Component {
 
         this.state = {
             steps: [StepType.IOUAmount, StepType.IOUParticipants, StepType.IOUConfirm],
-            step: StepType.IOUAmount,
             currentStepIndex: 0,
         };
 
-        this.getTitleForStep = this.getTitleForStep;
-        this.navigateToPreviousStep = this.navigateToPreviousStep;
-        this.navigateToNextStep = this.navigateToNextStep;
+        this.getTitleForStep = this.getTitleForStep();
+        this.navigateToPreviousStep = this.navigateToPreviousStep();
+        this.navigateToNextStep = this.navigateToNextStep();
     }
 
     /**
@@ -60,23 +59,27 @@ class IOUModal extends Component {
      */
     getTitleForStep() {
         switch (this.state.steps[this.state.currentStepIndex]) {
-            case StepType.IOUAmount: 
-                return 'Amount'
-            case StepType.IOUParticipants: 
-                return 'Participants'
-            case StepType.IOUConfirm: 
-                return 'Confirm'
+            case StepType.IOUAmount:
+                return 'Amount';
+            case StepType.IOUParticipants:
+                return 'Participants';
+            case StepType.IOUConfirm:
+                return 'Confirm';
             default:
-                return ''
+                return '';
         }
     }
 
     navigateToPreviousStep() {
-        this.setState({currentStepIndex: this.state.currentStepIndex-1});
+        this.state.currentStepIndex.then((index) => {
+            this.setState({currentStepIndex: index - 1});
+        });
     }
 
     navigateToNextStep() {
-        this.setState({currentStepIndex: this.state.currentStepIndex+1});
+        this.state.currentStepIndex.then((index) => {
+            this.setState({currentStepIndex: index + 1});
+        });
     }
 
     render() {
@@ -97,37 +100,44 @@ class IOUModal extends Component {
                         styles.overflowHidden,
                     ]}
                     >
-                        {this.state.currentStepIndex > 0 &&
+                        {this.state.currentStepIndex > 0
+                        && (
                             <TouchableOpacity
                                 onPress={() => this.navigateToPreviousStep()}
                                 style={[styles.touchableButtonImage]}
                             >
                                 <Icon src={BackArrow} />
                             </TouchableOpacity>
-                        }
+                        )}
                         <Header title={this.getTitleForStep()} />
                         <View style={[styles.reportOptions, styles.flexRow]}>
-                        <TouchableOpacity
-                            onPress={redirectToLastReport}
-                            style={[styles.touchableButtonImage]}
-                        >
-                            <Icon src={Close} />
-                        </TouchableOpacity>
-                    </View>
+                            <TouchableOpacity
+                                onPress={redirectToLastReport}
+                                style={[styles.touchableButtonImage]}
+                            >
+                                <Icon src={Close} />
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 </View>
-                {this.state.currentStepIndex === 0 && 
+                {this.state.currentStepIndex === 0
+                && (
                     <IOUAmountPage
                         onStepComplete={() => this.navigateToNextStep()}
-                    />}
-                {this.state.currentStepIndex === 1 && 
+                    />
+                )}
+                {this.state.currentStepIndex === 1
+                && (
                     <IOUParticipantsPage
                         onStepComplete={() => this.navigateToNextStep()}
-                    />}
-                {this.state.currentStepIndex === 2 && 
+                    />
+                )}
+                {this.state.currentStepIndex === 2
+                && (
                     <IOUConfirmPage
                         onStepComplete={() => redirectToLastReport()}
-                    />}
+                    />
+                )}
             </Modal>
         );
     }
