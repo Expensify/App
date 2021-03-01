@@ -1,6 +1,10 @@
 import React from 'react';
 import {
-    Animated, View, Keyboard, AppState, Easing,
+    Animated,
+    View,
+    Keyboard,
+    AppState,
+    Easing,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
