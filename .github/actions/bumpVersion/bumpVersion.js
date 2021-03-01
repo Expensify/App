@@ -4,54 +4,7 @@ const fs = require('fs');
 const core = require('@actions/core');
 const github = require('@actions/github');
 const semverClean = require('semver/functions/clean');
-const generateAndroidVersionCode = require('../../libs/generateAndroidVersionCode');
-
-// Filepath constants
-const BUILD_GRADLE_PATH = './android/app/build.gradle';
-const PLIST_PATH = './ios/ExpensifyCash/Info.plist';
-const PLIST_PATH_TEST = './ios/ExpensifyCashTests/Info.plist';
-
-// Promisified version of fs.readFile
-const readFileAsync = promisify(fs.readFile);
-
-/**
- * Update the Android app version.
- *
- * @param {String} versionName
- * @param {String} versionCode
- */
-function updateAndroidVersion(versionName, versionCode) {
-    console.log('Updating android:', `versionName: ${versionName}`, `versionCode: ${versionCode}`);
-    readFileAsync(BUILD_GRADLE_PATH, {encoding: 'utf8'})
-        .then((content) => {
-            let updatedContent = content.replace(/versionName "([0-9.-]*)"/, `versionName "${versionName}"`);
-            updatedContent = updatedContent.replace(/versionCode ([0-9]*)/, `versionCode ${versionCode}`);
-            fs.writeFile(BUILD_GRADLE_PATH, updatedContent, () => {});
-        });
-}
-
-/**
- * Update the iOS app version.
- *
- * @param {String} version
- */
-function updateiOSVersion(version) {
-    const shortVersion = version.split('-')[0];
-    console.log('Updating iOS', `CFBundleShortVersionString: ${shortVersion}`, `CFBundleVersion: ${version}`);
-    Promise.all([
-        exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH}`),
-        exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH_TEST}`),
-        exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${version}" ${PLIST_PATH}`),
-        exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${version}" ${PLIST_PATH_TEST}`),
-    ])
-        .then(() => {
-            console.log('Successfully updated iOS!');
-        })
-        .catch((err) => {
-            console.error('Error updating iOS');
-            core.setFailed(err);
-        });
-}
+const {generateAndroidVersionCode, updateAndroidVersion, updateiOSVersion} = require('../../libs/nativeVersionUpdater');
 
 /**
  * A callback function for a successful `npm version` command.
@@ -64,10 +17,24 @@ function postVersionUpdateNative(newVersion) {
 
     // Update Android
     const androidVersionCode = generateAndroidVersionCode(cleanNewVersion);
-    updateAndroidVersion(cleanNewVersion, androidVersionCode);
+    updateAndroidVersion(cleanNewVersion, androidVersionCode)
+        .then(() => {
+            console.log('Successfully updated Android!');
+        })
+        .catch((err) => {
+            console.error('Error updating Android');
+            core.setFailed(err);
+        });
 
     // Update iOS
-    updateiOSVersion(cleanNewVersion);
+    updateiOSVersion(cleanNewVersion)
+        .then(() => {
+            console.log('Successfully updated iOS!');
+        })
+        .catch((err) => {
+            console.error('Error updating iOS');
+            core.setFailed(err);
+        });
 }
 
 // Use Github Actions' default environment variables to get repo information
