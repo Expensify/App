@@ -15,6 +15,9 @@ jobs:
               with:
                 ref: ${{ github.event.pull_request.head.sha }}
 
+            - name: Echo full diff
+              run: echo $(git diff)
+
             - name: Check diff
               run: echo $(git diff $(find -E . -regex "\.\/(src|ios|assets|(tests\/(e2e|utils))|__mocks__|\.env.*|[^\/]*.js(on)?)"))
     test:
