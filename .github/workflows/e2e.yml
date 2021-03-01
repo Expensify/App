@@ -17,7 +17,7 @@ jobs:
                   git fetch
                   git checkout
             - name: Check diff
-              run: echo $(git diff $(find . -regextype posix-extended -regex "\.\/(src|ios|assets|(tests\/(e2e|utils))|__mocks__|\.env.*|[^\/]*.js(on)?)"))
+              run: echo $(git diff $(find -E . -regex "\.\/(src|ios|assets|(tests\/(e2e|utils))|__mocks__|\.env.*|[^\/]*.js(on)?)"))
     test:
         needs: check_diff
         runs-on: macos-10.15
