@@ -15,7 +15,7 @@ jobs:
             - name: Setup git
               run: |
                   git fetch
-                  git checkout
+                  git checkout ${{ github.head_ref }}
             - name: Echo anything?
               run: echo "Hello world"
             - name: Check diff
