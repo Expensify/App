@@ -24,7 +24,7 @@ const propTypes = {
 
     /* Onyx Props */
     // Url currently in view
-    currentURL: PropTypes.string,
+    currentURL: PropTypes.string,  
 };
 
 const StepType = {
@@ -43,6 +43,7 @@ class IOUModal extends Component {
         super(props);
 
         this.state = {
+            steps: [StepType.IOUAmount, StepType.IOUParticipants, StepType.IOUConfirm],
             step: StepType.IOUAmount,
             currentStepIndex: 0,
         };
@@ -58,13 +59,12 @@ class IOUModal extends Component {
      * @return {String}
      */
     getTitleForStep() {
-        // todo: switch back to StepType
-        switch (this.state.currentStepIndex) {
-            case 0: 
+        switch (this.state.steps[this.state.currentStepIndex]) {
+            case StepType.IOUAmount: 
                 return 'Amount'
-            case 1: 
+            case StepType.IOUParticipants: 
                 return 'Participants'
-            case 2: 
+            case StepType.IOUConfirm: 
                 return 'Confirm'
             default:
                 return ''
