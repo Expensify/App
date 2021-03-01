@@ -286,6 +286,10 @@ class ReportActionsView extends React.Component {
         needsLayoutCalculation,
     }) {
         return (
+
+        // <View /> must not be changed to a Fragment
+        // Explanation: https://github.com/Expensify/Expensify.cash/pull/1570#discussion_r583826182
+
             <View>
                 {this.unreadActionCount > 0 && index === this.unreadActionCount - 1 && (
                     <UnreadActionIndicator animatedOpacity={this.unreadIndicatorOpacity} />
