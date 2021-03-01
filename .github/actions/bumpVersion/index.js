@@ -14,10 +14,7 @@ const fs = __nccwpck_require__(5747);
 const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
 const semverClean = __nccwpck_require__(8848);
-const getMajorVersion = __nccwpck_require__(6688);
-const getMinorVersion = __nccwpck_require__(8447);
-const getPatchVersion = __nccwpck_require__(2866);
-const getBuildVersion = __nccwpck_require__(6014);
+const generateAndroidVersionCode = __nccwpck_require__(727);
 
 // Filepath constants
 const BUILD_GRADLE_PATH = './android/app/build.gradle';
@@ -26,39 +23,6 @@ const PLIST_PATH_TEST = './ios/ExpensifyCashTests/Info.plist';
 
 // Promisified version of fs.readFile
 const readFileAsync = promisify(fs.readFile);
-
-/**
- * Pad a number to be three digits (with leading zeros if necessary).
- *
- * @param {Number} number - Must be an integer.
- * @returns {String} - A string representation of the number w/ length 3.
- */
-function padToThreeDigits(number) {
-    if (number >= 100) {
-        return number.toString();
-    }
-    if (number >= 10) {
-        return `0${number.toString()}`;
-    }
-    return `00${number.toString()}`;
-}
-
-/**
- * Generate the 12-digit versionCode for android.
- * This version code allocates three digits each for MAJOR, MINOR, PATCH, and BUILD versions.
- * As a result, our max version is 999.999.999-999.
- *
- * @param {String} npmVersion
- * @returns {String}
- */
-function generateAndroidVersionCode(npmVersion) {
-    return ''.concat(
-        padToThreeDigits(getMajorVersion(npmVersion)),
-        padToThreeDigits(getMinorVersion(npmVersion)),
-        padToThreeDigits(getPatchVersion(npmVersion)),
-        padToThreeDigits(getBuildVersion(npmVersion)),
-    );
-}
 
 /**
  * Update the Android app version.
@@ -192,6 +156,50 @@ do {
             console.error(stderr);
         });
 } while (shouldRetry);
+
+
+/***/ }),
+
+/***/ 727:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const getMajorVersion = __nccwpck_require__(6688);
+const getMinorVersion = __nccwpck_require__(8447);
+const getPatchVersion = __nccwpck_require__(2866);
+const getBuildVersion = __nccwpck_require__(6014);
+
+/**
+ * Pad a number to be three digits (with leading zeros if necessary).
+ *
+ * @param {Number} number - Must be an integer.
+ * @returns {String} - A string representation of the number w/ length 3.
+ */
+function padToThreeDigits(number) {
+    if (number >= 100) {
+        return number.toString();
+    }
+    if (number >= 10) {
+        return `0${number.toString()}`;
+    }
+    return `00${number.toString()}`;
+}
+
+/**
+ * Generate the 12-digit versionCode for android.
+ * This version code allocates three digits each for MAJOR, MINOR, PATCH, and BUILD versions.
+ * As a result, our max version is 999.999.999-999.
+ *
+ * @param {String} npmVersion
+ * @returns {String}
+ */
+module.exports = function generateAndroidVersionCode(npmVersion) {
+    return ''.concat(
+        padToThreeDigits(getMajorVersion(npmVersion) || 0),
+        padToThreeDigits(getMinorVersion(npmVersion) || 0),
+        padToThreeDigits(getPatchVersion(npmVersion) || 0),
+        padToThreeDigits(getBuildVersion(npmVersion) || 0),
+    );
+};
 
 
 /***/ }),
