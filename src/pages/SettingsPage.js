@@ -113,11 +113,11 @@ const SettingsPage = ({
                         {Str.removeSMSDomain(session.email)}
                     </Text>
                     )}
-                    <View style={[styles.settingsPageBody, styles.mt4]}>
-                        <Text style={[styles.textLabel, styles.textStrong, styles.mt2, styles.mb2]} numberOfLines={1}>
+                    <View style={[styles.settingsPageBody, styles.mt4, styles.mb6]}>
+                        <Text style={[styles.formLabel]} numberOfLines={1}>
                             Priority Mode
                         </Text>
-                        <View style={[styles.mt2, styles.mb2]}>
+                        <View style={[styles.mb2]}>
                             <RNPickerSelect
                                 onValueChange={Account.updatePriorityMode}
                                 items={Object.values(priorityModes)}

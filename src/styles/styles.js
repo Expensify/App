@@ -297,7 +297,9 @@ const styles = {
     noOutline: addOutlineWidth({}, 0),
 
     formLabel: {
-        color: themeColors.text,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        color: themeColors.heading,
         fontSize: variables.fontSizeLabel,
         lineHeight: 18,
         marginBottom: 8,
