@@ -8,11 +8,18 @@ env:
     DEVELOPER_DIR: /Applications/Xcode_12.3.app/Contents/Developer
 
 jobs:
+    check_diff:
+        runs-on: macos-latest
+        steps:
+            - uses: actions/checkout@v2
+            - name: Setup git
+              run: |
+                  git fetch
+                  git checkout
+            - name: Check diff
+              run: echo $(git diff $(find . -regextype posix-extended -regex "\.\/(src|ios|assets|(tests\/(e2e|utils))|__mocks__|\.env.*|[^\/]*.js(on)?)"))
     test:
-        if: |
-            git fetch \
-            && git checkout ${{ github.head_ref }} \
-            && $(git diff --exit-code $(find . -regextype posix-extended -regex "\.\/(src|ios|assets|(tests\/(e2e|utils))|__mocks__|\.env.*|[^\/]*.js(on)?)")))
+        needs: check_diff
         runs-on: macos-10.15
         steps:
             - uses: actions/checkout@v2
