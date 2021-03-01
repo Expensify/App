@@ -14,7 +14,6 @@ import variables from '../../styles/variables';
 import SidebarScreen from './sidebar/SidebarScreen';
 import ReportScreen from './ReportScreen';
 import NewGroupPage from '../NewGroupPage';
-import {ChatBubble} from '../../components/Icon/Expensicons';
 import NewChatPage from '../NewChatPage';
 import SettingsPage from '../SettingsPage';
 import SearchPage from '../SearchPage';
