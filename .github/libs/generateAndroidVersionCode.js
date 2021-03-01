@@ -10,9 +10,6 @@ const getBuildVersion = require('semver/functions/prerelease');
  * @returns {String} - A string representation of the number w/ length 3.
  */
 function padToThreeDigits(number) {
-    if (!number) {
-        return '000';
-    }
     if (number >= 100) {
         return number.toString();
     }
@@ -32,9 +29,9 @@ function padToThreeDigits(number) {
  */
 module.exports = function generateAndroidVersionCode(npmVersion) {
     return ''.concat(
-        padToThreeDigits(getMajorVersion(npmVersion)),
-        padToThreeDigits(getMinorVersion(npmVersion)),
-        padToThreeDigits(getPatchVersion(npmVersion)),
-        padToThreeDigits(getBuildVersion(npmVersion)),
+        padToThreeDigits(getMajorVersion(npmVersion) || 0),
+        padToThreeDigits(getMinorVersion(npmVersion) || 0),
+        padToThreeDigits(getPatchVersion(npmVersion) || 0),
+        padToThreeDigits(getBuildVersion(npmVersion) || 0),
     );
 };
