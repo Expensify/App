@@ -1,8 +1,9 @@
 import React from 'react';
 import {
-    View,
     TouchableOpacity,
+    View,
 } from 'react-native';
+import RNPickerSelect from 'react-native-picker-select';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -15,6 +16,10 @@ import {version} from '../../package.json';
 import AvatarWithIndicator from '../components/AvatarWithIndicator';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import {redirectToLastReport} from '../libs/actions/App';
+import Account from '../libs/actions/Account';
+import Icon from '../components/Icon';
+import {DownArrow} from '../components/Icon/Expensicons';
+import CONST from '../CONST';
 import HeaderGap from '../components/HeaderGap';
 
 const propTypes = {
@@ -36,18 +41,40 @@ const propTypes = {
 
     // The session of the logged in person
     session: PropTypes.shape({
-    // Email of the logged in person
+        // Email of the logged in person
         email: PropTypes.string,
     }),
+
+    // The chat priority mode
+    priorityMode: PropTypes.string,
 };
 
 const defaultProps = {
     myPersonalDetails: {},
     network: null,
     session: {},
+    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
 };
+
+
+const priorityModes = {
+    default: {
+        value: CONST.PRIORITY_MODE.DEFAULT,
+        label: 'Most Recent',
+        description: 'This will display all chats by default, sorted by most recent, with pinned items at the top',
+    },
+    gsd: {
+        value: CONST.PRIORITY_MODE.GSD,
+        label: 'GSD',
+        description: 'This will only display unread and pinned chats, all sorted alphabetically. Get Shit Done.',
+    },
+};
+
 const SettingsPage = ({
-    myPersonalDetails, network, session,
+    myPersonalDetails,
+    network,
+    session,
+    priorityMode,
 }) => {
     // On the very first sign in or after clearing storage these
     // details will not be present on the first render so we'll just
@@ -70,7 +97,7 @@ const SettingsPage = ({
             >
                 <View style={styles.settingsWrapper}>
                     <View
-                        style={[styles.largeAvatar, styles.mb3]}
+                        style={[styles.mb3]}
                     >
                         <AvatarWithIndicator
                             size="large"
@@ -88,6 +115,27 @@ const SettingsPage = ({
                         {Str.removeSMSDomain(session.email)}
                     </Text>
                     )}
+                    <View style={[styles.settingsPageBody, styles.mt4, styles.mb6]}>
+                        <Text style={[styles.formLabel]} numberOfLines={1}>
+                            Priority Mode
+                        </Text>
+                        <View style={[styles.mb2]}>
+                            {/* empty object in placeholder below to prevent default */}
+                            {/* placeholder from appearing as a selection option. */}
+                            <RNPickerSelect
+                                onValueChange={Account.updatePriorityMode}
+                                items={Object.values(priorityModes)}
+                                style={styles.picker}
+                                useNativeAndroidPickerStyle={false}
+                                placeholder={{}}
+                                value={priorityMode}
+                                Icon={() => <Icon src={DownArrow} />}
+                            />
+                        </View>
+                        <Text style={[styles.textLabel, styles.colorMuted]}>
+                            {priorityModes[priorityMode].description}
+                        </Text>
+                    </View>
                     <TouchableOpacity
                         onPress={signOut}
                         style={[styles.button, styles.w100, styles.mt5]}
@@ -119,5 +167,8 @@ export default withOnyx({
     },
     session: {
         key: ONYXKEYS.SESSION,
+    },
+    priorityMode: {
+        key: ONYXKEYS.PRIORITY_MODE,
     },
 })(SettingsPage);
