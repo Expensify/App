@@ -11,9 +11,11 @@ import Send from '../../../assets/images/send.svg';
 import Users from '../../../assets/images/users.svg';
 import Checkmark from '../../../assets/images/checkmark.svg';
 import Download from '../../../assets/images/download.svg';
+import DownArrow from '../../../assets/images/down.svg';
 
 export {
     BackArrow,
+    DownArrow,
     ChatBubble,
     Close,
     MagnifyingGlass,
