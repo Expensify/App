@@ -93,6 +93,7 @@ function formatPersonalDetails(personalDetailsList) {
         // Form the details into something that has all the data in an easy to use format.
         const avatar = getAvatar(personalDetailsResponse, login);
         const displayName = getDisplayName(login, personalDetailsResponse);
+        const pronouns = lodashGet(personalDetailsResponse, 'pronouns', '');
 
         return {
             ...finalObject,
@@ -100,7 +101,7 @@ function formatPersonalDetails(personalDetailsList) {
                 login,
                 avatar,
                 displayName,
-                pronouns: personalDetailsResponse.pronouns || '',
+                pronouns,
             },
         };
     }, {});
