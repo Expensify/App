@@ -19,6 +19,7 @@ import InvertedFlatList from '../../../components/InvertedFlatList';
 import {lastItem} from '../../../libs/CollectionUtils';
 import Visibility from '../../../libs/Visibility';
 import CONST from '../../../CONST';
+import themeColors from '../../../styles/themes/default';
 
 const propTypes = {
     // The ID of the report actions will be created for
@@ -170,9 +171,10 @@ class ReportActionsView extends React.Component {
             return;
         }
 
-        this.setState({isLoadingMoreChats: true});
-        fetchActions(this.props.reportID, Math.max(minSequenceNumber - CONST.REPORT.REPORT_ACTIONS_LIMIT, 0))
-            .then(() => this.setState({isLoadingMoreChats: false}));
+        this.setState({isLoadingMoreChats: true}, () => {
+            fetchActions(this.props.reportID, Math.max(minSequenceNumber - CONST.REPORT.REPORT_ACTIONS_LIMIT, 0))
+                .then(() => this.setState({isLoadingMoreChats: false}));
+        });
     }
 
     /**
@@ -305,7 +307,7 @@ class ReportActionsView extends React.Component {
                 onEndReached={this.loadMoreChats}
                 onEndReachedThreshold={0.75}
                 ListFooterComponent={this.state.isLoadingMoreChats
-                    ? <ActivityIndicator size="small" color="#999999" />
+                    ? <ActivityIndicator size="small" color={themeColors.spinner} />
                     : null}
             />
         );
