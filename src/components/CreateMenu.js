@@ -56,13 +56,13 @@ class CreateMenu extends PureComponent {
         const menuItemData = [
             {
                 icon: ChatBubble,
-                text: 'Request Money',
-                onPress: () => this.setOnModalHide(() => redirect(ROUTES.IOU_REQUEST_MONEY)),
+                text: 'Request Money', // reset
+                onPress: () => this.setOnModalHide(() => redirect(ROUTES.IOU_REQUEST_MONEY)), // ROUTES.NEW_CHAT
             },
             {
-                text: 'Group Split',
+                text: 'Group Split', // reset
                 icon: Users,
-                onPress: () => this.setOnModalHide(() => redirect(ROUTES.IOU_GROUP_SPLIT)),
+                onPress: () => this.setOnModalHide(() => redirect(ROUTES.IOU_GROUP_SPLIT)), // ROUTES.NEW_GROUP
             },
         ].map(item => ({
             ...item,
