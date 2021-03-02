@@ -504,7 +504,12 @@ function fetchChatReports() {
  * @returns {Promise}
  */
 function fetchActions(reportID, offset) {
-    const reportActionsOffset = _.isNumber(offset)
+    if (!_.isUndefined(offset) && !_.isNumber(offset)) {
+        Log.alert('[Report] Offset provided is not a number', true, {offset});
+        return;
+    }
+
+    const reportActionsOffset = !_.isUndefined(offset)
         ? offset
         : Math.max(reportMaxSequenceNumbers[reportID] - CONST.REPORT.REPORT_ACTIONS_LIMIT, -1);
 
