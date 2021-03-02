@@ -1,6 +1,6 @@
 {
   "name": "expensify.cash",
-  "version": "1.0.1-485",
+  "version": "1.0.1-487",
   "author": "Expensify, Inc.",
   "homepage": "https://expensify.cash",
   "description": "Expensify.cash is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -31,7 +31,7 @@
     "@babel/preset-flow": "^7.12.13",
     "@react-native-community/async-storage": "^1.11.0",
     "@react-native-community/cli": "4.13.1",
-    "@react-native-community/netinfo": "^5.9.6",
+    "@react-native-community/netinfo": "^5.9.10",
     "@react-native-community/progress-bar-android": "^1.0.4",
     "@react-native-community/progress-view": "^1.2.3",
     "@react-native-firebase/analytics": "^7.6.7",
