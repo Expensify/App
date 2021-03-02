@@ -13,6 +13,9 @@ import themeColors from '../../../styles/themes/default';
 const propTypes = {
     // Callback to inform parent modal of success
     onStepComplete: PropTypes.func.isRequired,
+
+    // Is this IOU request for a group bill split
+    hasMultipleParticipants: PropTypes.bool,
 };
 
 class IOUParticipantsPage extends Component {
@@ -21,6 +24,7 @@ class IOUParticipantsPage extends Component {
 
         this.state = {
             isLoading: true,
+            hasMultipleParticipants: this.props.hasMultipleParticipants,
         };
 
         // TODO: Hide loading indicator and display IOUParticipants page contents
@@ -30,6 +34,9 @@ class IOUParticipantsPage extends Component {
         return (
             <View style={styles.settingsWrapper}>
                 <Avatar source="https://http.cat/102" />
+                <Text style={[styles.buttonText]}>
+                    {this.state.hasMultipleParticipants ? 'Group' : 'Single'}
+                </Text>
                 {this.state.isLoading && <ActivityIndicator color={themeColors.text} />}
                 <TouchableOpacity
                     style={[styles.button, styles.w100, styles.mt5]}
