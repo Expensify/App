@@ -422,8 +422,6 @@ const styles = {
 
     createMenuContainer: {
         width: variables.sideBarWidth - 40,
-        paddingTop: 12,
-        paddingBottom: 12,
     },
 
     createMenuItem: {
