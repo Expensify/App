@@ -6,6 +6,7 @@ import lodashOrderBy from 'lodash.orderby';
 import Str from 'expensify-common/lib/str';
 import {getDefaultAvatar} from './actions/PersonalDetails';
 import ONYXKEYS from '../ONYXKEYS';
+import CONST from '../CONST';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -73,6 +74,7 @@ function getSearchText(report, personalDetailList) {
  * @param {Object} [report]
  * @param {Object} draftComments
  * @param {Number} activeReportID
+ * @param {Boolean} showChatPreviewLine
  * @returns {Object}
  */
 function createOption(personalDetailList, report, draftComments, activeReportID, {showChatPreviewLine = false}) {
@@ -155,17 +157,22 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
     searchValue = '',
     showChatPreviewLine = false,
     showReportsWithNoComments = false,
+    hideReadReports = false,
+    sortByAlphaAsc = false,
 }) {
     let recentReportOptions = [];
     const pinnedReportOptions = [];
     const personalDetailsOptions = [];
 
     const reportMapForLogins = {};
-    const orderedReports = lodashOrderBy(reports, [
-        sortByLastMessageTimestamp
-            ? 'lastMessageTimestamp'
-            : 'lastVisitedTimestamp',
-    ], ['desc']);
+    let sortProperty = sortByLastMessageTimestamp
+        ? ['lastMessageTimestamp']
+        : ['lastVisitedTimestamp'];
+    if (sortByAlphaAsc) {
+        sortProperty = ['reportName'];
+    }
+    const sortDirection = [sortByAlphaAsc ? 'asc' : 'desc'];
+    const orderedReports = lodashOrderBy(reports, sortProperty, sortDirection);
 
     const allReportOptions = [];
     _.each(orderedReports, (report) => {
@@ -182,7 +189,9 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         if (!showReportsWithNoComments && hasNoComments && report.reportID !== activeReportID) {
             return;
         }
-
+        if (hideReadReports && report.unreadActionCount === 0) {
+            return;
+        }
         const reportPersonalDetails = getPersonalDetailsForLogins(logins, personalDetails);
 
         // Save the report in the map if this is a single participant so we can associate the reportID with the
@@ -367,16 +376,27 @@ function getNewGroupOptions(
  * @param {Object} personalDetails
  * @param {Object} draftComments
  * @param {Number} activeReportID
+ * @param {String} priorityMode
  * @returns {Object}
  */
-function getSidebarOptions(reports, personalDetails, draftComments, activeReportID) {
+function getSidebarOptions(reports, personalDetails, draftComments, activeReportID, priorityMode) {
+    let sideBarOptions = {
+        prioritizePinnedReports: true,
+    };
+    if (priorityMode === CONST.PRIORITY_MODE.GSD) {
+        sideBarOptions = {
+            hideReadReports: true,
+            sortByAlphaAsc: true,
+        };
+    }
+
     return getOptions(reports, personalDetails, draftComments, activeReportID, {
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
         maxRecentReportsToShow: 0, // Unlimited
-        prioritizePinnedReports: true,
         sortByLastMessageTimestamp: true,
         showChatPreviewLine: true,
+        ...sideBarOptions,
     });
 }
 
