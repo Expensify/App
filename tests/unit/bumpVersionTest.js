@@ -1,9 +1,12 @@
+const fs = require('fs');
 const path = require('path');
 const mockFS = require('mock-fs');
 const {
     generateAndroidVersionCode,
     updateAndroidVersion,
 } = require('../../.github/libs/nativeVersionUpdater');
+
+const BUILD_GRADLE_PATH = path.resolve(__dirname, '../../android/app/build.gradle');
 
 const mockBuildGradle = `
     android {
@@ -20,7 +23,7 @@ beforeAll(() => {
 
     // Set up mocked filesystem
     mockFS({
-        [path.resolve(__dirname, '../../android/app/build.gradle')]: mockBuildGradle,
+        [BUILD_GRADLE_PATH]: mockBuildGradle,
     });
 });
 
@@ -77,14 +80,11 @@ describe('updateAndroidVersion', () => {
         }
     }
 `],
-    ])('updateAndroidVersion("%s", "%s")', (versionName, versionCode, expected) => {
+    ])('updateAndroidVersion("%s", "%s")', (versionName, versionCode, expected) => (
         updateAndroidVersion(versionName, versionCode)
-            .then(result => expect(result).toBe(expected));
-    });
+            .then(() => {
+                const result = fs.readFileSync(BUILD_GRADLE_PATH, {encoding: 'utf8'}).toString();
+                expect(result).toBe(expected);
+            })
+    ));
 });
-
-// describe('updateiOSVersion', () => {
-//     test.each([
-//
-//     ])
-// });
