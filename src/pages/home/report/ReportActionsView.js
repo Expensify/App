@@ -4,7 +4,6 @@ import {
     View,
     Keyboard,
     AppState,
-    Easing,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -65,9 +64,14 @@ class ReportActionsView extends React.Component {
 
         this.sortedReportActions = [];
         this.timers = [];
-        this.unreadActionCount = 0;
-        this.shouldShowNewActionIndicator = true;
         this.unreadIndicatorOpacity = new Animated.Value(1);
+
+        // Helper variable that keeps track of the unread action count before it updates to zero
+        this.unreadActionCount = 0;
+
+        // Helper variable that prevents the unread indicator to show up for new messages
+        // received while the report is still active
+        this.shouldShowUnreadActionIndicator = true;
 
         this.state = {
             refetchNeeded: true,
@@ -171,7 +175,7 @@ class ReportActionsView extends React.Component {
      * a flag to not show it again if the report is still open
      */
     setUpUnreadActionIndicator() {
-        if (!this.props.isActiveReport || !this.shouldShowNewActionIndicator) {
+        if (!this.props.isActiveReport || !this.shouldShowUnreadActionIndicator) {
             return;
         }
 
@@ -182,14 +186,12 @@ class ReportActionsView extends React.Component {
             this.timers.push(setTimeout(() => {
                 Animated.timing(this.unreadIndicatorOpacity, {
                     toValue: 0,
-                    duration: 500,
-                    easing: Easing.ease,
                     useNativeDriver: false,
                 }).start();
             }, 3000));
         }
 
-        this.shouldShowNewActionIndicator = false;
+        this.shouldShowUnreadActionIndicator = false;
     }
 
     /**
