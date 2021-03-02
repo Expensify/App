@@ -96,6 +96,7 @@ export default (type, windowDimensions, popoverAnchorPosition = {}) => {
                 borderColor: themeColors.border,
                 justifyContent: 'center',
                 overflow: 'hidden',
+                boxShadow: '0px 0px 10px 0px rgba(0, 0, 0, 0.025)',
             };
 
             hideBackdrop = true;
