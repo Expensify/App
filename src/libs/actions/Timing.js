@@ -4,7 +4,7 @@ import {Graphite_Timer} from '../API';
 let timestampData = {};
 
 /**
- * Start a performance timing measurment
+ * Start a performance timing measurement
  *
  * @param {String} eventName
  */
