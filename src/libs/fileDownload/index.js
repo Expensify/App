@@ -19,6 +19,7 @@ export default function fileDownload(url) {
 
             // adding href to anchor
             link.href = href;
+            link.style.display = 'none';
             link.setAttribute(
                 'download',
                 getAttachmentName(url), // generating the file name
@@ -31,6 +32,7 @@ export default function fileDownload(url) {
             link.click();
 
             // Clean up and remove the link
+            URL.revokeObjectURL(link.href);
             link.parentNode.removeChild(link);
         }).catch(() => {
             // file could not be downloaded, open sourceURL in new tab
