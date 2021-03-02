@@ -32,6 +32,8 @@ function init() {
             API.Push_Authenticate({
                 socket_id: socketID,
                 channel_name: channel.name,
+                doNotRetry: true,
+                forceNetworkRequest: true,
             })
                 .then((data) => {
                     if (data.jsonCode === 407) {
