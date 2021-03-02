@@ -12,6 +12,8 @@ export default {
     // When this key is changed, the active page changes (see Expensify.js and `redirect` in actions/App.js)
     APP_REDIRECT_TO: 'appRedirectTo',
 
+    NETWORK_REQUEST_QUEUE: 'networkRequestQueue',
+
     // The current URL, you should not change this directly (use `redirect` in App.js)
     CURRENT_URL: 'currentURL',
 
@@ -33,15 +35,23 @@ export default {
     // Contains the user preference for the LHN priority mode
     PRIORITY_MODE: 'priorityMode',
 
+    // Contains the version of the update that has newly been downloaded.
+    UPDATE_VERSION: 'updateVersion',
+
     // Saves the current country code which is displayed when the user types a phone number without
     // an international code
     COUNTRY_CODE: 'countryCode',
 
+    // Contains all the users settings for the Settings page and sub pages
+    USER: 'user',
+
     // Information about the current session (authToken, accountID, email, loading, error)
     SESSION: 'session',
     IS_SIDEBAR_SHOWN: 'isSidebarShown',
-    IS_SIDEBAR_ANIMATING: 'isSidebarAnimating',
     BETAS: 'betas',
+
+    // NVP keys
+    NVP_PAYPAL_ME_ADDRESS: 'nvp_paypalMeAddress',
 
     // Collection Keys
     COLLECTION: {

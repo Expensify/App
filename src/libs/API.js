@@ -34,6 +34,7 @@ function isAuthTokenRequired(command) {
         'SetGithubUsername',
         'SetPassword',
         'User_SignUp',
+        'ResendValidateCode',
     ], command);
 }
 
@@ -313,6 +314,18 @@ function reauthenticate(command = '') {
 }
 
 /**
+ * @param {Object} parameters
+ * @param {String} parameters.oldPassword
+ * @param {String} parameters.password
+ * @returns {Promise}
+ */
+function ChangePassword(parameters) {
+    const commandName = 'ChangePassword';
+    requireParameters(['oldPassword', 'password'], parameters, commandName);
+    return request(commandName, parameters);
+}
+
+/**
  * @param {object} parameters
  * @param {string} parameters.emailList
  * @returns {Promise}
@@ -365,7 +378,7 @@ function CreateLogin(parameters) {
  * @param {String} parameters.partnerUserID
  * @param {String} parameters.partnerName
  * @param {String} parameters.partnerPassword
- * @param {String} parameters.doNotRetry
+ * @param {Boolean} parameters.doNotRetry
  * @returns {Promise}
  */
 function DeleteLogin(parameters) {
@@ -548,10 +561,33 @@ function SetPassword(parameters) {
 }
 
 /**
+ * @param {Object} parameters
+ * @param {String} parameters.subscribed
+ * @returns {Promise}
+ */
+function UpdateAccount(parameters) {
+    const commandName = 'UpdateAccount';
+    requireParameters(['subscribed'], parameters, commandName);
+    return request(commandName, parameters);
+}
+
+/**
  * @returns {Promise}
  */
 function User_GetBetas() {
     return request('User_GetBetas');
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.email
+ * @param {String} parameters.password
+ * @returns {Promise}
+ */
+function User_SecondaryLogin_Send(parameters) {
+    const commandName = 'User_SecondaryLogin_Send';
+    requireParameters(['email', 'password'], parameters, commandName);
+    return request(commandName, parameters);
 }
 
 /**
@@ -569,6 +605,7 @@ function SetNameValuePair(parameters) {
 export {
     getAuthToken,
     Authenticate,
+    ChangePassword,
     CreateChatReport,
     CreateLogin,
     DeleteLogin,
@@ -587,7 +624,9 @@ export {
     SetGithubUsername,
     SetNameValuePair,
     SetPassword,
+    UpdateAccount,
     User_SignUp,
     User_GetBetas,
+    User_SecondaryLogin_Send,
     reauthenticate,
 };
