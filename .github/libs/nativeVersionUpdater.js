@@ -1,16 +1,16 @@
 const {promisify} = require('util');
 const exec = promisify(require('child_process').exec);
-const fs = require('fs');
+const fs = require('fs').promises;
+const path = require('path');
 const getMajorVersion = require('semver/functions/major');
 const getMinorVersion = require('semver/functions/minor');
 const getPatchVersion = require('semver/functions/patch');
 const getBuildVersion = require('semver/functions/prerelease');
 
-// Promisified version of fs.readFile
-const readFileAsync = promisify(fs.readFile);
-
 // Filepath constants
-const BUILD_GRADLE_PATH = './android/app/build.gradle';
+const BUILD_GRADLE_PATH = process.env.NODE_ENV === 'test'
+    ? path.resolve(__dirname, '../../android/app/build.gradle')
+    : './android/app/build.gradle';
 const PLIST_PATH = './ios/ExpensifyCash/Info.plist';
 const PLIST_PATH_TEST = './ios/ExpensifyCashTests/Info.plist';
 
@@ -56,12 +56,12 @@ exports.generateAndroidVersionCode = function generateAndroidVersionCode(npmVers
  */
 exports.updateAndroidVersion = function updateAndroidVersion(versionName, versionCode) {
     console.log('Updating android:', `versionName: ${versionName}`, `versionCode: ${versionCode}`);
-    return readFileAsync(BUILD_GRADLE_PATH, {encoding: 'utf8'})
+    return fs.readFile(BUILD_GRADLE_PATH, {encoding: 'utf8'})
         .then((content) => {
-            let updatedContent = content.replace(/versionName "([0-9.-]*)"/, `versionName "${versionName}"`);
-            updatedContent = updatedContent.replace(/versionCode ([0-9]*)/, `versionCode ${versionCode}`);
-            fs.writeFile(BUILD_GRADLE_PATH, updatedContent, () => {});
-        });
+            let updatedContent = content.toString().replace(/versionName "([0-9.-]*)"/, `versionName "${versionName}"`);
+            return updatedContent = updatedContent.replace(/versionCode ([0-9]*)/, `versionCode ${versionCode}`);
+        })
+        .then(updatedContent => fs.writeFile(BUILD_GRADLE_PATH, updatedContent, {encoding: 'utf8'}));
 };
 
 /**
