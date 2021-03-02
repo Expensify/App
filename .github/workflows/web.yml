@@ -46,11 +46,19 @@ jobs:
             - name: Build web
               run: npm run build
 
-            - name: Deploy to S3
+            - name: Deploy production to S3
               run: aws s3 cp --recursive --acl public-read $GITHUB_WORKSPACE/dist s3://expensify-cash/
 
-            - name: Purge Cloudflare cache
+            - name: Deploy staging to S3
+              run: aws s3 cp --recursive --acl public-read $GITHUB_WORKSPACE/dist s3://staging-expensify-cash/
+
+            - name: Purge production Cloudflare cache
               run: /home/runner/.local/bin/cli4 --delete hosts=["expensify.cash"] /zones/:357b42c0989e3bed82f6d6400e8b9d66/purge_cache
+              env:
+                CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
+
+            - name: Purge staging Cloudflare cache
+              run: /home/runner/.local/bin/cli4 --delete hosts=["staging.expensify.cash"] /zones/:357b42c0989e3bed82f6d6400e8b9d66/purge_cache
               env:
                 CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
 
