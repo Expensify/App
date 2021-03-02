@@ -1,6 +1,6 @@
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
-import { withRouter } from 'react-router-dom';
+import {withRouter} from 'react-router-dom';
 import CONST from '../CONST';
 import themeColors from '../styles/themes/default';
 import Modal from './Modal';
