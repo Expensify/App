@@ -100,7 +100,7 @@ function formatPersonalDetails(personalDetailsList) {
                 login,
                 avatar,
                 displayName,
-                pronouns: personalDetailsResponse.pronouns ?? '',
+                pronouns: personalDetailsResponse.pronouns || '',
             },
         };
     }, {});
@@ -114,8 +114,8 @@ function fetchTimezone() {
         returnValueList: 'nameValuePairs',
         name: 'timeZone',
     })
-        .then((data) => {
-            const timezone = lodashGet(data, 'nameValuePairs.timeZone', {automatic: true, selected: 'America/Los_Angeles'});
+        .then((response) => {
+            const timezone = lodashGet(response.nameValuePairs, [CONST.NVP.TIMEZONE], CONST.DEFAULT_TIME_ZONE);
             Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {timezone});
         })
         .catch(error => console.debug('Error fetching user timezone', error));
@@ -132,15 +132,15 @@ function fetch() {
             const allPersonalDetails = formatPersonalDetails(data.personalDetailsList);
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, allPersonalDetails);
 
-            const currentUserPersonalDetails = allPersonalDetails[currentUserEmail]
+            myPersonalDetails = allPersonalDetails[currentUserEmail]
                 || {avatar: getAvatar(undefined, currentUserEmail)};
 
             // Add the first and last name to the current user's MY_PERSONAL_DETAILS key
-            currentUserPersonalDetails.firstName = data.personalDetailsList[currentUserEmail].firstName ?? '';
-            currentUserPersonalDetails.lastName = data.personalDetailsList[currentUserEmail].lastName ?? '';
+            myPersonalDetails.firstName = lodashGet(data.personalDetailsList, [currentUserEmail, 'firstName'], '');
+            myPersonalDetails.lastName = lodashGet(data.personalDetailsList, [currentUserEmail, 'lastName'], '');
 
             // Set my personal details so they can be easily accessed and subscribed to on their own key
-            Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, currentUserPersonalDetails);
+            Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, myPersonalDetails);
         })
         .catch(error => console.debug('Error fetching personal details', error));
 }
@@ -206,8 +206,8 @@ function getFromReportParticipants(reports) {
  * @param {Object} details
  */
 function setPersonalDetails(details) {
-    API.PersonalDetails_Update({details: JSON.stringify(details)});
-    NameValuePair.set('timezone', details.timezone);
+    API.PersonalDetails_Update({details});
+    NameValuePair.set(CONST.NVP.TIMEZONE, details.timezone);
 
     // Update the associated onyx keys
     Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, details);
