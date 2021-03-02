@@ -4,15 +4,17 @@ import themeColors from './themes/default';
 
 const defaultWrapperStyle = {
     flex: 1,
-    borderRadius: variables.componentBorderRadiusNormal,
-    borderWidth: 1,
     backgroundColor: themeColors.componentBG,
-    borderColor: themeColors.border,
 };
 
 const miniWrapperStyle = [
     styles.flexRow,
     defaultWrapperStyle,
+    {
+        borderRadius: variables.componentBorderRadiusNormal,
+        borderWidth: 1,
+        borderColor: themeColors.border,
+    },
 ];
 
 const bigWrapperStyle = [
