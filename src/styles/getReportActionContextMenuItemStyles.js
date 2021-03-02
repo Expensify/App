@@ -4,6 +4,24 @@ import styles from './styles';
 import variables from './variables';
 
 /**
+ * Get the fill color for the icons in the menu depending on the state of the button they're in.
+ *
+ * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
+ * @returns {String}
+ */
+function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT) {
+    switch (buttonState) {
+        case CONST.BUTTON_STATES.HOVERED:
+            return themeColors.text;
+        case CONST.BUTTON_STATES.PRESSED:
+            return themeColors.heading;
+        case CONST.BUTTON_STATES.DEFAULT:
+        default:
+            return themeColors.icon;
+    }
+}
+
+/**
  * Generate a style for the background color of the button, based on its current state.
  *
  * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
@@ -51,24 +69,6 @@ function getBigButtonStyle(buttonState = CONST.BUTTON_STATES.DEFAULT) {
         styles.alignItemsCenter,
         styles.p4,
     ];
-}
-
-/**
- * Get the fill color for the icons in the menu depending on the state of the button they're in.
- *
- * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
- * @returns {String}
- */
-function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT) {
-    switch (buttonState) {
-        case CONST.BUTTON_STATES.HOVERED:
-            return themeColors.text;
-        case CONST.BUTTON_STATES.PRESSED:
-            return themeColors.heading;
-        case CONST.BUTTON_STATES.DEFAULT:
-        default:
-            return themeColors.icon;
-    }
 }
 
 /**
