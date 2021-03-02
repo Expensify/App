@@ -39,13 +39,9 @@ const ReportScreen = (props) => {
                         reportID={activeReportID}
                         onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
                     />
-                    <View
-                        key={activeReportID}
-                        style={[styles.dFlex, styles.flex1]}
-                    >
+                    <View style={[styles.dFlex, styles.flex1]}>
                         <ReportView
                             reportID={activeReportID}
-                            isActiveReport
                         />
                     </View>
                 </>
