@@ -35,7 +35,6 @@ const BaseModal = (props) => {
         },
         props.popoverAnchorPosition,
     );
-
     return (
         <ReactNativeModal
             onBackdropPress={props.onClose}
