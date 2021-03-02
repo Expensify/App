@@ -15,7 +15,7 @@ const propTypes = {
     onStepComplete: PropTypes.func.isRequired,
 
     // Is this IOU request for a group bill split
-    hasMultipleParticipants: PropTypes.bool,
+    hasMultipleParticipants: PropTypes.bool.isRequired,
 };
 
 class IOUParticipantsPage extends Component {
