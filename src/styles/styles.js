@@ -929,7 +929,7 @@ const styles = {
         zIndex: 10,
     },
 
-    settingsDisplayName: {
+    displayName: {
         fontSize: variables.fontSizeLarge,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
@@ -942,7 +942,7 @@ const styles = {
         color: themeColors.textSupporting,
     },
 
-    settingsWrapper: {
+    pageWrapper: {
         width: '100%',
         alignItems: 'center',
         padding: 20,

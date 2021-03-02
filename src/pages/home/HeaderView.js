@@ -63,7 +63,7 @@ const HeaderView = props => (
                         onPress={() => {
                             const {participants} = props.report;
                             if (participants.length === 1) {
-                                redirect(ROUTES.PROFILE);
+                                redirect(ROUTES.getProfileRoute(participants[0]));
                             }
                         }}
                     >

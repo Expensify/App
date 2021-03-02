@@ -1,6 +1,7 @@
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import {Image, Text, View} from 'react-native';
+import _ from 'lodash';
 import styles from '../styles/styles';
 import Avatar from './Avatar';
 
@@ -18,7 +19,7 @@ const defaultProps = {
 };
 
 const MultipleAvatars = ({avatarImageURLs, optionIsFocused}) => {
-    if (!avatarImageURLs?.length) {
+    if (!_.get(avatarImageURLs, 'length')) {
         return null;
     }
 

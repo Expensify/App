@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import moment from 'moment';
+import {withRouter} from 'react-router-dom';
 import styles from '../styles/styles';
 import Text from '../components/Text';
 import ONYXKEYS from '../ONYXKEYS';
@@ -33,11 +34,11 @@ const personalDetailsType = PropTypes.shape({
     timezone: PropTypes.string,
 });
 
-const reportType = PropTypes.shape({
-    reportID: PropTypes.number,
-    reportName: PropTypes.string,
-    participants: PropTypes.arrayOf(PropTypes.string),
-    icons: PropTypes.arrayOf(PropTypes.string),
+const matchType = PropTypes.shape({
+    params: PropTypes.shape({
+        // login passed via route /profile/:login
+        login: PropTypes.string,
+    }),
 });
 
 const propTypes = {
@@ -45,21 +46,18 @@ const propTypes = {
     // The personal details of the person who is logged in
     personalDetails: personalDetailsType.isRequired,
 
-    // reports based on currentlyViewedReportID
-    report: reportType.isRequired,
+    // Router details
+    match: matchType.isRequired,
 };
 
-const ProfilePage = ({personalDetails, report}) => {
-    const login = report.participants[0];
-    const profileDetails = personalDetails[login] || {
-        login,
-        avatarURL: report.icons[0],
-    };
+const ProfilePage = ({personalDetails, match}) => {
+    const profileDetails = personalDetails[match.params.login];
 
     return (
         <>
             <HeaderGap />
             <HeaderWithCloseButton
+                title="Details"
                 onCloseButtonPress={redirectToLastReport}
             />
             <View
@@ -68,55 +66,57 @@ const ProfilePage = ({personalDetails, report}) => {
                     styles.profilePageContainer,
                 ]}
             >
-                <View>
-                    <View style={styles.settingsWrapper}>
-                        <View
-                            style={[styles.avatarLarge, styles.mb3]}
-                        >
-                            <Avatar
-                                style={[styles.avatarLarge]}
-                                source={profileDetails.avatarURL}
-                            />
+                {profileDetails ? (
+                    <View>
+                        <View style={styles.pageWrapper}>
+                            <View
+                                style={[styles.avatarLarge, styles.mb3]}
+                            >
+                                <Avatar
+                                    style={[styles.avatarLarge]}
+                                    source={profileDetails.avatarURL}
+                                />
+                            </View>
+                            <Text style={[styles.displayName, styles.mt1, styles.mb6]} numberOfLines={1}>
+                                {profileDetails.displayName
+                                    ? profileDetails.displayName
+                                    : null}
+                            </Text>
+                            {profileDetails.login && (
+                            <View style={[styles.mb6, styles.profilePageSectionContainer]}>
+                                <Text style={[styles.profilePageLabel, styles.mb2]} numberOfLines={1}>
+                                    {Str.isSMSLogin(profileDetails.login) ? 'Phone Number' : 'Email'}
+                                </Text>
+                                <Text style={[styles.profilePageLabel]} numberOfLines={1}>
+                                    {Str.isSMSLogin(profileDetails.login)
+                                        ? Str.removeSMSDomain(profileDetails.login)
+                                        : profileDetails.login}
+                                </Text>
+                            </View>
+                            )}
+                            {profileDetails.pronouns && (
+                            <View style={[styles.mb6, styles.profilePageSectionContainer]}>
+                                <Text style={[styles.profilePageLabel, styles.mb2]} numberOfLines={1}>
+                                    Preferred Pronouns
+                                </Text>
+                                <Text style={[styles.profilePageLabel]} numberOfLines={1}>
+                                    {profileDetails.pronouns}
+                                </Text>
+                            </View>
+                            )}
+                            {profileDetails.timezone && (
+                            <View style={[styles.mb6, styles.profilePageSectionContainer]}>
+                                <Text style={[styles.profilePageLabel, styles.mb2]} numberOfLines={1}>
+                                    Local Time
+                                </Text>
+                                <Text style={[styles.profilePageLabel]} numberOfLines={1}>
+                                    {moment().tz(profileDetails.timezone).format('LT')}
+                                </Text>
+                            </View>
+                            )}
                         </View>
-                        <Text style={[styles.settingsDisplayName, styles.mt1, styles.mb6]} numberOfLines={1}>
-                            {profileDetails.displayName
-                                ? profileDetails.displayName
-                                : null}
-                        </Text>
-                        {profileDetails.login && (
-                        <View style={[styles.mb6, styles.profilePageSectionContainer]}>
-                            <Text style={[styles.profilePageLabel, styles.mb2]} numberOfLines={1}>
-                                {Str.isSMSLogin(profileDetails.login) ? 'Phone Number' : 'Email'}
-                            </Text>
-                            <Text style={[styles.profilePageLabel]} numberOfLines={1}>
-                                {Str.isSMSLogin(profileDetails.login)
-                                    ? Str.removeSMSDomain(profileDetails.login)
-                                    : profileDetails.login}
-                            </Text>
-                        </View>
-                        )}
-                        {profileDetails.pronouns && (
-                        <View style={[styles.mb6, styles.profilePageSectionContainer]}>
-                            <Text style={[styles.profilePageLabel, styles.mb2]} numberOfLines={1}>
-                                Preferred Pronouns
-                            </Text>
-                            <Text style={[styles.profilePageLabel]} numberOfLines={1}>
-                                {profileDetails.pronouns}
-                            </Text>
-                        </View>
-                        )}
-                        {profileDetails.timezone && (
-                        <View style={[styles.mb6, styles.profilePageSectionContainer]}>
-                            <Text style={[styles.profilePageLabel, styles.mb2]} numberOfLines={1}>
-                                Local Time
-                            </Text>
-                            <Text style={[styles.profilePageLabel]} numberOfLines={1}>
-                                {moment().tz(profileDetails.timezone).format('LT')}
-                            </Text>
-                        </View>
-                        )}
                     </View>
-                </View>
+                ) : null}
 
                 <Text style={[styles.profilePageSectionVersion]} numberOfLines={1}>
                     v
@@ -132,19 +132,10 @@ ProfilePage.displayName = 'ProfilePage';
 
 
 export default compose(
+    withRouter,
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-    }),
-    withOnyx({
-        currentlyViewedReportID: {
-            key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
-        },
-    }),
-    withOnyx({
-        report: {
-            key: ({currentlyViewedReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${currentlyViewedReportID}`,
         },
     }),
 )(ProfilePage);

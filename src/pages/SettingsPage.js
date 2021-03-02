@@ -68,7 +68,7 @@ const SettingsPage = ({
                     styles.settingsPageBackground,
                 ]}
             >
-                <View style={styles.settingsWrapper}>
+                <View style={styles.pageWrapper}>
                     <View
                         style={[styles.largeAvatar, styles.mb3]}
                     >
@@ -78,7 +78,7 @@ const SettingsPage = ({
                             isActive={network && !network.isOffline}
                         />
                     </View>
-                    <Text style={[styles.settingsDisplayName, styles.mt1]} numberOfLines={1}>
+                    <Text style={[styles.displayName, styles.mt1]} numberOfLines={1}>
                         {myPersonalDetails.displayName
                             ? myPersonalDetails.displayName
                             : Str.removeSMSDomain(session.email)}
