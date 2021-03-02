@@ -3,21 +3,19 @@ const exec = promisify(require('child_process').exec);
 const fs = require('fs');
 const core = require('@actions/core');
 const github = require('@actions/github');
-const semverClean = require('semver/functions/clean');
 const {generateAndroidVersionCode, updateAndroidVersion, updateiOSVersion} = require('../../libs/nativeVersionUpdater');
 
 /**
- * A callback function for a successful `npm version` command.
+ * Update the native app versions.
  *
  * @param {String} newVersion
  */
-function postVersionUpdateNative(newVersion) {
-    const cleanNewVersion = semverClean(newVersion);
-    console.log(`Updated npm version to ${cleanNewVersion}! Updating native versions...`);
+function updateNativeVersions(newVersion) {
+    console.log(`Updating native versions to ${newVersion}`);
 
     // Update Android
-    const androidVersionCode = generateAndroidVersionCode(cleanNewVersion);
-    updateAndroidVersion(cleanNewVersion, androidVersionCode)
+    const androidVersionCode = generateAndroidVersionCode(newVersion);
+    updateAndroidVersion(newVersion, androidVersionCode)
         .then(() => {
             console.log('Successfully updated Android!');
         })
@@ -27,7 +25,7 @@ function postVersionUpdateNative(newVersion) {
         });
 
     // Update iOS
-    updateiOSVersion(cleanNewVersion)
+    updateiOSVersion(newVersion)
         .then(() => {
             console.log('Successfully updated iOS!');
         })
@@ -57,7 +55,7 @@ do {
     if (errCount < MAX_RETRIES) {
         // Determine current patch version
         const {version} = JSON.parse(fs.readFileSync('./package.json'));
-        const currentPatchVersion = `v${version.split('-')[0]}`;
+        const currentPatchVersion = version.split('-')[0];
         console.log('Current patch version:', currentPatchVersion);
 
         let newVersion;
@@ -76,22 +74,21 @@ do {
                 console.log('Tags: ', tags);
                 const highestBuildNumber = Math.max(
                     ...(tags
-                        .filter(tag => tag.startsWith(currentPatchVersion))
+                        .filter(tag => (tag.startsWith(currentPatchVersion)))
                         .map(tag => tag.split('-')[1])
                     ),
                 );
                 console.log('Highest build number from current patch version:', highestBuildNumber);
 
-                // Bump the build number again
+                // Increment the build version, update the native and npm versions.
                 newVersion = `${currentPatchVersion}-${highestBuildNumber + 1}`;
+                updateNativeVersions(newVersion);
                 console.log(`Setting npm version for this PR to ${newVersion}`);
                 return exec(`npm version ${newVersion} -m "Update version to ${newVersion}"`);
             })
-            // eslint-disable-next-line no-loop-func
             .then(({stdout}) => {
-                // NPM version successfully updated, update native versions - don't retry.
+                // NPM and native versions successfully updated - don't retry.
                 console.log(stdout);
-                postVersionUpdateNative(newVersion);
             })
             // eslint-disable-next-line no-loop-func
             .catch(({stdout, stderr}) => {
