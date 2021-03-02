@@ -169,12 +169,14 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
     const personalDetailsOptions = [];
 
     const reportMapForLogins = {};
-    let iteratees = sortByLastMessageTimestamp
+    let sortProperty = sortByLastMessageTimestamp
         ? ['lastMessageTimestamp']
         : ['lastVisitedTimestamp'];
-    if (sortByAlphaAsc) { iteratees = ['reportName']; }
+    if (sortByAlphaAsc) {
+        sortProperty = ['reportName'];
+    }
     const sortDirection = [sortByAlphaAsc ? 'asc' : 'desc'];
-    const orderedReports = lodashOrderBy(reports, iteratees, sortDirection);
+    const orderedReports = lodashOrderBy(reports, sortProperty, sortDirection);
 
     const allReportOptions = [];
     _.each(orderedReports, (report) => {
@@ -383,12 +385,9 @@ function getNewGroupOptions(
 function getSidebarOptions(reports, personalDetails, draftComments, activeReportID, priorityMode) {
     let sideBarOptions = {
         prioritizePinnedReports: true,
-        hideReadReports: false,
-        sortByAlphaAsc: false,
     };
     if (priorityMode === CONST.PRIORITY_MODE.GSD) {
         sideBarOptions = {
-            prioritizePinnedReports: false,
             hideReadReports: true,
             sortByAlphaAsc: true,
         };
