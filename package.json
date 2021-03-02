@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "@babel/plugin-proposal-class-properties": "^7.12.1",
+    "@babel/preset-flow": "^7.12.13",
     "@react-native-community/async-storage": "^1.11.0",
     "@react-native-community/cli": "4.13.1",
     "@react-native-community/netinfo": "^5.9.6",
@@ -36,6 +37,7 @@
     "@react-native-firebase/analytics": "^7.6.7",
     "@react-native-firebase/app": "^8.4.5",
     "@react-native-firebase/crashlytics": "^8.4.9",
+    "@react-native-picker/picker": "^1.9.11",
     "babel-plugin-transform-remove-console": "^6.9.4",
     "dotenv": "^8.2.0",
     "electron-context-menu": "^2.3.0",
@@ -65,6 +67,7 @@
     "react-native-modal": "^11.5.6",
     "react-native-onyx": "git+https://github.com/Expensify/react-native-onyx.git#9c965c8bc7dd7c080cdcb79f54409e8cd8ee2d44",
     "react-native-pdf": "^6.2.2",
+    "react-native-picker-select": "8.0.4",
     "react-native-render-html": "^6.0.0-alpha.10",
     "react-native-safe-area-context": "^3.1.4",
     "react-native-svg": "^12.1.0",
