@@ -19,7 +19,7 @@ module.exports = {
     },
     publish: [{
         provider: 's3',
-        bucket: process.env.SHOULD_DEPLOY_PRODUCTION ? 'expensify-cash' : 'staging-expensify-cash',
+        bucket: process.env.SHOULD_DEPLOY_PRODUCTION === 'true' ? 'expensify-cash' : 'staging-expensify-cash',
         channel: 'latest',
     }],
     files: [
