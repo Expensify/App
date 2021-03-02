@@ -6,7 +6,7 @@ on:
 
 jobs:
     version:
-        runs-on: ubuntu-16.04
+        runs-on: macos-latest
 
         steps:
             # Version: 2.3.4
@@ -43,6 +43,35 @@ jobs:
             - name: Push tags
               run: git push --tags
 
+            # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
+            # the other workflows with the same change
+            - uses: 8398a7/action-slack@v3
+              name: Job failed Slack notification
+              if: ${{ failure() }}
+              with:
+                  status: custom
+                  fields: workflow, repo
+                  custom_payload: |
+                        {
+                          channel: '#announce',
+                          attachments: [{
+                            color: "#DB4545",
+                            pretext: `<!here>`,
+                            text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
+                          }]
+                        }
+              env:
+                  GITHUB_TOKEN: ${{ github.token }}
+                  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+    create_pull_request:
+        runs-on: ubuntu-latest
+        needs: version
+        steps:
+            - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+              with:
+                  fetch-depth: 0
+                  token: ${{ secrets.OS_BOTIFY_TOKEN }}
             - name: Create Pull Request
               # Version: 2.4.3
               uses: repo-sync/pull-request@33777245b1aace1a58c87a29c90321aa7a74bd7d
