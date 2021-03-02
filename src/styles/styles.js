@@ -170,6 +170,47 @@ const styles = {
         width: variables.componentSizeNormal,
     },
 
+    picker: {
+        inputIOS: {
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+            paddingVertical: 12,
+            paddingHorizontal: 10,
+            borderRadius: variables.componentBorderRadius,
+            borderWidth: 1,
+            borderColor: themeColors.border,
+            color: themeColors.text,
+            paddingRight: 30,
+        },
+        inputWeb: {
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+            paddingVertical: 12,
+            paddingHorizontal: 10,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadius,
+            borderColor: themeColors.border,
+            color: themeColors.text,
+            paddingRight: 30,
+            appearance: 'none',
+        },
+        inputAndroid: {
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+            paddingHorizontal: 10,
+            paddingVertical: 8,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadius,
+            borderColor: themeColors.border,
+            color: themeColors.text,
+            paddingRight: 30,
+        },
+        iconContainer: {
+            top: 12,
+            right: 12,
+        },
+    },
+
     pill: {
         borderRadius: 14,
         backgroundColor: themeColors.pillBG,
@@ -257,7 +298,9 @@ const styles = {
     noOutline: addOutlineWidth({}, 0),
 
     formLabel: {
-        color: themeColors.text,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        color: themeColors.heading,
         fontSize: variables.fontSizeLabel,
         lineHeight: 18,
         marginBottom: 8,
@@ -900,6 +943,11 @@ const styles = {
         alignItems: 'center',
     },
 
+    settingsPageBody: {
+        width: '100%',
+        justifyContent: 'space-around',
+    },
+
     settingsPageColumn: {
         width: '100%',
         alignItems: 'center',
@@ -958,6 +1006,32 @@ const styles = {
         alignItems: 'center',
         backgroundColor: themeColors.componentBG,
         marginLeft: 8,
+    },
+
+    unreadIndicatorContainer: {
+        position: 'absolute',
+        top: -10,
+        left: 0,
+        width: '100%',
+        height: 20,
+        paddingHorizontal: 20,
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+
+    unreadIndicatorLine: {
+        height: 1,
+        backgroundColor: themeColors.unreadIndicator,
+        flexGrow: 1,
+        marginRight: 8,
+        opacity: 0.5,
+    },
+
+    unreadIndicatorText: {
+        color: themeColors.unreadIndicator,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeSmall,
+        fontWeight: fontWeightBold,
     },
 
     flipUpsideDown: {
