@@ -319,8 +319,12 @@ class HomePage extends Component {
                     <RightDockedModal route={ROUTES.SEARCH}>
                         <SearchPage />
                     </RightDockedModal>
-                    <IOUModal route={ROUTES.IOU_REQUEST_MONEY} />
-                    <IOUModal route={ROUTES.IOU_GROUP_SPLIT} />
+                    <RightDockedModal route={ROUTES.IOU_REQUEST_MONEY}>
+                        <IOUModal route={ROUTES.IOU_REQUEST_MONEY}/>
+                    </RightDockedModal>
+                    <RightDockedModal route={ROUTES.IOU_GROUP_SPLIT}>
+                        <IOUModal route={ROUTES.IOU_GROUP_SPLIT} />
+                    </RightDockedModal>
                 </Route>
             </View>
         );
