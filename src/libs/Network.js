@@ -2,7 +2,6 @@ import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import Onyx from 'react-native-onyx';
 import HttpUtils from './HttpUtils';
-import NetworkConnection from './NetworkConnection';
 import ONYXKEYS from '../ONYXKEYS';
 
 let isQueuePaused = false;
@@ -21,6 +20,22 @@ let isOffline;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: val => isOffline = val && val.isOffline,
+});
+
+let didLoadPersistedRequests;
+Onyx.connect({
+    key: ONYXKEYS.NETWORK_REQUEST_QUEUE,
+    callback: (persistedRequests) => {
+        if (didLoadPersistedRequests || !persistedRequests) {
+            return;
+        }
+
+        // Merge the persisted requests with the requests in memory then clear out the queue as we only need to load
+        // this once when the app initializes
+        networkRequestQueue = [...networkRequestQueue, ...persistedRequests];
+        Onyx.set(ONYXKEYS.NETWORK_REQUEST_QUEUE, []);
+        didLoadPersistedRequests = true;
+    },
 });
 
 // Subscribe to the user's session so we can include their email in every request and include it in the server logs
@@ -81,23 +96,17 @@ function canRetryRequest(request) {
  * Process the networkRequestQueue by looping through the queue and attempting to make the requests
  */
 function processNetworkRequestQueue() {
+    // NetInfo tells us whether the app is offline
     if (isOffline) {
-        // Several things will bring the app online again...
-        // 1. Pusher reconnecting (see registerSocketEventCallback in this file)
-        // 2. Getting a 200 response back from the API (happens right below)
-        // 3. NetInfo triggering an event that the network is back online
-
-        const data = {
-            doNotRetry: true,
-        };
-        if (email) {
-            data.email = email;
+        if (!networkRequestQueue.length) {
+            return;
         }
 
-        // Make a simple request every second to see if the API is online again
-        HttpUtils.xhr('Get', data)
-            .then(() => NetworkConnection.setOfflineStatus(false))
-            .catch(e => console.debug('[Ping] failed', e));
+        // If we have a request then we need to check if it can be persisted in case we close the tab while offline
+        const retryableRequests = _.filter(networkRequestQueue, request => (
+            !request.data.doNotRetry && request.data.persist
+        ));
+        Onyx.set(ONYXKEYS.NETWORK_REQUEST_QUEUE, retryableRequests);
         return;
     }
 
@@ -123,7 +132,10 @@ function processNetworkRequestQueue() {
         }
 
         const requestData = queuedRequest.data;
-        if (email) {
+        const requestEmail = requestData.email ?? '';
+
+        // If we haven't passed an email in the request data, set it to the current user's email
+        if (email && _.isEmpty(requestEmail)) {
             requestData.email = email;
         }
 
