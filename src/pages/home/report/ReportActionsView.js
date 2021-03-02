@@ -62,15 +62,12 @@ class ReportActionsView extends React.Component {
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
         this.recordMaxAction = this.recordMaxAction.bind(this);
         this.onVisibilityChange = this.onVisibilityChange.bind(this);
-        this.setUpUnreadActionIndicator = this.setUpUnreadActionIndicator.bind(this);
-        this.updateSortedReportActions = this.updateSortedReportActions.bind(this);
 
         this.sortedReportActions = [];
         this.timers = [];
         this.unreadActionCount = 0;
         this.shouldShowNewActionIndicator = true;
         this.unreadIndicatorOpacity = new Animated.Value(1);
-        this.unreadIndicatorTimer = null;
 
         this.state = {
             refetchNeeded: true,
@@ -144,7 +141,6 @@ class ReportActionsView extends React.Component {
             this.keyboardEvent.remove();
         }
 
-        clearTimeout(this.unreadIndicatorTimer);
         AppState.removeEventListener('change', this.onVisibilityChange);
 
         _.each(this.timers, timer => clearTimeout(timer));
@@ -183,14 +179,14 @@ class ReportActionsView extends React.Component {
 
         if (this.unreadActionCount > 0) {
             this.unreadIndicatorOpacity = new Animated.Value(1);
-            this.unreadIndicatorTimer = setTimeout(() => {
+            this.timers.push(setTimeout(() => {
                 Animated.timing(this.unreadIndicatorOpacity, {
                     toValue: 0,
                     duration: 500,
                     easing: Easing.ease,
                     useNativeDriver: false,
                 }).start();
-            }, 3000);
+            }, 3000));
         }
 
         this.shouldShowNewActionIndicator = false;
@@ -291,9 +287,9 @@ class ReportActionsView extends React.Component {
     }) {
         return (
 
-        // <View /> must not be changed to a Fragment
-        // Explanation: https://github.com/Expensify/Expensify.cash/pull/1570#discussion_r583826182
-
+        // Using <View /> instead of a Fragment because there is a difference between how
+        // <InvertedFlatList /> are implemented on native and web/desktop which leads to
+        // the unread indicator on native to render below the message instead of above it.
             <View>
                 {this.unreadActionCount > 0 && index === this.unreadActionCount - 1 && (
                     <UnreadActionIndicator animatedOpacity={this.unreadIndicatorOpacity} />
