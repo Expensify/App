@@ -47,9 +47,9 @@ class IOUModal extends Component {
             currentStepIndex: 0,
         };
 
-        this.getTitleForStep = this.getTitleForStep();
-        this.navigateToPreviousStep = this.navigateToPreviousStep();
-        this.navigateToNextStep = this.navigateToNextStep();
+        this.getTitleForStep = this.getTitleForStep.bind(this);
+        this.navigateToPreviousStep = this.navigateToPreviousStep.bind(this);
+        this.navigateToNextStep = this.navigateToNextStep.bind(this);
     }
 
     /**
@@ -71,15 +71,11 @@ class IOUModal extends Component {
     }
 
     navigateToPreviousStep() {
-        this.state.currentStepIndex.then((index) => {
-            this.setState({currentStepIndex: index - 1});
-        });
+        this.setState(prevState => ({currentStepIndex: prevState.currentStepIndex - 1}));
     }
 
     navigateToNextStep() {
-        this.state.currentStepIndex.then((index) => {
-            this.setState({currentStepIndex: index + 1});
-        });
+        this.setState(prevState => ({currentStepIndex: prevState.currentStepIndex + 1}));
     }
 
     render() {
