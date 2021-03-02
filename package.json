@@ -1,6 +1,6 @@
 {
   "name": "expensify.cash",
-  "version": "1.0.1-471",
+  "version": "1.0.1-479",
   "author": "Expensify, Inc.",
   "homepage": "https://expensify.cash",
   "description": "Expensify.cash is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -19,12 +19,12 @@
     "android-build": "fastlane android build",
     "test": "jest",
     "lint": "eslint .",
-    "postversion": "react-native-version",
     "print-version": "echo $npm_package_version",
     "detox-build": "detox build --configuration ios.sim.debug",
     "detox-test": "detox test --configuration ios.sim.debug",
     "gh-actions-build": "./.github/scripts/buildActions.sh",
-    "analyze-packages": "ANALYZE_BUNDLE=true webpack --config config/webpack/webpack.prod.js"
+    "analyze-packages": "ANALYZE_BUNDLE=true webpack --config config/webpack/webpack.prod.js",
+    "postversion": "react-native-version"
   },
   "dependencies": {
     "@babel/plugin-proposal-class-properties": "^7.12.1",
@@ -119,6 +119,7 @@
     "react-native-svg-transformer": "^0.14.3",
     "react-native-version": "^4.0.0",
     "react-test-renderer": "16.13.1",
+    "semver": "^7.3.4",
     "wait-port": "^0.2.9",
     "webpack": "^4.44.1",
     "webpack-bundle-analyzer": "^4.4.0",
