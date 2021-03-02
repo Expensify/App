@@ -118,6 +118,8 @@ const SettingsPage = ({
                             Priority Mode
                         </Text>
                         <View style={[styles.mb2]}>
+                            {/* empty object in placeholder below to prevent default */}
+                            {/* placeholder from appearing as a selection option. */}
                             <RNPickerSelect
                                 onValueChange={Account.updatePriorityMode}
                                 items={Object.values(priorityModes)}
