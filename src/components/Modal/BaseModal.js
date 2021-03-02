@@ -53,7 +53,7 @@ const BaseModal = (props) => {
             style={modalStyle}
             deviceHeight={props.windowHeight}
             deviceWidth={props.windowWidth}
-            animationIn={animationIn}
+            animationIn={props.animationIn || animationIn}
             animationOut={animationOut}
             useNativeDriver={props.useNativeDriver}
             statusBarTranslucent

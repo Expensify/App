@@ -1,10 +1,11 @@
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
-import {Pressable} from 'react-native';
+import {Pressable, Text} from 'react-native';
 import Tooltip from '../../../components/Tooltip';
 import Icon from '../../../components/Icon';
 import getReportActionContextMenuItemStyles from '../../../styles/getReportActionContextMenuItemStyles';
 import CONST from '../../../CONST';
+import styles from '../../../styles/styles';
 
 /**
  * Get the string representation of a button's state.
@@ -38,16 +39,36 @@ const defaultProps = {
 const ReportActionContextMenuItem = (props) => {
     const {getButtonStyle, getIconFillColor} = getReportActionContextMenuItemStyles(props.isMini);
     return (
-        <Tooltip text={props.text}>
-            <Pressable style={({hovered, pressed}) => getButtonStyle(getButtonState(hovered, pressed))}>
-                {({hovered, pressed}) => (
-                    <Icon
-                        src={props.icon}
-                        fill={getIconFillColor(getButtonState(hovered, pressed))}
-                    />
-                )}
-            </Pressable>
-        </Tooltip>
+        props.isMini
+            ? (
+                <Tooltip text={props.text}>
+                    <Pressable style={({hovered, pressed}) => getButtonStyle(getButtonState(hovered, pressed))}>
+                        {({hovered, pressed}) => (
+                            <Icon
+                                src={props.icon}
+                                fill={getIconFillColor(getButtonState(hovered, pressed))}
+                            />
+                        )}
+                    </Pressable>
+                </Tooltip>
+            ) : (
+                <Pressable style={({hovered, pressed}) => getButtonStyle(getButtonState(hovered, pressed))}>
+                    {({hovered, pressed}) => (
+                        <>
+                            <Icon
+                                src={props.icon}
+                                fill={getIconFillColor(getButtonState(hovered, pressed))}
+                            />
+                            <Text
+                                style={styles.reportActionContextMenuText}
+                                selectable={false}
+                            >
+                                {props.text}
+                            </Text>
+                        </>
+                    )}
+                </Pressable>
+            )
     );
 };
 

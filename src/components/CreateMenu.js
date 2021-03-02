@@ -81,25 +81,27 @@ class CreateMenu extends PureComponent {
                 }}
                 anchorPosition={styles.createMenuPosition}
             >
-                {menuItemData.map(({icon, text, onPress}) => (
-                    <Pressable
-                        key={text}
-                        onPress={onPress}
-                        style={({hovered}) => ([
-                            styles.createMenuItem,
-                            hovered && {backgroundColor: themeColors.buttonHoveredBG},
-                        ])}
-                    >
-                        <View style={styles.createMenuIcon}>
-                            <Icon src={icon} />
-                        </View>
-                        <View style={styles.justifyContentCenter}>
-                            <Text style={[styles.createMenuText, styles.ml3]}>
-                                {text}
-                            </Text>
-                        </View>
-                    </Pressable>
-                ))}
+                <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
+                    {menuItemData.map(({icon, text, onPress}) => (
+                        <Pressable
+                            key={text}
+                            onPress={onPress}
+                            style={({hovered}) => ([
+                                styles.createMenuItem,
+                                hovered && {backgroundColor: themeColors.buttonHoveredBG},
+                            ])}
+                        >
+                            <View style={styles.createMenuIcon}>
+                                <Icon src={icon} />
+                            </View>
+                            <View style={styles.justifyContentCenter}>
+                                <Text style={[styles.createMenuText, styles.ml3]}>
+                                    {text}
+                                </Text>
+                            </View>
+                        </Pressable>
+                    ))}
+                </View>
             </Popover>
         );
     }

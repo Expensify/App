@@ -1,14 +1,16 @@
 import _ from 'underscore';
-import React, {memo} from 'react';
+import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionPropTypes from './ReportActionPropTypes';
-import ReportActionItemGrouped from './ReportActionItemGrouped';
-import getReportActionItemContainerStyles from '../../../styles/getReportActionItemContainerStyles';
 import styles from '../../../styles/styles';
-import ReportActionContextMenu from './ReportActionContextMenu';
+import getReportActionItemStyles from '../../../styles/getReportActionItemStyles';
+import PressableWithSecondaryInteraction from '../../../components/PressableWithSecondaryInteraction';
 import Hoverable from '../../../components/Hoverable';
+import PopoverWithMeasuredContent from '../../../components/PopoverWithMeasuredContent';
+import ReportActionItemSingle from './ReportActionItemSingle';
+import ReportActionItemGrouped from './ReportActionItemGrouped';
+import ReportActionContextMenu from './ReportActionContextMenu';
 
 const propTypes = {
     // The ID of the report this action is on.
@@ -21,28 +23,106 @@ const propTypes = {
     displayAsGroup: PropTypes.bool.isRequired,
 };
 
-const ReportActionItem = props => (
-    <Hoverable>
-        {hovered => (
-            <View>
-                <View style={getReportActionItemContainerStyles(hovered)}>
-                    {!props.displayAsGroup
-                        ? <ReportActionItemSingle action={props.action} />
-                        : <ReportActionItemGrouped action={props.action} />}
-                </View>
-                <View style={styles.miniReportActionContextMenuWrapperStyle}>
-                    <ReportActionContextMenu
-                        reportID={props.reportID}
-                        reportActionID={props.action.sequenceNumber}
-                        isVisible={hovered}
-                        isMini
-                    />
-                </View>
-            </View>
-        )}
-    </Hoverable>
-);
+class ReportActionItem extends Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            isPopoverVisible: false,
+        };
+
+        // The horizontal and vertical position (relative to the screen) where the popover will display.
+        this.popoverAnchorPosition = {
+            horizontal: 0,
+            vertical: 0,
+        };
+
+        this.showPopover = this.showPopover.bind(this);
+        this.hidePopover = this.hidePopover.bind(this);
+    }
+
+    shouldComponentUpdate(nextProps, nextState) {
+        return this.state.isPopoverVisible !== nextState.isPopoverVisible
+            || this.props.displayAsGroup !== nextProps.displayAsGroup
+            || !_.isEqual(this.props.action, nextProps.action);
+    }
+
+    /**
+     * Save the location of a native press event.
+     *
+     * @param {Object} nativeEvent
+     */
+    capturePressLocation(nativeEvent) {
+        this.popoverAnchorPosition = {
+            horizontal: nativeEvent.pageX,
+            vertical: nativeEvent.pageY,
+        };
+    }
+
+    /**
+     * Show the ReportActionContextMenu modal popover.
+     *
+     * @param {Object} [event] - A press event.
+     */
+    showPopover(event) {
+        const nativeEvent = event.nativeEvent || {};
+        this.capturePressLocation(nativeEvent);
+        this.setState({isPopoverVisible: true});
+    }
+
+    /**
+     * Hide the ReportActionContextMenu modal popover.
+     */
+    hidePopover() {
+        this.setState({isPopoverVisible: false});
+    }
+
+    render() {
+        return (
+            <PressableWithSecondaryInteraction onSecondaryInteraction={this.showPopover}>
+                <Hoverable>
+                    {hovered => (
+                        <View>
+                            <View style={getReportActionItemStyles(hovered)}>
+                                {!this.props.displayAsGroup
+                                    ? <ReportActionItemSingle action={this.props.action} />
+                                    : <ReportActionItemGrouped action={this.props.action} />}
+                            </View>
+                            <View style={styles.miniReportActionContextMenuWrapperStyle}>
+                                <ReportActionContextMenu
+                                    reportID={this.props.reportID}
+                                    reportActionID={this.props.action.sequenceNumber}
+                                    isVisible={hovered && !this.state.isPopoverVisible}
+                                    isMini
+                                />
+                            </View>
+                            <PopoverWithMeasuredContent
+                                isVisible={this.state.isPopoverVisible}
+                                onClose={this.hidePopover}
+                                anchorPosition={this.popoverAnchorPosition}
+                                animationIn="fadeIn"
+                                measureContent={() => (
+                                    <ReportActionContextMenu
+                                        isVisible
+                                        reportID={-1}
+                                        reportActionID={-1}
+                                    />
+                                )}
+                            >
+                                <ReportActionContextMenu
+                                    isVisible={this.state.isPopoverVisible}
+                                    reportID={this.props.reportID}
+                                    reportActionID={this.props.action.sequenceNumber}
+                                />
+                            </PopoverWithMeasuredContent>
+                        </View>
+                    )}
+                </Hoverable>
+            </PressableWithSecondaryInteraction>
+        );
+    }
+}
 
 ReportActionItem.propTypes = propTypes;
 
-export default memo(ReportActionItem, ((prevProps, nextProps) => _.isEqual(prevProps, nextProps)));
+export default ReportActionItem;
