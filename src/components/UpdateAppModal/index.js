@@ -1,5 +1,6 @@
 import React from 'react';
 import BaseUpdateAppModal from './BaseUpdateAppModal';
+import {propTypes} from './UpdateAppModalPropTypes';
 
 const UpdateAppModal = props => (
     <BaseUpdateAppModal
@@ -7,6 +8,6 @@ const UpdateAppModal = props => (
         {...props}
     />
 );
-UpdateAppModal.propTypes = BaseUpdateAppModal.propTypes;
+UpdateAppModal.propTypes = propTypes;
 UpdateAppModal.displayName = 'UpdateAppModal';
 export default UpdateAppModal;

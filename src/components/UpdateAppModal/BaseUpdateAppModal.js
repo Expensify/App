@@ -1,25 +1,12 @@
+import _ from 'underscore';
 import React, {PureComponent} from 'react';
-import PropTypes from 'prop-types';
 import {
     TouchableOpacity, Text,
 } from 'react-native';
 import HeaderWithCloseButton from '../HeaderWithCloseButton';
 import Modal from '../Modal';
 import styles from '../../styles/styles';
-
-const propTypes = {
-    // Callback to fire when we want to trigger the update.
-    onSubmit: PropTypes.func,
-
-    // Version string for the app to update to.
-    // eslint-disable-next-line react/no-unused-prop-types
-    version: PropTypes.string,
-};
-
-const defaultProps = {
-    onSubmit: null,
-    version: '',
-};
+import {propTypes, defaultProps} from './UpdateAppModalPropTypes';
 
 class BaseUpdateAppModal extends PureComponent {
     constructor(props) {
@@ -78,6 +65,6 @@ class BaseUpdateAppModal extends PureComponent {
     }
 }
 
-BaseUpdateAppModal.propTypes = propTypes;
-BaseUpdateAppModal.defaultProps = defaultProps;
+BaseUpdateAppModal.propTypes = _.omit(propTypes, 'version');
+BaseUpdateAppModal.defaultProps = _.omit(defaultProps, 'version');
 export default BaseUpdateAppModal;
