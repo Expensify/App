@@ -725,6 +725,10 @@ const styles = {
         borderRightWidth: 0,
     },
 
+    singleAvatarContainer: {
+        marginTop: -2,
+    },
+
     singleAvatar: {
         height: 24,
         width: 24,
@@ -732,24 +736,19 @@ const styles = {
         borderRadius: 24,
     },
 
+    secondAvatar: {
+        position: 'absolute',
+        right: -13,
+        bottom: -14,
+        borderColor: 'transparent',
+        borderWidth: 2,
+    },
+
     avatarNormal: {
         height: variables.componentSizeNormal,
         width: variables.componentSizeNormal,
         backgroundColor: themeColors.icon,
         borderRadius: variables.componentSizeNormal,
-    },
-
-    singleLeftAvatar: {
-        marginTop: -variables.componentSizeNormal / 2,
-        borderRadius: 24,
-    },
-
-    singleRightAvatar: {
-        marginTop: 12,
-        height: 30,
-        width: 30,
-        borderRadius: 30,
-        left: -12,
     },
 
     avatarText: {
@@ -782,6 +781,8 @@ const styles = {
 
     emptyAvatar: {
         marginRight: variables.componentSizeNormal - 24,
+        height: 40,
+        width: 40,
     },
 
     modalViewContainer: {
@@ -961,6 +962,30 @@ const styles = {
 
     flipUpsideDown: {
         transform: [{rotate: '180deg'}],
+    },
+
+    profilePageContainer: {
+        justifyContent: 'space-between',
+        width: '100%',
+        flex: 1,
+    },
+
+    profilePageLabel: {
+        fontSize: variables.fontSizeLabel,
+        fontFamily: fontFamily.GTA,
+        color: themeColors.textSupporting,
+    },
+
+    profilePageSectionContainer: {
+        alignSelf: 'flex-start',
+    },
+
+    profilePageSectionVersion: {
+        alignSelf: 'center',
+        color: themeColors.textSupporting,
+        fontSize: variables.fontSizeSmall,
+        height: 24,
+        lineHeight: 20,
     },
 };
 

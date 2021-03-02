@@ -13,4 +13,5 @@ export default {
     SET_PASSWORD: '/setpassword/:validateCode',
     SIGNIN: '/signin',
     NOT_FOUND: '/404',
+    PROFILE: '/profile',
 };

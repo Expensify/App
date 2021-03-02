@@ -11,6 +11,9 @@ import {BackArrow, Pin} from '../../components/Icon/Expensicons';
 import compose from '../../libs/compose';
 import {togglePinnedState} from '../../libs/actions/Report';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
+import MultipleAvatars from '../../components/MultipleAvatars';
+import {redirect} from '../../libs/actions/App';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
     // Toggles the navigationMenu open and closed
@@ -56,6 +59,16 @@ const HeaderView = props => (
                         styles.justifyContentBetween,
                     ]}
                 >
+                    <Pressable
+                        onPress={() => {
+                            const {participants} = props.report;
+                            if (participants.length === 1) {
+                                redirect(ROUTES.PROFILE);
+                            }
+                        }}
+                    >
+                        <MultipleAvatars avatarImageURLs={props.report.icons} />
+                    </Pressable>
                     <Header title={props.report.reportName} />
                     <View style={[styles.reportOptions, styles.flexRow]}>
                         <Pressable
