@@ -20,12 +20,12 @@ class BaseModal extends PureComponent {
         this.unsubscribeFromKeyEvents();
     }
 
-    subscribeToKeyEvents = () => {
+    subscribeToKeyEvents() {
         KeyboardShortcut.subscribe('Escape', this.props.onClose, [], true);
         KeyboardShortcut.subscribe('Enter', this.props.onSubmit, [], true);
     };
 
-    unsubscribeFromKeyEvents = () => {
+    unsubscribeFromKeyEvents() {
         KeyboardShortcut.unsubscribe('Escape');
         KeyboardShortcut.unsubscribe('Enter');
     };
