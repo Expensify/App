@@ -42,9 +42,9 @@ class ReportActionItem extends Component {
     }
 
     shouldComponentUpdate(nextProps, nextState) {
-        // Use underscore's isEqual to do a deep comparison of props.
-        // We can't use PureComponent because its shallow comparison wouldn't detect changes in the `action` prop.
-        return !_.isEqual(this.props, nextProps) || !_.isEqual(this.state, nextState);
+        return this.state.isPopoverVisible !== nextState.isPopoverVisible
+            || this.props.displayAsGroup !== nextProps.displayAsGroup
+            || !_.isEqual(this.props.action, nextProps.action);
     }
 
     /**

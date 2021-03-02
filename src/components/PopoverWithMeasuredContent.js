@@ -26,9 +26,9 @@ const propTypes = {
         vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
 
-    // Optionally pass in a function with content to measure. This component will use this.props.children by default,
+    // A function with content to measure. This component will use this.props.children by default,
     // but in the case the children are not displayed, the measurement will not work.
-    measureContent: PropTypes.func,
+    measureContent: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -39,9 +39,6 @@ const defaultProps = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
     },
-
-    // If this prop is null or undefined, then we'll measure the children instead
-    measureContent: null,
 };
 
 class PopoverWithMeasuredContent extends Component {
@@ -131,10 +128,10 @@ class PopoverWithMeasuredContent extends Component {
                     This is an invisible view used to measure the size of the popover,
                     before it ever needs to be displayed.
                     We do this because we need to know its dimensions in order to correctly animate the popover,
-                    but we can't measure its dimensions without first animating it.
+                    but we can't measure its dimensions without first rendering it.
                 */
                 <View style={styles.invisible} onLayout={this.measurePopover}>
-                    {(this.props.measureContent || (() => this.props.children))()}
+                    {this.props.measureContent()}
                 </View>
             );
     }
