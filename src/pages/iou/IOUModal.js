@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import CONST from '../../CONST';
 import themeColors from '../../styles/themes/default';
 import ONYXKEYS from '../../ONYXKEYS';
+import ROUTES from '../../ROUTES';
 import Modal from '../../components/Modal';
 import {redirectToLastReport} from '../../libs/actions/App';
 import IOUAmountPage from './steps/IOUAmountPage';
@@ -25,6 +26,9 @@ const propTypes = {
     /* Onyx Props */
     // Url currently in view
     currentURL: PropTypes.string,
+
+    // Is this IOU request for a group bill split
+    hasMultipleParticipants: PropTypes.bool,
 };
 
 const StepType = {
@@ -36,6 +40,7 @@ const StepType = {
 const defaultProps = {
     route: '',
     currentURL: '',
+    hasMultipleParticipants: false,
 };
 
 class IOUModal extends Component {
@@ -45,6 +50,7 @@ class IOUModal extends Component {
         this.state = {
             steps: [StepType.IOUAmount, StepType.IOUParticipants, StepType.IOUConfirm],
             currentStepIndex: 0,
+            hasMultipleParticipants: this.props.currentURL === ROUTES.IOU_GROUP_SPLIT,
         };
 
         this.getTitleForStep = this.getTitleForStep.bind(this);
@@ -126,6 +132,7 @@ class IOUModal extends Component {
                 && (
                     <IOUParticipantsPage
                         onStepComplete={() => this.navigateToNextStep()}
+                        hasMultipleParticipants={this.state.hasMultipleParticipants}
                     />
                 )}
                 {this.state.steps[this.state.currentStepIndex] === StepType.IOUConfirm
@@ -146,5 +153,8 @@ IOUModal.displayName = 'IOUModal';
 export default withOnyx({
     currentURL: {
         key: ONYXKEYS.CURRENT_URL,
+    },
+    session: {
+        key: ONYXKEYS.SESSION,
     },
 })(IOUModal);
