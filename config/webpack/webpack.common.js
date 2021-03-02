@@ -11,7 +11,7 @@ const platformIndex = process.argv.findIndex(arg => arg === '--platform');
 const platform = (platformIndex > 0) ? process.argv[platformIndex + 1] : 'web';
 const platformExclude = platform === 'web' ? new RegExp(/\.desktop\.js$/) : new RegExp(/\.website\.js$/);
 
-module.exports = {
+const webpackConfig = {
     entry: {
         app: './index.js',
     },
@@ -33,11 +33,12 @@ module.exports = {
                 {from: 'web/favicon-unread.png'},
                 {from: 'web/og-preview-image.png'},
                 {from: 'assets/css', to: 'css'},
+                {from: 'node_modules/react-pdf/dist/esm/Page/AnnotationLayer.css', to: 'css/AnnotationLayer.css'},
+                {from: 'assets/images/shadow.png', to: 'images/shadow.png'},
 
                 // These files are copied over as per instructions here
-                // https://github.com/mozilla/pdf.js/wiki/Setup-pdf.js-in-a-website#examples
-                {from: 'src/vendor/pdf-js/web', to: 'pdf/web'},
-                {from: 'src/vendor/pdf-js/js', to: 'pdf/build'},
+                // https://github.com/wojtekmaj/react-pdf#copying-cmaps
+                {from: 'node_modules/pdfjs-dist/cmaps/', to: 'cmaps/'},
             ],
         }),
         new IgnorePlugin(/^\.\/locale$/, /moment$/),
@@ -60,7 +61,7 @@ module.exports = {
                  */
                 exclude: [
                     // eslint-disable-next-line max-len
-                    /node_modules\/(?!(react-native-animatable|react-native-modal|react-native-webview|react-native-onyx)\/).*|\.native\.js$/,
+                    /node_modules\/(?!(react-native-animatable|react-native-picker-select|react-native-web|@react-native-picker|react-native-modal|react-native-webview|react-native-onyx)\/).*|\.native\.js$/,
                     platformExclude,
                 ],
             },
@@ -115,7 +116,6 @@ module.exports = {
         alias: {
             'react-native-config': 'react-web-config',
             'react-native$': 'react-native-web',
-            'react-native-webview': 'react-native-web-webview',
         },
 
         // React Native libraries may have web-specific module implementations that appear with the extension `.web.js`
@@ -125,3 +125,9 @@ module.exports = {
         extensions: ['.web.js', (platform === 'web') ? '.website.js' : '.desktop.js', '.js', '.jsx'],
     },
 };
+
+if (platform === 'desktop') {
+    webpackConfig.target = 'electron-renderer';
+}
+
+module.exports = webpackConfig;

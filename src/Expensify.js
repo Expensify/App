@@ -22,6 +22,7 @@ import {
 } from './libs/Router';
 import ROUTES from './ROUTES';
 import PushNotification from './libs/Notification/PushNotification';
+import UpdateAppModal from './components/UpdateAppModal';
 
 // Initialize the store when the app loads for the first time
 Onyx.init({
@@ -50,10 +51,14 @@ const propTypes = {
 
     // A route set by Onyx that we will redirect to if present. Always empty on app init.
     redirectTo: PropTypes.string,
+
+    // Version of newly downloaded update.
+    version: PropTypes.string,
 };
 
 const defaultProps = {
     redirectTo: '',
+    version: '',
 };
 
 class Expensify extends PureComponent {
@@ -107,6 +112,9 @@ class Expensify extends PureComponent {
         }
         return (
             <Router>
+                {/* We include the modal for showing a new update at the top level so the option is always present. */}
+                {this.props.version ? <UpdateAppModal updateVersion={this.props.version} /> : null}
+
                 {/* If there is ever a property for redirecting, we do the redirect here */}
                 {/* Leave this as a ternary or else iOS throws an error about text not being wrapped in <Text> */}
                 {this.props.redirectTo ? <Redirect push to={this.props.redirectTo} /> : null}
@@ -156,6 +164,10 @@ export default withOnyx({
         // Prevent the prefilling of Onyx data or else the app will always redirect to what the last value was set to.
         // This ends up in a situation where you go to a report, refresh the page, and then rather than seeing the
         // report you are brought back to the root of the site (ie. "/").
+        initWithStoredValues: false,
+    },
+    version: {
+        key: ONYXKEYS.UPDATE_VERSION,
         initWithStoredValues: false,
     },
 })(Expensify);

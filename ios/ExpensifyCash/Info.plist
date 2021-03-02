@@ -21,7 +21,7 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>466</string>
+	<string>5</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false />
 	<key>LSRequiresIPhoneOS</key>
@@ -87,5 +87,9 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false />
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>venmo</string>
+	</array>
 </dict>
 </plist>
