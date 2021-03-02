@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {createStackNavigator, CardStyleInterpolators} from '@react-navigation/stack';
 import {createDrawerNavigator} from '@react-navigation/drawer';
@@ -95,7 +96,7 @@ const AppNavigator = (props) => {
                                         >
                                             {() => {
                                                 const ReportScreen = props.mainRoutes[0].Component;
-                                                return <ReportScreen />;
+                                                return props.isSmallScreenWidth ? <View /> : <ReportScreen />;
                                             }}
                                         </Drawer.Screen>
                                         {_.map(props.mainRoutes, route => (
@@ -113,18 +114,6 @@ const AppNavigator = (props) => {
                                 </AppWrapper>
                             )}
                         </RootNavigator.Screen>
-                        {props.isSmallScreenWidth && _.map(props.mainRoutes, route => (
-                            <RootNavigator.Screen
-                                name={route.name}
-                                component={route.Component}
-                                key={route.name}
-                                options={{
-                                    cardStyle: styles.navigationScreenCardStyle,
-                                    headerShown: false,
-                                }}
-                            />
-                        ))}
-
                         {_.map(props.modalRoutes, (route) => {
                             const ModalStack = props.responsive
                                 ? createCustomModalStackNavigator()
