@@ -56,6 +56,22 @@ function getMiniButtonStyle(buttonState = CONST.BUTTON_STATES.DEFAULT) {
 }
 
 /**
+ * Generate styles for the rows in the larger ReportActionContextMenu.
+ *
+ * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
+ * @returns {Array}
+ */
+function getBigButtonStyle(buttonState = CONST.BUTTON_STATES.DEFAULT) {
+    return [
+        getButtonBackgroundColorStyle(buttonState),
+        styles.flex1,
+        styles.flexRow,
+        styles.alignItemsCenter,
+        styles.p4,
+    ];
+}
+
+/**
  * Generate dynamic styles for the ReportActionContextMenuItem component.
  *
  * @param {Boolean} isMini
@@ -63,7 +79,7 @@ function getMiniButtonStyle(buttonState = CONST.BUTTON_STATES.DEFAULT) {
  */
 function getReportActionContextMenuItemStyles(isMini) {
     return {
-        getButtonStyle: isMini ? getMiniButtonStyle : () => {},
+        getButtonStyle: isMini ? getMiniButtonStyle : getBigButtonStyle,
         getIconFillColor,
     };
 }

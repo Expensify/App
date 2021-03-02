@@ -420,6 +420,11 @@ const styles = {
         bottom: 100,
     },
 
+    createMenuContainer: {
+        width: variables.sideBarWidth - 40,
+        paddingVertical: 12,
+    },
+
     createMenuItem: {
         flexDirection: 'row',
         borderRadius: 0,
@@ -898,6 +903,16 @@ const styles = {
         position: 'absolute',
     },
 
+    reportActionContextMenuText: {
+        color: themeColors.heading,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeLabel,
+        fontWeight: fontWeightBold,
+        textAlign: 'center',
+        ...spacing.ml4,
+        ...spacing.mr2,
+    },
+
     settingsPageBackground: {
         flexDirection: 'column',
         width: '100%',
@@ -968,6 +983,11 @@ const styles = {
 
     flipUpsideDown: {
         transform: [{rotate: '180deg'}],
+    },
+
+    invisible: {
+        position: 'absolute',
+        opacity: 0,
     },
 };
 
