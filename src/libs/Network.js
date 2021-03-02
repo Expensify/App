@@ -31,7 +31,7 @@ Onyx.connect({
 });
 
 /**
- * Checks to see if a request should be made.
+ * Checks to see if a request can be made.
  *
  * @param {Object} request
  * @param {Object} request.data
