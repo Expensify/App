@@ -16,7 +16,7 @@ import {version} from '../../package.json';
 import AvatarWithIndicator from '../components/AvatarWithIndicator';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import {redirectToLastReport} from '../libs/actions/App';
-import Account from '../libs/actions/Account';
+import NameValuePair from '../libs/actions/NameValuePair';
 import Icon from '../components/Icon';
 import {DownArrow} from '../components/Icon/Expensicons';
 import CONST from '../CONST';
@@ -123,7 +123,9 @@ const SettingsPage = ({
                             {/* empty object in placeholder below to prevent default */}
                             {/* placeholder from appearing as a selection option. */}
                             <RNPickerSelect
-                                onValueChange={Account.updatePriorityMode}
+                                onValueChange={
+                                    mode => NameValuePair.set(CONST.NVP.PRIORITY_MODE, mode, ONYXKEYS.PRIORITY_MODE)
+                                }
                                 items={Object.values(priorityModes)}
                                 style={styles.picker}
                                 useNativeAndroidPickerStyle={false}
