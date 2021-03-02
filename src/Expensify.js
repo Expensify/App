@@ -33,6 +33,7 @@ Onyx.init({
         // Clear any loading and error messages so they do not appear on app startup
         [ONYXKEYS.SESSION]: {loading: false},
         [ONYXKEYS.ACCOUNT]: {loading: false, error: ''},
+        [ONYXKEYS.NETWORK]: {isOffline: false},
     },
     registerStorageEventListener: (onStorageEvent) => {
         listenToStorageEvents(onStorageEvent);
