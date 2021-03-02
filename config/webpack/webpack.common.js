@@ -11,7 +11,7 @@ const platformIndex = process.argv.findIndex(arg => arg === '--platform');
 const platform = (platformIndex > 0) ? process.argv[platformIndex + 1] : 'web';
 const platformExclude = platform === 'web' ? new RegExp(/\.desktop\.js$/) : new RegExp(/\.website\.js$/);
 
-module.exports = {
+const webpackConfig = {
     entry: {
         app: './index.js',
     },
@@ -61,7 +61,7 @@ module.exports = {
                  */
                 exclude: [
                     // eslint-disable-next-line max-len
-                    /node_modules\/(?!(react-native-animatable|react-native-modal|react-native-webview|react-native-onyx)\/).*|\.native\.js$/,
+                    /node_modules\/(?!(react-native-animatable|react-native-picker-select|react-native-web|@react-native-picker|react-native-modal|react-native-webview|react-native-onyx)\/).*|\.native\.js$/,
                     platformExclude,
                 ],
             },
@@ -125,3 +125,9 @@ module.exports = {
         extensions: ['.web.js', (platform === 'web') ? '.website.js' : '.desktop.js', '.js', '.jsx'],
     },
 };
+
+if (platform === 'desktop') {
+    webpackConfig.target = 'electron-renderer';
+}
+
+module.exports = webpackConfig;
