@@ -12,6 +12,7 @@ import display from './utilities/display';
 import overflow from './utilities/overflow';
 import whiteSpace from './utilities/whiteSpace';
 import wordBreak from './utilities/wordBreak';
+import textInputAlignSelf from './utilities/textInputAlignSelf';
 
 const styles = {
     // Add all of our utility and helper styles
@@ -456,6 +457,11 @@ const styles = {
         textDecorationLine: 'none',
     },
 
+    createMenuPosition: {
+        left: 18,
+        bottom: 100,
+    },
+
     createMenuItem: {
         flexDirection: 'row',
         borderRadius: 0,
@@ -701,7 +707,7 @@ const styles = {
         paddingHorizontal: 8,
         marginVertical: 5,
         paddingVertical: 0,
-        alignSelf: 'center',
+        ...textInputAlignSelf.center,
         textAlignVertical: 'center',
     }, 0),
 
@@ -842,7 +848,17 @@ const styles = {
 
     imageModalPDF: {
         flex: 1,
-        backgroundColor: themeColors.componentBG,
+        backgroundColor: themeColors.modalBackground,
+    },
+    PDFView: {
+        flex: 1,
+        backgroundColor: themeColors.modalBackground,
+        width: '100%',
+        height: '100%',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        overflow: 'hidden',
+        overflowY: 'auto',
     },
 
     modalCenterContentContainer: {
@@ -1099,15 +1115,14 @@ function getSafeAreaMargins(insets) {
  * Return navigation menu styles.
  *
  * @param {Number} windowWidth
- * @param {Boolean} isSidebarShown
  * @param {Boolean} isSmallScreenWidth
  * @returns {Object}
  */
-function getNavigationMenuStyle(windowWidth, isSidebarShown, isSmallScreenWidth) {
+function getNavigationMenuStyle(windowWidth, isSmallScreenWidth) {
     return isSmallScreenWidth
         ? {
             ...styles.navigationMenuOpenAbsolute,
-            width: isSidebarShown ? windowWidth : 0,
+            width: windowWidth,
         }
         : {
             borderColor: themeColors.border,

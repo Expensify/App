@@ -20,6 +20,7 @@ import Account from '../libs/actions/Account';
 import Icon from '../components/Icon';
 import {DownArrow} from '../components/Icon/Expensicons';
 import CONST from '../CONST';
+import HeaderGap from '../components/HeaderGap';
 
 const propTypes = {
     /* Onyx Props */
@@ -83,6 +84,7 @@ const SettingsPage = ({
     }
     return (
         <>
+            <HeaderGap />
             <HeaderWithCloseButton
                 title="Settings"
                 onCloseButtonPress={redirectToLastReport}
