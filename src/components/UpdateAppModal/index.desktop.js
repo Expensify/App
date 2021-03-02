@@ -1,16 +1,17 @@
 import React from 'react';
 import {ipcRenderer} from 'electron';
 import BaseUpdateAppModal from './BaseUpdateAppModal';
+import {propTypes} from './UpdateAppModalPropTypes';
 
 const UpdateAppModal = (props) => {
-    const onSubmit = () => {
+    const updateApp = () => {
         if (props.onSubmit) {
             props.onSubmit();
         }
         ipcRenderer.sendSync('start-update', props.version);
     };
-    return <BaseUpdateAppModal onSubmit={onSubmit} />;
+    return <BaseUpdateAppModal onSubmit={updateApp} />;
 };
-UpdateAppModal.propTypes = BaseUpdateAppModal.propTypes;
+UpdateAppModal.propTypes = propTypes;
 UpdateAppModal.displayName = 'UpdateAppModal';
 export default UpdateAppModal;
