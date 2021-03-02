@@ -15,7 +15,8 @@ portfinder.getPortPromise({
 
         },
         {
-            command: ` wait-port localhost:${port} && export NODE_ENV=development && electron desktop/main.js`,
+            command: `wait-port localhost:${port} && export NODE_ENV=development PORT=${port} \
+            && electron desktop/main.js`,
             name: 'Main',
             prefixColor: 'cyan.dim',
         },
