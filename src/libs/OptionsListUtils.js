@@ -89,7 +89,7 @@ function createOption(personalDetailList, report, draftComments, activeReportID,
         ? (hasMultipleParticipants && lastActorDetails
             ? `${lastActorDetails.displayName}: `
             : '')
-        + report.lastMessageText
+        + _.unescape(report.lastMessageText)
         : '';
 
     return {
@@ -127,15 +127,11 @@ Onyx.connect({
  * @returns {Boolean}
  */
 function isSearchStringMatch(searchValue, searchText) {
-    const matchRegexes = [
-        new RegExp(`^${Str.escapeForRegExp(searchValue)}$`, 'i'),
-        new RegExp(`^${Str.escapeForRegExp(searchValue)}`, 'i'),
-        new RegExp(Str.escapeForRegExp(searchValue), 'i'),
-    ];
-
-    return _.some(matchRegexes, (regex) => {
+    const searchWords = searchValue.split(' ');
+    return _.every(searchWords, (word) => {
+        const matchRegex = new RegExp(Str.escapeForRegExp(word), 'i');
         const valueToSearch = searchText && searchText.replace(new RegExp(/&nbsp;/g), '');
-        return regex.test(valueToSearch);
+        return matchRegex.test(valueToSearch);
     });
 }
 
@@ -188,7 +184,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         }
 
         // Skip this entry if it has no comments and is not the active report. We will only show reports from
-        // people we have sent or recieved at least one message with.
+        // people we have sent or received at least one message with.
         const hasNoComments = report.lastMessageTimestamp === 0;
         if (!showReportsWithNoComments && hasNoComments && report.reportID !== activeReportID) {
             return;
@@ -326,6 +322,7 @@ function getSearchOptions(
         showChatPreviewLine: true,
         showReportsWithNoComments: true,
         includePersonalDetails: true,
+        sortByLastMessageTimestamp: true,
     });
 }
 
