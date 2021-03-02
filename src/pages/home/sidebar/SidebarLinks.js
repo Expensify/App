@@ -18,6 +18,7 @@ import {getSidebarOptions} from '../../../libs/OptionsListUtils';
 import {getDefaultAvatar} from '../../../libs/actions/PersonalDetails';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
 import HeaderGap from '../../../components/HeaderGap';
+import CONST from '../../../CONST';
 
 const propTypes = {
     // Toggles the navigation menu open and closed
@@ -64,6 +65,9 @@ const propTypes = {
 
     // Currently viewed reportID
     currentlyViewedReportID: PropTypes.string,
+
+    // The chat priority mode
+    priorityMode: PropTypes.string,
 };
 
 const defaultProps = {
@@ -75,6 +79,7 @@ const defaultProps = {
     },
     network: null,
     currentlyViewedReportID: '',
+    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
 };
 
 class SidebarLinks extends React.Component {
@@ -90,6 +95,7 @@ class SidebarLinks extends React.Component {
             this.props.personalDetails,
             this.props.draftComments,
             activeReportID,
+            this.props.priorityMode,
         );
 
         const sections = [{
@@ -171,6 +177,9 @@ export default compose(
         },
         currentlyViewedReportID: {
             key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
+        },
+        priorityMode: {
+            key: ONYXKEYS.PRIORITY_MODE,
         },
     }),
 )(SidebarLinks);
