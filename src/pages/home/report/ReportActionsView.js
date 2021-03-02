@@ -172,7 +172,10 @@ class ReportActionsView extends React.Component {
         }
 
         this.setState({isLoadingMoreChats: true}, () => {
-            fetchActions(this.props.reportID, Math.max(minSequenceNumber - CONST.REPORT.REPORT_ACTIONS_LIMIT, 0))
+            // Retrieve the next REPORT_ACTIONS_LIMIT sized page of comments, unless we're near the beginning, in which
+            // case just get everything starting from 0.
+            const offset = Math.max(minSequenceNumber - CONST.REPORT.REPORT_ACTIONS_LIMIT, 0);
+            fetchActions(this.props.reportID, offset)
                 .then(() => this.setState({isLoadingMoreChats: false}));
         });
     }
