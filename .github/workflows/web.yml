@@ -47,7 +47,7 @@ jobs:
               run: npm run build
 
             - name: Deploy production to S3
-              run: aws s3 cp --recursive --acl public-read $GITHUB_WORKSPACE/dist s3://chat-test-expensify-com/
+              run: aws s3 cp --recursive --acl public-read $GITHUB_WORKSPACE/dist s3://expensify-cash/
 
             - name: Deploy staging to S3
               run: aws s3 cp --recursive --acl public-read $GITHUB_WORKSPACE/dist s3://staging-expensify-cash/
