@@ -27,8 +27,10 @@ export default {
     offline: colors.gray3,
     sidebarButtonBG: 'rgba(198, 201, 202, 0.25)',
     modalBackdrop: colors.gray3,
+    modalBackground: colors.gray2,
     pillBG: colors.gray2,
     buttonDisabledBG: colors.gray2,
     buttonHoveredBG: colors.gray1,
     spinner: colors.gray4,
+    unreadIndicator: colors.green,
 };
