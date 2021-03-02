@@ -61,7 +61,7 @@ const webpackConfig = {
                  */
                 exclude: [
                     // eslint-disable-next-line max-len
-                    /node_modules\/(?!(react-native-animatable|react-native-modal|react-native-webview|react-native-onyx)\/).*|\.native\.js$/,
+                    /node_modules\/(?!(react-native-animatable|react-native-picker-select|react-native-web|@react-native-picker|react-native-modal|react-native-webview|react-native-onyx)\/).*|\.native\.js$/,
                     platformExclude,
                 ],
             },
