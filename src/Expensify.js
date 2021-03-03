@@ -9,6 +9,7 @@ import CONST from './CONST';
 import NavigationRoot from './libs/Navigation/NavigationRoot';
 import Log from './libs/Log';
 import PushNotification from './libs/Notification/PushNotification';
+import UpdateAppModal from './components/UpdateAppModal';
 
 // Screen Components
 import SignInPage from './pages/signin/SignInPage';
@@ -28,6 +29,7 @@ Onyx.init({
         // Clear any loading and error messages so they do not appear on app startup
         [ONYXKEYS.SESSION]: {loading: false},
         [ONYXKEYS.ACCOUNT]: {loading: false, error: ''},
+        [ONYXKEYS.NETWORK]: {isOffline: false},
     },
     registerStorageEventListener: (onStorageEvent) => {
         listenToStorageEvents(onStorageEvent);
@@ -47,6 +49,9 @@ const propTypes = {
         authToken: PropTypes.string,
         accountID: PropTypes.number,
     }),
+
+    // Version of newly downloaded update.
+    version: PropTypes.string,
 };
 
 const defaultProps = {
@@ -55,7 +60,9 @@ const defaultProps = {
         authToken: null,
         accountID: null,
     },
+    version: '',
 };
+
 
 class Expensify extends PureComponent {
     constructor(props) {
@@ -76,93 +83,97 @@ class Expensify extends PureComponent {
     render() {
         const authToken = lodashGet(this.props, 'session.authToken', null);
         return (
-            <NavigationRoot
-                currentlyViewedReportID={this.props.currentlyViewedReportID}
-                authenticated={Boolean(authToken)}
-                publicRoute={{
-                    Component: SignInPage,
-                    name: 'SignIn',
-                    path: '/signin',
-                    options: {
-                        headerShown: false,
-                        animationTypeForReplace: 'pop',
-                        title: 'Sign In',
-                    },
-                }}
-                sidebarRoute={{
-                    name: 'Sidebar',
-                    Component: SidebarScreen,
-                }}
-                modalRoutes={[
-                    {
-                        name: 'Settings',
-                        title: 'Settings',
-                        path: '/settings',
-                        modalType: CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
-                        subRoutes: [
-                            {
-                                name: 'Root',
-                                Component: SettingsPage,
-                                options: {
-                                    title: 'Settings',
+            <>
+                {/* We include the modal for showing a new update at the top level so the option is always present. */}
+                {this.props.version ? <UpdateAppModal updateVersion={this.props.version} /> : null}
+                <NavigationRoot
+                    currentlyViewedReportID={this.props.currentlyViewedReportID}
+                    authenticated={Boolean(authToken)}
+                    publicRoute={{
+                        Component: SignInPage,
+                        name: 'SignIn',
+                        path: '/signin',
+                        options: {
+                            headerShown: false,
+                            animationTypeForReplace: 'pop',
+                            title: 'Sign In',
+                        },
+                    }}
+                    sidebarRoute={{
+                        name: 'Sidebar',
+                        Component: SidebarScreen,
+                    }}
+                    modalRoutes={[
+                        {
+                            name: 'Settings',
+                            title: 'Settings',
+                            path: '/settings',
+                            modalType: CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
+                            subRoutes: [
+                                {
+                                    name: 'Root',
+                                    Component: SettingsPage,
+                                    options: {
+                                        title: 'Settings',
+                                    },
                                 },
-                            },
-                        ],
-                    },
-                    {
-                        name: 'NewChat',
-                        title: 'New Chat',
-                        path: '/new/chat',
-                        modalType: CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
-                        subRoutes: [
-                            {
-                                name: 'Root',
-                                Component: NewChatPage,
-                                options: {
-                                    title: 'New Chat',
+                            ],
+                        },
+                        {
+                            name: 'NewChat',
+                            title: 'New Chat',
+                            path: '/new/chat',
+                            modalType: CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
+                            subRoutes: [
+                                {
+                                    name: 'Root',
+                                    Component: NewChatPage,
+                                    options: {
+                                        title: 'New Chat',
+                                    },
                                 },
-                            },
-                        ],
-                    },
-                    {
-                        name: 'NewGroup',
-                        title: 'New Group',
-                        path: '/new/group',
-                        modalType: CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
-                        subRoutes: [
-                            {
-                                name: 'Root',
-                                Component: NewGroupPage,
-                                options: {
-                                    title: 'New Group',
+                            ],
+                        },
+                        {
+                            name: 'NewGroup',
+                            title: 'New Group',
+                            path: '/new/group',
+                            modalType: CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
+                            subRoutes: [
+                                {
+                                    name: 'Root',
+                                    Component: NewGroupPage,
+                                    options: {
+                                        title: 'New Group',
+                                    },
                                 },
-                            },
-                        ],
-                    },
-                    {
-                        name: 'Search',
-                        title: 'Search',
-                        path: '/search',
-                        modalType: CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
-                        subRoutes: [
-                            {
-                                name: 'Root',
-                                Component: SearchPage,
-                                options: {
-                                    title: 'Search',
+                            ],
+                        },
+                        {
+                            name: 'Search',
+                            title: 'Search',
+                            path: '/search',
+                            modalType: CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
+                            subRoutes: [
+                                {
+                                    name: 'Root',
+                                    Component: SearchPage,
+                                    options: {
+                                        title: 'Search',
+                                    },
                                 },
-                            },
-                        ],
-                    },
-                ]}
-                mainRoutes={[
-                    {
-                        name: 'Report',
-                        Component: ReportScreen,
-                        path: '/r',
-                    },
-                ]}
-            />
+                            ],
+                        },
+                    ]}
+                    mainRoutes={[
+                        {
+                            name: 'Report',
+                            Component: ReportScreen,
+                            path: '/r',
+                        },
+                    ]}
+                />
+            </>
         );
     }
 }
@@ -175,5 +186,9 @@ export default withOnyx({
     },
     currentlyViewedReportID: {
         key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
+    },
+    version: {
+        key: ONYXKEYS.UPDATE_VERSION,
+        initWithStoredValues: false,
     },
 })(Expensify);
