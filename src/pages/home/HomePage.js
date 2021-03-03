@@ -62,7 +62,7 @@ class HomePage extends PureComponent {
         PersonalDetails.fetch();
         PersonalDetails.fetchTimezone();
         getBetas();
-        fetchAllReports(true, true, true);
+        fetchAllReports(true, true);
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
 

@@ -508,10 +508,7 @@ function fetchActions(reportID, offset) {
         Log.alert('[Report] Offset provided is not a number', true, {offset});
         return;
     }
-
-    const reportActionsOffset = !_.isUndefined(offset)
-        ? offset
-        : Math.max(reportMaxSequenceNumbers[reportID] - CONST.REPORT.REPORT_ACTIONS_LIMIT, -1);
+    const reportActionsOffset = !_.isUndefined(offset) ? offset : -1;
 
     return API.Report_GetHistory({
         reportID,
@@ -538,10 +535,9 @@ function fetchActions(reportID, offset) {
  * Get all of our reports
  *
  * @param {Boolean} shouldRedirectToReport this is set to false when the network reconnect code runs
- * @param {Boolean} shouldFetchActions whether or not the actions of the reports should also be fetched
  * @param {Boolean} shouldRecordHomePageTiming whether or not performance timing should be measured
  */
-function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false, shouldRecordHomePageTiming = false) {
+function fetchAll(shouldRedirectToReport = true, shouldRecordHomePageTiming = false) {
     fetchChatReports()
         .then((reportIDs) => {
             if (shouldRedirectToReport && (currentURL === ROUTES.ROOT || currentURL === ROUTES.HOME)) {
@@ -553,12 +549,10 @@ function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false, sho
                 }
             }
 
-            if (shouldFetchActions) {
-                Log.info('[Report] Fetching report actions for reports', true, {reportIDs});
-                _.each(reportIDs, (reportID) => {
-                    fetchActions(reportID);
-                });
-            }
+            Log.info('[Report] Fetching report actions for reports', true, {reportIDs});
+            _.each(reportIDs, (reportID) => {
+                fetchActions(reportID);
+            });
 
             if (shouldRecordHomePageTiming) {
                 Timing.end(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
@@ -748,7 +742,7 @@ Onyx.connect({
 
 // When the app reconnects from being offline, fetch all of the reports and their actions
 NetworkConnection.onReconnect(() => {
-    fetchAll(false, true);
+    fetchAll(false);
 });
 
 export {
