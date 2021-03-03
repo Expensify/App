@@ -13,15 +13,14 @@ import themeColors from '../../../styles/themes/default';
 const propTypes = {
     // Callback to inform parent modal of success
     onStepComplete: PropTypes.func.isRequired,
+
+    // is page content currently being retrieved
+    isLoading: PropTypes.bool.isRequired,
 };
 
 class IOUAmountPage extends Component {
     constructor(props) {
         super(props);
-
-        this.state = {
-            isLoading: true,
-        };
 
         // TODO: Hide loading indicator and display IOUAmount page contents
     }
@@ -30,7 +29,7 @@ class IOUAmountPage extends Component {
         return (
             <View style={styles.settingsWrapper}>
                 <Avatar source="https://http.cat/101" />
-                {this.state.isLoading && <ActivityIndicator color={themeColors.text} />}
+                {this.props.isLoading && <ActivityIndicator color={themeColors.text} />}
                 <TouchableOpacity
                     style={[styles.button, styles.w100, styles.mt5]}
                     onPress={() => this.props.onStepComplete()}
