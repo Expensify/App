@@ -133,12 +133,17 @@ function handleExpiredAuthToken(originalCommand, originalParameters, originalTyp
         .catch(() => (
 
             // If the request did not succeed because of a networking issue or the server did not respond requeue the
-            // original request. We are using request() here so that it we can reauthenticate again if another
-            // request() has not refreshed the authToken. Network.post() does not trigger handleExpiredAuthToken().
-            // eslint-disable-next-line no-use-before-define
-            request(originalCommand, originalParameters, originalType)
+            // original request.
+            Network.post(originalCommand, originalParameters, originalType)
         ));
 }
+
+// Register a method with Network to call when the authToken has expired.
+Network.registerOnAuthTokenExpired((queuedRequest) => {
+    handleExpiredAuthToken(queuedRequest.command, queuedRequest.data, queuedRequest.type)
+        .then(queuedRequest.resolve)
+        .catch(queuedRequest.reject);
+});
 
 /**
  * @private
