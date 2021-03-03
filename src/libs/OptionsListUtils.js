@@ -186,7 +186,8 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         // Skip this entry if it has no comments and is not the active report. We will only show reports from
         // people we have sent or received at least one message with.
         const hasNoComments = report.lastMessageTimestamp === 0;
-        const shouldFilterReport = !showReportsWithNoComments && hasNoComments && report.reportID !== activeReportID && !report.isPinned;
+        const shouldFilterReport = !showReportsWithNoComments && hasNoComments
+            && report.reportID !== activeReportID && !report.isPinned;
         if (shouldFilterReport) {
             return;
         }
