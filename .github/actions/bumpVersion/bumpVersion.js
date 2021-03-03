@@ -77,7 +77,6 @@ return octokit.repos.listTags({
         console.log(stdout);
         core.setOutput('newVersion', newVersion);
     })
-    // eslint-disable-next-line no-loop-func
     .catch(({stdout, stderr}) => {
         // Log errors and retry
         console.log(stdout);
