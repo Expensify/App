@@ -101,18 +101,14 @@ class ReportActionsView extends React.Component {
     componentDidUpdate(prevProps) {
         // We have switched to a new report
         if (prevProps.reportID !== this.props.reportID) {
-            // Unsubscribe from previous report and resubscribe
-            unsubscribeFromReportChannel(prevProps.reportID);
-            subscribeToReportTypingEvents(this.props.reportID);
-            Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD);
-
-            // Fetch the new set of actions
-            fetchActions(this.props.reportID);
+            this.reset(prevProps.reportID);
             return;
         }
 
-        // These updates are happening on the same report
-        if (_.size(prevProps.reportActions) !== _.size(this.props.reportActions)) {
+        // The last sequenceNumber of the same report has changed.
+        const previousLastSequenceNumber = _.last(prevProps.reportActions)?.sequenceNumber;
+        const currentLastSequenceNumber = _.last(this.props.reportActions)?.sequenceNumber;
+        if (previousLastSequenceNumber !== currentLastSequenceNumber) {
             // If a new comment is added and it's from the current user scroll to the bottom otherwise
             // leave the user positioned where they are now in the list.
             const lastAction = lastItem(this.props.reportActions);
@@ -120,7 +116,7 @@ class ReportActionsView extends React.Component {
                 this.scrollToListBottom();
             }
 
-            // When the number of actions change, wait three seconds, then record the max action
+            // When the last action changes, wait three seconds, then record the max action
             // This will make the unread indicator go away if you receive comments in the same chat you're looking at
             if (Visibility.isVisible()) {
                 this.timers.push(setTimeout(this.recordMaxAction, 3000));
@@ -171,6 +167,20 @@ class ReportActionsView extends React.Component {
         }
 
         this.shouldShowUnreadActionIndicator = false;
+    }
+
+    /**
+     * Actions to run when the report has been updated
+     * @param {Number} oldReportID
+     */
+    reset(oldReportID) {
+        // Unsubscribe from previous report and resubscribe
+        unsubscribeFromReportChannel(oldReportID);
+        subscribeToReportTypingEvents(this.props.reportID);
+        Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD);
+
+        // Fetch the new set of actions
+        fetchActions(this.props.reportID);
     }
 
     /**
