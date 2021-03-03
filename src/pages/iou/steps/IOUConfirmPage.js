@@ -1,5 +1,5 @@
 import React from 'react';
-import View from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Avatar from '../../../components/Avatar';
 import styles from '../../../styles/styles';
