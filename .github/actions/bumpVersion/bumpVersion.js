@@ -3,7 +3,7 @@ const exec = promisify(require('child_process').exec);
 const fs = require('fs');
 const core = require('@actions/core');
 const github = require('@actions/github');
-const {generateAndroidVersionCode, updateAndroidVersion, updateiOSVersion} = require('../../libs/nativeVersionUpdater');
+const {updateAndroidVersion, updateiOSVersion} = require('../../libs/nativeVersionUpdater');
 
 /**
  * Update the native app versions.
@@ -14,8 +14,7 @@ function updateNativeVersions(newVersion) {
     console.log(`Updating native versions to ${newVersion}`);
 
     // Update Android
-    const androidVersionCode = generateAndroidVersionCode(newVersion);
-    updateAndroidVersion(newVersion, androidVersionCode)
+    updateAndroidVersion(newVersion)
         .then(() => {
             console.log('Successfully updated Android!');
         })
