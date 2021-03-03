@@ -44,7 +44,7 @@ jobs:
               uses: nick-invision/retry@7c68161adf97a48beb850a595b8784ec57a98cbb
               with:
                 timeout_minutes: 10
-                max_attempts: 10
+                max_attempts: 5
                 command: npm ci
 
             - name: Build web
