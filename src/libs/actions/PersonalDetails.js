@@ -150,7 +150,16 @@ function getFromReportParticipants(reports) {
 
     API.PersonalDetails_GetForEmails({emailList: participantEmails.join(',')})
         .then((data) => {
-            const details = _.pick(data, participantEmails);
+            const existingDetails = _.pick(data, participantEmails);
+
+            // Fallback to add logins that don't appear in the response
+            const details = participantEmails
+                .filter(login => !data[login])
+                .reduce((acc, login) => ({
+                    ...acc,
+                    [login]: {}, // Simply just need the key to exist
+                }), existingDetails);
+
             const formattedPersonalDetails = formatPersonalDetails(details);
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, formattedPersonalDetails);
 
