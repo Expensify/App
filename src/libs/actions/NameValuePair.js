@@ -7,7 +7,7 @@ import * as API from '../API';
  *
  * @param {String} name
  * @param {String} onyxKey
- * @param {Mixed} [defaultValue]
+ * @param {*} [defaultValue]
  */
 function get(name, onyxKey, defaultValue) {
     API.Get({
@@ -24,7 +24,7 @@ function get(name, onyxKey, defaultValue) {
  * Sets the value for an NVP
  *
  * @param {String} name
- * @param {Mixed} value
+ * @param {*} value
  * @param {String} [onyxKeyName]
  */
 function set(name, value, onyxKeyName) {

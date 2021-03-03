@@ -21,12 +21,6 @@ Onyx.connect({
     callback: val => personalDetails = val,
 });
 
-let myPersonalDetails;
-Onyx.connect({
-    key: ONYXKEYS.MY_PERSONAL_DETAILS,
-    callback: val => myPersonalDetails = val,
-});
-
 /**
  * Helper method to return a default avatar
  *
@@ -133,7 +127,7 @@ function fetch() {
             const allPersonalDetails = formatPersonalDetails(data.personalDetailsList);
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, allPersonalDetails);
 
-            myPersonalDetails = allPersonalDetails[currentUserEmail]
+            const myPersonalDetails = allPersonalDetails[currentUserEmail]
                 || {avatar: getAvatar(undefined, currentUserEmail)};
 
             // Add the first and last name to the current user's MY_PERSONAL_DETAILS key
@@ -208,7 +202,10 @@ function getFromReportParticipants(reports) {
  */
 function setPersonalDetails(details) {
     API.PersonalDetails_Update({details});
-    NameValuePair.set(CONST.NVP.TIMEZONE, details.timezone);
+
+    if (details.timezone) {
+        NameValuePair.set(CONST.NVP.TIMEZONE, details.timezone);
+    }
 
     // Update the associated onyx keys
     Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, details);
@@ -224,8 +221,7 @@ function setAvatar(base64image) {
     API.User_UploadAvatar({base64image}).then((response) => {
         // Once we get the s3url back, update the personal details for the user with the new avatar URL
         if (response.jsonCode === 200) {
-            myPersonalDetails.avatar = response.s3url;
-            setPersonalDetails(myPersonalDetails);
+            setPersonalDetails({avatar: response.s3url});
         }
     });
 }
