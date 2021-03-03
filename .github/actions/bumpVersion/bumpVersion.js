@@ -48,10 +48,18 @@ do {
 
                         // tags come from latest to oldest
                         const highestVersion = tags[0];
-                        console.log(highestVersion);
+                        console.log(`Highest version found: ${highestVersion}.`);
 
-                        // should SEMVER_LEVEL default to BUILD?
-                        const semanticVersionLevel = core.getInput('SEMVER_LEVEL', {require: true});
+                        let semanticVersionLevel = core.getInput('SEMVER_LEVEL', {require: true});
+
+                        // SEMVER_LEVEL defaults to BUILD
+                        // it actually would fall to build anyway, but I think it is better to make it explicity
+                        if (!semanticVersionLevel || !Object.values(functions.semanticVersionLevels)
+                            .find(v => v === semanticVersionLevel)) {
+                            // eslint-disable-next-line max-len, semi
+                            console.log(`Invalid input for 'SEMVER_LEVEL': ${semanticVersionLevel},defaulting to: ${functions.semanticVersionLevels.build}`)
+                            semanticVersionLevel = functions.semanticVersionLevels.build;
+                        }
                         const newVersion = functions.incrementVersion(highestVersion, semanticVersionLevel);
 
                         core.setOutput('VERSION', newVersion);
