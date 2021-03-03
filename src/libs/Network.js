@@ -14,9 +14,10 @@ let networkRequestQueue = [];
 // parameters such as authTokens or CSRF tokens, etc.
 let enhanceParameters;
 
-// This method is called when a processing request returns jsonCode: 407 due to an expired session. The queuedRequest
-// object is passed to a callback that will reauthenticate or requeue the request if we are already authenticating.
-let onAuthTokenExpired;
+// These handlers must be registered in order to process the response or network errors returned from the queue.
+// The first argument passed will be the queuedRequest object and the second will be either the response or error.
+let onResponse = () => {};
+let onError = () => {};
 
 // We subscribe to changes to the online/offline status of the network to determine when we should fire off API calls
 // vs queueing them for later.
@@ -155,15 +156,8 @@ function processNetworkRequestQueue() {
         }
 
         HttpUtils.xhr(queuedRequest.command, finalParameters, queuedRequest.type)
-            .then((response) => {
-                if (response.jsonCode === 407) {
-                    onAuthTokenExpired(queuedRequest, response);
-                    return;
-                }
-
-                return queuedRequest.resolve(response);
-            })
-            .catch(queuedRequest.reject);
+            .then(response => onResponse(queuedRequest, response))
+            .catch(error => onError(queuedRequest, error));
     });
 
     // We clear the request queue at the end by setting the queue to retryableRequests which will either have some
@@ -178,11 +172,11 @@ setInterval(processNetworkRequestQueue, 1000);
  * Perform a queued post request
  *
  * @param {String} command
- * @param {*} data
- * @param {String} type
+ * @param {*} [data]
+ * @param {String} [type]
  * @returns {Promise}
  */
-function post(command, data, type) {
+function post(command, data = {}, type = 'post') {
     return new Promise((resolve, reject) => {
         // Add the write request to a queue of actions to perform
         networkRequestQueue.push({
@@ -234,8 +228,17 @@ function clearRequestQueue() {
  * Register a method to call when the authToken expires
  * @param {Function} callback
  */
-function registerOnAuthTokenExpired(callback) {
-    onAuthTokenExpired = callback;
+function registerResponseHandler(callback) {
+    onResponse = callback;
+}
+
+/**
+ * The error handler will handle fetch() errors. Not used for successful responses that might send expected error codes
+ * e.g. jsonCode: 407.
+ * @param {Function} callback
+ */
+function registerErrorHandler(callback) {
+    onError = callback;
 }
 
 export {
@@ -244,5 +247,6 @@ export {
     unpauseRequestQueue,
     registerParameterEnhancer,
     clearRequestQueue,
-    registerOnAuthTokenExpired,
+    registerResponseHandler,
+    registerErrorHandler,
 };
