@@ -94,7 +94,7 @@ do {
                 newVersion = `${currentPatchVersion}-${highestBuildNumber + 1}`;
                 updateNativeVersions(newVersion);
                 console.log(`Setting npm version for this PR to ${newVersion}`);
-                return exec(`npm version ${newVersion} -m "Update version to ${newVersion}"`);
+                return exec(`npm version ${newVersion} --force -m "Update version to ${newVersion}"`);
             })
             .then(({stdout}) => {
                 // NPM and native versions successfully updated - don't retry.
@@ -169,7 +169,7 @@ exports.generateAndroidVersionCode = function generateAndroidVersionCode(npmVers
 };
 
 /**
- * Update the Android app version.
+ * Update the Android app versionName and versionCode.
  *
  * @param {String} versionName
  * @param {String} versionCode
@@ -187,6 +187,7 @@ exports.updateAndroidVersion = function updateAndroidVersion(versionName, versio
 
 /**
  * Update the iOS app version.
+ * Updates the CFBundleShortVersionString and the CFBundleVersion.
  *
  * @param {String} version
  * @returns {Promise}
