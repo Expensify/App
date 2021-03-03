@@ -51,11 +51,21 @@ class IOUModal extends Component {
             steps: [StepType.IOUAmount, StepType.IOUParticipants, StepType.IOUConfirm],
             currentStepIndex: 0,
             hasMultipleParticipants: this.props.currentURL === ROUTES.IOU_GROUP_SPLIT,
+            amountState: {
+                isLoading: true
+            },
+            participantsState: {
+                isLoading: true
+            },
+            confirmState: {
+                isLoading: false
+            }
         };
 
         this.getTitleForStep = this.getTitleForStep.bind(this);
         this.navigateToPreviousStep = this.navigateToPreviousStep.bind(this);
         this.navigateToNextStep = this.navigateToNextStep.bind(this);
+        this.createIOUReport = this.createIOUReport.bind(this);
     }
 
     /**
@@ -82,6 +92,10 @@ class IOUModal extends Component {
 
     navigateToNextStep() {
         this.setState(prevState => ({currentStepIndex: prevState.currentStepIndex + 1}));
+    }
+
+    createIOUReport() {
+        this.setState({confirmState: { isLoading: true }})
     }
 
     render() {
@@ -126,19 +140,24 @@ class IOUModal extends Component {
                 && (
                     <IOUAmountPage
                         onStepComplete={() => this.navigateToNextStep()}
+                        isLoading={this.state.amountState.isLoading}
                     />
                 )}
                 {this.state.steps[this.state.currentStepIndex] === StepType.IOUParticipants
                 && (
                     <IOUParticipantsPage
                         onStepComplete={() => this.navigateToNextStep()}
+                        isLoading={this.state.participantsState.isLoading}
                         hasMultipleParticipants={this.state.hasMultipleParticipants}
                     />
                 )}
                 {this.state.steps[this.state.currentStepIndex] === StepType.IOUConfirm
                 && (
                     <IOUConfirmPage
-                        onStepComplete={() => redirectToLastReport()}
+                        onConfirm={() => this.createIOUReport()}
+                        isLoading={this.state.confirmState.isLoading}
+                        participants={[]}
+                        iouAmount={42}
                     />
                 )}
             </Modal>
