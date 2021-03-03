@@ -34,7 +34,7 @@ jobs:
 
             - name: Generate version
               id: generate-new-version
-              uses: Expensify/Expensify.cash/.github/actions/bumpVersion@master
+              uses: ./.github/actions/bumpVersion
               with:
                   GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
                   SEMVER_LEVEL: Patch
