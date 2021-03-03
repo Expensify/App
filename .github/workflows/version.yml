@@ -37,7 +37,7 @@ jobs:
               uses: ./.github/actions/bumpVersion
               with:
                   GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-                  SEMVER_LEVEL: Patch
+                  SEMVER_LEVEL: PATCH
             
             - name: Print new version
               run: echo "New version is ${{steps.generate-new-version.outputs.VERSION}}"
