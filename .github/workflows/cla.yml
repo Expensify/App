@@ -35,4 +35,4 @@ jobs:
                   branch: 'master'
                   remote-organization-name: 'Expensify'
                   remote-repository-name: 'CLA'
-                  allowlist: botify
+                  allowlist: OSBotify
