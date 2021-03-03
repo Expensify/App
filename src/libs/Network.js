@@ -230,6 +230,10 @@ function clearRequestQueue() {
     networkRequestQueue = [];
 }
 
+/**
+ * Register a method to call when the authToken expires
+ * @param {Function} callback
+ */
 function registerOnAuthTokenExpired(callback) {
     onAuthTokenExpired = callback;
 }
