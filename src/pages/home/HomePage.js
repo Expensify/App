@@ -126,7 +126,7 @@ class HomePage extends PureComponent {
                     <RightDockedModal route={ROUTES.SEARCH}>
                         <SearchPage />
                     </RightDockedModal>
-                    <RightDockedModal route={ROUTES.PROFILE}>
+                    <RightDockedModal route="/profile/">
                         <ProfilePage />
                     </RightDockedModal>
                 </Route>

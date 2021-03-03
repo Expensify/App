@@ -1,15 +1,11 @@
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
-import {withRouter} from 'react-router-dom';
+import {withOnyx} from 'react-native-onyx';
 import CONST from '../CONST';
 import themeColors from '../styles/themes/default';
+import ONYXKEYS from '../ONYXKEYS';
 import Modal from './Modal';
 import {redirectToLastReport} from '../libs/actions/App';
-
-const matchType = PropTypes.shape({
-    // Current path of navigation
-    path: PropTypes.string,
-});
 
 /**
  * Right-docked modal view showing a user's settings.
@@ -19,19 +15,25 @@ const propTypes = {
     children: PropTypes.node.isRequired,
 
     // Route constant to show modal
-    route: PropTypes.string.isRequired,
+    route: PropTypes.string,
 
-    // Router details
-    match: matchType.isRequired,
+    /* Onyx Props */
+    // Url currently in view
+    currentURL: PropTypes.string,
+};
+
+const defaultProps = {
+    route: '',
+    currentURL: '',
 };
 
 const RightDockedModal = memo(({
-    route, children, match,
+    route, children, currentURL,
 }) => (
     <Modal
         type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
         onClose={redirectToLastReport}
-        isVisible={match.path === route}
+        isVisible={currentURL.includes(route)}
         backgroundColor={themeColors.componentBG}
     >
         {children}
@@ -39,6 +41,11 @@ const RightDockedModal = memo(({
 ));
 
 RightDockedModal.propTypes = propTypes;
+RightDockedModal.defaultProps = defaultProps;
 RightDockedModal.displayName = 'RightDockedModal';
 
-export default withRouter(RightDockedModal);
+export default withOnyx({
+    currentURL: {
+        key: ONYXKEYS.CURRENT_URL,
+    },
+})(RightDockedModal);
