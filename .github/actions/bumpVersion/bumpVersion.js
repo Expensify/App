@@ -3,7 +3,17 @@ const exec = promisify(require('child_process').exec);
 const fs = require('fs');
 const core = require('@actions/core');
 const github = require('@actions/github');
-const {generateAndroidVersionCode, updateAndroidVersion, updateiOSVersion} = require('../../libs/nativeVersionUpdater');
+const {
+    BUILD_GRADLE_PATH,
+    PLIST_PATH,
+    PLIST_PATH_TEST,
+    generateAndroidVersionCode,
+    updateAndroidVersion,
+    updateiOSVersion,
+} = require('../../libs/nativeVersionUpdater');
+
+const PACKAGE_JSON_PATH = './package.json';
+const PACKAGE_LOCK_PATH = './package-lock.json';
 
 /**
  * Update the native app versions.
@@ -54,7 +64,7 @@ do {
 
     if (errCount < MAX_RETRIES) {
         // Determine current patch version
-        const {version} = JSON.parse(fs.readFileSync('./package.json'));
+        const {version} = JSON.parse(fs.readFileSync(PACKAGE_JSON_PATH));
         const currentPatchVersion = version.split('-')[0];
         console.log('Current patch version:', currentPatchVersion);
 
@@ -84,11 +94,17 @@ do {
                 newVersion = `${currentPatchVersion}-${highestBuildNumber + 1}`;
                 updateNativeVersions(newVersion);
                 console.log(`Setting npm version for this PR to ${newVersion}`);
-                return exec(`npm version ${newVersion} --force -m "Update version to ${newVersion}"`);
+                return exec(`npm --no-git-tag-version version ${newVersion} -m "Update version to ${newVersion}"`);
             })
             .then(({stdout}) => {
-                // NPM and native versions successfully updated - don't retry.
+                // NPM and native versions successfully updated, create a tag
                 console.log(stdout);
+                const addCommand = `git add ${
+                    [PACKAGE_JSON_PATH, PACKAGE_LOCK_PATH, BUILD_GRADLE_PATH, PLIST_PATH, PLIST_PATH_TEST].join(' ')
+                }`;
+                const commitCommand = `git commit -m "Update version to ${newVersion}`;
+                const tagCommand = `git tag ${newVersion} && git push --tags`;
+                return exec(`${[addCommand, commitCommand, tagCommand].join(' && ')}`);
             })
             // eslint-disable-next-line no-loop-func
             .catch(({stdout, stderr}) => {

@@ -13,7 +13,17 @@ const exec = promisify(__nccwpck_require__(3129).exec);
 const fs = __nccwpck_require__(5747);
 const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
-const {generateAndroidVersionCode, updateAndroidVersion, updateiOSVersion} = __nccwpck_require__(322);
+const {
+    BUILD_GRADLE_PATH,
+    PLIST_PATH,
+    PLIST_PATH_TEST,
+    generateAndroidVersionCode,
+    updateAndroidVersion,
+    updateiOSVersion,
+} = __nccwpck_require__(322);
+
+const PACKAGE_JSON_PATH = './package.json';
+const PACKAGE_LOCK_PATH = './package-lock.json';
 
 /**
  * Update the native app versions.
@@ -64,7 +74,7 @@ do {
 
     if (errCount < MAX_RETRIES) {
         // Determine current patch version
-        const {version} = JSON.parse(fs.readFileSync('./package.json'));
+        const {version} = JSON.parse(fs.readFileSync(PACKAGE_JSON_PATH));
         const currentPatchVersion = version.split('-')[0];
         console.log('Current patch version:', currentPatchVersion);
 
@@ -94,11 +104,17 @@ do {
                 newVersion = `${currentPatchVersion}-${highestBuildNumber + 1}`;
                 updateNativeVersions(newVersion);
                 console.log(`Setting npm version for this PR to ${newVersion}`);
-                return exec(`npm version ${newVersion} --force -m "Update version to ${newVersion}"`);
+                return exec(`npm --no-git-tag-version version ${newVersion} -m "Update version to ${newVersion}"`);
             })
             .then(({stdout}) => {
-                // NPM and native versions successfully updated - don't retry.
+                // NPM and native versions successfully updated, create a tag
                 console.log(stdout);
+                const addCommand = `git add ${
+                    [PACKAGE_JSON_PATH, PACKAGE_LOCK_PATH, BUILD_GRADLE_PATH, PLIST_PATH, PLIST_PATH_TEST].join(' ')
+                }`;
+                const commitCommand = `git commit -m "Update version to ${newVersion}`;
+                const tagCommand = `git tag ${newVersion} && git push --tags`;
+                return exec(`${[addCommand, commitCommand, tagCommand].join(' && ')}`);
             })
             // eslint-disable-next-line no-loop-func
             .catch(({stdout, stderr}) => {
@@ -134,6 +150,10 @@ const BUILD_GRADLE_PATH = process.env.NODE_ENV === 'test'
     : './android/app/build.gradle';
 const PLIST_PATH = './ios/ExpensifyCash/Info.plist';
 const PLIST_PATH_TEST = './ios/ExpensifyCashTests/Info.plist';
+
+exports.BUILD_GRADLE_PATH = BUILD_GRADLE_PATH;
+exports.PLIST_PATH = PLIST_PATH;
+exports.PLIST_PATH_TEST = PLIST_PATH_TEST;
 
 /**
  * Pad a number to be three digits (with leading zeros if necessary).

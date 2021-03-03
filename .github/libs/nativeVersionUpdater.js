@@ -14,6 +14,10 @@ const BUILD_GRADLE_PATH = process.env.NODE_ENV === 'test'
 const PLIST_PATH = './ios/ExpensifyCash/Info.plist';
 const PLIST_PATH_TEST = './ios/ExpensifyCashTests/Info.plist';
 
+exports.BUILD_GRADLE_PATH = BUILD_GRADLE_PATH;
+exports.PLIST_PATH = PLIST_PATH;
+exports.PLIST_PATH_TEST = PLIST_PATH_TEST;
+
 /**
  * Pad a number to be three digits (with leading zeros if necessary).
  *
