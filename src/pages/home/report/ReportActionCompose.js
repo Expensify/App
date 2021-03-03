@@ -29,11 +29,17 @@ const propTypes = {
 
     isSidebarShown: PropTypes.bool.isRequired,
 
+    currentURL: PropTypes.string,
+
+    isModalShown: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     comment: '',
+    isModalShown: false,
+    currentURL: '',
 };
 
 class ReportActionCompose extends React.Component {
@@ -62,6 +68,9 @@ class ReportActionCompose extends React.Component {
         if (this.props.comment && prevProps.comment === '' && prevProps.comment !== this.props.comment) {
             this.comment = this.props.comment;
         }
+        if (this.props.currentURL !== prevProps.currentURL) {
+            this.setIsFocused(!this.props.isModalShown);
+        }
     }
 
     /**
@@ -71,6 +80,9 @@ class ReportActionCompose extends React.Component {
      */
     setIsFocused(shouldHighlight) {
         this.setState({isFocused: shouldHighlight});
+        if (shouldHighlight) {
+            this.textInput?.focus();
+        }
     }
 
     /**
@@ -250,6 +262,12 @@ export default compose(
         },
         isSidebarShown: {
             key: ONYXKEYS.IS_SIDEBAR_SHOWN,
+        },
+        currentURL: {
+            key: ONYXKEYS.CURRENT_URL,
+        },
+        isModalShown: {
+            key: ONYXKEYS.MODAL.IS_MODAL_SHOWN,
         },
     }),
     withWindowDimensions,

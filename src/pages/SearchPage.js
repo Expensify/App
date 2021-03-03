@@ -14,6 +14,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../components/wit
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import HeaderGap from '../components/HeaderGap';
+import {modalHide} from '../libs/actions/Modal';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -53,6 +54,7 @@ class SearchPage extends Component {
         super(props);
 
         this.selectReport = this.selectReport.bind(this);
+        this.onClose = this.onClose.bind(this);
 
         const {
             recentReports,
@@ -68,6 +70,11 @@ class SearchPage extends Component {
             recentReports,
             personalDetails,
         };
+    }
+
+    onClose() {
+        modalHide();
+        redirectToLastReport();
     }
 
     /**
@@ -97,10 +104,14 @@ class SearchPage extends Component {
         if (option.reportID) {
             this.setState({
                 searchValue: '',
-            }, () => {
+            }, async () => {
                 if (this.props.isSmallScreenWidth) {
                     hideSidebar();
                 }
+                modalHide();
+
+                // Wait for modal animate out
+                await new Promise(r => setTimeout(r, 330));
                 redirect(ROUTES.getReportRoute(option.reportID));
             });
         } else {
@@ -123,7 +134,7 @@ class SearchPage extends Component {
                 <HeaderGap />
                 <HeaderWithCloseButton
                     title="Search"
-                    onCloseButtonPress={redirectToLastReport}
+                    onCloseButtonPress={this.onClose}
                 />
                 <View style={[styles.flex1, styles.w100]}>
                     <OptionsSelector

@@ -19,6 +19,8 @@ import {getDefaultAvatar} from '../../../libs/actions/PersonalDetails';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
 import HeaderGap from '../../../components/HeaderGap';
 import CONST from '../../../CONST';
+import {modalShow} from '../../../libs/actions/Modal';
+import getPlatform from '../../../libs/getPlatform';
 
 const propTypes = {
     // Toggles the navigation menu open and closed
@@ -84,6 +86,9 @@ const defaultProps = {
 
 class SidebarLinks extends React.Component {
     showSearchPage() {
+        if (['web', 'desktop'].includes(getPlatform())) {
+            modalShow(ROUTES.SEARCH);
+        }
         redirect(ROUTES.SEARCH);
     }
 

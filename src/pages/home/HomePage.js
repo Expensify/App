@@ -31,6 +31,7 @@ import {redirect} from '../../libs/actions/App';
 import RightDockedModal from '../../components/RightDockedModal';
 import {getBetas} from '../../libs/actions/User';
 import Account from '../../libs/actions/Account';
+import {modalShow} from '../../libs/actions/Modal';
 
 const propTypes = {
     network: PropTypes.shape({isOffline: PropTypes.bool}),
@@ -82,6 +83,7 @@ class HomePage extends PureComponent {
 
         // Listen for the Command+K key being pressed so the focus can be given to the chat switcher
         KeyboardShortcut.subscribe('K', () => {
+            modalShow(ROUTES.SEARCH);
             redirect(ROUTES.SEARCH);
         }, ['meta'], true);
     }
