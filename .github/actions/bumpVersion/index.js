@@ -13,21 +13,19 @@ const exec = promisify(__nccwpck_require__(3129).exec);
 const fs = __nccwpck_require__(5747);
 const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
-const semverClean = __nccwpck_require__(8848);
 const {generateAndroidVersionCode, updateAndroidVersion, updateiOSVersion} = __nccwpck_require__(322);
 
 /**
- * A callback function for a successful `npm version` command.
+ * Update the native app versions.
  *
  * @param {String} newVersion
  */
-function postVersionUpdateNative(newVersion) {
-    const cleanNewVersion = semverClean(newVersion);
-    console.log(`Updated npm version to ${cleanNewVersion}! Updating native versions...`);
+function updateNativeVersions(newVersion) {
+    console.log(`Updating native versions to ${newVersion}`);
 
     // Update Android
-    const androidVersionCode = generateAndroidVersionCode(cleanNewVersion);
-    updateAndroidVersion(cleanNewVersion, androidVersionCode)
+    const androidVersionCode = generateAndroidVersionCode(newVersion);
+    updateAndroidVersion(newVersion, androidVersionCode)
         .then(() => {
             console.log('Successfully updated Android!');
         })
@@ -37,7 +35,7 @@ function postVersionUpdateNative(newVersion) {
         });
 
     // Update iOS
-    updateiOSVersion(cleanNewVersion)
+    updateiOSVersion(newVersion)
         .then(() => {
             console.log('Successfully updated iOS!');
         })
@@ -57,71 +55,62 @@ let shouldRetry;
 
 do {
     shouldRetry = false;
-    exec('npm version prerelease -m "Update version to %s"')
-        .then(({stdout}) => {
-            postVersionUpdateNative(stdout);
-        })
-        // eslint-disable-next-line no-loop-func
-        .catch((err) => {
-            console.log(err.stdout);
-            console.log(err.stderr);
+    if (errCount > 0) {
+        console.log(
+            'Err: npm version conflict, attempting to automatically resolve',
+            `retryCount: ${++errCount}`,
+        );
+    }
 
-            // It's possible that two PRs were merged in rapid succession.
-            // In this case, both PRs will attempt to update to the same npm version.
-            // This will cause the deploy to fail with an exit code 128,
-            // saying the git tag for that version already exists.
-            if (errCount < MAX_RETRIES) {
-                console.log(
-                    'Err: npm version conflict, attempting to automatically resolve',
-                    `retryCount: ${++errCount}`,
+    if (errCount < MAX_RETRIES) {
+        // Determine current patch version
+        const {version} = JSON.parse(fs.readFileSync('./package.json'));
+        const currentPatchVersion = version.split('-')[0];
+        console.log('Current patch version:', currentPatchVersion);
+
+        let newVersion;
+
+        // Fetch tags
+        console.log('Fetching tags from github...');
+        const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
+        return octokit.repos.listTags({
+            owner: repoOwner,
+            repo: repoName,
+        })
+            .catch(githubError => core.setFailed(githubError))
+            .then((githubResponse) => {
+                // Find the highest build version git tag
+                const tags = githubResponse.data.map(tag => tag.name);
+                console.log('Tags: ', tags);
+                const highestBuildNumber = Math.max(
+                    ...(tags
+                        .filter(tag => (tag.startsWith(currentPatchVersion)))
+                        .map(tag => tag.split('-')[1])
+                    ),
                 );
+                console.log('Highest build number from current patch version:', highestBuildNumber);
+
+                // Increment the build version, update the native and npm versions.
+                newVersion = `${currentPatchVersion}-${highestBuildNumber + 1}`;
+                updateNativeVersions(newVersion);
+                console.log(`Setting npm version for this PR to ${newVersion}`);
+                return exec(`npm version ${newVersion} --force -m "Update version to ${newVersion}"`);
+            })
+            .then(({stdout}) => {
+                // NPM and native versions successfully updated - don't retry.
+                console.log(stdout);
+            })
+            // eslint-disable-next-line no-loop-func
+            .catch(({stdout, stderr}) => {
+                // Log errors and retry
+                console.log(stdout);
+                console.error(stderr);
                 shouldRetry = true;
-                const {version} = JSON.parse(fs.readFileSync('./package.json'));
-                const currentPatchVersion = `v${version.split('-')[0]}`;
-                console.log('Current patch version:', currentPatchVersion);
+            });
+    }
 
-                // Fetch tags
-                console.log('Fetching tags from github...');
-                const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
-                return octokit.repos.listTags({
-                    owner: repoOwner,
-                    repo: repoName,
-                })
-                    .then(githubResponse => ({currentPatchVersion, githubResponse}))
-                    .catch(githubError => core.setFailed(githubError));
-            }
-
-            // Maximum retries reached, fail this action.
-            core.setFailed(err);
-        })
-        .then(({currentPatchVersion, githubResponse}) => {
-            // Find the highest build version git tag
-            const tags = githubResponse.data.map(tag => tag.name);
-            console.log('Tags: ', tags);
-            const highestBuildNumber = Math.max(
-                ...(tags
-                    .filter(tag => tag.startsWith(currentPatchVersion))
-                    .map(tag => tag.split('-')[1])
-                ),
-            );
-            console.log('Highest build number from current patch version:', highestBuildNumber);
-
-            // Bump the build number again
-            const newBuildNumber = `${currentPatchVersion}-${highestBuildNumber + 1}`;
-            console.log(`Setting npm version for this PR to ${newBuildNumber}`);
-            return exec(`npm version ${newBuildNumber} -m "Update version to ${newBuildNumber}"`);
-        })
-        // eslint-disable-next-line no-loop-func
-        .then(({stdout}) => {
-            // NPM version successfully updated, update native versions - don't retry.
-            postVersionUpdateNative(stdout);
-            shouldRetry = false;
-        })
-        .catch(({stdout, stderr}) => {
-            // Log errors and retry
-            console.log(stdout);
-            console.error(stderr);
-        });
+    // Maximum retries reached, fail this action.
+    core.setFailed('Maximum retries reached, something is wrong with this action.');
 } while (shouldRetry);
 
 
@@ -180,7 +169,7 @@ exports.generateAndroidVersionCode = function generateAndroidVersionCode(npmVers
 };
 
 /**
- * Update the Android app version.
+ * Update the Android app versionName and versionCode.
  *
  * @param {String} versionName
  * @param {String} versionCode
@@ -198,6 +187,7 @@ exports.updateAndroidVersion = function updateAndroidVersion(versionName, versio
 
 /**
  * Update the iOS app version.
+ * Updates the CFBundleShortVersionString and the CFBundleVersion.
  *
  * @param {String} version
  * @returns {Promise}
@@ -9125,19 +9115,6 @@ class SemVer {
 }
 
 module.exports = SemVer
-
-
-/***/ }),
-
-/***/ 8848:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const parse = __nccwpck_require__(5925)
-const clean = (version, options) => {
-  const s = parse(version.trim().replace(/^[=v]+/, ''), options)
-  return s ? s.version : null
-}
-module.exports = clean
 
 
 /***/ }),

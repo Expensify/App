@@ -48,7 +48,7 @@ exports.generateAndroidVersionCode = function generateAndroidVersionCode(npmVers
 };
 
 /**
- * Update the Android app version.
+ * Update the Android app versionName and versionCode.
  *
  * @param {String} versionName
  * @param {String} versionCode
@@ -66,6 +66,7 @@ exports.updateAndroidVersion = function updateAndroidVersion(versionName, versio
 
 /**
  * Update the iOS app version.
+ * Updates the CFBundleShortVersionString and the CFBundleVersion.
  *
  * @param {String} version
  * @returns {Promise}
