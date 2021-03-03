@@ -4,6 +4,9 @@ inputs:
     GITHUB_TOKEN:
         description: Auth token for Expensify.cash Github
         required: true
+    SEMVER_LEVEL:
+        description: Semantic Versioning Level
+        required: true
 runs:
     using: 'node12'
     main: './index.js'
