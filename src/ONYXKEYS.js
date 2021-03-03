@@ -12,6 +12,8 @@ export default {
     // When this key is changed, the active page changes (see Expensify.js and `redirect` in actions/App.js)
     APP_REDIRECT_TO: 'appRedirectTo',
 
+    NETWORK_REQUEST_QUEUE: 'networkRequestQueue',
+
     // The current URL, you should not change this directly (use `redirect` in App.js)
     CURRENT_URL: 'currentURL',
 
