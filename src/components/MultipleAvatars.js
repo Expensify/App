@@ -33,7 +33,7 @@ const MultipleAvatars = ({avatarImageURLs, optionIsFocused}) => {
     return (
         <View style={styles.emptyAvatar}>
             <View
-                style={[styles.singleAvatar, styles.singleAvatarContainer]}
+                style={styles.singleAvatar}
             >
                 <Image
                     source={{uri: avatarImageURLs[0]}}

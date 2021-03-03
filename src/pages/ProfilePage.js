@@ -117,11 +117,6 @@ const ProfilePage = ({personalDetails, match}) => {
                         </View>
                     </View>
                 ) : null}
-
-                <Text style={[styles.profilePageSectionVersion]} numberOfLines={1}>
-                    v
-                    {version}
-                </Text>
             </View>
         </>
     );
