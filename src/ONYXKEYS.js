@@ -9,6 +9,8 @@ export default {
     // which tab is the leader, and which ones are the followers
     ACTIVE_CLIENTS: 'activeClients2',
 
+    NETWORK_REQUEST_QUEUE: 'networkRequestQueue',
+
     // What the active route is for our navigator. Global route that determines what views to display.
     CURRENT_URL: 'currentURL',
 
@@ -29,6 +31,9 @@ export default {
 
     // Contains the user preference for the LHN priority mode
     PRIORITY_MODE: 'priorityMode',
+
+    // Contains the version of the update that has newly been downloaded.
+    UPDATE_VERSION: 'updateVersion',
 
     // Saves the current country code which is displayed when the user types a phone number without
     // an international code

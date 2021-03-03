@@ -13,13 +13,15 @@ const platformExclude = platform === 'web' ? new RegExp(/\.desktop\.js$/) : new 
 
 const includeModules = [
     'react-native-animatable',
+    'react-native-picker-select',
+    'react-native-web',
+    '@react-native-picker',
     'react-native-modal',
-    'react-native-webview',
     'react-native-onyx',
     'react-native-gesture-handler',
 ].join('|');
 
-module.exports = {
+const webpackConfig = {
     entry: {
         app: './index.js',
     },
@@ -133,3 +135,9 @@ module.exports = {
         extensions: ['.web.js', (platform === 'web') ? '.website.js' : '.desktop.js', '.js', '.jsx'],
     },
 };
+
+if (platform === 'desktop') {
+    webpackConfig.target = 'electron-renderer';
+}
+
+module.exports = webpackConfig;
