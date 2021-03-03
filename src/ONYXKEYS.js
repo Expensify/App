@@ -23,6 +23,9 @@ export default {
     // Credentials to authenticate the user
     CREDENTIALS: 'credentials',
 
+    // IOU Keys
+    IOU: 'iou',
+
     // Contains the personalDetails of the user as well as their timezone
     MY_PERSONAL_DETAILS: 'myPersonalDetails',
 
