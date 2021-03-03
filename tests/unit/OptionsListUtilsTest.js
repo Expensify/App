@@ -314,21 +314,44 @@ describe('OptionsListUtils', () => {
     });
 
     it('getSidebarOptions() with default priority mode', () => {
-        // When we call getSidebarOptions() with no search value
-        const results = OptionsListUtils.getSidebarOptions(REPORTS, PERSONAL_DETAILS, {}, 0, CONST.PRIORITY_MODE.DEFAULT);
+        const reportsWithAddedPinnedMessagelessReport = {
+            ...REPORTS,
+
+            // Note: This report has no lastMessageTimestamp but is also pinned
+            9: {
+                lastVisitedTimestamp: 1610666739300,
+                lastMessageTimestamp: 0,
+                isPinned: true,
+                reportID: 9,
+                participants: ['captain_britain@expensify.com'],
+                reportName: 'Captain Britain',
+            },
+        };
+
+        // When we call getSidebarOptions() with no search value and default priority mode
+        const results = OptionsListUtils.getSidebarOptions(
+            reportsWithAddedPinnedMessagelessReport,
+            PERSONAL_DETAILS,
+            {},
+            0,
+            CONST.PRIORITY_MODE.DEFAULT,
+        );
 
         // Then expect all of the reports to be shown both multiple and single participant except the
-        // report that has no lastMessageTimestamp
-        expect(results.recentReports.length).toBe(_.size(REPORTS) - 1);
+        // unpinned report that has no lastMessageTimestamp
+        expect(results.recentReports.length).toBe(_.size(reportsWithAddedPinnedMessagelessReport) - 1);
+
+        const numberOfPinnedReports = results.recentReports.filter(report => report.isPinned).length;
+        expect(numberOfPinnedReports).toBe(2);
 
         // That no personalDetails are shown
         expect(results.personalDetails.length).toBe(0);
 
-        // And the pinned report is first in the list of reports
-        expect(results.recentReports[0].login).toBe('reedrichards@expensify.com');
+        // And the most recent pinned report is first in the list of reports
+        expect(results.recentReports[0].login).toBe('captain_britain@expensify.com');
 
-        // And the second report is the report with a lastMessageTimestamp
-        expect(results.recentReports[1].login).toBe('steverogers@expensify.com');
+        // And the third report is the report with a lastMessageTimestamp
+        expect(results.recentReports[2].login).toBe('steverogers@expensify.com');
     });
 
     it('getSidebarOptions() with GSD priority mode', () => {
