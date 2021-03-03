@@ -26,9 +26,6 @@ const propTypes = {
     /* Onyx Props */
     // Url currently in view
     currentURL: PropTypes.string,
-
-    // Is this IOU request for a group bill split
-    hasMultipleParticipants: PropTypes.bool,
 };
 
 const StepType = {
@@ -40,7 +37,6 @@ const StepType = {
 const defaultProps = {
     route: '',
     currentURL: '',
-    hasMultipleParticipants: false,
 };
 
 class IOUModal extends Component {
@@ -52,14 +48,14 @@ class IOUModal extends Component {
             currentStepIndex: 0,
             hasMultipleParticipants: this.props.currentURL === ROUTES.IOU_GROUP_SPLIT,
             amountState: {
-                isLoading: true
+                isLoading: true,
             },
             participantsState: {
-                isLoading: true
+                isLoading: true,
             },
             confirmState: {
-                isLoading: false
-            }
+                isLoading: false,
+            },
         };
 
         this.getTitleForStep = this.getTitleForStep.bind(this);
@@ -95,7 +91,7 @@ class IOUModal extends Component {
     }
 
     createIOUReport() {
-        this.setState({confirmState: { isLoading: true }})
+        this.setState({confirmState: {isLoading: true}});
     }
 
     render() {

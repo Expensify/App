@@ -320,7 +320,7 @@ class HomePage extends Component {
                         <SearchPage />
                     </RightDockedModal>
                     <RightDockedModal route={ROUTES.IOU_REQUEST_MONEY}>
-                        <IOUModal route={ROUTES.IOU_REQUEST_MONEY}/>
+                        <IOUModal route={ROUTES.IOU_REQUEST_MONEY} />
                     </RightDockedModal>
                     <RightDockedModal route={ROUTES.IOU_GROUP_SPLIT}>
                         <IOUModal route={ROUTES.IOU_GROUP_SPLIT} />

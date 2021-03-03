@@ -60,7 +60,7 @@ class CreateMenu extends PureComponent {
                 onPress: () => this.setOnModalHide(() => redirect(ROUTES.IOU_REQUEST_MONEY)), // ROUTES.NEW_CHAT
             },
             {
-                text: 'Group Split', // reset
+                text: 'Split Bill', // reset
                 icon: Users,
                 onPress: () => this.setOnModalHide(() => redirect(ROUTES.IOU_GROUP_SPLIT)), // ROUTES.NEW_GROUP
             },
