@@ -6,7 +6,6 @@ import {
     ActivityIndicator,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import Avatar from '../../../components/Avatar';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 
@@ -20,7 +19,6 @@ const propTypes = {
 
 const IOUAmountPage = props => (
     <View style={styles.settingsWrapper}>
-        <Avatar source="https://http.cat/101" />
         {props.isLoading && <ActivityIndicator color={themeColors.text} />}
         <TouchableOpacity
             style={[styles.button, styles.w100, styles.mt5]}

@@ -6,7 +6,6 @@ import {
     ActivityIndicator,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import Avatar from '../../../components/Avatar';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 
@@ -23,7 +22,6 @@ const propTypes = {
 
 const IOUParticipantsPage = props => (
     <View style={styles.settingsWrapper}>
-        <Avatar source="https://http.cat/102" />
         <Text style={[styles.buttonText]}>
             {props.hasMultipleParticipants ? '// group' : '// single'}
         </Text>
