@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import React, {PureComponent} from 'react';
 import {
     TouchableOpacity, Text,
