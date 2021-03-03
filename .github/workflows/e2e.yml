@@ -23,7 +23,11 @@ jobs:
               run: bundle install
 
             - name: Install node packages
-              run: npm install
+              uses: nick-invision/retry@7c68161adf97a48beb850a595b8784ec57a98cbb
+              with:
+                timeout_minutes: 10
+                max_attempts: 10
+                command: npm ci
 
             - name: Install detox
               run: npm install -g detox-cli

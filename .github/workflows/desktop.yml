@@ -19,7 +19,11 @@ jobs:
                 node-version: '14.x'
 
             - name: Install node packages
-              run: npm ci -ddd
+              uses: nick-invision/retry@7c68161adf97a48beb850a595b8784ec57a98cbb
+              with:
+                timeout_minutes: 10
+                max_attempts: 10
+                command: npm ci
 
             - name: Decrypt Developer ID Certificate
               run: cd desktop && gpg --quiet --batch --yes --decrypt --passphrase="$DEVELOPER_ID_SECRET_PASSPHRASE" --output developer_id.p12 developer_id.p12.gpg
