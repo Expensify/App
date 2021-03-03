@@ -84,10 +84,10 @@ const ProfilePage = ({personalDetails, match}) => {
                             </Text>
                             {profileDetails.login && (
                             <View style={[styles.mb6, styles.profilePageSectionContainer]}>
-                                <Text style={[styles.profilePageLabel, styles.mb2]} numberOfLines={1}>
+                                <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
                                     {Str.isSMSLogin(profileDetails.login) ? 'Phone Number' : 'Email'}
                                 </Text>
-                                <Text style={[styles.profilePageLabel]} numberOfLines={1}>
+                                <Text style={[styles.textP]} numberOfLines={1}>
                                     {Str.isSMSLogin(profileDetails.login)
                                         ? Str.removeSMSDomain(profileDetails.login)
                                         : profileDetails.login}
@@ -96,20 +96,20 @@ const ProfilePage = ({personalDetails, match}) => {
                             )}
                             {profileDetails.pronouns && (
                             <View style={[styles.mb6, styles.profilePageSectionContainer]}>
-                                <Text style={[styles.profilePageLabel, styles.mb2]} numberOfLines={1}>
+                                <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
                                     Preferred Pronouns
                                 </Text>
-                                <Text style={[styles.profilePageLabel]} numberOfLines={1}>
+                                <Text style={[styles.textP]} numberOfLines={1}>
                                     {profileDetails.pronouns}
                                 </Text>
                             </View>
                             )}
                             {profileDetails.timezone && (
                             <View style={[styles.mb6, styles.profilePageSectionContainer]}>
-                                <Text style={[styles.profilePageLabel, styles.mb2]} numberOfLines={1}>
+                                <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
                                     Local Time
                                 </Text>
-                                <Text style={[styles.profilePageLabel]} numberOfLines={1}>
+                                <Text style={[styles.textP]} numberOfLines={1}>
                                     {moment().tz(profileDetails.timezone).format('LT')}
                                 </Text>
                             </View>
