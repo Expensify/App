@@ -768,10 +768,6 @@ const styles = {
         borderRightWidth: 0,
     },
 
-    singleAvatarContainer: {
-        marginTop: -2,
-    },
-
     singleAvatar: {
         height: 24,
         width: 24,
