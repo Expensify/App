@@ -34,7 +34,7 @@ jobs:
 
             - name: Generate version
               id: generate-new-version
-              uses: ${{ github.repository }}/.github/actions/bumpVersion
+              uses: "${{ github.repository }}/.github/actions/bumpVersion"
               with:
                   GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
                   SEMVER_LEVEL: PATCH
