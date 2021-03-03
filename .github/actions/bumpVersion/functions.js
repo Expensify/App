@@ -1,4 +1,5 @@
-const {exec} = require('child_process');
+const utils = require('util');
+const exec = utils.promisify(require('child_process').exec);
 
 const semanticVersionLevels = {
     major: 'MAJOR',
@@ -50,18 +51,9 @@ const incrementVersion = (version, level) => {
     return incrementPatch(major, minor, patch);
 };
 
-const execUpdateToNewVersion = (version) => {
-    exec(
-        `npm version ${version} -m "Update version to ${version}"`,
-        // eslint-disable-next-line no-shadow
-        (err, stdout, stderr) => {
-            console.log(stdout);
-            if (err) {
-                console.log(stderr);
-            }
-        },
-    );
-};
+const execUpdateToNewVersion = async version => exec(
+    `npm version ${version} -m "Update version to ${version}"`,
+);
 
 module.exports = {
     execUpdateToNewVersion,
