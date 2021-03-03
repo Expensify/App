@@ -29,17 +29,15 @@ const propTypes = {
 
     isSidebarShown: PropTypes.bool.isRequired,
 
-    currentURL: PropTypes.string,
+    currentURL: PropTypes.string.isRequired,
 
-    isModalShown: PropTypes.bool,
+    isModalShown: PropTypes.bool.isRequired,
 
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     comment: '',
-    isModalShown: false,
-    currentURL: '',
 };
 
 class ReportActionCompose extends React.Component {

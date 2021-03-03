@@ -22,16 +22,14 @@ const propTypes = {
     // Url currently in view
     currentURL: PropTypes.string,
 
-    isModalShown: PropTypes.bool,
+    isModalShown: PropTypes.bool.isRequired,
 
-    modalType: PropTypes.string,
+    modalType: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
     route: '',
     currentURL: '',
-    isModalShown: false,
-    modalType: '',
 };
 
 class RightDockedModal extends PureComponent {

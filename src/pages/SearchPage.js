@@ -15,6 +15,7 @@ import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import HeaderGap from '../components/HeaderGap';
 import {modalHide} from '../libs/actions/Modal';
+import getPlatform from '../libs/getPlatform';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -73,7 +74,9 @@ class SearchPage extends Component {
     }
 
     onClose() {
-        modalHide();
+        if (['web', 'desktop'].includes(getPlatform())) {
+            modalHide();
+        }
         redirectToLastReport();
     }
 
@@ -108,10 +111,12 @@ class SearchPage extends Component {
                 if (this.props.isSmallScreenWidth) {
                     hideSidebar();
                 }
-                modalHide();
+                if (['web', 'desktop'].includes(getPlatform())) {
+                    modalHide();
 
-                // Wait for modal animate out
-                await new Promise(r => setTimeout(r, 330));
+                    // Wait for modal animate out
+                    await new Promise(r => setTimeout(r, 330));
+                }
                 redirect(ROUTES.getReportRoute(option.reportID));
             });
         } else {
