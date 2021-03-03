@@ -1,11 +1,13 @@
 const {exec} = require('child_process');
-const fs = require('fs');
+
+// const fs = require('fs');
 const core = require('@actions/core');
 const github = require('@actions/github');
+const functions = require('./functions');
 
 // Use Github Actions' default environment variables to get repo information
 // https://docs.github.com/en/free-pro-team@latest/actions/reference/environment-variables#default-environment-variables
-const [repoOwner, repoName] = process.env.GITHUB_REPOSITORY.split('/');
+// const [repoOwner, repoName] = process.env.GITHUB_REPOSITORY.split('/');
 
 const MAX_RETRIES = 10;
 let errCount = 0;
@@ -29,38 +31,32 @@ do {
                     `retryCount: ${++errCount}`,
                 );
                 shouldRetry = true;
-                const {version} = JSON.parse(fs.readFileSync('./package.json'));
-                const currentPatchVersion = `v${version.slice(0, -4)}`;
-                console.log('Current patch version:', currentPatchVersion);
 
-                // Get the highest build version git tag from the repo
+                // const { version } = JSON.parse(fs.readFileSync('./package.json'));
+
+                // const currentPatchVersion = `v${version.slice(0, -4)}`;
+                // console.log('Current patch version:', currentPatchVersion);
+
                 console.log('Fetching tags from github...');
                 const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
                 octokit.repos.listTags({
-                    owner: repoOwner,
-                    repo: repoName,
+                    owner: github.context.repo.owner,
+                    repo: github.context.repo.repo,
                 })
                     .then((response) => {
                         const tags = response.data.map(tag => tag.name);
-                        console.log('Tags: ', tags);
-                        const highestBuildNumber = Math.max(
-                            ...(tags
-                                .filter(tag => tag.startsWith(currentPatchVersion))
-                                .map(tag => tag.split('-')[1])
-                            ),
-                        );
-                        console.log('Highest build number from current patch version:', highestBuildNumber);
 
-                        const newBuildNumber = `${currentPatchVersion}-${highestBuildNumber + 1}`;
-                        console.log(`Setting npm version for this PR to ${newBuildNumber}`);
-                        exec(`npm version ${newBuildNumber} -m "Update version to ${newBuildNumber}"`,
-                            // eslint-disable-next-line no-shadow
-                            (err, stdout, stderr) => {
-                                console.log(stdout);
-                                if (err) {
-                                    console.log(stderr);
-                                }
-                            });
+                        // tags come from latest to oldest
+                        const highestVersion = tags[0];
+                        console.log(highestVersion);
+
+                        // should SEMVER_LEVEL default to BUILD?
+                        const semanticVersionLevel = core.getInput('SEMVER_LEVEL', {require: true});
+                        const newVersion = functions.incrementVersion(highestVersion, semanticVersionLevel);
+
+                        core.setOutput('VERSION', newVersion);
+
+                        functions.execUpdateToNewVersion(newVersion);
                     })
                     .catch(exception => core.setFailed(exception));
             } else {
