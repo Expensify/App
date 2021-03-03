@@ -9,7 +9,7 @@ env:
 
 jobs:
     test:
-        runs-on: macos-10.15
+        runs-on: macos-latest
         steps:
             - uses: actions/checkout@v2
             - uses: actions/setup-ruby@v1
