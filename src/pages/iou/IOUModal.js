@@ -26,6 +26,8 @@ const propTypes = {
     /* Onyx Props */
     // Url currently in view
     currentURL: PropTypes.string,
+
+    iouData: PropTypes.object,
 };
 
 const StepType = {
@@ -37,6 +39,7 @@ const StepType = {
 const defaultProps = {
     route: '',
     currentURL: '',
+    iouData: {},
 };
 
 class IOUModal extends Component {
@@ -169,7 +172,7 @@ export default withOnyx({
     currentURL: {
         key: ONYXKEYS.CURRENT_URL,
     },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
+    iouData: {
+        key: ONYXKEYS.IOU,
+    }
 })(IOUModal);
