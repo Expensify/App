@@ -1044,12 +1044,6 @@ const styles = {
         flex: 1,
     },
 
-    profilePageLabel: {
-        fontSize: variables.fontSizeLabel,
-        fontFamily: fontFamily.GTA,
-        color: themeColors.textSupporting,
-    },
-
     profilePageSectionContainer: {
         alignSelf: 'flex-start',
     },
