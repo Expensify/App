@@ -46,7 +46,7 @@ jobs:
                   ./android/app/build.gradle \
                   ./ios/ExpensifyCash/Info.plist \
                   ./ios/ExpensifyCashTests/Info.plist
-                git cm -m "Update version to ${{ steps.bumpVersion.outputs.newVersion }}"
+                git commit -m "Update version to ${{ steps.bumpVersion.outputs.newVersion }}"
                 git tag ${{ steps.bumpVersion.outputs.newVersion }}
 
             - name: Push new version
