@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React from 'react';
 import {
     View,
     Text,
@@ -18,30 +18,20 @@ const propTypes = {
     isLoading: PropTypes.bool.isRequired,
 };
 
-class IOUAmountPage extends Component {
-    constructor(props) {
-        super(props);
-
-        // TODO: Hide loading indicator and display IOUAmount page contents
-    }
-
-    render() {
-        return (
-            <View style={styles.settingsWrapper}>
-                <Avatar source="https://http.cat/101" />
-                {this.props.isLoading && <ActivityIndicator color={themeColors.text} />}
-                <TouchableOpacity
-                    style={[styles.button, styles.w100, styles.mt5]}
-                    onPress={() => this.props.onStepComplete()}
-                >
-                    <Text style={[styles.buttonText]}>
-                        Next
-                    </Text>
-                </TouchableOpacity>
-            </View>
-        );
-    }
-}
+const IOUAmountPage = props => (
+    <View style={styles.settingsWrapper}>
+        <Avatar source="https://http.cat/101" />
+        {props.isLoading && <ActivityIndicator color={themeColors.text} />}
+        <TouchableOpacity
+            style={[styles.button, styles.w100, styles.mt5]}
+            onPress={() => props.onStepComplete()}
+        >
+            <Text style={[styles.buttonText]}>
+                Next
+            </Text>
+        </TouchableOpacity>
+    </View>
+);
 
 IOUAmountPage.displayName = 'IOUAmountPage';
 IOUAmountPage.propTypes = propTypes;

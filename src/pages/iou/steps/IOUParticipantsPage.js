@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React from 'react';
 import {
     View,
     Text,
@@ -21,33 +21,23 @@ const propTypes = {
     isLoading: PropTypes.bool.isRequired,
 };
 
-class IOUParticipantsPage extends Component {
-    constructor(props) {
-        super(props);
-
-        // TODO: Hide loading indicator and display IOUParticipants page contents
-    }
-
-    render() {
-        return (
-            <View style={styles.settingsWrapper}>
-                <Avatar source="https://http.cat/102" />
-                <Text style={[styles.buttonText]}>
-                    {this.props.hasMultipleParticipants ? '// group' : '// single'}
-                </Text>
-                {this.props.isLoading && <ActivityIndicator color={themeColors.text} />}
-                <TouchableOpacity
-                    style={[styles.button, styles.w100, styles.mt5]}
-                    onPress={() => this.props.onStepComplete()}
-                >
-                    <Text style={[styles.buttonText]}>
-                        Next
-                    </Text>
-                </TouchableOpacity>
-            </View>
-        );
-    }
-}
+const IOUParticipantsPage = props => (
+    <View style={styles.settingsWrapper}>
+        <Avatar source="https://http.cat/102" />
+        <Text style={[styles.buttonText]}>
+            {props.hasMultipleParticipants ? '// group' : '// single'}
+        </Text>
+        {props.isLoading && <ActivityIndicator color={themeColors.text} />}
+        <TouchableOpacity
+            style={[styles.button, styles.w100, styles.mt5]}
+            onPress={() => props.onStepComplete()}
+        >
+            <Text style={[styles.buttonText]}>
+                Next
+            </Text>
+        </TouchableOpacity>
+    </View>
+);
 
 IOUParticipantsPage.displayName = 'IOUParticipantsPage';
 IOUParticipantsPage.propTypes = propTypes;
