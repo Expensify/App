@@ -155,8 +155,8 @@ function getFromReportParticipants(reports) {
             // Fallback to add logins that don't appear in the response
             const details = participantEmails
                 .filter(login => !data[login])
-                .reduce((acc, login) => ({
-                    ...acc,
+                .reduce((previousDetails, login) => ({
+                    ...previousDetails,
                     [login]: {}, // Simply just need the key to exist
                 }), existingDetails);
 
