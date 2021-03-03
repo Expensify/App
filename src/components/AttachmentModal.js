@@ -69,6 +69,11 @@ class AttachmentModal extends PureComponent {
      * Execute the onConfirm callback and close the modal.
      */
     submitAndClose() {
+        // If the modal has already been closed, don't allow another submission
+        if (!this.state.isModalOpen) {
+            return;
+        }
+
         this.props.onConfirm(this.state.file);
         this.setState({isModalOpen: false});
     }
