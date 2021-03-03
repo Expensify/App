@@ -15,7 +15,6 @@ import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import {redirectToLastReport} from '../libs/actions/App';
 import HeaderGap from '../components/HeaderGap';
 import compose from '../libs/compose';
-import {version} from '../../package.json';
 
 const personalDetailsType = PropTypes.shape({
     // Display name of the current user from their personal details
