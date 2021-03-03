@@ -65,7 +65,6 @@ class BaseUpdateAppModal extends PureComponent {
     }
 }
 
-BaseUpdateAppModal.propTypes = _.omit(propTypes, 'version');
-BaseUpdateAppModal.defaultProps = _.omit(defaultProps, 'version');
 BaseUpdateAppModal.propTypes = propTypes;
+BaseUpdateAppModal.defaultProps = defaultProps;
 export default BaseUpdateAppModal;
