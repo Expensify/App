@@ -84,7 +84,7 @@ do {
                 newVersion = `${currentPatchVersion}-${highestBuildNumber + 1}`;
                 updateNativeVersions(newVersion);
                 console.log(`Setting npm version for this PR to ${newVersion}`);
-                return exec(`npm version ${newVersion} -m "Update version to ${newVersion}"`);
+                return exec(`npm version ${newVersion} --force -m "Update version to ${newVersion}"`);
             })
             .then(({stdout}) => {
                 // NPM and native versions successfully updated - don't retry.
