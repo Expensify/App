@@ -1,4 +1,4 @@
-const { describe } = require('jest-circus');
+const {describe} = require('jest-circus');
 const functions = require('../../.github/libs/versionUpdater.js');
 
 const version = 'v2.3.9-80';
