@@ -15,13 +15,11 @@ jobs:
                   fetch-depth: 0
                   token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-            - name: Setup Node
-              uses: actions/setup-node@v1
+            - uses: softprops/turnstyle@8db075d65b19bf94e6e8687b504db69938dc3c65
               with:
-                  node-version: '14.x'
-
-            - name: Install dependenices
-              run: npm ci
+                  poll-interval-seconds: 10
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Set up git
               run: |
