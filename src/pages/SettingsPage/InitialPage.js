@@ -128,14 +128,16 @@ const InitialSettingsPage = ({
                             showRightArrow
                         />
                     ))}
-                    <TouchableOpacity
-                        onPress={signOut}
-                        style={[styles.button, styles.w100, styles.mt5]}
-                    >
-                        <Text style={[styles.buttonText]}>
-                            Sign Out
-                        </Text>
-                    </TouchableOpacity>
+                    <View style={[styles.ph5]}>
+                        <TouchableOpacity
+                            onPress={signOut}
+                            style={[styles.button, styles.w100, styles.mt5]}
+                        >
+                            <Text style={[styles.buttonText]}>
+                                Sign Out
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
                 <Text style={[styles.chatItemMessageHeaderTimestamp]} numberOfLines={1}>
                     v

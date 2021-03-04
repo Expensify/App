@@ -1,5 +1,4 @@
 import React, {PureComponent} from 'react';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Popover from './Popover';
 import styles from '../styles/styles';
@@ -79,13 +78,12 @@ class CreateMenu extends PureComponent {
                 anchorPosition={styles.createMenuPosition}
             >
                 {menuItemData.map(({icon, text, onPress}) => (
-                    <View style={styles.ph5} key={text}>
-                        <MenuItem
-                            icon={icon}
-                            title={text}
-                            onPress={onPress}
-                        />
-                    </View>
+                    <MenuItem
+                        key={text}
+                        icon={icon}
+                        title={text}
+                        onPress={onPress}
+                    />
                 ))}
             </Popover>
         );
