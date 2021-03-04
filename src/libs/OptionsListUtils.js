@@ -191,7 +191,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         if (shouldFilterReport) {
             return;
         }
-        if (hideReadReports && report.unreadActionCount === 0) {
+        if (hideReadReports && report.unreadActionCount === 0 && !report.isPinned) {
             return;
         }
         const reportPersonalDetails = getPersonalDetailsForLogins(logins, personalDetails);

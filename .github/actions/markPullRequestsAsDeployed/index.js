@@ -5,158 +5,62 @@ module.exports =
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 2407:
+/***/ 519:
 /***/ ((__unused_webpack_module, __unused_webpack_exports, __nccwpck_require__) => {
 
-const {promisify} = __nccwpck_require__(1669);
-const exec = promisify(__nccwpck_require__(3129).exec);
-const fs = __nccwpck_require__(5747);
 const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
-const {updateAndroidVersion, updateiOSVersion} = __nccwpck_require__(322);
+const {createComment} = __nccwpck_require__(2737);
+
+const prList = JSON.parse(core.getInput('PR_LIST', {required: true}));
+const isProd = JSON.parse(
+    core.getInput('IS_PRODUCTION_DEPLOY', {required: true}),
+);
+const token = core.getInput('GITHUB_TOKEN', {required: true});
+const date = new Date();
+const message = `Deployed to ${
+    isProd ? 'production' : 'staging'
+} on ${date.toDateString()} at ${date.toTimeString()}`;
+
+const octokit = github.getOctokit(token);
 
 /**
- * Update the native app versions.
- *
- * @param {String} newVersion
+ * Create comment on each pull request
  */
-function updateNativeVersions(newVersion) {
-    console.log(`Updating native versions to ${newVersion}`);
-
-    // Update Android
-    updateAndroidVersion(newVersion)
+prList.forEach((pr) => {
+    createComment(pr, message, octokit)
         .then(() => {
-            console.log('Successfully updated Android!');
+            console.log(`Comment created on #${pr} successfully`);
         })
         .catch((err) => {
-            console.error('Error updating Android');
-            core.setFailed(err);
+            console.log(`Unable to write comment on #${pr}`);
+            core.setFailed(err.message);
         });
-
-    // Update iOS
-    updateiOSVersion(newVersion)
-        .then(() => {
-            console.log('Successfully updated iOS!');
-        })
-        .catch((err) => {
-            console.error('Error updating iOS');
-            core.setFailed(err);
-        });
-}
-
-// Use Github Actions' default environment variables to get repo information
-// https://docs.github.com/en/free-pro-team@latest/actions/reference/environment-variables#default-environment-variables
-const [repoOwner, repoName] = process.env.GITHUB_REPOSITORY.split('/');
-
-// Determine current patch version
-const {version} = JSON.parse(fs.readFileSync('./package.json'));
-const currentPatchVersion = version.split('-')[0];
-console.log('Current patch version:', currentPatchVersion);
-
-let newVersion;
-
-// Fetch tags
-console.log('Fetching tags from github...');
-const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
-return octokit.repos.listTags({
-    owner: repoOwner,
-    repo: repoName,
-})
-    .catch(githubError => core.setFailed(githubError))
-    .then((githubResponse) => {
-        // Find the highest build version git tag
-        const tags = githubResponse.data.map(tag => tag.name);
-        console.log('Tags: ', tags);
-        const highestBuildNumber = Math.max(
-            ...(tags
-                .filter(tag => (tag.startsWith(currentPatchVersion)))
-                .map(tag => tag.split('-')[1])
-            ),
-
-            // Provide a default of 0 for minimum build version
-            0,
-        );
-        console.log('Highest build number from current patch version:', highestBuildNumber);
-
-        // Increment the build version, update the native and npm versions.
-        newVersion = `${currentPatchVersion}-${highestBuildNumber + 1}`;
-        updateNativeVersions(newVersion);
-        console.log(`Setting npm version for this PR to ${newVersion}`);
-        return exec(`npm --no-git-tag-version version ${newVersion} -m "Update version to ${newVersion}"`);
-    })
-    .then(({stdout}) => {
-        // NPM and native versions successfully updated, output new version
-        console.log(stdout);
-        core.setOutput('newVersion', newVersion);
-    })
-    .catch(({stdout, stderr}) => {
-        // Log errors and retry
-        console.log(stdout);
-        console.error(stderr);
-        core.setFailed('An error occurred in the `npm version` command');
-    });
+});
 
 
 /***/ }),
 
-/***/ 322:
+/***/ 2737:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
-const {promisify} = __nccwpck_require__(1669);
-const exec = promisify(__nccwpck_require__(3129).exec);
-const fs = __nccwpck_require__(5747).promises;
-const path = __nccwpck_require__(5622);
-
-// Filepath constants
-const BUILD_GRADLE_PATH = process.env.NODE_ENV === 'test'
-    ? path.resolve(__dirname, '../../android/app/build.gradle')
-    : './android/app/build.gradle';
-const PLIST_PATH = './ios/ExpensifyCash/Info.plist';
-const PLIST_PATH_TEST = './ios/ExpensifyCashTests/Info.plist';
-
-exports.BUILD_GRADLE_PATH = BUILD_GRADLE_PATH;
-exports.PLIST_PATH = PLIST_PATH;
-exports.PLIST_PATH_TEST = PLIST_PATH_TEST;
+const github = __nccwpck_require__(5438);
 
 /**
- * Update the Android app versionName and versionCode.
+ * Create comment on pull request
  *
- * @param {String} versionName
+ * @param {Number} number - The pull request or issue number
+ * @param {String} messageBody - The comment message
+ * @param {Object} octokitClient - The ocktokit client
  * @returns {Promise}
  */
-exports.updateAndroidVersion = function updateAndroidVersion(versionName) {
-    console.log('Updating android:', `versionName: ${versionName}`);
-    return fs.readFile(BUILD_GRADLE_PATH, {encoding: 'utf8'})
-        .then((content) => {
-            const updatedContent = content.toString().replace(
-                /versionName "([0-9.-]+)"/,
-                `versionName "${versionName}"`,
-            );
-            return updatedContent.replace(
-                /versionCode ([0-9]+)/,
-                (_, oldVersionCode) => `versionCode ${Number.parseInt(oldVersionCode, 10) + 1}`,
-            );
-        })
-        .then(updatedContent => fs.writeFile(BUILD_GRADLE_PATH, updatedContent, {encoding: 'utf8'}));
-};
-
-/**
- * Update the iOS app version.
- * Updates the CFBundleShortVersionString and the CFBundleVersion.
- *
- * @param {String} version
- * @returns {Promise}
- */
-exports.updateiOSVersion = function updateiOSVersion(version) {
-    const shortVersion = version.split('-')[0];
-    const cfVersion = version.replace('-', '.');
-    console.log('Updating iOS', `CFBundleShortVersionString: ${shortVersion}`, `CFBundleVersion: ${version}`);
-    return Promise.all([
-        exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH}`),
-        exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH_TEST}`),
-        exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH}`),
-        exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH_TEST}`),
-    ]);
+exports.createComment = function createComment(number, messageBody, octokitClient) {
+    console.log(`Writing comment on #${number}`);
+    return octokitClient.issues.createComment({
+        ...github.context.repo,
+        issue_number: number,
+        body: messageBody,
+    });
 };
 
 
@@ -9207,14 +9111,6 @@ module.exports = require("buffer");;
 
 /***/ }),
 
-/***/ 3129:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("child_process");;
-
-/***/ }),
-
 /***/ 8614:
 /***/ ((module) => {
 
@@ -9357,6 +9253,6 @@ module.exports = require("zlib");;
 /******/ 	// module exports must be returned from runtime so entry inlining is disabled
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	return __nccwpck_require__(2407);
+/******/ 	return __nccwpck_require__(519);
 /******/ })()
 ;
