@@ -33,6 +33,7 @@ class Hoverable extends Component {
     render() {
         return (
             <View
+                style={this.props.containerStyle}
                 onMouseEnter={this.toggleHoverState}
                 onMouseLeave={this.toggleHoverState}
             >

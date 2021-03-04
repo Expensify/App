@@ -16,6 +16,7 @@ const propTypes = {
 };
 
 const ReportActionItemSingle = ({action}) => {
+    console.debug(action);
     const avatarUrl = action.automatic
         ? `${CONST.CLOUDFRONT_URL}/images/icons/concierge_2019.svg`
         : action.avatar;
@@ -31,6 +32,7 @@ const ReportActionItemSingle = ({action}) => {
                         <ReportActionItemFragment
                             key={`person-${action.sequenceNumber}-${index}`}
                             fragment={fragment}
+                            tooltipText={action.actorEmail}
                             isAttachment={action.isAttachment}
                             isLoading={action.loading}
                         />

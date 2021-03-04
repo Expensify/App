@@ -14,6 +14,7 @@ import {Pencil, PinCircle, Checkmark} from '../../../components/Icon/Expensicons
 import MultipleAvatars from '../../../components/MultipleAvatars';
 import themeColors from '../../../styles/themes/default';
 import Hoverable from '../../../components/Hoverable';
+import Tooltip from '../../../components/Tooltip';
 
 const propTypes = {
     // Style for hovered state
@@ -104,9 +105,14 @@ const OptionRow = ({
                                 )
                             }
                             <View style={[styles.flex1]}>
-                                <Text style={[styles.optionDisplayName, textUnreadStyle]} numberOfLines={1}>
-                                    {option.text}
-                                </Text>
+                                <View style={{flexDirection: 'column', alignItems: 'flex-start'}}>
+                                    <Tooltip text={option.tooltipText}>
+                                        <Text style={[styles.optionDisplayName, textUnreadStyle]} numberOfLines={1}>
+                                            {option.text}
+                                        </Text>
+                                    </Tooltip>
+                                </View>
+
                                 {option.alternateText ? (
                                     <Text
                                         style={[textStyle, styles.optionAlternateText, styles.mt1]}
