@@ -37,7 +37,7 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
             personalDetail = {
                 login,
                 displayName: login,
-                avatarURL: getDefaultAvatar(login),
+                avatar: getDefaultAvatar(login),
             };
         }
 
@@ -97,7 +97,7 @@ function createOption(personalDetailList, report, draftComments, activeReportID,
     return {
         text: report ? report.reportName : personalDetail.displayName,
         alternateText: (showChatPreviewLine && lastMessageText) ? lastMessageText : personalDetail.login,
-        icons: report ? report.icons : [personalDetail.avatarURL],
+        icons: report ? report.icons : [personalDetail.avatar],
         tooltipText,
 
         // It doesn't make sense to provide a login in the case of a report with multiple participants since
@@ -189,11 +189,12 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         // Skip this entry if it has no comments and is not the active report. We will only show reports from
         // people we have sent or received at least one message with.
         const hasNoComments = report.lastMessageTimestamp === 0;
-        const shouldFilterReport = !showReportsWithNoComments && hasNoComments && report.reportID !== activeReportID && !report.isPinned;
+        const shouldFilterReport = !showReportsWithNoComments && hasNoComments
+            && report.reportID !== activeReportID && !report.isPinned;
         if (shouldFilterReport) {
             return;
         }
-        if (hideReadReports && report.unreadActionCount === 0) {
+        if (hideReadReports && report.unreadActionCount === 0 && !report.isPinned) {
             return;
         }
         const reportPersonalDetails = getPersonalDetailsForLogins(logins, personalDetails);
