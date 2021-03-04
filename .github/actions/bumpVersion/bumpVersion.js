@@ -1,9 +1,9 @@
-const { promisify } = require('util');
+const {promisify} = require('util');
 const exec = promisify(require('child_process').exec);
 const core = require('@actions/core');
 const github = require('@actions/github');
-const functions = require('./functions');
-const { updateAndroidVersion, updateiOSVersion } = require('../../libs/nativeVersionUpdater');
+const functions = require('../../libs/versionUpdater');
+const {updateAndroidVersion, updateiOSVersion} = require('../../libs/nativeVersionUpdater');
 
 let newVersion;
 
@@ -37,8 +37,8 @@ function updateNativeVersions(newVersion) {
         });
 }
 
-const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', { required: true }));
-let semanticVersionLevel = core.getInput('SEMVER_LEVEL', { require: true });
+const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
+let semanticVersionLevel = core.getInput('SEMVER_LEVEL', {require: true});
 
 // it actually would fall to build anyway, but I think it is better to make it explicitly
 if (!semanticVersionLevel || !Object.values(functions.semanticVersionLevels).find(v => v === semanticVersionLevel)) {
@@ -69,12 +69,12 @@ octokit.repos.listTags({
         console.log(`Setting npm version for this PR to ${newVersion}`);
         return exec(`npm --no-git-tag-version version ${newVersion} -m "Update version to ${newVersion}"`);
     })
-    .then(({ stdout }) => {
+    .then(({stdout}) => {
         // NPM and native versions successfully updated, output new version
         console.log(stdout);
         core.setOutput('VERSION', newVersion);
     })
-    .catch(({ stdout, stderr }) => {
+    .catch(({stdout, stderr}) => {
         // Log errors and retry
         console.log(stdout);
         console.error(stderr);
