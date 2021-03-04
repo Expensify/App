@@ -149,7 +149,7 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled rootProject.ext.multiDexEnabled
         versionCode 1000001488
-        versionName "1.0.2--Infinity"
+        versionName "1.0.2-0"
     }
     splits {
         abi {
