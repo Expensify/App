@@ -1,28 +1,10 @@
 import React, {PureComponent} from 'react';
-import PropTypes from 'prop-types';
 import {Animated, Text, View} from 'react-native';
-import Hoverable from './Hoverable';
-import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
-import getTooltipStyles from '../styles/getTooltipStyles';
-
-const propTypes = {
-    // The text to display in the tooltip.
-    text: PropTypes.string.isRequired,
-
-    // Children to wrap with Tooltip.
-    children: PropTypes.node.isRequired,
-
-    // Props inherited from withWindowDimensions
-    ...windowDimensionsPropTypes,
-
-    // Any additional amount to manually adjust the horizontal position of the tooltip.
-    // A positive value shifts the tooltip to the right, and a negative value shifts it to the left.
-    shiftHorizontal: PropTypes.number,
-
-    // Any additional amount to manually adjust the vertical position of the tooltip.
-    // A positive value shifts the tooltip down, and a negative value shifts it up.
-    shiftVertical: PropTypes.number,
-};
+import ReactDOM from 'react-dom';
+import Hoverable from '../Hoverable';
+import withWindowDimensions from '../withWindowDimensions';
+import getTooltipStyles from '../../styles/getTooltipStyles';
+import tooltipPropTypes from './TooltipPropTypes';
 
 const defaultProps = {
     shiftHorizontal: 0,
@@ -62,6 +44,7 @@ class Tooltip extends PureComponent {
         this.measureTooltip = this.measureTooltip.bind(this);
         this.showTooltip = this.showTooltip.bind(this);
         this.hideTooltip = this.hideTooltip.bind(this);
+        this.createPortal = this.createPortal.bind(this);
     }
 
     componentDidUpdate(prevProps) {
@@ -88,17 +71,26 @@ class Tooltip extends PureComponent {
      * @param {Object} nativeEvent
      */
     measureWrapperAndGetPosition({nativeEvent}) {
-        const {width, height} = nativeEvent.layout;
+        const {
+            left, top, width, height,
+        } = nativeEvent.layout;
+        console.debug(left, top, nativeEvent);
+        this.setState({
+            wrapperWidth: width,
+            wrapperHeight: height,
+            xOffset: left,
+            yOffset: top,
+        });
 
         // We need to use `measureInWindow` instead of the layout props provided by `onLayout`
         // because `measureInWindow` provides the x and y offset relative to the window, rather than the parent element.
-        this.getWrapperPosition()
-            .then(({x, y}) => this.setState({
-                wrapperWidth: width,
-                wrapperHeight: height,
-                xOffset: x,
-                yOffset: y,
-            }));
+        // this.getWrapperPosition()
+        //     .then(({x, y}) => this.setState({
+        //         wrapperWidth: width,
+        //         wrapperHeight: height,
+        //         xOffset: x,
+        //         yOffset: y,
+        //     }));
     }
 
     /**
@@ -133,7 +125,7 @@ class Tooltip extends PureComponent {
         }).start();
     }
 
-    render() {
+    createPortal() {
         const {
             animationStyle,
             tooltipWrapperStyle,
@@ -152,17 +144,34 @@ class Tooltip extends PureComponent {
             this.props.shiftHorizontal,
             this.props.shiftVertical,
         );
-
-        return (
-            <Hoverable
-                onHoverIn={this.showTooltip}
-                onHoverOut={this.hideTooltip}
+        return ReactDOM.createPortal(
+            <Animated.View
+                ref={el => this.tooltip = el}
+                onLayout={this.measureTooltip}
+                style={{...tooltipWrapperStyle, ...animationStyle}}
             >
-                <View
-                    ref={el => this.wrapperView = el}
-                    onLayout={this.measureWrapperAndGetPosition}
+                <Text style={tooltipTextStyle} numberOfLines={1}>{this.props.text}</Text>
+                <View style={pointerWrapperStyle}>
+                    <View style={pointerStyle} />
+                </View>
+            </Animated.View>, document.querySelector('body'),
+        );
+    }
+
+    render() {
+        return (
+            <>
+                {this.createPortal()}
+                <Hoverable
+                    containerStyle={this.props.containerStyle}
+                    onHoverIn={this.showTooltip}
+                    onHoverOut={this.hideTooltip}
                 >
-                    <Animated.View style={animationStyle}>
+                    <View
+                        ref={el => this.wrapperView = el}
+                        onLayout={this.measureWrapperAndGetPosition}
+                    >
+                        {/* <Animated.View style={animationStyle}>
                         <View
                             ref={el => this.tooltip = el}
                             onLayout={this.measureTooltip}
@@ -173,14 +182,15 @@ class Tooltip extends PureComponent {
                         <View style={pointerWrapperStyle}>
                             <View style={pointerStyle} />
                         </View>
-                    </Animated.View>
-                    {this.props.children}
-                </View>
-            </Hoverable>
+                    </Animated.View> */}
+                        {this.props.children}
+                    </View>
+                </Hoverable>
+            </>
         );
     }
 }
 
-Tooltip.propTypes = propTypes;
+Tooltip.propTypes = tooltipPropTypes;
 Tooltip.defaultProps = defaultProps;
 export default withWindowDimensions(Tooltip);

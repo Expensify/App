@@ -7,6 +7,9 @@ const propTypes = {
         PropTypes.func,
     ]).isRequired,
 
+    // Styles to be assigned to the Hoverable Container
+    containerStyle: PropTypes.object,
+
     // Function that executes when the mouse moves over the children.
     onHoverIn: PropTypes.func,
 

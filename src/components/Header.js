@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import Text from './Text';
+import Tooltip from './Tooltip';
 
 const propTypes = {
     /** Title of the Header */

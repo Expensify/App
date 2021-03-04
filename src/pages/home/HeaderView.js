@@ -1,6 +1,6 @@
 import React from 'react';
 import {View, Pressable} from 'react-native';
-import PropTypes from 'prop-types';
+import PropTypes, {object} from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Header from '../../components/Header';
 import styles from '../../styles/styles';
@@ -11,6 +11,8 @@ import {BackArrow, Pin} from '../../components/Icon/Expensicons';
 import compose from '../../libs/compose';
 import {togglePinnedState} from '../../libs/actions/Report';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
+import Tooltip from '../../components/Tooltip';
+import {getReportParticipantsTitle} from '../../libs/reportUtils';
 
 const propTypes = {
     // Toggles the navigationMenu open and closed
@@ -21,6 +23,9 @@ const propTypes = {
     report: PropTypes.shape({
         // Name of the report
         reportName: PropTypes.string,
+
+        // list of primarylogins of participants of the report
+        participants: PropTypes.arrayOf(PropTypes.object),
 
         // ID of the report
         reportID: PropTypes.number,
@@ -36,41 +41,48 @@ const defaultProps = {
     report: null,
 };
 
-const HeaderView = props => (
-    <View style={[styles.appContentHeader]} nativeID="drag-area">
-        <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
-            {props.isSmallScreenWidth && (
-                <Pressable
-                    onPress={props.onNavigationMenuButtonClicked}
-                    style={[styles.LHNToggle]}
-                >
-                    <Icon src={BackArrow} />
-                </Pressable>
-            )}
-            {props.report && props.report.reportName ? (
-                <View
-                    style={[
-                        styles.flex1,
-                        styles.flexRow,
-                        styles.alignItemsCenter,
-                        styles.justifyContentBetween,
-                    ]}
-                >
-                    <Header title={props.report.reportName} />
-                    <View style={[styles.reportOptions, styles.flexRow]}>
-                        <Pressable
-                            onPress={() => togglePinnedState(props.report)}
-                            style={[styles.touchableButtonImage, styles.mr0]}
-                        >
-                            <Icon src={Pin} fill={props.report.isPinned ? themeColors.heading : themeColors.icon} />
-                        </Pressable>
-                    </View>
-                </View>
-            ) : null}
-        </View>
-    </View>
-);
+const HeaderView = (props) => {
+    const participantsTitle = getReportParticipantsTitle(props.report.participants);
 
+    return (
+        <View style={[styles.appContentHeader]} nativeID="drag-area">
+            <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
+                {props.isSmallScreenWidth && (
+                    <Pressable
+                        onPress={props.onNavigationMenuButtonClicked}
+                        style={[styles.LHNToggle]}
+                    >
+                        <Icon src={BackArrow} />
+                    </Pressable>
+                )}
+                {props.report && props.report.reportName ? (
+                    <View
+                        style={[
+                            styles.flex1,
+                            styles.flexRow,
+                            styles.alignItemsCenter,
+                            styles.justifyContentBetween,
+                        ]}
+                    >
+                        <View style={[styles.flex1, styles.flexRow]}>
+                            <Tooltip text={participantsTitle}>
+                                <Header title={props.report.reportName} />
+                            </Tooltip>
+                        </View>
+                        <View style={[styles.reportOptions, styles.flexRow]}>
+                            <Pressable
+                                onPress={() => togglePinnedState(props.report)}
+                                style={[styles.touchableButtonImage, styles.mr0]}
+                            >
+                                <Icon src={Pin} fill={props.report.isPinned ? themeColors.heading : themeColors.icon} />
+                            </Pressable>
+                        </View>
+                    </View>
+                ) : null}
+            </View>
+        </View>
+    );
+};
 HeaderView.propTypes = propTypes;
 HeaderView.displayName = 'HeaderView';
 HeaderView.defaultProps = defaultProps;
