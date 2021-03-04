@@ -3,7 +3,7 @@ const exec = promisify(require('child_process').exec);
 const _ = require('underscore');
 const core = require('@actions/core');
 const github = require('@actions/github');
-const functions = require('../../libs/versionUpdater');
+const versionUpdater = require('../../libs/versionUpdater');
 const {updateAndroidVersion, updateiOSVersion} = require('../../libs/nativeVersionUpdater');
 
 let newVersion;
@@ -41,12 +41,12 @@ const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}
 let semanticVersionLevel = core.getInput('SEMVER_LEVEL', {require: true});
 
 // it actually would fall to build anyway, but I think it is better to make it explicitly
-if (!semanticVersionLevel || !_.find(functions.semanticVersionLevels, v => v === semanticVersionLevel)) {
+if (!semanticVersionLevel || !_.find(versionUpdater.semanticVersionLevels, v => v === semanticVersionLevel)) {
     console.log(
         `Invalid input for 'SEMVER_LEVEL': ${semanticVersionLevel}`,
-        `Defaulting to: ${functions.semanticVersionLevels.build}`,
+        `Defaulting to: ${versionUpdater.semanticVersionLevels.build}`,
     );
-    semanticVersionLevel = functions.semanticVersionLevels.build;
+    semanticVersionLevel = versionUpdater.semanticVersionLevels.build;
 }
 console.log('Fetching tags from github...');
 octokit.repos.listTags({
@@ -63,7 +63,7 @@ octokit.repos.listTags({
 
         console.log(`Highest version found: ${highestVersion}.`);
 
-        newVersion = functions.incrementVersion(highestVersion, semanticVersionLevel);
+        newVersion = versionUpdater.incrementVersion(highestVersion, semanticVersionLevel);
 
         updateNativeVersions(newVersion);
         console.log(`Setting npm version for this PR to ${newVersion}`);
