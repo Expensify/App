@@ -489,7 +489,7 @@ function Push_Authenticate(parameters) {
  * @param {String} parameters.reportComment
  * @param {Number} parameters.reportID
  * @param {String} parameters.clientID
- * @param {Object} [parameters.file]
+ * @param {File} [parameters.file]
  * @returns {Promise}
  */
 function Report_AddComment(parameters) {

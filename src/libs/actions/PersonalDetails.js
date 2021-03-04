@@ -201,7 +201,7 @@ function getFromReportParticipants(reports) {
  * @param {Object} details
  */
 function setPersonalDetails(details) {
-    API.PersonalDetails_Update({details});
+    API.PersonalDetails_Update({details: JSON.stringify(details)});
 
     if (details.timezone) {
         NameValuePair.set(CONST.NVP.TIMEZONE, details.timezone);

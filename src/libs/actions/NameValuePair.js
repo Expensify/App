@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash.get';
 import * as API from '../API';
@@ -28,7 +29,7 @@ function get(name, onyxKey, defaultValue) {
  * @param {String} [onyxKeyName]
  */
 function set(name, value, onyxKeyName) {
-    API.SetNameValuePair({name, value});
+    API.SetNameValuePair({name, value: _.isObject(value) ? JSON.stringify(value) : value});
 
     // Update the associated onyx key if we've passed the associated key name
     if (onyxKeyName) {
