@@ -32,6 +32,7 @@ const propTypes = {
     // Optional callback to fire when we want to preview an image and approve it for use.
     onConfirm: PropTypes.func,
 
+    // Optional callback to fire when we want to do something after modal hide.
     onModalHide: PropTypes.func,
 
     // A function as a child to pass modal launching methods to
