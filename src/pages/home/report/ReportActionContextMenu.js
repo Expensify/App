@@ -57,6 +57,9 @@ const propTypes = {
 
     // Controls the visibility of this component.
     isVisible: PropTypes.bool,
+
+    // Function to trigger when we try to mark a message as unread
+    onMarkAsUnread: PropTypes.func.isRequired
 };
 
 const defaultProps = {

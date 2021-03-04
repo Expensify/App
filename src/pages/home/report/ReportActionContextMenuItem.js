@@ -30,10 +30,12 @@ const propTypes = {
     icon: PropTypes.elementType.isRequired,
     text: PropTypes.string.isRequired,
     isMini: PropTypes.bool,
+    onPress: PropTypes.func,
 };
 
 const defaultProps = {
     isMini: false,
+    onPress: () => {},
 };
 
 const ReportActionContextMenuItem = (props) => {
@@ -42,7 +44,10 @@ const ReportActionContextMenuItem = (props) => {
         props.isMini
             ? (
                 <Tooltip text={props.text}>
-                    <Pressable style={({hovered, pressed}) => getButtonStyle(getButtonState(hovered, pressed))}>
+                    <Pressable
+                        style={({hovered, pressed}) => getButtonStyle(getButtonState(hovered, pressed))}
+                        onPress={props.onPress}
+                    >
                         {({hovered, pressed}) => (
                             <Icon
                                 src={props.icon}
@@ -52,7 +57,10 @@ const ReportActionContextMenuItem = (props) => {
                     </Pressable>
                 </Tooltip>
             ) : (
-                <Pressable style={({hovered, pressed}) => getButtonStyle(getButtonState(hovered, pressed))}>
+                <Pressable
+                    style={({hovered, pressed}) => getButtonStyle(getButtonState(hovered, pressed))}
+                    onPress={props.onPress}
+                >
                     {({hovered, pressed}) => (
                         <>
                             <Icon

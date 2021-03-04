@@ -21,6 +21,9 @@ const propTypes = {
 
     // Should the comment have the appearance of being grouped with the previous comment?
     displayAsGroup: PropTypes.bool.isRequired,
+
+    //
+    onMarkAsUnread: PropTypes.func.isRequired
 };
 
 class ReportActionItem extends Component {
@@ -93,6 +96,7 @@ class ReportActionItem extends Component {
                                     reportID={this.props.reportID}
                                     reportActionID={this.props.action.sequenceNumber}
                                     isVisible={hovered && !this.state.isPopoverVisible}
+                                    onMarkAsUnread={this.props.onMarkAsUnread}
                                     isMini
                                 />
                             </View>
@@ -106,6 +110,7 @@ class ReportActionItem extends Component {
                                         isVisible
                                         reportID={-1}
                                         reportActionID={-1}
+                                        onMarkAsUnread={() => {}}
                                     />
                                 )}
                             >
@@ -113,6 +118,7 @@ class ReportActionItem extends Component {
                                     isVisible={this.state.isPopoverVisible}
                                     reportID={this.props.reportID}
                                     reportActionID={this.props.action.sequenceNumber}
+                                    onMarkAsUnread={this.props.onMarkAsUnread}
                                 />
                             </PopoverWithMeasuredContent>
                         </View>

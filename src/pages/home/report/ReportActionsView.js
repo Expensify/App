@@ -47,6 +47,7 @@ class ReportActionsView extends React.Component {
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
         this.recordMaxAction = this.recordMaxAction.bind(this);
         this.onVisibilityChange = this.onVisibilityChange.bind(this);
+        this.onMarkAsUnread = this.onMarkAsUnread.bind(this);
         this.sortedReportActions = this.updateSortedReportActions();
         this.timers = [];
 
@@ -134,6 +135,10 @@ class ReportActionsView extends React.Component {
         if (this.props.isActiveReport && Visibility.isVisible()) {
             this.timers.push(setTimeout(this.recordMaxAction, 3000));
         }
+    }
+
+    onMarkAsUnread(actionIndex) {
+        updateLastReadActionID(this.props.reportID, actionIndex);
     }
 
     /**
@@ -264,6 +269,7 @@ class ReportActionsView extends React.Component {
                 action={item.action}
                 displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
                 onLayout={onLayout}
+                onMarkAsUnread={this.onMarkAsUnread(index)}
                 needsLayoutCalculation={needsLayoutCalculation}
             />
         );
