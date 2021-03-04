@@ -21,7 +21,7 @@ const personalDetailsType = PropTypes.shape({
     displayName: PropTypes.string,
 
     // Avatar URL of the current user from their personal details
-    avatarURL: PropTypes.string,
+    avatar: PropTypes.string,
 
     // login of the current user from their personal details
     login: PropTypes.string,
@@ -30,7 +30,9 @@ const personalDetailsType = PropTypes.shape({
     pronouns: PropTypes.string,
 
     // timezone of the current user from their personal details
-    timezone: PropTypes.string,
+    timezone: PropTypes.shape({
+        selected: PropTypes.string,
+    }),
 });
 
 const matchType = PropTypes.shape({
@@ -73,7 +75,7 @@ const ProfilePage = ({personalDetails, match}) => {
                             >
                                 <Avatar
                                     style={[styles.avatarLarge]}
-                                    source={profileDetails.avatarURL}
+                                    source={profileDetails.avatar}
                                 />
                             </View>
                             <Text style={[styles.displayName, styles.mt1, styles.mb6]} numberOfLines={1}>
@@ -81,38 +83,38 @@ const ProfilePage = ({personalDetails, match}) => {
                                     ? profileDetails.displayName
                                     : null}
                             </Text>
-                            {profileDetails.login && (
-                            <View style={[styles.mb6, styles.profilePageSectionContainer]}>
-                                <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
-                                    {Str.isSMSLogin(profileDetails.login) ? 'Phone Number' : 'Email'}
-                                </Text>
-                                <Text style={[styles.textP]} numberOfLines={1}>
-                                    {Str.isSMSLogin(profileDetails.login)
-                                        ? Str.removeSMSDomain(profileDetails.login)
-                                        : profileDetails.login}
-                                </Text>
-                            </View>
-                            )}
-                            {profileDetails.pronouns && (
-                            <View style={[styles.mb6, styles.profilePageSectionContainer]}>
-                                <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
-                                    Preferred Pronouns
-                                </Text>
-                                <Text style={[styles.textP]} numberOfLines={1}>
-                                    {profileDetails.pronouns}
-                                </Text>
-                            </View>
-                            )}
-                            {profileDetails.timezone && (
-                            <View style={[styles.mb6, styles.profilePageSectionContainer]}>
-                                <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
-                                    Local Time
-                                </Text>
-                                <Text style={[styles.textP]} numberOfLines={1}>
-                                    {moment().tz(profileDetails.timezone).format('LT')}
-                                </Text>
-                            </View>
-                            )}
+                            {profileDetails.login ? (
+                                <View style={[styles.mb6, styles.profilePageSectionContainer]}>
+                                    <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
+                                        {Str.isSMSLogin(profileDetails.login) ? 'Phone Number' : 'Email'}
+                                    </Text>
+                                    <Text style={[styles.textP]} numberOfLines={1}>
+                                        {Str.isSMSLogin(profileDetails.login)
+                                            ? Str.removeSMSDomain(profileDetails.login)
+                                            : profileDetails.login}
+                                    </Text>
+                                </View>
+                            ) : null}
+                            {profileDetails.pronouns ? (
+                                <View style={[styles.mb6, styles.profilePageSectionContainer]}>
+                                    <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
+                                        Preferred Pronouns
+                                    </Text>
+                                    <Text style={[styles.textP]} numberOfLines={1}>
+                                        {profileDetails.pronouns}
+                                    </Text>
+                                </View>
+                            ) : null}
+                            {profileDetails.timezone ? (
+                                <View style={[styles.mb6, styles.profilePageSectionContainer]}>
+                                    <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
+                                        Local Time
+                                    </Text>
+                                    <Text style={[styles.textP]} numberOfLines={1}>
+                                        {moment().tz(profileDetails.timezone.selected).format('LT')}
+                                    </Text>
+                                </View>
+                            ) : null}
                         </View>
                     </View>
                 ) : null}
