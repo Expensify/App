@@ -99,26 +99,29 @@ const InitialSettingsPage = ({
                     styles.settingsPageBackground,
                 ]}
             >
-                <View style={styles.settingsWrapper}>
-                    <View
-                        style={[styles.mb3]}
-                    >
-                        <AvatarWithIndicator
-                            size="large"
-                            source={myPersonalDetails.avatar}
-                            isActive={network && !network.isOffline}
-                        />
+                <View style={styles.w100}>
+                    <View style={styles.settingsWrapper}>
+
+                        <View
+                            style={[styles.mb3]}
+                        >
+                            <AvatarWithIndicator
+                                size="large"
+                                source={myPersonalDetails.avatar}
+                                isActive={network && !network.isOffline}
+                            />
+                        </View>
+                        <Text style={[styles.settingsDisplayName, styles.mt1]} numberOfLines={1}>
+                            {myPersonalDetails.displayName
+                                ? myPersonalDetails.displayName
+                                : Str.removeSMSDomain(session.email)}
+                        </Text>
+                        {myPersonalDetails.displayName && (
+                        <Text style={[styles.settingsLoginName, styles.mt1]} numberOfLines={1}>
+                            {Str.removeSMSDomain(session.email)}
+                        </Text>
+                        )}
                     </View>
-                    <Text style={[styles.settingsDisplayName, styles.mt1]} numberOfLines={1}>
-                        {myPersonalDetails.displayName
-                            ? myPersonalDetails.displayName
-                            : Str.removeSMSDomain(session.email)}
-                    </Text>
-                    {myPersonalDetails.displayName && (
-                    <Text style={[styles.settingsLoginName, styles.mt1]} numberOfLines={1}>
-                        {Str.removeSMSDomain(session.email)}
-                    </Text>
-                    )}
                     {menuItems.map(item => (
                         <MenuItem
                             key={item.title}
@@ -128,14 +131,16 @@ const InitialSettingsPage = ({
                             showRightArrow
                         />
                     ))}
-                    <TouchableOpacity
-                        onPress={signOut}
-                        style={[styles.button, styles.w100, styles.mt5]}
-                    >
-                        <Text style={[styles.buttonText]}>
-                            Sign Out
-                        </Text>
-                    </TouchableOpacity>
+                    <View style={[styles.ph5]}>
+                        <TouchableOpacity
+                            onPress={signOut}
+                            style={[styles.button, styles.w100, styles.mt5]}
+                        >
+                            <Text style={[styles.buttonText]}>
+                                Sign Out
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
                 <Text style={[styles.chatItemMessageHeaderTimestamp]} numberOfLines={1}>
                     v
