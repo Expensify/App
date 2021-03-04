@@ -8,7 +8,6 @@ const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}
 let semanticVersionLevel = core.getInput('SEMVER_LEVEL', {require: true});
 
 // SEMVER_LEVEL defaults to BUILD
-// it actually would fall to build anyway, but I think it is better to make it explicitly
 if (!semanticVersionLevel || !Object.values(functions.semanticVersionLevels).find(v => v === semanticVersionLevel)) {
     // eslint-disable-next-line max-len, semi
     console.log(`Invalid input for 'SEMVER_LEVEL': ${semanticVersionLevel}, defaulting to: ${functions.semanticVersionLevels.build}`)
