@@ -7,7 +7,7 @@ import ONYXKEYS from '../../ONYXKEYS';
  */
 function modalHide() {
     Keyboard.dismiss();
-    Onyx.set(ONYXKEYS.MODAL.IS_MODAL_SHOWN, false);
+    Onyx.set(ONYXKEYS.MODAL.IS_SHOWN, false);
 }
 
 /**
@@ -16,8 +16,8 @@ function modalHide() {
 
 function modalShow(modalType) {
     Keyboard.dismiss();
-    Onyx.set(ONYXKEYS.MODAL.IS_MODAL_SHOWN, true);
-    Onyx.set(ONYXKEYS.MODAL.MODAL_TYPE, modalType);
+    Onyx.set(ONYXKEYS.MODAL.IS_SHOWN, true);
+    Onyx.set(ONYXKEYS.MODAL.TYPE, modalType);
 }
 
 export {

@@ -265,7 +265,7 @@ export default compose(
             key: ONYXKEYS.CURRENT_URL,
         },
         isModalShown: {
-            key: ONYXKEYS.MODAL.IS_MODAL_SHOWN,
+            key: ONYXKEYS.MODAL.IS_SHOWN,
         },
     }),
     withWindowDimensions,

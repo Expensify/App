@@ -101,9 +101,9 @@ export default withOnyx({
         key: ONYXKEYS.CURRENT_URL,
     },
     modalType: {
-        key: ONYXKEYS.MODAL.MODAL_TYPE,
+        key: ONYXKEYS.MODAL.TYPE,
     },
     isModalShown: {
-        key: ONYXKEYS.MODAL.IS_MODAL_SHOWN,
+        key: ONYXKEYS.MODAL.IS_SHOWN,
     },
 })(RightDockedModal);

@@ -63,7 +63,7 @@ export default {
 
     // For Modal
     MODAL: {
-        IS_MODAL_SHOWN: false,
-        MODAL_TYPE: '',
+        IS_SHOWN: 'modalIsShown',
+        TYPE: 'modalType',
     },
 };
