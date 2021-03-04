@@ -7,6 +7,9 @@ inputs:
     SEMVER_LEVEL:
         description: Semantic Versioning Level
         required: true
+outputs:
+    VERSION:
+        description: 'New version'
 runs:
     using: 'node12'
     main: './index.js'
