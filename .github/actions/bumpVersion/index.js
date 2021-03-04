@@ -10,16 +10,19 @@ module.exports =
 
 const {promisify} = __nccwpck_require__(1669);
 const exec = promisify(__nccwpck_require__(3129).exec);
-const fs = __nccwpck_require__(5747);
-const core = __nccwpck_require__(2186);
-const github = __nccwpck_require__(5438);
-const {updateAndroidVersion, updateiOSVersion} = __nccwpck_require__(322);
+const core = __nccwpck_require__(9189);
+const github = __nccwpck_require__(8349);
+const functions = __nccwpck_require__(5556);
+const {updateAndroidVersion, updateiOSVersion} = __nccwpck_require__(2693);
+
+let newVersion;
 
 /**
  * Update the native app versions.
  *
  * @param {String} newVersion
  */
+// eslint-disable-next-line no-shadow
 function updateNativeVersions(newVersion) {
     console.log(`Updating native versions to ${newVersion}`);
 
@@ -44,39 +47,34 @@ function updateNativeVersions(newVersion) {
         });
 }
 
-// Use Github Actions' default environment variables to get repo information
-// https://docs.github.com/en/free-pro-team@latest/actions/reference/environment-variables#default-environment-variables
-const [repoOwner, repoName] = process.env.GITHUB_REPOSITORY.split('/');
-
-// Determine current patch version
-const {version} = JSON.parse(fs.readFileSync('./package.json'));
-const currentPatchVersion = version.split('-')[0];
-console.log('Current patch version:', currentPatchVersion);
-
-let newVersion;
-
-// Fetch tags
-console.log('Fetching tags from github...');
 const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
-return octokit.repos.listTags({
-    owner: repoOwner,
-    repo: repoName,
+let semanticVersionLevel = core.getInput('SEMVER_LEVEL', {require: true});
+
+// it actually would fall to build anyway, but I think it is better to make it explicitly
+if (!semanticVersionLevel || !Object.values(functions.semanticVersionLevels).find(v => v === semanticVersionLevel)) {
+    console.log(
+        `Invalid input for 'SEMVER_LEVEL': ${semanticVersionLevel}`,
+        `Defaulting to: ${functions.semanticVersionLevels.build}`,
+    );
+    semanticVersionLevel = functions.semanticVersionLevels.build;
+}
+console.log('Fetching tags from github...');
+octokit.repos.listTags({
+    owner: github.context.repo.owner,
+    repo: github.context.repo.repo,
 })
     .catch(githubError => core.setFailed(githubError))
     .then((githubResponse) => {
-        // Find the highest build version git tag
+        // Find the highest version git tag
         const tags = githubResponse.data.map(tag => tag.name);
-        console.log('Tags: ', tags);
-        const highestBuildNumber = Math.max(
-            ...(tags
-                .filter(tag => (tag.startsWith(currentPatchVersion)))
-                .map(tag => tag.split('-')[1])
-            ),
-        );
-        console.log('Highest build number from current patch version:', highestBuildNumber);
 
-        // Increment the build version, update the native and npm versions.
-        newVersion = `${currentPatchVersion}-${highestBuildNumber + 1}`;
+        // tags come from latest to oldest
+        const highestVersion = tags[0];
+
+        console.log(`Highest version found: ${highestVersion}.`);
+
+        newVersion = functions.incrementVersion(highestVersion, semanticVersionLevel);
+
         updateNativeVersions(newVersion);
         console.log(`Setting npm version for this PR to ${newVersion}`);
         return exec(`npm --no-git-tag-version version ${newVersion} -m "Update version to ${newVersion}"`);
@@ -84,7 +82,7 @@ return octokit.repos.listTags({
     .then(({stdout}) => {
         // NPM and native versions successfully updated, output new version
         console.log(stdout);
-        core.setOutput('newVersion', newVersion);
+        core.setOutput('VERSION', newVersion);
     })
     .catch(({stdout, stderr}) => {
         // Log errors and retry
@@ -96,7 +94,7 @@ return octokit.repos.listTags({
 
 /***/ }),
 
-/***/ 322:
+/***/ 2693:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 const {promisify} = __nccwpck_require__(1669);
@@ -154,6 +152,82 @@ exports.updateiOSVersion = function updateiOSVersion(version) {
         exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH}`),
         exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH_TEST}`),
     ]);
+};
+
+
+/***/ }),
+
+/***/ 5556:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const utils = __nccwpck_require__(1669);
+const exec = utils.promisify(__nccwpck_require__(3129).exec);
+
+const semanticVersionLevels = {
+    major: 'MAJOR',
+    minor: 'MINOR',
+    patch: 'PATCH',
+    build: 'BUILD',
+};
+const maxIncrements = 999;
+
+const getVersionNumberFromString = (versionString) => {
+    const [version, build] = versionString.slice(1).split('-');
+    const [major, minor, patch] = version.split('.').map(n => Number(n));
+    return [major, minor, patch, build ? Number(build) : undefined];
+};
+
+const getVersionStringFromNumber = (major, minor, patch, build) => {
+    if (build) { return `v${major}.${minor}.${patch}-${build}`; }
+    return `v${major}.${minor}.${patch}`;
+};
+
+const incrementMinor = (major, minor) => {
+    if (minor < maxIncrements) { return getVersionStringFromNumber(major, minor + 1, 0); }
+    return getVersionStringFromNumber(major + 1, 0, 0);
+};
+
+const incrementPatch = (major, minor, patch) => {
+    if (patch < maxIncrements) { return getVersionStringFromNumber(major, minor, patch + 1); }
+    return incrementMinor(major, minor);
+};
+
+const incrementVersion = (version, level) => {
+    const [major, minor, patch, build] = getVersionNumberFromString(
+        version,
+    );
+
+    // majors will always be incremented
+    if (level === semanticVersionLevels.major) { return getVersionStringFromNumber(major + 1, 0, 0); }
+
+    if (level === semanticVersionLevels.minor) {
+        return incrementMinor(major, minor);
+    }
+    if (level === semanticVersionLevels.patch) {
+        return incrementPatch(major, minor, patch);
+    }
+    if (build === undefined) { return getVersionStringFromNumber(major, minor, patch, 1); }
+    if (build < maxIncrements) {
+        return getVersionStringFromNumber(major, minor, patch, build + 1);
+    }
+    return incrementPatch(major, minor, patch);
+};
+
+const execUpdateToNewVersion = async version => exec(
+    `npm version ${version} -m "Update version to ${version}"`,
+);
+
+module.exports = {
+    execUpdateToNewVersion,
+    getVersionNumberFromString,
+    getVersionStringFromNumber,
+    incrementVersion,
+
+    // for the tests
+    maxIncrements,
+    semanticVersionLevels,
+    incrementMinor,
+    incrementPatch,
 };
 
 
