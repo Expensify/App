@@ -2,11 +2,8 @@ import React, {Component} from 'react';
 import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import CONST from '../../CONST';
-import themeColors from '../../styles/themes/default';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
-import Modal from '../../components/Modal';
 import {redirectToLastReport} from '../../libs/actions/App';
 import IOUAmountPage from './steps/IOUAmountPage';
 import IOUParticipantsPage from './steps/IOUParticipantsPage';
@@ -21,8 +18,6 @@ import {Close, BackArrow} from '../../components/Icon/Expensicons';
  * IOU modal for requesting money and splitting bills.
  */
 const propTypes = {
-    // Route constant to show modal
-    route: PropTypes.string,
 
     /* Onyx Props */
     // Url currently in view
@@ -99,12 +94,7 @@ class IOUModal extends Component {
 
     render() {
         return (
-            <Modal
-                type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
-                onClose={redirectToLastReport}
-                isVisible={this.props.currentURL === this.props.route}
-                backgroundColor={themeColors.componentBG}
-            >
+            <>
                 <View style={[styles.headerBar, true && styles.borderBottom]}>
                     <View style={[
                         styles.dFlex,
@@ -159,7 +149,7 @@ class IOUModal extends Component {
                         iouAmount={42}
                     />
                 )}
-            </Modal>
+            </>
         );
     }
 }
