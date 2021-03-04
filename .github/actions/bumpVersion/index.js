@@ -72,6 +72,9 @@ return octokit.repos.listTags({
                 .filter(tag => (tag.startsWith(currentPatchVersion)))
                 .map(tag => tag.split('-')[1])
             ),
+
+            // Provide a default of 0 for minimum build version
+            0,
         );
         console.log('Highest build number from current patch version:', highestBuildNumber);
 
