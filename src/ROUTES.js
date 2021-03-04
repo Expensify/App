@@ -4,6 +4,8 @@
 export default {
     HOME: '/home',
     SETTINGS: '/settings',
+    SUBSETTINGS: '/settings/:route',
+    getSettingsRoute: route => `/settings/${route}`,
     NEW_GROUP: '/new/group',
     NEW_CHAT: '/new/chat',
     REPORT: '/r/:reportID',

@@ -3,24 +3,24 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import RNPickerSelect from 'react-native-picker-select';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
-import styles from '../styles/styles';
-import Text from '../components/Text';
-import {signOut} from '../libs/actions/Session';
-import ONYXKEYS from '../ONYXKEYS';
-import {version} from '../../package.json';
-import AvatarWithIndicator from '../components/AvatarWithIndicator';
-import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
-import {redirectToLastReport} from '../libs/actions/App';
-import NameValuePair from '../libs/actions/NameValuePair';
-import Icon from '../components/Icon';
-import {DownArrow} from '../components/Icon/Expensicons';
-import CONST from '../CONST';
-import HeaderGap from '../components/HeaderGap';
+import styles from '../../styles/styles';
+import Text from '../../components/Text';
+import {signOut} from '../../libs/actions/Session';
+import ONYXKEYS from '../../ONYXKEYS';
+import {version} from '../../../package.json';
+import AvatarWithIndicator from '../../components/AvatarWithIndicator';
+import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import {redirect, redirectToLastReport} from '../../libs/actions/App';
+import {
+    Gear, Lock, Profile, Wallet,
+} from '../../components/Icon/Expensicons';
+import HeaderGap from '../../components/HeaderGap';
+import MenuItem from '../../components/MenuItem';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /* Onyx Props */
@@ -44,37 +44,41 @@ const propTypes = {
         // Email of the logged in person
         email: PropTypes.string,
     }),
-
-    // The chat priority mode
-    priorityMode: PropTypes.string,
 };
 
 const defaultProps = {
     myPersonalDetails: {},
     network: null,
     session: {},
-    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
 };
 
-
-const priorityModes = {
-    default: {
-        value: CONST.PRIORITY_MODE.DEFAULT,
-        label: 'Most Recent',
-        description: 'This will display all chats by default, sorted by most recent, with pinned items at the top',
+const menuItems = [
+    {
+        title: 'Profile',
+        icon: Profile,
+        route: 'profile',
     },
-    gsd: {
-        value: CONST.PRIORITY_MODE.GSD,
-        label: 'GSD',
-        description: 'This will only display unread and pinned chats, all sorted alphabetically. Get Shit Done.',
+    {
+        title: 'Preferences',
+        icon: Gear,
+        route: 'preferences',
     },
-};
+    {
+        title: 'Change Password',
+        icon: Lock,
+        route: 'password',
+    },
+    {
+        title: 'Payments',
+        icon: Wallet,
+        route: 'payments',
+    },
+];
 
-const SettingsPage = ({
+const InitialSettingsPage = ({
     myPersonalDetails,
     network,
     session,
-    priorityMode,
 }) => {
     // On the very first sign in or after clearing storage these
     // details will not be present on the first render so we'll just
@@ -115,29 +119,15 @@ const SettingsPage = ({
                         {Str.removeSMSDomain(session.email)}
                     </Text>
                     )}
-                    <View style={[styles.settingsPageBody, styles.mt4, styles.mb6]}>
-                        <Text style={[styles.formLabel]} numberOfLines={1}>
-                            Priority Mode
-                        </Text>
-                        <View style={[styles.mb2]}>
-                            {/* empty object in placeholder below to prevent default */}
-                            {/* placeholder from appearing as a selection option. */}
-                            <RNPickerSelect
-                                onValueChange={
-                                    mode => NameValuePair.set(CONST.NVP.PRIORITY_MODE, mode, ONYXKEYS.PRIORITY_MODE)
-                                }
-                                items={Object.values(priorityModes)}
-                                style={styles.picker}
-                                useNativeAndroidPickerStyle={false}
-                                placeholder={{}}
-                                value={priorityMode}
-                                Icon={() => <Icon src={DownArrow} />}
-                            />
-                        </View>
-                        <Text style={[styles.textLabel, styles.colorMuted]}>
-                            {priorityModes[priorityMode].description}
-                        </Text>
-                    </View>
+                    {menuItems.map(item => (
+                        <MenuItem
+                            key={item.title}
+                            title={item.title}
+                            icon={item.icon}
+                            onPress={() => redirect(ROUTES.getSettingsRoute(item.route))}
+                            showRightArrow
+                        />
+                    ))}
                     <TouchableOpacity
                         onPress={signOut}
                         style={[styles.button, styles.w100, styles.mt5]}
@@ -156,9 +146,9 @@ const SettingsPage = ({
     );
 };
 
-SettingsPage.propTypes = propTypes;
-SettingsPage.defaultProps = defaultProps;
-SettingsPage.displayName = 'SettingsPage';
+InitialSettingsPage.propTypes = propTypes;
+InitialSettingsPage.defaultProps = defaultProps;
+InitialSettingsPage.displayName = 'InitialSettingsPage';
 
 export default withOnyx({
     myPersonalDetails: {
@@ -170,7 +160,4 @@ export default withOnyx({
     session: {
         key: ONYXKEYS.SESSION,
     },
-    priorityMode: {
-        key: ONYXKEYS.PRIORITY_MODE,
-    },
-})(SettingsPage);
+})(InitialSettingsPage);

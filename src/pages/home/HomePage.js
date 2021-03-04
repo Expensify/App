@@ -99,6 +99,7 @@ class HomePage extends PureComponent {
                 <Route path={[
                     ROUTES.REPORT,
                     ROUTES.HOME,
+                    ROUTES.SUBSETTINGS,
                     ROUTES.SETTINGS,
                     ROUTES.NEW_GROUP,
                     ROUTES.NEW_CHAT,
