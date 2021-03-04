@@ -32,6 +32,8 @@ const propTypes = {
     // Optional callback to fire when we want to preview an image and approve it for use.
     onConfirm: PropTypes.func,
 
+    onModalHide: PropTypes.func,
+
     // A function as a child to pass modal launching methods to
     children: PropTypes.func.isRequired,
 
@@ -51,6 +53,7 @@ const defaultProps = {
     sourceURL: null,
     onConfirm: null,
     isAuthTokenRequired: false,
+    onModalHide: null,
 };
 
 class AttachmentModal extends PureComponent {
@@ -97,6 +100,7 @@ class AttachmentModal extends PureComponent {
                     onClose={() => this.setState({isModalOpen: false})}
                     isVisible={this.state.isModalOpen}
                     backgroundColor={themeColors.componentBG}
+                    onModalHide={this.props.onModalHide}
                 >
                     <HeaderWithCloseButton
                         title={this.props.title}
