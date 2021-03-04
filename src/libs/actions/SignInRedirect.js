@@ -12,11 +12,6 @@ Onyx.connect({
     key: ONYXKEYS.CURRENT_URL,
     callback: val => currentURL = val,
 });
-let currentlyViewedReportID;
-Onyx.connect({
-    key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
-    callback: val => currentlyViewedReportID = val,
-});
 
 /**
  * Clears the Onyx store and redirects to the sign in page.
@@ -39,10 +34,6 @@ function redirectToSignIn(errorMessage) {
         return;
     }
 
-    // Save the reportID before calling redirect or otherwise when clear
-    // is finished the value saved here will already be null
-    const reportID = currentlyViewedReportID;
-
     // We must set the authToken to null so we can navigate to "signin" it's not possible to navigate to the route as
     // it only exists when the authToken is null.
     Onyx.set(ONYXKEYS.SESSION, {authToken: null})
@@ -51,9 +42,6 @@ function redirectToSignIn(errorMessage) {
             Onyx.clear().then(() => {
                 if (errorMessage) {
                     Onyx.set(ONYXKEYS.SESSION, {error: errorMessage});
-                }
-                if (reportID) {
-                    Onyx.set(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, reportID);
                 }
             });
         });
