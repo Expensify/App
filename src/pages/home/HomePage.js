@@ -126,10 +126,10 @@ class HomePage extends PureComponent {
                         <SearchPage />
                     </RightDockedModal>
                     <RightDockedModal route={ROUTES.IOU_REQUEST_MONEY}>
-                        <IOUModal route={ROUTES.IOU_REQUEST_MONEY} />
+                        <IOUModal />
                     </RightDockedModal>
                     <RightDockedModal route={ROUTES.IOU_BILL_SPLIT}>
-                        <IOUModal route={ROUTES.IOU_BILL_SPLIT} />
+                        <IOUModal />
                     </RightDockedModal>
                 </Route>
             </View>
