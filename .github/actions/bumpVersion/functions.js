@@ -67,9 +67,3 @@ module.exports = {
     incrementMinor,
     incrementPatch,
 };
-
-// const getHighestBuildNumberFromPatchVersion = (tags, currentPatchVersion) => Math.max(
-//     ...tags
-//         .filter(tag => tag.startsWith(currentPatchVersion))
-//         .map(tag => tag.split('-')[1]),
-// );
