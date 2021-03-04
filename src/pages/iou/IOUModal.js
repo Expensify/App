@@ -83,10 +83,16 @@ class IOUModal extends Component {
         }
     }
 
+    /**
+     * Navigate to the next IOU step
+     */
     navigateToPreviousStep() {
         this.setState(prevState => ({currentStepIndex: prevState.currentStepIndex - 1}));
     }
 
+    /**
+     * Navigate to the previous IOU step
+     */
     navigateToNextStep() {
         this.setState(prevState => ({currentStepIndex: prevState.currentStepIndex + 1}));
     }
