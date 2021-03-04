@@ -14,7 +14,7 @@ import IOUConfirmPage from './steps/IOUConfirmPage';
 import Header from '../../components/Header';
 import styles from '../../styles/styles';
 import Icon from '../../components/Icon';
-import {setIouStepIsLoading, initialiseIOUModal} from '../../libs/actions/IOU';
+import {initialiseIOUModal, getPreferredCurrency} from '../../libs/actions/IOU';
 import {Close, BackArrow} from '../../components/Icon/Expensicons';
 
 /**
@@ -28,7 +28,12 @@ const propTypes = {
     // Url currently in view
     currentURL: PropTypes.string,
 
-    iouData: PropTypes.object,
+    // IOU modal data
+    iouData: PropTypes.shape({
+        isLoadingCurrency: PropTypes.bool.isRequired,
+        isLoadingParticipants: PropTypes.bool.isRequired,
+        createReportInProgress: PropTypes.bool.isRequired,
+    }),
 };
 
 const StepType = {
@@ -41,15 +46,9 @@ const defaultProps = {
     route: '',
     currentURL: '',
     iouData: {
-        'IOUAmount': {
-            'isLoading': true
-        },
-        'IOUParticipants': {
-            'isLoading': true
-        },
-        'IOUConfirm': {
-            'isLoading': false
-        },
+        isLoadingCurrency: true,
+        isLoadingParticipants: true,
+        createReportInProgress: false,
     },
 };
 
@@ -66,16 +65,11 @@ class IOUModal extends Component {
         this.getTitleForStep = this.getTitleForStep.bind(this);
         this.navigateToPreviousStep = this.navigateToPreviousStep.bind(this);
         this.navigateToNextStep = this.navigateToNextStep.bind(this);
-        this.createIOUReport = this.createIOUReport.bind(this);
     }
 
     componentDidMount() {
-        initialiseIOUModal();
-
-        // fake loading timer, to be replaced with network request
-        setTimeout( () => {
-            setIouStepIsLoading(StepType.IOUAmount, false);
-        }, 1600 );
+        //initialiseIOUModal();
+        getPreferredCurrency();
     }
 
     /**
@@ -104,12 +98,7 @@ class IOUModal extends Component {
         this.setState(prevState => ({currentStepIndex: prevState.currentStepIndex + 1}));
     }
 
-    createIOUReport() {
-        this.setState({confirmState: {isLoading: true}});
-    }
-
     render() {
-        console.debug('propps: ', this.props);
         return (
             <Modal
                 type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
@@ -151,22 +140,22 @@ class IOUModal extends Component {
                 && (
                     <IOUAmountPage
                         onStepComplete={() => this.navigateToNextStep()}
-                        isLoading={this.props.iouData.IOUAmount.isLoading}
+                        isLoading={this.props.iouData.isLoadingCurrency}
                     />
                 )}
                 {this.state.steps[this.state.currentStepIndex] === StepType.IOUParticipants
                 && (
                     <IOUParticipantsPage
                         onStepComplete={() => this.navigateToNextStep()}
-                        isLoading={this.props.iouData.IOUParticipants.isLoading}
+                        isLoading={this.props.iouData.isLoadingParticipants}
                         hasMultipleParticipants={this.state.hasMultipleParticipants}
                     />
                 )}
                 {this.state.steps[this.state.currentStepIndex] === StepType.IOUConfirm
                 && (
                     <IOUConfirmPage
-                        onConfirm={() => this.createIOUReport()}
-                        isLoading={this.props.iouData.IOUConfirm.isLoading}
+                        onConfirm={() => console.debug('create IOU report')}
+                        isLoading={this.props.iouData.createReportInProgress}
                         participants={[]}
                         iouAmount={42}
                     />
@@ -186,5 +175,5 @@ export default withOnyx({
     },
     iouData: {
         key: ONYXKEYS.IOU,
-    }
+    },
 })(IOUModal);
