@@ -43,7 +43,10 @@ function processHTTPRequest(url, method = 'get', body = null) {
  */
 function xhr(command, data, type = 'post') {
     const formData = new FormData();
-    _.each(data, (val, key) => formData.append(key, _.isObject(val) ? JSON.stringify(val) : val));
+    _.each(data, (val, key) => {
+        // Automatically stringify any object parameters unless they are Blob (and subclasses like File)
+        formData.append(key, !_.isObject(val) || val instanceof Blob ? val : JSON.stringify(val));
+    });
     return processHTTPRequest(`${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=${command}`, type, formData);
 }
 
