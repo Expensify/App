@@ -38,7 +38,6 @@ const StepType = {
 };
 
 const defaultProps = {
-    route: '',
     currentURL: '',
     iouData: {
         isLoadingCurrency: true,
