@@ -10,14 +10,14 @@ const semanticVersionLevels = {
 const maxIncrements = 999;
 
 const getVersionNumberFromString = (versionString) => {
-    const [version, build] = versionString.slice(1).split('-');
+    const [version, build] = versionString.split('-');
     const [major, minor, patch] = version.split('.').map(n => Number(n));
     return [major, minor, patch, build ? Number(build) : undefined];
 };
 
 const getVersionStringFromNumber = (major, minor, patch, build) => {
-    if (build) { return `v${major}.${minor}.${patch}-${build}`; }
-    return `v${major}.${minor}.${patch}`;
+    if (build) { return `${major}.${minor}.${patch}-${build}`; }
+    return `${major}.${minor}.${patch}`;
 };
 
 const incrementMinor = (major, minor) => {

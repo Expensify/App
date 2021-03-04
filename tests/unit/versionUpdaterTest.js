@@ -1,96 +1,98 @@
-const {describe} = require('jest-circus');
-const functions = require('../../.github/libs/versionUpdater.js');
+const versionUpdater = require('../../.github/libs/versionUpdater.js');
 
-const version = 'v2.3.9-80';
-const versionNumber = [2, 3, 9, 80];
+const VERSION = '2.3.9-80';
+const VERSION_NUMBER = [2, 3, 9, 80];
 
 describe('getVersionNumberFromString', () => {
     it('should return a list with version levels numbers', () => {
-        expect(functions.getVersionNumberFromString(version)).toStrictEqual(
-            versionNumber,
+        expect(versionUpdater.getVersionNumberFromString(VERSION)).toStrictEqual(
+            VERSION_NUMBER,
         );
     });
     it('should return build as undefined if not present in string', () => {
         const versionWithNoBuild = [
-            versionNumber[0],
-            versionNumber[1],
-            versionNumber[2],
+            VERSION_NUMBER[0],
+            VERSION_NUMBER[1],
+            VERSION_NUMBER[2],
             undefined,
         ];
 
         expect(
-            functions.getVersionNumberFromString(version.split('-')[0]),
+            versionUpdater.getVersionNumberFromString(VERSION.split('-')[0]),
         ).toStrictEqual(versionWithNoBuild);
     });
 });
 
 describe('getVersionStringFromNumber', () => {
-    it(`should return ${version}`, () => {
-        expect(functions.getVersionStringFromNumber(...versionNumber)).toBe(
-            version,
+    it(`should return ${VERSION}`, () => {
+        expect(versionUpdater.getVersionStringFromNumber(...VERSION_NUMBER)).toBe(
+            VERSION,
         );
     });
 });
 
 describe('incrementMinor', () => {
     it('should only increment minor', () => {
-        expect(functions.incrementMinor(2, 3)).toStrictEqual('v2.4.0');
+        expect(versionUpdater.incrementMinor(2, 3)).toStrictEqual('2.4.0');
     });
     it('should increment major', () => {
-        expect(functions.incrementMinor(2, functions.maxIncrements)).toStrictEqual(
-            'v3.0.0',
+        expect(versionUpdater.incrementMinor(2, versionUpdater.maxIncrements)).toStrictEqual(
+            '3.0.0',
         );
     });
 });
 
 describe('incrementPatch', () => {
     it('should only increment patch', () => {
-        expect(functions.incrementPatch(2, 3, 5)).toStrictEqual('v2.3.6');
+        expect(versionUpdater.incrementPatch(2, 3, 5)).toStrictEqual('2.3.6');
     });
     it('should increment minor', () => {
         expect(
-            functions.incrementPatch(2, 3, functions.maxIncrements),
-        ).toStrictEqual('v2.4.0');
+            versionUpdater.incrementPatch(2, 3, versionUpdater.maxIncrements),
+        ).toStrictEqual('2.4.0');
     });
     it('should increment major', () => {
         expect(
-            functions.incrementPatch(
+            versionUpdater.incrementPatch(
                 2,
-                functions.maxIncrements,
-                functions.maxIncrements,
+                versionUpdater.maxIncrements,
+                versionUpdater.maxIncrements,
             ),
-        ).toStrictEqual('v3.0.0');
+        ).toStrictEqual('3.0.0');
     });
 });
 
 describe('incrementVersion', () => {
     it('should increment major', () => {
         expect(
-            functions.incrementVersion(
-                version, functions.semanticVersionLevels.major,
+            versionUpdater.incrementVersion(
+                VERSION, versionUpdater.semanticVersionLevels.major,
             ),
-        ).toStrictEqual('v3.0.0');
+        ).toStrictEqual('3.0.0');
     });
     it('should increment major even above max level', () => {
         expect(
-            functions.incrementVersion(
-                `v${functions.maxIncrements}.5.1-80`, functions.semanticVersionLevels.major,
+            versionUpdater.incrementVersion(
+                `${versionUpdater.maxIncrements}.5.1-80`, versionUpdater.semanticVersionLevels.major,
             ),
-        ).toStrictEqual(`v${functions.maxIncrements + 1}.0.0`);
+        ).toStrictEqual(`${versionUpdater.maxIncrements + 1}.0.0`);
     });
     it('should increment build number', () => {
-        expect(functions.incrementVersion(
-            version, functions.semanticVersionLevels.build,
-        )).toStrictEqual('v2.3.9-81');
+        expect(versionUpdater.incrementVersion(
+            VERSION, versionUpdater.semanticVersionLevels.build,
+        )).toStrictEqual('2.3.9-81');
     });
     it('should add build number if there is no build number', () => {
         expect(
-            functions.incrementVersion(version.split('-')[0], functions.semanticVersionLevels.build),
-        ).toStrictEqual('v2.3.9-1');
+            versionUpdater.incrementVersion(VERSION.split('-')[0], versionUpdater.semanticVersionLevels.build),
+        ).toStrictEqual('2.3.9-1');
     });
     it('should increment patch if minor is above max level', () => {
         expect(
-            functions.incrementVersion(`v2.3.9-${functions.maxIncrements}`, functions.semanticVersionLevels.build),
-        ).toStrictEqual('v2.3.10');
+            versionUpdater.incrementVersion(
+                `2.3.9-${versionUpdater.maxIncrements}`,
+                versionUpdater.semanticVersionLevels.build,
+            ),
+        ).toStrictEqual('2.3.10');
     });
 });
