@@ -10,7 +10,7 @@ let timezone;
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
     callback: (val) => {
-        timezone = val.timezone || CONST.DEFAULT_TIME_ZONE.selected;
+        timezone = val ? val.timezone : CONST.DEFAULT_TIME_ZONE.selected;
         if (_.isObject(timezone)) {
             timezone = val.timezone.selected;
         }
