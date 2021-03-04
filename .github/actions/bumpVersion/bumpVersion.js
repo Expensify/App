@@ -1,55 +1,82 @@
+const {promisify} = require('util');
+const exec = promisify(require('child_process').exec);
 const core = require('@actions/core');
 const github = require('@actions/github');
 const functions = require('./functions');
+const {updateAndroidVersion, updateiOSVersion} = require('../../libs/nativeVersionUpdater');
 
-const MAX_RETRIES = 10;
+let newVersion;
+
+/**
+ * Update the native app versions.
+ *
+ * @param {String} newVersion
+ */
+// eslint-disable-next-line no-shadow
+function updateNativeVersions(newVersion) {
+    console.log(`Updating native versions to ${newVersion}`);
+
+    // Update Android
+    updateAndroidVersion(newVersion)
+        .then(() => {
+            console.log('Successfully updated Android!');
+        })
+        .catch((err) => {
+            console.error('Error updating Android');
+            core.setFailed(err);
+        });
+
+    // Update iOS
+    updateiOSVersion(newVersion)
+        .then(() => {
+            console.log('Successfully updated iOS!');
+        })
+        .catch((err) => {
+            console.error('Error updating iOS');
+            core.setFailed(err);
+        });
+}
 
 const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
 let semanticVersionLevel = core.getInput('SEMVER_LEVEL', {require: true});
 
-// SEMVER_LEVEL defaults to BUILD
 // it actually would fall to build anyway, but I think it is better to make it explicitly
 if (!semanticVersionLevel || !Object.values(functions.semanticVersionLevels).find(v => v === semanticVersionLevel)) {
-    // eslint-disable-next-line max-len, semi
-    console.log(`Invalid input for 'SEMVER_LEVEL': ${semanticVersionLevel}, defaulting to: ${functions.semanticVersionLevels.build}`)
+    console.log(
+        `Invalid input for 'SEMVER_LEVEL': ${semanticVersionLevel}`,
+        `Defaulting to: ${functions.semanticVersionLevels.build}`,
+    );
     semanticVersionLevel = functions.semanticVersionLevels.build;
 }
+console.log('Fetching tags from github...');
+octokit.repos.listTags({
+    owner: github.context.repo.owner,
+    repo: github.context.repo.repo,
+})
+    .catch(githubError => core.setFailed(githubError))
+    .then((githubResponse) => {
+        // Find the highest version git tag
+        const tags = githubResponse.data.map(tag => tag.name);
 
-// eslint-disable-next-line no-shadow
-const bumpVersion = async (core, github, semanticVersionLevel) => {
-    console.log('Fetching tags from github...');
-    const response = await octokit.repos.listTags({
-        owner: github.context.repo.owner,
-        repo: github.context.repo.repo,
+        // tags come from latest to oldest
+        const highestVersion = tags[0];
+
+        console.log(`Highest version found: ${highestVersion}.`);
+
+        newVersion = functions.incrementVersion(highestVersion, semanticVersionLevel);
+
+        updateNativeVersions(newVersion);
+        console.log(`Setting npm version for this PR to ${newVersion}`);
+        return exec(`npm --no-git-tag-version version ${newVersion} -m "Update version to ${newVersion}"`);
+    })
+    .then(({stdout}) => {
+        // NPM and native versions successfully updated, output new version
+        console.log(stdout);
+        core.setOutput('VERSION', newVersion);
+    })
+    .catch(({stdout, stderr}) => {
+        // Log errors and retry
+        console.log(stdout);
+        console.error(stderr);
+        core.setFailed('An error occurred in the `npm version` command');
     });
-    const tags = response.data.map(tag => tag.name);
-
-    // tags come from latest to oldest
-    const highestVersion = tags[0];
-    console.log(`Highest version found: ${highestVersion}.`);
-
-    const newVersion = functions.incrementVersion(highestVersion, semanticVersionLevel);
-
-    core.setOutput('VERSION', newVersion);
-
-    const {stdout} = await functions.execUpdateToNewVersion(newVersion);
-    console.log(stdout);
-};
-
-
-// It's possible that two PRs were merged in rapid succession.
-// In this case, both PRs will attempt to update to the same npm version.
-// This will cause the deploy to fail with an exit code 128
-// saying the git tag for that version already exists.
-for (let retry = 0; retry < MAX_RETRIES; retry++) {
-    try {
-        bumpVersion(core, github, semanticVersionLevel);
-        break;
-    } catch (error) {
-        console.log(
-            'Err: npm version conflict, attempting to automatically resolve',
-            `retryCount: ${retry}`,
-        );
-        console.log(error);
-    }
-}
