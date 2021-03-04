@@ -30,7 +30,7 @@ import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import {redirect} from '../../libs/actions/App';
 import RightDockedModal from '../../components/RightDockedModal';
 import {getBetas} from '../../libs/actions/User';
-import Account from '../../libs/actions/Account';
+import NameValuePair from '../../libs/actions/NameValuePair';
 
 const propTypes = {
     network: PropTypes.shape({isOffline: PropTypes.bool}),
@@ -58,7 +58,7 @@ class HomePage extends PureComponent {
         }).then(subscribeToReportCommentEvents);
 
         // Fetch some data we need on initialization
-        Account.fetchPriorityMode();
+        NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.PRIORITY_MODE, 'default');
         PersonalDetails.fetch();
         PersonalDetails.fetchTimezone();
         getBetas();
