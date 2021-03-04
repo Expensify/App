@@ -103,7 +103,7 @@ class HomePage extends PureComponent {
                     ROUTES.SETTINGS,
                     ROUTES.NEW_GROUP,
                     ROUTES.IOU_REQUEST_MONEY,
-                    ROUTES.IOU_GROUP_SPLIT,
+                    ROUTES.IOU_BILL_SPLIT,
                 ]}
                 >
                     {/* Sidebar Screen */}
@@ -128,8 +128,8 @@ class HomePage extends PureComponent {
                     <RightDockedModal route={ROUTES.IOU_REQUEST_MONEY}>
                         <IOUModal route={ROUTES.IOU_REQUEST_MONEY} />
                     </RightDockedModal>
-                    <RightDockedModal route={ROUTES.IOU_GROUP_SPLIT}>
-                        <IOUModal route={ROUTES.IOU_GROUP_SPLIT} />
+                    <RightDockedModal route={ROUTES.IOU_BILL_SPLIT}>
+                        <IOUModal route={ROUTES.IOU_BILL_SPLIT} />
                     </RightDockedModal>
                 </Route>
             </View>

@@ -7,7 +7,7 @@ export default {
     NEW_GROUP: '/new/group',
     NEW_CHAT: '/new/chat',
     IOU_REQUEST_MONEY: '/iou/request',
-    IOU_GROUP_SPLIT: '/iou/split',
+    IOU_BILL_SPLIT: '/iou/split',
     REPORT: '/r/:reportID',
     getReportRoute: reportID => `/r/${reportID}`,
     ROOT: '/',
