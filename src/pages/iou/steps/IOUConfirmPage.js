@@ -8,9 +8,6 @@ const propTypes = {
     // Callback to inform parent modal of success
     onConfirm: PropTypes.func.isRequired,
 
-    // array of IOU participants
-    participants: PropTypes.arrayOf(PropTypes.object).isRequired,
-
     // is page content currently being retrieved
     isLoading: PropTypes.bool.isRequired,
 

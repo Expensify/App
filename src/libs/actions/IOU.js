@@ -1,25 +1,18 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 
-function initialiseIOUModal() {
-    Onyx.merge(ONYXKEYS.IOU, {
-        IOUAmount: {
-            isLoading: true
-        },
-        IOUParticipants: {
-            isLoading: true
-        },
-        IOUConfirm: {
-            isLoading: false
-        },
-    });
-}
+/**
+ * Retrieve the users preferred currency
+ */
+function getPreferredCurrency() {
+    Onyx.merge(ONYXKEYS.IOU, {isLoadingCurrency: true});
 
-function setIouStepIsLoading(stepType, isLoading) {
-    Onyx.merge(ONYXKEYS.IOU, {[stepType]: {isLoading: isLoading}} );
+    // fake loading timer, to be replaced with actual network request
+    setTimeout(() => {
+        Onyx.merge(ONYXKEYS.IOU, {isLoadingCurrency: false});
+    }, 1600);
 }
 
 export {
-    setIouStepIsLoading,
-    initialiseIOUModal,
+    getPreferredCurrency,
 };
