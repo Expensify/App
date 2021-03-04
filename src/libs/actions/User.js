@@ -1,11 +1,10 @@
-/* eslint-disable  import/prefer-default-export  */
-
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import {signIn} from './Session';
+import CONST from '../../CONST';
 
 /**
  * Changes a password for a given account
@@ -35,10 +34,9 @@ function getBetas() {
  * Fetches the data needed for user settings
  */
 function fetch() {
-    const payPalNVP = 'expensify_payPalMeAddress';
     API.Get({
         returnValueList: ['account', 'loginList', 'nameValuePairs'],
-        name: payPalNVP,
+        name: CONST.NVP.PAYPAL_ME_ADDRESS,
     })
         .then((response) => {
             // Update the User onyx key
@@ -47,7 +45,7 @@ function fetch() {
             Onyx.merge(ONYXKEYS.USER, {loginList, expensifyNewsStatus});
 
             // Update the nvp_payPalMeAddress NVP
-            const payPalMeAddress = lodashGet(response, `nameValuePairs.${payPalNVP}`, '');
+            const payPalMeAddress = lodashGet(response, `nameValuePairs.${CONST.NVP.PAYPAL_ME_ADDRESS}`, '');
             Onyx.merge(ONYXKEYS.NVP_PAYPAL_ME_ADDRESS, payPalMeAddress);
         });
 }

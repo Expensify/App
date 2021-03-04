@@ -1,13 +1,20 @@
 import moment from 'moment';
 import 'moment-timezone';
+import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../ONYXKEYS';
+import CONST from '../CONST';
 
 let timezone;
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
-    callback: val => timezone = val ? val.timezone : 'America/Los_Angeles',
+    callback: (val) => {
+        timezone = val ? val.timezone : CONST.DEFAULT_TIME_ZONE.selected;
+        if (_.isObject(timezone)) {
+            timezone = val.timezone.selected;
+        }
+    },
 });
 
 /**

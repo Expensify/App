@@ -8,143 +8,153 @@ module.exports =
 /***/ 1326:
 /***/ ((__unused_webpack_module, __unused_webpack_exports, __nccwpck_require__) => {
 
-const core = __nccwpck_require__(9189);
-const github = __nccwpck_require__(8349);
-const functions = __nccwpck_require__(2812);
+const {promisify} = __nccwpck_require__(1669);
+const exec = promisify(__nccwpck_require__(3129).exec);
+const fs = __nccwpck_require__(5747);
+const core = __nccwpck_require__(2186);
+const github = __nccwpck_require__(5438);
+const {updateAndroidVersion, updateiOSVersion} = __nccwpck_require__(322);
 
-const MAX_RETRIES = 10;
+/**
+ * Update the native app versions.
+ *
+ * @param {String} newVersion
+ */
+function updateNativeVersions(newVersion) {
+    console.log(`Updating native versions to ${newVersion}`);
 
+    // Update Android
+    updateAndroidVersion(newVersion)
+        .then(() => {
+            console.log('Successfully updated Android!');
+        })
+        .catch((err) => {
+            console.error('Error updating Android');
+            core.setFailed(err);
+        });
+
+    // Update iOS
+    updateiOSVersion(newVersion)
+        .then(() => {
+            console.log('Successfully updated iOS!');
+        })
+        .catch((err) => {
+            console.error('Error updating iOS');
+            core.setFailed(err);
+        });
+}
+
+// Use Github Actions' default environment variables to get repo information
+// https://docs.github.com/en/free-pro-team@latest/actions/reference/environment-variables#default-environment-variables
+const [repoOwner, repoName] = process.env.GITHUB_REPOSITORY.split('/');
+
+// Determine current patch version
+const {version} = JSON.parse(fs.readFileSync('./package.json'));
+const currentPatchVersion = version.split('-')[0];
+console.log('Current patch version:', currentPatchVersion);
+
+let newVersion;
+
+// Fetch tags
+console.log('Fetching tags from github...');
 const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
-let semanticVersionLevel = core.getInput('SEMVER_LEVEL', {require: true});
-
-// SEMVER_LEVEL defaults to BUILD
-// it actually would fall to build anyway, but I think it is better to make it explicitly
-if (!semanticVersionLevel || !Object.values(functions.semanticVersionLevels).find(v => v === semanticVersionLevel)) {
-    // eslint-disable-next-line max-len, semi
-    console.log(`Invalid input for 'SEMVER_LEVEL': ${semanticVersionLevel}, defaulting to: ${functions.semanticVersionLevels.build}`)
-    semanticVersionLevel = functions.semanticVersionLevels.build;
-}
-
-// eslint-disable-next-line no-shadow
-const bumpVersion = async (core, github, semanticVersionLevel) => {
-    console.log('Fetching tags from github...');
-    const response = await octokit.repos.listTags({
-        owner: github.context.repo.owner,
-        repo: github.context.repo.repo,
-    });
-    const tags = response.data.map(tag => tag.name);
-
-    // tags come from latest to oldest
-    const highestVersion = tags[0];
-    console.log(`Highest version found: ${highestVersion}.`);
-
-    const newVersion = functions.incrementVersion(highestVersion, semanticVersionLevel);
-
-    core.setOutput('VERSION', newVersion);
-
-    const {stdout} = await functions.execUpdateToNewVersion(newVersion);
-    console.log(stdout);
-};
-
-
-// It's possible that two PRs were merged in rapid succession.
-// In this case, both PRs will attempt to update to the same npm version.
-// This will cause the deploy to fail with an exit code 128
-// saying the git tag for that version already exists.
-for (let retry = 0; retry < MAX_RETRIES; retry++) {
-    try {
-        bumpVersion(core, github, semanticVersionLevel);
-        break;
-    } catch (error) {
-        console.log(
-            'Err: npm version conflict, attempting to automatically resolve',
-            `retryCount: ${retry}`,
+return octokit.repos.listTags({
+    owner: repoOwner,
+    repo: repoName,
+})
+    .catch(githubError => core.setFailed(githubError))
+    .then((githubResponse) => {
+        // Find the highest build version git tag
+        const tags = githubResponse.data.map(tag => tag.name);
+        console.log('Tags: ', tags);
+        const highestBuildNumber = Math.max(
+            ...(tags
+                .filter(tag => (tag.startsWith(currentPatchVersion)))
+                .map(tag => tag.split('-')[1])
+            ),
         );
-        console.log(error);
-    }
-}
+        console.log('Highest build number from current patch version:', highestBuildNumber);
+
+        // Increment the build version, update the native and npm versions.
+        newVersion = `${currentPatchVersion}-${highestBuildNumber + 1}`;
+        updateNativeVersions(newVersion);
+        console.log(`Setting npm version for this PR to ${newVersion}`);
+        return exec(`npm --no-git-tag-version version ${newVersion} -m "Update version to ${newVersion}"`);
+    })
+    .then(({stdout}) => {
+        // NPM and native versions successfully updated, output new version
+        console.log(stdout);
+        core.setOutput('newVersion', newVersion);
+    })
+    .catch(({stdout, stderr}) => {
+        // Log errors and retry
+        console.log(stdout);
+        console.error(stderr);
+        core.setFailed('An error occurred in the `npm version` command');
+    });
 
 
 /***/ }),
 
-/***/ 2812:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+/***/ 322:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
-const utils = __nccwpck_require__(1669);
-const exec = utils.promisify(__nccwpck_require__(3129).exec);
+const {promisify} = __nccwpck_require__(1669);
+const exec = promisify(__nccwpck_require__(3129).exec);
+const fs = __nccwpck_require__(5747).promises;
+const path = __nccwpck_require__(5622);
 
-const semanticVersionLevels = {
-    major: 'MAJOR',
-    minor: 'MINOR',
-    patch: 'PATCH',
-    build: 'BUILD',
-};
-const maxIncrements = 999;
+// Filepath constants
+const BUILD_GRADLE_PATH = process.env.NODE_ENV === 'test'
+    ? path.resolve(__dirname, '../../android/app/build.gradle')
+    : './android/app/build.gradle';
+const PLIST_PATH = './ios/ExpensifyCash/Info.plist';
+const PLIST_PATH_TEST = './ios/ExpensifyCashTests/Info.plist';
 
-const getVersionNumberFromString = (versionString) => {
-    const [version, build] = versionString.slice(1).split('-');
-    const [major, minor, patch] = version.split('.').map(n => Number(n));
-    return [major, minor, patch, build ? Number(build) : undefined];
-};
+exports.BUILD_GRADLE_PATH = BUILD_GRADLE_PATH;
+exports.PLIST_PATH = PLIST_PATH;
+exports.PLIST_PATH_TEST = PLIST_PATH_TEST;
 
-const getVersionStringFromNumber = (major, minor, patch, build) => {
-    if (build) { return `v${major}.${minor}.${patch}-${build}`; }
-    return `v${major}.${minor}.${patch}`;
-};
-
-const incrementMinor = (major, minor) => {
-    if (minor < maxIncrements) { return getVersionStringFromNumber(major, minor + 1, 0); }
-    return getVersionStringFromNumber(major + 1, 0, 0);
-};
-
-const incrementPatch = (major, minor, patch) => {
-    if (patch < maxIncrements) { return getVersionStringFromNumber(major, minor, patch + 1); }
-    return incrementMinor(major, minor);
-};
-
-const incrementVersion = (version, level) => {
-    const [major, minor, patch, build] = getVersionNumberFromString(
-        version,
-    );
-
-    // majors will always be incremented
-    if (level === semanticVersionLevels.major) { return getVersionStringFromNumber(major + 1, 0, 0); }
-
-    if (level === semanticVersionLevels.minor) {
-        return incrementMinor(major, minor);
-    }
-    if (level === semanticVersionLevels.patch) {
-        return incrementPatch(major, minor, patch);
-    }
-    if (build === undefined) { return getVersionStringFromNumber(major, minor, patch, 1); }
-    if (build < maxIncrements) {
-        return getVersionStringFromNumber(major, minor, patch, build + 1);
-    }
-    return incrementPatch(major, minor, patch);
+/**
+ * Update the Android app versionName and versionCode.
+ *
+ * @param {String} versionName
+ * @returns {Promise}
+ */
+exports.updateAndroidVersion = function updateAndroidVersion(versionName) {
+    console.log('Updating android:', `versionName: ${versionName}`);
+    return fs.readFile(BUILD_GRADLE_PATH, {encoding: 'utf8'})
+        .then((content) => {
+            const updatedContent = content.toString().replace(
+                /versionName "([0-9.-]+)"/,
+                `versionName "${versionName}"`,
+            );
+            return updatedContent.replace(
+                /versionCode ([0-9]+)/,
+                (_, oldVersionCode) => `versionCode ${Number.parseInt(oldVersionCode, 10) + 1}`,
+            );
+        })
+        .then(updatedContent => fs.writeFile(BUILD_GRADLE_PATH, updatedContent, {encoding: 'utf8'}));
 };
 
-const execUpdateToNewVersion = async version => exec(
-    `npm version ${version} -m "Update version to ${version}"`,
-);
-
-module.exports = {
-    execUpdateToNewVersion,
-    getVersionNumberFromString,
-    getVersionStringFromNumber,
-    incrementVersion,
-
-    // for the tests
-    maxIncrements,
-    semanticVersionLevels,
-    incrementMinor,
-    incrementPatch,
+/**
+ * Update the iOS app version.
+ * Updates the CFBundleShortVersionString and the CFBundleVersion.
+ *
+ * @param {String} version
+ * @returns {Promise}
+ */
+exports.updateiOSVersion = function updateiOSVersion(version) {
+    const shortVersion = version.split('-')[0];
+    const cfVersion = version.replace('-', '.');
+    console.log('Updating iOS', `CFBundleShortVersionString: ${shortVersion}`, `CFBundleVersion: ${version}`);
+    return Promise.all([
+        exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH}`),
+        exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH_TEST}`),
+        exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH}`),
+        exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH_TEST}`),
+    ]);
 };
-
-// const getHighestBuildNumberFromPatchVersion = (tags, currentPatchVersion) => Math.max(
-//     ...tags
-//         .filter(tag => tag.startsWith(currentPatchVersion))
-//         .map(tag => tag.split('-')[1]),
-// );
 
 
 /***/ }),
