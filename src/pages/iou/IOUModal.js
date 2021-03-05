@@ -34,6 +34,7 @@ const StepType = {
 };
 
 const defaultProps = {
+    currentURL: '',
     isLoading: true,
 };
 
@@ -75,17 +76,22 @@ class IOUModal extends Component {
     }
 
     /**
-     * Navigate to the next IOU step
+     * Navigate to the next IOU step if possible
      */
     navigateToPreviousStep() {
+        if (this.state.currentStepIndex <= 0) {
+            return;
+        }
         this.setState(prevState => ({currentStepIndex: prevState.currentStepIndex - 1}));
     }
 
     /**
-     * Navigate to the previous IOU step
+     * Navigate to the previous IOU step if possible
      */
     navigateToNextStep() {
-        getPreferredCurrency();
+        if (this.state.currentStepIndex >= this.state.steps.length - 1) {
+            return;
+        }
         this.setState(prevState => ({currentStepIndex: prevState.currentStepIndex + 1}));
     }
 
