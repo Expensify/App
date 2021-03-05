@@ -37,11 +37,10 @@ const subsettings = {
         title: 'Payments',
         Component: PaymentsPage,
     },
-
 };
 
-const SettingsPage = ({match}) => {
-    const {route} = match.params;
+const SettingsPage = (props) => {
+    const route = props.match.params.route;
     let {Component} = subsettings.default;
 
     if (subsettings[route]) {

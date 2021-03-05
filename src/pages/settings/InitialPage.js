@@ -83,16 +83,13 @@ const InitialSettingsPage = ({
     // On the very first sign in or after clearing storage these
     // details will not be present on the first render so we'll just
     // return nothing for now.
-    if (!myPersonalDetails || _.isEmpty(myPersonalDetails)) {
+    if (_.isEmpty(myPersonalDetails)) {
         return null;
     }
     return (
         <>
             <HeaderGap />
-            <HeaderWithCloseButton
-                title="Settings"
-                onCloseButtonPress={redirectToLastReport}
-            />
+            <HeaderWithCloseButton title="Settings" onCloseButtonPress={redirectToLastReport} />
             <View
                 pointerEvents="box-none"
                 style={[
@@ -102,9 +99,7 @@ const InitialSettingsPage = ({
                 <View style={styles.w100}>
                     <View style={styles.settingsWrapper}>
 
-                        <View
-                            style={[styles.mb3]}
-                        >
+                        <View style={[styles.mb3]}>
                             <AvatarWithIndicator
                                 size="large"
                                 source={myPersonalDetails.avatar}
@@ -128,7 +123,7 @@ const InitialSettingsPage = ({
                             title={item.title}
                             icon={item.icon}
                             onPress={() => redirect(ROUTES.getSettingsRoute(item.route))}
-                            showRightArrow
+                            shouldShowRightArrow
                         />
                     ))}
                     <View style={[styles.ph5]}>
