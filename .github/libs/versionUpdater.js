@@ -1,4 +1,4 @@
-const semanticVersionLevels = {
+const SEMANTIC_VERSION_LEVELS = {
     major: 'MAJOR',
     minor: 'MINOR',
     patch: 'PATCH',
@@ -70,12 +70,12 @@ const incrementVersion = (version, level) => {
     );
 
     // majors will always be incremented
-    if (level === semanticVersionLevels.major) { return getVersionStringFromNumber(major + 1, 0, 0); }
+    if (level === SEMANTIC_VERSION_LEVELS.major) { return getVersionStringFromNumber(major + 1, 0, 0); }
 
-    if (level === semanticVersionLevels.minor) {
+    if (level === SEMANTIC_VERSION_LEVELS.minor) {
         return incrementMinor(major, minor);
     }
-    if (level === semanticVersionLevels.patch) {
+    if (level === SEMANTIC_VERSION_LEVELS.patch) {
         return incrementPatch(major, minor, patch);
     }
     if (build === undefined) { return getVersionStringFromNumber(major, minor, patch, 1); }
@@ -92,7 +92,7 @@ module.exports = {
 
     // for the tests
     maxIncrements,
-    semanticVersionLevels,
+    SEMANTIC_VERSION_LEVELS,
     incrementMinor,
     incrementPatch,
 };
