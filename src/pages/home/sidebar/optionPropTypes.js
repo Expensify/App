@@ -1,3 +1,4 @@
+/* eslint-disable react/forbid-prop-types */
 import PropTypes from 'prop-types';
 
 export default PropTypes.shape({
@@ -6,6 +7,9 @@ export default PropTypes.shape({
 
     // Subtitle to show under report displayName, mostly lastMessageText of the report
     alternateText: PropTypes.string.isRequired,
+
+    // list of particiapants of the report
+    participantsList: PropTypes.object.isRequired,
 
     // The array URLs of the person's avatar
     icon: PropTypes.arrayOf(PropTypes.string),

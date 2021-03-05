@@ -16,4 +16,5 @@ export default {
     safeInsertPercentage: 0.7,
     sideBarWidth: 375,
     pdfPageMaxWidth: 992,
+    tooltipzIndex: 10050,
 };

@@ -62,7 +62,6 @@ class ReportScreen extends Component {
             const isActiveReport = activeReportID === report.reportID;
             const finalData = {...memo};
             let reportStyle;
-            console.debug(report);
             if (isActiveReport) {
                 activeReportID = report.reportID;
                 reportStyle = [styles.dFlex, styles.flex1];
