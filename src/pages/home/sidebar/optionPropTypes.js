@@ -9,7 +9,7 @@ export default PropTypes.shape({
     alternateText: PropTypes.string.isRequired,
 
     // list of particiapants of the report
-    participantsList: PropTypes.object.isRequired,
+    participantsList: PropTypes.array.isRequired,
 
     // The array URLs of the person's avatar
     icon: PropTypes.arrayOf(PropTypes.string),

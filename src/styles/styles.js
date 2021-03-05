@@ -542,6 +542,12 @@ const styles = {
         lineHeight: 18,
         ...whiteSpace.noWrap,
     },
+    optionDisplayNameTooltipEllipsis: {
+        position: 'absolute',
+        opacity: 0,
+        right: 0,
+        bottom: 0,
+    },
 
     optionAlternateText: {
         color: themeColors.textSupporting,
