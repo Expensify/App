@@ -18,6 +18,7 @@ import {getSidebarOptions} from '../../../libs/OptionsListUtils';
 import {getDefaultAvatar} from '../../../libs/actions/PersonalDetails';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
 import HeaderGap from '../../../components/HeaderGap';
+import CONST from '../../../CONST';
 
 const propTypes = {
     // Toggles the navigation menu open and closed
@@ -43,7 +44,7 @@ const propTypes = {
     // List of users' personal details
     personalDetails: PropTypes.objectOf(PropTypes.shape({
         login: PropTypes.string.isRequired,
-        avatarURL: PropTypes.string.isRequired,
+        avatar: PropTypes.string.isRequired,
         displayName: PropTypes.string.isRequired,
     })),
 
@@ -53,7 +54,7 @@ const propTypes = {
         displayName: PropTypes.string,
 
         // Avatar URL of the current user from their personal details
-        avatarURL: PropTypes.string,
+        avatar: PropTypes.string,
     }),
 
     // Information about the network
@@ -64,6 +65,9 @@ const propTypes = {
 
     // Currently viewed reportID
     currentlyViewedReportID: PropTypes.string,
+
+    // The chat priority mode
+    priorityMode: PropTypes.string,
 };
 
 const defaultProps = {
@@ -71,10 +75,11 @@ const defaultProps = {
     draftComments: {},
     personalDetails: {},
     myPersonalDetails: {
-        avatarURL: getDefaultAvatar(),
+        avatar: getDefaultAvatar(),
     },
     network: null,
     currentlyViewedReportID: '',
+    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
 };
 
 class SidebarLinks extends React.Component {
@@ -90,6 +95,7 @@ class SidebarLinks extends React.Component {
             this.props.personalDetails,
             this.props.draftComments,
             activeReportID,
+            this.props.priorityMode,
         );
 
         const sections = [{
@@ -123,7 +129,7 @@ class SidebarLinks extends React.Component {
                         onPress={this.props.onAvatarClick}
                     >
                         <AvatarWithIndicator
-                            source={this.props.myPersonalDetails.avatarURL}
+                            source={this.props.myPersonalDetails.avatar}
                             isActive={this.props.network && !this.props.network.isOffline}
                         />
                     </TouchableOpacity>
@@ -171,6 +177,9 @@ export default compose(
         },
         currentlyViewedReportID: {
             key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
+        },
+        priorityMode: {
+            key: ONYXKEYS.PRIORITY_MODE,
         },
     }),
 )(SidebarLinks);

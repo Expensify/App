@@ -12,6 +12,8 @@ export default {
     // When this key is changed, the active page changes (see Expensify.js and `redirect` in actions/App.js)
     APP_REDIRECT_TO: 'appRedirectTo',
 
+    NETWORK_REQUEST_QUEUE: 'networkRequestQueue',
+
     // The current URL, you should not change this directly (use `redirect` in App.js)
     CURRENT_URL: 'currentURL',
 
@@ -32,6 +34,9 @@ export default {
 
     // Contains the user preference for the LHN priority mode
     PRIORITY_MODE: 'priorityMode',
+
+    // Contains the version of the update that has newly been downloaded.
+    UPDATE_VERSION: 'updateVersion',
 
     // Saves the current country code which is displayed when the user types a phone number without
     // an international code
