@@ -66,7 +66,7 @@ class IOUModal extends Component {
         }
         this.setState(prevState => ({
             currentStepIndex: prevState.currentStepIndex - 1,
-            currentStepTitle: prevState.steps[prevState.currentStepIndex -1 ] || '',
+            currentStepTitle: prevState.steps[prevState.currentStepIndex - 1] || '',
         }));
     }
 
