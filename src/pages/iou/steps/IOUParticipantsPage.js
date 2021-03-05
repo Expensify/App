@@ -17,12 +17,16 @@ const propTypes = {
     // callback to inform parent modal of success
     onStepComplete: PropTypes.func.isRequired,
 
-    // is page content being retrieved
-    isLoading: PropTypes.bool,
+    // Holds data related to IOU view state, rather than the underlying IOU data.
+    appIOU: PropTypes.shape({
+
+        // Whether or not the IOU step is loading (retrieving participants)
+        loading: PropTypes.bool,
+    }),
 };
 
 const defaultProps = {
-    isLoading: true,
+    appIOU: {},
 };
 
 const IOUParticipantsPage = props => (
@@ -33,7 +37,7 @@ const IOUParticipantsPage = props => (
         <Route path={ROUTES.IOU_REQUEST_MONEY}>
             <Text style={[styles.buttonText]}>select single participant</Text>
         </Route>
-        {props.isLoading && <ActivityIndicator color={themeColors.text} />}
+        {props.appIOU.loading && <ActivityIndicator color={themeColors.text} />}
         <TouchableOpacity
             style={[styles.button, styles.w100, styles.mt5]}
             onPress={props.onStepComplete}
@@ -50,7 +54,5 @@ IOUParticipantsPage.propTypes = propTypes;
 IOUParticipantsPage.defaultProps = defaultProps;
 
 export default withOnyx({
-    isLoading: {
-        key: ONYXKEYS.IOU.IS_LOADING,
-    },
+    appIOU: {key: ONYXKEYS.APP.IOU},
 })(IOUParticipantsPage);
