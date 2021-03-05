@@ -67,14 +67,20 @@ octokit.repos.listTags({
     .then((githubResponse) => {
         // Find the highest version git tag
         const tags = githubResponse.data.map(tag => tag.name);
+        console.log('Tags: ', tags);
+        const highestBuildNumber = Math.max(
+            ...(tags
+                .filter(tag => (tag.startsWith(currentPatchVersion)))
+                .map(tag => tag.split('-')[1])
+            ),
 
-        // tags come from latest to oldest
-        const highestVersion = tags[0];
+            // Provide a default of 0 for minimum build version
+            0,
+        );
+        console.log('Highest build number from current patch version:', highestBuildNumber);
 
-        console.log(`Highest version found: ${highestVersion}.`);
-
-        newVersion = versionUpdater.incrementVersion(highestVersion, semanticVersionLevel);
-
+        // Increment the build version, update the native and npm versions.
+        newVersion = `${currentPatchVersion}-${highestBuildNumber + 1}`;
         updateNativeVersions(newVersion);
         console.log(`Setting npm version for this PR to ${newVersion}`);
         return exec(`npm --no-git-tag-version version ${newVersion} -m "Update version to ${newVersion}"`);
