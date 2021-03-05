@@ -71,26 +71,17 @@ class Tooltip extends PureComponent {
      * @param {Object} nativeEvent
      */
     measureWrapperAndGetPosition({nativeEvent}) {
-        const {
-            left, top, width, height,
-        } = nativeEvent.layout;
-        console.debug(left, top, nativeEvent);
-        this.setState({
-            wrapperWidth: width,
-            wrapperHeight: height,
-            xOffset: left,
-            yOffset: top,
-        });
+        const {width, height} = nativeEvent.layout;
 
         // We need to use `measureInWindow` instead of the layout props provided by `onLayout`
         // because `measureInWindow` provides the x and y offset relative to the window, rather than the parent element.
-        // this.getWrapperPosition()
-        //     .then(({x, y}) => this.setState({
-        //         wrapperWidth: width,
-        //         wrapperHeight: height,
-        //         xOffset: x,
-        //         yOffset: y,
-        //     }));
+        this.getWrapperPosition()
+            .then(({x, y}) => this.setState({
+                wrapperWidth: width,
+                wrapperHeight: height,
+                xOffset: x,
+                yOffset: y,
+            }));
     }
 
     /**
@@ -109,6 +100,11 @@ class Tooltip extends PureComponent {
      * Display the tooltip in an animation.
      */
     showTooltip() {
+        this.getWrapperPosition()
+            .then(({x, y}) => this.setState({
+                xOffset: x,
+                yOffset: y,
+            }));
         Animated.timing(this.animation, {
             toValue: 1,
             duration: 140,
@@ -170,19 +166,8 @@ class Tooltip extends PureComponent {
                     <View
                         ref={el => this.wrapperView = el}
                         onLayout={this.measureWrapperAndGetPosition}
+                        style={this.props.containerStyle}
                     >
-                        {/* <Animated.View style={animationStyle}>
-                        <View
-                            ref={el => this.tooltip = el}
-                            onLayout={this.measureTooltip}
-                            style={tooltipWrapperStyle}
-                        >
-                            <Text style={tooltipTextStyle} numberOfLines={1}>{this.props.text}</Text>
-                        </View>
-                        <View style={pointerWrapperStyle}>
-                            <View style={pointerStyle} />
-                        </View>
-                    </Animated.View> */}
                         {this.props.children}
                     </View>
                 </Hoverable>

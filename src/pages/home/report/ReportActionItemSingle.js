@@ -16,7 +16,6 @@ const propTypes = {
 };
 
 const ReportActionItemSingle = ({action}) => {
-    console.debug(action);
     const avatarUrl = action.automatic
         ? `${CONST.CLOUDFRONT_URL}/images/icons/concierge_2019.svg`
         : action.avatar;

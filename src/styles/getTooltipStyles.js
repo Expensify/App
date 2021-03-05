@@ -121,6 +121,7 @@ export default function getTooltipStyles(
             borderRadius: variables.componentBorderRadiusSmall,
             ...tooltipVerticalPadding,
             ...spacing.ph2,
+            zIndex: variables.tooltipzIndex,
 
             // Because it uses absolute positioning, the top-left corner of the tooltip is aligned
             // with the top-left corner of the wrapped component by default.

@@ -5,7 +5,7 @@ const defaultProps = {
     shiftVertical: 0,
 };
 
-const Tooltip = () => (this.props.children);
+const Tooltip = props => props.children;
 
 Tooltip.propTypes = tooltipPropTypes;
 Tooltip.defaultProps = defaultProps;
