@@ -1,6 +1,6 @@
 import React from 'react';
 import {View, Pressable} from 'react-native';
-import PropTypes, {object} from 'prop-types';
+import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Header from '../../components/Header';
 import styles from '../../styles/styles';
