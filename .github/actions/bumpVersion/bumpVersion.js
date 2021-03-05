@@ -72,7 +72,7 @@ octokit.repos.listTags({
     .then(({stdout}) => {
         // NPM and native versions successfully updated, output new version
         console.log(stdout);
-        core.setOutput('VERSION', newVersion);
+        core.setOutput('NEW_VERSION', newVersion);
     })
     .catch(({stdout, stderr}) => {
         // Log errors and retry
