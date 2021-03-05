@@ -28,7 +28,7 @@ const IOUParticipantsPage = props => (
         {props.isLoading && <ActivityIndicator color={themeColors.text} />}
         <TouchableOpacity
             style={[styles.button, styles.w100, styles.mt5]}
-            onPress={() => props.onStepComplete()}
+            onPress={props.onStepComplete}
         >
             <Text style={[styles.buttonText]}>
                 Next

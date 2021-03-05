@@ -21,7 +21,7 @@ const IOUConfirmPage = props => (
             style={[styles.button, styles.w100]}
             text={`Request $${props.iouAmount}`}
             isLoading={props.isLoading}
-            onClick={() => props.onConfirm()}
+            onClick={props.onConfirm}
         />
     </View>
 );
