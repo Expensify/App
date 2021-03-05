@@ -20,18 +20,18 @@ const propTypes = {
     title: PropTypes.string.isRequired,
 
     // Boolean whether to display the ArrowRight icon
-    showRightArrow: PropTypes.bool,
+    shouldShowRightArrow: PropTypes.bool,
 };
 
 const defaultProps = {
-    showRightArrow: false,
+    shouldShowRightArrow: false,
 };
 
 const MenuItem = ({
     onPress,
     icon,
     title,
-    showRightArrow,
+    shouldShowRightArrow,
 }) => (
     <Pressable
         onPress={onPress}
@@ -50,7 +50,7 @@ const MenuItem = ({
                 </Text>
             </View>
         </View>
-        {showRightArrow && (
+        {shouldShowRightArrow && (
             <View style={styles.createMenuIcon}>
                 <Icon src={ArrowRight} />
             </View>
