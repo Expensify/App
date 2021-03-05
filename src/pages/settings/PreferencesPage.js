@@ -16,7 +16,6 @@ import NameValuePair from '../../libs/actions/NameValuePair';
 import CONST from '../../CONST';
 import {DownArrow} from '../../components/Icon/Expensicons';
 
-
 const propTypes = {
     // The chat priority mode
     priorityMode: PropTypes.string,

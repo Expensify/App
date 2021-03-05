@@ -8,7 +8,7 @@ import SidebarScreen from './sidebar/SidebarScreen';
 import ReportScreen from './ReportScreen';
 import NewGroupPage from '../NewGroupPage';
 import NewChatPage from '../NewChatPage';
-import SettingsPage from '../SettingsPage';
+import SettingsPage from '../settings/SettingsPage';
 import SearchPage from '../SearchPage';
 import ProfilePage from '../ProfilePage';
 
