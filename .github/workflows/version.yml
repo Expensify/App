@@ -44,8 +44,8 @@ jobs:
             ./android/app/build.gradle \
             ./ios/ExpensifyCash/Info.plist \
             ./ios/ExpensifyCashTests/Info.plist
-          git commit -m "Update version to ${{ steps.bumpVersion.outputs.VERSION }}"
-          git tag ${{ steps.bumpVersion.outputs.VERSION }}
+          git commit -m "Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
+          git tag ${{ steps.bumpVersion.outputs.NEW_VERSION }}
 
       - name: Push new version
         run: git push --set-upstream origin version-bump-${{ github.sha }}

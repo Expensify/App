@@ -40,7 +40,6 @@ function updateNativeVersions(version) {
 const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
 let semanticVersionLevel = core.getInput('SEMVER_LEVEL', {require: true});
 
-// it actually would fall to build anyway, but I think it is better to make it explicitly
 if (!semanticVersionLevel || !_.find(versionUpdater.semanticVersionLevels, v => v === semanticVersionLevel)) {
     console.log(
         `Invalid input for 'SEMVER_LEVEL': ${semanticVersionLevel}`,
