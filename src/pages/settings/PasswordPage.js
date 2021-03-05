@@ -4,7 +4,6 @@ import {redirect} from '../../libs/actions/App';
 import HeaderGap from '../../components/HeaderGap';
 import ROUTES from '../../ROUTES';
 
-
 const PasswordPage = () => (
     <>
         <HeaderGap />
