@@ -15,17 +15,21 @@ const propTypes = {
     // Callback to inform parent modal of success
     onStepComplete: PropTypes.func.isRequired,
 
-    // is page content currently being retrieved
-    isLoading: PropTypes.bool,
+    // Holds data related to IOU view state, rather than the underlying IOU data.
+    appIOU: PropTypes.shape({
+
+        // Whether or not the IOU step is loading (retrieving users preferred currency)
+        loading: PropTypes.bool,
+    }),
 };
 
 const defaultProps = {
-    isLoading: true,
+    appIOU: {},
 };
 
 const IOUAmountPage = props => (
     <View style={styles.settingsWrapper}>
-        {props.isLoading && <ActivityIndicator color={themeColors.text} />}
+        {props.appIOU.loading && <ActivityIndicator color={themeColors.text} />}
         <TouchableOpacity
             style={[styles.button, styles.w100, styles.mt5]}
             onPress={props.onStepComplete}
@@ -42,7 +46,5 @@ IOUAmountPage.propTypes = propTypes;
 IOUAmountPage.defaultProps = defaultProps;
 
 export default withOnyx({
-    isLoading: {
-        key: ONYXKEYS.IOU.IS_LOADING,
-    },
+    appIOU: {key: ONYXKEYS.APP.IOU},
 })(IOUAmountPage);

@@ -10,15 +10,19 @@ const propTypes = {
     // Callback to inform parent modal of success
     onConfirm: PropTypes.func.isRequired,
 
-    // is page content currently being retrieved
-    isLoading: PropTypes.bool,
+    // Holds data related to IOU view state, rather than the underlying IOU data.
+    appIOU: PropTypes.shape({
+
+        // Whether or not the IOU step is loading (creating the IOU Report)
+        loading: PropTypes.bool,
+    }),
 
     // IOU amount
     iouAmount: PropTypes.number.isRequired,
 };
 
 const defaultProps = {
-    isLoading: true,
+    appIOU: {},
 };
 
 const IOUConfirmPage = props => (
@@ -26,7 +30,7 @@ const IOUConfirmPage = props => (
         <ButtonWithLoader
             style={[styles.button, styles.w100]}
             text={`Request $${props.iouAmount}`}
-            isLoading={props.isLoading}
+            isLoading={props.appIOU.loading}
             onClick={props.onConfirm}
         />
     </View>
@@ -37,7 +41,5 @@ IOUConfirmPage.propTypes = propTypes;
 IOUConfirmPage.defaultProps = defaultProps;
 
 export default withOnyx({
-    isLoading: {
-        key: ONYXKEYS.IOU.IS_LOADING,
-    },
+    appIOU: {key: ONYXKEYS.APP.IOU},
 })(IOUConfirmPage);

@@ -5,10 +5,10 @@ import ONYXKEYS from '../../ONYXKEYS';
  * Retrieve the users preferred currency
  */
 export default function getPreferredCurrency() {
-    Onyx.merge(ONYXKEYS.IOU.IS_LOADING, true);
+    Onyx.merge(ONYXKEYS.APP.IOU, {loading: true});
 
     // fake loading timer, to be replaced with actual network request
     setTimeout(() => {
-        Onyx.merge(ONYXKEYS.IOU.IS_LOADING, false);
+        Onyx.merge(ONYXKEYS.APP.IOU, {loading: false});
     }, 1600);
 }
