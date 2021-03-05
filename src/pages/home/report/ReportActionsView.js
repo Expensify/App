@@ -138,7 +138,8 @@ class ReportActionsView extends React.Component {
     }
 
     onMarkAsUnread(actionIndex) {
-        updateLastReadActionID(this.props.reportID, actionIndex);
+        console.log(actionIndex);
+        updateLastReadActionID(this.props.reportID, actionIndex, true);
     }
 
     /**
@@ -269,7 +270,7 @@ class ReportActionsView extends React.Component {
                 action={item.action}
                 displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
                 onLayout={onLayout}
-                onMarkAsUnread={this.onMarkAsUnread(index)}
+                onMarkAsUnread={() => this.onMarkAsUnread(index)}
                 needsLayoutCalculation={needsLayoutCalculation}
             />
         );

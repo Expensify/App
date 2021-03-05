@@ -23,7 +23,7 @@ const propTypes = {
     displayAsGroup: PropTypes.bool.isRequired,
 
     //
-    onMarkAsUnread: PropTypes.func.isRequired
+    onMarkAsUnread: PropTypes.func.isRequired,
 };
 
 class ReportActionItem extends Component {

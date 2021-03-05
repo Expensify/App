@@ -59,7 +59,7 @@ const propTypes = {
     isVisible: PropTypes.bool,
 
     // Function to trigger when we try to mark a message as unread
-    onMarkAsUnread: PropTypes.func.isRequired
+    onMarkAsUnread: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -77,6 +77,7 @@ const ReportActionContextMenu = (props) => {
                     text={contextAction.text}
                     isMini={props.isMini}
                     key={contextAction.text}
+                    onPress={contextAction.text === 'Mark as Unread' ? props.onMarkAsUnread : () => {}}
                 />
             ))}
         </View>
