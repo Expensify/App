@@ -42,15 +42,15 @@ class IOUModal extends Component {
     constructor(props) {
         super(props);
 
+        this.getTitleForStep = this.getTitleForStep.bind(this);
+        this.navigateToPreviousStep = this.navigateToPreviousStep.bind(this);
+        this.navigateToNextStep = this.navigateToNextStep.bind(this);
+
         this.state = {
             steps: [StepType.IOUAmount, StepType.IOUParticipants, StepType.IOUConfirm],
             currentStepIndex: 0,
             hasMultipleParticipants: this.props.currentURL === ROUTES.IOU_BILL_SPLIT,
         };
-
-        this.getTitleForStep = this.getTitleForStep.bind(this);
-        this.navigateToPreviousStep = this.navigateToPreviousStep.bind(this);
-        this.navigateToNextStep = this.navigateToNextStep.bind(this);
     }
 
     componentDidMount() {

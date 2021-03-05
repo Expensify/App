@@ -102,6 +102,8 @@ class HomePage extends PureComponent {
                     ROUTES.HOME,
                     ROUTES.SETTINGS,
                     ROUTES.NEW_GROUP,
+                    ROUTES.NEW_CHAT,
+                    ROUTES.SEARCH,
                     ROUTES.IOU_REQUEST_MONEY,
                     ROUTES.IOU_BILL_SPLIT,
                 ]}
