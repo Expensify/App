@@ -43,6 +43,30 @@ platform :android do
         rollout: '1.0'
     )
   end
+
+  desc "Deploy app to Google Play production"
+  lane :production do
+    google_play_track_version_codes(
+      package_name: "com.expensify.chat",
+      json_key: './android/app/android-fastlane-json-key.json',
+      track: 'internal'
+    )
+
+    upload_to_play_store(
+      package_name: "com.expensify.chat",
+      json_key: './android/app/android-fastlane-json-key.json',
+      version_code: ENV["VERSION"],
+      track: 'internal',
+      track_promote_to: 'production',
+      rollout: '1.0',
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
 end
 
 platform :ios do
