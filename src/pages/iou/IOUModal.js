@@ -102,7 +102,7 @@ class IOUModal extends Component {
                         {this.state.currentStepIndex > 0
                         && (
                             <TouchableOpacity
-                                onPress={() => this.navigateToPreviousStep()}
+                                onPress={this.navigateToPreviousStep}
                                 style={[styles.touchableButtonImage]}
                             >
                                 <Icon src={BackArrow} />
