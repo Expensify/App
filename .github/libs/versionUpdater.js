@@ -1,10 +1,10 @@
 const SEMANTIC_VERSION_LEVELS = {
-    major: 'MAJOR',
-    minor: 'MINOR',
-    patch: 'PATCH',
-    build: 'BUILD',
+    MAJOR: 'MAJOR',
+    MINOR: 'MINOR',
+    PATCH: 'PATCH',
+    BUILD: 'BUILD',
 };
-const maxIncrements = 999;
+const MAX_INCREMENTS = 999;
 
 /**
  * Transforms a versions string into a number
@@ -40,7 +40,7 @@ const getVersionStringFromNumber = (major, minor, patch, build) => {
  * @returns {String}
  */
 const incrementMinor = (major, minor) => {
-    if (minor < maxIncrements) { return getVersionStringFromNumber(major, minor + 1, 0); }
+    if (minor < MAX_INCREMENTS) { return getVersionStringFromNumber(major, minor + 1, 0); }
     return getVersionStringFromNumber(major + 1, 0, 0);
 };
 
@@ -53,7 +53,7 @@ const incrementMinor = (major, minor) => {
  * @returns {String}
  */
 const incrementPatch = (major, minor, patch) => {
-    if (patch < maxIncrements) { return getVersionStringFromNumber(major, minor, patch + 1); }
+    if (patch < MAX_INCREMENTS) { return getVersionStringFromNumber(major, minor, patch + 1); }
     return incrementMinor(major, minor);
 };
 
@@ -70,16 +70,16 @@ const incrementVersion = (version, level) => {
     );
 
     // majors will always be incremented
-    if (level === SEMANTIC_VERSION_LEVELS.major) { return getVersionStringFromNumber(major + 1, 0, 0); }
+    if (level === SEMANTIC_VERSION_LEVELS.MAJOR) { return getVersionStringFromNumber(major + 1, 0, 0); }
 
-    if (level === SEMANTIC_VERSION_LEVELS.minor) {
+    if (level === SEMANTIC_VERSION_LEVELS.MINOR) {
         return incrementMinor(major, minor);
     }
-    if (level === SEMANTIC_VERSION_LEVELS.patch) {
+    if (level === SEMANTIC_VERSION_LEVELS.PATCH) {
         return incrementPatch(major, minor, patch);
     }
     if (build === undefined) { return getVersionStringFromNumber(major, minor, patch, 1); }
-    if (build < maxIncrements) {
+    if (build < MAX_INCREMENTS) {
         return getVersionStringFromNumber(major, minor, patch, build + 1);
     }
     return incrementPatch(major, minor, patch);
@@ -91,7 +91,7 @@ module.exports = {
     incrementVersion,
 
     // for the tests
-    maxIncrements,
+    MAX_INCREMENTS,
     SEMANTIC_VERSION_LEVELS,
     incrementMinor,
     incrementPatch,

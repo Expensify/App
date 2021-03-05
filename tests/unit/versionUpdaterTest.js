@@ -66,32 +66,32 @@ describe('incrementVersion', () => {
     it('should increment major', () => {
         expect(
             versionUpdater.incrementVersion(
-                VERSION, versionUpdater.semanticVersionLevels.major,
+                VERSION, versionUpdater.SEMANTIC_VERSION_LEVELS.MAJOR,
             ),
         ).toStrictEqual('3.0.0');
     });
     it('should increment major even above max level', () => {
         expect(
             versionUpdater.incrementVersion(
-                `${versionUpdater.maxIncrements}.5.1-80`, versionUpdater.semanticVersionLevels.major,
+                `${versionUpdater.maxIncrements}.5.1-80`, versionUpdater.SEMANTIC_VERSION_LEVELS.MAJOR,
             ),
         ).toStrictEqual(`${versionUpdater.maxIncrements + 1}.0.0`);
     });
     it('should increment build number', () => {
         expect(versionUpdater.incrementVersion(
-            VERSION, versionUpdater.semanticVersionLevels.build,
+            VERSION, versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD,
         )).toStrictEqual('2.3.9-81');
     });
     it('should add build number if there is no build number', () => {
         expect(
-            versionUpdater.incrementVersion(VERSION.split('-')[0], versionUpdater.semanticVersionLevels.build),
+            versionUpdater.incrementVersion(VERSION.split('-')[0], versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD),
         ).toStrictEqual('2.3.9-1');
     });
     it('should increment patch if minor is above max level', () => {
         expect(
             versionUpdater.incrementVersion(
                 `2.3.9-${versionUpdater.maxIncrements}`,
-                versionUpdater.semanticVersionLevels.build,
+                versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD,
             ),
         ).toStrictEqual('2.3.10');
     });
