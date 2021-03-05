@@ -82,7 +82,7 @@ octokit.repos.listTags({
     .then(({stdout}) => {
         // NPM and native versions successfully updated, output new version
         console.log(stdout);
-        core.setOutput('VERSION', newVersion);
+        core.setOutput('NEW_VERSION', newVersion);
     })
     .catch(({stdout, stderr}) => {
         // Log errors and retry
@@ -158,10 +158,7 @@ exports.updateiOSVersion = function updateiOSVersion(version) {
 /***/ }),
 
 /***/ 8007:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const utils = __nccwpck_require__(1669);
-const exec = utils.promisify(__nccwpck_require__(3129).exec);
+/***/ ((module) => {
 
 const semanticVersionLevels = {
     major: 'MAJOR',
@@ -171,27 +168,64 @@ const semanticVersionLevels = {
 };
 const maxIncrements = 999;
 
+/**
+ * Transforms a versions string into a number
+ *
+ * @param {String} versionString
+ * @returns {Array}
+ */
 const getVersionNumberFromString = (versionString) => {
     const [version, build] = versionString.split('-');
     const [major, minor, patch] = version.split('.').map(n => Number(n));
     return [major, minor, patch, build ? Number(build) : undefined];
 };
 
+/**
+ * Transforms version numbers components into a version string
+ *
+ * @param {Number} major
+ * @param {Number} minor
+ * @param {Number} patch
+ * @param {Number} build
+ * @returns {String}
+ */
 const getVersionStringFromNumber = (major, minor, patch, build) => {
     if (build) { return `${major}.${minor}.${patch}-${build}`; }
     return `${major}.${minor}.${patch}`;
 };
 
+/**
+ * Increments a minor version
+ *
+ * @param {Number} major
+ * @param {Number} minor
+ * @returns {String}
+ */
 const incrementMinor = (major, minor) => {
     if (minor < maxIncrements) { return getVersionStringFromNumber(major, minor + 1, 0); }
     return getVersionStringFromNumber(major + 1, 0, 0);
 };
 
+/**
+ * Increments a Patch version
+ *
+ * @param {Number} major
+ * @param {Number} minor
+ * @param {Number} patch
+ * @returns {String}
+ */
 const incrementPatch = (major, minor, patch) => {
     if (patch < maxIncrements) { return getVersionStringFromNumber(major, minor, patch + 1); }
     return incrementMinor(major, minor);
 };
 
+/**
+ * Increments a build version
+ *
+ * @param {Number} version
+ * @param {Number} level
+ * @returns {String}
+ */
 const incrementVersion = (version, level) => {
     const [major, minor, patch, build] = getVersionNumberFromString(
         version,
@@ -213,12 +247,7 @@ const incrementVersion = (version, level) => {
     return incrementPatch(major, minor, patch);
 };
 
-const execUpdateToNewVersion = async version => exec(
-    `npm version ${version} -m "Update version to ${version}"`,
-);
-
 module.exports = {
-    execUpdateToNewVersion,
     getVersionNumberFromString,
     getVersionStringFromNumber,
     incrementVersion,
