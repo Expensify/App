@@ -6,6 +6,8 @@ import {
     ActivityIndicator,
 } from 'react-native';
 import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
+import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 
@@ -14,7 +16,11 @@ const propTypes = {
     onStepComplete: PropTypes.func.isRequired,
 
     // is page content currently being retrieved
-    isLoading: PropTypes.bool.isRequired,
+    isLoading: PropTypes.bool,
+};
+
+const defaultProps = {
+    isLoading: true,
 };
 
 const IOUAmountPage = props => (
@@ -33,5 +39,10 @@ const IOUAmountPage = props => (
 
 IOUAmountPage.displayName = 'IOUAmountPage';
 IOUAmountPage.propTypes = propTypes;
+IOUAmountPage.defaultProps = defaultProps;
 
-export default IOUAmountPage;
+export default withOnyx({
+    isLoading: {
+        key: ONYXKEYS.IOU.IS_LOADING,
+    },
+})(IOUAmountPage);
