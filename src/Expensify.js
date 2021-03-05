@@ -34,7 +34,7 @@ Onyx.init({
         [ONYXKEYS.SESSION]: {loading: false},
         [ONYXKEYS.ACCOUNT]: {loading: false, error: ''},
         [ONYXKEYS.NETWORK]: {isOffline: false},
-        [ONYXKEYS.IOU]: {isLoadingCurrency: true, isLoadingParticipants: true, createReportInProgress: false},
+        [ONYXKEYS.IOU]: {isLoading: true},
     },
     registerStorageEventListener: (onStorageEvent) => {
         listenToStorageEvents(onStorageEvent);
