@@ -23,12 +23,8 @@ const propTypes = {
     // Url currently in view
     currentURL: PropTypes.string,
 
-    // IOU modal data
-    iouData: PropTypes.shape({
-        isLoadingCurrency: PropTypes.bool.isRequired,
-        isLoadingParticipants: PropTypes.bool.isRequired,
-        createReportInProgress: PropTypes.bool.isRequired,
-    }),
+    // Are we currently retreiving IOU data
+    isLoading: PropTypes.bool,
 };
 
 const StepType = {
@@ -38,12 +34,7 @@ const StepType = {
 };
 
 const defaultProps = {
-    currentURL: '',
-    iouData: {
-        isLoadingCurrency: true,
-        isLoadingParticipants: true,
-        createReportInProgress: false,
-    },
+    isLoading: true,
 };
 
 class IOUModal extends Component {
@@ -94,6 +85,7 @@ class IOUModal extends Component {
      * Navigate to the previous IOU step
      */
     navigateToNextStep() {
+        getPreferredCurrency();
         this.setState(prevState => ({currentStepIndex: prevState.currentStepIndex + 1}));
     }
 
@@ -134,14 +126,14 @@ class IOUModal extends Component {
                 && (
                     <IOUAmountPage
                         onStepComplete={() => this.navigateToNextStep()}
-                        isLoading={this.props.iouData.isLoadingCurrency}
+                        isLoading={this.props.isLoading}
                     />
                 )}
                 {this.state.steps[this.state.currentStepIndex] === StepType.IOUParticipants
                 && (
                     <IOUParticipantsPage
                         onStepComplete={() => this.navigateToNextStep()}
-                        isLoading={this.props.iouData.isLoadingParticipants}
+                        isLoading={this.props.isLoading}
                         hasMultipleParticipants={this.state.hasMultipleParticipants}
                     />
                 )}
@@ -149,7 +141,7 @@ class IOUModal extends Component {
                 && (
                     <IOUConfirmPage
                         onConfirm={() => console.debug('create IOU report')}
-                        isLoading={this.props.iouData.createReportInProgress}
+                        isLoading={this.props.isLoading}
                         participants={[]}
                         iouAmount={42}
                     />
@@ -167,7 +159,7 @@ export default withOnyx({
     currentURL: {
         key: ONYXKEYS.CURRENT_URL,
     },
-    iouData: {
-        key: ONYXKEYS.IOU,
+    isLoading: {
+        key: ONYXKEYS.IOU.IS_LOADING,
     },
 })(IOUModal);

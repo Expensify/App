@@ -23,8 +23,10 @@ export default {
     // Credentials to authenticate the user
     CREDENTIALS: 'credentials',
 
-    // IOU Keys
-    IOU: 'iou',
+    // Contains loading, error, and participant data for the IOU feature (IOUModal, IOUDetail, and IOUPreview Components)
+    IOU: {
+        IS_LOADING: 'isLoading',
+    },
 
     // Contains the personalDetails of the user as well as their timezone
     MY_PERSONAL_DETAILS: 'myPersonalDetails',
