@@ -42,13 +42,13 @@ class IOUModal extends Component {
     constructor(props) {
         super(props);
 
-        this.getTitleForStep = this.getTitleForStep.bind(this);
         this.navigateToPreviousStep = this.navigateToPreviousStep.bind(this);
         this.navigateToNextStep = this.navigateToNextStep.bind(this);
 
         this.state = {
             steps: [Steps.IOUAmount, Steps.IOUParticipants, Steps.IOUConfirm],
             currentStepIndex: 0,
+            currentStepTitle: Steps.IOUAmount,
             hasMultipleParticipants: this.props.currentURL === ROUTES.IOU_BILL_SPLIT,
         };
     }
@@ -58,22 +58,16 @@ class IOUModal extends Component {
     }
 
     /**
-     * Returns the title for the currently selected page
-     *
-     * @return {String}
-     */
-    getTitleForStep() {
-        return this.state.steps[this.state.currentStepIndex] || '';
-    }
-
-    /**
      * Navigate to the next IOU step if possible
      */
     navigateToPreviousStep() {
         if (this.state.currentStepIndex <= 0) {
             return;
         }
-        this.setState(prevState => ({currentStepIndex: prevState.currentStepIndex - 1}));
+        this.setState(prevState => ({
+            currentStepIndex: prevState.currentStepIndex - 1,
+            currentStepTitle: prevState.steps[prevState.currentStepIndex -1 ] || '',
+        }));
     }
 
     /**
@@ -83,7 +77,10 @@ class IOUModal extends Component {
         if (this.state.currentStepIndex >= this.state.steps.length - 1) {
             return;
         }
-        this.setState(prevState => ({currentStepIndex: prevState.currentStepIndex + 1}));
+        this.setState(prevState => ({
+            currentStepIndex: prevState.currentStepIndex + 1,
+            currentStepTitle: prevState.steps[prevState.currentStepIndex + 1] || '',
+        }));
     }
 
     render() {
@@ -108,7 +105,7 @@ class IOUModal extends Component {
                                 <Icon src={BackArrow} />
                             </TouchableOpacity>
                         )}
-                        <Header title={this.getTitleForStep()} />
+                        <Header title={this.state.currentStepTitle} />
                         <View style={[styles.reportOptions, styles.flexRow]}>
                             <TouchableOpacity
                                 onPress={redirectToLastReport}
