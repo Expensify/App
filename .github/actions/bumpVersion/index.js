@@ -50,7 +50,6 @@ function updateNativeVersions(version) {
 const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
 let semanticVersionLevel = core.getInput('SEMVER_LEVEL', {require: true});
 
-// it actually would fall to build anyway, but I think it is better to make it explicitly
 if (!semanticVersionLevel || !_.find(versionUpdater.semanticVersionLevels, v => v === semanticVersionLevel)) {
     console.log(
         `Invalid input for 'SEMVER_LEVEL': ${semanticVersionLevel}`,
@@ -160,13 +159,13 @@ exports.updateiOSVersion = function updateiOSVersion(version) {
 /***/ 8007:
 /***/ ((module) => {
 
-const semanticVersionLevels = {
-    major: 'MAJOR',
-    minor: 'MINOR',
-    patch: 'PATCH',
-    build: 'BUILD',
+const SEMANTIC_VERSION_LEVELS = {
+    MAJOR: 'MAJOR',
+    MINOR: 'MINOR',
+    PATCH: 'PATCH',
+    BUILD: 'BUILD',
 };
-const maxIncrements = 999;
+const MAX_INCREMENTS = 999;
 
 /**
  * Transforms a versions string into a number
@@ -202,7 +201,7 @@ const getVersionStringFromNumber = (major, minor, patch, build) => {
  * @returns {String}
  */
 const incrementMinor = (major, minor) => {
-    if (minor < maxIncrements) { return getVersionStringFromNumber(major, minor + 1, 0); }
+    if (minor < MAX_INCREMENTS) { return getVersionStringFromNumber(major, minor + 1, 0); }
     return getVersionStringFromNumber(major + 1, 0, 0);
 };
 
@@ -215,7 +214,7 @@ const incrementMinor = (major, minor) => {
  * @returns {String}
  */
 const incrementPatch = (major, minor, patch) => {
-    if (patch < maxIncrements) { return getVersionStringFromNumber(major, minor, patch + 1); }
+    if (patch < MAX_INCREMENTS) { return getVersionStringFromNumber(major, minor, patch + 1); }
     return incrementMinor(major, minor);
 };
 
@@ -232,16 +231,16 @@ const incrementVersion = (version, level) => {
     );
 
     // majors will always be incremented
-    if (level === semanticVersionLevels.major) { return getVersionStringFromNumber(major + 1, 0, 0); }
+    if (level === SEMANTIC_VERSION_LEVELS.MAJOR) { return getVersionStringFromNumber(major + 1, 0, 0); }
 
-    if (level === semanticVersionLevels.minor) {
+    if (level === SEMANTIC_VERSION_LEVELS.MINOR) {
         return incrementMinor(major, minor);
     }
-    if (level === semanticVersionLevels.patch) {
+    if (level === SEMANTIC_VERSION_LEVELS.PATCH) {
         return incrementPatch(major, minor, patch);
     }
     if (build === undefined) { return getVersionStringFromNumber(major, minor, patch, 1); }
-    if (build < maxIncrements) {
+    if (build < MAX_INCREMENTS) {
         return getVersionStringFromNumber(major, minor, patch, build + 1);
     }
     return incrementPatch(major, minor, patch);
@@ -253,8 +252,8 @@ module.exports = {
     incrementVersion,
 
     // for the tests
-    maxIncrements,
-    semanticVersionLevels,
+    MAX_INCREMENTS,
+    SEMANTIC_VERSION_LEVELS,
     incrementMinor,
     incrementPatch,
 };
