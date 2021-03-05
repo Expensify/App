@@ -43,7 +43,7 @@
     "electron-log": "^4.2.4",
     "electron-serve": "^1.0.0",
     "electron-updater": "^4.3.4",
-    "expensify-common": "git+https://github.com/Expensify/expensify-common.git#89f4fb8bcfd5c421d6aedb4fda871aed8daa1251",
+    "expensify-common": "git+https://github.com/Expensify/expensify-common.git#09e7a7014537b4fec527ea12039eb227a72133fd",
     "file-loader": "^6.0.0",
     "html-entities": "^1.3.1",
     "lodash.get": "^4.4.2",
