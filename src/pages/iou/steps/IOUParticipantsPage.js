@@ -6,6 +6,8 @@ import {
     ActivityIndicator,
 } from 'react-native';
 import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
+import ONYXKEYS from '../../../ONYXKEYS';
 import {Route} from '../../../libs/Router';
 import ROUTES from '../../../ROUTES';
 import styles from '../../../styles/styles';
@@ -16,7 +18,11 @@ const propTypes = {
     onStepComplete: PropTypes.func.isRequired,
 
     // is page content being retrieved
-    isLoading: PropTypes.bool.isRequired,
+    isLoading: PropTypes.bool,
+};
+
+const defaultProps = {
+    isLoading: true,
 };
 
 const IOUParticipantsPage = props => (
@@ -41,5 +47,10 @@ const IOUParticipantsPage = props => (
 
 IOUParticipantsPage.displayName = 'IOUParticipantsPage';
 IOUParticipantsPage.propTypes = propTypes;
+IOUParticipantsPage.defaultProps = defaultProps;
 
-export default IOUParticipantsPage;
+export default withOnyx({
+    isLoading: {
+        key: ONYXKEYS.IOU.IS_LOADING,
+    },
+})(IOUParticipantsPage);

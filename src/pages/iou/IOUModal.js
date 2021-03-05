@@ -22,9 +22,6 @@ const propTypes = {
     /* Onyx Props */
     // Url currently in view
     currentURL: PropTypes.string,
-
-    // Are we currently retreiving IOU data
-    isLoading: PropTypes.bool,
 };
 
 const Steps = {
@@ -35,7 +32,6 @@ const Steps = {
 
 const defaultProps = {
     currentURL: '',
-    isLoading: true,
 };
 
 class IOUModal extends Component {
@@ -120,14 +116,12 @@ class IOUModal extends Component {
                 && (
                     <IOUAmountPage
                         onStepComplete={() => this.navigateToNextStep()}
-                        isLoading={this.props.isLoading}
                     />
                 )}
                 {this.state.steps[this.state.currentStepIndex] === Steps.IOUParticipants
                 && (
                     <IOUParticipantsPage
                         onStepComplete={() => this.navigateToNextStep()}
-                        isLoading={this.props.isLoading}
                         hasMultipleParticipants={this.state.hasMultipleParticipants}
                     />
                 )}
@@ -135,7 +129,6 @@ class IOUModal extends Component {
                 && (
                     <IOUConfirmPage
                         onConfirm={() => console.debug('create IOU report')}
-                        isLoading={this.props.isLoading}
                         participants={[]}
                         iouAmount={42}
                     />
@@ -152,8 +145,5 @@ IOUModal.displayName = 'IOUModal';
 export default withOnyx({
     currentURL: {
         key: ONYXKEYS.CURRENT_URL,
-    },
-    isLoading: {
-        key: ONYXKEYS.IOU.IS_LOADING,
     },
 })(IOUModal);
