@@ -24,7 +24,7 @@ const getVersionNumberFromString = (versionString) => {
  * @param {Number} major
  * @param {Number} minor
  * @param {Number} patch
- * @param {Number} build
+ * @param {Number} [build]
  * @returns {String}
  */
 const getVersionStringFromNumber = (major, minor, patch, build) => {
