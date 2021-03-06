@@ -3,6 +3,7 @@ import Onyx from 'react-native-onyx';
 import * as OptionsListUtils from '../../src/libs/OptionsListUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
+import CONST from '../../src/CONST';
 
 describe('OptionsListUtils', () => {
     // Given a set of reports with both single participants and multiple participants some pinned and some not
@@ -14,6 +15,7 @@ describe('OptionsListUtils', () => {
             reportID: 1,
             participants: ['tonystark@expensify.com', 'reedrichards@expensify.com'],
             reportName: 'Iron Man, Mister Fantastic',
+            unreadActionCount: 1,
         },
         2: {
             lastVisitedTimestamp: 1610666739296,
@@ -22,6 +24,7 @@ describe('OptionsListUtils', () => {
             reportID: 2,
             participants: ['peterparker@expensify.com'],
             reportName: 'Spider-Man',
+            unreadActionCount: 1,
         },
 
         // This is the only report we are pinning in this test
@@ -32,6 +35,7 @@ describe('OptionsListUtils', () => {
             reportID: 3,
             participants: ['reedrichards@expensify.com'],
             reportName: 'Mister Fantastic',
+            unreadActionCount: 0,
         },
         4: {
             lastVisitedTimestamp: 1610666739298,
@@ -40,6 +44,7 @@ describe('OptionsListUtils', () => {
             reportID: 4,
             participants: ['tchalla@expensify.com'],
             reportName: 'Black Panther',
+            unreadActionCount: 1,
         },
         5: {
             lastVisitedTimestamp: 1610666739299,
@@ -48,6 +53,7 @@ describe('OptionsListUtils', () => {
             reportID: 5,
             participants: ['suestorm@expensify.com'],
             reportName: 'Invisible Woman',
+            unreadActionCount: 1,
         },
         6: {
             lastVisitedTimestamp: 1610666739300,
@@ -56,6 +62,7 @@ describe('OptionsListUtils', () => {
             reportID: 6,
             participants: ['thor@expensify.com'],
             reportName: 'Thor',
+            unreadActionCount: 0,
         },
 
         // Note: This report has the largest lastMessageTimestamp
@@ -66,6 +73,7 @@ describe('OptionsListUtils', () => {
             reportID: 7,
             participants: ['steverogers@expensify.com'],
             reportName: 'Captain America',
+            unreadActionCount: 1,
         },
 
         // Note: This report has no lastMessageTimestamp
@@ -76,6 +84,7 @@ describe('OptionsListUtils', () => {
             reportID: 8,
             participants: ['galactus_herald@expensify.com'],
             reportName: 'Silver Surfer',
+            unreadActionCount: 0,
         },
     };
 
@@ -304,21 +313,63 @@ describe('OptionsListUtils', () => {
         expect(results.userToInvite.login).toBe('+15005550006');
     });
 
-    it('getSidebarOptions()', () => {
-        // When we call getSidebarOptions() with no search value
-        const results = OptionsListUtils.getSidebarOptions(REPORTS, PERSONAL_DETAILS, {}, 0);
+    it('getSidebarOptions() with default priority mode', () => {
+        const reportsWithAddedPinnedMessagelessReport = {
+            ...REPORTS,
+
+            // Note: This report has no lastMessageTimestamp but is also pinned
+            9: {
+                lastVisitedTimestamp: 1610666739300,
+                lastMessageTimestamp: 0,
+                isPinned: true,
+                reportID: 9,
+                participants: ['captain_britain@expensify.com'],
+                reportName: 'Captain Britain',
+            },
+        };
+
+        // When we call getSidebarOptions() with no search value and default priority mode
+        const results = OptionsListUtils.getSidebarOptions(
+            reportsWithAddedPinnedMessagelessReport,
+            PERSONAL_DETAILS,
+            {},
+            0,
+            CONST.PRIORITY_MODE.DEFAULT,
+        );
 
         // Then expect all of the reports to be shown both multiple and single participant except the
-        // report that has no lastMessageTimestamp
-        expect(results.recentReports.length).toBe(_.size(REPORTS) - 1);
+        // unpinned report that has no lastMessageTimestamp
+        expect(results.recentReports.length).toBe(_.size(reportsWithAddedPinnedMessagelessReport) - 1);
+
+        const numberOfPinnedReports = results.recentReports.filter(report => report.isPinned).length;
+        expect(numberOfPinnedReports).toBe(2);
 
         // That no personalDetails are shown
         expect(results.personalDetails.length).toBe(0);
 
-        // And the pinned report is first in the list of reports
-        expect(results.recentReports[0].login).toBe('reedrichards@expensify.com');
+        // And the most recent pinned report is first in the list of reports
+        expect(results.recentReports[0].login).toBe('captain_britain@expensify.com');
 
-        // And the second report is the report with a lastMessageTimestamp
-        expect(results.recentReports[1].login).toBe('steverogers@expensify.com');
+        // And the third report is the report with a lastMessageTimestamp
+        expect(results.recentReports[2].login).toBe('steverogers@expensify.com');
+    });
+
+    it('getSidebarOptions() with GSD priority mode', () => {
+        // When we call getSidebarOptions() with no search value
+        const results = OptionsListUtils.getSidebarOptions(REPORTS, PERSONAL_DETAILS, {}, 0, CONST.PRIORITY_MODE.GSD);
+
+        // Then expect all of the reports to be shown both multiple and single participant except the
+        // report that has no lastMessageTimestamp and the chat with Thor who's message is read
+        expect(results.recentReports.length).toBe(_.size(REPORTS) - 2);
+
+        // That no personalDetails are shown
+        expect(results.personalDetails.length).toBe(0);
+
+        // And Mister Fantastic is alphabetically the fourth report and has an unread message
+        // despite being pinned
+        expect(results.recentReports[4].login).toBe('reedrichards@expensify.com');
+
+        // And Black Panther is alphabetically the first report and has an unread message
+        expect(results.recentReports[0].login).toBe('tchalla@expensify.com');
     });
 });

@@ -7,11 +7,6 @@
 declare -r GREEN='\033[0;32m'
 declare -r RED='\033[0;31m'
 declare -r NC='\033[0m'
-declare diff_highlight
-diff_highlight=$(dpkg -L git | grep diff-highlight/diff-highlight)
-
-git config --global core.pager "$diff_highlight"
-git config --global color.ui always
 
 # Rebuild all the Github Actions
 printf '\nRebuilding GitHub Actions...\n'
