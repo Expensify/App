@@ -40,12 +40,12 @@ function updateNativeVersions(version) {
 const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
 let semanticVersionLevel = core.getInput('SEMVER_LEVEL', {require: true});
 
-if (!semanticVersionLevel || !_.find(versionUpdater.semanticVersionLevels, v => v === semanticVersionLevel)) {
+if (!semanticVersionLevel || !_.find(versionUpdater.SEMANTIC_VERSION_LEVELS, v => v === semanticVersionLevel)) {
     console.log(
         `Invalid input for 'SEMVER_LEVEL': ${semanticVersionLevel}`,
-        `Defaulting to: ${versionUpdater.semanticVersionLevels.build}`,
+        `Defaulting to: ${versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD}`,
     );
-    semanticVersionLevel = versionUpdater.semanticVersionLevels.build;
+    semanticVersionLevel = versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD;
 }
 console.log('Fetching tags from github...');
 octokit.repos.listTags({

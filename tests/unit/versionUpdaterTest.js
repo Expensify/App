@@ -36,7 +36,7 @@ describe('incrementMinor', () => {
         expect(versionUpdater.incrementMinor(2, 3)).toStrictEqual('2.4.0');
     });
     it('should increment major', () => {
-        expect(versionUpdater.incrementMinor(2, versionUpdater.maxIncrements)).toStrictEqual(
+        expect(versionUpdater.incrementMinor(2, versionUpdater.MAX_INCREMENTS)).toStrictEqual(
             '3.0.0',
         );
     });
@@ -48,15 +48,15 @@ describe('incrementPatch', () => {
     });
     it('should increment minor', () => {
         expect(
-            versionUpdater.incrementPatch(2, 3, versionUpdater.maxIncrements),
+            versionUpdater.incrementPatch(2, 3, versionUpdater.MAX_INCREMENTS),
         ).toStrictEqual('2.4.0');
     });
     it('should increment major', () => {
         expect(
             versionUpdater.incrementPatch(
                 2,
-                versionUpdater.maxIncrements,
-                versionUpdater.maxIncrements,
+                versionUpdater.MAX_INCREMENTS,
+                versionUpdater.MAX_INCREMENTS,
             ),
         ).toStrictEqual('3.0.0');
     });
@@ -73,9 +73,9 @@ describe('incrementVersion', () => {
     it('should increment major even above max level', () => {
         expect(
             versionUpdater.incrementVersion(
-                `${versionUpdater.maxIncrements}.5.1-80`, versionUpdater.SEMANTIC_VERSION_LEVELS.MAJOR,
+                `${versionUpdater.MAX_INCREMENTS}.5.1-80`, versionUpdater.SEMANTIC_VERSION_LEVELS.MAJOR,
             ),
-        ).toStrictEqual(`${versionUpdater.maxIncrements + 1}.0.0`);
+        ).toStrictEqual(`${versionUpdater.MAX_INCREMENTS + 1}.0.0`);
     });
     it('should increment build number', () => {
         expect(versionUpdater.incrementVersion(
@@ -90,7 +90,7 @@ describe('incrementVersion', () => {
     it('should increment patch if minor is above max level', () => {
         expect(
             versionUpdater.incrementVersion(
-                `2.3.9-${versionUpdater.maxIncrements}`,
+                `2.3.9-${versionUpdater.MAX_INCREMENTS}`,
                 versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD,
             ),
         ).toStrictEqual('2.3.10');
