@@ -17,7 +17,7 @@ import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import {redirectToLastReport} from '../libs/actions/App';
 import HeaderGap from '../components/HeaderGap';
 import CONST from '../CONST';
- import openURLInNewTab from '../libs/openURLInNewTab';
+import openURLInNewTab from '../libs/openURLInNewTab';
 
 const propTypes = {
     /* Onyx Props */
