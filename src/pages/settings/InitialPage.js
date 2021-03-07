@@ -139,10 +139,32 @@ const InitialSettingsPage = ({
                         </TouchableOpacity>
                     </View>
                 </View>
-                <Text style={[styles.chatItemMessageHeaderTimestamp]} numberOfLines={1}>
-                    v
-                    {version}
-                </Text>
+                <View  style={[styles.sidebarFooter]}>
+                    <Text style={[styles.chatItemMessageHeaderTimestamp]} numberOfLines={1}>
+                        v
+                        {version}
+                    </Text>
+                    <Text style={[styles.chatItemMessageHeaderTimestamp]} numberOfLines={1}>
+                        Read the
+                        {' '}
+                        <Text
+                            style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
+                            onPress={() => openURLInNewTab(CONST.TERMS_URL)}
+                        >
+                            terms of service
+                        </Text>
+                        {' '}
+                        and
+                        {' '}
+                        <Text
+                            style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
+                            onPress={() => openURLInNewTab(CONST.PRIVACY_URL)}
+                        >
+                        privacy policy
+                        </Text>
+                        . 
+                    </Text>
+                </View>
             </View>
         </ScreenWrapper>
     );
