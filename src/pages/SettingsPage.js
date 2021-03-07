@@ -99,7 +99,7 @@ const SettingsPage = ({
                         </Text>
                     </TouchableOpacity>
                 </View>
-                <View  style={[styles.sidebarFooter]}>
+                <View style={[styles.sidebarFooter]}>
                     <Text style={[styles.chatItemMessageHeaderTimestamp]} numberOfLines={1}>
                         v
                         {version}
@@ -120,9 +120,9 @@ const SettingsPage = ({
                             style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
                             onPress={() => openURLInNewTab(CONST.PRIVACY_URL)}
                         >
-                        privacy policy
+                            privacy policy
                         </Text>
-                        . 
+                        .
                     </Text>
                 </View>
             </View>
