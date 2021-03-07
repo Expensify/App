@@ -16,6 +16,8 @@ import AvatarWithIndicator from '../components/AvatarWithIndicator';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import {redirectToLastReport} from '../libs/actions/App';
 import HeaderGap from '../components/HeaderGap';
+import CONST from '../CONST';
+ import openURLInNewTab from '../libs/openURLInNewTab';
 
 const propTypes = {
     /* Onyx Props */
@@ -97,10 +99,32 @@ const SettingsPage = ({
                         </Text>
                     </TouchableOpacity>
                 </View>
-                <Text style={[styles.chatItemMessageHeaderTimestamp]} numberOfLines={1}>
-                    v
-                    {version}
-                </Text>
+                <View  style={[styles.sidebarFooter]}>
+                    <Text style={[styles.chatItemMessageHeaderTimestamp]} numberOfLines={1}>
+                        v
+                        {version}
+                    </Text>
+                    <Text style={[styles.chatItemMessageHeaderTimestamp]} numberOfLines={1}>
+                        Read the
+                        {' '}
+                        <Text
+                            style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
+                            onPress={() => openURLInNewTab(CONST.TERMS_URL)}
+                        >
+                            terms of service
+                        </Text>
+                        {' '}
+                        and
+                        {' '}
+                        <Text
+                            style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
+                            onPress={() => openURLInNewTab(CONST.PRIVACY_URL)}
+                        >
+                        privacy policy
+                        </Text>
+                        . 
+                    </Text>
+                </View>
             </View>
         </>
     );
