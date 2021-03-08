@@ -135,4 +135,21 @@ platform :ios do
       binary_path: "./ios/Pods/FirebaseCrashlytics/upload-symbols"
     )
   end
+
+  desc "Move app to App Store Review"
+  lane :production do
+    deliver(
+      api_key_path: "./ios/ios-fastlane-json-key.json",
+      build_number: ENV["VERSION"],
+      submit_for_review: true,
+      automatic_release: false,
+      skip_metadata: true,
+      skip_screenshots: true,
+      skip_binary_upload: true,
+      precheck_include_in_app_purchases: false,
+      submission_information: {
+        add_id_info_uses_idfa: false
+      }
+    )
+  end
 end
