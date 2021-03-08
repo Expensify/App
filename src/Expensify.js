@@ -12,7 +12,7 @@ import * as ActiveClientManager from './libs/ActiveClientManager';
 import ONYXKEYS from './ONYXKEYS';
 import styles from './styles/styles';
 import Log from './libs/Log';
-import Migrate from './libs/Migrate';
+import MigrateOnyx from './libs/MigrateOnyx';
 import {
     Route,
     Router,
@@ -78,7 +78,7 @@ class Expensify extends PureComponent {
 
     componentDidMount() {
         // Run any Onyx schema migrations and then connect to Onyx
-        Migrate()
+        MigrateOnyx()
             .then(() => {
                 Onyx.connect({
                     key: ONYXKEYS.SESSION,
