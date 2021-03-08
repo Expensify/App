@@ -186,7 +186,11 @@ const mainWindow = (() => {
             });
 
             app.on('before-quit', () => quitting = true);
-            app.on('activate', () => browserWindow.show());
+            app.on('activate', () => {
+                if (!expectedUpdateVersion || app.getVersion() === expectedUpdateVersion) {
+                    browserWindow.show();
+                }
+            });
 
             // Hide the app if we expected to upgrade to a new version but never did.
             if (expectedUpdateVersion && app.getVersion() !== expectedUpdateVersion) {
