@@ -44,7 +44,7 @@ const propTypes = {
     // List of users' personal details
     personalDetails: PropTypes.objectOf(PropTypes.shape({
         login: PropTypes.string.isRequired,
-        avatarURL: PropTypes.string.isRequired,
+        avatar: PropTypes.string.isRequired,
         displayName: PropTypes.string.isRequired,
     })),
 
@@ -54,7 +54,7 @@ const propTypes = {
         displayName: PropTypes.string,
 
         // Avatar URL of the current user from their personal details
-        avatarURL: PropTypes.string,
+        avatar: PropTypes.string,
     }),
 
     // Information about the network
@@ -75,7 +75,7 @@ const defaultProps = {
     draftComments: {},
     personalDetails: {},
     myPersonalDetails: {
-        avatarURL: getDefaultAvatar(),
+        avatar: getDefaultAvatar(),
     },
     network: null,
     currentlyViewedReportID: '',
@@ -129,7 +129,7 @@ class SidebarLinks extends React.Component {
                         onPress={this.props.onAvatarClick}
                     >
                         <AvatarWithIndicator
-                            source={this.props.myPersonalDetails.avatarURL}
+                            source={this.props.myPersonalDetails.avatar}
                             isActive={this.props.network && !this.props.network.isOffline}
                         />
                     </TouchableOpacity>

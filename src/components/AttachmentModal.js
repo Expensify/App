@@ -14,6 +14,7 @@ import addAuthTokenToURL from '../libs/addAuthTokenToURL';
 import compose from '../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import HeaderWithCloseButton from './HeaderWithCloseButton';
+import fileDownload from '../libs/fileDownload';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -99,6 +100,7 @@ class AttachmentModal extends PureComponent {
                 >
                     <HeaderWithCloseButton
                         title={this.props.title}
+                        onDownloadButtonPress={() => fileDownload(sourceURL)}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
                     />
                     <View style={attachmentViewStyles}>
