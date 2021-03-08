@@ -10,6 +10,7 @@ import NewGroupPage from '../NewGroupPage';
 import NewChatPage from '../NewChatPage';
 import SettingsPage from '../SettingsPage';
 import SearchPage from '../SearchPage';
+import ProfilePage from '../ProfilePage';
 
 import {
     subscribeToReportCommentEvents,
@@ -103,6 +104,7 @@ class HomePage extends PureComponent {
                     ROUTES.NEW_GROUP,
                     ROUTES.NEW_CHAT,
                     ROUTES.SEARCH,
+                    ROUTES.PROFILE,
                 ]}
                 >
                     {/* Sidebar Screen */}
@@ -123,6 +125,9 @@ class HomePage extends PureComponent {
                     </RightDockedModal>
                     <RightDockedModal route={ROUTES.SEARCH}>
                         <SearchPage />
+                    </RightDockedModal>
+                    <RightDockedModal route="/profile/">
+                        <ProfilePage />
                     </RightDockedModal>
                 </Route>
             </View>
