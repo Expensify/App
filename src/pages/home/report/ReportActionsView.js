@@ -117,7 +117,9 @@ class ReportActionsView extends React.Component {
             return;
         }
 
-        if (_.size(prevProps.reportActions) !== _.size(this.props.reportActions)) {
+        const previousLastItem = lastItem(prevProps.reportActions) || {};
+        const newLastItem = lastItem(this.props.reportActions) || {};
+        if (previousLastItem.sequenceNumber !== newLastItem.sequenceNumber) {
             // If a new comment is added and it's from the current user scroll to the bottom otherwise
             // leave the user positioned where they are now in the list.
             const lastAction = lastItem(this.props.reportActions);
