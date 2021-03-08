@@ -64,6 +64,13 @@ jobs:
                   APPLE_DEMO_EMAIL: ${{ secrets.APPLE_DEMO_EMAIL }}
                   APPLE_DEMO_PASSWORD: ${{ secrets.APPLE_DEMO_PASSWORD }}
 
+            - name: Run Fastlane for App Store release
+              if: ${{ env.SHOULD_DEPLOY_PRODUCTION }}
+              run: bundle exec fastlane ios production
+              env:
+                # TODO: Make sure this is the iOS version e.g. 1.0.2.2, not JS version 1.0.2-2
+                VERSION: ${{ env.NEW_VERSION }}
+
             # These Slack steps are duplicated in all workflows, if you make a change to this step, make sure to update all
             # the other workflows with the same changes
             - uses: 8398a7/action-slack@v3
