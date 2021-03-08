@@ -16,7 +16,7 @@ const propTypes = {
     /* Onyx Props */
 
     // Holds data related to IOU view state, rather than the underlying IOU data.
-    appIOU: PropTypes.shape({
+    appStateIOU: PropTypes.shape({
 
         // Whether or not the IOU step is loading (creating the IOU Report)
         loading: PropTypes.bool,
@@ -24,7 +24,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    appIOU: {},
+    appStateIOU: {},
 };
 
 const IOUConfirmPage = props => (
@@ -32,7 +32,7 @@ const IOUConfirmPage = props => (
         <ButtonWithLoader
             style={[styles.button, styles.w100]}
             text={`Request $${props.iouAmount}`}
-            isLoading={props.appIOU.loading}
+            isLoading={props.appStateIOU.loading}
             onClick={props.onConfirm}
         />
     </View>
@@ -43,5 +43,5 @@ IOUConfirmPage.propTypes = propTypes;
 IOUConfirmPage.defaultProps = defaultProps;
 
 export default withOnyx({
-    appIOU: {key: ONYXKEYS.APP.IOU},
+    appStateIOU: {key: ONYXKEYS.APP_STATE.IOU},
 })(IOUConfirmPage);

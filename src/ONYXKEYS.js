@@ -10,7 +10,7 @@ export default {
     ACTIVE_CLIENTS: 'activeClients2',
 
     // Holds data related to application view state, rather than the underlying data.
-    APP: {
+    APP_STATE: {
         // Contains loading data for the IOU feature (IOUModal, IOUDetail, & IOUPreview Components)
         IOU: 'iou',
     },
