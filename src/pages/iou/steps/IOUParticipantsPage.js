@@ -20,7 +20,7 @@ const propTypes = {
     /* Onyx Props */
 
     // Holds data related to IOU view state, rather than the underlying IOU data.
-    appIOU: PropTypes.shape({
+    appStateIOU: PropTypes.shape({
 
         // Whether or not the IOU step is loading (retrieving participants)
         loading: PropTypes.bool,
@@ -28,7 +28,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    appIOU: {},
+    appStateIOU: {},
 };
 
 const IOUParticipantsPage = props => (
@@ -39,7 +39,7 @@ const IOUParticipantsPage = props => (
         <Route path={ROUTES.IOU_REQUEST_MONEY}>
             <Text style={[styles.buttonText]}>select single participant</Text>
         </Route>
-        {props.appIOU.loading && <ActivityIndicator color={themeColors.text} />}
+        {props.appStateIOU.loading && <ActivityIndicator color={themeColors.text} />}
         <TouchableOpacity
             style={[styles.button, styles.w100, styles.mt5]}
             onPress={props.onStepComplete}
@@ -56,5 +56,5 @@ IOUParticipantsPage.propTypes = propTypes;
 IOUParticipantsPage.defaultProps = defaultProps;
 
 export default withOnyx({
-    appIOU: {key: ONYXKEYS.APP.IOU},
+    appStateIOU: {key: ONYXKEYS.APP_STATE.IOU},
 })(IOUParticipantsPage);
