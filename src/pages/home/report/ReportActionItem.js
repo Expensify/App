@@ -26,7 +26,7 @@ const propTypes = {
     displayAsGroup: PropTypes.bool.isRequired,
 
     /* --- Onyx Props --- */
-
+    // List of betas for the current user.
     betas: PropTypes.arrayOf(PropTypes.string),
 };
 
