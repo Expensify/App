@@ -12,7 +12,7 @@ import * as ActiveClientManager from './libs/ActiveClientManager';
 import ONYXKEYS from './ONYXKEYS';
 import styles from './styles/styles';
 import Log from './libs/Log';
-import * as Migrate from './libs/Migrate';
+import Migrate from './libs/Migrate';
 import {
     Route,
     Router,
