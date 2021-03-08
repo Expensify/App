@@ -16,6 +16,7 @@ import LoginForm from './LoginForm';
 import GithubUsernameForm from './GithubUsernameForm';
 import PasswordForm from './PasswordForm';
 import ResendValidationForm from './ResendValidationForm';
+import TermsAndLicenses from './TermsAndLicenses';
 
 const propTypes = {
     /* Onyx Props */
@@ -126,6 +127,8 @@ class SignInPage extends Component {
                                 )}
                             </View>
                         )}
+
+                        <TermsAndLicenses />
                     </SignInPageLayout>
                 </SafeAreaView>
             </>
