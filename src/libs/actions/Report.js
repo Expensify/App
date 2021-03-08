@@ -504,11 +504,15 @@ function fetchChatReports() {
  * @returns {Promise}
  */
 function fetchActions(reportID, offset) {
-    if (!_.isUndefined(offset) && !_.isNumber(offset)) {
-        Log.alert('[Report] Offset provided is not a number', true, {offset});
+    const reportActionsOffset = !_.isUndefined(offset) ? offset : -1;
+
+    if (!_.isNumber(reportActionsOffset)) {
+        Log.alert('[Report] Offset provided is not a number', true, {
+            offset,
+            reportActionsOffset,
+        });
         return;
     }
-    const reportActionsOffset = !_.isUndefined(offset) ? offset : -1;
 
     return API.Report_GetHistory({
         reportID,
