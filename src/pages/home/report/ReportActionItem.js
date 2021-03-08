@@ -2,6 +2,9 @@ import _ from 'underscore';
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
+import CONST from '../../../CONST';
+import ONYXKEYS from '../../../ONYXKEYS';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import styles from '../../../styles/styles';
 import getReportActionItemStyles from '../../../styles/getReportActionItemStyles';
@@ -21,6 +24,14 @@ const propTypes = {
 
     // Should the comment have the appearance of being grouped with the previous comment?
     displayAsGroup: PropTypes.bool.isRequired,
+
+    /* --- Onyx Props --- */
+
+    betas: PropTypes.arrayOf(PropTypes.string),
+};
+
+const defaultProps = {
+    betas: {},
 };
 
 class ReportActionItem extends Component {
@@ -37,6 +48,7 @@ class ReportActionItem extends Component {
             vertical: 0,
         };
 
+        this.isInReportActionContextMenuBeta = this.isInReportActionContextMenuBeta.bind(this);
         this.showPopover = this.showPopover.bind(this);
         this.hidePopover = this.hidePopover.bind(this);
     }
@@ -45,6 +57,16 @@ class ReportActionItem extends Component {
         return this.state.isPopoverVisible !== nextState.isPopoverVisible
             || this.props.displayAsGroup !== nextProps.displayAsGroup
             || !_.isEqual(this.props.action, nextProps.action);
+    }
+
+    /**
+     * Is the current user in the ReportActionContextMenu beta?
+     *
+     * @returns {Boolean}
+     */
+    isInReportActionContextMenuBeta() {
+        return _.contains(this.props.betas, CONST.BETAS.REPORT_ACTION_CONTEXT_MENU)
+            || _.contains(this.props.betas, CONST.BETAS.ALL);
     }
 
     /**
@@ -67,7 +89,9 @@ class ReportActionItem extends Component {
     showPopover(event) {
         const nativeEvent = event.nativeEvent || {};
         this.capturePressLocation(nativeEvent);
-        this.setState({isPopoverVisible: true});
+        if (this.isInReportActionContextMenuBeta()) {
+            this.setState({isPopoverVisible: true});
+        }
     }
 
     /**
@@ -92,7 +116,11 @@ class ReportActionItem extends Component {
                                 <ReportActionContextMenu
                                     reportID={this.props.reportID}
                                     reportActionID={this.props.action.sequenceNumber}
-                                    isVisible={hovered && !this.state.isPopoverVisible}
+                                    isVisible={
+                                        hovered
+                                        && this.isInReportActionContextMenuBeta()
+                                        && !this.state.isPopoverVisible
+                                    }
                                     isMini
                                 />
                             </View>
@@ -124,5 +152,10 @@ class ReportActionItem extends Component {
 }
 
 ReportActionItem.propTypes = propTypes;
+ReportActionItem.defaultProps = defaultProps;
 
-export default ReportActionItem;
+export default withOnyx({
+    betas: {
+        key: ONYXKEYS.BETAS,
+    },
+})(ReportActionItem);
