@@ -10,9 +10,7 @@ export default function () {
         // finally remove the old key by setting the value to null
         const connectionID = Onyx.connect({
             key: 'activeClients2',
-
-            // Use _.once() here so that it is not triggered again with the multiSet() below
-            callback: _.once((oldActiveClients) => {
+            callback: (oldActiveClients) => {
                 Onyx.disconnect(connectionID);
 
                 // Fail early here because there is nothing to migrate
@@ -29,7 +27,7 @@ export default function () {
                         console.debug('[Migrate Onyx] Ran migration RenameActiveClientsKey');
                         resolve();
                     });
-            }),
+            },
         });
     });
 }
