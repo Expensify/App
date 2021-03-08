@@ -45,9 +45,6 @@ RightDockedModal.defaultProps = defaultProps;
 RightDockedModal.displayName = 'RightDockedModal';
 
 export default withOnyx({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
     currentURL: {
         key: ONYXKEYS.CURRENT_URL,
     },
