@@ -15,6 +15,8 @@ const propTypes = {
     // Callback to inform parent modal of success
     onStepComplete: PropTypes.func.isRequired,
 
+    /* Onyx Props */
+
     // Holds data related to IOU view state, rather than the underlying IOU data.
     appIOU: PropTypes.shape({
 
