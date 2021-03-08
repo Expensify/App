@@ -10,6 +10,7 @@ import NewGroupPage from '../NewGroupPage';
 import NewChatPage from '../NewChatPage';
 import SettingsPage from '../SettingsPage';
 import SearchPage from '../SearchPage';
+import ProfilePage from '../ProfilePage';
 
 import {
     subscribeToReportCommentEvents,
@@ -31,7 +32,7 @@ import {redirect} from '../../libs/actions/App';
 import RightDockedModal from '../../components/RightDockedModal';
 import IOUModal from '../iou/IOUModal';
 import {getBetas} from '../../libs/actions/User';
-import Account from '../../libs/actions/Account';
+import NameValuePair from '../../libs/actions/NameValuePair';
 
 const propTypes = {
     network: PropTypes.shape({isOffline: PropTypes.bool}),
@@ -59,7 +60,7 @@ class HomePage extends PureComponent {
         }).then(subscribeToReportCommentEvents);
 
         // Fetch some data we need on initialization
-        Account.fetchPriorityMode();
+        NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.PRIORITY_MODE, 'default');
         PersonalDetails.fetch();
         PersonalDetails.fetchTimezone();
         getBetas();
@@ -106,6 +107,7 @@ class HomePage extends PureComponent {
                     ROUTES.SEARCH,
                     ROUTES.IOU_REQUEST_MONEY,
                     ROUTES.IOU_BILL_SPLIT,
+                    ROUTES.PROFILE,
                 ]}
                 >
                     {/* Sidebar Screen */}
@@ -129,6 +131,9 @@ class HomePage extends PureComponent {
                     </RightDockedModal>
                     <RightDockedModal routes={[ROUTES.IOU_REQUEST_MONEY, ROUTES.IOU_BILL_SPLIT]}>
                         <IOUModal />
+                    </RightDockedModal>
+                    <RightDockedModal route="/profile/">
+                        <ProfilePage />
                     </RightDockedModal>
                 </Route>
             </View>

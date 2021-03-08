@@ -35,7 +35,7 @@ describe('OptionsListUtils', () => {
             reportID: 3,
             participants: ['reedrichards@expensify.com'],
             reportName: 'Mister Fantastic',
-            unreadActionCount: 1,
+            unreadActionCount: 0,
         },
         4: {
             lastVisitedTimestamp: 1610666739298,
