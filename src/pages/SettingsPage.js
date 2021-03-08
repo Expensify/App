@@ -16,7 +16,7 @@ import {version} from '../../package.json';
 import AvatarWithIndicator from '../components/AvatarWithIndicator';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import {redirectToLastReport} from '../libs/actions/App';
-import Account from '../libs/actions/Account';
+import NameValuePair from '../libs/actions/NameValuePair';
 import Icon from '../components/Icon';
 import {DownArrow} from '../components/Icon/Expensicons';
 import CONST from '../CONST';
@@ -30,7 +30,7 @@ const propTypes = {
         displayName: PropTypes.string,
 
         // Avatar URL of the current user from their personal details
-        avatarURL: PropTypes.string,
+        avatar: PropTypes.string,
     }),
 
     // Information about the network
@@ -95,17 +95,17 @@ const SettingsPage = ({
                     styles.settingsPageBackground,
                 ]}
             >
-                <View style={styles.settingsWrapper}>
+                <View style={styles.pageWrapper}>
                     <View
                         style={[styles.mb3]}
                     >
                         <AvatarWithIndicator
                             size="large"
-                            source={myPersonalDetails.avatarURL}
+                            source={myPersonalDetails.avatar}
                             isActive={network && !network.isOffline}
                         />
                     </View>
-                    <Text style={[styles.settingsDisplayName, styles.mt1]} numberOfLines={1}>
+                    <Text style={[styles.displayName, styles.mt1]} numberOfLines={1}>
                         {myPersonalDetails.displayName
                             ? myPersonalDetails.displayName
                             : Str.removeSMSDomain(session.email)}
@@ -123,7 +123,9 @@ const SettingsPage = ({
                             {/* empty object in placeholder below to prevent default */}
                             {/* placeholder from appearing as a selection option. */}
                             <RNPickerSelect
-                                onValueChange={Account.updatePriorityMode}
+                                onValueChange={
+                                    mode => NameValuePair.set(CONST.NVP.PRIORITY_MODE, mode, ONYXKEYS.PRIORITY_MODE)
+                                }
                                 items={Object.values(priorityModes)}
                                 style={styles.picker}
                                 useNativeAndroidPickerStyle={false}

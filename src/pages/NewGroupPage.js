@@ -20,9 +20,9 @@ const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
     login: PropTypes.string.isRequired,
 
-    // The URL of the person's avatar (there should already be a default avatarURL if
+    // The URL of the person's avatar (there should already be a default avatar if
     // the person doesn't have their own avatar uploaded yet)
-    avatarURL: PropTypes.string.isRequired,
+    avatar: PropTypes.string.isRequired,
 
     // This is either the user's full name, or their login if full name is an empty string
     displayName: PropTypes.string.isRequired,
