@@ -10,15 +10,17 @@ const propTypes = {
     // Callback to inform parent modal of success
     onConfirm: PropTypes.func.isRequired,
 
+    // IOU amount
+    iouAmount: PropTypes.number.isRequired,
+
+    /* Onyx Props */
+
     // Holds data related to IOU view state, rather than the underlying IOU data.
     appIOU: PropTypes.shape({
 
         // Whether or not the IOU step is loading (creating the IOU Report)
         loading: PropTypes.bool,
     }),
-
-    // IOU amount
-    iouAmount: PropTypes.number.isRequired,
 };
 
 const defaultProps = {

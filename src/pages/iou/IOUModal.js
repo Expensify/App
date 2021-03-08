@@ -18,12 +18,13 @@ import {Close, BackArrow} from '../../components/Icon/Expensicons';
  * IOU modal for requesting money and splitting bills.
  */
 const propTypes = {
-
     /* Onyx Props */
+
     // Url currently in view
     currentURL: PropTypes.string,
 };
 
+// Determines type of step to display within Modal, value provides the title for that page.
 const Steps = {
     IOUAmount: 'Amount',
     IOUParticipants: 'Participants',
