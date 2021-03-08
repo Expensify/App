@@ -10,10 +10,9 @@ import SignInPage from './pages/signin/SignInPage';
 import listenToStorageEvents from './libs/listenToStorageEvents';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import ONYXKEYS from './ONYXKEYS';
-
 import styles from './styles/styles';
 import Log from './libs/Log';
-
+import * as Migrate from './libs/Migrate';
 import {
     Route,
     Router,
@@ -78,10 +77,14 @@ class Expensify extends PureComponent {
     }
 
     componentDidMount() {
-        Onyx.connect({
-            key: ONYXKEYS.SESSION,
-            callback: this.removeLoadingState,
-        });
+        // Run any Onyx schema migrations and then connect to Onyx
+        Migrate()
+            .then(() => {
+                Onyx.connect({
+                    key: ONYXKEYS.SESSION,
+                    callback: this.removeLoadingState,
+                });
+            });
     }
 
     componentDidUpdate(prevProps, prevState) {
