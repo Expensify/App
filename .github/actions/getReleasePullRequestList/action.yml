@@ -7,7 +7,6 @@ inputs:
     GITHUB_TOKEN:
         description: "Github token for authentication"
         required: true
-        default: "${{ github.token }}"
 outputs:
     PR_LIST:
         description: Array of released pull request numbers
