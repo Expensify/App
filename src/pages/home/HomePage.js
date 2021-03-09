@@ -8,7 +8,7 @@ import SidebarScreen from './sidebar/SidebarScreen';
 import ReportScreen from './ReportScreen';
 import NewGroupPage from '../NewGroupPage';
 import NewChatPage from '../NewChatPage';
-import SettingsPage from '../SettingsPage';
+import SettingsPage from '../settings/SettingsPage';
 import SearchPage from '../SearchPage';
 import ProfilePage from '../ProfilePage';
 
@@ -100,6 +100,7 @@ class HomePage extends PureComponent {
                 <Route path={[
                     ROUTES.REPORT,
                     ROUTES.HOME,
+                    ROUTES.SUBSETTINGS,
                     ROUTES.SETTINGS,
                     ROUTES.NEW_GROUP,
                     ROUTES.NEW_CHAT,
