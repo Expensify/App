@@ -47,7 +47,7 @@ const PreferencesPage = ({priorityMode}) => (
             onBackButtonPress={() => redirect(ROUTES.SETTINGS)}
             onCloseButtonPress={() => redirect(ROUTES.HOME)}
         />
-        <View style={styles.settingsWrapper}>
+        <View style={styles.pageWrapper}>
             <View style={[styles.settingsPageBody, styles.mb6]}>
                 <Text style={[styles.formLabel]} numberOfLines={1}>
                     Priority Mode
