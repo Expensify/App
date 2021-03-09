@@ -30,6 +30,9 @@ const Steps = {
     IOUConfirm: 'Confirm',
 };
 
+// The steps to be shown within the create IOU flow.
+const steps = [Steps.IOUAmount, Steps.IOUParticipants, Steps.IOUConfirm];
+
 class IOUModal extends Component {
     constructor(props) {
         super(props);
@@ -38,7 +41,6 @@ class IOUModal extends Component {
         this.navigateToNextStep = this.navigateToNextStep.bind(this);
 
         this.state = {
-            steps: [Steps.IOUAmount, Steps.IOUParticipants, Steps.IOUConfirm],
             currentStepIndex: 0,
             currentStepTitle: Steps.IOUAmount,
         };
@@ -57,7 +59,7 @@ class IOUModal extends Component {
         }
         this.setState(prevState => ({
             currentStepIndex: prevState.currentStepIndex - 1,
-            currentStepTitle: prevState.steps[prevState.currentStepIndex - 1] || '',
+            currentStepTitle: steps[prevState.currentStepIndex - 1] || '',
         }));
     }
 
@@ -65,12 +67,12 @@ class IOUModal extends Component {
      * Navigate to the previous IOU step if possible
      */
     navigateToNextStep() {
-        if (this.state.currentStepIndex >= this.state.steps.length - 1) {
+        if (this.state.currentStepIndex >= steps.length - 1) {
             return;
         }
         this.setState(prevState => ({
             currentStepIndex: prevState.currentStepIndex + 1,
-            currentStepTitle: prevState.steps[prevState.currentStepIndex + 1] || '',
+            currentStepTitle: steps[prevState.currentStepIndex + 1] || '',
         }));
     }
 
@@ -107,20 +109,20 @@ class IOUModal extends Component {
                         </View>
                     </View>
                 </View>
-                {this.state.steps[this.state.currentStepIndex] === Steps.IOUAmount
+                {steps[this.state.currentStepIndex] === Steps.IOUAmount
                 && (
                     <IOUAmountPage
                         onStepComplete={() => this.navigateToNextStep()}
                     />
                 )}
-                {this.state.steps[this.state.currentStepIndex] === Steps.IOUParticipants
+                {steps[this.state.currentStepIndex] === Steps.IOUParticipants
                 && (
                     <IOUParticipantsPage
                         hasMultipleParticipants={this.props.hasMultipleParticipants}
                         onStepComplete={() => this.navigateToNextStep()}
                     />
                 )}
-                {this.state.steps[this.state.currentStepIndex] === Steps.IOUConfirm
+                {steps[this.state.currentStepIndex] === Steps.IOUConfirm
                 && (
                     <IOUConfirmPage
                         onConfirm={() => console.debug('create IOU report')}
