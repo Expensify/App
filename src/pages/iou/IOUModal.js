@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import {View, TouchableOpacity} from 'react-native';
+import PropTypes from 'prop-types';
 import {redirectToLastReport} from '../../libs/actions/App';
 import IOUAmountPage from './steps/IOUAmountPage';
 import IOUParticipantsPage from './steps/IOUParticipantsPage';
@@ -9,6 +10,14 @@ import styles from '../../styles/styles';
 import Icon from '../../components/Icon';
 import {getPreferredCurrency} from '../../libs/actions/IOU';
 import {Close, BackArrow} from '../../components/Icon/Expensicons';
+
+/**
+ * IOU modal for requesting money and splitting bills.
+ */
+const propTypes = {
+    // Is this new IOU for a single request or group bill split?
+    hasMultipleParticipants: PropTypes.bool.isRequired,
+};
 
 // Determines type of step to display within Modal, value provides the title for that page.
 const Steps = {
@@ -103,6 +112,7 @@ class IOUModal extends Component {
                 {this.state.steps[this.state.currentStepIndex] === Steps.IOUParticipants
                 && (
                     <IOUParticipantsPage
+                        hasMultipleParticipants={this.props.hasMultipleParticipants}
                         onStepComplete={() => this.navigateToNextStep()}
                     />
                 )}
@@ -119,6 +129,7 @@ class IOUModal extends Component {
     }
 }
 
+IOUModal.propTypes = propTypes;
 IOUModal.displayName = 'IOUModal';
 
 export default IOUModal;

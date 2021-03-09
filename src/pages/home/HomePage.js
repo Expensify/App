@@ -117,20 +117,23 @@ class HomePage extends PureComponent {
                     <ReportScreen />
 
                     {/* Modal Screens */}
-                    <RightDockedModal routes={[ROUTES.SETTINGS]}>
+                    <RightDockedModal route={ROUTES.SETTINGS}>
                         <SettingsPage />
                     </RightDockedModal>
-                    <RightDockedModal routes={[ROUTES.NEW_GROUP]}>
+                    <RightDockedModal route={ROUTES.NEW_GROUP}>
                         <NewGroupPage />
                     </RightDockedModal>
-                    <RightDockedModal routes={[ROUTES.NEW_CHAT]}>
+                    <RightDockedModal route={ROUTES.NEW_CHAT}>
                         <NewChatPage />
                     </RightDockedModal>
-                    <RightDockedModal routes={[ROUTES.SEARCH]}>
+                    <RightDockedModal route={ROUTES.SEARCH}>
                         <SearchPage />
                     </RightDockedModal>
-                    <RightDockedModal routes={[ROUTES.IOU_REQUEST, ROUTES.IOU_BILL]}>
-                        <IOUModal />
+                    <RightDockedModal route={ROUTES.IOU_REQUEST}>
+                        <IOUModal hasMultipleParticipants={false} />
+                    </RightDockedModal>
+                    <RightDockedModal route={ROUTES.IOU_BILL}>
+                        <IOUModal hasMultipleParticipants />
                     </RightDockedModal>
                     <RightDockedModal route="/profile/">
                         <ProfilePage />

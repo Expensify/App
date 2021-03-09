@@ -15,7 +15,7 @@ const propTypes = {
     children: PropTypes.node.isRequired,
 
     // Route constant to show modal
-    routes: PropTypes.arrayOf(PropTypes.string),
+    route: PropTypes.string,
 
     /* Onyx Props */
     // Url currently in view
@@ -23,17 +23,17 @@ const propTypes = {
 };
 
 const defaultProps = {
-    routes: [],
+    route: '',
     currentURL: '',
 };
 
 const RightDockedModal = memo(({
-    routes, children, currentURL,
+    route, children, currentURL,
 }) => (
     <Modal
         type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
         onClose={redirectToLastReport}
-        isVisible={routes.includes(currentURL)}
+        isVisible={route.includes(currentURL)}
         backgroundColor={themeColors.componentBG}
     >
         {children}
