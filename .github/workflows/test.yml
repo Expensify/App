@@ -10,8 +10,7 @@ jobs:
         steps:
             - uses: actions/checkout@v2
               with:
-                  fetch-depth: 0
-                  token: ${{ secrets.OS_BOTIFY_TOKEN }}
+                  ref: 9f52ebf6423c9396cad8f7a1ff066cde41b3b18f
 
             - name: Use Node.js
               uses: actions/setup-node@v1
@@ -31,7 +30,7 @@ jobs:
 
             - name: Check if StagingDeployCash is locked
               id: isStagingDeployLocked
-              uses: Expensify/Expensify.cash/.github/actions/isStagingDeployLocked@9f52ebf6423c9396cad8f7a1ff066cde41b3b18f
+              uses: Expensify/Expensify.cash/.github/actions/isStagingDeployLocked
               with:
                   GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
