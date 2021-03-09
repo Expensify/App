@@ -167,6 +167,7 @@ const AppNavigator = (props) => {
                     <>
                         {_.map(props.publicRoutes, publicRoute => (
                             <RootNavigator.Screen
+                                key={publicRoute.name}
                                 name={publicRoute.name}
                                 options={{
                                     cardStyle: {
