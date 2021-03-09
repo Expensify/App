@@ -214,28 +214,37 @@ class GithubUtils {
             })
                 .then(githubResponse => githubResponse.data.some(({name: repoTag}) => {
                     if (semverLevel === 'MAJOR'
-                        && semverSatisfies(repoTag, `<${tagSemver.major}.x.x`)
+                        && semverSatisfies(repoTag, `<${tagSemver.major}.x.x`, {includePrerelease: true})
                     ) {
                         resolve(getComparisonURL(repoTag, tagSemver));
                         return true;
                     }
 
                     if (semverLevel === 'MINOR'
-                        && semverSatisfies(repoTag, `<${tagSemver.major}.${tagSemver.minor}.x`)
+                        && semverSatisfies(
+                            repoTag,
+                            `<${tagSemver.major}.${tagSemver.minor}.x`,
+                            {includePrerelease: true},
+                        )
                     ) {
                         resolve(getComparisonURL(repoTag, tagSemver));
                         return true;
                     }
 
                     if (semverLevel === 'PATCH'
-                        && semverSatisfies(repoTag, `<${tagSemver}`)
+                        && semverSatisfies(repoTag, `<${tagSemver}`, {includePrerelease: true})
                     ) {
                         resolve(getComparisonURL(repoTag, tagSemver));
                         return true;
                     }
 
                     if (semverLevel === 'BUILD'
-                        && semverSatisfies(repoTag, `<=${tagSemver.major}.${tagSemver.minor}.${tagSemver.patch}`)
+                        && repoTag !== tagSemver.version
+                        && semverSatisfies(
+                            repoTag,
+                            `<=${tagSemver.major}.${tagSemver.minor}.${tagSemver.patch}`,
+                            {includePrerelease: true},
+                        )
                     ) {
                         resolve(getComparisonURL(repoTag, tagSemver));
                         return true;
