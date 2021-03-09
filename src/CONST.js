@@ -11,6 +11,7 @@ const CONST = {
     },
     REPORT: {
         MAXIMUM_PARTICIPANTS: 8,
+        REPORT_ACTIONS_LIMIT: 50,
     },
     MODAL: {
         MODAL_TYPE: {
@@ -39,6 +40,12 @@ const CONST = {
     ERROR: {
         API_OFFLINE: 'API is offline',
     },
+    NVP: {
+        PAYPAL_ME_ADDRESS: 'expensify_payPalMeAddress',
+        PRIORITY_MODE: 'priorityMode',
+        TIMEZONE: 'timeZone',
+    },
+    DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
 };
 
 export default CONST;

@@ -19,6 +19,7 @@ import ReportScreen from './pages/home/ReportScreen';
 import NewChatPage from './pages/NewChatPage';
 import NewGroupPage from './pages/NewGroupPage';
 import SearchPage from './pages/SearchPage';
+import ProfilePage from './pages/ProfilePage';
 
 // Initialize the store when the app loads for the first time
 Onyx.init({
@@ -111,7 +112,7 @@ class Expensify extends PureComponent {
                             modalType: CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
                             subRoutes: [
                                 {
-                                    name: 'Root',
+                                    name: 'Settings_Root',
                                     Component: SettingsPage,
                                     options: {
                                         title: 'Settings',
@@ -126,7 +127,7 @@ class Expensify extends PureComponent {
                             modalType: CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
                             subRoutes: [
                                 {
-                                    name: 'Root',
+                                    name: 'NewChat_Root',
                                     Component: NewChatPage,
                                     options: {
                                         title: 'New Chat',
@@ -141,7 +142,7 @@ class Expensify extends PureComponent {
                             modalType: CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
                             subRoutes: [
                                 {
-                                    name: 'Root',
+                                    name: 'NewGroup_Root',
                                     Component: NewGroupPage,
                                     options: {
                                         title: 'New Group',
@@ -156,10 +157,25 @@ class Expensify extends PureComponent {
                             modalType: CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
                             subRoutes: [
                                 {
-                                    name: 'Root',
+                                    name: 'Search_Root',
                                     Component: SearchPage,
                                     options: {
                                         title: 'Search',
+                                    },
+                                },
+                            ],
+                        },
+                        {
+                            name: 'Profile',
+                            title: 'Profile',
+                            path: '/profile',
+                            modalType: CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
+                            subRoutes: [
+                                {
+                                    name: 'Profile_Root',
+                                    Component: ProfilePage,
+                                    options: {
+                                        title: 'Profile',
                                     },
                                 },
                             ],

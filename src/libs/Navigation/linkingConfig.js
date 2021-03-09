@@ -19,38 +19,44 @@ export default {
             // Modal Screens
             Settings: {
                 path: 'settings',
-                initialRouteName: 'Root',
+                initialRouteName: 'Settings_Root',
                 screens: {
-                    Root: {
+                    Settings_Root: {
                         path: '',
                     },
                 },
             },
             NewGroup: {
                 path: 'new/group',
-                initialRouteName: 'Root',
+                initialRouteName: 'NewGroup_Root',
                 screens: {
-                    Root: {
+                    NewGroup_Root: {
                         path: '',
                     },
                 },
             },
             NewChat: {
                 path: 'new/chat',
-                initialRouteName: 'Root',
+                initialRouteName: 'NewChat_Root',
                 screens: {
-                    Root: {
+                    NewChat_Root: {
                         path: '',
                     },
                 },
             },
             Search: {
                 path: 'search',
-                initialRouteName: 'Root',
+                initialRouteName: 'Search_Root',
                 screens: {
-                    Root: {
+                    Search_Root: {
                         path: '',
                     },
+                },
+            },
+            Profile: {
+                initialRouteName: 'Profile_Root',
+                screens: {
+                    Profile_Root: 'profile/:login',
                 },
             },
         },

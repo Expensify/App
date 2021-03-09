@@ -480,15 +480,14 @@ function fetchChatReports() {
     return API.Get({
         returnValueList: 'chatList',
     })
-
-        // The string cast below is necessary as Get rvl='chatList' may return an int
         .then((response) => {
             if (response.jsonCode !== 200) {
                 return;
             }
 
             // Get all the chat reports if they have any, otherwise create one with concierge
-            if (lodashGet(response, 'chatList.length')) {
+            if (lodashGet(response, 'chatList', []).length) {
+                // The string cast here is necessary as Get rvl='chatList' may return an int
                 fetchChatReportsByIDs(String(response.chatList).split(','));
             } else {
                 fetchOrCreateChatReport([currentUserEmail, 'concierge@expensify.com']);
@@ -502,9 +501,25 @@ function fetchChatReports() {
  * Get the actions of a report
  *
  * @param {Number} reportID
+ * @param {Number} [offset]
+ * @returns {Promise}
  */
-function fetchActions(reportID) {
-    API.Report_GetHistory({reportID})
+function fetchActions(reportID, offset) {
+    const reportActionsOffset = !_.isUndefined(offset) ? offset : -1;
+
+    if (!_.isNumber(reportActionsOffset)) {
+        Log.alert('[Report] Offset provided is not a number', true, {
+            offset,
+            reportActionsOffset,
+        });
+        return;
+    }
+
+    return API.Report_GetHistory({
+        reportID,
+        reportActionsOffset,
+        reportActionsLimit: CONST.REPORT.REPORT_ACTIONS_LIMIT,
+    })
         .then((data) => {
             // We must remove all optimistic actions so there will not be any stuck comments. At this point, we should
             // be caught up and no longer need any optimistic comments.
@@ -525,10 +540,9 @@ function fetchActions(reportID) {
  * Get all of our reports
  *
  * @param {Boolean} shouldRedirectToReport this is set to false when the network reconnect code runs
- * @param {Boolean} shouldFetchActions whether or not the actions of the reports should also be fetched
  * @param {Boolean} shouldRecordHomePageTiming whether or not performance timing should be measured
  */
-function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false, shouldRecordHomePageTiming = false) {
+function fetchAll(shouldRedirectToReport = true, shouldRecordHomePageTiming = false) {
     fetchChatReports()
         .then((reportIDs) => {
             const isSmallScreenWidth = Dimensions.get('window').width < variables.mobileResponsiveWidthBreakpoint;
@@ -544,12 +558,10 @@ function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false, sho
                 }
             }
 
-            if (shouldFetchActions) {
-                Log.info('[Report] Fetching report actions for reports', true, {reportIDs});
-                _.each(reportIDs, (reportID) => {
-                    fetchActions(reportID);
-                });
-            }
+            Log.info('[Report] Fetching report actions for reports', true, {reportIDs});
+            _.each(reportIDs, (reportID) => {
+                fetchActions(reportID);
+            });
 
             if (shouldRecordHomePageTiming) {
                 Timing.end(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
@@ -615,7 +627,7 @@ function addAction(reportID, text, file) {
 
             // Use the client generated ID as a optimistic action ID so we can remove it later
             sequenceNumber: optimisticReportActionID,
-            avatar: myPersonalDetails.avatarURL,
+            avatar: myPersonalDetails.avatar,
             timestamp: moment().unix(),
             message: [
                 {
@@ -739,7 +751,7 @@ Onyx.connect({
 
 // When the app reconnects from being offline, fetch all of the reports and their actions
 NetworkConnection.onReconnect(() => {
-    fetchAll(false, true);
+    fetchAll(false);
 });
 
 export {
