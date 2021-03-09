@@ -23,7 +23,7 @@ const propTypes = {
     modalRoutes: modalRoutesPropTypes.isRequired,
     mainRoutes: mainRoutesPropTypes.isRequired,
     sidebarRoute: sidebarRoutePropTypes.isRequired,
-    publicRoute: publicRoutePropTypes.isRequired,
+    publicRoutes: PropTypes.arrayOf(publicRoutePropTypes).isRequired,
     authenticated: PropTypes.bool.isRequired,
     currentlyViewedReportID: PropTypes.string,
 };
@@ -122,7 +122,7 @@ class NavigationRoot extends Component {
                     mainRoutes={this.props.mainRoutes}
                     sidebarRoute={this.props.sidebarRoute}
                     authenticated={this.props.authenticated}
-                    publicRoute={this.props.publicRoute}
+                    publicRoutes={this.props.publicRoutes}
                     isDrawerOpenByDefault={this.state.drawerOpenByDefault}
                 />
             </NavigationContainer>
