@@ -46,7 +46,7 @@ class IOUModal extends Component {
             steps: [Steps.IOUAmount, Steps.IOUParticipants, Steps.IOUConfirm],
             currentStepIndex: 0,
             currentStepTitle: Steps.IOUAmount,
-            hasMultipleParticipants: this.props.currentURL === ROUTES.IOU_BILL_SPLIT,
+            hasMultipleParticipants: this.props.currentURL === ROUTES.IOU_BILL,
         };
     }
 
