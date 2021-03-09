@@ -30,7 +30,7 @@ const defaultProps = {
 };
 
 const IOUAmountPage = props => (
-    <View style={styles.settingsWrapper}>
+    <View style={styles.pageWrapper}>
         {props.iou.loading && <ActivityIndicator color={themeColors.text} />}
         <TouchableOpacity
             style={[styles.button, styles.w100, styles.mt5]}
