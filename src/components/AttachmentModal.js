@@ -54,7 +54,7 @@ const defaultProps = {
     sourceURL: null,
     onConfirm: null,
     isAuthTokenRequired: false,
-    onModalHide: null,
+    onModalHide: () => {},
 };
 
 class AttachmentModal extends PureComponent {
