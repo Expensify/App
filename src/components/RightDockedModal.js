@@ -33,7 +33,7 @@ const RightDockedModal = memo(({
     <Modal
         type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
         onClose={redirectToLastReport}
-        isVisible={route.includes(currentURL)}
+        isVisible={currentURL.includes(route)}
         backgroundColor={themeColors.componentBG}
     >
         {children}
