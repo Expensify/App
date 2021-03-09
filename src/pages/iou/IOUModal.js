@@ -77,6 +77,7 @@ class IOUModal extends Component {
     }
 
     render() {
+        const currentStep = steps[this.state.currentStepIndex];
         return (
             <>
                 <View style={[styles.headerBar, true && styles.borderBottom]}>
@@ -109,21 +110,16 @@ class IOUModal extends Component {
                         </View>
                     </View>
                 </View>
-                {steps[this.state.currentStepIndex] === Steps.IOUAmount
-                && (
-                    <IOUAmountPage
-                        onStepComplete={this.navigateToNextStep}
-                    />
+                {currentStep === Steps.IOUAmount && (
+                    <IOUAmountPage onStepComplete={this.navigateToNextStep} />
                 )}
-                {steps[this.state.currentStepIndex] === Steps.IOUParticipants
-                && (
+                {currentStep === Steps.IOUParticipants && (
                     <IOUParticipantsPage
                         hasMultipleParticipants={this.props.hasMultipleParticipants}
                         onStepComplete={this.navigateToNextStep}
                     />
                 )}
-                {steps[this.state.currentStepIndex] === Steps.IOUConfirm
-                && (
+                {currentStep === Steps.IOUConfirm && (
                     <IOUConfirmPage
                         onConfirm={() => console.debug('create IOU report')}
                         participants={[]}
