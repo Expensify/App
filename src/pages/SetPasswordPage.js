@@ -36,11 +36,20 @@ const propTypes = {
         // The password used to log in the user
         password: PropTypes.string,
     }),
+
+    route: PropTypes.shape({
+        params: PropTypes.shape({
+            validateCode: PropTypes.string,
+        }),
+    }),
 };
 
 const defaultProps = {
     account: {},
     credentials: {},
+    route: {
+        params: {},
+    },
 };
 
 class SetPasswordPage extends Component {
@@ -69,7 +78,7 @@ class SetPasswordPage extends Component {
         this.setState({
             formError: null,
         });
-        setPassword(this.state.password, lodashGet(this.props.match.params, 'validateCode', ''));
+        setPassword(this.state.password, lodashGet(this.props.route, 'params.validateCode', ''));
     }
 
     render() {
