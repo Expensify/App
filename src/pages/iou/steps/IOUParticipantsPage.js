@@ -33,10 +33,10 @@ const defaultProps = {
 
 const IOUParticipantsPage = props => (
     <View style={styles.settingsWrapper}>
-        <Route path={ROUTES.IOU_BILL_SPLIT}>
+        <Route path={ROUTES.IOU_BILL}>
             <Text style={[styles.buttonText]}>select multiple participants</Text>
         </Route>
-        <Route path={ROUTES.IOU_REQUEST_MONEY}>
+        <Route path={ROUTES.IOU_REQUEST}>
             <Text style={[styles.buttonText]}>select single participant</Text>
         </Route>
         {props.appStateIOU.loading && <ActivityIndicator color={themeColors.text} />}

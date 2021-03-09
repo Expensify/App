@@ -105,8 +105,8 @@ class HomePage extends PureComponent {
                     ROUTES.NEW_GROUP,
                     ROUTES.NEW_CHAT,
                     ROUTES.SEARCH,
-                    ROUTES.IOU_REQUEST_MONEY,
-                    ROUTES.IOU_BILL_SPLIT,
+                    ROUTES.IOU_REQUEST,
+                    ROUTES.IOU_BILL,
                     ROUTES.PROFILE,
                 ]}
                 >
@@ -129,7 +129,7 @@ class HomePage extends PureComponent {
                     <RightDockedModal routes={[ROUTES.SEARCH]}>
                         <SearchPage />
                     </RightDockedModal>
-                    <RightDockedModal routes={[ROUTES.IOU_REQUEST_MONEY, ROUTES.IOU_BILL_SPLIT]}>
+                    <RightDockedModal routes={[ROUTES.IOU_REQUEST, ROUTES.IOU_BILL]}>
                         <IOUModal />
                     </RightDockedModal>
                     <RightDockedModal route="/profile/">
