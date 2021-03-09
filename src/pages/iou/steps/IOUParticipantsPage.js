@@ -8,14 +8,15 @@ import {
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../../ONYXKEYS';
-import {Route} from '../../../libs/Router';
-import ROUTES from '../../../ROUTES';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 
 const propTypes = {
-    // callback to inform parent modal of success
+    // Callback to inform parent modal of success
     onStepComplete: PropTypes.func.isRequired,
+
+    // Should we request a single or multiple participant selection from user
+    hasMultipleParticipants: PropTypes.bool.isRequired,
 
     /* Onyx Props */
 
@@ -28,18 +29,15 @@ const propTypes = {
 };
 
 const defaultProps = {
-    appStateIOU: {},
+    iou: {},
 };
 
 const IOUParticipantsPage = props => (
     <View style={styles.settingsWrapper}>
-        <Route path={ROUTES.IOU_BILL}>
-            <Text style={[styles.buttonText]}>select multiple participants</Text>
-        </Route>
-        <Route path={ROUTES.IOU_REQUEST}>
-            <Text style={[styles.buttonText]}>select single participant</Text>
-        </Route>
-        {props.appStateIOU.loading && <ActivityIndicator color={themeColors.text} />}
+        <Text style={[styles.buttonText]}>
+            {props.hasMultipleParticipants ? 'select multiple participants' : 'select single participant'}
+        </Text>
+        {props.iou.loading && <ActivityIndicator color={themeColors.text} />}
         <TouchableOpacity
             style={[styles.button, styles.w100, styles.mt5]}
             onPress={props.onStepComplete}
