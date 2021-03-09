@@ -11,10 +11,9 @@ module.exports = class GitUtils {
      */
     getPullRequestsMergedBetween(fromRef, toRef) {
         return exec(`git log --format="%s" ${fromRef}...${toRef}`)
-            .then(({stdout}) => {
-                const pullRequestNumbers = [...stdout.matchAll(new RegExp(/Merge pull request #(\d{1,6})/, 'g'))]
-                    .map(match => match[1]);
-                return pullRequestNumbers;
-            });
+            .then(({stdout}) => (
+                [...stdout.matchAll(new RegExp(/Merge pull request #(\d{1,6})/, 'g'))]
+                    .map(match => match[1])
+            ));
     }
 };
