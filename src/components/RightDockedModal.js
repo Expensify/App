@@ -33,7 +33,7 @@ const RightDockedModal = memo(({
     <Modal
         type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
         onClose={redirectToLastReport}
-        isVisible={currentURL === route}
+        isVisible={currentURL.includes(route)}
         backgroundColor={themeColors.componentBG}
     >
         {children}
@@ -45,9 +45,6 @@ RightDockedModal.defaultProps = defaultProps;
 RightDockedModal.displayName = 'RightDockedModal';
 
 export default withOnyx({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
     currentURL: {
         key: ONYXKEYS.CURRENT_URL,
     },
