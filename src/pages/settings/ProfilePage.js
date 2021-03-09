@@ -9,7 +9,9 @@ const ProfilePage = () => (
         <HeaderGap />
         <HeaderWithCloseButton
             title="Profile"
-            onCloseButtonPress={() => redirect(ROUTES.SETTINGS)}
+            shouldShowBackButton
+            onBackButtonPress={() => redirect(ROUTES.SETTINGS)}
+            onCloseButtonPress={() => redirect(ROUTES.HOME)}
         />
     </>
 );

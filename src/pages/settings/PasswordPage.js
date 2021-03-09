@@ -9,7 +9,9 @@ const PasswordPage = () => (
         <HeaderGap />
         <HeaderWithCloseButton
             title="Change Password"
-            onCloseButtonPress={() => redirect(ROUTES.SETTINGS)}
+            shouldShowBackButton
+            onBackButtonPress={() => redirect(ROUTES.SETTINGS)}
+            onCloseButtonPress={() => redirect(ROUTES.HOME)}
         />
     </>
 );
