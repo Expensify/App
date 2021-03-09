@@ -18,7 +18,7 @@ describe('GithubUtils', () => {
                 },
             ],
             // eslint-disable-next-line max-len
-            body: '**Release Version:** `1.0.1-472`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/1.0.1-400...1.0.1-401\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/21\r\n- [x] https://github.com/Expensify/Expensify.cash/pull/22\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/23\r\n\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/issues/1\r\n- [x] https://github.com/Expensify/Expensify.cash/issues/2\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/1234\r\n',
+            body: '**Release Version:** `1.0.1-47`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/1.0.1-0...1.0.1-47\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/21\r\n- [x] https://github.com/Expensify/Expensify.cash/pull/22\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/23\r\n\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/issues/1\r\n- [x] https://github.com/Expensify/Expensify.cash/issues/2\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/1234\r\n',
         };
 
         const expectedResponse = {
@@ -56,7 +56,7 @@ describe('GithubUtils', () => {
                     isResolved: false,
                 },
             ],
-            comparisonURL: 'https://github.com/Expensify/Expensify.cash/compare/1.0.1-400...1.0.1-401',
+            comparisonURL: 'https://github.com/Expensify/Expensify.cash/compare/1.0.1-0...1.0.1-47',
             labels: [
                 {
                     color: '6FC269',
@@ -68,7 +68,7 @@ describe('GithubUtils', () => {
                     url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/labels/StagingDeployCash',
                 },
             ],
-            tag: '1.0.1-472',
+            tag: '1.0.1-47',
             title: 'Andrew Test Issue',
             url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/issues/29',
         };
@@ -253,7 +253,7 @@ describe('GithubUtils', () => {
         const githubUtils = new GithubUtils(octokit);
 
         const title = 'Test StagingDeployCash title';
-        const tag = '1.0.2-123';
+        const tag = '1.0.2-12';
         const PRList = [
             'https://github.com/Expensify/Expensify/pull/2',
             'https://github.com/Expensify/Expensify/pull/3',
@@ -271,14 +271,14 @@ describe('GithubUtils', () => {
                         assignee: 'applausebot',
                         title,
                         // eslint-disable-next-line max-len
-                        body: `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/1.0.2...1.0.2-123\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/Expensify/pull/1\r\n- [ ] https://github.com/Expensify/Expensify/pull/2\r\n- [ ] https://github.com/Expensify/Expensify/pull/3\r\n`,
+                        body: `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/1.0.2...1.0.2-12\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/Expensify/pull/1\r\n- [ ] https://github.com/Expensify/Expensify/pull/2\r\n- [ ] https://github.com/Expensify/Expensify/pull/3\r\n`,
                     });
                 })
         ));
     });
 
     describe('generateStagingDeployCashBody', () => {
-        const mockTags = [{name: '1.0.2'}, {name: '1.0.2-123'}];
+        const mockTags = [{name: '1.0.2'}, {name: '1.0.2-12'}];
         const mockGithub = jest.fn(() => ({
             getOctokit: () => ({
                 repos: {
@@ -290,8 +290,8 @@ describe('GithubUtils', () => {
         const octokit = mockGithub().getOctokit();
         const githubUtils = new GithubUtils(octokit);
 
-        const tag = '1.0.2-123';
-        const comparisonURL = 'https://github.com/Expensify/Expensify.cash/compare/1.0.2...1.0.2-123';
+        const tag = '1.0.2-12';
+        const comparisonURL = 'https://github.com/Expensify/Expensify.cash/compare/1.0.2...1.0.2-12';
         const basePRList = [
             'https://github.com/Expensify/Expensify/pull/2',
             'https://github.com/Expensify/Expensify/pull/3',
