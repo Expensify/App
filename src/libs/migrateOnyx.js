@@ -1,4 +1,3 @@
-import promiseAllSettled from './promiseAllSettled';
 import RenameActiveClientsKey from './migrations/RenameActiveClientsKey';
 
 export default function () {
@@ -6,13 +5,23 @@ export default function () {
     console.debug('[Migrate Onyx] start');
 
     return new Promise((resolve) => {
-        // Add all migrations to an array and execute them, they can execute in any order
+        // Add all migrations to an array so they are executed in order
         const migrationPromises = [
-            RenameActiveClientsKey(),
+            RenameActiveClientsKey,
         ];
 
-        // Once all migrations are done, resolve the main promise so the app knows it's done
-        promiseAllSettled(migrationPromises)
+        // Reduce all promises down to a single promise. All promises run in a linear fashion, waiting for the
+        // previous promise to finish before moving onto the next one.
+        migrationPromises
+            /* eslint-disable arrow-body-style */
+            .reduce((previousPromise, migrationPromise) => {
+                return previousPromise.then(() => {
+                    return migrationPromise();
+                });
+            }, Promise.resolve())
+            /* eslint-enable arrow-body-style */
+
+            // Once all migrations are done, resolve the main promise
             .then(() => {
                 const timeElapsed = Date.now() - startTime;
                 console.debug(`[Migrate Onyx] finished in ${timeElapsed}ms`);
