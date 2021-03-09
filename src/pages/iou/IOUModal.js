@@ -112,14 +112,14 @@ class IOUModal extends Component {
                 {steps[this.state.currentStepIndex] === Steps.IOUAmount
                 && (
                     <IOUAmountPage
-                        onStepComplete={() => this.navigateToNextStep()}
+                        onStepComplete={this.navigateToNextStep}
                     />
                 )}
                 {steps[this.state.currentStepIndex] === Steps.IOUParticipants
                 && (
                     <IOUParticipantsPage
                         hasMultipleParticipants={this.props.hasMultipleParticipants}
-                        onStepComplete={() => this.navigateToNextStep()}
+                        onStepComplete={this.navigateToNextStep}
                     />
                 )}
                 {steps[this.state.currentStepIndex] === Steps.IOUConfirm
