@@ -10,7 +10,7 @@ module.exports =
 
 const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
-const {createComment} = __nccwpck_require__(2737);
+const {createComment} = __nccwpck_require__(7999);
 
 const prList = JSON.parse(core.getInput('PR_LIST', {required: true}));
 const isProd = JSON.parse(
@@ -41,7 +41,7 @@ prList.forEach((pr) => {
 
 /***/ }),
 
-/***/ 2737:
+/***/ 7999:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 const github = __nccwpck_require__(5438);

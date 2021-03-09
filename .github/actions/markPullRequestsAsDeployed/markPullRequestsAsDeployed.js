@@ -1,6 +1,6 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
-const {createComment} = require('../../libs/githubUtils');
+const {createComment} = require('../../libs/GithubUtils');
 
 const prList = JSON.parse(core.getInput('PR_LIST', {required: true}));
 const isProd = JSON.parse(
