@@ -30,6 +30,7 @@ import {fetchCountryCodeByRequestIP} from '../../libs/actions/GeoLocation';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import {redirect} from '../../libs/actions/App';
 import RightDockedModal from '../../components/RightDockedModal';
+import IOUModal from '../iou/IOUModal';
 import {getBetas} from '../../libs/actions/User';
 import NameValuePair from '../../libs/actions/NameValuePair';
 
@@ -104,6 +105,8 @@ class HomePage extends PureComponent {
                     ROUTES.NEW_GROUP,
                     ROUTES.NEW_CHAT,
                     ROUTES.SEARCH,
+                    ROUTES.IOU_REQUEST,
+                    ROUTES.IOU_BILL,
                     ROUTES.PROFILE,
                 ]}
                 >
@@ -125,6 +128,12 @@ class HomePage extends PureComponent {
                     </RightDockedModal>
                     <RightDockedModal route={ROUTES.SEARCH}>
                         <SearchPage />
+                    </RightDockedModal>
+                    <RightDockedModal route={ROUTES.IOU_REQUEST}>
+                        <IOUModal />
+                    </RightDockedModal>
+                    <RightDockedModal route={ROUTES.IOU_BILL}>
+                        <IOUModal hasMultipleParticipants />
                     </RightDockedModal>
                     <RightDockedModal route="/profile/">
                         <ProfilePage />
