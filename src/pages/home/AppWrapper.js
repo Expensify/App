@@ -1,7 +1,6 @@
 import {PureComponent} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-
 import {
     subscribeToReportCommentEvents,
     fetchAll as fetchAllReports,
@@ -20,7 +19,7 @@ import {fetchCountryCodeByRequestIP} from '../../libs/actions/GeoLocation';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import {redirect} from '../../libs/actions/App';
 import {getBetas} from '../../libs/actions/User';
-import Account from '../../libs/actions/Account';
+import NameValuePair from '../../libs/actions/NameValuePair';
 
 const propTypes = {
     network: PropTypes.shape({isOffline: PropTypes.bool}),
@@ -48,11 +47,11 @@ class AppWrapper extends PureComponent {
         }).then(subscribeToReportCommentEvents);
 
         // Fetch some data we need on initialization
-        Account.fetchPriorityMode();
+        NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.PRIORITY_MODE, 'default');
         PersonalDetails.fetch();
         PersonalDetails.fetchTimezone();
         getBetas();
-        fetchAllReports(true, false, true);
+        fetchAllReports(true, true);
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
 

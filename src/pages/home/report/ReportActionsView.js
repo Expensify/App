@@ -4,6 +4,7 @@ import {
     View,
     Keyboard,
     AppState,
+    ActivityIndicator,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -26,6 +27,7 @@ import {lastItem} from '../../../libs/CollectionUtils';
 import Visibility from '../../../libs/Visibility';
 import Timing from '../../../libs/actions/Timing';
 import CONST from '../../../CONST';
+import themeColors from '../../../styles/themes/default';
 
 const propTypes = {
     // The ID of the report actions will be created for
@@ -65,7 +67,7 @@ class ReportActionsView extends React.Component {
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
         this.recordMaxAction = this.recordMaxAction.bind(this);
         this.onVisibilityChange = this.onVisibilityChange.bind(this);
-
+        this.loadMoreChats = this.loadMoreChats.bind(this);
         this.sortedReportActions = [];
         this.timers = [];
         this.unreadIndicatorOpacity = new Animated.Value(1);
@@ -76,6 +78,10 @@ class ReportActionsView extends React.Component {
         // Helper variable that prevents the unread indicator to show up for new messages
         // received while the report is still active
         this.shouldShowUnreadActionIndicator = true;
+
+        this.state = {
+            isLoadingMoreChats: false,
+        };
     }
 
     componentDidMount() {
@@ -86,12 +92,16 @@ class ReportActionsView extends React.Component {
         fetchActions(this.props.reportID);
     }
 
-    shouldComponentUpdate(nextProps) {
+    shouldComponentUpdate(nextProps, nextState) {
         if (nextProps.reportID !== this.props.reportID) {
             return true;
         }
 
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
+            return true;
+        }
+
+        if (nextState.isLoadingMoreChats !== this.state.isLoadingMoreChats) {
             return true;
         }
 
@@ -181,6 +191,29 @@ class ReportActionsView extends React.Component {
 
         // Fetch the new set of actions
         fetchActions(this.props.reportID);
+    }
+
+    /**
+     * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
+     * displaying.
+     */
+    loadMoreChats() {
+        const minSequenceNumber = _.chain(this.props.reportActions)
+            .pluck('sequenceNumber')
+            .min()
+            .value();
+
+        if (minSequenceNumber === 0) {
+            return;
+        }
+
+        this.setState({isLoadingMoreChats: true}, () => {
+            // Retrieve the next REPORT_ACTIONS_LIMIT sized page of comments, unless we're near the beginning, in which
+            // case just get everything starting from 0.
+            const offset = Math.max(minSequenceNumber - CONST.REPORT.REPORT_ACTIONS_LIMIT, 0);
+            fetchActions(this.props.reportID, offset)
+                .then(() => this.setState({isLoadingMoreChats: false}));
+        });
     }
 
     /**
@@ -320,6 +353,11 @@ class ReportActionsView extends React.Component {
                 contentContainerStyle={[styles.chatContentScrollView]}
                 keyExtractor={item => `${item.action.sequenceNumber}`}
                 initialRowHeight={32}
+                onEndReached={this.loadMoreChats}
+                onEndReachedThreshold={0.75}
+                ListFooterComponent={this.state.isLoadingMoreChats
+                    ? <ActivityIndicator size="small" color={themeColors.spinner} />
+                    : null}
             />
         );
     }
