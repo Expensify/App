@@ -1,9 +1,5 @@
 import React, {Component} from 'react';
 import {View, TouchableOpacity} from 'react-native';
-import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
-import ONYXKEYS from '../../ONYXKEYS';
-import ROUTES from '../../ROUTES';
 import {redirectToLastReport} from '../../libs/actions/App';
 import IOUAmountPage from './steps/IOUAmountPage';
 import IOUParticipantsPage from './steps/IOUParticipantsPage';
@@ -14,25 +10,11 @@ import Icon from '../../components/Icon';
 import {getPreferredCurrency} from '../../libs/actions/IOU';
 import {Close, BackArrow} from '../../components/Icon/Expensicons';
 
-/**
- * IOU modal for requesting money and splitting bills.
- */
-const propTypes = {
-    /* Onyx Props */
-
-    // Url currently in view
-    currentURL: PropTypes.string,
-};
-
 // Determines type of step to display within Modal, value provides the title for that page.
 const Steps = {
     IOUAmount: 'Amount',
     IOUParticipants: 'Participants',
     IOUConfirm: 'Confirm',
-};
-
-const defaultProps = {
-    currentURL: '',
 };
 
 class IOUModal extends Component {
@@ -46,7 +28,6 @@ class IOUModal extends Component {
             steps: [Steps.IOUAmount, Steps.IOUParticipants, Steps.IOUConfirm],
             currentStepIndex: 0,
             currentStepTitle: Steps.IOUAmount,
-            hasMultipleParticipants: this.props.currentURL === ROUTES.IOU_BILL,
         };
     }
 
@@ -123,7 +104,6 @@ class IOUModal extends Component {
                 && (
                     <IOUParticipantsPage
                         onStepComplete={() => this.navigateToNextStep()}
-                        hasMultipleParticipants={this.state.hasMultipleParticipants}
                     />
                 )}
                 {this.state.steps[this.state.currentStepIndex] === Steps.IOUConfirm
@@ -139,12 +119,6 @@ class IOUModal extends Component {
     }
 }
 
-IOUModal.propTypes = propTypes;
-IOUModal.defaultProps = defaultProps;
 IOUModal.displayName = 'IOUModal';
 
-export default withOnyx({
-    currentURL: {
-        key: ONYXKEYS.CURRENT_URL,
-    },
-})(IOUModal);
+export default IOUModal;
