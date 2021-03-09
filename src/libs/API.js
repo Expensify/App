@@ -460,7 +460,7 @@ function PersonalDetails_Update(parameters) {
     const commandName = 'PersonalDetails_Update';
     requireParameters(['details'],
         parameters, commandName);
-    return request(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
@@ -601,7 +601,7 @@ function User_SecondaryLogin_Send(parameters) {
 function User_UploadAvatar(parameters) {
     const commandName = 'User_UploadAvatar';
     requireParameters(['base64image'], parameters, commandName);
-    return request(commandName, parameters);
+    return Network.post(commandName, parameters);
 }
 
 /**
