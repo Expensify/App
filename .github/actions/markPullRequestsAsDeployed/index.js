@@ -80,7 +80,7 @@ class GithubUtils {
             owner: GITHUB_OWNER,
             repo: EXPENSIFY_ISSUE_REPO,
             labels: STAGING_DEPLOY_CASH_LABEL,
-            state: 'open'
+            state: 'open',
         })
             .then(({data}) => {
                 if (!data.length) {
@@ -335,7 +335,7 @@ class GithubUtils {
         PRList,
         verifiedPRList = [],
         deployBlockers = [],
-        resolvedDeployBlockers = []
+        resolvedDeployBlockers = [],
     ) {
         return this.generateVersionComparisonURL(`${GITHUB_OWNER}/${EXPENSIFY_CASH_REPO}`, tag, 'BUILD')
             .then((comparisonURL) => {
