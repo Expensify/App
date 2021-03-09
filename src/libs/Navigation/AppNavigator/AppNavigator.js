@@ -33,7 +33,7 @@ const propTypes = {
     sidebarRoute: sidebarRoutePropTypes.isRequired,
 
     // The public route is the entry point for the unauthenticated app.
-    publicRoute: publicRoutePropTypes.isRequired,
+    publicRoutes: PropTypes.arrayOf(publicRoutePropTypes).isRequired,
 
     // The main routes display in the center on wide screens and non modally on small screens. There is only the report
     // screen at the moment.
@@ -163,17 +163,21 @@ const AppNavigator = (props) => {
                 )
                 : (
 
-                    // This is the public route a.k.a. what user's without an authToken will see.
-                    <RootNavigator.Screen
-                        name={props.publicRoute.name}
-                        options={{
-                            cardStyle: {
-                                overflow: 'visible',
-                            },
-                            ...props.publicRoute.options,
-                        }}
-                        component={props.publicRoute.Component}
-                    />
+                    // This are the public routes a.k.a. what users without an authToken will see.
+                    <>
+                        {_.map(props.publicRoutes, publicRoute => (
+                            <RootNavigator.Screen
+                                name={publicRoute.name}
+                                options={{
+                                    cardStyle: {
+                                        overflow: 'visible',
+                                    },
+                                    ...publicRoute.options,
+                                }}
+                                component={publicRoute.Component}
+                            />
+                        ))}
+                    </>
                 )}
         </RootNavigator.Navigator>
     );

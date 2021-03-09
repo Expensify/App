@@ -15,6 +15,7 @@ export default {
 
             // Public Routes
             SignIn: 'signin',
+            SetPassword: 'setpassword/:validateCode',
 
             // Modal Screens
             Settings: {

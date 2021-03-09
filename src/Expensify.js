@@ -20,6 +20,7 @@ import NewChatPage from './pages/NewChatPage';
 import NewGroupPage from './pages/NewGroupPage';
 import SearchPage from './pages/SearchPage';
 import ProfilePage from './pages/ProfilePage';
+import SetPasswordPage from './pages/SetPasswordPage';
 
 // Initialize the store when the app loads for the first time
 Onyx.init({
@@ -90,16 +91,28 @@ class Expensify extends PureComponent {
                 <NavigationRoot
                     currentlyViewedReportID={this.props.currentlyViewedReportID}
                     authenticated={Boolean(authToken)}
-                    publicRoute={{
-                        Component: SignInPage,
-                        name: 'SignIn',
-                        path: '/signin',
-                        options: {
-                            headerShown: false,
-                            animationTypeForReplace: 'pop',
-                            title: 'Sign In',
+                    publicRoutes={[
+                        {
+                            Component: SignInPage,
+                            name: 'SignIn',
+                            path: '/signin',
+                            options: {
+                                headerShown: false,
+                                animationTypeForReplace: 'pop',
+                                title: 'Sign In',
+                            },
                         },
-                    }}
+                        {
+                            Component: SetPasswordPage,
+                            name: 'SetPassword',
+                            path: '/setpassword/:validateCode',
+                            options: {
+                                headerShown: false,
+                                animationTypeForReplace: 'pop',
+                                title: 'Set Password',
+                            },
+                        },
+                    ]}
                     sidebarRoute={{
                         name: 'Sidebar',
                         Component: SidebarScreen,
