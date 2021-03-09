@@ -8,7 +8,7 @@ Describe what you think should've happened
 Describe what actually happened
 
 ## Action Performed:
-Enumerate the steps the user took
+Break down in numbered steps
 
 ## Workaround:
 Can the user still use Expensify without this being fixed? Have you informed them of the workaround?
