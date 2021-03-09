@@ -480,15 +480,14 @@ function fetchChatReports() {
     return API.Get({
         returnValueList: 'chatList',
     })
-
-        // The string cast below is necessary as Get rvl='chatList' may return an int
         .then((response) => {
             if (response.jsonCode !== 200) {
                 return;
             }
 
             // Get all the chat reports if they have any, otherwise create one with concierge
-            if (lodashGet(response, 'chatList.length')) {
+            if (lodashGet(response, 'chatList', []).length) {
+                // The string cast here is necessary as Get rvl='chatList' may return an int
                 fetchChatReportsByIDs(String(response.chatList).split(','));
             } else {
                 fetchOrCreateChatReport([currentUserEmail, 'concierge@expensify.com']);
