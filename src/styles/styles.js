@@ -208,6 +208,7 @@ const styles = {
         iconContainer: {
             top: 12,
             right: 12,
+            pointerEvents: 'none',
         },
     },
 
