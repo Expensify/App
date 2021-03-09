@@ -18,7 +18,7 @@ const propTypes = {
     /* Onyx Props */
 
     // Holds data related to IOU view state, rather than the underlying IOU data.
-    appStateIOU: PropTypes.shape({
+    iou: PropTypes.shape({
 
         // Whether or not the IOU step is loading (retrieving users preferred currency)
         loading: PropTypes.bool,
@@ -26,12 +26,12 @@ const propTypes = {
 };
 
 const defaultProps = {
-    appStateIOU: {},
+    iou: {},
 };
 
 const IOUAmountPage = props => (
     <View style={styles.settingsWrapper}>
-        {props.appStateIOU.loading && <ActivityIndicator color={themeColors.text} />}
+        {props.iou.loading && <ActivityIndicator color={themeColors.text} />}
         <TouchableOpacity
             style={[styles.button, styles.w100, styles.mt5]}
             onPress={props.onStepComplete}
@@ -48,5 +48,5 @@ IOUAmountPage.propTypes = propTypes;
 IOUAmountPage.defaultProps = defaultProps;
 
 export default withOnyx({
-    appStateIOU: {key: ONYXKEYS.APP_STATE.IOU},
+    iou: {key: ONYXKEYS.IOU},
 })(IOUAmountPage);

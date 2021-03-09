@@ -20,7 +20,7 @@ const propTypes = {
     /* Onyx Props */
 
     // Holds data related to IOU view state, rather than the underlying IOU data.
-    appStateIOU: PropTypes.shape({
+    iou: PropTypes.shape({
 
         // Whether or not the IOU step is loading (retrieving participants)
         loading: PropTypes.bool,
@@ -56,5 +56,5 @@ IOUParticipantsPage.propTypes = propTypes;
 IOUParticipantsPage.defaultProps = defaultProps;
 
 export default withOnyx({
-    appStateIOU: {key: ONYXKEYS.APP_STATE.IOU},
+    appStaiouteIOU: {key: ONYXKEYS.IOU},
 })(IOUParticipantsPage);
