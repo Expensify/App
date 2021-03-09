@@ -9,7 +9,9 @@ const PaymentsPage = () => (
         <HeaderGap />
         <HeaderWithCloseButton
             title="Payments"
-            onCloseButtonPress={() => redirect(ROUTES.SETTINGS)}
+            shouldShowBackButton
+            onBackButtonPress={() => redirect(ROUTES.SETTINGS)}
+            onCloseButtonPress={() => redirect(ROUTES.HOME)}
         />
     </>
 );

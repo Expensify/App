@@ -48,7 +48,7 @@ const propTypes = {
 
 const defaultProps = {
     myPersonalDetails: {},
-    network: null,
+    network: {},
     session: {},
 };
 
@@ -56,22 +56,22 @@ const menuItems = [
     {
         title: 'Profile',
         icon: Profile,
-        route: 'profile',
+        route: ROUTES.SETTINGS_PROFILE,
     },
     {
         title: 'Preferences',
         icon: Gear,
-        route: 'preferences',
+        route: ROUTES.SETTINGS_PREFERENCES,
     },
     {
         title: 'Change Password',
         icon: Lock,
-        route: 'password',
+        route: ROUTES.SETTINGS_PASSWORD,
     },
     {
         title: 'Payments',
         icon: Wallet,
-        route: 'payments',
+        route: ROUTES.SETTINGS_PAYMENTS,
     },
 ];
 
@@ -96,32 +96,33 @@ const InitialSettingsPage = ({
                     styles.settingsPageBackground,
                 ]}
             >
-                <View style={styles.pageWrapper}>
-                    <View
-                        style={[styles.mb3]}
-                    >
-                        <AvatarWithIndicator
-                            size="large"
-                            source={myPersonalDetails.avatar}
-                            isActive={network && !network.isOffline}
-                        />
+                <View style={styles.w100}>
+                    <View style={styles.pageWrapper}>
+
+                        <View style={[styles.mb3]}>
+                            <AvatarWithIndicator
+                                size="large"
+                                source={myPersonalDetails.avatar}
+                                isActive={network.isOffline === false}
+                            />
+                        </View>
+                        <Text style={[styles.displayName, styles.mt1]} numberOfLines={1}>
+                            {myPersonalDetails.displayName
+                                ? myPersonalDetails.displayName
+                                : Str.removeSMSDomain(session.email)}
+                        </Text>
+                        {myPersonalDetails.displayName && (
+                        <Text style={[styles.settingsLoginName, styles.mt1]} numberOfLines={1}>
+                            {Str.removeSMSDomain(session.email)}
+                        </Text>
+                        )}
                     </View>
-                    <Text style={[styles.displayName, styles.mt1]} numberOfLines={1}>
-                        {myPersonalDetails.displayName
-                            ? myPersonalDetails.displayName
-                            : Str.removeSMSDomain(session.email)}
-                    </Text>
-                    {myPersonalDetails.displayName && (
-                    <Text style={[styles.settingsLoginName, styles.mt1]} numberOfLines={1}>
-                        {Str.removeSMSDomain(session.email)}
-                    </Text>
-                    )}
                     {menuItems.map(item => (
                         <MenuItem
                             key={item.title}
                             title={item.title}
                             icon={item.icon}
-                            onPress={() => redirect(ROUTES.getSettingsRoute(item.route))}
+                            onPress={() => redirect(item.route)}
                             shouldShowRightArrow
                         />
                     ))}

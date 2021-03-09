@@ -6,13 +6,12 @@ import ProfilePage from './ProfilePage';
 import PreferencesPage from './PreferencesPage';
 import PasswordPage from './PasswordPage';
 import PaymentsPage from './PaymentsPage';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
     match: PropTypes.shape({
-        params: PropTypes.shape({
-            // route passed via route /settings/:route
-            route: PropTypes.string,
-        }),
+        // Current Url
+        url: PropTypes.string,
     }).isRequired,
 };
 
@@ -21,26 +20,26 @@ const subsettings = {
         title: 'Settings',
         Component: InitialPage,
     },
-    profile: {
+    [ROUTES.SETTINGS_PROFILE]: {
         title: 'Profile',
         Component: ProfilePage,
     },
-    preferences: {
+    [ROUTES.SETTINGS_PREFERENCES]: {
         title: 'Preferences',
         Component: PreferencesPage,
     },
-    password: {
+    [ROUTES.SETTINGS_PASSWORD]: {
         title: 'Change Password',
         Component: PasswordPage,
     },
-    payments: {
+    [ROUTES.SETTINGS_PAYMENTS]: {
         title: 'Payments',
         Component: PaymentsPage,
     },
 };
 
 const SettingsPage = (props) => {
-    const route = props.match.params.route;
+    const route = props.match.url;
     let {Component} = subsettings.default;
 
     if (subsettings[route]) {
