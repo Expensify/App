@@ -42,12 +42,20 @@ class IOUModal extends Component {
 
         this.state = {
             currentStepIndex: 0,
-            currentStepTitle: Steps.IOUAmount,
         };
     }
 
     componentDidMount() {
         getPreferredCurrency();
+    }
+
+    /**
+     * Retrieve title for current step, based upon current step and type of IOU
+     *
+     * @returns {String}
+     */
+    getTitleForStep() {
+        return steps[this.state.currentStepIndex] || '';
     }
 
     /**
@@ -59,7 +67,6 @@ class IOUModal extends Component {
         }
         this.setState(prevState => ({
             currentStepIndex: prevState.currentStepIndex - 1,
-            currentStepTitle: steps[prevState.currentStepIndex - 1] || '',
         }));
     }
 
@@ -72,7 +79,6 @@ class IOUModal extends Component {
         }
         this.setState(prevState => ({
             currentStepIndex: prevState.currentStepIndex + 1,
-            currentStepTitle: steps[prevState.currentStepIndex + 1] || '',
         }));
     }
 
@@ -99,7 +105,7 @@ class IOUModal extends Component {
                                 <Icon src={BackArrow} />
                             </TouchableOpacity>
                         )}
-                        <Header title={this.state.currentStepTitle} />
+                        <Header title={this.getTitleForStep()} />
                         <View style={[styles.reportOptions, styles.flexRow]}>
                             <TouchableOpacity
                                 onPress={redirectToLastReport}
