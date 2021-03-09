@@ -28,7 +28,7 @@ const defaultProps = {
 };
 
 const IOUConfirmPage = props => (
-    <View style={styles.settingsWrapper}>
+    <View style={styles.pageWrapper}>
         <ButtonWithLoader
             style={[styles.button, styles.w100]}
             text={`Request $${props.iouAmount}`}

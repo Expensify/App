@@ -33,7 +33,7 @@ const defaultProps = {
 };
 
 const IOUParticipantsPage = props => (
-    <View style={styles.settingsWrapper}>
+    <View style={styles.pageWrapper}>
         <Text style={[styles.buttonText]}>
             {props.hasMultipleParticipants ? 'select multiple participants' : 'select single participant'}
         </Text>
