@@ -16,7 +16,11 @@ import {Close, BackArrow} from '../../components/Icon/Expensicons';
  */
 const propTypes = {
     // Is this new IOU for a single request or group bill split?
-    hasMultipleParticipants: PropTypes.bool.isRequired,
+    hasMultipleParticipants: PropTypes.bool,
+};
+
+const defaultProps = {
+    hasMultipleParticipants: false,
 };
 
 // Determines type of step to display within Modal, value provides the title for that page.
@@ -130,6 +134,7 @@ class IOUModal extends Component {
 }
 
 IOUModal.propTypes = propTypes;
+IOUModal.defaultProps = defaultProps;
 IOUModal.displayName = 'IOUModal';
 
 export default IOUModal;

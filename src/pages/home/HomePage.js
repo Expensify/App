@@ -130,7 +130,7 @@ class HomePage extends PureComponent {
                         <SearchPage />
                     </RightDockedModal>
                     <RightDockedModal route={ROUTES.IOU_REQUEST}>
-                        <IOUModal hasMultipleParticipants={false} />
+                        <IOUModal />
                     </RightDockedModal>
                     <RightDockedModal route={ROUTES.IOU_BILL}>
                         <IOUModal hasMultipleParticipants />
