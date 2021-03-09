@@ -339,13 +339,10 @@ class ReportActionsView extends React.Component {
     }
 
     render() {
-        // Comments have not loaded at all yet do nothing
-        if (!_.size(this.props.reportActions)) {
-            return null;
-        }
-
-        // If we only have the created action then no one has left a comment
-        if (_.size(this.props.reportActions) === 1) {
+        // If there are no comments or the only action is a CREATED action return the placeholder text
+        const isOnlyCreatedAction = _.size(this.props.reportActions) === 1
+            && lastItem(this.props.reportActions).actionName === 'CREATED';
+        if (!_.size(this.props.reportActions) || isOnlyCreatedAction) {
             return (
                 <View style={[styles.chatContent, styles.chatContentEmpty]}>
                     <Text style={[styles.textP]}>Be the first person to comment!</Text>
