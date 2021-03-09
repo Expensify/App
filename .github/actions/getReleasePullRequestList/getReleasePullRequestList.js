@@ -3,8 +3,8 @@ const core = require('@actions/core');
 const github = require('@actions/github');
 const GitUtils = require('expensify-common/lib/GitUtils.jsx');
 
-const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', { required: true }));
-const inputTag = core.getInput('TAG', { required: true });
+const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
+const inputTag = core.getInput('TAG', {required: true});
 
 console.log('Fetching release list from github...');
 octokit.repos.listTags({
@@ -12,7 +12,7 @@ octokit.repos.listTags({
     repo: github.context.repo.repo,
 })
     .catch(githubError => core.setFailed(githubError))
-    .then(({ data }) => {
+    .then(({data}) => {
         const tags = _.pluck(data, 'name');
         console.log(tags);
 
