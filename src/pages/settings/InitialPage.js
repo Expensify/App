@@ -48,7 +48,7 @@ const propTypes = {
 
 const defaultProps = {
     myPersonalDetails: {},
-    network: null,
+    network: {},
     session: {},
 };
 
@@ -56,22 +56,22 @@ const menuItems = [
     {
         title: 'Profile',
         icon: Profile,
-        route: 'profile',
+        route: ROUTES.SETTINGS_PROFILE,
     },
     {
         title: 'Preferences',
         icon: Gear,
-        route: 'preferences',
+        route: ROUTES.SETTINGS_PREFERENCES,
     },
     {
         title: 'Change Password',
         icon: Lock,
-        route: 'password',
+        route: ROUTES.SETTINGS_PASSWORD,
     },
     {
         title: 'Payments',
         icon: Wallet,
-        route: 'payments',
+        route: ROUTES.SETTINGS_PAYMENTS,
     },
 ];
 
@@ -97,16 +97,16 @@ const InitialSettingsPage = ({
                 ]}
             >
                 <View style={styles.w100}>
-                    <View style={styles.settingsWrapper}>
+                    <View style={styles.pageWrapper}>
 
                         <View style={[styles.mb3]}>
                             <AvatarWithIndicator
                                 size="large"
                                 source={myPersonalDetails.avatar}
-                                isActive={network && !network.isOffline}
+                                isActive={network.isOffline === false}
                             />
                         </View>
-                        <Text style={[styles.settingsDisplayName, styles.mt1]} numberOfLines={1}>
+                        <Text style={[styles.displayName, styles.mt1]} numberOfLines={1}>
                             {myPersonalDetails.displayName
                                 ? myPersonalDetails.displayName
                                 : Str.removeSMSDomain(session.email)}
@@ -122,7 +122,7 @@ const InitialSettingsPage = ({
                             key={item.title}
                             title={item.title}
                             icon={item.icon}
-                            onPress={() => redirect(ROUTES.getSettingsRoute(item.route))}
+                            onPress={() => redirect(item.route)}
                             shouldShowRightArrow
                         />
                     ))}

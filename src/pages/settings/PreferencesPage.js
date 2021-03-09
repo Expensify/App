@@ -43,7 +43,9 @@ const PreferencesPage = ({priorityMode}) => (
         <HeaderGap />
         <HeaderWithCloseButton
             title="Preferences"
-            onCloseButtonPress={() => redirect(ROUTES.SETTINGS)}
+            shouldShowBackButton
+            onBackButtonPress={() => redirect(ROUTES.SETTINGS)}
+            onCloseButtonPress={() => redirect(ROUTES.HOME)}
         />
         <View style={styles.settingsWrapper}>
             <View style={[styles.settingsPageBody, styles.mb6]}>

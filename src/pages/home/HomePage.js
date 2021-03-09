@@ -100,7 +100,10 @@ class HomePage extends PureComponent {
                 <Route path={[
                     ROUTES.REPORT,
                     ROUTES.HOME,
-                    ROUTES.SUBSETTINGS,
+                    ROUTES.SETTINGS_PROFILE,
+                    ROUTES.SETTINGS_PREFERENCES,
+                    ROUTES.SETTINGS_PASSWORD,
+                    ROUTES.SETTINGS_PAYMENTS,
                     ROUTES.SETTINGS,
                     ROUTES.NEW_GROUP,
                     ROUTES.NEW_CHAT,
