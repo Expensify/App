@@ -24,7 +24,6 @@ octokit.repos.listTags({
     .catch(githubError => core.setFailed(githubError))
     .then(({data}) => {
         const tags = _.pluck(data, 'name');
-        console.log(tags);
 
         const priorTagIndex = _.indexOf(tags, inputTag) + 1;
         if (priorTagIndex === 0 || priorTagIndex === tags.length) {
