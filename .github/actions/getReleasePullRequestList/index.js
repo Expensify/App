@@ -13,8 +13,8 @@ const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
 const GitUtils = __nccwpck_require__(6008);
 
-const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', { required: true }));
-const inputTag = core.getInput('TAG', { required: true });
+const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
+const inputTag = core.getInput('TAG', {required: true});
 
 console.log('Fetching release list from github...');
 octokit.repos.listTags({
@@ -22,7 +22,7 @@ octokit.repos.listTags({
     repo: github.context.repo.repo,
 })
     .catch(githubError => core.setFailed(githubError))
-    .then(({ data }) => {
+    .then(({data}) => {
         const tags = _.pluck(data, 'name');
         console.log(tags);
 
