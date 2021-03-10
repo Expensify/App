@@ -15,6 +15,7 @@ import Icon from '../../components/Icon';
 import NameValuePair from '../../libs/actions/NameValuePair';
 import CONST from '../../CONST';
 import {DownArrow} from '../../components/Icon/Expensicons';
+import Navigation from '../../libs/Navigation/Navigation';
 
 const propTypes = {
     // The chat priority mode
@@ -45,7 +46,7 @@ const PreferencesPage = ({priorityMode}) => (
             title="Preferences"
             shouldShowBackButton
             onBackButtonPress={() => redirect(ROUTES.SETTINGS)}
-            onCloseButtonPress={() => redirect(ROUTES.HOME)}
+            onCloseButtonPress={() => Navigation.dismissModal()}
         />
         <View style={styles.pageWrapper}>
             <View style={[styles.settingsPageBody, styles.mb6]}>
