@@ -7,6 +7,12 @@ inputs:
     GITHUB_TOKEN:
         description: Auth token for Expensify.cash Github
         required: true
+    NEW_PULL_REQUESTS:
+        description: A comma-separated list of pull request URLs to add to the open StagingDeployCash issue.
+        required: false
+    NEW_DEPLOY_BLOCKERS:
+        description: A comma-separated list of deploy blockers to add to the open StagingDeployCash issue.
+        required: false
 runs:
     using: 'node12'
     main: './index.js'
