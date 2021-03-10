@@ -177,7 +177,7 @@ class NewGroupPage extends Component {
     render() {
         const maxParticipantsReached = this.state.selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
         const sections = this.getSections(maxParticipantsReached);
-        const {headerTitle, headerMessage} = getHeaderTitleAndMessage(
+        const headerMessage = getHeaderMessage(
             this.state.personalDetails.length + this.state.recentReports.length !== 0,
             Boolean(this.state.userToInvite),
             maxParticipantsReached,
@@ -214,7 +214,6 @@ class NewGroupPage extends Component {
                                 personalDetails,
                             });
                         }}
-                        headerTitle={headerTitle}
                         headerMessage={headerMessage}
                         disableArrowKeysActions
                         hideAdditionalOptionStates
