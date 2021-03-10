@@ -248,7 +248,7 @@ describe('GithubUtils', () => {
 
     describe('createNewStagingDeployCash', () => {
         const octokit = new Octokit();
-        octokit.repos.listTags = jest.fn().mockResolvedValue({data: [{name: '1.0.2'}]});
+        octokit.repos.listTags = jest.fn().mockResolvedValue({data: [{name: '1.0.2-0'}]});
         octokit.issues.create = jest.fn().mockImplementation(arg => Promise.resolve(arg));
         const githubUtils = new GithubUtils(octokit);
 
@@ -271,14 +271,14 @@ describe('GithubUtils', () => {
                         assignee: 'applausebot',
                         title,
                         // eslint-disable-next-line max-len
-                        body: `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/1.0.2...1.0.2-12\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/Expensify/pull/1\r\n- [ ] https://github.com/Expensify/Expensify/pull/2\r\n- [ ] https://github.com/Expensify/Expensify/pull/3\r\n`,
+                        body: `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/1.0.2-0...1.0.2-12\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/Expensify/pull/1\r\n- [ ] https://github.com/Expensify/Expensify/pull/2\r\n- [ ] https://github.com/Expensify/Expensify/pull/3\r\n`,
                     });
                 })
         ));
     });
 
     describe('generateStagingDeployCashBody', () => {
-        const mockTags = [{name: '1.0.2'}, {name: '1.0.2-12'}];
+        const mockTags = [{name: '1.0.2-0'}, {name: '1.0.2-12'}];
         const mockGithub = jest.fn(() => ({
             getOctokit: () => ({
                 repos: {
@@ -291,7 +291,7 @@ describe('GithubUtils', () => {
         const githubUtils = new GithubUtils(octokit);
 
         const tag = '1.0.2-12';
-        const comparisonURL = 'https://github.com/Expensify/Expensify.cash/compare/1.0.2...1.0.2-12';
+        const comparisonURL = 'https://github.com/Expensify/Expensify.cash/compare/1.0.2-0...1.0.2-12';
         const basePRList = [
             'https://github.com/Expensify/Expensify/pull/2',
             'https://github.com/Expensify/Expensify/pull/3',
