@@ -95,4 +95,13 @@ describe('incrementVersion', () => {
             ),
         ).toStrictEqual('2.3.10');
     });
+
+    it('should increment', () => {
+        expect(
+            versionUpdater.incrementVersion(
+                `2.${versionUpdater.MAX_INCREMENTS}.${versionUpdater.MAX_INCREMENTS}-${versionUpdater.MAX_INCREMENTS}`,
+                versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD,
+            ),
+        ).toStrictEqual('3.0.0-0');
+    });
 });

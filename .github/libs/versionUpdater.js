@@ -4,7 +4,7 @@ const SEMANTIC_VERSION_LEVELS = {
     PATCH: 'PATCH',
     BUILD: 'BUILD',
 };
-const MAX_INCREMENTS = 999;
+const MAX_INCREMENTS = 99;
 
 /**
  * Transforms a versions string into a number
@@ -15,7 +15,7 @@ const MAX_INCREMENTS = 999;
 const getVersionNumberFromString = (versionString) => {
     const [version, build] = versionString.split('-');
     const [major, minor, patch] = version.split('.').map(n => Number(n));
-    return [major, minor, patch, build ? Number(build) : undefined];
+    return [major, minor, patch, build ? Number(build) : 0];
 };
 
 /**
@@ -24,7 +24,7 @@ const getVersionNumberFromString = (versionString) => {
  * @param {Number} major
  * @param {Number} minor
  * @param {Number} patch
- * @param {Number} [build]
+ * @param {Number} build
  * @returns {String}
  */
 const getVersionStringFromNumber = (major, minor, patch, build) => {

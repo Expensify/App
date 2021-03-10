@@ -9,7 +9,7 @@ const mockBuildGradle = `
     android {
         defaultConfig {
             versionCode 1000001479
-            versionName "1.0.1-473"
+            versionName "1.0.1-47"
         }
     }
 `;
@@ -33,17 +33,17 @@ afterAll(() => {
 describe('updateAndroidVersion', () => {
     test.each([
         [
-            '1.0.1-474',
+            '1.0.1-47',
             `
     android {
         defaultConfig {
             versionCode 1000001480
-            versionName "1.0.1-474"
+            versionName "1.0.1-47"
         }
     }
 `],
         [
-            '1.0.1',
+            '1.0.1-0',
             `
     android {
         defaultConfig {
@@ -53,7 +53,7 @@ describe('updateAndroidVersion', () => {
     }
 `],
         [
-            '100.999.666-888',
+            '10.99.66-88',
             `
     android {
         defaultConfig {
