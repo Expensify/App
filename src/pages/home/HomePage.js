@@ -31,7 +31,7 @@ import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import {redirect} from '../../libs/actions/App';
 import RightDockedModal from '../../components/RightDockedModal';
 import IOUModal from '../iou/IOUModal';
-import {getBetas} from '../../libs/actions/User';
+import * as User from '../../libs/actions/User';
 import NameValuePair from '../../libs/actions/NameValuePair';
 
 const propTypes = {
@@ -63,7 +63,8 @@ class HomePage extends PureComponent {
         NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.PRIORITY_MODE, 'default');
         PersonalDetails.fetch();
         PersonalDetails.fetchTimezone();
-        getBetas();
+        User.getBetas();
+        User.fetch();
         fetchAllReports(true, true);
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
@@ -77,7 +78,7 @@ class HomePage extends PureComponent {
             }
             PersonalDetails.fetch();
             PersonalDetails.fetchTimezone();
-            getBetas();
+            User.getBetas();
         }, 1000 * 60 * 30);
 
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
