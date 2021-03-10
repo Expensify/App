@@ -38,7 +38,6 @@ function redirectToSignIn(errorMessage) {
     // it only exists when the authToken is null.
     Onyx.set(ONYXKEYS.SESSION, {authToken: null})
         .then(() => {
-            redirect(ROUTES.SIGNIN);
             Onyx.clear().then(() => {
                 if (errorMessage) {
                     Onyx.set(ONYXKEYS.SESSION, {error: errorMessage});
