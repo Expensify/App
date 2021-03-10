@@ -15,6 +15,7 @@ const MAX_INCREMENTS = 99;
 const getVersionNumberFromString = (versionString) => {
     const [version, build] = versionString.split('-');
     const [major, minor, patch] = version.split('.').map(n => Number(n));
+
     return [major, minor, patch, Number.isInteger(Number(build)) ? Number(build) : 0];
 };
 
@@ -44,10 +45,10 @@ const getVersionStringFromNumber = (major, minor, patch, build) => {
  */
 const incrementMinor = (major, minor) => {
     if (minor < MAX_INCREMENTS) {
-        return getVersionStringFromNumber(major, minor + 1, 0);
+        return getVersionStringFromNumber(major, minor + 1, 0, 0);
     }
 
-    return getVersionStringFromNumber(major + 1, 0, 0);
+    return getVersionStringFromNumber(major + 1, 0, 0, 0);
 };
 
 /**
@@ -60,9 +61,8 @@ const incrementMinor = (major, minor) => {
  */
 const incrementPatch = (major, minor, patch) => {
     if (patch < MAX_INCREMENTS) {
-        return getVersionStringFromNumber(major, minor, patch + 1);
+        return getVersionStringFromNumber(major, minor, patch + 1, 0);
     }
-
     return incrementMinor(major, minor);
 };
 
@@ -78,7 +78,7 @@ const incrementVersion = (version, level) => {
 
     // Majors will always be incremented
     if (level === SEMANTIC_VERSION_LEVELS.MAJOR) {
-        return getVersionStringFromNumber(major + 1, 0, 0);
+        return getVersionStringFromNumber(major + 1, 0, 0, 0);
     }
 
     if (level === SEMANTIC_VERSION_LEVELS.MINOR) {
