@@ -11,14 +11,17 @@ import KeyboardSpacer from '../components/KeyboardSpacer';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import {hide as hideSidebar} from '../libs/actions/Sidebar';
 import CONST from '../CONST';
+import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
+import {redirectToLastReport} from '../libs/actions/App';
+import HeaderGap from '../components/HeaderGap';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
     login: PropTypes.string.isRequired,
 
-    // The URL of the person's avatar (there should already be a default avatarURL if
+    // The URL of the person's avatar (there should already be a default avatar if
     // the person doesn't have their own avatar uploaded yet)
-    avatarURL: PropTypes.string.isRequired,
+    avatar: PropTypes.string.isRequired,
 
     // This is either the user's full name, or their login if full name is an empty string
     displayName: PropTypes.string.isRequired,
@@ -132,6 +135,11 @@ class NewChatPage extends Component {
 
         return (
             <>
+                <HeaderGap />
+                <HeaderWithCloseButton
+                    title="New Chat"
+                    onCloseButtonPress={redirectToLastReport}
+                />
                 <View style={[styles.flex1, styles.w100]}>
                     <OptionsSelector
                         sections={sections}

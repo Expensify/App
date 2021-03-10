@@ -1,11 +1,7 @@
 import React from 'react';
 import withWindowDimensions from '../withWindowDimensions';
 import BaseModal from './BaseModal';
-import modalPropTypes from './ModalPropTypes';
-
-const defaultProps = {
-    type: '',
-};
+import {propTypes, defaultProps} from './ModalPropTypes';
 
 const Modal = props => (
     // eslint-disable-next-line react/jsx-props-no-spreading
@@ -14,7 +10,7 @@ const Modal = props => (
     </BaseModal>
 );
 
-Modal.propTypes = modalPropTypes;
+Modal.propTypes = propTypes;
 Modal.defaultProps = defaultProps;
 Modal.displayName = 'Modal';
 export default withWindowDimensions(Modal);

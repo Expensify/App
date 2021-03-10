@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
+import ROUTES from '../../ROUTES';
 
 let currentRedirectTo;
 Onyx.connect({
@@ -8,6 +9,11 @@ Onyx.connect({
     callback: val => currentRedirectTo = val,
 });
 
+let currentlyViewedReportID;
+Onyx.connect({
+    key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
+    callback: val => currentlyViewedReportID = val,
+});
 
 /**
  * Redirect the app to a new page by updating the state in Onyx
@@ -17,6 +23,16 @@ Onyx.connect({
 function redirect(url) {
     const formattedURL = Str.normalizeUrl(url);
     Onyx.merge(ONYXKEYS.APP_REDIRECT_TO, formattedURL);
+}
+
+/**
+ * Redirects to the last report that was in view.
+ */
+function redirectToLastReport() {
+    const route = !currentlyViewedReportID
+        ? ROUTES.HOME
+        : ROUTES.getReportRoute(currentlyViewedReportID);
+    redirect(route);
 }
 
 /**
@@ -55,5 +71,6 @@ function recordCurrentlyViewedReportID({match}) {
 export {
     recordCurrentRoute,
     recordCurrentlyViewedReportID,
+    redirectToLastReport,
     redirect,
 };

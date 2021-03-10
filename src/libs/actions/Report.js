@@ -17,6 +17,7 @@ import {hide as hideSidebar} from './Sidebar';
 import Timing from './Timing';
 import * as API from '../API';
 import CONST from '../../CONST';
+import Log from '../Log';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -174,6 +175,7 @@ function fetchChatReportsByIDs(chatList) {
         includePinnedReports: true,
     })
         .then(({reports}) => {
+            Log.info('[Report] successfully fetched report data', true);
             fetchedReports = reports;
 
             // Process the reports and store them in Onyx. At the same time we'll save the simplified reports in this
@@ -337,13 +339,18 @@ function subscribeToReportCommentEvents() {
     }
 
     Pusher.subscribe(pusherChannelName, 'reportComment', (pushJSON) => {
+        Log.info('[Report] Handled event sent by Pusher', true, {reportID: pushJSON.reportID});
         updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
     }, false,
     () => {
-        NetworkConnection.triggerReconnectionCallbacks();
-    });
+        NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
+    })
+        .catch((error) => {
+            Log.info('[Report] Failed to initially subscribe to Pusher channel', true, {error, pusherChannelName});
+        });
 
     PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, reportAction}) => {
+        Log.info('[Report] Handled event sent by Airship', true, {reportID});
         updateReportWithNewAction(reportID, reportAction);
     });
 
@@ -414,7 +421,10 @@ function subscribeToReportTypingEvents(reportID) {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, typingStoppedStatus);
             delete typingWatchTimers[reportUserIdentifier];
         }, 1500);
-    });
+    })
+        .catch((error) => {
+            Log.info('[Report] Failed to initially subscribe to Pusher channel', true, {error, pusherChannelName});
+        });
 }
 
 /**
@@ -433,6 +443,34 @@ function unsubscribeFromReportChannel(reportID) {
 }
 
 /**
+ * Get the report ID for a chat report for a specific
+ * set of participants and redirect to it.
+ *
+ * @param {String[]} participants
+ */
+function fetchOrCreateChatReport(participants) {
+    if (participants.length < 2) {
+        throw new Error('fetchOrCreateChatReport() must have at least two participants');
+    }
+
+    API.CreateChatReport({
+        emailList: participants.join(','),
+    })
+        .then((data) => {
+            if (data.jsonCode !== 200) {
+                throw new Error(data.message);
+            }
+
+            // Merge report into Onyx
+            const reportID = data.reportID;
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID});
+
+            // Redirect the logged in person to the new report
+            redirect(ROUTES.getReportRoute(reportID));
+        });
+}
+
+/**
  * Get all chat reports and provide the proper report name
  * by fetching sharedReportList and personalDetails
  *
@@ -442,18 +480,44 @@ function fetchChatReports() {
     return API.Get({
         returnValueList: 'chatList',
     })
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                return;
+            }
 
-        // The string cast below is necessary as Get rvl='chatList' may return an int
-        .then(({chatList}) => fetchChatReportsByIDs(String(chatList).split(',')));
+            // Get all the chat reports if they have any, otherwise create one with concierge
+            if (lodashGet(response, 'chatList', []).length) {
+                // The string cast here is necessary as Get rvl='chatList' may return an int
+                fetchChatReportsByIDs(String(response.chatList).split(','));
+            } else {
+                fetchOrCreateChatReport([currentUserEmail, 'concierge@expensify.com']);
+            }
+        });
 }
 
 /**
  * Get the actions of a report
  *
  * @param {Number} reportID
+ * @param {Number} [offset]
+ * @returns {Promise}
  */
-function fetchActions(reportID) {
-    API.Report_GetHistory({reportID})
+function fetchActions(reportID, offset) {
+    const reportActionsOffset = !_.isUndefined(offset) ? offset : -1;
+
+    if (!_.isNumber(reportActionsOffset)) {
+        Log.alert('[Report] Offset provided is not a number', true, {
+            offset,
+            reportActionsOffset,
+        });
+        return;
+    }
+
+    return API.Report_GetHistory({
+        reportID,
+        reportActionsOffset,
+        reportActionsLimit: CONST.REPORT.REPORT_ACTIONS_LIMIT,
+    })
         .then((data) => {
             // We must remove all optimistic actions so there will not be any stuck comments. At this point, we should
             // be caught up and no longer need any optimistic comments.
@@ -474,10 +538,9 @@ function fetchActions(reportID) {
  * Get all of our reports
  *
  * @param {Boolean} shouldRedirectToReport this is set to false when the network reconnect code runs
- * @param {Boolean} shouldFetchActions whether or not the actions of the reports should also be fetched
  * @param {Boolean} shouldRecordHomePageTiming whether or not performance timing should be measured
  */
-function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false, shouldRecordHomePageTiming = false) {
+function fetchAll(shouldRedirectToReport = true, shouldRecordHomePageTiming = false) {
     fetchChatReports()
         .then((reportIDs) => {
             if (shouldRedirectToReport && (currentURL === ROUTES.ROOT || currentURL === ROUTES.HOME)) {
@@ -489,77 +552,14 @@ function fetchAll(shouldRedirectToReport = true, shouldFetchActions = false, sho
                 }
             }
 
-            if (shouldFetchActions) {
-                _.each(reportIDs, (reportID) => {
-                    console.debug(`[RECONNECT] Fetching report actions for report ${reportID}`);
-                    fetchActions(reportID);
-                });
-            }
+            Log.info('[Report] Fetching report actions for reports', true, {reportIDs});
+            _.each(reportIDs, (reportID) => {
+                fetchActions(reportID);
+            });
 
             if (shouldRecordHomePageTiming) {
                 Timing.end(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
             }
-        });
-}
-
-/**
- * Get the report ID, and then the actions, for a chat report for a specific
- * set of participants
- *
- * @param {String[]} participants
- */
-function fetchOrCreateChatReport(participants) {
-    let reportID;
-
-    if (participants.length < 2) {
-        throw new Error('fetchOrCreateChatReport() must have at least two participants');
-    }
-
-    API.CreateChatReport({
-        emailList: participants.join(','),
-    })
-
-        .then((data) => {
-            if (data.jsonCode !== 200) {
-                alert(data.message);
-                return;
-            }
-
-            // Set aside the reportID in a local variable so it can be accessed in the rest of the chain
-            reportID = data.reportID;
-
-            // Make a request to get all the information about the report
-            return API.Get({
-                returnValueList: 'reportStuff',
-                reportIDList: reportID,
-                shouldLoadOptionalKeys: true,
-            });
-        })
-
-        // Put the report object into Onyx
-        .then((data) => {
-            if (data.reports.length === 0) {
-                return;
-            }
-            const report = data.reports[reportID];
-
-            // Store only the absolute bare minimum of data in Onyx because space is limited
-            const newReport = getSimplifiedReportObject(report);
-            newReport.reportName = getChatReportName(report.sharedReportList);
-
-            // Optimistically update the last visited timestamp such that if the user immediately switches to another
-            // report the last visited order is still maintained.
-            newReport.lastVisitedTimestamp = Date.now();
-
-            // Merge the data into Onyx. Don't use set() here or multiSet() because then that would
-            // overwrite any existing data (like if they have unread messages)
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, newReport);
-
-            // Updates the personal details since its possible that a new participant was provided
-            PersonalDetails.getFromReportParticipants([newReport]);
-
-            // Redirect the logged in person to the new report
-            redirect(ROUTES.getReportRoute(reportID));
         });
 }
 
@@ -621,7 +621,7 @@ function addAction(reportID, text, file) {
 
             // Use the client generated ID as a optimistic action ID so we can remove it later
             sequenceNumber: optimisticReportActionID,
-            avatar: myPersonalDetails.avatarURL,
+            avatar: myPersonalDetails.avatar,
             timestamp: moment().unix(),
             message: [
                 {
@@ -645,6 +645,11 @@ function addAction(reportID, text, file) {
         reportComment: htmlComment,
         file,
         clientID: optimisticReportActionID,
+
+        // The persist flag enables this request to be retried if we are offline and the app is completely killed. We do
+        // not retry attachments as we have no solution for storing them persistently and attachments can't be "lost" in
+        // the same way report actions can.
+        persist: !isAttachment,
     })
         .then(({reportAction}) => updateReportWithNewAction(reportID, reportAction));
 }
@@ -740,7 +745,7 @@ Onyx.connect({
 
 // When the app reconnects from being offline, fetch all of the reports and their actions
 NetworkConnection.onReconnect(() => {
-    fetchAll(false, true);
+    fetchAll(false);
 });
 
 export {

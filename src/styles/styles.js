@@ -12,6 +12,7 @@ import display from './utilities/display';
 import overflow from './utilities/overflow';
 import whiteSpace from './utilities/whiteSpace';
 import wordBreak from './utilities/wordBreak';
+import textInputAlignSelf from './utilities/textInputAlignSelf';
 
 const styles = {
     // Add all of our utility and helper styles
@@ -157,12 +158,58 @@ const styles = {
         color: themeColors.textReversed,
     },
 
+    hoveredComponentBG: {
+        backgroundColor: themeColors.componentBGHover,
+    },
+
     touchableButtonImage: {
         alignItems: 'center',
         height: variables.componentSizeNormal,
         justifyContent: 'center',
         marginRight: 8,
         width: variables.componentSizeNormal,
+    },
+
+    picker: {
+        inputIOS: {
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+            paddingVertical: 12,
+            paddingHorizontal: 10,
+            borderRadius: variables.componentBorderRadius,
+            borderWidth: 1,
+            borderColor: themeColors.border,
+            color: themeColors.text,
+            paddingRight: 30,
+        },
+        inputWeb: {
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+            paddingVertical: 12,
+            paddingHorizontal: 10,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadius,
+            borderColor: themeColors.border,
+            color: themeColors.text,
+            paddingRight: 30,
+            appearance: 'none',
+        },
+        inputAndroid: {
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+            paddingHorizontal: 10,
+            paddingVertical: 8,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadius,
+            borderColor: themeColors.border,
+            color: themeColors.text,
+            paddingRight: 30,
+        },
+        iconContainer: {
+            top: 12,
+            right: 12,
+            pointerEvents: 'none',
+        },
     },
 
     pill: {
@@ -252,7 +299,9 @@ const styles = {
     noOutline: addOutlineWidth({}, 0),
 
     formLabel: {
-        color: themeColors.text,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        color: themeColors.heading,
         fontSize: variables.fontSizeLabel,
         lineHeight: 18,
         marginBottom: 8,
@@ -333,21 +382,6 @@ const styles = {
         height: '100%',
     },
 
-    sidebarHeader: {
-        flexGrow: 0,
-        height: 0,
-    },
-
-    sidebarHeaderActive: {
-        flexGrow: 1,
-        height: '100%',
-    },
-
-    sidebarHeaderTop: {
-        paddingHorizontal: 20,
-        paddingVertical: 12,
-    },
-
     sidebarFooter: {
         alignItems: 'center',
         display: 'flex',
@@ -424,11 +458,18 @@ const styles = {
         textDecorationLine: 'none',
     },
 
+    createMenuPosition: {
+        left: 18,
+        bottom: 100,
+    },
+
     createMenuItem: {
         flexDirection: 'row',
         borderRadius: 0,
         paddingHorizontal: 20,
         paddingVertical: 12,
+        justifyContent: 'space-between',
+        width: '100%',
     },
 
     createMenuIcon: {
@@ -472,6 +513,10 @@ const styles = {
         overflow: 'hidden',
     },
 
+    sidebarLinkHover: {
+        backgroundColor: themeColors.sidebarHover,
+    },
+
     sidebarLinkActive: {
         backgroundColor: themeColors.border,
         textDecorationLine: 'none',
@@ -489,14 +534,19 @@ const styles = {
         overflow: 'hidden',
     },
 
-    chatSwitcherDisplayName: {
+    optionItemAvatarNameWrapper: {
+        minWidth: 0,
+        flex: 1,
+    },
+
+    optionDisplayName: {
         fontFamily: fontFamily.GTA,
         height: 18,
         lineHeight: 18,
         ...whiteSpace.noWrap,
     },
 
-    chatSwitcherLogin: {
+    optionAlternateText: {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeLabel,
@@ -660,7 +710,7 @@ const styles = {
         paddingHorizontal: 8,
         marginVertical: 5,
         paddingVertical: 0,
-        alignSelf: 'center',
+        ...textInputAlignSelf.center,
         textAlignVertical: 'center',
     }, 0),
 
@@ -699,54 +749,9 @@ const styles = {
         width: 200,
     },
 
-    chatSwitcherGroupDMContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        backgroundColor: themeColors.appBG,
-        borderRadius: variables.componentBorderRadius,
-        borderWidth: 1,
-        borderColor: themeColors.border,
-        paddingTop: 0,
-        paddingRight: 3,
-        paddingBottom: 0,
-        paddingLeft: 5,
-    },
-
-    chatSwitcherPillsInput: {
-        alignItems: 'flex-start',
-        alignSelf: 'flex-start',
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        maxWidth: 177,
-        overflow: 'hidden',
-    },
-
-    chatSwitcherInputGroup: {
-        minWidth: 1,
-    },
-
-    chatSwitcherGroupDMTextInput: {
-        backgroundColor: themeColors.componentBG,
-        color: themeColors.text,
-        fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeNormal,
-        flexGrow: 1,
-        height: variables.componentSizeSmall,
-        width: '100%',
-        marginTop: 5,
-        marginBottom: 5,
-        padding: 0,
-    },
-
     chatSwticherPillWrapper: {
         marginTop: 5,
         marginRight: 4,
-    },
-
-    chatSwitcherGo: {
-        borderRadius: 6,
-        height: 32,
-        marginBottom: 3,
     },
 
     navigationMenuOpenAbsolute: {
@@ -773,24 +778,19 @@ const styles = {
         borderRadius: 24,
     },
 
+    secondAvatar: {
+        position: 'absolute',
+        right: -13,
+        bottom: -14,
+        borderColor: 'transparent',
+        borderWidth: 2,
+    },
+
     avatarNormal: {
         height: variables.componentSizeNormal,
         width: variables.componentSizeNormal,
         backgroundColor: themeColors.icon,
         borderRadius: variables.componentSizeNormal,
-    },
-
-    singleLeftAvatar: {
-        marginTop: -variables.componentSizeNormal / 2,
-        borderRadius: 24,
-    },
-
-    singleRightAvatar: {
-        marginTop: 12,
-        height: 30,
-        width: 30,
-        borderRadius: 30,
-        left: -12,
     },
 
     avatarText: {
@@ -804,6 +804,7 @@ const styles = {
         color: themeColors.textReversed,
         fontSize: variables.fontSizeSmall,
         lineHeight: 24,
+        marginLeft: -3,
         textAlign: 'center',
     },
 
@@ -822,30 +823,8 @@ const styles = {
 
     emptyAvatar: {
         marginRight: variables.componentSizeNormal - 24,
-    },
-
-    chatSwitcherItemAvatarNameWrapper: {
-        minWidth: 0,
-        flex: 1,
-    },
-
-    chatSwitcherItemButton: {
-        backgroundColor: themeColors.sidebarButtonBG,
-        paddingTop: 6,
-        paddingRight: 8,
-        paddingBottom: 6,
-        paddingLeft: 8,
-        borderRadius: variables.componentBorderRadius,
-        height: variables.componentSizeSmall,
-        marginLeft: 4,
-    },
-
-    chatSwitcherItemButtonText: {
-        color: themeColors.heading,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.fontSizeSmall,
-        lineHeight: 16,
-        fontWeight: fontWeightBold,
+        height: 40,
+        width: 40,
     },
 
     modalViewContainer: {
@@ -869,7 +848,17 @@ const styles = {
 
     imageModalPDF: {
         flex: 1,
-        backgroundColor: themeColors.componentBG,
+        backgroundColor: themeColors.modalBackground,
+    },
+    PDFView: {
+        flex: 1,
+        backgroundColor: themeColors.modalBackground,
+        width: '100%',
+        height: '100%',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        overflow: 'hidden',
+        overflowY: 'auto',
     },
 
     modalCenterContentContainer: {
@@ -953,6 +942,11 @@ const styles = {
         alignItems: 'center',
     },
 
+    settingsPageBody: {
+        width: '100%',
+        justifyContent: 'space-around',
+    },
+
     settingsPageColumn: {
         width: '100%',
         alignItems: 'center',
@@ -982,7 +976,7 @@ const styles = {
         zIndex: 10,
     },
 
-    settingsDisplayName: {
+    displayName: {
         fontSize: variables.fontSizeLarge,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
@@ -995,7 +989,7 @@ const styles = {
         color: themeColors.textSupporting,
     },
 
-    settingsWrapper: {
+    pageWrapper: {
         width: '100%',
         alignItems: 'center',
         padding: 20,
@@ -1013,8 +1007,52 @@ const styles = {
         marginLeft: 8,
     },
 
+    unreadIndicatorContainer: {
+        position: 'absolute',
+        top: -10,
+        left: 0,
+        width: '100%',
+        height: 20,
+        paddingHorizontal: 20,
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+
+    unreadIndicatorLine: {
+        height: 1,
+        backgroundColor: themeColors.unreadIndicator,
+        flexGrow: 1,
+        marginRight: 8,
+        opacity: 0.5,
+    },
+
+    unreadIndicatorText: {
+        color: themeColors.unreadIndicator,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeSmall,
+        fontWeight: fontWeightBold,
+    },
+
     flipUpsideDown: {
         transform: [{rotate: '180deg'}],
+    },
+
+    profilePageContainer: {
+        justifyContent: 'space-between',
+        width: '100%',
+        flex: 1,
+    },
+
+    profilePageSectionContainer: {
+        alignSelf: 'flex-start',
+    },
+
+    profilePageSectionVersion: {
+        alignSelf: 'center',
+        color: themeColors.textSupporting,
+        fontSize: variables.fontSizeSmall,
+        height: 24,
+        lineHeight: 20,
     },
 };
 
@@ -1121,15 +1159,14 @@ function getSafeAreaMargins(insets) {
  * Return navigation menu styles.
  *
  * @param {Number} windowWidth
- * @param {Boolean} isSidebarShown
  * @param {Boolean} isSmallScreenWidth
  * @returns {Object}
  */
-function getNavigationMenuStyle(windowWidth, isSidebarShown, isSmallScreenWidth) {
+function getNavigationMenuStyle(windowWidth, isSmallScreenWidth) {
     return isSmallScreenWidth
         ? {
             ...styles.navigationMenuOpenAbsolute,
-            width: isSidebarShown ? windowWidth : 0,
+            width: windowWidth,
         }
         : {
             borderColor: themeColors.border,

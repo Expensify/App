@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {PureComponent} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Onyx, {withOnyx} from 'react-native-onyx';
@@ -10,10 +10,9 @@ import SignInPage from './pages/signin/SignInPage';
 import listenToStorageEvents from './libs/listenToStorageEvents';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import ONYXKEYS from './ONYXKEYS';
-
 import styles from './styles/styles';
 import Log from './libs/Log';
-
+import migrateOnyx from './libs/migrateOnyx';
 import {
     Route,
     Router,
@@ -22,6 +21,7 @@ import {
 } from './libs/Router';
 import ROUTES from './ROUTES';
 import PushNotification from './libs/Notification/PushNotification';
+import UpdateAppModal from './components/UpdateAppModal';
 
 // Initialize the store when the app loads for the first time
 Onyx.init({
@@ -32,6 +32,8 @@ Onyx.init({
         // Clear any loading and error messages so they do not appear on app startup
         [ONYXKEYS.SESSION]: {loading: false},
         [ONYXKEYS.ACCOUNT]: {loading: false, error: ''},
+        [ONYXKEYS.NETWORK]: {isOffline: false},
+        [ONYXKEYS.IOU]: {loading: false},
     },
     registerStorageEventListener: (onStorageEvent) => {
         listenToStorageEvents(onStorageEvent);
@@ -50,13 +52,17 @@ const propTypes = {
 
     // A route set by Onyx that we will redirect to if present. Always empty on app init.
     redirectTo: PropTypes.string,
+
+    // Version of newly downloaded update.
+    version: PropTypes.string,
 };
 
 const defaultProps = {
     redirectTo: '',
+    version: '',
 };
 
-class Expensify extends Component {
+class Expensify extends PureComponent {
     constructor(props) {
         super(props);
 
@@ -68,14 +74,20 @@ class Expensify extends Component {
         this.state = {
             isLoading: true,
             authToken: null,
+            isOnyxMigrated: false,
         };
     }
 
     componentDidMount() {
-        Onyx.connect({
-            key: ONYXKEYS.SESSION,
-            callback: this.removeLoadingState,
-        });
+        // Run any Onyx schema migrations and then connect to Onyx
+        migrateOnyx()
+            .then(() => {
+                this.setState({isOnyxMigrated: true});
+                Onyx.connect({
+                    key: ONYXKEYS.SESSION,
+                    callback: this.removeLoadingState,
+                });
+            });
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -99,14 +111,17 @@ class Expensify extends Component {
     }
 
     render() {
-        // Until the authToken has been initialized from Onyx, display a blank page
-        if (this.state.isLoading) {
+        // Until the authToken has been initialized from Onyx and the onyx migration is done, display a blank page
+        if (this.state.isLoading || !this.state.isOnyxMigrated) {
             return (
                 <View style={styles.genericView} />
             );
         }
         return (
             <Router>
+                {/* We include the modal for showing a new update at the top level so the option is always present. */}
+                {this.props.version ? <UpdateAppModal updateVersion={this.props.version} /> : null}
+
                 {/* If there is ever a property for redirecting, we do the redirect here */}
                 {/* Leave this as a ternary or else iOS throws an error about text not being wrapped in <Text> */}
                 {this.props.redirectTo ? <Redirect push to={this.props.redirectTo} /> : null}
@@ -129,14 +144,14 @@ class Expensify extends Component {
 
                     <Route path={[ROUTES.SET_PASSWORD]} component={SetPasswordPage} />
                     <Route path={[ROUTES.NOT_FOUND]} component={NotFoundPage} />
-                    <Route path={[ROUTES.SIGNIN_WITH_EXITTO, ROUTES.SIGNIN]} component={SignInPage} />
+                    <Route path={[ROUTES.SIGNIN]} component={SignInPage} />
                     <Route
                         path={[ROUTES.HOME, ROUTES.ROOT]}
-                        render={match => (
+                        render={() => (
 
                             // Need to do this for every page that the user needs to be logged in to access
                             this.state.authToken
-                                ? <HomePage match={match} />
+                                ? <HomePage />
                                 : <Redirect to={ROUTES.SIGNIN} />
                         )}
                     />
@@ -156,6 +171,10 @@ export default withOnyx({
         // Prevent the prefilling of Onyx data or else the app will always redirect to what the last value was set to.
         // This ends up in a situation where you go to a report, refresh the page, and then rather than seeing the
         // report you are brought back to the root of the site (ie. "/").
+        initWithStoredValues: false,
+    },
+    version: {
+        key: ONYXKEYS.UPDATE_VERSION,
         initWithStoredValues: false,
     },
 })(Expensify);

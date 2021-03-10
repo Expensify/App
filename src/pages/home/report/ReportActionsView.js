@@ -1,10 +1,17 @@
 import React from 'react';
-import {View, Keyboard, AppState} from 'react-native';
+import {
+    Animated,
+    View,
+    Keyboard,
+    AppState,
+    ActivityIndicator,
+} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import {withOnyx} from 'react-native-onyx';
 import Text from '../../../components/Text';
+import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
 import {fetchActions, updateLastReadActionID} from '../../../libs/actions/Report';
 import ONYXKEYS from '../../../ONYXKEYS';
 import ReportActionItem from './ReportActionItem';
@@ -13,6 +20,8 @@ import ReportActionPropTypes from './ReportActionPropTypes';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import {lastItem} from '../../../libs/CollectionUtils';
 import Visibility from '../../../libs/Visibility';
+import CONST from '../../../CONST';
+import themeColors from '../../../styles/themes/default';
 
 const propTypes = {
     // The ID of the report actions will be created for
@@ -22,6 +31,12 @@ const propTypes = {
     isActiveReport: PropTypes.bool.isRequired,
 
     /* Onyx Props */
+
+    // The report currently being looked at
+    report: PropTypes.shape({
+        // Number of actions unread
+        unreadActionCount: PropTypes.number,
+    }),
 
     // Array of report actions for this report
     reportActions: PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
@@ -34,6 +49,9 @@ const propTypes = {
 };
 
 const defaultProps = {
+    report: {
+        unreadActionCount: 0,
+    },
     reportActions: {},
     session: {},
 };
@@ -46,8 +64,17 @@ class ReportActionsView extends React.Component {
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
         this.recordMaxAction = this.recordMaxAction.bind(this);
         this.onVisibilityChange = this.onVisibilityChange.bind(this);
-        this.sortedReportActions = this.updateSortedReportActions();
+        this.loadMoreChats = this.loadMoreChats.bind(this);
+        this.sortedReportActions = [];
         this.timers = [];
+        this.unreadIndicatorOpacity = new Animated.Value(1);
+
+        // Helper variable that keeps track of the unread action count before it updates to zero
+        this.unreadActionCount = 0;
+
+        // Helper variable that prevents the unread indicator to show up for new messages
+        // received while the report is still active
+        this.shouldShowUnreadActionIndicator = true;
 
         this.state = {
             refetchNeeded: true,
@@ -65,6 +92,22 @@ class ReportActionsView extends React.Component {
         fetchActions(this.props.reportID);
     }
 
+    shouldComponentUpdate(nextProps, nextState) {
+        if (nextProps.isActiveReport !== this.props.isActiveReport) {
+            return true;
+        }
+
+        if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
+            return true;
+        }
+
+        if (nextState.isLoadingMoreChats !== this.state.isLoadingMoreChats) {
+            return true;
+        }
+
+        return false;
+    }
+
     componentDidUpdate(prevProps) {
         // If we previously had a value for reportActions but no longer have one
         // this can only mean that the reportActions have been deleted. So we must
@@ -74,7 +117,9 @@ class ReportActionsView extends React.Component {
             return;
         }
 
-        if (_.size(prevProps.reportActions) !== _.size(this.props.reportActions)) {
+        const previousLastItem = lastItem(prevProps.reportActions) || {};
+        const newLastItem = lastItem(this.props.reportActions) || {};
+        if (previousLastItem.sequenceNumber !== newLastItem.sequenceNumber) {
             // If a new comment is added and it's from the current user scroll to the bottom otherwise
             // leave the user positioned where they are now in the list.
             const lastAction = lastItem(this.props.reportActions);
@@ -131,6 +176,54 @@ class ReportActionsView extends React.Component {
      */
     setRefetchNeeded(refetchNeeded) {
         this.setState({refetchNeeded});
+    }
+
+    /**
+     * Checks if the unreadActionIndicator should be shown.
+     * If it does, starts a timeout for the fading out animation and creates
+     * a flag to not show it again if the report is still open
+     */
+    setUpUnreadActionIndicator() {
+        if (!this.props.isActiveReport || !this.shouldShowUnreadActionIndicator) {
+            return;
+        }
+
+        this.unreadActionCount = this.props.report.unreadActionCount;
+
+        if (this.unreadActionCount > 0) {
+            this.unreadIndicatorOpacity = new Animated.Value(1);
+            this.timers.push(setTimeout(() => {
+                Animated.timing(this.unreadIndicatorOpacity, {
+                    toValue: 0,
+                    useNativeDriver: false,
+                }).start();
+            }, 3000));
+        }
+
+        this.shouldShowUnreadActionIndicator = false;
+    }
+
+    /**
+     * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
+     * displaying.
+     */
+    loadMoreChats() {
+        const minSequenceNumber = _.chain(this.props.reportActions)
+            .pluck('sequenceNumber')
+            .min()
+            .value();
+
+        if (minSequenceNumber === 0) {
+            return;
+        }
+
+        this.setState({isLoadingMoreChats: true}, () => {
+            // Retrieve the next REPORT_ACTIONS_LIMIT sized page of comments, unless we're near the beginning, in which
+            // case just get everything starting from 0.
+            const offset = Math.max(minSequenceNumber - CONST.REPORT.REPORT_ACTIONS_LIMIT, 0);
+            fetchActions(this.props.reportID, offset)
+                .then(() => this.setState({isLoadingMoreChats: false}));
+        });
     }
 
     /**
@@ -227,12 +320,21 @@ class ReportActionsView extends React.Component {
         needsLayoutCalculation,
     }) {
         return (
-            <ReportActionItem
-                action={item.action}
-                displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
-                onLayout={onLayout}
-                needsLayoutCalculation={needsLayoutCalculation}
-            />
+
+        // Using <View /> instead of a Fragment because there is a difference between how
+        // <InvertedFlatList /> are implemented on native and web/desktop which leads to
+        // the unread indicator on native to render below the message instead of above it.
+            <View>
+                {this.unreadActionCount > 0 && index === this.unreadActionCount - 1 && (
+                    <UnreadActionIndicator animatedOpacity={this.unreadIndicatorOpacity} />
+                )}
+                <ReportActionItem
+                    action={item.action}
+                    displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
+                    onLayout={onLayout}
+                    needsLayoutCalculation={needsLayoutCalculation}
+                />
+            </View>
         );
     }
 
@@ -251,6 +353,7 @@ class ReportActionsView extends React.Component {
             );
         }
 
+        this.setUpUnreadActionIndicator();
         this.updateSortedReportActions();
         return (
             <InvertedFlatList
@@ -260,6 +363,11 @@ class ReportActionsView extends React.Component {
                 contentContainerStyle={[styles.chatContentScrollView]}
                 keyExtractor={item => `${item.action.sequenceNumber}`}
                 initialRowHeight={32}
+                onEndReached={this.loadMoreChats}
+                onEndReachedThreshold={0.75}
+                ListFooterComponent={this.state.isLoadingMoreChats
+                    ? <ActivityIndicator size="small" color={themeColors.spinner} />
+                    : null}
             />
         );
     }
@@ -269,6 +377,9 @@ ReportActionsView.propTypes = propTypes;
 ReportActionsView.defaultProps = defaultProps;
 
 export default withOnyx({
+    report: {
+        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+    },
     reportActions: {
         key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
         canEvict: props => !props.isActiveReport,
