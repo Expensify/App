@@ -18,6 +18,14 @@ Onyx.connect({
     callback: val => currentlyViewedReportID = val,
 });
 
+let currentActiveClients;
+Onyx.connect({
+    key: ONYXKEYS.ACTIVE_CLIENTS,
+    callback: (val) => {
+        currentActiveClients = !val ? [] : val;
+    },
+});
+
 /**
  * Clears the Onyx store and redirects to the sign in page.
  * Normally this method would live in Session.js, but that would cause a circular dependency with Network.js.
@@ -39,9 +47,10 @@ function redirectToSignIn(errorMessage) {
         return;
     }
 
-    // Save the reportID before calling redirect or otherwise when clear
+    // Save the reportID and activeClients before calling redirect or otherwise when clear
     // is finished the value saved here will already be null
     const reportID = currentlyViewedReportID;
+    const activeClients = currentActiveClients;
     redirect(ROUTES.SIGNIN);
     Onyx.clear().then(() => {
         if (errorMessage) {
@@ -49,6 +58,9 @@ function redirectToSignIn(errorMessage) {
         }
         if (reportID) {
             Onyx.set(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, reportID);
+        }
+        if (activeClients && activeClients.length > 0) {
+            Onyx.set(ONYXKEYS.ACTIVE_CLIENTS, activeClients);
         }
     });
 }
