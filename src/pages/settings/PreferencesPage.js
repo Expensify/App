@@ -6,7 +6,6 @@ import PropTypes from 'prop-types';
 
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import {redirect} from '../../libs/actions/App';
-import HeaderGap from '../../components/HeaderGap';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
