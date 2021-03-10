@@ -14,7 +14,7 @@ describe('getVersionNumberFromString', () => {
             VERSION_NUMBER[0],
             VERSION_NUMBER[1],
             VERSION_NUMBER[2],
-            undefined,
+            0,
         ];
 
         expect(
@@ -33,23 +33,23 @@ describe('getVersionStringFromNumber', () => {
 
 describe('incrementMinor', () => {
     it('should only increment minor', () => {
-        expect(versionUpdater.incrementMinor(2, 3)).toStrictEqual('2.4.0');
+        expect(versionUpdater.incrementMinor(2, 3)).toStrictEqual('2.4.0-0');
     });
     it('should increment major', () => {
         expect(versionUpdater.incrementMinor(2, versionUpdater.MAX_INCREMENTS)).toStrictEqual(
-            '3.0.0',
+            '3.0.0-0',
         );
     });
 });
 
 describe('incrementPatch', () => {
     it('should only increment patch', () => {
-        expect(versionUpdater.incrementPatch(2, 3, 5)).toStrictEqual('2.3.6');
+        expect(versionUpdater.incrementPatch(2, 3, 5)).toStrictEqual('2.3.6-0');
     });
     it('should increment minor', () => {
         expect(
             versionUpdater.incrementPatch(2, 3, versionUpdater.MAX_INCREMENTS),
-        ).toStrictEqual('2.4.0');
+        ).toStrictEqual('2.4.0-0');
     });
     it('should increment major', () => {
         expect(
@@ -58,7 +58,7 @@ describe('incrementPatch', () => {
                 versionUpdater.MAX_INCREMENTS,
                 versionUpdater.MAX_INCREMENTS,
             ),
-        ).toStrictEqual('3.0.0');
+        ).toStrictEqual('3.0.0-0');
     });
 });
 
@@ -68,14 +68,14 @@ describe('incrementVersion', () => {
             versionUpdater.incrementVersion(
                 VERSION, versionUpdater.SEMANTIC_VERSION_LEVELS.MAJOR,
             ),
-        ).toStrictEqual('3.0.0');
+        ).toStrictEqual('3.0.0-0');
     });
     it('should increment major even above max level', () => {
         expect(
             versionUpdater.incrementVersion(
                 `${versionUpdater.MAX_INCREMENTS}.5.1-80`, versionUpdater.SEMANTIC_VERSION_LEVELS.MAJOR,
             ),
-        ).toStrictEqual(`${versionUpdater.MAX_INCREMENTS + 1}.0.0`);
+        ).toStrictEqual(`${versionUpdater.MAX_INCREMENTS + 1}.0.0-0`);
     });
     it('should increment build number', () => {
         expect(versionUpdater.incrementVersion(
@@ -93,6 +93,6 @@ describe('incrementVersion', () => {
                 `2.3.9-${versionUpdater.MAX_INCREMENTS}`,
                 versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD,
             ),
-        ).toStrictEqual('2.3.10');
+        ).toStrictEqual('2.3.10-0');
     });
 });
