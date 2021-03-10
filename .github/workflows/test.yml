@@ -18,6 +18,14 @@ jobs:
               with:
                 node-version: '14.x'
 
+            - name: Check if StagingDeployCash is locked
+              id: isStagingDeployLocked
+              uses: Expensify/Expensify.cash/.github/actions/isStagingDeployLocked@ea293ac88b51fb6e6ad5035a69623fd79a3c81cb
+              with:
+                  GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+            - run: echo ${{ steps.isStagingDeployLocked.outputs.IS_LOCKED }}
+
             - name: Install node packages
               uses: nick-invision/retry@7c68161adf97a48beb850a595b8784ec57a98cbb
               with:
@@ -28,11 +36,3 @@ jobs:
             - run: npm run test
               env:
                   CI: true
-
-            - name: Check if StagingDeployCash is locked
-              id: isStagingDeployLocked
-              uses: Expensify/Expensify.cash/.github/actions/isStagingDeployLocked@ea293ac88b51fb6e6ad5035a69623fd79a3c81cb
-              with:
-                  GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-
-            - run: echo ${{ steps.isStagingDeployLocked.outputs.IS_LOCKED }}
