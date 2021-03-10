@@ -299,7 +299,7 @@ class GithubUtils {
         deployBlockers = [],
         resolvedDeployBlockers = [],
     ) {
-        return this.generateVersionComparisonURL(`${GITHUB_OWNER}/${EXPENSIFY_CASH_REPO}`, tag, 'BUILD')
+        return this.generateVersionComparisonURL(`${GITHUB_OWNER}/${EXPENSIFY_CASH_REPO}`, tag, 'PATCH')
             .then((comparisonURL) => {
                 const sortedPRList = _.sortBy(_.unique(PRList), URL => GithubUtils.getPullRequestNumberFromURL(URL));
                 // eslint-disable-next-line max-len
