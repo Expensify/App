@@ -14,6 +14,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../components/wit
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import HeaderGap from '../components/HeaderGap';
+import CONST from '../CONST';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -57,6 +58,7 @@ class SearchPage extends Component {
         const {
             recentReports,
             personalDetails,
+            userToInvite,
         } = getSearchOptions(
             props.reports,
             props.personalDetails,
@@ -67,6 +69,27 @@ class SearchPage extends Component {
             searchValue: '',
             recentReports,
             personalDetails,
+            userToInvite,
+        };
+    }
+
+    /**
+     * Helper method that returns the text to be used for the header's message and title (if any)
+     *
+     * @return {String}
+     */
+    getHeaderTitleAndMessage() {
+        const hasSelectableOptions = (this.state.recentReports.length + this.state.personalDetails.length) !== 0;
+        if (!hasSelectableOptions && !this.state.userToInvite) {
+            return {
+                headerTitle: '',
+                headerMessage: CONST.MESSAGES.NO_CONTACTS_FOUND,
+            };
+        }
+
+        return {
+            headerTitle: '',
+            headerMessage: '',
         };
     }
 
@@ -76,12 +99,23 @@ class SearchPage extends Component {
      * @returns {Array}
      */
     getSections() {
-        return [{
+        const sections = [{
             title: 'RECENT',
             data: this.state.recentReports.concat(this.state.personalDetails),
             shouldShow: true,
             indexOffset: 0,
         }];
+
+        if (this.state.userToInvite) {
+            sections.push(({
+                undefined,
+                data: [this.state.userToInvite],
+                shouldShow: true,
+                indexOffset: 0,
+            }));
+        }
+
+        return sections;
     }
 
     /**
@@ -117,6 +151,7 @@ class SearchPage extends Component {
 
     render() {
         const sections = this.getSections();
+        const {headerTitle, headerMessage} = this.getHeaderTitleAndMessage();
 
         return (
             <>
@@ -134,6 +169,7 @@ class SearchPage extends Component {
                             const {
                                 recentReports,
                                 personalDetails,
+                                userToInvite,
                             } = getSearchOptions(
                                 this.props.reports,
                                 this.props.personalDetails,
@@ -141,10 +177,13 @@ class SearchPage extends Component {
                             );
                             this.setState({
                                 searchValue,
+                                userToInvite,
                                 recentReports,
                                 personalDetails,
                             });
                         }}
+                        headerTitle={headerTitle}
+                        headerMessage={headerMessage}
                         hideSectionHeaders
                         hideAdditionalOptionStates
                     />
