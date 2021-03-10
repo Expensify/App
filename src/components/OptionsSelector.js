@@ -39,9 +39,6 @@ const propTypes = {
     // Options that have already been selected
     selectedOptions: PropTypes.arrayOf(optionPropTypes),
 
-    // Optional header title
-    headerTitle: PropTypes.string,
-
     // Optional header message
     headerMessage: PropTypes.string,
 
@@ -65,7 +62,6 @@ const defaultProps = {
     onSelectRow: () => {},
     placeholderText: 'Name, email, or phone number',
     selectedOptions: [],
-    headerTitle: '',
     headerMessage: '',
     canSelectMultipleOptions: false,
     hideSectionHeaders: false,
