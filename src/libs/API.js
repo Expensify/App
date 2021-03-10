@@ -624,11 +624,7 @@ export {
     Report_TogglePinned,
     Report_UpdateLastRead,
     ResendValidateCode,
-<<<<<<< HEAD
-=======
-    SetGithubUsername,
     SetNameValuePair,
->>>>>>> b0fef78872cd7c0550e0dde4f14641df6464cc2f
     SetPassword,
     UpdateAccount,
     User_SignUp,
