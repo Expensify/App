@@ -155,13 +155,12 @@ class AuthScreens extends React.Component {
                         >
                             <Drawer.Screen
                                 name="Loading"
+                                component={ReportScreen}
                                 options={{
                                     cardStyle: styles.navigationScreenCardStyle,
                                     headerShown: false,
                                 }}
-                            >
-                                {() => (this.props.isSmallScreenWidth ? <View /> : <ReportScreen />)}
-                            </Drawer.Screen>
+                            />
                             <Drawer.Screen
                                 name="Report"
                                 component={ReportScreen}

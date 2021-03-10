@@ -545,8 +545,7 @@ function fetchActions(reportID, offset) {
 function fetchAll(shouldRedirectToReport = true, shouldRecordHomePageTiming = false) {
     fetchChatReports()
         .then((reportIDs) => {
-            const isSmallScreenWidth = Dimensions.get('window').width < variables.mobileResponsiveWidthBreakpoint;
-            if (shouldRedirectToReport && !currentURL.includes(ROUTES.REPORT) && !isSmallScreenWidth) {
+            if (shouldRedirectToReport && !currentURL.includes(ROUTES.REPORT)) {
                 // Redirect to either the last viewed report ID or the first report ID from our report collection
                 if (lastViewedReportID) {
                     Onyx.set(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, String(lastViewedReportID));
