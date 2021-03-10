@@ -38,8 +38,15 @@ function updateNativeVersions(version) {
 
     // Update iOS
     updateiOSVersion(version)
-        .then(() => {
-            console.log('Successfully updated iOS!');
+        .then((promiseValues) => {
+            // The first promiseValue will be the CFBundleVersion, so confirm it has 4 parts before setting the env var
+            const cfBundleVersion = promiseValues[0];
+            if (_.isString(cfBundleVersion) && cfBundleVersion.split('.').length === 4) {
+                core.setOutput('NEW_IOS_VERSION', cfBundleVersion);
+                console.log('Successfully updated iOS!');
+            } else {
+                core.setFailed(`Failed to set NEW_IOS_VERSION. CFBundleVersion: ${cfBundleVersion}`);
+            }
         })
         .catch((err) => {
             console.error('Error updating iOS');
@@ -143,9 +150,12 @@ exports.updateAndroidVersion = function updateAndroidVersion(versionName) {
  */
 exports.updateiOSVersion = function updateiOSVersion(version) {
     const shortVersion = version.split('-')[0];
-    const cfVersion = version.replace('-', '.');
-    console.log('Updating iOS', `CFBundleShortVersionString: ${shortVersion}`, `CFBundleVersion: ${version}`);
+    const cfVersion = version.includes('-') ? version.replace('-', '.') : `${version}.0`;
+    console.log('Updating iOS', `CFBundleShortVersionString: ${shortVersion}`, `CFBundleVersion: ${cfVersion}`);
+
+    // Pass back the cfVersion in the return array so we can set the NEW_IOS_VERSION in ios.yml
     return Promise.all([
+        cfVersion,
         exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH}`),
         exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH_TEST}`),
         exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH}`),
@@ -176,7 +186,8 @@ const MAX_INCREMENTS = 999;
 const getVersionNumberFromString = (versionString) => {
     const [version, build] = versionString.split('-');
     const [major, minor, patch] = version.split('.').map(n => Number(n));
-    return [major, minor, patch, build ? Number(build) : undefined];
+
+    return [major, minor, patch, build ? Number(build) : 0];
 };
 
 /**
@@ -189,8 +200,11 @@ const getVersionNumberFromString = (versionString) => {
  * @returns {String}
  */
 const getVersionStringFromNumber = (major, minor, patch, build) => {
-    if (build) { return `${major}.${minor}.${patch}-${build}`; }
-    return `${major}.${minor}.${patch}`;
+    if (build) {
+        return `${major}.${minor}.${patch}-${build}`;
+    }
+
+    return `${major}.${minor}.${patch}-0`;
 };
 
 /**
@@ -201,8 +215,11 @@ const getVersionStringFromNumber = (major, minor, patch, build) => {
  * @returns {String}
  */
 const incrementMinor = (major, minor) => {
-    if (minor < MAX_INCREMENTS) { return getVersionStringFromNumber(major, minor + 1, 0); }
-    return getVersionStringFromNumber(major + 1, 0, 0);
+    if (minor < MAX_INCREMENTS) {
+        return getVersionStringFromNumber(major, minor + 1, 0, 0);
+    }
+
+    return getVersionStringFromNumber(major + 1, 0, 0, 0);
 };
 
 /**
@@ -214,7 +231,10 @@ const incrementMinor = (major, minor) => {
  * @returns {String}
  */
 const incrementPatch = (major, minor, patch) => {
-    if (patch < MAX_INCREMENTS) { return getVersionStringFromNumber(major, minor, patch + 1); }
+    if (patch < MAX_INCREMENTS) {
+        return getVersionStringFromNumber(major, minor, patch + 1, 0);
+    }
+
     return incrementMinor(major, minor);
 };
 
@@ -231,18 +251,26 @@ const incrementVersion = (version, level) => {
     );
 
     // majors will always be incremented
-    if (level === SEMANTIC_VERSION_LEVELS.MAJOR) { return getVersionStringFromNumber(major + 1, 0, 0); }
+    if (level === SEMANTIC_VERSION_LEVELS.MAJOR) {
+        return getVersionStringFromNumber(major + 1, 0, 0, 0);
+    }
 
     if (level === SEMANTIC_VERSION_LEVELS.MINOR) {
         return incrementMinor(major, minor);
     }
+
     if (level === SEMANTIC_VERSION_LEVELS.PATCH) {
         return incrementPatch(major, minor, patch);
     }
-    if (build === undefined) { return getVersionStringFromNumber(major, minor, patch, 1); }
+
+    if (build === undefined || build === 0) {
+        return getVersionStringFromNumber(major, minor, patch, 1);
+    }
+
     if (build < MAX_INCREMENTS) {
         return getVersionStringFromNumber(major, minor, patch, build + 1);
     }
+
     return incrementPatch(major, minor, patch);
 };
 

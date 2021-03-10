@@ -7,7 +7,7 @@ export default {
 
     // Holds an array of client IDs which is used for multi-tabs on web in order to know
     // which tab is the leader, and which ones are the followers
-    ACTIVE_CLIENTS: 'activeClients2',
+    ACTIVE_CLIENTS: 'activeClients',
 
     NETWORK_REQUEST_QUEUE: 'networkRequestQueue',
 
