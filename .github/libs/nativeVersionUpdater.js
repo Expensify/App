@@ -32,15 +32,15 @@ function padToTwoDigits(number) {
 }
 
 /**
- * Generate the 8-digit versionCode for android.
- * This version code allocates two digits each for MAJOR, MINOR, PATCH, and BUILD versions.
+ * Generate the 10-digit versionCode for android.
+ * This version code allocates two digits each for PREFIX, MAJOR, MINOR, PATCH, and BUILD versions.
  * As a result, our max version is 99.99.99-99.
  *
  * @param {String} npmVersion
  * @returns {String}
  */
 exports.generateAndroidVersionCode = function generateAndroidVersionCode(npmVersion) {
-    // All Android versions will be prefixed with '10'
+    // All Android versions will be prefixed with '10' due to previous versioning
     const prefix = '10';
     return ''.concat(
         prefix,
