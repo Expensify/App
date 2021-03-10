@@ -1,5 +1,5 @@
 export default {
-    prefixes: ['expensify-cash://', 'https://expensify.cash', 'http://localhost'],
+    prefixes: ['expensify-cash://', 'https://expensify.cash', 'https://www.expensify.cash', 'http://localhost'],
     config: {
         screens: {
             Home: {

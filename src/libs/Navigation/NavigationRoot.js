@@ -7,23 +7,15 @@ import {
     getPathFromState,
     NavigationContainer,
 } from '@react-navigation/native';
-import Onyx from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import {navigationRef} from './Navigation';
 import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
-import modalRoutesPropTypes from './AppNavigator/modalRoutesPropTypes';
-import mainRoutesPropTypes from './AppNavigator/mainRoutesPropTypes';
-import sidebarRoutePropTypes from './AppNavigator/sidebarRoutePropTypes';
-import publicRoutePropTypes from './AppNavigator/publicRoutePropTypes';
 import getPathName from './getPathName';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
 
 const propTypes = {
-    modalRoutes: modalRoutesPropTypes.isRequired,
-    mainRoutes: mainRoutesPropTypes.isRequired,
-    sidebarRoute: sidebarRoutePropTypes.isRequired,
-    publicRoutes: PropTypes.arrayOf(publicRoutePropTypes).isRequired,
     authenticated: PropTypes.bool.isRequired,
     currentlyViewedReportID: PropTypes.string,
 };
@@ -118,11 +110,7 @@ class NavigationRoot extends Component {
                 }}
             >
                 <AppNavigator
-                    modalRoutes={this.props.modalRoutes}
-                    mainRoutes={this.props.mainRoutes}
-                    sidebarRoute={this.props.sidebarRoute}
                     authenticated={this.props.authenticated}
-                    publicRoutes={this.props.publicRoutes}
                     isDrawerOpenByDefault={this.state.drawerOpenByDefault}
                 />
             </NavigationContainer>
@@ -132,4 +120,8 @@ class NavigationRoot extends Component {
 
 NavigationRoot.propTypes = propTypes;
 NavigationRoot.defaultProps = defaultProps;
-export default NavigationRoot;
+export default withOnyx({
+    currentlyViewedReportID: {
+        key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
+    },
+})(NavigationRoot);
