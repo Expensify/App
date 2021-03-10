@@ -468,6 +468,8 @@ const styles = {
         borderRadius: 0,
         paddingHorizontal: 20,
         paddingVertical: 12,
+        justifyContent: 'space-between',
+        width: '100%',
     },
 
     createMenuIcon: {

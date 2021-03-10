@@ -25,6 +25,18 @@ export default {
                     Settings_Root: {
                         path: '',
                     },
+                    Settings_Preferences: {
+                        path: 'preferences',
+                    },
+                    Settings_Password: {
+                        path: 'password',
+                    },
+                    Settings_Payments: {
+                        path: 'payments',
+                    },
+                    Settings_Profile: {
+                        path: 'profile',
+                    },
                 },
             },
             NewGroup: {
