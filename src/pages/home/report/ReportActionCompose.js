@@ -27,13 +27,21 @@ const propTypes = {
     // The ID of the report actions will be created for
     reportID: PropTypes.number.isRequired,
 
+    // Indicates when the sidebar is shown
     isSidebarShown: PropTypes.bool.isRequired,
+
+    // Details about any modals being used
+    modal: PropTypes.shape({
+        // Indicates if there is a modal currently visible or not
+        isVisible: PropTypes.bool,
+    }),
 
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     comment: '',
+    modal: {},
 };
 
 class ReportActionCompose extends React.Component {
@@ -61,6 +69,11 @@ class ReportActionCompose extends React.Component {
         // If it does let's update this.comment so that it matches the defaultValue that we show in textInput.
         if (this.props.comment && prevProps.comment === '' && prevProps.comment !== this.props.comment) {
             this.comment = this.props.comment;
+        }
+
+        // When any modal goes from visible to hidden, bring focus to the compose field
+        if (prevProps.modal.isVisible === true && this.props.modal.isVisible === false) {
+            this.setIsFocused(true);
         }
     }
 
@@ -166,9 +179,6 @@ class ReportActionCompose extends React.Component {
                             addAction(this.props.reportID, '', file);
                             this.setTextInputShouldClear(false);
                         }}
-                        onModalHide={() => {
-                            this.setIsFocused(true);
-                        }}
                     >
                         {({displayFileInModal}) => (
                             <>
@@ -256,6 +266,9 @@ export default compose(
         },
         isSidebarShown: {
             key: ONYXKEYS.IS_SIDEBAR_SHOWN,
+        },
+        modal: {
+            key: ONYXKEYS.MODAL,
         },
     }),
     withWindowDimensions,

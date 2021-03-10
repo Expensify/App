@@ -7,7 +7,7 @@ import ONYXKEYS from '../../ONYXKEYS';
  * @param {bool} isVisible
  */
 function setModalVisibility(isVisible) {
-    Onyx.merge(ONYXKEYS.MODAL.IS_VISIBLE, {isVisible});
+    Onyx.merge(ONYXKEYS.MODAL, {isVisible});
 }
 
 export {
