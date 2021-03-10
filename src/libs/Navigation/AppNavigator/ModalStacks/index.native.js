@@ -4,7 +4,7 @@ import {createStackNavigator} from '@react-navigation/stack';
 import variables from '../../../../styles/variables';
 import createCustomModalStackNavigator from '../createCustomModalStackNavigator';
 
-const shouldUseCustomModalStack = Dimensions.get('window').width <= variables.mobileResponsiveWidthBreakpoint;
+const shouldUseCustomModalStack = Dimensions.get('window').width > variables.mobileResponsiveWidthBreakpoint;
 
 // Setup the modal stack navigators so we only have to create them once
 const SettingsModalStack = shouldUseCustomModalStack ? createCustomModalStackNavigator() : createStackNavigator();
