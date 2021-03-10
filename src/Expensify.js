@@ -5,22 +5,10 @@ import Onyx, {withOnyx} from 'react-native-onyx';
 import listenToStorageEvents from './libs/listenToStorageEvents';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import ONYXKEYS from './ONYXKEYS';
-import CONST from './CONST';
 import NavigationRoot from './libs/Navigation/NavigationRoot';
 import Log from './libs/Log';
 import PushNotification from './libs/Notification/PushNotification';
 import UpdateAppModal from './components/UpdateAppModal';
-
-// Screen Components
-import SignInPage from './pages/signin/SignInPage';
-import SidebarScreen from './pages/home/sidebar/SidebarScreen';
-import SettingsPage from './pages/SettingsPage';
-import ReportScreen from './pages/home/ReportScreen';
-import NewChatPage from './pages/NewChatPage';
-import NewGroupPage from './pages/NewGroupPage';
-import SearchPage from './pages/SearchPage';
-import ProfilePage from './pages/ProfilePage';
-import SetPasswordPage from './pages/SetPasswordPage';
 
 // Initialize the store when the app loads for the first time
 Onyx.init({
@@ -46,7 +34,6 @@ Onyx.registerLogger(({level, message}) => {
 });
 
 const propTypes = {
-    currentlyViewedReportID: PropTypes.string,
     session: PropTypes.shape({
         authToken: PropTypes.string,
         accountID: PropTypes.number,
@@ -57,7 +44,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    currentlyViewedReportID: null,
     session: {
         authToken: null,
         accountID: null,
@@ -88,120 +74,7 @@ class Expensify extends PureComponent {
             <>
                 {/* We include the modal for showing a new update at the top level so the option is always present. */}
                 {this.props.version ? <UpdateAppModal updateVersion={this.props.version} /> : null}
-                <NavigationRoot
-                    currentlyViewedReportID={this.props.currentlyViewedReportID}
-                    authenticated={Boolean(authToken)}
-                    publicRoutes={[
-                        {
-                            Component: SignInPage,
-                            name: 'SignIn',
-                            path: '/signin',
-                            options: {
-                                headerShown: false,
-                                animationTypeForReplace: 'pop',
-                                title: 'Sign In',
-                            },
-                        },
-                        {
-                            Component: SetPasswordPage,
-                            name: 'SetPassword',
-                            path: '/setpassword/:validateCode',
-                            options: {
-                                headerShown: false,
-                                animationTypeForReplace: 'pop',
-                                title: 'Set Password',
-                            },
-                        },
-                    ]}
-                    sidebarRoute={{
-                        name: 'Sidebar',
-                        Component: SidebarScreen,
-                    }}
-                    modalRoutes={[
-                        {
-                            name: 'Settings',
-                            title: 'Settings',
-                            path: '/settings',
-                            modalType: CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
-                            subRoutes: [
-                                {
-                                    name: 'Settings_Root',
-                                    Component: SettingsPage,
-                                    options: {
-                                        title: 'Settings',
-                                    },
-                                },
-                            ],
-                        },
-                        {
-                            name: 'NewChat',
-                            title: 'New Chat',
-                            path: '/new/chat',
-                            modalType: CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
-                            subRoutes: [
-                                {
-                                    name: 'NewChat_Root',
-                                    Component: NewChatPage,
-                                    options: {
-                                        title: 'New Chat',
-                                    },
-                                },
-                            ],
-                        },
-                        {
-                            name: 'NewGroup',
-                            title: 'New Group',
-                            path: '/new/group',
-                            modalType: CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
-                            subRoutes: [
-                                {
-                                    name: 'NewGroup_Root',
-                                    Component: NewGroupPage,
-                                    options: {
-                                        title: 'New Group',
-                                    },
-                                },
-                            ],
-                        },
-                        {
-                            name: 'Search',
-                            title: 'Search',
-                            path: '/search',
-                            modalType: CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
-                            subRoutes: [
-                                {
-                                    name: 'Search_Root',
-                                    Component: SearchPage,
-                                    options: {
-                                        title: 'Search',
-                                    },
-                                },
-                            ],
-                        },
-                        {
-                            name: 'Profile',
-                            title: 'Profile',
-                            path: '/profile',
-                            modalType: CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
-                            subRoutes: [
-                                {
-                                    name: 'Profile_Root',
-                                    Component: ProfilePage,
-                                    options: {
-                                        title: 'Profile',
-                                    },
-                                },
-                            ],
-                        },
-                    ]}
-                    mainRoutes={[
-                        {
-                            name: 'Report',
-                            Component: ReportScreen,
-                            path: '/r',
-                        },
-                    ]}
-                />
+                <NavigationRoot authenticated={Boolean(authToken)} />
             </>
         );
     }
@@ -212,9 +85,6 @@ Expensify.defaultProps = defaultProps;
 export default withOnyx({
     session: {
         key: ONYXKEYS.SESSION,
-    },
-    currentlyViewedReportID: {
-        key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
     },
     version: {
         key: ONYXKEYS.UPDATE_VERSION,

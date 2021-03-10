@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -10,7 +9,7 @@ import themeColors from '../../../styles/themes/default';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Navigation from '../Navigation';
 import compose from '../../compose';
-import modalRoutesPropTypes from './modalRoutesPropTypes';
+import CONST from '../../../CONST';
 
 const propTypes = {
     // Internal react-navigation stuff used to determine which view we should display
@@ -26,11 +25,11 @@ const propTypes = {
         render: PropTypes.func,
     })).isRequired,
 
-    // The modal routes
-    modalRoutes: modalRoutesPropTypes.isRequired,
-
     // Current url we are navigated to
     currentURL: PropTypes.string,
+
+    // Path for the modal parent to match on
+    path: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
@@ -47,21 +46,17 @@ class ResponsiveView extends React.Component {
     }
 
     render() {
+        const currentViewDescriptor = this.getCurrentViewDescriptor();
         return (
-            <>
-                {_.map(this.props.modalRoutes || [], modalRouteConfig => (
-                    <Modal
-                        key={modalRouteConfig.name}
-                        isVisible={this.props.currentURL
-                            && this.props.currentURL.includes(modalRouteConfig.path)}
-                        backgroundColor={themeColors.componentBG}
-                        type={modalRouteConfig.modalType}
-                        onClose={() => Navigation.dismissModal()}
-                    >
-                        {this.getCurrentViewDescriptor().render()}
-                    </Modal>
-                ))}
-            </>
+            <Modal
+                isVisible={this.props.currentURL
+                    && this.props.currentURL.includes(this.props.path)}
+                backgroundColor={themeColors.componentBG}
+                type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
+                onClose={() => Navigation.dismissModal()}
+            >
+                {currentViewDescriptor.render()}
+            </Modal>
         );
     }
 }
@@ -79,7 +74,6 @@ const ResponsiveViewWithHOCs = compose(
 )(ResponsiveView);
 
 const ResponsiveNavigator = ({
-    modalRoutes,
     children,
     ...rest
 }) => {
@@ -92,7 +86,6 @@ const ResponsiveNavigator = ({
             state={state}
             navigation={navigation}
             descriptors={descriptors}
-            modalRoutes={modalRoutes}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         />
@@ -100,7 +93,6 @@ const ResponsiveNavigator = ({
 };
 
 ResponsiveNavigator.propTypes = {
-    modalRoutes: modalRoutesPropTypes.isRequired,
     children: PropTypes.node.isRequired,
 };
 
