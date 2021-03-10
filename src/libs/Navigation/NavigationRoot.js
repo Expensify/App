@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
-import {Linking} from 'react-native';
+import {ActivityIndicator, Linking, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {
     getStateFromPath,
@@ -14,6 +14,8 @@ import AppNavigator from './AppNavigator';
 import getPathName from './getPathName';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
+import styles from '../../styles/styles';
+import themeColors from '../../styles/themes/default';
 
 const propTypes = {
     authenticated: PropTypes.bool.isRequired,
@@ -85,7 +87,11 @@ class NavigationRoot extends Component {
 
     render() {
         if (this.state.loading) {
-            return null;
+            return (
+                <View style={[styles.flex1, styles.h100, styles.justifyContentCenter]}>
+                    <ActivityIndicator size="large" color={themeColors.spinner} />
+                </View>
+            );
         }
 
         // If we are on web, desktop, or a widescreen width we will use our custom navigator to create the wider layout
