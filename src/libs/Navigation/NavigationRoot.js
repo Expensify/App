@@ -30,7 +30,6 @@ class NavigationRoot extends Component {
     constructor(props) {
         super(props);
 
-        this.initialState = undefined;
         this.state = {
             loading: true,
             initialState: undefined,
@@ -99,6 +98,10 @@ class NavigationRoot extends Component {
             <NavigationContainer
                 initialState={this.state.initialState}
                 onStateChange={(state) => {
+                    if (!state) {
+                        return;
+                    }
+
                     const path = getPathFromState(state, linkingConfig.config);
                     if (path.includes(ROUTES.REPORT)) {
                         const reportID = Number(_.last(path.slice(1).split('/')));
