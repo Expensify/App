@@ -16,6 +16,14 @@ const GithubUtils = __nccwpck_require__(7999);
 const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
 const githubUtils = new GithubUtils(octokit);
 
+octokit.issues.listForRepo({
+    owner: 'Expensify',
+    repo: 'Expensify',
+    log: console,
+})
+    .then(response => console.log(response))
+    .catch(err => console.log(err));
+
 githubUtils.getStagingDeployCash()
     .then(({labels}) => core.setOutput('IS_LOCKED', _.contains(labels, '🔐 LockCashDeploys 🔐')))
     .catch((err) => {
