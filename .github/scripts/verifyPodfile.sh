@@ -8,7 +8,7 @@ podfileSha=$(openssl sha1 ../../ios/Podfile | awk '{print $2}')
 podfileLockSha=$(awk '/PODFILE CHECKSUM: /{print $3}' ../../ios/Podfile.lock)
 
 # not sure where I am...
-echo pwd
+echo $(pwd)
 
 if [ $podfileSha == $podfileLockSha ]; then
     echo -e "${GREEN}Podfile verified!${NC}"
