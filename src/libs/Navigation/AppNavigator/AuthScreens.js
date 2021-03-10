@@ -228,7 +228,6 @@ class AuthScreens extends React.Component {
                         </SettingsModalStack.Navigator>
                     )}
                 </RootStack.Screen>
-
                 <RootStack.Screen
                     name="NewChat"
                     options={modalScreenOptions}
@@ -248,7 +247,6 @@ class AuthScreens extends React.Component {
                         </NewChatModalStack.Navigator>
                     )}
                 </RootStack.Screen>
-
                 <RootStack.Screen
                     name="NewGroup"
                     options={modalScreenOptions}
@@ -268,7 +266,6 @@ class AuthScreens extends React.Component {
                         </NewGroupModalStack.Navigator>
                     )}
                 </RootStack.Screen>
-
                 <RootStack.Screen
                     name="Search"
                     options={modalScreenOptions}
@@ -288,7 +285,6 @@ class AuthScreens extends React.Component {
                         </SearchModalStack.Navigator>
                     )}
                 </RootStack.Screen>
-
                 <RootStack.Screen
                     name="Profile"
                     options={modalScreenOptions}
