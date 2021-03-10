@@ -33,7 +33,6 @@ import NameValuePair from '../../actions/NameValuePair';
 
 // Screens
 import SidebarScreen from '../../../pages/home/sidebar/SidebarScreen';
-import SettingsPage from '../../../pages/SettingsPage';
 import ReportScreen from '../../../pages/home/ReportScreen';
 import NewChatPage from '../../../pages/NewChatPage';
 import NewGroupPage from '../../../pages/NewGroupPage';
@@ -41,6 +40,11 @@ import SearchPage from '../../../pages/SearchPage';
 import ProfilePage from '../../../pages/ProfilePage';
 import IOURequestPage from '../../../pages/iou/IOURequestPage';
 import IOUBillPage from '../../../pages/iou/IOUBillPage';
+import SettingsInitialPage from '../../../pages/settings/InitialPage';
+import SettingsProfilePage from '../../../pages/settings/ProfilePage';
+import SettingsPreferencesPage from '../../../pages/settings/PreferencesPage';
+import SettingsPasswordPage from '../../../pages/settings/PasswordPage';
+import SettingsPaymentsPage from '../../../pages/settings/PaymentsPage';
 
 import {
     SettingsModalStack,
@@ -183,7 +187,39 @@ class AuthScreens extends React.Component {
                         >
                             <SettingsModalStack.Screen
                                 name="Settings_Root"
-                                component={SettingsPage}
+                                component={SettingsInitialPage}
+                                options={{
+                                    ...defaultSubRouteOptions,
+                                    title: 'Settings',
+                                }}
+                            />
+                            <SettingsModalStack.Screen
+                                name="Settings_Profile"
+                                component={SettingsProfilePage}
+                                options={{
+                                    ...defaultSubRouteOptions,
+                                    title: 'Settings',
+                                }}
+                            />
+                            <SettingsModalStack.Screen
+                                name="Settings_Preferences"
+                                component={SettingsPreferencesPage}
+                                options={{
+                                    ...defaultSubRouteOptions,
+                                    title: 'Settings',
+                                }}
+                            />
+                            <SettingsModalStack.Screen
+                                name="Settings_Password"
+                                component={SettingsPasswordPage}
+                                options={{
+                                    ...defaultSubRouteOptions,
+                                    title: 'Settings',
+                                }}
+                            />
+                            <SettingsModalStack.Screen
+                                name="Settings_Payments"
+                                component={SettingsPaymentsPage}
                                 options={{
                                     ...defaultSubRouteOptions,
                                     title: 'Settings',
