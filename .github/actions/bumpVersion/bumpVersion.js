@@ -4,7 +4,7 @@ const _ = require('underscore');
 const core = require('@actions/core');
 const github = require('@actions/github');
 const versionUpdater = require('../../libs/versionUpdater');
-const {updateAndroidVersion, updateiOSVersion} = require('../../libs/nativeVersionUpdater');
+const {updateAndroidVersion, updateiOSVersion, generateAndroidVersionCode} = require('../../libs/nativeVersionUpdater');
 
 let newVersion;
 
@@ -17,7 +17,8 @@ function updateNativeVersions(version) {
     console.log(`Updating native versions to ${version}`);
 
     // Update Android
-    updateAndroidVersion(version)
+    const androidVersionCode = generateAndroidVersionCode(version);
+    updateAndroidVersion(version, androidVersionCode)
         .then(() => {
             console.log('Successfully updated Android!');
         })
