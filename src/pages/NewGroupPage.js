@@ -4,7 +4,7 @@ import {View, Text, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import OptionsSelector from '../components/OptionsSelector';
-import {getNewGroupOptions, getHeaderTitleAndMessage} from '../libs/OptionsListUtils';
+import {getNewGroupOptions, getHeaderMessage} from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
