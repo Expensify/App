@@ -40,7 +40,10 @@ function padToTwoDigits(number) {
  * @returns {String}
  */
 exports.generateAndroidVersionCode = function generateAndroidVersionCode(npmVersion) {
+    // All Android versions will be prefixed with '10'
+    const prefix = '10';
     return ''.concat(
+        prefix,
         padToTwoDigits(getMajorVersion(npmVersion) || 0),
         padToTwoDigits(getMinorVersion(npmVersion) || 0),
         padToTwoDigits(getPatchVersion(npmVersion) || 0),
@@ -60,14 +63,8 @@ exports.updateAndroidVersion = function updateAndroidVersion(versionName, versio
     console.log('Updating android:', `versionName: ${versionName}`, `versionCode: ${versionCode}`);
     return fs.readFile(BUILD_GRADLE_PATH, {encoding: 'utf8'})
         .then((content) => {
-            const updatedContent = content.toString().replace(
-                /versionName "([0-9.-]+)"/,
-                `versionName "${versionName}"`,
-            );
-            return updatedContent.replace(
-                /versionCode ([0-9]+)/,
-                (_, oldVersionCode) => `versionCode ${versionCode}`,
-            );
+            let updatedContent = content.toString().replace(/versionName "([0-9.-]*)"/, `versionName "${versionName}"`);
+            return updatedContent = updatedContent.replace(/versionCode ([0-9]*)/, `versionCode ${versionCode}`);
         })
         .then(updatedContent => fs.writeFile(BUILD_GRADLE_PATH, updatedContent, {encoding: 'utf8'}));
 };

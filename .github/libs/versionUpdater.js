@@ -15,7 +15,7 @@ const MAX_INCREMENTS = 99;
 const getVersionNumberFromString = (versionString) => {
     const [version, build] = versionString.split('-');
     const [major, minor, patch] = version.split('.').map(n => Number(n));
-    return [major, minor, patch, build ? Number(build) : 0];
+    return [major, minor, patch, Number.isInteger(Number(build)) ? Number(build) : 0];
 };
 
 /**
@@ -28,8 +28,11 @@ const getVersionNumberFromString = (versionString) => {
  * @returns {String}
  */
 const getVersionStringFromNumber = (major, minor, patch, build) => {
-    if (build) { return `${major}.${minor}.${patch}-${build}`; }
-    return `${major}.${minor}.${patch}`;
+    if (build) {
+        return `${major}.${minor}.${patch}-${build}`;
+    }
+
+    return `${major}.${minor}.${patch}-0`;
 };
 
 /**
@@ -40,7 +43,10 @@ const getVersionStringFromNumber = (major, minor, patch, build) => {
  * @returns {String}
  */
 const incrementMinor = (major, minor) => {
-    if (minor < MAX_INCREMENTS) { return getVersionStringFromNumber(major, minor + 1, 0); }
+    if (minor < MAX_INCREMENTS) {
+        return getVersionStringFromNumber(major, minor + 1, 0);
+    }
+
     return getVersionStringFromNumber(major + 1, 0, 0);
 };
 
@@ -53,7 +59,10 @@ const incrementMinor = (major, minor) => {
  * @returns {String}
  */
 const incrementPatch = (major, minor, patch) => {
-    if (patch < MAX_INCREMENTS) { return getVersionStringFromNumber(major, minor, patch + 1); }
+    if (patch < MAX_INCREMENTS) {
+        return getVersionStringFromNumber(major, minor, patch + 1);
+    }
+
     return incrementMinor(major, minor);
 };
 
@@ -69,19 +78,27 @@ const incrementVersion = (version, level) => {
         version,
     );
 
-    // majors will always be incremented
-    if (level === SEMANTIC_VERSION_LEVELS.MAJOR) { return getVersionStringFromNumber(major + 1, 0, 0); }
+    // Majors will always be incremented
+    if (level === SEMANTIC_VERSION_LEVELS.MAJOR) {
+        return getVersionStringFromNumber(major + 1, 0, 0);
+    }
 
     if (level === SEMANTIC_VERSION_LEVELS.MINOR) {
         return incrementMinor(major, minor);
     }
+
     if (level === SEMANTIC_VERSION_LEVELS.PATCH) {
         return incrementPatch(major, minor, patch);
     }
-    if (build === undefined) { return getVersionStringFromNumber(major, minor, patch, 1); }
+
+    if (build === undefined) {
+        return getVersionStringFromNumber(major, minor, patch, 1);
+    }
+
     if (build < MAX_INCREMENTS) {
         return getVersionStringFromNumber(major, minor, patch, build + 1);
     }
+
     return incrementPatch(major, minor, patch);
 };
 
@@ -90,7 +107,7 @@ module.exports = {
     getVersionStringFromNumber,
     incrementVersion,
 
-    // for the tests
+    // For tests
     MAX_INCREMENTS,
     SEMANTIC_VERSION_LEVELS,
     incrementMinor,
