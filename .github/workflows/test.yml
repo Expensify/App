@@ -20,7 +20,7 @@ jobs:
 
             - name: Check if StagingDeployCash is locked
               id: isStagingDeployLocked
-              uses: Expensify/Expensify.cash/.github/actions/isStagingDeployLocked@94b71bb690d60c1940fd3ff6fc98521fd7d01356
+              uses: Expensify/Expensify.cash/.github/actions/isStagingDeployLocked@262f0b48b19937fb4e811b2d4ce5ab66a46e089b
               with:
                   GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
