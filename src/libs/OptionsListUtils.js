@@ -410,25 +410,16 @@ function getSidebarOptions(reports, personalDetails, draftComments, activeReport
  * @param {Boolean} [maxParticipantsReached]
  * @return {String}
  */
-function getHeaderTitleAndMessage(hasSelectableOptions, hasUserToInvite, maxParticipantsReached = false) {
+function getHeaderMessage(hasSelectableOptions, hasUserToInvite, maxParticipantsReached = false) {
     if (maxParticipantsReached) {
-        return {
-            headerTitle: '',
-            headerMessage: CONST.MESSAGES.MAXIMUM_PARTICIPANTS_REACHED,
-        };
+        return CONST.MESSAGES.MAXIMUM_PARTICIPANTS_REACHED;
     }
 
     if (!hasSelectableOptions && !hasUserToInvite) {
-        return {
-            headerTitle: '',
-            headerMessage: CONST.MESSAGES.NO_CONTACTS_FOUND,
-        };
+        return CONST.MESSAGES.NO_CONTACTS_FOUND;
     }
 
-    return {
-        headerTitle: '',
-        headerMessage: '',
-    };
+    return '';
 }
 
 export {
@@ -436,5 +427,5 @@ export {
     getNewChatOptions,
     getNewGroupOptions,
     getSidebarOptions,
-    getHeaderTitleAndMessage,
+    getHeaderMessage,
 };

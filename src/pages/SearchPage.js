@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import OptionsSelector from '../components/OptionsSelector';
-import {getSearchOptions, getHeaderTitleAndMessage} from '../libs/OptionsListUtils';
+import {getSearchOptions, getHeaderMessage} from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import KeyboardSpacer from '../components/KeyboardSpacer';
@@ -130,7 +130,7 @@ class SearchPage extends Component {
 
     render() {
         const sections = this.getSections();
-        const {headerTitle, headerMessage} = getHeaderTitleAndMessage(
+        const headerMessage = getHeaderMessage(
             (this.state.recentReports.length + this.state.personalDetails.length) !== 0,
             Boolean(this.state.userToInvite),
         );
@@ -164,7 +164,6 @@ class SearchPage extends Component {
                                 personalDetails,
                             });
                         }}
-                        headerTitle={headerTitle}
                         headerMessage={headerMessage}
                         hideSectionHeaders
                         hideAdditionalOptionStates

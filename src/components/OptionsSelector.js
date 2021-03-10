@@ -189,7 +189,6 @@ class OptionsSelector extends Component {
                     sections={this.props.sections}
                     focusedIndex={this.state.focusedIndex}
                     selectedOptions={this.props.selectedOptions}
-                    headerTitle={this.props.headerTitle}
                     canSelectMultipleOptions={this.props.canSelectMultipleOptions}
                     hideSectionHeaders={this.props.hideSectionHeaders}
                     headerMessage={this.props.headerMessage}
