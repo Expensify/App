@@ -16,6 +16,7 @@ import NameValuePair from '../../libs/actions/NameValuePair';
 import CONST from '../../CONST';
 import {DownArrow} from '../../components/Icon/Expensicons';
 import Navigation from '../../libs/Navigation/Navigation';
+import ScreenWrapper from '../../components/ScreenWrapper';
 
 const propTypes = {
     // The chat priority mode
@@ -40,40 +41,43 @@ const priorityModes = {
 };
 
 const PreferencesPage = ({priorityMode}) => (
-    <>
-        <HeaderGap />
-        <HeaderWithCloseButton
-            title="Preferences"
-            shouldShowBackButton
-            onBackButtonPress={() => redirect(ROUTES.SETTINGS)}
-            onCloseButtonPress={() => Navigation.dismissModal()}
-        />
-        <View style={styles.pageWrapper}>
-            <View style={[styles.settingsPageBody, styles.mb6]}>
-                <Text style={[styles.formLabel]} numberOfLines={1}>
-                    Priority Mode
-                </Text>
-                <View style={[styles.mb2]}>
-                    {/* empty object in placeholder below to prevent default */}
-                    {/* placeholder from appearing as a selection option. */}
-                    <RNPickerSelect
-                        onValueChange={
-                            mode => NameValuePair.set(CONST.NVP.PRIORITY_MODE, mode, ONYXKEYS.PRIORITY_MODE)
-                        }
-                        items={Object.values(priorityModes)}
-                        style={styles.picker}
-                        useNativeAndroidPickerStyle={false}
-                        placeholder={{}}
-                        value={priorityMode}
-                        Icon={() => <Icon src={DownArrow} />}
-                    />
+    <ScreenWrapper>
+        {() => (
+            <>
+                <HeaderWithCloseButton
+                    title="Preferences"
+                    shouldShowBackButton
+                    onBackButtonPress={() => redirect(ROUTES.SETTINGS)}
+                    onCloseButtonPress={() => Navigation.dismissModal()}
+                />
+                <View style={styles.pageWrapper}>
+                    <View style={[styles.settingsPageBody, styles.mb6]}>
+                        <Text style={[styles.formLabel]} numberOfLines={1}>
+                            Priority Mode
+                        </Text>
+                        <View style={[styles.mb2]}>
+                            {/* empty object in placeholder below to prevent default */}
+                            {/* placeholder from appearing as a selection option. */}
+                            <RNPickerSelect
+                                onValueChange={
+                                    mode => NameValuePair.set(CONST.NVP.PRIORITY_MODE, mode, ONYXKEYS.PRIORITY_MODE)
+                                }
+                                items={Object.values(priorityModes)}
+                                style={styles.picker}
+                                useNativeAndroidPickerStyle={false}
+                                placeholder={{}}
+                                value={priorityMode}
+                                Icon={() => <Icon src={DownArrow} />}
+                            />
+                        </View>
+                        <Text style={[styles.textLabel, styles.colorMuted]}>
+                            {priorityModes[priorityMode].description}
+                        </Text>
+                    </View>
                 </View>
-                <Text style={[styles.textLabel, styles.colorMuted]}>
-                    {priorityModes[priorityMode].description}
-                </Text>
-            </View>
-        </View>
-    </>
+            </>
+        )}
+    </ScreenWrapper>
 );
 
 PreferencesPage.propTypes = propTypes;
