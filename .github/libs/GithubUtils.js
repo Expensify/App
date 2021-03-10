@@ -37,11 +37,15 @@ class GithubUtils {
         })
             .then(({data}) => {
                 if (!data.length) {
-                    throw new Error(`Unable to find ${STAGING_DEPLOY_CASH_LABEL} issue.`);
+                    const error = new Error(`Unable to find ${STAGING_DEPLOY_CASH_LABEL} issue.`);
+                    error.code = 404;
+                    throw error;
                 }
 
                 if (data.length > 1) {
-                    throw new Error(`Found more than one ${STAGING_DEPLOY_CASH_LABEL} issue.`);
+                    const error = new Error(`Found more than one ${STAGING_DEPLOY_CASH_LABEL} issue.`);
+                    error.code = 500;
+                    throw error;
                 }
 
                 return this.getStagingDeployCashData(data[0]);
@@ -51,10 +55,8 @@ class GithubUtils {
     /**
      * Takes in a GitHub issue object and returns the data we want.
      *
-     * @private
-     *
      * @param {Object} issue
-     * @returns {Promise}
+     * @returns {Object}
      */
     getStagingDeployCashData(issue) {
         try {
@@ -349,6 +351,16 @@ class GithubUtils {
             issue_number: number,
             body: messageBody,
         });
+    }
+
+    /**
+     * Generate the URL of an Expensify.cash pull request given the PR number.
+     *
+     * @param {Number} number
+     * @returns {String}
+     */
+    static getPullRequestURLFromNumber(number) {
+        return `${EXPENSIFY_CASH_URL}/pull/${number}`;
     }
 
     /**

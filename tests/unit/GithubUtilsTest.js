@@ -474,4 +474,13 @@ describe('GithubUtils', () => {
             ));
         });
     });
+
+    describe('getPullRequestURLFromNumber', () => {
+        test.each([
+            [1234, 'https://github.com/Expensify/Expensify.cash/pull/1234'],
+            [54321, 'https://github.com/Expensify/Expensify.cash/pull/54321'],
+        ])('getPullRequestNumberFromURL("%s")', (input, expectedOutput) => (
+            expect(GithubUtils.getPullRequestURLFromNumber(input)).toBe(expectedOutput)
+        ));
+    });
 });
