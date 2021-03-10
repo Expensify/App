@@ -7,4 +7,8 @@ const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}
 const githubUtils = new GithubUtils(octokit);
 
 githubUtils.getStagingDeployCash()
-    .then(({labels}) => core.setOutput('IS_LOCKED', _.contains(labels, '🔐 LockCashDeploys 🔐')));
+    .then(({labels}) => core.setOutput('IS_LOCKED', _.contains(labels, '🔐 LockCashDeploys 🔐')))
+    .catch((err) => {
+        console.warn('No open StagingDeployCash found, continuing...', err);
+        core.setOutput('IS_LOCKED', false);
+    });
