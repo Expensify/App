@@ -11,13 +11,423 @@ module.exports =
 const _ = __nccwpck_require__(4987);
 const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
-const GithubUtils = __nccwpck_require__(6647);
+const GithubUtils = __nccwpck_require__(7999);
 
 const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
 const githubUtils = new GithubUtils(octokit);
 
 githubUtils.getStagingDeployCash()
     .then(({labels}) => core.setOutput('IS_LOCKED', _.contains(labels, '🔐 LockCashDeploys 🔐')));
+
+
+/***/ }),
+
+/***/ 7999:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const _ = __nccwpck_require__(4987);
+const semverParse = __nccwpck_require__(5925);
+const semverSatisfies = __nccwpck_require__(6055);
+
+const GITHUB_OWNER = 'Expensify';
+const EXPENSIFY_ISSUE_REPO = 'Expensify';
+const EXPENSIFY_CASH_REPO = 'Expensify.cash';
+const EXPENSIFY_CASH_URL = 'https://github.com/Expensify/Expensify.cash';
+
+const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
+const PULL_REQUEST_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`);
+const ISSUE_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/issues/([0-9]+).*`);
+const ISSUE_OR_PULL_REQUEST_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/(?:pull|issues)/([0-9]+).*`);
+
+const APPLAUSE_BOT = 'applausebot';
+const STAGING_DEPLOY_CASH_LABEL = 'StagingDeployCash';
+
+class GithubUtils {
+    /**
+     * @param {Octokit} octokit - Authenticated Octokit object https://octokit.github.io/rest.js
+     */
+    constructor(octokit) {
+        this.octokit = octokit;
+    }
+
+    /**
+     * Finds one open `StagingDeployCash` issue via GitHub octokit library.
+     *
+     * @returns {Promise}
+     */
+    getStagingDeployCash() {
+        return this.octokit.issues.listForRepo({
+            owner: GITHUB_OWNER,
+            repo: EXPENSIFY_ISSUE_REPO,
+            labels: STAGING_DEPLOY_CASH_LABEL,
+            state: 'open',
+        })
+            .then(({data}) => {
+                if (!data.length) {
+                    throw new Error(`Unable to find ${STAGING_DEPLOY_CASH_LABEL} issue.`);
+                }
+
+                if (data.length > 1) {
+                    throw new Error(`Found more than one ${STAGING_DEPLOY_CASH_LABEL} issue.`);
+                }
+
+                return this.getStagingDeployCashData(data[0]);
+            });
+    }
+
+    /**
+     * Takes in a GitHub issue object and returns the data we want.
+     *
+     * @private
+     *
+     * @param {Object} issue
+     * @returns {Promise}
+     */
+    getStagingDeployCashData(issue) {
+        try {
+            const versionRegex = new RegExp('([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:-([0-9]+))?', 'g');
+            const tag = issue.body.match(versionRegex)[0].replace(/`/g, '');
+
+            // eslint-disable-next-line max-len
+            const compareURLRegex = new RegExp(`${EXPENSIFY_CASH_URL}/compare/${versionRegex.source}\\.\\.\\.${versionRegex.source}`, 'g');
+            const comparisonURL = issue.body.match(compareURLRegex)[0];
+
+            return {
+                title: issue.title,
+                url: issue.url,
+                labels: issue.labels,
+                PRList: this.getStagingDeployCashPRList(issue),
+                deployBlockers: this.getStagingDeployCashDeployBlockers(issue),
+                tag,
+                comparisonURL,
+            };
+        } catch (exception) {
+            throw new Error(`Unable to find ${STAGING_DEPLOY_CASH_LABEL} issue with correct data.`);
+        }
+    }
+
+    /**
+     * Parse the PRList section of the StagingDeployCash issue body.
+     *
+     * @private
+     *
+     * @param {Object} issue
+     * @returns {Array<Object>} - [{url: String, number: Number, isVerified: Boolean}]
+     */
+    getStagingDeployCashPRList(issue) {
+        const PRListSection = issue.body.match(/pull requests:\*\*\r\n((?:.*\r\n)+)\r\n/)[1];
+        const unverifiedPRs = _.map(
+            [...PRListSection.matchAll(new RegExp(`- \\[ ] (${PULL_REQUEST_REGEX.source})`, 'g'))],
+            match => ({
+                url: match[1],
+                number: GithubUtils.getPullRequestNumberFromURL(match[1]),
+                isVerified: false,
+            }),
+        );
+        const verifiedPRs = _.map(
+            [...PRListSection.matchAll(new RegExp(`- \\[x] (${PULL_REQUEST_REGEX.source})`, 'g'))],
+            match => ({
+                url: match[1],
+                number: GithubUtils.getPullRequestNumberFromURL(match[1]),
+                isVerified: true,
+            }),
+        );
+        return _.sortBy(
+            _.union(unverifiedPRs, verifiedPRs),
+            'number',
+        );
+    }
+
+    /**
+     * Parse DeployBlocker section of the StagingDeployCash issue body.
+     *
+     * @private
+     *
+     * @param {Object} issue
+     * @returns {Array<Object>} - [{URL: String, number: Number, isResolved: Boolean}]
+     */
+    getStagingDeployCashDeployBlockers(issue) {
+        const deployBlockerSection = issue.body.match(/Deploy Blockers:\*\*\r\n((?:.*\r\n)+)/)[1];
+        const unresolvedDeployBlockers = _.map(
+            [...deployBlockerSection.matchAll(new RegExp(`- \\[ ] (${ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))],
+            match => ({
+                url: match[1],
+                number: GithubUtils.getIssueOrPullRequestNumberFromURL(match[1]),
+                isResolved: false,
+            }),
+        );
+        const resolvedDeployBlockers = _.map(
+            [...deployBlockerSection.matchAll(new RegExp(`- \\[x] (${ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))],
+            match => ({
+                url: match[1],
+                number: GithubUtils.getIssueOrPullRequestNumberFromURL(match[1]),
+                isResolved: true,
+            }),
+        );
+        return _.sortBy(
+            _.union(unresolvedDeployBlockers, resolvedDeployBlockers),
+            'number',
+        );
+    }
+
+    /**
+     * Generate a comparison URL between two versions following the semverLevel passed
+     *
+     * @param {String} repoSlug - The slug of the repository: <owner>/<repository_name>
+     * @param {String} tag - The tag to compare first the previous semverLevel
+     * @param {String} semverLevel - The semantic versioning MAJOR, MINOR, PATCH and BUILD
+     * @return {Promise} the url generated
+     * @throws {Error} If the request to the Github API fails.
+     */
+    generateVersionComparisonURL(repoSlug, tag, semverLevel) {
+        return new Promise((resolve, reject) => {
+            const getComparisonURL = (previousTag, currentTag) => (
+                `${EXPENSIFY_CASH_URL}/compare/${previousTag}...${currentTag}`
+            );
+
+            const [repoOwner, repoName] = repoSlug.split('/');
+            const tagSemver = semverParse(tag);
+
+            return this.octokit.repos.listTags({
+                owner: repoOwner,
+                repo: repoName,
+            })
+                .then(githubResponse => githubResponse.data.some(({name: repoTag}) => {
+                    if (semverLevel === 'MAJOR'
+                        && semverSatisfies(repoTag, `<${tagSemver.major}.x.x`, {includePrerelease: true})
+                    ) {
+                        resolve(getComparisonURL(repoTag, tagSemver));
+                        return true;
+                    }
+
+                    if (semverLevel === 'MINOR'
+                        && semverSatisfies(
+                            repoTag,
+                            `<${tagSemver.major}.${tagSemver.minor}.x`,
+                            {includePrerelease: true},
+                        )
+                    ) {
+                        resolve(getComparisonURL(repoTag, tagSemver));
+                        return true;
+                    }
+
+                    if (semverLevel === 'PATCH'
+                        && semverSatisfies(repoTag, `<${tagSemver}`, {includePrerelease: true})
+                    ) {
+                        resolve(getComparisonURL(repoTag, tagSemver));
+                        return true;
+                    }
+
+                    if (semverLevel === 'BUILD'
+                        && repoTag !== tagSemver.version
+                        && semverSatisfies(
+                            repoTag,
+                            `<=${tagSemver.major}.${tagSemver.minor}.${tagSemver.patch}`,
+                            {includePrerelease: true},
+                        )
+                    ) {
+                        resolve(getComparisonURL(repoTag, tagSemver));
+                        return true;
+                    }
+                    return false;
+                }))
+                .catch(githubError => reject(githubError));
+        });
+    }
+
+    /**
+     * Creates a new StagingDeployCash issue.
+     *
+     * @param {String} title
+     * @param {String} tag
+     * @param {Array} PRList
+     * @returns {Promise}
+     */
+    createNewStagingDeployCash(title, tag, PRList) {
+        return this.generateStagingDeployCashBody(tag, PRList)
+            .then(body => this.octokit.issues.create({
+                owner: GITHUB_OWNER,
+                repo: EXPENSIFY_ISSUE_REPO,
+                labels: STAGING_DEPLOY_CASH_LABEL,
+                assignee: APPLAUSE_BOT,
+                title,
+                body,
+            }));
+    }
+
+    /**
+     * Updates the existing open StagingDeployCash issue.
+     *
+     * @param {String} newTag
+     * @param {Array} newPRs
+     * @param {Array} newDeployBlockers
+     * @returns {Promise}
+     * @throws {Error} If the StagingDeployCash could not be found or updated.
+     */
+    updateStagingDeployCash(newTag, newPRs, newDeployBlockers) {
+        let issueNumber;
+        return this.getStagingDeployCash()
+            .then(({
+                url,
+                PRList: oldPRs,
+                deployBlockers: oldDeployBlockers,
+            }) => {
+                issueNumber = GithubUtils.getIssueNumberFromURL(url);
+
+                const PRList = _.sortBy(
+                    _.union(oldPRs, _.map(newPRs, URL => ({
+                        url: URL,
+                        number: GithubUtils.getPullRequestNumberFromURL(URL),
+                        isVerified: false,
+                    }))),
+                    'number',
+                );
+                const deployBlockers = _.sortBy(
+                    _.union(oldDeployBlockers, _.map(newDeployBlockers, URL => ({
+                        url: URL,
+                        number: GithubUtils.getIssueOrPullRequestNumberFromURL(URL),
+                        isResolved: false,
+                    }))),
+                    'number',
+                );
+
+                return this.generateStagingDeployCashBody(
+                    newTag,
+                    _.pluck(PRList, 'url'),
+                    _.pluck(_.where(PRList, {isVerified: true}), 'url'),
+                    _.pluck(deployBlockers, 'url'),
+                    _.pluck(_.where(deployBlockers, {isResolved: true}), 'url'),
+                );
+            })
+            .then(updatedBody => this.octokit.issues.update({
+                owner: GITHUB_OWNER,
+                repo: EXPENSIFY_ISSUE_REPO,
+                issue_number: issueNumber,
+                body: updatedBody,
+            }));
+    }
+
+    /**
+     * Generate the issue body for a StagingDeployCash.
+     *
+     * @private
+     *
+     * @param {String} tag
+     * @param {Array} PRList - The list of PR URLs which are included in this StagingDeployCash
+     * @param {Array} [verifiedPRList] - The list of PR URLs which have passed QA.
+     * @param {Array} [deployBlockers] - The list of DeployBlocker URLs.
+     * @param {Array} [resolvedDeployBlockers] - The list of DeployBlockers URLs which have been resolved.
+     * @returns {Promise}
+     */
+    generateStagingDeployCashBody(
+        tag,
+        PRList,
+        verifiedPRList = [],
+        deployBlockers = [],
+        resolvedDeployBlockers = [],
+    ) {
+        return this.generateVersionComparisonURL(`${GITHUB_OWNER}/${EXPENSIFY_CASH_REPO}`, tag, 'BUILD')
+            .then((comparisonURL) => {
+                const sortedPRList = _.sortBy(_.unique(PRList), URL => GithubUtils.getPullRequestNumberFromURL(URL));
+                // eslint-disable-next-line max-len
+                const sortedDeployBlockers = _.sortBy(_.unique(deployBlockers), URL => GithubUtils.getIssueOrPullRequestNumberFromURL(URL));
+
+                // Tag version and comparison URL
+                let issueBody = `**Release Version:** \`${tag}\`\r\n`;
+                issueBody += `**Compare Changes:** ${comparisonURL}\r\n`;
+
+                // PR list
+                if (!_.isEmpty(PRList)) {
+                    issueBody += '**This release contains changes from the following pull requests:**\r\n';
+                    _.each(sortedPRList, (URL) => {
+                        issueBody += _.contains(verifiedPRList, URL) ? '- [x]' : '- [ ]';
+                        issueBody += ` ${URL}\r\n`;
+                    });
+                }
+
+                // Deploy blockers
+                if (!_.isEmpty(deployBlockers)) {
+                    issueBody += '\r\n**Deploy Blockers:**\r\n';
+                    _.each(sortedDeployBlockers, (URL) => {
+                        issueBody += _.contains(resolvedDeployBlockers, URL) ? '- [x]' : '- [ ]';
+                        issueBody += ` ${URL}\r\n`;
+                    });
+                }
+
+                return issueBody;
+            })
+            // eslint-disable-next-line no-console
+            .catch(err => console.warn('Error generating comparison URL, continuing...', err));
+    }
+
+    /**
+     * Create comment on pull request
+     *
+     * @param {String} repo - The repo to search for a matching pull request or issue number
+     * @param {Number} number - The pull request or issue number
+     * @param {String} messageBody - The comment message
+     * @returns {Promise}
+     */
+    createComment(repo, number, messageBody) {
+        console.log(`Writing comment on #${number}`);
+        return this.octokit.issues.createComment({
+            owner: GITHUB_OWNER,
+            repo,
+            issue_number: number,
+            body: messageBody,
+        });
+    }
+
+    /**
+     * Parse the pull request number from a URL.
+     *
+     * @param {String} URL
+     * @returns {Number}
+     * @throws {Error} If the URL is not a valid Github Pull Request.
+     */
+    static getPullRequestNumberFromURL(URL) {
+        const matches = URL.match(PULL_REQUEST_REGEX);
+        if (!_.isArray(matches) || matches.length !== 2) {
+            throw new Error(`Provided URL ${URL} is not a Github Pull Request!`);
+        }
+        return Number.parseInt(matches[1], 10);
+    }
+
+    /**
+     * Parse the issue number from a URL.
+     *
+     * @param {String} URL
+     * @returns {Number}
+     * @throws {Error} If the URL is not a valid Github Issue.
+     */
+    static getIssueNumberFromURL(URL) {
+        const matches = URL.match(ISSUE_REGEX);
+        if (!_.isArray(matches) || matches.length !== 2) {
+            throw new Error(`Provided URL ${URL} is not a Github Issue!`);
+        }
+        return Number.parseInt(matches[1], 10);
+    }
+
+    /**
+     * Parse the issue or pull request number from a URL.
+     *
+     * @param {String} URL
+     * @returns {Number}
+     * @throws {Error} If the URL is not a valid Github Issue or Pull Request.
+     */
+    static getIssueOrPullRequestNumberFromURL(URL) {
+        const matches = URL.match(ISSUE_OR_PULL_REQUEST_REGEX);
+        if (!_.isArray(matches) || matches.length !== 2) {
+            throw new Error(`Provided URL ${URL} is not a valid Github Issue or Pull Request!`);
+        }
+        return Number.parseInt(matches[1], 10);
+    }
+}
+
+module.exports = GithubUtils;
+module.exports.GITHUB_OWNER = GITHUB_OWNER;
+module.exports.EXPENSIFY_ISSUE_REPO = EXPENSIFY_ISSUE_REPO;
+module.exports.EXPENSIFY_CASH_REPO = EXPENSIFY_CASH_REPO;
 
 
 /***/ }),
@@ -6850,143 +7260,6 @@ module.exports = function(stream_module) {
 
 /***/ }),
 
-/***/ 6647:
-/***/ ((__unused_webpack_module, __webpack_exports__, __nccwpck_require__) => {
-
-"use strict";
-__nccwpck_require__.r(__webpack_exports__);
-/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
-/* harmony export */   "GITHUB_OWNER": () => /* binding */ GITHUB_OWNER,
-/* harmony export */   "EXPENSIFY_ISSUE_REPO": () => /* binding */ EXPENSIFY_ISSUE_REPO,
-/* harmony export */   "EXPENSIFY_CASH_REPO": () => /* binding */ EXPENSIFY_CASH_REPO,
-/* harmony export */   "default": () => /* binding */ GithubUtils
-/* harmony export */ });
-const semverParse = __nccwpck_require__(5925);
-const semverSatisfies = __nccwpck_require__(6055);
-
-const GITHUB_OWNER = 'Expensify';
-const EXPENSIFY_ISSUE_REPO = 'Expensify';
-const EXPENSIFY_CASH_REPO = 'Expensify.cash';
-
-const EXPENSIFY_CASH_URL = 'https://github.com/Expensify/Expensify.cash';
-
-class GithubUtils {
-    /**
-     * @param {Octokit} octokit - Authenticated Octokit object https://octokit.github.io/rest.js
-     */
-    constructor(octokit) {
-        this.octokit = octokit;
-    }
-
-    /**
-     * Finds one open `StagingDeployCash` issue via GitHub octokit library
-     * @returns {Promise}
-     */
-    getStagingDeployCash() {
-        return this.octokit.issues.listForRepo({
-            owner: GITHUB_OWNER,
-            repo: EXPENSIFY_ISSUE_REPO,
-            labels: 'StagingDeployCash',
-            state: 'open'
-        })
-            .then(({data}) => {
-                if (!data.length) {
-                    throw new Error('Unable to find StagingDeployCash issue.');
-                }
-
-                if (data.length > 1) {
-                    throw new Error('Found more than one StagingDeployCash issue.');
-                }
-
-                return this.getStagingDeployCashData(data[0]);
-            });
-    }
-
-    /**
-     * Takes in a GitHub issue object and returns the data we want
-     *
-     * @param {Object} issue
-     * @returns {Promise}
-     */
-    getStagingDeployCashData(issue) {
-        try {
-            const versionRegex = new RegExp('([0-9]+).([0-9]+).([0-9]+)(?:-([0-9]+))?', 'g');
-            const tag = issue.body.match(versionRegex)[0].replace(/`/g, '');
-
-            // eslint-disable-next-line max-len
-            const compareURLRegex = new RegExp(`${EXPENSIFY_CASH_URL}/compare/${versionRegex.source}...${versionRegex.source}`, 'g');
-            const comparisonURL = issue.body.match(compareURLRegex)[0];
-
-            const PRListRegex = new RegExp(`${EXPENSIFY_CASH_URL}/pull/([0-9]+)`, 'g');
-            const PRList = issue.body.match(PRListRegex);
-
-            return {
-                title: issue.title, url: issue.url, labels: issue.labels, tag, comparisonURL, PRList
-            };
-        } catch (exception) {
-            throw new Error('Unable to find StagingDeployCash issue with correct data.');
-        }
-    }
-
-    /**
-     * Generate a comparison URL between two versions following the semverLevel passed
-     *
-     * @param {String} repoSlug - The slug of the repository: <owner>/<repository_name>
-     * @param {String} tag - The tag to compare first the previous semverLevel
-     * @param {String} semverLevel - The semantic versioning MAJOR, MINOR, PATCH and BUILD
-     * @return {Promise} the url generated
-     */
-    generateVersionComparisonURL(repoSlug, tag, semverLevel) {
-        return new Promise((resolve, reject) => {
-            const getComparisonURL = (previousTag, currentTag) => (
-                `${EXPENSIFY_CASH_URL}/compare/${previousTag}...${currentTag}`
-            );
-
-            const [repoOwner, repoName] = repoSlug.split('/');
-            const tagSemver = semverParse(tag);
-
-            return this.octokit.repos.listTags({
-                owner: repoOwner,
-                repo: repoName,
-            })
-                .then(githubResponse => githubResponse.data.some(({name: repoTag}) => {
-                    if (semverLevel === 'MAJOR'
-                        && semverSatisfies(repoTag, `<${tagSemver.major}.x.x`)
-                    ) {
-                        resolve(getComparisonURL(repoTag, tagSemver));
-                        return true;
-                    }
-
-                    if (semverLevel === 'MINOR'
-                        && semverSatisfies(repoTag, `<${tagSemver.major}.${tagSemver.minor}.x`)
-                    ) {
-                        resolve(getComparisonURL(repoTag, tagSemver));
-                        return true;
-                    }
-
-                    if (semverLevel === 'PATCH'
-                        && semverSatisfies(repoTag, `<${tagSemver}`)
-                    ) {
-                        resolve(getComparisonURL(repoTag, tagSemver));
-                        return true;
-                    }
-
-                    if (semverLevel === 'BUILD'
-                        && semverSatisfies(repoTag, `<=${tagSemver.major}.${tagSemver.minor}.${tagSemver.patch}`)
-                    ) {
-                        resolve(getComparisonURL(repoTag, tagSemver));
-                        return true;
-                    }
-                    return false;
-                }))
-                .catch(githubError => reject(githubError));
-        });
-    }
-}
-
-
-/***/ }),
-
 /***/ 467:
 /***/ ((module, exports, __nccwpck_require__) => {
 
@@ -13487,34 +13760,6 @@ module.exports = require("zlib");;
 /******/ 	}
 /******/ 	
 /************************************************************************/
-/******/ 	/* webpack/runtime/define property getters */
-/******/ 	(() => {
-/******/ 		// define getter functions for harmony exports
-/******/ 		__nccwpck_require__.d = (exports, definition) => {
-/******/ 			for(var key in definition) {
-/******/ 				if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
-/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
-/******/ 				}
-/******/ 			}
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
-/******/ 	(() => {
-/******/ 		__nccwpck_require__.o = (obj, prop) => Object.prototype.hasOwnProperty.call(obj, prop)
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/make namespace object */
-/******/ 	(() => {
-/******/ 		// define __esModule on exports
-/******/ 		__nccwpck_require__.r = (exports) => {
-/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 			}
-/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 		};
-/******/ 	})();
-/******/ 	
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	__nccwpck_require__.ab = __dirname + "/";/************************************************************************/
