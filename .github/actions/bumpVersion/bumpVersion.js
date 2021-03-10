@@ -28,8 +28,15 @@ function updateNativeVersions(version) {
 
     // Update iOS
     updateiOSVersion(version)
-        .then(() => {
-            console.log('Successfully updated iOS!');
+        .then((promiseValues) => {
+            // The first promiseValue will be the CFBundleVersion, so confirm it has 4 parts before setting the env var
+            const cfBundleVersion = promiseValues[0];
+            if (_.isString(cfBundleVersion) && cfBundleVersion.split('.').length === 4) {
+                core.setOutput('NEW_IOS_VERSION', cfBundleVersion);
+                console.log('Successfully updated iOS!');
+            } else {
+                core.setFailed(`Failed to set NEW_IOS_VERSION. CFBundleVersion: ${cfBundleVersion}`);
+            }
         })
         .catch((err) => {
             console.error('Error updating iOS');
