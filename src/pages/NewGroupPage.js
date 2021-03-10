@@ -4,7 +4,7 @@ import {View, Text, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import OptionsSelector from '../components/OptionsSelector';
-import {getNewGroupOptions} from '../libs/OptionsListUtils';
+import {getNewGroupOptions, getHeaderTitleAndMessage} from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
@@ -70,34 +70,6 @@ class NewGroupPage extends Component {
             personalDetails,
             selectedOptions: [],
             userToInvite,
-        };
-    }
-
-    /**
-     * Helper method that returns the text to be used for the header's message and title (if any)
-     *
-     * @param {Boolean} maxParticipantsReached
-     * @return {String}
-     */
-    getHeaderTitleAndMessage(maxParticipantsReached) {
-        if (maxParticipantsReached) {
-            return {
-                headerTitle: '',
-                headerMessage: CONST.MESSAGES.MAXIMUM_PARTICIPANTS_REACHED,
-            };
-        }
-
-        const hasSelectableOptions = this.state.personalDetails.length + this.state.recentReports.length !== 0;
-        if (!hasSelectableOptions && !this.state.userToInvite) {
-            return {
-                headerTitle: '',
-                headerMessage: CONST.MESSAGES.NO_CONTACTS_FOUND,
-            };
-        }
-
-        return {
-            headerTitle: '',
-            headerMessage: '',
         };
     }
 
@@ -205,7 +177,11 @@ class NewGroupPage extends Component {
     render() {
         const maxParticipantsReached = this.state.selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
         const sections = this.getSections(maxParticipantsReached);
-        const {headerTitle, headerMessage} = this.getHeaderTitleAndMessage(maxParticipantsReached);
+        const {headerTitle, headerMessage} = getHeaderTitleAndMessage(
+            this.state.personalDetails.length + this.state.recentReports.length !== 0,
+            Boolean(this.state.userToInvite),
+            maxParticipantsReached,
+        );
         return (
             <>
                 <HeaderGap />

@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import OptionsSelector from '../components/OptionsSelector';
-import {getSearchOptions} from '../libs/OptionsListUtils';
+import {getSearchOptions, getHeaderTitleAndMessage} from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import KeyboardSpacer from '../components/KeyboardSpacer';
@@ -14,7 +14,6 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../components/wit
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import HeaderGap from '../components/HeaderGap';
-import CONST from '../CONST';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -70,26 +69,6 @@ class SearchPage extends Component {
             recentReports,
             personalDetails,
             userToInvite,
-        };
-    }
-
-    /**
-     * Helper method that returns the text to be used for the header's message and title (if any)
-     *
-     * @return {String}
-     */
-    getHeaderTitleAndMessage() {
-        const hasSelectableOptions = (this.state.recentReports.length + this.state.personalDetails.length) !== 0;
-        if (!hasSelectableOptions && !this.state.userToInvite) {
-            return {
-                headerTitle: '',
-                headerMessage: CONST.MESSAGES.NO_CONTACTS_FOUND,
-            };
-        }
-
-        return {
-            headerTitle: '',
-            headerMessage: '',
         };
     }
 
@@ -151,7 +130,10 @@ class SearchPage extends Component {
 
     render() {
         const sections = this.getSections();
-        const {headerTitle, headerMessage} = this.getHeaderTitleAndMessage();
+        const {headerTitle, headerMessage} = getHeaderTitleAndMessage(
+            (this.state.recentReports.length + this.state.personalDetails.length) !== 0,
+            Boolean(this.state.userToInvite),
+        );
 
         return (
             <>
