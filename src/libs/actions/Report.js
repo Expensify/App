@@ -1,5 +1,4 @@
 import moment from 'moment';
-import {Dimensions} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
@@ -18,7 +17,6 @@ import Timing from './Timing';
 import * as API from '../API';
 import CONST from '../../CONST';
 import Log from '../Log';
-import variables from '../../styles/variables';
 
 let currentUserEmail;
 let currentUserAccountID;
