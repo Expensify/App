@@ -1,12 +1,15 @@
 import lodashGet from 'lodash.get';
 import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
+import {View} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import listenToStorageEvents from './libs/listenToStorageEvents';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import ONYXKEYS from './ONYXKEYS';
 import NavigationRoot from './libs/Navigation/NavigationRoot';
 import Log from './libs/Log';
+import migrateOnyx from './libs/migrateOnyx';
+import styles from './styles/styles';
 import PushNotification from './libs/Notification/PushNotification';
 import UpdateAppModal from './components/UpdateAppModal';
 
@@ -52,13 +55,24 @@ const defaultProps = {
     version: '',
 };
 
-
 class Expensify extends PureComponent {
     constructor(props) {
         super(props);
 
         // Initialize this client as being an active client
         ActiveClientManager.init();
+
+        this.state = {
+            isOnyxMigrated: false,
+        };
+    }
+
+    componentDidMount() {
+        // Run any Onyx schema migrations and then continue loading the main app
+        migrateOnyx()
+            .then(() => {
+                this.setState({isOnyxMigrated: true});
+            });
     }
 
     componentDidUpdate(prevProps) {
@@ -70,6 +84,13 @@ class Expensify extends PureComponent {
     }
 
     render() {
+        // Until the authToken has been initialized from Onyx and the onyx migration is done, display a blank page
+        if (!this.state.isOnyxMigrated) {
+            return (
+                <View style={styles.genericView} />
+            );
+        }
+
         const authToken = lodashGet(this.props, 'session.authToken', null);
         return (
             <>
