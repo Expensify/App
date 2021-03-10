@@ -60,6 +60,18 @@ export default {
                     Profile_Root: 'profile/:login',
                 },
             },
+            IOU_Request: {
+                initialRouteName: 'IOU_Request_Root',
+                screens: {
+                    IOU_Request_Root: 'iou/request',
+                },
+            },
+            IOU_Bill: {
+                initialRouteName: 'IOU_Bill_Root',
+                screens: {
+                    IOU_Bill_Root: 'iou/split',
+                },
+            },
         },
     },
 };
