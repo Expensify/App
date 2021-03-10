@@ -4,20 +4,14 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import {withRouter} from '../../libs/Router';
 import styles from '../../styles/styles';
 import ButtonWithLoader from '../../components/ButtonWithLoader';
 import themeColors from '../../styles/themes/default';
 import {signIn} from '../../libs/actions/Session';
-import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 
 const propTypes = {
-    // These are from withRouter
-    // eslint-disable-next-line react/forbid-prop-types
-    match: PropTypes.object.isRequired,
-
     /* Onyx Props */
 
     // The details about the account that the user is signing in with
@@ -65,7 +59,7 @@ class PasswordForm extends React.Component {
             formError: null,
         });
 
-        signIn(this.state.password, this.props.match.params.exitTo, this.state.twoFactorAuthCode);
+        signIn(this.state.password, this.state.twoFactorAuthCode);
     }
 
     render() {
@@ -118,9 +112,6 @@ class PasswordForm extends React.Component {
 PasswordForm.propTypes = propTypes;
 PasswordForm.defaultProps = defaultProps;
 
-export default compose(
-    withRouter,
-    withOnyx({
-        account: {key: ONYXKEYS.ACCOUNT},
-    }),
-)(PasswordForm);
+export default withOnyx({
+    account: {key: ONYXKEYS.ACCOUNT},
+})(PasswordForm);

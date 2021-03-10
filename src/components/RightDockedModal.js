@@ -1,62 +1,57 @@
-import React from 'react';
+import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import CONST from '../CONST';
 import themeColors from '../styles/themes/default';
 import ONYXKEYS from '../ONYXKEYS';
-import ModalWithHeader from './ModalWithHeader';
-import {redirect} from '../libs/actions/App';
-import ROUTES from '../ROUTES';
+import Modal from './Modal';
+import {redirectToLastReport} from '../libs/actions/App';
 
 /**
  * Right-docked modal view showing a user's settings.
  */
 const propTypes = {
-    // Title of the Modal
-    title: PropTypes.string.isRequired,
-
     // Any children to display
     children: PropTypes.node.isRequired,
 
-    // Is the Modal visible or not?
-    isVisible: PropTypes.bool,
+    // Route constant to show modal
+    route: PropTypes.string,
 
     /* Onyx Props */
-    // Currently viewed reportID
-    currentlyViewedReportID: PropTypes.string,
+    // Url currently in view
+    currentURL: PropTypes.string,
 };
 
 const defaultProps = {
-    isVisible: false,
-    currentlyViewedReportID: '',
+    route: '',
+    currentURL: '',
 };
 
-const RightDockedModal = ({
-    currentlyViewedReportID, isVisible, title, children,
-}) => (
-    <ModalWithHeader
-        type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
-        onClose={() => redirect(_.isEmpty(currentlyViewedReportID)
-            ? ROUTES.HOME
-            : ROUTES.getReportRoute(currentlyViewedReportID))}
-        isVisible={isVisible}
-        title={title}
-        backgroundColor={themeColors.componentBG}
-    >
-        {children}
-    </ModalWithHeader>
-);
+const RightDockedModal = memo(({
+    route, children, currentURL,
+}) => {
+    // Using includes allows for subroutes to work.
+    // All /settings/:route subroutes would go to the SettingsPage and
+    // that page will render the right components for the subroute.
+    const isVisible = currentURL.includes(route);
+    return (
+        <Modal
+            type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
+            onClose={redirectToLastReport}
+            isVisible={isVisible}
+            backgroundColor={themeColors.componentBG}
+        >
+            {children}
+        </Modal>
+    );
+});
 
 RightDockedModal.propTypes = propTypes;
 RightDockedModal.defaultProps = defaultProps;
 RightDockedModal.displayName = 'RightDockedModal';
 
 export default withOnyx({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-    currentlyViewedReportID: {
-        key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
+    currentURL: {
+        key: ONYXKEYS.CURRENT_URL,
     },
 })(RightDockedModal);

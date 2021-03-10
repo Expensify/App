@@ -11,6 +11,7 @@ env:
 
 jobs:
     build:
+        if: github.actor == 'OSBotify'
         runs-on: macos-latest
         steps:
             - uses: actions/checkout@v2
@@ -31,7 +32,11 @@ jobs:
               run: bundle install
 
             - name: Install node packages
-              run: npm ci -ddd
+              uses: nick-invision/retry@7c68161adf97a48beb850a595b8784ec57a98cbb
+              with:
+                timeout_minutes: 10
+                max_attempts: 5
+                command: npm ci
 
             - name: Install cocoapods
               run: cd ios && pod install
@@ -58,6 +63,12 @@ jobs:
                   APPLE_CONTACT_PHONE: ${{ secrets.APPLE_CONTACT_PHONE }}
                   APPLE_DEMO_EMAIL: ${{ secrets.APPLE_DEMO_EMAIL }}
                   APPLE_DEMO_PASSWORD: ${{ secrets.APPLE_DEMO_PASSWORD }}
+
+            - name: Run Fastlane for App Store release
+              if: ${{ env.SHOULD_DEPLOY_PRODUCTION }}
+              run: bundle exec fastlane ios production
+              env:
+                VERSION: ${{ env.NEW_IOS_VERSION }}
 
             # These Slack steps are duplicated in all workflows, if you make a change to this step, make sure to update all
             # the other workflows with the same changes

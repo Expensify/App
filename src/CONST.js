@@ -11,6 +11,7 @@ const CONST = {
     },
     REPORT: {
         MAXIMUM_PARTICIPANTS: 8,
+        REPORT_ACTIONS_LIMIT: 50,
     },
     MODAL: {
         MODAL_TYPE: {
@@ -32,6 +33,19 @@ const CONST = {
         NO_CONTACTS_FOUND: 'Don\'t see who you\'re looking for? Type their email or phone number to invite them to chat.',
         MAXIMUM_PARTICIPANTS_REACHED: 'You\'ve reached the maximum number of participants for a group chat.',
     },
+    PRIORITY_MODE: {
+        GSD: 'gsd',
+        DEFAULT: 'default',
+    },
+    ERROR: {
+        API_OFFLINE: 'API is offline',
+    },
+    NVP: {
+        PAYPAL_ME_ADDRESS: 'expensify_payPalMeAddress',
+        PRIORITY_MODE: 'priorityMode',
+        TIMEZONE: 'timeZone',
+    },
+    DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
 };
 
 export default CONST;

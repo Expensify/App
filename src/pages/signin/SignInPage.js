@@ -10,7 +10,6 @@ import {Redirect} from '../../libs/Router';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
-import CustomStatusBar from '../../components/CustomStatusBar';
 import updateUnread from '../../libs/UnreadIndicatorUpdater/updateUnread/index';
 import SignInPageLayout from './SignInPageLayout';
 import LoginForm from './LoginForm';
@@ -84,7 +83,6 @@ class SignInPage extends Component {
 
         return (
             <>
-                <CustomStatusBar />
                 <SafeAreaView style={[styles.signInPage]}>
                     <SignInPageLayout>
                         {showLoginForm && <LoginForm />}
