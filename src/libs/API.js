@@ -168,7 +168,7 @@ Network.registerErrorHandler((queuedRequest, error) => {
     Onyx.merge(ONYXKEYS.SESSION, {loading: false, error: 'Cannot connect to server'});
 
     // Reject the queued request with an API offline error so that the original caller can handle it.
-    queuedRequest.reject(CONST.ERROR.API_OFFLINE);
+    queuedRequest.reject(new Error(CONST.ERROR.API_OFFLINE));
 });
 
 /**

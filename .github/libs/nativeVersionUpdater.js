@@ -78,9 +78,12 @@ exports.updateAndroidVersion = function updateAndroidVersion(versionName, versio
  */
 exports.updateiOSVersion = function updateiOSVersion(version) {
     const shortVersion = version.split('-')[0];
-    const cfVersion = version.replace('-', '.');
-    console.log('Updating iOS', `CFBundleShortVersionString: ${shortVersion}`, `CFBundleVersion: ${version}`);
+    const cfVersion = version.includes('-') ? version.replace('-', '.') : `${version}.0`;
+    console.log('Updating iOS', `CFBundleShortVersionString: ${shortVersion}`, `CFBundleVersion: ${cfVersion}`);
+
+    // Pass back the cfVersion in the return array so we can set the NEW_IOS_VERSION in ios.yml
     return Promise.all([
+        cfVersion,
         exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH}`),
         exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH_TEST}`),
         exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH}`),
