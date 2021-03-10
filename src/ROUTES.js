@@ -6,6 +6,8 @@ export default {
     SETTINGS: '/settings',
     NEW_GROUP: '/new/group',
     NEW_CHAT: '/new/chat',
+    IOU_REQUEST: '/iou/request',
+    IOU_BILL: '/iou/split',
     REPORT: '/r/:reportID',
     getReportRoute: reportID => `/r/${reportID}`,
     ROOT: '/',
