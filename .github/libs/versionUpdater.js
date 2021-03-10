@@ -74,9 +74,7 @@ const incrementPatch = (major, minor, patch) => {
  * @returns {String}
  */
 const incrementVersion = (version, level) => {
-    const [major, minor, patch, build] = getVersionNumberFromString(
-        version,
-    );
+    const [major, minor, patch, build] = getVersionNumberFromString(version);
 
     // Majors will always be incremented
     if (level === SEMANTIC_VERSION_LEVELS.MAJOR) {
@@ -89,10 +87,6 @@ const incrementVersion = (version, level) => {
 
     if (level === SEMANTIC_VERSION_LEVELS.PATCH) {
         return incrementPatch(major, minor, patch);
-    }
-
-    if (build === undefined) {
-        return getVersionStringFromNumber(major, minor, patch, 1);
     }
 
     if (build < MAX_INCREMENTS) {
