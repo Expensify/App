@@ -1,6 +1,6 @@
 {
   "name": "expensify.cash",
-  "version": "1.0.2-19",
+  "version": "1.0.2-20",
   "author": "Expensify, Inc.",
   "homepage": "https://expensify.cash",
   "description": "Expensify.cash is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -87,6 +87,7 @@
     "@babel/preset-env": "^7.11.0",
     "@babel/preset-react": "^7.10.4",
     "@babel/runtime": "^7.11.2",
+    "@octokit/rest": "^18.3.5",
     "@react-native-community/eslint-config": "^2.0.0",
     "@svgr/webpack": "^5.5.0",
     "@testing-library/jest-native": "^3.4.2",
