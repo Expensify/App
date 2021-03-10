@@ -7,6 +7,8 @@ export default {
     NEW_GROUP: '/new/group',
     NEW_CHAT: '/new/chat',
     REPORT: '/r',
+    IOU_REQUEST: '/iou/request',
+    IOU_BILL: '/iou/split',
     getReportRoute: reportID => `/r/${reportID}`,
     SEARCH: '/search',
     SET_PASSWORD: '/setpassword/:validateCode',

@@ -20,6 +20,9 @@ export default {
     // Credentials to authenticate the user
     CREDENTIALS: 'credentials',
 
+    // Contains loading data for the IOU feature (IOUModal, IOUDetail, & IOUPreview Components)
+    IOU: 'iou',
+
     // Contains the personalDetails of the user as well as their timezone
     MY_PERSONAL_DETAILS: 'myPersonalDetails',
 
