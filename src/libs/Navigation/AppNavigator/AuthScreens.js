@@ -41,6 +41,8 @@ import NewChatPage from '../../../pages/NewChatPage';
 import NewGroupPage from '../../../pages/NewGroupPage';
 import SearchPage from '../../../pages/SearchPage';
 import ProfilePage from '../../../pages/ProfilePage';
+import IOURequestPage from '../../../pages/iou/IOURequestPage';
+import IOUBillPage from '../../../pages/iou/IOUBillPage';
 
 const Drawer = createDrawerNavigator();
 const RootStack = createStackNavigator();
@@ -140,6 +142,14 @@ class AuthScreens extends React.Component {
             : createStackNavigator();
 
         const ProfileModalStack = this.props.responsive
+            ? createCustomModalStackNavigator()
+            : createStackNavigator();
+
+        const IOURequestModalStack = this.props.responsive
+            ? createCustomModalStackNavigator()
+            : createStackNavigator();
+
+        const IOUBillModalStack = this.props.responsive
             ? createCustomModalStackNavigator()
             : createStackNavigator();
 
@@ -286,6 +296,44 @@ class AuthScreens extends React.Component {
                                 }}
                             />
                         </ProfileModalStack.Navigator>
+                    )}
+                </RootStack.Screen>
+                <RootStack.Screen
+                    name="IOU_Request"
+                    options={modalScreenOptions}
+                >
+                    {() => (
+                        <IOURequestModalStack.Navigator
+                            path="/iou/request"
+                        >
+                            <IOURequestModalStack.Screen
+                                name="IOU_Request_Root"
+                                component={IOURequestPage}
+                                options={{
+                                    ...defaultSubRouteOptions,
+                                    title: 'Request',
+                                }}
+                            />
+                        </IOURequestModalStack.Navigator>
+                    )}
+                </RootStack.Screen>
+                <RootStack.Screen
+                    name="IOU_Bill"
+                    options={modalScreenOptions}
+                >
+                    {() => (
+                        <IOUBillModalStack.Navigator
+                            path="/iou/split"
+                        >
+                            <IOUBillModalStack.Screen
+                                name="IOU_Bill_Root"
+                                component={IOUBillPage}
+                                options={{
+                                    ...defaultSubRouteOptions,
+                                    title: 'Split',
+                                }}
+                            />
+                        </IOUBillModalStack.Navigator>
                     )}
                 </RootStack.Screen>
             </RootStack.Navigator>
