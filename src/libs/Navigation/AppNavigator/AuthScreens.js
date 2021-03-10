@@ -2,10 +2,9 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import {createStackNavigator, CardStyleInterpolators} from '@react-navigation/stack';
+import {createStackNavigator} from '@react-navigation/stack';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 
-import createCustomModalStackNavigator from './createCustomModalStackNavigator';
 import styles, {
     getNavigationDrawerType,
     getNavigationDrawerStyle,
@@ -43,6 +42,16 @@ import SearchPage from '../../../pages/SearchPage';
 import ProfilePage from '../../../pages/ProfilePage';
 import IOURequestPage from '../../../pages/iou/IOURequestPage';
 import IOUBillPage from '../../../pages/iou/IOUBillPage';
+
+import {
+    SettingsModalStack,
+    NewChatModalStack,
+    NewGroupModalStack,
+    SearchModalStack,
+    ProfileModalStack,
+    IOURequestModalStack,
+    IOUBillModalStack,
+} from './ModalStacks';
 
 const Drawer = createDrawerNavigator();
 const RootStack = createStackNavigator();
@@ -118,40 +127,7 @@ class AuthScreens extends React.Component {
         const modalScreenOptions = {
             headerShown: false,
             cardStyle: getNavigationModalCardStyle(this.props.isSmallScreenWidth),
-            gestureDirection: 'horizontal',
         };
-
-        if (this.props.isSmallScreenWidth) {
-            modalScreenOptions.cardStyleInterpolator = CardStyleInterpolators.forScaleFromCenterAndroid;
-        }
-
-        const SettingsModalStack = this.props.responsive
-            ? createCustomModalStackNavigator()
-            : createStackNavigator();
-
-        const NewChatModalStack = this.props.responsive
-            ? createCustomModalStackNavigator()
-            : createStackNavigator();
-
-        const NewGroupModalStack = this.props.responsive
-            ? createCustomModalStackNavigator()
-            : createStackNavigator();
-
-        const SearchModalStack = this.props.responsive
-            ? createCustomModalStackNavigator()
-            : createStackNavigator();
-
-        const ProfileModalStack = this.props.responsive
-            ? createCustomModalStackNavigator()
-            : createStackNavigator();
-
-        const IOURequestModalStack = this.props.responsive
-            ? createCustomModalStackNavigator()
-            : createStackNavigator();
-
-        const IOUBillModalStack = this.props.responsive
-            ? createCustomModalStackNavigator()
-            : createStackNavigator();
 
         return (
             <RootStack.Navigator
