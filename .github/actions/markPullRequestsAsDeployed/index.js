@@ -74,6 +74,7 @@ class GithubUtils {
      * Finds one open `StagingDeployCash` issue via GitHub octokit library.
      *
      * @returns {Promise}
+     * @throws
      */
     getStagingDeployCash() {
         return this.octokit.issues.listForRepo({
@@ -92,6 +93,10 @@ class GithubUtils {
                 }
 
                 return this.getStagingDeployCashData(data[0]);
+            })
+            .catch((err) => {
+                console.warn('Github API error:', err);
+                throw new Error('Error trying to find open StagingDeployCash');
             });
     }
 
