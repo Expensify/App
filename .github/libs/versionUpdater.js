@@ -25,16 +25,10 @@ const getVersionNumberFromString = (versionString) => {
  * @param {Number} major
  * @param {Number} minor
  * @param {Number} patch
- * @param {Number} build
+ * @param {Number} [build]
  * @returns {String}
  */
-const getVersionStringFromNumber = (major, minor, patch, build) => {
-    if (build) {
-        return `${major}.${minor}.${patch}-${build}`;
-    }
-
-    return `${major}.${minor}.${patch}-0`;
-};
+const getVersionStringFromNumber = (major, minor, patch, build = 0) => `${major}.${minor}.${patch}-${build}`;
 
 /**
  * Increments a minor version
