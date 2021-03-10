@@ -11,7 +11,7 @@ module.exports =
 const _ = __nccwpck_require__(4987);
 const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
-const GitUtils = __nccwpck_require__(6008);
+const GitUtils = __nccwpck_require__(7875);
 
 const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
 const inputTag = core.getInput('TAG', {required: true});
@@ -10949,30 +10949,10 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 6008:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+/***/ 7875:
+/***/ ((module) => {
 
-const { promisify } = __nccwpck_require__(1669);
-const exec = promisify(__nccwpck_require__(3129).exec);
-
-module.exports = class GitUtils {
-
-    /**
-     * Takes in two git refs and returns a list of PR numbers of all PRs merged between those two refs
-     *
-     * @param {String} fromRef
-     * @param {String} toRef
-     * @returns {Promise}
-     */
-    getPullRequestsMergedBetween(fromRef, toRef) {
-        return exec(`git log --format="%s" ${fromRef}...${toRef}`)
-            .then(({ stdout, stderr }) => {
-                const pullRequestNumbers = [...stdout.matchAll(new RegExp(/Merge pull request #(\d{1,6})/, 'g'))]
-                    .map(match => match[1]);
-                return pullRequestNumbers;
-            })
-    }
-}
+module.exports = eval("require")("expensify-common/lib/GitUtils.jsx");
 
 
 /***/ }),
@@ -11054,14 +11034,6 @@ module.exports = require("assert");;
 
 "use strict";
 module.exports = require("buffer");;
-
-/***/ }),
-
-/***/ 3129:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("child_process");;
 
 /***/ }),
 
