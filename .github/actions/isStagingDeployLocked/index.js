@@ -18,10 +18,10 @@ const githubUtils = new GithubUtils(octokit);
 
 octokit.issues.listForRepo({
     owner: 'Expensify',
-    repo: 'Expensify',
-    log: console,
+    repo: 'Expensify.cash',
+    state: 'open',
 })
-    .then(response => console.log(response))
+    .then(response => console.log('Expensify.cash open issues:', response))
     .catch(err => console.log(err));
 
 githubUtils.getStagingDeployCash()
