@@ -62,7 +62,11 @@ class Tooltip extends PureComponent {
      * @returns {Promise}
      */
     getWrapperPosition() {
-        return new Promise((resolve => this.wrapperView.measureInWindow((x, y) => resolve({x, y}))));
+        return new Promise((resolve => this.wrapperView.measureInWindow(
+            (x, y, width, height) => resolve({
+                x, y, width, height,
+            }),
+        )));
     }
 
     /**
@@ -100,8 +104,14 @@ class Tooltip extends PureComponent {
      * Display the tooltip in an animation.
      */
     showTooltip() {
+        // We have to dynamically calculate the position here as tooltip could have been rendered on some elments
+        // that has changed its position
         this.getWrapperPosition()
-            .then(({x, y}) => this.setState({
+            .then(({
+                x, y, width, height,
+            }) => this.setState({
+                wrapperWidth: width,
+                wrapperHeight: height,
                 xOffset: x,
                 yOffset: y,
             }));
@@ -137,8 +147,12 @@ class Tooltip extends PureComponent {
             this.state.wrapperHeight,
             this.state.tooltipWidth,
             this.state.tooltipHeight,
-            this.props.shiftHorizontal,
-            this.props.shiftVertical,
+            typeof this.props.shiftHorizontal === 'function'
+                ? this.props.shiftHorizontal()
+                : this.props.shiftHorizontal,
+            typeof this.props.shiftVertical === 'function'
+                ? this.props.shiftVertical()
+                : this.props.shiftVertical,
         );
         return ReactDOM.createPortal(
             <Animated.View
