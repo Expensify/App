@@ -1,16 +1,13 @@
 import React, {PureComponent} from 'react';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import {
-    View, Text, Pressable,
-} from 'react-native';
 import Popover from './Popover';
 import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
-import Icon from './Icon';
 import {ChatBubble, Users} from './Icon/Expensicons';
 import {redirect} from '../libs/actions/App';
 import ROUTES from '../ROUTES';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import MenuItem from './MenuItem';
 
 const propTypes = {
     // Callback to fire on request to modal close
@@ -83,23 +80,12 @@ class CreateMenu extends PureComponent {
             >
                 <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
                     {menuItemData.map(({icon, text, onPress}) => (
-                        <Pressable
+                        <MenuItem
                             key={text}
+                            icon={icon}
+                            title={text}
                             onPress={onPress}
-                            style={({hovered}) => ([
-                                styles.createMenuItem,
-                                hovered && {backgroundColor: themeColors.buttonHoveredBG},
-                            ])}
-                        >
-                            <View style={styles.createMenuIcon}>
-                                <Icon src={icon} />
-                            </View>
-                            <View style={styles.justifyContentCenter}>
-                                <Text style={[styles.createMenuText, styles.ml3]}>
-                                    {text}
-                                </Text>
-                            </View>
-                        </Pressable>
+                        />
                     ))}
                 </View>
             </Popover>
