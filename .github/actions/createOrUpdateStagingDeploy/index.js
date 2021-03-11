@@ -25,7 +25,7 @@ githubUtils.getStagingDeployCash()
         _.map(core.getInput('NEW_PULL_REQUESTS').split(','), PR => PR.trim()) || [],
         _.map(core.getInput('NEW_DEPLOY_BLOCKERS').split(','), deployBlocker => deployBlocker.trim()) || [],
     ))
-    .then(({data}) => console.log('Successfully updated StagingDeployCash!', data.url))
+    .then(({data}) => console.log('Successfully updated StagingDeployCash!', data.html_url))
     .catch((err) => {
         // Unable to find the open StagingDeployCash
         if (err && err.code === 404) {
@@ -44,7 +44,7 @@ githubUtils.getStagingDeployCash()
         // Unexpected error!
         console.error('Unexpected error occurred finding the StagingDeployCash!'
             + ' There may have been more than one open StagingDeployCash found,'
-            + ' or there was some other problem with the Github API request.');
+            + ' or there was some other problem with the Github API request.', err);
         core.setFailed(err);
     })
     .then((githubResponse) => {
@@ -65,7 +65,7 @@ githubUtils.getStagingDeployCash()
         newVersion,
         _.map(PRNumbers, GithubUtils.getPullRequestURLFromNumber),
     ))
-    .then(({data}) => console.log('Successfully created new StagingDeployCash!', data.url))
+    .then(({data}) => console.log('Successfully created new StagingDeployCash!', data.html_url))
     .catch((err) => {
         console.error('An error occurred!', err);
         core.setFailed(err);
