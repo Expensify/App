@@ -74,9 +74,6 @@ function fetchPersonalDetailsForTestUser(accountID, email, personalDetailsList) 
             personalDetailsList,
         }))
 
-        // fetchTimezone
-        .mockImplementationOnce(() => Promise.resolve({}));
-
     fetchPersonalDetails();
     return waitForPromisesToResolve();
 }
