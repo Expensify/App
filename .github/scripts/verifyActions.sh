@@ -13,7 +13,7 @@ declare SCRIPTS_DIR
 SCRIPTS_DIR="$(dirname "$(dirname "$0")")/scripts"
 
 declare LIB_PATH
-LIB_PATH="/root/expensify/bin/diff-so-fancy"
+LIB_PATH="$(dirname "$(dirname "$0")")/temp/diff-so-fancy"
 
 # Clone diff-so-fancy repository
 if [ ! -d "$LIB_PATH/" ]; then
