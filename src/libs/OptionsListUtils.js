@@ -402,9 +402,30 @@ function getSidebarOptions(reports, personalDetails, draftComments, activeReport
     });
 }
 
+/**
+ * Helper method that returns the text to be used for the header's message and title (if any)
+ *
+ * @param {Boolean} hasSelectableOptions
+ * @param {Boolean} hasUserToInvite
+ * @param {Boolean} [maxParticipantsReached]
+ * @return {String}
+ */
+function getHeaderMessage(hasSelectableOptions, hasUserToInvite, maxParticipantsReached = false) {
+    if (maxParticipantsReached) {
+        return CONST.MESSAGES.MAXIMUM_PARTICIPANTS_REACHED;
+    }
+
+    if (!hasSelectableOptions && !hasUserToInvite) {
+        return CONST.MESSAGES.NO_CONTACTS_FOUND;
+    }
+
+    return '';
+}
+
 export {
     getSearchOptions,
     getNewChatOptions,
     getNewGroupOptions,
     getSidebarOptions,
+    getHeaderMessage,
 };

@@ -328,6 +328,8 @@ class GithubUtils {
                     });
                 }
 
+                issueBody += '\r\ncc @Expensify/applauseleads\r\n';
+
                 return issueBody;
             })
             // eslint-disable-next-line no-console
