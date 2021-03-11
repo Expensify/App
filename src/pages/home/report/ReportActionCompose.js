@@ -116,6 +116,11 @@ class ReportActionCompose extends React.Component {
      * @param {Object} e
      */
     triggerSubmitShortcut(e) {
+        console.debug({
+            nativeEvent: e.nativeEvent,
+            key: e.key,
+            shiftKey: e.shiftKey,
+        });
         if (e && e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             this.submitForm();
