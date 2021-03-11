@@ -41,6 +41,9 @@ const propTypes = {
 
     // Force the text style to be the unread style
     forceTextUnreadStyle: PropTypes.bool,
+
+    // Whether to show the title tooltip
+    showTitleTooltip: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -49,6 +52,7 @@ const defaultProps = {
     showSelectedState: false,
     isSelected: false,
     forceTextUnreadStyle: false,
+    showTitleTooltip: false,
 };
 
 const OptionRow = ({
@@ -60,6 +64,7 @@ const OptionRow = ({
     showSelectedState,
     isSelected,
     forceTextUnreadStyle,
+    showTitleTooltip,
 }) => {
     const textStyle = optionIsFocused
         ? styles.sidebarLinkActiveText
@@ -108,7 +113,7 @@ const OptionRow = ({
                             <View style={[styles.flex1]}>
                                 <OptionRowTitle
                                     option={option}
-                                    tooltipEnabled
+                                    tooltipEnabled={showTitleTooltip}
                                     style={textUnreadStyle}
                                 />
 

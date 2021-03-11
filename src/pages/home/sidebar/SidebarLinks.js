@@ -148,6 +148,7 @@ class SidebarLinks extends React.Component {
                         this.props.onLinkClick();
                     }}
                     hideSectionHeaders
+                    showTitleTooltip
                 />
                 <KeyboardSpacer />
             </View>
