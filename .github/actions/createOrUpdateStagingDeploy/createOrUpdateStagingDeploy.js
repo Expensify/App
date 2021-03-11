@@ -38,7 +38,7 @@ githubUtils.getStagingDeployCash()
         core.setFailed(err);
     })
     .then((githubResponse) => {
-        if (!githubResponse.data || _.isEmpty(githubResponse.data)) {
+        if (!githubResponse || !githubResponse.data || _.isEmpty(githubResponse.data)) {
             console.error('Failed fetching data from Github!', githubResponse);
             throw new Error('Failed fetching data from Github');
         }

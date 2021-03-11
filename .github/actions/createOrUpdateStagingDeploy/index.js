@@ -48,7 +48,7 @@ githubUtils.getStagingDeployCash()
         core.setFailed(err);
     })
     .then((githubResponse) => {
-        if (!githubResponse.data || _.isEmpty(githubResponse.data)) {
+        if (!githubResponse || !githubResponse.data || _.isEmpty(githubResponse.data)) {
             console.error('Failed fetching data from Github!', githubResponse);
             throw new Error('Failed fetching data from Github');
         }
@@ -183,7 +183,7 @@ class GithubUtils {
                 comparisonURL,
             };
         } catch (exception) {
-            throw new Error(`Unable to find ${STAGING_DEPLOY_CASH_LABEL} issue with correct data.`);
+            throw new Error(`Unable to find ${STAGING_DEPLOY_CASH_LABEL} issue with correct data. Error: ${exception}`);
         }
     }
 
