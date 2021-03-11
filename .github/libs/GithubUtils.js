@@ -312,7 +312,7 @@ class GithubUtils {
 
                 // PR list
                 if (!_.isEmpty(PRList)) {
-                    issueBody += '**This release contains changes from the following pull requests:**\r\n';
+                    issueBody += '\r\n**This release contains changes from the following pull requests:**\r\n';
                     _.each(sortedPRList, (URL) => {
                         issueBody += _.contains(verifiedPRList, URL) ? '- [x]' : '- [ ]';
                         issueBody += ` ${URL}\r\n`;
