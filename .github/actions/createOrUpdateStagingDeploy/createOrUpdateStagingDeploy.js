@@ -37,8 +37,7 @@ githubUtils.getStagingDeployCash()
     .then((githubResponse) => {
         if (!githubResponse.data || _.isEmpty(githubResponse.data)) {
             console.error('Failed fetching data from Github!', githubResponse);
-            core.setFailed(new Error('Failed fetching data from Github'));
-            return;
+            throw new Error('Failed fetching data from Github');
         }
 
         // Parse the tag from the most recent StagingDeployCash
