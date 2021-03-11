@@ -24,7 +24,7 @@ jobs:
                   NPM_VERSION: '1.0.2-25'
                   GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
                   NEW_PULL_REQUESTS: 'https://github.com/Expensify/Expensify.cash/pull/1,https://github.com/Expensify/Expensify.cash/pull/2'
-                  NEW_DEPLOY_BLOCKERS: 'https://github.com/Expensify/Expensify.cash/issues/123,https://github.com/Expensify/Expensify/issues/12345',
+                  NEW_DEPLOY_BLOCKERS: 'https://github.com/Expensify/Expensify.cash/issues/123,https://github.com/Expensify/Expensify/issues/12345'
 
             - name: Install node packages
               uses: nick-invision/retry@7c68161adf97a48beb850a595b8784ec57a98cbb
