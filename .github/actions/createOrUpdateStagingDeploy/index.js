@@ -16,7 +16,7 @@ const GithubUtils = __nccwpck_require__(7999);
 const GitUtils = __nccwpck_require__(669);
 
 const newVersion = core.getInput('NPM_VERSION', {required: true});
-const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
+const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}), {log: console});
 const githubUtils = new GithubUtils(octokit);
 
 githubUtils.getStagingDeployCash()
@@ -33,7 +33,6 @@ githubUtils.getStagingDeployCash()
 
             // Fetch all the StagingDeployCash issues
             return octokit.issues.listForRepo({
-                log: console,
                 owner: GithubUtils.GITHUB_OWNER,
                 repo: GithubUtils.EXPENSIFY_CASH_REPO,
                 labels: GithubUtils.STAGING_DEPLOY_CASH_LABEL,
