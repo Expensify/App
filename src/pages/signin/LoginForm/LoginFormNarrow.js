@@ -64,7 +64,7 @@ class LoginFormNarrow extends React.Component {
         return (
             <View style={[styles.loginFormContainer]}>
                 <View style={[styles.mb4]}>
-                    <Text style={[styles.formLabel]}>Sign up for the waitlist</Text>
+                    <Text style={[styles.formLabel]}>Enter your phone or email:</Text>
                     <TextInput
                         style={[styles.textInput]}
                         value={this.state.login}
@@ -73,7 +73,7 @@ class LoginFormNarrow extends React.Component {
                         onChangeText={text => this.setState({login: text})}
                         onSubmitEditing={this.validateAndSubmitForm}
                         autoCapitalize="none"
-                        placeholder="Email or phone"
+                        placeholder="Phone or Email"
                         placeholderTextColor={themeColors.textSupporting}
                     />
                 </View>
@@ -105,31 +105,13 @@ class LoginFormNarrow extends React.Component {
                     />
                 </View>
 
-                <View style={[styles.mb6]}>
-                    <Text style={[styles.textLabel]}>
-                        With Expensify.cash, chat and payments are the same thing. Launching Summer 2021,
-                        {' '}
-                        join the waitlist to be first in line!
-                    </Text>
-                </View>
-
                 <View>
                     <Text style={[styles.textLabel, styles.textStrong, styles.mb1]}>
-                        Attention Open Source Developers:
+                        With Expensify.cash, chat and payments are the same thing.
                     </Text>
                     <Text style={[styles.textLabel]}>
-                        Enter your GitHub handle on the next page to skip the wait and join our dev-only beta;
-                        {' '}
-                        help build tomorrow and
-                        {' '}
-                        <Text
-                            style={[styles.link, styles.mx1]}
-                            onPress={() => openURLInNewTab(CONST.UPWORK_URL)}
-                        >
-                            earn cash
-                        </Text>
-                        {' '}
-                        today!
+                        {'Money talks. And now that chat and payments are in one place, it\'s also easy. '}
+                        Your payments get to you as fast as you can get your point across.
                     </Text>
                 </View>
             </View>
