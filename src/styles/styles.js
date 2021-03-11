@@ -499,6 +499,9 @@ const styles = {
     sidebarLinkInner: {
         alignItems: 'center',
         flexDirection: 'row',
+    },
+
+    sidebarInnerRow: {
         height: 64,
         paddingTop: 12,
         paddingRight: 20,
