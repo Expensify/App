@@ -105,13 +105,11 @@ const OptionRow = ({
                                 )
                             }
                             <View style={[styles.flex1]}>
-                                <View style={{flexDirection: 'column', alignItems: 'flex-start'}}>
-                                    <OptionRowTitle
-                                        option={option}
-                                        tooltipEnabled
-                                        style={textUnreadStyle}
-                                    />
-                                </View>
+                                <OptionRowTitle
+                                    option={option}
+                                    tooltipEnabled
+                                    style={textUnreadStyle}
+                                />
 
                                 {option.alternateText ? (
                                     <Text

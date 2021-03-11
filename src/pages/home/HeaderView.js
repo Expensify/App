@@ -25,7 +25,7 @@ const propTypes = {
         reportName: PropTypes.string,
 
         // list of primarylogins of participants of the report
-        participants: PropTypes.arrayOf(PropTypes.object),
+        participants: PropTypes.arrayOf(PropTypes.string),
 
         // ID of the report
         reportID: PropTypes.number,

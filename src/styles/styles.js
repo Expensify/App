@@ -542,6 +542,11 @@ const styles = {
         lineHeight: 18,
         ...whiteSpace.noWrap,
     },
+
+    optionDisplayNameTooltipWrapper: {
+        position: 'relative',
+    },
+
     optionDisplayNameTooltipEllipsis: {
         position: 'absolute',
         opacity: 0,
