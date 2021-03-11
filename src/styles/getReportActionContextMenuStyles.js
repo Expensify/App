@@ -3,7 +3,6 @@ import variables from './variables';
 import themeColors from './themes/default';
 
 const defaultWrapperStyle = {
-    flex: 1,
     backgroundColor: themeColors.componentBG,
 };
 
