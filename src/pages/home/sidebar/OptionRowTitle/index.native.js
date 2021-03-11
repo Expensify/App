@@ -13,9 +13,10 @@ const defaultProps = {
 
 const OptionRowTitle = ({
     style,
+    option,
 }) => (
     <Text style={[styles.optionDisplayName, style]} numberOfLines={1}>
-        option.text
+        {option.text}
     </Text>
 );
 
