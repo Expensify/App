@@ -25,7 +25,10 @@ githubUtils.getStagingDeployCash()
         _.map(core.getInput('NEW_PULL_REQUESTS').split(','), PR => PR.trim()) || [],
         _.map(core.getInput('NEW_DEPLOY_BLOCKERS').split(','), deployBlocker => deployBlocker.trim()) || [],
     ))
-    .then(({data}) => console.log('Successfully updated StagingDeployCash!', data.html_url))
+    .then(({data}) => {
+        console.log('Successfully updated StagingDeployCash!', data.html_url);
+        process.exit(0);
+    })
     .catch((err) => {
         // Unable to find the open StagingDeployCash
         if (err && err.code === 404) {
@@ -165,16 +168,13 @@ class GithubUtils {
      * @returns {Object}
      */
     getStagingDeployCashData(issue) {
-        console.log('RORY_DEBUG getting data from issue body', issue);
         try {
             const versionRegex = new RegExp('([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:-([0-9]+))?', 'g');
             const tag = issue.body.match(versionRegex)[0].replace(/`/g, '');
-            console.log('RORY_DEBUG got tag:', tag);
 
             // eslint-disable-next-line max-len
             const compareURLRegex = new RegExp(`${EXPENSIFY_CASH_URL}/compare/${versionRegex.source}\\.\\.\\.${versionRegex.source}`, 'g');
             const comparisonURL = issue.body.match(compareURLRegex)[0];
-            console.log('RORY_DEBUG got comparisonURL:', comparisonURL);
 
             return {
                 title: issue.title,
@@ -200,7 +200,6 @@ class GithubUtils {
      */
     getStagingDeployCashPRList(issue) {
         const PRListSection = issue.body.match(/pull requests:\*\*\r\n((?:.*\r\n)+)\r\n/)[1];
-        console.log('RORY_DEBUG got PRListSection', PRListSection);
         const unverifiedPRs = _.map(
             [...PRListSection.matchAll(new RegExp(`- \\[ ] (${PULL_REQUEST_REGEX.source})`, 'g'))],
             match => ({
@@ -217,8 +216,6 @@ class GithubUtils {
                 isVerified: true,
             }),
         );
-        console.log('RORY_DEBUG unverifiedPRs: ', unverifiedPRs);
-        console.log('RORY_DEBUG verifiedPRs: ', verifiedPRs);
         return _.sortBy(
             _.union(unverifiedPRs, verifiedPRs),
             'number',
@@ -239,7 +236,6 @@ class GithubUtils {
             return [];
         }
         deployBlockerSection = deployBlockerSection[1];
-        console.log('RORY_DEBUG got deployBlockerSection: ', deployBlockerSection);
         const unresolvedDeployBlockers = _.map(
             [...deployBlockerSection.matchAll(new RegExp(`- \\[ ] (${ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))],
             match => ({
@@ -248,7 +244,6 @@ class GithubUtils {
                 isResolved: false,
             }),
         );
-        console.log('RORY_DEBUG unresolvedDeployBlockers: ', unresolvedDeployBlockers);
         const resolvedDeployBlockers = _.map(
             [...deployBlockerSection.matchAll(new RegExp(`- \\[x] (${ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))],
             match => ({
@@ -257,7 +252,6 @@ class GithubUtils {
                 isResolved: true,
             }),
         );
-        console.log('RORY_DEBUG resolvedDeployBlockers: ', resolvedDeployBlockers);
         return _.sortBy(
             _.union(unresolvedDeployBlockers, resolvedDeployBlockers),
             'number',
