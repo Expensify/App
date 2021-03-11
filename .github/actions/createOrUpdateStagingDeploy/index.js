@@ -22,8 +22,8 @@ const githubUtils = new GithubUtils(octokit);
 githubUtils.getStagingDeployCash()
     .then(() => githubUtils.updateStagingDeployCash(
         newVersion,
-        core.getInput('NEW_PULL_REQUESTS').split(',') || [],
-        core.getInput('NEW_DEPLOY_BLOCKERS').split(',') || [],
+        _.map(core.getInput('NEW_PULL_REQUESTS').split(','), PR => PR.trim()) || [],
+        _.map(core.getInput('NEW_DEPLOY_BLOCKERS').split(','), deployBlocker => deployBlocker.trim()) || [],
     ))
     .catch((err) => {
         // Unable to find the open StagingDeployCash
