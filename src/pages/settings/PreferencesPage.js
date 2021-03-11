@@ -74,17 +74,20 @@ class PreferencesPage extends Component {
                 />
                 <View style={styles.pageWrapper}>
                     <View style={[styles.settingsPageBody, styles.mb6]}>
+                        <Text style={[styles.formLabel]} numberOfLines={1}>Notifications</Text>
                         <View style={[styles.flexRow, styles.mb5, styles.justifyContentBetween]}>
-                            <Text>
-                                Relevent feature updates and
-                                {'\n'}
-                                Expensify news
-                            </Text>
-                            <ToggleSwitch
-                                isOn={this.state.isNewsStatusEnabled}
-                                onColor={colors.green}
-                                onToggle={this.toggleNewsStatus}
-                            />
+                            <View style={styles.flex4}>
+                                <Text>
+                                    Receive relevant feature updates and Expensify news
+                                </Text>
+                            </View>
+                            <View style={[styles.flex1, styles.alignItemsEnd]}>
+                                <ToggleSwitch
+                                    isOn={this.state.isNewsStatusEnabled}
+                                    onColor={colors.green}
+                                    onToggle={this.toggleNewsStatus}
+                                />
+                            </View>
                         </View>
                         <Text style={[styles.formLabel]} numberOfLines={1}>
                             Priority Mode
