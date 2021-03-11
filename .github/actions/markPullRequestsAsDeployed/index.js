@@ -50,7 +50,6 @@ const semverParse = __nccwpck_require__(5925);
 const semverSatisfies = __nccwpck_require__(6055);
 
 const GITHUB_OWNER = 'Expensify';
-const EXPENSIFY_ISSUE_REPO = 'Expensify';
 const EXPENSIFY_CASH_REPO = 'Expensify.cash';
 const EXPENSIFY_CASH_URL = 'https://github.com/Expensify/Expensify.cash';
 
@@ -78,7 +77,7 @@ class GithubUtils {
     getStagingDeployCash() {
         return this.octokit.issues.listForRepo({
             owner: GITHUB_OWNER,
-            repo: EXPENSIFY_ISSUE_REPO,
+            repo: EXPENSIFY_CASH_REPO,
             labels: STAGING_DEPLOY_CASH_LABEL,
             state: 'open',
         })
@@ -267,7 +266,7 @@ class GithubUtils {
         return this.generateStagingDeployCashBody(tag, PRList)
             .then(body => this.octokit.issues.create({
                 owner: GITHUB_OWNER,
-                repo: EXPENSIFY_ISSUE_REPO,
+                repo: EXPENSIFY_CASH_REPO,
                 labels: STAGING_DEPLOY_CASH_LABEL,
                 assignee: APPLAUSE_BOT,
                 title,
@@ -321,7 +320,7 @@ class GithubUtils {
             })
             .then(updatedBody => this.octokit.issues.update({
                 owner: GITHUB_OWNER,
-                repo: EXPENSIFY_ISSUE_REPO,
+                repo: EXPENSIFY_CASH_REPO,
                 issue_number: issueNumber,
                 body: updatedBody,
             }));
@@ -446,7 +445,6 @@ class GithubUtils {
 
 module.exports = GithubUtils;
 module.exports.GITHUB_OWNER = GITHUB_OWNER;
-module.exports.EXPENSIFY_ISSUE_REPO = EXPENSIFY_ISSUE_REPO;
 module.exports.EXPENSIFY_CASH_REPO = EXPENSIFY_CASH_REPO;
 
 

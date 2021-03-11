@@ -3,13 +3,12 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import OptionsSelector from '../components/OptionsSelector';
-import {getNewChatOptions} from '../libs/OptionsListUtils';
+import {getNewChatOptions, getHeaderMessage} from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import KeyboardSpacer from '../components/KeyboardSpacer';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
-import CONST from '../CONST';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import Navigation from '../libs/Navigation/Navigation';
 import ScreenWrapper from '../components/ScreenWrapper';
@@ -67,26 +66,6 @@ class NewChatPage extends Component {
     }
 
     /**
-     * Helper method that returns the text to be used for the header's message and title (if any)
-     *
-     * @return {String}
-     */
-    getHeaderTitleAndMessage() {
-        const hasSelectableOptions = this.state.personalDetails.length !== 0;
-        if (!hasSelectableOptions && !this.state.userToInvite) {
-            return {
-                headerTitle: '',
-                headerMessage: CONST.MESSAGES.NO_CONTACTS_FOUND,
-            };
-        }
-
-        return {
-            headerTitle: '',
-            headerMessage: '',
-        };
-    }
-
-    /**
      * Returns the sections needed for the OptionsSelector
      *
      * @returns {Array}
@@ -126,7 +105,10 @@ class NewChatPage extends Component {
 
     render() {
         const sections = this.getSections();
-        const {headerTitle, headerMessage} = this.getHeaderTitleAndMessage();
+        const headerMessage = getHeaderMessage(
+            this.state.personalDetails.length !== 0,
+            Boolean(this.state.userToInvite),
+        );
 
         return (
             <ScreenWrapper>
@@ -156,7 +138,6 @@ class NewChatPage extends Component {
                                         personalDetails,
                                     });
                                 }}
-                                headerTitle={headerTitle}
                                 headerMessage={headerMessage}
                                 hideSectionHeaders
                                 disableArrowKeysActions

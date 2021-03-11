@@ -112,13 +112,13 @@ describe('GithubUtils', () => {
     describe('updateStagingDeployCash', () => {
         test('successfully updates issue', () => {
             const issueBefore = {
-                url: 'https://api.github.com/repos/Expensify/Expensify/issues/29',
+                url: 'https://api.github.com/repos/Expensify/Expensify.cash/issues/29',
                 title: 'Test StagingDeployCash',
                 labels: [
                     {
                         id: 2783847782,
                         node_id: 'MDU6TGFiZWwyNzgzODQ3Nzgy',
-                        url: 'https://api.github.com/repos/Expensify/Expensify/labels/StagingDeployCash',
+                        url: 'https://api.github.com/repos/Expensify/Expensify.cash/labels/StagingDeployCash',
                         name: 'StagingDeployCash',
                         color: '6FC269',
                         default: false,
@@ -153,8 +153,8 @@ describe('GithubUtils', () => {
                 ],
             ).then((result) => {
                 expect(result).toStrictEqual({
-                    owner: 'Expensify',
-                    repo: 'Expensify',
+                    owner: GithubUtils.GITHUB_OWNER,
+                    repo: GithubUtils.EXPENSIFY_CASH_REPO,
                     issue_number: 29,
                     // eslint-disable-next-line max-len
                     body: '**Release Version:** `1.0.1-48`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/1.0.1-0...1.0.1-48\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/21\r\n- [x] https://github.com/Expensify/Expensify.cash/pull/22\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/23\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/24\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/25\r\n\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/issues/1\r\n- [x] https://github.com/Expensify/Expensify.cash/issues/2\r\n- [ ] https://github.com/Expensify/Expensify.cash/issues/3\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/1234\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/4321\r\n',
@@ -255,10 +255,10 @@ describe('GithubUtils', () => {
         const title = 'Test StagingDeployCash title';
         const tag = '1.0.2-12';
         const PRList = [
-            'https://github.com/Expensify/Expensify/pull/2',
-            'https://github.com/Expensify/Expensify/pull/3',
-            'https://github.com/Expensify/Expensify/pull/3',
-            'https://github.com/Expensify/Expensify/pull/1',
+            'https://github.com/Expensify/Expensify.cash/pull/2',
+            'https://github.com/Expensify/Expensify.cash/pull/3',
+            'https://github.com/Expensify/Expensify.cash/pull/3',
+            'https://github.com/Expensify/Expensify.cash/pull/1',
         ];
 
         test('Issue is successfully created', () => (
@@ -266,12 +266,12 @@ describe('GithubUtils', () => {
                 .then((newIssue) => {
                     expect(newIssue).toStrictEqual({
                         owner: GithubUtils.GITHUB_OWNER,
-                        repo: GithubUtils.EXPENSIFY_ISSUE_REPO,
+                        repo: GithubUtils.EXPENSIFY_CASH_REPO,
                         labels: 'StagingDeployCash',
                         assignee: 'applausebot',
                         title,
                         // eslint-disable-next-line max-len
-                        body: `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/1.0.2...1.0.2-12\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/Expensify/pull/1\r\n- [ ] https://github.com/Expensify/Expensify/pull/2\r\n- [ ] https://github.com/Expensify/Expensify/pull/3\r\n`,
+                        body: `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/1.0.2...1.0.2-12\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/1\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/2\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/3\r\n`,
                     });
                 })
         ));
@@ -293,15 +293,15 @@ describe('GithubUtils', () => {
         const tag = '1.0.2-12';
         const comparisonURL = 'https://github.com/Expensify/Expensify.cash/compare/1.0.2...1.0.2-12';
         const basePRList = [
-            'https://github.com/Expensify/Expensify/pull/2',
-            'https://github.com/Expensify/Expensify/pull/3',
-            'https://github.com/Expensify/Expensify/pull/3',
-            'https://github.com/Expensify/Expensify/pull/1',
+            'https://github.com/Expensify/Expensify.cash/pull/2',
+            'https://github.com/Expensify/Expensify.cash/pull/3',
+            'https://github.com/Expensify/Expensify.cash/pull/3',
+            'https://github.com/Expensify/Expensify.cash/pull/1',
         ];
 
         const baseDeployBlockerList = [
-            'https://github.com/Expensify/Expensify/pull/3',
-            'https://github.com/Expensify/Expensify/issues/4',
+            'https://github.com/Expensify/Expensify.cash/pull/3',
+            'https://github.com/Expensify/Expensify.cash/issues/4',
         ];
 
         // eslint-disable-next-line max-len
