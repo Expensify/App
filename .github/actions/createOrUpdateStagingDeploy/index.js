@@ -186,7 +186,7 @@ class GithubUtils {
                 comparisonURL,
             };
         } catch (exception) {
-            throw new Error(`Unable to find ${STAGING_DEPLOY_CASH_LABEL} issue with correct data. Error: ${exception}`);
+            throw new Error(`Unable to find ${STAGING_DEPLOY_CASH_LABEL} issue with correct data.`);
         }
     }
 
