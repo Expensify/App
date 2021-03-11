@@ -25,7 +25,7 @@ githubUtils.getStagingDeployCash()
             return octokit.issues.listForRepo({
                 owner: GithubUtils.GITHUB_OWNER,
                 repo: GithubUtils.EXPENSIFY_CASH_REPO,
-                labels: GithubUtils.STAGING_DEPLOY_CASH_LABEL,
+                labels: [GithubUtils.STAGING_DEPLOY_CASH_LABEL],
                 state: 'closed',
             });
         }
