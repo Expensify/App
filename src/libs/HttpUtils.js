@@ -3,7 +3,6 @@ import Onyx from 'react-native-onyx';
 import CONST from '../CONST';
 import CONFIG from '../CONFIG';
 import ONYXKEYS from '../ONYXKEYS';
-import NetworkConnection from './NetworkConnection';
 
 /**
  * Send an HTTP request, and attempt to resolve the json response.
@@ -25,8 +24,6 @@ function processHTTPRequest(url, method = 'get', body = null) {
         // does NOT catch
         .catch((error) => {
             console.debug('[HttpUtils] Handled error when calling fetch()', error);
-
-            NetworkConnection.setOfflineStatus(true);
 
             // Set an error state and signify we are done loading
             Onyx.merge(ONYXKEYS.SESSION, {loading: false, error: 'Cannot connect to server'});

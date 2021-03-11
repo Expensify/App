@@ -8,77 +8,156 @@ module.exports =
 /***/ 2407:
 /***/ ((__unused_webpack_module, __unused_webpack_exports, __nccwpck_require__) => {
 
-const {exec} = __nccwpck_require__(3129);
+const {promisify} = __nccwpck_require__(1669);
+const exec = promisify(__nccwpck_require__(3129).exec);
 const fs = __nccwpck_require__(5747);
 const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
+const {updateAndroidVersion, updateiOSVersion} = __nccwpck_require__(322);
+
+/**
+ * Update the native app versions.
+ *
+ * @param {String} newVersion
+ */
+function updateNativeVersions(newVersion) {
+    console.log(`Updating native versions to ${newVersion}`);
+
+    // Update Android
+    updateAndroidVersion(newVersion)
+        .then(() => {
+            console.log('Successfully updated Android!');
+        })
+        .catch((err) => {
+            console.error('Error updating Android');
+            core.setFailed(err);
+        });
+
+    // Update iOS
+    updateiOSVersion(newVersion)
+        .then(() => {
+            console.log('Successfully updated iOS!');
+        })
+        .catch((err) => {
+            console.error('Error updating iOS');
+            core.setFailed(err);
+        });
+}
 
 // Use Github Actions' default environment variables to get repo information
 // https://docs.github.com/en/free-pro-team@latest/actions/reference/environment-variables#default-environment-variables
 const [repoOwner, repoName] = process.env.GITHUB_REPOSITORY.split('/');
 
-const MAX_RETRIES = 10;
-let errCount = 0;
-let shouldRetry;
+// Determine current patch version
+const {version} = JSON.parse(fs.readFileSync('./package.json'));
+const currentPatchVersion = version.split('-')[0];
+console.log('Current patch version:', currentPatchVersion);
 
-do {
-    shouldRetry = false;
-    // eslint-disable-next-line no-loop-func
-    exec('npm version prerelease -m "Update version to %s"', (err, stdout, stderr) => {
+let newVersion;
+
+// Fetch tags
+console.log('Fetching tags from github...');
+const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
+return octokit.repos.listTags({
+    owner: repoOwner,
+    repo: repoName,
+})
+    .catch(githubError => core.setFailed(githubError))
+    .then((githubResponse) => {
+        // Find the highest build version git tag
+        const tags = githubResponse.data.map(tag => tag.name);
+        console.log('Tags: ', tags);
+        const highestBuildNumber = Math.max(
+            ...(tags
+                .filter(tag => (tag.startsWith(currentPatchVersion)))
+                .map(tag => tag.split('-')[1])
+            ),
+
+            // Provide a default of 0 for minimum build version
+            0,
+        );
+        console.log('Highest build number from current patch version:', highestBuildNumber);
+
+        // Increment the build version, update the native and npm versions.
+        newVersion = `${currentPatchVersion}-${highestBuildNumber + 1}`;
+        updateNativeVersions(newVersion);
+        console.log(`Setting npm version for this PR to ${newVersion}`);
+        return exec(`npm --no-git-tag-version version ${newVersion} -m "Update version to ${newVersion}"`);
+    })
+    .then(({stdout}) => {
+        // NPM and native versions successfully updated, output new version
         console.log(stdout);
-        if (err) {
-            console.log(stderr);
-
-            // It's possible that two PRs were merged in rapid succession.
-            // In this case, both PRs will attempt to update to the same npm version.
-            // This will cause the deploy to fail with an exit code 128
-            // saying the git tag for that version already exists.
-            if (errCount < MAX_RETRIES) {
-                console.log(
-                    'Err: npm version conflict, attempting to automatically resolve',
-                    `retryCount: ${++errCount}`,
-                );
-                shouldRetry = true;
-                const {version} = JSON.parse(fs.readFileSync('./package.json'));
-                const currentPatchVersion = `v${version.slice(0, -4)}`;
-                console.log('Current patch version:', currentPatchVersion);
-
-                // Get the highest build version git tag from the repo
-                console.log('Fetching tags from github...');
-                const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
-                octokit.repos.listTags({
-                    owner: repoOwner,
-                    repo: repoName,
-                })
-                    .then((response) => {
-                        const tags = response.data.map(tag => tag.name);
-                        console.log('Tags: ', tags);
-                        const highestBuildNumber = Math.max(
-                            ...(tags
-                                .filter(tag => tag.startsWith(currentPatchVersion))
-                                .map(tag => tag.split('-')[1])
-                            ),
-                        );
-                        console.log('Highest build number from current patch version:', highestBuildNumber);
-
-                        const newBuildNumber = `${currentPatchVersion}-${highestBuildNumber + 1}`;
-                        console.log(`Setting npm version for this PR to ${newBuildNumber}`);
-                        exec(`npm version ${newBuildNumber} -m "Update version to ${newBuildNumber}"`,
-                            // eslint-disable-next-line no-shadow
-                            (err, stdout, stderr) => {
-                                console.log(stdout);
-                                if (err) {
-                                    console.log(stderr);
-                                }
-                            });
-                    })
-                    .catch(exception => core.setFailed(exception));
-            } else {
-                core.setFailed(err);
-            }
-        }
+        core.setOutput('newVersion', newVersion);
+    })
+    .catch(({stdout, stderr}) => {
+        // Log errors and retry
+        console.log(stdout);
+        console.error(stderr);
+        core.setFailed('An error occurred in the `npm version` command');
     });
-} while (shouldRetry);
+
+
+/***/ }),
+
+/***/ 322:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+const {promisify} = __nccwpck_require__(1669);
+const exec = promisify(__nccwpck_require__(3129).exec);
+const fs = __nccwpck_require__(5747).promises;
+const path = __nccwpck_require__(5622);
+
+// Filepath constants
+const BUILD_GRADLE_PATH = process.env.NODE_ENV === 'test'
+    ? path.resolve(__dirname, '../../android/app/build.gradle')
+    : './android/app/build.gradle';
+const PLIST_PATH = './ios/ExpensifyCash/Info.plist';
+const PLIST_PATH_TEST = './ios/ExpensifyCashTests/Info.plist';
+
+exports.BUILD_GRADLE_PATH = BUILD_GRADLE_PATH;
+exports.PLIST_PATH = PLIST_PATH;
+exports.PLIST_PATH_TEST = PLIST_PATH_TEST;
+
+/**
+ * Update the Android app versionName and versionCode.
+ *
+ * @param {String} versionName
+ * @returns {Promise}
+ */
+exports.updateAndroidVersion = function updateAndroidVersion(versionName) {
+    console.log('Updating android:', `versionName: ${versionName}`);
+    return fs.readFile(BUILD_GRADLE_PATH, {encoding: 'utf8'})
+        .then((content) => {
+            const updatedContent = content.toString().replace(
+                /versionName "([0-9.-]+)"/,
+                `versionName "${versionName}"`,
+            );
+            return updatedContent.replace(
+                /versionCode ([0-9]+)/,
+                (_, oldVersionCode) => `versionCode ${Number.parseInt(oldVersionCode, 10) + 1}`,
+            );
+        })
+        .then(updatedContent => fs.writeFile(BUILD_GRADLE_PATH, updatedContent, {encoding: 'utf8'}));
+};
+
+/**
+ * Update the iOS app version.
+ * Updates the CFBundleShortVersionString and the CFBundleVersion.
+ *
+ * @param {String} version
+ * @returns {Promise}
+ */
+exports.updateiOSVersion = function updateiOSVersion(version) {
+    const shortVersion = version.split('-')[0];
+    const cfVersion = version.replace('-', '.');
+    console.log('Updating iOS', `CFBundleShortVersionString: ${shortVersion}`, `CFBundleVersion: ${version}`);
+    return Promise.all([
+        exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH}`),
+        exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH_TEST}`),
+        exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH}`),
+        exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH_TEST}`),
+    ]);
+};
 
 
 /***/ }),

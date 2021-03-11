@@ -1,5 +1,9 @@
 import React from 'react';
-import {View, Keyboard, AppState} from 'react-native';
+import {
+    View,
+    Keyboard,
+    AppState,
+} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
@@ -23,6 +27,15 @@ const propTypes = {
 
     /* Onyx Props */
 
+    // The report currently being looked at
+    report: PropTypes.shape({
+        // Number of actions unread
+        unreadActionCount: PropTypes.number,
+
+        // Number of the last sequence
+        maxSequenceNumber: PropTypes.number,
+    }),
+
     // Array of report actions for this report
     reportActions: PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
 
@@ -34,6 +47,10 @@ const propTypes = {
 };
 
 const defaultProps = {
+    report: {
+        unreadActionCount: 0,
+        maxSequenceNumber: 0,
+    },
     reportActions: {},
     session: {},
 };
@@ -49,10 +66,16 @@ class ReportActionsView extends React.Component {
         this.onVisibilityChange = this.onVisibilityChange.bind(this);
         this.onMarkAsUnread = this.onMarkAsUnread.bind(this);
         this.sortedReportActions = this.updateSortedReportActions();
+        this.sortedReportActions = [];
         this.timers = [];
+
+        // Helper variable that prevents the unread indicator to show up for new messages
+        // received while the report is still active
+        this.shouldShowUnreadActionIndicator = true;
 
         this.state = {
             refetchNeeded: true,
+            unreadActionCount: 0,
         };
     }
 
@@ -67,12 +90,16 @@ class ReportActionsView extends React.Component {
         fetchActions(this.props.reportID);
     }
 
-    shouldComponentUpdate(nextProps) {
+    shouldComponentUpdate(nextProps, nextState) {
         if (nextProps.isActiveReport !== this.props.isActiveReport) {
             return true;
         }
 
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
+            return true;
+        }
+
+        if (nextState.unreadActionCount !== this.state.unreadActionCount) {
             return true;
         }
 
@@ -138,8 +165,10 @@ class ReportActionsView extends React.Component {
     }
 
     onMarkAsUnread(actionIndex) {
-        console.log(actionIndex);
-        updateLastReadActionID(this.props.reportID, actionIndex, true);
+        updateLastReadActionID(this.props.reportID, actionIndex, this.props.report);
+        this.setState({
+            unreadActionCount: this.props.report.maxSequenceNumber - actionIndex,
+        });
     }
 
     /**
@@ -150,6 +179,23 @@ class ReportActionsView extends React.Component {
      */
     setRefetchNeeded(refetchNeeded) {
         this.setState({refetchNeeded});
+    }
+
+    /**
+     * Checks if the unreadActionIndicator should be shown.
+     * If it does, starts a timeout for the fading out animation and creates
+     * a flag to not show it again if the report is still open
+     */
+    setUpUnreadActionIndicator() {
+        if (!this.props.isActiveReport || !this.shouldShowUnreadActionIndicator) {
+            return;
+        }
+
+        this.setState({
+            unreadActionCount: this.props.report.unreadActionCount,
+        });
+
+        this.shouldShowUnreadActionIndicator = false;
     }
 
     /**
@@ -265,14 +311,21 @@ class ReportActionsView extends React.Component {
         needsLayoutCalculation,
     }) {
         return (
-            <ReportActionItem
-                reportID={this.props.reportID}
-                action={item.action}
-                displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
-                onLayout={onLayout}
-                onMarkAsUnread={() => this.onMarkAsUnread(index)}
-                needsLayoutCalculation={needsLayoutCalculation}
-            />
+
+        // Using <View /> instead of a Fragment because there is a difference between how
+        // <InvertedFlatList /> are implemented on native and web/desktop which leads to
+        // the unread indicator on native to render below the message instead of above it.
+            <View>
+                <ReportActionItem
+                    reportID={this.props.reportID}
+                    action={item.action}
+                    displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
+                    onLayout={onLayout}
+                    needsLayoutCalculation={needsLayoutCalculation}
+                    onMarkAsUnread={() => this.onMarkAsUnread(item.action.sequenceNumber - 1)}
+                    displayNewIndicator={this.state.unreadActionCount > 0 && index === this.state.unreadActionCount - 1}
+                />
+            </View>
         );
     }
 
@@ -291,6 +344,7 @@ class ReportActionsView extends React.Component {
             );
         }
 
+        this.setUpUnreadActionIndicator();
         this.updateSortedReportActions();
         return (
             <InvertedFlatList
@@ -310,6 +364,9 @@ ReportActionsView.propTypes = propTypes;
 ReportActionsView.defaultProps = defaultProps;
 
 export default withOnyx({
+    report: {
+        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+    },
     reportActions: {
         key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
         canEvict: props => !props.isActiveReport,

@@ -68,7 +68,7 @@ const defaultProps = {
 };
 
 const ReportActionContextMenu = (props) => {
-    const wrapperStyle = getReportActionContextMenuStyles(props.isMini);
+    const wrapperStyle = getReportActionContextMenuStyles(true);
     return props.isVisible && (
         <View style={wrapperStyle}>
             {CONTEXT_ACTIONS.map(contextAction => (

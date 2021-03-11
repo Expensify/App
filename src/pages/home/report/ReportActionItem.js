@@ -11,6 +11,7 @@ import PopoverWithMeasuredContent from '../../../components/PopoverWithMeasuredC
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemGrouped from './ReportActionItemGrouped';
 import ReportActionContextMenu from './ReportActionContextMenu';
+import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
 
 const propTypes = {
     // The ID of the report this action is on.
@@ -24,6 +25,8 @@ const propTypes = {
 
     //
     onMarkAsUnread: PropTypes.func.isRequired,
+
+    displayNewIndicator: PropTypes.bool.isRequired,
 };
 
 class ReportActionItem extends Component {
@@ -47,7 +50,8 @@ class ReportActionItem extends Component {
     shouldComponentUpdate(nextProps, nextState) {
         return this.state.isPopoverVisible !== nextState.isPopoverVisible
             || this.props.displayAsGroup !== nextProps.displayAsGroup
-            || !_.isEqual(this.props.action, nextProps.action);
+            || !_.isEqual(this.props.action, nextProps.action)
+            || this.props.displayNewIndicator !== nextProps.displayNewIndicator;
     }
 
     /**
@@ -86,6 +90,7 @@ class ReportActionItem extends Component {
                 <Hoverable>
                     {hovered => (
                         <View>
+                            {this.props.displayNewIndicator && (<UnreadActionIndicator />)}
                             <View style={getReportActionItemStyles(hovered)}>
                                 {!this.props.displayAsGroup
                                     ? <ReportActionItemSingle action={this.props.action} />

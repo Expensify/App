@@ -205,13 +205,14 @@ function fetchChatReportsByIDs(chatList) {
  *
  * @param {Number} reportID
  * @param {Number} sequenceNumber
+ * @param {Object} report
  */
-function setLocalLastRead(reportID, sequenceNumber) {
+function setLocalLastRead(reportID, sequenceNumber, report = null) {
     lastReadSequenceNumbers[reportID] = sequenceNumber;
 
     // Update the report optimistically
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-        unreadActionCount: 0,
+        unreadActionCount: report ? report.maxSequenceNumber - sequenceNumber : 0,
         lastVisitedTimestamp: Date.now(),
     });
 }
@@ -609,7 +610,7 @@ function addAction(reportID, text, file) {
 
             // Use the client generated ID as a optimistic action ID so we can remove it later
             sequenceNumber: optimisticReportActionID,
-            avatar: myPersonalDetails.avatarURL,
+            avatar: myPersonalDetails.avatar,
             timestamp: moment().unix(),
             message: [
                 {
@@ -633,6 +634,11 @@ function addAction(reportID, text, file) {
         reportComment: htmlComment,
         file,
         clientID: optimisticReportActionID,
+
+        // The persist flag enables this request to be retried if we are offline and the app is completely killed. We do
+        // not retry attachments as we have no solution for storing them persistently and attachments can't be "lost" in
+        // the same way report actions can.
+        persist: !isAttachment,
     })
         .then(({reportAction}) => updateReportWithNewAction(reportID, reportAction));
 }
@@ -643,14 +649,10 @@ function addAction(reportID, text, file) {
  *
  * @param {Number} reportID
  * @param {Number} sequenceNumber
+ * @param {Object} report
  */
-function updateLastReadActionID(reportID, sequenceNumber) {
-    const currentMaxSequenceNumber = reportMaxSequenceNumbers[reportID];
-    if (sequenceNumber < currentMaxSequenceNumber) {
-        return;
-    }
-
-    setLocalLastRead(reportID, sequenceNumber);
+function updateLastReadActionID(reportID, sequenceNumber, report = null) {
+    setLocalLastRead(reportID, sequenceNumber, report);
 
     // Mark the report as not having any unread items
     API.Report_UpdateLastRead({
