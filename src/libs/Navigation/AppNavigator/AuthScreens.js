@@ -157,14 +157,6 @@ class AuthScreens extends React.Component {
                             )}
                         >
                             <Drawer.Screen
-                                name="Loading"
-                                component={ReportScreen}
-                                options={{
-                                    cardStyle: styles.navigationScreenCardStyle,
-                                    headerShown: false,
-                                }}
-                            />
-                            <Drawer.Screen
                                 name="Report"
                                 component={ReportScreen}
                                 options={{
@@ -177,6 +169,10 @@ class AuthScreens extends React.Component {
                 </RootStack.Screen>
 
                 {/* These are the various modal routes */}
+                {/* Note: Each modal must have it's own stack navigator since we want to be able to navigate to any
+                modal subscreens e.g. `/settings/profile` and this will allow us to navigate while inside the modal. We
+                are also using a custom navigator on web so even if a modal does not have any subscreens it still must
+                use a navigator */}
                 <RootStack.Screen
                     name="Settings"
                     options={modalScreenOptions}
