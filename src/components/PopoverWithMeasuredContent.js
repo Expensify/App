@@ -41,6 +41,12 @@ const defaultProps = {
     },
 };
 
+/**
+ * This is a convenient wrapper around the regular Popover component that allows us to use a more sophisticated
+ * positioning schema responsively (without having to provide a static width and height for the popover content).
+ * This way, we can shift the position of popover so that the content is anchored where we want it relative to the
+ * anchor position.
+ */
 class PopoverWithMeasuredContent extends Component {
     constructor(props) {
         super(props);
