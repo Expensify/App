@@ -28,7 +28,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    priorityMode: 'test',
+    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
     user: {},
 };
 
