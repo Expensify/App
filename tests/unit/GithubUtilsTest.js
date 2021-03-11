@@ -268,7 +268,7 @@ describe('GithubUtils', () => {
                         owner: GithubUtils.GITHUB_OWNER,
                         repo: GithubUtils.EXPENSIFY_CASH_REPO,
                         labels: ['StagingDeployCash'],
-                        assignee: 'applausebot',
+                        assignees: ['applausebot'],
                         title,
                         // eslint-disable-next-line max-len
                         body: `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/1.0.2-0...1.0.2-12\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/1\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/2\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/3\r\n`,
