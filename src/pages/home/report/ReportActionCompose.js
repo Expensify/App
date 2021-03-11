@@ -72,7 +72,7 @@ class ReportActionCompose extends React.Component {
         }
 
         // When any modal goes from visible to hidden, bring focus to the compose field
-        if (prevProps.modal.isVisible === true && this.props.modal.isVisible === false) {
+        if (prevProps.modal.isVisible && !this.props.modal.isVisible) {
             this.setIsFocused(true);
         }
     }
