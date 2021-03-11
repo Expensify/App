@@ -71,6 +71,9 @@ class ReportActionCompose extends React.Component {
      */
     setIsFocused(shouldHighlight) {
         this.setState({isFocused: shouldHighlight});
+        if (shouldHighlight && this.textInput) {
+            this.textInput.focus();
+        }
     }
 
     /**
@@ -162,6 +165,9 @@ class ReportActionCompose extends React.Component {
                         onConfirm={(file) => {
                             addAction(this.props.reportID, '', file);
                             this.setTextInputShouldClear(false);
+                        }}
+                        onModalHide={() => {
+                            this.setIsFocused(true);
                         }}
                     >
                         {({displayFileInModal}) => (

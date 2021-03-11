@@ -29,25 +29,28 @@ const defaultProps = {
 
 const RightDockedModal = memo(({
     route, children, currentURL,
-}) => (
-    <Modal
-        type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
-        onClose={redirectToLastReport}
-        isVisible={currentURL === route}
-        backgroundColor={themeColors.componentBG}
-    >
-        {children}
-    </Modal>
-));
+}) => {
+    // Using includes allows for subroutes to work.
+    // All /settings/:route subroutes would go to the SettingsPage and
+    // that page will render the right components for the subroute.
+    const isVisible = currentURL.includes(route);
+    return (
+        <Modal
+            type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
+            onClose={redirectToLastReport}
+            isVisible={isVisible}
+            backgroundColor={themeColors.componentBG}
+        >
+            {children}
+        </Modal>
+    );
+});
 
 RightDockedModal.propTypes = propTypes;
 RightDockedModal.defaultProps = defaultProps;
 RightDockedModal.displayName = 'RightDockedModal';
 
 export default withOnyx({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
     currentURL: {
         key: ONYXKEYS.CURRENT_URL,
     },

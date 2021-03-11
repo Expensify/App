@@ -1,23 +1,24 @@
 const {promisify} = require('util');
 const exec = promisify(require('child_process').exec);
+const _ = require('underscore');
 const core = require('@actions/core');
 const github = require('@actions/github');
-const functions = require('./functions');
-const {updateAndroidVersion, updateiOSVersion} = require('../../libs/nativeVersionUpdater');
+const versionUpdater = require('../../libs/versionUpdater');
+const {updateAndroidVersion, updateiOSVersion, generateAndroidVersionCode} = require('../../libs/nativeVersionUpdater');
 
 let newVersion;
 
 /**
  * Update the native app versions.
  *
- * @param {String} newVersion
+ * @param {String} version
  */
-// eslint-disable-next-line no-shadow
-function updateNativeVersions(newVersion) {
-    console.log(`Updating native versions to ${newVersion}`);
+function updateNativeVersions(version) {
+    console.log(`Updating native versions to ${version}`);
 
     // Update Android
-    updateAndroidVersion(newVersion)
+    const androidVersionCode = generateAndroidVersionCode(version);
+    updateAndroidVersion(version, androidVersionCode)
         .then(() => {
             console.log('Successfully updated Android!');
         })
@@ -27,9 +28,16 @@ function updateNativeVersions(newVersion) {
         });
 
     // Update iOS
-    updateiOSVersion(newVersion)
-        .then(() => {
-            console.log('Successfully updated iOS!');
+    updateiOSVersion(version)
+        .then((promiseValues) => {
+            // The first promiseValue will be the CFBundleVersion, so confirm it has 4 parts before setting the env var
+            const cfBundleVersion = promiseValues[0];
+            if (_.isString(cfBundleVersion) && cfBundleVersion.split('.').length === 4) {
+                core.setOutput('NEW_IOS_VERSION', cfBundleVersion);
+                console.log('Successfully updated iOS!');
+            } else {
+                core.setFailed(`Failed to set NEW_IOS_VERSION. CFBundleVersion: ${cfBundleVersion}`);
+            }
         })
         .catch((err) => {
             console.error('Error updating iOS');
@@ -40,13 +48,12 @@ function updateNativeVersions(newVersion) {
 const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
 let semanticVersionLevel = core.getInput('SEMVER_LEVEL', {require: true});
 
-// it actually would fall to build anyway, but I think it is better to make it explicitly
-if (!semanticVersionLevel || !Object.values(functions.semanticVersionLevels).find(v => v === semanticVersionLevel)) {
+if (!semanticVersionLevel || !_.find(versionUpdater.SEMANTIC_VERSION_LEVELS, v => v === semanticVersionLevel)) {
     console.log(
         `Invalid input for 'SEMVER_LEVEL': ${semanticVersionLevel}`,
-        `Defaulting to: ${functions.semanticVersionLevels.build}`,
+        `Defaulting to: ${versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD}`,
     );
-    semanticVersionLevel = functions.semanticVersionLevels.build;
+    semanticVersionLevel = versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD;
 }
 console.log('Fetching tags from github...');
 octokit.repos.listTags({
@@ -63,7 +70,7 @@ octokit.repos.listTags({
 
         console.log(`Highest version found: ${highestVersion}.`);
 
-        newVersion = functions.incrementVersion(highestVersion, semanticVersionLevel);
+        newVersion = versionUpdater.incrementVersion(highestVersion, semanticVersionLevel);
 
         updateNativeVersions(newVersion);
         console.log(`Setting npm version for this PR to ${newVersion}`);
@@ -72,7 +79,7 @@ octokit.repos.listTags({
     .then(({stdout}) => {
         // NPM and native versions successfully updated, output new version
         console.log(stdout);
-        core.setOutput('VERSION', newVersion);
+        core.setOutput('NEW_VERSION', newVersion);
     })
     .catch(({stdout, stderr}) => {
         // Log errors and retry
