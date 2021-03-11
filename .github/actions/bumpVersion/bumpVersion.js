@@ -1,20 +1,24 @@
 const {promisify} = require('util');
 const exec = promisify(require('child_process').exec);
-const fs = require('fs');
+const _ = require('underscore');
 const core = require('@actions/core');
 const github = require('@actions/github');
-const {updateAndroidVersion, updateiOSVersion} = require('../../libs/nativeVersionUpdater');
+const versionUpdater = require('../../libs/versionUpdater');
+const {updateAndroidVersion, updateiOSVersion, generateAndroidVersionCode} = require('../../libs/nativeVersionUpdater');
+
+let newVersion;
 
 /**
  * Update the native app versions.
  *
- * @param {String} newVersion
+ * @param {String} version
  */
-function updateNativeVersions(newVersion) {
-    console.log(`Updating native versions to ${newVersion}`);
+function updateNativeVersions(version) {
+    console.log(`Updating native versions to ${version}`);
 
     // Update Android
-    updateAndroidVersion(newVersion)
+    const androidVersionCode = generateAndroidVersionCode(version);
+    updateAndroidVersion(version, androidVersionCode)
         .then(() => {
             console.log('Successfully updated Android!');
         })
@@ -24,9 +28,16 @@ function updateNativeVersions(newVersion) {
         });
 
     // Update iOS
-    updateiOSVersion(newVersion)
-        .then(() => {
-            console.log('Successfully updated iOS!');
+    updateiOSVersion(version)
+        .then((promiseValues) => {
+            // The first promiseValue will be the CFBundleVersion, so confirm it has 4 parts before setting the env var
+            const cfBundleVersion = promiseValues[0];
+            if (_.isString(cfBundleVersion) && cfBundleVersion.split('.').length === 4) {
+                core.setOutput('NEW_IOS_VERSION', cfBundleVersion);
+                console.log('Successfully updated iOS!');
+            } else {
+                core.setFailed(`Failed to set NEW_IOS_VERSION. CFBundleVersion: ${cfBundleVersion}`);
+            }
         })
         .catch((err) => {
             console.error('Error updating iOS');
@@ -34,39 +45,33 @@ function updateNativeVersions(newVersion) {
         });
 }
 
-// Use Github Actions' default environment variables to get repo information
-// https://docs.github.com/en/free-pro-team@latest/actions/reference/environment-variables#default-environment-variables
-const [repoOwner, repoName] = process.env.GITHUB_REPOSITORY.split('/');
-
-// Determine current patch version
-const {version} = JSON.parse(fs.readFileSync('./package.json'));
-const currentPatchVersion = version.split('-')[0];
-console.log('Current patch version:', currentPatchVersion);
-
-let newVersion;
-
-// Fetch tags
-console.log('Fetching tags from github...');
 const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
-return octokit.repos.listTags({
-    owner: repoOwner,
-    repo: repoName,
+let semanticVersionLevel = core.getInput('SEMVER_LEVEL', {require: true});
+
+if (!semanticVersionLevel || !_.find(versionUpdater.SEMANTIC_VERSION_LEVELS, v => v === semanticVersionLevel)) {
+    console.log(
+        `Invalid input for 'SEMVER_LEVEL': ${semanticVersionLevel}`,
+        `Defaulting to: ${versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD}`,
+    );
+    semanticVersionLevel = versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD;
+}
+console.log('Fetching tags from github...');
+octokit.repos.listTags({
+    owner: github.context.repo.owner,
+    repo: github.context.repo.repo,
 })
     .catch(githubError => core.setFailed(githubError))
     .then((githubResponse) => {
-        // Find the highest build version git tag
+        // Find the highest version git tag
         const tags = githubResponse.data.map(tag => tag.name);
-        console.log('Tags: ', tags);
-        const highestBuildNumber = Math.max(
-            ...(tags
-                .filter(tag => (tag.startsWith(currentPatchVersion)))
-                .map(tag => tag.split('-')[1])
-            ),
-        );
-        console.log('Highest build number from current patch version:', highestBuildNumber);
 
-        // Increment the build version, update the native and npm versions.
-        newVersion = `${currentPatchVersion}-${highestBuildNumber + 1}`;
+        // tags come from latest to oldest
+        const highestVersion = tags[0];
+
+        console.log(`Highest version found: ${highestVersion}.`);
+
+        newVersion = versionUpdater.incrementVersion(highestVersion, semanticVersionLevel);
+
         updateNativeVersions(newVersion);
         console.log(`Setting npm version for this PR to ${newVersion}`);
         return exec(`npm --no-git-tag-version version ${newVersion} -m "Update version to ${newVersion}"`);
@@ -74,7 +79,7 @@ return octokit.repos.listTags({
     .then(({stdout}) => {
         // NPM and native versions successfully updated, output new version
         console.log(stdout);
-        core.setOutput('newVersion', newVersion);
+        core.setOutput('NEW_VERSION', newVersion);
     })
     .catch(({stdout, stderr}) => {
         // Log errors and retry

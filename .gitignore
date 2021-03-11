@@ -23,6 +23,7 @@ DerivedData
 *.cer
 *.p12
 *.mobileprovision
+ios-fastlane-json-key.json
 
 # Android/IntelliJ
 #

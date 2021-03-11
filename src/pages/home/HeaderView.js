@@ -11,6 +11,9 @@ import {BackArrow, Pin} from '../../components/Icon/Expensicons';
 import compose from '../../libs/compose';
 import {togglePinnedState} from '../../libs/actions/Report';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
+import MultipleAvatars from '../../components/MultipleAvatars';
+import {redirect} from '../../libs/actions/App';
+import ROUTES from '../../ROUTES';
 import Tooltip from '../../components/Tooltip';
 import {getReportParticipantsTitle} from '../../libs/reportUtils';
 
@@ -64,6 +67,16 @@ const HeaderView = (props) => {
                             styles.justifyContentBetween,
                         ]}
                     >
+                        <Pressable
+                            onPress={() => {
+                                const {participants} = props.report;
+                                if (participants.length === 1) {
+                                    redirect(ROUTES.getProfileRoute(participants[0]));
+                                }
+                            }}
+                        >
+                            <MultipleAvatars avatarImageURLs={props.report.icons} />
+                        </Pressable>
                         <View style={[styles.flex1, styles.flexRow]}>
                             <Tooltip text={participantsTitle}>
                                 <Header title={props.report.reportName} />
