@@ -1,9 +1,8 @@
-// eslint-disable-next-line valid-jsdoc
 /**
  * Does an elment has ellipsis
  *
- * @param {*} el
- * @returns
+ * @param {HTMLElement} el Element to check
+ * @returns {Boolean}
  */
 function hasEllipsis(el) {
     return el.offsetWidth < el.scrollWidth;

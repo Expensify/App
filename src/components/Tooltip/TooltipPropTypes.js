@@ -23,4 +23,12 @@ const propTypes = {
     shiftVertical: PropTypes.oneOfType([PropTypes.number, PropTypes.func]),
 };
 
-export default propTypes;
+const defaultProps = {
+    shiftHorizontal: 0,
+    shiftVertical: 0,
+};
+
+export {
+    propTypes,
+    defaultProps,
+};
