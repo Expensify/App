@@ -31,7 +31,7 @@ npm run gh-actions-build
 
 # Check for a diff
 printf '\nChecking for a diff...\n'
-git diff --exit-code | diff-so-fancy | less --tabs=4 -RFX
+git diff --exit-code | diff-so-fancy
 
 # Runs git diff quietly to get the exit code
 declare EXIT_CODE
@@ -42,6 +42,6 @@ if [[ EXIT_CODE -eq 0 ]]; then
     echo -e "${GREEN}Github Actions are up to date!${NC}"
     exit 0
 else
-    echo -e "${RED}Error: Diff found when Github Actions were rebuilt. Did you forget to run \`npm run gh-actions-build${NC}"
+    echo -e "${RED}Error: Diff found when Github Actions were rebuilt. Did you forget to run \`npm run gh-actions-build\`?${NC}"
     exit 1
 fi
