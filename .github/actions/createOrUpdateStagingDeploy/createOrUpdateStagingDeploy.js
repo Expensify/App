@@ -1,15 +1,12 @@
 const _ = require('underscore');
 const core = require('@actions/core');
-const {GitHub, getOctokitOptions} = require('@actions/github/lib/utils');
+const github = require('@actions/github');
 const moment = require('moment');
-const {requestLog} = require('@octokit/plugin-request-log');
 const GithubUtils = require('../../libs/GithubUtils');
 const GitUtils = require('../../libs/GitUtils');
 
 const newVersion = core.getInput('NPM_VERSION', {required: true});
-
-const VerboseOctokit = GitHub.plugin(requestLog);
-const octokit = new VerboseOctokit(getOctokitOptions(core.getInput('GITHUB_TOKEN', {required: true})));
+const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
 const githubUtils = new GithubUtils(octokit);
 
 githubUtils.getStagingDeployCash()
@@ -26,6 +23,7 @@ githubUtils.getStagingDeployCash()
 
             // Fetch all the StagingDeployCash issues
             return octokit.issues.listForRepo({
+                log: console,
                 owner: GithubUtils.GITHUB_OWNER,
                 repo: GithubUtils.EXPENSIFY_CASH_REPO,
                 labels: GithubUtils.STAGING_DEPLOY_CASH_LABEL,
@@ -57,4 +55,7 @@ githubUtils.getStagingDeployCash()
         _.map(PRNumbers, GithubUtils.getPullRequestURLFromNumber),
     ))
     .then(({data}) => console.log('Successfully created new StagingDeployCash!', data.url))
-    .catch(err => core.setFailed(err));
+    .catch((err) => {
+        console.error('An error occurred!', err);
+        core.setFailed(err);
+    });
