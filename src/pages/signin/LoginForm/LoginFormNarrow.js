@@ -8,10 +8,8 @@ import _ from 'underscore';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import ButtonWithLoader from '../../../components/ButtonWithLoader';
-import openURLInNewTab from '../../../libs/openURLInNewTab';
 import {fetchAccountDetails} from '../../../libs/actions/Session';
 import welcomeScreenshot from '../../../../assets/images/welcome-screenshot.png';
-import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
 
 const propTypes = {

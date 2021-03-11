@@ -6,8 +6,6 @@ import _ from 'underscore';
 import {fetchAccountDetails} from '../../../libs/actions/Session';
 import styles from '../../../styles/styles';
 import ButtonWithLoader from '../../../components/ButtonWithLoader';
-import openURLInNewTab from '../../../libs/openURLInNewTab';
-import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
 
 const propTypes = {
