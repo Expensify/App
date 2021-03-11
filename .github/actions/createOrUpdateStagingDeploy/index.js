@@ -48,6 +48,8 @@ githubUtils.getStagingDeployCash()
         core.setFailed(err);
     })
     .then((githubResponse) => {
+        console.log('RORY_DEBUG', githubResponse);
+
         if (!githubResponse.data || _.isEmpty(githubResponse.data)) {
             console.error('Failed fetching data from Github!', githubResponse);
             throw new Error('Failed fetching data from Github');
