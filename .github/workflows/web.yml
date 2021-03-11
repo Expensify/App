@@ -57,17 +57,21 @@ jobs:
               run: npm run build
 
             - name: Deploy production to S3
+              if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
               run: aws s3 cp --recursive --acl public-read $GITHUB_WORKSPACE/dist s3://expensify-cash/
 
             - name: Deploy staging to S3
+              if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'false' }}
               run: aws s3 cp --recursive --acl public-read $GITHUB_WORKSPACE/dist s3://staging-expensify-cash/
 
             - name: Purge production Cloudflare cache
+              if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
               run: /home/runner/.local/bin/cli4 --delete hosts=["expensify.cash"] /zones/:357b42c0989e3bed82f6d6400e8b9d66/purge_cache
               env:
                 CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
 
             - name: Purge staging Cloudflare cache
+              if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'false' }}
               run: /home/runner/.local/bin/cli4 --delete hosts=["staging.expensify.cash"] /zones/:357b42c0989e3bed82f6d6400e8b9d66/purge_cache
               env:
                 CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
