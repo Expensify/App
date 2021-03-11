@@ -45,7 +45,9 @@ const defaultProps = {
 };
 
 const HeaderView = (props) => {
-    const participantsTitle = getReportParticipantsTitle(props.report.participants);
+    const participantsTitle = props.report && props.report.participants
+        ? getReportParticipantsTitle(props.report.participants)
+        : '';
 
     return (
         <View style={[styles.appContentHeader]} nativeID="drag-area">
