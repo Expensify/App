@@ -18,14 +18,6 @@ jobs:
               with:
                 node-version: '14.x'
 
-            - name: Check if StagingDeployCash is locked
-              id: isStagingDeployLocked
-              uses: Expensify/Expensify.cash/.github/actions/isStagingDeployLocked@79c1167d161868c43d774f82afe99f39c6c9b54a
-              with:
-                  GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-
-            - run: echo ${{ steps.isStagingDeployLocked.outputs.IS_LOCKED }}
-
             - name: Install node packages
               uses: nick-invision/retry@7c68161adf97a48beb850a595b8784ec57a98cbb
               with:
