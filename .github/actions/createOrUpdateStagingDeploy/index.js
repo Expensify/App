@@ -36,6 +36,7 @@ githubUtils.getStagingDeployCash()
                 owner: GithubUtils.GITHUB_OWNER,
                 repo: GithubUtils.EXPENSIFY_CASH_REPO,
                 labels: 'StagingDeployCash',
+                state: 'closed',
             });
         }
 
