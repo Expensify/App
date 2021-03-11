@@ -111,7 +111,7 @@ export default function getTooltipStyles(
 
     return {
         animationStyle: {
-            // remember Transform casuses a new Local cordinate system
+            // remember Transform causes a new Local cordinate system
             // https://drafts.csswg.org/css-transforms-1/#transform-rendering
             // so Position fixed children will be relative to this new Local cordinate system
             transform: [{
@@ -140,7 +140,7 @@ export default function getTooltipStyles(
                 ? yOffset + componentHeight + POINTER_HEIGHT + manualShiftVertical
 
                 // We need to shift the tooltip up above the component. So shift the tooltip up (-) by...
-                : yOffset - (tooltipHeight + POINTER_HEIGHT + manualShiftVertical),
+                : (yOffset - (tooltipHeight + POINTER_HEIGHT)) + manualShiftVertical,
 
             // Next, we'll position it horizontally.
             // we will use xOffset to position the tooltip relative to the Wrapped Component
@@ -178,7 +178,6 @@ export default function getTooltipStyles(
             //      so that the top of the pointer aligns with the bottom of the component.
             //
             // Always add the manual vertical shift passed in as a parameter.
-            // eslint-disable-next-line max-len
             top: shouldShowBelow ? manualShiftVertical - POINTER_HEIGHT : tooltipHeight + manualShiftVertical,
 
             // To align it horizontally, we'll:
@@ -186,7 +185,7 @@ export default function getTooltipStyles(
             //      so the left edge of the pointer lines up with the tooltipWidth's center.
             //   2) To the left (-) by half the pointer's width,
             //      so the pointer's center lines up with the tooltipWidth's center.
-            left: ((tooltipWidth / 2) - (POINTER_WIDTH / 2)),
+            left: (tooltipWidth / 2) - (POINTER_WIDTH / 2),
         },
         pointerStyle: {
             width: 0,
