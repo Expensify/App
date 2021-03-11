@@ -616,6 +616,23 @@ function SetNameValuePair(parameters) {
     return Network.post(commandName, parameters);
 }
 
+/**
+ *
+ * @param {Object} parameters
+ * @param {String[]} data
+ * @returns {Promise}
+ */
+function Mobile_GetConstants(parameters) {
+    const commandName = 'Mobile_GetConstants';
+    requireParameters(['data'], parameters, commandName);
+
+    // For some reason, the Mobile_GetConstants endpoint requires a JSON string, so we need to stringify the data param
+    const finalParameters = parameters;
+    finalParameters.data = JSON.stringify(parameters.data);
+
+    return Network.post(commandName, finalParameters);
+}
+
 export {
     getAuthToken,
     Authenticate,
@@ -628,6 +645,7 @@ export {
     GetRequestCountryCode,
     Graphite_Timer,
     Log,
+    Mobile_GetConstants,
     PersonalDetails_GetForEmails,
     PersonalDetails_Update,
     Push_Authenticate,
