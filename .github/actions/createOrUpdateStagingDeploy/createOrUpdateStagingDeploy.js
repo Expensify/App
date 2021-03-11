@@ -15,6 +15,7 @@ githubUtils.getStagingDeployCash()
         _.map(core.getInput('NEW_PULL_REQUESTS').split(','), PR => PR.trim()) || [],
         _.map(core.getInput('NEW_DEPLOY_BLOCKERS').split(','), deployBlocker => deployBlocker.trim()) || [],
     ))
+    .then(({data}) => console.log('Successfully updated StagingDeployCash!', data.url))
     .catch((err) => {
         // Unable to find the open StagingDeployCash
         if (err && err.code === 404) {
@@ -25,6 +26,7 @@ githubUtils.getStagingDeployCash()
                 owner: GithubUtils.GITHUB_OWNER,
                 repo: GithubUtils.EXPENSIFY_CASH_REPO,
                 labels: 'StagingDeployCash',
+                state: 'closed',
             });
         }
 
@@ -51,4 +53,5 @@ githubUtils.getStagingDeployCash()
         newVersion,
         _.map(PRNumbers, GithubUtils.getPullRequestURLFromNumber),
     ))
+    .then(({data}) => console.log('Successfully created new StagingDeployCash!', data.url))
     .catch(err => core.setFailed(err));
