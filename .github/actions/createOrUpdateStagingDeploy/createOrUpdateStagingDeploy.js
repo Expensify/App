@@ -15,7 +15,10 @@ githubUtils.getStagingDeployCash()
         _.map(core.getInput('NEW_PULL_REQUESTS').split(','), PR => PR.trim()) || [],
         _.map(core.getInput('NEW_DEPLOY_BLOCKERS').split(','), deployBlocker => deployBlocker.trim()) || [],
     ))
-    .then(({data}) => console.log('Successfully updated StagingDeployCash!', data.html_url))
+    .then(({data}) => {
+        console.log('Successfully updated StagingDeployCash!', data.html_url);
+        process.exit(0);
+    })
     .catch((err) => {
         // Unable to find the open StagingDeployCash
         if (err && err.code === 404) {
