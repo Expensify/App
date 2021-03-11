@@ -3,13 +3,15 @@ export default {
     config: {
         screens: {
             Home: {
-                initialRouteName: 'Loading',
+                initialRouteName: 'Report',
                 screens: {
-                    // Loading route
-                    Loading: '',
-
                     // Report route
-                    Report: 'r/:reportID',
+                    Report: {
+                        path: 'r/:reportID',
+                        parse: {
+                            reportID: reportID => (reportID !== 'undefined' ? reportID : ''),
+                        },
+                    },
                 },
             },
 
