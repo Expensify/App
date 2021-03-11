@@ -10,13 +10,16 @@ module.exports =
 
 const _ = __nccwpck_require__(4987);
 const core = __nccwpck_require__(2186);
-const github = __nccwpck_require__(5438);
+const {GitHub, getOctokitOptions} = __nccwpck_require__(3030);
 const moment = __nccwpck_require__(9623);
+const {requestLog} = __nccwpck_require__(8883);
 const GithubUtils = __nccwpck_require__(7999);
 const GitUtils = __nccwpck_require__(669);
 
 const newVersion = core.getInput('NPM_VERSION', {required: true});
-const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}), {log: console});
+
+const VerboseOctokit = GitHub.plugin(requestLog);
+const octokit = new VerboseOctokit(getOctokitOptions(core.getInput('GITHUB_TOKEN', {required: true})));
 const githubUtils = new GithubUtils(octokit);
 
 githubUtils.getStagingDeployCash()
@@ -35,7 +38,7 @@ githubUtils.getStagingDeployCash()
             return octokit.issues.listForRepo({
                 owner: GithubUtils.GITHUB_OWNER,
                 repo: GithubUtils.EXPENSIFY_CASH_REPO,
-                labels: [GithubUtils.STAGING_DEPLOY_CASH_LABEL],
+                labels: GithubUtils.STAGING_DEPLOY_CASH_LABEL,
                 state: 'closed',
             });
         }
@@ -965,49 +968,6 @@ class Context {
 }
 exports.Context = Context;
 //# sourceMappingURL=context.js.map
-
-/***/ }),
-
-/***/ 5438:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getOctokit = exports.context = void 0;
-const Context = __importStar(__nccwpck_require__(4087));
-const utils_1 = __nccwpck_require__(3030);
-exports.context = new Context.Context();
-/**
- * Returns a hydrated octokit ready to use for GitHub Actions
- *
- * @param     token    the repo PAT or GITHUB_TOKEN
- * @param     options  other options to set
- */
-function getOctokit(token, options) {
-    return new utils_1.GitHub(utils_1.getOctokitOptions(token, options));
-}
-exports.getOctokit = getOctokit;
-//# sourceMappingURL=github.js.map
 
 /***/ }),
 
@@ -2664,6 +2624,44 @@ paginateRest.VERSION = VERSION;
 
 exports.composePaginateRest = composePaginateRest;
 exports.paginateRest = paginateRest;
+//# sourceMappingURL=index.js.map
+
+
+/***/ }),
+
+/***/ 8883:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+
+const VERSION = "1.0.3";
+
+/**
+ * @param octokit Octokit instance
+ * @param options Options passed to Octokit constructor
+ */
+
+function requestLog(octokit) {
+  octokit.hook.wrap("request", (request, options) => {
+    octokit.log.debug("request", options);
+    const start = Date.now();
+    const requestOptions = octokit.request.endpoint.parse(options);
+    const path = requestOptions.url.replace(options.baseUrl, "");
+    return request(options).then(response => {
+      octokit.log.info(`${requestOptions.method} ${path} - ${response.status} in ${Date.now() - start}ms`);
+      return response;
+    }).catch(error => {
+      octokit.log.info(`${requestOptions.method} ${path} - ${error.status} in ${Date.now() - start}ms`);
+      throw error;
+    });
+  });
+}
+requestLog.VERSION = VERSION;
+
+exports.requestLog = requestLog;
 //# sourceMappingURL=index.js.map
 
 
