@@ -37,6 +37,7 @@ jobs:
                   DEVELOPER_ID_SECRET_PASSPHRASE: ${{ secrets.DEVELOPER_ID_SECRET_PASSPHRASE }}
 
             - name: Build production desktop app
+              if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
               run: npm run desktop-build -- --publish always -c.afterSign=desktop/notarize.js
               env:
                   CSC_LINK: ${{ secrets.CSC_LINK }}
@@ -48,6 +49,7 @@ jobs:
                   SHOULD_DEPLOY_PRODUCTION: true
 
             - name: Build staging desktop app
+              if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'false' }}
               run: npm run desktop-build -- --publish always -c.afterSign=desktop/notarize.js
               env:
                 CSC_LINK: ${{ secrets.CSC_LINK }}
