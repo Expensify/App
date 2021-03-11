@@ -32,5 +32,6 @@ export default {
     pillBG: colors.gray2,
     buttonDisabledBG: colors.gray2,
     buttonHoveredBG: colors.gray1,
+    spinner: colors.gray4,
     unreadIndicator: colors.green,
 };

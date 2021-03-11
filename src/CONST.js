@@ -16,6 +16,7 @@ const CONST = {
     },
     REPORT: {
         MAXIMUM_PARTICIPANTS: 8,
+        REPORT_ACTIONS_LIMIT: 50,
     },
     MODAL: {
         MODAL_TYPE: {

@@ -10,10 +10,9 @@ import SignInPage from './pages/signin/SignInPage';
 import listenToStorageEvents from './libs/listenToStorageEvents';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import ONYXKEYS from './ONYXKEYS';
-
 import styles from './styles/styles';
 import Log from './libs/Log';
-
+import migrateOnyx from './libs/migrateOnyx';
 import {
     Route,
     Router,
@@ -34,6 +33,7 @@ Onyx.init({
         [ONYXKEYS.SESSION]: {loading: false},
         [ONYXKEYS.ACCOUNT]: {loading: false, error: ''},
         [ONYXKEYS.NETWORK]: {isOffline: false},
+        [ONYXKEYS.IOU]: {loading: false},
     },
     registerStorageEventListener: (onStorageEvent) => {
         listenToStorageEvents(onStorageEvent);
@@ -74,14 +74,20 @@ class Expensify extends PureComponent {
         this.state = {
             isLoading: true,
             authToken: null,
+            isOnyxMigrated: false,
         };
     }
 
     componentDidMount() {
-        Onyx.connect({
-            key: ONYXKEYS.SESSION,
-            callback: this.removeLoadingState,
-        });
+        // Run any Onyx schema migrations and then connect to Onyx
+        migrateOnyx()
+            .then(() => {
+                this.setState({isOnyxMigrated: true});
+                Onyx.connect({
+                    key: ONYXKEYS.SESSION,
+                    callback: this.removeLoadingState,
+                });
+            });
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -105,8 +111,8 @@ class Expensify extends PureComponent {
     }
 
     render() {
-        // Until the authToken has been initialized from Onyx, display a blank page
-        if (this.state.isLoading) {
+        // Until the authToken has been initialized from Onyx and the onyx migration is done, display a blank page
+        if (this.state.isLoading || !this.state.isOnyxMigrated) {
             return (
                 <View style={styles.genericView} />
             );
