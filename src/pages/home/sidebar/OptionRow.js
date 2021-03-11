@@ -86,6 +86,7 @@ const OptionRow = ({
                             styles.chatLinkRowPressable,
                             styles.flexGrow1,
                             styles.optionItemAvatarNameWrapper,
+                            styles.sidebarInnerRow,
                         ])}
                     >
                         <View
