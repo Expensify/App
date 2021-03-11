@@ -6,7 +6,7 @@ import {
 import styles from '../styles/styles';
 import Header from './Header';
 import Icon from './Icon';
-import {Close, Download} from './Icon/Expensicons';
+import {Close, Download, BackArrow} from './Icon/Expensicons';
 
 const propTypes = {
     /** Title of the Header */
@@ -17,6 +17,12 @@ const propTypes = {
 
     /** Method to trigger when pressing close button of the header */
     onCloseButtonPress: PropTypes.func,
+
+    /** Method to trigger when pressing back button of the header */
+    onBackButtonPress: PropTypes.func,
+
+    /** Whether we should show a back icon */
+    shouldShowBackButton: PropTypes.bool,
 
     /** Fontsize for the text in the Header */
     textSize: PropTypes.oneOf(['default', 'large']),
@@ -29,6 +35,8 @@ const defaultProps = {
     title: '',
     onDownloadButtonPress: () => {},
     onCloseButtonPress: () => {},
+    onBackButtonPress: () => {},
+    shouldShowBackButton: false,
     textSize: 'default',
     shouldShowBorderBottom: true,
 };
@@ -44,6 +52,14 @@ const HeaderWithCloseButton = props => (
             styles.overflowHidden,
         ]}
         >
+            {props.shouldShowBackButton && (
+            <TouchableOpacity
+                onPress={props.onBackButtonPress}
+                style={[styles.touchableButtonImage]}
+            >
+                <Icon src={BackArrow} />
+            </TouchableOpacity>
+            )}
             <Header title={props.title} textSize={props.textSize} />
             <View style={[styles.reportOptions, styles.flexRow]}>
                 {

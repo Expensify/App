@@ -4,6 +4,10 @@
 export default {
     HOME: '/home',
     SETTINGS: '/settings',
+    SETTINGS_PROFILE: '/settings/profile',
+    SETTINGS_PREFERENCES: '/settings/preferences',
+    SETTINGS_PASSWORD: '/settings/password',
+    SETTINGS_PAYMENTS: '/settings/payments',
     NEW_GROUP: '/new/group',
     NEW_CHAT: '/new/chat',
     IOU_REQUEST: '/iou/request',
