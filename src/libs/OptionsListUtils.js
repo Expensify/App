@@ -183,9 +183,13 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             return;
         }
 
-        // Skip this entry if it has no comments and is not the active report. We will only show reports from
-        // people we have sent or received at least one message with.
+        // Skip this entry only if the report is not an active report & is not Pinned
+        // as well as
+        // it reports with no comments needs to be skipped, (only show reports from people we have sent or
+        //  received at least one message with.)
         const shouldFilterReportIfEmpty = !showReportsWithNoComments && report.lastMessageTimestamp === 0;
+
+        // If Read reports needs to be skipped
         const shouldFilterReportIfRead = hideReadReports && report.unreadActionCount === 0;
         const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
         if (report.reportID !== activeReportID && !report.isPinned && shouldFilterReport) {
