@@ -19,7 +19,7 @@ jobs:
                 node-version: '14.x'
 
             - name: Create or Update StagingDeployCash
-              uses: Expensify/Expensify.cash/.github/actions/createOrUpdateStagingDeploy@e9eb118c39c7c47952048ebdb3675b938b85cd81
+              uses: Expensify/Expensify.cash/.github/actions/createOrUpdateStagingDeploy@e151c487f8191ac262067f15af25ee4017a0c973
               with:
                   NPM_VERSION: '1.0.2-25'
                   GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
