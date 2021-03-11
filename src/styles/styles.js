@@ -468,6 +468,8 @@ const styles = {
         borderRadius: 0,
         paddingHorizontal: 20,
         paddingVertical: 12,
+        justifyContent: 'space-between',
+        width: '100%',
     },
 
     createMenuIcon: {
@@ -497,6 +499,9 @@ const styles = {
     sidebarLinkInner: {
         alignItems: 'center',
         flexDirection: 'row',
+    },
+
+    sidebarInnerRow: {
         height: 64,
         paddingTop: 12,
         paddingRight: 20,
