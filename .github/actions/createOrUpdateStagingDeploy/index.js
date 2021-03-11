@@ -329,7 +329,7 @@ class GithubUtils {
             .then(body => this.octokit.issues.create({
                 owner: GITHUB_OWNER,
                 repo: EXPENSIFY_CASH_REPO,
-                labels: STAGING_DEPLOY_CASH_LABEL,
+                labels: [STAGING_DEPLOY_CASH_LABEL],
                 assignee: APPLAUSE_BOT,
                 title,
                 body,

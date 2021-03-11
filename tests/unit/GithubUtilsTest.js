@@ -267,7 +267,7 @@ describe('GithubUtils', () => {
                     expect(newIssue).toStrictEqual({
                         owner: GithubUtils.GITHUB_OWNER,
                         repo: GithubUtils.EXPENSIFY_CASH_REPO,
-                        labels: 'StagingDeployCash',
+                        labels: ['StagingDeployCash'],
                         assignee: 'applausebot',
                         title,
                         // eslint-disable-next-line max-len
