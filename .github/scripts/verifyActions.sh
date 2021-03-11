@@ -31,7 +31,7 @@ npm run gh-actions-build
 
 # Check for a diff
 printf '\nChecking for a diff...\n'
-git diff --exit-code | diff-so-fancy
+git diff --exit-code | diff-so-fancy | less --tabs=4 -RFX
 
 # Runs git diff quietly to get the exit code
 declare EXIT_CODE
