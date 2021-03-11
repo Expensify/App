@@ -38,8 +38,6 @@ githubUtils.getStagingDeployCash()
         core.setFailed(err);
     })
     .then((githubResponse) => {
-        console.log('RORY_DEBUG', githubResponse);
-
         if (!githubResponse.data || _.isEmpty(githubResponse.data)) {
             console.error('Failed fetching data from Github!', githubResponse);
             throw new Error('Failed fetching data from Github');
@@ -47,6 +45,7 @@ githubUtils.getStagingDeployCash()
 
         // Parse the tag from the most recent StagingDeployCash
         const lastTag = githubUtils.getStagingDeployCashData(githubResponse.data[0]).tag;
+        console.log('Found tag of previous StagingDeployCash:', lastTag);
 
         // Find the list of PRs merged between the last StagingDeployCash and the new version
         return GitUtils.getPullRequestsMergedBetween(lastTag, newVersion);
