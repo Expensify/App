@@ -9,7 +9,7 @@ const {updateAndroidVersion, updateiOSVersion, generateAndroidVersionCode} = req
 let newVersion;
 
 /**
- * Update the native app versions.
+ * Updates the native app versions.
  *
  * @param {String} version
  */
