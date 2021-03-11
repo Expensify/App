@@ -23,7 +23,7 @@ githubUtils.getStagingDeployCash()
             // Fetch all the StagingDeployCash issues
             return octokit.issues.listForRepo({
                 owner: GithubUtils.GITHUB_OWNER,
-                repo: GithubUtils.EXPENSIFY_ISSUE_REPO,
+                repo: GithubUtils.EXPENSIFY_CASH_REPO,
                 labels: 'StagingDeployCash',
             });
         }
@@ -38,6 +38,7 @@ githubUtils.getStagingDeployCash()
         if (!githubResponse.data || _.isEmpty(githubResponse.data)) {
             console.error('Failed fetching data from Github!', githubResponse);
             core.setFailed(new Error('Failed fetching data from Github'));
+            return;
         }
 
         // Parse the tag from the most recent StagingDeployCash
