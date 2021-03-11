@@ -16,7 +16,7 @@ declare LIB_PATH
 LIB_PATH="/root/expensify/bin/diff-so-fancy"
 
 # Clone diff-so-fancy repository
-if [ !-d "$LIB_PATH/"]; then
+if [ ! -d "$LIB_PATH/" ]; then
     git clone https://github.com/so-fancy/diff-so-fancy.git $LIB_PATH
 else
     echo -e "${GREEN}Library diff-so-fancy is already installed.${NC}"
