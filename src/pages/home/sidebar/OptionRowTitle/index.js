@@ -95,11 +95,12 @@ class OptionRowTitle extends PureComponent {
                         );
                     })}
                     {
-                        isEllipsisActive
+                        option.participantsList.length > 1 && isEllipsisActive
                             ? (
                                 <View style={styles.optionDisplayNameTooltipEllipsis}>
                                     <Tooltip text={option.tooltipText}>
-                                        <Text>...</Text>
+                                        {/* there is some Gap for real ellipsis so we are adding 4 `.` to cover */}
+                                        <Text>....</Text>
                                     </Tooltip>
                                 </View>
                             ) : null

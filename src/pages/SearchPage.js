@@ -167,6 +167,7 @@ class SearchPage extends Component {
                         headerMessage={headerMessage}
                         hideSectionHeaders
                         hideAdditionalOptionStates
+                        showTitleTooltip
                     />
                 </View>
                 <KeyboardSpacer />

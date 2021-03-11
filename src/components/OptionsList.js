@@ -61,6 +61,9 @@ const propTypes = {
         PropTypes.func,
         PropTypes.shape({current: PropTypes.instanceOf(SectionList)}),
     ]),
+
+    // Whether to show the title tooltip
+    showTitleTooltip: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -77,6 +80,7 @@ const defaultProps = {
     onSelectRow: () => {},
     headerMessage: '',
     innerRef: null,
+    showTitleTooltip: false,
 };
 
 class OptionsList extends Component {
@@ -142,6 +146,7 @@ class OptionsList extends Component {
         return (
             <OptionRow
                 option={item}
+                showTitleTooltip={this.props.showTitleTooltip}
                 hoverStyle={this.props.optionHoveredStyle}
                 optionIsFocused={!this.props.disableFocusOptions
                         && this.props.focusedIndex === (index + section.indexOffset)}
