@@ -16,6 +16,11 @@ import Users from '../../../assets/images/users.svg';
 import Checkmark from '../../../assets/images/checkmark.svg';
 import Download from '../../../assets/images/download.svg';
 import DownArrow from '../../../assets/images/down.svg';
+import Profile from '../../../assets/images/profile.svg';
+import Gear from '../../../assets/images/gear.svg';
+import Wallet from '../../../assets/images/wallet.svg';
+import Lock from '../../../assets/images/lock.svg';
+import ArrowRight from '../../../assets/images/arrow-right.svg';
 
 export {
     BackArrow,
@@ -36,4 +41,9 @@ export {
     Users,
     Checkmark,
     Download,
+    Profile,
+    Gear,
+    Wallet,
+    Lock,
+    ArrowRight,
 };

@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import OptionsSelector from '../components/OptionsSelector';
-import {getSearchOptions} from '../libs/OptionsListUtils';
+import {getSearchOptions, getHeaderMessage} from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import KeyboardSpacer from '../components/KeyboardSpacer';
@@ -57,6 +57,7 @@ class SearchPage extends Component {
         const {
             recentReports,
             personalDetails,
+            userToInvite,
         } = getSearchOptions(
             props.reports,
             props.personalDetails,
@@ -67,6 +68,7 @@ class SearchPage extends Component {
             searchValue: '',
             recentReports,
             personalDetails,
+            userToInvite,
         };
     }
 
@@ -76,12 +78,23 @@ class SearchPage extends Component {
      * @returns {Array}
      */
     getSections() {
-        return [{
+        const sections = [{
             title: 'RECENT',
             data: this.state.recentReports.concat(this.state.personalDetails),
             shouldShow: true,
             indexOffset: 0,
         }];
+
+        if (this.state.userToInvite) {
+            sections.push(({
+                undefined,
+                data: [this.state.userToInvite],
+                shouldShow: true,
+                indexOffset: 0,
+            }));
+        }
+
+        return sections;
     }
 
     /**
@@ -117,6 +130,10 @@ class SearchPage extends Component {
 
     render() {
         const sections = this.getSections();
+        const headerMessage = getHeaderMessage(
+            (this.state.recentReports.length + this.state.personalDetails.length) !== 0,
+            Boolean(this.state.userToInvite),
+        );
 
         return (
             <>
@@ -134,6 +151,7 @@ class SearchPage extends Component {
                             const {
                                 recentReports,
                                 personalDetails,
+                                userToInvite,
                             } = getSearchOptions(
                                 this.props.reports,
                                 this.props.personalDetails,
@@ -141,10 +159,12 @@ class SearchPage extends Component {
                             );
                             this.setState({
                                 searchValue,
+                                userToInvite,
                                 recentReports,
                                 personalDetails,
                             });
                         }}
+                        headerMessage={headerMessage}
                         hideSectionHeaders
                         hideAdditionalOptionStates
                     />
