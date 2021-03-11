@@ -127,7 +127,7 @@ const OptionRow = ({
                         </View>
                     </TouchableOpacity>
                     {!hideAdditionalOptionStates && (
-                        <View style={styles.flexRow}>
+                        <View style={[styles.flexRow, styles.iconsRow]}>
                             {option.hasDraftComment && (
                                 <View style={styles.ml2}>
                                     <Icon src={Pencil} />
