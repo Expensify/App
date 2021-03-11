@@ -234,7 +234,11 @@ class GithubUtils {
      * @returns {Array<Object>} - [{URL: String, number: Number, isResolved: Boolean}]
      */
     getStagingDeployCashDeployBlockers(issue) {
-        const deployBlockerSection = issue.body.match(/Deploy Blockers:\*\*\r\n((?:.*\r\n)+)/)[1];
+        let deployBlockerSection = issue.body.match(/Deploy Blockers:\*\*\r\n((?:.*\r\n)+)/) || [];
+        if (deployBlockerSection.length !== 2) {
+            return [];
+        }
+        deployBlockerSection = deployBlockerSection[1];
         console.log('RORY_DEBUG got deployBlockerSection: ', deployBlockerSection);
         const unresolvedDeployBlockers = _.map(
             [...deployBlockerSection.matchAll(new RegExp(`- \\[ ] (${ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))],
