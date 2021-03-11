@@ -18,6 +18,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    containerStyle: {},
     onHoverIn: () => {},
     onHoverOut: () => {},
 };

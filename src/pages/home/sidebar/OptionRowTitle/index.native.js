@@ -4,12 +4,8 @@ import {
     Text,
 } from 'react-native';
 import styles from '../../../../styles/styles';
-import propTypes from './OptionRowTitleProps';
+import {propTypes, defaultProps} from './OptionRowTitleProps';
 
-const defaultProps = {
-    style: null,
-    tooltipEnabled: false,
-};
 
 const OptionRowTitle = ({
     style,

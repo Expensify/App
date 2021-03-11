@@ -8,7 +8,7 @@ import Str from 'expensify-common/lib/str';
  * @returns {string}
  */
 function getReportParticipantsTitle(logins) {
-    return _.map(logins, login => Str.removeSMSDomain(login)).join(',');
+    return _.map(logins, login => Str.removeSMSDomain(login)).join(', ');
 }
 
 export {

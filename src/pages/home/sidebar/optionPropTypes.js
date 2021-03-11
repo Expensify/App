@@ -1,4 +1,3 @@
-/* eslint-disable react/forbid-prop-types */
 import PropTypes from 'prop-types';
 
 export default PropTypes.shape({
@@ -9,7 +8,18 @@ export default PropTypes.shape({
     alternateText: PropTypes.string.isRequired,
 
     // list of particiapants of the report
-    participantsList: PropTypes.array.isRequired,
+    participantsList: PropTypes.arrayOf(
+        PropTypes.shape({
+            // primary login of participant
+            login: PropTypes.string,
+
+            // display Name of participant
+            displayName: PropTypes.string,
+
+            // avatar url of participant
+            avatar: PropTypes.string,
+        }),
+    ).isRequired,
 
     // The array URLs of the person's avatar
     icon: PropTypes.arrayOf(PropTypes.string),

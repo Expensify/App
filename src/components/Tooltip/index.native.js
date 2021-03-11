@@ -1,12 +1,8 @@
-import tooltipPropTypes from './TooltipPropTypes';
-
-const defaultProps = {
-    shiftHorizontal: 0,
-    shiftVertical: 0,
-};
+import {propTypes, defaultProps} from './TooltipPropTypes';
 
 const Tooltip = props => props.children;
 
-Tooltip.propTypes = tooltipPropTypes;
+Tooltip.propTypes = propTypes;
 Tooltip.defaultProps = defaultProps;
+Tooltip.displayName = 'Tooltip';
 export default Tooltip;

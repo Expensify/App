@@ -1,4 +1,3 @@
-/* eslint-disable react/forbid-prop-types */
 import PropTypes from 'prop-types';
 import optionPropTypes from '../optionPropTypes';
 
@@ -14,4 +13,12 @@ const propTypes = {
     option: optionPropTypes.isRequired,
 
 };
-export default propTypes;
+
+const defaultProps = {
+    style: null,
+    tooltipEnabled: false,
+};
+export {
+    propTypes,
+    defaultProps,
+};

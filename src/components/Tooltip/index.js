@@ -1,15 +1,11 @@
+import _ from 'underscore';
 import React, {PureComponent} from 'react';
 import {Animated, Text, View} from 'react-native';
 import ReactDOM from 'react-dom';
 import Hoverable from '../Hoverable';
 import withWindowDimensions from '../withWindowDimensions';
 import getTooltipStyles from '../../styles/getTooltipStyles';
-import tooltipPropTypes from './TooltipPropTypes';
-
-const defaultProps = {
-    shiftHorizontal: 0,
-    shiftVertical: 0,
-};
+import {propTypes, defaultProps} from './TooltipPropTypes';
 
 class Tooltip extends PureComponent {
     constructor(props) {
@@ -147,10 +143,10 @@ class Tooltip extends PureComponent {
             this.state.wrapperHeight,
             this.state.tooltipWidth,
             this.state.tooltipHeight,
-            typeof this.props.shiftHorizontal === 'function'
+            _.isFunction(this.props.shiftHorizontal)
                 ? this.props.shiftHorizontal()
                 : this.props.shiftHorizontal,
-            typeof this.props.shiftVertical === 'function'
+            _.isFunction(this.props.shiftVertical)
                 ? this.props.shiftVertical()
                 : this.props.shiftVertical,
         );
@@ -158,13 +154,14 @@ class Tooltip extends PureComponent {
             <Animated.View
                 ref={el => this.tooltip = el}
                 onLayout={this.measureTooltip}
-                style={{...tooltipWrapperStyle, ...animationStyle}}
+                style={[tooltipWrapperStyle, animationStyle]}
             >
                 <Text style={tooltipTextStyle} numberOfLines={1}>{this.props.text}</Text>
                 <View style={pointerWrapperStyle}>
                     <View style={pointerStyle} />
                 </View>
-            </Animated.View>, document.querySelector('body'),
+            </Animated.View>,
+            document.querySelector('body'),
         );
     }
 
@@ -190,6 +187,6 @@ class Tooltip extends PureComponent {
     }
 }
 
-Tooltip.propTypes = tooltipPropTypes;
+Tooltip.propTypes = propTypes;
 Tooltip.defaultProps = defaultProps;
 export default withWindowDimensions(Tooltip);
