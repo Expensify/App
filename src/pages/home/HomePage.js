@@ -8,7 +8,7 @@ import SidebarScreen from './sidebar/SidebarScreen';
 import ReportScreen from './ReportScreen';
 import NewGroupPage from '../NewGroupPage';
 import NewChatPage from '../NewChatPage';
-import SettingsPage from '../SettingsPage';
+import SettingsPage from '../settings/SettingsPage';
 import SearchPage from '../SearchPage';
 import ProfilePage from '../ProfilePage';
 
@@ -30,6 +30,7 @@ import {fetchCountryCodeByRequestIP} from '../../libs/actions/GeoLocation';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import {redirect} from '../../libs/actions/App';
 import RightDockedModal from '../../components/RightDockedModal';
+import IOUModal from '../iou/IOUModal';
 import {getBetas} from '../../libs/actions/User';
 import NameValuePair from '../../libs/actions/NameValuePair';
 
@@ -100,10 +101,16 @@ class HomePage extends PureComponent {
                 <Route path={[
                     ROUTES.REPORT,
                     ROUTES.HOME,
+                    ROUTES.SETTINGS_PROFILE,
+                    ROUTES.SETTINGS_PREFERENCES,
+                    ROUTES.SETTINGS_PASSWORD,
+                    ROUTES.SETTINGS_PAYMENTS,
                     ROUTES.SETTINGS,
                     ROUTES.NEW_GROUP,
                     ROUTES.NEW_CHAT,
                     ROUTES.SEARCH,
+                    ROUTES.IOU_REQUEST,
+                    ROUTES.IOU_BILL,
                     ROUTES.PROFILE,
                 ]}
                 >
@@ -125,6 +132,12 @@ class HomePage extends PureComponent {
                     </RightDockedModal>
                     <RightDockedModal route={ROUTES.SEARCH}>
                         <SearchPage />
+                    </RightDockedModal>
+                    <RightDockedModal route={ROUTES.IOU_REQUEST}>
+                        <IOUModal />
+                    </RightDockedModal>
+                    <RightDockedModal route={ROUTES.IOU_BILL}>
+                        <IOUModal hasMultipleParticipants />
                     </RightDockedModal>
                     <RightDockedModal route="/profile/">
                         <ProfilePage />
