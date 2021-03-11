@@ -64,7 +64,6 @@ function getMiniButtonStyle(buttonState = CONST.BUTTON_STATES.DEFAULT) {
 function getBigButtonStyle(buttonState = CONST.BUTTON_STATES.DEFAULT) {
     return [
         getButtonBackgroundColorStyle(buttonState),
-        styles.flex1,
         styles.flexRow,
         styles.alignItemsCenter,
         styles.p4,
