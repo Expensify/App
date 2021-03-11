@@ -3,7 +3,7 @@ const GithubUtils = require('../../.github/libs/GithubUtils');
 
 describe('GithubUtils', () => {
     describe('getStagingDeployCash', () => {
-        const issue = {
+        const baseIssue = {
             url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/issues/29',
             title: 'Andrew Test Issue',
             labels: [
@@ -18,10 +18,13 @@ describe('GithubUtils', () => {
                 },
             ],
             // eslint-disable-next-line max-len
-            body: '**Release Version:** `1.0.1-47`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/1.0.1-0...1.0.1-47\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/21\r\n- [x] https://github.com/Expensify/Expensify.cash/pull/22\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/23\r\n\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/issues/1\r\n- [x] https://github.com/Expensify/Expensify.cash/issues/2\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/1234\r\n',
+            body: '**Release Version:** `1.0.1-47`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/1.0.1-0...1.0.1-47\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/21\r\n- [x] https://github.com/Expensify/Expensify.cash/pull/22\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/23\r\n',
         };
+        const issueWithDeployBlockers = baseIssue;
+        // eslint-disable-next-line max-len
+        issueWithDeployBlockers.body += '\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/issues/1\r\n- [x] https://github.com/Expensify/Expensify.cash/issues/2\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/1234\r\n';
 
-        const expectedResponse = {
+        const baseExpectedResponse = {
             PRList: [
                 {
                     url: 'https://github.com/Expensify/Expensify.cash/pull/21',
@@ -37,23 +40,6 @@ describe('GithubUtils', () => {
                     url: 'https://github.com/Expensify/Expensify.cash/pull/23',
                     number: 23,
                     isVerified: false,
-                },
-            ],
-            deployBlockers: [
-                {
-                    url: 'https://github.com/Expensify/Expensify.cash/issues/1',
-                    number: 1,
-                    isResolved: false,
-                },
-                {
-                    url: 'https://github.com/Expensify/Expensify.cash/issues/2',
-                    number: 2,
-                    isResolved: true,
-                },
-                {
-                    url: 'https://github.com/Expensify/Expensify.cash/pull/1234',
-                    number: 1234,
-                    isResolved: false,
                 },
             ],
             comparisonURL: 'https://github.com/Expensify/Expensify.cash/compare/1.0.1-0...1.0.1-47',
@@ -72,19 +58,45 @@ describe('GithubUtils', () => {
             title: 'Andrew Test Issue',
             url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/issues/29',
         };
+        const expectedResponseWithDeployBlockers = baseExpectedResponse;
+        expectedResponseWithDeployBlockers.deployBlockers = [
+            {
+                url: 'https://github.com/Expensify/Expensify.cash/issues/1',
+                number: 1,
+                isResolved: false,
+            },
+            {
+                url: 'https://github.com/Expensify/Expensify.cash/issues/2',
+                number: 2,
+                isResolved: true,
+            },
+            {
+                url: 'https://github.com/Expensify/Expensify.cash/pull/1234',
+                number: 1234,
+                isResolved: false,
+            },
+        ];
 
         test('Test finding an open issue successfully', () => {
             const octokit = new Octokit();
             const github = new GithubUtils(octokit);
-            octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [issue]});
-            return github.getStagingDeployCash().then(data => expect(data).toStrictEqual(expectedResponse));
+            octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [baseIssue]});
+            return github.getStagingDeployCash().then(data => expect(data).toStrictEqual(baseExpectedResponse));
+        });
+
+        test('Test finding an open issue successfully and parsing with deploy blockers', () => {
+            const octokit = new Octokit();
+            const github = new GithubUtils(octokit);
+            octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [issueWithDeployBlockers]});
+            return github.getStagingDeployCash()
+                .then(data => expect(data).toStrictEqual(expectedResponseWithDeployBlockers));
         });
 
         test('Test finding an open issue without a body', () => {
             const octokit = new Octokit();
             const github = new GithubUtils(octokit);
 
-            const noBodyIssue = issue;
+            const noBodyIssue = baseIssue;
             noBodyIssue.body = '';
 
             octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [noBodyIssue]});
