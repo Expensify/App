@@ -87,7 +87,6 @@
     "@babel/preset-env": "^7.11.0",
     "@babel/preset-react": "^7.10.4",
     "@babel/runtime": "^7.11.2",
-    "@octokit/plugin-request-log": "^1.0.3",
     "@octokit/rest": "^18.3.5",
     "@react-native-community/eslint-config": "^2.0.0",
     "@svgr/webpack": "^5.5.0",
