@@ -33,6 +33,7 @@ githubUtils.getStagingDeployCash()
 
             // Fetch all the StagingDeployCash issues
             return octokit.issues.listForRepo({
+                log: console,
                 owner: GithubUtils.GITHUB_OWNER,
                 repo: GithubUtils.EXPENSIFY_CASH_REPO,
                 labels: GithubUtils.STAGING_DEPLOY_CASH_LABEL,
