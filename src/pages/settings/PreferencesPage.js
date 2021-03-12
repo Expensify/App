@@ -57,9 +57,9 @@ class PreferencesPage extends Component {
         this.toggleNewsStatus = this.toggleNewsStatus.bind(this);
     }
 
-    toggleNewsStatus(toggle) {
-        this.setState({isNewsStatusEnabled: toggle});
-        setExpensifyNewsStatus(toggle);
+    toggleNewsStatus(isSubscribed) {
+        this.setState({isNewsStatusEnabled: isSubscribed});
+        setExpensifyNewsStatus(isSubscribed);
     }
 
     render() {
@@ -75,7 +75,7 @@ class PreferencesPage extends Component {
                 <View style={styles.pageWrapper}>
                     <View style={[styles.settingsPageBody, styles.mb6]}>
                         <Text style={[styles.formLabel]} numberOfLines={1}>Notifications</Text>
-                        <View style={[styles.flexRow, styles.mb5, styles.justifyContentBetween]}>
+                        <View style={[styles.flexRow, styles.mb6, styles.justifyContentBetween]}>
                             <View style={styles.flex4}>
                                 <Text>
                                     Receive relevant feature updates and Expensify news
