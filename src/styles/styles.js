@@ -509,10 +509,6 @@ const styles = {
         paddingLeft: 20,
     },
 
-    iconsRow: {
-        paddingRight: 20,
-    },
-
     sidebarLinkText: {
         color: themeColors.text,
         fontSize: variables.fontSizeNormal,
