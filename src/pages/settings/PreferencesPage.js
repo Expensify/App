@@ -5,7 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import {redirect} from '../../libs/actions/App';
+import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
@@ -14,7 +14,6 @@ import Icon from '../../components/Icon';
 import NameValuePair from '../../libs/actions/NameValuePair';
 import CONST from '../../CONST';
 import {DownArrow} from '../../components/Icon/Expensicons';
-import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
 
 const propTypes = {
@@ -46,7 +45,7 @@ const PreferencesPage = ({priorityMode}) => (
                 <HeaderWithCloseButton
                     title="Preferences"
                     shouldShowBackButton
-                    onBackButtonPress={() => redirect(ROUTES.SETTINGS)}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
                 <View style={styles.pageWrapper}>

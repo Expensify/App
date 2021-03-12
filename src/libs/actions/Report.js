@@ -8,7 +8,7 @@ import * as Pusher from '../Pusher/pusher';
 import LocalNotification from '../Notification/LocalNotification';
 import PushNotification from '../Notification/PushNotification';
 import * as PersonalDetails from './PersonalDetails';
-import {redirect} from './App';
+import Navigation from '../Navigation/Navigation';
 import * as ActiveClientManager from '../ActiveClientManager';
 import Visibility from '../Visibility';
 import ROUTES from '../../ROUTES';
@@ -308,7 +308,7 @@ function updateReportWithNewAction(reportID, reportAction) {
         reportAction,
         onClick: () => {
             // Navigate to this report onClick
-            redirect(ROUTES.getReportRoute(reportID));
+            Navigation.navigate(ROUTES.getReportRoute(reportID));
         },
     });
 }
@@ -355,7 +355,7 @@ function subscribeToReportCommentEvents() {
 
     // Open correct report when push notification is clicked
     PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, ({reportID}) => {
-        redirect(ROUTES.getReportRoute(reportID));
+        Navigation.navigate(ROUTES.getReportRoute(reportID));
     });
 }
 
@@ -464,7 +464,7 @@ function fetchOrCreateChatReport(participants) {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID});
 
             // Redirect the logged in person to the new report
-            redirect(ROUTES.getReportRoute(reportID));
+            Navigation.navigate(ROUTES.getReportRoute(reportID));
         });
 }
 

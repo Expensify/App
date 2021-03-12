@@ -5,7 +5,7 @@ import SidebarLinks from './SidebarLinks';
 import CreateMenu from '../../../components/CreateMenu';
 import FAB from '../../../components/FAB';
 import ScreenWrapper from '../../../components/ScreenWrapper';
-import {redirect} from '../../../libs/actions/App';
+import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import Timing from '../../../libs/actions/Timing';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
@@ -41,7 +41,7 @@ class SidebarScreen extends Component {
      * Method called when avatar is clicked
      */
     navigateToSettings() {
-        redirect(ROUTES.SETTINGS);
+        Navigation.navigate(ROUTES.SETTINGS);
     }
 
     /**

@@ -7,13 +7,12 @@ import {getSearchOptions, getHeaderMessage} from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import KeyboardSpacer from '../components/KeyboardSpacer';
-import {redirect} from '../libs/actions/App';
+import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
-import Navigation from '../libs/Navigation/Navigation';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -111,7 +110,7 @@ class SearchPage extends Component {
             this.setState({
                 searchValue: '',
             }, () => {
-                redirect(ROUTES.getReportRoute(option.reportID));
+                Navigation.navigate(ROUTES.getReportRoute(option.reportID));
             });
         } else {
             fetchOrCreateChatReport([

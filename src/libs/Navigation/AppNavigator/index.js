@@ -6,9 +6,6 @@ import AuthScreens from './AuthScreens';
 const propTypes = {
     // If we have an authToken this is true
     authenticated: PropTypes.bool.isRequired,
-
-    // Whether the drawer should be open on init
-    isDrawerOpenByDefault: PropTypes.bool.isRequired,
 };
 
 const AppNavigator = props => (
@@ -16,7 +13,7 @@ const AppNavigator = props => (
         ? (
 
             // These are the protected screens and only accessible when an authToken is present
-            <AuthScreens isDrawerOpenByDefault={props.isDrawerOpenByDefault} />
+            <AuthScreens />
         )
         : (
             <PublicScreens />

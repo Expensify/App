@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import Popover from './Popover';
 import styles from '../styles/styles';
 import {ChatBubble, Users} from './Icon/Expensicons';
-import {redirect} from '../libs/actions/App';
+import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import MenuItem from './MenuItem';
@@ -52,12 +52,12 @@ class CreateMenu extends PureComponent {
             {
                 icon: ChatBubble,
                 text: 'New Chat',
-                onPress: () => this.setOnModalHide(() => redirect(ROUTES.NEW_CHAT)),
+                onPress: () => this.setOnModalHide(() => Navigation.navigate(ROUTES.NEW_CHAT)),
             },
             {
                 icon: Users,
                 text: 'New Group',
-                onPress: () => this.setOnModalHide(() => redirect(ROUTES.NEW_GROUP)),
+                onPress: () => this.setOnModalHide(() => Navigation.navigate(ROUTES.NEW_GROUP)),
             },
         ].map(item => ({
             ...item,

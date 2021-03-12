@@ -11,7 +11,7 @@ import Text from '../components/Text';
 import ONYXKEYS from '../ONYXKEYS';
 import Avatar from '../components/Avatar';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
-import {redirectToLastReport} from '../libs/actions/App';
+import Navigation from '../libs/Navigation/Navigation';
 import ScreenWrapper from '../components/ScreenWrapper';
 
 const personalDetailsType = PropTypes.shape({
@@ -57,7 +57,7 @@ const ProfilePage = ({personalDetails, route}) => {
                 <>
                     <HeaderWithCloseButton
                         title="Details"
-                        onCloseButtonPress={redirectToLastReport}
+                        onCloseButtonPress={Navigation.dismissModal}
                     />
                     <View
                         pointerEvents="box-none"
