@@ -26,6 +26,12 @@ const propTypes = {
         CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
     ]),
 
+    // A react-native-animatable animation definition for the modal display animation.
+    animationIn: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.object,
+    ]),
+
     // The anchor position of a popover modal. Has no effect on other modal types.
     popoverAnchorPosition: PropTypes.shape({
         top: PropTypes.number,
@@ -41,6 +47,7 @@ const defaultProps = {
     onSubmit: null,
     type: '',
     onModalHide: () => {},
+    animationIn: null,
     popoverAnchorPosition: {},
 };
 
