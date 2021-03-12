@@ -4,14 +4,14 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 
 import CONST from '../../CONST';
-import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
-import Text from '../../components/Text';
+import ROUTES from '../../ROUTES';
 import HeaderGap from '../../components/HeaderGap';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import Text from '../../components/Text';
 import {redirect} from '../../libs/actions/App';
-import {fetch} from '../../libs/actions/User';
 import NameValuePair from '../../libs/actions/NameValuePair';
+import {fetch} from '../../libs/actions/User';
 import styles from '../../styles/styles';
 
 const propTypes = {
