@@ -183,15 +183,10 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             return;
         }
 
-        // Skip this entry if it has no comments and is not the active report. We will only show reports from
-        // people we have sent or received at least one message with.
-        const hasNoComments = report.lastMessageTimestamp === 0;
-        const shouldFilterReport = !showReportsWithNoComments && hasNoComments
-            && report.reportID !== activeReportID && !report.isPinned;
-        if (shouldFilterReport) {
-            return;
-        }
-        if (hideReadReports && report.unreadActionCount === 0 && !report.isPinned) {
+        const shouldFilterReportIfEmpty = !showReportsWithNoComments && report.lastMessageTimestamp === 0;
+        const shouldFilterReportIfRead = hideReadReports && report.unreadActionCount === 0;
+        const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
+        if (report.reportID !== activeReportID && !report.isPinned && shouldFilterReport) {
             return;
         }
         const reportPersonalDetails = getPersonalDetailsForLogins(logins, personalDetails);
@@ -402,9 +397,30 @@ function getSidebarOptions(reports, personalDetails, draftComments, activeReport
     });
 }
 
+/**
+ * Helper method that returns the text to be used for the header's message and title (if any)
+ *
+ * @param {Boolean} hasSelectableOptions
+ * @param {Boolean} hasUserToInvite
+ * @param {Boolean} [maxParticipantsReached]
+ * @return {String}
+ */
+function getHeaderMessage(hasSelectableOptions, hasUserToInvite, maxParticipantsReached = false) {
+    if (maxParticipantsReached) {
+        return CONST.MESSAGES.MAXIMUM_PARTICIPANTS_REACHED;
+    }
+
+    if (!hasSelectableOptions && !hasUserToInvite) {
+        return CONST.MESSAGES.NO_CONTACTS_FOUND;
+    }
+
+    return '';
+}
+
 export {
     getSearchOptions,
     getNewChatOptions,
     getNewGroupOptions,
     getSidebarOptions,
+    getHeaderMessage,
 };
