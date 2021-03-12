@@ -12,6 +12,7 @@ declare -r GITHUB_ACTIONS=(
     "$ACTIONS_DIR/bumpVersion/bumpVersion.js"
     "$ACTIONS_DIR/createOrUpdateStagingDeploy/createOrUpdateStagingDeploy.js"
     "$ACTIONS_DIR/getReleasePullRequestList/getReleasePullRequestList.js"
+    "$ACTIONS_DIR/isStagingDeployLocked/isStagingDeployLocked.js"
     "$ACTIONS_DIR/markPullRequestsAsDeployed/markPullRequestsAsDeployed.js"
 )
 
