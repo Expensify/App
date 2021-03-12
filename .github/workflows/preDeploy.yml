@@ -78,6 +78,7 @@ jobs:
         run: git push --tags
 
       - name: Create Pull Request
+        if: ${{ steps.isStagingDeployLocked.outputs.IS_LOCKED == 'false' }}
         uses: peter-evans/create-pull-request@09b9ac155b0d5ad7d8d157ed32158c1b73689109
         with:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
