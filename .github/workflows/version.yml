@@ -27,8 +27,10 @@ jobs:
           git checkout master
           git config user.name OSBotify
 
-      - name: Checkout new branch
-        run: git checkout -b version-bump-${{ github.sha }}
+      - name: Create new branch
+        run: |
+          git checkout -b version-bump-${{ github.sha }}
+          git push --set-upstream origin version-bump-${{ github.sha }}
 
       - name: Generate version
         id: bumpVersion
@@ -47,49 +49,19 @@ jobs:
           git commit -m "Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
           git tag ${{ steps.bumpVersion.outputs.NEW_VERSION }}
 
-      - name: Push new version
-        run: git push --set-upstream origin version-bump-${{ github.sha }}
-
       - name: Push tags
         run: git push --tags
 
-      # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
-      # the other workflows with the same change
-      - uses: 8398a7/action-slack@v3
-        name: Job failed Slack notification
-        if: ${{ failure() }}
-        with:
-          status: custom
-          fields: workflow, repo
-          custom_payload: |
-            {
-              channel: '#announce',
-              attachments: [{
-                color: "#DB4545",
-                pretext: `<!here>`,
-                text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
-              }]
-            }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
-
-  create_pull_request:
-    runs-on: ubuntu-latest
-    needs: version
-    steps:
-      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.OS_BOTIFY_TOKEN }}
       - name: Create Pull Request
-        # Version: 2.4.3
-        uses: repo-sync/pull-request@33777245b1aace1a58c87a29c90321aa7a74bd7d
+        uses: peter-evans/create-pull-request@09b9ac155b0d5ad7d8d157ed32158c1b73689109
         with:
-          source_branch: version-bump-${{ github.sha }}
-          destination_branch: "master"
-          pr_label: "automerge"
-          github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          branch: version-bump-${{ github.sha }}
+          base: master
+          commit-message: format('Update version to {0}', ${{ steps.bumpVersion.outputs.NEW_VERSION }})
+          author: OSBotify
+          committer: 'OSBotify reactnative@expensify.com'
+          labels: automerge
 
       # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
       # the other workflows with the same change
