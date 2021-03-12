@@ -39,9 +39,11 @@ class IOUModal extends Component {
 
         this.navigateToPreviousStep = this.navigateToPreviousStep.bind(this);
         this.navigateToNextStep = this.navigateToNextStep.bind(this);
-
+        this.handleParticipants = this.handleParticipants.bind(this);
         this.state = {
             currentStepIndex: 0,
+            userEmails: [],
+            iouAmount: 42,
         };
     }
 
@@ -54,8 +56,19 @@ class IOUModal extends Component {
      *
      * @returns {String}
      */
+
     getTitleForStep() {
-        return steps[this.state.currentStepIndex] || '';
+        let title = '';
+        const amount = this.state.iouAmount;
+
+        if (this.state.currentStepIndex === 1) {
+            title = this.props.hasMultipleParticipants ? 'Spilt' : 'Request';
+            title = `${title} $${amount}`;
+        } else {
+            title = steps[this.state.currentStepIndex] || '';
+        }
+
+        return title;
     }
 
     /**
@@ -80,6 +93,14 @@ class IOUModal extends Component {
         this.setState(prevState => ({
             currentStepIndex: prevState.currentStepIndex + 1,
         }));
+    }
+
+    handleParticipants(userEmails) {
+        this.setState(prevState => ({
+            ...prevState,
+            userEmails,
+        }));
+        this.navigateToNextStep();
     }
 
     render() {
@@ -122,7 +143,7 @@ class IOUModal extends Component {
                 {currentStep === Steps.IOUParticipants && (
                     <IOUParticipantsPage
                         hasMultipleParticipants={this.props.hasMultipleParticipants}
-                        onStepComplete={this.navigateToNextStep}
+                        onStepComplete={this.handleParticipants}
                     />
                 )}
                 {currentStep === Steps.IOUConfirm && (
