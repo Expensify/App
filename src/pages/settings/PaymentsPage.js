@@ -30,6 +30,7 @@ class PaymentsPage extends React.Component {
         this.state = {
             paypalMeAddress: props.paypalMeAddress,
         };
+        this.setPaypalAccount = this.setPaypalAccount.bind(this);
     }
 
     componentDidMount() {
@@ -41,6 +42,13 @@ class PaymentsPage extends React.Component {
             // eslint-disable-next-line react/no-did-update-set-state
             this.setState({paypalMeAddress: this.props.paypalMeAddress});
         }
+    }
+
+    /**
+     * Sets the paypalMeAddress for the current user
+     */
+    setPaypalAccount() {
+        NameValuePair.set(CONST.NVP.PAYPAL_ME_ADDRESS, this.state.paypalMeAddress, ONYXKEYS.NVP_PAYPAL_ME_ADDRESS);
     }
 
     render() {
@@ -71,10 +79,7 @@ class PaymentsPage extends React.Component {
                         </View>
                         <View style={[styles.pv3]}>
                             <Pressable
-                                onPress={
-                                    // eslint-disable-next-line max-len
-                                    () => NameValuePair.set(CONST.NVP.PAYPAL_ME_ADDRESS, this.state.paypalMeAddress, ONYXKEYS.NVP_PAYPAL_ME_ADDRESS)
-                                }
+                                onPress={this.setPaypalAccount}
                                 style={({hovered}) => [
                                     styles.button,
                                     styles.buttonSuccess,
