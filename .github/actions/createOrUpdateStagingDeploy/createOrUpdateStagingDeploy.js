@@ -12,8 +12,14 @@ const githubUtils = new GithubUtils(octokit);
 githubUtils.getStagingDeployCash()
     .then(() => githubUtils.updateStagingDeployCash(
         newVersion,
-        _.map(core.getInput('NEW_PULL_REQUESTS').split(','), PR => PR.trim()) || [],
-        _.map(core.getInput('NEW_DEPLOY_BLOCKERS').split(','), deployBlocker => deployBlocker.trim()) || [],
+        _.filter(
+            _.map(core.getInput('NEW_PULL_REQUESTS').split(','), PR => PR.trim()),
+            PR => !_.isEmpty(PR),
+        ),
+        _.filter(
+            _.map(core.getInput('NEW_DEPLOY_BLOCKERS').split(','), deployBlocker => deployBlocker.trim()),
+            PR => !_.isEmpty(PR),
+        ),
     ))
     .then(({data}) => {
         console.log('Successfully updated StagingDeployCash!', data.html_url);

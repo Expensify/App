@@ -338,8 +338,10 @@ class GithubUtils {
         return this.generateVersionComparisonURL(`${GITHUB_OWNER}/${EXPENSIFY_CASH_REPO}`, tag, 'PATCH')
             .then((comparisonURL) => {
                 const sortedPRList = _.sortBy(_.unique(PRList), URL => GithubUtils.getPullRequestNumberFromURL(URL));
-                // eslint-disable-next-line max-len
-                const sortedDeployBlockers = _.sortBy(_.unique(deployBlockers), URL => GithubUtils.getIssueOrPullRequestNumberFromURL(URL));
+                const sortedDeployBlockers = _.sortBy(
+                    _.unique(deployBlockers),
+                    URL => GithubUtils.getIssueOrPullRequestNumberFromURL(URL),
+                );
 
                 // Tag version and comparison URL
                 let issueBody = `**Release Version:** \`${tag}\`\r\n`;
