@@ -1,6 +1,7 @@
 import React from 'react';
 import {StackActions, DrawerActions} from '@react-navigation/native';
 import {getIsDrawerOpenFromState} from '@react-navigation/drawer';
+
 import linkTo from './linkTo';
 import ROUTES from '../../ROUTES';
 
@@ -56,6 +57,11 @@ function dismissModal() {
     openDrawer();
 }
 
+/**
+ * Determines whether the drawer is currently open.
+ *
+ * @returns {Boolean}
+ */
 function isDrawerOpen() {
     return getIsDrawerOpenFromState(navigationRef.current.getRootState().routes[0].state);
 }

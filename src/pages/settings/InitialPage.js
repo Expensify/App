@@ -14,12 +14,11 @@ import ONYXKEYS from '../../ONYXKEYS';
 import {version} from '../../../package.json';
 import AvatarWithIndicator from '../../components/AvatarWithIndicator';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import {redirect} from '../../libs/actions/App';
+import Navigation from '../../libs/Navigation/Navigation';
 import {
     Gear, Lock, Profile, Wallet,
 } from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import Navigation from '../../libs/Navigation/Navigation';
 import MenuItem from '../../components/MenuItem';
 import ROUTES from '../../ROUTES';
 
@@ -127,7 +126,7 @@ const InitialSettingsPage = ({
                                     key={item.title}
                                     title={item.title}
                                     icon={item.icon}
-                                    onPress={() => redirect(item.route)}
+                                    onPress={() => Navigation.navigate(item.route)}
                                     shouldShowRightArrow
                                 />
                             ))}

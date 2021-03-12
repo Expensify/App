@@ -33,7 +33,6 @@ class NavigationRoot extends Component {
         this.state = {
             loading: true,
             initialState: undefined,
-            drawerOpenByDefault: true,
         };
     }
 
@@ -74,13 +73,7 @@ class NavigationRoot extends Component {
                     ];
                 }
 
-                // If we are navigating to something besides the root view then close the drawer
-                let drawerOpenByDefault = true;
-                if (path && path !== ROUTES.HOME) {
-                    drawerOpenByDefault = false;
-                }
-
-                this.setState({loading: false, initialState, drawerOpenByDefault});
+                this.setState({loading: false, initialState});
             });
     }
 
@@ -118,10 +111,7 @@ class NavigationRoot extends Component {
                     formatter: () => 'Expensify.cash',
                 }}
             >
-                <AppNavigator
-                    authenticated={this.props.authenticated}
-                    isDrawerOpenByDefault={this.state.drawerOpenByDefault}
-                />
+                <AppNavigator authenticated={this.props.authenticated} />
             </NavigationContainer>
         );
     }

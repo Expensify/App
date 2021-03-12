@@ -3,15 +3,11 @@ export default {
     config: {
         screens: {
             Home: {
+                path: '',
                 initialRouteName: 'Report',
                 screens: {
                     // Report route
-                    Report: {
-                        path: 'r/:reportID',
-                        parse: {
-                            reportID: reportID => (reportID !== 'undefined' ? reportID : ''),
-                        },
-                    },
+                    Report: 'r/:reportID',
                 },
             },
 

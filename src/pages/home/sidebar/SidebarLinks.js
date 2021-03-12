@@ -7,7 +7,7 @@ import styles, {getSafeAreaMargins} from '../../../styles/styles';
 import ONYXKEYS from '../../../ONYXKEYS';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
 import compose from '../../../libs/compose';
-import {redirect} from '../../../libs/actions/App';
+import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import Icon from '../../../components/Icon';
 import Header from '../../../components/Header';
@@ -86,7 +86,7 @@ const defaultProps = {
 
 class SidebarLinks extends React.Component {
     showSearchPage() {
-        redirect(ROUTES.SEARCH);
+        Navigation.navigate(ROUTES.SEARCH);
     }
 
     render() {
@@ -145,7 +145,7 @@ class SidebarLinks extends React.Component {
                         option => option.reportID === activeReportID
                     ))}
                     onSelectRow={(option) => {
-                        redirect(ROUTES.getReportRoute(option.reportID));
+                        Navigation.navigate(ROUTES.getReportRoute(option.reportID));
                         this.props.onLinkClick();
                     }}
                     hideSectionHeaders

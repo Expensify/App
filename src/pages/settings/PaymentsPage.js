@@ -1,8 +1,7 @@
 import React from 'react';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import {redirect} from '../../libs/actions/App';
-import ROUTES from '../../ROUTES';
 import Navigation from '../../libs/Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 import ScreenWrapper from '../../components/ScreenWrapper';
 
 const PaymentsPage = () => (
@@ -12,7 +11,7 @@ const PaymentsPage = () => (
                 <HeaderWithCloseButton
                     title="Payments"
                     shouldShowBackButton
-                    onBackButtonPress={() => redirect(ROUTES.SETTINGS)}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
             </>
