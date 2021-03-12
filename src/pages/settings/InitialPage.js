@@ -14,11 +14,11 @@ import ONYXKEYS from '../../ONYXKEYS';
 import {version} from '../../../package.json';
 import AvatarWithIndicator from '../../components/AvatarWithIndicator';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import {redirect, redirectToLastReport} from '../../libs/actions/App';
+import Navigation from '../../libs/Navigation/Navigation';
 import {
     Gear, Lock, Profile, Wallet,
 } from '../../components/Icon/Expensicons';
-import HeaderGap from '../../components/HeaderGap';
+import ScreenWrapper from '../../components/ScreenWrapper';
 import MenuItem from '../../components/MenuItem';
 import ROUTES from '../../ROUTES';
 
@@ -87,62 +87,68 @@ const InitialSettingsPage = ({
         return null;
     }
     return (
-        <>
-            <HeaderGap />
-            <HeaderWithCloseButton title="Settings" onCloseButtonPress={redirectToLastReport} />
-            <View
-                pointerEvents="box-none"
-                style={[
-                    styles.settingsPageBackground,
-                ]}
-            >
-                <View style={styles.w100}>
-                    <View style={styles.pageWrapper}>
+        <ScreenWrapper>
+            {() => (
+                <>
+                    <HeaderWithCloseButton
+                        title="Settings"
+                        onCloseButtonPress={() => Navigation.dismissModal()}
+                    />
+                    <View
+                        pointerEvents="box-none"
+                        style={[
+                            styles.settingsPageBackground,
+                        ]}
+                    >
+                        <View style={styles.w100}>
+                            <View style={styles.pageWrapper}>
 
-                        <View style={[styles.mb3]}>
-                            <AvatarWithIndicator
-                                size="large"
-                                source={myPersonalDetails.avatar}
-                                isActive={network.isOffline === false}
-                            />
+                                <View style={[styles.mb3]}>
+                                    <AvatarWithIndicator
+                                        size="large"
+                                        source={myPersonalDetails.avatar}
+                                        isActive={network.isOffline === false}
+                                    />
+                                </View>
+                                <Text style={[styles.displayName, styles.mt1]} numberOfLines={1}>
+                                    {myPersonalDetails.displayName
+                                        ? myPersonalDetails.displayName
+                                        : Str.removeSMSDomain(session.email)}
+                                </Text>
+                                {myPersonalDetails.displayName && (
+                                <Text style={[styles.settingsLoginName, styles.mt1]} numberOfLines={1}>
+                                    {Str.removeSMSDomain(session.email)}
+                                </Text>
+                                )}
+                            </View>
+                            {menuItems.map(item => (
+                                <MenuItem
+                                    key={item.title}
+                                    title={item.title}
+                                    icon={item.icon}
+                                    onPress={() => Navigation.navigate(item.route)}
+                                    shouldShowRightArrow
+                                />
+                            ))}
+                            <View style={[styles.ph5]}>
+                                <TouchableOpacity
+                                    onPress={signOut}
+                                    style={[styles.button, styles.w100, styles.mt5]}
+                                >
+                                    <Text style={[styles.buttonText]}>
+                                        Sign Out
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
-                        <Text style={[styles.displayName, styles.mt1]} numberOfLines={1}>
-                            {myPersonalDetails.displayName
-                                ? myPersonalDetails.displayName
-                                : Str.removeSMSDomain(session.email)}
+                        <Text style={[styles.chatItemMessageHeaderTimestamp]} numberOfLines={1}>
+                            v
+                            {version}
                         </Text>
-                        {myPersonalDetails.displayName && (
-                        <Text style={[styles.settingsLoginName, styles.mt1]} numberOfLines={1}>
-                            {Str.removeSMSDomain(session.email)}
-                        </Text>
-                        )}
                     </View>
-                    {menuItems.map(item => (
-                        <MenuItem
-                            key={item.title}
-                            title={item.title}
-                            icon={item.icon}
-                            onPress={() => redirect(item.route)}
-                            shouldShowRightArrow
-                        />
-                    ))}
-                    <View style={[styles.ph5]}>
-                        <TouchableOpacity
-                            onPress={signOut}
-                            style={[styles.button, styles.w100, styles.mt5]}
-                        >
-                            <Text style={[styles.buttonText]}>
-                                Sign Out
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-                <Text style={[styles.chatItemMessageHeaderTimestamp]} numberOfLines={1}>
-                    v
-                    {version}
-                </Text>
-            </View>
-        </>
+                </>
+            )}
+        </ScreenWrapper>
     );
 };
 
