@@ -99,7 +99,8 @@ class LoginFormWide extends React.Component {
                             With Expensify.cash, chat and payments are the same thing.
                         </Text>
                         <Text style={[styles.textP]}>
-                            {'Money talks. And now that chat and payments are in one place, it\'s also easy. '}
+                            Money talks. And now that chat and payments are in one place, it&apos;s also easy.
+                            {' '}
                             Your payments get to you as fast as you can get your point across.
                         </Text>
                     </View>
