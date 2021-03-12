@@ -202,7 +202,6 @@ class OptionsList extends Component {
                     showsVerticalScrollIndicator={false}
                     sections={this.props.sections}
                     keyExtractor={this.extractKey}
-                    initialNumToRender={500}
                     onScrollToIndexFailed={this.onScrollToIndexFailed}
                     stickySectionHeadersEnabled={false}
                     renderItem={this.renderItem}

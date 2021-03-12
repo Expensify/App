@@ -1,4 +1,5 @@
 import React, {PureComponent} from 'react';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Popover from './Popover';
 import styles from '../styles/styles';
@@ -77,14 +78,16 @@ class CreateMenu extends PureComponent {
                 }}
                 anchorPosition={styles.createMenuPosition}
             >
-                {menuItemData.map(({icon, text, onPress}) => (
-                    <MenuItem
-                        key={text}
-                        icon={icon}
-                        title={text}
-                        onPress={onPress}
-                    />
-                ))}
+                <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
+                    {menuItemData.map(({icon, text, onPress}) => (
+                        <MenuItem
+                            key={text}
+                            icon={icon}
+                            title={text}
+                            onPress={onPress}
+                        />
+                    ))}
+                </View>
             </Popover>
         );
     }
