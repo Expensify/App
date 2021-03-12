@@ -93,7 +93,7 @@ jobs:
       - name: Push tags
         run: git push --tags
 
-      - name: Create Pull Request (master)
+      - name: Create Pull Request on master
         uses: peter-evans/create-pull-request@09b9ac155b0d5ad7d8d157ed32158c1b73689109
         with:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
@@ -104,7 +104,7 @@ jobs:
           body: Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}
           labels: automerge
 
-      - name: Create Pull Request (staging)
+      - name: Create Pull Request on staging
         uses: peter-evans/create-pull-request@09b9ac155b0d5ad7d8d157ed32158c1b73689109
         with:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
