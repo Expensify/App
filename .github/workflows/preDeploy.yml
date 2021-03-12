@@ -1,4 +1,4 @@
-name: Create a new version
+name: Process new code merged to master
 
 on:
   push:
@@ -21,22 +21,46 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Get merged pull request
+        id: getMergedPullRequest
+        uses: actions-ecosystem/get-merged-pull-request@cb1e7423b3ca9886f619a8b93874b2e72abfb87c
+        with:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Check if StagingDeployCash is locked
+        id: isStagingDeployLocked
+        uses: Expensify/Expensify.cash/.github/actions/isStagingDeployLocked@master
+        with:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - uses: actions-ecosystem/action-create-comment@cd098164398331c50e7dfdd0dfa1b564a1873fac
+        if: ${{ steps.isStagingDeployLocked.outputs.IS_LOCKED == 'true' }}
+        with:
+          github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          number: ${{ steps.getMergedPullRequest.outputs.number }}
+          body: |
+            :hand: This PR was not deployed to staging yet because QA is ongoing. It will be automatically deployed to staging after the next production release.
+
       - name: Set up git
+        if: ${{ steps.isStagingDeployLocked.outputs.IS_LOCKED == 'false' }}
         run: |
           git fetch
           git checkout master
           git config user.name OSBotify
 
       - name: Checkout new branch
+        if: ${{ steps.isStagingDeployLocked.outputs.IS_LOCKED == 'false' }}
         run: git checkout -b version-bump-${{ github.sha }}
 
       - name: Generate version
+        if: ${{ steps.isStagingDeployLocked.outputs.IS_LOCKED == 'false' }}
         id: bumpVersion
         uses: Expensify/Expensify.cash/.github/actions/bumpVersion@master
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Commit and tag new version
+        if: ${{ steps.isStagingDeployLocked.outputs.IS_LOCKED == 'false' }}
         run: |
           git add \
             ./package.json \
@@ -48,9 +72,11 @@ jobs:
           git tag ${{ steps.bumpVersion.outputs.NEW_VERSION }}
 
       - name: Push new version
+        if: ${{ steps.isStagingDeployLocked.outputs.IS_LOCKED == 'false' }}
         run: git push --set-upstream origin version-bump-${{ github.sha }}
 
       - name: Push tags
+        if: ${{ steps.isStagingDeployLocked.outputs.IS_LOCKED == 'false' }}
         run: git push --tags
 
       # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
@@ -82,7 +108,15 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Check if StagingDeployCash is locked
+        id: isStagingDeployLocked
+        uses: Expensify/Expensify.cash/.github/actions/isStagingDeployLocked@master
+        with:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+
       - name: Create Pull Request
+        if: ${{ steps.isStagingDeployLocked.outputs.IS_LOCKED == 'false' }}
         # Version: 2.4.3
         uses: repo-sync/pull-request@33777245b1aace1a58c87a29c90321aa7a74bd7d
         with:
