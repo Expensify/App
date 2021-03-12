@@ -164,7 +164,6 @@ export default function getTooltipStyles(
         pointerWrapperStyle: {
             position: 'fixed',
 
-
             // By default, the pointer's top-left will align with the top-left of the wrapped tooltip.
             //
             // To align it vertically, we'll:
@@ -185,7 +184,9 @@ export default function getTooltipStyles(
             //      so the left edge of the pointer lines up with the tooltipWidth's center.
             //   2) To the left (-) by half the pointer's width,
             //      so the pointer's center lines up with the tooltipWidth's center.
-            left: (tooltipWidth / 2) - (POINTER_WIDTH / 2),
+            //   3) Due to the tip start from the left edge of wrapper Tooltip so we have to remove the
+            //      horizontalShift which is added to adjust it into the Window
+            left: -horizontalShift + ((tooltipWidth / 2) - (POINTER_WIDTH / 2)),
         },
         pointerStyle: {
             width: 0,
