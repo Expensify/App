@@ -1,6 +1,10 @@
 const {Octokit} = require('@octokit/rest');
 const GithubUtils = require('../../.github/libs/GithubUtils');
 
+beforeEach(() => {
+    jest.clearAllMocks();
+});
+
 describe('GithubUtils', () => {
     describe('getStagingDeployCash', () => {
         const baseIssue = {
@@ -170,6 +174,53 @@ describe('GithubUtils', () => {
                     issue_number: 29,
                     // eslint-disable-next-line max-len
                     body: '**Release Version:** `1.0.1-48`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/1.0.1-0...1.0.1-48\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/21\r\n- [x] https://github.com/Expensify/Expensify.cash/pull/22\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/23\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/24\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/25\r\n\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/issues/1\r\n- [x] https://github.com/Expensify/Expensify.cash/issues/2\r\n- [ ] https://github.com/Expensify/Expensify.cash/issues/3\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/1234\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/4321\r\n\r\ncc @Expensify/applauseleads\r\n',
+                });
+            });
+        });
+
+        test('updates issue with just deploy blockers', () => {
+            const issueBefore = {
+                url: 'https://api.github.com/repos/Expensify/Expensify.cash/issues/29',
+                title: 'Test StagingDeployCash',
+                labels: [
+                    {
+                        id: 2783847782,
+                        node_id: 'MDU6TGFiZWwyNzgzODQ3Nzgy',
+                        url: 'https://api.github.com/repos/Expensify/Expensify.cash/labels/StagingDeployCash',
+                        name: 'StagingDeployCash',
+                        color: '6FC269',
+                        default: false,
+                        description: '',
+                    },
+                ],
+                // eslint-disable-next-line max-len
+                body: '**Release Version:** `1.0.1-47`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/1.0.1-0...1.0.1-47\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/21\r\n- [x] https://github.com/Expensify/Expensify.cash/pull/22\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/23\r\n\r\n',
+            };
+
+            const octokit = new Octokit();
+            octokit.repos.listTags = jest.fn().mockResolvedValue({
+                data: [
+                    {name: '1.0.1-0'},
+                    {name: '1.0.1-47'},
+                    {name: '1.0.1-48'},
+                ],
+            });
+            octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [issueBefore]});
+            octokit.issues.update = jest.fn().mockImplementation(arg => Promise.resolve(arg));
+            const githubUtils = new GithubUtils(octokit);
+
+            return githubUtils.updateStagingDeployCash(
+                undefined,
+                undefined,
+                ['https://github.com/Expensify/Expensify.cash/pull/24',
+                    'https://github.com/Expensify/Expensify.cash/issues/25'],
+            ).then((result) => {
+                expect(result).toStrictEqual({
+                    owner: GithubUtils.GITHUB_OWNER,
+                    repo: GithubUtils.EXPENSIFY_CASH_REPO,
+                    issue_number: 29,
+                    // eslint-disable-next-line max-len
+                    body: '**Release Version:** `1.0.1-47`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/1.0.1-0...1.0.1-47\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/21\r\n- [x] https://github.com/Expensify/Expensify.cash/pull/22\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/23\r\n\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/24\r\n- [ ] https://github.com/Expensify/Expensify.cash/issues/25\r\n\r\ncc @Expensify/applauseleads\r\n',
                 });
             });
         });
