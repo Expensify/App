@@ -62,16 +62,17 @@ class OptionRowTitle extends PureComponent {
 
 
     render() {
-        const {option, style, tooltipEnabled} = this.props;
+        const {
+            option, style, tooltipEnabled, numberOfLines, tooltipContainerStyle,
+        } = this.props;
         const {isEllipsisActive} = this.state;
 
         if (tooltipEnabled) {
             return (
+
+                // Tokenization of string only support 1 numberofLines on Web
                 <Text
-                    style={
-                        [styles.optionDisplayName, style,
-                            styles.flexRow, styles.optionDisplayNameTooltipWrapper]
-                    }
+                    style={[style, styles.optionDisplayNameTooltipWrapper]}
                     onLayout={this.setContainerLayout}
                     numberOfLines={1}
                     ref={this.setContainerRef}
@@ -83,7 +84,7 @@ class OptionRowTitle extends PureComponent {
                                 <Tooltip
                                     key={index}
                                     text={participant.login}
-                                    containerStyle={styles.dInline}
+                                    containerStyle={tooltipContainerStyle}
                                     shiftHorizontal={() => this.getTooltipShiftX(index)}
                                 >
                                     <Text ref={setChildRef}>
@@ -109,7 +110,7 @@ class OptionRowTitle extends PureComponent {
             );
         }
 
-        return <Text style={[styles.optionDisplayName, style]} numberOfLines={1}>{option.text}</Text>;
+        return <Text style={style} numberOfLines={numberOfLines}>{option.text}</Text>;
     }
 }
 OptionRowTitle.propTypes = propTypes;

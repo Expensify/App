@@ -114,7 +114,8 @@ const OptionRow = ({
                                 <OptionRowTitle
                                     option={option}
                                     tooltipEnabled={showTitleTooltip}
-                                    style={textUnreadStyle}
+                                    numberOfLines={1}
+                                    style={[styles.optionDisplayName, textUnreadStyle]}
                                 />
 
                                 {option.alternateText ? (

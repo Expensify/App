@@ -432,4 +432,5 @@ export {
     getNewGroupOptions,
     getSidebarOptions,
     getHeaderMessage,
+    getPersonalDetailsForLogins,
 };
