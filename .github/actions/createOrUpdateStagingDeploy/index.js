@@ -22,8 +22,14 @@ const githubUtils = new GithubUtils(octokit);
 githubUtils.getStagingDeployCash()
     .then(() => githubUtils.updateStagingDeployCash(
         newVersion,
-        _.map(core.getInput('NEW_PULL_REQUESTS').split(','), PR => PR.trim()) || [],
-        _.map(core.getInput('NEW_DEPLOY_BLOCKERS').split(','), deployBlocker => deployBlocker.trim()) || [],
+        _.filter(
+            _.map(core.getInput('NEW_PULL_REQUESTS').split(','), PR => PR.trim()),
+            PR => !_.isEmpty(PR),
+        ),
+        _.filter(
+            _.map(core.getInput('NEW_DEPLOY_BLOCKERS').split(','), deployBlocker => deployBlocker.trim()),
+            PR => !_.isEmpty(PR),
+        ),
     ))
     .then(({data}) => {
         console.log('Successfully updated StagingDeployCash!', data.html_url);
@@ -417,8 +423,10 @@ class GithubUtils {
         return this.generateVersionComparisonURL(`${GITHUB_OWNER}/${EXPENSIFY_CASH_REPO}`, tag, 'PATCH')
             .then((comparisonURL) => {
                 const sortedPRList = _.sortBy(_.unique(PRList), URL => GithubUtils.getPullRequestNumberFromURL(URL));
-                // eslint-disable-next-line max-len
-                const sortedDeployBlockers = _.sortBy(_.unique(deployBlockers), URL => GithubUtils.getIssueOrPullRequestNumberFromURL(URL));
+                const sortedDeployBlockers = _.sortBy(
+                    _.unique(deployBlockers),
+                    URL => GithubUtils.getIssueOrPullRequestNumberFromURL(URL),
+                );
 
                 // Tag version and comparison URL
                 let issueBody = `**Release Version:** \`${tag}\`\r\n`;
