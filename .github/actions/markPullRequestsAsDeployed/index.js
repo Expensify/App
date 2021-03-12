@@ -83,11 +83,15 @@ class GithubUtils {
         })
             .then(({data}) => {
                 if (!data.length) {
-                    throw new Error(`Unable to find ${STAGING_DEPLOY_CASH_LABEL} issue.`);
+                    const error = new Error(`Unable to find ${STAGING_DEPLOY_CASH_LABEL} issue.`);
+                    error.code = 404;
+                    throw error;
                 }
 
                 if (data.length > 1) {
-                    throw new Error(`Found more than one ${STAGING_DEPLOY_CASH_LABEL} issue.`);
+                    const error = new Error(`Found more than one ${STAGING_DEPLOY_CASH_LABEL} issue.`);
+                    error.code = 500;
+                    throw error;
                 }
 
                 return this.getStagingDeployCashData(data[0]);
@@ -97,10 +101,8 @@ class GithubUtils {
     /**
      * Takes in a GitHub issue object and returns the data we want.
      *
-     * @private
-     *
      * @param {Object} issue
-     * @returns {Promise}
+     * @returns {Object}
      */
     getStagingDeployCashData(issue) {
         try {
@@ -166,7 +168,11 @@ class GithubUtils {
      * @returns {Array<Object>} - [{URL: String, number: Number, isResolved: Boolean}]
      */
     getStagingDeployCashDeployBlockers(issue) {
-        const deployBlockerSection = issue.body.match(/Deploy Blockers:\*\*\r\n((?:.*\r\n)+)/)[1];
+        let deployBlockerSection = issue.body.match(/Deploy Blockers:\*\*\r\n((?:.*\r\n)+)/) || [];
+        if (deployBlockerSection.length !== 2) {
+            return [];
+        }
+        deployBlockerSection = deployBlockerSection[1];
         const unresolvedDeployBlockers = _.map(
             [...deployBlockerSection.matchAll(new RegExp(`- \\[ ] (${ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))],
             match => ({
@@ -267,8 +273,8 @@ class GithubUtils {
             .then(body => this.octokit.issues.create({
                 owner: GITHUB_OWNER,
                 repo: EXPENSIFY_CASH_REPO,
-                labels: STAGING_DEPLOY_CASH_LABEL,
-                assignee: APPLAUSE_BOT,
+                labels: [STAGING_DEPLOY_CASH_LABEL],
+                assignees: [APPLAUSE_BOT],
                 title,
                 body,
             }));
@@ -345,7 +351,7 @@ class GithubUtils {
         deployBlockers = [],
         resolvedDeployBlockers = [],
     ) {
-        return this.generateVersionComparisonURL(`${GITHUB_OWNER}/${EXPENSIFY_CASH_REPO}`, tag, 'BUILD')
+        return this.generateVersionComparisonURL(`${GITHUB_OWNER}/${EXPENSIFY_CASH_REPO}`, tag, 'PATCH')
             .then((comparisonURL) => {
                 const sortedPRList = _.sortBy(_.unique(PRList), URL => GithubUtils.getPullRequestNumberFromURL(URL));
                 // eslint-disable-next-line max-len
@@ -400,6 +406,16 @@ class GithubUtils {
     }
 
     /**
+     * Generate the URL of an Expensify.cash pull request given the PR number.
+     *
+     * @param {Number} number
+     * @returns {String}
+     */
+    static getPullRequestURLFromNumber(number) {
+        return `${EXPENSIFY_CASH_URL}/pull/${number}`;
+    }
+
+    /**
      * Parse the pull request number from a URL.
      *
      * @param {String} URL
@@ -448,6 +464,7 @@ class GithubUtils {
 module.exports = GithubUtils;
 module.exports.GITHUB_OWNER = GITHUB_OWNER;
 module.exports.EXPENSIFY_CASH_REPO = EXPENSIFY_CASH_REPO;
+module.exports.STAGING_DEPLOY_CASH_LABEL = STAGING_DEPLOY_CASH_LABEL;
 
 
 /***/ }),

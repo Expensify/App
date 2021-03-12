@@ -83,6 +83,7 @@ function createOption(personalDetailList, report, draftComments, activeReportID,
     const personalDetail = personalDetailList[0];
     const hasDraftComment = report
         && (report.reportID !== activeReportID)
+        && draftComments
         && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '').length > 0;
 
     const lastActorDetails = report ? _.find(personalDetailList, {login: report.lastActorEmail}) : null;
@@ -183,7 +184,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         const logins = lodashGet(report, ['participants'], []);
 
         // Report data can sometimes be incomplete. If we have no logins or reportID then we will skip this entry.
-        if (!report.reportID || _.isEmpty(logins)) {
+        if (!report || !report.reportID || _.isEmpty(logins)) {
             return;
         }
 
