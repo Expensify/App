@@ -133,6 +133,10 @@ export default {
         paddingRight: 8,
     },
 
+    pr5: {
+        paddingRight: 20,
+    },
+
     pl5: {
         paddingLeft: 20,
     },

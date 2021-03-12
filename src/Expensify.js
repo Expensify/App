@@ -38,6 +38,9 @@ Onyx.registerLogger(({level, message}) => {
 });
 
 const propTypes = {
+    /* Onyx Props */
+
+    // Session info for the currently logged in user.
     session: PropTypes.shape({
         authToken: PropTypes.string,
         accountID: PropTypes.number,
@@ -84,7 +87,7 @@ class Expensify extends PureComponent {
     }
 
     render() {
-        // Until the authToken has been initialized from Onyx and the onyx migration is done, display a blank page
+        // Display a blank page until the onyx migration completes
         if (!this.state.isOnyxMigrated) {
             return (
                 <View style={styles.genericView} />
