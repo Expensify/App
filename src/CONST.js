@@ -1,6 +1,15 @@
 const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
 
 const CONST = {
+    BETAS: {
+        ALL: 'all',
+        REPORT_ACTION_CONTEXT_MENU: 'reportActionContextMenu',
+    },
+    BUTTON_STATES: {
+        DEFAULT: 'default',
+        HOVERED: 'hovered',
+        PRESSED: 'pressed',
+    },
     CLOUDFRONT_URL,
     PDF_VIEWER_URL: '/pdf/web/viewer.html',
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
@@ -19,6 +28,16 @@ const CONST = {
             BOTTOM_DOCKED: 'bottom_docked',
             POPOVER: 'popover',
             RIGHT_DOCKED: 'right_docked',
+        },
+        ANCHOR_ORIGIN_VERTICAL: {
+            TOP: 'top',
+            CENTER: 'center',
+            BOTTOM: 'bottom',
+        },
+        ANCHOR_ORIGIN_HORIZONTAL: {
+            LEFT: 'left',
+            CENTER: 'center',
+            RIGHT: 'right',
         },
     },
     TIMING: {
