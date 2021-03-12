@@ -67,7 +67,7 @@ class BaseModal extends PureComponent {
                 style={modalStyle}
                 deviceHeight={this.props.windowHeight}
                 deviceWidth={this.props.windowWidth}
-                animationIn={animationIn}
+                animationIn={this.props.animationIn || animationIn}
                 animationOut={animationOut}
                 useNativeDriver={this.props.useNativeDriver}
                 statusBarTranslucent

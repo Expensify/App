@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import ReportActionView from './ReportActionsView';
+import ReportActionsView from './ReportActionsView';
 import ReportActionCompose from './ReportActionCompose';
 import {addAction, subscribeToReportTypingEvents, unsubscribeFromReportChannel} from '../../../libs/actions/Report';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
@@ -42,7 +42,7 @@ class ReportView extends React.PureComponent {
         const shouldShowComposeForm = this.props.isActiveReport;
         return (
             <View style={[styles.chatContent]}>
-                <ReportActionView
+                <ReportActionsView
                     reportID={this.props.reportID}
                     isActiveReport={this.props.isActiveReport}
                 />
