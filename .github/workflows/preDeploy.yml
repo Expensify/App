@@ -20,7 +20,7 @@ jobs:
 
       - name: Get merged pull request
         id: getMergedPullRequest
-        uses: actions-ecosystem/get-merged-pull-request@cb1e7423b3ca9886f619a8b93874b2e72abfb87c
+        uses: actions-ecosystem/action-get-merged-pull-request@59afe90821bb0b555082ce8ff1e36b03f91553d9
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
