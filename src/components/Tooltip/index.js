@@ -33,6 +33,7 @@ class Tooltip extends PureComponent {
         // The tooltip (popover) itself.
         this.tooltip = null;
 
+        this.isComponentMounted = false;
         this.animation = new Animated.Value(0);
 
         this.getWrapperPosition = this.getWrapperPosition.bind(this);
@@ -43,12 +44,31 @@ class Tooltip extends PureComponent {
         this.createPortal = this.createPortal.bind(this);
     }
 
+    componentDidMount() {
+        this.isComponentMounted = true;
+    }
+
     componentDidUpdate(prevProps) {
         if (this.props.windowWidth !== prevProps.windowWidth || this.props.windowHeight !== prevProps.windowHeight) {
             this.getWrapperPosition()
-                .then(({x, y}) => {
-                    this.setState({xOffset: x, yOffset: y});
-                });
+                .then(({x, y}) => this.setStateIfMounted({xOffset: x, yOffset: y}));
+        }
+    }
+
+    componentWillUnmount() {
+        this.isComponentMounted = false;
+    }
+
+    /**
+     * Call setState only if this component is mounted. It's necessary to check because we need to call setState
+     * after an asynchronous `measureInWindow` call, and by the time it completes this component may have unmounted
+     * and calling setState on an unmounted component results in an error.
+     *
+     * @param {Object} newState
+     */
+    setStateIfMounted(newState) {
+        if (this.isComponentMounted) {
+            this.setState(newState);
         }
     }
 
@@ -58,11 +78,18 @@ class Tooltip extends PureComponent {
      * @returns {Promise}
      */
     getWrapperPosition() {
-        return new Promise((resolve => this.wrapperView.measureInWindow(
-            (x, y, width, height) => resolve({
-                x, y, width, height,
-            }),
-        )));
+        return new Promise(((resolve) => {
+            // Make sure the wrapper is mounted before attempting to measure it.
+            if (this.wrapperView) {
+                this.wrapperView.measureInWindow((x, y, width, height) => resolve({
+                    x, y, width, height,
+                }));
+            } else {
+                resolve({
+                    x: 0, y: 0, width: 0, height: 0,
+                });
+            }
+        }));
     }
 
     /**
@@ -76,7 +103,7 @@ class Tooltip extends PureComponent {
         // We need to use `measureInWindow` instead of the layout props provided by `onLayout`
         // because `measureInWindow` provides the x and y offset relative to the window, rather than the parent element.
         this.getWrapperPosition()
-            .then(({x, y}) => this.setState({
+            .then(({x, y}) => this.setStateIfMounted({
                 wrapperWidth: width,
                 wrapperHeight: height,
                 xOffset: x,
@@ -90,7 +117,7 @@ class Tooltip extends PureComponent {
      * @param {Object} nativeEvent
      */
     measureTooltip({nativeEvent}) {
-        this.setState({
+        this.setStateIfMounted({
             tooltipWidth: nativeEvent.layout.width,
             tooltipHeight: nativeEvent.layout.height,
         });

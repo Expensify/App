@@ -5,39 +5,23 @@ module.exports =
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 519:
+/***/ 608:
 /***/ ((__unused_webpack_module, __unused_webpack_exports, __nccwpck_require__) => {
 
+const _ = __nccwpck_require__(4987);
 const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
 const GithubUtils = __nccwpck_require__(7999);
 
-const prList = JSON.parse(core.getInput('PR_LIST', {required: true}));
-const isProd = JSON.parse(
-    core.getInput('IS_PRODUCTION_DEPLOY', {required: true}),
-);
-const token = core.getInput('GITHUB_TOKEN', {required: true});
-const date = new Date();
-const message = `Deployed to ${
-    isProd ? 'production' : 'staging'
-} on ${date.toDateString()} at ${date.toTimeString()}`;
-
-const octokit = github.getOctokit(token);
+const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
 const githubUtils = new GithubUtils(octokit);
 
-/**
- * Create comment on each pull request
- */
-prList.forEach((pr) => {
-    githubUtils.createComment(github.context.repo.repo, pr, message, octokit)
-        .then(() => {
-            console.log(`Comment created on #${pr} successfully`);
-        })
-        .catch((err) => {
-            console.log(`Unable to write comment on #${pr}`);
-            core.setFailed(err.message);
-        });
-});
+githubUtils.getStagingDeployCash()
+    .then(({labels}) => core.setOutput('IS_LOCKED', _.contains(_.pluck(labels, 'name'), '🔐 LockCashDeploys 🔐')))
+    .catch((err) => {
+        console.warn('No open StagingDeployCash found, continuing...', err);
+        core.setOutput('IS_LOCKED', false);
+    });
 
 
 /***/ }),
@@ -13786,6 +13770,6 @@ module.exports = require("zlib");;
 /******/ 	// module exports must be returned from runtime so entry inlining is disabled
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	return __nccwpck_require__(519);
+/******/ 	return __nccwpck_require__(608);
 /******/ })()
 ;

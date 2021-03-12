@@ -14,6 +14,8 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../components/wit
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import HeaderGap from '../components/HeaderGap';
+import Timing from '../libs/actions/Timing';
+import CONST from '../CONST';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -52,6 +54,8 @@ class SearchPage extends Component {
     constructor(props) {
         super(props);
 
+        Timing.start(CONST.TIMING.SEARCH_RENDER);
+
         this.selectReport = this.selectReport.bind(this);
 
         const {
@@ -70,6 +74,10 @@ class SearchPage extends Component {
             personalDetails,
             userToInvite,
         };
+    }
+
+    componentDidMount() {
+        Timing.end(CONST.TIMING.SEARCH_RENDER);
     }
 
     /**
@@ -134,7 +142,6 @@ class SearchPage extends Component {
             (this.state.recentReports.length + this.state.personalDetails.length) !== 0,
             Boolean(this.state.userToInvite),
         );
-
         return (
             <>
                 <HeaderGap />

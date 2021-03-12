@@ -10,6 +10,7 @@ import sizing from './utilities/sizing';
 import flex from './utilities/flex';
 import display from './utilities/display';
 import overflow from './utilities/overflow';
+import positioning from './utilities/positioning';
 import whiteSpace from './utilities/whiteSpace';
 import wordBreak from './utilities/wordBreak';
 import textInputAlignSelf from './utilities/textInputAlignSelf';
@@ -103,7 +104,7 @@ const styles = {
 
     button: {
         backgroundColor: themeColors.buttonDefaultBG,
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: variables.componentBorderRadiusNormal,
         height: variables.componentSizeNormal,
         justifyContent: 'center',
         paddingHorizontal: 12,
@@ -159,7 +160,7 @@ const styles = {
     },
 
     hoveredComponentBG: {
-        backgroundColor: themeColors.componentBGHover,
+        backgroundColor: themeColors.hoverComponentBG,
     },
 
     touchableButtonImage: {
@@ -272,7 +273,7 @@ const styles = {
 
     textInput: {
         backgroundColor: themeColors.componentBG,
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: variables.componentBorderRadiusNormal,
         height: variables.componentSizeNormal,
         borderColor: themeColors.border,
         borderWidth: 1,
@@ -461,6 +462,11 @@ const styles = {
     createMenuPosition: {
         left: 18,
         bottom: 100,
+    },
+
+    createMenuContainer: {
+        width: variables.sideBarWidth - 40,
+        paddingVertical: 12,
     },
 
     createMenuItem: {
@@ -704,7 +710,7 @@ const styles = {
     chatItemComposeBox: {
         backgroundColor: themeColors.componentBG,
         borderWidth: 1,
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: variables.componentBorderRadiusNormal,
         minHeight: variables.componentSizeNormal,
     },
 
@@ -756,7 +762,7 @@ const styles = {
         backgroundColor: themeColors.sidebar,
         borderColor: themeColors.border,
         borderWidth: 1,
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: variables.componentBorderRadiusNormal,
         height: 150,
         textAlign: 'center',
         verticalAlign: 'middle',
@@ -892,7 +898,7 @@ const styles = {
 
     defaultAttachmentView: {
         backgroundColor: themeColors.sidebar,
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: variables.componentBorderRadiusNormal,
         borderWidth: 1,
         borderColor: themeColors.border,
         flexDirection: 'row',
@@ -946,6 +952,22 @@ const styles = {
     defaultModalContainer: {
         backgroundColor: themeColors.componentBG,
         borderColor: colors.transparent,
+    },
+
+    miniReportActionContextMenuWrapperStyle: {
+        ...positioning.tn4,
+        ...positioning.r4,
+        position: 'absolute',
+    },
+
+    reportActionContextMenuText: {
+        color: themeColors.heading,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeLabel,
+        fontWeight: fontWeightBold,
+        textAlign: 'center',
+        ...spacing.ml4,
+        ...spacing.mr2,
     },
 
     settingsPageBackground: {
@@ -1051,6 +1073,11 @@ const styles = {
         transform: [{rotate: '180deg'}],
     },
 
+    invisible: {
+        position: 'absolute',
+        opacity: 0,
+    },
+
     profilePageContainer: {
         justifyContent: 'space-between',
         width: '100%',
@@ -1134,7 +1161,7 @@ const webViewStyles = {
 
         img: {
             borderColor: themeColors.border,
-            borderRadius: variables.componentBorderRadius,
+            borderRadius: variables.componentBorderRadiusNormal,
             borderWidth: 1,
         },
     },
