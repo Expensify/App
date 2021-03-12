@@ -28,11 +28,18 @@ const propTypes = {
     // The ID of the report actions will be created for
     reportID: PropTypes.number.isRequired,
 
+    // Details about any modals being used
+    modal: PropTypes.shape({
+        // Indicates if there is a modal currently visible or not
+        isVisible: PropTypes.bool,
+    }),
+
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     comment: '',
+    modal: {},
 };
 
 class ReportActionCompose extends React.Component {
@@ -60,6 +67,11 @@ class ReportActionCompose extends React.Component {
         // If it does let's update this.comment so that it matches the defaultValue that we show in textInput.
         if (this.props.comment && prevProps.comment === '' && prevProps.comment !== this.props.comment) {
             this.comment = this.props.comment;
+        }
+
+        // When any modal goes from visible to hidden, bring focus to the compose field
+        if (prevProps.modal.isVisible && !this.props.modal.isVisible) {
+            this.setIsFocused(true);
         }
     }
 
@@ -165,9 +177,6 @@ class ReportActionCompose extends React.Component {
                             addAction(this.props.reportID, '', file);
                             this.setTextInputShouldClear(false);
                         }}
-                        onModalHide={() => {
-                            this.setIsFocused(true);
-                        }}
                     >
                         {({displayFileInModal}) => (
                             <>
@@ -252,6 +261,9 @@ export default compose(
     withOnyx({
         comment: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
+        },
+        modal: {
+            key: ONYXKEYS.MODAL,
         },
     }),
     withWindowDimensions,

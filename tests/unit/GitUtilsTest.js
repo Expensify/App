@@ -50,8 +50,7 @@ describe('GitUtils', () => {
     describe.each(data)('getPullRequestsMergedBetween', (exampleCase) => {
         test('getPullRequestsMergedBetween', () => {
             exec.mockResolvedValue({stdout: exampleCase.gitLog, stderr: ''});
-            const gitUtils = new GitUtils();
-            return gitUtils.getPullRequestsMergedBetween('testRef1', 'testRef2')
+            return GitUtils.getPullRequestsMergedBetween('testRef1', 'testRef2')
                 .then(pullRequestNumbers => expect(pullRequestNumbers).toStrictEqual(exampleCase.result));
         });
     });
