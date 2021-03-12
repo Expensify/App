@@ -1062,6 +1062,14 @@ const styles = {
         transform: [{rotate: '180deg'}],
     },
 
+    navigationSceneContainer: {
+        backgroundColor: themeColors.appBG,
+    },
+
+    navigationScreenCardStyle: {
+        backgroundColor: themeColors.appBG,
+    },
+
     invisible: {
         position: 'absolute',
         opacity: 0,
@@ -1192,20 +1200,41 @@ function getSafeAreaMargins(insets) {
  * @param {Boolean} isSmallScreenWidth
  * @returns {Object}
  */
-function getNavigationMenuStyle(windowWidth, isSmallScreenWidth) {
+function getNavigationDrawerStyle(windowWidth, isSmallScreenWidth) {
     return isSmallScreenWidth
         ? {
-            ...styles.navigationMenuOpenAbsolute,
             width: windowWidth,
+            height: '100%',
+            borderColor: themeColors.border,
         }
         : {
-            borderColor: themeColors.border,
-            borderRightWidth: 1,
+            height: '100%',
             width: variables.sideBarWidth,
+            borderRightColor: themeColors.border,
         };
+}
+
+function getNavigationDrawerType(isSmallScreenWidth) {
+    return isSmallScreenWidth ? 'slide' : 'permanent';
+}
+
+function getNavigationModalCardStyle(isSmallScreenWidth) {
+    return {
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+        backgroundColor: 'transparent',
+        height: '100%',
+    };
 }
 
 export default styles;
 export {
-    getSafeAreaPadding, getSafeAreaMargins, webViewStyles, getNavigationMenuStyle,
+    getSafeAreaPadding,
+    getSafeAreaMargins,
+    webViewStyles,
+    getNavigationDrawerStyle,
+    getNavigationDrawerType,
+    getNavigationModalCardStyle,
 };

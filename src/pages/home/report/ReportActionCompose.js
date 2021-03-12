@@ -16,6 +16,7 @@ import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import compose from '../../../libs/compose';
+import Navigation from '../../../libs/Navigation/Navigation';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -26,9 +27,6 @@ const propTypes = {
 
     // The ID of the report actions will be created for
     reportID: PropTypes.number.isRequired,
-
-    // Indicates when the sidebar is shown
-    isSidebarShown: PropTypes.bool.isRequired,
 
     // Details about any modals being used
     modal: PropTypes.shape({
@@ -161,7 +159,7 @@ class ReportActionCompose extends React.Component {
         // We want to make sure to disable on small screens because in iOS safari the keyboard up/down buttons will
         // focus this from the chat switcher.
         // https://github.com/Expensify/Expensify.cash/issues/1228
-        const inputDisable = this.props.isSidebarShown && this.props.isSmallScreenWidth;
+        const inputDisable = this.props.isSmallScreenWidth && Navigation.isDrawerOpen();
 
         return (
             <View style={[styles.chatItemCompose]}>
@@ -263,9 +261,6 @@ export default compose(
     withOnyx({
         comment: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
-        },
-        isSidebarShown: {
-            key: ONYXKEYS.IS_SIDEBAR_SHOWN,
         },
         modal: {
             key: ONYXKEYS.MODAL,
