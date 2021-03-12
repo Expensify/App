@@ -61,6 +61,7 @@ class ReportActionsView extends React.Component {
         super(props);
 
         this.renderItem = this.renderItem.bind(this);
+        this.renderCell = this.renderCell.bind(this);
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
         this.recordMaxAction = this.recordMaxAction.bind(this);
         this.onVisibilityChange = this.onVisibilityChange.bind(this);
@@ -300,6 +301,25 @@ class ReportActionsView extends React.Component {
     }
 
     /**
+     * This function overrides the CellRendererComponent (defaults to a plain View), giving each ReportActionItem a
+     *  higher z-index than the one below it. This prevents issues where the ReportActionContextMenu overlapping between
+     *  rows is hidden beneath other rows.
+     *
+     * @param {Object} index - The ReportAction item in the FlatList.
+     * @param {Object|Array} style – The default styles of the CellRendererComponent provided by the CellRenderer.
+     * @param {Object} props – All the other Props provided to the CellRendererComponent by default.
+     * @returns {React.Component}
+     */
+    renderCell({item, style, ...props}) {
+        const cellStyle = [
+            style,
+            {zIndex: item.action.sequenceNumber},
+        ];
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        return <View style={cellStyle} {...props} />;
+    }
+
+    /**
      * Do not move this or make it an anonymous function it is a method
      * so it will not be recreated each time we render an item
      *
@@ -329,6 +349,7 @@ class ReportActionsView extends React.Component {
                     <UnreadActionIndicator animatedOpacity={this.unreadIndicatorOpacity} />
                 )}
                 <ReportActionItem
+                    reportID={this.props.reportID}
                     action={item.action}
                     displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
                     onLayout={onLayout}
@@ -360,6 +381,7 @@ class ReportActionsView extends React.Component {
                 ref={el => this.actionListElement = el}
                 data={this.sortedReportActions}
                 renderItem={this.renderItem}
+                CellRendererComponent={this.renderCell}
                 contentContainerStyle={[styles.chatContentScrollView]}
                 keyExtractor={item => `${item.action.sequenceNumber}`}
                 initialRowHeight={32}
