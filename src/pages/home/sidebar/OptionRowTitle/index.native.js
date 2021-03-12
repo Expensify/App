@@ -3,15 +3,15 @@ import React, {memo} from 'react';
 import {
     Text,
 } from 'react-native';
-import styles from '../../../../styles/styles';
 import {propTypes, defaultProps} from './OptionRowTitleProps';
 
 
 const OptionRowTitle = ({
     style,
     option,
+    numberOfLines,
 }) => (
-    <Text style={[styles.optionDisplayName, style]} numberOfLines={1}>
+    <Text style={style} numberOfLines={numberOfLines}>
         {option.text}
     </Text>
 );

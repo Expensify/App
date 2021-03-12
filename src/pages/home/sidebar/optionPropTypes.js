@@ -29,4 +29,7 @@ export default PropTypes.shape({
 
     // The option key provided to FlatList keyExtractor
     keyForList: PropTypes.string,
+
+    // text to show for tooltip
+    tooltipText: PropTypes.string,
 });

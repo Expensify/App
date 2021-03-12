@@ -2,7 +2,7 @@ import React from 'react';
 import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import Header from '../../components/Header';
+import lodashGet from 'lodash.get';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import themeColors from '../../styles/themes/default';
@@ -14,8 +14,9 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/
 import MultipleAvatars from '../../components/MultipleAvatars';
 import {redirect} from '../../libs/actions/App';
 import ROUTES from '../../ROUTES';
-import Tooltip from '../../components/Tooltip';
 import {getReportParticipantsTitle} from '../../libs/reportUtils';
+import OptionRowTitle from './sidebar/OptionRowTitle';
+import {getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
 
 const propTypes = {
     // Toggles the navigationMenu open and closed
@@ -45,9 +46,12 @@ const defaultProps = {
 };
 
 const HeaderView = (props) => {
-    const participantsTitle = props.report && props.report.participants
-        ? getReportParticipantsTitle(props.report.participants)
-        : '';
+    const participants = lodashGet(props.report, 'participants', []);
+    const reportOption = {
+        text: lodashGet(props.report, 'reportName', ''),
+        tooltipText: getReportParticipantsTitle(participants),
+        participantsList: getPersonalDetailsForLogins(participants, props.personalDetails),
+    };
 
     return (
         <View style={[styles.appContentHeader]} nativeID="drag-area">
@@ -71,7 +75,6 @@ const HeaderView = (props) => {
                     >
                         <Pressable
                             onPress={() => {
-                                const {participants} = props.report;
                                 if (participants.length === 1) {
                                     redirect(ROUTES.getProfileRoute(participants[0]));
                                 }
@@ -80,9 +83,13 @@ const HeaderView = (props) => {
                             <MultipleAvatars avatarImageURLs={props.report.icons} />
                         </Pressable>
                         <View style={[styles.flex1, styles.flexRow]}>
-                            <Tooltip text={participantsTitle}>
-                                <Header title={props.report.reportName} />
-                            </Tooltip>
+                            <OptionRowTitle
+                                option={reportOption}
+                                tooltipEnabled
+                                numberOfLines={2}
+                                tooltipContainerStyle={styles.dInline}
+                                style={[styles.headerText]}
+                            />
                         </View>
                         <View style={[styles.reportOptions, styles.flexRow]}>
                             <Pressable
@@ -112,6 +119,9 @@ export default compose(
     withOnyx({
         report: {
             key: ({currentlyViewedReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${currentlyViewedReportID}`,
+        },
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
         },
     }),
 )(HeaderView);
