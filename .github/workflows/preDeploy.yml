@@ -39,7 +39,7 @@ jobs:
       - name: Comment on deferred PR
         uses: actions-ecosystem/action-create-comment@cd098164398331c50e7dfdd0dfa1b564a1873fac
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
           number: ${{ needs.chooseDeployActions.outputs.mergedPullRequest }}
           body: |
             :hand: This PR was not deployed to staging yet because QA is ongoing. It will be automatically deployed to staging after the next production release.
