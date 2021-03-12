@@ -25,7 +25,7 @@ jobs:
         id: getMergedPullRequest
         uses: actions-ecosystem/get-merged-pull-request@cb1e7423b3ca9886f619a8b93874b2e72abfb87c
         with:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Check if StagingDeployCash is locked
         id: isStagingDeployLocked
