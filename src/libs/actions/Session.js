@@ -6,7 +6,6 @@ import redirectToSignIn from './SignInRedirect';
 import * as API from '../API';
 import CONFIG from '../../CONFIG';
 import PushNotification from '../Notification/PushNotification';
-import ROUTES from '../../ROUTES';
 import Timing from './Timing';
 
 let credentials = {};
@@ -24,7 +23,6 @@ function setSuccessfulSignInData(data) {
     PushNotification.register(data.accountID);
     Onyx.multiSet({
         [ONYXKEYS.SESSION]: _.pick(data, 'authToken', 'accountID', 'email'),
-        [ONYXKEYS.APP_REDIRECT_TO]: ROUTES.ROOT,
     });
 }
 

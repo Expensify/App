@@ -7,7 +7,7 @@ import styles, {getSafeAreaMargins} from '../../../styles/styles';
 import ONYXKEYS from '../../../ONYXKEYS';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
 import compose from '../../../libs/compose';
-import {redirect} from '../../../libs/actions/App';
+import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import Icon from '../../../components/Icon';
 import Header from '../../../components/Header';
@@ -17,7 +17,6 @@ import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
 import {getSidebarOptions} from '../../../libs/OptionsListUtils';
 import {getDefaultAvatar} from '../../../libs/actions/PersonalDetails';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
-import HeaderGap from '../../../components/HeaderGap';
 import CONST from '../../../CONST';
 
 const propTypes = {
@@ -66,6 +65,9 @@ const propTypes = {
     // Currently viewed reportID
     currentlyViewedReportID: PropTypes.string,
 
+    // Whether we are viewing below the responsive breakpoint
+    isSmallScreenWidth: PropTypes.bool.isRequired,
+
     // The chat priority mode
     priorityMode: PropTypes.string,
 };
@@ -84,7 +86,7 @@ const defaultProps = {
 
 class SidebarLinks extends React.Component {
     showSearchPage() {
-        redirect(ROUTES.SEARCH);
+        Navigation.navigate(ROUTES.SEARCH);
     }
 
     render() {
@@ -107,7 +109,6 @@ class SidebarLinks extends React.Component {
 
         return (
             <View style={[styles.flex1, styles.h100]}>
-                <HeaderGap />
                 <View
                     style={[
                         styles.flexRow,
@@ -144,11 +145,12 @@ class SidebarLinks extends React.Component {
                         option => option.reportID === activeReportID
                     ))}
                     onSelectRow={(option) => {
-                        redirect(ROUTES.getReportRoute(option.reportID));
+                        Navigation.navigate(ROUTES.getReportRoute(option.reportID));
                         this.props.onLinkClick();
                     }}
                     hideSectionHeaders
                     showTitleTooltip
+                    disableFocusOptions={this.props.isSmallScreenWidth}
                 />
                 <KeyboardSpacer />
             </View>
