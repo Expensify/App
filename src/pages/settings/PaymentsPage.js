@@ -61,38 +61,35 @@ class PaymentsPage extends React.Component {
                     onBackButtonPress={() => redirect(ROUTES.SETTINGS)}
                     onCloseButtonPress={() => redirect(ROUTES.HOME)}
                 />
-                <View style={[styles.flex1, styles.pageWrapper]}>
-                    <View style={[styles.flex1, styles.settingsPageBody]}>
-                        <View style={[styles.flex1]}>
-                            <Text style={[styles.textLarge, styles.pv3, styles.mb4]}>
-                                Enter your username to get paid back via Paypal.
-                            </Text>
-                            <Text style={[styles.formLabel]} numberOfLines={1}>
-                                Paypal.me/
-                            </Text>
-                            <TextInput
-                                style={[styles.textInput]}
-                                value={this.state.paypalMeAddress}
-                                placeholder="Your Paypal username"
-                                onChangeText={text => this.setState({paypalMeAddress: text})}
-                            />
-                        </View>
-                        <View style={[styles.pv3]}>
-                            <Pressable
-                                onPress={this.setPaypalAccount}
-                                style={({hovered}) => [
-                                    styles.button,
-                                    styles.buttonSuccess,
-                                    styles.w100,
-                                    hovered && styles.buttonSuccessHovered,
-                                ]}
-                            >
-                                <Text style={[styles.buttonText, styles.buttonSuccessText]}>
-                                    Add Paypal Account
-                                </Text>
-                            </Pressable>
-                        </View>
+                <View style={[styles.flex1, styles.w100, styles.p5]}>
+                    <View style={[styles.flex1]}>
+                        <Text style={[styles.textP, styles.mb4]}>
+                            Enter your username to get paid back via Paypal.
+                        </Text>
+                        <Text style={[styles.formLabel]} numberOfLines={1}>
+                            Paypal.me/
+                        </Text>
+                        <TextInput
+                            style={[styles.textInput]}
+                            value={this.state.paypalMeAddress}
+                            placeholder="Your Paypal username"
+                            onChangeText={text => this.setState({paypalMeAddress: text})}
+                        />
                     </View>
+                    <Pressable
+                        onPress={this.setPaypalAccount}
+                        style={({hovered}) => [
+                            styles.button,
+                            styles.buttonSuccess,
+                            styles.w100,
+                            styles.mt3,
+                            hovered && styles.buttonSuccessHovered,
+                        ]}
+                    >
+                        <Text style={[styles.buttonText, styles.buttonSuccessText]}>
+                            Add Paypal Account
+                        </Text>
+                    </Pressable>
                 </View>
             </>
         );
