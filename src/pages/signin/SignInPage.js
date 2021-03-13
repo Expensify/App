@@ -5,9 +5,6 @@ import {
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import compose from '../../libs/compose';
-import {Redirect} from '../../libs/Router';
-import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import updateUnread from '../../libs/UnreadIndicatorUpdater/updateUnread/index';
@@ -60,12 +57,6 @@ class SignInPage extends Component {
     }
 
     render() {
-        // If we end up on the sign in page and have an authToken then
-        // we are signed in and should be brought back to the site root
-        if (this.props.session.authToken) {
-            return <Redirect to={ROUTES.ROOT} />;
-        }
-
         // Show the login form if
         // - A login has not been entered yet
         const showLoginForm = !this.props.credentials.login;
@@ -136,10 +127,8 @@ class SignInPage extends Component {
 SignInPage.propTypes = propTypes;
 SignInPage.defaultProps = defaultProps;
 
-export default compose(
-    withOnyx({
-        account: {key: ONYXKEYS.ACCOUNT},
-        credentials: {key: ONYXKEYS.CREDENTIALS},
-        session: {key: ONYXKEYS.SESSION},
-    }),
-)(SignInPage);
+export default withOnyx({
+    account: {key: ONYXKEYS.ACCOUNT},
+    credentials: {key: ONYXKEYS.CREDENTIALS},
+    session: {key: ONYXKEYS.SESSION},
+})(SignInPage);

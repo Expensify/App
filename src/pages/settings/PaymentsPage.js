@@ -6,12 +6,12 @@ import {withOnyx} from 'react-native-onyx';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
-import HeaderGap from '../../components/HeaderGap';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Text from '../../components/Text';
-import {redirect} from '../../libs/actions/App';
+import ScreenWrapper from '../../components/ScreenWrapper';
 import NameValuePair from '../../libs/actions/NameValuePair';
 import {fetch} from '../../libs/actions/User';
+import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
 
 const propTypes = {
@@ -53,45 +53,49 @@ class PaymentsPage extends React.Component {
 
     render() {
         return (
-            <>
-                <HeaderGap />
-                <HeaderWithCloseButton
-                    title="Payments"
-                    shouldShowBackButton
-                    onBackButtonPress={() => redirect(ROUTES.SETTINGS)}
-                    onCloseButtonPress={() => redirect(ROUTES.HOME)}
-                />
-                <View style={[styles.flex1, styles.w100, styles.p5]}>
-                    <View style={[styles.flex1]}>
-                        <Text style={[styles.textP, styles.mb4]}>
-                            Enter your username to get paid back via Paypal.
-                        </Text>
-                        <Text style={[styles.formLabel]} numberOfLines={1}>
-                            Paypal.me/
-                        </Text>
-                        <TextInput
-                            style={[styles.textInput]}
-                            value={this.state.paypalMeAddress}
-                            placeholder="Your Paypal username"
-                            onChangeText={text => this.setState({paypalMeAddress: text})}
+            <ScreenWrapper>
+                {() => (
+                    <>
+                        <HeaderWithCloseButton
+                            title="Payments"
+                            shouldShowBackButton
+                            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+                            onCloseButtonPress={() => Navigation.dismissModal()}
                         />
-                    </View>
-                    <Pressable
-                        onPress={this.setPaypalAccount}
-                        style={({hovered}) => [
-                            styles.button,
-                            styles.buttonSuccess,
-                            styles.w100,
-                            styles.mt3,
-                            hovered && styles.buttonSuccessHovered,
-                        ]}
-                    >
-                        <Text style={[styles.buttonText, styles.buttonSuccessText]}>
-                            Add Paypal Account
-                        </Text>
-                    </Pressable>
-                </View>
-            </>
+                        <View style={[styles.flex1, styles.w100, styles.p5]}>
+                            <View style={[styles.flex1]}>
+                                <Text style={[styles.textP, styles.mb4]}>
+                                    Enter your username to get paid back via Paypal.
+                                </Text>
+                                <Text style={[styles.formLabel]} numberOfLines={1}>
+                                    Paypal.me/
+                                </Text>
+                                <TextInput
+                                    style={[styles.textInput]}
+                                    value={this.state.paypalMeAddress}
+                                    placeholder="Your Paypal username"
+                                    onChangeText={text => this.setState({paypalMeAddress: text})}
+                                />
+                            </View>
+                            <Pressable
+                                onPress={this.setPaypalAccount}
+                                style={({hovered}) => [
+                                    styles.button,
+                                    styles.buttonSuccess,
+                                    styles.w100,
+                                    styles.mt3,
+                                    hovered && styles.buttonSuccessHovered,
+                                ]}
+                            >
+                                <Text style={[styles.buttonText, styles.buttonSuccessText]}>
+                                    Add Paypal Account
+                                </Text>
+                            </Pressable>
+                        </View>
+                    </>
+
+                )}
+            </ScreenWrapper>
         );
     }
 }
