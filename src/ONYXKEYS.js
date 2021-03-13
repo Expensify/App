@@ -38,8 +38,8 @@ export default {
     // Contains the user preference for the LHN priority mode
     PRIORITY_MODE: 'priorityMode',
 
-    // Contains the version of the update that has newly been downloaded.
-    UPDATE_VERSION: 'updateVersion',
+    // Indicates whether an update is available and ready to beinstalled.
+    UPDATE_AVAILABLE: 'updateAvailable',
 
     // Saves the current country code which is displayed when the user types a phone number without
     // an international code
