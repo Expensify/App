@@ -1,7 +1,5 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
-import ROUTES from '../../ROUTES';
-import {redirect} from './App';
 import * as Pusher from '../Pusher/pusher';
 import NetworkConnection from '../NetworkConnection';
 import UnreadIndicatorUpdater from '../UnreadIndicatorUpdater';
@@ -11,11 +9,6 @@ let currentURL;
 Onyx.connect({
     key: ONYXKEYS.CURRENT_URL,
     callback: val => currentURL = val,
-});
-let currentlyViewedReportID;
-Onyx.connect({
-    key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
-    callback: val => currentlyViewedReportID = val,
 });
 
 let currentActiveClients;
@@ -47,22 +40,21 @@ function redirectToSignIn(errorMessage) {
         return;
     }
 
-    // Save the reportID and activeClients before calling redirect or otherwise when clear
-    // is finished the value saved here will already be null
-    const reportID = currentlyViewedReportID;
     const activeClients = currentActiveClients;
-    redirect(ROUTES.SIGNIN);
-    Onyx.clear().then(() => {
-        if (errorMessage) {
-            Onyx.set(ONYXKEYS.SESSION, {error: errorMessage});
-        }
-        if (reportID) {
-            Onyx.set(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, reportID);
-        }
-        if (activeClients && activeClients.length > 0) {
-            Onyx.set(ONYXKEYS.ACTIVE_CLIENTS, activeClients);
-        }
-    });
+
+    // We must set the authToken to null so we can navigate to "signin" it's not possible to navigate to the route as
+    // it only exists when the authToken is null.
+    Onyx.set(ONYXKEYS.SESSION, {authToken: null})
+        .then(() => {
+            Onyx.clear().then(() => {
+                if (errorMessage) {
+                    Onyx.set(ONYXKEYS.SESSION, {error: errorMessage});
+                }
+                if (activeClients && activeClients.length > 0) {
+                    Onyx.set(ONYXKEYS.ACTIVE_CLIENTS, activeClients);
+                }
+            });
+        });
 }
 
 export default redirectToSignIn;
