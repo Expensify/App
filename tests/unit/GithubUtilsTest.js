@@ -1,10 +1,6 @@
 const {Octokit} = require('@octokit/rest');
 const GithubUtils = require('../../.github/libs/GithubUtils');
 
-beforeEach(() => {
-    jest.clearAllMocks();
-});
-
 describe('GithubUtils', () => {
     describe('getStagingDeployCash', () => {
         const baseIssue = {
