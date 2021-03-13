@@ -62,7 +62,7 @@ class PaymentsPage extends React.Component {
                             onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                             onCloseButtonPress={() => Navigation.dismissModal()}
                         />
-                        <View style={[styles.flex1, styles.w100, styles.p5]}>
+                        <View style={[styles.flex1, styles.p5]}>
                             <View style={[styles.flex1]}>
                                 <Text style={[styles.textP, styles.mb4]}>
                                     Enter your username to get paid back via Paypal.
@@ -82,7 +82,6 @@ class PaymentsPage extends React.Component {
                                 style={({hovered}) => [
                                     styles.button,
                                     styles.buttonSuccess,
-                                    styles.w100,
                                     styles.mt3,
                                     hovered && styles.buttonSuccessHovered,
                                 ]}
