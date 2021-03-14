@@ -2,11 +2,13 @@ import React, {PureComponent} from 'react';
 import {View} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
+
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import styles, {getSafeAreaPadding} from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import {propTypes, defaultProps} from './ModalPropTypes';
 import getModalStyles from '../../styles/getModalStyles';
+import {setModalVisibility} from '../../libs/actions/Modal';
 
 class BaseModal extends PureComponent {
     constructor(props) {
@@ -20,11 +22,17 @@ class BaseModal extends PureComponent {
         this.unsubscribeFromKeyEvents();
     }
 
+    /**
+     * Listens to specific keyboard keys when the modal has been opened
+     */
     subscribeToKeyEvents() {
         KeyboardShortcut.subscribe('Escape', this.props.onClose, [], true);
         KeyboardShortcut.subscribe('Enter', this.props.onSubmit, [], true);
     }
 
+    /**
+     * Stops listening to keyboard keys when modal has been closed
+     */
     unsubscribeFromKeyEvents() {
         KeyboardShortcut.unsubscribe('Escape');
         KeyboardShortcut.unsubscribe('Enter');
@@ -53,9 +61,13 @@ class BaseModal extends PureComponent {
             <ReactNativeModal
                 onBackdropPress={this.props.onClose}
                 onBackButtonPress={this.props.onClose}
-                onModalShow={this.subscribeToKeyEvents}
+                onModalShow={() => {
+                    this.subscribeToKeyEvents();
+                    setModalVisibility(true);
+                }}
                 onModalHide={() => {
                     this.unsubscribeFromKeyEvents();
+                    setModalVisibility(false);
                     this.props.onModalHide();
                 }}
                 onSwipeComplete={this.props.onClose}
@@ -67,7 +79,7 @@ class BaseModal extends PureComponent {
                 style={modalStyle}
                 deviceHeight={this.props.windowHeight}
                 deviceWidth={this.props.windowWidth}
-                animationIn={animationIn}
+                animationIn={this.props.animationIn || animationIn}
                 animationOut={animationOut}
                 useNativeDriver={this.props.useNativeDriver}
                 statusBarTranslucent

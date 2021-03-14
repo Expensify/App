@@ -14,27 +14,52 @@ class Hoverable extends Component {
         this.state = {
             isHovered: false,
         };
-        this.toggleHoverState = this.toggleHoverState.bind(this);
+
+        this.wrapperView = null;
+
+        this.resetHoverStateOnOutsideClick = this.resetHoverStateOnOutsideClick.bind(this);
+    }
+
+    componentDidMount() {
+        document.addEventListener('mousedown', this.resetHoverStateOnOutsideClick);
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener('mousedown', this.resetHoverStateOnOutsideClick);
     }
 
     /**
-     * Toggles the hover state of this component and executes the callback provided in props for that state transition.
+     * Sets the hover state of this component to true and execute the onHoverIn callback.
+     *
+     * @param {Boolean} isHovered - Whether or not this component is hovered.
      */
-    toggleHoverState() {
-        if (this.state.isHovered) {
-            this.props.onHoverOut();
-            this.setState({isHovered: false});
-        } else {
-            this.props.onHoverIn();
-            this.setState({isHovered: true});
+    setIsHovered(isHovered) {
+        if (isHovered !== this.state.isHovered) {
+            this.setState({isHovered}, isHovered ? this.props.onHoverIn : this.props.onHoverOut);
+        }
+    }
+
+    /**
+     * If the user clicks outside this component, we want to make sure that the hover state is set to false.
+     * There are some edge cases where the mouse can leave the component without the `onMouseLeave` event firing,
+     * leaving this Hoverable in the incorrect state.
+     * One such example is when a modal is opened while this component is hovered, and you click outside the component
+     * to close the modal.
+     *
+     * @param {Object} event - A click event
+     */
+    resetHoverStateOnOutsideClick(event) {
+        if (this.wrapperView && !this.wrapperView.contains(event.target)) {
+            this.setIsHovered(false);
         }
     }
 
     render() {
         return (
             <View
-                onMouseEnter={this.toggleHoverState}
-                onMouseLeave={this.toggleHoverState}
+                ref={el => this.wrapperView = el}
+                onMouseEnter={() => this.setIsHovered(true)}
+                onMouseLeave={() => this.setIsHovered(false)}
             >
                 { // If this.props.children is a function, call it to provide the hover state to the children.
                     _.isFunction(this.props.children)
