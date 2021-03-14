@@ -10,8 +10,6 @@ import Icon from '../../components/Icon';
 import {getPreferredCurrency} from '../../libs/actions/IOU';
 import {Close, BackArrow} from '../../components/Icon/Expensicons';
 import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import {Route} from '../../libs/Router';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -30,12 +28,6 @@ const Steps = {
     IOUAmount: 'Amount',
     IOUParticipants: 'Participants',
     IOUConfirm: 'Confirm',
-};
-
-// Determines title for Amount page based on current route.
-const AmountPageTitles = {
-    [ROUTES.IOU_BILL]: 'Split Bill',
-    [ROUTES.IOU_REQUEST]: 'Request Money',
 };
 
 // The steps to be shown within the create IOU flow.
@@ -68,16 +60,16 @@ class IOUModal extends Component {
     /**
      * Retrieve title for current step, based upon current step and type of IOU
      *
-     * @param {String} route
+     * @param {Boolean} hasMultipleParticipants
      * @returns {String}
      */
 
-     getTitleForStep(route) {
+     getTitleForStep(hasMultipleParticipants) {
         if (this.state.currentStepIndex === 1) {
             return `${this.props.hasMultipleParticipants ? 'Split' : 'Request'} $${this.state.iouAmount}`;
         }
         if (steps[this.state.currentStepIndex] === Steps.IOUAmount) {
-            return AmountPageTitles[route];
+            return hasMultipleParticipants ? 'Split Bill' : 'Request Money';
         }
         return steps[this.state.currentStepIndex] || '';
     }
@@ -171,12 +163,7 @@ class IOUModal extends Component {
                                 <Icon src={BackArrow} />
                             </TouchableOpacity>
                         )}
-                        <Route path={[ROUTES.IOU_BILL]}>
-                            <Header title={this.getTitleForStep(ROUTES.IOU_BILL)} />
-                        </Route>
-                        <Route path={[ROUTES.IOU_REQUEST]}>
-                            <Header title={this.getTitleForStep(ROUTES.IOU_REQUEST)} />
-                        </Route>
+                        <Header title={this.getTitleForStep(this.props.hasMultipleParticipants)} />
                         <View style={[styles.reportOptions, styles.flexRow]}>
                             <TouchableOpacity
                                 onPress={Navigation.dismissModal}
