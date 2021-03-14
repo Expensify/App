@@ -12,7 +12,7 @@ import compose from '../../libs/compose';
 import {togglePinnedState} from '../../libs/actions/Report';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import MultipleAvatars from '../../components/MultipleAvatars';
-import {redirect} from '../../libs/actions/App';
+import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 
 const propTypes = {
@@ -63,7 +63,7 @@ const HeaderView = props => (
                         onPress={() => {
                             const {participants} = props.report;
                             if (participants.length === 1) {
-                                redirect(ROUTES.getProfileRoute(participants[0]));
+                                Navigation.navigate(ROUTES.getProfileRoute(participants[0]));
                             }
                         }}
                     >
@@ -91,13 +91,8 @@ HeaderView.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withOnyx({
-        currentlyViewedReportID: {
-            key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
-        },
-    }),
-    withOnyx({
         report: {
-            key: ({currentlyViewedReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${currentlyViewedReportID}`,
+            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         },
     }),
 )(HeaderView);

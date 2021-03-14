@@ -49,21 +49,23 @@ octokit.repos.listTags({
 const {promisify} = __nccwpck_require__(1669);
 const exec = promisify(__nccwpck_require__(3129).exec);
 
-module.exports = class GitUtils {
-    /**
-     * Takes in two git refs and returns a list of PR numbers of all PRs merged between those two refs
-     *
-     * @param {String} fromRef
-     * @param {String} toRef
-     * @returns {Promise}
-     */
-    getPullRequestsMergedBetween(fromRef, toRef) {
-        return exec(`git log --format="%s" ${fromRef}...${toRef}`)
-            .then(({stdout}) => (
-                [...stdout.matchAll(new RegExp(/Merge pull request #(\d{1,6})/, 'g'))]
-                    .map(match => match[1])
-            ));
-    }
+/**
+ * Takes in two git refs and returns a list of PR numbers of all PRs merged between those two refs
+ *
+ * @param {String} fromRef
+ * @param {String} toRef
+ * @returns {Promise}
+ */
+function getPullRequestsMergedBetween(fromRef, toRef) {
+    return exec(`git log --format="%s" ${fromRef}...${toRef}`)
+        .then(({stdout}) => (
+            [...stdout.matchAll(/Merge pull request #(\d{1,6})/g)]
+                .map(match => match[1])
+        ));
+}
+
+module.exports = {
+    getPullRequestsMergedBetween,
 };
 
 

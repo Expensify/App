@@ -9,10 +9,9 @@ import styles from '../styles/styles';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import KeyboardSpacer from '../components/KeyboardSpacer';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
-import {hide as hideSidebar} from '../libs/actions/Sidebar';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
-import {redirectToLastReport} from '../libs/actions/App';
-import HeaderGap from '../components/HeaderGap';
+import Navigation from '../libs/Navigation/Navigation';
+import ScreenWrapper from '../components/ScreenWrapper';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -98,10 +97,6 @@ class NewChatPage extends Component {
      * @param {Object} option
      */
     createNewChat(option) {
-        if (this.props.isSmallScreenWidth) {
-            hideSidebar();
-        }
-
         fetchOrCreateChatReport([
             this.props.session.email,
             option.login,
@@ -116,41 +111,44 @@ class NewChatPage extends Component {
         );
 
         return (
-            <>
-                <HeaderGap />
-                <HeaderWithCloseButton
-                    title="New Chat"
-                    onCloseButtonPress={redirectToLastReport}
-                />
-                <View style={[styles.flex1, styles.w100]}>
-                    <OptionsSelector
-                        sections={sections}
-                        value={this.state.searchValue}
-                        onSelectRow={this.createNewChat}
-                        onChangeText={(searchValue = '') => {
-                            const {
-                                personalDetails,
-                                userToInvite,
-                            } = getNewChatOptions(
-                                this.props.reports,
-                                this.props.personalDetails,
-                                searchValue,
-                            );
-                            this.setState({
-                                searchValue,
-                                userToInvite,
-                                personalDetails,
-                            });
-                        }}
-                        headerMessage={headerMessage}
-                        hideSectionHeaders
-                        disableArrowKeysActions
-                        hideAdditionalOptionStates
-                        forceTextUnreadStyle
-                    />
-                </View>
-                <KeyboardSpacer />
-            </>
+            <ScreenWrapper>
+                {() => (
+                    <>
+                        <HeaderWithCloseButton
+                            title="New Chat"
+                            onCloseButtonPress={() => Navigation.dismissModal()}
+                        />
+                        <View style={[styles.flex1, styles.w100]}>
+                            <OptionsSelector
+                                sections={sections}
+                                value={this.state.searchValue}
+                                onSelectRow={this.createNewChat}
+                                onChangeText={(searchValue = '') => {
+                                    const {
+                                        personalDetails,
+                                        userToInvite,
+                                    } = getNewChatOptions(
+                                        this.props.reports,
+                                        this.props.personalDetails,
+                                        searchValue,
+                                    );
+                                    this.setState({
+                                        searchValue,
+                                        userToInvite,
+                                        personalDetails,
+                                    });
+                                }}
+                                headerMessage={headerMessage}
+                                hideSectionHeaders
+                                disableArrowKeysActions
+                                hideAdditionalOptionStates
+                                forceTextUnreadStyle
+                            />
+                        </View>
+                        <KeyboardSpacer />
+                    </>
+                )}
+            </ScreenWrapper>
         );
     }
 }
