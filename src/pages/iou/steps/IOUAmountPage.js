@@ -4,16 +4,33 @@ import {
     Text,
     TouchableOpacity,
     ActivityIndicator,
+    TextInput,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
+import BigNumberPad from '../../../components/BigNumberPad';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 
 const propTypes = {
     // Callback to inform parent modal of success
     onStepComplete: PropTypes.func.isRequired,
+
+    // Callback to inform parent modal with key pressed
+    numberPressed: PropTypes.func.isRequired,
+
+    // Currency selection will be implemented later
+    // eslint-disable-next-line react/no-unused-prop-types
+    currencySelected: PropTypes.func.isRequired,
+
+    selectedCurrency: PropTypes.string.isRequired,
+    amount: PropTypes.string.isRequired,
+    isNextButtonDisabled: PropTypes.bool.isRequired,
+
+    /* Window Dimensions Props */
+    ...windowDimensionsPropTypes,
 
     /* Onyx Props */
 
@@ -30,16 +47,39 @@ const defaultProps = {
 };
 
 const IOUAmountPage = props => (
-    <View style={styles.pageWrapper}>
+    <View style={[styles.flex1, styles.pageWrapper]}>
         {props.iou.loading && <ActivityIndicator color={themeColors.text} />}
-        <TouchableOpacity
-            style={[styles.button, styles.w100, styles.mt5]}
-            onPress={props.onStepComplete}
-        >
-            <Text style={[styles.buttonText]}>
-                Next
-            </Text>
-        </TouchableOpacity>
+        <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
+            {props.isSmallScreenWidth
+                ? <Text style={styles.iouAmountText}>{props.selectedCurrency + props.amount}</Text>
+                : (
+                    <TextInput
+                            style={styles.iouAmountTextInput}
+                            onKeyPress={event => props.numberPressed(event.key)}
+                            value={props.selectedCurrency + props.amount}
+                    />
+                )}
+        </View>
+        <View style={[styles.w100, styles.justifyContentEnd]}>
+            {props.isSmallScreenWidth
+                ? <BigNumberPad numberPressed={props.numberPressed} />
+                : <View />}
+            <TouchableOpacity
+                    style={[styles.button, styles.w100, styles.mt5,
+                        props.isNextButtonDisabled
+                            ? styles.buttonDisable : styles.buttonSuccess,
+                    ]}
+                    onPress={props.onStepComplete}
+                    disabled={props.isNextButtonDisabled}
+            >
+                <Text
+                    style={[styles.buttonText,
+                        props.isNextButtonDisabled ? {} : styles.buttonSuccessText]}
+                >
+                    Next
+                </Text>
+            </TouchableOpacity>
+        </View>
     </View>
 );
 
@@ -47,6 +87,6 @@ IOUAmountPage.displayName = 'IOUAmountPage';
 IOUAmountPage.propTypes = propTypes;
 IOUAmountPage.defaultProps = defaultProps;
 
-export default withOnyx({
+export default withWindowDimensions(withOnyx({
     iou: {key: ONYXKEYS.IOU},
-})(IOUAmountPage);
+})(IOUAmountPage));
