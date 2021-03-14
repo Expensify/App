@@ -10,6 +10,8 @@ import Icon from '../../components/Icon';
 import {getPreferredCurrency} from '../../libs/actions/IOU';
 import {Close, BackArrow} from '../../components/Icon/Expensicons';
 import Navigation from '../../libs/Navigation/Navigation';
+import ROUTES from '../../ROUTES';
+import {Route} from '../../libs/Router';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -30,6 +32,12 @@ const Steps = {
     IOUConfirm: 'Confirm',
 };
 
+// Determines title for Amount page based on current route.
+const AmountPageTitles = {
+    [ROUTES.IOU_BILL]: 'Split Bill',
+    [ROUTES.IOU_REQUEST]: 'Request Money',
+};
+
 // The steps to be shown within the create IOU flow.
 const steps = [Steps.IOUAmount, Steps.IOUParticipants, Steps.IOUConfirm];
 
@@ -39,12 +47,17 @@ class IOUModal extends Component {
 
         this.navigateToPreviousStep = this.navigateToPreviousStep.bind(this);
         this.navigateToNextStep = this.navigateToNextStep.bind(this);
+        this.updateAmount = this.updateAmount.bind(this);
+        this.currencySelected = this.currencySelected.bind(this);
 
         this.addParticipants = this.addParticipants.bind(this);
         this.state = {
             currentStepIndex: 0,
             participants: [],
             iouAmount: 42,
+            amount: '',
+            selectedCurrency: 'USD',
+            isAmountPageNextButtonDisabled: true,
         };
     }
 
@@ -55,12 +68,16 @@ class IOUModal extends Component {
     /**
      * Retrieve title for current step, based upon current step and type of IOU
      *
+     * @param {String} route
      * @returns {String}
      */
 
-    getTitleForStep() {
+     getTitleForStep(route) {
         if (this.state.currentStepIndex === 1) {
             return `${this.props.hasMultipleParticipants ? 'Split' : 'Request'} $${this.state.iouAmount}`;
+        }
+        if (steps[this.state.currentStepIndex] === Steps.IOUAmount) {
+            return AmountPageTitles[route];
         }
         return steps[this.state.currentStepIndex] || '';
     }
@@ -95,6 +112,42 @@ class IOUModal extends Component {
         });
     }
 
+    /**
+     * Update amount with number or Backspace pressed.
+     * Validate new amount with decimal number regex up to 6 digits and 2 decimal digit
+     *
+     * @param {String} buttonPressed
+     */
+    updateAmount(buttonPressed) {
+        // Backspace button is pressed
+        if (buttonPressed === '<' || buttonPressed === 'Backspace') {
+            if (this.state.amount.length > 0) {
+                this.setState(prevState => ({
+                    amount: prevState.amount.substring(0, prevState.amount.length - 1),
+                    isAmountPageNextButtonDisabled: prevState.amount.length === 1,
+                }));
+            }
+        } else {
+            const decimalNumberRegex = new RegExp(/^\d{1,6}(\.\d{0,2})?$/, 'i');
+            const amount = this.state.amount + buttonPressed;
+            if (decimalNumberRegex.test(amount)) {
+                this.setState({
+                    amount,
+                    isAmountPageNextButtonDisabled: false,
+                });
+            }
+        }
+    }
+
+    /**
+     * Update the currency state
+     *
+     * @param {String} selectedCurrency
+     */
+    currencySelected(selectedCurrency) {
+        this.setState({selectedCurrency});
+    }
+
     render() {
         const currentStep = steps[this.state.currentStepIndex];
         return (
@@ -118,7 +171,12 @@ class IOUModal extends Component {
                                 <Icon src={BackArrow} />
                             </TouchableOpacity>
                         )}
-                        <Header title={this.getTitleForStep()} />
+                        <Route path={[ROUTES.IOU_BILL]}>
+                            <Header title={this.getTitleForStep(ROUTES.IOU_BILL)} />
+                        </Route>
+                        <Route path={[ROUTES.IOU_REQUEST]}>
+                            <Header title={this.getTitleForStep(ROUTES.IOU_REQUEST)} />
+                        </Route>
                         <View style={[styles.reportOptions, styles.flexRow]}>
                             <TouchableOpacity
                                 onPress={Navigation.dismissModal}
@@ -130,7 +188,14 @@ class IOUModal extends Component {
                     </View>
                 </View>
                 {currentStep === Steps.IOUAmount && (
-                    <IOUAmountPage onStepComplete={this.navigateToNextStep} />
+                    <IOUAmountPage
+                        onStepComplete={this.navigateToNextStep}
+                        numberPressed={this.updateAmount}
+                        currencySelected={this.currencySelected}
+                        amount={this.state.amount}
+                        selectedCurrency={this.state.selectedCurrency}
+                        isNextButtonDisabled={this.state.isAmountPageNextButtonDisabled}
+                    />
                 )}
                 {currentStep === Steps.IOUParticipants && (
                     <IOUParticipantsPage

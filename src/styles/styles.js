@@ -1092,6 +1092,20 @@ const styles = {
         height: 24,
         lineHeight: 20,
     },
+
+    iouAmountText: {
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        fontSize: variables.iouAmountTextSize,
+    },
+
+    iouAmountTextInput: addOutlineWidth({
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        fontSize: variables.iouAmountTextSize,
+        width: '100%',
+        textAlign: 'center',
+    }, 0),
 };
 
 const baseCodeTagStyles = {
