@@ -30,6 +30,12 @@ const Steps = {
     IOUConfirm: 'Confirm',
 };
 
+// Determines title for Amount page based on current route.
+const AmountPageTitles = {
+    [ROUTES.IOU_BILL]: 'Split Bill',
+    [ROUTES.IOU_REQUEST]: 'Request Money',
+};
+
 // The steps to be shown within the create IOU flow.
 const steps = [Steps.IOUAmount, Steps.IOUParticipants, Steps.IOUConfirm];
 
