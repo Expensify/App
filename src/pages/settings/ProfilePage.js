@@ -72,17 +72,26 @@ class ProfilePage extends Component {
         const {
             firstName, lastName, pronouns, timezone = {},
         } = props.myPersonalDetails;
+        const pronounValues = Object.values(CONST.PRONOUNS);
+
+        let initialPronouns = pronouns;
+        let initialSelfSelectedPronouns = '';
+
+        if (pronouns && !pronounValues.includes(pronouns)) {
+            initialPronouns = CONST.PRONOUNS.SELF_SELECT;
+            initialSelfSelectedPronouns = pronouns;
+        }
 
         this.state = {
             firstName,
             lastName,
-            pronouns,
-            selfSelectedPronouns: '',
+            pronouns: initialPronouns,
+            selfSelectedPronouns: initialSelfSelectedPronouns,
             selectedTimezone: timezone.selected ?? CONST.DEFAULT_TIME_ZONE.selected,
             isAutomaticTimezone: timezone.automatic ?? CONST.DEFAULT_TIME_ZONE.automatic,
         };
 
-        this.pronounDropdownValues = Object.values(pronounsMap).map(pronoun => ({value: pronoun, label: pronoun}));
+        this.pronounDropdownValues = pronounValues.map(pronoun => ({value: pronoun, label: pronoun}));
         this.updatePersonalDetails = this.updatePersonalDetails.bind(this);
     }
 
