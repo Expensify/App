@@ -35,10 +35,12 @@ jobs:
 
       - name: Get current version
         id: getVersion
-        run: echo "Get version"
+        uses: Expensify/Expensify.cash/.github/actions/getCurrentAppVersion@master
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Tag version
-        run: git tag ${{ steps.getVersion.outputs.version }}
+        run: git tag ${{ steps.getVersion.outputs.CURRENT_VERSION }}
 
       - name: Push tags to trigger staging deploy
         run: git push --tags
@@ -57,9 +59,11 @@ jobs:
 
       - name: Get current version
         id: getVersion
-        run: echo "Get version"
+        uses: Expensify/Expensify.cash/.github/actions/getCurrentAppVersion@master
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create release to trigger production deploy
-        run: echo "Create release with version"
+        run: echo "Create release with version ${{ steps.getVersion.outputs.CURRENT_VERSION }}"
 
 
