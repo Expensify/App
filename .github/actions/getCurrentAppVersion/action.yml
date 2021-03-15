@@ -1,0 +1,12 @@
+name: 'Get the current app version'
+description: 'Get the current app version from package.json'
+inputs:
+    GITHUB_TOKEN:
+        description: Auth token for Expensify.cash Github
+        required: true
+outputs:
+    CURRENT_VERSION:
+        description: The new semver version of the application, updated in the JS and native layers.
+runs:
+    using: 'node12'
+    main: './index.js'
