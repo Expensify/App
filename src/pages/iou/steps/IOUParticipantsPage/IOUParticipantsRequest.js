@@ -26,7 +26,6 @@ const propTypes = {
     // Callback to inform parent modal of success
     onStepComplete: PropTypes.func.isRequired,
 
-
     // All of the personal details for everyone
     personalDetails: PropTypes.objectOf(personalDetailsPropTypes).isRequired,
 
@@ -35,7 +34,6 @@ const propTypes = {
         reportID: PropTypes.number,
         reportName: PropTypes.string,
     }).isRequired,
-
 
     ...windowDimensionsPropTypes,
 };
@@ -59,10 +57,10 @@ class IOUParticipantsRequest extends Component {
     }
 
     /**
-   * Returns the sections needed for the OptionsSelector
-   *
-   * @returns {Array}
-   */
+     * Returns the sections needed for the OptionsSelector
+     *
+     * @returns {Array}
+     */
     getSections() {
         const sections = [];
 
@@ -86,9 +84,10 @@ class IOUParticipantsRequest extends Component {
     }
 
     /**
-   * Adds a single participant to the request
-   * @param {Object} option
-   */
+     * Adds a single participant to the request
+     *
+     * @param {Object} option
+     */
     addSingleParticipant(option) {
         const userEmail = option.login;
         if (this.props.isSmallScreenWidth) {
