@@ -6,16 +6,12 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 
 const PaymentsPage = () => (
     <ScreenWrapper>
-        {() => (
-            <>
-                <HeaderWithCloseButton
-                    title="Payments"
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                    onCloseButtonPress={() => Navigation.dismissModal()}
-                />
-            </>
-        )}
+        <HeaderWithCloseButton
+            title="Payments"
+            shouldShowBackButton
+            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+            onCloseButtonPress={() => Navigation.dismissModal()}
+        />
     </ScreenWrapper>
 );
 

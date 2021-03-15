@@ -16,11 +16,11 @@ const propTypes = {
 };
 
 const defaultProps = {
-    currentlyViewedReportID: null,
+    currentlyViewedReportID: 0,
 };
 
 const ReportScreen = (props) => {
-    const activeReportID = parseInt(props.currentlyViewedReportID || 0, 10);
+    const activeReportID = parseInt(props.currentlyViewedReportID, 10);
     if (!activeReportID) {
         return null;
     }
@@ -33,19 +33,15 @@ const ReportScreen = (props) => {
                 styles.flexColumn,
             ]}
         >
-            {() => (
-                <>
-                    <HeaderView
-                        reportID={activeReportID}
-                        onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
-                    />
-                    <View style={[styles.dFlex, styles.flex1]}>
-                        <ReportView
-                            reportID={activeReportID}
-                        />
-                    </View>
-                </>
-            )}
+            <HeaderView
+                reportID={activeReportID}
+                onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
+            />
+            <View style={[styles.dFlex, styles.flex1]}>
+                <ReportView
+                    reportID={activeReportID}
+                />
+            </View>
         </ScreenWrapper>
     );
 };
