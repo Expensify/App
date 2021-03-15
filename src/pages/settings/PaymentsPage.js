@@ -2,7 +2,6 @@ import React from 'react';
 import {Pressable, TextInput, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
