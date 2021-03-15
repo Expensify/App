@@ -1,7 +1,6 @@
 import React from 'react';
 import {StackActions, DrawerActions} from '@react-navigation/native';
 import {getIsDrawerOpenFromState} from '@react-navigation/drawer';
-import {setModalVisibility} from '../actions/Modal'
 
 import linkTo from './linkTo';
 import ROUTES from '../../ROUTES';
@@ -52,9 +51,6 @@ function navigate(route) {
 function dismissModal() {
     // This should take us to the first view of the modal's stack navigator
     navigationRef.current.dispatch(StackActions.popToTop());
-
-    // Update modal visilibity in Onyx
-    setModalVisibility(false);
 
     // From there we can just navigate back and open the drawer
     goBack();

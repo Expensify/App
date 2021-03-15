@@ -20,6 +20,7 @@ class BaseModal extends PureComponent {
 
     componentWillUnmount() {
         this.unsubscribeFromKeyEvents();
+        setModalVisibility(false);
     }
 
     /**
