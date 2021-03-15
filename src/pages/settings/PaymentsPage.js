@@ -67,7 +67,7 @@ class PaymentsPage extends React.Component {
                                     Enter your username to get paid back via Paypal.
                                 </Text>
                                 <Text style={[styles.formLabel]} numberOfLines={1}>
-                                    Paypal.me/
+                                    PayPal.me/
                                 </Text>
                                 <TextInput
                                     style={[styles.textInput]}
