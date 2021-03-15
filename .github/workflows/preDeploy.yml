@@ -10,6 +10,7 @@ jobs:
     outputs:
       mergedPullRequest: ${{ steps.getMergedPullRequest.outputs.number }}
       isStagingDeployLocked: ${{ steps.isStagingDeployLocked.outputs.IS_LOCKED }}
+      isVersionBumpPR: ${{ steps.isVersionBumpPR.outputs.IS_VERSION_BUMP_PR }}
 
     steps:
       # Version: 2.3.4
@@ -29,6 +30,9 @@ jobs:
         uses: Expensify/Expensify.cash/.github/actions/isStagingDeployLocked@master
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Check if merged pull request was an automatic version bump PR
+        run: echo "::set-output name=IS_VERSION_BUMP_PR::${{ constains(steps.getMergedPullRequest.outputs.labels, automerge) && github.actor == 'OSBotify' }}"
 
   skipDeploy:
     runs-on: ubuntu-latest
@@ -103,15 +107,17 @@ jobs:
 
   deployStaging:
     runs-on: ubuntu-latest
-    needs: version
-    if: ${{ needs.chooseDeployActions.outputs.isStagingDeployLocked == 'false' }}
+    needs: [chooseDeployActions, version]
+    if: ${{
+      needs.chooseDeployActions.outputs.isVersionBumpPR == 'true'
+      && needs.chooseDeployActions.outputs.isStagingDeployLocked == 'false'
+    }}
 
     steps:
-      # Version: 2.3.4
-      - name: Create Pull Request (staging)
+      - name: Checkout master
         uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
         with:
-          ref: version-bump-${{ github.sha }}
+          ref: master
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Tag version
@@ -124,7 +130,7 @@ jobs:
         # Version: 2.4.3
         uses: repo-sync/pull-request@33777245b1aace1a58c87a29c90321aa7a74bd7d
         with:
-          source_branch: version-bump-${{ github.sha }}
+          source_branch: master
           destination_branch: "staging"
           pr_label: "automerge"
           github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
