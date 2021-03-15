@@ -5,7 +5,7 @@ const moment = require('moment');
 const GithubUtils = require('../../libs/GithubUtils');
 const GitUtils = require('../../libs/GitUtils');
 
-const newVersion = core.getInput('NPM_VERSION', {required: true});
+const newVersion = core.getInput('NPM_VERSION');
 const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
 const githubUtils = new GithubUtils(octokit);
 
@@ -42,8 +42,8 @@ githubUtils.getStagingDeployCash()
 
         // Unexpected error!
         console.error('Unexpected error occurred finding the StagingDeployCash!'
-            + ' There may have been more than one open StagingDeployCash found,'
-            + ' or there was some other problem with the Github API request.', err);
+                + ' There may have been more than one open StagingDeployCash found,'
+                + ' or there was some other problem with the Github API request.', err);
         core.setFailed(err);
     })
     .then((githubResponse) => {
