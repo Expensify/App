@@ -75,12 +75,12 @@ class PasswordPage extends Component {
                             onCloseButtonPress={Navigation.dismissModal}
                         />
                         <View style={[styles.p5, styles.flex1]}>
-                            <Text fontSize={17} style={styles.mb6}>
+                            <Text style={[styles.mb6, styles.textP]}>
                                 Changing your password will update your password for both your Expensify.com
                                 and Expensify.cash accounts.
                             </Text>
                             <View style={styles.mb6}>
-                                <Text style={styles.mb1}>Current Password*</Text>
+                                <Text style={[styles.mb1, styles.formLabel]}>Current Password*</Text>
                                 <TextInput
                                     secureTextEntry
                                     autoCompleteType="password"
@@ -91,7 +91,7 @@ class PasswordPage extends Component {
                                 />
                             </View>
                             <View style={styles.mb6}>
-                                <Text style={styles.mb1}>New Password*</Text>
+                                <Text style={[styles.mb1, styles.formLabel]}>New Password*</Text>
                                 <TextInput
                                     secureTextEntry
                                     autoCompleteType="password"
@@ -102,7 +102,7 @@ class PasswordPage extends Component {
                                 />
                             </View>
                             <View style={styles.mb6}>
-                                <Text style={styles.mb1}>Confirm New Password*</Text>
+                                <Text style={[styles.mb1, styles.formLabel]}>Confirm New Password*</Text>
                                 <TextInput
                                     secureTextEntry
                                     autoCompleteType="password"
@@ -114,7 +114,7 @@ class PasswordPage extends Component {
                             </View>
                             {this.props.account.requiresTwoFactorAuth ? (
                                 <View style={styles.mb6}>
-                                    <Text style={styles.mb1}>Two Factor Code</Text>
+                                    <Text style={[styles.mb1, styles.formLabel]}>Two Factor Code</Text>
                                     <TextInput
                                         style={styles.textInput}
                                         value={this.state.twoFactorCode}
