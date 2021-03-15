@@ -2,7 +2,7 @@
 Welcome! Thanks for checking out Expensify.cash and for taking the time to contribute!
 
 ## Getting Started
-This guide is for external contributors. Check out our README guidelines here for a general overview of the code repository, how to run the app locally, testing, storage, etc. 
+If you would like to become an Expensify.cash contributor, your first step is to read this document. Please check out our README guidelines [here](https://github.com/Expensify/Expensify.cash/blob/master/README.md) for a general overview of the code repository, how to run the app locally, testing, storage, etc. 
 
 We recommend reviewing this “Contributing to Expensify.cash” guide and the README before asking questions, as it may be covered within the documentation.
 
