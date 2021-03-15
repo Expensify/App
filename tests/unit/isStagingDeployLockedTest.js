@@ -10,39 +10,18 @@ afterEach(() => {
     delete process.env.INPUT_GITHUB_TOKEN;
 });
 
-const mockData = {
-    comparisonURL: 'https://github.com/Expensify/Expensify.cash/compare/1.0.1-0...1.0.1-47',
-    labels: [
-        {
-            color: '6FC269',
-            default: false,
-            description: '',
-            id: 2783847782,
-            name: '🔐 LockCashDeploys 🔐',
-            node_id: 'MDU6TGFiZWwyNzgzODQ3Nzgy',
-            url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/labels/StagingDeployCash',
-        },
-    ],
-    tag: '1.0.1-47',
-    title: 'Andrew Test Issue',
-    url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/issues/29',
-};
-
+// Our mock function that we can adjust in each test
 let mockGetStagingDeployCash = jest.fn();
 
-// eslint-disable-next-line arrow-body-style
-jest.mock('../../.github/libs/GithubUtils', () => {
-    // eslint-disable-next-line arrow-body-style
-    return jest.fn().mockImplementation(() => {
-        return {
-            getStagingDeployCash: mockGetStagingDeployCash,
-        };
-    });
-});
+// Mock the entire GitHubUtils module
+jest.mock('../../.github/libs/GithubUtils', () => jest.fn().mockImplementation(() => ({
+    getStagingDeployCash: mockGetStagingDeployCash,
+})));
 
 describe('isStagingDeployLockedTest', () => {
     describe('GitHub action run function', () => {
         test('Test returning empty result', () => {
+            // Mock the return value of GitHubUtils.getStagingDeployCash() to return an empty object
             mockGetStagingDeployCash = jest.fn().mockResolvedValue({});
             const setOutputMock = jest.spyOn(core, 'setOutput');
             const isStagingDeployLocked = run();
@@ -52,6 +31,12 @@ describe('isStagingDeployLockedTest', () => {
         });
 
         test('Test returning valid locked issue', () => {
+            // Mocking the minimum amount of data required for a found issue with the correct label
+            const mockData = {
+                labels: [{name: '🔐 LockCashDeploys 🔐'}],
+            };
+
+            // Mock the return value of GitHubUtils.getStagingDeployCash() to return the correct label
             mockGetStagingDeployCash = jest.fn().mockResolvedValue(mockData);
             const setOutputMock = jest.spyOn(core, 'setOutput');
             const isStagingDeployLocked = run();
