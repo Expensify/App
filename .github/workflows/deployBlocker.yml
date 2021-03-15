@@ -1,0 +1,50 @@
+name: Update Deploy Blockers
+
+on:
+  pull_request:
+    types:
+      - labeled
+  issues:
+    types:
+      - labeled
+
+jobs:
+  deployBlocker:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.label.name == 'DeployBlockerCash' }}
+
+    steps:
+      - name: Update StagingDeployCash with issue
+        uses: Expensify/Expensify.cash/.github/actions/createOrUpdateStagingDeploy@master
+        if: ${{ github.event_name == 'issues' }}
+        with:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          NEW_DEPLOY_BLOCKERS: ${{ github.event.issue.html_url }}
+
+      - name: Update StagingDeployCash with issue
+        uses: Expensify/Expensify.cash/.github/actions/createOrUpdateStagingDeploy@master
+        if: ${{ github.event_name == 'pull_request' }}
+        with:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          NEW_DEPLOY_BLOCKERS: ${{ github.event.pull_request.html_url }}
+
+      # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
+      # the other workflows with the same change
+      - uses: 8398a7/action-slack@v3
+        name: Job failed Slack notification
+        if: ${{ failure() }}
+        with:
+          status: custom
+          fields: workflow, repo
+          custom_payload: |
+            {
+              channel: '#announce',
+              attachments: [{
+                color: "#DB4545",
+                pretext: `<!here>`,
+                text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

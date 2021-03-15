@@ -8,12 +8,11 @@ import * as Pusher from '../Pusher/pusher';
 import LocalNotification from '../Notification/LocalNotification';
 import PushNotification from '../Notification/PushNotification';
 import * as PersonalDetails from './PersonalDetails';
-import {redirect} from './App';
+import Navigation from '../Navigation/Navigation';
 import * as ActiveClientManager from '../ActiveClientManager';
 import Visibility from '../Visibility';
 import ROUTES from '../../ROUTES';
 import NetworkConnection from '../NetworkConnection';
-import {hide as hideSidebar} from './Sidebar';
 import Timing from './Timing';
 import * as API from '../API';
 import CONST from '../../CONST';
@@ -309,7 +308,7 @@ function updateReportWithNewAction(reportID, reportAction) {
         reportAction,
         onClick: () => {
             // Navigate to this report onClick
-            redirect(ROUTES.getReportRoute(reportID));
+            Navigation.navigate(ROUTES.getReportRoute(reportID));
         },
     });
 }
@@ -356,8 +355,7 @@ function subscribeToReportCommentEvents() {
 
     // Open correct report when push notification is clicked
     PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, ({reportID}) => {
-        redirect(ROUTES.getReportRoute(reportID));
-        hideSidebar();
+        Navigation.navigate(ROUTES.getReportRoute(reportID));
     });
 }
 
@@ -466,7 +464,7 @@ function fetchOrCreateChatReport(participants) {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID});
 
             // Redirect the logged in person to the new report
-            redirect(ROUTES.getReportRoute(reportID));
+            Navigation.navigate(ROUTES.getReportRoute(reportID));
         });
 }
 
@@ -492,6 +490,8 @@ function fetchChatReports() {
             } else {
                 fetchOrCreateChatReport([currentUserEmail, 'concierge@expensify.com']);
             }
+
+            return response.chatList;
         });
 }
 
@@ -543,12 +543,15 @@ function fetchActions(reportID, offset) {
 function fetchAll(shouldRedirectToReport = true, shouldRecordHomePageTiming = false) {
     fetchChatReports()
         .then((reportIDs) => {
-            if (shouldRedirectToReport && (currentURL === ROUTES.ROOT || currentURL === ROUTES.HOME)) {
+            if (shouldRedirectToReport && !currentURL.includes(ROUTES.REPORT)) {
                 // Redirect to either the last viewed report ID or the first report ID from our report collection
                 if (lastViewedReportID) {
-                    redirect(ROUTES.getReportRoute(lastViewedReportID));
+                    Onyx.set(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, String(lastViewedReportID));
                 } else {
-                    redirect(ROUTES.getReportRoute(_.first(reportIDs)));
+                    const firstReportID = _.first(reportIDs);
+                    if (firstReportID) {
+                        Onyx.set(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, String(firstReportID));
+                    }
                 }
             }
 

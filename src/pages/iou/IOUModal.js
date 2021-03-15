@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
-import {redirectToLastReport} from '../../libs/actions/App';
 import IOUAmountPage from './steps/IOUAmountPage';
 import IOUParticipantsPage from './steps/IOUParticipantsPage';
 import IOUConfirmPage from './steps/IOUConfirmPage';
@@ -10,6 +9,7 @@ import styles from '../../styles/styles';
 import Icon from '../../components/Icon';
 import {getPreferredCurrency} from '../../libs/actions/IOU';
 import {Close, BackArrow} from '../../components/Icon/Expensicons';
+import Navigation from '../../libs/Navigation/Navigation';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -108,7 +108,7 @@ class IOUModal extends Component {
                         <Header title={this.getTitleForStep()} />
                         <View style={[styles.reportOptions, styles.flexRow]}>
                             <TouchableOpacity
-                                onPress={redirectToLastReport}
+                                onPress={Navigation.dismissModal}
                                 style={[styles.touchableButtonImage]}
                             >
                                 <Icon src={Close} />

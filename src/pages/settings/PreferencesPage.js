@@ -6,8 +6,7 @@ import PropTypes from 'prop-types';
 import ToggleSwitch from 'toggle-switch-react-native';
 
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import {redirect} from '../../libs/actions/App';
-import HeaderGap from '../../components/HeaderGap';
+import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
@@ -18,6 +17,7 @@ import NameValuePair from '../../libs/actions/NameValuePair';
 import CONST from '../../CONST';
 import {DownArrow} from '../../components/Icon/Expensicons';
 import {setExpensifyNewsStatus} from '../../libs/actions/User';
+import ScreenWrapper from '../../components/ScreenWrapper';
 
 const propTypes = {
     // The chat priority mode
@@ -48,29 +48,16 @@ const priorityModes = {
     },
 };
 
-class PreferencesPage extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            isNewsStatusEnabled: !(this.props.user.expensifyNewsStatus === false),
-        };
-        this.toggleNewsStatus = this.toggleNewsStatus.bind(this);
-    }
 
-    toggleNewsStatus(isSubscribed) {
-        this.setState({isNewsStatusEnabled: isSubscribed});
-        setExpensifyNewsStatus(isSubscribed);
-    }
-
-    render() {
-        return (
+const PreferencesPage = ({priorityMode, user}) => (
+    <ScreenWrapper>
+        {() => (
             <>
-                <HeaderGap />
                 <HeaderWithCloseButton
                     title="Preferences"
                     shouldShowBackButton
-                    onBackButtonPress={() => redirect(ROUTES.SETTINGS)}
-                    onCloseButtonPress={() => redirect(ROUTES.HOME)}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+                    onCloseButtonPress={() => Navigation.dismissModal()}
                 />
                 <View style={styles.pageWrapper}>
                     <View style={[styles.settingsPageBody, styles.mb6]}>
@@ -83,9 +70,9 @@ class PreferencesPage extends Component {
                             </View>
                             <View style={[styles.flex1, styles.alignItemsEnd]}>
                                 <ToggleSwitch
-                                    isOn={this.state.isNewsStatusEnabled}
+                                    isOn={user.expensifyNewsStatus ?? true}
                                     onColor={colors.green}
-                                    onToggle={this.toggleNewsStatus}
+                                    onToggle={setExpensifyNewsStatus}
                                 />
                             </View>
                         </View>
@@ -103,19 +90,19 @@ class PreferencesPage extends Component {
                                 style={styles.picker}
                                 useNativeAndroidPickerStyle={false}
                                 placeholder={{}}
-                                value={this.props.priorityMode}
+                                value={priorityMode}
                                 Icon={() => <Icon src={DownArrow} />}
                             />
                         </View>
                         <Text style={[styles.textLabel, styles.colorMuted]}>
-                            {priorityModes[this.props.priorityMode].description}
+                            {priorityModes[priorityMode].description}
                         </Text>
                     </View>
                 </View>
             </>
-        );
-    }
-}
+        )}
+    </ScreenWrapper>
+);
 
 PreferencesPage.propTypes = propTypes;
 PreferencesPage.defaultProps = defaultProps;
