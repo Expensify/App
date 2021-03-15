@@ -20,7 +20,10 @@ import {updateCurrentlyViewedReportID} from '../actions/Report';
 import {setCurrentURL} from '../actions/App';
 
 const propTypes = {
+    // Whether the current user is logged in with an authToken
     authenticated: PropTypes.bool.isRequired,
+
+    // The current reportID that we are navigated to or should show in the ReportScreen
     currentlyViewedReportID: PropTypes.string,
 };
 
