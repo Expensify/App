@@ -52,7 +52,7 @@ class NavigationRoot extends Component {
 
                 // If we are landing on something other than the report screen or site root then we MUST set the
                 // initial route to the currently viewed report so there some history to navigate back from
-                if (path !== ROUTES.HOME && !path.includes(ROUTES.REPORT)) {
+                if (path !== `/${ROUTES.HOME}` && !path.includes(`/${ROUTES.REPORT}`)) {
                     const homeRoute = {
                         name: 'Home',
                     };
