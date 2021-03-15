@@ -25,7 +25,8 @@ function changePassword(oldPassword, password, twoFactorAuthCode) {
                 return response;
             }
 
-            Onyx.merge(ONYXKEYS.ACCOUNT, {error: response.message});
+            const error = lodashGet(response, 'message', 'Unable to change password. Please try again.');
+            Onyx.merge(ONYXKEYS.ACCOUNT, {error});
             return response;
         })
         .finally((response) => {
