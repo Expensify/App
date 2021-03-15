@@ -3,12 +3,12 @@ import {AppState} from 'react-native';
 import Onyx from 'react-native-onyx';
 import NetInfo from './NetInfo';
 import ONYXKEYS from '../ONYXKEYS';
+import Timer from './Timer';
 
 // NetInfo.addEventListener() returns a function used to unsubscribe the
 // listener so we must create a reference to it and call it in stopListeningForReconnect()
 let unsubscribeFromNetInfo;
-let sleepTimer;
-let lastTime;
+let unsubscribeFromTimer;
 let isOffline = false;
 let listeningForAppStateChanges = false;
 let logInfo = () => {};
@@ -68,18 +68,11 @@ function listenForReconnect() {
 
     // When a device is put to sleep, NetInfo is not always able to detect
     // when connectivity has been lost. As a failsafe we will capture the time
-    // every two seconds and if the last time recorded is greater than 4 seconds
+    // every two seconds and if the last time recorded goes past a threshold
     // we know that the computer has been asleep.
-    lastTime = (new Date()).getTime();
-    clearInterval(sleepTimer);
-    sleepTimer = setInterval(() => {
-        const currentTime = (new Date()).getTime();
-        const isSkewed = currentTime > (lastTime + 4000);
-        if (isSkewed) {
-            triggerReconnectionCallbacks('sleep timer clock skewed');
-        }
-        lastTime = currentTime;
-    }, 2000);
+    unsubscribeFromTimer = Timer.addClockSkewListener(() => (
+        triggerReconnectionCallbacks('timer clock skewed')
+    ));
 }
 
 /**
@@ -87,11 +80,13 @@ function listenForReconnect() {
  */
 function stopListeningForReconnect() {
     logInfo('[NetworkConnection] stopListeningForReconnect called', true);
-    clearInterval(sleepTimer);
-    sleepTimer = null;
     if (unsubscribeFromNetInfo) {
         unsubscribeFromNetInfo();
         unsubscribeFromNetInfo = undefined;
+    }
+    if (unsubscribeFromTimer) {
+        unsubscribeFromTimer();
+        unsubscribeFromTimer = undefined;
     }
     if (listeningForAppStateChanges) {
         AppState.removeEventListener('change', logAppStateChange);
