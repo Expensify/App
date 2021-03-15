@@ -133,7 +133,8 @@ class PasswordPage extends Component {
                             <ButtonWithLoader
                                 isDisabled={!this.state.currentPassword || !this.state.newPassword
                                     || !this.state.confirmNewPassword
-                                    || (this.state.newPassword !== this.state.confirmNewPassword)}
+                                    || (this.state.newPassword !== this.state.confirmNewPassword)
+                                    || (this.props.account.requiresTwoFactorAuth && !this.state.twoFactorCode)}
                                 isLoading={this.props.account.loading}
                                 text="Save"
                                 onClick={this.handleChangePassword}
