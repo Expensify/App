@@ -14,12 +14,11 @@ import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
 
 const propTypes = {
-    // The PaypalMe Username
-    paypalMeAddress: PropTypes.string,
+    payPalMeUsername: PropTypes.string,
 };
 
 const defaultProps = {
-    paypalMeAddress: '',
+    payPalMeUsername: '',
 };
 
 class PaymentsPage extends React.Component {
@@ -27,9 +26,9 @@ class PaymentsPage extends React.Component {
         super(props);
 
         this.state = {
-            paypalMeAddress: props.paypalMeAddress,
+            payPalMeUsername: props.payPalMeUsername,
         };
-        this.setPaypalAccount = this.setPaypalAccount.bind(this);
+        this.setPayPalMeUsername = this.setPayPalMeUsername.bind(this);
     }
 
     componentDidMount() {
@@ -37,17 +36,18 @@ class PaymentsPage extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.paypalMeAddress !== this.props.paypalMeAddress) {
+        if (prevProps.payPalMeUsername !== this.props.payPalMeUsername) {
+            // Suppressing because this is within a conditional, and hence we won't run into an infinite loop
             // eslint-disable-next-line react/no-did-update-set-state
-            this.setState({paypalMeAddress: this.props.paypalMeAddress});
+            this.setState({payPalMeUsername: this.props.payPalMeUsername});
         }
     }
 
     /**
-     * Sets the paypalMeAddress for the current user
+     * Sets the payPalMeUsername for the current user
      */
-    setPaypalAccount() {
-        NameValuePair.set(CONST.NVP.PAYPAL_ME_ADDRESS, this.state.paypalMeAddress, ONYXKEYS.NVP_PAYPAL_ME_ADDRESS);
+    setPayPalMeUsername() {
+        NameValuePair.set(CONST.NVP.PAYPAL_ME_ADDRESS, this.state.payPalMeUsername, ONYXKEYS.NVP_PAYPAL_ME_ADDRESS);
     }
 
     render() {
@@ -71,13 +71,13 @@ class PaymentsPage extends React.Component {
                                 </Text>
                                 <TextInput
                                     style={[styles.textInput]}
-                                    value={this.state.paypalMeAddress}
+                                    value={this.state.payPalMeUsername}
                                     placeholder="Your PayPal username"
-                                    onChangeText={text => this.setState({paypalMeAddress: text})}
+                                    onChangeText={text => this.setState({payPalMeUsername: text})}
                                 />
                             </View>
                             <Pressable
-                                onPress={this.setPaypalAccount}
+                                onPress={this.setPayPalMeUsername}
                                 style={({hovered}) => [
                                     styles.button,
                                     styles.buttonSuccess,
@@ -86,7 +86,7 @@ class PaymentsPage extends React.Component {
                                 ]}
                             >
                                 <Text style={[styles.buttonText, styles.buttonSuccessText]}>
-                                    Add Paypal Account
+                                    Add PayPal Account
                                 </Text>
                             </Pressable>
                         </View>
@@ -103,7 +103,7 @@ PaymentsPage.defaultProps = defaultProps;
 PaymentsPage.displayName = 'PaymentsPage';
 
 export default withOnyx({
-    paypalMeAddress: {
+    payPalMeUsername: {
         key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
     },
 })(PaymentsPage);
