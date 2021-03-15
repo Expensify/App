@@ -127,12 +127,12 @@ class ProfilePage extends Component {
                                 style={[styles.avatarLarge, styles.alignSelfCenter]}
                                 source={this.props.myPersonalDetails.avatarURL}
                             />
-                            <Text fontSize={17} style={[styles.mt6, styles.mb6]}>
+                            <Text style={[styles.mt6, styles.mb6, styles.textP]}>
                                 Tell us about yourself, we would love to get to know you!
                             </Text>
                             <View style={[styles.flexRow, styles.mb6]}>
                                 <View style={styles.flex1}>
-                                    <Text style={styles.mb1}>First Name</Text>
+                                    <Text style={[styles.mb1, styles.formLabel]}>First Name</Text>
                                     <TextInput
                                         style={styles.textInput}
                                         value={this.state.firstName}
@@ -141,7 +141,7 @@ class ProfilePage extends Component {
                                     />
                                 </View>
                                 <View style={[styles.flex1, styles.ml2]}>
-                                    <Text style={styles.mb1}>Last Name</Text>
+                                    <Text style={[styles.mb1, styles.formLabel]}>Last Name</Text>
                                     <TextInput
                                         style={styles.textInput}
                                         value={this.state.lastName}
@@ -151,7 +151,7 @@ class ProfilePage extends Component {
                                 </View>
                             </View>
                             <View style={styles.mb6}>
-                                <Text style={styles.mb1}>Preferred Pronouns</Text>
+                                <Text style={[styles.mb1, styles.formLabel]}>Preferred Pronouns</Text>
                                 <View style={styles.mb1}>
                                     <RNPickerSelect
                                         onValueChange={pronouns => this.setState({pronouns, selfSelectedPronouns: ''})}
@@ -176,7 +176,7 @@ class ProfilePage extends Component {
                                 ) : null}
                             </View>
                             <View style={styles.mb6}>
-                                <Text style={styles.mb1}>
+                                <Text style={[styles.mb1, styles.formLabel]}>
                                     {Str.isSMSLogin(this.props.myPersonalDetails.login)
                                         ? 'Phone Number' : 'Email Address'}
                                 </Text>
@@ -187,7 +187,7 @@ class ProfilePage extends Component {
                                 />
                             </View>
                             <View style={styles.mb2}>
-                                <Text style={styles.mb1}>Timezone</Text>
+                                <Text style={[styles.mb1, styles.formLabel]}>Timezone</Text>
                                 <RNPickerSelect
                                     onValueChange={selectedTimezone => this.setState({selectedTimezone})}
                                     items={timezones}

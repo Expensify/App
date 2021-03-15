@@ -31,7 +31,7 @@ const Checkbox = ({
         </Pressable>
         {label ? (
             <Pressable onPress={() => onClick(!isChecked)}>
-                <Text style={styles.ml2}>
+                <Text style={[styles.ml2, styles.textP]}>
                     {label}
                 </Text>
             </Pressable>
