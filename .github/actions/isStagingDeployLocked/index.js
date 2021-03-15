@@ -267,21 +267,25 @@ class GithubUtils {
     /**
      * Updates the existing open StagingDeployCash issue.
      *
-     * @param {String} newTag
+     * @param {String} [newTag]
      * @param {Array} newPRs
      * @param {Array} newDeployBlockers
      * @returns {Promise}
      * @throws {Error} If the StagingDeployCash could not be found or updated.
      */
-    updateStagingDeployCash(newTag, newPRs, newDeployBlockers) {
+    updateStagingDeployCash(newTag = '', newPRs, newDeployBlockers) {
         let issueNumber;
         return this.getStagingDeployCash()
             .then(({
                 url,
+                tag: oldTag,
                 PRList: oldPRs,
                 deployBlockers: oldDeployBlockers,
             }) => {
                 issueNumber = GithubUtils.getIssueNumberFromURL(url);
+
+                // If we aren't sent a tag, then use the existing tag
+                const tag = _.isEmpty(newTag) ? oldTag : newTag;
 
                 const PRList = _.sortBy(
                     _.union(oldPRs, _.map(newPRs, URL => ({
@@ -301,7 +305,7 @@ class GithubUtils {
                 );
 
                 return this.generateStagingDeployCashBody(
-                    newTag,
+                    tag,
                     _.pluck(PRList, 'url'),
                     _.pluck(_.where(PRList, {isVerified: true}), 'url'),
                     _.pluck(deployBlockers, 'url'),
@@ -338,8 +342,10 @@ class GithubUtils {
         return this.generateVersionComparisonURL(`${GITHUB_OWNER}/${EXPENSIFY_CASH_REPO}`, tag, 'PATCH')
             .then((comparisonURL) => {
                 const sortedPRList = _.sortBy(_.unique(PRList), URL => GithubUtils.getPullRequestNumberFromURL(URL));
-                // eslint-disable-next-line max-len
-                const sortedDeployBlockers = _.sortBy(_.unique(deployBlockers), URL => GithubUtils.getIssueOrPullRequestNumberFromURL(URL));
+                const sortedDeployBlockers = _.sortBy(
+                    _.unique(deployBlockers),
+                    URL => GithubUtils.getIssueOrPullRequestNumberFromURL(URL),
+                );
 
                 // Tag version and comparison URL
                 let issueBody = `**Release Version:** \`${tag}\`\r\n`;
