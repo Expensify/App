@@ -72,7 +72,7 @@ class PaymentsPage extends React.Component {
                                 <TextInput
                                     style={[styles.textInput]}
                                     value={this.state.paypalMeAddress}
-                                    placeholder="Your Paypal username"
+                                    placeholder="Your PayPal username"
                                     onChangeText={text => this.setState({paypalMeAddress: text})}
                                 />
                             </View>
