@@ -3,10 +3,13 @@ const run = require('../../.github/actions/isStagingDeployLocked/isStagingDeploy
 
 beforeEach(() => {
     jest.resetModules();
+
+    // Mock GITHUB_TOKEN which is required before every test
     process.env.INPUT_GITHUB_TOKEN = 'fake_token';
 });
 
 afterEach(() => {
+    // Remove mock GITHUB_TOKEN after every test
     delete process.env.INPUT_GITHUB_TOKEN;
 });
 
