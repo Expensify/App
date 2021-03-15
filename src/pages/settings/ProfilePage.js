@@ -208,7 +208,7 @@ class ProfilePage extends Component {
                             <Checkbox
                                 label="Set my timezone automatically"
                                 isChecked={this.state.isAutomaticTimezone}
-                                onClick={isAutomaticTimezone => this.setState({isAutomaticTimezone})}
+                                onCheckboxClick={isAutomaticTimezone => this.setState({isAutomaticTimezone})}
                             />
                         </View>
                         <View style={styles.fixedBottomButton}>
@@ -223,7 +223,6 @@ class ProfilePage extends Component {
         );
     }
 }
-
 
 ProfilePage.propTypes = propTypes;
 ProfilePage.defaultProps = defaultProps;
