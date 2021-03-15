@@ -51,7 +51,7 @@ const ScreenWrapper = props => (
                     ]}
                 >
                     <HeaderGap />
-                    { // If this.props.children is a function, call it to provide the hover state to the children.
+                    {// If props.children is a function, call it to provide the insets to the children.
                         _.isFunction(props.children)
                             ? props.children(insets)
                             : props.children
