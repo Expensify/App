@@ -110,6 +110,7 @@ class PasswordPage extends Component {
                                     style={styles.textInput}
                                     value={this.state.confirmNewPassword}
                                     onChangeText={confirmNewPassword => this.setState({confirmNewPassword})}
+                                    onSubmitEditing={this.handleChangePassword}
                                 />
                             </View>
                             {this.props.account.requiresTwoFactorAuth ? (
@@ -119,6 +120,7 @@ class PasswordPage extends Component {
                                         style={styles.textInput}
                                         value={this.state.twoFactorCode}
                                         onChangeText={twoFactorCode => this.setState({twoFactorCode})}
+                                        onSubmitEditing={this.handleChangePassword}
                                         placeholder="Required when 2FA is enabled"
                                     />
                                 </View>
@@ -134,7 +136,8 @@ class PasswordPage extends Component {
                                 isDisabled={!this.state.currentPassword || !this.state.newPassword
                                     || !this.state.confirmNewPassword
                                     || (this.state.newPassword !== this.state.confirmNewPassword)
-                                    || (this.props.account.requiresTwoFactorAuth && !this.state.twoFactorCode)}
+                                    || (this.props.account.requiresTwoFactorAuth && !this.state.twoFactorCode)
+                                    || (this.state.currentPassword === this.state.newPassword)}
                                 isLoading={this.props.account.loading}
                                 text="Save"
                                 onClick={this.handleChangePassword}
