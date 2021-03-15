@@ -3,12 +3,20 @@ const core = require('@actions/core');
 const github = require('@actions/github');
 const GithubUtils = require('../../libs/GithubUtils');
 
-const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
-const githubUtils = new GithubUtils(octokit);
+const run = function () {
+    const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
+    const githubUtils = new GithubUtils(octokit);
 
-githubUtils.getStagingDeployCash()
-    .then(({labels}) => core.setOutput('IS_LOCKED', _.contains(_.pluck(labels, 'name'), '🔐 LockCashDeploys 🔐')))
-    .catch((err) => {
-        console.warn('No open StagingDeployCash found, continuing...', err);
-        core.setOutput('IS_LOCKED', false);
-    });
+    return githubUtils.getStagingDeployCash()
+        .then(({labels}) => core.setOutput('IS_LOCKED', _.contains(_.pluck(labels, 'name'), '🔐 LockCashDeploys 🔐')))
+        .catch((err) => {
+            console.warn('No open StagingDeployCash found, continuing...', err);
+            core.setOutput('IS_LOCKED', false);
+        });
+};
+
+if (require.main === module) {
+    run();
+}
+
+module.exports = run;
