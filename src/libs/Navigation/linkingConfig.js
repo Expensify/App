@@ -65,10 +65,9 @@ export default {
                 },
             },
             Profile: {
-                path: `${ROUTES.PROFILE}/:login`,
                 initialRouteName: 'Profile_Root',
                 screens: {
-                    Profile_Root: '',
+                    Profile_Root: `${ROUTES.PROFILE}/:login`,
                 },
             },
             IOU_Request: {
