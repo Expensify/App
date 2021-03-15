@@ -80,7 +80,7 @@ jobs:
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - name: Commit and push new version
+      - name: Commit new version
         run: |
           git add \
             ./package.json \
