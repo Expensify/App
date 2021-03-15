@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 
 const propTypes = {
+    // Callback to inform parent modal with key pressed
     numberPressed: PropTypes.func.isRequired,
 };
 
@@ -25,7 +26,7 @@ class BigNumberPad extends PureComponent {
      */
     createNumberPadRow(row) {
         const self = this;
-        const numberPadRow = padNumbers[row].map((_column, index) => self.createNumberPadButton(row, index));
+        const numberPadRow = padNumbers[row].map((column, index) => self.createNumberPadButton(row, index));
         return (
             <View key={row} style={[styles.flexRow, styles.mt3]}>
                 {numberPadRow}
@@ -41,11 +42,13 @@ class BigNumberPad extends PureComponent {
      * @returns {View}
      */
     createNumberPadButton(row, column) {
-        const marginRight = column < 2 ? styles.mr3 : {};
+        // Adding margin between buttons except first column to
+        // avoid unccessary space before the first column.
+        const marginLeft = column > 0 ? styles.ml3 : {};
         return (
             <TouchableOpacity
                 key={padNumbers[row][column]}
-                style={[styles.flex1, styles.button, marginRight]}
+                style={[styles.flex1, styles.button, marginLeft]}
                 onPress={() => this.props.numberPressed(padNumbers[row][column])}
             >
                 <Text style={[styles.buttonText]}>
@@ -57,7 +60,7 @@ class BigNumberPad extends PureComponent {
 
     render() {
         const self = this;
-        const numberPad = padNumbers.map((_row, index) => self.createNumberPadRow(index));
+        const numberPad = padNumbers.map((row, index) => self.createNumberPadRow(index));
         return (
             <View style={[styles.flexColumn, styles.w100]}>
                 {numberPad}
