@@ -36,11 +36,15 @@ class GithubUtils {
         })
             .then(({data}) => {
                 if (!data.length) {
-                    throw new Error(`Unable to find ${STAGING_DEPLOY_CASH_LABEL} issue.`);
+                    const error = new Error(`Unable to find ${STAGING_DEPLOY_CASH_LABEL} issue.`);
+                    error.code = 404;
+                    throw error;
                 }
 
                 if (data.length > 1) {
-                    throw new Error(`Found more than one ${STAGING_DEPLOY_CASH_LABEL} issue.`);
+                    const error = new Error(`Found more than one ${STAGING_DEPLOY_CASH_LABEL} issue.`);
+                    error.code = 500;
+                    throw error;
                 }
 
                 return this.getStagingDeployCashData(data[0]);
@@ -50,10 +54,8 @@ class GithubUtils {
     /**
      * Takes in a GitHub issue object and returns the data we want.
      *
-     * @private
-     *
      * @param {Object} issue
-     * @returns {Promise}
+     * @returns {Object}
      */
     getStagingDeployCashData(issue) {
         try {
@@ -119,7 +121,11 @@ class GithubUtils {
      * @returns {Array<Object>} - [{URL: String, number: Number, isResolved: Boolean}]
      */
     getStagingDeployCashDeployBlockers(issue) {
-        const deployBlockerSection = issue.body.match(/Deploy Blockers:\*\*\r\n((?:.*\r\n)+)/)[1];
+        let deployBlockerSection = issue.body.match(/Deploy Blockers:\*\*\r\n((?:.*\r\n)+)/) || [];
+        if (deployBlockerSection.length !== 2) {
+            return [];
+        }
+        deployBlockerSection = deployBlockerSection[1];
         const unresolvedDeployBlockers = _.map(
             [...deployBlockerSection.matchAll(new RegExp(`- \\[ ] (${ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))],
             match => ({
@@ -220,8 +226,8 @@ class GithubUtils {
             .then(body => this.octokit.issues.create({
                 owner: GITHUB_OWNER,
                 repo: EXPENSIFY_CASH_REPO,
-                labels: STAGING_DEPLOY_CASH_LABEL,
-                assignee: APPLAUSE_BOT,
+                labels: [STAGING_DEPLOY_CASH_LABEL],
+                assignees: [APPLAUSE_BOT],
                 title,
                 body,
             }));
@@ -230,21 +236,25 @@ class GithubUtils {
     /**
      * Updates the existing open StagingDeployCash issue.
      *
-     * @param {String} newTag
+     * @param {String} [newTag]
      * @param {Array} newPRs
      * @param {Array} newDeployBlockers
      * @returns {Promise}
      * @throws {Error} If the StagingDeployCash could not be found or updated.
      */
-    updateStagingDeployCash(newTag, newPRs, newDeployBlockers) {
+    updateStagingDeployCash(newTag = '', newPRs, newDeployBlockers) {
         let issueNumber;
         return this.getStagingDeployCash()
             .then(({
                 url,
+                tag: oldTag,
                 PRList: oldPRs,
                 deployBlockers: oldDeployBlockers,
             }) => {
                 issueNumber = GithubUtils.getIssueNumberFromURL(url);
+
+                // If we aren't sent a tag, then use the existing tag
+                const tag = _.isEmpty(newTag) ? oldTag : newTag;
 
                 const PRList = _.sortBy(
                     _.union(oldPRs, _.map(newPRs, URL => ({
@@ -264,7 +274,7 @@ class GithubUtils {
                 );
 
                 return this.generateStagingDeployCashBody(
-                    newTag,
+                    tag,
                     _.pluck(PRList, 'url'),
                     _.pluck(_.where(PRList, {isVerified: true}), 'url'),
                     _.pluck(deployBlockers, 'url'),
@@ -298,11 +308,13 @@ class GithubUtils {
         deployBlockers = [],
         resolvedDeployBlockers = [],
     ) {
-        return this.generateVersionComparisonURL(`${GITHUB_OWNER}/${EXPENSIFY_CASH_REPO}`, tag, 'BUILD')
+        return this.generateVersionComparisonURL(`${GITHUB_OWNER}/${EXPENSIFY_CASH_REPO}`, tag, 'PATCH')
             .then((comparisonURL) => {
                 const sortedPRList = _.sortBy(_.unique(PRList), URL => GithubUtils.getPullRequestNumberFromURL(URL));
-                // eslint-disable-next-line max-len
-                const sortedDeployBlockers = _.sortBy(_.unique(deployBlockers), URL => GithubUtils.getIssueOrPullRequestNumberFromURL(URL));
+                const sortedDeployBlockers = _.sortBy(
+                    _.unique(deployBlockers),
+                    URL => GithubUtils.getIssueOrPullRequestNumberFromURL(URL),
+                );
 
                 // Tag version and comparison URL
                 let issueBody = `**Release Version:** \`${tag}\`\r\n`;
@@ -310,7 +322,7 @@ class GithubUtils {
 
                 // PR list
                 if (!_.isEmpty(PRList)) {
-                    issueBody += '**This release contains changes from the following pull requests:**\r\n';
+                    issueBody += '\r\n**This release contains changes from the following pull requests:**\r\n';
                     _.each(sortedPRList, (URL) => {
                         issueBody += _.contains(verifiedPRList, URL) ? '- [x]' : '- [ ]';
                         issueBody += ` ${URL}\r\n`;
@@ -325,6 +337,8 @@ class GithubUtils {
                         issueBody += ` ${URL}\r\n`;
                     });
                 }
+
+                issueBody += '\r\ncc @Expensify/applauseleads\r\n';
 
                 return issueBody;
             })
@@ -348,6 +362,16 @@ class GithubUtils {
             issue_number: number,
             body: messageBody,
         });
+    }
+
+    /**
+     * Generate the URL of an Expensify.cash pull request given the PR number.
+     *
+     * @param {Number} number
+     * @returns {String}
+     */
+    static getPullRequestURLFromNumber(number) {
+        return `${EXPENSIFY_CASH_URL}/pull/${number}`;
     }
 
     /**
@@ -399,3 +423,4 @@ class GithubUtils {
 module.exports = GithubUtils;
 module.exports.GITHUB_OWNER = GITHUB_OWNER;
 module.exports.EXPENSIFY_CASH_REPO = EXPENSIFY_CASH_REPO;
+module.exports.STAGING_DEPLOY_CASH_LABEL = STAGING_DEPLOY_CASH_LABEL;

@@ -1,6 +1,10 @@
 const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
 
 const CONST = {
+    BETAS: {
+        ALL: 'all',
+        REPORT_ACTION_CONTEXT_MENU: 'reportActionContextMenu',
+    },
     BUTTON_STATES: {
         DEFAULT: 'default',
         HOVERED: 'hovered',
@@ -37,6 +41,7 @@ const CONST = {
         },
     },
     TIMING: {
+        SEARCH_RENDER: 'search_render',
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
         HOMEPAGE_REPORTS_LOADED: 'homepage_reports_loaded',
         SWITCH_REPORT: 'switch_report',

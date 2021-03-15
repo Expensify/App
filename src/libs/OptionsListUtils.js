@@ -82,6 +82,7 @@ function createOption(personalDetailList, report, draftComments, activeReportID,
     const personalDetail = personalDetailList[0];
     const hasDraftComment = report
         && (report.reportID !== activeReportID)
+        && draftComments
         && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '').length > 0;
 
     const lastActorDetails = report ? _.find(personalDetailList, {login: report.lastActorEmail}) : null;
@@ -179,19 +180,14 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         const logins = lodashGet(report, ['participants'], []);
 
         // Report data can sometimes be incomplete. If we have no logins or reportID then we will skip this entry.
-        if (!report.reportID || _.isEmpty(logins)) {
+        if (!report || !report.reportID || _.isEmpty(logins)) {
             return;
         }
 
-        // Skip this entry if it has no comments and is not the active report. We will only show reports from
-        // people we have sent or received at least one message with.
-        const hasNoComments = report.lastMessageTimestamp === 0;
-        const shouldFilterReport = !showReportsWithNoComments && hasNoComments
-            && report.reportID !== activeReportID && !report.isPinned;
-        if (shouldFilterReport) {
-            return;
-        }
-        if (hideReadReports && report.unreadActionCount === 0 && !report.isPinned) {
+        const shouldFilterReportIfEmpty = !showReportsWithNoComments && report.lastMessageTimestamp === 0;
+        const shouldFilterReportIfRead = hideReadReports && report.unreadActionCount === 0;
+        const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
+        if (report.reportID !== activeReportID && !report.isPinned && shouldFilterReport) {
             return;
         }
         const reportPersonalDetails = getPersonalDetailsForLogins(logins, personalDetails);
