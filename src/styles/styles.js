@@ -159,6 +159,14 @@ const styles = {
         color: themeColors.textReversed,
     },
 
+    fixedBottomButton: {
+        position: 'absolute',
+        bottom: 0,
+        width: '100%',
+        padding: 20,
+        backgroundColor: 'white',
+    },
+
     hoveredComponentBG: {
         backgroundColor: themeColors.hoverComponentBG,
     },

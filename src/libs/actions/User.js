@@ -12,14 +12,26 @@ import CONST from '../../CONST';
  * @param {String} oldPassword
  * @param {String} password
  * @param {String} [twoFactorAuthCode]
+ * @returns {Promise}
  */
 function changePassword(oldPassword, password, twoFactorAuthCode) {
-    API.ChangePassword({oldPassword, password}).then((response) => {
+    Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', loading: true});
+
+    return API.ChangePassword({oldPassword, password})
+        .then((response) => {
         // If we've successfully authenticated the user, ensure we sign them in so they don't get booted out
-        if (response.jsonCode === 200) {
-            signIn(password, twoFactorAuthCode);
-        }
-    });
+            if (response.jsonCode === 200) {
+                signIn(password, twoFactorAuthCode);
+                return response;
+            }
+
+            Onyx.merge(ONYXKEYS.ACCOUNT, {error: response.message});
+            return response;
+        })
+        .finally((response) => {
+            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
+            return response;
+        });
 }
 
 function getBetas() {
