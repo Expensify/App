@@ -25,8 +25,13 @@ const propTypes = {
     // eslint-disable-next-line react/no-unused-prop-types
     currencySelected: PropTypes.func.isRequired,
 
+    // User's currency preference
     selectedCurrency: PropTypes.string.isRequired,
+
+    // Amount value entered by user
     amount: PropTypes.string.isRequired,
+
+    // To disable/enable Next button based on amount validity
     isNextButtonDisabled: PropTypes.bool.isRequired,
 
     /* Window Dimensions Props */
@@ -49,15 +54,20 @@ const defaultProps = {
 const IOUAmountPage = props => (
     <View style={[styles.flex1, styles.pageWrapper]}>
         {props.iou.loading && <ActivityIndicator color={themeColors.text} />}
-        <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
+        <View style={[styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
+            <Text style={[styles.iouAmountText, styles.flex1, {textAlign: 'right'}]}>{props.selectedCurrency}</Text>
             {props.isSmallScreenWidth
-                ? <Text style={styles.iouAmountText}>{props.selectedCurrency + props.amount}</Text>
+                ? <Text style={[styles.iouAmountText, styles.flex1]}>{props.amount}</Text>
                 : (
-                    <TextInput
+                    <View style={styles.flex1}>
+                        <TextInput
                             style={styles.iouAmountTextInput}
                             onKeyPress={event => props.numberPressed(event.key)}
-                            value={props.selectedCurrency + props.amount}
-                    />
+                            value={props.amount}
+                            textAlign="left"
+                            autoFocus
+                        />
+                    </View>
                 )}
         </View>
         <View style={[styles.w100, styles.justifyContentEnd]}>
@@ -65,16 +75,13 @@ const IOUAmountPage = props => (
                 ? <BigNumberPad numberPressed={props.numberPressed} />
                 : <View />}
             <TouchableOpacity
-                    style={[styles.button, styles.w100, styles.mt5,
-                        props.isNextButtonDisabled
-                            ? styles.buttonDisable : styles.buttonSuccess,
-                    ]}
+                    style={[styles.button, styles.w100, styles.mt5, styles.buttonSuccess,
+                        props.isNextButtonDisabled ? styles.buttonSuccessDisabled : {}]}
                     onPress={props.onStepComplete}
                     disabled={props.isNextButtonDisabled}
             >
                 <Text
-                    style={[styles.buttonText,
-                        props.isNextButtonDisabled ? {} : styles.buttonSuccessText]}
+                    style={[styles.buttonText, styles.buttonSuccessText]}
                 >
                     Next
                 </Text>

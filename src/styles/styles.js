@@ -136,6 +136,10 @@ const styles = {
         borderWidth: 0,
     },
 
+    buttonSuccessDisabled: {
+        opacity: 0.5,
+    },
+
     buttonSuccessHovered: {
         backgroundColor: themeColors.buttonSuccessHoveredBG,
         borderWidth: 0,
@@ -1103,8 +1107,6 @@ const styles = {
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         fontSize: variables.iouAmountTextSize,
-        width: '100%',
-        textAlign: 'center',
     }, 0),
 };
 
