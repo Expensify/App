@@ -25,7 +25,6 @@ const personalDetailsPropTypes = PropTypes.shape({
 
     // This is either the user's full name, or their login if full name is an empty string
     displayName: PropTypes.string.isRequired,
-
 });
 
 const propTypes = {
@@ -161,7 +160,6 @@ class IOUParticipantsSplit extends Component {
                 newSelectedOptions = [...prevState.selectedOptions, option];
             }
 
-
             const {
                 recentReports,
                 personalDetails,
@@ -190,8 +188,8 @@ class IOUParticipantsSplit extends Component {
 
         return (
             <View style={[styles.flex1, styles.w100]}>
-                <Text style={[styles.headerText, styles.pt3, styles.ph5]}>
-                    TO
+                <Text style={[styles.formLabel, styles.pt3, styles.ph5]}>
+                    To
                 </Text>
                 <OptionsSelector
                     canSelectMultipleOptions
