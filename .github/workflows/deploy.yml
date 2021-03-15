@@ -27,6 +27,12 @@ jobs:
     if: ${{ needs.validate.outputs.isAutomergePR == 'true' && github.ref == 'refs/heads/staging' }}
 
     steps:
+      - name: Checkout staging
+        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+        with:
+          ref: staging
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
       - name: Get current version
         id: getVersion
         run: echo "Get version"
@@ -43,6 +49,12 @@ jobs:
     if: ${{ needs.validate.outputs.isAutomergePR == 'true' && github.ref == 'refs/heads/production' }}
 
     steps:
+      - name: Checkout production
+        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+        with:
+          ref: production
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
       - name: Get current version
         id: getVersion
         run: echo "Get version"

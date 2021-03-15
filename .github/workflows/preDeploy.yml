@@ -51,6 +51,7 @@ jobs:
   version:
     runs-on: macos-latest
     needs: chooseDeployActions
+    if: ${{ needs.chooseDeployActions.outputs.isVersionBumpPR == 'false' }}
     outputs:
       newVersion: ${{ steps.bumpVersion.outputs.NEW_VERSION }}
 
