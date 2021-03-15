@@ -38,7 +38,7 @@ function navigate(route = ROUTES.HOME) {
         return;
     }
 
-    linkTo(navigationRef.current, `/${route}`);
+    linkTo(navigationRef.current, route);
 }
 
 /**
