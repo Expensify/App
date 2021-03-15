@@ -66,6 +66,14 @@ const CONST = {
         TIMEZONE: 'timeZone',
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
+    PRONOUNS: {
+        THEY_THEM_THEIRS: 'They/them/theirs',
+        SHE_HER_HERS: 'She/her/hers',
+        HE_HIM_HIS: 'He/him/his',
+        ZE_HIR_HIRS: 'Ze/hir/hirs',
+        SELF_SELECT: 'Self-select',
+        CALL_ME_BY_MY_NAME: 'Call me by my name',
+    },
 };
 
 export default CONST;

@@ -59,15 +59,6 @@ const defaultProps = {
     myPersonalDetails: {},
 };
 
-const pronounsMap = {
-    theyThemTheirs: 'They/them/theirs',
-    sheHerHers: 'She/her/hers',
-    heHimHis: 'He/him/his',
-    zeHirHirs: 'Ze/hir/hirs',
-    selfSelect: 'Self-select',
-    callMeByMyName: 'Call me by my name',
-};
-
 const timezones = moment.tz.names()
     .map(timezone => ({
         value: timezone,
@@ -103,7 +94,7 @@ class ProfilePage extends Component {
         setPersonalDetails({
             firstName,
             lastName,
-            pronouns: pronouns === pronounsMap.selfSelect ? selfSelectedPronouns : pronouns,
+            pronouns: pronouns === CONST.PRONOUNS.SELF_SELECT ? selfSelectedPronouns : pronouns,
             timezone: {
                 automatic: isAutomaticTimezone,
                 selected: selectedTimezone,
@@ -166,14 +157,14 @@ class ProfilePage extends Component {
                                         Icon={() => <Icon src={DownArrow} />}
                                     />
                                 </View>
-                                {this.state.pronouns === pronounsMap.selfSelect ? (
+                                {this.state.pronouns === CONST.PRONOUNS.SELF_SELECT && (
                                     <TextInput
                                         style={styles.textInput}
                                         value={this.state.selfSelectedPronouns}
                                         onChangeText={selfSelectedPronouns => this.setState({selfSelectedPronouns})}
                                         placeholder="Self-select your pronoun"
                                     />
-                                ) : null}
+                                )}
                             </View>
                             <View style={styles.mb6}>
                                 <Text style={[styles.mb1, styles.formLabel]}>

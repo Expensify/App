@@ -21,7 +21,9 @@ const defaultProps = {
 };
 
 const Checkbox = ({
-    isChecked, onClick, label,
+    isChecked,
+    onClick,
+    label,
 }) => (
     <View style={styles.flexRow}>
         <Pressable onPress={() => onClick(!isChecked)}>
@@ -29,18 +31,18 @@ const Checkbox = ({
                 <Icon src={Checkmark} fill="white" height={14} width={14} />
             </View>
         </Pressable>
-        {label ? (
+        {label && (
             <Pressable onPress={() => onClick(!isChecked)}>
                 <Text style={[styles.ml2, styles.textP]}>
                     {label}
                 </Text>
             </Pressable>
-        ) : null}
+        )}
     </View>
 );
 
-
 Checkbox.defaultProps = defaultProps;
 Checkbox.propTypes = propTypes;
+Checkbox.displayName = 'Checkbox';
 
 export default Checkbox;
