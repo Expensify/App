@@ -8,7 +8,7 @@ import {
     StyleSheet,
 } from 'react-native';
 import styles from '../../../styles/styles';
-import optionPropTypes from './optionPropTypes';
+import {optionPropTypes} from './optionPropTypes';
 import Icon from '../../../components/Icon';
 import {Pencil, PinCircle, Checkmark} from '../../../components/Icon/Expensicons';
 import MultipleAvatars from '../../../components/MultipleAvatars';

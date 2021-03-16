@@ -1,5 +1,5 @@
 /**
- * Does an elment has ellipsis
+ * Does an elment have ellipsis
  *
  * @param {HTMLElement} el Element to check
  * @returns {Boolean}

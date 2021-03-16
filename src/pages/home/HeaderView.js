@@ -17,6 +17,7 @@ import ROUTES from '../../ROUTES';
 import {getReportParticipantsTitle} from '../../libs/reportUtils';
 import OptionRowTitle from './sidebar/OptionRowTitle';
 import {getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
+import {participantPropTypes} from './sidebar/optionPropTypes';
 
 const propTypes = {
     // Toggles the navigationMenu open and closed
@@ -28,7 +29,7 @@ const propTypes = {
         // Name of the report
         reportName: PropTypes.string,
 
-        // list of primarylogins of participants of the report
+        // List of primarylogins of participants of the report
         participants: PropTypes.arrayOf(PropTypes.string),
 
         // ID of the report
@@ -37,6 +38,9 @@ const propTypes = {
         // Value indicating if the report is pinned or not
         isPinned: PropTypes.bool,
     }),
+
+    // Personal details of all the users
+    personalDetails: PropTypes.arrayOf(participantPropTypes).isRequired,
 
     ...windowDimensionsPropTypes,
 };
@@ -87,7 +91,6 @@ const HeaderView = (props) => {
                                 option={reportOption}
                                 tooltipEnabled
                                 numberOfLines={2}
-                                tooltipContainerStyle={styles.dInline}
                                 style={[styles.headerText]}
                             />
                         </View>
