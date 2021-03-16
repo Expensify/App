@@ -1,19 +1,22 @@
 import React from 'react';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import {redirect} from '../../libs/actions/App';
-import HeaderGap from '../../components/HeaderGap';
+import Navigation from '../../libs/Navigation/Navigation';
+import ScreenWrapper from '../../components/ScreenWrapper';
 import ROUTES from '../../ROUTES';
 
 const ProfilePage = () => (
-    <>
-        <HeaderGap />
-        <HeaderWithCloseButton
-            title="Profile"
-            shouldShowBackButton
-            onBackButtonPress={() => redirect(ROUTES.SETTINGS)}
-            onCloseButtonPress={() => redirect(ROUTES.HOME)}
-        />
-    </>
+    <ScreenWrapper>
+        {() => (
+            <>
+                <HeaderWithCloseButton
+                    title="Profile"
+                    shouldShowBackButton
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+                    onCloseButtonPress={() => Navigation.dismissModal()}
+                />
+            </>
+        )}
+    </ScreenWrapper>
 );
 
 ProfilePage.displayName = 'ProfilePage';
