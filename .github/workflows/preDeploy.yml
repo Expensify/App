@@ -40,7 +40,7 @@ jobs:
     needs: chooseDeployActions
     if: |
       ${{ needs.chooseDeployActions.outputs.isStagingDeployLocked == 'true' }} &&
-      ${{ needs.chooseDeployActions.isVersionBumpPR == 'false' }}
+      ${{ needs.chooseDeployActions.outputs.isVersionBumpPR == 'false' }}
 
     steps:
       - name: Comment on deferred PR
