@@ -31,7 +31,6 @@ function isAuthTokenRequired(command) {
         'Graphite_Timer',
         'Authenticate',
         'GetAccountStatus',
-        'SetGithubUsername',
         'SetPassword',
         'User_SignUp',
         'ResendValidateCode',
@@ -542,17 +541,6 @@ function ResendValidateCode(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.githubUsername
- * @returns {Promise}
- */
-function SetGithubUsername(parameters) {
-    const commandName = 'SetGithubUsername';
-    requireParameters(['email', 'githubUsername'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.password
  * @param {String} parameters.validateCode
  * @returns {Promise}
@@ -616,6 +604,23 @@ function SetNameValuePair(parameters) {
     return Network.post(commandName, parameters);
 }
 
+/**
+ *
+ * @param {Object} parameters
+ * @param {String[]} data
+ * @returns {Promise}
+ */
+function Mobile_GetConstants(parameters) {
+    const commandName = 'Mobile_GetConstants';
+    requireParameters(['data'], parameters, commandName);
+
+    // For some reason, the Mobile_GetConstants endpoint requires a JSON string, so we need to stringify the data param
+    const finalParameters = parameters;
+    finalParameters.data = JSON.stringify(parameters.data);
+
+    return Network.post(commandName, finalParameters);
+}
+
 export {
     getAuthToken,
     Authenticate,
@@ -628,6 +633,7 @@ export {
     GetRequestCountryCode,
     Graphite_Timer,
     Log,
+    Mobile_GetConstants,
     PersonalDetails_GetForEmails,
     PersonalDetails_Update,
     Push_Authenticate,
@@ -636,7 +642,6 @@ export {
     Report_TogglePinned,
     Report_UpdateLastRead,
     ResendValidateCode,
-    SetGithubUsername,
     SetNameValuePair,
     SetPassword,
     UpdateAccount,

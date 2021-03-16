@@ -8,7 +8,7 @@ const isProd = JSON.parse(
 );
 const token = core.getInput('GITHUB_TOKEN', {required: true});
 const date = new Date();
-const message = `Deployed to ${
+const message = `🚀 Deployed 🚀 to ${
     isProd ? 'production' : 'staging'
 } on ${date.toDateString()} at ${date.toTimeString()}`;
 
