@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {memo} from 'react';
 import {View} from 'react-native';
 import styles from '../styles/styles';
 import Text from './Text';
@@ -14,4 +14,4 @@ const UnreadActionIndicator = () => (
 
 UnreadActionIndicator.displayName = 'UnreadActionIndicator';
 
-export default UnreadActionIndicator;
+export default memo(UnreadActionIndicator);

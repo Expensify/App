@@ -26,9 +26,10 @@ const propTypes = {
     // Should the comment have the appearance of being grouped with the previous comment?
     displayAsGroup: PropTypes.bool.isRequired,
 
-    //
+    // Function to trigger when mark as unread is selected
     onMarkAsUnread: PropTypes.func.isRequired,
 
+    // If true, display the New indicator above this item
     displayNewIndicator: PropTypes.bool.isRequired,
 
     /* --- Onyx Props --- */

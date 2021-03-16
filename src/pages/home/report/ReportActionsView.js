@@ -81,7 +81,6 @@ class ReportActionsView extends React.Component {
         this.shouldShowUnreadActionIndicator = true;
 
         this.state = {
-            refetchNeeded: true,
             unreadActionCount: 0,
             isLoadingMoreChats: false,
         };
@@ -163,7 +162,7 @@ class ReportActionsView extends React.Component {
     }
 
     onMarkAsUnread(actionIndex) {
-        updateLastReadActionID(this.props.reportID, actionIndex, this.props.report);
+        updateLastReadActionID(this.props.reportID, actionIndex, this.props.report.maxSequenceNumber);
         this.setState({
             unreadActionCount: this.props.report.maxSequenceNumber - actionIndex,
         });
