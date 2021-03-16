@@ -8,9 +8,9 @@ on:
     status: {}
 
 jobs:
-    automerge:
+    master:
         runs-on: ubuntu-latest
-
+        if: pull_request.base.ref == 'master'
         steps:
             - name: Export Files Changed
               id: changed
@@ -53,3 +53,81 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ github.token }}
                   SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+    staging:
+      runs-on: ubuntu-latest
+      if: pull_request.base.ref == 'staging'
+      steps:
+        - name: Check for an auto approve
+          # Version: 2.0.0
+          uses: hmarr/auto-approve-action@7782c7e2bdf62b4d79bdcded8332808fd2f179cd
+          with:
+            github-token: ${{ secrets.GITHUB_TOKEN }}
+          if: github.event.pull_request.mergeable && pull_request.head.ref == 'master'
+
+        - name: Check for an auto merge
+          # Version: 0.12.0
+          uses: pascalgn/automerge-action@c9bd1823770819dc8fb8a5db2d11a3a95fbe9b07
+          if: github.event.pull_request.mergeable && github.event.pull_request.mergeable_state == 'clean'
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+        # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
+        # the other workflows with the same change
+        - uses: 8398a7/action-slack@v3
+          name: Job failed Slack notification
+          if: ${{ failure() }}
+          with:
+            status: custom
+            fields: workflow, repo
+            custom_payload: |
+              {
+                channel: '#announce',
+                attachments: [{
+                  color: "#DB4545",
+                  pretext: `<!here>`,
+                  text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
+                }]
+              }
+          env:
+            GITHUB_TOKEN: ${{ github.token }}
+            SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+    production:
+      runs-on: ubuntu-latest
+      if: pull_request.base.ref == 'production'
+      steps:
+        - name: Check for an auto approve
+          # Version: 2.0.0
+          uses: hmarr/auto-approve-action@7782c7e2bdf62b4d79bdcded8332808fd2f179cd
+          with:
+            github-token: ${{ secrets.GITHUB_TOKEN }}
+          if: github.event.pull_request.mergeable && pull_request.head.ref == 'staging'
+
+        - name: Check for an auto merge
+          # Version: 0.12.0
+          uses: pascalgn/automerge-action@c9bd1823770819dc8fb8a5db2d11a3a95fbe9b07
+          if: github.event.pull_request.mergeable && github.event.pull_request.mergeable_state == 'clean'
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+        # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
+        # the other workflows with the same change
+        - uses: 8398a7/action-slack@v3
+          name: Job failed Slack notification
+          if: ${{ failure() }}
+          with:
+            status: custom
+            fields: workflow, repo
+            custom_payload: |
+              {
+                channel: '#announce',
+                attachments: [{
+                  color: "#DB4545",
+                  pretext: `<!here>`,
+                  text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
+                }]
+              }
+          env:
+            GITHUB_TOKEN: ${{ github.token }}
+            SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
