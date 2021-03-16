@@ -34,6 +34,7 @@ class Tooltip extends PureComponent {
         this.tooltip = null;
 
         this.isComponentMounted = false;
+        this.shouldStartShowAnimation = false;
         this.animation = new Animated.Value(0);
 
         this.getWrapperPosition = this.getWrapperPosition.bind(this);
@@ -126,6 +127,8 @@ class Tooltip extends PureComponent {
      * Display the tooltip in an animation.
      */
     showTooltip() {
+        this.shouldStartShowAnimation = true;
+
         // We have to dynamically calculate the position here as tooltip could have been rendered on some elments
         // that has changed its position
         this.getWrapperPosition()
@@ -138,10 +141,15 @@ class Tooltip extends PureComponent {
                     xOffset: x,
                     yOffset: y,
                 });
-                Animated.timing(this.animation, {
-                    toValue: 1,
-                    duration: 140,
-                }).start();
+
+                // We may need this check due to the reason that the animation start will fire async
+                // and hideTooltip could fire before it thus keeping the Tooltip visible
+                if (this.shouldStartShowAnimation) {
+                    Animated.timing(this.animation, {
+                        toValue: 1,
+                        duration: 140,
+                    }).start();
+                }
             });
     }
 
@@ -149,6 +157,7 @@ class Tooltip extends PureComponent {
      * Hide the tooltip in an animation.
      */
     hideTooltip() {
+        this.shouldStartShowAnimation = false;
         Animated.timing(this.animation, {
             toValue: 0,
             duration: 140,
