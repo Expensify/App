@@ -141,8 +141,8 @@ jobs:
         uses: repo-sync/pull-request@33777245b1aace1a58c87a29c90321aa7a74bd7d
         with:
           source_branch: master
-          destination_branch: "staging"
-          pr_label: "automerge"
+          destination_branch: staging
+          pr_label: automerge
           github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
           pr_title: Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }} on staging
           pr_body: Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}
