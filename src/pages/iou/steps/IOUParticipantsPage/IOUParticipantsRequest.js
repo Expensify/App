@@ -1,12 +1,10 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import {hide as hideSidebar} from '../../../../libs/actions/Sidebar';
 import withWindowDimensions, {
     windowDimensionsPropTypes,
 } from '../../../../components/withWindowDimensions';
 import {getNewChatOptions} from '../../../../libs/OptionsListUtils';
-
 import OptionsSelector from '../../../../components/OptionsSelector';
 import ONYXKEYS from '../../../../ONYXKEYS';
 
@@ -41,6 +39,7 @@ const propTypes = {
 class IOUParticipantsRequest extends Component {
     constructor(props) {
         super(props);
+
         this.addSingleParticipant = this.addSingleParticipant.bind(this);
 
         const {personalDetails, userToInvite} = getNewChatOptions(
@@ -90,9 +89,6 @@ class IOUParticipantsRequest extends Component {
      */
     addSingleParticipant(option) {
         const userEmail = option.login;
-        if (this.props.isSmallScreenWidth) {
-            hideSidebar();
-        }
         this.props.onStepComplete([userEmail]);
     }
 

@@ -2,9 +2,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import {ActivityIndicator, View} from 'react-native';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import IOUParticipantsSplit from './IOUParticipantsSplit';
 import IOUParticipantsRequest from './IOUParticipantsRequest';
+import themeColors from '../../../../styles/themes/default';
+import styles from '../../../../styles/styles';
 
 const propTypes = {
     // Callback to inform parent modal of success
@@ -28,10 +31,18 @@ const defaultProps = {
 };
 
 const IOUParticipantsPage = (props) => {
-    if (props.hasMultipleParticipants) {
-        return <IOUParticipantsSplit onStepComplete={props.onStepComplete} />;
+    if (props.iou.loading) {
+        return (
+            <View style={styles.pageWrapper}>
+                <ActivityIndicator color={themeColors.text} />
+            </View>
+        );
     }
-    return <IOUParticipantsRequest onStepComplete={props.onStepComplete} />;
+
+    return (props.hasMultipleParticipants
+        ? <IOUParticipantsSplit onStepComplete={props.onStepComplete} />
+        : <IOUParticipantsRequest onStepComplete={props.onStepComplete} />
+    );
 };
 
 IOUParticipantsPage.displayName = 'IOUParticipantsPage';

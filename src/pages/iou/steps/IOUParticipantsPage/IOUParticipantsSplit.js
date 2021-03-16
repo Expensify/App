@@ -7,7 +7,6 @@ import {
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
-import {hide as hideSidebar} from '../../../../libs/actions/Sidebar';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import styles from '../../../../styles/styles';
 import OptionsSelector from '../../../../components/OptionsSelector';
@@ -134,9 +133,6 @@ class IOUParticipantsSplit extends Component {
     addParticipants() {
         const userEmails = this.state.selectedOptions.map(selectedOption => selectedOption.login);
         this.props.onStepComplete(userEmails);
-        if (this.props.isSmallScreenWidth) {
-            hideSidebar();
-        }
     }
 
     /**
