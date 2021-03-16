@@ -3,6 +3,7 @@ import React, {forwardRef, Component} from 'react';
 import PropTypes from 'prop-types';
 import {FlatList, View} from 'react-native';
 import {lastItem} from '../../libs/CollectionUtils';
+import InvertedFlatListItem from './InvertedFlatListItem';
 
 const propTypes = {
     // Same as FlatList can be any array of anything
@@ -17,6 +18,9 @@ const propTypes = {
     // if this is inaccurate.
     initialRowHeight: PropTypes.number.isRequired,
 
+    // The initial item we'll be scrolled to upon rendering
+    startItem: PropTypes.number.isRequired,
+
     // Passed via forwardRef so we can access the FlatList ref
     innerRef: PropTypes.oneOfType([
         PropTypes.func,
@@ -25,6 +29,7 @@ const propTypes = {
 
     // Should we measure these items and call getItemLayout?
     shouldMeasureItems: PropTypes.bool,
+
 };
 
 const defaultProps = {
@@ -110,6 +115,12 @@ class BaseInvertedFlatList extends Component {
             length: computedHeight,
             offset: previousLength + previousOffset,
         };
+
+        console.log(">>>> index", index);
+        // if (index === this.props.startItem - 1) {
+        //     console.log(">>>> ++++ SCROLLING to", this.sizeMap[index].offset, this.props.data[index]);
+        //     this.props.innerRef.current.scrollToOffset({offset: this.sizeMap[index].offset});
+        // }
     }
 
     /**
@@ -126,9 +137,15 @@ class BaseInvertedFlatList extends Component {
     renderItem({item, index}) {
         if (this.props.shouldMeasureItems) {
             return (
-                <View onLayout={({nativeEvent}) => this.measureItemLayout(nativeEvent, index)}>
-                    {this.props.renderItem({item, index})}
-                </View>
+                <InvertedFlatListItem
+                    onRender={index === this.props.startItem - 1
+                        ? () => { console.log('>>>> ++++ scrolling to index', index, this.props.data[index].action.message[0].text); this.props.innerRef.current.scrollToOffset({offset: this.sizeMap[index].offset}); }
+                        : null}
+                >
+                    <View onLayout={({nativeEvent}) => this.measureItemLayout(nativeEvent, index)}>
+                        {this.props.renderItem({item, index})}
+                    </View>
+                </InvertedFlatListItem>
             );
         }
 
@@ -158,6 +175,8 @@ class BaseInvertedFlatList extends Component {
                 // Setting removeClippedSubviews will break text selection on Android
                 // eslint-disable-next-line react/jsx-props-no-multi-spaces
                 removeClippedSubviews={false}
+
+
             />
         );
     }

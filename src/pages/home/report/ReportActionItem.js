@@ -53,6 +53,7 @@ class ReportActionItem extends Component {
         this.hidePopover = this.hidePopover.bind(this);
     }
 
+
     shouldComponentUpdate(nextProps, nextState) {
         return this.state.isPopoverVisible !== nextState.isPopoverVisible
             || this.props.displayAsGroup !== nextProps.displayAsGroup
@@ -102,6 +103,7 @@ class ReportActionItem extends Component {
     }
 
     render() {
+        // console.log(">>>> reportactionitem render", this.props.action);
         return (
             <PressableWithSecondaryInteraction onSecondaryInteraction={this.showPopover}>
                 <Hoverable>
