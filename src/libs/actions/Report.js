@@ -244,6 +244,7 @@ function removeOptimisticActions(reportID) {
 function updateReportWithNewAction(reportID, reportAction) {
     const newMaxSequenceNumber = reportAction.sequenceNumber;
     const isFromCurrentUser = reportAction.actorAccountID === currentUserAccountID;
+    const lastReadSequenceNumber = lastReadSequenceNumbers[reportID] || 0;
 
     // When handling an action from the current users we can assume that their
     // last read actionID has been updated in the server but not necessarily reflected
@@ -257,21 +258,21 @@ function updateReportWithNewAction(reportID, reportAction) {
     // Always merge the reportID into Onyx
     // If the report doesn't exist in Onyx yet, then all the rest of the data will be filled out
     // by handleReportChanged
-    const updatedAction = {
+    const updatedReportObject = {
         reportID,
-        unreadActionCount: newMaxSequenceNumber - (lastReadSequenceNumbers[reportID] || 0),
+        unreadActionCount: newMaxSequenceNumber - lastReadSequenceNumber,
         maxSequenceNumber: reportAction.sequenceNumber,
     };
 
     // If the report action from pusher is a higher sequence number than we know about (meaning it has come from
     // a chat participant in another application), then the last message text and author needs to be updated as well
-    if (newMaxSequenceNumber > (lastReadSequenceNumbers[reportID] || 0)) {
-        updatedAction.lastMessageTimestamp = reportAction.timestamp;
-        updatedAction.lastMessageText = messageText;
-        updatedAction.lastActorEmail = reportAction.actorEmail;
+    if (newMaxSequenceNumber > lastReadSequenceNumber) {
+        updatedReportObject.lastMessageTimestamp = reportAction.timestamp;
+        updatedReportObject.lastMessageText = messageText;
+        updatedReportObject.lastActorEmail = reportAction.actorEmail;
     }
 
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, updatedAction);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, updatedReportObject);
 
     const reportActionsToMerge = {};
     if (reportAction.clientID) {
