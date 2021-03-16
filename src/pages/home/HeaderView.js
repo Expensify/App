@@ -68,7 +68,7 @@ const HeaderView = (props) => {
                         <Icon src={BackArrow} />
                     </Pressable>
                 )}
-                {props.report && props.report.reportName ? (
+                {props.report && props.report.reportName && (
                     <View
                         style={[
                             styles.flex1,
@@ -103,7 +103,7 @@ const HeaderView = (props) => {
                             </Pressable>
                         </View>
                     </View>
-                ) : null}
+                )}
             </View>
         </View>
     );

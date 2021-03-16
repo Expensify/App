@@ -114,17 +114,15 @@ class OptionRowTitle extends PureComponent {
                         </Fragment>
                     );
                 })}
-                {
-                    option.participantsList.length > 1 && this.state.isEllipsisActive
-                        ? (
-                            <View style={styles.optionDisplayNameTooltipEllipsis}>
-                                <Tooltip text={option.tooltipText}>
-                                    {/* There is some Gap for real ellipsis so we are adding 4 `.` to cover */}
-                                    <Text>....</Text>
-                                </Tooltip>
-                            </View>
-                        ) : null
-                }
+                {option.participantsList.length > 1 && this.state.isEllipsisActive
+                    && (
+                        <View style={styles.optionDisplayNameTooltipEllipsis}>
+                            <Tooltip text={option.tooltipText}>
+                                {/* There is some Gap for real ellipsis so we are adding 4 `.` to cover */}
+                                <Text>....</Text>
+                            </Tooltip>
+                        </View>
+                    )}
             </Text>
         );
     }
