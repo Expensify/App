@@ -63,6 +63,15 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
+        # TODO: Remove once we know that automerge doesn't infinitely loop with this action
+      - name: Check current version
+        id: checkCurrentVersion
+        run: echo "::set-output name=CURRENT_VERSION::$(npm run print-version --silent)"
+
+        # TODO: Remove once we know that automerge doesn't infinitely loop with this action
+      - name: Quit early
+        run: if [[ ${{ steps.checkCurrentVersion.outputs.CURRENT_VERSION == '1.0.2-60' }} ]]; then exit 1; fi;
+
       - uses: softprops/turnstyle@8db075d65b19bf94e6e8687b504db69938dc3c65
         with:
           poll-interval-seconds: 10
