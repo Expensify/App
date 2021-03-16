@@ -70,7 +70,10 @@ class ProfilePage extends Component {
         super(props);
 
         const {
-            firstName, lastName, pronouns, timezone = {},
+            firstName,
+            lastName,
+            pronouns,
+            timezone = {},
         } = props.myPersonalDetails;
         const pronounValues = Object.values(CONST.PRONOUNS);
 
@@ -97,7 +100,12 @@ class ProfilePage extends Component {
 
     updatePersonalDetails() {
         const {
-            firstName, lastName, pronouns, selfSelectedPronouns, selectedTimezone, isAutomaticTimezone,
+            firstName,
+            lastName,
+            pronouns,
+            selfSelectedPronouns,
+            selectedTimezone,
+            isAutomaticTimezone,
         } = this.state;
 
         setPersonalDetails({
