@@ -86,6 +86,7 @@ const OptionRow = ({
                             styles.chatLinkRowPressable,
                             styles.flexGrow1,
                             styles.optionItemAvatarNameWrapper,
+                            styles.sidebarInnerRow,
                         ])}
                     >
                         <View
@@ -126,7 +127,7 @@ const OptionRow = ({
                         </View>
                     </TouchableOpacity>
                     {!hideAdditionalOptionStates && (
-                        <View style={styles.flexRow}>
+                        <View style={[styles.flexRow, styles.pr5]}>
                             {option.hasDraftComment && (
                                 <View style={styles.ml2}>
                                     <Icon src={Pencil} />

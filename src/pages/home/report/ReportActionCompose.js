@@ -16,6 +16,7 @@ import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import compose from '../../../libs/compose';
+import Navigation from '../../../libs/Navigation/Navigation';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -27,13 +28,18 @@ const propTypes = {
     // The ID of the report actions will be created for
     reportID: PropTypes.number.isRequired,
 
-    isSidebarShown: PropTypes.bool.isRequired,
+    // Details about any modals being used
+    modal: PropTypes.shape({
+        // Indicates if there is a modal currently visible or not
+        isVisible: PropTypes.bool,
+    }),
 
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     comment: '',
+    modal: {},
 };
 
 class ReportActionCompose extends React.Component {
@@ -42,7 +48,7 @@ class ReportActionCompose extends React.Component {
 
         this.updateComment = this.updateComment.bind(this);
         this.debouncedSaveReportComment = _.debounce(this.debouncedSaveReportComment.bind(this), 1000, false);
-        this.debouncedBroadcastUserIsTyping = _.debounce(() => broadcastUserIsTyping(props.reportID), 100, true);
+        this.debouncedBroadcastUserIsTyping = _.debounce(this.debouncedBroadcastUserIsTyping.bind(this), 100, true);
         this.submitForm = this.submitForm.bind(this);
         this.triggerSubmitShortcut = this.triggerSubmitShortcut.bind(this);
         this.submitForm = this.submitForm.bind(this);
@@ -61,6 +67,11 @@ class ReportActionCompose extends React.Component {
         // If it does let's update this.comment so that it matches the defaultValue that we show in textInput.
         if (this.props.comment && prevProps.comment === '' && prevProps.comment !== this.props.comment) {
             this.comment = this.props.comment;
+        }
+
+        // When any modal goes from visible to hidden, bring focus to the compose field
+        if (prevProps.modal.isVisible && !this.props.modal.isVisible) {
+            this.setIsFocused(true);
         }
     }
 
@@ -93,6 +104,14 @@ class ReportActionCompose extends React.Component {
      */
     debouncedSaveReportComment(comment) {
         saveReportComment(this.props.reportID, comment || '');
+    }
+
+    /**
+     * Broadcast that the user is typing. We debounce this method in the constructor to limit how often we publish
+     * client events.
+     */
+    debouncedBroadcastUserIsTyping() {
+        broadcastUserIsTyping(this.props.reportID);
     }
 
     /**
@@ -148,7 +167,7 @@ class ReportActionCompose extends React.Component {
         // We want to make sure to disable on small screens because in iOS safari the keyboard up/down buttons will
         // focus this from the chat switcher.
         // https://github.com/Expensify/Expensify.cash/issues/1228
-        const inputDisable = this.props.isSidebarShown && this.props.isSmallScreenWidth;
+        const inputDisable = this.props.isSmallScreenWidth && Navigation.isDrawerOpen();
 
         return (
             <View style={[styles.chatItemCompose]}>
@@ -165,9 +184,6 @@ class ReportActionCompose extends React.Component {
                         onConfirm={(file) => {
                             addAction(this.props.reportID, '', file);
                             this.setTextInputShouldClear(false);
-                        }}
-                        onModalHide={() => {
-                            this.setIsFocused(true);
                         }}
                     >
                         {({displayFileInModal}) => (
@@ -254,8 +270,8 @@ export default compose(
         comment: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
         },
-        isSidebarShown: {
-            key: ONYXKEYS.IS_SIDEBAR_SHOWN,
+        modal: {
+            key: ONYXKEYS.MODAL,
         },
     }),
     withWindowDimensions,
