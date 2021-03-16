@@ -47,7 +47,7 @@ export default {
     },
     SITE_TITLE: 'Expensify.cash',
     FAVICON: {
-        DEFAULT: 'favicon.png',
-        UNREAD: 'favicon-unread.png',
+        DEFAULT: '/favicon.png',
+        UNREAD: '/favicon-unread.png',
     },
 };
