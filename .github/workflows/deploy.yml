@@ -36,7 +36,7 @@ jobs:
       - name: Tag version
         run: git tag $(npm run print-version --silent)
 
-      - name: Push tags to trigger staging deploy
+      - name: 🚀 Push tags to trigger staging deploy 🚀
         run: git push --tags
 
   deployProduction:
@@ -51,7 +51,7 @@ jobs:
           ref: production
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - name: Create release to trigger production deploy
+      - name: 🚀 Create release to trigger production deploy 🚀
         run: echo "Create release with version $(npm run print-version --silent)"
 
 
