@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import {withOnyx} from 'react-native-onyx';
