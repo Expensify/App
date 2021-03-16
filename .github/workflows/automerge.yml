@@ -10,7 +10,7 @@ on:
 jobs:
     master:
         runs-on: ubuntu-latest
-        if: github.event.pull_request.base.ref == 'master'
+        if: github.event.pull_request.base.ref == 'master' && github.actor == 'OSBotify' && github.event.label.name == 'automerge'
         steps:
             - name: Export Files Changed
               id: changed
@@ -24,7 +24,7 @@ jobs:
               uses: hmarr/auto-approve-action@7782c7e2bdf62b4d79bdcded8332808fd2f179cd
               with:
                   github-token: ${{ secrets.GITHUB_TOKEN }}
-              if: github.event.pull_request.mergeable && github.event.label.name == 'automerge' && github.actor == 'OSBotify' && steps.changed.outputs.files_updated == 'android/app/build.gradle ios/ExpensifyCash/Info.plist ios/ExpensifyCashTests/Info.plist package-lock.json package.json' && steps.changed.outputs.files_created == '' && steps.changed.outputs.files_deleted == ''
+              if: github.event.pull_request.mergeable && steps.changed.outputs.files_updated == 'android/app/build.gradle ios/ExpensifyCash/Info.plist ios/ExpensifyCashTests/Info.plist package-lock.json package.json' && steps.changed.outputs.files_created == '' && steps.changed.outputs.files_deleted == ''
 
             - name: Check for an auto merge
               # Version: 0.12.0
@@ -56,7 +56,7 @@ jobs:
 
     staging:
       runs-on: ubuntu-latest
-      if: github.event.pull_request.base.ref == 'staging'
+      if: github.event.pull_request.base.ref == 'staging' && github.actor == 'OSBotify' && github.event.label.name == 'automerge'
       steps:
         - name: Check for an auto approve
           # Version: 2.0.0
@@ -95,7 +95,7 @@ jobs:
 
     production:
       runs-on: ubuntu-latest
-      if: github.event.pull_request.base.ref == 'production'
+      if: github.event.pull_request.base.ref == 'production' && github.actor == 'OSBotify' && github.event.label.name == 'automerge'
       steps:
         - name: Check for an auto approve
           # Version: 2.0.0
