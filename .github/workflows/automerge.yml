@@ -10,7 +10,7 @@ on:
 jobs:
     master:
         runs-on: ubuntu-latest
-        if: pull_request.base.ref == 'master'
+        if: github.event.pull_request.base.ref == 'master'
         steps:
             - name: Export Files Changed
               id: changed
@@ -56,7 +56,7 @@ jobs:
 
     staging:
       runs-on: ubuntu-latest
-      if: pull_request.base.ref == 'staging'
+      if: github.event.pull_request.base.ref == 'staging'
       steps:
         - name: Check for an auto approve
           # Version: 2.0.0
@@ -95,7 +95,7 @@ jobs:
 
     production:
       runs-on: ubuntu-latest
-      if: pull_request.base.ref == 'production'
+      if: github.event.pull_request.base.ref == 'production'
       steps:
         - name: Check for an auto approve
           # Version: 2.0.0
