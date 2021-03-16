@@ -1,8 +1,5 @@
 import React, {Component} from 'react';
-import {
-    View,
-    TextInput,
-} from 'react-native';
+import {View, TextInput} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {isEmpty} from 'underscore';
@@ -21,9 +18,6 @@ const propTypes = {
     /* Onyx Props */
     // Holds information about the users account that is logging in
     account: PropTypes.shape({
-        // Whether 2FA is required for the users account that is logging in
-        requiresTwoFactorAuth: PropTypes.bool,
-
         // An error message to display to the user
         error: PropTypes.string,
 
@@ -44,7 +38,6 @@ class PasswordPage extends Component {
             currentPassword: '',
             newPassword: '',
             confirmNewPassword: '',
-            twoFactorCode: '',
         };
 
         this.handleChangePassword = this.handleChangePassword.bind(this);
@@ -55,7 +48,7 @@ class PasswordPage extends Component {
     }
 
     handleChangePassword() {
-        changePassword(this.state.currentPassword, this.state.newPassword, this.state.twoFactorCode)
+        changePassword(this.state.currentPassword, this.state.newPassword)
             .then((response) => {
                 if (response.jsonCode === 200) {
                     Navigation.navigate(ROUTES.SETTINGS);
@@ -113,18 +106,6 @@ class PasswordPage extends Component {
                                     onSubmitEditing={this.handleChangePassword}
                                 />
                             </View>
-                            {this.props.account.requiresTwoFactorAuth ? (
-                                <View style={styles.mb6}>
-                                    <Text style={[styles.mb1, styles.formLabel]}>Two Factor Code</Text>
-                                    <TextInput
-                                        style={styles.textInput}
-                                        value={this.state.twoFactorCode}
-                                        onChangeText={twoFactorCode => this.setState({twoFactorCode})}
-                                        onSubmitEditing={this.handleChangePassword}
-                                        placeholder="Required when 2FA is enabled"
-                                    />
-                                </View>
-                            ) : null}
                             {!isEmpty(this.props.account.error) && (
                                 <Text style={styles.formError}>
                                     {this.props.account.error}
@@ -136,7 +117,6 @@ class PasswordPage extends Component {
                                 isDisabled={!this.state.currentPassword || !this.state.newPassword
                                     || !this.state.confirmNewPassword
                                     || (this.state.newPassword !== this.state.confirmNewPassword)
-                                    || (this.props.account.requiresTwoFactorAuth && !this.state.twoFactorCode)
                                     || (this.state.currentPassword === this.state.newPassword)}
                                 isLoading={this.props.account.loading}
                                 text="Save"
