@@ -36,8 +36,6 @@ jobs:
       - name: Get current version
         id: getVersion
         uses: Expensify/Expensify.cash/.github/actions/getCurrentAppVersion@master
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Tag version
         run: git tag ${{ steps.getVersion.outputs.CURRENT_VERSION }}
@@ -60,8 +58,6 @@ jobs:
       - name: Get current version
         id: getVersion
         uses: Expensify/Expensify.cash/.github/actions/getCurrentAppVersion@master
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create release to trigger production deploy
         run: echo "Create release with version ${{ steps.getVersion.outputs.CURRENT_VERSION }}"
