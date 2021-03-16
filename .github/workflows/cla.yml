@@ -6,7 +6,7 @@ on:
     pull_request_target:
         types: [opened, closed, synchronize]
     pull_request:
-      branches-ignore: [staging, production]
+      branches-ignore: [master, staging, production]
 
 jobs:
     CLA:
