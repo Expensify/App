@@ -31,12 +31,6 @@ Onyx.connect({
     },
 });
 
-let currentURL;
-Onyx.connect({
-    key: ONYXKEYS.CURRENT_URL,
-    callback: val => currentURL = val,
-});
-
 let lastViewedReportID;
 Onyx.connect({
     key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
@@ -544,15 +538,15 @@ function fetchAll(shouldRedirectToReport = true, shouldRecordHomePageTiming = fa
     fetchChatReports()
         .then((reportIDs) => {
             if (shouldRedirectToReport) {
-                // Redirect to either the last viewed report ID or the first report ID from our report collection
+                // Update currentlyViewedReportID to be our first reportID from our report collection if we don't have
+                // one already.
                 if (lastViewedReportID) {
-                    Navigation.navigate(ROUTES.getReportRoute(String(lastViewedReportID)));
-                } else {
-                    const firstReportID = _.first(reportIDs);
-                    if (firstReportID) {
-                        Navigation.navigate(ROUTES.getReportRoute(String(firstReportID)));
-                    }
+                    return;
                 }
+
+                const firstReportID = _.first(reportIDs);
+                const currentReportID = firstReportID ? String(firstReportID) : 0;
+                Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, currentReportID);
             }
 
             Log.info('[Report] Fetching report actions for reports', true, {reportIDs});
