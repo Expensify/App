@@ -664,10 +664,15 @@ function addAction(reportID, text, file) {
  *
  * @param {Number} reportID
  * @param {Number} sequenceNumber
- * @param {Number} maxSequenceNumber
+ * @param {Boolean} ignoreOrder
  */
-function updateLastReadActionID(reportID, sequenceNumber, maxSequenceNumber = 0) {
-    setLocalLastRead(reportID, sequenceNumber, maxSequenceNumber);
+function updateLastReadActionID(reportID, sequenceNumber, ignoreOrder = false) {
+    const currentMaxSequenceNumber = reportMaxSequenceNumbers[reportID];
+    if (!ignoreOrder && sequenceNumber < currentMaxSequenceNumber) {
+        return;
+    }
+
+    setLocalLastRead(reportID, sequenceNumber, currentMaxSequenceNumber);
 
     // Mark the report as not having any unread items
     API.Report_UpdateLastRead({

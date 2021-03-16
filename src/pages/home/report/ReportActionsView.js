@@ -162,7 +162,7 @@ class ReportActionsView extends React.Component {
     }
 
     onMarkAsUnread(actionIndex) {
-        updateLastReadActionID(this.props.reportID, actionIndex, this.props.report.maxSequenceNumber);
+        updateLastReadActionID(this.props.reportID, actionIndex, true);
         this.setState({
             unreadActionCount: this.props.report.maxSequenceNumber - actionIndex,
         });
