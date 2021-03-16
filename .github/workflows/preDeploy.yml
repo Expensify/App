@@ -32,7 +32,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Check if merged pull request was an automatic version bump PR
-        run: echo "::set-output name=IS_VERSION_BUMP_PR::${{ constains(steps.getMergedPullRequest.outputs.labels, automerge) && github.actor == 'OSBotify' }}"
+        run: echo "::set-output name=IS_VERSION_BUMP_PR::${{ contains(steps.getMergedPullRequest.outputs.labels, automerge) && github.actor == 'OSBotify' }}"
 
   skipDeploy:
     runs-on: ubuntu-latest
