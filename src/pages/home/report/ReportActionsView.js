@@ -28,7 +28,6 @@ import Visibility from '../../../libs/Visibility';
 import Timing from '../../../libs/actions/Timing';
 import CONST from '../../../CONST';
 import themeColors from '../../../styles/themes/default';
-import InvertedFlatListItem from '../../../components/InvertedFlatList/InvertedFlatListItem';
 
 const propTypes = {
     // The ID of the report actions will be created for
@@ -167,7 +166,7 @@ class ReportActionsView extends React.Component {
         }
 
         this.unreadActionCount = this.props.report.unreadActionCount;
-        this.unreadActionCount = 30;
+        this.unreadActionCount = 20; // >>>> TODO: TEMP
 
         if (this.unreadActionCount > 0) {
             this.unreadIndicatorOpacity = new Animated.Value(1);
@@ -333,28 +332,23 @@ class ReportActionsView extends React.Component {
     }) {
         const isFirstUnreadItem = this.unreadActionCount > 0 && index === this.unreadActionCount - 1;
         return (
-
-        // Using <View /> instead of a Fragment because there is a difference between how
-        // <InvertedFlatList /> are implemented on native and web/desktop which leads to
-        // the unread indicator on native to render below the message instead of above it.
-        //     <InvertedFlatListItem
-        //         onRender={isFirstUnreadItem
-        //             ? () => { console.log('>>>> ++++ scrolling to index', index, this.actionListElement, this.sortedReportActions[this.unreadActionCount - 1].action.message[0].text); this.actionListElement.scrollToOffset({offset: this.actionListElement.sizeMap[index].offset}); }
-        //             : null}
-        //     >
-                <View>
-                    {isFirstUnreadItem && (
-                        <UnreadActionIndicator animatedOpacity={this.unreadIndicatorOpacity} />
-                    )}
-                    <ReportActionItem
-                        reportID={this.props.reportID}
-                        action={item.action}
-                        displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
-                        onLayout={onLayout}
-                        needsLayoutCalculation={needsLayoutCalculation}
-                    />
-                </View>
-            // </InvertedFlatListItem>
+            <View
+                onLayout={isFirstUnreadItem ? () => {
+                    console.log(">>>>", index, this.sortedReportActions[index].action.message[0].text);
+                    this.actionListElement.scrollToIndex({index});
+                } : undefined}
+            >
+                {isFirstUnreadItem && (
+                    <UnreadActionIndicator animatedOpacity={this.unreadIndicatorOpacity} />
+                )}
+                <ReportActionItem
+                    reportID={this.props.reportID}
+                    action={item.action}
+                    displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
+                    onLayout={onLayout}
+                    needsLayoutCalculation={needsLayoutCalculation}
+                />
+            </View>
         );
     }
 

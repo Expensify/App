@@ -103,7 +103,6 @@ class ReportActionItem extends Component {
     }
 
     render() {
-        // console.log(">>>> reportactionitem render", this.props.action);
         return (
             <PressableWithSecondaryInteraction onSecondaryInteraction={this.showPopover}>
                 <Hoverable>
