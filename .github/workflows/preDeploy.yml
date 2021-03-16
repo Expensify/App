@@ -135,6 +135,11 @@ jobs:
       && ${{needs.chooseDeployActions.outputs.isStagingDeployLocked == 'false'}}
 
     steps:
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
       - name: Create Pull Request
         # Version: 2.4.3
         uses: repo-sync/pull-request@33777245b1aace1a58c87a29c90321aa7a74bd7d
