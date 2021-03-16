@@ -54,7 +54,7 @@ In this scenario, it’s possible that you found a bug or enhancement that we ha
 5. Pause at this step until Expensify provides feedback on your proposal (do not begin coding or creating a pull request yet). 
 6. If your solution proposal is accepted, Expensify will hire you on Upwork and assign the GitHub issue to you. 
 
-#### Complete the job
+#### Begin coding your solution in a pull reuqest
 7. When you are ready to start, fork the repository and create a new branch.
 8. Before you begin writing any code, please be aware that we require all commits to be [signed](https://docs.github.com/en/github/authenticating-to-github/signing-commits). The easiest way to do that is to [generate a new GPG key](https://docs.github.com/en/github/authenticating-to-github/generating-a-new-gpg-key) and [add it to your Github account](https://docs.github.com/en/github/authenticating-to-github/adding-a-new-gpg-key-to-your-github-account). Once you've done that, you can automatically sign all your commits by adding the following to your `.gitconfig`:
     ```
@@ -67,10 +67,16 @@ In this scenario, it’s possible that you found a bug or enhancement that we ha
     [gpg]
         program = gpg
     ```
-9. Open a pull request, and make sure to fill in the required fields.
+9. [Open a pull request](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request-from-a-fork), and make sure to fill in the required fields.
 10. An Expensify engineer will be assigned to your pull request automatically to review.
-11. Please aim to provide daily updates in your pull request until reaching completion.
-12. Upon submission of your PR, include a numbered list of explicit testing steps for each platform (Web, Desktop, iOS, and Android) to confirm the fix works as expected and there are no regressions.
+11. Provide daily updates until reaching completion of your PR.
+
+#### Submit your pull request for final request
+13. When you are ready to submit your pull request for final review, make sure the following checks pass:
+	1. CLA - You must sign our [Contributor License Agreement](https://github.com/Expensify/Expensify.cash/blob/master/CLA.md) by following the CLA bot instructions that will be posted on your PR
+	2. Tests - All tests must pass before a merge of a pull request
+	3. Lint - All code must pass lint checks before a merge of a pull request
+14. Upon submission of a PR, please include a numbered list of explicit testing steps for each platform (Web, Desktop, iOS, and Android) to confirm the fix works as expected and there are no regressions.
 
 #### Timeline expectations and asking for help along the way 
 - If you have made a change to your pull request and are ready for another review, leave a comment that says "Updated" on the pull request  itself. 
