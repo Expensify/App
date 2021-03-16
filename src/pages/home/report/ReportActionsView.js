@@ -10,7 +10,6 @@ import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import {withOnyx} from 'react-native-onyx';
 import Text from '../../../components/Text';
-import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
 import {
     fetchActions,
     updateLastReadActionID,
@@ -120,6 +119,7 @@ class ReportActionsView extends React.Component {
         // We have switched to a new report
         if (prevProps.reportID !== this.props.reportID) {
             this.reset(prevProps.reportID);
+            this.shouldShowUnreadActionIndicator = true;
             return;
         }
 
