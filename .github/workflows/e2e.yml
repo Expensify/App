@@ -3,6 +3,7 @@ name: E2E iOS Tests
 on:
     pull_request:
         types: [opened, synchronize]
+        branches-ignore: [master, staging, production]
 
 env:
     DEVELOPER_DIR: /Applications/Xcode_12.3.app/Contents/Developer

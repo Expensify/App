@@ -3,6 +3,7 @@ name: Jest Unit Tests
 on:
     pull_request:
         types: [opened, synchronize]
+        branches-ignore: [master, staging, production]
 
 jobs:
     test:
