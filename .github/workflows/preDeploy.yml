@@ -94,7 +94,7 @@ jobs:
             ./android/app/build.gradle \
             ./ios/ExpensifyCash/Info.plist \
             ./ios/ExpensifyCashTests/Info.plist
-          git commit -m "[skip actions] Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
+          git commit -m "Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
 
       - name: Create Pull Request (master)
         uses: peter-evans/create-pull-request@09b9ac155b0d5ad7d8d157ed32158c1b73689109
