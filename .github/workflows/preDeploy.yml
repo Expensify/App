@@ -130,10 +130,9 @@ jobs:
   updateStaging:
     runs-on: ubuntu-latest
     needs: chooseDeployActions
-    if: ${{
-      needs.chooseDeployActions.outputs.isVersionBumpPR == 'true'
-      && needs.chooseDeployActions.outputs.isStagingDeployLocked == 'false'
-    }}
+    if: |
+      ${{needs.chooseDeployActions.outputs.isVersionBumpPR == 'true'}}
+      && ${{needs.chooseDeployActions.outputs.isStagingDeployLocked == 'false'}}
 
     steps:
       - name: Create Pull Request
