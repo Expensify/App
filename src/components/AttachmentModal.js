@@ -105,6 +105,7 @@ class AttachmentModal extends PureComponent {
                 >
                     <HeaderWithCloseButton
                         title={this.props.title}
+                        shouldShowBorderBottom
                         onDownloadButtonPress={() => fileDownload(sourceURL)}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
                     />

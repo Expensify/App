@@ -37,8 +37,8 @@ const defaultProps = {
     onCloseButtonPress: () => {},
     onBackButtonPress: () => {},
     shouldShowBackButton: false,
-    textSize: 'default',
-    shouldShowBorderBottom: true,
+    textSize: 'large',
+    shouldShowBorderBottom: false,
 };
 
 const HeaderWithCloseButton = props => (
