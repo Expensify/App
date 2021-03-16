@@ -4,7 +4,6 @@ import {
     Text,
     TouchableOpacity,
     ActivityIndicator,
-    TextInput,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -13,6 +12,7 @@ import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import BigNumberPad from '../../../components/BigNumberPad';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import TextInputFocusable from '../../../components/TextInputFocusable';
 
 const propTypes = {
     // Callback to inform parent modal of success
@@ -50,46 +50,79 @@ const propTypes = {
 const defaultProps = {
     iou: {},
 };
+class IOUAmountPage extends React.Component {
+    constructor(props) {
+        super(props);
 
-const IOUAmountPage = props => (
-    <View style={[styles.flex1, styles.pageWrapper]}>
-        {props.iou.loading && <ActivityIndicator color={themeColors.text} />}
-        <View style={[styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
-            <Text style={[styles.iouAmountText, styles.flex1, {textAlign: 'right'}]}>{props.selectedCurrency}</Text>
-            {props.isSmallScreenWidth
-                ? <Text style={[styles.iouAmountText, styles.flex1]}>{props.amount}</Text>
-                : (
-                    <View style={styles.flex1}>
-                        <TextInput
-                            style={styles.iouAmountTextInput}
-                            onKeyPress={event => props.numberPressed(event.key)}
-                            value={props.amount}
-                            textAlign="left"
-                            autoFocus
-                        />
-                    </View>
-                )}
-        </View>
-        <View style={[styles.w100, styles.justifyContentEnd]}>
-            {props.isSmallScreenWidth
-                ? <BigNumberPad numberPressed={props.numberPressed} />
-                : <View />}
-            <TouchableOpacity
-                    style={[styles.button, styles.w100, styles.mt5, styles.buttonSuccess,
-                        props.isNextButtonDisabled ? styles.buttonSuccessDisabled : {}]}
-                    onPress={props.onStepComplete}
-                    disabled={props.isNextButtonDisabled}
-            >
-                <Text
-                    style={[styles.buttonText, styles.buttonSuccessText]}
+        this.state = {
+            textInputWidth: 0,
+        };
+    }
+
+    componentDidMount() {
+        if (this.textInput) {
+            this.textInput.focus();
+        }
+    }
+
+    render() {
+        return (
+            <View style={[styles.flex1, styles.pageWrapper]}>
+                {this.props.iou.loading && <ActivityIndicator color={themeColors.text} />}
+                <View style={[
+                    styles.flex1,
+                    styles.flexRow,
+                    styles.w100,
+                    styles.alignItemsCenter,
+                    styles.justifyContentCenter,
+                ]}
                 >
-                    Next
-                </Text>
-            </TouchableOpacity>
-        </View>
-    </View>
-);
-
+                    <Text style={styles.iouAmountText}>
+                        {this.props.selectedCurrency}
+                    </Text>
+                    {this.props.isSmallScreenWidth
+                        ? <Text style={styles.iouAmountText}>{this.props.amount}</Text>
+                        : (
+                            <View>
+                                <TextInputFocusable
+                                        style={[styles.iouAmountTextInput,
+                                            {width: Math.max(5, this.state.textInputWidth)}]}
+                                        onKeyPress={(event) => {
+                                            this.props.numberPressed(event.key);
+                                            event.preventDefault();
+                                        }}
+                                        ref={el => this.textInput = el}
+                                        defaultValue={this.props.amount}
+                                        textAlign="left"
+                                />
+                                <Text
+                                    style={[styles.iouAmountText, styles.invisible, {left: 100000}]}
+                                    onLayout={e => this.setState({textInputWidth: e.nativeEvent.layout.width})}
+                                >
+                                    {this.props.amount}
+                                </Text>
+                            </View>
+                        )}
+                </View>
+                <View style={[styles.w100, styles.justifyContentEnd]}>
+                    {this.props.isSmallScreenWidth
+                        ? <BigNumberPad numberPressed={this.props.numberPressed} />
+                        : <View />}
+                    <TouchableOpacity
+                            style={[styles.button, styles.w100, styles.mt5, styles.buttonSuccess,
+                                this.props.isNextButtonDisabled ? styles.buttonSuccessDisabled : {}]}
+                            onPress={this.props.onStepComplete}
+                            disabled={this.props.isNextButtonDisabled}
+                    >
+                        <Text style={[styles.buttonText, styles.buttonSuccessText]}>
+                            Next
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        );
+    }
+}
 IOUAmountPage.displayName = 'IOUAmountPage';
 IOUAmountPage.propTypes = propTypes;
 IOUAmountPage.defaultProps = defaultProps;
