@@ -33,6 +33,10 @@ const MainDrawerNavigator = props => (
         <Drawer.Screen
             name="Report"
             component={ReportScreen}
+
+            // Providing an empty string here will ensure that the ReportScreen does not show as '/r/undefined'
+            // eslint-disable-next-line react/jsx-props-no-multi-spaces
+            initialParams={{reportID: ''}}
             options={{
                 cardStyle: styles.navigationScreenCardStyle,
                 headerShown: false,

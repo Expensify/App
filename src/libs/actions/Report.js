@@ -543,14 +543,14 @@ function fetchActions(reportID, offset) {
 function fetchAll(shouldRedirectToReport = true, shouldRecordHomePageTiming = false) {
     fetchChatReports()
         .then((reportIDs) => {
-            if (shouldRedirectToReport && !currentURL.includes(ROUTES.REPORT)) {
+            if (shouldRedirectToReport) {
                 // Redirect to either the last viewed report ID or the first report ID from our report collection
                 if (lastViewedReportID) {
-                    Onyx.set(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, String(lastViewedReportID));
+                    Navigation.navigate(ROUTES.getReportRoute(String(lastViewedReportID)));
                 } else {
                     const firstReportID = _.first(reportIDs);
                     if (firstReportID) {
-                        Onyx.set(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, String(firstReportID));
+                        Navigation.navigate(ROUTES.getReportRoute(String(firstReportID)));
                     }
                 }
             }
