@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React, {PureComponent} from 'react';
-import {Animated, Text, View} from 'react-native';
-import ReactDOM from 'react-dom';
+import {Animated, View} from 'react-native';
+import TooltipRenderedOnPageBody from './TooltipRenderedOnPageBody';
 import Hoverable from '../Hoverable';
 import withWindowDimensions from '../withWindowDimensions';
 import getTooltipStyles from '../../styles/getTooltipStyles';
@@ -41,7 +41,6 @@ class Tooltip extends PureComponent {
         this.measureTooltip = this.measureTooltip.bind(this);
         this.showTooltip = this.showTooltip.bind(this);
         this.hideTooltip = this.hideTooltip.bind(this);
-        this.createPortal = this.createPortal.bind(this);
     }
 
     componentDidMount() {
@@ -132,16 +131,18 @@ class Tooltip extends PureComponent {
         this.getWrapperPosition()
             .then(({
                 x, y, width, height,
-            }) => this.setState({
-                wrapperWidth: width,
-                wrapperHeight: height,
-                xOffset: x,
-                yOffset: y,
-            }));
-        Animated.timing(this.animation, {
-            toValue: 1,
-            duration: 140,
-        }).start();
+            }) => {
+                this.setState({
+                    wrapperWidth: width,
+                    wrapperHeight: height,
+                    xOffset: x,
+                    yOffset: y,
+                });
+                Animated.timing(this.animation, {
+                    toValue: 1,
+                    duration: 140,
+                }).start();
+            });
     }
 
     /**
@@ -154,7 +155,7 @@ class Tooltip extends PureComponent {
         }).start();
     }
 
-    createPortal() {
+    render() {
         const {
             animationStyle,
             tooltipWrapperStyle,
@@ -170,32 +171,21 @@ class Tooltip extends PureComponent {
             this.state.wrapperHeight,
             this.state.tooltipWidth,
             this.state.tooltipHeight,
-            _.isFunction(this.props.shiftHorizontal)
-                ? this.props.shiftHorizontal()
-                : this.props.shiftHorizontal,
-            _.isFunction(this.props.shiftVertical)
-                ? this.props.shiftVertical()
-                : this.props.shiftVertical,
+            _.result(this.props, 'shiftHorizontal'),
+            _.result(this.props, 'shiftVertical'),
         );
-        return ReactDOM.createPortal(
-            <Animated.View
-                ref={el => this.tooltip = el}
-                onLayout={this.measureTooltip}
-                style={[tooltipWrapperStyle, animationStyle]}
-            >
-                <Text style={tooltipTextStyle} numberOfLines={1}>{this.props.text}</Text>
-                <View style={pointerWrapperStyle}>
-                    <View style={pointerStyle} />
-                </View>
-            </Animated.View>,
-            document.querySelector('body'),
-        );
-    }
-
-    render() {
         return (
             <>
-                {this.createPortal()}
+                <TooltipRenderedOnPageBody
+                    animationStyle={animationStyle}
+                    tooltipWrapperStyle={tooltipWrapperStyle}
+                    tooltipTextStyle={tooltipTextStyle}
+                    pointerWrapperStyle={pointerWrapperStyle}
+                    pointerStyle={pointerStyle}
+                    setTooltipRef={el => this.tooltip = el}
+                    measureTooltip={this.measureTooltip}
+                    text={this.props.text}
+                />
                 <Hoverable
                     containerStyle={this.props.containerStyle}
                     onHoverIn={this.showTooltip}

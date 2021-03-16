@@ -1,10 +1,7 @@
-/* eslint-disable react/forbid-prop-types */
-import React, {memo} from 'react';
-import {
-    Text,
-} from 'react-native';
+// As we don't have to show tooltips of the Native platform so we simply render the option title which wraps.
+import React from 'react';
+import {Text} from 'react-native';
 import {propTypes, defaultProps} from './OptionRowTitleProps';
-
 
 const OptionRowTitle = ({
     style,
@@ -20,4 +17,4 @@ OptionRowTitle.propTypes = propTypes;
 OptionRowTitle.defaultProps = defaultProps;
 OptionRowTitle.displayName = 'OptionRowTitle';
 
-export default memo(OptionRowTitle);
+export default OptionRowTitle;
