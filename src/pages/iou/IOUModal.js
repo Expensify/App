@@ -39,7 +39,8 @@ class IOUModal extends Component {
 
         this.navigateToPreviousStep = this.navigateToPreviousStep.bind(this);
         this.navigateToNextStep = this.navigateToNextStep.bind(this);
-        this.handleParticipants = this.handleParticipants.bind(this);
+
+        this.addParticipants = this.addParticipants.bind(this);
         this.state = {
             currentStepIndex: 0,
             userEmails: [],
@@ -58,17 +59,10 @@ class IOUModal extends Component {
      */
 
     getTitleForStep() {
-        let title = '';
-        const amount = this.state.iouAmount;
-
         if (this.state.currentStepIndex === 1) {
-            title = this.props.hasMultipleParticipants ? 'Spilt' : 'Request';
-            title = `${title} $${amount}`;
-        } else {
-            title = steps[this.state.currentStepIndex] || '';
+            return `${this.props.hasMultipleParticipants ? 'Split' : 'Request'} $${this.state.iouAmount}`;
         }
-
-        return title;
+        return steps[this.state.currentStepIndex] || '';
     }
 
     /**
@@ -95,11 +89,8 @@ class IOUModal extends Component {
         }));
     }
 
-    handleParticipants(userEmails) {
-        this.setState(prevState => ({
-            ...prevState,
-            userEmails,
-        }));
+    addParticipants(userEmails) {
+        this.setState(userEmails);
         this.navigateToNextStep();
     }
 
@@ -143,13 +134,13 @@ class IOUModal extends Component {
                 {currentStep === Steps.IOUParticipants && (
                     <IOUParticipantsPage
                         hasMultipleParticipants={this.props.hasMultipleParticipants}
-                        onStepComplete={this.handleParticipants}
+                        onStepComplete={this.addParticipants}
                     />
                 )}
                 {currentStep === Steps.IOUConfirm && (
                     <IOUConfirmPage
                         onConfirm={() => console.debug('create IOU report')}
-                        participants={[]}
+                        participants={this.state.userEmails}
                         iouAmount={42}
                     />
                 )}
