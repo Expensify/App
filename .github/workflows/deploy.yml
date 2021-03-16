@@ -24,7 +24,7 @@ jobs:
   deployStaging:
     runs-on: ubuntu-latest
     needs: validate
-    if: ${{ needs.validate.outputs.isAutomergePR == 'true' && github.ref == 'refs/heads/staging' }}
+    if: ${{ needs.validate.outputs.isAutomergePR && github.ref == 'refs/heads/staging' }}
 
     steps:
       - name: Checkout staging
@@ -42,7 +42,7 @@ jobs:
   deployProduction:
     runs-on: ubuntu-latest
     needs: validate
-    if: ${{ needs.validate.outputs.isAutomergePR == 'true' && github.ref == 'refs/heads/production' }}
+    if: ${{ needs.validate.outputs.isAutomergePR && github.ref == 'refs/heads/production' }}
 
     steps:
       - name: Checkout production
