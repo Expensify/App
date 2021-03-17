@@ -238,6 +238,7 @@ function removeOptimisticActions(reportID) {
 function updateReportWithNewAction(reportID, reportAction) {
     const newMaxSequenceNumber = reportAction.sequenceNumber;
     const isFromCurrentUser = reportAction.actorAccountID === currentUserAccountID;
+    const lastReadSequenceNumber = lastReadSequenceNumbers[reportID] || 0;
 
     // When handling an action from the current users we can assume that their
     // last read actionID has been updated in the server but not necessarily reflected
@@ -251,14 +252,21 @@ function updateReportWithNewAction(reportID, reportAction) {
     // Always merge the reportID into Onyx
     // If the report doesn't exist in Onyx yet, then all the rest of the data will be filled out
     // by handleReportChanged
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+    const updatedReportObject = {
         reportID,
-        unreadActionCount: newMaxSequenceNumber - (lastReadSequenceNumbers[reportID] || 0),
+        unreadActionCount: newMaxSequenceNumber - lastReadSequenceNumber,
         maxSequenceNumber: reportAction.sequenceNumber,
-        lastMessageTimestamp: reportAction.timestamp,
-        lastMessageText: messageText,
-        lastActorEmail: reportAction.actorEmail,
-    });
+    };
+
+    // If the report action from pusher is a higher sequence number than we know about (meaning it has come from
+    // a chat participant in another application), then the last message text and author needs to be updated as well
+    if (newMaxSequenceNumber > lastReadSequenceNumber) {
+        updatedReportObject.lastMessageTimestamp = reportAction.timestamp;
+        updatedReportObject.lastMessageText = messageText;
+        updatedReportObject.lastActorEmail = reportAction.actorEmail;
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, updatedReportObject);
 
     const reportActionsToMerge = {};
     if (reportAction.clientID) {
@@ -570,17 +578,24 @@ function fetchAll(shouldRedirectToReport = true, shouldRecordHomePageTiming = fa
 function addAction(reportID, text, file) {
     // Convert the comment from MD into HTML because that's how it is stored in the database
     const parser = new ExpensiMark();
-    const htmlComment = parser.replace(text);
+    const commentText = parser.replace(text);
     const isAttachment = _.isEmpty(text) && file !== undefined;
 
     // The new sequence number will be one higher than the highest
     const highestSequenceNumber = reportMaxSequenceNumbers[reportID] || 0;
     const newSequenceNumber = highestSequenceNumber + 1;
+    const htmlForNewComment = isAttachment ? 'Uploading Attachment...' : commentText;
+
+    // Remove HTML from text when applying optimistic offline comment
+    const textForNewComment = isAttachment ? '[Attachment]'
+        : htmlForNewComment.replace(/<[^>]*>?/gm, '');
 
     // Update the report in Onyx to have the new sequence number
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         maxSequenceNumber: newSequenceNumber,
         lastMessageTimestamp: moment().unix(),
+        lastMessageText: textForNewComment,
+        lastActorEmail: currentUserEmail,
     });
 
     // Generate a clientID so we can save the optimistic action to storage with the clientID as key. Later, we will
@@ -623,11 +638,8 @@ function addAction(reportID, text, file) {
             message: [
                 {
                     type: 'COMMENT',
-                    html: isAttachment ? 'Uploading Attachment...' : htmlComment,
-
-                    // Remove HTML from text when applying optimistic offline comment
-                    text: isAttachment ? '[Attachment]'
-                        : htmlComment.replace(/<[^>]*>?/gm, ''),
+                    html: htmlForNewComment,
+                    text: textForNewComment,
                 },
             ],
             isFirstItem: false,
@@ -639,7 +651,7 @@ function addAction(reportID, text, file) {
 
     API.Report_AddComment({
         reportID,
-        reportComment: htmlComment,
+        reportComment: htmlForNewComment,
         file,
         clientID: optimisticReportActionID,
 
@@ -735,6 +747,13 @@ function handleReportChanged(report) {
     optimisticReportActionIDs[report.reportID] = report.optimisticReportActionIDs;
 }
 
+/**
+ * @param {Number} reportID
+ */
+function updateCurrentlyViewedReportID(reportID) {
+    Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, String(reportID));
+}
+
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     callback: handleReportChanged,
@@ -757,4 +776,5 @@ export {
     saveReportComment,
     broadcastUserIsTyping,
     togglePinnedState,
+    updateCurrentlyViewedReportID,
 };
