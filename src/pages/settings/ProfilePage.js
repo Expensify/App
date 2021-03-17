@@ -205,7 +205,7 @@ class ProfilePage extends Component {
                                     editable={false}
                                 />
                             </View>
-                            <View style={styles.mb2}>
+                            <View style={styles.mb3}>
                                 <Text style={[styles.mb1, styles.formLabel]}>Timezone</Text>
                                 <RNPickerSelect
                                     onValueChange={selectedTimezone => this.setState({selectedTimezone})}
