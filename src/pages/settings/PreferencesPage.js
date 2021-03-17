@@ -51,6 +51,7 @@ const priorityModes = {
 
 const PreferencesPage = ({priorityMode, user}) => (
     <ScreenWrapper>
+<<<<<<< HEAD
         {() => (
             <>
                 <HeaderWithCloseButton
@@ -102,9 +103,39 @@ const PreferencesPage = ({priorityMode, user}) => (
                             {priorityModes[priorityMode].description}
                         </Text>
                     </View>
+=======
+        <HeaderWithCloseButton
+            title="Preferences"
+            shouldShowBackButton
+            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+            onCloseButtonPress={() => Navigation.dismissModal()}
+        />
+        <View style={styles.pageWrapper}>
+            <View style={[styles.settingsPageBody, styles.mb6]}>
+                <Text style={[styles.formLabel]} numberOfLines={1}>
+                    Priority Mode
+                </Text>
+                <View style={[styles.mb2]}>
+                    {/* empty object in placeholder below to prevent default */}
+                    {/* placeholder from appearing as a selection option. */}
+                    <RNPickerSelect
+                        onValueChange={
+                            mode => NameValuePair.set(CONST.NVP.PRIORITY_MODE, mode, ONYXKEYS.PRIORITY_MODE)
+                        }
+                        items={Object.values(priorityModes)}
+                        style={styles.picker}
+                        useNativeAndroidPickerStyle={false}
+                        placeholder={{}}
+                        value={priorityMode}
+                        Icon={() => <Icon src={DownArrow} />}
+                    />
+>>>>>>> master
                 </View>
-            </>
-        )}
+                <Text style={[styles.textLabel, styles.colorMuted]}>
+                    {priorityModes[priorityMode].description}
+                </Text>
+            </View>
+        </View>
     </ScreenWrapper>
 );
 

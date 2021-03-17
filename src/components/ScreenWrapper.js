@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
@@ -9,8 +10,11 @@ const propTypes = {
     // Array of additional styles to add
     style: PropTypes.arrayOf(PropTypes.object),
 
-    // Returns a function as a child to pass insets to
-    children: PropTypes.func.isRequired,
+    // Returns a function as a child to pass insets to or a node to render without insets
+    children: PropTypes.oneOfType([
+        PropTypes.node,
+        PropTypes.func,
+    ]).isRequired,
 
     // Whether to include padding bottom
     includePaddingBottom: PropTypes.bool,
@@ -47,7 +51,11 @@ const ScreenWrapper = props => (
                     ]}
                 >
                     <HeaderGap />
-                    {props.children(insets)}
+                    {// If props.children is a function, call it to provide the insets to the children.
+                        _.isFunction(props.children)
+                            ? props.children(insets)
+                            : props.children
+                    }
                 </View>
             );
         }}

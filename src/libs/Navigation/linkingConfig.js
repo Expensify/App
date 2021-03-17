@@ -1,3 +1,5 @@
+import ROUTES from '../../ROUTES';
+
 export default {
     prefixes: ['expensify-cash://', 'https://expensify.cash', 'https://www.expensify.cash', 'http://localhost'],
     config: {
@@ -7,79 +9,79 @@ export default {
                 initialRouteName: 'Report',
                 screens: {
                     // Report route
-                    Report: 'r/:reportID',
+                    Report: ROUTES.REPORT_WITH_ID,
                 },
             },
 
             // Public Routes
-            SignIn: 'signin',
-            SetPassword: 'setpassword/:validateCode',
+            SignIn: ROUTES.SIGNIN,
+            SetPassword: ROUTES.SET_PASSWORD_WITH_VALIDATE_CODE,
 
             // Modal Screens
             Settings: {
-                path: 'settings',
+                path: ROUTES.SETTINGS,
                 initialRouteName: 'Settings_Root',
                 screens: {
                     Settings_Root: {
                         path: '',
                     },
                     Settings_Preferences: {
-                        path: 'preferences',
+                        path: ROUTES.SETTINGS_PREFERENCES,
+                        exact: true,
                     },
                     Settings_Password: {
-                        path: 'password',
+                        path: ROUTES.SETTINGS_PASSWORD,
+                        exact: true,
                     },
                     Settings_Payments: {
-                        path: 'payments',
+                        path: ROUTES.SETTINGS_PAYMENTS,
+                        exact: true,
                     },
                     Settings_Profile: {
-                        path: 'profile',
+                        path: ROUTES.SETTINGS_PROFILE,
+                        exact: true,
                     },
                 },
             },
             NewGroup: {
-                path: 'new/group',
+                path: ROUTES.NEW_GROUP,
                 initialRouteName: 'NewGroup_Root',
                 screens: {
-                    NewGroup_Root: {
-                        path: '',
-                    },
+                    NewGroup_Root: '',
                 },
             },
             NewChat: {
-                path: 'new/chat',
+                path: ROUTES.NEW_CHAT,
                 initialRouteName: 'NewChat_Root',
                 screens: {
-                    NewChat_Root: {
-                        path: '',
-                    },
+                    NewChat_Root: '',
                 },
             },
             Search: {
-                path: 'search',
+                path: ROUTES.SEARCH,
                 initialRouteName: 'Search_Root',
                 screens: {
-                    Search_Root: {
-                        path: '',
-                    },
+                    Search_Root: '',
                 },
             },
             Profile: {
                 initialRouteName: 'Profile_Root',
                 screens: {
-                    Profile_Root: 'profile/:login',
+                    Profile_Root: ROUTES.PROFILE_WITH_LOGIN,
                 },
             },
             IOU_Request: {
+                path: ROUTES.IOU_REQUEST,
                 initialRouteName: 'IOU_Request_Root',
                 screens: {
-                    IOU_Request_Root: 'iou/request',
+                    IOU_Request_Root: '',
                 },
             },
             IOU_Bill: {
+                path: ROUTES.IOU_BILL,
                 initialRouteName: 'IOU_Bill_Root',
                 screens: {
-                    IOU_Bill_Root: 'iou/split',
+                    IOU_Bill_Root: '',
                 },
             },
         },
