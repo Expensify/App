@@ -49,8 +49,8 @@ const propTypes = {
         accountID: PropTypes.number,
     }),
 
-    // Version of newly downloaded update.
-    version: PropTypes.string,
+    // Whether a new update is available and ready to install.
+    updateAvailable: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -58,7 +58,7 @@ const defaultProps = {
         authToken: null,
         accountID: null,
     },
-    version: '',
+    updateAvailable: false,
 };
 
 class Expensify extends PureComponent {
@@ -101,7 +101,7 @@ class Expensify extends PureComponent {
         return (
             <>
                 {/* We include the modal for showing a new update at the top level so the option is always present. */}
-                {this.props.version ? <UpdateAppModal updateVersion={this.props.version} /> : null}
+                {this.props.updateAvailable ? <UpdateAppModal /> : null}
                 <NavigationRoot authenticated={Boolean(authToken)} />
             </>
         );
@@ -114,8 +114,8 @@ export default withOnyx({
     session: {
         key: ONYXKEYS.SESSION,
     },
-    version: {
-        key: ONYXKEYS.UPDATE_VERSION,
+    updateAvailable: {
+        key: ONYXKEYS.UPDATE_AVAILABLE,
         initWithStoredValues: false,
     },
 })(Expensify);
