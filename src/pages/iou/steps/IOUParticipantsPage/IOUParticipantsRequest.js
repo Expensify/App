@@ -1,9 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import withWindowDimensions, {
-    windowDimensionsPropTypes,
-} from '../../../../components/withWindowDimensions';
 import {getNewChatOptions} from '../../../../libs/OptionsListUtils';
 import OptionsSelector from '../../../../components/OptionsSelector';
 import ONYXKEYS from '../../../../ONYXKEYS';
@@ -24,6 +21,9 @@ const propTypes = {
     // Callback to inform parent modal of success
     onStepComplete: PropTypes.func.isRequired,
 
+    // Callback to add participants in IOUModal
+    onAddParticipants: PropTypes.func.isRequired,
+
     // All of the personal details for everyone
     personalDetails: PropTypes.objectOf(personalDetailsPropTypes).isRequired,
 
@@ -32,8 +32,6 @@ const propTypes = {
         reportID: PropTypes.number,
         reportName: PropTypes.string,
     }).isRequired,
-
-    ...windowDimensionsPropTypes,
 };
 
 class IOUParticipantsRequest extends Component {
@@ -62,7 +60,6 @@ class IOUParticipantsRequest extends Component {
      */
     getSections() {
         const sections = [];
-
         sections.push({
             title: 'CONTACTS',
             data: this.state.personalDetails,
@@ -88,8 +85,8 @@ class IOUParticipantsRequest extends Component {
      * @param {Object} option
      */
     addSingleParticipant(option) {
-        const userEmail = option.login;
-        this.props.onStepComplete([userEmail]);
+        this.props.onAddParticipants([option]);
+        this.props.onStepComplete();
     }
 
     render() {
@@ -120,13 +117,14 @@ class IOUParticipantsRequest extends Component {
     }
 }
 
+IOUParticipantsRequest.displayName = 'IOUParticipantsRequest';
 IOUParticipantsRequest.propTypes = propTypes;
 
-export default withWindowDimensions(withOnyx({
+export default withOnyx({
     personalDetails: {
         key: ONYXKEYS.PERSONAL_DETAILS,
     },
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,
     },
-})(IOUParticipantsRequest));
+})(IOUParticipantsRequest);

@@ -12,7 +12,6 @@ import styles from '../../../../styles/styles';
 import OptionsSelector from '../../../../components/OptionsSelector';
 import {getNewGroupOptions} from '../../../../libs/OptionsListUtils';
 import CONST from '../../../../CONST';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -30,6 +29,23 @@ const propTypes = {
     // Callback to inform parent modal of success
     onStepComplete: PropTypes.func.isRequired,
 
+    // Callback to add participants in IOUModal
+    onAddParticipants: PropTypes.func.isRequired,
+
+    // Selected participants from IOUMOdal with login
+    participants: PropTypes.arrayOf(PropTypes.shape({
+        login: PropTypes.string.isRequired,
+        alternateText: PropTypes.string,
+        hasDraftComment: PropTypes.bool,
+        icons: PropTypes.arrayOf(PropTypes.string),
+        searchText: PropTypes.string,
+        text: PropTypes.string,
+        keyForList: PropTypes.string,
+        isPinned: PropTypes.bool,
+        isUnread: PropTypes.bool,
+        reportID: PropTypes.number,
+    })),
+
     // All of the personal details for everyone
     personalDetails: PropTypes.objectOf(personalDetailsPropTypes).isRequired,
 
@@ -38,21 +54,10 @@ const propTypes = {
         reportID: PropTypes.number,
         reportName: PropTypes.string,
     }).isRequired,
-
-    /* Onyx Props */
-
-    // Holds data related to IOU view state, rather than the underlying IOU data.
-    iou: PropTypes.shape({
-
-        // Whether or not the IOU step is loading (retrieving participants)
-        loading: PropTypes.bool,
-    }),
-
-    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
-    iou: {},
+    participants: [],
 };
 
 class IOUParticipantsSplit extends Component {
@@ -60,7 +65,7 @@ class IOUParticipantsSplit extends Component {
         super(props);
 
         this.toggleOption = this.toggleOption.bind(this);
-        this.addParticipants = this.addParticipants.bind(this);
+        this.finalizeParticipants = this.finalizeParticipants.bind(this);
 
         const {
             recentReports,
@@ -70,14 +75,13 @@ class IOUParticipantsSplit extends Component {
             props.reports,
             props.personalDetails,
             '',
-            [],
+            props.participants,
         );
 
         this.state = {
             searchValue: '',
             recentReports,
             personalDetails,
-            selectedOptions: [],
             userToInvite,
         };
     }
@@ -92,7 +96,7 @@ class IOUParticipantsSplit extends Component {
         const sections = [];
         sections.push({
             title: undefined,
-            data: this.state.selectedOptions,
+            data: this.props.participants,
             shouldShow: true,
             indexOffset: 0,
         });
@@ -128,11 +132,10 @@ class IOUParticipantsSplit extends Component {
     }
 
     /**
-     * Once a single or more users are selected, adds the selected user emails with the request
+     * Once a single or more users are selected, navigates to next step
      */
-    addParticipants() {
-        const userEmails = this.state.selectedOptions.map(selectedOption => selectedOption.login);
-        this.props.onStepComplete(userEmails);
+    finalizeParticipants() {
+        this.props.onStepComplete();
     }
 
     /**
@@ -140,22 +143,24 @@ class IOUParticipantsSplit extends Component {
      * @param {Object} option
      */
     toggleOption(option) {
-        this.setState((prevState) => {
-            const isOptionInList = _.some(prevState.selectedOptions, selectedOption => (
+        const isOptionInList = _.some(this.props.participants, selectedOption => (
+            selectedOption.login === option.login
+        ));
+
+        let newSelectedOptions;
+
+        if (isOptionInList) {
+            newSelectedOptions = _.reject(this.props.participants, selectedOption => (
                 selectedOption.login === option.login
             ));
+        } else {
+            newSelectedOptions = [...this.props.participants, option];
+        }
+
+        this.props.onAddParticipants(newSelectedOptions);
 
 
-            let newSelectedOptions;
-
-            if (isOptionInList) {
-                newSelectedOptions = _.reject(prevState.selectedOptions, selectedOption => (
-                    selectedOption.login === option.login
-                ));
-            } else {
-                newSelectedOptions = [...prevState.selectedOptions, option];
-            }
-
+        this.setState((prevState) => {
             const {
                 recentReports,
                 personalDetails,
@@ -166,9 +171,7 @@ class IOUParticipantsSplit extends Component {
                 isOptionInList ? prevState.searchValue : '',
                 newSelectedOptions,
             );
-
             return {
-                selectedOptions: newSelectedOptions,
                 recentReports,
                 personalDetails,
                 userToInvite,
@@ -179,9 +182,8 @@ class IOUParticipantsSplit extends Component {
 
 
     render() {
-        const maxParticipantsReached = this.state.selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
+        const maxParticipantsReached = this.props.participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
         const sections = this.getSections(maxParticipantsReached);
-
         return (
             <View style={[styles.flex1, styles.w100]}>
                 <Text style={[styles.formLabel, styles.pt3, styles.ph5]}>
@@ -190,7 +192,7 @@ class IOUParticipantsSplit extends Component {
                 <OptionsSelector
                     canSelectMultipleOptions
                     sections={sections}
-                    selectedOptions={this.state.selectedOptions}
+                    selectedOptions={this.props.participants}
                     value={this.state.searchValue}
                     onSelectRow={this.toggleOption}
                     onChangeText={(searchValue = '') => {
@@ -215,10 +217,10 @@ class IOUParticipantsSplit extends Component {
                     hideAdditionalOptionStates
                     forceTextUnreadStyle
                 />
-                {this.state.selectedOptions?.length > 0 && (
+                {this.props.participants?.length > 0 && (
                     <View style={[styles.ph5, styles.pb5]}>
                         <Pressable
-                            onPress={this.addParticipants}
+                            onPress={this.finalizeParticipants}
                             style={({hovered}) => [
                                 styles.button,
                                 styles.buttonSuccess,
@@ -242,11 +244,11 @@ IOUParticipantsSplit.displayName = 'IOUParticipantsSplit';
 IOUParticipantsSplit.propTypes = propTypes;
 IOUParticipantsSplit.defaultProps = defaultProps;
 
-export default withWindowDimensions(withOnyx({
+export default withOnyx({
     personalDetails: {
         key: ONYXKEYS.PERSONAL_DETAILS,
     },
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,
     },
-})(IOUParticipantsSplit));
+})(IOUParticipantsSplit);

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -16,6 +15,23 @@ const propTypes = {
     // Should we request a single or multiple participant selection from user
     hasMultipleParticipants: PropTypes.bool.isRequired,
 
+    // Callback to add participants in IOUModal
+    onAddParticipants: PropTypes.func.isRequired,
+
+    // Selected participants from IOUModal with login
+    participants: PropTypes.arrayOf(PropTypes.shape({
+        login: PropTypes.string.isRequired,
+        alternateText: PropTypes.string,
+        hasDraftComment: PropTypes.bool,
+        icons: PropTypes.arrayOf(PropTypes.string),
+        searchText: PropTypes.string,
+        text: PropTypes.string,
+        keyForList: PropTypes.string,
+        isPinned: PropTypes.bool,
+        isUnread: PropTypes.bool,
+        reportID: PropTypes.number,
+    })),
+
     /* Onyx Props */
 
     // Holds data related to IOU view state, rather than the underlying IOU data.
@@ -28,9 +44,11 @@ const propTypes = {
 
 const defaultProps = {
     iou: {},
+    participants: [],
 };
 
 const IOUParticipantsPage = (props) => {
+    console.debug(props.participants);
     if (props.iou.loading) {
         return (
             <View style={styles.pageWrapper}>
@@ -40,8 +58,19 @@ const IOUParticipantsPage = (props) => {
     }
 
     return (props.hasMultipleParticipants
-        ? <IOUParticipantsSplit onStepComplete={props.onStepComplete} />
-        : <IOUParticipantsRequest onStepComplete={props.onStepComplete} />
+        ? (
+            <IOUParticipantsSplit
+                onStepComplete={props.onStepComplete}
+                participants={props.participants}
+                onAddParticipants={props.onAddParticipants}
+            />
+        )
+        : (
+            <IOUParticipantsRequest
+                onStepComplete={props.onStepComplete}
+                onAddParticipants={props.onAddParticipants}
+            />
+        )
     );
 };
 
