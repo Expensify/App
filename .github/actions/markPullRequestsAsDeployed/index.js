@@ -31,10 +31,10 @@ const githubUtils = new GithubUtils(octokit);
 prList.forEach((pr) => {
     githubUtils.createComment(github.context.repo.repo, pr, message, octokit)
         .then(() => {
-            console.log(`Comment created on #${pr} successfully`);
+            console.log(`Comment created on #${pr} successfully 🎉`);
         })
         .catch((err) => {
-            console.log(`Unable to write comment on #${pr}`);
+            console.log(`Unable to write comment on #${pr} 😞`);
             core.setFailed(err.message);
         });
 });
