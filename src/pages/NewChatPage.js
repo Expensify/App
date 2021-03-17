@@ -112,42 +112,38 @@ class NewChatPage extends Component {
 
         return (
             <ScreenWrapper>
-                {() => (
-                    <>
-                        <HeaderWithCloseButton
-                            title="New Chat"
-                            onCloseButtonPress={() => Navigation.dismissModal()}
-                        />
-                        <View style={[styles.flex1, styles.w100]}>
-                            <OptionsSelector
-                                sections={sections}
-                                value={this.state.searchValue}
-                                onSelectRow={this.createNewChat}
-                                onChangeText={(searchValue = '') => {
-                                    const {
-                                        personalDetails,
-                                        userToInvite,
-                                    } = getNewChatOptions(
-                                        this.props.reports,
-                                        this.props.personalDetails,
-                                        searchValue,
-                                    );
-                                    this.setState({
-                                        searchValue,
-                                        userToInvite,
-                                        personalDetails,
-                                    });
-                                }}
-                                headerMessage={headerMessage}
-                                hideSectionHeaders
-                                disableArrowKeysActions
-                                hideAdditionalOptionStates
-                                forceTextUnreadStyle
-                            />
-                        </View>
-                        <KeyboardSpacer />
-                    </>
-                )}
+                <HeaderWithCloseButton
+                    title="New Chat"
+                    onCloseButtonPress={() => Navigation.dismissModal()}
+                />
+                <View style={[styles.flex1, styles.w100]}>
+                    <OptionsSelector
+                        sections={sections}
+                        value={this.state.searchValue}
+                        onSelectRow={this.createNewChat}
+                        onChangeText={(searchValue = '') => {
+                            const {
+                                personalDetails,
+                                userToInvite,
+                            } = getNewChatOptions(
+                                this.props.reports,
+                                this.props.personalDetails,
+                                searchValue,
+                            );
+                            this.setState({
+                                searchValue,
+                                userToInvite,
+                                personalDetails,
+                            });
+                        }}
+                        headerMessage={headerMessage}
+                        hideSectionHeaders
+                        disableArrowKeysActions
+                        hideAdditionalOptionStates
+                        forceTextUnreadStyle
+                    />
+                </View>
+                <KeyboardSpacer />
             </ScreenWrapper>
         );
     }
