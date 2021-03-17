@@ -12,7 +12,7 @@ const _ = __nccwpck_require__(4987);
 const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
 const {GITHUB_OWNER, EXPENSIFY_CASH_REPO} = __nccwpck_require__(7999);
-const {promiseWhile} = __nccwpck_require__(4502);
+const promiseWhile = __nccwpck_require__(4502);
 
 const run = function () {
     const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
@@ -514,22 +514,7 @@ function promiseWhile(condition, action) {
     });
 }
 
-/**
- * Simulates a do-while loop where the condition is determined by the result of a Promise.
- *
- * @param {Function} condition
- * @param {Function} action
- * @returns {Promise}
- */
-function promiseDoWhile(condition, action) {
-    return Promise.resolve(action())
-        .then(() => promiseWhile(condition, action));
-}
-
-module.exports = {
-    promiseWhile,
-    promiseDoWhile,
-};
+module.exports = promiseWhile;
 
 
 /***/ }),
