@@ -122,17 +122,14 @@ export default {
 
     /**
      * Create a notification to indicate that an update is available.
-     *
-     * @param {Object} params
-     * @param {String} params.version
      */
-    pushUpdateAvailableNotification({version}) {
+    pushUpdateAvailableNotification() {
         push({
             title: 'Update available',
             body: 'A new version of Expensify.cash is available!',
             delay: 0,
             onClick: () => {
-                Onyx.merge(ONYXKEYS.UPDATE_VERSION, version);
+                Onyx.merge(ONYXKEYS.UPDATE_AVAILABLE, true);
             },
         });
     },

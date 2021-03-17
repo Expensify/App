@@ -180,63 +180,59 @@ class NewGroupPage extends Component {
         );
         return (
             <ScreenWrapper>
-                {() => (
-                    <>
-                        <HeaderWithCloseButton
-                            title="New Group"
-                            onCloseButtonPress={() => Navigation.dismissModal()}
-                        />
-                        <View style={[styles.flex1, styles.w100]}>
-                            <OptionsSelector
-                                canSelectMultipleOptions
-                                sections={sections}
-                                selectedOptions={this.state.selectedOptions}
-                                value={this.state.searchValue}
-                                onSelectRow={this.toggleOption}
-                                onChangeText={(searchValue = '') => {
-                                    const {
-                                        recentReports,
-                                        personalDetails,
-                                        userToInvite,
-                                    } = getNewGroupOptions(
-                                        this.props.reports,
-                                        this.props.personalDetails,
-                                        searchValue,
-                                        [],
-                                    );
-                                    this.setState({
-                                        searchValue,
-                                        userToInvite,
-                                        recentReports,
-                                        personalDetails,
-                                    });
-                                }}
-                                headerMessage={headerMessage}
-                                disableArrowKeysActions
-                                hideAdditionalOptionStates
-                                forceTextUnreadStyle
-                            />
-                            {this.state.selectedOptions?.length > 0 && (
-                                <View style={[styles.ph5, styles.pb5]}>
-                                    <Pressable
-                                        onPress={this.createGroup}
-                                        style={({hovered}) => [
-                                            styles.button,
-                                            styles.buttonSuccess,
-                                            styles.w100,
-                                            hovered && styles.buttonSuccessHovered,
-                                        ]}
-                                    >
-                                        <Text style={[styles.buttonText, styles.buttonSuccessText]}>
-                                            Create Group
-                                        </Text>
-                                    </Pressable>
-                                </View>
-                            )}
+                <HeaderWithCloseButton
+                    title="New Group"
+                    onCloseButtonPress={() => Navigation.dismissModal()}
+                />
+                <View style={[styles.flex1, styles.w100]}>
+                    <OptionsSelector
+                        canSelectMultipleOptions
+                        sections={sections}
+                        selectedOptions={this.state.selectedOptions}
+                        value={this.state.searchValue}
+                        onSelectRow={this.toggleOption}
+                        onChangeText={(searchValue = '') => {
+                            const {
+                                recentReports,
+                                personalDetails,
+                                userToInvite,
+                            } = getNewGroupOptions(
+                                this.props.reports,
+                                this.props.personalDetails,
+                                searchValue,
+                                [],
+                            );
+                            this.setState({
+                                searchValue,
+                                userToInvite,
+                                recentReports,
+                                personalDetails,
+                            });
+                        }}
+                        headerMessage={headerMessage}
+                        disableArrowKeysActions
+                        hideAdditionalOptionStates
+                        forceTextUnreadStyle
+                    />
+                    {this.state.selectedOptions?.length > 0 && (
+                        <View style={[styles.ph5, styles.pb5]}>
+                            <Pressable
+                                onPress={this.createGroup}
+                                style={({hovered}) => [
+                                    styles.button,
+                                    styles.buttonSuccess,
+                                    styles.w100,
+                                    hovered && styles.buttonSuccessHovered,
+                                ]}
+                            >
+                                <Text style={[styles.buttonText, styles.buttonSuccessText]}>
+                                    Create Group
+                                </Text>
+                            </Pressable>
                         </View>
-                        <KeyboardSpacer />
-                    </>
-                )}
+                    )}
+                </View>
+                <KeyboardSpacer />
             </ScreenWrapper>
         );
     }
