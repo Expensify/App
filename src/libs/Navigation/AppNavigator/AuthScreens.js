@@ -71,7 +71,7 @@ class AuthScreens extends React.Component {
         // Fetch some data we need on initialization
         NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.PRIORITY_MODE, 'default');
         PersonalDetails.fetch();
-        User.fetch()
+        User.fetch();
         User.getBetas();
         fetchAllReports(true, true);
         fetchCountryCodeByRequestIP();
@@ -85,7 +85,7 @@ class AuthScreens extends React.Component {
                 return;
             }
             PersonalDetails.fetch();
-            User.fetch()
+            User.fetch();
             User.getBetas();
         }, 1000 * 60 * 30);
 
