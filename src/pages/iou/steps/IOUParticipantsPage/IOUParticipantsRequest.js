@@ -64,7 +64,7 @@ class IOUParticipantsRequest extends Component {
             title: 'CONTACTS',
             data: this.state.personalDetails,
             shouldShow: this.state.personalDetails.length > 0,
-            indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
+            indexOffset: 0,
         });
 
         if (this.state.userToInvite) {

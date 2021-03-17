@@ -109,6 +109,9 @@ class IOUParticipantsSplit extends Component {
             title: 'RECENTS',
             data: this.state.recentReports,
             shouldShow: this.state.recentReports.length > 0,
+
+            // takes the sum off the length of all data
+            // (this.state.selectedOptions) in previous sections
             indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
         });
 
@@ -116,6 +119,9 @@ class IOUParticipantsSplit extends Component {
             title: 'CONTACTS',
             data: this.state.personalDetails,
             shouldShow: this.state.personalDetails.length > 0,
+
+            // takes the sum off the length of all data
+            // (this.state.selectedOptions, this.state.recentReports) in previous sections
             indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
         });
 

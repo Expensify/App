@@ -48,7 +48,6 @@ const defaultProps = {
 };
 
 const IOUParticipantsPage = (props) => {
-    console.debug(props.participants);
     if (props.iou.loading) {
         return (
             <View style={styles.pageWrapper}>
