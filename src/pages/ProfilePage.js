@@ -6,15 +6,13 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import moment from 'moment';
-import {withRouter} from 'react-router-dom';
 import styles from '../styles/styles';
 import Text from '../components/Text';
 import ONYXKEYS from '../ONYXKEYS';
 import Avatar from '../components/Avatar';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
-import {redirectToLastReport} from '../libs/actions/App';
-import HeaderGap from '../components/HeaderGap';
-import compose from '../libs/compose';
+import Navigation from '../libs/Navigation/Navigation';
+import ScreenWrapper from '../components/ScreenWrapper';
 
 const personalDetailsType = PropTypes.shape({
     // Display name of the current user from their personal details
@@ -47,19 +45,17 @@ const propTypes = {
     // The personal details of the person who is logged in
     personalDetails: personalDetailsType.isRequired,
 
-    // Router details
-    match: matchType.isRequired,
+    // Route params
+    route: matchType.isRequired,
 };
 
-const ProfilePage = ({personalDetails, match}) => {
-    const profileDetails = personalDetails[match.params.login];
-
+const ProfilePage = ({personalDetails, route}) => {
+    const profileDetails = personalDetails[route.params.login];
     return (
-        <>
-            <HeaderGap />
+        <ScreenWrapper>
             <HeaderWithCloseButton
                 title="Details"
-                onCloseButtonPress={redirectToLastReport}
+                onCloseButtonPress={Navigation.dismissModal}
             />
             <View
                 pointerEvents="box-none"
@@ -121,19 +117,15 @@ const ProfilePage = ({personalDetails, match}) => {
                     </View>
                 ) : null}
             </View>
-        </>
+        </ScreenWrapper>
     );
 };
 
 ProfilePage.propTypes = propTypes;
 ProfilePage.displayName = 'ProfilePage';
 
-
-export default compose(
-    withRouter,
-    withOnyx({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-    }),
-)(ProfilePage);
+export default withOnyx({
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS,
+    },
+})(ProfilePage);

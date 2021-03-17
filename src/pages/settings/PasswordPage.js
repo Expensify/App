@@ -1,19 +1,18 @@
 import React from 'react';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import {redirect} from '../../libs/actions/App';
-import HeaderGap from '../../components/HeaderGap';
+import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
+import ScreenWrapper from '../../components/ScreenWrapper';
 
 const PasswordPage = () => (
-    <>
-        <HeaderGap />
+    <ScreenWrapper>
         <HeaderWithCloseButton
             title="Change Password"
             shouldShowBackButton
-            onBackButtonPress={() => redirect(ROUTES.SETTINGS)}
-            onCloseButtonPress={() => redirect(ROUTES.HOME)}
+            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+            onCloseButtonPress={() => Navigation.dismissModal()}
         />
-    </>
+    </ScreenWrapper>
 );
 
 PasswordPage.displayName = 'PasswordPage';
