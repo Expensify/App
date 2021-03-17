@@ -66,7 +66,7 @@ jobs:
           if: github.event.pull_request.mergeable && github.event.pull_request.head.ref == 'master'
 
         - name: Check PR mergable states
-          - run: echo "Mergeable - ${{ github.event.pull_request.mergeable }} Clean - ${{ github.event.pull_request.mergeable_state }}"
+          run: echo "Mergeable - ${{ github.event.pull_request.mergeable }} Clean - ${{ github.event.pull_request.mergeable_state }}"
 
         - name: Check for an auto merge
           # Version: 0.12.0
