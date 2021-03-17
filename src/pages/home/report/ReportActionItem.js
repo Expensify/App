@@ -53,7 +53,6 @@ class ReportActionItem extends Component {
         this.hidePopover = this.hidePopover.bind(this);
     }
 
-
     shouldComponentUpdate(nextProps, nextState) {
         return this.state.isPopoverVisible !== nextState.isPopoverVisible
             || this.props.displayAsGroup !== nextProps.displayAsGroup

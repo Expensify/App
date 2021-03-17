@@ -25,7 +25,6 @@ const propTypes = {
 
     // Should we measure these items and call getItemLayout?
     shouldMeasureItems: PropTypes.bool,
-
 };
 
 const defaultProps = {
@@ -159,8 +158,6 @@ class BaseInvertedFlatList extends Component {
                 // Setting removeClippedSubviews will break text selection on Android
                 // eslint-disable-next-line react/jsx-props-no-multi-spaces
                 removeClippedSubviews={false}
-
-
             />
         );
     }
