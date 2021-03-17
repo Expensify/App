@@ -207,7 +207,7 @@ class ReportActionCompose extends React.Component {
                                     ref={el => this.textInput = el}
                                     textAlignVertical="top"
                                     placeholder="Write something..."
-                                    placeholderTextColor={themeColors.textSupporting}
+                                    placeholderTextColor={themeColors.placeholderText}
                                     onChangeText={this.updateComment}
                                     onKeyPress={this.triggerSubmitShortcut}
                                     onDragEnter={() => this.setState({isDraggingOver: true})}

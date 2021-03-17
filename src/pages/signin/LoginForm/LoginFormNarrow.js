@@ -74,7 +74,7 @@ class LoginFormNarrow extends React.Component {
                         onSubmitEditing={this.validateAndSubmitForm}
                         autoCapitalize="none"
                         placeholder="Email or phone"
-                        placeholderTextColor={themeColors.textSupporting}
+                        placeholderTextColor={themeColors.placeholderText}
                     />
                 </View>
                 <View>

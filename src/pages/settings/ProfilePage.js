@@ -23,6 +23,7 @@ import {DownArrow} from '../../components/Icon/Expensicons';
 import Icon from '../../components/Icon';
 import Checkbox from '../../components/Checkbox';
 import ButtonWithLoader from '../../components/ButtonWithLoader';
+import themeColors from '../../styles/themes/default';
 
 const propTypes = {
     /* Onyx Props */
@@ -77,19 +78,19 @@ class ProfilePage extends Component {
         } = props.myPersonalDetails;
         const pronounsList = Object.values(CONST.PRONOUNS);
 
-        let initialPronouns = pronouns;
+        let currentUserPronouns = pronouns;
         let initialSelfSelectedPronouns = '';
 
         // This handles populating the self-selected pronouns in the form
         if (pronouns && !pronounsList.includes(pronouns)) {
-            initialPronouns = CONST.PRONOUNS.SELF_SELECT;
+            currentUserPronouns = CONST.PRONOUNS.SELF_SELECT;
             initialSelfSelectedPronouns = pronouns;
         }
 
         this.state = {
             firstName,
             lastName,
-            pronouns: initialPronouns,
+            pronouns: currentUserPronouns,
             selfSelectedPronouns: initialSelfSelectedPronouns,
             selectedTimezone: timezone.selected ?? CONST.DEFAULT_TIME_ZONE.selected,
             isAutomaticTimezone: timezone.automatic ?? CONST.DEFAULT_TIME_ZONE.automatic,
@@ -155,6 +156,7 @@ class ProfilePage extends Component {
                                         value={this.state.firstName}
                                         onChangeText={firstName => this.setState({firstName})}
                                         placeholder="John"
+                                        placeholderTextColor={themeColors.placeholderText}
                                     />
                                 </View>
                                 <View style={[styles.flex1, styles.ml2]}>
@@ -164,6 +166,7 @@ class ProfilePage extends Component {
                                         value={this.state.lastName}
                                         onChangeText={lastName => this.setState({lastName})}
                                         placeholder="Doe"
+                                        placeholderTextColor={themeColors.placeholderText}
                                     />
                                 </View>
                             </View>
@@ -189,6 +192,7 @@ class ProfilePage extends Component {
                                         value={this.state.selfSelectedPronouns}
                                         onChangeText={selfSelectedPronouns => this.setState({selfSelectedPronouns})}
                                         placeholder="Self-select your pronoun"
+                                        placeholderTextColor={themeColors.placeholderText}
                                     />
                                 )}
                             </View>
