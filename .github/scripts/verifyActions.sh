@@ -8,19 +8,8 @@ declare -r GREEN='\033[0;32m'
 declare -r RED='\033[0;31m'
 declare -r NC='\033[0m'
 
-# In order for this script to be safely run from anywhere, we cannot use the raw relative path '../scripts'
-declare SCRIPTS_DIR
-SCRIPTS_DIR="$(dirname "$(dirname "$0")")/scripts"
-
 declare LIB_PATH
-LIB_PATH="$(dirname "$(dirname "$0")")/temp/diff-so-fancy"
-
-# Clone diff-so-fancy repository
-if [ ! -d "$LIB_PATH/" ]; then
-    git clone https://github.com/so-fancy/diff-so-fancy.git $LIB_PATH
-else
-    echo -e "${GREEN}Library diff-so-fancy is already installed.${NC}"
-fi
+LIB_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd ../../ && pwd)/node_modules/diff-so-fancy"
 
 # Expose diff-so-fancy to path
 PATH=$LIB_PATH:$PATH
