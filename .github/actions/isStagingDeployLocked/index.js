@@ -18,7 +18,10 @@ const run = function () {
     const githubUtils = new GithubUtils(octokit);
 
     return githubUtils.getStagingDeployCash()
-        .then(({labels}) => core.setOutput('IS_LOCKED', _.contains(_.pluck(labels, 'name'), '🔐 LockCashDeploys 🔐')))
+        .then(({labels}) => {
+            console.log(`Found StagingDeployCash with labels: ${_.pluck(labels, 'name')}`);
+            core.setOutput('IS_LOCKED', _.contains(_.pluck(labels, 'name'), '🔐 LockCashDeploys 🔐'));
+        })
         .catch((err) => {
             console.warn('No open StagingDeployCash found, continuing...', err);
             core.setOutput('IS_LOCKED', false);

@@ -7,7 +7,7 @@ import {
     getPathFromState,
     NavigationContainer,
 } from '@react-navigation/native';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import {navigationRef} from './Navigation';
 import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
@@ -16,9 +16,14 @@ import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
+import {updateCurrentlyViewedReportID} from '../actions/Report';
+import {setCurrentURL} from '../actions/App';
 
 const propTypes = {
+    // Whether the current user is logged in with an authToken
     authenticated: PropTypes.bool.isRequired,
+
+    // The current reportID that we are navigated to or should show in the ReportScreen
     currentlyViewedReportID: PropTypes.string,
 };
 
@@ -43,11 +48,11 @@ class NavigationRoot extends Component {
                 // hooked up
                 const path = getPathName(initialUrl);
                 let initialState = getStateFromPath(path, linkingConfig.config);
-                Onyx.set(ONYXKEYS.CURRENT_URL, path);
+                setCurrentURL(path);
 
                 // If we are landing on something other than the report screen or site root then we MUST set the
                 // initial route to the currently viewed report so there some history to navigate back from
-                if (path !== ROUTES.HOME && !path.includes(ROUTES.REPORT)) {
+                if (path !== `/${ROUTES.HOME}` && !path.includes(`/${ROUTES.REPORT}`)) {
                     const homeRoute = {
                         name: 'Home',
                     };
@@ -99,11 +104,11 @@ class NavigationRoot extends Component {
                     if (path.includes(ROUTES.REPORT)) {
                         const reportID = Number(_.last(path.split('/')));
                         if (reportID && !_.isNaN(reportID)) {
-                            Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, String(reportID));
+                            updateCurrentlyViewedReportID(reportID);
                         }
                     }
 
-                    Onyx.merge(ONYXKEYS.CURRENT_URL, path);
+                    setCurrentURL(path);
                 }}
                 ref={navigationRef}
                 linking={linkingConfig}
