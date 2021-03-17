@@ -90,7 +90,7 @@ function setSecondaryLogin(login, password) {
     });
 }
 
-export default {
+export {
     changePassword,
     getBetas,
     fetch,
