@@ -322,6 +322,13 @@ function isSubscribed(channelName) {
  * @param {Object} payload
  */
 function sendEvent(channelName, eventName, payload) {
+    // Check to see if we are subscribed to this channel before sending the event. Sending client events over channels
+    // we are not subscribed too will throw errors and cause reconnection attempts. Subscriptions are not instant and
+    // can happen later than we expect.
+    if (!isSubscribed(channelName)) {
+        return;
+    }
+
     socket.send_event(eventName, payload, channelName);
 }
 

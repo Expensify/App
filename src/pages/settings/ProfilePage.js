@@ -132,116 +132,114 @@ class ProfilePage extends Component {
     render() {
         return (
             <ScreenWrapper>
-                {() => (
-                    <>
-                        <HeaderWithCloseButton
-                            title="Profile"
-                            shouldShowBackButton
-                            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                            onCloseButtonPress={Navigation.dismissModal}
+                <>
+                    <HeaderWithCloseButton
+                        title="Profile"
+                        shouldShowBackButton
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+                        onCloseButtonPress={Navigation.dismissModal}
+                    />
+                    <View style={styles.p5}>
+                        <Avatar
+                            style={[styles.avatarLarge, styles.alignSelfCenter]}
+                            source={this.props.myPersonalDetails.avatar}
                         />
-                        <View style={styles.p5}>
-                            <Avatar
-                                style={[styles.avatarLarge, styles.alignSelfCenter]}
-                                source={this.props.myPersonalDetails.avatar}
-                            />
-                            <Text style={[styles.mt6, styles.mb6, styles.textP]}>
-                                Tell us about yourself, we would love to get to know you!
-                            </Text>
-                            <View style={[styles.flexRow, styles.mb6]}>
-                                <View style={styles.flex1}>
-                                    <Text style={[styles.mb1, styles.formLabel]}>First Name</Text>
-                                    <TextInput
-                                        style={styles.textInput}
-                                        value={this.state.firstName}
-                                        onChangeText={firstName => this.setState({firstName})}
-                                        placeholder="John"
-                                        placeholderTextColor={themeColors.placeholderText}
-                                    />
-                                </View>
-                                <View style={[styles.flex1, styles.ml2]}>
-                                    <Text style={[styles.mb1, styles.formLabel]}>Last Name</Text>
-                                    <TextInput
-                                        style={styles.textInput}
-                                        value={this.state.lastName}
-                                        onChangeText={lastName => this.setState({lastName})}
-                                        placeholder="Doe"
-                                        placeholderTextColor={themeColors.placeholderText}
-                                    />
-                                </View>
-                            </View>
-                            <View style={styles.mb6}>
-                                <Text style={[styles.mb1, styles.formLabel]}>Preferred Pronouns</Text>
-                                <View style={styles.mb1}>
-                                    <RNPickerSelect
-                                        onValueChange={pronouns => this.setState({pronouns, selfSelectedPronouns: ''})}
-                                        items={this.pronounDropdownValues}
-                                        style={styles.picker}
-                                        useNativeAndroidPickerStyle={false}
-                                        placeholder={{
-                                            value: '',
-                                            label: 'Select your pronouns',
-                                        }}
-                                        value={this.state.pronouns}
-                                        Icon={() => <Icon src={DownArrow} />}
-                                    />
-                                </View>
-                                {this.state.pronouns === CONST.PRONOUNS.SELF_SELECT && (
-                                    <TextInput
-                                        style={styles.textInput}
-                                        value={this.state.selfSelectedPronouns}
-                                        onChangeText={selfSelectedPronouns => this.setState({selfSelectedPronouns})}
-                                        placeholder="Self-select your pronoun"
-                                        placeholderTextColor={themeColors.placeholderText}
-                                    />
-                                )}
-                            </View>
-                            <View style={styles.mb6}>
-                                <Text style={[styles.mb1, styles.formLabel]}>
-                                    {Str.isSMSLogin(this.props.myPersonalDetails.login)
-                                        ? 'Phone Number' : 'Email Address'}
-                                </Text>
+                        <Text style={[styles.mt6, styles.mb6, styles.textP]}>
+                            Tell us about yourself, we would love to get to know you!
+                        </Text>
+                        <View style={[styles.flexRow, styles.mb6]}>
+                            <View style={styles.flex1}>
+                                <Text style={[styles.mb1, styles.formLabel]}>First Name</Text>
                                 <TextInput
-                                    style={[styles.textInput, styles.disabledTextInput]}
-                                    value={Str.isSMSLogin(this.props.myPersonalDetails.login)
-                                        ? Str.removeSMSDomain(this.props.myPersonalDetails.login)
-                                        : this.props.myPersonalDetails.login}
-                                    editable={false}
+                                    style={styles.textInput}
+                                    value={this.state.firstName}
+                                    onChangeText={firstName => this.setState({firstName})}
+                                    placeholder="John"
+                                    placeholderTextColor={themeColors.placeholderText}
                                 />
                             </View>
-                            <View style={styles.mb3}>
-                                <Text style={[styles.mb1, styles.formLabel]}>Timezone</Text>
+                            <View style={[styles.flex1, styles.ml2]}>
+                                <Text style={[styles.mb1, styles.formLabel]}>Last Name</Text>
+                                <TextInput
+                                    style={styles.textInput}
+                                    value={this.state.lastName}
+                                    onChangeText={lastName => this.setState({lastName})}
+                                    placeholder="Doe"
+                                    placeholderTextColor={themeColors.placeholderText}
+                                />
+                            </View>
+                        </View>
+                        <View style={styles.mb6}>
+                            <Text style={[styles.mb1, styles.formLabel]}>Preferred Pronouns</Text>
+                            <View style={styles.mb1}>
                                 <RNPickerSelect
-                                    onValueChange={selectedTimezone => this.setState({selectedTimezone})}
-                                    items={timezones}
-                                    style={this.state.isAutomaticTimezone ? {
-                                        ...styles.picker,
-                                        inputIOS: [styles.picker.inputIOS, styles.textInput, styles.disabledTextInput],
-                                        inputAndroid: [
-                                            styles.picker.inputAndroid, styles.textInput, styles.disabledTextInput,
-                                        ],
-                                        inputWeb: [styles.picker.inputWeb, styles.textInput, styles.disabledTextInput],
-                                    } : styles.picker}
+                                    onValueChange={pronouns => this.setState({pronouns, selfSelectedPronouns: ''})}
+                                    items={this.pronounDropdownValues}
+                                    style={styles.picker}
                                     useNativeAndroidPickerStyle={false}
-                                    value={this.state.selectedTimezone}
+                                    placeholder={{
+                                        value: '',
+                                        label: 'Select your pronouns',
+                                    }}
+                                    value={this.state.pronouns}
                                     Icon={() => <Icon src={DownArrow} />}
-                                    disabled={this.state.isAutomaticTimezone}
                                 />
                             </View>
-                            <Checkbox
-                                label="Set my timezone automatically"
-                                isChecked={this.state.isAutomaticTimezone}
-                                onCheckboxClick={this.setAutomaticTimezone}
+                            {this.state.pronouns === CONST.PRONOUNS.SELF_SELECT && (
+                                <TextInput
+                                    style={styles.textInput}
+                                    value={this.state.selfSelectedPronouns}
+                                    onChangeText={selfSelectedPronouns => this.setState({selfSelectedPronouns})}
+                                    placeholder="Self-select your pronoun"
+                                    placeholderTextColor={themeColors.placeholderText}
+                                />
+                            )}
+                        </View>
+                        <View style={styles.mb6}>
+                            <Text style={[styles.mb1, styles.formLabel]}>
+                                {Str.isSMSLogin(this.props.myPersonalDetails.login)
+                                    ? 'Phone Number' : 'Email Address'}
+                            </Text>
+                            <TextInput
+                                style={[styles.textInput, styles.disabledTextInput]}
+                                value={Str.isSMSLogin(this.props.myPersonalDetails.login)
+                                    ? Str.removeSMSDomain(this.props.myPersonalDetails.login)
+                                    : this.props.myPersonalDetails.login}
+                                editable={false}
                             />
                         </View>
-                        <View style={styles.fixedBottomButton}>
-                            <ButtonWithLoader
-                                text="Save"
-                                onClick={this.updatePersonalDetails}
+                        <View style={styles.mb3}>
+                            <Text style={[styles.mb1, styles.formLabel]}>Timezone</Text>
+                            <RNPickerSelect
+                                onValueChange={selectedTimezone => this.setState({selectedTimezone})}
+                                items={timezones}
+                                style={this.state.isAutomaticTimezone ? {
+                                    ...styles.picker,
+                                    inputIOS: [styles.picker.inputIOS, styles.textInput, styles.disabledTextInput],
+                                    inputAndroid: [
+                                        styles.picker.inputAndroid, styles.textInput, styles.disabledTextInput,
+                                    ],
+                                    inputWeb: [styles.picker.inputWeb, styles.textInput, styles.disabledTextInput],
+                                } : styles.picker}
+                                useNativeAndroidPickerStyle={false}
+                                value={this.state.selectedTimezone}
+                                Icon={() => <Icon src={DownArrow} />}
+                                disabled={this.state.isAutomaticTimezone}
                             />
                         </View>
-                    </>
-                )}
+                        <Checkbox
+                            label="Set my timezone automatically"
+                            isChecked={this.state.isAutomaticTimezone}
+                            onCheckboxClick={this.setAutomaticTimezone}
+                        />
+                    </View>
+                    <View style={styles.fixedBottomButton}>
+                        <ButtonWithLoader
+                            text="Save"
+                            onClick={this.updatePersonalDetails}
+                        />
+                    </View>
+                </>
             </ScreenWrapper>
         );
     }

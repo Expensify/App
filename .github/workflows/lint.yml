@@ -3,6 +3,7 @@ name: Lint JavaScript
 on:
     pull_request:
         types: [opened, synchronize]
+        branches-ignore: [staging, production]
 
 jobs:
     lint:
