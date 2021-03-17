@@ -1101,6 +1101,7 @@ const styles = {
     switchThumb: {
         width: 22,
         height: 22,
+        borderRadius: 11,
     },
 
 };
