@@ -192,6 +192,7 @@ const styles = {
             borderColor: themeColors.border,
             color: themeColors.text,
             height: variables.componentSizeNormal,
+            opacity: 1,
         },
         inputWeb: {
             fontFamily: fontFamily.GTA,
@@ -206,6 +207,7 @@ const styles = {
             color: themeColors.text,
             appearance: 'none',
             height: variables.componentSizeNormal,
+            opacity: 1,
         },
         inputAndroid: {
             fontFamily: fontFamily.GTA,
@@ -219,6 +221,7 @@ const styles = {
             borderColor: themeColors.border,
             color: themeColors.text,
             height: variables.componentSizeNormal,
+            opacity: 1,
         },
         iconContainer: {
             top: 12,
