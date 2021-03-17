@@ -753,6 +753,13 @@ function handleReportChanged(report) {
     optimisticReportActionIDs[report.reportID] = report.optimisticReportActionIDs;
 }
 
+/**
+ * @param {Number} reportID
+ */
+function updateCurrentlyViewedReportID(reportID) {
+    Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, String(reportID));
+}
+
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     callback: handleReportChanged,
@@ -775,4 +782,5 @@ export {
     saveReportComment,
     broadcastUserIsTyping,
     togglePinnedState,
+    updateCurrentlyViewedReportID,
 };
