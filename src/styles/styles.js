@@ -1092,6 +1092,17 @@ const styles = {
         height: 24,
         lineHeight: 20,
     },
+
+    switchTrack: {
+        width: 50,
+        height: 28,
+    },
+
+    switchThumb: {
+        width: 22,
+        height: 22,
+    },
+
 };
 
 const baseCodeTagStyles = {

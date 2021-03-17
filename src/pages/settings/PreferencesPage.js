@@ -73,6 +73,10 @@ const PreferencesPage = ({priorityMode, user}) => (
                                     isOn={user.expensifyNewsStatus ?? true}
                                     onColor={colors.green}
                                     onToggle={setExpensifyNewsStatus}
+                                    trackOnStyle={styles.switchTrack}
+                                    trackOffStyle={styles.switchTrack}
+                                    thumbOnStyle={styles.switchThumb}
+                                    thumbOffStyle={styles.switchThumb}
                                 />
                             </View>
                         </View>
