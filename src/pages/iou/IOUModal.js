@@ -43,7 +43,7 @@ class IOUModal extends Component {
         this.addParticipants = this.addParticipants.bind(this);
         this.state = {
             currentStepIndex: 0,
-            userEmails: [],
+            participants: [],
             iouAmount: 42,
         };
     }
@@ -89,9 +89,10 @@ class IOUModal extends Component {
         }));
     }
 
-    addParticipants(userEmails) {
-        this.setState(userEmails);
-        this.navigateToNextStep();
+    addParticipants(participants) {
+        this.setState({
+            participants,
+        });
     }
 
     render() {
@@ -133,14 +134,16 @@ class IOUModal extends Component {
                 )}
                 {currentStep === Steps.IOUParticipants && (
                     <IOUParticipantsPage
+                        participants={this.state.participants}
                         hasMultipleParticipants={this.props.hasMultipleParticipants}
-                        onStepComplete={this.addParticipants}
+                        onAddParticipants={this.addParticipants}
+                        onStepComplete={this.navigateToNextStep}
                     />
                 )}
                 {currentStep === Steps.IOUConfirm && (
                     <IOUConfirmPage
                         onConfirm={() => console.debug('create IOU report')}
-                        participants={this.state.userEmails}
+                        participants={this.state.participants}
                         iouAmount={42}
                     />
                 )}
