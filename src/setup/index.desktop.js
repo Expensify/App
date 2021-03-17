@@ -9,7 +9,7 @@ export default function () {
         rootTag: document.getElementById('root'),
     });
 
-    ipcRenderer.on('update-downloaded', (_, version) => {
-        LocalNotification.showUpdateAvailableNotification({version});
+    ipcRenderer.on('update-downloaded', () => {
+        LocalNotification.showUpdateAvailableNotification();
     });
 }
