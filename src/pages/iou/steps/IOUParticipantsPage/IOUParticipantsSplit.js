@@ -159,7 +159,6 @@ class IOUParticipantsSplit extends Component {
 
         this.props.onAddParticipants(newSelectedOptions);
 
-
         this.setState((prevState) => {
             const {
                 recentReports,
@@ -179,7 +178,6 @@ class IOUParticipantsSplit extends Component {
             };
         });
     }
-
 
     render() {
         const maxParticipantsReached = this.props.participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
@@ -238,7 +236,6 @@ class IOUParticipantsSplit extends Component {
         );
     }
 }
-
 
 IOUParticipantsSplit.displayName = 'IOUParticipantsSplit';
 IOUParticipantsSplit.propTypes = propTypes;
