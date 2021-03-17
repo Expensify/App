@@ -63,10 +63,9 @@ describe('isPullRequestMergeable', () => {
         mockGetPullRequest
             .mockResolvedValue({data: {mergeable: true}})
             .mockResolvedValueOnce({data: {mergeable: null}})
-            .mockResolvedValueOnce({data: {mergeable: null}})
             .mockResolvedValueOnce({data: {mergeable: null}});
         return run().then(() => {
-            expect(mockGetPullRequest).toHaveBeenCalledTimes(4);
+            expect(mockGetPullRequest).toHaveBeenCalledTimes(3);
             expect(mockSetOutput).toHaveBeenCalledWith('IS_MERGEABLE', true);
         });
     });
@@ -75,10 +74,9 @@ describe('isPullRequestMergeable', () => {
         mockGetPullRequest
             .mockResolvedValue({data: {mergeable: false}})
             .mockResolvedValueOnce({data: {mergeable: null}})
-            .mockResolvedValueOnce({data: {mergeable: null}})
             .mockResolvedValueOnce({data: {mergeable: null}});
         return run().then(() => {
-            expect(mockGetPullRequest).toHaveBeenCalledTimes(4);
+            expect(mockGetPullRequest).toHaveBeenCalledTimes(3);
             expect(mockSetOutput).toHaveBeenCalledWith('IS_MERGEABLE', false);
         });
     });

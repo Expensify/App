@@ -13,13 +13,14 @@ const run = function () {
     console.log(`Checking the mergeability of PR #${pullRequestNumber}`);
     return promiseWhile(
         () => !mergeabilityResolved,
-        () => octokit.pulls.get({
+        _.throttle(() => octokit.pulls.get({
             owner: GITHUB_OWNER,
             repo: EXPENSIFY_CASH_REPO,
             pull_number: pullRequestNumber,
         })
             .then(({data}) => {
                 if (!_.isNull(data.mergeable)) {
+                    console.log('Pull request mergeability is not yet resolved...');
                     mergeabilityResolved = true;
                     isMergeable = data.mergeable;
                 }
@@ -28,7 +29,7 @@ const run = function () {
                 mergeabilityResolved = true;
                 console.error(`An error occurred fetching the PR from Github: ${JSON.stringify(githubError)}`);
                 core.setFailed(githubError);
-            }),
+            }), 2500),
     )
         .then(() => {
             console.log(`Pull request #${pullRequestNumber} is ${isMergeable ? '' : 'not '}mergeable`);
