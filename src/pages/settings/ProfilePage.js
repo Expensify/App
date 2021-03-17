@@ -38,7 +38,7 @@ const propTypes = {
         lastName: PropTypes.string,
 
         // Avatar URL of the current user from their personal details
-        avatarURL: PropTypes.string,
+        avatar: PropTypes.string,
 
         // Pronouns of the current user from their personal details
         pronouns: PropTypes.string,
@@ -75,12 +75,13 @@ class ProfilePage extends Component {
             pronouns,
             timezone = {},
         } = props.myPersonalDetails;
-        const pronounValues = Object.values(CONST.PRONOUNS);
+        const pronounsList = Object.values(CONST.PRONOUNS);
 
         let initialPronouns = pronouns;
         let initialSelfSelectedPronouns = '';
 
-        if (pronouns && !pronounValues.includes(pronouns)) {
+        // This handles populating the self-selected pronouns in the form
+        if (pronouns && !pronounsList.includes(pronouns)) {
             initialPronouns = CONST.PRONOUNS.SELF_SELECT;
             initialSelfSelectedPronouns = pronouns;
         }
@@ -94,8 +95,16 @@ class ProfilePage extends Component {
             isAutomaticTimezone: timezone.automatic ?? CONST.DEFAULT_TIME_ZONE.automatic,
         };
 
-        this.pronounDropdownValues = pronounValues.map(pronoun => ({value: pronoun, label: pronoun}));
+        this.pronounDropdownValues = pronounsList.map(pronoun => ({value: pronoun, label: pronoun}));
         this.updatePersonalDetails = this.updatePersonalDetails.bind(this);
+        this.setAutomaticTimezone = this.setAutomaticTimezone.bind(this);
+    }
+
+    setAutomaticTimezone(isAutomaticTimezone) {
+        this.setState(({selectedTimezone}) => ({
+            isAutomaticTimezone,
+            selectedTimezone: isAutomaticTimezone ? moment.tz.guess() : selectedTimezone,
+        }));
     }
 
     updatePersonalDetails() {
@@ -133,7 +142,7 @@ class ProfilePage extends Component {
                         <View style={styles.p5}>
                             <Avatar
                                 style={[styles.avatarLarge, styles.alignSelfCenter]}
-                                source={this.props.myPersonalDetails.avatarURL}
+                                source={this.props.myPersonalDetails.avatar}
                             />
                             <Text style={[styles.mt6, styles.mb6, styles.textP]}>
                                 Tell us about yourself, we would love to get to know you!
@@ -190,7 +199,9 @@ class ProfilePage extends Component {
                                 </Text>
                                 <TextInput
                                     style={[styles.textInput, styles.disabledTextInput]}
-                                    value={this.props.myPersonalDetails.login}
+                                    value={Str.isSMSLogin(this.props.myPersonalDetails.login)
+                                        ? Str.removeSMSDomain(this.props.myPersonalDetails.login)
+                                        : this.props.myPersonalDetails.login}
                                     editable={false}
                                 />
                             </View>
@@ -216,7 +227,7 @@ class ProfilePage extends Component {
                             <Checkbox
                                 label="Set my timezone automatically"
                                 isChecked={this.state.isAutomaticTimezone}
-                                onCheckboxClick={isAutomaticTimezone => this.setState({isAutomaticTimezone})}
+                                onCheckboxClick={this.setAutomaticTimezone}
                             />
                         </View>
                         <View style={styles.fixedBottomButton}>
