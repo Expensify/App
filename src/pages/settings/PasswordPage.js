@@ -30,6 +30,9 @@ const defaultProps = {
     account: {},
 };
 
+// at least 8 characters, 1 capital letter, 1 lowercase number, 1 number
+const passwordComplexityRegexString = '^(?=.*[A-Z])(?=.*[0-9])(?=.*[a-z]).{8,}$';
+
 class PasswordPage extends Component {
     constructor(props) {
         super(props);
@@ -38,6 +41,7 @@ class PasswordPage extends Component {
             currentPassword: '',
             newPassword: '',
             confirmNewPassword: '',
+            isPasswordRequirementsVisible: false,
         };
 
         this.handleChangePassword = this.handleChangePassword.bind(this);
@@ -91,7 +95,15 @@ class PasswordPage extends Component {
                                 style={styles.textInput}
                                 value={this.state.newPassword}
                                 onChangeText={newPassword => this.setState({newPassword})}
+                                onFocus={() => this.setState({isPasswordRequirementsVisible: true})}
+                                onBlur={() => this.setState({isPasswordRequirementsVisible: false})}
                             />
+                            {this.state.isPasswordRequirementsVisible && (
+                                <Text style={[styles.textMicro, styles.colorMuted, styles.mt1]}>
+                                    New password must be different than your old password, have at least 8 characters,
+                                    1 capital letter, 1 lowercase number, 1 number.
+                                </Text>
+                            )}
                         </View>
                         <View style={styles.mb6}>
                             <Text style={[styles.mb1, styles.formLabel]}>Confirm New Password*</Text>
@@ -116,7 +128,8 @@ class PasswordPage extends Component {
                             isDisabled={!this.state.currentPassword || !this.state.newPassword
                                 || !this.state.confirmNewPassword
                                 || (this.state.newPassword !== this.state.confirmNewPassword)
-                                || (this.state.currentPassword === this.state.newPassword)}
+                                || (this.state.currentPassword === this.state.newPassword)
+                                || !this.state.newPassword.match(passwordComplexityRegexString)}
                             isLoading={this.props.account.loading}
                             text="Save"
                             onClick={this.handleChangePassword}
