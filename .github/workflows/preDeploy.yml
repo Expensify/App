@@ -70,7 +70,8 @@ jobs:
 
         # TODO: Remove once we know that automerge doesn't infinitely loop with this action
       - name: Quit early
-        run: if [[ ${{ steps.checkCurrentVersion.outputs.CURRENT_VERSION == '1.0.2-60' }} ]]; then exit 1; fi;
+        if: ${{ steps.checkCurrentVersion.outputs.CURRENT_VERSION == '1.0.2-60' }}
+        run: exit 1
 
       - uses: softprops/turnstyle@8db075d65b19bf94e6e8687b504db69938dc3c65
         with:
