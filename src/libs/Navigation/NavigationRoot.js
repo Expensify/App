@@ -103,7 +103,7 @@ class NavigationRoot extends Component {
                     const path = getPathFromState(state, linkingConfig.config);
                     if (path.includes(ROUTES.REPORT)) {
                         const reportID = Number(_.last(path.split('/')));
-                        if (!_.isNaN(reportID)) {
+                        if (reportID && !_.isNaN(reportID)) {
                             updateCurrentlyViewedReportID(reportID);
                         }
                     }
