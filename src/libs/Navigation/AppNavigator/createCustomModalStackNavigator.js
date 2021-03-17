@@ -12,16 +12,28 @@ import compose from '../../compose';
 import CONST from '../../../CONST';
 
 const propTypes = {
-    // Internal react-navigation stuff used to determine which view we should display
+    // Navigation state for this navigator
+    // See: https://reactnavigation.org/docs/navigation-state/
     state: PropTypes.shape({
+        // Index of the focused route object in the routes array
         index: PropTypes.number,
+
+        // List of route objects (screens) which are rendered in the navigator. It also represents the history in a
+        // stack navigator. There should be at least one item present in this array.
         routes: PropTypes.arrayOf(PropTypes.shape({
+
+            // A unique key name for a screen. Created automatically by react-nav.
             key: PropTypes.string,
         })),
     }).isRequired,
 
-    // The current view object that has a render method to call
+    // Object containing descriptors for each route with the route keys as its properties
+    // See: https://reactnavigation.org/docs/custom-navigators/#usenavigationbuilder
+    // eslint-disable-next-line react/no-unused-prop-types
     descriptors: PropTypes.objectOf(PropTypes.shape({
+
+        // A function which can be used to render the actual screen. Calling descriptors[route.key].render() will return
+        // a React element containing the screen content.
         render: PropTypes.func,
     })).isRequired,
 
@@ -36,33 +48,36 @@ const defaultProps = {
     currentURL: '',
 };
 
-
-class ResponsiveView extends React.Component {
-    getCurrentViewDescriptor() {
-        const currentRoute = this.props.state.routes[this.props.state.index];
-        const currentRouteKey = currentRoute.key;
-        const currentDescriptor = this.props.descriptors[currentRouteKey];
-        return currentDescriptor;
-    }
-
-    render() {
-        const currentViewDescriptor = this.getCurrentViewDescriptor();
-        return (
-            <Modal
-                isVisible={this.props.currentURL
-                    && this.props.currentURL.includes(this.props.path)}
-                backgroundColor={themeColors.componentBG}
-                type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
-                onClose={() => Navigation.dismissModal()}
-            >
-                {currentViewDescriptor.render()}
-            </Modal>
-        );
-    }
+/**
+ * Returns the current descriptor for the focused screen in this navigators state. The descriptor has a function
+ * called render() that we must call each time this navigator updates. It's important to use this method to render
+ * a screen, otherwise any child navigators won't be connected to the navigation tree properly.
+ *
+ * @param {Object} props
+ * @returns {Object}
+ */
+function getCurrentViewDescriptor(props) {
+    const currentRoute = props.state.routes[props.state.index];
+    const currentRouteKey = currentRoute.key;
+    const currentDescriptor = props.descriptors[currentRouteKey];
+    return currentDescriptor;
 }
+
+const ResponsiveView = props => (
+    <Modal
+        isVisible={props.currentURL
+            && props.currentURL.includes(props.path)}
+        backgroundColor={themeColors.componentBG}
+        type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
+        onClose={Navigation.dismissModal}
+    >
+        {getCurrentViewDescriptor(props).render()}
+    </Modal>
+);
 
 ResponsiveView.propTypes = propTypes;
 ResponsiveView.defaultProps = defaultProps;
+ResponsiveView.displayName = 'ResponsiveView';
 
 const ResponsiveViewWithHOCs = compose(
     withWindowDimensions,

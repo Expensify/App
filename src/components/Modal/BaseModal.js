@@ -14,12 +14,22 @@ class BaseModal extends PureComponent {
     constructor(props) {
         super(props);
 
+        this.hideModalAndRemoveEventListeners = this.hideModalAndRemoveEventListeners.bind(this);
         this.subscribeToKeyEvents = this.subscribeToKeyEvents.bind(this);
         this.unsubscribeFromKeyEvents = this.unsubscribeFromKeyEvents.bind(this);
     }
 
     componentWillUnmount() {
+        this.hideModalAndRemoveEventListeners();
+    }
+
+    /**
+     * Hides modal and unsubscribes from key event listeners
+     */
+    hideModalAndRemoveEventListeners() {
         this.unsubscribeFromKeyEvents();
+        setModalVisibility(false);
+        this.props.onModalHide();
     }
 
     /**
@@ -65,11 +75,7 @@ class BaseModal extends PureComponent {
                     this.subscribeToKeyEvents();
                     setModalVisibility(true);
                 }}
-                onModalHide={() => {
-                    this.unsubscribeFromKeyEvents();
-                    setModalVisibility(false);
-                    this.props.onModalHide();
-                }}
+                onModalHide={this.hideModalAndRemoveEventListeners}
                 onSwipeComplete={this.props.onClose}
                 swipeDirection={swipeDirection}
                 isVisible={this.props.isVisible}
