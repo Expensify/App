@@ -31,7 +31,6 @@ function isAuthTokenRequired(command) {
         'Graphite_Timer',
         'Authenticate',
         'GetAccountStatus',
-        'SetGithubUsername',
         'SetPassword',
         'User_SignUp',
         'ResendValidateCode',
@@ -542,17 +541,6 @@ function ResendValidateCode(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.githubUsername
- * @returns {Promise}
- */
-function SetGithubUsername(parameters) {
-    const commandName = 'SetGithubUsername';
-    requireParameters(['email', 'githubUsername'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.password
  * @param {String} parameters.validateCode
  * @returns {Promise}
@@ -654,7 +642,6 @@ export {
     Report_TogglePinned,
     Report_UpdateLastRead,
     ResendValidateCode,
-    SetGithubUsername,
     SetNameValuePair,
     SetPassword,
     UpdateAccount,
