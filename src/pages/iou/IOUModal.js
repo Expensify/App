@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
-import {redirectToLastReport} from '../../libs/actions/App';
 import IOUAmountPage from './steps/IOUAmountPage';
 import IOUParticipantsPage from './steps/IOUParticipantsPage';
 import IOUConfirmPage from './steps/IOUConfirmPage';
@@ -10,6 +9,7 @@ import styles from '../../styles/styles';
 import Icon from '../../components/Icon';
 import {getPreferredCurrency} from '../../libs/actions/IOU';
 import {Close, BackArrow} from '../../components/Icon/Expensicons';
+import Navigation from '../../libs/Navigation/Navigation';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -40,8 +40,11 @@ class IOUModal extends Component {
         this.navigateToPreviousStep = this.navigateToPreviousStep.bind(this);
         this.navigateToNextStep = this.navigateToNextStep.bind(this);
 
+        this.addParticipants = this.addParticipants.bind(this);
         this.state = {
             currentStepIndex: 0,
+            participants: [],
+            iouAmount: 42,
         };
     }
 
@@ -54,7 +57,11 @@ class IOUModal extends Component {
      *
      * @returns {String}
      */
+
     getTitleForStep() {
+        if (this.state.currentStepIndex === 1) {
+            return `${this.props.hasMultipleParticipants ? 'Split' : 'Request'} $${this.state.iouAmount}`;
+        }
         return steps[this.state.currentStepIndex] || '';
     }
 
@@ -80,6 +87,12 @@ class IOUModal extends Component {
         this.setState(prevState => ({
             currentStepIndex: prevState.currentStepIndex + 1,
         }));
+    }
+
+    addParticipants(participants) {
+        this.setState({
+            participants,
+        });
     }
 
     render() {
@@ -108,7 +121,7 @@ class IOUModal extends Component {
                         <Header title={this.getTitleForStep()} />
                         <View style={[styles.reportOptions, styles.flexRow]}>
                             <TouchableOpacity
-                                onPress={redirectToLastReport}
+                                onPress={Navigation.dismissModal}
                                 style={[styles.touchableButtonImage]}
                             >
                                 <Icon src={Close} />
@@ -121,14 +134,16 @@ class IOUModal extends Component {
                 )}
                 {currentStep === Steps.IOUParticipants && (
                     <IOUParticipantsPage
+                        participants={this.state.participants}
                         hasMultipleParticipants={this.props.hasMultipleParticipants}
+                        onAddParticipants={this.addParticipants}
                         onStepComplete={this.navigateToNextStep}
                     />
                 )}
                 {currentStep === Steps.IOUConfirm && (
                     <IOUConfirmPage
                         onConfirm={() => console.debug('create IOU report')}
-                        participants={[]}
+                        participants={this.state.participants}
                         iouAmount={42}
                     />
                 )}

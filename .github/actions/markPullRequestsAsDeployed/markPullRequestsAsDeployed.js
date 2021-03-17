@@ -8,7 +8,7 @@ const isProd = JSON.parse(
 );
 const token = core.getInput('GITHUB_TOKEN', {required: true});
 const date = new Date();
-const message = `Deployed to ${
+const message = `🚀 Deployed 🚀 to ${
     isProd ? 'production' : 'staging'
 } on ${date.toDateString()} at ${date.toTimeString()}`;
 
@@ -21,10 +21,10 @@ const githubUtils = new GithubUtils(octokit);
 prList.forEach((pr) => {
     githubUtils.createComment(github.context.repo.repo, pr, message, octokit)
         .then(() => {
-            console.log(`Comment created on #${pr} successfully`);
+            console.log(`Comment created on #${pr} successfully 🎉`);
         })
         .catch((err) => {
-            console.log(`Unable to write comment on #${pr}`);
+            console.log(`Unable to write comment on #${pr} 😞`);
             core.setFailed(err.message);
         });
 });

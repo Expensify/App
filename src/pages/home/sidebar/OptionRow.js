@@ -68,7 +68,9 @@ const OptionRow = ({
     return (
         <Hoverable>
             {hovered => (
-                <View
+                <TouchableOpacity
+                    onPress={() => onSelectRow(option)}
+                    activeOpacity={0.8}
                     style={[
                         styles.flexRow,
                         styles.alignItemsCenter,
@@ -79,13 +81,12 @@ const OptionRow = ({
                         hovered && !optionIsFocused ? hoverStyle : null,
                     ]}
                 >
-                    <TouchableOpacity
-                        onPress={() => onSelectRow(option)}
-                        activeOpacity={0.8}
+                    <View
                         style={StyleSheet.flatten([
                             styles.chatLinkRowPressable,
                             styles.flexGrow1,
                             styles.optionItemAvatarNameWrapper,
+                            styles.sidebarInnerRow,
                         ])}
                     >
                         <View
@@ -124,9 +125,9 @@ const OptionRow = ({
                                 </View>
                             )}
                         </View>
-                    </TouchableOpacity>
+                    </View>
                     {!hideAdditionalOptionStates && (
-                        <View style={styles.flexRow}>
+                        <View style={[styles.flexRow, styles.pr5]}>
                             {option.hasDraftComment && (
                                 <View style={styles.ml2}>
                                     <Icon src={Pencil} />
@@ -139,7 +140,7 @@ const OptionRow = ({
                             )}
                         </View>
                     )}
-                </View>
+                </TouchableOpacity>
             )}
         </Hoverable>
     );

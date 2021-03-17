@@ -8,7 +8,7 @@ const UpdateAppModal = (props) => {
         if (props.onSubmit) {
             props.onSubmit();
         }
-        ipcRenderer.sendSync('start-update', props.version);
+        ipcRenderer.sendSync('start-update');
     };
     return <BaseUpdateAppModal onSubmit={updateApp} />;
 };

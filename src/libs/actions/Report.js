@@ -8,12 +8,11 @@ import * as Pusher from '../Pusher/pusher';
 import LocalNotification from '../Notification/LocalNotification';
 import PushNotification from '../Notification/PushNotification';
 import * as PersonalDetails from './PersonalDetails';
-import {redirect} from './App';
+import Navigation from '../Navigation/Navigation';
 import * as ActiveClientManager from '../ActiveClientManager';
 import Visibility from '../Visibility';
 import ROUTES from '../../ROUTES';
 import NetworkConnection from '../NetworkConnection';
-import {hide as hideSidebar} from './Sidebar';
 import Timing from './Timing';
 import * as API from '../API';
 import CONST from '../../CONST';
@@ -30,12 +29,6 @@ Onyx.connect({
             currentUserAccountID = val.accountID;
         }
     },
-});
-
-let currentURL;
-Onyx.connect({
-    key: ONYXKEYS.CURRENT_URL,
-    callback: val => currentURL = val,
 });
 
 let lastViewedReportID;
@@ -245,6 +238,7 @@ function removeOptimisticActions(reportID) {
 function updateReportWithNewAction(reportID, reportAction) {
     const newMaxSequenceNumber = reportAction.sequenceNumber;
     const isFromCurrentUser = reportAction.actorAccountID === currentUserAccountID;
+    const lastReadSequenceNumber = lastReadSequenceNumbers[reportID] || 0;
 
     // When handling an action from the current users we can assume that their
     // last read actionID has been updated in the server but not necessarily reflected
@@ -258,14 +252,21 @@ function updateReportWithNewAction(reportID, reportAction) {
     // Always merge the reportID into Onyx
     // If the report doesn't exist in Onyx yet, then all the rest of the data will be filled out
     // by handleReportChanged
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+    const updatedReportObject = {
         reportID,
-        unreadActionCount: newMaxSequenceNumber - (lastReadSequenceNumbers[reportID] || 0),
+        unreadActionCount: newMaxSequenceNumber - lastReadSequenceNumber,
         maxSequenceNumber: reportAction.sequenceNumber,
-        lastMessageTimestamp: reportAction.timestamp,
-        lastMessageText: messageText,
-        lastActorEmail: reportAction.actorEmail,
-    });
+    };
+
+    // If the report action from pusher is a higher sequence number than we know about (meaning it has come from
+    // a chat participant in another application), then the last message text and author needs to be updated as well
+    if (newMaxSequenceNumber > lastReadSequenceNumber) {
+        updatedReportObject.lastMessageTimestamp = reportAction.timestamp;
+        updatedReportObject.lastMessageText = messageText;
+        updatedReportObject.lastActorEmail = reportAction.actorEmail;
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, updatedReportObject);
 
     const reportActionsToMerge = {};
     if (reportAction.clientID) {
@@ -309,7 +310,7 @@ function updateReportWithNewAction(reportID, reportAction) {
         reportAction,
         onClick: () => {
             // Navigate to this report onClick
-            redirect(ROUTES.getReportRoute(reportID));
+            Navigation.navigate(ROUTES.getReportRoute(reportID));
         },
     });
 }
@@ -356,8 +357,7 @@ function subscribeToReportCommentEvents() {
 
     // Open correct report when push notification is clicked
     PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, ({reportID}) => {
-        redirect(ROUTES.getReportRoute(reportID));
-        hideSidebar();
+        Navigation.navigate(ROUTES.getReportRoute(reportID));
     });
 }
 
@@ -466,7 +466,7 @@ function fetchOrCreateChatReport(participants) {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID});
 
             // Redirect the logged in person to the new report
-            redirect(ROUTES.getReportRoute(reportID));
+            Navigation.navigate(ROUTES.getReportRoute(reportID));
         });
 }
 
@@ -492,6 +492,8 @@ function fetchChatReports() {
             } else {
                 fetchOrCreateChatReport([currentUserEmail, 'concierge@expensify.com']);
             }
+
+            return response.chatList;
         });
 }
 
@@ -543,13 +545,16 @@ function fetchActions(reportID, offset) {
 function fetchAll(shouldRedirectToReport = true, shouldRecordHomePageTiming = false) {
     fetchChatReports()
         .then((reportIDs) => {
-            if (shouldRedirectToReport && (currentURL === ROUTES.ROOT || currentURL === ROUTES.HOME)) {
-                // Redirect to either the last viewed report ID or the first report ID from our report collection
+            if (shouldRedirectToReport) {
+                // Update currentlyViewedReportID to be our first reportID from our report collection if we don't have
+                // one already.
                 if (lastViewedReportID) {
-                    redirect(ROUTES.getReportRoute(lastViewedReportID));
-                } else {
-                    redirect(ROUTES.getReportRoute(_.first(reportIDs)));
+                    return;
                 }
+
+                const firstReportID = _.first(reportIDs);
+                const currentReportID = firstReportID ? String(firstReportID) : '';
+                Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, currentReportID);
             }
 
             Log.info('[Report] Fetching report actions for reports', true, {reportIDs});
@@ -573,17 +578,24 @@ function fetchAll(shouldRedirectToReport = true, shouldRecordHomePageTiming = fa
 function addAction(reportID, text, file) {
     // Convert the comment from MD into HTML because that's how it is stored in the database
     const parser = new ExpensiMark();
-    const htmlComment = parser.replace(text);
+    const commentText = parser.replace(text);
     const isAttachment = _.isEmpty(text) && file !== undefined;
 
     // The new sequence number will be one higher than the highest
     const highestSequenceNumber = reportMaxSequenceNumbers[reportID] || 0;
     const newSequenceNumber = highestSequenceNumber + 1;
+    const htmlForNewComment = isAttachment ? 'Uploading Attachment...' : commentText;
+
+    // Remove HTML from text when applying optimistic offline comment
+    const textForNewComment = isAttachment ? '[Attachment]'
+        : htmlForNewComment.replace(/<[^>]*>?/gm, '');
 
     // Update the report in Onyx to have the new sequence number
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         maxSequenceNumber: newSequenceNumber,
         lastMessageTimestamp: moment().unix(),
+        lastMessageText: textForNewComment,
+        lastActorEmail: currentUserEmail,
     });
 
     // Generate a clientID so we can save the optimistic action to storage with the clientID as key. Later, we will
@@ -626,11 +638,8 @@ function addAction(reportID, text, file) {
             message: [
                 {
                     type: 'COMMENT',
-                    html: isAttachment ? 'Uploading Attachment...' : htmlComment,
-
-                    // Remove HTML from text when applying optimistic offline comment
-                    text: isAttachment ? '[Attachment]'
-                        : htmlComment.replace(/<[^>]*>?/gm, ''),
+                    html: htmlForNewComment,
+                    text: textForNewComment,
                 },
             ],
             isFirstItem: false,
@@ -642,7 +651,7 @@ function addAction(reportID, text, file) {
 
     API.Report_AddComment({
         reportID,
-        reportComment: htmlComment,
+        reportComment: htmlForNewComment,
         file,
         clientID: optimisticReportActionID,
 
@@ -738,6 +747,13 @@ function handleReportChanged(report) {
     optimisticReportActionIDs[report.reportID] = report.optimisticReportActionIDs;
 }
 
+/**
+ * @param {Number} reportID
+ */
+function updateCurrentlyViewedReportID(reportID) {
+    Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, String(reportID));
+}
+
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     callback: handleReportChanged,
@@ -760,4 +776,5 @@ export {
     saveReportComment,
     broadcastUserIsTyping,
     togglePinnedState,
+    updateCurrentlyViewedReportID,
 };
