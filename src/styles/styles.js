@@ -1102,6 +1102,7 @@ const styles = {
         width: 22,
         height: 22,
         borderRadius: 11,
+        shadowOpacity: 0,
     },
 
 };
