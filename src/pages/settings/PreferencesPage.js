@@ -86,8 +86,8 @@ const PreferencesPage = ({priorityMode, user}) => (
                     {/* placeholder from appearing as a selection option. */}
                     <RNPickerSelect
                         onValueChange={
-                                    mode => NameValuePair.set(CONST.NVP.PRIORITY_MODE, mode, ONYXKEYS.PRIORITY_MODE)
-                                }
+                            mode => NameValuePair.set(CONST.NVP.PRIORITY_MODE, mode, ONYXKEYS.PRIORITY_MODE)
+                        }
                         items={Object.values(priorityModes)}
                         style={styles.picker}
                         useNativeAndroidPickerStyle={false}
