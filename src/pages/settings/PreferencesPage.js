@@ -51,60 +51,56 @@ const priorityModes = {
 
 const PreferencesPage = ({priorityMode, user}) => (
     <ScreenWrapper>
-        {() => (
-            <>
-                <HeaderWithCloseButton
-                    title="Preferences"
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                    onCloseButtonPress={Navigation.dismissModal}
-                />
-                <View style={styles.pageWrapper}>
-                    <View style={[styles.settingsPageBody, styles.mb6]}>
-                        <Text style={[styles.formLabel]} numberOfLines={1}>Notifications</Text>
-                        <View style={[styles.flexRow, styles.mb6, styles.justifyContentBetween]}>
-                            <View style={styles.flex4}>
-                                <Text>
-                                    Receive relevant feature updates and Expensify news
-                                </Text>
-                            </View>
-                            <View style={[styles.flex1, styles.alignItemsEnd]}>
-                                <ToggleSwitch
-                                    isOn={user.expensifyNewsStatus ?? true}
-                                    onColor={colors.green}
-                                    onToggle={setExpensifyNewsStatus}
-                                    trackOnStyle={styles.switchTrack}
-                                    trackOffStyle={styles.switchTrack}
-                                    thumbOnStyle={styles.switchThumb}
-                                    thumbOffStyle={styles.switchThumb}
-                                />
-                            </View>
-                        </View>
-                        <Text style={[styles.formLabel]} numberOfLines={1}>
-                            Priority Mode
-                        </Text>
-                        <View style={[styles.mb2]}>
-                            {/* empty object in placeholder below to prevent default */}
-                            {/* placeholder from appearing as a selection option. */}
-                            <RNPickerSelect
-                                onValueChange={
-                                    mode => NameValuePair.set(CONST.NVP.PRIORITY_MODE, mode, ONYXKEYS.PRIORITY_MODE)
-                                }
-                                items={Object.values(priorityModes)}
-                                style={styles.picker}
-                                useNativeAndroidPickerStyle={false}
-                                placeholder={{}}
-                                value={priorityMode}
-                                Icon={() => <Icon src={DownArrow} />}
-                            />
-                        </View>
-                        <Text style={[styles.textLabel, styles.colorMuted]}>
-                            {priorityModes[priorityMode].description}
+        <HeaderWithCloseButton
+            title="Preferences"
+            shouldShowBackButton
+            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+            onCloseButtonPress={Navigation.dismissModal}
+        />
+        <View style={styles.pageWrapper}>
+            <View style={[styles.settingsPageBody, styles.mb6]}>
+                <Text style={[styles.formLabel]} numberOfLines={1}>Notifications</Text>
+                <View style={[styles.flexRow, styles.mb6, styles.justifyContentBetween]}>
+                    <View style={styles.flex4}>
+                        <Text>
+                            Receive relevant feature updates and Expensify news
                         </Text>
                     </View>
+                    <View style={[styles.flex1, styles.alignItemsEnd]}>
+                        <ToggleSwitch
+                            isOn={user.expensifyNewsStatus ?? true}
+                            onColor={colors.green}
+                            onToggle={setExpensifyNewsStatus}
+                            trackOnStyle={styles.switchTrack}
+                            trackOffStyle={styles.switchTrack}
+                            thumbOnStyle={styles.switchThumb}
+                            thumbOffStyle={styles.switchThumb}
+                        />
+                    </View>
                 </View>
-            </>
-        )}
+                <Text style={[styles.formLabel]} numberOfLines={1}>
+                    Priority Mode
+                </Text>
+                <View style={[styles.mb2]}>
+                    {/* empty object in placeholder below to prevent default */}
+                    {/* placeholder from appearing as a selection option. */}
+                    <RNPickerSelect
+                        onValueChange={
+                                    mode => NameValuePair.set(CONST.NVP.PRIORITY_MODE, mode, ONYXKEYS.PRIORITY_MODE)
+                                }
+                        items={Object.values(priorityModes)}
+                        style={styles.picker}
+                        useNativeAndroidPickerStyle={false}
+                        placeholder={{}}
+                        value={priorityMode}
+                        Icon={() => <Icon src={DownArrow} />}
+                    />
+                </View>
+                <Text style={[styles.textLabel, styles.colorMuted]}>
+                    {priorityModes[priorityMode].description}
+                </Text>
+            </View>
+        </View>
     </ScreenWrapper>
 );
 
