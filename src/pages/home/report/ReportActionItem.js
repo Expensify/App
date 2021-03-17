@@ -17,6 +17,9 @@ import ReportActionContextMenu from './ReportActionContextMenu';
 import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
 
 const propTypes = {
+    // The index of this action in the flatList
+    index: PropTypes.number.isRequired,
+
     // The ID of the report this action is on.
     reportID: PropTypes.number.isRequired,
 
@@ -29,16 +32,22 @@ const propTypes = {
     // Function to trigger when mark as unread is selected
     onMarkAsUnread: PropTypes.func.isRequired,
 
-    // If true, display the New indicator above this item
-    displayNewIndicator: PropTypes.bool.isRequired,
-
     /* --- Onyx Props --- */
     // List of betas for the current user.
     betas: PropTypes.arrayOf(PropTypes.string),
+
+    // The report currently being looked at
+    report: PropTypes.shape({
+        // Number of actions unread
+        unreadActionCount: PropTypes.number,
+    }),
 };
 
 const defaultProps = {
     betas: {},
+    report: {
+        unreadActionCount: 0,
+    },
 };
 
 class ReportActionItem extends Component {
@@ -61,10 +70,14 @@ class ReportActionItem extends Component {
     }
 
     shouldComponentUpdate(nextProps, nextState) {
+        const hasNewDisplayChanged = nextProps.report.unreadActionCount > 0
+            && ((this.props.index === this.props.report.unreadActionCount - 1)
+                !== (nextProps.index === nextProps.report.unreadActionCount - 1));
+
         return this.state.isPopoverVisible !== nextState.isPopoverVisible
             || this.props.displayAsGroup !== nextProps.displayAsGroup
-            || !_.isEqual(this.props.action, nextProps.action)
-            || this.props.displayNewIndicator !== nextProps.displayNewIndicator;
+            || hasNewDisplayChanged
+            || !_.isEqual(this.props.action, nextProps.action);
     }
 
     /**
@@ -110,12 +123,14 @@ class ReportActionItem extends Component {
     }
 
     render() {
+        const displayNewIndicator = this.props.report.unreadActionCount > 0
+            && this.props.index === this.props.report.unreadActionCount - 1;
         return (
             <PressableWithSecondaryInteraction onSecondaryInteraction={this.showPopover}>
                 <Hoverable>
                     {hovered => (
                         <View>
-                            {this.props.displayNewIndicator && (<UnreadActionIndicator />)}
+                            {displayNewIndicator && <UnreadActionIndicator />}
                             <View style={getReportActionItemStyles(hovered)}>
                                 {!this.props.displayAsGroup
                                     ? <ReportActionItemSingle action={this.props.action} />
@@ -144,7 +159,6 @@ class ReportActionItem extends Component {
                                         isVisible
                                         reportID={-1}
                                         reportActionID={-1}
-                                        onMarkAsUnread={() => {}}
                                     />
                                 )}
                             >
@@ -169,5 +183,8 @@ ReportActionItem.defaultProps = defaultProps;
 export default withOnyx({
     betas: {
         key: ONYXKEYS.BETAS,
+    },
+    report: {
+        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
     },
 })(ReportActionItem);

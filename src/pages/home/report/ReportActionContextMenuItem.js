@@ -27,9 +27,17 @@ function getButtonState(isHovered = false, isPressed = false) {
 }
 
 const propTypes = {
+
+    // Icon to display in the menu
     icon: PropTypes.elementType.isRequired,
+
+    // Text for the action
     text: PropTypes.string.isRequired,
+
+    // If true, we are displaying the mini hover-menu
     isMini: PropTypes.bool,
+
+    // Function to trigger when the action is pressed
     onPress: PropTypes.func,
 };
 

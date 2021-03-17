@@ -7,41 +7,6 @@ import {
 import getReportActionContextMenuStyles from '../../../styles/getReportActionContextMenuStyles';
 import ReportActionContextMenuItem from './ReportActionContextMenuItem';
 
-/**
- * A list of all the context actions in this menu.
- */
-const CONTEXT_ACTIONS = [
-    // Copy to clipboard
-    {
-        text: 'Copy to Clipboard',
-        icon: Clipboard,
-    },
-
-    // Copy chat link
-    {
-        text: 'Copy Link',
-        icon: LinkCopy,
-    },
-
-    // Mark as Unread
-    {
-        text: 'Mark as Unread',
-        icon: Mail,
-    },
-
-    // Edit Comment
-    {
-        text: 'Edit Comment',
-        icon: Pencil,
-    },
-
-    // Delete Comment
-    {
-        text: 'Delete Comment',
-        icon: Trashcan,
-    },
-];
-
 const propTypes = {
     // The ID of the report this report action is attached to.
     // eslint-disable-next-line react/no-unused-prop-types
@@ -59,16 +24,56 @@ const propTypes = {
     isVisible: PropTypes.bool,
 
     // Function to trigger when we try to mark a message as unread
-    onMarkAsUnread: PropTypes.func.isRequired,
+    onMarkAsUnread: PropTypes.func,
 };
 
 const defaultProps = {
     isMini: false,
     isVisible: false,
+    onMarkAsUnread: () => {},
 };
 
 const ReportActionContextMenu = (props) => {
-    const wrapperStyle = getReportActionContextMenuStyles(true);
+    /**
+     * A list of all the context actions in this menu.
+     */
+    const CONTEXT_ACTIONS = [
+        // Copy to clipboard
+        {
+            text: 'Copy to Clipboard',
+            icon: Clipboard,
+            onPress: () => {},
+        },
+
+        // Copy chat link
+        {
+            text: 'Copy Link',
+            icon: LinkCopy,
+            onPress: () => {},
+        },
+
+        // Mark as Unread
+        {
+            text: 'Mark as Unread',
+            icon: Mail,
+            onPress: props.onMarkAsUnread,
+        },
+
+        // Edit Comment
+        {
+            text: 'Edit Comment',
+            icon: Pencil,
+            onPress: () => {},
+        },
+
+        // Delete Comment
+        {
+            text: 'Delete Comment',
+            icon: Trashcan,
+            onPress: () => {},
+        },
+    ];
+    const wrapperStyle = getReportActionContextMenuStyles(props.isMini);
     return props.isVisible && (
         <View style={wrapperStyle}>
             {CONTEXT_ACTIONS.map(contextAction => (
@@ -77,7 +82,7 @@ const ReportActionContextMenu = (props) => {
                     text={contextAction.text}
                     isMini={props.isMini}
                     key={contextAction.text}
-                    onPress={contextAction.text === 'Mark as Unread' ? props.onMarkAsUnread : () => {}}
+                    onPress={contextAction.onPress}
                 />
             ))}
         </View>

@@ -35,8 +35,6 @@ const propTypes = {
 
     // The report currently being looked at
     report: PropTypes.shape({
-        // Number of actions unread
-        unreadActionCount: PropTypes.number,
 
         // Number of the last sequence
         maxSequenceNumber: PropTypes.number,
@@ -54,7 +52,6 @@ const propTypes = {
 
 const defaultProps = {
     report: {
-        unreadActionCount: 0,
         maxSequenceNumber: 0,
     },
     reportActions: {},
@@ -70,7 +67,6 @@ class ReportActionsView extends React.Component {
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
         this.recordMaxAction = this.recordMaxAction.bind(this);
         this.onVisibilityChange = this.onVisibilityChange.bind(this);
-        this.onMarkAsUnread = this.onMarkAsUnread.bind(this);
         this.sortedReportActions = this.updateSortedReportActions();
         this.loadMoreChats = this.loadMoreChats.bind(this);
         this.sortedReportActions = [];
@@ -81,7 +77,6 @@ class ReportActionsView extends React.Component {
         this.shouldShowUnreadActionIndicator = true;
 
         this.state = {
-            unreadActionCount: 0,
             isLoadingMoreChats: false,
         };
     }
@@ -100,10 +95,6 @@ class ReportActionsView extends React.Component {
         }
 
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
-            return true;
-        }
-
-        if (nextState.unreadActionCount !== this.state.unreadActionCount) {
             return true;
         }
 
@@ -159,30 +150,6 @@ class ReportActionsView extends React.Component {
         if (Visibility.isVisible()) {
             this.timers.push(setTimeout(this.recordMaxAction, 3000));
         }
-    }
-
-    onMarkAsUnread(actionIndex) {
-        updateLastReadActionID(this.props.reportID, actionIndex, true);
-        this.setState({
-            unreadActionCount: this.props.report.maxSequenceNumber - actionIndex,
-        });
-    }
-
-    /**
-     * Checks if the unreadActionIndicator should be shown.
-     * If it does, starts a timeout for the fading out animation and creates
-     * a flag to not show it again if the report is still open
-     */
-    setUpUnreadActionIndicator() {
-        if (!this.shouldShowUnreadActionIndicator) {
-            return;
-        }
-
-        this.setState({
-            unreadActionCount: this.props.report.unreadActionCount,
-        });
-
-        this.shouldShowUnreadActionIndicator = false;
     }
 
     /**
@@ -279,7 +246,6 @@ class ReportActionsView extends React.Component {
             .pluck('sequenceNumber')
             .max()
             .value();
-
         updateLastReadActionID(this.props.reportID, maxVisibleSequenceNumber);
     }
 
@@ -341,13 +307,14 @@ class ReportActionsView extends React.Component {
         // the unread indicator on native to render below the message instead of above it.
             <View>
                 <ReportActionItem
+                    index={index}
                     reportID={this.props.reportID}
                     action={item.action}
                     displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
                     onLayout={onLayout}
                     needsLayoutCalculation={needsLayoutCalculation}
-                    onMarkAsUnread={() => this.onMarkAsUnread(item.action.sequenceNumber - 1)}
-                    displayNewIndicator={this.state.unreadActionCount > 0 && index === this.state.unreadActionCount - 1}
+                    onMarkAsUnread={() => updateLastReadActionID(this.props.reportID,
+                        item.action.sequenceNumber - 1, true)}
                 />
             </View>
         );
@@ -368,7 +335,7 @@ class ReportActionsView extends React.Component {
             );
         }
 
-        this.setUpUnreadActionIndicator();
+        this.shouldShowUnreadActionIndicator = false;
         this.updateSortedReportActions();
         return (
             <InvertedFlatList

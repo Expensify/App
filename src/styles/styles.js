@@ -946,7 +946,7 @@ const styles = {
         ...positioning.tn4,
         ...positioning.r4,
         position: 'absolute',
-        zIndex: 999,
+        zIndex: variables.zIndexTop,
     },
 
     reportActionContextMenuText: {
@@ -1041,7 +1041,7 @@ const styles = {
         paddingHorizontal: 20,
         flexDirection: 'row',
         alignItems: 'center',
-        zIndex: 1,
+        zIndex: variables.zIndexMiddle,
     },
 
     unreadIndicatorLine: {

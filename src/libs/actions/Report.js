@@ -204,14 +204,13 @@ function fetchChatReportsByIDs(chatList) {
  *
  * @param {Number} reportID
  * @param {Number} sequenceNumber
- * @param {Number} maxSequenceNumber
  */
-function setLocalLastRead(reportID, sequenceNumber, maxSequenceNumber = 0) {
+function setLocalLastRead(reportID, sequenceNumber) {
     lastReadSequenceNumbers[reportID] = sequenceNumber;
 
     // Update the report optimistically
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-        unreadActionCount: maxSequenceNumber > 0 ? maxSequenceNumber - sequenceNumber : 0,
+        unreadActionCount: Math.max(reportMaxSequenceNumbers[reportID] - sequenceNumber, 0),
         lastVisitedTimestamp: Date.now(),
     });
 }
@@ -664,7 +663,8 @@ function addAction(reportID, text, file) {
  *
  * @param {Number} reportID
  * @param {Number} sequenceNumber
- * @param {Boolean} ignoreOrder
+ * @param {Boolean} ignoreOrder   If set to true, we will not enforce the latest read action to be at the bottom of the
+ *                                chat.
  */
 function updateLastReadActionID(reportID, sequenceNumber, ignoreOrder = false) {
     const currentMaxSequenceNumber = reportMaxSequenceNumbers[reportID];
@@ -672,9 +672,9 @@ function updateLastReadActionID(reportID, sequenceNumber, ignoreOrder = false) {
         return;
     }
 
-    setLocalLastRead(reportID, sequenceNumber, currentMaxSequenceNumber);
+    setLocalLastRead(reportID, sequenceNumber);
 
-    // Mark the report as not having any unread items
+    // Mark the unread items in the report
     API.Report_UpdateLastRead({
         accountID: currentUserAccountID,
         reportID,
