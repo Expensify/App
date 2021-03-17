@@ -11,6 +11,7 @@ jobs:
         runs-on: ubuntu-latest
         # This job only runs for pull request comments or pull request target events (not issue comments)
         # It does not run for pull requests created by OSBotify
+        # TODO: Fix this if so that it doesn't run CLA for pull requests created by OSBotify
         if: ${{ github.event.issue.pull_request || (github.event_name == 'pull_request_target' && github.event.pull_request.user.login != 'OSBotify') }}
         steps:
             # TODO: remove this first run step
