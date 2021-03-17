@@ -9,13 +9,13 @@ export default {
                 initialRouteName: 'Report',
                 screens: {
                     // Report route
-                    Report: `${ROUTES.REPORT}/:reportID`,
+                    Report: ROUTES.REPORT_WITH_ID,
                 },
             },
 
             // Public Routes
             SignIn: ROUTES.SIGNIN,
-            SetPassword: ROUTES.SET_PASSWORD,
+            SetPassword: ROUTES.SET_PASSWORD_WITH_VALIDATE_CODE,
 
             // Modal Screens
             Settings: {
@@ -67,7 +67,7 @@ export default {
             Profile: {
                 initialRouteName: 'Profile_Root',
                 screens: {
-                    Profile_Root: `${ROUTES.PROFILE}/:login`,
+                    Profile_Root: ROUTES.PROFILE_WITH_LOGIN,
                 },
             },
             IOU_Request: {
