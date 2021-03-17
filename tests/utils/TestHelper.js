@@ -71,7 +71,7 @@ function fetchPersonalDetailsForTestUser(accountID, email, personalDetailsList) 
             accountID,
             email,
             personalDetailsList,
-        }))
+        }));
 
     fetchPersonalDetails();
     return waitForPromisesToResolve();
