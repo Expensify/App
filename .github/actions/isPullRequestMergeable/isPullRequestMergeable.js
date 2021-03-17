@@ -2,7 +2,7 @@ const _ = require('underscore');
 const core = require('@actions/core');
 const github = require('@actions/github');
 const {GITHUB_OWNER, EXPENSIFY_CASH_REPO} = require('../../libs/GithubUtils');
-const {promiseWhile} = require('../../libs/promiseWhile');
+const promiseWhile = require('../../libs/promiseWhile');
 
 const run = function () {
     const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
