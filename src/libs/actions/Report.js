@@ -545,7 +545,7 @@ function fetchAll(shouldRedirectToReport = true, shouldRecordHomePageTiming = fa
                 }
 
                 const firstReportID = _.first(reportIDs);
-                const currentReportID = firstReportID ? String(firstReportID) : 0;
+                const currentReportID = firstReportID ? String(firstReportID) : '';
                 Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, currentReportID);
             }
 
