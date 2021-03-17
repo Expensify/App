@@ -17,9 +17,6 @@ const propTypes = {
     // if this is inaccurate.
     initialRowHeight: PropTypes.number.isRequired,
 
-    // The initial item we'll be scrolled to upon rendering
-    startItem: PropTypes.number.isRequired,
-
     // Passed via forwardRef so we can access the FlatList ref
     innerRef: PropTypes.oneOfType([
         PropTypes.func,

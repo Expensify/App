@@ -383,7 +383,6 @@ class ReportActionsView extends React.Component {
                 ListFooterComponent={this.state.isLoadingMoreChats
                     ? <ActivityIndicator size="small" color={themeColors.spinner} />
                     : null}
-                startItem={this.unreadActionCount}
             />
         );
     }

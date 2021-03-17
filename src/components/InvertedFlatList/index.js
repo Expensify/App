@@ -10,7 +10,6 @@ import BaseInvertedFlatList from './BaseInvertedFlatList';
 const propTypes = {
     // Passed via forwardRef so we can access the FlatList ref
     innerRef: PropTypes.func.isRequired,
-    startItem: PropTypes.number.isRequired,
 };
 
 // This is copied from https://codesandbox.io/s/react-native-dsyse
@@ -56,7 +55,6 @@ const InvertedFlatList = (props) => {
             {...props}
             ref={ref}
             shouldMeasureItems
-            startItem={props.startItem}
         />
     );
 };
