@@ -27,7 +27,7 @@ jobs:
             PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
 
         - name: Fail workflow if PR is not mergeable
-          if: ${{ steps.isPullRequestMergeable.outputs.IS_MERGEABLE }}
+          if: ${{ steps.isPullRequestMergeable.outputs.IS_MERGEABLE == 'false' }}
           run: exit 1
 
         # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
