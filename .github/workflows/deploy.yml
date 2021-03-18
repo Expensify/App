@@ -53,7 +53,7 @@ jobs:
       - name: 🚀 Create release to trigger production deploy 🚀
         uses: softprops/action-gh-release@b7e450da2a4b4cb4bfbae528f788167786cfcedf
         with:
-          tag_name: ${{ env.PRODUCTION_VERSION }]
+          tag_name: ${{ env.PRODUCTION_VERSION }}
           body: ${{ steps.getReleaseBody.outputs.RELEASE_BODY }}
 
         env:
