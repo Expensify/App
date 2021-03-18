@@ -23,12 +23,14 @@ function processHTTPRequest(url, method = 'get', body = null) {
  * @param {String} command the name of the API command
  * @param {Object} data parameters for the API command
  * @param {String} type HTTP request type (get/post)
+ * @param {Boolean} [useSecureAPI] Should we call Web-Secure
  * @returns {Promise}
  */
-function xhr(command, data, type = 'post') {
+function xhr(command, data, type = 'post', useSecureAPI = false) {
     const formData = new FormData();
     _.each(data, (val, key) => formData.append(key, val));
-    return processHTTPRequest(`${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=${command}`, type, formData);
+    const apiRoot = useSecureAPI ? CONFIG.EXPENSIFY.URL_SECURE_API_ROOT : CONFIG.EXPENSIFY.URL_API_ROOT;
+    return processHTTPRequest(`${apiRoot}api?command=${command}`, type, formData);
 }
 
 /**

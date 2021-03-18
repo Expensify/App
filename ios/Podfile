@@ -13,6 +13,8 @@ target 'ExpensifyCash' do
     # Pods for testing
   end
 
+  pod 'Plaid', '~> 2.1.0'
+
   # Enables Flipper.
   #
   # Note that if you have use_frameworks! enabled, Flipper will not work and

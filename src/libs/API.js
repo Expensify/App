@@ -631,6 +631,33 @@ function GetIOUReport(parameters) {
     return Network.post(commandName, parameters);
 }
 
+/*
+ * Returns token to use with Onfido
+ * @returns {Promise}
+ */
+function Wallet_GetOnfidoToken() {
+    const commandName = 'Wallet_GetOnfidoToken';
+    return Network.post(commandName, {}, 'post', true);
+}
+
+/**
+ * @param {Object} parameters
+ * @returns {Promise}
+ */
+function Wallet_EnablePayments(parameters) {
+    const commandName = 'Wallet_EnablePayments';
+    requireParameters(['data'], parameters, commandName);
+    return Network.post(commandName, parameters, 'post', true);
+}
+
+/**
+ * @returns {Promise}
+ */
+function Plaid_GetLinkToken() {
+    const commandName = 'Plaid_GetLinkToken';
+    return Network.post(commandName, {}, 'post', true);
+}
+
 export {
     getAuthToken,
     Authenticate,
@@ -660,5 +687,8 @@ export {
     User_GetBetas,
     User_SecondaryLogin_Send,
     User_UploadAvatar,
+    Wallet_GetOnfidoToken,
+    Wallet_EnablePayments,
+    Plaid_GetLinkToken,
     reauthenticate,
 };

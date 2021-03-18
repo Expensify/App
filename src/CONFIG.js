@@ -18,6 +18,7 @@ function wrapWithBackslash(url) {
 // Set default values to contributor friendly values to make development work out of the box without an .env file
 const expensifyCashURL = wrapWithBackslash(lodashGet(Config, 'EXPENSIFY_URL_CASH', 'https://expensify.cash/'));
 const expensifyURL = wrapWithBackslash(lodashGet(Config, 'EXPENSIFY_URL_COM', 'https://www.expensify.com/'));
+const expensifySecureURL = wrapWithBackslash(lodashGet(Config, 'EXPENSIFY_SECURE_URL_COM', 'https://secure.expensify.com/'));
 const ngrokURL = wrapWithBackslash(lodashGet(Config, 'NGROK_URL', ''));
 const useNgrok = lodashGet(Config, 'USE_NGROK', 'false') === 'true';
 const useWebProxy = lodashGet(Config, 'USE_WEB_PROXY', 'true') === 'true';
@@ -36,6 +37,7 @@ export default {
         URL_EXPENSIFY_COM: expensifyURL,
         URL_EXPENSIFY_CASH: expensifyCashURL,
         URL_API_ROOT: expensifyURLRoot,
+        URL_SECURE_API_ROOT: expensifySecureURL,
         PARTNER_NAME: lodashGet(Config, 'EXPENSIFY_PARTNER_NAME', 'chat-expensify-com'),
         PARTNER_PASSWORD: lodashGet(Config, 'EXPENSIFY_PARTNER_PASSWORD', 'e21965746fd75f82bb66'),
     },

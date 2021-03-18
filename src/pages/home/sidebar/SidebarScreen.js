@@ -41,7 +41,9 @@ class SidebarScreen extends Component {
      * Method called when avatar is clicked
      */
     navigateToSettings() {
-        Navigation.navigate(ROUTES.SETTINGS);
+        // Navigation.navigate(ROUTES.SETTINGS);
+        // Navigation.navigate(ROUTES.ENABLE_PAYMENTS);
+        Navigation.navigate(ROUTES.ADD_BANK_ACCOUNT);
     }
 
     /**

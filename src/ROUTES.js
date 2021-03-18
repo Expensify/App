@@ -8,6 +8,8 @@ export default {
     SETTINGS_PREFERENCES: 'settings/preferences',
     SETTINGS_PASSWORD: 'settings/password',
     SETTINGS_PAYMENTS: 'settings/payments',
+    ENABLE_PAYMENTS: 'enable-payments',
+    ADD_BANK_ACCOUNT: 'add-bank-account',
     NEW_GROUP: 'new/group',
     NEW_CHAT: 'new/chat',
     REPORT: 'r',

@@ -43,6 +43,8 @@ export default {
                     },
                 },
             },
+            EnablePayments: ROUTES.ENABLE_PAYMENTS,
+            AddBankAccount: ROUTES.ADD_BANK_ACCOUNT,
             NewGroup: {
                 path: ROUTES.NEW_GROUP,
                 initialRouteName: 'NewGroup_Root',

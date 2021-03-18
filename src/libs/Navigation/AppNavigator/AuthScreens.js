@@ -26,6 +26,8 @@ import Navigation from '../Navigation';
 import * as User from '../../actions/User';
 import NameValuePair from '../../actions/NameValuePair';
 
+import EnablePaymentsPage from '../../../pages/EnablePayments/EnablePaymentsPage';
+
 // Main drawer navigator
 import MainDrawerNavigator from './MainDrawerNavigator';
 
@@ -39,6 +41,7 @@ import {
     NewChatModalStackNavigator,
     SettingsModalStackNavigator,
 } from './ModalStackNavigators';
+import AddBankAccountPage from '../../../pages/AddBankAccount/AddBankAccountPage';
 
 const RootStack = createStackNavigator();
 
@@ -130,6 +133,21 @@ class AuthScreens extends React.Component {
                         title: 'Expensify.cash',
                     }}
                     component={MainDrawerNavigator}
+                />
+
+                <RootStack.Screen
+                    name="EnablePayments"
+                    options={{
+                        headerShown: false,
+                    }}
+                    component={EnablePaymentsPage}
+                />
+                <RootStack.Screen
+                    name="AddBankAccount"
+                    options={{
+                        headerShown: false,
+                    }}
+                    component={AddBankAccountPage}
                 />
 
                 {/* These are the various modal routes */}

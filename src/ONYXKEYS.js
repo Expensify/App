@@ -64,4 +64,7 @@ export default {
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
         REPORT_IOUS: 'reportIOUs_',
     },
+
+    PERSONAL_BANK_ACCOUNTS: 'personalBankAccounts',
+    USER_WALLET: 'userWallet',
 };
