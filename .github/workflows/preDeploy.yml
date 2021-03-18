@@ -107,10 +107,10 @@ jobs:
           body: Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}
           labels: automerge
 
-      #TODO: Once we add cherry picking, we will need run this from elsewhere
       - name: Tag version
         run: git tag ${{ steps.bumpVersion.outputs.NEW_VERSION }}
 
+      #TODO: Once we add cherry picking, we will need run this from elsewhere
       - name: 🚀 Push tags to trigger staging deploy 🚀
         run: git push --tags
 
