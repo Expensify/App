@@ -214,7 +214,7 @@ function setPassword(email, password, validateCode) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', loading: true});
 
     API.SetPassword({
-        credentials.login || email,
+        email: email || credentials.login,
         password,
         validateCode,
     })
